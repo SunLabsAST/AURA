@@ -1,16 +1,4 @@
 This is the Aura Mercurial repository.
 
-Some modules of interest:
-
-NetflixScaleTest
-
-
-Added in 'anotherTest'
-
-
-Added in an original repository
-
-Another addition in 'anotherTest'
-
-
-Here's a new last line
+doc - high level documentation
+poc - proof of concept softare
