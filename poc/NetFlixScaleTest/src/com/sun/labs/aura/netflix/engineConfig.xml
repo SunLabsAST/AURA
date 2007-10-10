@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+   Document   : engineConfig.xml
+   Created on : February 23, 2007
+   Author     : plamere
+   Description:
+       Configuration for the MusicDatabase search engine.
+-->
+
+
+<config>
+    
+    <!-- A pipeline factory that lowercases things.  This requires a memory
+    partition that doesn't use cased entries! -->
+    <component name="uncased_pipeline_factory" type="ngnova.pipeline.PipelineFactory">
+        <!-- The stages in the main indexing pipeline -->
+        <propertylist name="stages">
+            <item>universal_tokenizer</item>
+            <item>lower_case</item>
+            <item>uncased_memory_partition</item>
+        </propertylist>
+        
+        <!-- The stages in the highlighting pipeline -->
+        <propertylist name="hl_stages">
+            <item>universal_tokenizer_with_punct</item>
+            <item>highlight_stage</item>
+        </propertylist>
+        <property name="dumper" value="sync_dumper"/>
+    </component>
+    
+    <!-- A factory for fielded document dictionaries. -->
+    <component name="dockey_dict_factory" type="ngnova.indexer.dictionary.DictionaryFactory">
+        <property name="entry_class_name" value="ngnova.indexer.entry.FieldedDocKeyEntry"/>
+    </component>
+    
+    <!-- A search engine that can be used to do classification -->
+    <component name="music_search_engine" inherit="search_engine">
+        <property name="inv_file_partition_manager" value="uncased_partition_manager"/>
+        <property name="pipeline_factory" value="uncased_pipeline_factory"/>
+        <property name="dumper" value="sync_dumper"/>
+    </component> 
+    
+    
+    <!-- The index configuration -->
+    <component name="index_config" type="com.sun.kt.search.IndexConfig">
+        <property name="index_directory" value="${index_directory}"/>
+        <property name="default_field_info" value="default_field_info"/>
+        <propertylist name="field_info">
+            <item>common.id</item>
+            <item>common.name</item>
+            <item>common.type</item>
+            
+            <item>movie.users</item>
+            <item>movie.users.popularity</item>
+        </propertylist>
+    </component>
+    
+
+    <component name="default_field_info" type="com.sun.kt.search.FieldInfo">
+        <property name="indexed" value="true"/>
+        <property name="tokenized" value="false"/>
+        <property name="vectored" value="false"/>
+        <property name="saved" value="false"/>
+    </component>
+
+    <component name="common.id" type="com.sun.kt.search.FieldInfo">
+        <property name="type" value="string"/>
+        <property name="indexed" value="true"/>
+        <property name="tokenized" value="false"/>
+        <property name="vectored" value="false"/>
+        <property name="saved" value="true"/>
+    </component>
+    
+    <component name="common.name" type="com.sun.kt.search.FieldInfo">
+        <property name="type" value="string"/>
+        <property name="indexed" value="true"/>
+        <property name="tokenized" value="true"/>
+        <property name="vectored" value="true"/>
+        <property name="saved" value="true"/>
+    </component>
+    
+    <component name="common.type" type="com.sun.kt.search.FieldInfo">
+        <property name="type" value="string"/>
+        <property name="indexed" value="true"/>
+        <property name="tokenized" value="true"/>
+        <property name="vectored" value="true"/>
+        <property name="saved" value="true"/>
+    </component>
+    
+    <component name="movie.users.popularity" type="com.sun.kt.search.FieldInfo">
+        <property name="type" value="float"/>
+        <property name="indexed" value="false"/>
+        <property name="tokenized" value="false"/>
+        <property name="vectored" value="false"/>
+        <property name="saved" value="true"/>
+    </component>
+    
+    <component name="movie.users" type="com.sun.kt.search.FieldInfo">
+        <property name="indexed" value="true"/>
+        <property name="tokenized" value="true"/>
+        <property name="vectored" value="true"/>
+        <property name="saved" value="false"/>
+    </component>
+    
+</config> 
