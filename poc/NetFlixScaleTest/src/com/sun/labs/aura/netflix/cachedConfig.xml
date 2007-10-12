@@ -31,6 +31,13 @@
         <property name="dumper" value="${dumper}"/>
     </component>
     
+   <!-- A partition manager for inverted file partitions that don't use cased
+    entries -->
+    <component name="uncased_partition_manager" inherit="partition_manager">
+        <property name="partition_factory" value="uncased_partition_factory"/>
+        <property name="termstats_dict_factory" value="cached_termstats_dictionary_factory"/>
+    </component>
+    
     <!-- A factory for fielded document dictionaries. -->
     <component name="dockey_dict_factory" type="ngnova.indexer.dictionary.DictionaryFactory">
         <property name="entry_class_name" value="ngnova.indexer.entry.FieldedDocKeyEntry"/>

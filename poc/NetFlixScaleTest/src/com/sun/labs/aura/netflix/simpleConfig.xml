@@ -11,7 +11,7 @@
 
 <config>
     
-    <property name="dumper" value="async_dumper"/>
+    <property name="dumper" value="sync_dumper"/>
 
     <!-- A pipeline factory that lowercases things.  This requires a memory
     partition that doesn't use cased entries! -->
@@ -20,7 +20,7 @@
         <propertylist name="stages">
             <item>universal_tokenizer</item>
             <item>lower_case</item>
-            <item>uncased_memory_partition</item>
+            <item>simple_memory_partition</item>
         </propertylist>
         
         <!-- The stages in the highlighting pipeline -->
@@ -38,7 +38,7 @@
     
     <!-- A search engine that can be used to do classification -->
     <component name="music_search_engine" inherit="search_engine">
-        <property name="inv_file_partition_manager" value="uncased_partition_manager"/>
+        <property name="inv_file_partition_manager" value="simple_partition_manager"/>
         <property name="pipeline_factory" value="uncased_pipeline_factory"/>
         <property name="dumper" value="${dumper}"/>
     </component> 
