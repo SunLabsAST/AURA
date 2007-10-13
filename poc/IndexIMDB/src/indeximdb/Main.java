@@ -104,7 +104,9 @@ public class Main {
         // Set up the field(s) that we'll store
         
         FieldInfo title = new FieldInfo("title",
-                EnumSet.of(FieldInfo.Attribute.SAVED),
+                EnumSet.of(FieldInfo.Attribute.SAVED,
+                           FieldInfo.Attribute.INDEXED,
+                           FieldInfo.Attribute.TOKENIZED),
                 FieldInfo.Type.STRING);
         engine.defineField(title);
 

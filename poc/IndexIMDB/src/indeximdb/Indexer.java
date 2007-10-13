@@ -14,6 +14,7 @@ import com.sun.kt.search.SimpleIndexer;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.DecimalFormat;
 import ngnova.util.StopWatch;
 
 /**
@@ -24,6 +25,8 @@ public class Indexer {
     private SearchEngine engine;
     
     private Connection dbCon;
+    
+    protected static DecimalFormat form = new DecimalFormat("########0.00");
     
     public Indexer(SearchEngine e,
                    Connection dbCon) {
@@ -78,7 +81,8 @@ public class Indexer {
                     totalTitles += numTitles;
                     float tps = (numTitles / (sw.getTime() * (float)1000));
                     System.out.println("Processed " + totalTitles + " titles; "
-                            + "Current speed: " + tps + " titles/sec");
+                            + "Current speed: " + form.format(tps)
+                            + " titles/sec");
                     numTitles = 0;
                     sw.reset();
                     sw.start();
