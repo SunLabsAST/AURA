@@ -12,6 +12,7 @@ package com.sun.labs.aura.aardvark.store;
 import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.Item;
 import com.sun.labs.aura.aardvark.util.AuraException;
+import edu.cmu.sphinx.util.props.Configurable;
 import java.util.List;
 
 /**
@@ -22,7 +23,7 @@ import java.util.List;
  * 
  * @author ja151348
  */
-public interface ItemStore {
+public interface ItemStore extends Configurable {
     
     /**
      * Creates an Item of the specified type with the given string as its key.
