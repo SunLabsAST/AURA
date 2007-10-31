@@ -1,15 +1,9 @@
 resultDir=~/fooTest
 rootDir=$PWD
 date="`date`"
-
-
-#### count all of the files
 fileCount=`find . -name .hg -prune -o -type f  | wc -l`
-#### count all of the java files
 javaFileCount=`find $rootDir -name "*.java" | wc -l`
-#### count all of the classes
 classCount=`find $rootDir -name "*.java" | xargs grep class | wc -l`
-#### count all of the lines of code
 lineCount=`find $rootDir -name "*.java" | xargs egrep "[{;]" | wc -l`
 
 mkdir -p $resultDir
@@ -17,6 +11,7 @@ cd aardvark
 
 if ant  > $resultDir/antoutput.txt
 then
+   echo BUILD OK
 else 
    echo BUILD FAILED
    echo mailx -s "Aura Nightly Build Failure $recipients"  $resultDir/antoutput.txt
