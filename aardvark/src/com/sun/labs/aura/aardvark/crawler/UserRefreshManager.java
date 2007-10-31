@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.sun.labs.aura.aardvark.crawler;
 
 import com.sun.labs.aura.aardvark.store.ItemStore;
@@ -10,29 +9,69 @@ import com.sun.labs.aura.aardvark.store.item.Item;
 import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
+import edu.cmu.sphinx.util.props.Configurable;
+import edu.cmu.sphinx.util.props.PropertyException;
+import edu.cmu.sphinx.util.props.PropertySheet;
+import edu.cmu.sphinx.util.props.S4Component;
+import edu.cmu.sphinx.util.props.S4Double;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * This component is a source of users that need to be refreshed.
+ * This component is a source of users that need to be refreshed.  This 
+ * component is designed to work in multi-threaded environments when there is
+ * a single UserRefreshManager.
+ *
  * @author plamere
  */
-class UserRefreshManager {
+class UserRefreshManager implements Configurable {
+
+    /**
+     * the configurable property for the itemstore used by this manager
+     */
+    @S4Component(type = ItemStore.class)
+    public final static String PROP_ITEM_STORE = "itemStore";
+
+    /**
+     * the configurable property for the minimum time in milliesconds between user refreshes
+     */
+    @S4Double(defaultValue = 15 * 60 * 1000.0, range = {0, 24 * 60 * 60 * 1000.0})
+    public final static String PROP_USER_REFRESH_TIME = "userRefreshTime";
+
     private ItemStore itemStore;
     private UserMonitor monitor;
+
     private Map<Long, User> allUsers = new HashMap<Long, User>();
+    private Set<User> outstandingUsers = new HashSet<User>();
+    private volatile User nextUserToRefresh = null;
+
     private long delayBetweenUserRefreshes = 15 * 60 * 1000L;
-    private User nextUserToRefresh = null;
 
     /**
      * Creates a UserRefreshManager
      */
     public UserRefreshManager() {
+    }
+
+    public synchronized void newProperties(PropertySheet ps) throws PropertyException {
+        itemStore = (ItemStore) ps.getComponent(PROP_ITEM_STORE);
+        delayBetweenUserRefreshes = (long) ps.getDouble(PROP_USER_REFRESH_TIME);
+
+        allUsers.clear();
+        outstandingUsers.clear();
+
+        // Get all users from the item store and add them to our list of
+        // all users
+
         List<User> users = itemStore.getAll(User.class);
         for (User user : users) {
             allUsers.put(user.getID(), user);
         }
+
+        // Add a user monitor to keep the all user list fresh and up to date
         monitor = new UserMonitor();
         itemStore.addItemListener(User.class, monitor);
     }
@@ -40,14 +79,15 @@ class UserRefreshManager {
     /**
      * Gets the next user that should be refreshed.  This method blocks until any user in the 
      * itemstore needs to be refreshed.  A user needs to be refreshed when the current time is later
-     * than the time of a user's last refresh plus the delay between refreshes.
+     * than the time of a user's last refresh plus the delay between refreshes.  The returned
+     * user must be released after it has been processed.
      * 
      * @return the user to be refreshed (or null if the component has been shutdown)
      * @throws java.lang.InterruptedException if the thread has been interrupted
      * @throws com.sun.labs.aura.aardvark.util.AuraException if an error occurs while 
      *      updating the item store.
      */
-    public synchronized User getNextUserForRefresh() throws InterruptedException, AuraException  {
+    public synchronized User getNextUserForRefresh() throws InterruptedException, AuraException {
         User user = null;
 
         while (monitor != null && user == null) {
@@ -58,14 +98,43 @@ class UserRefreshManager {
 
             wait(delay);
 
-            if (getDelayUntilRefresh(nextUserToRefresh) <= 0L) {
+            if (!isOutstanding(nextUserToRefresh) && getDelayUntilRefresh(nextUserToRefresh) <= 0L) {
                 user = nextUserToRefresh;
-                user.setLastFetchTime(System.currentTimeMillis());
+                setOutstanding(user);
                 nextUserToRefresh = null;
-                itemStore.put(user);
             }
         }
         return user;
+    }
+
+    /**
+     * Release the user making it available once again to be refreshed
+     * @param user a previously retrieved user
+     * @throws IllegalArgumentException if the user was not outstanding
+     */
+    public synchronized void release(User user) {
+        if (isOutstanding(user)) {
+            outstandingUsers.remove(user);
+        } else {
+            throw new IllegalArgumentException("unexpected release of " + user);
+        }
+    }
+
+    /**
+     * Determines if a user has been retrieved, but not yet released
+     * @param user the user of interest
+     * @return true if the user is outstanding
+     */
+    private boolean isOutstanding(User user) {
+        return user != null && outstandingUsers.contains(user);
+    }
+
+    /**
+     *  Sets the outstanding state of the user
+     * @param user the user of interest
+     */
+    private void setOutstanding(User user) {
+        outstandingUsers.add(user);
     }
 
 
@@ -82,7 +151,7 @@ class UserRefreshManager {
         }
         return nUser;
     }
-    
+
     /**
      * Gets the delay in milliseconds until the given user needs to be refreshed
      * @param user the user of interest
@@ -92,8 +161,7 @@ class UserRefreshManager {
         if (user == null) {
             return Long.MAX_VALUE;
         } else {
-            return (user.getLastFetchTime() + delayBetweenUserRefreshes) 
-                    - System.currentTimeMillis();
+            return (user.getLastFetchTime() + delayBetweenUserRefreshes) - System.currentTimeMillis();
         }
     }
 
@@ -107,13 +175,14 @@ class UserRefreshManager {
         }
     }
 
-
     /**
      * Manages a user changed notification from the ItemStore
      * @param user the user that has changed
      */
-    private synchronized void updateUser(User user) {
-        allUsers.put(user.getID(), user);
+    private synchronized void updateUsers(User[] users) {
+        for (User user : users) {
+            allUsers.put(user.getID(), user);
+        }
         nextUserToRefresh = null;
         notifyAll();
     }
@@ -122,8 +191,10 @@ class UserRefreshManager {
      * Manages a user deleted notification from the ItemStore
      * @param user the user that has changed
      */
-    private synchronized void clearUser(User user) {
-        allUsers.remove(user.getID());
+    private synchronized void clearUsers(User[] users) {
+        for (User user : users) {
+            allUsers.remove(user.getID());
+        }
         nextUserToRefresh = null;
         notifyAll();
     }
@@ -135,21 +206,15 @@ class UserRefreshManager {
     private class UserMonitor implements ItemListener {
 
         public void itemCreated(Item[] items) {
-            for (Item item : items) {
-                updateUser((User) item);
-            }
+            updateUsers((User[]) items);
         }
 
         public void itemChanged(Item[] items) {
-            for (Item item : items) {
-                updateUser((User) item);
-            }
+            updateUsers((User[]) items);
         }
 
         public void itemDeleted(Item[] items) {
-            for (Item item : items) {
-                clearUser((User) item);
-            }
+            clearUsers((User[]) items);
         }
     }
 }

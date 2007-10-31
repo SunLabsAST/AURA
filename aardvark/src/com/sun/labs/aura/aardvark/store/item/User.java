@@ -46,4 +46,5 @@ public interface User extends Item {
      *         Java epoch (Jan 1, 1970 
      */
     public void setLastFetchTime(long lastFetchTime);
+
 }
