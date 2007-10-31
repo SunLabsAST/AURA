@@ -1,6 +1,8 @@
+JUNIT=bin/junit-4.1.jar
 resultDir=~/fooTest
 rootDir=$PWD
 date="`date`"
+CLASSPATH=$JUNIT
 fileCount=`find . -name .hg -prune -o -type f  | wc -l`
 javaFileCount=`find $rootDir -name "*.java" | wc -l`
 classCount=`find $rootDir -name "*.java" | xargs grep class | wc -l`
