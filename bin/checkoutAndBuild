@@ -1,0 +1,9 @@
+workArea=/lab/mir/aura/
+buildArea=nightlyBuild
+repository=http://beta.network.org/hg/aura~mercurial
+cd $workArea
+hg clone $repository $buildArea
+cd $buildArea
+sh bin/nightlyBuild
+cd ..
+rm $nightlyBuild

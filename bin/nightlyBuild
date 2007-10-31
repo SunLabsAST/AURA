@@ -1,0 +1,45 @@
+resultDir=~/fooTest
+rootDir=$PWD
+date="`date`"
+
+
+#### count all of the files
+fileCount=`find . -name .hg -prune -o -type f  | wc -l`
+#### count all of the java files
+javaFileCount=`find $rootDir -name "*.java" | wc -l`
+#### count all of the classes
+classCount=`find $rootDir -name "*.java" | xargs grep class | wc -l`
+#### count all of the lines of code
+lineCount=`find $rootDir -name "*.java" | xargs egrep "[{;]" | wc -l`
+
+mkdir -p $resultDir
+cd aardvark
+
+if ant  > $resultDir/antoutput.txt
+then
+else 
+   echo BUILD FAILED
+   echo mailx -s "Aura Nightly Build Failure $recipients"  $resultDir/antoutput.txt
+fi
+
+cp -r dist/javadoc $resultDir
+cp -r build/test/results $resultDir
+
+cat > $resultDir/index.html  << xxxEOFxxx
+<body>
+<h1> Results for Aura Nightly Build </h1>
+<table border="1">
+    <tr><th colspan=2> Project Statistics
+    <tr><th>Build:<td> $date 
+    <tr><th>Files:<td>$fileCount
+    <tr><th>Source Files:<td>$javaFileCount
+    <tr><th>Classes:<td>$classCount
+    <tr><th>Source Lines:<td>$lineCount
+</table>
+<ul>
+    <li> <a href="antoutput.txt">Ant output</a> </li>
+    <li> <a href="results/index.html">Junit tests</a> </li>
+    <li> <a href="javadoc/index.html">Javadoc</a> </li>
+</ul>
+</body>
+xxxEOFxxx

@@ -210,6 +210,12 @@ is divided into following sections:
                     <formatter type="xml"/>
                     <jvmarg line="${run.jvmargs}"/>
                 </junit>
+                 <junitreport todir="${build.test.results.dir}">
+                      <fileset dir="${build.test.results.dir}">
+                            <include name="TEST-*.xml" />
+                       </fileset>
+                    <report todir="${build.test.results.dir}" />
+               </junitreport>
             </sequential>
         </macrodef>
     </target>
