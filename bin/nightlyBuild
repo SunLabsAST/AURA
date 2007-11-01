@@ -1,6 +1,7 @@
-JUNIT=bin/junit-4.1.jar
-resultDir=~/fooTest
 rootDir=$PWD
+JUNIT=$rootDir/bin/lib/ant-junit.jar:$rootDir/bin/lib/junit-4.1.jar
+echo $JUNIT
+resultDir=~/fooTest
 date="`date`"
 CLASSPATH=$JUNIT
 fileCount=`find . -name .hg -prune -o -type f  | wc -l`

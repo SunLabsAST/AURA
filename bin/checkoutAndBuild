@@ -1,10 +1,12 @@
 workArea=/lab/mir/aura/
 buildArea=nightlyBuild
-#repository=http://beta.network.org/hg/aura~mercurial
-repository=/home/plamere/work/aura~mercurial
+repository=http://beta.network.org/hg/aura~mercurial
 cd $workArea
 hg clone $repository $buildArea
 cd $buildArea
+mkdir -p aardvark/nbproject/private
+cp bin/nightly-build-support/private.properties  aardvark/nbproject/private 
+cp nightly-build-support/search.east.build.properties /tmp
 sh bin/nightlyBuild
 cd ..
 pwd

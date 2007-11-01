@@ -1,0 +1,85 @@
+
+-pre-init:
+
+-init-private:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+
+-init-macrodef-junit:
+
+-init-macrodef-nbjpda:
+
+-init-debug-args:
+
+-init-macrodef-debug:
+
+-init-macrodef-java:
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+
+-pre-pre-compile:
+    [mkdir] Created dir: /home/plamere/work/aura-FeedCrawler/aardvark/build/classes
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+    [javac] Compiling 12 source files to /home/plamere/work/aura-FeedCrawler/aardvark/build/classes
+
+-post-compile:
+
+compile:
+
+-pre-pre-compile-test:
+    [mkdir] Created dir: /home/plamere/work/aura-FeedCrawler/aardvark/build/test/classes
+
+-pre-compile-test:
+
+-compile-test-depend:
+
+-do-compile-test:
+    [javac] Compiling 1 source file to /home/plamere/work/aura-FeedCrawler/aardvark/build/test/classes
+
+-post-compile-test:
+
+compile-test:
+
+-pre-test-run:
+    [mkdir] Created dir: /home/plamere/work/aura-FeedCrawler/aardvark/build/test/results
+
+-do-test-run:
+
+BUILD FAILED
+/home/plamere/work/aura-FeedCrawler/aardvark/nbproject/build-impl.xml:536: The following error occurred while executing this line:
+/home/plamere/work/aura-FeedCrawler/aardvark/nbproject/build-impl.xml:196: Problem: failed to create task or type junit
+Cause: the class org.apache.tools.ant.taskdefs.optional.junit.JUnitTask was not found.
+        This looks like one of Ant's optional components.
+Action: Check that the appropriate optional JAR exists in
+        -/home/plamere/tools/ant/lib
+        -/home/plamere/.ant/lib
+        -a directory added on the command line with the -lib argument
+
+Do not panic, this is a common problem.
+The commonest cause is a missing JAR.
+
+This is not a bug; it is a configuration problem
+
+
+Total time: 2 seconds
