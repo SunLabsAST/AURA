@@ -3,7 +3,11 @@ JAVA_HOME=/usr/java
 export JAVA_HOME
 ANT_HOME=/usr/local/ant
 export ANT_HOME
-PATH=$ANT_HOME/bin:$JAVA_HOME/bin:/usr/local/bin:/usr/bin
+
+FINDBUGS_HOME=/usr/local/findbugs
+export FINDBUGS_HOME
+
+PATH=$FINDBUGS_HOME/bin:$ANT_HOME/bin:$JAVA_HOME/bin:/usr/local/bin:/usr/bin
 export PATH
 
 workArea=/lab/mir/aura/
