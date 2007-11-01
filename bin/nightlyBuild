@@ -1,9 +1,9 @@
-rootDir=$PWD
-JUNIT=$rootDir/bin/lib/ant-junit.jar:$rootDir/bin/lib/junit-4.1.jar
-echo $JUNIT
 resultDir=~/fooTest
+recipients=Paul.Lamere@sun.com
+
+rootDir=$PWD
 date="`date`"
-CLASSPATH=$JUNIT
+
 fileCount=`find . -name .hg -prune -o -type f  | wc -l`
 javaFileCount=`find $rootDir -name "*.java" | wc -l`
 classCount=`find $rootDir -name "*.java" | xargs grep class | wc -l`
@@ -12,14 +12,15 @@ lineCount=`find $rootDir -name "*.java" | xargs egrep "[{;]" | wc -l`
 mkdir -p $resultDir
 cd aardvark
 
-if ant  -lib $rootDir/bin/lib > $resultDir/antoutput.txt
+if ant  > antoutput.txt
 then
    echo BUILD OK
 else 
    echo BUILD FAILED
-   echo mailx -s "Aura Nightly Build Failure $recipients"  $resultDir/antoutput.txt
+   echo mailx -s \"Aura Nightly Build Failure $recipients\"  $resultDir/antoutput.txt
 fi
 
+cp -r antoutput.txt $resultDir
 cp -r dist/javadoc $resultDir
 cp -r build/test/results $resultDir
 
