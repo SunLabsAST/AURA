@@ -210,7 +210,15 @@ public class MemoryItemStore implements ItemStore {
 
     public <T extends Item> List<T> getAll(Class<T> itemType) {
         List<T> ret = new ArrayList();
-        ret.addAll(typeToItems.get(itemType));
+        Class typeInList = null;
+        for (Class c : typeToItems.keySet()) {
+            if (itemType.isAssignableFrom(c)) {
+                typeInList = c;
+            }
+        }
+        if (typeInList != null) {
+            ret.addAll(typeToItems.get(typeInList));
+        }
         return ret;
     }
 

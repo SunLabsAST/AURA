@@ -133,6 +133,9 @@ public class ItemStoreTest {
         e = (Entry)mis.get("steves-blog-post1");
         assertTrue("Steve blog entry got munged",
                    e.getContent().equals("search is awesome!"));
+        
+        List<Entry> l = mis.getAll(Entry.class);
+        assertTrue(l.size() == 2);
     }
     
     /**
