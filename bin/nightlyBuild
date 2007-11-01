@@ -2,6 +2,7 @@ resultDir=/home/plamere/public_html/AuraNightlyBuildResults
 link=http://sunlabs.east/~plamere/AuraNightlyBuildResults
 #recipients=Paul.Lamere@sun.com
 recipients=auratech@sun.com
+buildMeister=Paul.Lamere@sun.com
 date="`date`"
 
 fileCount=`find . -name .hg -prune -o -type f  | wc -l`
@@ -17,6 +18,7 @@ cd aardvark
 if ant  > antoutput.txt 2>&1
 then
    echo BUILD OK >> antoutput.txt
+   mailx -s "Aura Build OK" $buildMeister  < antoutput.txt
    buildStatus=OK
 else 
    echo "Results at  $link" >> antoutput.txt
