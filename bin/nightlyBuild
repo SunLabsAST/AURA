@@ -1,28 +1,41 @@
-resultDir=~/fooTest
-recipients=Paul.Lamere@sun.com
-
-rootDir=$PWD
+resultDir=/home/plamere/public_html/AuraNightlyBuildResults
+link=http://sunlabs.east/~plamere/AuraNightlyBuildResults
+#recipients=Paul.Lamere@sun.com
+recipients=auratech@sun.com
 date="`date`"
 
 fileCount=`find . -name .hg -prune -o -type f  | wc -l`
-javaFileCount=`find $rootDir -name "*.java" | wc -l`
-classCount=`find $rootDir -name "*.java" | xargs grep class | wc -l`
-lineCount=`find $rootDir -name "*.java" | xargs egrep "[{;]" | wc -l`
+javaFileCount=`find . -name "*.java" | wc -l`
+classCount=`find . -name "*.java" | xargs grep class | wc -l`
+lineCount=`find .  -name "*.java" | xargs egrep "[{;]" | wc -l`
 
+rm -rf $resultDir
 mkdir -p $resultDir
 cd aardvark
 
-if ant  > antoutput.txt
+if ant  > antoutput.txt 2>&1
 then
-   echo BUILD OK
+   echo BUILD OK >> antoutput.txt
 else 
-   echo BUILD FAILED
-   echo mailx -s \"Aura Nightly Build Failure\" $recipients  antoutput.txt
+   echo "Results at  $link" >> antoutput.txt
+   echo BUILD FAILED >> antoutput.txt
+   mailx -s "Aura Nightly Build Failure" $recipients  < antoutput.txt
 fi
 
-cp -r antoutput.txt $resultDir
+if test -f antoutput.txt
+then
+    cp -r antoutput.txt $resultDir
+fi
+
+if test -d dist/javadoc
+then
 cp -r dist/javadoc $resultDir
+fi
+
+if test -d build/test/results
+then
 cp -r build/test/results $resultDir
+fi
 
 cat > $resultDir/index.html  << xxxEOFxxx
 <body>
