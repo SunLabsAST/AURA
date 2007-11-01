@@ -17,7 +17,7 @@ then
    echo BUILD OK
 else 
    echo BUILD FAILED
-   echo mailx -s \"Aura Nightly Build Failure $recipients\"  $resultDir/antoutput.txt
+   echo mailx -s \"Aura Nightly Build Failure\" $recipients  antoutput.txt
 fi
 
 cp -r antoutput.txt $resultDir

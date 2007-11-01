@@ -43,7 +43,7 @@ public class UserRefreshManagerTest {
         assertTrue("Testing Junit, this should pass", true);
     }
 
-//    @Test public void ifAtFirstYouDontSucceedYouFail() {
-//        assertTrue("Testing Junit, this should fail", false);
-//    }
+    @Test public void ifAtFirstYouDontSucceedYouFail() {
+        assertTrue("Testing Junit, this should fail", false);
+    }
 }
