@@ -12,7 +12,7 @@ lineCount=`find $rootDir -name "*.java" | xargs egrep "[{;]" | wc -l`
 mkdir -p $resultDir
 cd aardvark
 
-if ant  > $resultDir/antoutput.txt
+if ant  -lib $rootDir/bin/lib > $resultDir/antoutput.txt
 then
    echo BUILD OK
 else 
