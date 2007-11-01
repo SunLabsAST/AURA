@@ -1,0 +1,20 @@
+<Project filename="&lt;&lt;unnamed project&gt;&gt;" projectName="aardvark">
+  <Jar>build/classes</Jar>
+  <AuxClasspathEntry>lib/ant.jar</AuxClasspathEntry>
+  <AuxClasspathEntry>lib/jaxen-core.jar</AuxClasspathEntry>
+  <AuxClasspathEntry>lib/jaxen-jdom.jar</AuxClasspathEntry>
+  <AuxClasspathEntry>lib/jdom.jar</AuxClasspathEntry>
+  <AuxClasspathEntry>lib/ktsearch.jar</AuxClasspathEntry>
+  <AuxClasspathEntry>lib/LabsUtil.jar</AuxClasspathEntry>
+  <AuxClasspathEntry>lib/rome-0.9.jar</AuxClasspathEntry>
+  <AuxClasspathEntry>lib/rome-fetcher-0.9.jar</AuxClasspathEntry>
+  <AuxClasspathEntry>lib/saxpath.jar</AuxClasspathEntry>
+  <AuxClasspathEntry>lib/xalan.jar</AuxClasspathEntry>
+  <AuxClasspathEntry>lib/xerces.jar</AuxClasspathEntry>
+  <AuxClasspathEntry>lib/xml-apis.jar</AuxClasspathEntry>
+  <SrcDir>src</SrcDir>
+  <SrcDir>test</SrcDir>
+  <SuppressionFilter>
+    <LastVersion value="-1" relOp="NEQ"/>
+  </SuppressionFilter>
+</Project>
