@@ -35,14 +35,7 @@ public interface Item {
      * @return the Item's key
      */
     public String getKey();
-    
-    /**
-     * Gets the well defined specific type of this Item.
-     * 
-     * @return a string uniquely identifying the Item's type
-     */
-    public String getType();
-
+        
     /**
      * Gets the value of the specified field from the Item.
      * 

@@ -1,3 +1,4 @@
+
 /*
  * Entry.java
  * 
@@ -22,4 +23,11 @@ public interface Entry extends Item {
      * @return the content of the entry
      */
     public String getContent();
+    
+    /**
+     * Set the content of this Entry
+     * 
+     * @param content the content of the entry
+     */
+    public void setContent(String content);
 }
