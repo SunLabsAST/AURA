@@ -1,11 +1,13 @@
-
 # This script executes the Aura nightly build
+JAVA_HOME=/usr/java
+ANT_HOME=/usr/local/ant
+PATH=$ANT_HOME/bin:$JAVA_HOME/bin:/usr/local/bin:/usr/bin
 
 workArea=/lab/mir/aura/
 buildArea=nightlyBuild
 repository=http://beta.network.org/hg/aura~mercurial
 cd $workArea
 rm -rf $buildArea
-hg clone $repository $buildArea
+hg -q clone $repository $buildArea
 cd $buildArea
 sh bin/nightlyBuild
