@@ -140,15 +140,15 @@ public class ItemStoreTest {
      */
     class MyListener implements ItemListener {
         public MyListener() {};
-        public void itemCreated(Item[] items) {
+        public void itemCreated(ItemEvent e) {
             gotCreated = true;
         }
 
-        public void itemChanged(Item[] items) {
+        public void itemChanged(ItemEvent e) {
             gotChanged = true;
         }
 
-        public void itemDeleted(Item[] items) {
+        public void itemDeleted(ItemEvent e) {
             throw new UnsupportedOperationException("Not supported yet.");
         }
     }

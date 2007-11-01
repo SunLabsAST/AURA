@@ -6,6 +6,7 @@ package com.sun.labs.aura.aardvark.crawler;
 
 import com.sun.labs.aura.aardvark.store.ItemStore;
 import com.sun.labs.aura.aardvark.store.item.Item;
+import com.sun.labs.aura.aardvark.store.item.ItemEvent;
 import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
@@ -205,16 +206,16 @@ class UserRefreshManager implements Configurable {
      */
     private class UserMonitor implements ItemListener {
 
-        public void itemCreated(Item[] items) {
-            updateUsers((User[]) items);
+        public void itemCreated(ItemEvent e) {
+            updateUsers((User[]) e.getItems());
         }
 
-        public void itemChanged(Item[] items) {
-            updateUsers((User[]) items);
+        public void itemChanged(ItemEvent e) {
+            updateUsers((User[]) e.getItems());
         }
 
-        public void itemDeleted(Item[] items) {
-            clearUsers((User[]) items);
+        public void itemDeleted(ItemEvent e) {
+            clearUsers((User[]) e.getItems());
         }
     }
 }

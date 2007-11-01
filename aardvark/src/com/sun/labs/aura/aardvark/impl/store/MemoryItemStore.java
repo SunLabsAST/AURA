@@ -14,6 +14,7 @@ import com.sun.labs.aura.aardvark.store.ItemStore;
 import com.sun.labs.aura.aardvark.store.item.Entry;
 import com.sun.labs.aura.aardvark.store.item.Feed;
 import com.sun.labs.aura.aardvark.store.item.Item;
+import com.sun.labs.aura.aardvark.store.item.ItemEvent;
 import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
@@ -109,16 +110,16 @@ public class MemoryItemStore implements ItemStore {
         // listeners for this type, and for all items)
         Set notified = new HashSet();
         Class typeInList = getMatchingKey(item.getClass(), typeToListeners);
-        System.out.println("looking in list for type " + typeInList);
         if (typeInList != null) {
             List<ItemListener> listeners = typeToListeners.get(typeInList);
             for (ItemListener il : listeners) {
                 notified.add(il);
 
                 if (created) {
-                    il.itemCreated(new Item[]{item});
+                    il.itemCreated(new ItemEvent(new Item[] {item}));
                 } else {
-                    il.itemChanged(new Item[]{item});
+                    il.itemChanged(new ItemEvent(new Item[]{item},
+                                   ItemEvent.ChangeType.AURA));
                 }
             }
         }
@@ -128,9 +129,10 @@ public class MemoryItemStore implements ItemStore {
             for (ItemListener il : listeners) {
                 if (!notified.contains(il)) {
                     if (created) {
-                        il.itemCreated(new Item[] {item});
+                        il.itemCreated(new ItemEvent(new Item[] {item}));
                     } else {
-                        il.itemChanged(new Item[] {item});
+                        il.itemChanged(new ItemEvent(new Item[] {item},
+                                       ItemEvent.ChangeType.AURA));
                     }
                 }
             }
@@ -153,7 +155,8 @@ public class MemoryItemStore implements ItemStore {
             List<ItemListener> listeners = typeToListeners.get(typeInList);
             for (ItemListener il : listeners) {
                 notified.add(il);
-                il.itemChanged(new Item[] {i, u});
+                il.itemChanged(new ItemEvent(new Item[] {i, u},
+                                             ItemEvent.ChangeType.ATTENTION));
             }
         }
         
@@ -161,7 +164,8 @@ public class MemoryItemStore implements ItemStore {
         if (listeners != null) {
             for (ItemListener il : listeners) {
                 if (!notified.contains(il)) {
-                    il.itemChanged(new Item[] {i, u});
+                    il.itemChanged(new ItemEvent(new Item[] {i, u},
+                                           ItemEvent.ChangeType.ATTENTION));
                 }
             }
         }
