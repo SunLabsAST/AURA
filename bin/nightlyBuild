@@ -1,26 +1,53 @@
-JUNIT=bin/junit-4.1.jar
-resultDir=~/fooTest
-rootDir=$PWD
+resultDir=/home/plamere/public_html/AuraNightlyBuildResults
+link=http://sunlabs.east/~plamere/AuraNightlyBuildResults
+#recipients=Paul.Lamere@sun.com
+recipients=auratech@sun.com
+buildMeister=Paul.Lamere@sun.com
 date="`date`"
-CLASSPATH=$JUNIT
-fileCount=`find . -name .hg -prune -o -type f  | wc -l`
-javaFileCount=`find $rootDir -name "*.java" | wc -l`
-classCount=`find $rootDir -name "*.java" | xargs grep class | wc -l`
-lineCount=`find $rootDir -name "*.java" | xargs egrep "[{;]" | wc -l`
 
+fileCount=`find . -name .hg -prune -o -type f  | wc -l`
+javaFileCount=`find . -name "*.java" | wc -l`
+classCount=`find . -name "*.java" | xargs grep class | wc -l`
+lineCount=`find .  -name "*.java" | xargs egrep "[{;]" | wc -l`
+buildStatus=FAILED
+
+rm -rf $resultDir
 mkdir -p $resultDir
 cd aardvark
 
-if ant  > $resultDir/antoutput.txt
+if ant  > antoutput.txt 2>&1
 then
-   echo BUILD OK
+   echo BUILD OK >> antoutput.txt
+   mailx -s "Aura Build OK" $buildMeister  < antoutput.txt
+   buildStatus=OK
 else 
-   echo BUILD FAILED
-   echo mailx -s "Aura Nightly Build Failure $recipients"  $resultDir/antoutput.txt
+   echo "Results at  $link" >> antoutput.txt
+   echo BUILD FAILED >> antoutput.txt
+   mailx -s "Aura Nightly Build Failure" $recipients  < antoutput.txt
 fi
 
+
+if test -d dist/javadoc
+then
 cp -r dist/javadoc $resultDir
+fi
+
+if test -d build/test/results
+then
 cp -r build/test/results $resultDir
+fi
+
+if test -d build/classes
+then
+echo "Findbugs Output:" >> antoutput.txt
+findbugs -textui -project lib/findbugs.fbp -html:fancy.xsl  > $resultDir/findbugsOutput.html 2>> antoutput.txt
+fi
+
+if test -f antoutput.txt
+then
+    cp -r antoutput.txt $resultDir
+fi
+
 
 cat > $resultDir/index.html  << xxxEOFxxx
 <body>
@@ -32,11 +59,13 @@ cat > $resultDir/index.html  << xxxEOFxxx
     <tr><th>Source Files:<td>$javaFileCount
     <tr><th>Classes:<td>$classCount
     <tr><th>Source Lines:<td>$lineCount
+    <tr><th>Status:<td>$buildStatus
 </table>
 <ul>
     <li> <a href="antoutput.txt">Ant output</a> </li>
     <li> <a href="results/index.html">Junit tests</a> </li>
     <li> <a href="javadoc/index.html">Javadoc</a> </li>
+    <li> <a href="findbugsOutput.html">Findbugs Output</a> </li>
 </ul>
 </body>
 xxxEOFxxx

@@ -28,7 +28,7 @@ import java.util.Set;
  *
  * @author plamere
  */
-class UserRefreshManager implements Configurable {
+public class UserRefreshManager implements Configurable {
 
     /**
      * the configurable property for the itemstore used by this manager
