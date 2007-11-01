@@ -66,4 +66,7 @@
     nbproject/build-impl.xml file. 
 
     -->
+    <target name="-pre-init">
+        <property file="nbproject/standalone-build-properties.xml"/>
+    </target>
 </project>
