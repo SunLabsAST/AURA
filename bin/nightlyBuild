@@ -8,6 +8,7 @@ fileCount=`find . -name .hg -prune -o -type f  | wc -l`
 javaFileCount=`find . -name "*.java" | wc -l`
 classCount=`find . -name "*.java" | xargs grep class | wc -l`
 lineCount=`find .  -name "*.java" | xargs egrep "[{;]" | wc -l`
+buildStatus=FAILED
 
 rm -rf $resultDir
 mkdir -p $resultDir
@@ -16,6 +17,7 @@ cd aardvark
 if ant  > antoutput.txt 2>&1
 then
    echo BUILD OK >> antoutput.txt
+   buildStatus=OK
 else 
    echo "Results at  $link" >> antoutput.txt
    echo BUILD FAILED >> antoutput.txt
@@ -47,6 +49,7 @@ cat > $resultDir/index.html  << xxxEOFxxx
     <tr><th>Source Files:<td>$javaFileCount
     <tr><th>Classes:<td>$classCount
     <tr><th>Source Lines:<td>$lineCount
+    <tr><th>Status:<td>$buildStatus
 </table>
 <ul>
     <li> <a href="antoutput.txt">Ant output</a> </li>
