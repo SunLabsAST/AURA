@@ -26,10 +26,6 @@ else
    mailx -s "Aura Nightly Build Failure" $recipients  < antoutput.txt
 fi
 
-if test -f antoutput.txt
-then
-    cp -r antoutput.txt $resultDir
-fi
 
 if test -d dist/javadoc
 then
@@ -40,6 +36,18 @@ if test -d build/test/results
 then
 cp -r build/test/results $resultDir
 fi
+
+if test -d build/classes
+then
+echo "Findbugs Output:" >> antoutput.txt
+findbugs -textui -project lib/findbugs.fbp -html:fancy.xsl  > $resultDir/findbugsOutput.html 2>> antoutput.txt
+fi
+
+if test -f antoutput.txt
+then
+    cp -r antoutput.txt $resultDir
+fi
+
 
 cat > $resultDir/index.html  << xxxEOFxxx
 <body>
@@ -57,6 +65,7 @@ cat > $resultDir/index.html  << xxxEOFxxx
     <li> <a href="antoutput.txt">Ant output</a> </li>
     <li> <a href="results/index.html">Junit tests</a> </li>
     <li> <a href="javadoc/index.html">Javadoc</a> </li>
+    <li> <a href="findbugsOutput.html">Findbugs Output</a> </li>
 </ul>
 </body>
 xxxEOFxxx
