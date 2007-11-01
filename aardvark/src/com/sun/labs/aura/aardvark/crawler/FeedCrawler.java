@@ -129,6 +129,7 @@ public class FeedCrawler implements Configurable {
             } finally {
                 if (user != null) {
                     userRefreshManager.release(user);
+                    user = null;
                 }
             }
         }
@@ -250,6 +251,4 @@ public class FeedCrawler implements Configurable {
         itemStore.put(entry);
         return entry;
     }
-
-
 }

@@ -9,7 +9,7 @@ import com.sun.syndication.feed.synd.SyndEntry;
 import java.util.List;
 
 /**
- *
+ * A set of utilities for manipulating RSS feeds
  * @author plamere
  */
 public class FeedUtils {
