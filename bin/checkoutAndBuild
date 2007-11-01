@@ -1,7 +1,10 @@
 # This script executes the Aura nightly build
 JAVA_HOME=/usr/java
+export JAVA_HOME
 ANT_HOME=/usr/local/ant
+export ANT_HOME
 PATH=$ANT_HOME/bin:$JAVA_HOME/bin:/usr/local/bin:/usr/bin
+export PATH
 
 workArea=/lab/mir/aura/
 buildArea=nightlyBuild
