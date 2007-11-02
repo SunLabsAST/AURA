@@ -1,11 +1,5 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package com.sun.labs.aura.aardvark.impl.recommender;
 
-import com.sun.labs.aura.aardvark.impl.store.item.UserImpl;
 import com.sun.labs.aura.aardvark.recommender.RecommenderManager;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.ItemStore;
@@ -25,7 +19,7 @@ public class SimpleRecommendationManager implements RecommenderManager {
     private ItemStore itemStore;
     
     public List<Entry> getRecommendations(User user) {
-        List<Attention> attends = ((UserImpl) user).getAttentionData();
+        List<Attention> attends = user.getAttentionData();
         List<Entry> ret = new ArrayList<Entry>(attends.size());
         for(Attention a : attends) {
             ret.add((Entry) itemStore.get(a.getItemID()));
