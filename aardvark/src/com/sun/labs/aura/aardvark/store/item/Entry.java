@@ -10,6 +10,8 @@
 
 package com.sun.labs.aura.aardvark.store.item;
 
+import com.sun.syndication.feed.synd.SyndEntry;
+
 /**
  * Represents an Entry in an ATOM Feed
  * 
@@ -30,4 +32,17 @@ public interface Entry extends Item {
      * @param content the content of the entry
      */
     public void setContent(String content);
+
+        /**
+     * Sets the RSS entry contents
+     * @param syndEntry the RSS entry
+     */
+    public void setSyndEntry(SyndEntry syndEntry);
+
+    /**
+     * Gets the RSS entry contents
+     * @returjn the RSS entry
+     */
+    public SyndEntry getSyndEntry();
+
 }

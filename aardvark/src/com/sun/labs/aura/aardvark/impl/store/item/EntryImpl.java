@@ -6,6 +6,7 @@
 package com.sun.labs.aura.aardvark.impl.store.item;
 
 import com.sun.labs.aura.aardvark.store.item.Entry;
+import com.sun.syndication.feed.synd.SyndEntry;
 
 /**
  * Implements an Entry in a Feed
@@ -15,6 +16,7 @@ import com.sun.labs.aura.aardvark.store.item.Entry;
 public class EntryImpl extends ItemImpl implements Entry {
 
     protected final static String CONTENT = "content";
+    private SyndEntry entry = null;
     
     public EntryImpl(long itemID, String key) {
         super(itemID, key);
@@ -32,4 +34,12 @@ public class EntryImpl extends ItemImpl implements Entry {
         setField(CONTENT, content);
     }
 
+    public void setSyndEntry(SyndEntry syndEntry) {
+        this.entry = syndEntry;
+    }
+
+    public SyndEntry getSyndEntry() {
+        return entry;
+    }
+    
 }
