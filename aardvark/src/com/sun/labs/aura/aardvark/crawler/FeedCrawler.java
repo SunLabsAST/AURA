@@ -179,6 +179,7 @@ public class FeedCrawler implements Configurable {
     private void attend(User user, Item item, Attention.Type type) throws AuraException {
         Attention attention = new SimpleAttention(user.getID(), item.getID(), type);
         if (isUniqueAttention(attention)) {
+            logger.info("adding attention " + attention);
             itemStore.attend(attention);
         }
     }
@@ -247,8 +248,9 @@ public class FeedCrawler implements Configurable {
      */
     private Entry createEntryFromSyndEntry(String key, SyndEntry syndEntry) throws AuraException {
         Entry entry = itemStore.newItem(Entry.class, key);
-        entry.setField("content", FeedUtils.getContent(syndEntry));
+        entry.setSyndEntry(syndEntry);
         itemStore.put(entry);
+        logger.info("adding entry " + entry);
         return entry;
     }
 }
