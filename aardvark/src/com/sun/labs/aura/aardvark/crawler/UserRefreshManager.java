@@ -5,16 +5,15 @@
 package com.sun.labs.aura.aardvark.crawler;
 
 import com.sun.labs.aura.aardvark.store.ItemStore;
-import com.sun.labs.aura.aardvark.store.item.Item;
 import com.sun.labs.aura.aardvark.store.item.ItemEvent;
 import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
-import edu.cmu.sphinx.util.props.Configurable;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
-import edu.cmu.sphinx.util.props.S4Component;
-import edu.cmu.sphinx.util.props.S4Double;
+import com.sun.labs.util.props.ConfigComponent;
+import com.sun.labs.util.props.ConfigDouble;
+import com.sun.labs.util.props.Configurable;
+import com.sun.labs.util.props.PropertyException;
+import com.sun.labs.util.props.PropertySheet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,13 +32,13 @@ public class UserRefreshManager implements Configurable {
     /**
      * the configurable property for the itemstore used by this manager
      */
-    @S4Component(type = ItemStore.class)
+    @ConfigComponent(type = ItemStore.class)
     public final static String PROP_ITEM_STORE = "itemStore";
 
     /**
      * the configurable property for the minimum time in milliesconds between user refreshes
      */
-    @S4Double(defaultValue = 15 * 60 * 1000.0, range = {0, 24 * 60 * 60 * 1000.0})
+    @ConfigDouble(defaultValue = 15 * 60 * 1000.0, range = {0, 24 * 60 * 60 * 1000.0})
     public final static String PROP_USER_REFRESH_TIME = "userRefreshTime";
 
     private ItemStore itemStore;

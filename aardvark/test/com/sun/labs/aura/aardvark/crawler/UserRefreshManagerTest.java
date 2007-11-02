@@ -6,7 +6,6 @@
 package com.sun.labs.aura.aardvark.crawler;
 
 import com.sun.labs.aura.aardvark.store.item.User;
-import edu.cmu.sphinx.util.props.PropertySheet;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

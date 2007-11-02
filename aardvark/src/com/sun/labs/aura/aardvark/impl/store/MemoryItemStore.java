@@ -18,8 +18,8 @@ import com.sun.labs.aura.aardvark.store.item.ItemEvent;
 import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
+import com.sun.labs.util.props.PropertyException;
+import com.sun.labs.util.props.PropertySheet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -222,7 +222,7 @@ public class MemoryItemStore implements ItemStore {
         return ret;
     }
 
-    public void newProperties(PropertySheet arg0) throws PropertyException {
+    public void newProperties(PropertySheet ps) throws PropertyException {
         
     }
     

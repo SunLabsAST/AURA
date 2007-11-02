@@ -15,15 +15,15 @@ import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.store.SimpleAttention;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.util.props.ConfigComponent;
+import com.sun.labs.util.props.Configurable;
+import com.sun.labs.util.props.PropertyException;
+import com.sun.labs.util.props.PropertySheet;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.FeedException;
 import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.XmlReader;
-import edu.cmu.sphinx.util.props.Configurable;
-import edu.cmu.sphinx.util.props.PropertyException;
-import edu.cmu.sphinx.util.props.PropertySheet;
-import edu.cmu.sphinx.util.props.S4Component;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -57,14 +57,14 @@ public class FeedCrawler implements Configurable {
     /**
      * the configurable property for the UserRefreshManager used by this manager
      */
-    @S4Component(type = UserRefreshManager.class)
+    @ConfigComponent(type = UserRefreshManager.class)
     public final static String PROP_USER_REFRESH_MANAGER = "userRefreshManager";
     private UserRefreshManager userRefreshManager;
 
     /**
      * the configurable property for the itemstore used by this manager
      */
-    @S4Component(type = ItemStore.class)
+    @ConfigComponent(type = ItemStore.class)
     public final static String PROP_ITEM_STORE = "itemStore";
     private ItemStore itemStore;
 

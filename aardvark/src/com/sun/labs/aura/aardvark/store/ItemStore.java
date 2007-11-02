@@ -12,7 +12,7 @@ package com.sun.labs.aura.aardvark.store;
 import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.Item;
 import com.sun.labs.aura.aardvark.util.AuraException;
-import edu.cmu.sphinx.util.props.Configurable;
+import com.sun.labs.util.props.Configurable;
 import java.util.List;
 
 /**
