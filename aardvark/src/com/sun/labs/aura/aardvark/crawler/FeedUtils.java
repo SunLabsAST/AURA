@@ -4,8 +4,10 @@
  */
 package com.sun.labs.aura.aardvark.crawler;
 
+import com.sun.labs.aura.aardvark.store.item.Entry;
 import com.sun.syndication.feed.synd.SyndContent;
 import com.sun.syndication.feed.synd.SyndEntry;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,7 +23,6 @@ public class FeedUtils {
      */
     public static String getContent(SyndEntry entry) {
         String content = null;
-        List contents = entry.getContents();
         if (entry.getContents().size() > 0) {
             StringBuilder sb = new StringBuilder();
             for (Object c : entry.getContents()) {
@@ -54,6 +55,20 @@ public class FeedUtils {
             key = Integer.toString(syndEntry.hashCode());
         }
         return key;
+    }
+
+    /**
+     * Takes a list of Entry objects and returns the corresponding list
+     * of SyndEntry objects
+     * @param entries the list of Entry objects
+     * @return a list of SyndEntry objects
+     */
+    public static List<SyndEntry> getSyndEntries(List<Entry> entries) {
+        List<SyndEntry> list = new ArrayList<SyndEntry>();
+        for (Entry e : entries) {
+              //list.add(e.));
+        }
+        return list;
     }
 
     /**
