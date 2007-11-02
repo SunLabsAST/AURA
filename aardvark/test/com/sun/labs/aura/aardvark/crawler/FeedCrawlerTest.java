@@ -126,6 +126,11 @@ public class FeedCrawlerTest {
         System.out.println(FeedUtils.getContent(se));
     }
 
+    private void dumpRaw(SyndEntry se) {
+        System.out.println("-----------------");
+        System.out.println(se);
+    }
+
     @Test
     public void testEntry() {
         int feedCount = feed.getEntries().size();
