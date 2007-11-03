@@ -32,5 +32,5 @@ public class SimpleRecommendationManager implements RecommenderManager {
     }
     
     @ConfigComponent(type=com.sun.labs.aura.aardvark.store.ItemStore.class)
-    private static final String PROP_ITEM_STORE = "item_store";
+    public static final String PROP_ITEM_STORE = "itemStore";
 }
