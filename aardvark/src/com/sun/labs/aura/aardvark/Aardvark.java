@@ -13,10 +13,12 @@ import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
+import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.feed.synd.SyndFeedImpl;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
@@ -48,8 +50,24 @@ public class Aardvark implements Configurable {
     @ConfigComponent(type = RecommenderManager.class)
     public final static String PROP_RECOMMENDER_MANAGER = "recommenderManager";
     private RecommenderManager recommenderManager;
-
     private Logger logger;
+
+    /**
+     * A factory method that gets an instance of Aardvark with the default
+     * configuration
+     * @return the default configuraiton of aardvark
+     * @throws AuraException if an exception occurs while configuring aardvark
+     */
+    public static Aardvark getDefault() throws AuraException {
+        try {
+            ConfigurationManager cm = new ConfigurationManager();
+            URL configFile = Aardvark.class.getResource("aardvarkConfig.xml");
+            cm.addProperties(configFile);
+            return (Aardvark) cm.lookup("aardvark");
+        } catch (IOException ioe) {
+            throw new AuraException("Problem loading config", ioe);
+        }
+    }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         itemStore = (ItemStore) ps.getComponent(PROP_ITEM_STORE);
@@ -93,7 +111,7 @@ public class Aardvark implements Configurable {
     public User enrollUser(String openID, String feed) throws AuraException {
         try {
             logger.info("Added user " + openID);
-            if (getUser(openID) == null) {  
+            if (getUser(openID) == null) {
                 User user = (User) itemStore.newItem(User.class, openIDtoKey(openID));
                 user.setStarredItemFeedURL(new URL(feed));
                 itemStore.put(user);
@@ -139,4 +157,5 @@ public class Aardvark implements Configurable {
     private String openIDtoKey(String openID) {
         return "User:" + openID;        // TODO: this is a bug
     }
+
 }

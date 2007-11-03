@@ -25,6 +25,7 @@ public class UserImpl extends ItemImpl implements User {
     
     public UserImpl(long itemID, String key) {
         super(itemID, key);
+        setLastFetchTime(0);
     }
     
     public static String getType() {

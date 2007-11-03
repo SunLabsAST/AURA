@@ -5,6 +5,7 @@
 package com.sun.labs.aura.aardvark.crawler;
 
 import com.sun.labs.aura.aardvark.store.ItemStore;
+import com.sun.labs.aura.aardvark.store.item.Item;
 import com.sun.labs.aura.aardvark.store.item.ItemEvent;
 import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.User;
@@ -19,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * This component is a source of users that need to be refreshed.  This 
@@ -38,17 +40,17 @@ public class UserRefreshManager implements Configurable {
     /**
      * the configurable property for the minimum time in milliesconds between user refreshes
      */
-    @ConfigDouble(defaultValue = 15 * 60 * 1000.0, range = {0, 24 * 60 * 60 * 1000.0})
+    //@ConfigDouble(defaultValue = 15 * 60 * 1000.0, range = {0, 24 * 60 * 60 * 1000.0})
+    @ConfigDouble(defaultValue = 15 * 60 * 1000.0)
     public final static String PROP_USER_REFRESH_TIME = "userRefreshTime";
+    private long delayBetweenUserRefreshes = 15 * 60 * 1000L;
 
     private ItemStore itemStore;
     private UserMonitor monitor;
-
     private Map<Long, User> allUsers = new HashMap<Long, User>();
     private Set<User> outstandingUsers = new HashSet<User>();
     private volatile User nextUserToRefresh = null;
-
-    private long delayBetweenUserRefreshes = 15 * 60 * 1000L;
+    private Logger logger;
 
     /**
      * Creates a UserRefreshManager
@@ -57,6 +59,7 @@ public class UserRefreshManager implements Configurable {
     }
 
     public synchronized void newProperties(PropertySheet ps) throws PropertyException {
+        logger = ps.getLogger();
         itemStore = (ItemStore) ps.getComponent(PROP_ITEM_STORE);
         delayBetweenUserRefreshes = (long) ps.getDouble(PROP_USER_REFRESH_TIME);
 
@@ -96,7 +99,11 @@ public class UserRefreshManager implements Configurable {
             }
             long delay = getDelayUntilRefresh(nextUserToRefresh);
 
-            wait(delay);
+            if (delay > 0L) {
+                logger.info("Waiting for " + (delay / 1000) + " seconds");
+                wait(delay);
+                logger.info("awake");
+            }
 
             if (!isOutstanding(nextUserToRefresh) && getDelayUntilRefresh(nextUserToRefresh) <= 0L) {
                 user = nextUserToRefresh;
@@ -161,7 +168,11 @@ public class UserRefreshManager implements Configurable {
         if (user == null) {
             return Long.MAX_VALUE;
         } else {
-            return (user.getLastFetchTime() + delayBetweenUserRefreshes) - System.currentTimeMillis();
+            long delay = (user.getLastFetchTime() + delayBetweenUserRefreshes) - System.currentTimeMillis();
+            if (delay < 0L) {
+                delay = 0L;
+            }
+            return delay;
         }
     }
 
@@ -179,8 +190,10 @@ public class UserRefreshManager implements Configurable {
      * Manages a user changed notification from the ItemStore
      * @param user the user that has changed
      */
-    private synchronized void updateUsers(User[] users) {
-        for (User user : users) {
+    private synchronized void updateUsers(Item[] userItems) {
+        logger.info("Updating " + userItems.length + " users");
+        for (Item item : userItems) {
+            User user = (User) item;
             allUsers.put(user.getID(), user);
         }
         nextUserToRefresh = null;
@@ -191,8 +204,10 @@ public class UserRefreshManager implements Configurable {
      * Manages a user deleted notification from the ItemStore
      * @param user the user that has changed
      */
-    private synchronized void clearUsers(User[] users) {
-        for (User user : users) {
+    private synchronized void clearUsers(Item[] userItems) {
+        logger.info("Clearing " + userItems.length + " users");
+        for (Item item : userItems) {
+            User user = (User) item;
             allUsers.remove(user.getID());
         }
         nextUserToRefresh = null;
@@ -206,15 +221,15 @@ public class UserRefreshManager implements Configurable {
     private class UserMonitor implements ItemListener {
 
         public void itemCreated(ItemEvent e) {
-            updateUsers((User[]) e.getItems());
+            updateUsers(e.getItems());
         }
 
         public void itemChanged(ItemEvent e) {
-            updateUsers((User[]) e.getItems());
+            updateUsers(e.getItems());
         }
 
         public void itemDeleted(ItemEvent e) {
-            clearUsers((User[]) e.getItems());
+            clearUsers(e.getItems());
         }
     }
 }

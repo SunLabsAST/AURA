@@ -66,7 +66,7 @@ public class FeedUtils {
     public static List<SyndEntry> getSyndEntries(List<Entry> entries) {
         List<SyndEntry> list = new ArrayList<SyndEntry>();
         for (Entry e : entries) {
-              //list.add(e.));
+            list.add(e.getSyndEntry());
         }
         return list;
     }
@@ -77,7 +77,7 @@ public class FeedUtils {
      * @param lastRefreshTime the time that we last checked this feed
      * @return true if the entry is newer than the last refresh time
      */
-    public static  boolean isFresh(SyndEntry syndEntry, long lastRefreshTime) {
+    public static boolean isFresh(SyndEntry syndEntry, long lastRefreshTime) {
         return syndEntry.getPublishedDate().getTime() - lastRefreshTime > 0L;
     }
 }
