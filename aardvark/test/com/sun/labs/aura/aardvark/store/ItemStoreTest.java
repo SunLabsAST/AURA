@@ -112,6 +112,16 @@ public class ItemStoreTest {
         mis.put(i);
         assertTrue("Failed to get created event for an Item", gotCreated);
         assertFalse("Got changed event when item was created", gotChanged);
+        gotCreated = false;
+        
+        //
+        // Finally, stop listening entirely ane make sure we don't get
+        // notified.
+        mis.removeItemListener(null, il);
+        mis.removeItemListener(User.class, il);
+        mis.put(i);
+        assertFalse("Got created when we weren't listening", gotCreated);
+        assertFalse("Got changed when we weren't listening", gotChanged);
     }
     
     /**
