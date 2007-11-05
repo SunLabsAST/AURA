@@ -11,6 +11,7 @@ import com.sun.labs.aura.aardvark.impl.store.item.ItemImpl;
 import com.sun.labs.aura.aardvark.impl.store.item.UserImpl;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.ItemStore;
+import com.sun.labs.aura.aardvark.store.ItemStoreStats;
 import com.sun.labs.aura.aardvark.store.item.Entry;
 import com.sun.labs.aura.aardvark.store.item.Feed;
 import com.sun.labs.aura.aardvark.store.item.Item;
@@ -102,7 +103,9 @@ public class MemoryItemStore implements ItemStore {
             l.add(item);
             typeToItems.put(item.getClass(), l);
         } else {
-            l.add(item);
+            if (!l.contains(item)) {
+                l.add(item);
+            }
         }
         
         //
@@ -189,7 +192,6 @@ public class MemoryItemStore implements ItemStore {
             l = Collections.synchronizedList(new ArrayList());
             l.add(listener);
             if (type != null) {
-                System.out.println("added listener of type " + type);
                 typeToListeners.put(type, l);
             } else {
                 typeToListeners.put(Item.class, l);
@@ -222,7 +224,18 @@ public class MemoryItemStore implements ItemStore {
         return ret;
     }
 
-    public void newProperties(PropertySheet ps) throws PropertyException {
+    public ItemStoreStats getStats() {
+        long numAtt = 0;
+        List<User> users = getAll(User.class);
+        for (User u : users) {
+            List attns = u.getAttentionData();
+            numAtt += attns.size();
+        }
+        List<Entry> entries = getAll(Entry.class);
+        return new ItemStoreStats(users.size(), entries.size(), numAtt);
+    }
+    
+    public void newProperties(PropertySheet arg0) throws PropertyException {
         
     }
     

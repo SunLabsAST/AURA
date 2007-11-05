@@ -136,6 +136,11 @@ public class ItemStoreTest {
         
         List<Entry> l = mis.getAll(Entry.class);
         assertTrue(l.size() == 2);
+        
+        ItemStoreStats stats = mis.getStats();
+        assertTrue("Stat's numUsers should be 1, was " + stats.getNumUsers(),
+                   stats.getNumUsers() == 1);
+        assertTrue("Stat's numEntries should be 2", stats.getNumEntries() == 2);
     }
     
     /**
