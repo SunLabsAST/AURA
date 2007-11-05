@@ -66,5 +66,19 @@ public abstract class ItemImpl implements Item {
             attn.add(a);
         }
     }
+    
+    public boolean equals(Object o) {
+        if (o instanceof ItemImpl) {
+            ItemImpl other = (ItemImpl)o;
+            if (other.getKey().equals(getKey())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public String toString() {
+        return getClass().getSimpleName() + ": key[" + key + "]";
+    }
 
 }

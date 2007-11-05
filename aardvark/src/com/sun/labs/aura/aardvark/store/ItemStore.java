@@ -139,4 +139,12 @@ public interface ItemStore extends Configurable {
     public <T extends Item> void removeItemListener(Class<T> type,
                                                     ItemListener listener);
 
+    /**
+     * Get stats about the Item Store.  The ItemStoreStats is implementation
+     * specfic to Aardvark and returns info about users, entries, and
+     * attention.
+     * 
+     * @return the item store stats
+     */
+    public ItemStoreStats getStats();
 }
