@@ -29,6 +29,8 @@ import java.util.logging.Logger;
  * A Blog Recommender
  */
 public class Aardvark implements Configurable {
+
+    private final static String VERSION = "aardvark version 0.1";
     /**
      * the configurable property for the itemstore used by this manager
      */
@@ -138,6 +140,14 @@ public class Aardvark implements Configurable {
         feed.setEntries(FeedUtils.getSyndEntries(getRecommendedEntries(user)));
         return feed;
     }
+    
+    /**
+     * Returns interesting stats about aardvark
+     * @return the stats
+     */
+    public Stats getStats() {
+        return new Stats(VERSION, 10, 20, 30);
+    }
 
     /**
      * Given a user ID return the set of recommended entries for the user
@@ -157,5 +167,8 @@ public class Aardvark implements Configurable {
     private String openIDtoKey(String openID) {
         return "User:" + openID;        // TODO: this is a bug
     }
+    
+
+
 
 }

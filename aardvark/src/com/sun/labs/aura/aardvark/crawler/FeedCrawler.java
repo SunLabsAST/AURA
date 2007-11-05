@@ -105,7 +105,7 @@ public class FeedCrawler implements Configurable {
         if (crawlerThread != null) {
             Thread t = crawlerThread;
             crawlerThread = null;
-            t.interrupt();
+            notifyAll();
         }
     }
 
