@@ -181,8 +181,10 @@ public class UserRefreshManager implements Configurable {
      */
     public synchronized void close() {
         if (monitor != null) {
-            itemStore.removeItemListener(User.class, monitor);
+//            itemStore.removeItemListener(User.class, monitor);
             monitor = null;
+            nextUserToRefresh = null;
+            notifyAll();
         }
     }
 

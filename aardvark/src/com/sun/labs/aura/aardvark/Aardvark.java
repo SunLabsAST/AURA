@@ -90,7 +90,9 @@ public class Aardvark implements Configurable {
      * Stops all processing
      */
     public void shutdown() {
+        logger.info("starting aardvark shutdown");
         feedCrawler.stop();
+        recommenderManager.shutdown();
         logger.info("shutdown");
     }
 
@@ -114,7 +116,7 @@ public class Aardvark implements Configurable {
         try {
             logger.info("Added user " + openID);
             if (getUser(openID) == null) {
-                User user = (User) itemStore.newItem(User.class, openIDtoKey(openID));
+                User user = itemStore.newItem(User.class, openIDtoKey(openID));
                 user.setStarredItemFeedURL(new URL(feed));
                 itemStore.put(user);
                 return user;

@@ -103,9 +103,8 @@ public class FeedCrawler implements Configurable {
      */
     public synchronized void stop() {
         if (crawlerThread != null) {
-            Thread t = crawlerThread;
             crawlerThread = null;
-            notifyAll();
+            userRefreshManager.close();
         }
     }
 
@@ -249,6 +248,7 @@ public class FeedCrawler implements Configurable {
     private Entry createEntryFromSyndEntry(String key, SyndEntry syndEntry) throws AuraException {
         Entry entry = itemStore.newItem(Entry.class, key);
         entry.setSyndEntry(syndEntry);
+        entry.setContent(FeedUtils.getContent(syndEntry));
         itemStore.put(entry);
         logger.info("adding entry " + entry);
         return entry;
