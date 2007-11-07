@@ -140,10 +140,10 @@ public class AardvarkSearchTest {
             enroll(aardvark, "empty.rss");
             enroll(aardvark, "garbage.rss");
 
-            assertTrue("full aardvark users", aardvark.getStats().getNumUsers() == 82);
+            assertTrue("full aardvark users", aardvark.getStats().getNumUsers() == 8);
             Thread.sleep(60000L);
             assertTrue("full aardvark items " + aardvark.getStats().getNumItems(), 
-                    aardvark.getStats().getNumItems() == 20);
+                    aardvark.getStats().getNumItems() == 82);
 
         } finally {
             aardvark.shutdown();
