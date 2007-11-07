@@ -50,8 +50,9 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
         Log.setLogger(log);
         Log.setLevel(3);
         String indexDir = ps.getString(PROP_INDEX_DIR);
+        String engineConfig = ps.getString(PROP_ENGINE_CONFIG_FILE);
         try {
-            URL config = getClass().getResource("entryEngineConfig.xml");
+            URL config = getClass().getResource(engineConfig);
 
             //
             // Creates the search engine, using a simple doc and freq unfielded
@@ -224,6 +225,15 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
             log.log(Level.WARNING, "Error closing entry content engine", ex);
         }
     }
+    
+    /**
+     * The resource to load for the engine configuration.  This gives us the
+     * opportunity to use different configs as necessary (e.g., for testing).
+     * Note that any resource named by this property must be accessible via
+     * <code>Class.getResource()</code>!
+     */
+    @ConfigString(defaultValue="entryEngineConfig.xml")
+    public static final String PROP_ENGINE_CONFIG_FILE = "engineConfigFile";
 
     /**
      * The configurable item store.  We'll listen to this item store for new
