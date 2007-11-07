@@ -122,7 +122,7 @@ public class AardvarkSearchTest {
     }
 
     @Test
-    public void testLargeMultiUserRecommendedFeed() throws Exception {
+    public void testFeedTortureTest() throws Exception {
         Aardvark aardvark = getFreshAardvark();
 
         try {
@@ -137,8 +137,10 @@ public class AardvarkSearchTest {
             enroll(aardvark, "googlenews.rss");
             enroll(aardvark, "reddit.rss");
             enroll(aardvark, "slashdot.rss");
+            enroll(aardvark, "empty.rss");
+            enroll(aardvark, "garbage.rss");
 
-            assertTrue("full aardvark users", aardvark.getStats().getNumUsers() == 6);
+            assertTrue("full aardvark users", aardvark.getStats().getNumUsers() == 82);
             Thread.sleep(60000L);
             assertTrue("full aardvark items " + aardvark.getStats().getNumItems(), 
                     aardvark.getStats().getNumItems() == 20);
