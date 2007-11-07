@@ -33,16 +33,17 @@ public interface Entry extends Item {
      */
     public void setContent(String content);
 
-        /**
+    /**
      * Sets the RSS entry contents
+     * 
      * @param syndEntry the RSS entry
      */
     public void setSyndEntry(SyndEntry syndEntry);
 
     /**
      * Gets the RSS entry contents
-     * @returjn the RSS entry
+     * 
+     * @return the RSS entry
      */
     public SyndEntry getSyndEntry();
-
 }
