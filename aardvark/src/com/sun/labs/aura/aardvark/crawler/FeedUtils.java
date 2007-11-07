@@ -78,7 +78,6 @@ public class FeedUtils {
      * @return true if the entry is newer than the last refresh time
      */
     public static boolean isFresh(SyndEntry syndEntry, long lastRefreshTime) {
-        return true;
-        //return syndEntry.getPublishedDate().getTime() - lastRefreshTime > 0L;
+        return syndEntry.getPublishedDate().getTime() - lastRefreshTime > 0L;
     }
 }

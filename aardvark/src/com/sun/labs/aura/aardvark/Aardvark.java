@@ -138,7 +138,8 @@ public class Aardvark implements Configurable {
      * @return true if the feed is valid
      */
     private boolean isValidFeed(String feed) {
-        return feed.startsWith("http://"); // TODO write me
+        return feed.startsWith("http://") ||
+                feed.startsWith("file:/"); // TODO write me
     }
 
     /**
