@@ -95,6 +95,7 @@ public class FeedCrawler implements Configurable {
                             crawler();
                         }
                     };
+                    crawlerThread.setName("Crawler");
             crawlerThread.start();
         }
     }
