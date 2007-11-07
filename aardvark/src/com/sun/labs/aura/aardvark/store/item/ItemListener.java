@@ -19,21 +19,21 @@ public interface ItemListener {
     /**
      * Called when an Item or set of Items have been created.
      * 
-     * @param items the set of Items that were created
+     * @param e the event containing the set of Items that were created
      */
     public void itemCreated(ItemEvent e);
     
     /**
      * Called when an Item or set of Items have been changed.
      * 
-     * @param items the set of Items that changed
+     * @param e the event containing the set of Items that changed
      */
     public void itemChanged(ItemEvent e);
 
     /**
      * Called when an Item or set of Items have been deleted.
      * 
-     * @param items the set of Items that were deleted
+     * @param e the event containing the set of Items that were deleted
      */
     public void itemDeleted(ItemEvent e);
 }
