@@ -26,6 +26,7 @@ import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.XmlReader;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +58,7 @@ public class FeedCrawler implements Configurable {
     /**
      * the configurable property for the UserRefreshManager used by this manager
      */
+
     @ConfigComponent(type = UserRefreshManager.class)
     public final static String PROP_USER_REFRESH_MANAGER = "userRefreshManager";
     private UserRefreshManager userRefreshManager;
@@ -67,12 +69,10 @@ public class FeedCrawler implements Configurable {
     @ConfigComponent(type = ItemStore.class)
     public final static String PROP_ITEM_STORE = "itemStore";
     private ItemStore itemStore;
-
     private final static Entry[] EMPTY_ENTRY = new Entry[0];
     private SyndFeedInput syndFeedInput = new SyndFeedInput();
     private volatile Thread crawlerThread;
     private Logger logger;
-
 
     public FeedCrawler() {
     }
@@ -89,11 +89,12 @@ public class FeedCrawler implements Configurable {
     public synchronized void start() {
         if (crawlerThread == null) {
             crawlerThread = new Thread() {
-                @Override
+
+                        @Override
                 public void run() {
-                    crawler();
-                }
-            };
+                            crawler();
+                        }
+                    };
             crawlerThread.start();
         }
     }
@@ -194,7 +195,9 @@ public class FeedCrawler implements Configurable {
     private Entry[] getNewestEntries(URL feedUrl, long lastPullTime) throws AuraException {
         List<Entry> entries = new ArrayList<Entry>();
         try {
-            SyndFeed feed = syndFeedInput.build(new XmlReader(feedUrl));
+            URLConnection connection = feedUrl.openConnection();
+            connection.setRequestProperty ( "User-agent", "aardvark");
+            SyndFeed feed = syndFeedInput.build(new XmlReader(connection));
             List entryList = feed.getEntries();
             for (Object o : entryList) {
                 SyndEntry syndEntry = (SyndEntry) o;
@@ -206,11 +209,11 @@ public class FeedCrawler implements Configurable {
                     }
                     entries.add(entry);
                 } else {
-                    // testing shows that feeds are not always orded by time
+                // testing shows that feeds are not always orded by time
                     // so we cannot break here.
                 }
             }
-            // if we have a problem reading a feed we just continue one
+        // if we have a problem reading a feed we just continue one
         } catch (IOException ex) {
             logger.warning("IOException while reading " + feedUrl);
         } catch (FeedException ex) {
@@ -253,5 +256,33 @@ public class FeedCrawler implements Configurable {
         itemStore.put(entry);
         logger.info("adding entry " + entry);
         return entry;
+    }
+
+    private static void dumpFeed(String surl) {
+        System.out.println("Trying " + surl);
+        SyndFeedInput syndFeedInput = new SyndFeedInput();
+        try {
+            URL url = new URL(surl);
+            URLConnection connection = url.openConnection();
+            connection.setRequestProperty ( "User-agent", "aardvark");
+            SyndFeed feed = syndFeedInput.build(new XmlReader(connection));
+
+            System.out.println("---" + feed.getTitle() + "---");
+            List entryList = feed.getEntries();
+            for (Object o : entryList) {
+                SyndEntry syndEntry = (SyndEntry) o;
+                System.out.println(" " + syndEntry.getTitle());
+            }
+        } catch (IOException ex) {
+            System.out.println("I/O Exception while dumping " + surl + " " + ex);
+        } catch (FeedException ex) {
+            System.out.println("Feed Exception while dumping " + surl + " " + ex);
+        }
+    }
+
+    public static void main(String[] args) {
+        for (String s : args) {
+            dumpFeed(s);
+        }
     }
 }

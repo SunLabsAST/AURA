@@ -186,4 +186,29 @@ public class Aardvark implements Configurable {
     private String openIDtoKey(String openID) {
         return openID;        // TODO: this is a bug
     }
+
+
+    public static void main(String[] args) throws Exception {
+        // enroll test
+
+        Aardvark aardvark = getDefault();
+
+        aardvark.startup();
+
+        aardvark.enrollUser("test", "http://www.google.com/reader/public/atom/user/07268145224739680674/state/com.google/starred");
+        Thread.sleep(10000L);
+        aardvark.enrollUser("delicious", "http://del.icio.us/rss/");
+        Thread.sleep(30000L);
+        aardvark.enrollUser("digg", "http://digg.com/rss/index.xml");
+        Thread.sleep(30000L);
+        aardvark.enrollUser("google news", "http://del.icio.us/rss/");
+        Thread.sleep(30000L);
+        aardvark.enrollUser("slashdot", "http://rss.slashdot.org/Slashdot/slashdot");
+        Thread.sleep(30000L);
+        aardvark.enrollUser("reddit", "http://reddit.com/.rss");
+        Thread.sleep(30000L);
+        aardvark.enrollUser("digg", "http://digg.com/rss/index.xml");
+        Thread.sleep(300000L);
+        aardvark.shutdown();
+    }
 }

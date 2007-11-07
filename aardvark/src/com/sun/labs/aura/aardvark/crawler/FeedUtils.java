@@ -8,6 +8,7 @@ import com.sun.labs.aura.aardvark.store.item.Entry;
 import com.sun.syndication.feed.synd.SyndContent;
 import com.sun.syndication.feed.synd.SyndEntry;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -22,7 +23,7 @@ public class FeedUtils {
      * @return the contents as a string (which may have embedded html)
      */
     public static String getContent(SyndEntry entry) {
-        String content = null;
+        String content = "(empty)";
         if (entry.getContents().size() > 0) {
             StringBuilder sb = new StringBuilder();
             for (Object c : entry.getContents()) {
@@ -32,7 +33,11 @@ public class FeedUtils {
             content = sb.toString();
         } else {
             SyndContent sc = entry.getDescription();
-            content = sc.getValue();
+            if (sc != null) {
+                content = sc.getValue();
+            } else {
+                content = entry.getTitle();
+            }
         }
         return content;
     }
@@ -78,6 +83,11 @@ public class FeedUtils {
      * @return true if the entry is newer than the last refresh time
      */
     public static boolean isFresh(SyndEntry syndEntry, long lastRefreshTime) {
-        return syndEntry.getPublishedDate().getTime() - lastRefreshTime > 0L;
+        Date date = syndEntry.getPublishedDate();
+        if (date != null) {
+            return date.getTime() - lastRefreshTime > 0L;
+        } else {
+            return true;
+        }
     }
 }

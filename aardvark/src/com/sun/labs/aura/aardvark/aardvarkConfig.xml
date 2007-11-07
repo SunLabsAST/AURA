@@ -8,28 +8,38 @@
 -->
 
 <config>
-
-
- <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark">
-    <property name="itemStore" value="itemStore"/>
-    <property name="feedCrawler" value="feedCrawler"/>
-    <property name="recommenderManager" value="recommenderManager"/>
- </component>
-
-<component name="itemStore" type="com.sun.labs.aura.aardvark.impl.store.MemoryItemStore"/>
-
-<component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.FeedCrawler">
-    <property name="userRefreshManager" value="userRefreshManager"/>
-    <property name="itemStore" value="itemStore"/>
-</component>
-
-<component name="userRefreshManager" type="com.sun.labs.aura.aardvark.crawler.UserRefreshManager">
-    <property name="userRefreshTime" value="30000"/>
-    <property name="itemStore" value="itemStore"/>
-</component>
-
-<component name="recommenderManager" type="com.sun.labs.aura.aardvark.impl.recommender.SimpleRecommendationManager">
-    <property name="itemStore" value="itemStore"/>
-</component>
-
+    
+    <property name="indexDir" value="/tmp/entryContent.idx"/>
+    
+    <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark">
+        <property name="itemStore" value="itemStore"/>
+        <property name="feedCrawler" value="feedCrawler"/>
+        <property name="recommenderManager" value="searchRecommenderManager"/>
+    </component>
+    
+    <component name="itemStore" type="com.sun.labs.aura.aardvark.impl.store.MemoryItemStore"/>
+    
+    <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.FeedCrawler">
+        <property name="userRefreshManager" value="userRefreshManager"/>
+        <property name="itemStore" value="itemStore"/>
+    </component>
+    
+    <component name="userRefreshManager" type="com.sun.labs.aura.aardvark.crawler.UserRefreshManager">
+        <property name="userRefreshTime" value="900000"/>
+        <property name="itemStore" value="itemStore"/>
+    </component>
+    
+    <component name="recommenderManager" type="com.sun.labs.aura.aardvark.impl.recommender.SimpleRecommendationManager">
+        <property name="itemStore" value="itemStore"/>
+    </component>
+    
+    <component name="searchRecommenderManager" type="com.sun.labs.aura.aardvark.impl.recommender.SearchRecommenderManager">
+        <property name="entryEngine" value="entryContentEngine"/>
+    </component>
+    
+    <component name="entryContentEngine" type="com.sun.labs.aura.aardvark.impl.recommender.EntryContentEngine">
+        <property name="itemStore" value="itemStore"/>
+        <property name="indexDir" value="${indexDir}"/>
+    </component>
+    
 </config>
