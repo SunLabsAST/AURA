@@ -1,0 +1,1510 @@
+<?xml version="1.0" encoding='utf-8'?>
+<?xml-stylesheet type="text/xsl" href="http://blogs.sun.com/roller-ui/styles/atom.xsl" media="screen"?><feed xmlns="http://www.w3.org/2005/Atom">
+  <title type="html">Sun Bloggers</title>
+  <subtitle type="html">Welcome to Blogs.sun.com! This space is accessible to any Sun employee to write about anything.</subtitle>
+  <id>http://blogs.sun.com</id>
+  <link rel="alternate" type="text/html" href="http://blogs.sun.com" />
+    <link rel="self" type="application/atom+xml" href="http://blogs.sun.com/main/feed/entries/atom" />
+    <updated>2007-11-06T18:20:47-08:00</updated>
+  <generator uri="http://rollerweblogger.org" version="4.0-dev">Apache Roller (incubating)</generator>
+          <entry>
+        <id>http://blogs.sun.com/sas/entry/i_m_back</id>
+        <title type="html">I&apos;m Back</title>
+        <author><name>Sandra Judd</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/sas/entry/i_m_back"/>
+        <published>2007-11-07T04:13:37-08:00</published>
+                  <updated>2007-11-07T04:30:45-08:00</updated>
+                                    <category term="/Sun" label="/Sun" />
+                          <content type="html">&lt;HTML&gt;
+&lt;HEAD&gt;
+	&lt;META HTTP-EQUIV=&quot;CONTENT-TYPE&quot; CONTENT=&quot;text/html; charset=utf-8&quot;&gt;
+	&lt;TITLE&gt;&lt;/TITLE&gt;
+	&lt;META NAME=&quot;GENERATOR&quot; CONTENT=&quot;OpenOffice.org 2.2  (Unix)&quot;&gt;
+	&lt;META NAME=&quot;AUTHOR&quot; CONTENT=&quot;Sandra Judd&quot;&gt;
+	&lt;META NAME=&quot;CREATED&quot; CONTENT=&quot;20071107;22093000&quot;&gt;
+	&lt;META NAME=&quot;CHANGEDBY&quot; CONTENT=&quot;Sandra Judd&quot;&gt;
+	&lt;META NAME=&quot;CHANGED&quot; CONTENT=&quot;20071107;23132100&quot;&gt;
+	&lt;STYLE TYPE=&quot;text/css&quot;&gt;
+	&lt;!--
+		A:link { color: #e76f00 }
+	--&gt;
+	&lt;/STYLE&gt;
+&lt;/HEAD&gt;
+&lt;BODY LANG=&quot;en-AU&quot; LINK=&quot;#e76f00&quot; DIR=&quot;LTR&quot;&gt;
+&lt;P&gt;&lt;FONT FACE=&quot;Arial, sans-serif&quot;&gt;Firstly, please let me apologise
+for being missing in action over the last few weeks, but you&apos;ve all
+been keeping me &lt;B&gt;extremely&lt;/B&gt; busy trying to keep up with all of
+your various projects. Though this is no excuse, and I do sincerely
+apologise for neglecting this blog. Let&apos;s see if I can catch you up
+on the news in the Sun world....&lt;/FONT&gt;&lt;/P&gt;
+&lt;P&gt;&lt;FONT COLOR=&quot;#e76f00&quot;&gt;&lt;FONT FACE=&quot;Arial, sans-serif&quot;&gt;&lt;U&gt;&lt;B&gt;New
+CoolThreads Servers Released&lt;/B&gt;&lt;/U&gt;&lt;/FONT&gt;&lt;/FONT&gt;&lt;/P&gt;
+&lt;P STYLE=&quot;font-weight: medium; text-decoration: none&quot;&gt;&lt;FONT FACE=&quot;Arial, sans-serif&quot;&gt;Back
+in my first blog, I told you about the release of the new UltraSPARC
+T2 chip (capable of running 64 threads on a single chip). Well
+earlier this month we released the first systems built on this new
+chip -  &lt;/FONT&gt;&lt;A HREF=&quot;http://www.sun.com/servers/index.jsp?cat=CoolThreads Servers&amp;amp;tab=3#UltraSPARC T2&quot;&gt;&lt;FONT COLOR=&quot;#e76f00&quot;&gt;&lt;FONT FACE=&quot;Arial, sans-serif&quot;&gt;Sun
+SPARC Enterprise T5120/T5220&lt;/FONT&gt;&lt;/FONT&gt;&lt;/A&gt;&lt;FONT FACE=&quot;Arial, sans-serif&quot;&gt;
+servers and &lt;/FONT&gt;&lt;FONT COLOR=&quot;#e76f00&quot;&gt;&lt;FONT FACE=&quot;Arial, sans-serif&quot;&gt;&lt;A HREF=&quot;http://www.sun.com/servers/blades/t6320/&quot;&gt;Sun
+Blade T6320&lt;/A&gt; &lt;/FONT&gt;&lt;/FONT&gt;&lt;FONT FACE=&quot;Arial, sans-serif&quot;&gt;modules.
+ These new systems deliver the compute power of 64 individual systems
+on a single server or blade and beat competing RISC servers on
+web-tier tasks by over 4x while maintaining 6x better performance per
+watt. That isn&apos;t the best bit -  the T6320 uses even less power,
+while delivering more perfomance! If any of you feel like trading in
+one of your servers that doesn&apos;t have a Sun badge on it (or even if
+you want to trade in one with a Sun badge) you can get a 25% trade in
+discount on a new T2 based server. Details are &lt;A HREF=&quot;http://www.sun.com/promotions/campaigns/?pid=t5000series&amp;amp;intcmp=1316&quot;&gt;here&lt;/A&gt;.&lt;/FONT&gt;&lt;/P&gt;
+&lt;P&gt;&lt;FONT COLOR=&quot;#e76f00&quot;&gt;&lt;FONT FACE=&quot;Arial, sans-serif&quot;&gt;&lt;U&gt;&lt;B&gt;xVM
+Virtualisation&lt;/B&gt;&lt;/U&gt;&lt;/FONT&gt;&lt;/FONT&gt;&lt;/P&gt;
+&lt;P STYLE=&quot;font-weight: medium; text-decoration: none&quot;&gt;&lt;FONT FACE=&quot;Arial, sans-serif&quot;&gt;I
+know a lot of you have been wondering what Sun is doing around
+virtualisation outside of Solaris 10 containers... at the beginning
+of October, Sun made an announcement - well, sort of.  Whilst not an
+official product launch, what Sun did with this &lt;/FONT&gt;&lt;FONT COLOR=&quot;#e76f00&quot;&gt;&lt;U&gt;&lt;A HREF=&quot;http://www.sun.com/featured-articles/2007-1005/feature/index.jsp&quot;&gt;&lt;FONT COLOR=&quot;#e76f00&quot;&gt;&lt;FONT FACE=&quot;Arial, sans-serif&quot;&gt;announcement&lt;/FONT&gt;&lt;/FONT&gt;&lt;/A&gt;&lt;/U&gt;&lt;/FONT&gt;&lt;FONT COLOR=&quot;#e76f00&quot;&gt;&lt;FONT FACE=&quot;Arial, sans-serif&quot;&gt;
+&lt;/FONT&gt;&lt;/FONT&gt;&lt;FONT FACE=&quot;Arial, sans-serif&quot;&gt;was to flag the roadmap
+and plan for a xVM, aproject that we&apos;ve been working on for some time
+to incorporate some of the opensource Xen hypervisor technology into
+our own virtualisation server and manageability software. The best
+part of this particular technology is that it will enable not just
+Linux, but also Windows to operate in a Solaris 10 container. What
+this means is that for those of you running Windows, you&apos;ll be able
+to take advantage of the innovative features of Solaris 10, such as
+ZFS and predictive self healing. &lt;/FONT&gt;
+&lt;/P&gt;
+&lt;P STYLE=&quot;font-weight: medium; text-decoration: none&quot;&gt;&lt;BR&gt;&lt;BR&gt;
+&lt;/P&gt;
+&lt;P STYLE=&quot;font-weight: medium; text-decoration: none&quot;&gt;&lt;BR&gt;&lt;BR&gt;
+&lt;/P&gt;
+&lt;P STYLE=&quot;font-weight: medium; text-decoration: none&quot;&gt;&lt;BR&gt;&lt;BR&gt;
+&lt;/P&gt;
+&lt;/BODY&gt;
+&lt;/HTML&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/rachelz/entry/turn_around</id>
+        <title type="html">Turn around</title>
+        <author><name>rachelzhang</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/rachelz/entry/turn_around"/>
+        <published>2007-11-07T03:36:32-08:00</published>
+                  <updated>2007-11-07T03:50:33-08:00</updated>
+                                    <category term="/Personal" label="/Personal" />
+                          <content type="html">&lt;p&gt;Our lab has been quiet for a long time. There has been no gathering dinner among our classmates for a few days. But last weekend we had one. The theme was that one classmate was on business trip to Beijing. Since he was a member of our lab when we were graduates, all of the lab members who were in Beijing now organized a dinner for him. During our talk, we got to know that he was now working in Chengdu(ericsson). When we graduated, he worked in Chengdu. Then he went to Shanghai and worked there. And now he works in Chengdu again. And he is so called first Chengdu ericsson software engineer.:) In the end he said it was cozy to live and work in Chengdu. I think I should agree with him.&lt;/p&gt;&lt;p&gt;&lt;a title=&quot;lab&quot; href=&quot;http://picasaweb.google.com/evayigi/20071102/photo#5130060601051681218&quot;&gt;http://picasaweb.google.com/evayigi/20071102/photo#5130060601051681218&lt;/a&gt;&lt;br /&gt;&amp;nbsp;&lt;/p&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/TechDaysEvents/entry/java_everywhere_james_gosling_keynote</id>
+        <title type="html">Java Everywhere - James Gosling Keynote</title>
+        <author><name>cw, managing editor</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/TechDaysEvents/entry/java_everywhere_james_gosling_keynote"/>
+        <published>2007-11-07T03:11:57-08:00</published>
+                  <updated>2007-11-07T03:30:38-08:00</updated>
+                                    <category term="/Sun" label="/Sun" />
+                          <content type="html">&lt;img src=&quot;http://blogs.sun.com/TechDaysEvents/resource/TechDaysTokyo/jamesgosling.jpg&quot; align=&quot;right&quot; border=&quot;1&quot; hspace=&quot;4&quot; vspace=&quot;4&quot; alt=&quot;James Gosling gives his keynote at Sun Tech Days Tokyo&quot;&gt;
+
+&lt;p&gt;Sun Vice President and Fellow James Gosling kicked off the two-day technical session portion of Sun Tech Days Tokyo with a broad overview of the Java landscape. He first emphasized the ubiquity of Java, noting the 5 billion Java-enabled devices, 2.1 billion Java phone handsets, and 6 million Java developers. While the catch phrase for Java has been &quot;write once, run anywhere,&quot; James&apos;s twist on that phrase is &quot;learn once, work anywhere.&quot; Once you learn Java you can work on everything from devices to set-top boxes to application servers because Java is everywhere.&lt;/p&gt;
+
+&lt;p&gt;James believes that Web &quot;N&quot; [2.0] has become more of a marketing phrase than anything else, but he said one of the positive things that has come out of it is the development of systems built by the community for the community. He cited Facebook and Wikipedia as examples. He stressed the importance of &quot;communal development&quot; and said that it&apos;s not necessarily the Java technologies that are the most crucial but rather the communities around those technologies. He encouraged everyone to participate and make modifications to technologies, whether just for themselves or for the public at large, and mentioned the OpenJDK, OpenJFX, GlassFish, OpenSolaris, and NetBeans communities.&lt;/p&gt;
+
+&lt;p&gt;One community-driven project James has been involved in recently is the transformation of Javadocs on &lt;a href=&quot;http://doc.java.sun.com/&quot;&gt;http://doc.java.sun.com&lt;/a&gt; into a web site with a language option drop-down menu in the upper right corner. The community is responsible for the translation of the content. If there are pieces of the content that aren&apos;t translated, then the community can collaboratively contribute translations. You can also add annotations such as sample programs in the language of your choice. It&apos;s even possible to vote on good or bad translations!&lt;/p&gt;
+
+&lt;p&gt;James continued by saying that &quot;one person&apos;s critical feature is another person&apos;s bloat,&quot; so we need to refine APIs and keep simplifying technologies. He said to pay particular attention to the upcoming GlassFish v3, as it will be deconstructed so you only get the modules you want. The slimmed-down application server will have a servlet container that&apos;s less than 100K. (The audience must have been paying attention because the GlassFish booth was by far the most crowded of all the booths when I walked by following the keynote.)&lt;/p&gt;
+
+&lt;p&gt;What else is new? According to James, it&apos;s up to us to answer that question. We should be the ones to drive changes in technologies and in the community. He concluded by calling on attendees to &quot;suggest, review, debate, join up, and participate.&quot;&lt;/p&gt;
+
+&lt;p&gt;&lt;b&gt;Related links:&lt;/b&gt;&lt;br /&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://openjdk.dev.java.net/&quot;&gt;OpenJDK&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://openjfx.dev.java.net/&quot;&gt;OpenJFX&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://glassfish.dev.java.net/&quot;&gt;GlassFish&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.opensolaris.org/&quot;&gt;OpenSolaris&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.netbeans.org&quot;&gt;NetBeans&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/p&gt;
+
+</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/davew/entry/feeling_at_home_on_the</id>
+        <title type="html">(Feeling at) Home on the Range</title>
+        <author><name>davew</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/davew/entry/feeling_at_home_on_the"/>
+        <published>2007-11-07T03:11:12-08:00</published>
+                  <updated>2007-11-07T03:30:28-08:00</updated>
+                                    <category term="/General" label="/General" />
+                          <content type="html">&lt;p&gt;
+(Aside; composing blog articles for my &quot;to post&quot; queue isn&apos;t a bad way to spend time on a train into London...)
+&lt;p&gt;
+As you&apos;ve already seen, Las Vegas and I don&apos;t see eye to eye. However, the same permissive Nevada laws which cause Vegas to be what it is in the first place, also resulted in one of the very few pleasant non-conference experiences I had (other than catching up with many of my pals from Sun&apos;s worldwide security community, and sinking large quantities of overpriced beer with them).
+&lt;p&gt;
+There&apos;s a place a little way off the Strip called &quot;&lt;a href=&quot;http://www.thegunstorelasvegas.com/&quot;&gt;The Gun Store&lt;/a&gt;&quot;. It does exactly what it says on the tin - ie, sells guns, ammunition, holsters etc - however it also has its own little arsenal which, for a reasonable fee plus ammunition, can be hired out to shoot on the range they have at the back of the store. Now, I used to be on my University Rifle Team&apos;s &quot;B&quot; string back in the days when firearms were still legal in the UK; we&apos;d shoot .22 long, prone, at targets maybe 2.5 inches across (this being the diameter of the 5 ring) with iron sights at 30 yards. I used to shoot around the high 80s - low 90s pretty much all the time; I still have the card, somewhere, on which I shot my best score of 96, sometime in 1991.
+&lt;p&gt;
+So, this place had some appeal - even more so, when I found out that Nevada law permits fully automatic weapons :-).
+&lt;p&gt;
+Steve (Nelson), Joel and I headed over there on the Tuesday lunchtime; here&apos;s some notes on what I shot, and what I thought of it.
+&lt;p&gt;
+&lt;a href=&quot;http://en.wikipedia.org/wiki/MP40&quot;&gt;MP40 &quot;Schmeisser&quot;&lt;/a&gt;: I was really pleasantly surprised to find that they had one of these (a Mk2); having heard stories of them when I was a small boy, from a few aged great-uncles who had fought in World War II and &quot;liberated&quot; MP40s to use in preference to their UK-issued Stens, &quot;it had to be done&quot;. Cyclic rate was maybe 65 per minute; it was easy to squeeze off controlled 3-round bursts. Barrel rise wasn&apos;t a huge issue, probably as a result of overall good balance and the good forward grip. Nice single-blade-in-tunnel foresight; if the backsight hadn&apos;t gone (probably a casualty of history), I reckon I&apos;d have got my groups rather tighter. I put 40 rounds through it, and enjoyed it.
+&lt;p&gt;
+&lt;a href=&quot;http://en.wikipedia.org/wiki/Heckler_&amp;_Koch_MP5&quot;&gt;Heckler &amp;Koch MP5&lt;/a&gt;: The SMG of choice for British Special Forces and police armed response units, though to be honest, I can&apos;t see why; barrel rise was much more of an issue on this than the other two SMGs I shot, and I think it would benefit from a forward grip redesign. Cyclic rate is about 70 per minute, so it&apos;s easy to get 3-round bursts off even when set to full auto. Unusual trident-in-tunnel foresight; I suspect this may be a ranging aid of sorts. Nice integrated backsight. I put 60 rounds through it, and wasn&apos;t displeased to hand it back.&lt;br&gt;
+Extra note: I gather that the slings that such units carry their MP5s in, are rigged such that when shooting, they exert a force on the gun to keep the barrel down (in the manner that the &quot;across the chest, under the forward hand and onto the end of the forward grip&quot; sling I used to use when shooting .22 rifle, would stabilise it). It&apos;s a shame that such a sling wasn&apos;t available at the Gun Store, I&apos;d have liked to have used it...
+&lt;p&gt;
+Colt M16 9mm compact: Clearly a derivative of the &lt;a href=&quot;http://world.guns.ru/assault/as50-e.htm&quot;&gt;Colt Commando&lt;/a&gt;, with the same gas-cylinder recoil compensator in the short stock. The sweetest-shooting SMG of the lot, in terms of low barrel rise; however barrel control still needs care, given the 100 round per minute cyclic rate! I was usually getting 4-5 round bursts out of it, although I did manage to loose off a 10-round (out of sheer curiosity) and still get everything on the target, although naturally not in anything which could be called a decent grouping. Nice single blade-in-tunnel foresight and integrated backsight, really good forward grip. I put 100 rounds through it, and thoroughly enjoyed it.
+&lt;p&gt;
+&lt;a href=&quot;http://en.wikipedia.org/wiki/Glock_17&quot;&gt;Glock 17&lt;/a&gt;: It&apos;s been even longer since I&apos;ve shot pistol, but Joel, bless him, persuaded me to hire this out and see what I remembered. I put two clips of 10 rounds through it; the first clip was &quot;on target&quot; inasmuch as all the rounds actually hit the target, but with a little advice from my instructor, my hands remembered how to shoot pistol and the second clip went in a reasonable group. A very nice, well-balanced little 9mm.
+&lt;p&gt;
+&lt;a href=&quot;http://en.wikipedia.org/wiki/Desert_Eagle&quot;&gt;Magnum Research / IMI Desert Eagle&lt;/a&gt;: I&apos;ve been wanting to put a few rounds through one of these, since I first heard of their existence :-). Having gained a bit of confidence with the Glock, I just had to give it a go. Hire and ammo cost was somewhat steeper than for the other pistols available, as you&apos;d expect - nonetheless, it&apos;s now on my &quot;been there, done that&quot; list, even though I only got 5 rounds for my money. The Eagle is not the wrist-snapper I was expecting (although I found out afterwards, that the piece I was shooting was chambered for .44 Magnum rather than the .50 Action Express I was expecting... interchangeable barrels, etc); it still packs a considerable recoil, certainly, and you wouldn&apos;t want to try any sort of rapid-fire semi-auto shooting with it, but if you shoot two-handed and have the luxury of taking 5 seconds or so between shots, you can let your shoulders take the strain and it doesn&apos;t hurt. To really put the perfect finish on my shooting session, I managed to put the last 3 of my 5 rounds into a 2-inch diameter headshot grouping :-).
+&lt;p&gt;There&apos;s something about the Eagle, which &quot;simply works&quot; for me. It&apos;s a hardcore sniper&apos;s pistol, if there could be considered to be such a thing. Somehow, it feels &quot;spot on&quot; in my hands, heavy though it is. I &lt;i&gt;so&lt;/i&gt; want to see what it can do, target-wise, with the optional 10&quot; barrel on...
+&lt;p&gt;
+The shop and range are very well-managed; the guns-for-hire are on two racks well behind the counter, one rack being for fully automatic and the other for semi; you indicate the gun you&apos;re interested in and name your number of rounds in multiples of clip capacity (&quot;bulk discount&quot; deals are available, see the labels next to the guns); the clips are given to you pre-loaded; you take them to the till, where you choose your target sheets and pay for everything. Then, you go to the back of the store, collecting eye protection and ear defenders on the way, and meet up with your instructor, who picks up your chosen weapons. You are then led through a door into a short corridor, at the end of which is another door - only one of the doors can be open at a time, although this is managed by a human rather than electronic process. Beyond the second door, you&apos;re on the range. You and your instructor find a free booth, you put your clips on the booth&apos;s shelf, your chosen target sheet is run out on the wire, your instructor (un)locks and loads for you, and you either put the gun down on the shelf or hand it across to your instructor once it&apos;s empty (your instructor decides how they want to run things). 
+&lt;p&gt;
+If you are ever in Vegas and fancy having some responsible fun with firearms, I highly recommend this place; it&apos;s well-managed, has a good selection of guns available, and the instructors are polite and informative (at least, as polite and informative as you can be while both of you are wearing ear defenders). My little session above cost me the modest sum of a hundred pounds, and to my mind, it&apos;s much better-value fun than gambling or glitzy shows - even though it&apos;s expensive in absolute terms, compared with usual ammunition prices, IMHO it&apos;s worth it for the experience. The range is only really long enough for pistols and SMGs, though - if you want to see what you can do with a sniping rifle, you need to go elsewhere (and most likely, outdoors), to put some serious distance between you and your target.
+&lt;p&gt;  
+</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/davew/entry/fear_and_loathing_of_las</id>
+        <title type="html">Fear and Loathing of Las Vegas</title>
+        <author><name>davew</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/davew/entry/fear_and_loathing_of_las"/>
+        <published>2007-11-07T03:09:07-08:00</published>
+                  <updated>2007-11-07T03:30:28-08:00</updated>
+                                    <category term="/General" label="/General" />
+                          <content type="html">&lt;p&gt;While CEC itself was good and very worthwhile attending, Las Vegas does rather more than &quot;put my teeth on edge&quot;. If it wasn&apos;t for my presentation obligations,  getting to see so many of my old pals and wanting to see other folks&apos; breakouts, I&apos;d have been close to rearranging my flights to be out of there within the first 24 hours.
+&lt;p&gt;
+If you want to know why, read on. If not, skip to the next article, which is far more positive and involves guns :-).
+&lt;p&gt;
+From the air, Vegas is very spread-out - it&apos;s very unlike most American cities, and if it wasn&apos;t for the sheer garishness of the illumination of the Strip and the fairly rigorous geometry of the street patterns, what you see from above at night could almost be mistaken for London.
+&lt;p&gt;
+The first warning bell rang in my head, when I had to walk past ranks of slot machines at the airport. Some of these were even air-side.
+&lt;p&gt;
+When I landed, rather than being bussed to the &lt;a href=&quot;http://www.vegas.com/resorts/paris/&quot;&gt;Paris&lt;/a&gt; / &lt;a href=&quot;http://en.wikipedia.org/wiki/Bally&apos;s_Las_Vegas&quot;&gt;Bally&lt;/a&gt; where the conference was being hosted, with the rest of the CEC folk, I was picked up by Steve Nelson (Head of the Security Ambassador Board), and he, Luc Wijns (who was on the same &apos;plane) and I went for dinner and beer at the &lt;a href=&quot;http://www.crownandanchorlv.com/index2.html&quot;&gt;Crown and Anchor&lt;/a&gt;, a &quot;British&quot; pub a little way off the Strip. It&apos;s nice to feel welcomed :-).
+&lt;p&gt;
+About the only way in which the place could be described as British in atmosphere involves lots of Union Jacks and regimental colours around the place - British pubs tend not to do neon. Fortunately, some of the beer also came from home, and even though the Americans do a fair amount of damage to a pint of &lt;a href=&quot;http://www.oldspeckledhen.co.uk/&quot;&gt;Hen&lt;/a&gt; by serving it chilled from a nitro pump, at the end of the day, it&apos;s still Hen :-). There were also some British-inspired dishes on the menu (Steve enjoyed a steak and ale pie), however my metabolism was still out of kilter having just spent the better part half a day travelling a third of the way around the planet, so I  contented myself with some bacon and cheese potato skins.
+&lt;p&gt;
+We drove to the Strip via some back roads and went into the hotel via a side door, so we didn&apos;t see the full horror of the place immediately - however, it took a stroll of some 200 metres through the massed ranks of slot machines and card tables to find Reception. In fact:
+&lt;p&gt;
+Vegas Rule #1: If either your starting point or destination are on the Strip, you have to walk through at least 200 metres of slot machines and card tables to get between points A and B. If points A and B are both on the Strip - even if they are in the same hotel - you can make that 400 metres.
+&lt;p&gt;
+There&apos;s an almost-constant beeping in the ears, like tinnitus, when doing anything on the ground floor of a hotel on the Strip.
+&lt;p&gt;
+Then, there&apos;s the people sat at these machines and card tables - but it&apos;s the ones at the machines which get to you if you look closely. Glazed of eye, they feed money into flashing and beeping contraptions while hitting a very few buttons, for hours and hours at a time; I walked past a little old lady one evening on my way to my room, and she was still there when I came down for breakfast the next morning. The Wachowski Brothers must have been in Vegas, or thinking about Vegas, when they came up with the idea in &quot;The Matrix&quot; that the purpose of humanity is to power the machines.
+&lt;p&gt;
+Vegas Rule #2: You are trapped in the Matrix. Take the blue pill (or the red-eye, the hell out of there). You need to wear shades at night; my photochromatics darkened, when on the Strip after sunset.
+&lt;p&gt;
+Surprisingly, smoking in unsegregated areas of indoor public places is entirely permitted.
+&lt;p&gt;
+Anyway, I checked in - which took 20 minutes of queuing - and headed off to bed; on drawing my curtains back, I was confronted with a replica Eiffel tower. In retrospect, I think &lt;a href=&quot;http://en.wikipedia.org/wiki/Blackpool_Tower&quot;&gt;the one in Blackpool&lt;/a&gt; is taller.
+&lt;p&gt;
+With the effects of several pints of Hen to help me sleep, I managed about 5 hours of shut-eye; not bad, for me, for a first night on a day in which I travelled from BST to PDT with a 2-hour stopover in EDT. One serious soak in the bath in the morning (why is it that American baths, to my view, always seem to be slightly countersunk into the floor?) and I was ready to take an extended stroll to see what Vegas looked like from the ground, while working up an appetite for breakfast.
+&lt;p&gt;
+Vegas Rule #3: Hotel exits are hard to find. Interior lighting is kept to a perpetual early twilight, and exit signs are placed no further than 100 feet before an actual exit. I regularly bumped into colleagues who were looking lost, asked them what they were looking for, and was told &quot;daylight&quot;. I hate to think what would happen in the event of a fire; maybe the casinos have emergency floor lighting, like passenger aircraft...
+&lt;p&gt;
+The Strip looks like &lt;a href=&quot;http://www.secondlife.com/&quot;&gt;Second Life&lt;/a&gt;. Actually, that&apos;s not true; I suspect a bunch of Second Life was modelled on Vegas. One thing&apos;s for sure, all the hallucinogens left over at the end of the &apos;60s must have been force-fed to the architects tasked with designing the place. There&apos;s a life-size castle which looks like it was built from 30-foot-a-side Lego bricks, a 3-storey high Coke bottle, a bike shop with half of a 1-storey high Harley coming out of the wall above the door, a scaled-down New York skyline (interestingly, minus the Twin Towers) , a pyramid (incongrous in black, and with a many-storey high Vodka advert on it) with an upward-pointing light source which the FAA must still be complaining about, and everywhere, slot machines and card tables in seemingly-endless rows. In the middle of &quot;&lt;a href=&quot;http://www.nynyhotelcasino.com/&quot;&gt;New York&apos; New York&lt;/a&gt;&quot;&apos;s main slot machine floor, stands one of the most outstanding products of a diseased mind I&apos;ve seen; render Marilyn Monroe in classic &quot;Seven Year Itch&quot; skirt-blowing pose in stone, and modify it by raising her right arm, putting a torch in her right hand and planting the Statue of Liberty&apos;s crown on her head.
+&lt;p&gt;
+If Vegas looks like this to a clean and sober security geek, I can begin to understand what &lt;a href=&quot;http://www.levity.com/corduroy/thompson.htm&quot;&gt;Hunter S. Thompson&lt;/a&gt; used to see there.
+&lt;p&gt;
+Vegas Rule #4: Read &quot;Fear and Loathing in Las Vegas&quot; before you go. What&apos;s there today, isn&apos;t what St. Hunter was seeing in the &apos;70s, but it&apos;s a helluva lot weirder than what was actually there when he was, and almost as weird as what he was seeing.
+&lt;p&gt;
+Indoors, it&apos;s hard to get away from the beeping without going to a presentation, or your room. Outdoors, it&apos;s hard to get away from the flicking of cardboard on cardboard, as though there&apos;s always someone within a few feet of you doing a riffle shuffle on a card deck. What the folk (usually appearing to be of Mexican or other Central / South American origin) doing this are actually doing, is propagating &quot;tart cards&quot;, advertising the personal services of &quot;ladies of negotiable affection&quot;, as Mr Nelson and I like to refer to them (with a tip of the hat to Pratchett). Even though I&apos;m given to understand that prostitution, while legal in most of the rest of Nevada, is actually illegal in the county in which Vegas sits, it nonetheless goes on openly. Actually, it must be a really hellish job to be a Vegas cop; not only are most residents likely to have fully-automatic ordnance at their disposal, but in order to have anyone notice the roof lights on your car at night on the Strip, you&apos;d have to replace them with at least Class III lasers...
+&lt;p&gt;
+Anyway, on the Sunday (being the day after) I landed, there were a few things I needed to do; among these was &quot;mandatory speaker training&quot;, which I went to with an open mind, and came out of with some useful new ideas on presentation technique.  There was a huge dinner laid on for Sun folk, in the evening; the food wasn&apos;t bad, and I welcomed the opportunity to catch up with a big bunch of friends. Bumping into Wolfgang Ley, I found that he&apos;d already done a bunch of research into where the local microbreweries were, and marked them on his map; with Steve Gaul also on hand (we needed to discuss the finer points of what we were going to cover in our presentation and workshop on the Monday - plus, Steve also likes his beer), Wolfie and I decamped to one in yet another nearby hotel / casino complex, which - even though it no longer brewed on the premises -  carried &quot;&lt;a href=&quot;http://www.ratebeer.com/beer/sin-city-stout/57951/63/&quot;&gt;Sin City Stout&lt;/a&gt;&quot;. I&apos;m not much of a Stout drinker at the best of times, but this stuff did a good job of converting me to the chocolate-malt cause:-).
+&lt;p&gt; 
+Vegas Rule #5: You can still find a good locally-brewed pint, if you know where to look :-).
+&lt;p&gt;
+Waking up at a sane hour on Monday morning after a good night&apos;s stout-induced sleep (whew), my agenda read: &quot;Breakfast, general sessions, breakout setup and test, breakout, deep-dive, try not to panic during any of the previous two entries, dinner&quot;. I&apos;m pleased to say (as in the CEC posting previously) that the breakout and deep-dive were both well-received; no CEC dinner was organised in the evening, so a bunch of us found a nice Italian restaurant tucked away in the back of another hotel / casino complex (restaurants are always at the back, see Rule #1) and had a really rather good dinner. It always helps to have Italians (principally Domenico) on hand to choose the wine at such occasions, of course!
+&lt;p&gt;
+Tuesday, I&apos;ve mostly covered in the CEC article (with the major exception of the fun had at lunchtime, but that&apos;s the next post); about the only other point worth mentioning is to &lt;a href=&quot;http://www.tbray.org/ongoing/When/200x/2007/10/10/Starving-in-Vegas&quot;&gt;agree with Tim Bray&lt;/a&gt; about Vegas not being set up for pedestrians (although Joel and I took the first bus back from the party; Tim did better than us, by actually managing to get 3 kebabs). I was in the mood for dining Oriental, but anything Oriental seems to be &lt;i&gt;ridiculously&lt;/i&gt; overpriced in Vegas; when steaks are on a financial par with Singapore noodles, Something is Very Wrong. In the end, we ended up dining pseudo-French, back at our own hotel, hours later.
+&lt;p&gt;
+Wednesday was a &quot;general sessions, and get out of Vegas&quot;. I was disappointed to miss the post-wrap-up Security Ambassador get-together, but that&apos;s flight times for you. The views of the Nevada desert from the window, heading out to LA, were spectacular; I&apos;ve never seen anywhere quite so seemingly untouched by Man. Quite the welcome contrast to Vegas.
+&lt;p&gt;
+</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/ThinkThin_JA/entry/sun_ray%E3%81%A7%E3%81%AEusb%E3%83%A1%E3%83%A2%E3%83%AA%E3%81%AEgui%E3%83%84%E3%83%BC%E3%83%AB_solaris%E7%89%88</id>
+        <title type="html">Sun Ray&#12391;&#12398;USB&#12513;&#12514;&#12522;&#12398;GUI&#12484;&#12540;&#12523;&#65288;Solaris&#29256;&#65289;</title>
+        <author><name>ohkushi</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/ThinkThin_JA/entry/sun_ray%E3%81%A7%E3%81%AEusb%E3%83%A1%E3%83%A2%E3%83%AA%E3%81%AEgui%E3%83%84%E3%83%BC%E3%83%AB_solaris%E7%89%88"/>
+        <published>2007-11-07T03:03:31-08:00</published>
+                  <updated>2007-11-07T03:10:45-08:00</updated>
+                                    <category term="/Sun Ray" label="/Sun Ray" />
+                          <content type="html">&lt;p&gt;&#23455;&#12399;Sun Ray&#12391;&#12399;USB&#12513;&#12514;&#12522;&#12398;&#35501;&#12415;&#26360;&#12365;&#12434;&#12377;&#12427;&#12371;&#12392;&#12364;&#12391;&#12365;&#12414;&#12377;&#12290;&#65288;&#12418;&#12385;&#12429;&#12435;&#35373;&#23450;&#12391;&#31105;&#27490;&#12377;&#12427;&#12371;&#12392;&#12418;&#12391;&#12365;&#12414;&#12377;&#12290;&#65289;&#12383;&#12384;&#12375;&#12289;USB&#12395;&#12450;&#12463;&#12475;&#12473;&#12377;&#12427;&#12383;&#12417;&#12398;GUI&#12484;&#12540;&#12523;&#12364;&#12394;&#12356;&#12383;&#12417;&#12395;&#12381;&#12398;&#26041;&#27861;&#12377;&#12425;&#30693;&#12425;&#12394;&#12356;&#20154;&#12418;&#22810;&#12356;&#12391;&#12375;&#12423;&#12358;&#12290;&#12371;&#12371;&#12391;&#32057;&#20171;&#12377;&#12427;Utthumb&#12484;&#12540;&#12523;&#12399;Zenity/Korn Shell&#12505;&#12540;&#12473;&#12398;USB&#12513;&#12514;&#12522;&#12395;&#12450;&#12463;&#12475;&#12473;&#12377;&#12427;&#12383;&#12417;&#12398;GUI&#12484;&#12540;&#12523;&#12391;&#12377;&#12290;&#12371;&#12398;&#12484;&#12540;&#12523;&#12399;zenity&#12364;&#24517;&#35201;&#12391;Solaris 10&#12392;Nevada&#12391;&#12375;&#12363;&#12486;&#12473;&#12488;&#12375;&#12390;&#12356;&#12414;&#12379;&#12435;&#12290; &lt;br /&gt;&lt;/p&gt;&lt;p&gt;&#12473;&#12463;&#12522;&#12540;&#12531;&#12471;&#12519;&#12483;&#12488;&#12391;&#12377;&#12290;&lt;/p&gt;&lt;p&gt;&lt;img vspace=&quot;0&quot; hspace=&quot;0&quot; border=&quot;0&quot; align=&quot;bottom&quot; src=&quot;http://blogs.sun.com/ThinkThin_JA/resource/utthumb-jp.jpg&quot; /&gt;&lt;br /&gt;&lt;/p&gt;&lt;h3&gt;&#12452;&#12531;&#12473;&#12488;&#12540;&#12523;&#26041;&#27861;:&lt;!--&lt;--&gt;&lt;/h3&gt;&lt;ul&gt;&lt;li&gt; &lt;a href=&quot;../../ThinkThin/resource/utthumb.zip&quot;&gt;utthumb.zip&#12434;&#12480;&#12454;&#12531;&#12525;&#12540;&#12489;&lt;br /&gt;&lt;/a&gt;&lt;/li&gt;&lt;li&gt;unzip utthumb.zip
+&lt;/li&gt;&lt;li&gt;utthumb.zip&#12395;&#21547;&#12414;&#12428;&#12427;README&#12501;&#12449;&#12452;&#12523;&#12395;&#24467;&#12356;&#12414;&#12377;
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;a href=&quot;http://blogs.sun.com/ThinkThin/entry/sun_ray_usb_thumb_drive&quot;&gt;http://blogs.sun.com/ThinkThin/entry/sun_ray_usb_thumb_drive&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://blogs.sun.com/ThinkThin/entry/sun_ray_usb_thumb_drive&quot;&gt;&lt;/a&gt;&#12424;&#12426;&lt;/p&gt;&lt;p&gt;&lt;img vspace=&quot;0&quot; hspace=&quot;0&quot; border=&quot;0&quot; align=&quot;bottom&quot; src=&quot;http://blogs.sun.com/ThinkThin_JA/resource/usbico.jpg&quot; /&gt;&lt;/p&gt;&lt;p&gt;&#12371;&#12435;&#12394;&#24863;&#12376;&#12391;&#12497;&#12493;&#12523;&#12395;&#12450;&#12452;&#12467;&#12531;&#20316;&#12427;&#12392;&#20415;&#21033;&#12391;&#12377;&#12290;&lt;br /&gt;
+&lt;/p&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/didzo/entry/mit_dem_motorrad_um_die</id>
+        <title type="html">Mit dem Motorrad um die Welt</title>
+        <author><name>Juergen Didzoleit</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/didzo/entry/mit_dem_motorrad_um_die"/>
+        <published>2007-11-07T02:36:14-08:00</published>
+                  <updated>2007-11-07T02:51:02-08:00</updated>
+                                    <category term="/Personal" label="/Personal" />
+                          <content type="html">Kennt ihr Ewan McGregor oder Charley Bormann???&lt;br/&gt;
+Das sind zwei englische Schauspieler, Ewan McGregor hat u. a. den jungen Obi Wan bei Star Wars gespielt.&lt;br/&gt;
+&lt;br/&gt;
+Beide sind leidenschaftliche Motorradfahrer uns haben sich inzwischen 2 Tr&#228;ume erf&#252;llt,
+LWR(long way round) und zwei Jahe sp&#228;ter LWD(long way down).&lt;br/&gt;
+LWR: eine Reise mit dem Motorrad von London immer nach Osten bis New York.&lt;br/&gt;
+&lt;a href=&quot;http://www.longwayround.com&quot;&gt;www.longwayronud.com&lt;/a&gt;&lt;br/&gt;
+LWD: von Nord Schottland(John O&apos;Groats) durch Europa und Afrika nach Kapstadt&lt;br/&gt;
+&lt;a href=&quot;http://www.longwaydown.com&quot;&gt;www.longwaydown.com&lt;/a&gt;&lt;br/&gt;
+&lt;br/&gt;
+Die erste Tour ist auf drei DVD&apos;s fest gehalten und absolut sehenswert. &lt;br/&gt;
+Ein Freund sagt.&quot; Das ist die beste DVD der Welt&quot;&lt;br/&gt;
+Die DVD der 2. Tour wird bald erscheinen.(hoffentlich) Ein Teil der Erl&#246;ses aus dem Verkauf der DVD&apos;s geht &#252;brigens an UNICEF, also eine guten Zweck. 
+
+Viel Spass beim Ansehen.</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/plamere/entry/npr_music_goes_live</id>
+        <title type="html">NPR Music goes live</title>
+        <author><name>plamere</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/plamere/entry/npr_music_goes_live"/>
+        <published>2007-11-07T02:27:20-08:00</published>
+                  <updated>2007-11-07T03:10:41-08:00</updated>
+                                    <category term="/music" label="/music" />
+                          <content type="html">&lt;a href=&quot;http://www.npr.org/nprmusic/index.html&quot;&gt;NPR Music&lt;/a&gt;&amp;nbsp; has gone live.&amp;nbsp; NPR Music is a &amp;quot;a free, multi-genre web site that  presents the best of public radio music&amp;quot;. The site is organized by genre and by type of musical content including
+live concerts, studio sessions, artist interviews, profiles,
+reviews,&amp;nbsp;blogs&amp;nbsp;and podcasts.&amp;nbsp; There&apos;s a particularly &lt;a href=&quot;http://www.npr.org/templates/story/story.php?storyId=16016487&quot;&gt;nifty session featuring the Animal Collectiive.&lt;/a&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/identity/entry/social_media_survey</id>
+        <title type="html">Social Media Survey</title>
+        <author><name>identity</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/identity/entry/social_media_survey"/>
+        <published>2007-11-07T02:18:48-08:00</published>
+                  <updated>2007-11-07T02:32:30-08:00</updated>
+                                    <category term="/Identity" label="/Identity" />
+                          <content type="html">&lt;p&gt;&lt;a href=&quot;http://www.goingon.com/blog/lonsafko&quot;&gt;&lt;img src=&quot;http://www.goingon.com/themes/tekriti/sb-files/social_media.jpg&quot; style=&quot;margin: 0pt 0pt 10px 10px; float: right;&quot; title=&quot;&quot; alt=&quot;&quot; border=&quot;0&quot; width=&quot;150&quot;/&gt;&lt;/a&gt;    A good friend of mine, &lt;a href=&quot;http://www.goingon.com/blog/lonsafko&quot;&gt;Lon Safko&lt;/a&gt;, is conducting an &lt;a href=&quot;http://www.contentconnections.com/socialmedia2007&quot;&gt;online social media survey&lt;/a&gt; as part of his research to write a book on the subject.&amp;nbsp; The survey takes a few minutes.&amp;nbsp; I encourage you to particpate.&lt;/p&gt; 
+&lt;p&gt;I suggested in the survey that Lon consider using social media (wiki/blog/vlog ...) to publish the concepts, rather than writing a book.&amp;nbsp; It will be interesting to see what transpires.&lt;/p&gt;
+&lt;p&gt;
+Technorati Tags: &lt;a href=&quot;http://technorati.com/tag/socialmedia&quot; rel=&quot;tag&quot;&gt;Social Media&lt;/a&gt;
+&lt;/p&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/plamere/entry/macromedia_buys_all_music</id>
+        <title type="html">Macrovision buys All Music</title>
+        <author><name>plamere</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/plamere/entry/macromedia_buys_all_music"/>
+        <published>2007-11-07T02:17:34-08:00</published>
+                  <updated>2007-11-07T03:10:41-08:00</updated>
+                                    <category term="/music" label="/music" />
+                          <content type="html">The maker of&lt;a href=&quot;http://en.wikipedia.org/wiki/Macrovision&quot;&gt; Rip Guard is&lt;/a&gt; going to purchase&amp;nbsp; All Music, the music metadata company.&amp;nbsp; Details in this &lt;a href=&quot;http://home.businesswire.com/portal/site/google/index.jsp?ndmViewId=news_view&amp;amp;newsId=20071106006601&amp;amp;newsLang=en&quot;&gt;press release&lt;/a&gt;.&amp;nbsp; Something tells me that Macrovision, the king of copy protection, is not going to be building rich web services around&amp;nbsp; the AMG&amp;nbsp; data. Sigh. &lt;i&gt;(Update - fixed the title, yep its Macrovision, not Macromedia).&lt;/i&gt;&lt;br /&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/timcaynes/entry/watching_the_pigeon_detectives</id>
+        <title type="html">watching the pigeon detectives</title>
+        <author><name>Tim Caynes</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/timcaynes/entry/watching_the_pigeon_detectives"/>
+        <published>2007-11-07T02:12:28-08:00</published>
+                  <updated>2007-11-07T02:32:40-08:00</updated>
+                                    <category term="/all" label="/all" />
+                          <content type="html">&lt;p&gt;the only time the &lt;a href=&quot;http://www.waterfrontnorwich.com/site.html&quot; class=&quot;blink&quot;&gt;waterfront&lt;/a&gt; has got emptier as the night got longer. I&apos;m not sure where everybody went but huge spaces opened up as the night drew on. when I arrived there wasn&apos;t space to swing a glow stick and just enough of a thoroughfare in front of the mixing desk to stumble over a number of pairs of converse and court shoes to the bar where it was strangely empty and while a man who looked like he tried very hard was holding his guitar in the air I shouted for a pint of stella which I didn&apos;t really need but that&apos;s what I do when I arrive.&lt;/p&gt;
+&lt;p&gt;not 30 minutes earlier I had been up to 2865b and witnessed the most efficient back garden firework display of modern times which latest longer then the ones from the &lt;a href=&quot;http://www.plantationgarden.co.uk/&quot; class=&quot;blink&quot;&gt;plantation garden&lt;/a&gt; which we saw from the bedroom window and after a swift baked potato I shot up the earlham road to find that everybody else was looking for a parking space where actually nearly every parking space is a resident&apos;s space and that audi a3 will get a ticket later ho ho I&apos;ll go in the car park up the road how much is that blimey.&lt;/p&gt;
+&lt;p&gt;back inside, there was a strange propensity of upturned collars which must be the way you wear them these days although I though it went out with &lt;a href=&quot;http://en.wikipedia.org/wiki/Image:Eric_Cantona_kung-fu_kick.jpg&quot; class=&quot;blink&quot;&gt;eric cantona kung fu kicks&lt;/a&gt; but then that was before most of the people in here were born apart from me and that bloke over there who looks like he should be security but he&apos;s only looking after his girlfriend tonight excuse me mate sorry nice tattoo is that your neck sorry mate and there&apos;s another I hope I don&apos;t look like that he&apos;s supposed to wait outside for his daughter not come in and wait for her. the pillar placement in the old warehouse for that&apos;s where we are was perplexing some people and strange it is with at least 2 empty v shapes of blind spot in the middle of the floor where the occasional group of 16 year olds will delight in finding only to discover its the worst place in the building to be standing even though you&apos;re only 5 feet from the stage that you can&apos;t see so I&apos;m positioned left of pillar #1 spotting the mic stand front centre which is the kind of uninteresting detail you fixate yourself with when you&apos;re in between bands on your own with a pint of stella wondering if all the short people can see alright but then not really caring too much because you can and you&apos;ve set your feet on the floor in such a way that you won&apos;t move for anything even if the celebrity deathmatching starts which is doesn&apos;t anyway not tonight a bit subdued&lt;/p&gt;
+&lt;p&gt;I&apos;m not sorry no I&apos;m not sorry no I&apos;m not sorry no I&apos;m not sorry. I saw that &lt;a href=&quot;http://www.ash-official.com/&quot; class=&quot;blink&quot;&gt;Ash&lt;/a&gt; a few days ago and that was alright in a kind of I wish &lt;a href=&quot;http://www.charlottehatherley.com/&quot; class=&quot;blink&quot;&gt;charlotte hatherley&lt;/a&gt; was still there kind of way although that one they did at the end about twilight was enormous and he&apos;s still got it and there was some good arm fighting going on got pushed right to the back of the pit and everything but tonight was more like it even though it seems to me that every band I see these days is just too good at what they do to be that exciting. once they rattled through the album and a couple of b sides that was it and so they left, sans encore, and so did we. they came round on the shuffle on my walkman the next day and I thought oh yes they were quite good and oh, funny how you sometimes get a genre run on shuffle at random and I got distracted and forgot everything. &lt;a href=&quot;http://www.wearescientists.com/&quot; class=&quot;blink&quot;&gt;we are scientists&lt;/a&gt; on tuesday. then its double maths on wednesday. hahahahaaahaahaaa.&lt;/p&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/security/entry/sun_alert_103114_multiple_security</id>
+        <title type="html">Sun Alert 103114 Multiple Security Issues Within The X Font Server (xfs(1)) QueryXBitmaps and QueryXExtents Protocol Handlers</title>
+        <author><name>security</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/security/entry/sun_alert_103114_multiple_security"/>
+        <published>2007-11-07T02:03:28-08:00</published>
+                  <updated>2007-11-07T02:32:38-08:00</updated>
+                                    <category term="/Alerts" label="/Alerts" />
+                          <content type="html">&lt;div class=&quot;product&quot;&gt;&lt;b&gt;Product:&lt;/b&gt; Solaris 9 Operating System, Solaris 10 Operating System, Solaris 8 Operating System&lt;/div&gt;&lt;div class=&quot;impact&quot; security=&quot;External&quot;&gt;&lt;p xmlns=&quot;http://www.w3.org/1999/xhtml&quot; cds=&quot;http://cds.central&quot; xlink=&quot;http://www.w3.org/1999/xlink&quot;&gt;There exists multiple security vulnerabilities within the handlers for the QueryXBitmaps and QueryXExtents protocol requests for the X Font Server, xfs(1), included with Solaris. These vulnerabilities may allow a local or remote unprivileged user the ability to execute arbitrary code with the privileges of the X font server. The X font server runs as the unprivileged user &quot;nobody&quot; (uid 60001) on Solaris. These vulnerabilities may allow also allow users to consume all available memory on a system resulting in a Denial of Service (DoS).&lt;/p&gt;&lt;p&gt;These issues are also referenced in the following documents:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;CVE-2007-4568 at: &lt;a href=&quot;http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-4568&quot; shape=&quot;rect&quot;&gt;http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-4568&lt;/a&gt;&lt;/li&gt;&lt;li&gt;CVE-2007-4990 at: &lt;a href=&quot;http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-4990&quot; shape=&quot;rect&quot;&gt;http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-4990&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;http://bugs.freedesktop.org/show_bug.cgi?id=12298&quot; shape=&quot;rect&quot;&gt;http://bugs.freedesktop.org/show_bug.cgi?id=12298&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;http://bugs.freedesktop.org/show_bug.cgi?id=12299&quot; shape=&quot;rect&quot;&gt;http://bugs.freedesktop.org/show_bug.cgi?id=12299&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;http://labs.idefense.com/intelligence/vulnerabilities/display.php?id=602&quot; shape=&quot;rect&quot;&gt;http://labs.idefense.com/intelligence/vulnerabilities/display.php?id=602&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;&lt;div class=&quot;avoidance&quot;&gt;&lt;b&gt;Avoidance:&lt;/b&gt; Patch&lt;/div&gt;&lt;div class=&quot;state&quot;&gt;&lt;b&gt;State:&lt;/b&gt; Resolved&lt;/div&gt;&lt;div class=&quot;state&quot;&gt;&lt;b&gt;First released:&lt;/b&gt; 10-Oct-2007&lt;/div&gt;&lt;div class=&quot;sunalert&quot;&gt;&lt;b&gt;Sun Alert Link:&lt;/b&gt; &lt;a href=&quot;http://sunsolve.sun.com/search/document.do?assetkey=1-26-103114-1&quot;&gt;http://sunsolve.sun.com/search/document.do?assetkey=1-26-103114-1&lt;/a&gt;&lt;/div&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/davew/entry/terrorism_gets_the_salem_treatment</id>
+        <title type="html">Terrorism gets the Salem treatment</title>
+        <author><name>davew</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/davew/entry/terrorism_gets_the_salem_treatment"/>
+        <published>2007-11-07T01:44:39-08:00</published>
+                  <updated>2007-11-07T03:30:28-08:00</updated>
+                                    <category term="/General" label="/General" />
+                          <content type="html">&lt;p&gt;
+I&apos;ve been wondering for a little while, when &lt;a href=&quot;http://www.schneier.com/blog/archives/2007/11/modernday_reven.html&quot;&gt;this&lt;/a&gt; would happen.
+&lt;p&gt;
+I also wonder what crimes the perpetrator committed. Let&apos;s start with libel (which he&apos;s been charged with), defamation and - probably - wasting police time.
+&lt;p&gt;
+None of these crimes are subject to extradition arangements, so unless a prosecution is brought in Sweden or the perpetrator ever visits the US, chances are he&apos;ll get away scot free. 
+&lt;p&gt;
+Even then, libel charges against individuals, tend not to result in major punishments.
+&lt;p&gt;
+I hope the FBI and TSA are able to remove whatever &quot;suspected terrorist, watch for&quot; flags from the son-in-law&apos;s records...
+&lt;p&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/ilhokim/entry/indiana_project_can_bring_these</id>
+        <title type="html">Indiana project can bring these?</title>
+        <author><name>Ilho Kim</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/ilhokim/entry/indiana_project_can_bring_these"/>
+        <published>2007-11-07T01:18:37-08:00</published>
+                  <updated>2007-11-07T03:30:30-08:00</updated>
+                                    <category term="/Personal" label="/Personal" />
+                          <content type="html">&lt;p&gt;Linux user moving to OpenSolaris.&lt;/p&gt;&lt;p&gt;Growing OpenSolaris desktop users more than Ubuntu users(hopefully).&lt;/p&gt;&lt;p&gt;Getting a easy way to get and manage packages like debian, ubuntu.&lt;/p&gt;&lt;p&gt;More user-friendly UI.&lt;/p&gt;&lt;p&gt;Supporting more device drivers like recent wireless devices.&lt;/p&gt;&lt;p&gt;Developers moving to OpenSolaris for Dtrace, Sun studio and etc.&lt;/p&gt;&lt;p&gt;We can run linux apps on BrandZ, I want one button to turn on BrandZ function ;)&lt;/p&gt;&lt;p&gt;OpenSolaris + OpenOffice can be applied enterprise.&lt;/p&gt;&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;a href=&quot;http://opensolaris.org/os/project/indiana/resources/getit/&quot;&gt;[Get preview]&lt;/a&gt;&lt;br /&gt;&amp;nbsp;&lt;/p&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/christophersaul/entry/the_wii_sports_revolution</id>
+        <title type="html">The Wii Sports revolution</title>
+        <author><name>christophersaul</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/christophersaul/entry/the_wii_sports_revolution"/>
+        <published>2007-11-07T01:13:13-08:00</published>
+                  <updated>2007-11-07T01:30:30-08:00</updated>
+                                    <category term="/General Tech Stuff" label="/General Tech Stuff" />
+                          <content type="html">
+&lt;p&gt;I&apos;m really enjoying the Nintendo Wii I got for my birthday, regularly working up a sweat with some nice 20 to 30 minute boxing sessions.&lt;/p&gt;
+
+
+&lt;p&gt;This is exactly what I need - easy exercise that&apos;s also fun.&lt;/p&gt;
+
+
+&lt;p&gt;People who say &apos;why don&apos;t you just go to the gym/play tennis on a real court/do some press-ups are missing the point.  I want exercise to take up as little time as possible and to be easy and fun to do.  Tricking me into exercising by making it into a game and mixing in some electronics is the perfect way to do this.&lt;/p&gt;
+
+
+&lt;p&gt;I can&apos;t wait to see what Nintendo bring out in the future.  Anything that has me enjoying myself leaping around the living room and getting some exercise in to boot is worth every penny.&lt;/p&gt;
+
+
+&lt;p&gt;My next step is to get some weights to put around my wrists to make my workout a wii bit more strenuous.&lt;/p&gt;
+
+</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/kimimasa/entry/big_admin_%E6%97%A5%E6%9C%AC%E8%AA%9E%E3%83%8F%E3%83%96_%E3%82%B3%E3%83%B3%E3%83%86%E3%83%B3%E3%83%84%E3%81%AE%E7%B4%B9%E4%BB%8B</id>
+        <title type="html">&#12304;Big Admin &#26085;&#26412;&#35486;&#12495;&#12502; &#12467;&#12531;&#12486;&#12531;&#12484;&#12398;&#32057;&#20171;&#12305;SJES &#35069;&#21697;&#12398;&#12362;&#30693;&#12425;&#12379;&#65306;&#35069;&#21697;&#12510;&#12491;&#12517;&#12450;&#12523;&#12398;&#35330;&#27491;</title>
+        <author><name>kimimasa</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/kimimasa/entry/big_admin_%E6%97%A5%E6%9C%AC%E8%AA%9E%E3%83%8F%E3%83%96_%E3%82%B3%E3%83%B3%E3%83%86%E3%83%B3%E3%83%84%E3%81%AE%E7%B4%B9%E4%BB%8B"/>
+        <published>2007-11-07T00:57:10-08:00</published>
+                  <updated>2007-11-07T01:10:38-08:00</updated>
+                                    <category term="/Identity Management" label="/Identity Management" />
+                          <content type="html">&#12371;&#12435;&#12395;&#12385;&#12399;&#12290;
+&lt;br&gt;
+&#20170;&#26085;&#12399;&#12289;Big Admin&#26085;&#26412;&#35486;&#12495;&#12502;&#12398;&#12467;&#12531;&#12486;&#12531;&#12484;&#12434;&#32057;&#20171;&#12375;&#12414;&#12377;&#12290;
+&lt;br&gt;
+&lt;a href=&quot;http://www.sun.com/bigadmin/hubs/multilingual/japanese/&quot;&gt;BigAdmin&#26085;&#26412;&#35486;&#12495;&#12502;&lt;/a&gt;&#12392;&#12399;&lt;a href=&quot;http://www.sun.com/bigadmin/home/index.html&quot;&gt;BigAdmin&lt;/a&gt;&#12398;&#26085;&#26412;&#29256;&#12395;&#12394;&#12426;&#12414;&#12377;&#12290;
+&lt;blockquote&gt;
+BigAdmin &#12510;&#12523;&#12481;&#12522;&#12531;&#12460;&#12523;&#12495;&#12502;&#12408;&#12424;&#12358;&#12371;&#12381;&#12290;&#19990;&#30028;&#20013;&#12398;&#12471;&#12473;&#12486;&#12512;&#31649;&#29702;&#32773;&#12395;&#24441;&#31435;&#12388;&#24773;&#22577;&#12434;&#12372;&#25552;&#20379;&#12375;&#12383;&#12356;&#12392;&#32771;&#12360;&#12390;&#12356;&#12414;&#12377;&#12290;&#12414;&#12383;&#12289;&#12371;&#12398;&#12469;&#12452;&#12488;&#12363;&#12425;&#12289;&#26085;&#26412;&#35486;&#12391;&#35352;&#20107;&#12420;&#24773;&#22577;&#12289;&#30693;&#35672;&#12434;&#20849;&#26377;&#12375;&#12383;&#12426;&#25237;&#31295;&#12375;&#12383;&#12426;&#12391;&#12365;&#12427;&#12424;&#12358;&#12395;&#12377;&#12427;&#20104;&#23450;&#12391;&#12377;&#12290; &#12371;&#12398;&#12469;&#12452;&#12488;&#12395;&#12399;&#12289;&#33521;&#35486;&#29256; BigAdmin &#12363;&#12425;&#12398;&#32763;&#35379;&#35352;&#20107;&#12434;&#12356;&#12367;&#12388;&#12363;&#25522;&#36617;&#12375;&#12390;&#12356;&#12414;&#12377;&#12290; Feedback &#12479;&#12502;&#12434;&#20351;&#12387;&#12390;&#12289;&#26085;&#26412;&#35486;&#32763;&#35379;&#12398;&#21697;&#36074;&#12395;&#12388;&#12356;&#12390;&#12467;&#12513;&#12531;&#12488;&#12375;&#12383;&#12426;&#12289;&#32763;&#35379;&#12375;&#12390;&#12411;&#12375;&#12356;&#33521;&#35486;&#29256;&#12398;&#35352;&#20107;&#12420;&#24773;&#22577;&#12434;&#12522;&#12473;&#12488;&#12375;&#12383;&#12426;&#12289;&#26085;&#26412;&#35486;&#20197;&#22806;&#12398;&#32763;&#35379;&#12375;&#12390;&#12411;&#12375;&#12356;&#35328;&#35486;&#12434;&#12522;&#12463;&#12456;&#12473;&#12488;&#12375;&#12383;&#12426;&#12377;&#12427;&#12371;&#12392;&#12418;&#12391;&#12365;&#12414;&#12377;&#12290;&#36960;&#24942;&#12394;&#12367;&#12393;&#12375;&#12393;&#12375;&#12467;&#12513;&#12531;&#12488;&#12434;&#12362;&#23492;&#12379;&#12367;&#12384;&#12373;&#12356;&#12290;&#12362;&#24453;&#12385;&#12375;&#12390;&#12362;&#12426;&#12414;&#12377;&#12290;&#12371;&#12428;&#12363;&#12425;&#12418;&#12518;&#12540;&#12470;&#12540;&#12362;&#12424;&#12403;&#12467;&#12511;&#12517;&#12491;&#12486;&#12451;&#12398;&#12415;&#12394;&#12373;&#12414;&#12392;&#12392;&#12418;&#12395; BigAdmin &#12398;&#20869;&#23481;&#12434;&#12464;&#12525;&#12540;&#12496;&#12523;&#12395;&#20316;&#25104;&#12375;&#25313;&#24373;&#12375;&#12390;&#12356;&#12365;&#12383;&#12356;&#12392;&#24605;&#12387;&#12390;&#12356;&#12414;&#12377;&#12290; &#25105;&#12293;&#12364;&#26368;&#12418;&#33391;&#12367;&#30693;&#12387;&#12390;&#12356;&#12427;&#35328;&#35486;&#12391;&#30693;&#35672;&#12434;&#20849;&#26377;&#12375;&#12414;&#12375;&#12423;&#12358;!
+&lt;br&gt;
+&lt;cite&gt;&lt;a href=&quot;http://www.sun.com/bigadmin/hubs/multilingual/japanese/&quot;&gt;BigAdmin: Multilingual BigAdmin - &#26085;&#26412;&#35486;&lt;/a&gt;&lt;/cite&gt;
+&lt;/blockquote&gt;
+&#26356;&#26032;&#24773;&#22577;&#12398; blog &#12418;&#12354;&#12426;&#12414;&#12377;&#12290;&lt;a href=&quot;http://blogs.sun.com/bigadmin_japan/&quot;&gt;BigAdmin &#26085;&#26412;&#35486;&#36890;&#20449;&lt;/a&gt;
+&lt;br&gt;
+Big Admin&#26085;&#26412;&#35486;&#12495;&#12502;&#12398;&#20013;&#12395;&#12399;&#12289;&lt;a href=&quot;http://www.sun.com/bigadmin/hubs/multilingual/japanese/content.jsp?menu=sjes&amp;sub_menu=all&quot;&gt;Sun Java Enterprise System &#35069;&#21697;&#12398;&#12467;&#12540;&#12490;&#12540;&lt;/a&gt;&#12418;&#12354;&#12426;&#12414;&#12377;&#12290;
+&#20170;&#22238;&#32057;&#20171;&#12377;&#12427;&#12398;&#12399;&#12289;
+&lt;a href=&quot;http://www.sun.com/bigadmin/hubs/multilingual/japanese/content/sjes-errata_01.jsp&quot;&gt;SJES &#35069;&#21697;&#12398;&#12362;&#30693;&#12425;&#12379;&#65306;&#35069;&#21697;&#12510;&#12491;&#12517;&#12450;&#12523;&#12398;&#35330;&#27491;&lt;/a&gt;&#12288;&#12391;&#12377;&#12290;&#12371;&#12371;&#12391;&#12399;&#35069;&#21697;&#12510;&#12491;&#12517;&#12450;&#12523;&#12398;&#35330;&#27491;&#24773;&#22577;&#12434;&#12356;&#12385;&#26089;&#12367;&#12362;&#23458;&#27096;&#12289;&#12497;&#12540;&#12488;&#12490;&#12540;&#27096;&#12395;&#12362;&#30693;&#12425;&#12379;&#12434;&#12375;&#12390;&#34892;&#12365;&#12414;&#12377;&#12290;
+&lt;br&gt;&#20170;&#30331;&#37682;&#12373;&#12428;&#12390;&#12356;&#12427;&#12398;&#12399;&#12289;&#20197;&#19979;&#12398;&#12418;&#12398;&#12395;&#12394;&#12426;&#12414;&#12377;&#12290;
+
+
+
+&lt;blockquote&gt;
+&lt;h3&gt;
+Identity Manager 7.1 &#12398;&#21205;&#20316;&#29872;&#22659;&#12392;&#12375;&#12390;&#12289;Solaris x86(x64)&#12434;&#20351;&#29992;&#12377;&#12427;&#22580;&#21512;
+&lt;/h3&gt;
+&lt;p&gt;
+
+Identity Manager &#12398;&#21205;&#20316;&#29872;&#22659;&#12392;&#12375;&#12390; Solaris x86(x64) &#12434;&#20351;&#29992;&#12373;&#12428;&#12390;&#12356;&#12427;&#22580;&#21512;&#12399;&#12289;
+64 &#12499;&#12483;&#12488;&#12496;&#12540;&#12472;&#12519;&#12531;&#12398; JCO &#12398;&#12415;&#12364;&#20351;&#29992;&#21487;&#33021;&#12391;&#12377;&#12290;&#24467;&#12387;&#12390;&#12289;Identity Manager &#12434;
+&#21205;&#12363;&#12377;&#12450;&#12503;&#12522;&#12465;&#12540;&#12471;&#12519;&#12531;&#12469;&#12540;&#12496;&#12540;&#12418; 64 &#12499;&#12483;&#12488;&#12391;&#21205;&#20316;&#12377;&#12427;&#24517;&#35201;&#12364;&#12354;&#12426;&#12414;&#12377;&#12290;
+&#65288;32 &#12499;&#12483;&#12488;&#12391;&#12398;&#12415;&#21205;&#20316;&#12377;&#12427;&#12450;&#12503;&#12522;&#12465;&#12540;&#12471;&#12519;&#12531;&#12469;&#12540;&#12496;&#12540;&#12391;&#12399; Solaris x86(x64)
+&#19978;&#12391; SAP &#12392;&#12398;&#36899;&#25658;&#12364;&#12391;&#12365;&#12414;&#12379;&#12435;&#12290;&#65289;
+&lt;br&gt;
+&#12414;&#12383;&#12289;&#25991;&#20013; x86 &#12392;&#12377;&#12409;&#12365;&#31623;&#25152;&#12364; Sparc &#12392;&#12394;&#12387;&#12390;&#12356;&#12414;&#12377;&#12290;
+&lt;br&gt;
+&#20197;&#19979;&#12398;&#12424;&#12358;&#12395;&#12510;&#12491;&#12517;&#12450;&#12523;&#12434;&#35330;&#27491;&#12377;&#12427;&#20104;&#23450;&#12391;&#12377;&#12290;
+&lt;/p&gt;
+
+&lt;table border=&quot;1&quot;&gt;
+&lt;tbody&gt;&lt;tr&gt;
+&lt;th bgcolor=&quot;lightyellow&quot;&gt;
+&#12510;&#12491;&#12517;&#12450;&#12523; &#65295; &#35330;&#27491;&#31623;&#25152;
+&lt;/th&gt;
+
+&lt;th bgcolor=&quot;lightyellow&quot;&gt;
+&#35492;
+&lt;/th&gt;
+
+&lt;th bgcolor=&quot;lightyellow&quot;&gt;
+&#27491;
+&lt;/th&gt;
+
+&lt;/tr&gt;
+
+&lt;tr&gt;
+
+&lt;td valign=&quot;top&quot; width=&quot;300&quot;&gt;
+&lt;a href=&quot;http://docs.sun.com/source/820-0821/SAP.html#wp23700&quot;&gt;Sun Java[TM] System Identity Manager 7.1 Resources Reference &#65295; SAP&lt;/a&gt;
+&lt;/td&gt;
+
+&lt;td valign=&quot;top&quot; width=&quot;450&quot;&gt;
+&lt;font color=&quot;blue&quot;&gt;&lt;b&gt;Note&lt;/b&gt; For Solaris x86, only the 64-bit version of the JCO is available. If you are using 64-bit Solaris on Sparc, ensure that the 64-bit version of the JCO is used. &lt;/font&gt;
+
+&lt;/td&gt;
+
+&lt;td valign=&quot;top&quot; width=&quot;450&quot;&gt;
+&lt;font color=&quot;red&quot;&gt;&lt;b&gt;Note&lt;/b&gt; Make sure that the JCo toolkit you download matches the bit version of Java your application server runs on. For example, JCo is available in only in the 64-bit version on the Solaris x86 platform. Therefore, your application server must be running the 64-bit version on the Solaris x86 platform.
+&lt;/font&gt;
+&lt;/td&gt;
+
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+
+&lt;!--    -----------------------------------------------------------------    --&gt;
+&lt;br&gt;
+&lt;h3&gt;
+Identity Manager 7.1, Domino 6.5.x &#12398;&#12469;&#12509;&#12540;&#12488;&#12395;&#12388;&#12356;&#12390;
+&lt;/h3&gt;
+
+&lt;p&gt;
+Domino 6.5.x &#12399;&#12522;&#12477;&#12540;&#12473;&#12392;&#12375;&#12390;&#12469;&#12509;&#12540;&#12488;&#12373;&#12428;&#12414;&#12377;&#12290;&#12375;&#12363;&#12375;&#12289;&#12522;&#12522;&#12540;&#12473;&#12494;&#12540;&#12488;&#12398;
+&#35352;&#36848;&#12364;&#35492;&#35299;&#12434;&#19982;&#12360;&#12363;&#12397;&#12394;&#12356;&#35352;&#36848;&#12395;&#12394;&#12387;&#12390;&#12356;&#12414;&#12375;&#12383;&#12398;&#12391;&#12289;&#20197;&#19979;&#12398;&#12424;&#12358;&#12395;&#12510;&#12491;&#12517;&#12450;&#12523;&#12434;
+&#35330;&#27491;&#12377;&#12427;&#20104;&#23450;&#12391;&#12377;&#12290;
+&lt;/p&gt;
+&lt;table border=&quot;1&quot;&gt;
+&lt;tbody&gt;&lt;tr&gt;
+&lt;th bgcolor=&quot;lightyellow&quot;&gt;
+&#12510;&#12491;&#12517;&#12450;&#12523; &#65295; &#35330;&#27491;&#31623;&#25152;
+&lt;/th&gt;
+
+&lt;th bgcolor=&quot;lightyellow&quot;&gt;
+&#35492;
+&lt;/th&gt;
+
+&lt;th bgcolor=&quot;lightyellow&quot;&gt;
+&#27491;
+&lt;/th&gt;
+
+&lt;/tr&gt;
+
+&lt;tr&gt;
+
+&lt;td valign=&quot;top&quot; width=&quot;300&quot;&gt;
+&lt;a href=&quot;http://docs.sun.com/source/820-2285/index.html#wp845901&quot;&gt;Sun Java System Identity Manager 7.1 &#12522;&#12522;&#12540;&#12473;&#12494;&#12540;&#12488; &#65295; &#12469;&#12509;&#12540;&#12488;&#12373;&#12428;&#12390;&#12356;&#12427;&#12477;&#12501;&#12488;&#12454;&#12455;&#12450;&#12392;&#29872;&#22659;&amp;gt;&amp;gt;&#12469;&#12509;&#12540;&#12488;&#12373;&#12428;&#12390;&#12356;&#12427;&#12522;&#12477;&#12540;&#12473;&amp;gt;&amp;gt;&#12513;&#12483;&#12475;&#12540;&#12472;&#12503;&#12521;&#12483;&#12488;&#12501;&#12457;&#12540;&#12512;&lt;/a&gt;
+&lt;/td&gt;
+
+&lt;td valign=&quot;top&quot; width=&quot;450&quot;&gt;
+&lt;font color=&quot;blue&quot;&gt;Lotus Notes 5.0 6.5,&lt;/font&gt; &lt;font color=&quot;red&quot;&gt;6.5.4&lt;/font&gt;&lt;font color=&quot;blue&quot;&gt;, 7.0 (Domino).&lt;/font&gt;
+
+&lt;/td&gt;
+
+&lt;td valign=&quot;top&quot; width=&quot;450&quot;&gt;
+&lt;font color=&quot;blue&quot;&gt;Lotus Notes 5.0 6.5, 7.0 (Domino).&lt;/font&gt;
+&lt;/td&gt;
+
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+
+&lt;!--    -----------------------------------------------------------------    --&gt;
+
+&lt;br&gt;
+&lt;h3&gt;
+Identity Manager 7.1 &#12398; Sun Java System Application Standard Edition 8.2 &#12469;&#12509;&#12540;&#12488;&#12395;&#12388;&#12356;&#12390;
+&lt;/h3&gt;
+&lt;p&gt;
+
+Identity Manager 7.1 &#12399;Sun Java System Application Standard Edition 8.2
+&#12434;&#12469;&#12509;&#12540;&#12488;&#12375;&#12414;&#12377;&#12290;&#12522;&#12522;&#12540;&#12473;&#12494;&#12540;&#12488;&#12434;&#20197;&#19979;&#12398;&#12424;&#12358;&#12395;&#35330;&#27491;&#12377;&#12427;&#20104;&#23450;&#12391;&#12377;&#12290;
+&lt;/p&gt;
+&lt;table border=&quot;1&quot;&gt;
+&lt;tbody&gt;&lt;tr&gt;
+&lt;th bgcolor=&quot;lightyellow&quot;&gt;
+&#12510;&#12491;&#12517;&#12450;&#12523; &#65295; &#35330;&#27491;&#31623;&#25152;
+&lt;/th&gt;
+
+&lt;th bgcolor=&quot;lightyellow&quot;&gt;
+&#35492;
+&lt;/th&gt;
+
+&lt;th bgcolor=&quot;lightyellow&quot;&gt;
+&#27491;
+&lt;/th&gt;
+
+&lt;/tr&gt;
+
+&lt;tr&gt;
+
+&lt;td valign=&quot;top&quot; width=&quot;300&quot;&gt;
+&lt;a href=&quot;http://docs.sun.com/source/820-0815/index.html#wp33030&quot;&gt;
+Sun Java[TM] System Identity Manager 7.1 Release Notes &#65295; Supported Software and Environments&amp;gt;&amp;gt;Application Servers&lt;/a&gt;
+&lt;/td&gt;
+
+&lt;td valign=&quot;top&quot; width=&quot;450&quot;&gt;
+&lt;font color=&quot;blue&quot;&gt;Sun JavaTM System Application Server Enterprise Edition 8.2&lt;/font&gt;
+&lt;/td&gt;
+
+&lt;td valign=&quot;top&quot; width=&quot;450&quot;&gt;
+&lt;font color=&quot;blue&quot;&gt;Sun JavaTM System Application Server Enterprise &lt;font color=&quot;red&quot;&gt;and Standard&lt;/font&gt; Edition 8.2.
+
+&lt;/font&gt;&lt;/td&gt;
+
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+
+&lt;!--    -----------------------------------------------------------------    --&gt;
+
+&lt;br&gt;
+&lt;h3&gt;
+Identity Manager 7.1 &#12398; Sun Java System Application 9 PE &#12395;&#12388;&#12356;&#12390;
+&lt;/h3&gt;
+&lt;p&gt;
+Identity Manager 7.1 &#12399;Sun Java System Application 9 PE &#12434;&#12469;&#12509;&#12540;&#12488;&#12375;&#12414;&#12377;&#12290;
+&#12522;&#12522;&#12540;&#12473;&#12494;&#12540;&#12488;&#12434;&#20197;&#19979;&#12398;&#12424;&#12358;&#12395;&#35330;&#27491;&#12377;&#12427;&#20104;&#23450;&#12391;&#12377;&#12290;
+&lt;/p&gt;
+&lt;table border=&quot;1&quot;&gt;
+&lt;tbody&gt;&lt;tr&gt;
+&lt;th bgcolor=&quot;lightyellow&quot;&gt;
+
+&#12510;&#12491;&#12517;&#12450;&#12523; &#65295; &#35330;&#27491;&#31623;&#25152;
+&lt;/th&gt;
+
+&lt;th bgcolor=&quot;lightyellow&quot;&gt;
+&#35492;
+&lt;/th&gt;
+
+&lt;th bgcolor=&quot;lightyellow&quot;&gt;
+&#27491;
+&lt;/th&gt;
+
+&lt;/tr&gt;
+
+&lt;tr&gt;
+
+&lt;td valign=&quot;top&quot; width=&quot;300&quot;&gt;
+&lt;a href=&quot;http://docs.sun.com/source/820-0815/index.html#wp33030&quot;&gt;
+
+Sun Java[TM] System Identity Manager 7.1 Release Notes &#65295; Supported Software and Environments&amp;gt;&amp;gt;Application Servers&lt;/a&gt;
+&lt;/td&gt;
+
+&lt;td valign=&quot;top&quot; width=&quot;450&quot;&gt;
+&amp;nbsp;
+&lt;/td&gt;
+
+&lt;td valign=&quot;top&quot; width=&quot;450&quot;&gt;
+&lt;font color=&quot;red&quot;&gt;Sun Java&#8482; System Application Server Platform Edition 9&lt;/font&gt; &#65288;&#36861;&#21152;&#65289;
+&lt;/td&gt;
+
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;cite&gt;&lt;a href=&quot;http://www.sun.com/bigadmin/hubs/multilingual/japanese/content/sjes-errata_01.jsp&quot;&gt;SJES &#35069;&#21697;&#12398;&#12362;&#30693;&#12425;&#12379;&#65306;&#35069;&#21697;&#12510;&#12491;&#12517;&#12450;&#12523;&#12398;&#35330;&#27491;&lt;/a&gt;&lt;/cite&gt;
+&lt;/blockquote&gt;
+
+&#26356;&#26032;&#24773;&#22577;&#12399;&lt;a href=&quot;http://blogs.sun.com/roller-ui/authoring/preview/kimimasa/feed/entries/atom&quot;&gt;&#12371;&#12398;&#12502;&#12525;&#12464;(&#22522;&#26412;&#30340;&#12395;IDM&#35069;&#21697;&#12398;&#12415;&#12391;&#12377;&#12364;&#12290;&#12290;&#12290;&#65289;&lt;/a&gt;&#12289;&#12414;&#12383;&#12399; &lt;a href=&quot;http://blogs.sun.com/bigadmin_japan/feed/entries/atom?cat=%2FSJES&quot;&gt;BigAdmin &#26085;&#26412;&#35486;&#36890;&#20449; : SJES&#65288;&#12371;&#12387;&#12385;&#12384;&#12392;&#22522;&#26412;&#30340;&#12395;&#12399;SJES&#35069;&#21697;&#20840;&#37096;&#12290;&#65289;&lt;/a&gt;&#12391;&#12393;&#12358;&#12382;&#12290;
+&lt;br&gt;
+_kimimasa 
+</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/yongsun/entry/%E8%B4%A7%E5%B8%81%E6%88%98%E4%BA%89_%E4%BD%A0%E8%AF%BB%E4%BA%86%E4%B9%88</id>
+        <title type="html">&#12298;&#36135;&#24065;&#25112;&#20105;&#12299;&#20320;&#35835;&#20102;&#20040;&#65311;</title>
+        <author><name>yongsun</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/yongsun/entry/%E8%B4%A7%E5%B8%81%E6%88%98%E4%BA%89_%E4%BD%A0%E8%AF%BB%E4%BA%86%E4%B9%88"/>
+        <published>2007-11-07T00:51:15-08:00</published>
+                  <updated>2007-11-07T01:10:52-08:00</updated>
+                                    <category term="/Life" label="/Life" />
+                          <content type="html">&lt;table cellspacing=&quot;1&quot; cellpadding=&quot;1&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+
+&lt;td&gt;&lt;a href=&quot;http://currencywar.blog.hexun.com&quot;&gt;&lt;img src=&quot;http://photo6.hexun.com/p/2007/0524/98833/t150_0DD215B8BEB91D92ED0498F4D4416171.jpg&quot; /&gt;&lt;/a&gt;&amp;nbsp;&lt;/td&gt;
+
+&lt;td valign=&quot;top&quot;&gt;&lt;font size=&quot;2&quot;&gt;&#32463;&#26379;&#21451;&#30340;&#25512;&#33616;&#65292;&#25105;&#21435;&#20080;&#20102;&#19968;&#26412;&#26089;&#24050;&#30021;&#38144;&#22810;&#26102;&#30340;&#20070;&#9472;&#9472;&lt;a href=&quot;http://product.dangdang.com/product.aspx?product_id=9304959&quot;&gt;&#12298;&#36135;&#24065;&#25112;&#20105;&#12299;&lt;/a&gt;&#12290;&#19968;&#21475;&#27668;&#35835;&#23436;&#20102;&#65292;&#30495;&#26159;&#24515;&#24778;&#32905;&#36339;&#12290;&lt;br /&gt;&lt;br /&gt;&#21407;&#26469;&#33521;&#26684;&#20848;&#38134;&#34892;&#26159;&#31169;&#26377;&#38134;&#34892;&#21834;&#65292;&#36830;&#32654;&#32852;&#20648;&#20063;&#19981;&#20363;&#22806;&#65288;&#20063;&#26377;&#24456;&#22810;&#20154;&#23545;&#27492;
+&#36827;&#34892;&#20102;&#21453;&#39539;&#65289;&#65292;&#32780;&#36825;&#20004;&#22269;&#30340;&#25919;&#24220;&#23621;&#28982;&#26080;&#26435;&#21457;&#34892;&#36135;&#24065;&#65292;&#38656;&#35201;&#23558;&#22269;&#23478;&#30340;&#36171;&#31246;&#20316;&#20026;&#25269;&#25276;&#20174;&#38134;&#34892;&#20511;&#36151;&#65292;&#20877;&#30001;&#38134;&#34892;&#26469;&#21457;&#34892;&#12290;&#20070;&#20013;&#36824;&#25551;&#20889;&#20102;&#36825;&#20123;&#22269;&#38469;&#38134;&#34892;&#23478;&#26159;&#22914;&#20309;&#25805;&#20316;&#36807;&#22269;&#38469;&#37329;&#34701;
+&#24066;&#22330;&#65288;&#29978;&#33267;&#29615;&#20445;&#37117;&#19981;&#25918;&#36807;&#65289;&#65292;&#26469;&#29279;&#21462;&#24040;&#39069;&#21033;&#28070;&#30340;&#12290;&lt;br /&gt;&lt;br /&gt;
+&#28982;&#21518;&#21435;&lt;a href=&quot;http://www.douban.com/&quot; class=&quot;snap_preview&quot;&gt;&#35910;&#29923;&lt;/a&gt;&#19978;&#30475;&#20102;&#30475;&#22823;&#23478;&#30340;&lt;a href=&quot;http://www.douban.com/subject/2081876/reviews?sort=time&quot;&gt;&#20070;&#35780;&lt;/a&gt;&#65292;&#26377;&#25512;&#23815;&#22791;&#33267;&#30340;&#65292;&#20063;&#30001;&#19981;&#23633;&#19968;&#39038;&#30340;&#12290;&#19981;&#36807;&#23545;&#25105;&#36825;&#31181;&#37329;&#34701;&#38376;&#22806;&#27721;&#26469;&#35828;&#65292;&#35835;&#36807;&#19968;&#36941;&#36824;&#26159;&#24456;&#26377;&#25910;&#33719;&#30340;&#12290;&lt;br /&gt;&lt;br /&gt;&#20154;&#31867;&#33719;&#24471;&#33258;&#30001;&#21644;&#35299;&#25918;&#30340;&#36335;&#36884;&#36824;&#24456;&#36965;&#36828;&#21834;&#65281;&lt;br /&gt;&lt;br /&gt;&#26412;&#20070;&#20316;&#32773;&#30340;blog&#65306;&lt;a href=&quot;http://currencywar.blog.hexun.com&quot;&gt;http://currencywar.blog.hexun.com&lt;/a&gt;&lt;/font&gt;&lt;br /&gt;&lt;/td&gt;
+
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;br /&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/thomasweyell/entry/dell_kauft_equalogic</id>
+        <title type="html">DELL kauft Equalogic</title>
+        <author><name>Thomas Weyell</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/thomasweyell/entry/dell_kauft_equalogic"/>
+        <published>2007-11-07T00:41:08-08:00</published>
+                  <updated>2007-11-07T00:50:47-08:00</updated>
+                                    <category term="/Personal" label="/Personal" />
+                          <content type="html">
+&lt;p&gt;DELL hat einen 1,4 Milliarden schweren Einkauf get&#228;tigt. Es wurde der im &lt;a href=&quot;http://www.vmware.com&quot; title=&quot;Website der Firma VMware&quot;&gt;VMware&lt;/a&gt; Umfeld beliebte iSCSI Storagehersteller Equalogic gekauft.&lt;br /&gt;Mit diesem Kauf st&#228;rkt DELL sein Storageangebot.&lt;br /&gt;&lt;br /&gt;Quelle: www.vmachine.de&lt;/p&gt;
+
+</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/thomasweyell/entry/virtuelle_maschinen_im_rz_von</id>
+        <title type="html">Virtuelle Maschinen im RZ von Microsoft</title>
+        <author><name>Thomas Weyell</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/thomasweyell/entry/virtuelle_maschinen_im_rz_von"/>
+        <published>2007-11-07T00:38:21-08:00</published>
+                  <updated>2007-11-07T00:50:47-08:00</updated>
+                                    <category term="/Personal" label="/Personal" />
+                          <content type="html">
+&lt;p&gt;&lt;p&gt;Microsoft hat eine neue Zahl genannt wie viele Ihrer Maschinen im Rechenzentrum als virtuelle Maschine laufen.&lt;br /&gt;Eine bereits sehr beeindruckende Zahl.&lt;/p&gt;&lt;p&gt;&lt;img vspace=&quot;0&quot; hspace=&quot;0&quot; border=&quot;0&quot; align=&quot;bottom&quot; src=&quot;http://www.virtualization.info/uploaded_images/MS_VirtualDC-777873.jpg&quot; /&gt;&amp;nbsp;&lt;/p&gt;&lt;p&gt;Quelle: http://www.virtualization.info&amp;nbsp;&lt;/p&gt;&lt;/p&gt;
+
+</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/thomasweyell/entry/roadmap_von_microsoft</id>
+        <title type="html">Roadmap von Microsoft</title>
+        <author><name>Thomas Weyell</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/thomasweyell/entry/roadmap_von_microsoft"/>
+        <published>2007-11-07T00:34:37-08:00</published>
+                  <updated>2007-11-07T00:50:47-08:00</updated>
+                                    <category term="/Personal" label="/Personal" />
+                          <content type="html">
+&lt;p&gt;&lt;p&gt;Der gr&#246;&#223;te Softwarekonzern der Welt, Microsoft, hat eine neue Roadmap f&#252;r seine Produkte zur Virtualisierung vorgestellt.&lt;br /&gt;Codename Viridian beta 1 soll im Q4 2007 kommen. Im n&#228;chsten Quartal soll eine neue Version des System Center Virtual Machine Manager verf&#252;gbar sein.&lt;br /&gt;&lt;br /&gt;Sind wir mal gespannt was da auf uns zu kommt.&lt;/p&gt;&lt;p&gt;&amp;nbsp;&lt;img vspace=&quot;0&quot; hspace=&quot;0&quot; border=&quot;0&quot; align=&quot;bottom&quot; src=&quot;http://www.virtualization.info/uploaded_images/viridian_roadmap-737655.jpg&quot; /&gt;&lt;br /&gt;&amp;nbsp;Quelle: &lt;a href=&quot;http://www.virtualization.info&quot;&gt;http://www.virtualization.info&lt;/a&gt;&lt;br /&gt;&lt;/p&gt;&lt;/p&gt;
+
+</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/geertjan/entry/figuring_out_the_movie_player1</id>
+        <title type="html">Figuring Out the Movie Player, Again</title>
+        <author><name>geertjan</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/geertjan/entry/figuring_out_the_movie_player1"/>
+        <published>2007-11-07T00:10:32-08:00</published>
+                  <updated>2007-11-07T01:10:33-08:00</updated>
+                                    <category term="/NetBeans IDE" label="/NetBeans IDE" />
+                          <content type="html">I figured out some of the problems people have been having with an earlier blog entry, called &lt;a href=&quot;http://blogs.sun.com/geertjan/entry/how_to_create_a_movie&quot;&gt;How to Create a Movie Player (Step 1: Setting Up and Testing JMF)&lt;/a&gt;. In the comments, there are a few people with the error message: &quot;Fobs4JMF - Native shared library NOT found&quot;, which they get when they try to run a movie in JMStudio. What that means is that you need to add the folder that contains the &lt;a href=&quot;http://sourceforge.net/project/showfiles.php?group_id=105646&quot;&gt;Fobs&lt;/a&gt; JARs and, especially, the native library, on the library path, i.e., LD_LIBRARY_PATH on Linux. 
+
+&lt;p&gt;Within your module, i.e., the module that contains the two Fobs JARs, for the same reason as the above (i.e., you will get the same error message as the above, but in the Output window), you need to create &lt;tt&gt;release/modules/lib&lt;/tt&gt; and simply put the native library there (nothing more than that) as shown in the pic below:
+
+&lt;p&gt;&lt;img src=&quot;http://blogs.sun.com/geertjan/resource/mouse-fobs4jmf.png&quot; border=&quot;1&quot; /&gt;&lt;p&gt;
+
+&lt;p&gt;And that&apos;s it. Get the &lt;a href=&quot;http://plugins.netbeans.org/PluginPortal/faces/PluginDetailPage.jsp?pluginid=2162&quot;&gt;movie player project template&lt;/a&gt; from the plugin portal, put it in a suite, download Fobs, create a library wrapper module and wrap the JARs and native library as shown above, set a dependency in the movie player on the library wrapper, build the suite, and then deploy the suite. You&apos;ll then be able to watch movies in the IDE, for no coding whatsoever.&lt;p&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/reiko/entry/sun_tech_days_%E3%81%9F%E3%81%A0%E3%81%84%E3%81%BE%E4%BC%91%E6%86%A9%E4%B8%AD_i</id>
+        <title type="html">Sun Tech Days &#12383;&#12384;&#12356;&#12414;&#20241;&#25001;&#20013; (I am in a coffee break)</title>
+        <author><name>reiko</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/reiko/entry/sun_tech_days_%E3%81%9F%E3%81%A0%E3%81%84%E3%81%BE%E4%BC%91%E6%86%A9%E4%B8%AD_i"/>
+        <published>2007-11-07T00:00:56-08:00</published>
+                  <updated>2007-11-07T00:10:30-08:00</updated>
+                                    <category term="/&#32763;&#35379;" label="/&#32763;&#35379;" />
+                          <content type="html">
+&lt;p&gt;&#20170;&#12289;&#25511;&#12360;&#23460;&#12363;&#12425;&#26356;&#26032;&#12375;&#12390;&#12356;&#12414;&#12377;&#12290;&#24819;&#20687;&#12375;&#12383;&#12424;&#12426;&#12383;&#12367;&#12373;&#12435;&#12398;&#20154;&#12364;&#26469;&#12390;&#12367;&#12428;&#12390;&#12289;&#12392;&#12390;&#12418;&#12392;&#12390;&#12418;&#23305;&#12375;&#12356;...&lt;p&gt;&lt;/p&gt;
+
+
+&lt;p&gt;&#26368;&#21021;&#12399;&#32202;&#24373;&#12375;&#12390;&#12289;&#38996;&#12399;&#12371;&#12431;&#12400;&#12427;&#12375;&#19981;&#23433;&#12399;&#28198;&#24059;&#12367;&#12375;&#12289;&#12393;&#12393;&#12393;&#12289;&#12393;&#12358;&#12375;&#12424;&#12358;...&#12392;&#12356;&#12358;&#27671;&#25345;&#12385;&#12384;&#12387;&#12383;&#12435;&#12391;&#12377;&#12364;&#12289;&#21320;&#21069;&#12398;&#22522;&#35519;&#35611;&#28436;&#12364;&#32066;&#12431;&#12427;&#12392;&#12289;&#23569;&#12375;&#12378;&#12388;&#12289;&#12381;&#12375;&#12390;&#32154;&#12293;&#12392;&#12509;&#12483;&#12489;&#12395;&#26469;&#12390;&#12367;&#12428;&#12390;&#12411;&#12387;&#12392;&#12375;&#12414;&#12375;&#12383;&#12290;&#29305;&#12395;&#12521;&#12531;&#12481;&#12502;&#12524;&#12452;&#12463;&#12398;&#38291;&#12399;&#22823;&#30427;&#27841;&#12391;&#12289;&#35500;&#26126;&#12377;&#12427;&#20154;&#25163;&#12364;&#36275;&#12426;&#12394;&#12367;&#12394;&#12427;&#12411;&#12393;&#12391;&#12375;&#12383;&#12290;&lt;p&gt;&lt;/p&gt;
+
+
+&lt;p&gt;&#32763;&#35379;&#12484;&#12540;&#12523;&#12399; OmegaT&#12289;OLT&#12289;Pootle&#12289;SunGloss &#12434;&#32057;&#20171;&#12375;&#12390;&#12356;&#12414;&#12377;&#12290;&#12414;&#12383;&#12289;&#12509;&#12483;&#12489;&#12395;&#26469;&#12390;&#12356;&#12383;&#12384;&#12356;&#12383;&#35352;&#24565;&#12395;&#12508;&#12540;&#12523;&#12506;&#12531;&#12392;&#21517;&#21050;&#22823;&#12398;&#12467;&#12511;&#12517;&#12491;&#12486;&#12451;&#12540;&#12469;&#12452;&#12488;&#19968;&#35239;&#12434;&#12362;&#28193;&#12375;&#12390;&#12356;&#12414;&#12377;&#12290;&lt;p&gt;&lt;/p&gt;
+
+
+&lt;p&gt;&#30452;&#25509;&#12362;&#35441;&#12391;&#12365;&#12427;&#12398;&#12364;&#12289;&#12371;&#12358;&#12356;&#12387;&#12383;&#12452;&#12505;&#12531;&#12488;&#12398;&#26368;&#22823;&#12398;&#39749;&#21147;&#12391;&#12377;&#12290;&#12381;&#12358;&#12381;&#12358;&#12289;OpenOffice.org 2.4 &#12398;&#32763;&#35379;&#12391;&#19968;&#32210;&#12395;&#32763;&#35379;&#12434;&#12375;&#12383;&#26041;&#12392;&#12362;&#20250;&#12356;&#12391;&#12356;&#12390;&#12289;&#23305;&#12375;&#12363;&#12387;&#12383;&#12540;&#12290;&#21021;&#12417;&#12390;&#12362;&#20250;&#12356;&#12375;&#12383;&#12435;&#12384;&#12369;&#12393;&#12289;&#12513;&#12540;&#12523;&#12391;&#12398;&#21360;&#35937;&#12398;&#36890;&#12426;&#12289;&#12392;&#12390;&#12418;&#12356;&#12356;&#26041;&#12391;&#12375;&#12383;&#12290;&lt;p&gt;&lt;/p&gt;
+
+
+&lt;p&gt;&lt;b&gt;English&lt;/b&gt;&lt;p&gt;&lt;/p&gt;
+
+
+&lt;p&gt;Now I am in a coffee break and updating my blog from staff room in Sun Tech Days.  I am so happy that more people came to talk to us than I thought.&lt;p&gt;&lt;/p&gt;
+
+
+&lt;p&gt;When the Pod opened, I was so nervous and not sure if I could smile &quot;appropriately&quot;...., but after the Key Note Speech is over, many people visited our pod and we really enjoyed friendly conversation about community engagement, translation, technologies, etc...  During the lunch time especially, we are running out of resources to show them around.&lt;p&gt;&lt;/p&gt;
+
+
+&lt;p&gt;We&apos;re introducing OmegaT, OLT, Pootle, SunGloss and other translation technologies in our Pod.  Please stop by!&lt;p&gt;&lt;/p&gt;
+
+
+&lt;p&gt;One of the biggest fan is that I can meet members of the community in person.  This time, one of our valuable contributor to OpenOffice.org 2.4  update has come to talk to us!  I am so pleased.  He was so nice as I expected from his emails.  Looking forward to meeting more!&lt;/p&gt;
+
+</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/Ram/entry/jmaki_application_loading_dynamic_data</id>
+        <title type="html">jMaki Application-Loading dynamic data into Dojo Data table.</title>
+        <author><name>Rama Gaddam</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/Ram/entry/jmaki_application_loading_dynamic_data"/>
+        <published>2007-11-06T23:23:36-08:00</published>
+                  <updated>2007-11-06T23:50:29-08:00</updated>
+                                    <category term="/Sun" label="/Sun" />
+                          <content type="html">&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD HTML 4.01 Transitional//EN&quot;&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;META http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot;&gt;
+        &lt;meta http-equiv=&quot;Content-Language&quot; content=&quot;en&quot;&gt;
+
+    &lt;meta name=&quot;generator&quot; content=&quot;HTML Tidy, see www.w3.org&quot;&gt;
+
+    &lt;title&gt;Lukas Hasik&apos;s Weblog&lt;/title&gt;
+
+    &lt;script type=&quot;text/javascript&quot; src=&quot;/theme/scripts/roller.js&quot;&gt;
+    &lt;/script&gt;
+
+    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;/themes/base.css&quot; /&gt;
+    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;/themes/grey2/theme.css&quot; /&gt;
+    &lt;style type=&quot;text/css&quot;&gt;                   A:link { text-decoration: none; font-weight: bold; }
+
+A:visited {text-decoration:none; font-style: italic; }
+A:hover { text-decoration: underline overline;}
+
+pre {
+    padding: 5px 5px 5px 7px; 
+    background: #f5f5f5; 
+    color: #000;
+    border: 1px dotted #ccc;
+    margin-left: 10px;
+    margin-right: 10px;
+    overflow: auto;
+    overflow-x: auto;
+}
+
+li.recentposts {
+    list-style-type: square;
+    font-size : small;
+    font-weight: normal;
+    margin-left: 10px;
+}
+
+/***************/
+/* bookmark.vm */
+/***************/
+.rFolder {
+    font-size: small;
+    font-weight: bold;
+    padding-left: 5px
+}
+li.rFolderItem {
+    list-style: none;
+    margin-left: 5px;
+    padding-left: 0;
+    font-size : small;
+    font-weight: normal;
+    list-style-type: square;
+}
+.rBookmark0 {
+  margin-left: 5px;
+  font-size: small;
+
+}
+img.rBookmark {
+    margin-left: 5px;
+    border: 0;
+}
+img.smrssbadge {
+    margin-left: 10px;
+    border: 0;
+}
+
+/* big calendar ----------------------------------------------- */
+
+
+.hCalendarMonthYearRowBig {
+  font-size: x-large;
+  font-weight: bold;
+}
+
+.hCalendarTableBig {
+  width: 100%;
+  text-align : center;
+  padding: 5px;
+  background-color:#eee;
+}
+
+.hCalendarMonthYearRowBig {
+  color: white;
+  background-color : #ccc;
+  border-bottom: 1px solid gray;
+  border-right: 1px solid gray;
+  width: 12%;
+}
+
+.hCalendarDayNameRowBig {
+  border-bottom: 1px solid gray;
+  border-right: 1px solid gray;
+  background-color: #ffffff;
+  margin: 2px;
+  width: 12%;
+  font-weight: bold;
+}
+
+.bCalendarDayContentBig {
+  font-size: x-small;
+  padding: 3px 0px 3px 0px;
+}
+
+.hCalendarDayTitleBig {
+  position: relative;
+  left: 0;
+  top: 0;
+  width: 25%;
+  padding: 3px 0 3px 0;
+  background: transparent;
+  color: #050505;
+  border-right: 1px solid #050505;
+  border-bottom: 1px solid #050505;
+  font-size: small;
+  text-align: center;
+  font-size: small;
+}
+
+.hCalendarDayBig {
+  vertical-align: top;
+  border-bottom: 1px solid gray;
+  border-right: 1px solid gray;
+  background-color: #ffffff;
+  margin: 2px;
+  width: 12%;
+}
+
+TD.hCalendarDayCurrentBig {
+  vertical-align: top;
+  border-bottom: 1px solid gray;
+  border-right: 1px solid gray;
+  background-color: #ffffff;
+  margin: 2px;
+  width: 12%;
+}
+
+TD.hCalendarDayLinkedBig {
+  vertical-align: top;
+  border-bottom: 1px solid gray;
+  border-right: 1px solid gray;
+  background-color: #ffffff;
+  margin: 2px;
+  width: 12%;
+}
+TD.hCalendarDayNotInMonthBig {
+  vertical-align: top;
+  border-bottom: 1px solid gray;
+  border-right: 1px solid gray;
+  background-color: #ffffff;
+  margin: 2px;
+  width: 12%;
+}
+.hCalendarNextPrevBig {
+  vertical-align: top;
+  border-bottom: 1px solid gray;
+  border-right: 1px solid gray;
+  background-color: #ffffff;
+  margin: 2px;
+  width: 12%;
+}
+
+.hCalendarDayNameRowBig {
+  border-bottom: 1px solid gray;
+  border-right: 1px solid gray;
+  background-color: #ffffff;
+  margin: 2px;
+  width: 12%;
+  font-weight: bold;
+}
+    &lt;/style&gt;
+&lt;link rel=&quot;shortcut icon&quot; href=&quot;http://blogs.sun.com/roller/resources/lukas/favicon.ico&quot;/&gt;
+&lt;/head&gt;
+&lt;table width=&quot;100%&quot;&gt;
+ &lt;tr BGCOLOR=&quot;#3E647E &quot;&gt;
+   &lt;td colspan=2&gt;&lt;font color=&quot;#ffffee&quot;&gt;    
+ &lt;/font&gt; 
+   &lt;font color=&quot;#ffffff&quot;&gt;     Tuesday November 06, 2007      &lt;/font&gt;&lt;/td&gt;
+
+ &lt;/tr&gt;
+ 
+&lt;tr&gt;
+  &lt;td BGCOLOR=&quot;#BDBEC0&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;
+   &lt;a name=&quot;tip_wtk_2_5_1&quot; id=&quot;tip_wtk_2_5_1&quot;&gt;&lt;/a&gt;
+   &lt;b&gt;Loading dynamic data inti dojo Data table.&lt;/b&gt;
+   &lt;/font&gt;
+  &lt;/td&gt;
+  &lt;td BGCOLOR=&quot;#BDBEC0&quot; width=&quot;15%&quot;  align=&quot;right&quot;&gt;&lt;font color=&quot;#ffffff&quot;&gt;
+
+    &lt;a href=&quot;https://ajax.dev.java.net/&quot;&gt;jMaki&lt;/a&gt;&lt;/font&gt;
+  &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td colspan=2&gt;
+   &lt;br&gt; 
+                              There were a few reports about Mobility Pack problems on Debian linux distribution. The &lt;a href=&quot;http://mobility.netbeans.org&quot; title=&quot;&quot;&gt;mobility&lt;/a&gt; project didn&apos;t preverify during the build of project. You can following message in output window&lt;br&gt;
+&lt;pre&gt;
+preverify:
+Created dir: /home/user/MyHello/build/preverified
+Preverifying 6 file(s) into /home/user/MyHello/build/preverified directory.
+/home/user/.netbeans/5.5.1/emulators/wtk251-lin/emulator/bin/preverify1.1: /lib/tls/libc.so.6: version `GLIBC_2.4&apos; not found (required by /home/user/.netbeans/5.5.1/emulators/wtk251-lin/emulator/bin/preverify1.1)
+/home/user/MyHello/nbproject/build-impl.xml:269: Preverification failed with error code 1.
+BUILD FAILED (total time: 1 second)
+
+&lt;/pre&gt;
+&lt;br&gt;
+This problem happens with the Wireless Toolkit 2.5.1 that is bundled with &lt;a href=&quot;http://www.netbeans.org&quot; title=&quot;netbeans.org - site of open sourced project NetBeans, the platform independent, java based IDE for java development.&quot;&gt;NetBeans&lt;/a&gt; Mobility Pack 5.5.1.  &lt;a href=&quot;http://www.netbeans.org/issues/show_bug.cgi?id=107633&quot;&gt;It was reported&lt;/a&gt; by some users. We couldn&apos;t fixed it in Mobility Pack itself because it is problem of the &lt;a href=&quot;http://java.sun.com/products/sjwtoolkit/&quot; title=&quot;Sun Java Wireless Toolkit&quot;&gt;WTK&lt;/a&gt; emulator platform. Therefore we reported it to the &lt;a href=&quot;http://java.sun.com/products/sjwtoolkit/&quot; title=&quot;Sun Java Wireless Toolkit&quot;&gt;WTK&lt;/a&gt; team. It should be fixed in the &lt;a href=&quot;http://java.sun.com/products/sjwtoolkit/&quot; title=&quot;Sun Java Wireless Toolkit&quot;&gt;WTK&lt;/a&gt; version 2.5.2. Unfortunatelly, I&apos;m not able to verify the fix in the &lt;a href=&quot;http://java.sun.com/products/sjwtoolkit/&quot; title=&quot;Sun Java Wireless Toolkit&quot;&gt;WTK&lt;/a&gt; because I don&apos;t have any machine with Debian. &lt;br&gt;&lt;br&gt;
+
+Debian users should &lt;a href=&quot;http://java.sun.com/products/sjwtoolkit/download.html&quot;&gt;install the WTK 2.5.2&lt;/a&gt; or they can use the latest builds of &lt;a href=&quot;http://www.netbeans.org&quot; title=&quot;netbeans.org - site of open sourced project NetBeans, the platform independent, java based IDE for java development.&quot;&gt;NetBeans&lt;/a&gt; Mobility pack 6.0 that is bundled with &lt;a href=&quot;http://java.sun.com/products/sjwtoolkit/&quot; title=&quot;Sun Java Wireless Toolkit&quot;&gt;WTK&lt;/a&gt; 2.5.2
+              &lt;br&gt;&lt;br&gt;
+&lt;br&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;
+   &lt;u&gt;            &lt;a href=&quot;http://blogs.sun.com/lukas/entry/tip_wtk_2_5_1#comments&quot; class=&quot;entrycommentslink&quot;&gt;Comments [0]&lt;/a&gt;
+
+     &lt;/u&gt;
+   &lt;span class=&quot;dateStamp&quot;&gt;(     Nov 06 2007, 06:39:47 PM CET     )&lt;/span&gt;
+   &lt;u&gt;     &lt;a href=&quot;http://blogs.sun.com/lukas/entry/tip_wtk_2_5_1&quot;
+        title=&quot;Permanent link to this weblog entry&quot;
+        class=&quot;entrypermalink&quot;&gt;Permalink&lt;/a&gt;
+     &lt;/u&gt;
+&lt;/td&gt;
+&lt;td&gt;
+&lt;a href=&quot;http://del.icio.us/post?url=http://blogs.sun.com/lukas/entry/tip_wtk_2_5_1&quot; title=&quot;Bookmark it in del.icio.us&quot;&gt;
+&lt;img src=&quot;/images/delicious.gif&quot; alt=&quot;del.icio.us&quot; border=&quot;0&quot; /&gt;&lt;/a&gt;
+&lt;a href=&quot;http://www.furl.net/storeIt.jsp?t=%5BTIP%5D+WTK+2.5.1+and+Debian&amp;u=http://blogs.sun.com/lukas/entry/tip_wtk_2_5_1&quot; title=&quot;Save to furl&quot;&gt;
+&lt;img src=&quot;/images/furl.png&quot; alt=&quot;furl&quot; border=&quot;0&quot; /&gt;&lt;/a&gt;
+
+&lt;a href=&quot;http://www.simpy.com/simpy/LinkAdd.do?title=%5BTIP%5D+WTK+2.5.1+and+Debian&amp;href=http://blogs.sun.com/lukas/entry/tip_wtk_2_5_1&quot; title=&quot;Save to simpy&quot;&gt;
+&lt;img src=&quot;/images/simpy-icon-16x16.png&quot; alt=&quot;simpy&quot; border=&quot;0&quot; /&gt;&lt;/a&gt;
+&lt;a href=&quot;http://slashdot.org/bookmark.pl?url=http://blogs.sun.com/lukas/entry/tip_wtk_2_5_1&quot; title=&quot;Submit to slashdot&quot;&gt;
+&lt;img src=&quot;/images/slashdot-13x13.png&quot; alt=&quot;slashdot&quot; border=&quot;0&quot; /&gt;&lt;/a&gt;
+&lt;a href=&quot;http://technorati.com/search/http%3A%2F%2Fblogs.sun.com%2Flukas%2Fentry%2Ftip_wtk_2_5_1&quot; title=&quot;See who links to it&quot;&gt;
+&lt;img src=&quot;/images/technorati-16x15.png&quot; alt=&quot;technorati&quot; border=&quot;0&quot; /&gt;&lt;/a&gt;
+&lt;a href=&quot;http://www.digg.com/submit?url=http://blogs.sun.com/lukas/entry/tip_wtk_2_5_1&amp;phase=2&quot; title=&quot;Digg this entry&quot;&gt;
+&lt;img src=&quot;/images/digman.gif&quot; alt=&quot;digg&quot; border=&quot;0&quot; /&gt;&lt;/a&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+    
+    
+&lt;/table&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/storage/entry/what_we_re_watching_lori</id>
+        <title type="html">What We&apos;re Watching: Lori Alt on ZFS as a Root File System</title>
+        <author><name>st0rage</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/storage/entry/what_we_re_watching_lori"/>
+        <published>2007-11-06T23:00:00-08:00</published>
+                  <updated>2007-11-07T01:30:40-08:00</updated>
+                                    <category term="/OpenSolaris" label="/OpenSolaris" />
+                          <content type="html">&lt;p&gt;&amp;nbsp;&lt;/p&gt;&lt;p&gt;
+Lori Alt speaks at the SNIA Storage Developers&apos; Conference on &amp;quot;ZFS as a Root File System.&amp;quot;&lt;/p&gt;&lt;p&gt;&lt;br /&gt;&lt;/p&gt;&lt;embed width=&quot;480&quot; height=&quot;360&quot; src=&quot;http://blogs.sun.com/storage/resource/mediaplayer.swf&quot; allowfullscreen=&quot;true&quot; allowscriptaccess=&quot;always&quot; flashvars=&quot;&amp;amp;displayheight=360&amp;amp;file=http://mediacast.sun.com/share/ohoh7/lalt.flv&amp;amp;height=360&amp;amp;width=480&quot; /&gt;&lt;body&gt;&lt;p&gt;&amp;nbsp;&lt;/p&gt;&lt;/body&gt;&lt;p&gt;~ 37 mins.&amp;nbsp;&lt;/p&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/richb/entry/humorous_bugs</id>
+        <title type="html">Humorous Bugs</title>
+        <author><name>richb</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/richb/entry/humorous_bugs"/>
+        <published>2007-11-06T22:54:46-08:00</published>
+                  <updated>2007-11-07T00:50:42-08:00</updated>
+                                    <category term="/Humor" label="/Humor" />
+                          <content type="html">&lt;p&gt;
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;td&gt;
+    &lt;img src=&quot;http://blogs.sun.com/richb/resource/funny_bug.jpg&quot; alt=&quot;&quot; /&gt;
+    &lt;/td&gt;
+    &lt;td&gt;
+    &lt;p&gt;
+    I remember that when I first moved from Australia to the Bay Area,
+    a &lt;strike&gt;half&lt;/strike&gt; wit filed a bug against the calculator
+    program that I&apos;d written, with the summary line of
+    &quot;calctool blows chunks&quot;.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;p&gt;
+I wasn&apos;t so thick skinned in those days, and I initially took it
+personally. But then a few weeks later, I met the bug submitter 
+for the first time and saw what a complete tosspot he was, and 
+started to view it differently. I could see the humor in it.
+&lt;p&gt;
+Earlier this evening, while I was googling, looking for web pages describing how to use two
+dimensional Javascript arrays, I accidentally stumbled over a
+pointer to a couple of funny Mozilla bugs. After reading a few 
+of the comments on these bugs, I found others. Here are some of them.
+&lt;p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=95849&quot;&gt;95849&lt;/a&gt;: Lack of Sex is interfering with my ability to triage bugs.
+      &lt;p&gt;
+
+  &lt;li&gt;&lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=122411&quot;&gt;122411&lt;/a&gt;: Mozilla does not have a kitchen sink.
+      &lt;p&gt;
+
+  &lt;li&gt;&lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=226482&quot;&gt;226482&lt;/a&gt;: Where did the kitchensink go ?
+      &lt;p&gt;
+
+  &lt;li&gt;&lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=330884&quot;&gt;330884&lt;/a&gt;: When different users on one system choose to save or not save passwords for sites, any other user can see sites they not only saved passwords for but can also see what other users have been saving/never saving passwords for.
+      &lt;p&gt;
+
+  &lt;li&gt;&lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=360323&quot;&gt;360323&lt;/a&gt;: Firefox development conflicting with my environment.
+&lt;/ul&gt;
+&lt;p&gt;
+This is great. Where else can dozens of nerds find a legitimate
+place such as this for attempting humor. It&apos;s also clear that some 
+of these people have 
+&lt;a href=&quot;https://bugzilla.mozilla.org/attachment.cgi?id=72037&quot;&gt;way too much&lt;/a&gt;
+time on their hands. 
+&lt;p&gt;
+I&apos;m sure there are a few lurking in the 
+&lt;a href=&quot;http://bugzilla.gnome.org&quot;&gt;GNOME bug database&lt;/a&gt; 
+as well. If it would stay up long enough, I&apos;d try to find them.
+&lt;p&gt;
+And now we got a brand 
+&lt;a href=&quot;http://defect.opensolaris.org&quot;&gt;new bug database&lt;/a&gt; 
+for OpenSolaris. Bug numbers are still in the low triple digits. 
+Maybe it&apos;s time to file some worthy funny entries there.
+&lt;p&gt;
+&lt;span style=&quot;font-size: smaller&quot;&gt;
+[&lt;a href=&quot;http://www.technorati.com/tag/Bugs&quot; rel=&quot;tag&quot;&gt;Technorati Tag: Bugs&lt;/a&gt;]
+&lt;/span&gt;
+&lt;p&gt;
+&lt;span style=&quot;font-size: smaller&quot;&gt;
+[&lt;a href=&quot;http://www.technorati.com/tag/Humor&quot; rel=&quot;tag&quot;&gt;Technorati Tag: Humor&lt;/a&gt;]
+&lt;/span&gt;
+&lt;p&gt;
+&lt;span style=&quot;font-size: smaller&quot;&gt;
+[&lt;a href=&quot;http://www.technorati.com/tag/OpenSolaris&quot; rel=&quot;tag&quot;&gt;Technorati Tag: OpenSolaris&lt;/a&gt;]
+&lt;/span&gt;
+&lt;p&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/Kimberley/entry/travel_log_071105_01</id>
+        <title type="html">Travel Log 071105.01</title>
+        <author><name>Kimberley</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/Kimberley/entry/travel_log_071105_01"/>
+        <published>2007-11-06T22:36:31-08:00</published>
+                  <updated>2007-11-06T22:50:34-08:00</updated>
+                                    <category term="/On The Job" label="/On The Job" />
+                          <content type="html">&lt;p&gt;
+Another business trip.  &amp;nbsp More work hours logged at Manchester NH &amp; Dulles
+Washington DC airports. &amp;nbsp Travel delays. &amp;nbsp Arrive into California late
+at night. &amp;nbsp Another rental car. &amp;nbsp Another week at my &quot;usual&quot;
+Newark hotel. &amp;nbsp Rinse. &amp;nbsp Repeat.
+&lt;/p&gt;
+&lt;p&gt;
+However, like most of my trips, already this trip has offered me new
+experiences... &amp;nbsp This time starting with my hire car.
+&lt;/p&gt;
+&lt;p&gt;
+Departing Dulles 2 hours later than planned due to flight crew staffing issues,
+I did not pick up my rental car from San Jose Internation until well after 10 p.m. Pacific,
+1 a.m. Eastern time. &amp;nbsp Under the color spectrum stripping orange lights of the
+Avis carpark, the car was merely darker than those that were lighter. &amp;nbsp I knew it was my car only as the license plate matched what was written on my contract folder.
+&amp;nbsp Good enough. &amp;nbsp Get in, adjust the seat, start the engine, adjust the mirrors, test the lights, test the brakes,
+and jump onto I-880.
+&lt;/p&gt;
+&lt;p&gt;
+Except.... &amp;nbsp No dashboard. &amp;nbsp Is that possible? &amp;nbsp My tired brain struggled
+with the concept for a few nanoseconds. &amp;nbsp No dashboard. &amp;nbsp Are the lights
+not working? &amp;nbsp No. &amp;nbsp There really were no indicators. &amp;nbsp No speedometer.
+&amp;nbsp  Nothing! &amp;nbsp Just a blank panel behind the steering wheel. &amp;nbsp Huh?
+&lt;/p&gt;
+&lt;p&gt;
+Instantly, I saw it. &amp;nbsp But again, my brain struggled with the
+concept. &amp;nbsp Someone had apparently moved the speedometer to the middle of the dashboard, 
+putting it over the radio and gear shift lever. &amp;nbsp Odd. &amp;nbsp Very odd indeed,
+really. &amp;nbsp I had never seen anything like it before. &amp;nbsp I mentally stumbled.
+&lt;/p&gt;
+&lt;p&gt;
+But, the misplaced dashboard indicators appeared to be working, and I was beat tired,
+so I drove off.
+&lt;/p&gt;
+&lt;p&gt;
+40 miles and 24 hours later, I&apos;m still having mini panic attacks thinking the
+dashboard has
+disappeared again, only to remember to look to the right. &amp;nbsp But when I get used
+to it again, I like it. &amp;nbsp Not having a dashboard behind the
+steering wheel allowed the designers of this little car to lower the dashboard height
+and provide additional
+visibility outside of the car. &amp;nbsp Also, there is much less light pollution between
+me and the outside of the car. &amp;nbsp (In my own car at home, I prefer to drive with the the dash lights turned way down or completely off to improve the viewing of the outside world.) &amp;nbsp I can see the road better at night. &amp;nbsp Also, I think having the dash to the right actually encourages a wider
+viewing of the road and roadsharers.  &amp;nbsp I am looking forward, but also looking
+a bit to the right more often. &amp;nbsp Not a bad thing really.
+&lt;/p&gt;
+&lt;p&gt;
+But maybe the coolest thing about this rather odd unconventional design is that
+anyone in the car can easily view the speedometer. &amp;nbsp And if you&apos;re a &quot;backseat
+driver&quot;
+like I need to be with my Speedy Gonzales husband, I can envision how this would
+be mighty useful feature. &amp;nbsp &lt;img src=&quot;http://blogs.sun.com/images/smileys/smile.gif&quot; class=&quot;smiley&quot; alt=&quot;:-)&quot; title=&quot;:-)&quot; /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Google &quot;Saturn Ion Dashboard&quot; to see what I mean.
+&lt;/p&gt;
+</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/vkraemer/entry/thanks_elena</id>
+        <title type="html">Thanks Elena!</title>
+        <author><name>vkraemer</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/vkraemer/entry/thanks_elena"/>
+        <published>2007-11-06T21:57:58-08:00</published>
+                  <updated>2007-11-06T22:10:38-08:00</updated>
+                                    <category term="/NetBeans" label="/NetBeans" />
+                          <content type="html">&lt;p&gt;
+Well, finding current &quot;how-to&quot; information about using the Plugin Manager to install a module that you have downloaded turned out to be harder than I expected.
+&lt;p&gt;
+Elena did a &lt;a href=&quot;http://blogs.sun.com/nb_sip_sailfin_installation/resource/nb_sip_sailfin_installation.html&quot;&gt;quick write up about installing the SIP App Dev Module into NetBeans 6.0&lt;/a&gt;.
+&lt;p&gt;
+The write up includes screen shots with details that will change as time goes on... The version number will increase, etc... but the &quot;gist&quot; will remain the same for quite some time.
+&lt;p&gt;
+</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/jwebsupport/entry/osc_%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E9%9A%9C%E5%AE%B3%E3%81%AE%E3%81%8A%E7%9F%A5%E3%82%89%E3%81%9B21</id>
+        <title type="html">[OSC]&#12450;&#12463;&#12475;&#12473;&#38556;&#23475;&#12398;&#12362;&#30693;&#12425;&#12379;(&#24489;&#26087;)</title>
+        <author><name>jssoadm</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/jwebsupport/entry/osc_%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E9%9A%9C%E5%AE%B3%E3%81%AE%E3%81%8A%E7%9F%A5%E3%82%89%E3%81%9B21"/>
+        <published>2007-11-06T21:34:53-08:00</published>
+                  <updated>2007-11-06T23:10:30-08:00</updated>
+                                    <category term="/&#38556;&#23475;&#24773;&#22577;" label="/&#38556;&#23475;&#24773;&#22577;" />
+                          <content type="html">
+&lt;p&gt;(PM4:00)&lt;br/&gt;
+&#26412;&#38556;&#23475;&#12395;&#12388;&#12365;&#12289;&#35299;&#27770;&#12356;&#12383;&#12375;&#12414;&#12375;&#12383;&#12398;&#12391;&#12289;&#29694;&#22312;&#12399;&#12372;&#21033;&#29992;&#21487;&#33021;&#12394;&#29366;&#24907;&#12395;&#12394;&#12387;&#12390;&#12362;&#12426;&#12414;&#12377;&#12290;&lt;br/&gt;
+&#12372;&#36855;&#24785;&#12362;&#25499;&#12369;&#12356;&#12383;&#12375;&#12414;&#12375;&#12383;&#12371;&#12392;&#12434;&#12289;&#12362;&#35435;&#12403;&#30003;&#12375;&#19978;&#12370;&#12414;&#12377;&#12290;&lt;/p&gt;
+
+
+&lt;p&gt;(PM2:30)&lt;br/&gt;
+&#29694;&#22312;&#12289;OSC&#12408;&#12450;&#12463;&#12475;&#12473;&#12375;&#12414;&#12377;&#12392;&#12289;&#12479;&#12452;&#12512;&#12450;&#12454;&#12488;&#12456;&#12521;&#12540;&#12395;&#12394;&#12427;&#38556;&#23475;&#12364;&#30330;&#29983;&#12375;&#12390;&#12362;&#12426;&#12414;&#12377;&#12290;&lt;br/&gt;
+&#12372;&#36855;&#24785;&#12434;&#12362;&#25499;&#12369;&#33268;&#12375;&#12390;&#12362;&#12426;&#12414;&#12377;&#12364;&#12289;&#24489;&#26087;&#12414;&#12391;&#12362;&#24453;&#12385;&#12367;&#12384;&#12373;&#12356;&#12414;&#12377;&#27096;&#12424;&#12429;&#12375;&#12367;&#12362;&#39000;&#12356;&#30003;&#12375;&#19978;&#12370;&#12414;&#12377;&#12290;&lt;/p&gt;
+
+</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/rohrer/entry/sharing_data_in_a_microsoft</id>
+        <title type="html">Sharing data in a Microsoft way... Welcome to the CIFS server!</title>
+        <author><name>rohrer</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/rohrer/entry/sharing_data_in_a_microsoft"/>
+        <published>2007-11-06T20:35:58-08:00</published>
+                  <updated>2007-11-07T01:10:43-08:00</updated>
+                                    <category term="/Life&apos;s Data" label="/Life&apos;s Data" />
+                          <content type="html">&lt;p&gt;I&apos;ve had the great pleasure to watch a very hard working team deliver the CIFS server recently allowing OpenSolaris to serve files to Microsoft CIFS clients. Our lead developer, Alan Wright, did a great job sheparding the delivery of 370,000 lines (more or less) into OpenSolaris. Several existing components in the OpenSolaris kernel also had to be modified to support this in-kernel CIFS service. &lt;a href=&quot;http://blogs.sun.com/amw/entry/cifs_in_solaris&quot;&gt;Alan&apos;s blog&lt;/a&gt; describes the advantages of supporting CIFS from inside the kernel.&lt;br /&gt;&lt;/p&gt;&lt;p&gt;Remarkable job... especially with a &lt;a href=&quot;http://abcnews.go.com/GMA/story?id=3759054&amp;amp;page=1&quot;&gt;wildfire&lt;/a&gt; burning at their backs filling the Sun facility in Irvine with smoke during the critical last few days of the delivery. Our CIFS folks hung in there to make the putback. Special thanks to Barry Greenberg as well for managing the effort from the people side of the equation.&lt;br /&gt;&lt;/p&gt;&lt;p&gt;For more details on the effort check out these blog entries:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href=&quot;http://blogs.sun.com/nico/entry/dealing_with_windows_sids_in&quot;&gt;Dealing with Windows SID, Nico&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;http://blogs.sun.com/dougm/entry/enhanced_resource_names&quot;&gt;Enhanced Resource Names for CIFS, Doug McCallum&amp;nbsp;&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;http://blogs.sun.com/dougm/entry/enhanced_resource_names&quot;&gt;Share Manager gets a new protocol, Doug McCallum&lt;/a&gt;&amp;nbsp;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;The CIFS server joins the &lt;a href=&quot;http://www.opensolaris.org/os/project/winchester/&quot;&gt;Active Directory integration project&lt;/a&gt;, Share Manager and the &lt;a href=&quot;http://www.opensolaris.org/os/project/smbfs&quot;&gt;CIFS client project&lt;/a&gt; in the effort to improve our OpenSolaris-Windows interoperability and management story.&lt;/p&gt;&lt;p&gt;I&apos;ll never forget an Interop&amp;nbsp; show in Atlanta some years back where I was doing Sun booth duty and showing off our Solstice Backup software (courtesy of Legato). A fellow came up to me and told me in no uncertain terms that unless Sun and Solaris started interoperating with Microsoft and Windows he wasn&apos;t going to buy a dang thing from Sun. After I discreetly wiped his saliva off my face (he was that mad) I told him to hang in there... that we wanted to solve the problem. And we&apos;re well on the way. The Sun is starting to shine in Redmond.&lt;br /&gt;&lt;/p&gt;</content>
+    </entry>
+        <entry>
+        <id>http://blogs.sun.com/katysblog/entry/chihuly_at_phipps_gardens_glass</id>
+        <title type="html">Chihuly at Phipps: Gardens &amp; Glass</title>
+        <author><name>katysblog</name></author>
+        <link rel="alternate" type="text/html" href="http://blogs.sun.com/katysblog/entry/chihuly_at_phipps_gardens_glass"/>
+        <published>2007-11-06T18:32:05-08:00</published>
+                  <updated>2007-11-06T21:50:33-08:00</updated>
+                                    <category term="/News &amp; Reviews" label="/News &amp; Reviews" />
+                          <content type="html">We just got back from CMU&apos;s Family Weekend with 
+&lt;a href=&quot;http://feelingelephants.wordpress.com/&quot;&gt;Jessica&lt;/a&gt;.
+One of the highlights of our Pittsburgh, PA visit was seeing the Chihuly glass
+installation at the 1892 &lt;a href=&quot;http://www.phipps.conservatory.org/&quot;&gt;
+Phipps Conservatory and Botanical Gardens&lt;/a&gt;. Phipps is next to the CMU campus. 
+On our final college tour,
+Jessica and I visited Phipps last Spring as the conservatory was preparing for the 
+exhibit.  Chihuly at Phipps only runs through 11 November, so we were lucky to see 
+both ends of the show: set up and full growth.  Some of Phipps&apos; gardens
+are inside the big glass building but others are outside.  The tactile
+experience of moving from the moist warm conservatory into the cold autumn air 
+and then back inside was part of the experience that pictures can&apos;t record.
+&lt;p&gt;
+I have seen &lt;a href=&quot;http://www.chihuly.com/&quot;&gt;Dale Chihuly&apos;s&lt;/a&gt;
+work before but the interaction of the living plants with his
+large scale glass forms made this exhibit awesome.  We tried to
+see it at night but tickets were sold out - we only got to see the
+entry dome chandelier. We went back on Sunday and
+were lucky to be there on the day that the 
+&lt;a href=&quot;http://www.trainweb.org/pgrs/&quot;&gt;Pittsburgh Garden Railway Society&lt;/a&gt; was
+showing off their newly installed garden railway. Some of our photos
+are below.  To see more photos, check out
+&lt;a href=&quot;http://www.chihuly.com/installations/phipps/index.html&quot;&gt;
+Chihuly&apos;s web site&lt;/a&gt;.  
+&lt;p&gt;&lt;p&gt;
+The interaction of the plants and glass and
+light were such a delight that John and I were squabbling over who got to
+take pictures.  It turned out to be an overcast day which made for 
+interesting reflections in the water features.  It would have been good
+to see it on a bright day and at night too (but I am happy to have
+seen it at all). The only disappointment was the health of the cacti
+and succulents in Phipps&apos; Desert Room.  My garden has better specimens of
+most of those plants! (OK, maybe I don&apos;t really mind that my cacti
+are better than Phipps&apos;...)  My favorite forms were the blue herons
+in the Japanese Courtyard Garden.  Lovely!
+&lt;p&gt;&lt;p&gt; 
+Where possible below, I have used Chihuly&apos;s own names
+for the glass forms.  I was pleased to see the following signs at the
+start of the walk through the conservatory: &quot;The artist permits and 
+encourages photography of the artwork in this exhibition for educational
+and non-commercial use only&quot; and &quot;This exhibition is organized by
+Phipps in cooperation with Dale Chihuly.  The artwork displayed is
+protected by copyright and any copying is expressly prohibited.&quot;
+It is good to see an artist who knows his copyright law.
+&lt;/p&gt;&lt;p&gt;
+
+&lt;table border=0&gt;
+&lt;tr&gt;&lt;td&gt;
+Phipps entry
+&lt;br&gt;flags:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/ChihulyPhipps.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps entry flags 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+New Phipps Garden Railway
+&lt;br&gt;(outside):
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Pipps.train.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;New Phipps Garden Railway 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+Paul and the
+&lt;br&gt;Garden Railway:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Pipps.train.paul.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Paul and the Phipps Garden Railway 2007
+          photo: copyright 2007 John Plocher&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;table border=0&gt;
+&lt;tr&gt;&lt;td&gt;
+Chihuly chandelier
+&lt;br&gt;at night:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly.22.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly chandelier at night 2007
+          photo: copyright 2007 John Plocher&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;
+Chihuly chandelier
+&lt;br&gt;reflections:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly.23.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly chandelier reflections 2007
+          photo: copyright 2007 John Plocher&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;
+Chihuly chandelier
+&lt;br&gt;during the day:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly1.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly chandelier during the day 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+Chihuly
+&lt;br&gt;glass and plants:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly2.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly glass and plants 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;table border=0&gt;
+&lt;tr&gt;&lt;td&gt;   
+Chihuly - Serpentine Room
+&lt;br&gt;Amber Cattails:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly3.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly Serpentine Room Amber Cattails 2007
+          photo: copyright 2007 John Plocher&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+Chihuly - Orchid Room
+&lt;br&gt;Ikebana:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly4.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly Orchid Room Ikebana 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+Chihuly - 
+&lt;br&gt;glass among the plants:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly5.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly glass among the plants 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;table border=0&gt;
+&lt;tr&gt;&lt;td&gt;   
+Chihuly - Stove Room
+&lt;br&gt;Fiori Sun with real flower:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly6.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly Stove Room Fiori Sun with flower 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+Chihuly - Fern Room
+&lt;br&gt;Red Reeds:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly7.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly Fern Room Red Reeds 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+Chihuly - 
+&lt;br&gt;glass flowers and leaves:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly8.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly glass flowers and leaves 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;table border=0&gt;
+&lt;tr&gt;&lt;td&gt;   
+Chihuly - glowing blue
+&lt;br&gt;tumbleweeds:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly9.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly glowing blue tumbleweeds 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+Chihuly - glass Float
+&lt;br&gt;with goldfish:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly.10.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly glass Float with goldfish 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+Chihuly - 
+&lt;br&gt;glass shoots and leaves:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly.11.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly glass shoots and leaves 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;table border=0&gt;
+&lt;tr&gt;&lt;td&gt;   
+Sunken Garden
+&lt;br&gt;Macchia:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly.12.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly Sunken Garden Macchia 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+Chihuly - Desert Room
+&lt;br&gt;Neodymium Reeds, gold star:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly.13.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly Desert Room Neodymium Reeds, gold star 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+Japanese Courtyard Garden
+&lt;br&gt;blue herons (outside):
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly.14.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly Japanese Courtyard Garden blue herons 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;table border=0&gt;
+&lt;tr&gt;&lt;td&gt;   
+Japanese Courtyard Garden
+&lt;br&gt;blue herons, goldfish, reflections:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly.15.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly Japanese Courtyard Garden blue herons, goldfish, reflections 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+Japanese Courtyard Garden
+&lt;br&gt;blue heron reflections:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly.16.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly Japanese Courtyard Garden blue heron reflections 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+Chihuly - vine growing
+&lt;br&gt;on blue reed:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly.17.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly vine growing on blue reed 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;table border=0&gt;
+&lt;tr&gt;&lt;td&gt;   
+Jessica and Chihuly
+&lt;br&gt;Rose Crystal Tower
+&lt;br&gt;(outside):
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/jes.phipps.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Jessica and Chihuly Rose Crystal Tower 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+John and Jessica
+&lt;br&gt;in the Fern Room
+&lt;br&gt;(inside):
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/jesjohn.phipps.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly John and Jessica in the Fern Room 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+Jessica and Paul,
+&lt;br&gt;Chihuly Rose Crystal Tower
+&lt;br&gt;(outside):
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/jespaul.phipps.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Jessica and Paul, Chihuly Rose Crystal Tower 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;table border=0&gt;
+&lt;tr&gt;&lt;td&gt;   
+Chihuly - fountain, 
+&lt;br&gt;Yellow Herons (outside):
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly.24.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly - fountain, Yellow Herons 2007
+          photo: copyright 2007 John Plocher&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+Chihuly - Victoria Room
+&lt;br&gt;Persians in pond, reflections:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly.18.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly - Victoria Room, Persians in pond, reflections 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;   
+Chihuly - East Room
+&lt;br&gt;Cobalt Fiori, Reeds, Marlins, Floats:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly.19.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly - East Room Cobalt Fiori, Reeds, Marlins, Floats 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;table border=0&gt;
+&lt;tr&gt;&lt;td&gt;   
+Chihuly - Palm Court
+&lt;br&gt;Tower and 1892 Plaque:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly.20.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly - Palm Court Tower and 1892 Plaque 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;td&gt;
+Chihuly - South Conservatory
+&lt;br&gt;Float Boat:
+&lt;br&gt;
+&lt;img SRC=&quot;http://blogs.sun.com/katysblog/resource/CMU.Phipps.2007/Chihuly.21.jpg&quot;
+     HEIGHT=&quot;200&quot; ALT=&quot;Phipps Chihuly - Float Boat 2007
+          photo: copyright 2007 Katy Dickinson&quot;
+     align=TEXTTOP&gt;
+&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;/p&gt;&lt;p&gt;
+&lt;b&gt;Images Copyright 2007 by Katy Dickinson and John Plocher&lt;/b&gt;
+&lt;/p&gt;</content>
+    </entry>
+      </feed>
+
+
+

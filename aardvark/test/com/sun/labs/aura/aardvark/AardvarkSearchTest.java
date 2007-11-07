@@ -121,6 +121,38 @@ public class AardvarkSearchTest {
         }
     }
 
+    @Test
+    public void testLargeMultiUserRecommendedFeed() throws Exception {
+        Aardvark aardvark = getFreshAardvark();
+
+        try {
+            aardvark.startup();
+
+            assertTrue("empty aardvark users", aardvark.getStats().getNumUsers() == 0);
+            assertTrue("empty aardvark items", aardvark.getStats().getNumItems() == 0);
+
+            enroll(aardvark, "blogs.sun.com.rss");
+            enroll(aardvark, "delicious.rss");
+            enroll(aardvark, "digg.rss");
+            enroll(aardvark, "googlenews.rss");
+            enroll(aardvark, "reddit.rss");
+            enroll(aardvark, "slashdot.rss");
+
+            assertTrue("full aardvark users", aardvark.getStats().getNumUsers() == 6);
+            Thread.sleep(60000L);
+            assertTrue("full aardvark items " + aardvark.getStats().getNumItems(), 
+                    aardvark.getStats().getNumItems() == 20);
+
+        } finally {
+            aardvark.shutdown();
+        }
+    }
+    
+    private void enroll(Aardvark aardvark, String feedBaseName) throws AuraException {
+        URL feedURL = this.getClass().getResource(feedBaseName);
+        aardvark.enrollUser(feedBaseName, feedURL.toString());
+    }
+
     private void deleteDirectory(File indexDir) {
         File[] fs = indexDir.listFiles();
         for(File f : fs) {
