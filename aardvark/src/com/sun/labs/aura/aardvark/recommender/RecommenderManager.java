@@ -15,5 +15,10 @@ public interface RecommenderManager extends Configurable {
      * @param user the user that we want recommendations for
      * @return a list of the entries that we want to recommend to the user.
      */
-    List<Entry> getRecommendations(User user);
+    public List<Entry> getRecommendations(User user);
+    
+    /**
+     * Shuts down any recommenders that have open resources.
+     */
+    public void shutdown();
 }

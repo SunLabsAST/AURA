@@ -31,6 +31,9 @@ public class SimpleRecommendationManager implements RecommenderManager {
         itemStore = (ItemStore) ps.getComponent(PROP_ITEM_STORE);
     }
     
+    public void shutdown() {
+    }
+
     @ConfigComponent(type=com.sun.labs.aura.aardvark.store.ItemStore.class)
     public static final String PROP_ITEM_STORE = "itemStore";
 }

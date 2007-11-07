@@ -90,7 +90,9 @@ public class Aardvark implements Configurable {
      * Stops all processing
      */
     public void shutdown() {
+        logger.info("starting aardvark shutdown");
         feedCrawler.stop();
+        recommenderManager.shutdown();
         logger.info("shutdown");
     }
 
@@ -115,12 +117,12 @@ public class Aardvark implements Configurable {
             logger.info("Added user " + openID);
             if (getUser(openID) == null) {
                 if (isValidFeed(feed)) {
-                    User user = (User) itemStore.newItem(User.class, openIDtoKey(openID));
+                    User user = itemStore.newItem(User.class, openIDtoKey(openID));
                     user.setStarredItemFeedURL(new URL(feed));
                     itemStore.put(user);
                     return user;
                 } else {
-                    throw new AuraException("Invalid feed" + feed);
+                    throw new AuraException("Invalid feed " + feed);
                 }
             } else {
                 throw new AuraException("attempting to enroll duplicate user " + openID);
@@ -129,7 +131,7 @@ public class Aardvark implements Configurable {
             throw new AuraException("Bad starred item feed url" + ex);
         }
     }
-    
+
     /**
      * Determines if the feed is valid
      * @param feed the feed to check

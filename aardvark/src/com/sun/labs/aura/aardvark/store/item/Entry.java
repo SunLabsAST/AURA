@@ -41,7 +41,7 @@ public interface Entry extends Item {
 
     /**
      * Gets the RSS entry contents
-     * @returjn the RSS entry
+     * @return the RSS entry
      */
     public SyndEntry getSyndEntry();
 

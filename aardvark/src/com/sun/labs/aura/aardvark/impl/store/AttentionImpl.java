@@ -57,5 +57,9 @@ public class AttentionImpl implements Attention {
     public Type getType() {
         return type;
     }
+    
+    public String toString() {
+        return String.format("%d/%d/%s", userID, itemID, type);
+    }
 
 }

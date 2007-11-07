@@ -203,7 +203,26 @@ public class MemoryItemStore implements ItemStore {
 
     public <T extends Item> void removeItemListener(Class<T> type,
                                                     ItemListener listener) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        //
+        // Remove this listener for the specific type if one is given, or
+        // for all types if none is given.
+
+        if (type != null) {
+            List l = typeToListeners.get(type);
+            if (l != null) {
+                l.remove(listener);
+            }
+        } else {
+            List l = typeToListeners.get(Item.class);
+            if (l != null) {
+                l.remove(listener);
+            }
+            
+            //
+            // See if this listener is registered for all types individually.
+            // If so, we should remove it from them all in this case.
+        }
+        
     }
 
     protected long nextItemID() {

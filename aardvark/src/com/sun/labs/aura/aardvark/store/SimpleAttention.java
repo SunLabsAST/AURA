@@ -70,5 +70,9 @@ public class SimpleAttention implements Attention {
     public Type getType() {
         return type;
     }
+    
+    public String toString() {
+        return String.format("Attn: %d/%d/%s", userID, itemID, type);
+    }
 
 }
