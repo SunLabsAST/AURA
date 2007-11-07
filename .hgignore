@@ -1,3 +1,5 @@
 syntax: glob
 
 genfiles.properties
+dist/
+build/
