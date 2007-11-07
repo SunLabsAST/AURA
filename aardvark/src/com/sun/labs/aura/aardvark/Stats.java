@@ -15,26 +15,26 @@ package com.sun.labs.aura.aardvark;
  */
 public class Stats {
     private String version;
-    private int numUsers;
-    private int numItems;
-    private int numAttentionData;
+    private long numUsers;
+    private long numItems;
+    private long numAttentionData;
 
-    public Stats(String version, int numUsers, int numItems, int numAttentionData) {
+    public Stats(String version, long numUsers, long numItems, long numAttentionData) {
         this.version = version;
         this.numUsers = numUsers;
         this.numItems = numItems;
         this.numAttentionData = numAttentionData;
     }
 
-    public int getNumAttentionData() {
+    public long getNumAttentionData() {
         return numAttentionData;
     }
 
-    public int getNumItems() {
+    public long getNumItems() {
         return numItems;
     }
 
-    public int getNumUsers() {
+    public long getNumUsers() {
         return numUsers;
     }
 

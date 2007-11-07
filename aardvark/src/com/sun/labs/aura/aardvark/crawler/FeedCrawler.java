@@ -193,9 +193,9 @@ public class FeedCrawler implements Configurable {
      * @throws AuraException
      */
     private Entry[] getNewestEntries(URL feedUrl, long lastPullTime) throws AuraException {
+        List<Entry> entries = new ArrayList<Entry>();
         try {
             SyndFeed feed = syndFeedInput.build(new XmlReader(feedUrl));
-            List<Entry> entries = new ArrayList<Entry>();
             List entryList = feed.getEntries();
             for (Object o : entryList) {
                 SyndEntry syndEntry = (SyndEntry) o;
@@ -211,12 +211,13 @@ public class FeedCrawler implements Configurable {
                     // so we cannot break here.
                 }
             }
-            return entries.toArray(EMPTY_ENTRY);
+            // if we have a problem reading a feed we just continue one
         } catch (IOException ex) {
-            throw new AuraException("IOException while reading " + feedUrl, ex);
+            logger.warning("IOException while reading " + feedUrl);
         } catch (FeedException ex) {
-            throw new AuraException("FeedException while reading " + feedUrl, ex);
+            logger.warning("FeedException while reading " + feedUrl);
         }
+        return entries.toArray(EMPTY_ENTRY);
     }
 
     /**

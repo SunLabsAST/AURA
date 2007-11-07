@@ -8,6 +8,7 @@ import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.crawler.FeedUtils;
 import com.sun.labs.aura.aardvark.recommender.RecommenderManager;
 import com.sun.labs.aura.aardvark.store.ItemStore;
+import com.sun.labs.aura.aardvark.store.ItemStoreStats;
 import com.sun.labs.aura.aardvark.store.item.Entry;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
@@ -34,7 +35,6 @@ public class Aardvark implements Configurable {
     /**
      * the configurable property for the itemstore used by this manager
      */
-
     @ConfigComponent(type = ItemStore.class)
     public final static String PROP_ITEM_STORE = "itemStore";
     private ItemStore itemStore;
@@ -114,16 +114,29 @@ public class Aardvark implements Configurable {
         try {
             logger.info("Added user " + openID);
             if (getUser(openID) == null) {
-                User user = (User) itemStore.newItem(User.class, openIDtoKey(openID));
-                user.setStarredItemFeedURL(new URL(feed));
-                itemStore.put(user);
-                return user;
+                if (isValidFeed(feed)) {
+                    User user = (User) itemStore.newItem(User.class, openIDtoKey(openID));
+                    user.setStarredItemFeedURL(new URL(feed));
+                    itemStore.put(user);
+                    return user;
+                } else {
+                    throw new AuraException("Invalid feed" + feed);
+                }
             } else {
                 throw new AuraException("attempting to enroll duplicate user " + openID);
             }
         } catch (MalformedURLException ex) {
             throw new AuraException("Bad starred item feed url" + ex);
         }
+    }
+    
+    /**
+     * Determines if the feed is valid
+     * @param feed the feed to check
+     * @return true if the feed is valid
+     */
+    private boolean isValidFeed(String feed) {
+        return feed.startsWith("http://"); // TODO write me
     }
 
     /**
@@ -140,13 +153,16 @@ public class Aardvark implements Configurable {
         feed.setEntries(FeedUtils.getSyndEntries(getRecommendedEntries(user)));
         return feed;
     }
-    
+
     /**
      * Returns interesting stats about aardvark
      * @return the stats
      */
     public Stats getStats() {
-        return new Stats(VERSION, 10, 20, 30);
+        ItemStoreStats itemStoreStats = itemStore.getStats();
+        return new Stats(VERSION, itemStoreStats.getNumUsers(),
+                itemStoreStats.getNumEntries(),
+                itemStoreStats.getNumAttentions());
     }
 
     /**
@@ -165,10 +181,6 @@ public class Aardvark implements Configurable {
      * @return the key
      */
     private String openIDtoKey(String openID) {
-        return "User:" + openID;        // TODO: this is a bug
+        return openID;        // TODO: this is a bug
     }
-    
-
-
-
 }
