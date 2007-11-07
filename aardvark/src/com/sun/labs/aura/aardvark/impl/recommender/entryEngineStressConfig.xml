@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : entryEngineConfig.xml
+    Created on : November 5, 2007, 9:39 AM
+    Author     : Stephen Green
+    Description:
+        Configuration for the search engine used to index and search feed entries.
+-->
+
+<config>
+    <!-- We're going to use a synchronous dumper so that when an entry is
+    indexed, when control is returned to the caller the data is available for
+    searching. -->
+    <property name="dumper" value="sync_dumper"/>
+    
+    <component name="index_config" type="com.sun.kt.search.IndexConfig">
+        <property name="index_directory" value="${index_directory}"/>
+        <property name="default_field_info" value="unknown_field"/>
+        <propertylist name="field_info">
+            <item>id</item>
+        </propertylist>
+    </component>
+    
+    <!-- The ID of the entry -->
+    <component name="id" type="com.sun.kt.search.FieldInfo">
+        <property name="indexed" value="false"/>
+        <property name="tokenized" value="false"/>
+        <property name="vectored" value="false"/>
+        <property name="saved" value="true"/>
+        <property name="type" value="integer"/>
+    </component>
+    
+    <!-- A partition manager with a very low high water mark for the number of
+    open partitions.
+    --> 
+    <component name="simple_partition_manager" inherit="partition_manager">
+        <property name="partition_factory" value="simple_partition_factory"/>
+        <property name="open_partition_high_water_mark" value="4"/>
+        <property name="open_partition_low_water_mark" value="2"/>
+    </component>
+    
+    
+</config>
