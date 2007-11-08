@@ -15,6 +15,7 @@
         <property name="itemStore" value="itemStore"/>
         <property name="feedCrawler" value="feedCrawler"/>
         <property name="recommenderManager" value="searchRecommenderManager"/>
+        <property name="autoEnrollTestFeeds" value="true"/>
     </component>
     
     <component name="itemStore" type="com.sun.labs.aura.aardvark.impl.store.MemoryItemStore"/>

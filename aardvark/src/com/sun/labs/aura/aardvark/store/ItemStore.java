@@ -83,7 +83,7 @@ public interface ItemStore extends Configurable {
     
     /**
      * Puts an item into the ItemStore.  The Item may be either a new Item
-     * created by the {@link newItem} method or a modification of an
+     * created by the {@link #newItem} method or a modification of an
      * existing Item that was retrieved using one of the get methods.  If the
      * Item has the same Aura ID and key as an existing item, the existing
      * item will be updated.  If the Aura ID and key are new, the item will

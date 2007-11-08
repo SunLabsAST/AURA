@@ -47,7 +47,7 @@ public class Aardvark implements Configurable {
     public final static String PROP_FEED_CRAWLER = "feedCrawler";
     private FeedCrawler feedCrawler;
     
-    @ConfigBoolean(defaultValue=true)
+    @ConfigBoolean(defaultValue=false)
     public final static String PROP_AUTO_ENROLL_TEST_FEEDS = "autoEnrollTestFeeds";
     private boolean autoEnrollTestFeeds;
 

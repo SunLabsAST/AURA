@@ -95,6 +95,7 @@ public class FeedCrawler implements Configurable {
                             crawler();
                         }
                     };
+            crawlerThread.setName("Crawler");
             crawlerThread.start();
         }
     }
@@ -120,20 +121,13 @@ public class FeedCrawler implements Configurable {
                 if (user != null) {
                     logger.info("Collecting feed for " + user);
                     collectDataForUser(user);
-                    userRefreshManager.release(user);
-                    user = null;
                 }
             } catch (InterruptedException ex) {
             } catch (AuraException ex) {
                 logger.log(Level.SEVERE, "aura exception", ex);
             } catch (Throwable t) {
                 logger.log(Level.SEVERE, "general exception", t);
-            } finally {
-                if (user != null) {
-                    userRefreshManager.release(user);
-                    user = null;
-                }
-            }
+            } 
         }
     }
 
@@ -149,12 +143,16 @@ public class FeedCrawler implements Configurable {
         long lastFeedPullTime = user.getLastFetchTime();
         long now = System.currentTimeMillis();
 
-        Entry[] entries = getNewStarredEntriesFromUser(user, lastFeedPullTime);
-        for (Entry entry : entries) {
-            attend(user, entry, Attention.Type.STARRED);
+        try {
+            Entry[] entries = getNewStarredEntriesFromUser(user, lastFeedPullTime);
+            for (Entry entry : entries) {
+                attend(user, entry, Attention.Type.STARRED);
+            }
+        } finally {
+            user.setLastFetchTime(now);
+            itemStore.put(user);
+            userRefreshManager.release(user);
         }
-        user.setLastFetchTime(now);
-        itemStore.put(user);
     }
 
     /**
@@ -198,7 +196,7 @@ public class FeedCrawler implements Configurable {
         List<Entry> entries = new ArrayList<Entry>();
         try {
             URLConnection connection = feedUrl.openConnection();
-            connection.setRequestProperty ( "User-agent", "aardvark");
+            connection.setRequestProperty("User-agent", "aardvark");
             SyndFeed feed = syndFeedInput.build(new XmlReader(connection));
             List entryList = feed.getEntries();
             for (Object o : entryList) {
@@ -266,7 +264,7 @@ public class FeedCrawler implements Configurable {
         try {
             URL url = new URL(surl);
             URLConnection connection = url.openConnection();
-            connection.setRequestProperty ( "User-agent", "aardvark");
+            connection.setRequestProperty("User-agent", "aardvark");
             SyndFeed feed = syndFeedInput.build(new XmlReader(connection));
 
             System.out.println("---" + feed.getTitle() + "---");
