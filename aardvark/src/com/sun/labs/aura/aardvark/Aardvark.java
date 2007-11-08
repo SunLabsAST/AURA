@@ -12,6 +12,7 @@ import com.sun.labs.aura.aardvark.store.ItemStoreStats;
 import com.sun.labs.aura.aardvark.store.item.Entry;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -45,6 +46,10 @@ public class Aardvark implements Configurable {
     @ConfigComponent(type = FeedCrawler.class)
     public final static String PROP_FEED_CRAWLER = "feedCrawler";
     private FeedCrawler feedCrawler;
+    
+    @ConfigBoolean(defaultValue=true)
+    public final static String PROP_AUTO_ENROLL_TEST_FEEDS = "autoEnrollTestFeeds";
+    private boolean autoEnrollTestFeeds;
 
     /**
      * the configurable property for the RecommenderManager used by this manager
@@ -75,6 +80,7 @@ public class Aardvark implements Configurable {
         itemStore = (ItemStore) ps.getComponent(PROP_ITEM_STORE);
         feedCrawler = (FeedCrawler) ps.getComponent(PROP_FEED_CRAWLER);
         recommenderManager = (RecommenderManager) ps.getComponent(PROP_RECOMMENDER_MANAGER);
+        autoEnrollTestFeeds = ps.getBoolean(PROP_AUTO_ENROLL_TEST_FEEDS);
         logger = ps.getLogger();
     }
 
@@ -84,6 +90,10 @@ public class Aardvark implements Configurable {
     public void startup() {
         logger.info("started");
         feedCrawler.start();
+        
+        if (autoEnrollTestFeeds) {
+            autoEnroll();
+        }
     }
 
     /**
@@ -186,6 +196,31 @@ public class Aardvark implements Configurable {
     private String openIDtoKey(String openID) {
         return openID;        // TODO: this is a bug
     }
+    
+    private void autoEnroll() {
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    enrollUser("delicious", "http://del.icio.us/rss/");
+                    enrollUser("digg", "http://digg.com/rss/index.xml");
+                    enrollUser("google news", "http://news.google.com/news?ned=us&topic=h&output=atom");
+                    enrollUser("slashdot", "http://rss.slashdot.org/Slashdot/slashdot");
+                    enrollUser("reddit", "http://reddit.com/.rss");
+                    enrollUser("blogs.sun.com", "http://blogs.sun.com/main/feed/entries/atom");
+                    enrollUser("engadget", "http://feeds.engadget.com/weblogsinc/engadget");
+                    enrollUser("gizmodo", "http://feeds.gawker.com/gizmodo/full");
+                    enrollUser("mediaor", "http://archive.mediaor.com/rss");
+                    enrollUser("dzonenew", "http://dzone.com/links/feed/queue/rss.xml");
+                    enrollUser("dzonepopular", "http://dzone.com/links/feed/frontpage/rss.xml");
+                } catch (AuraException ex) {
+                    logger.severe("Problem enrolling item feeds" + ex);
+                } 
+            }
+        };
+
+        t.start();
+    }
 
 
     public static void main(String[] args) throws Exception {
@@ -194,21 +229,11 @@ public class Aardvark implements Configurable {
         Aardvark aardvark = getDefault();
 
         aardvark.startup();
-
-        aardvark.enrollUser("test", "http://www.google.com/reader/public/atom/user/07268145224739680674/state/com.google/starred");
-        Thread.sleep(10000L);
-        aardvark.enrollUser("delicious", "http://del.icio.us/rss/");
-        Thread.sleep(30000L);
-        aardvark.enrollUser("digg", "http://digg.com/rss/index.xml");
-        Thread.sleep(30000L);
-        aardvark.enrollUser("google news", "http://del.icio.us/rss/");
-        Thread.sleep(30000L);
-        aardvark.enrollUser("slashdot", "http://rss.slashdot.org/Slashdot/slashdot");
-        Thread.sleep(30000L);
-        aardvark.enrollUser("reddit", "http://reddit.com/.rss");
-        Thread.sleep(30000L);
-        aardvark.enrollUser("digg", "http://digg.com/rss/index.xml");
-        Thread.sleep(300000L);
+        for (int i = 0; i < 20 * 60; i++) {
+            Thread.sleep(3000L);
+            Stats stats = aardvark.getStats();
+            System.out.println(i + ") " + stats);
+        }
         aardvark.shutdown();
     }
 }

@@ -143,7 +143,7 @@ public class AardvarkSearchTest {
             assertTrue("full aardvark users", aardvark.getStats().getNumUsers() == 8);
             Thread.sleep(60000L);
             assertTrue("full aardvark items " + aardvark.getStats().getNumItems(), 
-                    aardvark.getStats().getNumItems() == 82);
+                    aardvark.getStats().getNumItems() == 142);
 
         } finally {
             aardvark.shutdown();

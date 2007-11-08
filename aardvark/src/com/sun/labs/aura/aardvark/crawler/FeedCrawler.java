@@ -123,9 +123,11 @@ public class FeedCrawler implements Configurable {
                     userRefreshManager.release(user);
                     user = null;
                 }
-            } catch (AuraException ex) {
-                logger.log(Level.SEVERE, null, ex);
             } catch (InterruptedException ex) {
+            } catch (AuraException ex) {
+                logger.log(Level.SEVERE, "aura exception", ex);
+            } catch (Throwable t) {
+                logger.log(Level.SEVERE, "general exception", t);
             } finally {
                 if (user != null) {
                     userRefreshManager.release(user);

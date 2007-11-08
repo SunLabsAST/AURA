@@ -1,0 +1,154 @@
+/* 
+    Document   : styles
+    Created on : Nov 5, 2007, 5:16:25 AM
+    Author     : plamere
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+
+body {
+	font-family: "Trebuchet MS", "Times New Roman", serif;
+	color: #111199;
+	background: #f0f0ff;
+	margin: 0px;
+	padding: 0px;
+	font-weight: normal;
+	font: 83%/1.4 arial, helvetica, sans-serif;
+}
+
+.mainPanel {
+   width: 95%;
+   height: 100%;
+   background: #aaf;
+   margin-bottom: 0px;
+   margin-left: 10px;
+   margin-right: 10px;
+}
+.welcomeMenu {
+   background: #aaf;
+   height: 10px;
+   margin-top: 0px;
+   margin-bottom: 0px;
+   margin-left: 10px;
+   margin-right: 10px;
+   text-align: left;
+   word-spacing: 8px;
+   font-size: 130%;
+   border-bottom-width: 1px;
+   border-bottom-color: white;
+}
+.menuText {
+    margin-left: 10px;
+    border-right-style: solid;
+    border-right-width: 1px;
+    border-right-color: white;
+    padding-right: 10px;
+    cursor: pointer;
+}
+
+.simpleText {
+    margin-left: 10px;
+    border-right-style: solid;
+    border-right-width: 1px;
+    border-right-color: white;
+    padding-right: 10px;
+}
+
+.standardMainPanel {
+    margin: 10px;
+    vertical-align: top;
+}
+.aboutPanel {
+    margin: 10px;
+    vertical-align: top;
+}
+
+.newUserPanel {
+    margin: 10px;
+    /*text-align: center;*/
+    vertical-align: top;
+    border-right-style: solid;
+    border-left-style: solid;
+    border-bottom-style: solid;
+    border-top-style: solid;
+    border-right-width: 1px;
+    border-left-width: 1px;
+    border-bottom-width: 1px;
+    border-top-width: 1px;
+    border-right-color: teal;
+    border-left-color: teal;
+    border-bottom-color: teal;
+    border-top-color: teal;
+    padding: 10px;
+}
+
+.standardButton {
+   margin-left: 10px;
+   margin-right: 10px;
+}
+
+.title {
+   font-size: 130%;
+}
+
+.infoPanel {
+   font-size: 200%;
+   background: #afa;
+   border-right-style: solid;
+   border-left-style: solid;
+   border-bottom-style: solid;
+   border-top-style: solid;
+   border-right-width: 1px;
+   border-left-width: 1px;
+   border-bottom-width: 1px;
+   border-top-width: 1px;
+   border-right-color: teal;
+   border-left-color: teal;
+   border-bottom-color: teal;
+   border-top-color: teal;
+   margin-right: 10px;
+   margin-left: 10px;
+   margin-bottom: 10px;
+   margin-top: 10px;
+   padding-right: 8px;
+   padding-left: 8px;
+   padding-bottom: 8px;
+   padding-top: 8px;
+}
+
+
+.errorPanel {
+   font-size: 200%;
+   background: #fcc;
+   color: #900;
+   border-right-style: solid;
+   border-left-style: solid;
+   border-bottom-style: solid;
+   border-top-style: solid;
+   border-right-width: 1px;
+   border-left-width: 1px;
+   border-bottom-width: 1px;
+   border-top-width: 1px;
+   border-right-color: teal;
+   border-left-color: teal;
+   border-bottom-color: teal;
+   border-top-color: teal;
+   margin-right: 10px;
+   margin-left: 10px;
+   margin-bottom: 10px;
+   margin-top: 10px;
+   padding-right: 8px;
+   padding-left: 8px;
+   padding-bottom: 8px;
+   padding-top: 8px;
+}
+
+.statsPanel {
+    margin: 30px;
+   font-size: 120%;
+}

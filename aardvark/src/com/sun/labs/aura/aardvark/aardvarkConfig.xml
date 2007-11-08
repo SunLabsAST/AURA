@@ -25,7 +25,7 @@
     </component>
     
     <component name="userRefreshManager" type="com.sun.labs.aura.aardvark.crawler.UserRefreshManager">
-        <property name="userRefreshTime" value="900000"/>
+        <property name="userRefreshTime" value="60000"/>
         <property name="itemStore" value="itemStore"/>
     </component>
     

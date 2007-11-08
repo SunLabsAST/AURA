@@ -7,27 +7,32 @@
  *  WARRANTIES. 
  */
 
-package com.sun.labs.aura.aardvark;
+package com.sun.labs.aura.aardvark.client;
+
+import com.google.gwt.user.client.rpc.IsSerializable;
 
 /**
  *
  * @author plamere
  */
-public class Stats {
+public class WiStats implements IsSerializable {
     private String version;
     private long numUsers;
     private long numItems;
-    private long numAttentionData;
+    private long numAttention;
 
-    public Stats(String version, long numUsers, long numItems, long numAttentionData) {
+    public WiStats(String version, long numUsers, long numItems, long numAttention) {
         this.version = version;
         this.numUsers = numUsers;
         this.numItems = numItems;
-        this.numAttentionData = numAttentionData;
+        this.numAttention = numAttention;
     }
 
-    public long getNumAttentionData() {
-        return numAttentionData;
+    public WiStats() {
+    }
+
+    public long getNumAttention() {
+        return numAttention;
     }
 
     public long getNumItems() {
@@ -40,11 +45,5 @@ public class Stats {
 
     public String getVersion() {
         return version;
-    }
-
-    @Override
-    public String toString() {
-        return "Users: " + getNumUsers() + "  Items: " 
-                + getNumItems()  + "  Taste: " + getNumAttentionData();
     }
 }
