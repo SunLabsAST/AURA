@@ -175,7 +175,7 @@ public class MainPanel extends DockPanel implements AppStateListener {
                     }
 
                     public void onFailure(Throwable caught) {
-                        error("Problem getting stats");
+                        error("Problem getting stats " + caught.getMessage());
                     }
                 };
 
@@ -195,7 +195,7 @@ public class MainPanel extends DockPanel implements AppStateListener {
                     }
 
                     public void onFailure(Throwable caught) {
-                        error("Problem getting recommendations");
+                        error("Problem getting recommendations:" + caught.getMessage());
                     }
                 };
 
@@ -229,7 +229,7 @@ class StatsPanel extends DockPanel {
 
     StatsPanel(WiStats stats) {
         add(new Label("Aardvark Stats"), NORTH);
-        Grid grid = new Grid(4, 2);
+        Grid grid = new Grid(6, 2);
         grid.setText(0, 0, "Version");
         grid.setText(0, 1, stats.getVersion());
 
@@ -241,6 +241,12 @@ class StatsPanel extends DockPanel {
 
         grid.setText(3, 0, "Taste");
         grid.setText(3, 1, Long.toString(stats.getNumAttention()));
+
+        grid.setText(4, 0, "Feed Pulls");
+        grid.setText(4, 1, Integer.toString(stats.getFeedPulls()));
+
+        grid.setText(5, 0, "Feed Errors");
+        grid.setText(5, 1, Integer.toString(stats.getFeedErrors()));
         add(grid, CENTER);
         setStyleName("statsPanel");
     }

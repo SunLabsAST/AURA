@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * This component is a source of users that need to be refreshed.  This 
@@ -50,7 +49,6 @@ public class UserRefreshManager implements Configurable {
     private Map<Long, User> allUsers = new HashMap<Long, User>();
     private Set<User> outstandingUsers = new HashSet<User>();
     private volatile User nextUserToRefresh = null;
-    private Logger logger;
 
     /**
      * Creates a UserRefreshManager
@@ -59,7 +57,6 @@ public class UserRefreshManager implements Configurable {
     }
 
     public synchronized void newProperties(PropertySheet ps) throws PropertyException {
-        logger = ps.getLogger();
         itemStore = (ItemStore) ps.getComponent(PROP_ITEM_STORE);
         delayBetweenUserRefreshes = (long) ps.getDouble(PROP_USER_REFRESH_TIME);
 

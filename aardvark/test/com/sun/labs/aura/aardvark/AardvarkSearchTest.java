@@ -91,6 +91,14 @@ public class AardvarkSearchTest {
             entryCount = feed.getEntries().size();
             assertTrue("The random document should still have been returned: " + entryCount, entryCount > 0);
 
+            // we should be able to get recommendations until there's nothing left to recommend:
+
+            while (aardvark.getRecommendedFeed(user1).getEntries().size() > 0) {
+            }
+
+            assertTrue("there should be zero recommendations left", 
+                    aardvark.getRecommendedFeed(user1).getEntries().size() == 0);
+
         } finally {
             aardvark.shutdown();
         }

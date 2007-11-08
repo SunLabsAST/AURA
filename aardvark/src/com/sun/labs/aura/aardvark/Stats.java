@@ -18,12 +18,16 @@ public class Stats {
     private long numUsers;
     private long numItems;
     private long numAttentionData;
+    private int feedPullCount;
+    private int feedErrorCount;
 
-    public Stats(String version, long numUsers, long numItems, long numAttentionData) {
+    public Stats(String version, long numUsers, long numItems, long numAttentionData, int feedPullCount, int feedErrorCount) {
         this.version = version;
         this.numUsers = numUsers;
         this.numItems = numItems;
         this.numAttentionData = numAttentionData;
+        this.feedPullCount = feedPullCount;
+        this.feedErrorCount = feedErrorCount;
     }
 
     public long getNumAttentionData() {
@@ -40,6 +44,14 @@ public class Stats {
 
     public String getVersion() {
         return version;
+    }
+
+    public int getFeedErrorCount() {
+        return feedErrorCount;
+    }
+
+    public int getFeedPullCount() {
+        return feedPullCount;
     }
 
     @Override
