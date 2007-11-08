@@ -65,20 +65,27 @@ public class AardvarkSearchTest {
 
         try {
             aardvark.startup();
+
             URL feedURL1 = this.getClass().getResource("gr_pbl_starred.atom.xml");
             User user1 = aardvark.enrollUser("openid.sun.com/plamere", feedURL1.toString());
+
+            URL feedURL2 = this.getClass().getResource("reddit.rss");
+            User user2 = aardvark.enrollUser("reddit", feedURL2.toString());
+
             assertNotNull("enrolled user can't be null", user1);
-            assertTrue("last fetch time should be never", user1.getLastFetchTime() == 0L);
+            assertNotNull("enrolled user can't be null", user2);
+            assertTrue("last fetch time should never be 0", user1.getLastFetchTime() == 0L);
+            assertTrue("last fetch time should never be 0", user2.getLastFetchTime() == 0L);
             Thread.sleep(5000L);
 
             SyndFeed feed = aardvark.getRecommendedFeed(user1);
             int entryCount = feed.getEntries().size();
             assertTrue("The random document should have been returned: " + entryCount, entryCount > 0);
 
-            Thread.sleep(5000L);
+            Thread.sleep(10000L);
             user1 = aardvark.getUser("openid.sun.com/plamere");
             long delta = System.currentTimeMillis() - user1.getLastFetchTime();
-            assertTrue("user should be refreshed again", delta < 2000L);
+            assertTrue("user should be refreshed again", delta < 4000L);
 
             feed = aardvark.getRecommendedFeed(user1);
             entryCount = feed.getEntries().size();
@@ -97,21 +104,23 @@ public class AardvarkSearchTest {
             aardvark.startup();
             URL feedURL1 = this.getClass().getResource("gr_pbl_starred.atom.xml");
             User user1 = aardvark.enrollUser("openid.sun.com/plamere", feedURL1.toString());
-            URL feedURL2 = this.getClass().getResource("gr_pbl_favorite.atom.xml");
-            User user2 = aardvark.enrollUser("openid.sun.com/stgreen", feedURL2.toString());
-            Thread.sleep(5000L);
+
+            URL feedURL2 = this.getClass().getResource("reddit.rss");
+            User user2 = aardvark.enrollUser("reddit", feedURL2.toString());
+
+            Thread.sleep(20000L);
 
             user1 = aardvark.getUser("openid.sun.com/plamere");
             long delta = System.currentTimeMillis() - user1.getLastFetchTime();
-            assertTrue("user should be refreshed, delta time is " + delta, delta < 2000L);
+            assertTrue("user should be refreshed, delta time is " + delta, delta < 4000L);
 
             SyndFeed feed = aardvark.getRecommendedFeed(user1);
             int entryCount = feed.getEntries().size();
             assertTrue("The random document should have been returned: " + entryCount, entryCount > 0);
 
-            user2 = aardvark.getUser("openid.sun.com/stgreen");
+            user2 = aardvark.getUser("reddit");
             delta = System.currentTimeMillis() - user2.getLastFetchTime();
-            assertTrue("user should be refreshed, delta time is " + delta, delta < 2000L);
+            assertTrue("user should be refreshed, delta time is " + delta, delta < 4000L);
 
             feed = aardvark.getRecommendedFeed(user2);
             entryCount = feed.getEntries().size();
@@ -132,13 +141,13 @@ public class AardvarkSearchTest {
             assertTrue("empty aardvark items", aardvark.getStats().getNumItems() == 0);
 
             enroll(aardvark, "blogs.sun.com.rss");
+            enroll(aardvark, "empty.rss");
             enroll(aardvark, "delicious.rss");
             enroll(aardvark, "digg.rss");
+            enroll(aardvark, "garbage.rss");
             enroll(aardvark, "googlenews.rss");
             enroll(aardvark, "reddit.rss");
             enroll(aardvark, "slashdot.rss");
-            enroll(aardvark, "empty.rss");
-            enroll(aardvark, "garbage.rss");
 
             assertTrue("full aardvark users", aardvark.getStats().getNumUsers() == 8);
             Thread.sleep(60000L);

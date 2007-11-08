@@ -100,9 +100,7 @@ public class UserRefreshManager implements Configurable {
             long delay = getDelayUntilRefresh(nextUserToRefresh);
 
             if (delay > 0L) {
-                logger.info("Waiting for " + (delay / 1000) + " seconds");
                 wait(delay);
-                logger.info("awake");
             }
 
             if (!isOutstanding(nextUserToRefresh) && getDelayUntilRefresh(nextUserToRefresh) <= 0L) {
@@ -193,7 +191,6 @@ public class UserRefreshManager implements Configurable {
      * @param user the user that has changed
      */
     private synchronized void updateUsers(Item[] userItems) {
-        logger.info("Updating " + userItems.length + " users");
         for (Item item : userItems) {
             User user = (User) item;
             allUsers.put(user.getID(), user);
@@ -207,7 +204,6 @@ public class UserRefreshManager implements Configurable {
      * @param user the user that has changed
      */
     private synchronized void clearUsers(Item[] userItems) {
-        logger.info("Clearing " + userItems.length + " users");
         for (Item item : userItems) {
             User user = (User) item;
             allUsers.remove(user.getID());
