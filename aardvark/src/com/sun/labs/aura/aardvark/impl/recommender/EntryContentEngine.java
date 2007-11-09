@@ -52,7 +52,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
         String indexDir = ps.getString(PROP_INDEX_DIR);
         String engineConfig = ps.getString(PROP_ENGINE_CONFIG_FILE);
         try {
-            URL config = getClass().getResource(engineConfig);
+            URL config = EntryContentEngine.class.getResource(engineConfig);
 
             //
             // Creates the search engine, using a simple doc and freq unfielded
