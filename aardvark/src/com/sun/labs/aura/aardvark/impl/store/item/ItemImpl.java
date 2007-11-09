@@ -5,7 +5,6 @@
 
 package com.sun.labs.aura.aardvark.impl.store.item;
 
-import com.sun.labs.aura.aardvark.impl.store.AttentionImpl;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.item.Item;
 import java.util.ArrayList;
@@ -43,7 +42,7 @@ public abstract class ItemImpl implements Item {
     }
     
     public static String getType() {
-        return "ArdvarkGeneric";
+        return Item.ITEM_TYPE;
     }
         
 

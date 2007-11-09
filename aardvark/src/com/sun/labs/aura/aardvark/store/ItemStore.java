@@ -49,7 +49,7 @@ public interface ItemStore extends Configurable {
      * @param key the globally unique key that was used to create the Item
      * @return the Aura ID of the item, or -1 if the item does not exist
      */
-    public long getID(String key);
+    //public long getID(String key);
 
 
     /**

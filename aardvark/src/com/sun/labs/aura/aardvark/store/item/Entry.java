@@ -18,7 +18,9 @@ import com.sun.syndication.feed.synd.SyndEntry;
  * @author ja151348
  */
 public interface Entry extends Item {
-    
+    /** A unique string that each Item must define to identify its own type */
+    public final static String ITEM_TYPE = "AardvarkEntry";
+
     /**
      * Gets the content of this Entry
      * 
