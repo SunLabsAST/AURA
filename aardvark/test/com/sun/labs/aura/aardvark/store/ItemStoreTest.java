@@ -56,7 +56,6 @@ public class ItemStoreTest {
     @Test public void createItems() throws Exception {
         User u = mis.newItem(User.class, "jalex");
         u.setRecommenderFeedKey("paul-is-a-rockstar");
-        u.setStarredItemFeedURL(new URL("http://jalexurl.google.com/"));
         long id = u.getID();
         itemList.add(u);
         
@@ -133,9 +132,6 @@ public class ItemStoreTest {
         User u = (User)mis.get("jalex");
         assertTrue("User data (rFeedKey) got munged",
                    u.getRecommenderFeedKey().equals("paul-is-a-rockstar"));
-        assertTrue("User data (sURL) got munged",
-                   u.getStarredItemFeedURL().
-                               equals(new URL("http://jalexurl.google.com/")));
         
         Entry e = (Entry)mis.get("pauls-blog-post1");
         assertTrue("Paul blog entry got munged",

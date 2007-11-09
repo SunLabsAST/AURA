@@ -10,11 +10,14 @@ package com.sun.labs.aura.aardvark;
 
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.util.LabsLogFormatter;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.syndication.feed.synd.SyndFeed;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.logging.Handler;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -32,6 +35,12 @@ public class AardvarkSearchTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        //
+        // Use the labs format logging.
+        Logger rl = Logger.getLogger("");
+        for(Handler h : rl.getHandlers()) {
+            h.setFormatter(new LabsLogFormatter());
+        }
     }
 
     @AfterClass
@@ -74,8 +83,6 @@ public class AardvarkSearchTest {
 
             assertNotNull("enrolled user can't be null", user1);
             assertNotNull("enrolled user can't be null", user2);
-            assertTrue("last fetch time should never be 0", user1.getLastFetchTime() == 0L);
-            assertTrue("last fetch time should never be 0", user2.getLastFetchTime() == 0L);
             Thread.sleep(5000L);
 
             SyndFeed feed = aardvark.getRecommendedFeed(user1);
@@ -84,8 +91,6 @@ public class AardvarkSearchTest {
 
             Thread.sleep(10000L);
             user1 = aardvark.getUser("openid.sun.com/plamere");
-            long delta = System.currentTimeMillis() - user1.getLastFetchTime();
-            assertTrue("user should be refreshed again", delta < 4000L);
 
             feed = aardvark.getRecommendedFeed(user1);
             entryCount = feed.getEntries().size();
@@ -119,16 +124,12 @@ public class AardvarkSearchTest {
             Thread.sleep(20000L);
 
             user1 = aardvark.getUser("openid.sun.com/plamere");
-            long delta = System.currentTimeMillis() - user1.getLastFetchTime();
-            assertTrue("user should be refreshed, delta time is " + delta, delta < 4000L);
 
             SyndFeed feed = aardvark.getRecommendedFeed(user1);
             int entryCount = feed.getEntries().size();
             assertTrue("The random document should have been returned: " + entryCount, entryCount > 0);
 
             user2 = aardvark.getUser("reddit");
-            delta = System.currentTimeMillis() - user2.getLastFetchTime();
-            assertTrue("user should be refreshed, delta time is " + delta, delta < 4000L);
 
             feed = aardvark.getRecommendedFeed(user2);
             entryCount = feed.getEntries().size();
@@ -149,16 +150,30 @@ public class AardvarkSearchTest {
             assertTrue("empty aardvark items", aardvark.getStats().getNumItems() == 0);
 
             enroll(aardvark, "blogs.sun.com.rss");
-            enroll(aardvark, "empty.rss");
             enroll(aardvark, "delicious.rss");
             enroll(aardvark, "digg.rss");
-            enroll(aardvark, "garbage.rss");
+
+            try {
+               enroll(aardvark, "empty.rss");
+               fail("need exception for empty feed empty.rss");
+            } catch (AuraException ex) {
+                assertTrue("exeption for empty feed", true);
+
+            }
+
+            try {
+               enroll(aardvark, "garbage.rss");
+               fail("need exception for garbage feed garbage.rss");
+            } catch (AuraException ex) {
+                assertTrue("exeption for garbage feed", true);
+            }
+
             enroll(aardvark, "googlenews.rss");
             enroll(aardvark, "reddit.rss");
             enroll(aardvark, "slashdot.rss");
 
             assertTrue("full aardvark users", aardvark.getStats().getNumUsers() == 8);
-            Thread.sleep(60000L);
+            Thread.sleep(90000L);
             assertTrue("full aardvark items " + aardvark.getStats().getNumItems(), 
                     aardvark.getStats().getNumItems() == 142);
 

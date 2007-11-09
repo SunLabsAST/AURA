@@ -5,7 +5,9 @@
 
 package com.sun.labs.aura.aardvark.crawler;
 
-import com.sun.labs.aura.aardvark.store.item.User;
+import com.sun.labs.util.LabsLogFormatter;
+import java.util.logging.Handler;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -24,6 +26,12 @@ public class UserRefreshManagerTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        //
+        // Use the labs format logging.
+        Logger rl = Logger.getLogger("");
+        for(Handler h : rl.getHandlers()) {
+            h.setFormatter(new LabsLogFormatter());
+        }
     }
 
     @AfterClass

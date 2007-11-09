@@ -144,6 +144,18 @@ public class Aardvark implements Configurable {
         }
     }
 
+    public void addFeed(URL feedURL) throws AuraException {
+        feedCrawler.createFeed(feedURL);
+    }
+
+    public void addFeed(String feedURL) throws AuraException {
+        try {
+            feedCrawler.createFeed(new URL(feedURL));
+        } catch (MalformedURLException ex) {
+            throw new AuraException("bad url " + feedURL, ex);
+        }
+    }
+
     /**
      * Enrolls a user in the recommender
      * @param openID the openID of the user
@@ -207,25 +219,25 @@ public class Aardvark implements Configurable {
 
                     @Override
             public void run() {
-                        try {
-                            enrollUser("delicious", "http://del.icio.us/rss/");
-                            enrollUser("digg", "http://digg.com/rss/index.xml");
-                            enrollUser("diggupcoming", "http://digg.com/rss/indexdig.xml");
-                            enrollUser("google news", "http://news.google.com/news?ned=us&topic=h&output=atom");
-                            enrollUser("slashdot", "http://rss.slashdot.org/Slashdot/slashdot");
-                            enrollUser("reddit", "http://reddit.com/.rss");
-                            enrollUser("blogs.sun.com", "http://blogs.sun.com/main/feed/entries/atom");
-                            enrollUser("engadget", "http://feeds.engadget.com/weblogsinc/engadget");
-                            enrollUser("gizmodo", "http://feeds.gawker.com/gizmodo/full");
-                            enrollUser("mediaor", "http://archive.mediaor.com/rss");
-                            enrollUser("dzonenew", "http://dzone.com/links/feed/queue/rss.xml");
-                            enrollUser("dzonepopular", "http://dzone.com/links/feed/frontpage/rss.xml");
-                            enrollUser("fark", "http://www.fark.com/fark.rss");
-                            enrollUser("valleywag", "http://feeds.gawker.com/valleywag/full");
-                            enrollUser("boingboing", "http://feeds.boingboing.net/boingboing/iBag");
-                            enrollUser("nytimes", "http://graphics8.nytimes.com/services/xml/rss/nyt/HomePage.xml");
-                            enrollUser("hypemachine", "http://hypem.com/feed/time/today/1/feed.xml");
-                        } catch (AuraException ex) {
+                try {
+                    addFeed("http://del.icio.us/rss/");
+                    addFeed("http://digg.com/rss/index.xml");
+                    addFeed("http://digg.com/rss/indexdig.xml");
+                    addFeed("http://news.google.com/news?ned=us&topic=h&output=atom");
+                    addFeed("http://rss.slashdot.org/Slashdot/slashdot");
+                    addFeed("http://reddit.com/.rss");
+                    addFeed("http://blogs.sun.com/main/feed/entries/atom");
+                    addFeed("http://feeds.engadget.com/weblogsinc/engadget");
+                    addFeed("http://feeds.gawker.com/gizmodo/full");
+                    addFeed("http://archive.mediaor.com/rss");
+                    addFeed("http://dzone.com/links/feed/queue/rss.xml");
+                    addFeed("http://dzone.com/links/feed/frontpage/rss.xml");
+                    addFeed("http://www.fark.com/fark.rss");
+                    addFeed("http://feeds.gawker.com/valleywag/full");
+                    addFeed("http://feeds.boingboing.net/boingboing/iBag");
+                    addFeed("http://graphics8.nytimes.com/services/xml/rss/nyt/HomePage.xml");
+                    addFeed("http://hypem.com/feed/time/today/1/feed.xml");
+                } catch (AuraException ex) {
                             logger.severe("Problem enrolling item feeds" + ex);
                         }
                     }

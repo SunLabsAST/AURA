@@ -18,14 +18,12 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 public class WiUser implements IsSerializable {
     private String name;
     private long id;
-    private String starredItemFeed;
     private String recommendedFeed;
     private int numItems;
 
-    public WiUser(String name, long id, String starredItemFeed, String recommendedFeed, int numItems) {
+    public WiUser(String name, long id, String recommendedFeed, int numItems) {
         this.name = name;
         this.id = id;
-        this.starredItemFeed = starredItemFeed;
         this.recommendedFeed = recommendedFeed;
         this.numItems = numItems;
     }
@@ -41,9 +39,6 @@ public class WiUser implements IsSerializable {
         return numItems;
     }
 
-    public String getStarredItemFeed() {
-        return starredItemFeed;
-    }
 
     public String getName() {
         return name;

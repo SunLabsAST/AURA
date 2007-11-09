@@ -93,7 +93,6 @@ public class AardvarkServiceImpl extends RemoteServiceServlet implements Aardvar
 
     private static WiUser userToWiUser(User user) {
         WiUser wiUser = new WiUser(user.getKey(), user.getID(),
-                user.getStarredItemFeedURL().toExternalForm(),
                 user.getRecommenderFeedKey(), 0);
         return wiUser;
     }

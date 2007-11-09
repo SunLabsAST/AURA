@@ -33,34 +33,4 @@ public interface User extends Item {
      * @param newKey the key that should be in the URL
      */
     public void setRecommenderFeedKey(String newKey);
-    
-    /**
-     * Gets the URL that the User initially provided as the location of their
-     * Starred Items feed at Google.
-     * 
-     * @return the URL of the starred items feed
-     */
-    public URL getStarredItemFeedURL();
-    
-    /**
-     * Sets the URL at which the User's Starred Item feed may be found
-     * 
-     * @param newURL the URL of the starried items feed
-     */
-    public void setStarredItemFeedURL(URL newURL);
-
-    /**
-     *  Gets the last time that the feeds for this user was fetched.
-     * @return the time the attention was applied, in milliseconds since the
-     *         Java epoch (Jan 1, 1970 
-     */
-    public long getLastFetchTime();
-
-    /**
-     * Sets the last time that the feeds for this user was fetched.
-     * @param lastFetchTime  the time the attention was applied, in milliseconds since the
-     *         Java epoch (Jan 1, 1970 
-     */
-    public void setLastFetchTime(long lastFetchTime);
-
 }
