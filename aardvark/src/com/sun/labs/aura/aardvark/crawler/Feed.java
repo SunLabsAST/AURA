@@ -10,6 +10,9 @@
 package com.sun.labs.aura.aardvark.crawler;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
@@ -25,10 +28,12 @@ public class Feed implements Delayed {
     private int totalPulls;
     private int totalErrors;
     private int consecutiveErrors;
+    private List<UserAttention> interestedUsers;
 
     public Feed(String key, URL url) {
         this.key = key;
         this.feedUrl = url;
+        interestedUsers = new ArrayList<UserAttention>();
     }
     
     public int getConsecutiveErrors() {
@@ -41,6 +46,14 @@ public class Feed implements Delayed {
 
     public long getNextPullTime() {
         return nextPullTime;
+    }
+
+    public void addInterestedUser(UserAttention userAttention) {
+        interestedUsers.add(userAttention);
+    }
+
+    public List<UserAttention> getInterestedUsers() {
+        return Collections.unmodifiableList(interestedUsers);
     }
 
     public void setStatus(boolean ok) {
@@ -72,8 +85,8 @@ public class Feed implements Delayed {
         return lastPullTime;
     }
 
-    public URL getUrl() {
-        return feedUrl;
+    public String getKey() {
+        return key;
     }
 
 
@@ -87,3 +100,4 @@ public class Feed implements Delayed {
         return result < 0  ? -1 :  result > 0 ? 1 : 0;
     }
 }
+

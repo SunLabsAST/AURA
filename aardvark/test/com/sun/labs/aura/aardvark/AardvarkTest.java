@@ -27,6 +27,8 @@ import static org.junit.Assert.*;
  */
 public class AardvarkTest {
 
+    Aardvark aardvark = null;
+
     public AardvarkTest() {
     }
 
@@ -40,10 +42,15 @@ public class AardvarkTest {
 
     @Before
     public void setUp() {
+        aardvark = getFreshAardvark();
     }
 
     @After
     public void tearDown() {
+        if (aardvark != null) {
+            aardvark.shutdown();
+            aardvark = null;
+        }
     }
 
     /**
@@ -51,7 +58,6 @@ public class AardvarkTest {
      */
     @Test
     public void getDefault() throws Exception {
-        Aardvark aardvark = getFreshAardvark();
         assertNotNull("getting default aardvark", aardvark);
     }
 
@@ -60,7 +66,7 @@ public class AardvarkTest {
      */
     @Test
     public void getMissingUser() throws Exception {
-        Aardvark aardvark = getFreshAardvark();
+        assertNotNull("getting default aardvark", aardvark);
         assertNull("missing user must be null", aardvark.getUser("missingUser"));
     }
 
@@ -69,7 +75,8 @@ public class AardvarkTest {
      */
     @Test
     public void enrollUser() throws Exception {
-        Aardvark aardvark = getFreshAardvark();
+        assertNotNull("getting default aardvark", aardvark);
+        assertNull("missing user must be null", aardvark.getUser("missingUser"));
         URL feedURL1 = this.getClass().getResource("gr_pbl_starred.atom.xml");
         URL feedURL2 = this.getClass().getResource("gr_pbl_favorite.atom.xml");
         User user1 = aardvark.enrollUser("openid.sun.com/plamere", feedURL1.toString());
@@ -96,77 +103,67 @@ public class AardvarkTest {
      */
     @Test
     public void getRecommendedFeed() throws Exception {
-        Aardvark aardvark = getFreshAardvark();
+        assertNotNull("getting default aardvark", aardvark);
+        URL feedURL1 = this.getClass().getResource("gr_pbl_starred.atom.xml");
+        User user1 = aardvark.enrollUser("openid.sun.com/plamere", feedURL1.toString());
+        assertNotNull("enrolled user can't be null", user1);
+        assertTrue("last fetch time should be never", user1.getLastFetchTime() == 0L);
+        Thread.sleep(1000L);
 
-        try {
-            aardvark.startup();
-            URL feedURL1 = this.getClass().getResource("gr_pbl_starred.atom.xml");
-            User user1 = aardvark.enrollUser("openid.sun.com/plamere", feedURL1.toString());
-            assertNotNull("enrolled user can't be null", user1);
-            assertTrue("last fetch time should be never", user1.getLastFetchTime() == 0L);
-            Thread.sleep(1000L);
+        user1 = aardvark.getUser("openid.sun.com/plamere");
+        long delta = System.currentTimeMillis() - user1.getLastFetchTime();
+        assertTrue("user should be refreshed, delta time is " + delta, delta < 2000L);
 
-            user1 = aardvark.getUser("openid.sun.com/plamere");
-            long delta = System.currentTimeMillis() - user1.getLastFetchTime();
-            assertTrue("user should be refreshed, delta time is " 
-                    + delta, delta < 2000L);
-            
-            SyndFeed feed = aardvark.getRecommendedFeed(user1);
-            int entryCount = feed.getEntries().size();
-            assertTrue("proper recommendation feed count count: " + entryCount, entryCount == 13);
+        SyndFeed feed = aardvark.getRecommendedFeed(user1);
+        int entryCount = feed.getEntries().size();
+        assertTrue("proper recommendation feed count count: " + entryCount, entryCount == 13);
 
-            Thread.sleep(1000L);
-            user1 = aardvark.getUser("openid.sun.com/plamere");
-            delta = System.currentTimeMillis() - user1.getLastFetchTime();
-            assertTrue("user should be refreshed again", delta < 2000L);
+        Thread.sleep(1000L);
+        user1 = aardvark.getUser("openid.sun.com/plamere");
+        delta = System.currentTimeMillis() - user1.getLastFetchTime();
+        assertTrue("user should be refreshed again", delta < 2000L);
 
 
-            feed = aardvark.getRecommendedFeed(user1);
-            entryCount = feed.getEntries().size();
-            assertTrue("Still proper recommendation feed count: " + entryCount, entryCount == 13);
-
-        } finally {
-            aardvark.shutdown();
-        }
+        feed = aardvark.getRecommendedFeed(user1);
+        entryCount = feed.getEntries().size();
+        assertTrue("Still proper recommendation feed count: " + entryCount, entryCount == 13);
     }
 
     @Test public void testMultiUserRecommendedFeed() throws Exception {
-        Aardvark aardvark = getFreshAardvark();
+        assertNotNull("getting default aardvark", aardvark);
+        URL feedURL1 = this.getClass().getResource("gr_pbl_starred.atom.xml");
+        User user1 = aardvark.enrollUser("openid.sun.com/plamere", feedURL1.toString());
+        URL feedURL2 = this.getClass().getResource("gr_pbl_favorite.atom.xml");
+        User user2 = aardvark.enrollUser("openid.sun.com/stgreen", feedURL2.toString());
+        Thread.sleep(1000L);
 
-        try {
-            aardvark.startup();
-            URL feedURL1 = this.getClass().getResource("gr_pbl_starred.atom.xml");
-            User user1 = aardvark.enrollUser("openid.sun.com/plamere", feedURL1.toString());
-            URL feedURL2 = this.getClass().getResource("gr_pbl_favorite.atom.xml");
-            User user2 = aardvark.enrollUser("openid.sun.com/stgreen", feedURL2.toString());
-            Thread.sleep(1000L);
+        user1 = aardvark.getUser("openid.sun.com/plamere");
+        long delta = System.currentTimeMillis() - user1.getLastFetchTime();
+        assertTrue("user should be refreshed, delta time is " + delta, delta < 2000L);
 
-            user1 = aardvark.getUser("openid.sun.com/plamere");
-            long delta = System.currentTimeMillis() - user1.getLastFetchTime();
-            assertTrue("user should be refreshed, delta time is " 
-                    + delta, delta < 2000L);
-            
-            SyndFeed feed = aardvark.getRecommendedFeed(user1);
-            int entryCount = feed.getEntries().size();
-            assertTrue("proper recommendation feed count count: " + entryCount, entryCount == 13);
+        SyndFeed feed = aardvark.getRecommendedFeed(user1);
+        int entryCount = feed.getEntries().size();
+        assertTrue("proper recommendation feed count count: " + entryCount, entryCount == 13);
 
-            user2 = aardvark.getUser("openid.sun.com/stgreen");
-            delta = System.currentTimeMillis() - user2.getLastFetchTime();
-            assertTrue("user should be refreshed, delta time is " 
-                    + delta, delta < 2000L);
-            
-            feed = aardvark.getRecommendedFeed(user2);
-            entryCount = feed.getEntries().size();
-            assertTrue("proper recommendation feed count count: " + entryCount, entryCount == 4);
-        } finally {
-            aardvark.shutdown();
-        }
+        user2 = aardvark.getUser("openid.sun.com/stgreen");
+        delta = System.currentTimeMillis() - user2.getLastFetchTime();
+        assertTrue("user should be refreshed, delta time is " + delta, delta < 2000L);
+
+        feed = aardvark.getRecommendedFeed(user2);
+        entryCount = feed.getEntries().size();
+        assertTrue("proper recommendation feed count count: " + entryCount, entryCount == 4);
     }
 
-    private Aardvark getFreshAardvark() throws IOException {
-        ConfigurationManager cm = new ConfigurationManager();
-        URL configFile = this.getClass().getResource("aardvarkTestConfig.xml");
-        cm.addProperties(configFile);
-        return (Aardvark) cm.lookup("aardvark");
+    private Aardvark getFreshAardvark() {
+        try {
+            ConfigurationManager cm = new ConfigurationManager();
+            URL configFile = this.getClass().getResource("aardvarkTestConfig.xml");
+            cm.addProperties(configFile);
+            Aardvark a = (Aardvark) cm.lookup("aardvark");
+            a.startup();
+            return a;
+        } catch (IOException ioe) {
+            return null;
+        }
     }
 }

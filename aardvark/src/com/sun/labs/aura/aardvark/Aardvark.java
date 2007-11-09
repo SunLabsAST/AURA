@@ -4,9 +4,12 @@
  */
 package com.sun.labs.aura.aardvark;
 
+import com.sun.labs.aura.aardvark.crawler.Feed;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.crawler.FeedUtils;
+import com.sun.labs.aura.aardvark.crawler.UserAttention;
 import com.sun.labs.aura.aardvark.recommender.RecommenderManager;
+import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.ItemStore;
 import com.sun.labs.aura.aardvark.store.ItemStoreStats;
 import com.sun.labs.aura.aardvark.store.item.Entry;
@@ -46,8 +49,7 @@ public class Aardvark implements Configurable {
     @ConfigComponent(type = FeedCrawler.class)
     public final static String PROP_FEED_CRAWLER = "feedCrawler";
     private FeedCrawler feedCrawler;
-    
-    @ConfigBoolean(defaultValue=false)
+    @ConfigBoolean(defaultValue = false)
     public final static String PROP_AUTO_ENROLL_TEST_FEEDS = "autoEnrollTestFeeds";
     private boolean autoEnrollTestFeeds;
 
@@ -90,7 +92,7 @@ public class Aardvark implements Configurable {
     public void startup() {
         logger.info("started");
         feedCrawler.start();
-        
+
         if (autoEnrollTestFeeds) {
             autoEnroll();
         }
@@ -100,7 +102,6 @@ public class Aardvark implements Configurable {
      * Stops all processing
      */
     public void shutdown() {
-        logger.info("starting aardvark shutdown");
         feedCrawler.stop();
         recommenderManager.shutdown();
         logger.info("shutdown");
@@ -112,7 +113,35 @@ public class Aardvark implements Configurable {
      * @return the user or null if the user doesn't exist
      */
     public User getUser(String openID) {
-        return (User) itemStore.get(openIDtoKey(openID));
+        return (User) itemStore.get(openID);
+    }
+
+    /**
+     * Enrolls a user in the recommender
+     * @param openID the openID of the user
+     * @param feed the starred item feed of the user
+     * @return the user
+     * @throws AuraException if the user is already enrolled or a problem occurs while enrolling the user
+     */
+    public User enrollUser(String openID) throws AuraException {
+        logger.info("Added user " + openID);
+        if (getUser(openID) == null) {
+            User user = itemStore.newItem(User.class, openID);
+            itemStore.put(user);
+            return user;
+        } else {
+            throw new AuraException("attempting to enroll duplicate user " + openID);
+        }
+    }
+
+    public void addUserFeed(User user, URL feedURL, Attention.Type type) throws AuraException {
+        Feed feed = feedCrawler.createFeed(feedURL);
+        if (feed != null) {
+            UserAttention userAttention = new UserAttention(user, type);
+            feed.addInterestedUser(userAttention);
+        } else {
+            throw new AuraException("Invalid feed " + feed);
+        }
     }
 
     /**
@@ -124,32 +153,13 @@ public class Aardvark implements Configurable {
      */
     public User enrollUser(String openID, String feed) throws AuraException {
         try {
-            logger.info("Added user " + openID);
-            if (getUser(openID) == null) {
-                if (isValidFeed(feed)) {
-                    User user = itemStore.newItem(User.class, openIDtoKey(openID));
-                    user.setStarredItemFeedURL(new URL(feed));
-                    itemStore.put(user);
-                    return user;
-                } else {
-                    throw new AuraException("Invalid feed " + feed);
-                }
-            } else {
-                throw new AuraException("attempting to enroll duplicate user " + openID);
-            }
+            URL feedURL = new URL(feed);
+            User user = enrollUser(openID);
+            addUserFeed(user, feedURL, Attention.Type.STARRED);
+            return user;
         } catch (MalformedURLException ex) {
-            throw new AuraException("Bad starred item feed url" + ex);
+            throw new AuraException("Bad url " + feed, ex);
         }
-    }
-
-    /**
-     * Determines if the feed is valid
-     * @param feed the feed to check
-     * @return true if the feed is valid
-     */
-    private boolean isValidFeed(String feed) {
-        return feed.startsWith("http://") ||
-                feed.startsWith("file:/"); // TODO write me
     }
 
     /**
@@ -191,46 +201,38 @@ public class Aardvark implements Configurable {
         return recommendations;
     }
 
-    /**
-     * Converts an user's openID to a key
-     * @param openID the user ID
-     * @return the key
-     */
-    private String openIDtoKey(String openID) {
-        return openID;        // TODO: this is a bug
-    }
-    
+
     private void autoEnroll() {
         Thread t = new Thread() {
-            @Override
+
+                    @Override
             public void run() {
-                try {
-                    enrollUser("delicious", "http://del.icio.us/rss/");
-                    enrollUser("digg", "http://digg.com/rss/index.xml");
-                    enrollUser("diggupcoming", "http://digg.com/rss/indexdig.xml");
-                    enrollUser("google news", "http://news.google.com/news?ned=us&topic=h&output=atom");
-                    enrollUser("slashdot", "http://rss.slashdot.org/Slashdot/slashdot");
-                    enrollUser("reddit", "http://reddit.com/.rss");
-                    enrollUser("blogs.sun.com", "http://blogs.sun.com/main/feed/entries/atom");
-                    enrollUser("engadget", "http://feeds.engadget.com/weblogsinc/engadget");
-                    enrollUser("gizmodo", "http://feeds.gawker.com/gizmodo/full");
-                    enrollUser("mediaor", "http://archive.mediaor.com/rss");
-                    enrollUser("dzonenew", "http://dzone.com/links/feed/queue/rss.xml");
-                    enrollUser("dzonepopular", "http://dzone.com/links/feed/frontpage/rss.xml");
-                    enrollUser("fark", "http://www.fark.com/fark.rss");
-                    enrollUser("valleywag", "http://feeds.gawker.com/valleywag/full");
-                    enrollUser("boingboing", "http://feeds.boingboing.net/boingboing/iBag");
-                    enrollUser("nytimes", "http://graphics8.nytimes.com/services/xml/rss/nyt/HomePage.xml");
-                    enrollUser("hypemachine", "http://hypem.com/feed/time/today/1/feed.xml");
-                } catch (AuraException ex) {
-                    logger.severe("Problem enrolling item feeds" + ex);
-                } 
-            }
-        };
+                        try {
+                            enrollUser("delicious", "http://del.icio.us/rss/");
+                            enrollUser("digg", "http://digg.com/rss/index.xml");
+                            enrollUser("diggupcoming", "http://digg.com/rss/indexdig.xml");
+                            enrollUser("google news", "http://news.google.com/news?ned=us&topic=h&output=atom");
+                            enrollUser("slashdot", "http://rss.slashdot.org/Slashdot/slashdot");
+                            enrollUser("reddit", "http://reddit.com/.rss");
+                            enrollUser("blogs.sun.com", "http://blogs.sun.com/main/feed/entries/atom");
+                            enrollUser("engadget", "http://feeds.engadget.com/weblogsinc/engadget");
+                            enrollUser("gizmodo", "http://feeds.gawker.com/gizmodo/full");
+                            enrollUser("mediaor", "http://archive.mediaor.com/rss");
+                            enrollUser("dzonenew", "http://dzone.com/links/feed/queue/rss.xml");
+                            enrollUser("dzonepopular", "http://dzone.com/links/feed/frontpage/rss.xml");
+                            enrollUser("fark", "http://www.fark.com/fark.rss");
+                            enrollUser("valleywag", "http://feeds.gawker.com/valleywag/full");
+                            enrollUser("boingboing", "http://feeds.boingboing.net/boingboing/iBag");
+                            enrollUser("nytimes", "http://graphics8.nytimes.com/services/xml/rss/nyt/HomePage.xml");
+                            enrollUser("hypemachine", "http://hypem.com/feed/time/today/1/feed.xml");
+                        } catch (AuraException ex) {
+                            logger.severe("Problem enrolling item feeds" + ex);
+                        }
+                    }
+                };
 
         t.start();
     }
-
 
     public static void main(String[] args) throws Exception {
         // enroll test

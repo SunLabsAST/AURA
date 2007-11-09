@@ -13,16 +13,17 @@ import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.DelayQueue;
 
 /**
  *
  * @author plamere
  */
-public class FeedManager implements Configurable {
-    
-
+public class FeedRefreshManager implements Configurable {
     private DelayQueue<Feed> feedQueue = new DelayQueue<Feed>();
+    private Map<String, Feed> feedMap = new HashMap<String, Feed>();
 
 
     public Feed getNextFeedForRefresh() throws InterruptedException {
@@ -30,16 +31,21 @@ public class FeedManager implements Configurable {
     }
     
     public void returnFeed(Feed feed) {
-        addFeed(feed);
-    }
-
-    public void addFeed(Feed feed) {
-        long nextPullTime = (feed.getConsecutiveErrors() + 1) * minimumFeedDelay;
-        feed.setNextPullTime(nextPullTime);
+        feed.setNextPullTime(feed.getLastPullTime() + (feed.getConsecutiveErrors() + 1) * minimumFeedDelay);
         feedQueue.add(feed);
     }
 
-    @ConfigInteger(defaultValue=60, range={5, 60 * 24 * 7 })
+    public Feed getFeed(String keyOrLink) {
+        return feedMap.get(keyOrLink);
+    }
+
+    public void addFeed(Feed feed) {
+        feedMap.put(feed.getKey(), feed);
+        feedMap.put(feed.getFeedUrl().toExternalForm(), feed);
+        returnFeed(feed);
+    }
+
+    @ConfigInteger(defaultValue=60, range={1, 60 * 24 * 7 })
     public static String PROP_MINIMUM_FEED_DELAY_IN_MINUTES = "minimumFeedDelayInMinutes";
     private long minimumFeedDelay = 0L;
 

@@ -19,7 +19,7 @@
     
     <component name="itemStore" type="com.sun.labs.aura.aardvark.impl.store.MemoryItemStore"/>
     
-    <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.FeedCrawler">
+    <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.SimpleFeedCrawler">
         <property name="userRefreshManager" value="userRefreshManager"/>
         <property name="itemStore" value="itemStore"/>
     </component>

@@ -16,19 +16,9 @@ import com.sun.labs.aura.aardvark.store.SimpleAttention;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.props.ConfigComponent;
-import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
-import com.sun.syndication.feed.synd.SyndEntry;
-import com.sun.syndication.feed.synd.SyndFeed;
-import com.sun.syndication.io.FeedException;
-import com.sun.syndication.io.SyndFeedInput;
-import com.sun.syndication.io.XmlReader;
-import java.io.IOException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -73,8 +63,8 @@ public class SimpleFeedCrawler implements FeedCrawler {
     @ConfigComponent(type = ItemStore.class)
     public final static String PROP_ITEM_STORE = "itemStore";
     private ItemStore itemStore;
+
     private final static Entry[] EMPTY_ENTRY = new Entry[0];
-    private SyndFeedInput syndFeedInput = new SyndFeedInput();
     private volatile Thread crawlerThread;
     private Logger logger;
 
@@ -94,7 +84,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
         if (crawlerThread == null) {
             crawlerThread = new Thread() {
 
-                        @Override
+            @Override
                 public void run() {
                             crawler();
                         }
@@ -196,41 +186,16 @@ public class SimpleFeedCrawler implements FeedCrawler {
      * of entries returned may contained entries that are not new.
      * @throws AuraException
      */
-    private Entry[] getNewestEntries(URL feedUrl, long lastPullTime) throws AuraException {
-        List<Entry> entries = new ArrayList<Entry>();
+    private Entry[] getNewestEntries(URL feedUrl, long lastPullTime) {
         try {
-            URLConnection connection = feedUrl.openConnection();
-            connection.setRequestProperty("User-agent", "aardvark");
-            SyndFeed feed = syndFeedInput.build(new XmlReader(connection));
-            List entryList = feed.getEntries();
-            for (Object o : entryList) {
-                SyndEntry syndEntry = (SyndEntry) o;
-                if (FeedUtils.isFresh(syndEntry, lastPullTime)) {
-                    String key = FeedUtils.getKey(syndEntry);
-                    Entry entry = (Entry) itemStore.get(key);
-                    if (entry == null) {
-                        entry = createEntryFromSyndEntry(key, syndEntry);
-                    }
-                    entries.add(entry);
-                } else {
-                // testing shows that feeds are not always orded by time
-                    // so we cannot break here.
-                }
-            }
-
-         //   System.out.printf("Pulling feed %s, found %d, new %d\n", 
-         //             feedUrl.toExternalForm(), entryList.size(), entries.size());
-
-        // if we have a problem reading a feed we just continue one
+            List<Entry> entries = FeedUtils.processFeed(itemStore, feedUrl);
             feedPullCount++;
-        } catch (IOException ex) {
-            logger.warning("IOException while reading " + feedUrl);
-            feedErrorCount++;
-        } catch (FeedException ex) {
+            return entries.toArray(EMPTY_ENTRY);
+        } catch (AuraException ex) {
             logger.warning("FeedException while reading " + feedUrl);
             feedErrorCount++;
         }
-        return entries.toArray(EMPTY_ENTRY);
+        return EMPTY_ENTRY;
     }
 
     /**
@@ -253,44 +218,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
         return true;
     }
 
-    /**
-     * Given a key and a rome SyndEntry, create an Aura entry
-     * @param key the key for the entry
-     * @param syndEntry the rss entry
-     * @return the aura entry
-     * @throws AuraException if an error occurs while creating the entry
-     */
-    private Entry createEntryFromSyndEntry(String key, SyndEntry syndEntry) throws AuraException {
-        Entry entry = itemStore.newItem(Entry.class, key);
-        entry.setSyndEntry(syndEntry);
-        entry.setContent(FeedUtils.getContent(syndEntry));
-        itemStore.put(entry);
-        logger.info("adding entry " + entry);
-        return entry;
-    }
 
-    private static void dumpFeed(String surl) {
-        System.out.println("Trying " + surl);
-        SyndFeedInput syndFeedInput = new SyndFeedInput();
-        try {
-            URL url = new URL(surl);
-            URLConnection connection = url.openConnection();
-            connection.setRequestProperty("User-agent", "aardvark");
-            SyndFeed feed = syndFeedInput.build(new XmlReader(connection));
-
-            System.out.println("---" + feed.getTitle() + "---");
-            System.out.println("  link " + feed.getLink());
-            List entryList = feed.getEntries();
-            for (Object o : entryList) {
-                SyndEntry syndEntry = (SyndEntry) o;
-                System.out.println(" " + syndEntry.getTitle());
-            }
-        } catch (IOException ex) {
-            System.out.println("I/O Exception while dumping " + surl + " " + ex);
-        } catch (FeedException ex) {
-            System.out.println("Feed Exception while dumping " + surl + " " + ex);
-        }
-    }
 
     public int getFeedErrorCount() {
         return feedErrorCount;
@@ -301,10 +229,13 @@ public class SimpleFeedCrawler implements FeedCrawler {
     }
 
 
-
     public static void main(String[] args) {
         for (String s : args) {
-            dumpFeed(s);
+            FeedUtils.dumpFeed(s);
         }
+    }
+
+    public Feed createFeed(URL feedUrl) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }
