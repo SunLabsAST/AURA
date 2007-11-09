@@ -9,7 +9,7 @@
 
 <config>
     
-    <property name="indexDir" value="/tmp/entryContent.idx"/>
+    <property name="indexDir" value="/tmp/aardvarkSearchTestEntryContent.idx"/>
     
     <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark">
         <property name="itemStore" value="itemStore"/>
