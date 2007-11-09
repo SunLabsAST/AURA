@@ -10,10 +10,13 @@ package com.sun.labs.aura.aardvark;
 
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.util.LabsLogFormatter;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.syndication.feed.synd.SyndFeed;
 import java.io.IOException;
 import java.net.URL;
+import java.util.logging.Handler;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -32,6 +35,12 @@ public class AardvarkTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        //
+        // Use the labs format logging.
+        Logger rl = Logger.getLogger("");
+        for(Handler h : rl.getHandlers()) {
+            h.setFormatter(new LabsLogFormatter());
+        }
     }
 
     @AfterClass
