@@ -54,7 +54,7 @@ import java.util.logging.Logger;
  *    
  * @author plamere
  */
-public class FeedCrawler implements Configurable {
+public class SimpleFeedCrawler implements FeedCrawler {
     
     private int  feedPullCount = 0;
     private int  feedErrorCount = 0;
@@ -78,7 +78,7 @@ public class FeedCrawler implements Configurable {
     private volatile Thread crawlerThread;
     private Logger logger;
 
-    public FeedCrawler() {
+    public SimpleFeedCrawler() {
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
@@ -117,7 +117,7 @@ public class FeedCrawler implements Configurable {
     /**
      * Crawl the data for all of the users in the system.
      */
-    public void crawler() {
+    private void crawler() {
         while (crawlerThread != null) {
             User user = null;
             try {
@@ -279,6 +279,7 @@ public class FeedCrawler implements Configurable {
             SyndFeed feed = syndFeedInput.build(new XmlReader(connection));
 
             System.out.println("---" + feed.getTitle() + "---");
+            System.out.println("  link " + feed.getLink());
             List entryList = feed.getEntries();
             for (Object o : entryList) {
                 SyndEntry syndEntry = (SyndEntry) o;
