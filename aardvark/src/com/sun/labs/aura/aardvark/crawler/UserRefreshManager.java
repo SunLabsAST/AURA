@@ -69,7 +69,7 @@ public class UserRefreshManager implements Configurable {
         // Get all users from the item store and add them to our list of
         // all users
 
-        List<User> users = itemStore.getAll(User.class);
+        Set<User> users = itemStore.getAll(User.class);
         for (User user : users) {
             allUsers.put(user.getID(), user);
         }

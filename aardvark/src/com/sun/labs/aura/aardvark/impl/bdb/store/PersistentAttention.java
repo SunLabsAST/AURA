@@ -18,7 +18,7 @@ import com.sun.labs.aura.aardvark.store.Attention;
 public class PersistentAttention implements Attention {
 
     /** The unique ID */
-    @PrimaryKey
+    @PrimaryKey(sequence="Attentions")
     private long id;
     
     /**

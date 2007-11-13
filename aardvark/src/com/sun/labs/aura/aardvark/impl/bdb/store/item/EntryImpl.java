@@ -1,6 +1,8 @@
 package com.sun.labs.aura.aardvark.impl.bdb.store.item;
 
 import com.sleepycat.persist.model.Persistent;
+import com.sleepycat.persist.model.Relationship;
+import com.sleepycat.persist.model.SecondaryKey;
 import com.sun.labs.aura.aardvark.store.item.Entry;
 import com.sun.syndication.feed.synd.SyndEntry;
 
@@ -16,6 +18,14 @@ public class EntryImpl extends ItemImpl implements Entry {
      * The content of this entry.  This is a persistent field.
      */
     protected String content;
+    
+    /**
+     * The isEntry field exists only so that we can do a DB query to 
+     * fetch only those elements that are entries.  This will be faster
+     * than having to fetch all Items and check each for Entry.
+     */
+    @SecondaryKey(relate=Relationship.ONE_TO_ONE)
+    protected boolean isEntry = true;
     
     /**
      * All persistent classes must have a default constructor.
@@ -46,5 +56,9 @@ public class EntryImpl extends ItemImpl implements Entry {
 
     public SyndEntry getSyndEntry() {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    public String getTypeString() {
+        return Entry.ITEM_TYPE;
     }
 }

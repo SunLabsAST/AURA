@@ -229,8 +229,8 @@ public class MemoryItemStore implements ItemStore {
         return currItemID.incrementAndGet();
     }
 
-    public <T extends Item> List<T> getAll(Class<T> itemType) {
-        List<T> ret = new ArrayList();
+    public <T extends Item> Set<T> getAll(Class<T> itemType) {
+        Set<T> ret = new HashSet();
         Class typeInList = null;
         for (Class c : typeToItems.keySet()) {
             if (itemType.isAssignableFrom(c)) {
@@ -245,17 +245,21 @@ public class MemoryItemStore implements ItemStore {
 
     public ItemStoreStats getStats() {
         long numAtt = 0;
-        List<User> users = getAll(User.class);
+        Set<User> users = getAll(User.class);
         for (User u : users) {
             List attns = u.getAttentionData();
             numAtt += attns.size();
         }
-        List<Entry> entries = getAll(Entry.class);
+        Set<Entry> entries = getAll(Entry.class);
         return new ItemStoreStats(users.size(), entries.size(), numAtt);
     }
     
     public void newProperties(PropertySheet arg0) throws PropertyException {
         
+    }
+
+    public void close() {
+        // Do nothing since there is no persistence in this class.
     }
     
     protected Class getMatchingKey(Class subType, Map<Class,?> m) {
@@ -266,4 +270,5 @@ public class MemoryItemStore implements ItemStore {
         }
         return null;
     }
+    
 }

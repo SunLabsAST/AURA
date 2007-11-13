@@ -13,7 +13,7 @@ import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.Item;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.props.Configurable;
-import java.util.List;
+import java.util.Set;
 
 /**
  * The ItemStore is responsible for storing items and their associated
@@ -21,7 +21,6 @@ import java.util.List;
  * algorithms and relatively quick retrieval for the rest of Aardvark's
  * functions.
  * 
- * @author ja151348
  */
 public interface ItemStore extends Configurable {
     
@@ -58,7 +57,7 @@ public interface ItemStore extends Configurable {
      * @param itemType the type of items that are of interest
      * @return a list containing all items of the given type
      */
-    public <T extends Item> List<T> getAll(Class<T> itemType);
+    public <T extends Item> Set<T> getAll(Class<T> itemType);
     
     
     /**
@@ -147,4 +146,10 @@ public interface ItemStore extends Configurable {
      * @return the item store stats
      */
     public ItemStoreStats getStats();
+    
+    /**
+     * Closes the item store cleanly.  This should be called before the
+     * application exits.
+     */
+    public void close();
 }

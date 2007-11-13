@@ -1,6 +1,8 @@
 package com.sun.labs.aura.aardvark.impl.bdb.store.item;
 
 import com.sleepycat.persist.model.Persistent;
+import com.sleepycat.persist.model.Relationship;
+import com.sleepycat.persist.model.SecondaryKey;
 import com.sun.labs.aura.aardvark.store.item.Feed;
 
 /**
@@ -10,6 +12,15 @@ import com.sun.labs.aura.aardvark.store.item.Feed;
 @Persistent
 public class FeedImpl extends ItemImpl implements Feed {
 
+    /**
+     * The isFeed field exists only so that we can do a DB query to 
+     * fetch only those elements that are feeds.  This will be faster
+     * than having to fetch all Items and check each for Feed.
+     */
+    @SecondaryKey(relate=Relationship.ONE_TO_ONE)
+    protected boolean isFeed = true;
+
+    
     /**
      * All persistent objects must have a default constructor.
      */
@@ -23,5 +34,9 @@ public class FeedImpl extends ItemImpl implements Feed {
      */
     public FeedImpl(String key) {
         super(key);
+    }
+    
+    public String getTypeString() {
+        return Feed.ITEM_TYPE;
     }
 }

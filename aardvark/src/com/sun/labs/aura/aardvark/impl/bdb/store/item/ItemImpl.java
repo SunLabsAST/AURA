@@ -17,8 +17,8 @@ import java.util.List;
 
 @Entity(version=1)
 public abstract class ItemImpl implements Item {
-    /** The primary key will the Item's id */
-    @PrimaryKey
+    /** The primary key will be the Item's id */
+    @PrimaryKey(sequence="Items")
     private long id;
 
     /** Items also have String keys that for now we'll say are unique */
@@ -59,5 +59,13 @@ public abstract class ItemImpl implements Item {
 
     public List<Attention> getAttentionData() {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    public void addAttention(long id) {
+        attentionIDs.add(id);
+    }
+    
+    public String getTypeString() {
+        return this.ITEM_TYPE;
     }
 }

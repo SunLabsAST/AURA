@@ -1,6 +1,8 @@
 package com.sun.labs.aura.aardvark.impl.bdb.store.item;
 
 import com.sleepycat.persist.model.Persistent;
+import com.sleepycat.persist.model.Relationship;
+import com.sleepycat.persist.model.SecondaryKey;
 import com.sun.labs.aura.aardvark.store.item.User;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -12,6 +14,15 @@ import java.util.HashSet;
 @Persistent
 public class UserImpl extends ItemImpl implements User {
 
+    /**
+     * The isUser field exists only so that we can do a DB query to 
+     * fetch only those elements that are users.  This will be faster
+     * than having to fetch all Items and check each for User.
+     */
+    @SecondaryKey(relate=Relationship.ONE_TO_ONE)
+    protected boolean isUser = true;
+
+    
     /**
      * The recommendation feed key unqiue to this user.
      * This field is persistent.
@@ -85,4 +96,7 @@ public class UserImpl extends ItemImpl implements User {
         this.lastFetchTime = lastFetchTime;
     }
 
+    public String getTypeString() {
+        return User.ITEM_TYPE;
+    }
 }
