@@ -57,7 +57,8 @@ public interface ItemStore extends Configurable {
      * @param itemType the type of items that are of interest
      * @return a list containing all items of the given type
      */
-    public <T extends Item> Set<T> getAll(Class<T> itemType);
+    public <T extends Item> Set<T> getAll(Class<T> itemType)
+            throws AuraException;
     
     
     /**
@@ -67,7 +68,7 @@ public interface ItemStore extends Configurable {
      * @param id the Aura ID of the Item to fetch
      * @return the requested Item
      */
-    public Item get(long id);
+    public Item get(long id) throws AuraException;
     
     /**
      * Gets an Item from the ItemStore that is associated with the given
@@ -78,7 +79,7 @@ public interface ItemStore extends Configurable {
      * @param key the globally unique key that was used to create the Item
      * @return the requested Item
      */
-    public Item get(String key);
+    public Item get(String key) throws AuraException;
     
     /**
      * Puts an item into the ItemStore.  The Item may be either a new Item
@@ -120,7 +121,8 @@ public interface ItemStore extends Configurable {
      * @param listener the listener to which events are delivered
      */
     public <T extends Item> void addItemListener(Class<T> type,
-                                                 ItemListener listener);
+                                                 ItemListener listener)
+            throws AuraException;
     
    
     /**
@@ -136,7 +138,8 @@ public interface ItemStore extends Configurable {
      * @param listener the listener to which events should no longer be sent
      */
     public <T extends Item> void removeItemListener(Class<T> type,
-                                                    ItemListener listener);
+                                                    ItemListener listener)
+            throws AuraException;
 
     /**
      * Get stats about the Item Store.  The ItemStoreStats is implementation
@@ -145,11 +148,11 @@ public interface ItemStore extends Configurable {
      * 
      * @return the item store stats
      */
-    public ItemStoreStats getStats();
+    public ItemStoreStats getStats() throws AuraException;
     
     /**
      * Closes the item store cleanly.  This should be called before the
      * application exits.
      */
-    public void close();
+    public void close() throws AuraException;
 }

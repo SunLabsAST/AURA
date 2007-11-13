@@ -232,12 +232,17 @@ public class FeedCrawler implements Configurable {
      * @return true if the attention data is unique
      */
     private boolean isUniqueAttention(Attention attention) {
-        Item item = itemStore.get(attention.getItemID());
-        List<Attention> attentionList = item.getAttentionData();
-        for (Attention att : attentionList) {
-            if (att.getType() == attention.getType() && att.getUserID() == attention.getUserID()) {
-                return false;
+        Item item = null;
+        try {
+            item = itemStore.get(attention.getItemID());
+            List<Attention> attentionList = item.getAttentionData();
+            for (Attention att : attentionList) {
+                if (att.getType() == attention.getType() && att.getUserID() == attention.getUserID()) {
+                    return false;
+                }
             }
+        } catch (AuraException ex) {
+            logger.warning("isUniqueAttn failed to retrieve item " + ex);
         }
         return true;
     }

@@ -125,7 +125,7 @@ public class BerkeleyDataWrapper {
      * @return all users in the item store
      */
     public Set<UserImpl> getAllUsers() {
-        Set<UserImpl> users = new HashSet();
+        Set<UserImpl> users = new HashSet<UserImpl>();
         try {
             EntityCursor<UserImpl> cur = allUsers.entities();
             try {
@@ -148,7 +148,7 @@ public class BerkeleyDataWrapper {
      * @return all entries in the item store
      */
     public Set<EntryImpl> getAllEntries() {
-        Set<EntryImpl> entries = new HashSet();
+        Set<EntryImpl> entries = new HashSet<EntryImpl>();
         try {
             EntityCursor<EntryImpl> cur = allEntries.entities();
             try {
@@ -171,7 +171,7 @@ public class BerkeleyDataWrapper {
      * @return all feeds in the item store
      */
     public Set<FeedImpl> getAllFeeds() {
-        Set<FeedImpl> feeds = new HashSet();
+        Set<FeedImpl> feeds = new HashSet<FeedImpl>();
         try {
             EntityCursor<FeedImpl> cur = allFeeds.entities();
             try {
@@ -215,7 +215,7 @@ public class BerkeleyDataWrapper {
             ret = itemByKey.get(key);
         } catch (DatabaseException e) {
             logger.warning("getItem() failed to retrieve item (key:" +
-                           key + ")");
+                           key + ") " + e.getMessage());
         }
         return ret;
     }
@@ -232,7 +232,7 @@ public class BerkeleyDataWrapper {
             ret = itemByID.put(item);
         } catch (DatabaseException e) {
             logger.warning("putItem() failed to put item (key:" +
-                           item.getKey());
+                           item.getKey() + ") "+ e.getMessage());
         }
         return ret;
     }

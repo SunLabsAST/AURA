@@ -18,6 +18,7 @@ import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -48,6 +49,12 @@ public class BerkeleyItemStore implements ItemStore {
     protected Map<String,Set<ItemListener>> listenerMap;
     
     /**
+     * Indicates if the item store has been closed.  Once the store is
+     * closed, no more operators are permitted.
+     */
+    protected boolean closed = false;
+    
+    /**
      * A logger for messages/debug info
      */
     protected Logger logger;
@@ -56,9 +63,10 @@ public class BerkeleyItemStore implements ItemStore {
      * Constructs an empty item store, ready to be configured.
      */
     public BerkeleyItemStore() {
-        listenerMap.put(User.ITEM_TYPE, new HashSet());
-        listenerMap.put(Feed.ITEM_TYPE, new HashSet());
-        listenerMap.put(Entry.ITEM_TYPE, new HashSet());
+        listenerMap = new HashMap<String,Set<ItemListener>>();
+        listenerMap.put(User.ITEM_TYPE, new HashSet<ItemListener>());
+        listenerMap.put(Feed.ITEM_TYPE, new HashSet<ItemListener>());
+        listenerMap.put(Entry.ITEM_TYPE, new HashSet<ItemListener>());
     }
     
     /**
@@ -82,14 +90,15 @@ public class BerkeleyItemStore implements ItemStore {
             bdb = new BerkeleyDataWrapper(dbEnvDir, logger);
         } catch (DatabaseException e) {
             logger.severe("Failed to load the database environment at " +
-                          dbEnvDir);
+                          dbEnvDir + ": " + e);
         }
     }
 
     /**
      * Close up the entity store and the database environment.
      */
-    public void close() {
+    public void close() throws AuraException {
+        closed = true;
         bdb.close();
     }
     
@@ -103,6 +112,9 @@ public class BerkeleyItemStore implements ItemStore {
      */
     public <T extends Item> T newItem(Class<T> itemType, String key)
             throws AuraException {
+        if (closed) {
+            throw new AuraException("ItemStore is closed");
+        }
         T ret = null;
         if (itemType.equals(User.class)) {
             ret = (T)new UserImpl(key);
@@ -126,7 +138,12 @@ public class BerkeleyItemStore implements ItemStore {
      * @param itemType the type of item to fetch
      * @return all of those items
      */
-    public <T extends Item> Set<T> getAll(Class<T> itemType) {
+    public <T extends Item> Set<T> getAll(Class<T> itemType)
+            throws AuraException {
+        if (closed) {
+            throw new AuraException("ItemStore is closed");
+        }
+
         if (itemType.equals(User.class)) {
             return (Set<T>)bdb.getAllUsers();
         } else if (itemType.equals(Feed.class)) {
@@ -134,7 +151,7 @@ public class BerkeleyItemStore implements ItemStore {
         } else if (itemType.equals(Entry.class)) {
             return (Set<T>)bdb.getAllEntries();
         }
-        return new HashSet();
+        return new HashSet<T>();
     }
 
     /**
@@ -243,7 +260,7 @@ public class BerkeleyItemStore implements ItemStore {
                                                  ItemListener listener) {
         if (type == null) {
             for (String k : listenerMap.keySet()) {
-                Set l = listenerMap.get(k);
+                Set<ItemListener> l = listenerMap.get(k);
                 l.add(listener);
             }
         } else {
@@ -255,7 +272,7 @@ public class BerkeleyItemStore implements ItemStore {
             } else if (type.equals(Feed.class)) {
                 key = Feed.ITEM_TYPE;
             }
-            Set l = listenerMap.get(key);
+            Set<ItemListener> l = listenerMap.get(key);
             l.add(listener);
         }
     }

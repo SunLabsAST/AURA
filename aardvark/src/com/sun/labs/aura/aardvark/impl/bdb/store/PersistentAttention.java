@@ -3,11 +3,11 @@ package com.sun.labs.aura.aardvark.impl.bdb.store;
 
 import com.sleepycat.persist.model.DeleteAction;
 import com.sleepycat.persist.model.Entity;
+import com.sleepycat.persist.model.KeyField;
 import com.sleepycat.persist.model.PrimaryKey;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.ItemImpl;
-import com.sun.labs.aura.aardvark.impl.bdb.store.item.UserImpl;
 import com.sun.labs.aura.aardvark.store.Attention;
 
 /**
@@ -26,7 +26,7 @@ public class PersistentAttention implements Attention {
      * Many attentions will have the same user ID
      */
     @SecondaryKey(relate=Relationship.MANY_TO_ONE,
-                  relatedEntity=UserImpl.class,
+                  relatedEntity=ItemImpl.class,
                   onRelatedEntityDelete=DeleteAction.CASCADE)
     private long userID;
     
@@ -44,8 +44,8 @@ public class PersistentAttention implements Attention {
      * Many attentions will have the same type.
      */
     @SecondaryKey(relate=Relationship.MANY_TO_ONE)
-    private Type type;
-    
+    private int type;
+        
     /**
      * The timestamp of when this attention was applied.
      * Many attentions might conceivably have the same timestamp.  It should
@@ -70,7 +70,7 @@ public class PersistentAttention implements Attention {
         this.userID = attn.getUserID();
         this.itemID = attn.getItemID();
         this.timeStamp = attn.getTimeStamp();
-        this.type = attn.getType();
+        this.type = attn.getType().ordinal();
     }
 
     public long getID() {
@@ -90,6 +90,24 @@ public class PersistentAttention implements Attention {
     }
 
     public Type getType() {
-        return type;
+        for (Type t : Type.values()) {
+            if (t.ordinal() == type) {
+                return t;
+            }
+        }
+        return null;
+    }
+    
+    public boolean equals(Object o) {
+        if (o instanceof Attention) {
+            Attention other = (Attention) o;
+            if (other.getUserID() == getUserID() &&
+                    other.getItemID() == getItemID() &&
+                    other.getTimeStamp() == getTimeStamp() &&
+                    other.getType().equals(getType())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

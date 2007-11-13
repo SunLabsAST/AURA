@@ -23,9 +23,9 @@ public abstract class ItemImpl implements Item {
     
     protected String key;
     
-    protected Map<String,String> fields = new HashMap();
+    protected Map<String,String> fields = new HashMap<String,String>();
     
-    protected List<Attention> attn = new ArrayList();
+    protected List<Attention> attn = new ArrayList<Attention>();
     
     public ItemImpl(long itemID, String key) {
         this.itemID = itemID;
@@ -55,7 +55,7 @@ public abstract class ItemImpl implements Item {
     }
 
     public List<Attention> getAttentionData() {
-        List ret = new ArrayList();
+        List<Attention> ret = new ArrayList<Attention>();
         ret.addAll(attn);
         return ret;
     }

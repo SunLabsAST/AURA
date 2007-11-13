@@ -112,7 +112,13 @@ public class Aardvark implements Configurable {
      * @return the user or null if the user doesn't exist
      */
     public User getUser(String openID) {
-        return (User) itemStore.get(openIDtoKey(openID));
+        User u = null;
+        try {
+            u = (User) itemStore.get(openIDtoKey(openID));
+        } catch (AuraException ex) {
+            logger.warning("Error retrievingi user for " + openID + ex);
+        }
+        return u;
     }
 
     /**
@@ -172,7 +178,13 @@ public class Aardvark implements Configurable {
      * @return the stats
      */
     public Stats getStats() {
-        ItemStoreStats itemStoreStats = itemStore.getStats();
+        ItemStoreStats itemStoreStats = null;
+        try {
+            itemStoreStats = itemStore.getStats();
+        } catch (AuraException ex) {
+            logger.warning("Failed to retrieve itemStoreStats: " + ex);
+            return new Stats(VERSION, 0, 0, 0);
+        }
         return new Stats(VERSION, itemStoreStats.getNumUsers(),
                 itemStoreStats.getNumEntries(),
                 itemStoreStats.getNumAttentions());

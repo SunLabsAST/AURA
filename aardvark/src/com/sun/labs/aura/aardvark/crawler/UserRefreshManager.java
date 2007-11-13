@@ -66,17 +66,21 @@ public class UserRefreshManager implements Configurable {
         allUsers.clear();
         outstandingUsers.clear();
 
-        // Get all users from the item store and add them to our list of
-        // all users
+        try {
+            // Get all users from the item store and add them to our list of
+            // all users
 
-        Set<User> users = itemStore.getAll(User.class);
-        for (User user : users) {
-            allUsers.put(user.getID(), user);
+            Set<User> users = itemStore.getAll(User.class);
+            for (User user : users) {
+                allUsers.put(user.getID(), user);
+            }
+
+            // Add a user monitor to keep the all user list fresh and up to date
+            monitor = new UserMonitor();
+            itemStore.addItemListener(User.class, monitor);
+        } catch (AuraException ex) {
+            logger.severe("Failed to get users from item store" + ex);
         }
-
-        // Add a user monitor to keep the all user list fresh and up to date
-        monitor = new UserMonitor();
-        itemStore.addItemListener(User.class, monitor);
     }
 
     /**

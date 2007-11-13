@@ -46,7 +46,7 @@ public abstract class ItemImpl implements Item {
      */
     public ItemImpl(String key) {
         this.key = key;
-        attentionIDs = new HashSet();
+        attentionIDs = new HashSet<Long>();
     }
     
     public long getID() {
