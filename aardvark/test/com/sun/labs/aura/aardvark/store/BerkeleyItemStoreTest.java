@@ -31,12 +31,17 @@ public class BerkeleyItemStoreTest {
     
     @BeforeClass
     public static void setUpClass() throws Exception {
-
+        File f = new File("/tmp/aura");
+        f.mkdir();
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception {
         File f = new File("/tmp/aura");
+        File[] content = f.listFiles();
+        for (File c : content) {
+            c.delete();
+        }
         f.delete();
     }
 
@@ -150,11 +155,11 @@ public class BerkeleyItemStoreTest {
         e = (Entry) store.get(e.getID());
         l = u.getAttentionData();
         assertTrue(l.size() == 1);
-        Attention a = (Attention) l.get(1);
+        Attention a = (Attention) l.get(0);
         
         l = e.getAttentionData();
         assertTrue(l.size() == 1);
-        Attention b = (Attention) l.get(1);
+        Attention b = (Attention) l.get(0);
         assertTrue(a.equals(b));
     }
     

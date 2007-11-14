@@ -19,7 +19,7 @@ public class UserImpl extends ItemImpl implements User {
      * fetch only those elements that are users.  This will be faster
      * than having to fetch all Items and check each for User.
      */
-    @SecondaryKey(relate=Relationship.ONE_TO_ONE)
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     protected boolean isUser = true;
 
     

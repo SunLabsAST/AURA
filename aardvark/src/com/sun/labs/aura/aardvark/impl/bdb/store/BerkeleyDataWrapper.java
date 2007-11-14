@@ -15,6 +15,7 @@ import com.sun.labs.aura.aardvark.impl.bdb.store.item.UserImpl;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -75,11 +76,11 @@ public class BerkeleyDataWrapper {
      */
     protected SecondaryIndex<Long,Long,PersistentAttention> attnByUserID;
     
-    protected Logger logger;
+    protected Logger log;
     
     public BerkeleyDataWrapper(String dbEnvDir, Logger logger)
             throws DatabaseException {
-        this.logger = logger;
+        this.log = logger;
         
         EnvironmentConfig econf = new EnvironmentConfig();
         StoreConfig sconf = new StoreConfig();
@@ -130,13 +131,14 @@ public class BerkeleyDataWrapper {
             EntityCursor<UserImpl> cur = allUsers.entities();
             try {
                 for (UserImpl u : cur) {
+                    u.setBerkeleyDataWrapper(this);
                     users.add(u);
                 }
             } finally {
                 cur.close();
             }
         } catch (DatabaseException e) {
-            logger.warning("Failed to retrieve users: " + e.toString());
+            log.log(Level.WARNING, "Failed to retrieve users", e);
         }
         return users;
     }
@@ -153,13 +155,14 @@ public class BerkeleyDataWrapper {
             EntityCursor<EntryImpl> cur = allEntries.entities();
             try {
                 for (EntryImpl e : cur) {
+                    e.setBerkeleyDataWrapper(this);
                     entries.add(e);
                 }
             } finally {
                 cur.close();
             }
         } catch (DatabaseException e) {
-            logger.warning("Failed to retrieve entries: " + e.toString());
+            log.log(Level.WARNING, "Failed to retrieve entries", e);
         }
         return entries;
     }
@@ -176,13 +179,14 @@ public class BerkeleyDataWrapper {
             EntityCursor<FeedImpl> cur = allFeeds.entities();
             try {
                 for (FeedImpl f : cur) {
+                    f.setBerkeleyDataWrapper(this);
                     feeds.add(f);
                 }
             } finally {
                 cur.close();
             }
         } catch (DatabaseException e) {
-            logger.warning("Failed to retrieve entries: " + e.toString());
+            log.log(Level.WARNING, "Failed to retrieve entries", e);
         }
         return feeds;
     }
@@ -197,9 +201,10 @@ public class BerkeleyDataWrapper {
         ItemImpl ret = null;
         try {
             ret = itemByID.get(id);
+            ret.setBerkeleyDataWrapper(this);
         } catch (DatabaseException e) {
-            logger.warning("getItem() failed to retrieve item (id:" +
-                           id + ")");
+            log.log(Level.WARNING, "getItem() failed to retrieve item (id:" +
+                           id + ")", e);
         }
         return ret;
     }
@@ -213,9 +218,10 @@ public class BerkeleyDataWrapper {
         ItemImpl ret = null;
         try {
             ret = itemByKey.get(key);
+            ret.setBerkeleyDataWrapper(this);
         } catch (DatabaseException e) {
-            logger.warning("getItem() failed to retrieve item (key:" +
-                           key + ") " + e.getMessage());
+            log.log(Level.WARNING, "getItem() failed to retrieve item (key:" +
+                           key + ")", e);
         }
         return ret;
     }
@@ -231,8 +237,8 @@ public class BerkeleyDataWrapper {
         try {
             ret = itemByID.put(item);
         } catch (DatabaseException e) {
-            logger.warning("putItem() failed to put item (key:" +
-                           item.getKey() + ") "+ e.getMessage());
+            log.log(Level.WARNING, "putItem() failed to put item (key:" +
+                           item.getKey() + ")", e);
         }
         return ret;
     }
@@ -248,10 +254,23 @@ public class BerkeleyDataWrapper {
         try {
             PrimaryIndex<Long,UserImpl> pi = allUsers.getPrimaryIndex();
             u = pi.get(id);
+            u.setBerkeleyDataWrapper(this);
         } catch (DatabaseException e) {
-            logger.warning("getUser() failed to get user (id:" + id + ")");
+            log.log(Level.WARNING, "getUser() failed to get user (id:" + id
+                    + ")", e);
         }
         return u;
+    }
+    
+    public PersistentAttention getAttention(long id) {
+        PersistentAttention pa = null;
+        try {
+            pa = attnByID.get(id);
+        } catch (DatabaseException e) {
+            log.log(Level.WARNING, "Failed to get attention (id:" + id + ")",
+                    e);
+        }
+        return pa;
     }
     
     /**
@@ -264,8 +283,8 @@ public class BerkeleyDataWrapper {
         try {
             attnByID.putNoOverwrite(pa);
         } catch (DatabaseException e) {
-            logger.warning("putAttn() failed for userID:" + pa.getUserID() +
-                           " and itemID:" + pa.getItemID());
+            log.log(Level.WARNING, "putAttn() failed for userID:" +
+                    pa.getUserID() + " and itemID:" + pa.getItemID(), e);
         }
     }
     
@@ -279,7 +298,7 @@ public class BerkeleyDataWrapper {
         try {
             count = allUsers.count();
         } catch (DatabaseException e) {
-            logger.warning("getNumUsers failed: " + e.toString());
+            log.log(Level.WARNING, "getNumUsers failed", e);
         }
         return count;
     }
@@ -294,7 +313,7 @@ public class BerkeleyDataWrapper {
         try {
             count = allEntries.count();
         } catch (DatabaseException e) {
-            logger.warning("getNumEntries failed: " + e.toString());
+            log.log(Level.WARNING, "getNumEntries failed", e);
         }
         return count;
     }
@@ -309,7 +328,7 @@ public class BerkeleyDataWrapper {
         try {
             count = attnByID.count();
         } catch (DatabaseException e) {
-            logger.warning("getNumAttn failed: " + e.toString());
+            log.log(Level.WARNING, "getNumAttn failed", e);
         }
         return count;
     }
@@ -322,7 +341,7 @@ public class BerkeleyDataWrapper {
             try {
                 store.close();
             } catch (DatabaseException e) {
-                logger.severe("Failed to close entity store: " + e.toString());
+                log.log(Level.SEVERE, "Failed to close entity store", e);
             }
         }
         
@@ -330,8 +349,8 @@ public class BerkeleyDataWrapper {
             try {
                 dbEnv.close();
             } catch (DatabaseException e) {
-                logger.severe("Failed to close database environment: " +
-                        e.toString());
+                log.log(Level.SEVERE, "Failed to close database environment",
+                        e);
             }
         }
         

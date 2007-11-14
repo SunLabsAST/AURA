@@ -5,8 +5,10 @@ import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
+import com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyDataWrapper;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.item.Item;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -33,6 +35,10 @@ public abstract class ItemImpl implements Item {
      */
     private HashSet<Long> attentionIDs;
     
+    private List<Attention> attention;
+    
+    private transient BerkeleyDataWrapper bdb;
+    
     /**
      * All persistent objects must have a default constructor.
      */
@@ -57,12 +63,42 @@ public abstract class ItemImpl implements Item {
         return key;
     }
 
+    /**
+     * Get the attention data for this item.  Since attention is stored as a
+     * list of attention IDs, the IDs must be looked up in the database and
+     * have attention objects instantiated for them.
+     * 
+     * @return the attention for this item
+     */
     public List<Attention> getAttentionData() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (attention == null) {
+            attention = new ArrayList();
+            for (Long aid : attentionIDs) {
+                attention.add(bdb.getAttention(aid));
+            }
+        }
+        return attention;
     }
     
+    /**
+     * Internal method.  Adds the ID of an attention to this Item for storage
+     * in the database.
+     * 
+     * @param id the primary key of the attention object
+     */
     public void addAttention(long id) {
         attentionIDs.add(id);
+    }
+    
+    /**
+     * Provides an instances of a berkeley data wrapper to this item.  The
+     * database access is intended to be used read-only for fetching the
+     * attention data using lazy evaluation.
+     * 
+     * @param b the database wrapper
+     */
+    public void setBerkeleyDataWrapper(BerkeleyDataWrapper b) {
+        this.bdb = b;
     }
     
     public String getTypeString() {

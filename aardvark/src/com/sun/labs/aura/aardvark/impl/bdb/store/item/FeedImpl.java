@@ -17,7 +17,7 @@ public class FeedImpl extends ItemImpl implements Feed {
      * fetch only those elements that are feeds.  This will be faster
      * than having to fetch all Items and check each for Feed.
      */
-    @SecondaryKey(relate=Relationship.ONE_TO_ONE)
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     protected boolean isFeed = true;
 
     

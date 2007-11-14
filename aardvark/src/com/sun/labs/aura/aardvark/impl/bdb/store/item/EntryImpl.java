@@ -15,17 +15,22 @@ import com.sun.syndication.feed.synd.SyndEntry;
 public class EntryImpl extends ItemImpl implements Entry {
 
     /**
-     * The content of this entry.  This is a persistent field.
-     */
-    protected String content;
-    
-    /**
      * The isEntry field exists only so that we can do a DB query to 
      * fetch only those elements that are entries.  This will be faster
      * than having to fetch all Items and check each for Entry.
      */
-    @SecondaryKey(relate=Relationship.ONE_TO_ONE)
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     protected boolean isEntry = true;
+    
+    /**
+     * The content of this entry.  This is a persistent field.
+     */
+    protected String content;
+
+    /**
+     * The XML data from the synd entry.  This is a persistent field.
+     */
+    protected String syndEntryXML;
     
     /**
      * All persistent classes must have a default constructor.
