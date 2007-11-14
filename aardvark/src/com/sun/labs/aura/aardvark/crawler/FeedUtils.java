@@ -4,9 +4,18 @@
  */
 package com.sun.labs.aura.aardvark.crawler;
 
+import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.aura.aardvark.store.item.Entry;
 import com.sun.syndication.feed.synd.SyndContent;
 import com.sun.syndication.feed.synd.SyndEntry;
+import com.sun.syndication.feed.synd.SyndFeed;
+import com.sun.syndication.feed.synd.SyndFeedImpl;
+import com.sun.syndication.io.FeedException;
+import com.sun.syndication.io.SyndFeedInput;
+import com.sun.syndication.io.SyndFeedOutput;
+import com.sun.syndication.io.XmlReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -75,6 +84,50 @@ public class FeedUtils {
         }
         return list;
     }
+
+    /**
+     * Converts an entry to a string representation
+     * @param entry the entry to be converted
+     * @return a string representation of the entry
+     * @throws AuraException if an error occurs during the conversion
+     */
+    public static String toString(SyndEntry entry) throws AuraException {
+
+        try {
+            SyndFeed feed = new SyndFeedImpl();
+            SyndFeedOutput output = new SyndFeedOutput();
+            feed.setFeedType("atom_1.0");
+            List<SyndEntry> entries = new ArrayList<SyndEntry>();
+            entries.add(entry);
+            feed.setEntries(entries);
+            return output.outputString(feed);
+        } catch (FeedException ex) {
+            throw new AuraException("Can't convert entry to string", ex);
+        }
+    }
+
+    /**
+     * Converts a string representation of an entry into a SyndEntry
+     * @param xml the string representation of the entry
+     * @return the entry
+     * @throws AuraException if an error occurs during the conversion
+     */
+    public static SyndEntry toSyndEntry(String xml) throws AuraException {
+        try {
+            SyndFeedInput syndFeedInput = new SyndFeedInput();
+            Reader stringReader = new StringReader(xml);
+            SyndFeed feed = syndFeedInput.build(stringReader);
+            List entries = feed.getEntries();
+            if (entries.size() == 1) {
+                return (SyndEntry) entries.get(0);
+            } else {
+                throw new AuraException("Unexpected feed size");
+            }
+        } catch (FeedException ex) {
+            throw new AuraException("Feed processing exception", ex);
+        }
+    }
+
 
     /**
      * Determines if the given RSS entry is fresh
