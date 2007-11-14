@@ -225,6 +225,15 @@ public class UserRefreshManager implements Configurable {
         public void itemCreated(ItemEvent e) {
             updateUsers(e.getItems());
         }
+        public void itemChanged(ItemEvent e) {
+            updateUsers(e.getItems());
+        }
+
+        public void itemDeleted(ItemEvent e) {
+            clearUsers(e.getItems());
+        }
+    }
+}
 
         public void itemChanged(ItemEvent e) {
             updateUsers(e.getItems());

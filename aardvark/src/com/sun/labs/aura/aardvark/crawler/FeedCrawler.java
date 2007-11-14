@@ -55,6 +55,10 @@ import java.util.logging.Logger;
  * @author plamere
  */
 public class FeedCrawler implements Configurable {
+    
+    private int  feedPullCount = 0;
+    private int  feedErrorCount = 0;
+
     /**
      * the configurable property for the UserRefreshManager used by this manager
      */
@@ -213,11 +217,17 @@ public class FeedCrawler implements Configurable {
                     // so we cannot break here.
                 }
             }
+         //   System.out.printf("Pulling feed %s, found %d, new %d\n", 
+         //             feedUrl.toExternalForm(), entryList.size(), entries.size());
+
         // if we have a problem reading a feed we just continue one
+            feedPullCount++;
         } catch (IOException ex) {
             logger.warning("IOException while reading " + feedUrl);
+            feedErrorCount++;
         } catch (FeedException ex) {
             logger.warning("FeedException while reading " + feedUrl);
+            feedErrorCount++;
         }
         return entries.toArray(EMPTY_ENTRY);
     }
@@ -283,6 +293,14 @@ public class FeedCrawler implements Configurable {
         } catch (FeedException ex) {
             System.out.println("Feed Exception while dumping " + surl + " " + ex);
         }
+    }
+
+    public int getFeedErrorCount() {
+        return feedErrorCount;
+    }
+
+    public int getFeedPullCount() {
+        return feedPullCount;
     }
 
     public static void main(String[] args) {

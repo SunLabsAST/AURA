@@ -23,15 +23,11 @@ import java.net.URL;
 public class Shell {
 
     private CommandInterpreter shell;
-    private Aardvark aardvark;
-    private ItemStore itemStore;
 
     public Shell(String config) throws IOException {
         shell = new CommandInterpreter();
         ConfigurationManager cm = new ConfigurationManager();
         cm.addProperties(new URL(config));
-        aardvark = (Aardvark) cm.lookup("aardvark");
-
 
         shell.add("users", new CommandInterface() {
 

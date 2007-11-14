@@ -178,16 +178,19 @@ public class Aardvark implements Configurable {
      * @return the stats
      */
     public Stats getStats() {
+        int feedPullCount = feedCrawler.getFeedPullCount();
+        int feedErrorCount = feedCrawler.getFeedErrorCount();
         ItemStoreStats itemStoreStats = null;
         try {
             itemStoreStats = itemStore.getStats();
         } catch (AuraException ex) {
             logger.warning("Failed to retrieve itemStoreStats: " + ex);
-            return new Stats(VERSION, 0, 0, 0);
+            return new Stats(VERSION, 0, 0, 0, feedPullCount, feedErrorCount);
         }
         return new Stats(VERSION, itemStoreStats.getNumUsers(),
                 itemStoreStats.getNumEntries(),
-                itemStoreStats.getNumAttentions());
+                itemStoreStats.getNumAttentions(),
+                feedPullCount, feedErrorCount);
     }
 
     /**
@@ -216,6 +219,7 @@ public class Aardvark implements Configurable {
                 try {
                     enrollUser("delicious", "http://del.icio.us/rss/");
                     enrollUser("digg", "http://digg.com/rss/index.xml");
+                    enrollUser("diggupcoming", "http://digg.com/rss/indexdig.xml");
                     enrollUser("google news", "http://news.google.com/news?ned=us&topic=h&output=atom");
                     enrollUser("slashdot", "http://rss.slashdot.org/Slashdot/slashdot");
                     enrollUser("reddit", "http://reddit.com/.rss");
@@ -225,6 +229,11 @@ public class Aardvark implements Configurable {
                     enrollUser("mediaor", "http://archive.mediaor.com/rss");
                     enrollUser("dzonenew", "http://dzone.com/links/feed/queue/rss.xml");
                     enrollUser("dzonepopular", "http://dzone.com/links/feed/frontpage/rss.xml");
+                    enrollUser("fark", "http://www.fark.com/fark.rss");
+                    enrollUser("valleywag", "http://feeds.gawker.com/valleywag/full");
+                    enrollUser("boingboing", "http://feeds.boingboing.net/boingboing/iBag");
+                    enrollUser("nytimes", "http://graphics8.nytimes.com/services/xml/rss/nyt/HomePage.xml");
+                    enrollUser("hypemachine", "http://hypem.com/feed/time/today/1/feed.xml");
                 } catch (AuraException ex) {
                     logger.severe("Problem enrolling item feeds" + ex);
                 } 

@@ -10,11 +10,14 @@ package com.sun.labs.aura.aardvark;
 
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.util.LabsLogFormatter;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.syndication.feed.synd.SyndFeed;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.logging.Handler;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -32,6 +35,12 @@ public class AardvarkSearchTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        //
+        // Use the labs format logging.
+        Logger rl = Logger.getLogger("");
+        for(Handler h : rl.getHandlers()) {
+            h.setFormatter(new LabsLogFormatter());
+        }
     }
 
     @AfterClass
@@ -90,6 +99,14 @@ public class AardvarkSearchTest {
             feed = aardvark.getRecommendedFeed(user1);
             entryCount = feed.getEntries().size();
             assertTrue("The random document should still have been returned: " + entryCount, entryCount > 0);
+
+            // we should be able to get recommendations until there's nothing left to recommend:
+
+            while (aardvark.getRecommendedFeed(user1).getEntries().size() > 0) {
+            }
+
+            assertTrue("there should be zero recommendations left", 
+                    aardvark.getRecommendedFeed(user1).getEntries().size() == 0);
 
         } finally {
             aardvark.shutdown();

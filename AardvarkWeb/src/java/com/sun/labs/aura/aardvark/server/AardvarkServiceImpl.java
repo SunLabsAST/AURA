@@ -61,7 +61,8 @@ public class AardvarkServiceImpl extends RemoteServiceServlet implements Aardvar
     public WiStats getStats() {
         Stats stats = aardvark.getStats();
         return new WiStats(stats.getVersion(),
-                stats.getNumUsers(), stats.getNumItems(), stats.getNumAttentionData());
+                stats.getNumUsers(), stats.getNumItems(), stats.getNumAttentionData(),
+                stats.getFeedPullCount(), stats.getFeedErrorCount());
     }
 
     public WiUserStatus registerUser(String name, String feed) {

@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.aardvark.crawler;
 
+import com.sun.labs.util.LabsLogFormatter;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.FeedException;
@@ -11,6 +12,8 @@ import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.XmlReader;
 import java.io.IOException;
 import java.net.URL;
+import java.util.logging.Handler;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -31,6 +34,12 @@ public class FeedCrawlerTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        //
+        // Use the labs format logging.
+        Logger rl = Logger.getLogger("");
+        for(Handler h : rl.getHandlers()) {
+            h.setFormatter(new LabsLogFormatter());
+        }
     }
 
     @AfterClass
