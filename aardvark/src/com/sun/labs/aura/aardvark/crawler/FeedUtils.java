@@ -10,15 +10,31 @@ import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.syndication.feed.synd.SyndContent;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
+import com.sun.syndication.feed.synd.SyndFeedImpl;
 import com.sun.syndication.io.FeedException;
 import com.sun.syndication.io.SyndFeedInput;
+import com.sun.syndication.io.SyndFeedOutput;
 import com.sun.syndication.io.XmlReader;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A set of utilities for manipulating RSS feeds
@@ -100,6 +116,15 @@ public class FeedUtils {
         }
     }
 
+    /**
+     * Given a URL to an RSS feed, extract the entries, add the fresh items to the itemstore and
+     * return them as a list of entries
+     * @param itemStore the item store
+     * @param feedUrl the url to the feed
+     * @return a list of fresh entries
+     * @throws com.sun.labs.aura.aardvark.util.AuraException if a proble occurs while retriveing the feed
+     * or accessing the item store.
+     */
     public static List<Entry> processFeed(ItemStore itemStore, URL feedUrl) throws AuraException {
         SyndFeed feed = readFeed(feedUrl);
         List<Entry> entries = new ArrayList<Entry>();
@@ -114,6 +139,43 @@ public class FeedUtils {
         return entries;
     }
 
+    /**
+     * Determines if the list of entries came from an aggregated feed
+     * @param entries the entries to check
+     * @return true if some of  entries  come from different hosts
+     */
+    public static boolean isAggregatedFeed(List<Entry> entries) {
+        String lastHost = null;
+        for (Entry entry : entries) {
+            String link = entry.getSyndEntry().getLink();
+            try {
+                URL url = new URL(link);
+                String host = url.getHost();
+                if (host != null) {
+                    if (lastHost == null) {
+                        lastHost = host;
+                    } else {
+                        if (!lastHost.equals(host)) {
+                            return true;
+                        }
+                    }
+                }
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(FeedUtils.class.getName()).log(Level.SEVERE, "bad url " + link, ex);
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * Converts the syndEntry into an Entry and adds it to the itemstore if the itemstore does not 
+     * already contain the entry, returns the itemstore entry if the entry was added
+     * @param itemStore the item store
+     * @param syndEntry the feed entry
+     * @return the itemstore entry or null if the syndEntry was a duplicate
+     * @throws com.sun.labs.aura.aardvark.util.AuraException if an error occurs while accesing the itemstore
+     */
     public static Entry convertSyndEntryToFreshEntry(ItemStore itemStore, SyndEntry syndEntry) throws AuraException {
         String key = getKey(syndEntry);
         if (itemStore.get(key) == null) {
@@ -127,6 +189,13 @@ public class FeedUtils {
         }
     }
 
+    /**
+     * Given a URL, returns the SyndFeed
+     * @param url the url
+     * @return the feed 
+     * @throws com.sun.labs.aura.aardvark.util.AuraException if an error occurs while 
+     * loading or parsing the feed
+     */
     public static SyndFeed readFeed(URL url) throws AuraException {
         try {
             SyndFeedInput syndFeedInput = new SyndFeedInput();
@@ -137,6 +206,136 @@ public class FeedUtils {
             throw new AuraException("I/O error while reading " + url, ex);
         } catch (FeedException ex) {
             throw new AuraException("feed error while reading " + url, ex);
+        }
+    }
+
+    /**
+     * Given a URL to some html, find the associated RSS feeds
+     * @param url the url to the html
+     * @return a list of URLs to the associated feeds
+     * @throws java.io.IOException if an error occurs while retrieving or parsing the html
+     */
+    public static List<URL> findFeeds(URL url) throws IOException {
+        try {
+            List<URL> feeds = new ArrayList<URL>();
+            URI uri = url.toURI();
+
+            List<String> links = getLinkElements(url);
+            for (String link : links) {
+                Map<String, String> attributes = getAttributes(link);
+                String rel = attributes.get("rel");
+                if (rel != null) {
+                    rel = rel.toLowerCase();
+                    if (rel.contains("alternate")) {
+                        String type = attributes.get("type");
+                        if (type != null) {
+                            type = type.toLowerCase();
+                            if (type.contains("rss") || type.contains("atom")) {
+                                String href = attributes.get("href");
+                                if (href != null) {
+
+                                    // so they had better be absolute URIs
+                                    System.out.println("Found Feed: " + href + " from " + url);
+                                    URI resolvedURI = uri.resolve(href);
+                                    URL hrefURL = resolvedURI.toURL();
+                                    feeds.add(hrefURL);
+                                    System.out.println("Found Feed: " + hrefURL);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return feeds;
+        } catch (URISyntaxException ex) {
+            throw new IOException("bad URI syntax found: " + url);
+        }
+    }
+
+    /**
+     * Given a URL, return all of the link elements contained with the resource
+     * @param url the url
+     * @return a list of all of the link elements
+     * @throws java.io.IOException if an error occurs while loading the URL
+     */
+    private static List<String> getLinkElements(URL url) throws IOException {
+        List<String> elements = new ArrayList<String>();
+        InputStream is = url.openStream();
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+
+        int c;
+        while ((c = br.read()) != -1) {
+            sb.append((char) c);
+        }
+        br.close();
+        String content = sb.toString();
+
+        String linkregex = "<link[^>]*>";
+        Pattern linkPattern = Pattern.compile(linkregex, Pattern.CASE_INSENSITIVE);
+        Matcher linkMatcher = linkPattern.matcher(content);
+        while (linkMatcher.find()) {
+            elements.add(linkMatcher.group());
+        }
+        return elements;
+    }
+
+    /**
+     * Given an element, return a map of the attribute/value pairs contained within the element
+     * @param element the element
+     * @return the (possibly empy) map of attribute/value pairs
+     */
+    private static Map<String, String> getAttributes(String element) {
+        Map<String, String> map = new HashMap<String, String>();
+        String attributeregex = "\\s(\\w+)=['\"]([^'\"]*)['\"]";
+        Pattern attributePattern = Pattern.compile(attributeregex, Pattern.CASE_INSENSITIVE);
+        Matcher attrMatcher = attributePattern.matcher(element);
+        while (attrMatcher.find()) {
+            map.put(attrMatcher.group(1).toLowerCase(), attrMatcher.group(2));
+        }
+        return map;
+    }
+
+    /**
+     * Converts an entry to a string representation
+     * @param entry the entry to be converted
+     * @return a string representation of the entry
+     * @throws AuraException if an error occurs during the conversion
+     */
+    public static String toString(SyndEntry entry) throws AuraException {
+
+        try {
+            SyndFeed feed = new SyndFeedImpl();
+            SyndFeedOutput output = new SyndFeedOutput();
+            feed.setFeedType("atom_1.0");
+            List<SyndEntry> entries = new ArrayList<SyndEntry>();
+            entries.add(entry);
+            feed.setEntries(entries);
+            return output.outputString(feed);
+        } catch (FeedException ex) {
+            throw new AuraException("Can't convert entry to string", ex);
+        }
+    }
+
+    /**
+     * Converts a string representation of an entry into a SyndEntry
+     * @param xml the string representation of the entry
+     * @return the entry
+     * @throws AuraException if an error occurs during the conversion
+     */
+    public static SyndEntry toSyndEntry(String xml) throws AuraException {
+        try {
+            SyndFeedInput syndFeedInput = new SyndFeedInput();
+            Reader stringReader = new StringReader(xml);
+            SyndFeed feed = syndFeedInput.build(stringReader);
+            List entries = feed.getEntries();
+            if (entries.size() == 1) {
+                return (SyndEntry) entries.get(0);
+            } else {
+                throw new AuraException("Unexpected feed size");
+            }
+        } catch (FeedException ex) {
+            throw new AuraException("Feed processing exception", ex);
         }
     }
 
