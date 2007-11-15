@@ -45,7 +45,7 @@ public class OPMLProcessor {
 
     /**
      * Given an opml file, return the list of urls to feeds
-     * @param opml the opml file
+     * @param is input stream to OPML data
      * @return a list of urls to feeds
      * @throws java.io.IOException if an error occurs
      */

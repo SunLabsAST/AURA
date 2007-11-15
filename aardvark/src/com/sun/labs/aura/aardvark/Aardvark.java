@@ -125,7 +125,6 @@ public class Aardvark implements Configurable {
     /**
      * Enrolls a user in the recommender
      * @param openID the openID of the user
-     * @param feed the starred item feed of the user
      * @return the user
      * @throws AuraException if the user is already enrolled or a problem occurs while enrolling the user
      */
