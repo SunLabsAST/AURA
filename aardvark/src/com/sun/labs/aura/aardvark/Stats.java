@@ -18,14 +18,16 @@ public class Stats {
     private long numUsers;
     private long numItems;
     private long numAttentionData;
+    private int numFeeds;
     private int feedPullCount;
     private int feedErrorCount;
 
-    public Stats(String version, long numUsers, long numItems, long numAttentionData, int feedPullCount, int feedErrorCount) {
+    public Stats(String version, long numUsers, long numItems, long numAttentionData, int numFeeds, int feedPullCount, int feedErrorCount) {
         this.version = version;
         this.numUsers = numUsers;
         this.numItems = numItems;
         this.numAttentionData = numAttentionData;
+        this.numFeeds = numFeeds;
         this.feedPullCount = feedPullCount;
         this.feedErrorCount = feedErrorCount;
     }
@@ -54,9 +56,17 @@ public class Stats {
         return feedPullCount;
     }
 
+    public int getNumFeeds() {
+        return numFeeds;
+    }
+
     @Override
     public String toString() {
-        return "Users: " + getNumUsers() + "  Items: " 
-                + getNumItems()  + "  Taste: " + getNumAttentionData();
+        return "Users: " + getNumUsers() 
+                + "  Items: " + getNumItems()  
+                + "  Taste: " + getNumAttentionData() 
+                + "  Feeds: " + getNumFeeds()
+                + "  Pulls: " + getFeedPullCount()
+                + "  Feed Errors: " + getFeedErrorCount();
     }
 }

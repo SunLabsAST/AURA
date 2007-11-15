@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.aardvark.crawler;
 
+import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.LabsLogFormatter;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
@@ -78,6 +79,22 @@ public class FeedCrawlerTest {
         for (Object o : feed.getEntries()) {
             SyndEntry se = (SyndEntry) o;
             assertNotNull("Feed has contents", FeedUtils.getContent(se));
+        }
+    }
+
+    @Test
+    public void testEntryConversion() {
+        for (Object o : feed.getEntries()) {
+            try {
+                SyndEntry se1 = (SyndEntry) o;
+                String xml1 = FeedUtils.toString(se1);
+                SyndEntry se2 = FeedUtils.toSyndEntry(xml1);
+                String xml2 = FeedUtils.toString(se2);
+                assertTrue("summary equal", FeedUtils.getContent(se1).equals(FeedUtils.getContent(se2)));
+                assertTrue("xml strings are equal", xml1.equals(xml2));
+            } catch (AuraException ex) {
+                fail("Conversion failed");
+            }
         }
     }
 

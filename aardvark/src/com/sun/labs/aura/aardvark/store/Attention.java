@@ -21,6 +21,9 @@ public interface Attention {
     public enum Type {
         /** Starred in Google Reader by the user */
         STARRED,
+
+        /** Subscribed by the user */
+        SUBSCRIBED,
         
         /** Viewed by the user */
         VIEWED

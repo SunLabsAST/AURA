@@ -25,6 +25,8 @@ public class FeedRefreshManager implements Configurable {
     private DelayQueue<Feed> feedQueue = new DelayQueue<Feed>();
     private Map<String, Feed> feedMap = new HashMap<String, Feed>();
 
+    private int feedCount = 0;
+
 
     public Feed getNextFeedForRefresh() throws InterruptedException {
         return feedQueue.take();
@@ -42,7 +44,16 @@ public class FeedRefreshManager implements Configurable {
     public void addFeed(Feed feed) {
         feedMap.put(feed.getKey(), feed);
         feedMap.put(feed.getFeedUrl().toExternalForm(), feed);
+        feedCount++;
         returnFeed(feed);
+    }
+
+    /**
+     * Gets the number of feeds
+     * @return the number of feeds
+     */
+    public int getNumFeeds() {
+        return feedCount;
     }
 
     @ConfigInteger(defaultValue=60, range={1, 60 * 24 * 7 })

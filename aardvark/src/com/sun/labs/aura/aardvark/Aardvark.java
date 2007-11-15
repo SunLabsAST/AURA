@@ -7,6 +7,7 @@ package com.sun.labs.aura.aardvark;
 import com.sun.labs.aura.aardvark.crawler.Feed;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.crawler.FeedUtils;
+import com.sun.labs.aura.aardvark.crawler.OPMLProcessor;
 import com.sun.labs.aura.aardvark.crawler.UserAttention;
 import com.sun.labs.aura.aardvark.recommender.RecommenderManager;
 import com.sun.labs.aura.aardvark.store.Attention;
@@ -28,6 +29,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -35,7 +37,7 @@ import java.util.logging.Logger;
  */
 public class Aardvark implements Configurable {
 
-    private final static String VERSION = "aardvark version 0.1";
+    private final static String VERSION = "aardvark version 0.11";
     /**
      * the configurable property for the itemstore used by this manager
      */
@@ -52,6 +54,9 @@ public class Aardvark implements Configurable {
     @ConfigBoolean(defaultValue = false)
     public final static String PROP_AUTO_ENROLL_TEST_FEEDS = "autoEnrollTestFeeds";
     private boolean autoEnrollTestFeeds;
+    @ConfigBoolean(defaultValue = false)
+    public final static String PROP_AUTO_ENROLL_MEGA_TEST_FEEDS = "autoEnrollMegaTestFeeds";
+    private boolean autoEnrollMegaTestFeeds;
 
     /**
      * the configurable property for the RecommenderManager used by this manager
@@ -83,6 +88,7 @@ public class Aardvark implements Configurable {
         feedCrawler = (FeedCrawler) ps.getComponent(PROP_FEED_CRAWLER);
         recommenderManager = (RecommenderManager) ps.getComponent(PROP_RECOMMENDER_MANAGER);
         autoEnrollTestFeeds = ps.getBoolean(PROP_AUTO_ENROLL_TEST_FEEDS);
+        autoEnrollMegaTestFeeds = ps.getBoolean(PROP_AUTO_ENROLL_MEGA_TEST_FEEDS);
         logger = ps.getLogger();
     }
 
@@ -195,12 +201,13 @@ public class Aardvark implements Configurable {
      */
     public Stats getStats() {
         ItemStoreStats itemStoreStats = itemStore.getStats();
+        int feedCount = feedCrawler.getNumFeeds();
         int feedPullCount = feedCrawler.getFeedPullCount();
         int feedErrorCount = feedCrawler.getFeedErrorCount();
         return new Stats(VERSION, itemStoreStats.getNumUsers(),
                 itemStoreStats.getNumEntries(),
                 itemStoreStats.getNumAttentions(),
-                feedPullCount, feedErrorCount);
+                feedCount, feedPullCount, feedErrorCount);
     }
 
     /**
@@ -213,35 +220,35 @@ public class Aardvark implements Configurable {
         return recommendations;
     }
 
+    private void addLocalOpml(String name) {
+        try {
+            OPMLProcessor op = new OPMLProcessor();
+            URL opmlFile = Aardvark.class.getResource(name);
+            List<URL> urls = op.getFeedURLs(opmlFile);
+            for (URL url : urls) {
+                try {
+                    addFeed(url);
+                } catch (AuraException ex) {
+                    logger.warning("Problems enrolling " + url);
+                }
+            }
+        } catch (IOException ex) {
+            logger.warning("Problems loading opml " + name);
+        }
+    }
 
     private void autoEnroll() {
         Thread t = new Thread() {
-
-                    @Override
+            @Override
             public void run() {
-                try {
-                    addFeed("http://del.icio.us/rss/");
-                    addFeed("http://digg.com/rss/index.xml");
-                    addFeed("http://digg.com/rss/indexdig.xml");
-                    addFeed("http://news.google.com/news?ned=us&topic=h&output=atom");
-                    addFeed("http://rss.slashdot.org/Slashdot/slashdot");
-                    addFeed("http://reddit.com/.rss");
-                    addFeed("http://blogs.sun.com/main/feed/entries/atom");
-                    addFeed("http://feeds.engadget.com/weblogsinc/engadget");
-                    addFeed("http://feeds.gawker.com/gizmodo/full");
-                    addFeed("http://archive.mediaor.com/rss");
-                    addFeed("http://dzone.com/links/feed/queue/rss.xml");
-                    addFeed("http://dzone.com/links/feed/frontpage/rss.xml");
-                    addFeed("http://www.fark.com/fark.rss");
-                    addFeed("http://feeds.gawker.com/valleywag/full");
-                    addFeed("http://feeds.boingboing.net/boingboing/iBag");
-                    addFeed("http://graphics8.nytimes.com/services/xml/rss/nyt/HomePage.xml");
-                    addFeed("http://hypem.com/feed/time/today/1/feed.xml");
-                } catch (AuraException ex) {
-                            logger.severe("Problem enrolling item feeds" + ex);
-                        }
-                    }
-                };
+                addLocalOpml("autoEnrolledTestFeeds.opml.xml");
+                if (autoEnrollMegaTestFeeds) {
+                    addLocalOpml("tech_blogs.opml");
+                    addLocalOpml("politics_blogs.opml");
+                    addLocalOpml("news_blogs.opml");
+                }
+            }
+        };
 
         t.start();
     }

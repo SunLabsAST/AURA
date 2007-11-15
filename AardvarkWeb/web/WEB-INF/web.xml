@@ -1,12 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+    <display-name>AardvarkWeb</display-name>
     <servlet>
         <servlet-name>AardvarkService</servlet-name>
         <servlet-class>com.sun.labs.aura.aardvark.server.AardvarkServiceImpl</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>OpmlUpload</servlet-name>
+        <servlet-class>com.sun.labs.aura.aardvark.server.OpmlUpload</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>RecommenderFeedServlet</servlet-name>
+        <servlet-class>com.sun.labs.aura.aardvark.server.RecommenderFeedServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>AardvarkService</servlet-name>
         <url-pattern>/com.sun.labs.aura.aardvark.web/aardvarkservice</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>OpmlUpload</servlet-name>
+        <url-pattern>/opml/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>RecommenderFeedServlet</servlet-name>
+        <url-pattern>/recommendations/*</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
@@ -16,4 +33,23 @@
     <welcome-file-list>
         <welcome-file>welcomeGWT.html</welcome-file>
     </welcome-file-list>
-</web-app>
+    <security-constraint>
+        <display-name>aura</display-name>
+        <web-resource-collection>
+            <web-resource-name>mainPage</web-resource-name>
+            <description>main aura web page</description>
+            <url-pattern>/welcomeGWT.html</url-pattern>
+            <http-method>GET</http-method>
+            <http-method>POST</http-method>
+            <http-method>HEAD</http-method>
+            <http-method>PUT</http-method>
+            <http-method>OPTIONS</http-method>
+            <http-method>TRACE</http-method>
+            <http-method>DELETE</http-method>
+        </web-resource-collection>
+        </security-constraint>
+    <security-role>
+        <description>access to the aura app</description>
+        <role-name>aura</role-name>
+    </security-role>
+    </web-app>

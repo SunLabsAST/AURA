@@ -87,6 +87,26 @@ body {
     padding: 10px;
 }
 
+.userSettingsPanel {
+    margin: 10px;
+    /*text-align: center;*/
+    vertical-align: top;
+    border-right-style: solid;
+    border-left-style: solid;
+    border-bottom-style: solid;
+    border-top-style: solid;
+    border-right-width: 1px;
+    border-left-width: 1px;
+    border-bottom-width: 1px;
+    border-top-width: 1px;
+    border-right-color: teal;
+    border-left-color: teal;
+    border-bottom-color: teal;
+    border-top-color: teal;
+    padding: 10px;
+}
+
+
 .standardButton {
    margin-left: 10px;
    margin-right: 10px;

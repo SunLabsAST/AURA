@@ -38,6 +38,7 @@ public class AardvarkServiceImpl extends RemoteServiceServlet implements Aardvar
         try {
             super.init(sc);
             aardvark = Aardvark.getDefault();
+            sc.getServletContext().setAttribute("aardvark", aardvark);
             aardvark.startup();
 
             // pre-enroll a test user, just to make testing the web
@@ -62,7 +63,7 @@ public class AardvarkServiceImpl extends RemoteServiceServlet implements Aardvar
         Stats stats = aardvark.getStats();
         return new WiStats(stats.getVersion(),
                 stats.getNumUsers(), stats.getNumItems(), stats.getNumAttentionData(),
-                stats.getFeedPullCount(), stats.getFeedErrorCount());
+                stats.getNumFeeds(), stats.getFeedPullCount(), stats.getFeedErrorCount());
     }
 
     public WiUserStatus registerUser(String name, String feed) {

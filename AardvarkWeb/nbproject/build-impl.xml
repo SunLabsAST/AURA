@@ -535,9 +535,13 @@
         <copy-ear-war file="${file.reference.xerces.jar}" propname="included.lib.file.reference.xerces.jar.X"/>
         <basename file="${file.reference.xml-apis.jar}" property="included.lib.file.reference.xml-apis.jar"/>
         <copy-ear-war file="${file.reference.xml-apis.jar}" propname="included.lib.file.reference.xml-apis.jar.X"/>
+        <basename file="${file.reference.commons-fileupload-1.2.jar}" property="included.lib.file.reference.commons-fileupload-1.2.jar"/>
+        <copy-ear-war file="${file.reference.commons-fileupload-1.2.jar}" propname="included.lib.file.reference.commons-fileupload-1.2.jar.X"/>
+        <basename file="${file.reference.commons-io-1.3.2.jar}" property="included.lib.file.reference.commons-io-1.3.2.jar"/>
+        <copy-ear-war file="${file.reference.commons-io-1.3.2.jar}" propname="included.lib.file.reference.commons-io-1.3.2.jar.X"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${included.lib.libs.GWT.classpath} ${included.lib.file.reference.gwt-dev-linux.jar} ${included.lib.file.reference.gwt-servlet.jar} ${included.lib.reference.aardvark.jar} ${included.lib.file.reference.ant.jar} ${included.lib.file.reference.jaxen-core.jar} ${included.lib.file.reference.jaxen-jdom.jar} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.ktsearch.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.rome-0.9.jar} ${included.lib.file.reference.rome-fetcher-0.9.jar} ${included.lib.file.reference.saxpath.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.xml-apis.jar} "/>
+            <attribute name="Class-Path" value="${included.lib.libs.GWT.classpath} ${included.lib.file.reference.gwt-dev-linux.jar} ${included.lib.file.reference.gwt-servlet.jar} ${included.lib.reference.aardvark.jar} ${included.lib.file.reference.ant.jar} ${included.lib.file.reference.jaxen-core.jar} ${included.lib.file.reference.jaxen-jdom.jar} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.ktsearch.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.rome-0.9.jar} ${included.lib.file.reference.rome-fetcher-0.9.jar} ${included.lib.file.reference.saxpath.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.xml-apis.jar} ${included.lib.file.reference.commons-fileupload-1.2.jar} ${included.lib.file.reference.commons-io-1.3.2.jar} "/>
         </manifest>
         <delete dir="${dist.ear.dir}/temp"/>
     </target>
@@ -558,6 +562,8 @@
         <copy file="${file.reference.xalan.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.xerces.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.xml-apis.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.commons-fileupload-1.2.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.commons-io-1.3.2.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>

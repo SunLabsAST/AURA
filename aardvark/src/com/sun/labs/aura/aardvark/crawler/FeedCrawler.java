@@ -27,6 +27,11 @@ public interface FeedCrawler extends Configurable {
      */
     void stop();
 
+    /**
+     * Create a feed for a given url
+     * @param feedUrl the url
+     * @return the feed
+     */
     public Feed createFeed(URL feedUrl);
 
     /**
@@ -39,4 +44,10 @@ public interface FeedCrawler extends Configurable {
      * @return the number of feeds pulled
      */
     int getFeedPullCount();
+   
+    /**
+     * Gets the total number of feeds.
+     * @return the total number of feeds
+     */
+    int getNumFeeds();
 }

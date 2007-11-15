@@ -148,20 +148,22 @@ public class FeedUtils {
         String lastHost = null;
         for (Entry entry : entries) {
             String link = entry.getSyndEntry().getLink();
-            try {
-                URL url = new URL(link);
-                String host = url.getHost();
-                if (host != null) {
-                    if (lastHost == null) {
-                        lastHost = host;
-                    } else {
-                        if (!lastHost.equals(host)) {
-                            return true;
+            if (link != null) {
+                try {
+                    URL url = new URL(link);
+                    String host = url.getHost();
+                    if (host != null) {
+                        if (lastHost == null) {
+                            lastHost = host;
+                        } else {
+                            if (!lastHost.equals(host)) {
+                                return true;
+                            }
                         }
                     }
+                } catch (MalformedURLException ex) {
+                    Logger.getLogger(FeedUtils.class.getName()).log(Level.SEVERE, "bad url " + link, ex);
                 }
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(FeedUtils.class.getName()).log(Level.SEVERE, "bad url " + link, ex);
             }
         }
         return false;
@@ -256,26 +258,36 @@ public class FeedUtils {
      * Given a URL, return all of the link elements contained with the resource
      * @param url the url
      * @return a list of all of the link elements
-     * @throws java.io.IOException if an error occurs while loading the URL
      */
-    private static List<String> getLinkElements(URL url) throws IOException {
+    private static List<String> getLinkElements(URL url) {
+        InputStream is = null;
         List<String> elements = new ArrayList<String>();
-        InputStream is = url.openStream();
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        StringBuilder sb = new StringBuilder();
+        try {
+            is = url.openStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            StringBuilder sb = new StringBuilder();
 
-        int c;
-        while ((c = br.read()) != -1) {
-            sb.append((char) c);
-        }
-        br.close();
-        String content = sb.toString();
+            int c;
+            while ((c = br.read()) != -1) {
+                sb.append((char) c);
+            }
+            br.close();
+            String content = sb.toString();
 
-        String linkregex = "<link[^>]*>";
-        Pattern linkPattern = Pattern.compile(linkregex, Pattern.CASE_INSENSITIVE);
-        Matcher linkMatcher = linkPattern.matcher(content);
-        while (linkMatcher.find()) {
-            elements.add(linkMatcher.group());
+            String linkregex = "<link[^>]*>";
+            Pattern linkPattern = Pattern.compile(linkregex, Pattern.CASE_INSENSITIVE);
+            Matcher linkMatcher = linkPattern.matcher(content);
+            while (linkMatcher.find()) {
+                elements.add(linkMatcher.group());
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(FeedUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                is.close();
+            } catch (IOException ex) {
+                Logger.getLogger(FeedUtils.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         return elements;
     }

@@ -83,7 +83,7 @@ public class AardvarkSearchTest {
 
             assertNotNull("enrolled user can't be null", user1);
             assertNotNull("enrolled user can't be null", user2);
-            Thread.sleep(5000L);
+            Thread.sleep(10000L);
 
             SyndFeed feed = aardvark.getRecommendedFeed(user1);
             int entryCount = feed.getEntries().size();
