@@ -9,8 +9,6 @@
 
 package com.sun.labs.aura.aardvark.store;
 
-import com.sleepycat.persist.model.Persistent;
-
 /**
  * Represents some form of attention that a User can attribute to an Item.
  * 
@@ -25,7 +23,13 @@ public interface Attention {
         STARRED,
         
         /** Viewed by the user */
-        VIEWED
+        VIEWED,
+        
+        /** Subscribed to a feed */
+        SUBSCRIBED_FEED,
+        
+        /** Starred an entire feed */
+        STARRED_FEED
     };
     
     /**
@@ -41,7 +45,7 @@ public interface Attention {
      * @return the Aura ID of the item
      */
     public long getItemID();
-    
+        
     /**
      * Gets the timestamp indicating when this Attention was applied.
      * 

@@ -73,8 +73,7 @@ public interface ItemStore extends Configurable {
     /**
      * Gets an Item from the ItemStore that is associated with the given
      * globally unique key.  This method will instantiate the item once it
-     * is found.  If you only need the ID of the item, the {@link #getID}
-     * method may be quicker.
+     * is found.
      * 
      * @param key the globally unique key that was used to create the Item
      * @return the requested Item

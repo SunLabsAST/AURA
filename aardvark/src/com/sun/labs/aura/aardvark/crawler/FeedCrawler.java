@@ -181,7 +181,7 @@ public class FeedCrawler implements Configurable {
      * @throws AuraException if an error occurs while storing the attention data
      */
     private void attend(User user, Item item, Attention.Type type) throws AuraException {
-        Attention attention = new SimpleAttention(user.getID(), item.getID(), type);
+        Attention attention = new SimpleAttention(user, item, type);
         if (isUniqueAttention(attention)) {
             logger.info("adding attention " + attention);
             itemStore.attend(attention);

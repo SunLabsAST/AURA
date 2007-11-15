@@ -147,7 +147,7 @@ public class BerkeleyItemStoreTest {
         assertTrue(l.isEmpty());
         l = e.getAttentionData();
         assertTrue(l.isEmpty());
-        SimpleAttention sattn = new SimpleAttention(u.getID(), e.getID(),
+        SimpleAttention sattn = new SimpleAttention(u, e,
                                                     Attention.Type.STARRED);
         store.attend(sattn);
         // refresh objects

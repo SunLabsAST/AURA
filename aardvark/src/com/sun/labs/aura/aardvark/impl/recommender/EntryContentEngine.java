@@ -220,7 +220,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      * @param type the type of attention
      */
     private void attend(User user, Item item, Attention.Type type) throws AuraException {
-        Attention attention = new SimpleAttention(user.getID(), item.getID(), Attention.Type.VIEWED);
+        Attention attention = new SimpleAttention(user, item, Attention.Type.VIEWED);
         itemStore.attend(attention);
     }
 
