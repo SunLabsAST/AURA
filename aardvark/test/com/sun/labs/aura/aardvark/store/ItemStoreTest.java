@@ -8,6 +8,7 @@ import com.sun.labs.aura.aardvark.store.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -140,7 +141,7 @@ public class ItemStoreTest {
         assertTrue("Steve blog entry got munged",
                    e.getContent().equals("search is awesome!"));
         
-        List<Entry> l = mis.getAll(Entry.class);
+        Set<Entry> l = mis.getAll(Entry.class);
         assertTrue(l.size() == 2);
         
         ItemStoreStats stats = mis.getStats();

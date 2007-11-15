@@ -20,7 +20,9 @@ import java.util.List;
  * @author ja151348
  */
 public interface Item {
-    
+    /** A unique string that each Item must define to identify its own type */
+    public final static String ITEM_TYPE = "Generic";
+
     /**
      * Gets the Aura ID assigned to this Item
      * 
@@ -42,7 +44,7 @@ public interface Item {
      * @param name the name of the field to fetch
      * @return the value of the named field
      */
-    public String getField(String name);
+    //public String getField(String name);
     
     /**
      * Sets the value of the specified field from the Item.
@@ -50,7 +52,7 @@ public interface Item {
      * @param name the name of the field to set
      * @param value the value to assign to the named field
      */
-    public void setField(String name, String value);
+    //public void setField(String name, String value);
     
     /**
      * Gets a list of all the attention data that is stored about this item.

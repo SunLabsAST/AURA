@@ -17,7 +17,10 @@ import java.net.URL;
  * @author ja151348
  */
 public interface User extends Item {
-   
+    /** A unique string that each Item must define to identify its own type */
+    public final static String ITEM_TYPE = "AardvarkUser";
+
+
     /**
      * Gets the unique hard-to-discover key that was generated to be used as
      * part of the URL for any of this User's content

@@ -1,0 +1,9 @@
+
+<config>
+    <property name="auraHome" value="/tmp/aura"/>
+
+    <component name="itemStore"
+            type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
+        <property name="dbEnv" value="${auraHome}/itemStore.db" />
+    </component>
+</config>

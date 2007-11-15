@@ -44,16 +44,16 @@ public class MemoryItemStore implements ItemStore {
     
     protected Map<Long, Item> idToItem;
     
-    protected Map<Class, List> typeToItems;
+    protected Map<Class, List<Item>> typeToItems;
     
     protected Map<Class, List<ItemListener>> typeToListeners;
     
     public MemoryItemStore() {
         currItemID = new AtomicLong(0);
-        keyToItem = new ConcurrentHashMap();
-        idToItem = new ConcurrentHashMap();
-        typeToItems = new ConcurrentHashMap();
-        typeToListeners = new ConcurrentHashMap();
+        keyToItem = new ConcurrentHashMap<String,Item>();
+        idToItem = new ConcurrentHashMap<Long,Item>();
+        typeToItems = new ConcurrentHashMap<Class,List<Item>>();
+        typeToListeners = new ConcurrentHashMap<Class,List<ItemListener>>();
     }
     
     public <T extends Item> T newItem(Class<T> itemType, String key)
@@ -97,9 +97,9 @@ public class MemoryItemStore implements ItemStore {
         
         //
         // and store it by type as well
-        List l = typeToItems.get(item.getClass());
+        List<Item> l = typeToItems.get(item.getClass());
         if (l == null) {
-            l = Collections.synchronizedList(new ArrayList());
+            l = Collections.synchronizedList(new ArrayList<Item>());
             l.add(item);
             typeToItems.put(item.getClass(), l);
         } else {
@@ -181,7 +181,7 @@ public class MemoryItemStore implements ItemStore {
         // If no type was specified, put this in the all-items listener list.
         // Otherwise, put it in the right list for the type
         
-        List l;
+        List<ItemListener> l;
         if (type != null) {
             l = typeToListeners.get(type);
         } else {
@@ -189,7 +189,7 @@ public class MemoryItemStore implements ItemStore {
         }
         
         if (l == null) {
-            l = Collections.synchronizedList(new ArrayList());
+            l = Collections.synchronizedList(new ArrayList<ItemListener>());
             l.add(listener);
             if (type != null) {
                 typeToListeners.put(type, l);
@@ -229,8 +229,8 @@ public class MemoryItemStore implements ItemStore {
         return currItemID.incrementAndGet();
     }
 
-    public <T extends Item> List<T> getAll(Class<T> itemType) {
-        List<T> ret = new ArrayList();
+    public <T extends Item> Set<T> getAll(Class<T> itemType) {
+        Set<T> ret = new HashSet<T>();
         Class typeInList = null;
         for (Class c : typeToItems.keySet()) {
             if (itemType.isAssignableFrom(c)) {
@@ -238,24 +238,28 @@ public class MemoryItemStore implements ItemStore {
             }
         }
         if (typeInList != null) {
-            ret.addAll(typeToItems.get(typeInList));
+            ret.addAll((List<T>)typeToItems.get(typeInList));
         }
         return ret;
     }
 
     public ItemStoreStats getStats() {
         long numAtt = 0;
-        List<User> users = getAll(User.class);
+        Set<User> users = getAll(User.class);
         for (User u : users) {
             List attns = u.getAttentionData();
             numAtt += attns.size();
         }
-        List<Entry> entries = getAll(Entry.class);
+        Set<Entry> entries = getAll(Entry.class);
         return new ItemStoreStats(users.size(), entries.size(), numAtt);
     }
     
     public void newProperties(PropertySheet arg0) throws PropertyException {
         
+    }
+
+    public void close() {
+        // Do nothing since there is no persistence in this class.
     }
     
     protected Class getMatchingKey(Class subType, Map<Class,?> m) {
@@ -266,4 +270,5 @@ public class MemoryItemStore implements ItemStore {
         }
         return null;
     }
+    
 }

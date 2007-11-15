@@ -23,7 +23,7 @@ public class EntryImpl extends ItemImpl implements Entry {
     }
 
     public static String getType() {
-        return "AardvarkEntry";
+        return Entry.ITEM_TYPE;
     }
     
     public String getContent() {

@@ -15,5 +15,7 @@ package com.sun.labs.aura.aardvark.store.item;
  * @author ja151348
  */
 public interface Feed extends Item {
-    
+    /** A unique string that each Item must define to identify its own type */
+    public final static String ITEM_TYPE = "AardvarkFeed";
+
 }
