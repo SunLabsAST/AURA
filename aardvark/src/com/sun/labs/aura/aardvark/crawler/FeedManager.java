@@ -73,15 +73,17 @@ public class FeedManager implements FeedCrawler {
             Feed feed = null;
             try {
                 logger.info("waiting for next feed");
-                feed = feedRefreshManager.getNextFeedForRefresh();
-                logger.info("processing " + feed.getKey());
-                processFeed(feed);
+                feed = feedRefreshManager.getNextFeedForRefresh(3000L);
+                if (feed != null) {
+                    logger.info("processing " + feed.getKey());
+                    processFeed(feed);
+                }
             } catch (InterruptedException ex) {
             } catch (Throwable ex) {
                 logger.severe("trouble in the feed crawler " + ex.getMessage());
             } finally {
                 if (feed != null) {
-                    feedRefreshManager.returnFeed(feed);
+                    feedRefreshManager.releaseFeed(feed);
                 }
             }
         }

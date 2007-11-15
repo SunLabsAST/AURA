@@ -16,6 +16,7 @@ import com.sun.labs.util.props.PropertySheet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.DelayQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -28,15 +29,26 @@ public class FeedRefreshManager implements Configurable {
     private int feedCount = 0;
 
 
-    public Feed getNextFeedForRefresh() throws InterruptedException {
-        return feedQueue.take();
+    /**
+     * Polls for the next feed to refresh
+     * @param maxWait the maximum time in milliseconds to wait
+     * @return the feed or null if we timed out
+     * @throws java.lang.InterruptedException
+     */
+    public Feed getNextFeedForRefresh(long maxWait) throws InterruptedException {
+        return feedQueue.poll(maxWait, TimeUnit.MILLISECONDS);
     }
     
-    public void returnFeed(Feed feed) {
+    /**
+     * Release a previously retrieve feed. 
+     * @param feed the feed to release
+     */
+    public void releaseFeed(Feed feed) {
         feed.setNextPullTime(feed.getLastPullTime() + (feed.getConsecutiveErrors() + 1) * minimumFeedDelay);
         feedQueue.add(feed);
     }
 
+    // TODO: replace these with calls to the item store
     public Feed getFeed(String keyOrLink) {
         return feedMap.get(keyOrLink);
     }
@@ -45,7 +57,7 @@ public class FeedRefreshManager implements Configurable {
         feedMap.put(feed.getKey(), feed);
         feedMap.put(feed.getFeedUrl().toExternalForm(), feed);
         feedCount++;
-        returnFeed(feed);
+        releaseFeed(feed);
     }
 
     /**
