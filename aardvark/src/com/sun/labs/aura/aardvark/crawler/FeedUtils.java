@@ -13,7 +13,6 @@ import com.sun.syndication.feed.synd.SyndFeedImpl;
 import com.sun.syndication.io.FeedException;
 import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.SyndFeedOutput;
-import com.sun.syndication.io.XmlReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -80,7 +79,12 @@ public class FeedUtils {
     public static List<SyndEntry> getSyndEntries(List<Entry> entries) {
         List<SyndEntry> list = new ArrayList<SyndEntry>();
         for (Entry e : entries) {
-            list.add(e.getSyndEntry());
+            try {
+                list.add(e.getSyndEntry());
+            } catch (AuraException ex) {
+                // Need a logger in here at least.
+                // TODO: Paul should check how to handle this.
+            }
         }
         return list;
     }

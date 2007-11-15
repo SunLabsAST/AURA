@@ -9,6 +9,8 @@
 
 <config>
 
+ <property name="auraHome" value="/tmp/aura"/>
+
 
  <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark">
     <property name="itemStore" value="itemStore"/>
@@ -16,8 +18,10 @@
     <property name="recommenderManager" value="recommenderManager"/>
  </component>
 
-<component name="itemStore" type="com.sun.labs.aura.aardvark.impl.store.MemoryItemStore"/>
-
+<component name="itemStore" type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
+    <property name="dbEnv" value="${auraHome}/itemStore.db"/>
+</component>
+    
 <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.FeedCrawler">
     <property name="userRefreshManager" value="userRefreshManager"/>
     <property name="itemStore" value="itemStore"/>

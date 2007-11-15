@@ -88,7 +88,12 @@ public class BerkeleyDataWrapper {
         econf.setAllowCreate(true);
         sconf.setAllowCreate(true);
 
-        dbEnv = new Environment(new File(dbEnvDir), econf);
+        File dir = new File(dbEnvDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        
+        dbEnv = new Environment(dir, econf);
         store = new EntityStore(dbEnv, "Aardvark", sconf);
         
         //
@@ -201,7 +206,9 @@ public class BerkeleyDataWrapper {
         ItemImpl ret = null;
         try {
             ret = itemByID.get(id);
-            ret.setBerkeleyDataWrapper(this);
+            if (ret != null) {
+                ret.setBerkeleyDataWrapper(this);
+            }
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "getItem() failed to retrieve item (id:" +
                            id + ")", e);
@@ -218,7 +225,9 @@ public class BerkeleyDataWrapper {
         ItemImpl ret = null;
         try {
             ret = itemByKey.get(key);
-            ret.setBerkeleyDataWrapper(this);
+            if (ret != null) {
+                ret.setBerkeleyDataWrapper(this);
+            }
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "getItem() failed to retrieve item (key:" +
                            key + ")", e);
@@ -254,7 +263,9 @@ public class BerkeleyDataWrapper {
         try {
             PrimaryIndex<Long,UserImpl> pi = allUsers.getPrimaryIndex();
             u = pi.get(id);
-            u.setBerkeleyDataWrapper(this);
+            if (u != null) {
+                u.setBerkeleyDataWrapper(this);
+            }
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "getUser() failed to get user (id:" + id
                     + ")", e);

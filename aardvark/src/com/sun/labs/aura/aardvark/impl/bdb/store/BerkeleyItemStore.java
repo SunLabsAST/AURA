@@ -244,7 +244,7 @@ public class BerkeleyItemStore implements ItemStore {
 
         l = listenerMap.get(user.getTypeString());
         for (ItemListener il : l) {
-            il.itemChanged(new ItemEvent(new Item[] {item},
+            il.itemChanged(new ItemEvent(new Item[] {user},
                                          ItemEvent.ChangeType.ATTENTION));
         }
 

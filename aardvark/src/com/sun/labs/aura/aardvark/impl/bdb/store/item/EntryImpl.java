@@ -3,7 +3,9 @@ package com.sun.labs.aura.aardvark.impl.bdb.store.item;
 import com.sleepycat.persist.model.Persistent;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
+import com.sun.labs.aura.aardvark.crawler.FeedUtils;
 import com.sun.labs.aura.aardvark.store.item.Entry;
+import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.syndication.feed.synd.SyndEntry;
 
 /**
@@ -33,6 +35,11 @@ public class EntryImpl extends ItemImpl implements Entry {
     protected String syndEntryXML;
     
     /**
+     * A cached instantiated version of this syndicatin entry.
+     */
+    protected transient SyndEntry cachedEntry;
+    
+    /**
      * All persistent classes must have a default constructor.
      */
     protected EntryImpl() {
@@ -55,12 +62,23 @@ public class EntryImpl extends ItemImpl implements Entry {
         this.content = content;
     }
 
-    public void setSyndEntry(SyndEntry syndEntry) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    /**
+     * Sets the syndication entry for this entry, also transforming it to
+     * XML.
+     * 
+     * @param syndEntry the feed entry
+     */
+    public void setSyndEntry(SyndEntry syndEntry) throws AuraException {
+        this.cachedEntry = syndEntry;
+        this.syndEntryXML = FeedUtils.toString(syndEntry);
     }
 
-    public SyndEntry getSyndEntry() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public SyndEntry getSyndEntry() throws AuraException {
+        if (cachedEntry != null) {
+            return cachedEntry;
+        }
+        cachedEntry = FeedUtils.toSyndEntry(syndEntryXML);
+        return cachedEntry;
     }
     
     public String getTypeString() {

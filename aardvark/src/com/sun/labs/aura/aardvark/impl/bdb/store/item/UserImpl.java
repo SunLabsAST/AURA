@@ -73,7 +73,11 @@ public class UserImpl extends ItemImpl implements User {
     public URL getStarredItemFeedURL() {
         URL feed;
         try {
-            feed = new URL(starredItemFeed);
+            if (starredItemFeed != null) {
+                feed = new URL(starredItemFeed);
+            } else {
+                feed = null;
+            }
         } catch (MalformedURLException e) {
             feed = null;
         }
@@ -89,7 +93,10 @@ public class UserImpl extends ItemImpl implements User {
     }
 
     public long getLastFetchTime() {
-        return lastFetchTime;
+        if (lastFetchTime != null) {
+            return lastFetchTime;
+        }
+        return 0;
     }
 
     public void setLastFetchTime(long lastFetchTime) {
