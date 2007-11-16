@@ -118,7 +118,7 @@ public class Aardvark implements Configurable {
      * @param openID the openID for the user
      * @return the user or null if the user doesn't exist
      */
-    public User getUser(String openID) {
+    public User getUser(String openID) throws AuraException {
         return (User) itemStore.get(openID);
     }
 
@@ -184,7 +184,7 @@ public class Aardvark implements Configurable {
      * @param user the user
      * @return the feed
      */
-    public SyndFeed getRecommendedFeed(User user) {
+    public SyndFeed getRecommendedFeed(User user) throws AuraException {
         SyndFeed feed = new SyndFeedImpl();
         feed.setFeedType("atom");  // BUG - what are the possible feed types
         feed.setTitle("Aardvark recommendations for " + user.getKey());
@@ -198,7 +198,7 @@ public class Aardvark implements Configurable {
      * Returns interesting stats about aardvark
      * @return the stats
      */
-    public Stats getStats() {
+    public Stats getStats() throws AuraException {
         ItemStoreStats itemStoreStats = itemStore.getStats();
         int feedCount = feedCrawler.getNumFeeds();
         int feedPullCount = feedCrawler.getFeedPullCount();

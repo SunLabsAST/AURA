@@ -36,4 +36,10 @@ public interface User extends Item {
      * @param newKey the key that should be in the URL
      */
     public void setRecommenderFeedKey(String newKey);
+
+    /**@deprecated*/
+    public void setStarredItemFeedURL(URL newURL);
+
+    /**@deprecated*/
+    public URL getStarredItemFeedURL();
 }
