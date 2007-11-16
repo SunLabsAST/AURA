@@ -37,7 +37,7 @@ import java.util.logging.Logger;
  */
 public class Aardvark implements Configurable {
 
-    private final static String VERSION = "aardvark version 0.11";
+    private final static String VERSION = "aardvark version 0.12";
     /**
      * the configurable property for the itemstore used by this manager
      */
