@@ -19,7 +19,8 @@
         <property name="feedCrawler" value="feedCrawler"/>
         <property name="recommenderManager" value="searchRecommenderManager"/>
         <property name="autoEnrollTestFeeds" value="true"/>
-        <property name="autoEnrollMegaTestFeeds" value="true"/>
+        <property name="autoEnrollMegaTestFeeds" value="false"/>
+        <property name="garbageProp" value="false"/>
     </component>
     
     <component name="itemStore"

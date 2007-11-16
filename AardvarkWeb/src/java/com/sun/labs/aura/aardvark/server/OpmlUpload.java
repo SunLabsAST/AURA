@@ -90,6 +90,9 @@ public class OpmlUpload extends HttpServlet {
                     if (sb != null) {
                         setResponse(response, "OPML Upload OK", sb.toString());
                     }
+                } catch (AuraException ex) {
+                    Logger.getLogger(OpmlUpload.class.getName()).log(Level.SEVERE, null, ex);
+                    setResponse(response, "Aura Error", "Can't find user: " + ex.getMessage());
                 } catch (FileUploadException ex) {
                     Logger.getLogger(OpmlUpload.class.getName()).log(Level.SEVERE, null, ex);
                     setResponse(response, "Opml Upload Error", "Can't upload: " + ex.getMessage());
