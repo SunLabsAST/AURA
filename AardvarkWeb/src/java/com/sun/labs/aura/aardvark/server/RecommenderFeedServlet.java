@@ -10,6 +10,7 @@ package com.sun.labs.aura.aardvark.server;
 
 import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.store.item.User;
+import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.FeedException;
 import com.sun.syndication.io.SyndFeedOutput;
@@ -48,14 +49,21 @@ public class RecommenderFeedServlet extends HttpServlet {
                     response.sendError(response.SC_INTERNAL_SERVER_ERROR, "Can't find aardvark");
                     return;
                 }
-                
-                User user = aardvark.getUser(userID);
-                if (user == null) {
+
+                User user = null;
+                SyndFeed feed = null;
+                try {
+                    user = aardvark.getUser(userID);
+                    if (user == null) {
+                        response.sendError(response.SC_NOT_FOUND, "Can't find user " + userID);
+                        return;
+                    }
+                    feed = aardvark.getRecommendedFeed(user);
+                } catch (AuraException ex) {
                     response.sendError(response.SC_NOT_FOUND, "Can't find user " + userID);
                     return;
                 }
 
-                SyndFeed feed = aardvark.getRecommendedFeed(user);
                 SyndFeedOutput output = new SyndFeedOutput();
                 feed.setFeedType("atom_1.0");
                 // feed.setLink();
