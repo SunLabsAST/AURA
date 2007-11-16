@@ -20,6 +20,7 @@
     
     <component name="itemStore" type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
         <property name="dbEnv" value="${auraHome}/itemStore.db"/>
+        <property name="overwrite" value="true"/>
     </component>
     
     

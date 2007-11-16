@@ -22,7 +22,6 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -67,7 +66,10 @@ public class FeedManager implements FeedCrawler {
         }
     }
 
-    void crawler() {
+    /**
+     * Crawls the feeds
+     */
+    private void crawler() {
         while (crawler != null) {
 
             Feed feed = null;
@@ -90,14 +92,18 @@ public class FeedManager implements FeedCrawler {
         logger.info("Crawler finished");
     }
 
+    /**
+     * Processes a feed
+     * @param feed the feed to be processed
+     */
     private void processFeed(Feed feed) {
         boolean ok = false;
         try {
             List<Entry> entries = FeedUtils.processFeed(itemStore, feed.getFeedUrl());
             for (UserAttention userAttention : feed.getInterestedUsers()) {
                 for (Entry entry : entries) {
-                    Attention attention = new SimpleAttention(userAttention.getUser().getID(),
-                            entry.getID(), userAttention.getType());
+                    Attention attention = new SimpleAttention(userAttention.getUser(),
+                            entry, userAttention.getType());
                     itemStore.attend(attention);
                 }
             }
@@ -107,15 +113,12 @@ public class FeedManager implements FeedCrawler {
             // can try to find the associated feeds
 
             if (FeedUtils.isAggregatedFeed(entries)) {
-                System.out.println("Aggregated feed: " +  feed.getFeedUrl());
                 for (Entry entry : entries) {
                     String link = entry.getSyndEntry().getUri();
                     URL url = new URL(link);
                     if (!linkHasBeenProcessed(url)) {
-                        System.out.println("Found link: " + link);
                         List<URL> feeds = FeedUtils.findFeeds(url);
                         for (URL f : feeds) {
-                            System.out.println("    Feed: " + f.toExternalForm());
                             createFeed(f);
                         }
                         processedLink(url);
@@ -123,7 +126,8 @@ public class FeedManager implements FeedCrawler {
                 }
             }
         } catch (IOException ex) {
-            Logger.getLogger(FeedManager.class.getName()).log(Level.SEVERE, null, ex);
+            logger.severe("I/O error while processing " + feed.getFeedUrl());
+            feedErrorCount++;
         } catch (AuraException ex) {
             logger.warning("trouble proceesing" + feed.getFeedUrl());
             feedErrorCount++;
@@ -132,10 +136,20 @@ public class FeedManager implements FeedCrawler {
         feed.setStatus(ok);
     }
 
+    
+    /**
+     * Determines if this link has already been processed
+     * @param url the link to test
+     * @return true if the link has already been processed
+     */
     private boolean linkHasBeenProcessed(URL url) {
         return hostSet.contains(url.getHost());
     }
 
+    /**
+     * Sets the link has processed
+     * @param url the link
+     */
     private void processedLink(URL url) {
         hostSet.add(url.getHost());
     }
@@ -145,7 +159,7 @@ public class FeedManager implements FeedCrawler {
         if (crawler == null) {
             crawler = new Thread() {
 
-                        @Override
+        @Override
                 public void run() {
                             crawler();
                         }
