@@ -19,8 +19,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Provides a wrapper around all the berkeley DB iteractions to isolate from
- * other logic in the item store.
+ * Provides a wrapper around all the berkeley DB iteractions to isolate it
+ * from other logic in the item store.
  */
 public class BerkeleyDataWrapper {
     /**
@@ -78,7 +78,29 @@ public class BerkeleyDataWrapper {
     
     protected Logger log;
     
+    /**
+     * Constructs a database wrapper.
+     * 
+     * @param dbEnvDir the environment directory for the database
+     * @param logger a logger to use for messages
+     * @throws com.sleepycat.je.DatabaseException
+     */
     public BerkeleyDataWrapper(String dbEnvDir, Logger logger)
+            throws DatabaseException {
+        this(dbEnvDir, logger, false);
+    }
+
+    /**
+     * Constructs a database wrapper.
+     * 
+     * @param dbEnvDir the environment directory for the database
+     * @param logger a logger to use for messages
+     * @param overwrite true if an existing database should be overwritten
+     * @throws com.sleepycat.je.DatabaseException
+     */
+    public BerkeleyDataWrapper(String dbEnvDir,
+                               Logger logger,
+                               boolean overwrite)
             throws DatabaseException {
         this.log = logger;
         
@@ -91,6 +113,12 @@ public class BerkeleyDataWrapper {
         File dir = new File(dbEnvDir);
         if (!dir.exists()) {
             dir.mkdirs();
+        } else if (overwrite) {
+            for (File f : dir.listFiles()) {
+                f.delete();
+            }
+            dir.delete();
+            dir.mkdir();
         }
         
         dbEnv = new Environment(dir, econf);

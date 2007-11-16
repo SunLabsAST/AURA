@@ -3,7 +3,6 @@ package com.sun.labs.aura.aardvark.impl.bdb.store;
 
 import com.sleepycat.persist.model.DeleteAction;
 import com.sleepycat.persist.model.Entity;
-import com.sleepycat.persist.model.KeyField;
 import com.sleepycat.persist.model.PrimaryKey;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
@@ -38,7 +37,7 @@ public class PersistentAttention implements Attention {
                   relatedEntity=ItemImpl.class,
                   onRelatedEntityDelete=DeleteAction.CASCADE)
     private long itemID;
-    
+        
     /**
      * The type of this Attention.
      * Many attentions will have the same type.
@@ -84,7 +83,7 @@ public class PersistentAttention implements Attention {
     public long getItemID() {
         return itemID;
     }
-
+    
     public long getTimeStamp() {
         return timeStamp;
     }

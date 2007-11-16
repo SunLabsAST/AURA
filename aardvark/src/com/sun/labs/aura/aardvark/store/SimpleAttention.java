@@ -9,6 +9,9 @@
 
 package com.sun.labs.aura.aardvark.store;
 
+import com.sun.labs.aura.aardvark.store.item.Item;
+import com.sun.labs.aura.aardvark.store.item.User;
+
 /**
  * A basic Attention object that supports Starred and Viewed attention.
  * @author ja151348
@@ -31,27 +34,27 @@ public class SimpleAttention implements Attention {
      * Creates a SimpleAttention object.  The timestamp is set to the current
      * system time.
      * 
-     * @param userID the Aura ID of the user
-     * @param itemID the Aura ID of the item
+     * @param u the related user
+     * @param i the related item
      * @param type the type of this Attention
      */
-    public SimpleAttention(long userID, long itemID, Type type) {
-        this(userID, itemID, type, System.currentTimeMillis());
+    public SimpleAttention(User u, Item i, Type type) {
+        this(u, u, type, System.currentTimeMillis());
     }
     
     /**
      * Creates a SimpleAttention object with a specified time.
      * 
-     * @param userID the Aura ID of the user
-     * @param itemID the Aura ID of the item
+     * @param u the related user
+     * @param i the related item
      * @param type the type of this Attention
      * @param timeStamp the time at which the attention occurred
      */
-    public SimpleAttention(long userID, long itemID,
+    public SimpleAttention(User u, Item i,
                            Type type, long timeStamp) {
-        this.userID = userID;
-        this.itemID = itemID;
-        this.type = type;
+        this.userID = u.getID();
+        this.itemID = i.getID();
+       this.type = type;
         this.timeStamp = timeStamp;
     }
     

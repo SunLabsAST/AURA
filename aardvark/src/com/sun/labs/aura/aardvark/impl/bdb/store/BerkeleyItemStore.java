@@ -15,6 +15,7 @@ import com.sun.labs.aura.aardvark.store.item.ItemEvent;
 import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -37,6 +38,10 @@ public class BerkeleyItemStore implements ItemStore {
     @ConfigString(defaultValue="/tmp/aura")
     public final static String PROP_DB_ENV="dbEnv";
     protected String dbEnvDir;
+    
+    @ConfigBoolean(defaultValue=false)
+    public final static String PROP_OVERWRITE="overwrite";
+    protected boolean overwriteExisting;
     
     /**
      * The wrapper around all the BDB/JE implementation
@@ -85,9 +90,13 @@ public class BerkeleyItemStore implements ItemStore {
         dbEnvDir = ps.getString(PROP_DB_ENV);
         
         //
+        // See if we should overwrite any existing database at that path
+        overwriteExisting = ps.getBoolean(PROP_OVERWRITE);
+        
+        //
         // Configure and open the environment and entity store
         try {
-            bdb = new BerkeleyDataWrapper(dbEnvDir, logger);
+            bdb = new BerkeleyDataWrapper(dbEnvDir, logger, overwriteExisting);
         } catch (DatabaseException e) {
             logger.severe("Failed to load the database environment at " +
                           dbEnvDir + ": " + e);
