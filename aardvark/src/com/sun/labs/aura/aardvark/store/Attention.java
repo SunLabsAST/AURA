@@ -1,18 +1,7 @@
-/*
- * Attention.java
- * 
- * Created on Oct 25, 2007, 4:09:56 PM
- * 
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package com.sun.labs.aura.aardvark.store;
 
 /**
  * Represents some form of attention that a User can attribute to an Item.
- * 
- * @author ja151348
  */
 public interface Attention {
     /**
@@ -28,8 +17,11 @@ public interface Attention {
         /** Subscribed to a feed */
         SUBSCRIBED_FEED,
         
-        /** Starred an entire feed */
-        STARRED_FEED
+        /** Starred for an entire feed */
+        STARRED_FEED,
+        
+        /** Dislike for an entire feed */
+        DISLIKED_FEED
     };
     
     /**

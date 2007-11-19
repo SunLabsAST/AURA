@@ -3,10 +3,17 @@ package com.sun.labs.aura.aardvark.impl.bdb.store.item;
 import com.sleepycat.persist.model.Persistent;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
+import com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore;
+import com.sun.labs.aura.aardvark.impl.bdb.store.PersistentAttention;
+import com.sun.labs.aura.aardvark.store.Attention;
+import com.sun.labs.aura.aardvark.store.SimpleAttention;
+import com.sun.labs.aura.aardvark.store.item.Feed;
 import com.sun.labs.aura.aardvark.store.item.User;
+import com.sun.labs.aura.aardvark.util.AuraException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Implementation of a persistent User through the Berkeley DB Java Edition.
@@ -36,10 +43,11 @@ public class UserImpl extends ItemImpl implements User {
     protected String starredItemFeed;
 
     /**
-     * Feeds that this user is interested in (not including starred items).
+     * Feeds that this user is interested in.  If storing feeds via attn
+     * proves to be too slow or too messy, we'll add a direct list here.
      * This field is persistent.
      */
-    protected HashSet<String> interestedFeeds;
+    //protected HashSet<String> interestedFeeds;
     
     /**
      * The last time data was fetched for this user.  This should probably
@@ -70,6 +78,43 @@ public class UserImpl extends ItemImpl implements User {
         this.rFeedKey = newKey;
     }
 
+    /**
+     * Get all the feeds associated with this user that have a particular
+     * attention type in the association.
+     * 
+     * @param type the type of attention to get feeds for
+     * @return the feeds
+     */
+    public Set<Feed> getFeeds(Attention.Type type) {
+        Set<Feed> feeds = new HashSet<Feed>();
+        
+        Set<PersistentAttention> attns = bdb.getAttentionForUser(getID(), type);
+        for (PersistentAttention attn : attns) {
+            FeedImpl feed = (FeedImpl)bdb.getItem(attn.getItemID());
+            feeds.add(feed);
+        }
+        return feeds;
+    }
+    
+    /**
+     * Adds a feed for this user.  This is a convenience method that is
+     * equivalent to creating an Attention object and passing it to the
+     * Item Store's attend method.
+     * 
+     * @param f the feed to be added
+     * @param type the type of attention to be associated with the feed
+     */
+    public void addFeed(Feed f, Attention.Type type) throws AuraException {
+        if (f.getID() <= 0) {
+            throw new AuraException("Feed must be made persistent before it "+
+                    "can be added to a user");
+        }
+        SimpleAttention attn = new SimpleAttention(this, f, type);
+        BerkeleyItemStore store = BerkeleyItemStore.getItemStore();
+        store.attend(attn);
+    }
+    
+    @Deprecated
     public URL getStarredItemFeedURL() {
         URL feed;
         try {
@@ -84,6 +129,7 @@ public class UserImpl extends ItemImpl implements User {
         return feed;
     }
 
+    @Deprecated
     public void setStarredItemFeedURL(URL newURL) {
         if (newURL != null) {
             starredItemFeed = newURL.toString();
