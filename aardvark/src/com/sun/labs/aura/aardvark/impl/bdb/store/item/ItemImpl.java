@@ -37,7 +37,7 @@ public abstract class ItemImpl implements Item {
     
     private List<Attention> attention;
     
-    private transient BerkeleyDataWrapper bdb;
+    protected transient BerkeleyDataWrapper bdb;
     
     /**
      * All persistent objects must have a default constructor.

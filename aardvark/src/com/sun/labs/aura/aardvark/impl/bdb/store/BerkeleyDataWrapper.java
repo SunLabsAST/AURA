@@ -4,7 +4,9 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.persist.EntityCursor;
+import com.sleepycat.persist.EntityJoin;
 import com.sleepycat.persist.EntityStore;
+import com.sleepycat.persist.ForwardCursor;
 import com.sleepycat.persist.PrimaryIndex;
 import com.sleepycat.persist.SecondaryIndex;
 import com.sleepycat.persist.StoreConfig;
@@ -12,6 +14,7 @@ import com.sun.labs.aura.aardvark.impl.bdb.store.item.EntryImpl;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.FeedImpl;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.ItemImpl;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.UserImpl;
+import com.sun.labs.aura.aardvark.store.Attention;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
@@ -75,6 +78,12 @@ public class BerkeleyDataWrapper {
      * the associated user
      */
     protected SecondaryIndex<Long,Long,PersistentAttention> attnByUserID;
+    
+    /**
+     * The index of all Attention in the item store, accessible by
+     * the type of attention
+     */
+    protected SecondaryIndex<Integer,Long,PersistentAttention> attnByType;
     
     protected Logger log;
     
@@ -149,7 +158,10 @@ public class BerkeleyDataWrapper {
         attnByUserID = store.getSecondaryIndex(attnByID,
                                                Long.class,
                                                "userID");
-        
+       
+        attnByType = store.getSecondaryIndex(attnByID,
+                                             Integer.class,
+                                             "type");
     }
     
     /**
@@ -225,7 +237,7 @@ public class BerkeleyDataWrapper {
     }
     
     /**
-     * Gets an item from the entry store
+     * Gets an item from the entity store
      * 
      * @param id the id of the item to fetch
      * @return the item or null if the id is unknown
@@ -245,7 +257,7 @@ public class BerkeleyDataWrapper {
     }
     
     /**
-     * Gets an item from the entry store
+     * Gets an item from the entity store
      * @param key the key of the item to fetch
      * @return the item or null if the key is unknown
      */
@@ -264,7 +276,7 @@ public class BerkeleyDataWrapper {
     }
     
     /**
-     * Puts an item into the entry store.  If the item already exists, it will
+     * Puts an item into the entity store.  If the item already exists, it will
      * be replaced.
      * 
      * @param item the item to put
@@ -310,6 +322,32 @@ public class BerkeleyDataWrapper {
                     e);
         }
         return pa;
+    }
+    
+    public Set<PersistentAttention> getAttentionForUser(long userID,
+                                                        Attention.Type type) {
+        EntityJoin<Long,PersistentAttention> join = new EntityJoin(attnByID);
+        join.addCondition(attnByUserID, userID);
+        join.addCondition(attnByType, type.ordinal());
+        
+        Set<PersistentAttention> ret = new HashSet<PersistentAttention>();
+        try {
+            ForwardCursor<PersistentAttention> cur = null;
+            try {
+                cur = join.entities();
+                for (PersistentAttention attn : cur) {
+                    ret.add(attn);
+                }
+            } finally {
+                if (cur != null) {
+                    cur.close();
+                }
+            }
+        } catch (DatabaseException e) {
+            log.log(Level.WARNING, "Failed to get attention type " + type +
+                    " for user " + userID, e);
+        }        
+        return ret;
     }
     
     /**
