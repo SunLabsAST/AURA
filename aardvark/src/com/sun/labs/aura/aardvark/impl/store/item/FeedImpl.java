@@ -20,4 +20,52 @@ public class FeedImpl extends ItemImpl implements Feed {
     public static String getType() {
         return "AardvarkFeed";
     }
+
+    public long getLastPullTime() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public long getNextPullTime() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public long getNumPulls() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public long getNumErrors() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public int getNumConsecutiveErrors() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public int getNumExternalLinks() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public void setLastPullTime(long time) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public void setNextPullTime(long time) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public void setNumPulls(long num) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public void setNumErrors(long num) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public void setNumConsecutiveErrors(int num) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public void setNumExternalLinks(int num) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

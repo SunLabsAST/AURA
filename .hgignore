@@ -4,3 +4,4 @@ genfiles.properties
 dist/
 build/
 private/
+*.orig
