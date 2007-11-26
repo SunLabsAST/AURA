@@ -1,0 +1,3 @@
+http://ecs.amazonaws.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=0KNB0BQBSQ66NXDJ5N02&Operation=ItemSearch&SearchIndex=Books&Title=Harry%20Potter&Version=2007-07-16
+http://ecs.amazonaws.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=0KNB0BQBSQ66NXDJ5N02&Operation=ItemSearch&SearchIndex=MP3Downloads&Title=Weezer
+http://ecs.amazonaws.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=0KNB0BQBSQ66NXDJ5N02&Operation=ItemSearch&SearchIndex=MP3Downloads&Keyword=Weezer
