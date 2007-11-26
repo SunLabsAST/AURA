@@ -44,8 +44,10 @@ public class AardvarkServiceImpl extends RemoteServiceServlet implements Aardvar
             // pre-enroll a test user, just to make testing the web
             // interface a bit easier.
 
-            aardvark.enrollUser("test", 
-                "http://www.google.com/reader/public/atom/user/07268145224739680674/state/com.google/starred");
+            if (aardvark.getUser("test") == null) {
+                aardvark.enrollUser("test",
+                        "http://www.google.com/reader/public/atom/user/07268145224739680674/state/com.google/starred");
+            }
         } catch (AuraException ex) {
             aardvark = null;
             Logger.getLogger(AardvarkServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
