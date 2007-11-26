@@ -8,8 +8,11 @@
 -->
 
 <config>
+
+    <!-- this doesn't work the way you think it does -->
+    <property name="auraHome" value="/tmp/aura"/>
     
-    <property name="indexDir" value="/tmp/entryContent.idx"/>
+    <property name="indexDir" value="/tmp/aura/entryContent.idx"/>
     
     <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark">
         <property name="itemStore" value="itemStore"/>
@@ -19,7 +22,10 @@
         <property name="autoEnrollMegaTestFeeds" value="false"/>
     </component>
     
-    <component name="itemStore" type="com.sun.labs.aura.aardvark.impl.store.MemoryItemStore"/>
+    <component name="itemStore"
+            type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
+        <property name="dbEnv" value="/tmp/aura/itemStore.db" />
+    </component>
     
 
     <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.FeedManager">

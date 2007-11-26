@@ -39,7 +39,7 @@ public class SimpleAttention implements Attention {
      * @param type the type of this Attention
      */
     public SimpleAttention(User u, Item i, Type type) {
-        this(u, u, type, System.currentTimeMillis());
+        this(u, i, type, System.currentTimeMillis());
     }
     
     /**
@@ -54,7 +54,7 @@ public class SimpleAttention implements Attention {
                            Type type, long timeStamp) {
         this.userID = u.getID();
         this.itemID = i.getID();
-       this.type = type;
+        this.type = type;
         this.timeStamp = timeStamp;
     }
     

@@ -16,7 +16,7 @@ import com.google.gwt.user.client.rpc.IsSerializable;
  * @author plamere
  */
 public class WiStats implements IsSerializable {
-    private String version;
+    private String version ;
     private long numUsers;
     private long numItems;
     private long numAttention;
@@ -36,6 +36,7 @@ public class WiStats implements IsSerializable {
     }
 
     public WiStats() {
+        version = "Error";
     }
 
     public long getNumAttention() {

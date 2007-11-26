@@ -9,7 +9,6 @@
 
 <config>
     <property name="auraHome" value="/tmp/aura"/>
-
     <property name="indexDir" value="/tmp/aardvarkSearchTestEntryContent.idx"/>
     
     <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark">
@@ -19,7 +18,8 @@
     </component>
     
     <component name="itemStore" type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
-        <property name="dbEnv" value="${auraHome}/itemStore.db"/>
+        <property name="dbEnv" value="/tmp/aura/itemStore.db"/>
+        <property name="overwrite" value="true"/>
     </component>
     
     

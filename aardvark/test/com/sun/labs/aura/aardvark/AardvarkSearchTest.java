@@ -85,6 +85,8 @@ public class AardvarkSearchTest {
             assertNotNull("enrolled user can't be null", user2);
             Thread.sleep(10000L);
 
+            user1 = aardvark.getUser("openid.sun.com/plamere");
+            assertTrue("user1 should have attention data", user1.getAttentionData().size() > 0);
             SyndFeed feed = aardvark.getRecommendedFeed(user1);
             int entryCount = feed.getEntries().size();
             assertTrue("The random document should have been returned: " + entryCount, entryCount > 0);
@@ -98,7 +100,12 @@ public class AardvarkSearchTest {
 
             // we should be able to get recommendations until there's nothing left to recommend:
 
+            int count = 0;
             while (aardvark.getRecommendedFeed(user1).getEntries().size() > 0) {
+                if (count++ > 10) {
+                    fail("too many recommendations");
+                    break;
+                }
             }
 
             assertTrue("there should be zero recommendations left", 
@@ -205,7 +212,7 @@ public class AardvarkSearchTest {
             if(indexDir.isDirectory()) {
                 deleteDirectory(indexDir);
             } else {
-                assertTrue(indexDir.delete());
+                assertTrue("can't delete " + indexDir, indexDir.delete());
             }
         }
 

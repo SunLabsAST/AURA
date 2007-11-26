@@ -42,29 +42,6 @@
     </target>
     <target depends="-pre-init,-init-private,-init-user,-init-project,-init-macrodef-property" if="dist.ear.dir" name="-do-ear-init"/>
     <target depends="-pre-init,-init-private,-init-user,-init-project,-init-macrodef-property,-do-ear-init" name="-do-init">
-        <webproject1:property name="platform.home" value="platforms.${platform.active}.home"/>
-        <webproject1:property name="platform.bootcp" value="platforms.${platform.active}.bootclasspath"/>
-        <webproject1:property name="platform.compiler" value="platforms.${platform.active}.compile"/>
-        <webproject1:property name="platform.javac.tmp" value="platforms.${platform.active}.javac"/>
-        <condition property="platform.javac" value="${platform.home}/bin/javac">
-            <equals arg1="${platform.javac.tmp}" arg2="$${platforms.${platform.active}.javac}"/>
-        </condition>
-        <property name="platform.javac" value="${platform.javac.tmp}"/>
-        <webproject1:property name="platform.java.tmp" value="platforms.${platform.active}.java"/>
-        <condition property="platform.java" value="${platform.home}/bin/java">
-            <equals arg1="${platform.java.tmp}" arg2="$${platforms.${platform.active}.java}"/>
-        </condition>
-        <property name="platform.java" value="${platform.java.tmp}"/>
-        <webproject1:property name="platform.javadoc.tmp" value="platforms.${platform.active}.javadoc"/>
-        <condition property="platform.javadoc" value="${platform.home}/bin/javadoc">
-            <equals arg1="${platform.javadoc.tmp}" arg2="$${platforms.${platform.active}.javadoc}"/>
-        </condition>
-        <property name="platform.javadoc" value="${platform.javadoc.tmp}"/>
-        <fail unless="platform.home">Must set platform.home</fail>
-        <fail unless="platform.bootcp">Must set platform.bootcp</fail>
-        <fail unless="platform.java">Must set platform.java</fail>
-        <fail unless="platform.javac">Must set platform.javac</fail>
-        <fail if="platform.invalid">Platform is not correctly set up</fail>
         <condition property="have.tests">
             <or>
                 <available file="${test.src.dir}"/>
@@ -182,7 +159,7 @@
             <attribute default="" name="javac.compilerargs.jaxws"/>
             <element name="customize" optional="true"/>
             <sequential>
-                <javac debug="@{debug}" deprecation="${javac.deprecation}" destdir="@{destdir}" encoding="${source.encoding}" executable="${platform.javac}" fork="yes" includeantruntime="false" source="${javac.source}" srcdir="@{srcdir}" target="${javac.target}" tempdir="${java.io.tmpdir}">
+                <javac debug="@{debug}" deprecation="${javac.deprecation}" destdir="@{destdir}" encoding="${source.encoding}" includeantruntime="false" source="${javac.source}" srcdir="@{srcdir}" target="${javac.target}">
                     <classpath>
                         <path path="@{classpath}"/>
                     </classpath>
@@ -196,12 +173,12 @@
         <macrodef name="junit" uri="http://www.netbeans.org/ns/web-project/2">
             <attribute default="**/*Test.java" name="includes"/>
             <sequential>
-                <junit dir="${basedir}" errorproperty="tests.failed" failureproperty="tests.failed" fork="true" jvm="${platform.java}" showoutput="true">
+                <junit dir="${basedir}" errorproperty="tests.failed" failureproperty="tests.failed" fork="true" showoutput="true">
                     <batchtest todir="${build.test.results.dir}">
                         <fileset dir="${test.src.dir}" includes="@{includes}"/>
                     </batchtest>
                     <classpath>
-                        <path path="${run.test.classpath}"/>
+                        <path path="${run.test.classpath}:${j2ee.platform.classpath}"/>
                     </classpath>
                     <syspropertyset>
                         <propertyref prefix="test-sys-prop."/>
@@ -218,10 +195,10 @@
             <attribute default="${main.class}" name="classname"/>
             <element name="customize" optional="true"/>
             <sequential>
-                <java classname="@{classname}" fork="true" jvm="${platform.java}">
+                <java classname="@{classname}" fork="true">
                     <jvmarg line="${runmain.jvmargs}"/>
                     <classpath>
-                        <path path="${debug.classpath}"/>
+                        <path path="${debug.classpath}:${j2ee.platform.classpath}"/>
                     </classpath>
                     <syspropertyset>
                         <propertyref prefix="run-sys-prop."/>
@@ -235,15 +212,12 @@
     <target name="-init-macrodef-nbjpda">
         <macrodef name="nbjpdastart" uri="http://www.netbeans.org/ns/web-project/1">
             <attribute default="${main.class}" name="name"/>
-            <attribute default="${debug.classpath}" name="classpath"/>
+            <attribute default="${debug.classpath}:${j2ee.platform.classpath}" name="classpath"/>
             <sequential>
                 <nbjpdastart addressproperty="jpda.address" name="@{name}" transport="dt_socket">
                     <classpath>
                         <path path="@{classpath}"/>
                     </classpath>
-                    <bootclasspath>
-                        <path path="${platform.bootcp}"/>
-                    </bootclasspath>
                 </nbjpdastart>
             </sequential>
         </macrodef>
@@ -255,11 +229,14 @@
                 </nbjpdareload>
             </sequential>
         </macrodef>
+        <macrodef name="nbjpdaappreloaded" uri="http://www.netbeans.org/ns/web-project/1">
+            <sequential>
+                <nbjpdaappreloaded/>
+            </sequential>
+        </macrodef>
     </target>
     <target name="-init-debug-args">
-        <exec executable="${platform.java}" outputproperty="version-output">
-            <arg value="-version"/>
-        </exec>
+        <property name="version-output" value="java version &quot;${ant.java.version}"/>
         <condition property="have-jdk-older-than-1.4">
             <or>
                 <contains string="${version-output}" substring="java version &quot;1.0"/>
@@ -275,11 +252,11 @@
     <target depends="-init-debug-args" name="-init-macrodef-debug">
         <macrodef name="debug" uri="http://www.netbeans.org/ns/web-project/1">
             <attribute default="${main.class}" name="classname"/>
-            <attribute default="${debug.classpath}" name="classpath"/>
+            <attribute default="${debug.classpath}:${j2ee.platform.classpath}" name="classpath"/>
             <attribute default="${application.args.param}" name="args"/>
             <element name="customize" optional="true"/>
             <sequential>
-                <java classname="@{classname}" fork="true" jvm="${platform.java}">
+                <java classname="@{classname}" fork="true">
                     <jvmarg line="${debug-args-line}"/>
                     <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
                     <jvmarg line="${runmain.jvmargs}"/>
@@ -353,38 +330,6 @@
             <fileset dir="${webinf.dir}" excludes="${build.web.excludes}"/>
         </copy>
     </target>
-    <target if="rest.support.on" name="-init-rest">
-        <condition property="platform.restlib.classpath" value="${j2ee.platform.classpath}">
-            <and>
-                <isset property="restlib.ignore.platform"/>
-                <isfalse value="${restlib.ignore.platform}"/>
-            </and>
-        </condition>
-        <taskdef classname="com.sun.ws.rest.tools.ant.WebResourcesProcessorTask" name="restapt">
-            <classpath>
-                <path path="${platform.restlib.classpath}"/>
-                <path path="${libs.restlib.classpath}"/>
-            </classpath>
-        </taskdef>
-    </target>
-    <target depends="-init-rest" if="rest.support.on" name="-rest-post-compile">
-        <mkdir dir="${build.generated.dir}/rest-gen"/>
-        <restapt destdir="${build.generated.dir}/rest-gen" fork="true" nocompile="true" sourcePath="${src.dir}" sourcedestdir="${build.generated.dir}/rest-gen" xEndorsed="true">
-            <classpath>
-                <path path="${javac.classpath}"/>
-                <path path="${libs.jaxws21.classpath}"/>
-                <path path="${j2ee.platform.classpath}"/>
-                <pathelement location="${build.web.dir}/WEB-INF/classes"/>
-            </classpath>
-            <source dir="${src.dir}">
-                <include name="**/*.java"/>
-            </source>
-        </restapt>
-        <webproject2:javac destdir="${build.classes.dir}" srcdir="${build.generated.dir}/rest-gen"/>
-        <copy todir="${build.classes.dir}">
-            <fileset dir="${build.generated.dir}/rest-gen" includes="**/*.wadl"/>
-        </copy>
-    </target>
     <target name="-do-ws-compile"/>
     <target depends="init, deps-jar, -pre-pre-compile, -pre-compile, -copy-manifest, -copy-persistence-xml, -copy-webdir, library-inclusion-in-archive,library-inclusion-in-manifest,-do-ws-compile" if="have.sources" name="-do-compile">
         <webproject2:javac destdir="${build.classes.dir}"/>
@@ -408,7 +353,7 @@
         <!-- Empty placeholder for easier customization. -->
         <!-- You can override this target in the ../build.xml file. -->
     </target>
-    <target depends="init,deps-jar,-pre-pre-compile,-pre-compile,-do-compile,-rest-post-compile,-post-compile" description="Compile project." name="compile"/>
+    <target depends="init,deps-jar,-pre-pre-compile,-pre-compile,-do-compile,-post-compile" description="Compile project." name="compile"/>
     <target name="-pre-compile-single">
         <!-- Empty placeholder for easier customization. -->
         <!-- You can override this target in the ../build.xml file. -->
@@ -437,6 +382,8 @@
             <arg value="-d"/>
             <arg file="${basedir}/${build.generated.dir}/src"/>
             <arg value="-die1"/>
+            <arg value="-compilerSourceVM ${javac.source}"/>
+            <arg value="-compilerTargetVM ${javac.target}"/>
             <classpath path="${java.home}/../lib/tools.jar:${copyfiles.classpath}:${jspcompilation.classpath}"/>
         </java>
         <mkdir dir="${build.generated.dir}/classes"/>
@@ -453,6 +400,8 @@
             <arg value="-die1"/>
             <arg value="-jspc.files"/>
             <arg path="${jsp.includes}"/>
+            <arg value="-compilerSourceVM ${javac.source}"/>
+            <arg value="-compilerTargetVM ${javac.target}"/>
             <classpath path="${java.home}/../lib/tools.jar:${copyfiles.classpath}:${jspcompilation.classpath}"/>
         </java>
         <mkdir dir="${build.generated.dir}/classes"/>
@@ -503,14 +452,10 @@
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,-do-dist-with-manifest,-do-dist-without-manifest" name="do-dist"/>
     <target depends="init" if="dist.ear.dir" name="library-inclusion-in-manifest">
-        <basename file="${libs.GWT.classpath}" property="included.lib.libs.GWT.classpath"/>
-        <copy-ear-war file="${libs.GWT.classpath}" propname="included.lib.libs.GWT.classpath.X"/>
-        <basename file="${file.reference.gwt-dev-linux.jar}" property="included.lib.file.reference.gwt-dev-linux.jar"/>
-        <copy-ear-war file="${file.reference.gwt-dev-linux.jar}" propname="included.lib.file.reference.gwt-dev-linux.jar.X"/>
-        <basename file="${file.reference.gwt-servlet.jar}" property="included.lib.file.reference.gwt-servlet.jar"/>
-        <copy-ear-war file="${file.reference.gwt-servlet.jar}" propname="included.lib.file.reference.gwt-servlet.jar.X"/>
         <basename file="${reference.aardvark.jar}" property="included.lib.reference.aardvark.jar"/>
         <copy-ear-war file="${reference.aardvark.jar}" propname="included.lib.reference.aardvark.jar.X"/>
+        <basename file="${file.reference.gwt-servlet.jar}" property="included.lib.file.reference.gwt-servlet.jar"/>
+        <copy-ear-war file="${file.reference.gwt-servlet.jar}" propname="included.lib.file.reference.gwt-servlet.jar.X"/>
         <basename file="${file.reference.ant.jar}" property="included.lib.file.reference.ant.jar"/>
         <copy-ear-war file="${file.reference.ant.jar}" propname="included.lib.file.reference.ant.jar.X"/>
         <basename file="${file.reference.jaxen-core.jar}" property="included.lib.file.reference.jaxen-core.jar"/>
@@ -539,17 +484,21 @@
         <copy-ear-war file="${file.reference.commons-fileupload-1.2.jar}" propname="included.lib.file.reference.commons-fileupload-1.2.jar.X"/>
         <basename file="${file.reference.commons-io-1.3.2.jar}" property="included.lib.file.reference.commons-io-1.3.2.jar"/>
         <copy-ear-war file="${file.reference.commons-io-1.3.2.jar}" propname="included.lib.file.reference.commons-io-1.3.2.jar.X"/>
+        <basename file="${file.reference.je-3.2.44.jar}" property="included.lib.file.reference.je-3.2.44.jar"/>
+        <copy-ear-war file="${file.reference.je-3.2.44.jar}" propname="included.lib.file.reference.je-3.2.44.jar.X"/>
+        <basename file="${file.reference.gwt-user.jar}" property="included.lib.file.reference.gwt-user.jar"/>
+        <copy-ear-war file="${file.reference.gwt-user.jar}" propname="included.lib.file.reference.gwt-user.jar.X"/>
+        <basename file="${file.reference.gwt-dev-mac.jar}" property="included.lib.file.reference.gwt-dev-mac.jar"/>
+        <copy-ear-war file="${file.reference.gwt-dev-mac.jar}" propname="included.lib.file.reference.gwt-dev-mac.jar.X"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${included.lib.libs.GWT.classpath} ${included.lib.file.reference.gwt-dev-linux.jar} ${included.lib.file.reference.gwt-servlet.jar} ${included.lib.reference.aardvark.jar} ${included.lib.file.reference.ant.jar} ${included.lib.file.reference.jaxen-core.jar} ${included.lib.file.reference.jaxen-jdom.jar} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.ktsearch.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.rome-0.9.jar} ${included.lib.file.reference.rome-fetcher-0.9.jar} ${included.lib.file.reference.saxpath.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.xml-apis.jar} ${included.lib.file.reference.commons-fileupload-1.2.jar} ${included.lib.file.reference.commons-io-1.3.2.jar} "/>
+            <attribute name="Class-Path" value="${included.lib.reference.aardvark.jar} ${included.lib.file.reference.gwt-servlet.jar} ${included.lib.file.reference.ant.jar} ${included.lib.file.reference.jaxen-core.jar} ${included.lib.file.reference.jaxen-jdom.jar} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.ktsearch.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.rome-0.9.jar} ${included.lib.file.reference.rome-fetcher-0.9.jar} ${included.lib.file.reference.saxpath.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.xml-apis.jar} ${included.lib.file.reference.commons-fileupload-1.2.jar} ${included.lib.file.reference.commons-io-1.3.2.jar} ${included.lib.file.reference.je-3.2.44.jar} ${included.lib.file.reference.gwt-user.jar} ${included.lib.file.reference.gwt-dev-mac.jar} "/>
         </manifest>
         <delete dir="${dist.ear.dir}/temp"/>
     </target>
     <target depends="init" name="library-inclusion-in-archive" unless="dist.ear.dir">
-        <copy file="${libs.GWT.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.gwt-dev-linux.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.gwt-servlet.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${reference.aardvark.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gwt-servlet.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.ant.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.jaxen-core.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.jaxen-jdom.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
@@ -564,6 +513,9 @@
         <copy file="${file.reference.xml-apis.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.commons-fileupload-1.2.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.commons-io-1.3.2.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.je-3.2.44.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gwt-user.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gwt-dev-mac.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>
@@ -601,7 +553,9 @@
     <target name="-run-deploy-am">
         <!-- Task to deploy to the Access Manager runtime. -->
     </target>
-    <target depends="init,compile,compile-jsps,-do-compile-single-jsp,-pre-dist,-do-tmp-dist-with-manifest,-do-tmp-dist-without-manifest,-pre-run-deploy,-pre-nbmodule-run-deploy,-run-deploy-nb,-init-deploy-ant,-deploy-ant,-run-deploy-am,-post-nbmodule-run-deploy,-post-run-deploy" name="run-deploy"/>
+    <target depends="init,compile,compile-jsps,-do-compile-single-jsp,-pre-dist,-do-tmp-dist-with-manifest,-do-tmp-dist-without-manifest,-pre-run-deploy,-pre-nbmodule-run-deploy,-run-deploy-nb,-init-deploy-ant,-deploy-ant,-run-deploy-am,-post-nbmodule-run-deploy,-post-run-deploy" name="run-deploy">
+        <nbjpdaappreloaded/>
+    </target>
     <target if="netbeans.home" name="-run-deploy-nb">
         <nbdeploy clientUrlPart="${client.urlPart}" debugmode="false" forceRedeploy="${forceRedeploy}"/>
     </target>
@@ -683,10 +637,6 @@
         <fail unless="run.class">Must select one file in the IDE or set run.class</fail>
         <webproject1:java classname="${run.class}"/>
     </target>
-    <target depends="run-deploy,-init-display-browser" name="test-restbeans">
-        <replace file="${restbeans.test.file}" token="${base.url.token}" value="${client.url}"/>
-        <nbbrowse url="${restbeans.test.url}"/>
-    </target>
     <!--
                 DEBUGGING SECTION
             -->
@@ -698,14 +648,11 @@
     <target name="connect-debugger" unless="is.debugged">
         <nbjpdaconnect address="${jpda.address}" host="${jpda.host}" name="${name}" transport="${jpda.transport}">
             <classpath>
-                <path path="${debug.classpath}:${ws.debug.classpaths}"/>
+                <path path="${debug.classpath}:${j2ee.platform.classpath}:${ws.debug.classpaths}"/>
             </classpath>
             <sourcepath>
                 <path path="${web.docbase.dir}:${ws.web.docbase.dirs}"/>
             </sourcepath>
-            <bootclasspath>
-                <path path="${platform.bootcp}"/>
-            </bootclasspath>
         </nbjpdaconnect>
     </target>
     <target if="do.display.browser" name="debug-display-browser">
@@ -733,7 +680,7 @@
             -->
     <target depends="init" name="javadoc-build">
         <mkdir dir="${dist.javadoc.dir}"/>
-        <javadoc additionalparam="${javadoc.additionalparam}" author="${javadoc.author}" charset="${javadoc.encoding.used}" destdir="${dist.javadoc.dir}" docencoding="${javadoc.encoding.used}" encoding="${javadoc.encoding.used}" executable="${platform.javadoc}" failonerror="true" noindex="${javadoc.noindex}" nonavbar="${javadoc.nonavbar}" notree="${javadoc.notree}" private="${javadoc.private}" source="${javac.source}" splitindex="${javadoc.splitindex}" use="${javadoc.use}" useexternalfile="true" version="${javadoc.version}" windowtitle="${javadoc.windowtitle}">
+        <javadoc additionalparam="${javadoc.additionalparam}" author="${javadoc.author}" charset="UTF-8" destdir="${dist.javadoc.dir}" docencoding="UTF-8" encoding="${javadoc.encoding.used}" failonerror="true" noindex="${javadoc.noindex}" nonavbar="${javadoc.nonavbar}" notree="${javadoc.notree}" private="${javadoc.private}" source="${javac.source}" splitindex="${javadoc.splitindex}" use="${javadoc.use}" useexternalfile="true" version="${javadoc.version}" windowtitle="${javadoc.windowtitle}">
             <classpath>
                 <path path="${javac.classpath}:${j2ee.platform.classpath}"/>
             </classpath>

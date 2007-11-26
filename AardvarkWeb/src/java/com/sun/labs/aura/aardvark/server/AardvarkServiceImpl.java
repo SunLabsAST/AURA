@@ -60,10 +60,13 @@ public class AardvarkServiceImpl extends RemoteServiceServlet implements Aardvar
     }
 
     public WiStats getStats() {
-        Stats stats = aardvark.getStats();
-        return new WiStats(stats.getVersion(),
-                stats.getNumUsers(), stats.getNumItems(), stats.getNumAttentionData(),
-                stats.getNumFeeds(), stats.getFeedPullCount(), stats.getFeedErrorCount());
+        try {
+            Stats stats = aardvark.getStats();
+            return new WiStats(stats.getVersion(), stats.getNumUsers(), stats.getNumItems(), stats.getNumAttentionData(), stats.getNumFeeds(), stats.getFeedPullCount(), stats.getFeedErrorCount());
+        } catch (AuraException ex) {
+            Logger.getLogger(AardvarkServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+            return new WiStats();
+        }
     }
 
     public WiUserStatus registerUser(String name, String feed) {
@@ -82,11 +85,15 @@ public class AardvarkServiceImpl extends RemoteServiceServlet implements Aardvar
 
     public WiUserStatus loginUser(String name) {
         WiUserStatus wus = null;
-        User user = aardvark.getUser(name);
-        if (user != null) {
-            WiUser wiUser = userToWiUser(user);
-            wus = new WiUserStatus(null, wiUser);
-        } else {
+        try {
+            User user = aardvark.getUser(name);
+            if (user != null) {
+                WiUser wiUser = userToWiUser(user);
+                wus = new WiUserStatus(null, wiUser);
+            } else {
+                wus = new WiUserStatus("Can't find user " + name, null);
+            }
+        } catch (AuraException ex) {
             wus = new WiUserStatus("Can't find user " + name, null);
         }
         return wus;
@@ -99,19 +106,24 @@ public class AardvarkServiceImpl extends RemoteServiceServlet implements Aardvar
     }
 
     public WiEntrySummary[] getRecommendations(String name) {
-        User user = aardvark.getUser(name);
-        if (user != null) {
-            SyndFeed feed = aardvark.getRecommendedFeed(user);
-            WiEntrySummary[] summaries = new WiEntrySummary[feed.getEntries().size()];
-            int index = 0;
-            for (Object syndEntryObject : feed.getEntries()) {
-                SyndEntry syndEntry = (SyndEntry) syndEntryObject;
-                String title = syndEntry.getTitle();
-                String link = syndEntry.getLink();
-                summaries[index++] = new WiEntrySummary(title, link);
+        try {
+            User user = aardvark.getUser(name);
+            if (user != null) {
+                SyndFeed feed = aardvark.getRecommendedFeed(user);
+                WiEntrySummary[] summaries = new WiEntrySummary[feed.getEntries().size()];
+                int index = 0;
+                for (Object syndEntryObject : feed.getEntries()) {
+                    SyndEntry syndEntry = (SyndEntry) syndEntryObject;
+                    String title = syndEntry.getTitle();
+                    String link = syndEntry.getLink();
+                    summaries[index++] = new WiEntrySummary(title, link);
+                }
+                return summaries;
+            } else {
+                return new WiEntrySummary[0];
             }
-            return summaries;
-        } else {
+        } catch (AuraException ex) {
+            Logger.getLogger(AardvarkServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
             return new WiEntrySummary[0];
         }
     }
