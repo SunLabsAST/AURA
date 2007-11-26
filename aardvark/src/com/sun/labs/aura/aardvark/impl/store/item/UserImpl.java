@@ -34,4 +34,12 @@ public class UserImpl extends ItemImpl implements User {
     public void setRecommenderFeedKey(String newKey) {
         setField(R_FEED_KEY, newKey);
     }
+
+    public void setStarredItemFeedURL(URL newURL) {
+        throw new UnsupportedOperationException("no longer supported");
+    }
+
+    public URL getStarredItemFeedURL() {
+        throw new UnsupportedOperationException("no longer supported");
+    }
 }

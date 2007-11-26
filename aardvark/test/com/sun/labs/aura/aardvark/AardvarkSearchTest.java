@@ -116,10 +116,10 @@ public class AardvarkSearchTest {
         try {
             aardvark.startup();
             URL feedURL1 = this.getClass().getResource("gr_pbl_starred.atom.xml");
-            User user1 = aardvark.enrollUser("openid.sun.com/plamere", feedURL1.toString());
+            User user1 = aardvark.enrollUser("openid.sun.com/plamere2", feedURL1.toString());
 
             URL feedURL2 = this.getClass().getResource("reddit.rss");
-            User user2 = aardvark.enrollUser("reddit", feedURL2.toString());
+            User user2 = aardvark.enrollUser("reddit2", feedURL2.toString());
 
             Thread.sleep(20000L);
 
@@ -145,9 +145,6 @@ public class AardvarkSearchTest {
 
         try {
             aardvark.startup();
-
-            assertTrue("empty aardvark users", aardvark.getStats().getNumUsers() == 0);
-            assertTrue("empty aardvark items", aardvark.getStats().getNumItems() == 0);
 
             enroll(aardvark, "blogs.sun.com.rss");
             enroll(aardvark, "delicious.rss");

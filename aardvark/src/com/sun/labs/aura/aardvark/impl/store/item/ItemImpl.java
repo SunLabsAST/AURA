@@ -5,7 +5,6 @@
 
 package com.sun.labs.aura.aardvark.impl.store.item;
 
-import com.sun.labs.aura.aardvark.impl.store.AttentionImpl;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.item.Item;
 import java.util.ArrayList;
@@ -24,9 +23,9 @@ public abstract class ItemImpl implements Item {
     
     protected String key;
     
-    protected Map<String,String> fields = new HashMap();
+    protected Map<String,String> fields = new HashMap<String,String>();
     
-    protected List<Attention> attn = new ArrayList();
+    protected List<Attention> attn = new ArrayList<Attention>();
     
     public ItemImpl(long itemID, String key) {
         this.itemID = itemID;
@@ -43,7 +42,7 @@ public abstract class ItemImpl implements Item {
     }
     
     public static String getType() {
-        return "ArdvarkGeneric";
+        return Item.ITEM_TYPE;
     }
         
 
@@ -56,7 +55,7 @@ public abstract class ItemImpl implements Item {
     }
 
     public List<Attention> getAttentionData() {
-        List ret = new ArrayList();
+        List<Attention> ret = new ArrayList<Attention>();
         ret.addAll(attn);
         return ret;
     }

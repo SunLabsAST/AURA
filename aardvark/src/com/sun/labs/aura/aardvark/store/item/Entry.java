@@ -10,6 +10,7 @@
 
 package com.sun.labs.aura.aardvark.store.item;
 
+import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.syndication.feed.synd.SyndEntry;
 
 /**
@@ -18,7 +19,9 @@ import com.sun.syndication.feed.synd.SyndEntry;
  * @author ja151348
  */
 public interface Entry extends Item {
-    
+    /** A unique string that each Item must define to identify its own type */
+    public final static String ITEM_TYPE = "AardvarkEntry";
+
     /**
      * Gets the content of this Entry
      * 
@@ -38,12 +41,12 @@ public interface Entry extends Item {
      * 
      * @param syndEntry the RSS entry
      */
-    public void setSyndEntry(SyndEntry syndEntry);
+    public void setSyndEntry(SyndEntry syndEntry) throws AuraException;
 
     /**
      * Gets the RSS entry contents
      *
      * @return the RSS entry
      */
-    public SyndEntry getSyndEntry();
+    public SyndEntry getSyndEntry() throws AuraException;
 }

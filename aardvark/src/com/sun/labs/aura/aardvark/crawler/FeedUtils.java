@@ -93,7 +93,7 @@ public class FeedUtils {
      * @param entries the list of Entry objects
      * @return a list of SyndEntry objects
      */
-    public static List<SyndEntry> getSyndEntries(List<Entry> entries) {
+    public static List<SyndEntry> getSyndEntries(List<Entry> entries) throws AuraException {
         List<SyndEntry> list = new ArrayList<SyndEntry>();
         for (Entry e : entries) {
             list.add(e.getSyndEntry());
@@ -144,7 +144,7 @@ public class FeedUtils {
      * @param entries the entries to check
      * @return true if some of  entries  come from different hosts
      */
-    public static boolean isAggregatedFeed(List<Entry> entries) {
+    public static boolean isAggregatedFeed(List<Entry> entries) throws AuraException {
         String lastHost = null;
         for (Entry entry : entries) {
             String link = entry.getSyndEntry().getLink();

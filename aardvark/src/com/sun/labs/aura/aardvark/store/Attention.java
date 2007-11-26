@@ -9,6 +9,8 @@
 
 package com.sun.labs.aura.aardvark.store;
 
+import com.sleepycat.persist.model.Persistent;
+
 /**
  * Represents some form of attention that a User can attribute to an Item.
  * 
@@ -18,7 +20,7 @@ public interface Attention {
     /**
      * The type of attention data that this Attention represents.
      */
-    public enum Type {
+    public static enum Type {
         /** Starred in Google Reader by the user */
         STARRED,
 

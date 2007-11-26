@@ -76,16 +76,24 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
             // Note that this won't account for entries whose text have changed while
             // the engine was not active, just the entries that have never been indexed.
             if (ps.getBoolean(PROP_INDEX_AT_STARTUP)) {
-                for (Item i : itemStore.getAll(Entry.class)) {
-                    if (!engine.isIndexed(i.getKey())) {
-                        index((Entry) i);
+                try {
+                    for (Item i : itemStore.getAll(Entry.class)) {
+                        if (!engine.isIndexed(i.getKey())) {
+                            index((Entry) i);
+                        }
                     }
+                } catch (AuraException ex) {
+                    log.severe("Failed to get all Entries");
                 }
             }
 
             //
-        // Listen for new things.
-            itemStore.addItemListener(Entry.class, this);
+            // Listen for new things.
+            try {
+                itemStore.addItemListener(Entry.class, this);
+            } catch (AuraException ex) {
+                log.warning("Failed to add content engine as listener");
+            }
         } catch (SearchEngineException see) {
             log.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
         }
@@ -212,7 +220,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      * @param type the type of attention
      */
     private void attend(User user, Item item, Attention.Type type) throws AuraException {
-        Attention attention = new SimpleAttention(user.getID(), item.getID(), Attention.Type.VIEWED);
+        Attention attention = new SimpleAttention(user, item, Attention.Type.VIEWED);
         itemStore.attend(attention);
     }
 
