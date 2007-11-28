@@ -144,12 +144,13 @@ public class FeedUtils {
      * @param entries the entries to check
      * @return true if some of  entries  come from different hosts
      */
-    public static boolean isAggregatedFeed(List<Entry> entries) throws AuraException {
+    public static boolean isAggregatedFeed(List<Entry> entries) {
         String lastHost = null;
+        String link = null;
         for (Entry entry : entries) {
-            String link = entry.getSyndEntry().getLink();
-            if (link != null) {
-                try {
+            try {
+                link = entry.getSyndEntry().getLink();
+                if (link != null) {
                     URL url = new URL(link);
                     String host = url.getHost();
                     if (host != null) {
@@ -161,14 +162,15 @@ public class FeedUtils {
                             }
                         }
                     }
-                } catch (MalformedURLException ex) {
-                    Logger.getLogger(FeedUtils.class.getName()).log(Level.SEVERE, "bad url " + link, ex);
                 }
+            } catch (AuraException ex) {
+                Logger.getLogger(FeedUtils.class.getName()).log(Level.INFO, "can't get SyndEntry", ex);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(FeedUtils.class.getName()).log(Level.INFO, "bad url " + link, ex);
             }
         }
         return false;
     }
-
 
     /**
      * Converts the syndEntry into an Entry and adds it to the itemstore if the itemstore does not 
@@ -235,13 +237,9 @@ public class FeedUtils {
                             if (type.contains("rss") || type.contains("atom")) {
                                 String href = attributes.get("href");
                                 if (href != null) {
-
-                                    // so they had better be absolute URIs
-                                    System.out.println("Found Feed: " + href + " from " + url);
                                     URI resolvedURI = uri.resolve(href);
                                     URL hrefURL = resolvedURI.toURL();
                                     feeds.add(hrefURL);
-                                    System.out.println("Found Feed: " + hrefURL);
                                 }
                             }
                         }
