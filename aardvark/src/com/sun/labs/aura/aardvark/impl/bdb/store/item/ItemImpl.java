@@ -35,7 +35,7 @@ public abstract class ItemImpl implements Item {
      */
     private HashSet<Long> attentionIDs;
     
-    private List<Attention> attention;
+    private transient List<Attention> attention;
     
     protected transient BerkeleyDataWrapper bdb;
     
