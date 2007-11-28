@@ -4,6 +4,7 @@ import com.sun.labs.aura.aardvark.recommender.RecommenderManager;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.ItemStore;
 import com.sun.labs.aura.aardvark.store.item.Entry;
+import com.sun.labs.aura.aardvark.store.item.Item;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.props.ConfigComponent;
@@ -21,10 +22,14 @@ public class SimpleRecommendationManager implements RecommenderManager {
     
     public List<Entry> getRecommendations(User user) {
         List<Attention> attends = user.getAttentionData();
-        List<Entry> ret = new ArrayList<Entry>(attends.size());
+        List<Entry> ret = new ArrayList<Entry>();
         for(Attention a : attends) {
             try {
-                ret.add((Entry) itemStore.get(a.getItemID()));
+                Item item = itemStore.get(a.getItemID());
+                
+                if (item instanceof Entry) {
+                    ret.add((Entry) itemStore.get(a.getItemID()));
+                }
             } catch (AuraException ex) {
                 
             }
