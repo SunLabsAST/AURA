@@ -52,6 +52,8 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
     private SimpleIndexer simpleIndexer;
 
     private int entryBatchSize;
+    
+    private int engineLogLevel;
 
     private int entryCount = 0;
     
@@ -59,9 +61,10 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         entryBatchSize = ps.getInt(PROP_ENTRY_BATCH_SIZE);
+        engineLogLevel = ps.getInt(PROP_ENGINE_LOG_LEVEL);
         log = ps.getLogger();
         Log.setLogger(log);
-        Log.setLevel(3);
+        Log.setLevel(engineLogLevel);
         String indexDir = ps.getString(PROP_INDEX_DIR);
         String engineConfig = ps.getString(PROP_ENGINE_CONFIG_FILE);
         try {
@@ -334,6 +337,13 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      */
     @ConfigString(defaultValue = "entryEngineConfig.xml")
     public static final String PROP_ENGINE_CONFIG_FILE = "engineConfigFile";
+    
+    /**
+     * The default logging level for the search engine.  Paul likes things nice
+     * and quiet.
+     */
+    @ConfigInteger(defaultValue=2)
+    public static final String PROP_ENGINE_LOG_LEVEL = "engineLogLevel";
 
     /**
      * The configurable item store.  We'll listen to this item store for new
