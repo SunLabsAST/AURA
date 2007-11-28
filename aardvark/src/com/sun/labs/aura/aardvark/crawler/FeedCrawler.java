@@ -9,6 +9,8 @@
 
 package com.sun.labs.aura.aardvark.crawler;
 
+import com.sun.labs.aura.aardvark.store.item.Feed;
+import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.props.Configurable;
 import java.net.URL;
 
@@ -33,6 +35,13 @@ public interface FeedCrawler extends Configurable {
      * @return the feed
      */
     public Feed createFeed(URL feedUrl);
+
+    /**
+     * Crawls all of the feeds once. This method is suitable for use
+     * in testing, when a single threaded crawl is desireable.
+     * @throws AuraException
+     */
+	public void crawlAllFeeds() throws AuraException ;
 
     /**
      * Gets the number of feeds errors

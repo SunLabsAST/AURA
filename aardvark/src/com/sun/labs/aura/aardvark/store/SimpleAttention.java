@@ -58,6 +58,24 @@ public class SimpleAttention implements Attention {
         this.timeStamp = timeStamp;
     }
     
+    
+        /**
+     * Creates a SimpleAttention object with a specified time.
+     * 
+     * @param userID the ID of the related user
+     * @param itemID the ID of the related item
+     * @param type the type of this Attention
+     * @param timeStamp the time at which the attention occurred
+     */
+    public SimpleAttention(long userID, long itemID,
+                           Type type, long timeStamp) {
+        this.userID = userID;
+        this.itemID = itemID;
+        this.type = type;
+        this.timeStamp = timeStamp;
+    }
+    
+    
     public long getUserID() {
         return userID;
     }

@@ -4,16 +4,16 @@
  */
 package com.sun.labs.aura.aardvark;
 
-import com.sun.labs.aura.aardvark.crawler.Feed;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.crawler.FeedUtils;
 import com.sun.labs.aura.aardvark.crawler.OPMLProcessor;
-import com.sun.labs.aura.aardvark.crawler.UserAttention;
 import com.sun.labs.aura.aardvark.recommender.RecommenderManager;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.ItemStore;
 import com.sun.labs.aura.aardvark.store.ItemStoreStats;
+import com.sun.labs.aura.aardvark.store.SimpleAttention;
 import com.sun.labs.aura.aardvark.store.item.Entry;
+import com.sun.labs.aura.aardvark.store.item.Feed;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.props.ConfigBoolean;
@@ -29,7 +29,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -107,9 +106,10 @@ public class Aardvark implements Configurable {
     /**
      * Stops all processing
      */
-    public void shutdown() {
+    public void shutdown() throws AuraException {
         feedCrawler.stop();
         recommenderManager.shutdown();
+        itemStore.close();
         logger.info("shutdown");
     }
 
@@ -142,8 +142,8 @@ public class Aardvark implements Configurable {
     public void addUserFeed(User user, URL feedURL, Attention.Type type) throws AuraException {
         Feed feed = feedCrawler.createFeed(feedURL);
         if (feed != null) {
-            UserAttention userAttention = new UserAttention(user, type);
-            feed.addInterestedUser(userAttention);
+            SimpleAttention userAttention = new SimpleAttention(user, feed, type);
+            itemStore.attend(userAttention);
         } else {
             throw new AuraException("Invalid feed " + feed);
         }
@@ -172,7 +172,7 @@ public class Aardvark implements Configurable {
         try {
             URL feedURL = new URL(feed);
             User user = enrollUser(openID);
-            addUserFeed(user, feedURL, Attention.Type.STARRED);
+            addUserFeed(user, feedURL, Attention.Type.STARRED_FEED);
             return user;
         } catch (MalformedURLException ex) {
             throw new AuraException("Bad url " + feed, ex);
@@ -185,12 +185,15 @@ public class Aardvark implements Configurable {
      * @return the feed
      */
     public SyndFeed getRecommendedFeed(User user) throws AuraException {
+
+        // freshen the user:
+        User freshUser = getUser(user.getKey());
         SyndFeed feed = new SyndFeedImpl();
         feed.setFeedType("atom");  // BUG - what are the possible feed types
-        feed.setTitle("Aardvark recommendations for " + user.getKey());
-        feed.setDescription("Recommendations created for " + user);
+        feed.setTitle("Aardvark recommendations for " + freshUser.getKey());
+        feed.setDescription("Recommendations created for " + freshUser);
         feed.setPublishedDate(new Date());
-        feed.setEntries(FeedUtils.getSyndEntries(getRecommendedEntries(user)));
+        feed.setEntries(FeedUtils.getSyndEntries(getRecommendedEntries(freshUser)));
         return feed;
     }
 
