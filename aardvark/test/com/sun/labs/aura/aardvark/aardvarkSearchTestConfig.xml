@@ -23,15 +23,13 @@
     </component>
     
     
-    <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.FeedManager">
-        <property name="feedRefreshManager" value="feedRefreshManager"/>
-        <property name="itemStore" value="itemStore"/>
-    </component>
-    
-    <component name="feedRefreshManager" type="com.sun.labs.aura.aardvark.crawler.FeedRefreshManager">
+    <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.SimpleFeedCrawler">
         <property name="itemStore" value="itemStore"/>
         <property name="minimumFeedDelayInMinutes" value="1"/>
+        <property name="validateOnAdd" value="false"/>
+        <property name="testMode" value="true"/>
     </component>
+    
     
     <component name="searchRecommenderManager" type="com.sun.labs.aura.aardvark.impl.recommender.SearchRecommenderManager">
         <property name="entryEngine" value="entryContentEngine"/>
@@ -39,7 +37,7 @@
     
     <component name="entryContentEngine" type="com.sun.labs.aura.aardvark.impl.recommender.EntryContentEngine">
         <property name="itemStore" value="itemStore"/>
-        <property name="entryBatchSize" value="5"/>
+        <property name="entryBatchSize" value="1"/>
         <property name="indexDir" value="${indexDir}"/>
     </component>
     

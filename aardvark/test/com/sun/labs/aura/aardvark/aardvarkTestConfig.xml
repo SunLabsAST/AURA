@@ -8,30 +8,30 @@
 -->
 
 <config>
-
-
- <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark">
-    <property name="itemStore" value="itemStore"/>
-    <property name="feedCrawler" value="feedCrawler"/>
-    <property name="recommenderManager" value="recommenderManager"/>
- </component>
-
-<component name="itemStore" type="com.sun.labs.aura.aardvark.impl.store.MemoryItemStore"/>
-
-
-<component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.FeedManager">
-    <property name="feedRefreshManager" value="feedRefreshManager"/>
-    <property name="itemStore" value="itemStore"/>
-</component>
-
-<component name="feedRefreshManager" type="com.sun.labs.aura.aardvark.crawler.FeedRefreshManager">
-    <property name="itemStore" value="itemStore"/>
-    <property name="minimumFeedDelayInMinutes" value="1"/>
-</component>
-
-
-<component name="recommenderManager" type="com.sun.labs.aura.aardvark.impl.recommender.SimpleRecommendationManager">
-    <property name="itemStore" value="itemStore"/>
-</component>
-
+    
+    
+    <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark">
+        <property name="itemStore" value="itemStore"/>
+        <property name="feedCrawler" value="feedCrawler"/>
+        <property name="recommenderManager" value="recommenderManager"/>
+    </component>
+    
+    <component name="itemStore" type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
+        <property name="dbEnv" value="/tmp/aura/itemStore.db"/>
+        <property name="overwrite" value="true"/>
+    </component>
+    
+    
+    <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.SimpleFeedCrawler">
+        <property name="itemStore" value="itemStore"/>
+        <property name="minimumFeedDelayInMinutes" value="0"/>
+        <property name="testMode" value="true"/>
+    </component>
+    
+    
+    
+    <component name="recommenderManager" type="com.sun.labs.aura.aardvark.impl.recommender.SimpleRecommendationManager">
+        <property name="itemStore" value="itemStore"/>
+    </component>
+    
 </config>
