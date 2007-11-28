@@ -44,11 +44,18 @@ import java.util.logging.Logger;
 public class EntryContentEngine implements Configurable, Recommender, ItemListener {
 
     private SearchEngine engine;
+
     private ItemStore itemStore;
+
     private Logger log;
+
     private SimpleIndexer simpleIndexer;
+
     private int entryBatchSize;
+
     private int entryCount = 0;
+    
+    private boolean shuttingDown;
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         entryBatchSize = ps.getInt(PROP_ENTRY_BATCH_SIZE);
@@ -75,14 +82,14 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
             //
             // Note that this won't account for entries whose text have changed while
             // the engine was not active, just the entries that have never been indexed.
-            if (ps.getBoolean(PROP_INDEX_AT_STARTUP)) {
+            if(ps.getBoolean(PROP_INDEX_AT_STARTUP)) {
                 try {
-                    for (Item i : itemStore.getAll(Entry.class)) {
-                        if (!engine.isIndexed(i.getKey())) {
+                    for(Item i : itemStore.getAll(Entry.class)) {
+                        if(!engine.isIndexed(i.getKey())) {
                             index((Entry) i);
                         }
                     }
-                } catch (AuraException ex) {
+                } catch(AuraException ex) {
                     log.severe("Failed to get all Entries");
                 }
             }
@@ -91,10 +98,10 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
             // Listen for new things.
             try {
                 itemStore.addItemListener(Entry.class, this);
-            } catch (AuraException ex) {
+            } catch(AuraException ex) {
                 log.warning("Failed to add content engine as listener");
             }
-        } catch (SearchEngineException see) {
+        } catch(SearchEngineException see) {
             log.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
         }
     }
@@ -107,7 +114,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      */
     public void index(Entry e) {
         index(simpleIndexer, e);
-        if (++entryCount % entryBatchSize == 0) {
+        if(++entryCount % entryBatchSize == 0) {
             simpleIndexer.finish();
             simpleIndexer = engine.getSimpleIndexer();
         }
@@ -137,15 +144,15 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
     public DocumentVector getDocument(long id) {
         try {
             ResultSet rs = engine.search(String.format("id = %d", id), "-score", null);
-            if (rs.size() == 0) {
+            if(rs.size() == 0) {
                 return null;
             }
-            if (rs.size() > 1) {
+            if(rs.size() > 1) {
                 log.warning("Multiple entries for ID: " + id);
             }
             Result r = rs.getResults(0, 1).get(0);
             return r.getDocumentVector();
-        } catch (SearchEngineException ex) {
+        } catch(SearchEngineException ex) {
             log.log(Level.SEVERE, "Error searching for ID " + id, ex);
             return null;
         }
@@ -161,7 +168,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
     public DocumentVector getDocument(String key) {
         try {
             return engine.getDocumentVector(key);
-        } catch (SearchEngineException ex) {
+        } catch(SearchEngineException ex) {
             log.log(Level.SEVERE, "Error searching for key " + key, ex);
             return null;
         }
@@ -170,16 +177,16 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
     public List<Entry> getRecommendations(User user) {
         int numResults = 15;
         try {
-            List<Attention> a =  getUserStarredAttentionData(user);
+            List<Attention> a = getUserStarredAttentionData(user);
 
-            if (a.size() == 0) {
+            if(a.size() == 0) {
                 return new ArrayList<Entry>();
             }
 
             Random rand = new Random();
             Attention att = a.get(rand.nextInt(a.size()));
             DocumentVector dv = getDocument(att.getItemID());
-            if (dv == null) {
+            if(dv == null) {
                 return new ArrayList<Entry>();
             }
 
@@ -187,15 +194,15 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
             List<Entry> ret = new ArrayList<Entry>();
             ResultSet rs = dv.findSimilar();
 
-            for (int i = 0; ret.size() < numResults && i < rs.size(); i += numResults) {
-                for (Result r : rs.getResults(i, numResults)) {
+            for(int i = 0; ret.size() < numResults && i < rs.size(); i += numResults) {
+                for(Result r : rs.getResults(i, numResults)) {
                     Entry entry = (Entry) itemStore.get((Long) r.getSingleFieldValue("id"));
-                    if (entry != null) {
-                        if (!userItems.contains(entry.getID())) {
+                    if(entry != null) {
+                        if(!userItems.contains(entry.getID())) {
                             userItems.add(entry.getID());   // to avoid dups
                             attend(user, entry, Attention.Type.VIEWED);
                             ret.add(entry);
-                            if (ret.size() >= numResults) {
+                            if(ret.size() >= numResults) {
                                 break;
                             }
                         }
@@ -203,16 +210,16 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
                 }
             }
             return ret;
-        } catch (SearchEngineException ex) {
+        } catch(SearchEngineException ex) {
             log.log(Level.SEVERE, "Error finding most similar documents for " +
                     user.getKey(), ex);
             return new ArrayList<Entry>();
-        } catch (AuraException ex) {
+        } catch(AuraException ex) {
             log.log(Level.SEVERE, "Exception while attending to items", ex);
             return new ArrayList<Entry>();
         }
     }
-    
+
     /**
      * Add new attention data to the item store
      * @param user the user
@@ -233,7 +240,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
     private Set<Long> getUserItems(User user) {
         Set<Long> itemSet = new HashSet<Long>();
         List<Attention> attentionData = user.getAttentionData();
-        for (Attention attention : attentionData) {
+        for(Attention attention : attentionData) {
             itemSet.add(attention.getItemID());
         }
         return itemSet;
@@ -246,58 +253,75 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      */
     private List<Attention> getUserStarredAttentionData(User user) {
         List<Attention> starredAttentionData = new ArrayList<Attention>();
-        
-        for (Attention a: user.getAttentionData()) {
-            if (a.getType() == Attention.Type.STARRED) {
+
+        for(Attention a : user.getAttentionData()) {
+            if(a.getType() == Attention.Type.STARRED) {
                 starredAttentionData.add(a);
             }
         }
         return starredAttentionData;
     }
 
-    public void itemCreated(ItemEvent e) {
+    public synchronized void itemCreated(ItemEvent e) {
+        
+        if(shuttingDown) {
+            return;
+        }
 
         //
         // Index the new items.
-        for (Item i : e.getItems()) {
+        for(Item i : e.getItems()) {
             index((Entry) i);
         }
     }
 
-    public void itemChanged(ItemEvent e) {
+    public synchronized void itemChanged(ItemEvent e) {
+        if(shuttingDown) {
+            return;
+        }
         try {
             //
             // If the aura was changed, then re-index.
-            if (e.getChangeType() == ItemEvent.ChangeType.AURA) {
-                for (Item i : e.getItems()) {
+            if(e.getChangeType() == ItemEvent.ChangeType.AURA) {
+                for(Item i : e.getItems()) {
                     index((Entry) i);
                 }
             }
-        } catch (AuraException ex) {
+        } catch(AuraException ex) {
             log.log(Level.SEVERE, "Error handling changed items", ex);
         }
     }
 
-    public void itemDeleted(ItemEvent e) {
+    public synchronized void itemDeleted(ItemEvent e) {
+        
+        if(shuttingDown) {
+            return;
+        }
         try {
             //
             // Get the list of keys and delete them all at once.
             List<String> keys = new ArrayList<String>();
-            for (Item i : e.getItems()) {
+            for(Item i : e.getItems()) {
                 keys.add(i.getKey());
             }
             engine.delete(keys);
-        } catch (SearchEngineException ex) {
+        } catch(SearchEngineException ex) {
             log.log(Level.SEVERE, "Error removing deleted items", ex);
         }
     }
 
-    public void shutdown() {
+    public synchronized void shutdown() {
         try {
+            //
+            // Stop listening for things and shut down the engine.
+            shuttingDown = true;
             log.log(Level.INFO, "Shutting down search engine");
+            itemStore.removeItemListener(Entry.class, this);
             simpleIndexer.finish();
             engine.close();
-        } catch (SearchEngineException ex) {
+        } catch(AuraException ae) {
+            log.log(Level.WARNING, "Error removing item listener", ae);
+        } catch(SearchEngineException ex) {
             log.log(Level.WARNING, "Error closing entry content engine", ex);
         }
     }
@@ -308,7 +332,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      * Note that any resource named by this property must be accessible via
      * <code>Class.getResource()</code>!
      */
-    @ConfigString(defaultValue="entryEngineConfig.xml")
+    @ConfigString(defaultValue = "entryEngineConfig.xml")
     public static final String PROP_ENGINE_CONFIG_FILE = "engineConfigFile";
 
     /**
@@ -318,6 +342,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
     @ConfigComponent(type = com.sun.labs.aura.aardvark.store.ItemStore.class)
     public static final String PROP_ITEM_STORE =
             "itemStore";
+
     /**
      * The configurable index directory.
      */
@@ -336,4 +361,5 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      */
     @ConfigInteger(defaultValue = 20, range = {1, 8192})
     public static final String PROP_ENTRY_BATCH_SIZE = "entryBatchSize";
+
 }
