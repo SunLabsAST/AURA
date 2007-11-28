@@ -19,6 +19,9 @@ public interface Attention {
         /** Viewed by the user */
         VIEWED,
         
+        /** Disliked by the user */
+        DISLIKED,
+        
         /** Subscribed to a feed */
         SUBSCRIBED_FEED,
         
