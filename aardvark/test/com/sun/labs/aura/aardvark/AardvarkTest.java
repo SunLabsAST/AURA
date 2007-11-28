@@ -8,6 +8,7 @@
  */
 package com.sun.labs.aura.aardvark;
 
+import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.LabsLogFormatter;
@@ -31,6 +32,7 @@ import static org.junit.Assert.*;
 public class AardvarkTest {
 
     Aardvark aardvark = null;
+    FeedCrawler crawler = null;
 
     public AardvarkTest() {
     }
@@ -51,11 +53,11 @@ public class AardvarkTest {
 
     @Before
     public void setUp() {
-        aardvark = getFreshAardvark();
+        prepareFreshAardvark();
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
         if (aardvark != null) {
             aardvark.shutdown();
             aardvark = null;
@@ -92,12 +94,12 @@ public class AardvarkTest {
         assertNotNull("enrolled user can't be null", user1);
 
         User user2 = aardvark.getUser("openid.sun.com/plamere");
-        assertTrue("users should match", user1 == user2);
+        assertTrue("users should match", user1.getID() == user2.getID());
 
         User user3 = aardvark.enrollUser("openid.sun.com/stgreen", feedURL2.toString());
         assertNotNull("enrolled user can't be null", user3);
 
-        assertTrue("different users should not match", user1 == user2);
+        assertTrue("different users should not match", user1.getID() != user3.getID());
 
         try {
             User user4 = aardvark.enrollUser("openid.sun.com/plamere", feedURL1.toString());
@@ -116,14 +118,11 @@ public class AardvarkTest {
         URL feedURL1 = this.getClass().getResource("gr_pbl_starred.atom.xml");
         User user1 = aardvark.enrollUser("openid.sun.com/plamere", feedURL1.toString());
         assertNotNull("enrolled user can't be null", user1);
-        user1 = aardvark.getUser("openid.sun.com/plamere");
-
-        Thread.sleep(5000L);
+        crawler.crawlAllFeeds();
         SyndFeed feed = aardvark.getRecommendedFeed(user1);
         int entryCount = feed.getEntries().size();
         assertTrue("proper recommendation feed count count: " + entryCount, entryCount == 13);
 
-        user1 = aardvark.getUser("openid.sun.com/plamere");
         feed = aardvark.getRecommendedFeed(user1);
         entryCount = feed.getEntries().size();
         assertTrue("Still proper recommendation feed count: " + entryCount, entryCount == 13);
@@ -135,31 +134,25 @@ public class AardvarkTest {
         User user1 = aardvark.enrollUser("openid.sun.com/plamere", feedURL1.toString());
         URL feedURL2 = this.getClass().getResource("gr_pbl_favorite.atom.xml");
         User user2 = aardvark.enrollUser("openid.sun.com/stgreen", feedURL2.toString());
-        Thread.sleep(1000L);
-
-        user1 = aardvark.getUser("openid.sun.com/plamere");
+        crawler.crawlAllFeeds();
 
         SyndFeed feed = aardvark.getRecommendedFeed(user1);
         int entryCount = feed.getEntries().size();
         assertTrue("proper recommendation feed count count: " + entryCount, entryCount == 13);
-
-        user2 = aardvark.getUser("openid.sun.com/stgreen");
-
         feed = aardvark.getRecommendedFeed(user2);
         entryCount = feed.getEntries().size();
         assertTrue("proper recommendation feed count count: " + entryCount, entryCount == 4);
     }
 
-    private Aardvark getFreshAardvark() {
+    private void prepareFreshAardvark() {
         try {
             ConfigurationManager cm = new ConfigurationManager();
             URL configFile = this.getClass().getResource("aardvarkTestConfig.xml");
             cm.addProperties(configFile);
-            Aardvark a = (Aardvark) cm.lookup("aardvark");
-            a.startup();
-            return a;
+            aardvark = (Aardvark) cm.lookup("aardvark");
+            aardvark.startup();
+            crawler = (FeedCrawler) cm.lookup("feedCrawler");
         } catch (IOException ioe) {
-            return null;
         }
     }
 }
