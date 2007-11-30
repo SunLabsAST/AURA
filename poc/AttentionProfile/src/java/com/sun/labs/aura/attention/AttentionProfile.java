@@ -60,6 +60,7 @@ public class AttentionProfile extends HttpServlet {
 
         if (restfulParams.length == 2 && restfulParams[1].equals("stats")) {
             showStats(request, response);
+            return;
         }
 
         if (restfulParams.length != 3) {
