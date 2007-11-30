@@ -10,32 +10,27 @@
 <config>
 
     <!-- this doesn't work the way you think it does -->
-    <property name="auraHome" value="/scratch2/aura"/>
+    <property name="auraHome" value="/aura"/>
     
-    <property name="indexDir" value="/scratch2/aura/entryContent.idx"/>
+    <property name="indexDir" value="/aura/entryContent.idx"/>
     
     <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark">
         <property name="itemStore" value="itemStore"/>
         <property name="feedCrawler" value="feedCrawler"/>
         <property name="recommenderManager" value="searchRecommenderManager"/>
         <property name="autoEnrollTestFeeds" value="true"/>
-        <property name="autoEnrollMegaTestFeeds" value="false"/>
+        <property name="autoEnrollMegaTestFeeds" value="true"/>
     </component>
     
     <component name="itemStore"
             type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
-        <property name="dbEnv" value="/scratch2/aura/itemStore.db" />
+        <property name="dbEnv" value="/aura/itemStore.db" />
     </component>
     
-
-    <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.FeedManager">
-        <property name="feedRefreshManager" value="feedRefreshManager"/>
-        <property name="itemStore" value="itemStore"/>
-    </component>
-    
-    <component name="feedRefreshManager" type="com.sun.labs.aura.aardvark.crawler.FeedRefreshManager">
+    <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.SimpleFeedCrawler">
         <property name="itemStore" value="itemStore"/>
         <property name="minimumFeedDelayInMinutes" value="30"/>
+        <property name="validateOnAdd" value="false"/>
     </component>
     
     <component name="searchRecommenderManager" type="com.sun.labs.aura.aardvark.impl.recommender.SearchRecommenderManager">
@@ -44,6 +39,7 @@
     
     <component name="entryContentEngine" type="com.sun.labs.aura.aardvark.impl.recommender.EntryContentEngine">
         <property name="itemStore" value="itemStore"/>
+        <property name="entryBatchSize" value="10"/>
         <property name="indexDir" value="${indexDir}"/>
     </component>
     
