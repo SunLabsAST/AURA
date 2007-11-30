@@ -49,14 +49,14 @@ public class SimpleFeedCrawler implements FeedCrawler {
 	private ItemStore itemStore;
 	/** The minimum time (in minutes) between feed pulls */
 	@ConfigInteger(defaultValue = 60, range = {0, 60 * 24 * 7})
-	public static String PROP_MINIMUM_FEED_DELAY_IN_MINUTES = "minimumFeedDelayInMinutes";
+	public final static String PROP_MINIMUM_FEED_DELAY_IN_MINUTES = "minimumFeedDelayInMinutes";
 	private long minimumFeedDelay = 0L;
 	/** Determines if we should validate feeds when added */
 	@ConfigBoolean(defaultValue = false)
-	public static String PROP_VALIDATE_ON_ADD = "validateOnAdd";
+	public final static String PROP_VALIDATE_ON_ADD = "validateOnAdd";
 	private boolean validateOnAdd = false;
 	@ConfigBoolean(defaultValue = false)
-	public static String PROP_TEST_MODE = "testMode";
+	public final static String PROP_TEST_MODE = "testMode";
 	private boolean testMode = false;
 	private volatile Thread crawler;
 	private Logger logger;
@@ -96,9 +96,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
 			Feed feed = null;
 			try {
 				feed = getNextFeedForRefresh(3000L);
-				logger.info("Crawler is awake " + feed);
 				if (feed != null) {
-					logger.info("processing " + feed.getKey());
 					processFeed(feed);
 				}
 			} catch (InterruptedException ex) {
@@ -168,8 +166,8 @@ public class SimpleFeedCrawler implements FeedCrawler {
 			// pull the feeds, and add the appropriate attention data 
 			// for each entry
 
-			entries = FeedUtils.processFeed(itemStore, new URL(feed.getKey()));
 			feed.setLastPullTime(System.currentTimeMillis());
+			entries = FeedUtils.processFeed(itemStore, new URL(feed.getKey()));
 			for (Attention feedAttention : feed.getAttentionData()) {
 				Attention.Type userAttentionType = getUserAttentionFromFeedAttention(feedAttention.getType());
 				if (userAttentionType != null) {
@@ -185,7 +183,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
 			logger.severe("I/O error while processing " + feed.getKey() + " " + ex.getMessage());
 			feedErrorCount++;
 		} catch (AuraException ex) {
-			logger.warning("trouble proceesing" + feed.getKey() + " " + ex.getMessage());
+			logger.warning("trouble processing " + feed.getKey() + " " + ex.getMessage());
 			feedErrorCount++;
 		}
 		feedPullCount++;
@@ -336,7 +334,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
 		return feedPullCount;
 	}
 
-	public void newProperties(PropertySheet ps) throws PropertyException {
+	public synchronized void newProperties(PropertySheet ps) throws PropertyException {
 		itemStore = (ItemStore) ps.getComponent(PROP_ITEM_STORE);
 		minimumFeedDelay = ps.getInt(PROP_MINIMUM_FEED_DELAY_IN_MINUTES) * 60 * 1000L;
 		validateOnAdd = ps.getBoolean(PROP_VALIDATE_ON_ADD);
@@ -345,7 +343,12 @@ public class SimpleFeedCrawler implements FeedCrawler {
 	}
 
 	public int getNumFeeds() {
-		return feedCount;
+        try {
+            return itemStore.getAll(Feed.class).size();
+        } catch (AuraException ex) {
+            logger.warning("Can't get the feed count");
+            return -1;
+        }
 	}
 
 	/**
