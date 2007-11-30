@@ -110,7 +110,7 @@
         </ul>
         <hr>
         <center> 
-            <br>TasteBroker.org v.2 - Powered by APML, Cluztr, Del.icio.us, Last.fm, and Sun Microsystems inc.
+            <br>TasteBroker.org v.3 - Powered by APML, Cluztr, Del.icio.us, Last.fm, and Sun Microsystems inc.
             <br> Send comments/feedback or complaints to Paul.Lamere@sun.com
         </center>
     </body>
