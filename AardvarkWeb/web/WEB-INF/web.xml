@@ -4,7 +4,7 @@
     <servlet>
         <servlet-name>AardvarkService</servlet-name>
         <servlet-class>com.sun.labs.aura.aardvark.server.AardvarkServiceImpl</servlet-class>
-    </servlet>
+        </servlet>
     <servlet>
         <servlet-name>OpmlUpload</servlet-name>
         <servlet-class>com.sun.labs.aura.aardvark.server.OpmlUpload</servlet-class>
@@ -33,4 +33,31 @@
     <welcome-file-list>
         <welcome-file>welcomeGWT.html</welcome-file>
     </welcome-file-list>
+    <security-constraint>
+        <display-name>main</display-name>
+        <web-resource-collection>
+            <web-resource-name>main</web-resource-name>
+            <description>main</description>
+            <url-pattern>/com.sun.labs.aura.aardvark.web/aardvarkservice</url-pattern>
+            <http-method>GET</http-method>
+            <http-method>POST</http-method>
+            <http-method>HEAD</http-method>
+            <http-method>PUT</http-method>
+            <http-method>OPTIONS</http-method>
+            <http-method>TRACE</http-method>
+            <http-method>DELETE</http-method>
+        </web-resource-collection>
+        <auth-constraint>
+            <description>aura</description>
+            <role-name>aura</role-name>
+            </auth-constraint>
+        </security-constraint>
+    <login-config>
+        <auth-method>BASIC</auth-method>
+        <realm-name>file</realm-name>
+        </login-config>
+    <security-role>
+        <description>the aura role</description>
+        <role-name>aura</role-name>
+    </security-role>
     </web-app>

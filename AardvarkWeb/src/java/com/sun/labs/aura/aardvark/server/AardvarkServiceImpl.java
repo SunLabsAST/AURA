@@ -57,7 +57,11 @@ public class AardvarkServiceImpl extends RemoteServiceServlet implements Aardvar
 
     public void destroy() {
         if (aardvark != null) {
-            aardvark.shutdown();
+            try {
+                aardvark.shutdown();
+            } catch (AuraException ex) {
+                Logger.getLogger(AardvarkServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 

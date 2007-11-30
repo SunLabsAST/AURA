@@ -62,10 +62,11 @@ public class RegisterNewUserPanel extends DockPanel {
                 }
 
                 String feed = starredItemFeed.getText();
-                if (feed.length() == 0) {
-                    appStateListener.error("Missing Starred Item Feed");
+                if (!validFeed(feed)) {
+                    appStateListener.error("Bad Feed URL " + feed);
                     return;
                 }
+
 
                 appStateListener.info("Registering " + name);
 
@@ -95,5 +96,12 @@ public class RegisterNewUserPanel extends DockPanel {
         p.add(ok);
         add(p, CENTER);
         setStyleName("newUserPanel");
+    }
+    
+    private boolean validFeed(String feed) {
+        if (feed != null) {
+            return feed.startsWith("http://");
+        }
+        return false;
     }
 }

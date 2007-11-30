@@ -172,7 +172,7 @@ public class OpmlUpload extends HttpServlet {
         public void run() {
             for (URL url : urls) {
                 try {
-                    aardvark.addUserFeed(user, url, Attention.Type.SUBSCRIBED);
+                    aardvark.addUserFeed(user, url, Attention.Type.SUBSCRIBED_FEED);
                 } catch (AuraException ex) {
                 }
             }

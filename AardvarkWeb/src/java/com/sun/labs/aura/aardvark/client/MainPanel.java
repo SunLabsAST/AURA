@@ -50,58 +50,61 @@ public class MainPanel extends DockPanel implements AppStateListener {
         logo.setStyleName("menuText");
         logo.addClickListener(new ClickListener() {
 
-                    public void onClick(Widget arg0) {
-                        setContent(mainContent);
-                    }
-                });
+            public void onClick(Widget arg0) {
+                setContent(mainContent);
+            }
+        });
 
         // click on the join option, show the join dialog
         join.setStyleName("menuText");
         join.addClickListener(new ClickListener() {
 
-                    public void onClick(Widget arg0) {
-                        setContent(joinContent);
-                    }
-                });
+            public void onClick(Widget arg0) {
+                setContent(joinContent);
+            }
+        });
 
         about.setStyleName("menuText");
         about.addClickListener(new ClickListener() {
 
-                    public void onClick(Widget arg0) {
-                        invokeAddAboutPanel();
-                    }
-                });
+            public void onClick(Widget arg0) {
+                invokeAddAboutPanel();
+            }
+        });
 
         login.setStyleName("menuText");
         login.addClickListener(new ClickListener() {
 
-                    public void onClick(Widget arg0) {
-                        setContent(loginContent);
-                    }
-                });
+            public void onClick(Widget arg0) {
+                setContent(loginContent);
+            }
+        });
 
         settings.setStyleName("menuText");
         settings.addClickListener(new ClickListener() {
-                    public void onClick(Widget arg0) {
-                        UserSettingsPanel settingsPanel = new UserSettingsPanel(MainPanel.this, user);
-                        setContent(settingsPanel);
-                    }
-                });
+
+            public void onClick(Widget arg0) {
+                UserSettingsPanel settingsPanel = new UserSettingsPanel(MainPanel.this, user);
+                setContent(settingsPanel);
+            }
+        });
 
 
         logout.setStyleName("menuText");
         logout.addClickListener(new ClickListener() {
-                    public void onClick(Widget arg0) {
-                        setCurrentUser(null);
-                    }
-                });
+
+            public void onClick(Widget arg0) {
+                setCurrentUser(null);
+            }
+        });
 
         recs.setStyleName("menuText");
         recs.addClickListener(new ClickListener() {
-                    public void onClick(Widget arg0) {
-                        invokeAddRecommendationPanel();
-                    }
-                });
+
+            public void onClick(Widget arg0) {
+                invokeAddRecommendationPanel();
+            }
+        });
 
         mainContent = new HTML("<h2> Welcome to Aardvark</h2> This is where we describe " +
                 "in great detail, what Aardark is, and what it does. " +
@@ -117,6 +120,7 @@ public class MainPanel extends DockPanel implements AppStateListener {
     }
 
     private void update() {
+
         if (welcomeMenu != null) {
             remove(welcomeMenu);
         }
@@ -156,8 +160,14 @@ public class MainPanel extends DockPanel implements AppStateListener {
     }
 
     public void error(String msg) {
+        Widget w = null;
         errorPanel.clear();
-        errorPanel.add(new Label(msg));
+        if (msg.startsWith("<!DOCTYPE html")) {
+            w = new HTML(msg);
+        } else {
+            w = new Label(msg);
+        }
+        errorPanel.add(w);
         errorPanel.center();
     }
 
@@ -175,7 +185,7 @@ public class MainPanel extends DockPanel implements AppStateListener {
         user = newUser;
         update();
     }
-    
+
     private void setStatus(String msg) {
         statusLabel.setText(msg);
     }
@@ -184,7 +194,7 @@ public class MainPanel extends DockPanel implements AppStateListener {
         info(what);
         startTime = System.currentTimeMillis();
     }
-    
+
     private void finishRequest() {
         clearInfo();
         long delta = System.currentTimeMillis() - startTime;
@@ -194,41 +204,40 @@ public class MainPanel extends DockPanel implements AppStateListener {
     private void invokeAddAboutPanel() {
         AsyncCallback callback = new AsyncCallback() {
 
-                    public void onSuccess(Object result) {
-                        WiStats stats = (WiStats) result;
-                        finishRequest();
-                        Panel statsPanel = new StatsPanel(stats);
-                        Panel about = new AboutPanel(statsPanel);
-                        setContent(about);
-                    }
+            public void onSuccess(Object result) {
+                WiStats stats = (WiStats) result;
+                finishRequest();
+                Panel statsPanel = new StatsPanel(stats);
+                Panel about = new AboutPanel(statsPanel);
+                setContent(about);
+            }
 
-                    public void onFailure(Throwable caught) {
-                        finishRequest();
-                        error("Problem getting stats " + caught.getMessage());
-                    }
-                };
+            public void onFailure(Throwable caught) {
+                finishRequest();
+                error(caught.getMessage());
+            }
+        };
 
         startRequest("Getting Stats");
         AardvarkServiceFactory.getService().getStats(callback);
     }
 
-
     private void invokeAddRecommendationPanel() {
         //
         AsyncCallback callback = new AsyncCallback() {
 
-                    public void onSuccess(Object result) {
-                        WiEntrySummary[] entries = (WiEntrySummary[]) result;
-                        finishRequest();
-                        userContent = new RecommendationPanel(user, entries);
-                        setContent(userContent);
-                    }
+            public void onSuccess(Object result) {
+                WiEntrySummary[] entries = (WiEntrySummary[]) result;
+                finishRequest();
+                userContent = new RecommendationPanel(user, entries);
+                setContent(userContent);
+            }
 
-                    public void onFailure(Throwable caught) {
-                        finishRequest();
-                        error("Problem getting recommendations:" + caught.getMessage());
-                    }
-                };
+            public void onFailure(Throwable caught) {
+                finishRequest();
+                error(caught.getMessage());
+            }
+        };
 
         startRequest("Getting recommendations");
         AardvarkServiceFactory.getService().getRecommendations(user.getName(), callback);
@@ -287,6 +296,7 @@ class StatsPanel extends DockPanel {
 }
 
 class RecommendationPanel extends VerticalPanel {
+
     private WiUser user;
 
     RecommendationPanel(WiUser user, WiEntrySummary[] entries) {
