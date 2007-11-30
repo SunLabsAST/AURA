@@ -9,6 +9,7 @@
 package com.sun.labs.aura.attention;
 
 import com.sun.labs.search.music.web.apml.APML;
+import com.sun.labs.search.music.web.apml.DeliciousConceptRetriever;
 import com.sun.labs.search.music.web.apml.LastFMConceptRetriever;
 
 import java.io.IOException;
@@ -31,21 +32,54 @@ public class AttentionProfile extends HttpServlet {
     private int pagesServed;
     private int errors;
     private LastFMConceptRetriever lcr;
+    private DeliciousConceptRetriever dcr;
 
-    private Set<String> users = new HashSet<String>();
+    private Set<String> requests = new HashSet<String>();
     private long sumTime = 0L;
     private long minTime = Long.MAX_VALUE;
     private long maxTime = 0;
-    private String VERSION = "TasteBroker/Music version 0.1";
-    private Date startTime = new Date();
+    private String VERSION = "TasteBroker Version 0.3";
+    private Date startupTime = new Date();
 
     @Override
     public void init(ServletConfig sc) throws ServletException {
         try {
             lcr = new LastFMConceptRetriever();
             lcr.startCrawler();
+            dcr = new DeliciousConceptRetriever();
         } catch (IOException ex) {
             throw new ServletException("Can't init the concept retriever");
+        }
+    }
+
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String[] restfulParams = request.getPathInfo().split("/");
+
+        // System.out.println("[" + request.getPathInfo() + "]");
+
+        if (restfulParams.length == 2 && restfulParams[1].equals("stats")) {
+            showStats(request, response);
+        }
+
+        if (restfulParams.length != 3) {
+            response.setStatus(response.SC_BAD_REQUEST);
+            errors++;
+            return;
+        }
+
+        requests.add(request.getPathInfo());
+
+        String op = restfulParams[1];
+        String name = restfulParams[2];
+
+        if (op.equals("music")) {
+            processAPMLRequest(true, name, response);
+        } else if (op.equals("web")) {
+            processAPMLRequest(false, name, response);
+        } else {
+            response.setStatus(response.SC_BAD_REQUEST);
+            errors++;
         }
     }
 
@@ -54,29 +88,19 @@ public class AttentionProfile extends HttpServlet {
      * @param request servlet request
      * @param response servlet response
      */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+    protected void processAPMLRequest(boolean music, String name, HttpServletResponse response)
             throws ServletException, IOException {
-        String[] restfulParams = request.getPathInfo().split("/");
-
-        if (restfulParams.length != 2) {
-            response.setStatus(response.SC_BAD_REQUEST);
-            errors++;
-            return;
-        }
-        String name = restfulParams[1];
-
-        if (name.equals("stats")) {
-            showStats(request, response);
-            return;
-        }
-
-        users.add(name);
-
         PrintWriter out = response.getWriter();
         try {
 
             long startTime = System.currentTimeMillis();
-            APML apml = lcr.getAPMLForUser(name);
+            APML apml = null;
+            
+            if (music) {
+                apml = lcr.getAPMLForUser(name);
+            } else {
+                apml = dcr.getAPMLForUser(name);
+            }
             long deltaTime = System.currentTimeMillis() - startTime;
             sumTime += deltaTime;
             if (deltaTime < minTime) {
@@ -113,9 +137,9 @@ public class AttentionProfile extends HttpServlet {
         out.println("<h1> TasteBroker Statistics</h1>");
         out.println("<table>");
         out.printf("<tr><th>%s<td>%s\n", "Version", VERSION);
-        out.printf("<tr><th>%s<td>%s\n", "Started on", startTime.toString());
+        out.printf("<tr><th>%s<td>%s\n", "Started on", startupTime.toString());
         out.printf("<tr><th>%s<td>%d\n", "Requests", pagesServed);
-        out.printf("<tr><th>%s<td>%d\n", "Uniques", users.size());
+        out.printf("<tr><th>%s<td>%d\n", "Uniques", requests.size());
         out.printf("<tr><th>%s<td>%d\n", "Bad Requests", errors);
         if (pagesServed > 0) {
             out.printf("<tr><th>%s<td>%d ms\n", "Avg time", sumTime / pagesServed);
@@ -124,10 +148,11 @@ public class AttentionProfile extends HttpServlet {
         out.printf("<tr><th>%s<td>%d ms\n", "Max time", maxTime);
         out.println("</table>");
         out.println("<h2> Visitors </h2>");
-        List<String> visitors = new ArrayList<String>(users);
+        List<String> visitors = new ArrayList<String>(requests);
         Collections.sort(visitors);
         for (String v : visitors) {
-            out.print("<a href=\""+ v + "\">" + v + "</a> ");
+            v = v.replaceAll("^/", "");
+            out.print("<a href=\""+  v + "\">" + v + "</a> ");
         }
         out.println("</body>");
     }
