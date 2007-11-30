@@ -243,11 +243,16 @@ public class Aardvark implements Configurable {
         Thread t = new Thread() {
             @Override
             public void run() {
-                addLocalOpml("autoEnrolledFeeds.opml.xml");
-                if (autoEnrollMegaTestFeeds) {
-                    addLocalOpml("tech_blogs.opml");
-                    addLocalOpml("politics_blogs.opml");
-                    addLocalOpml("news_blogs.opml");
+                try {
+                    Thread.sleep(10 * 60 * 1000L);
+                    addLocalOpml("autoEnrolledFeeds.opml.xml");
+                    if (autoEnrollMegaTestFeeds) {
+                        addLocalOpml("tech_blogs.opml");
+                        addLocalOpml("politics_blogs.opml");
+                        addLocalOpml("news_blogs.opml");
+                    }
+                } catch (InterruptedException ex) {
+                    logger.info("autoenroller interrupted");
                 }
             }
         };
