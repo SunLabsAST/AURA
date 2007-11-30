@@ -74,7 +74,7 @@ public class LastFMConceptRetriever {
         Item[] artists = getTopArtistsForUser(user);
         Concept[] implicit = getImplicitConceptsFromArtists(artists);
         Concept[] explicit = getExplicitConceptsForUser(artists);
-        return new APML(user, implicit, explicit);
+        return new APML("Taste for last.fm user " + user, "music", implicit, explicit);
     }
 
     public Concept[] getImplicitConceptsForUser(String user) throws IOException {
@@ -262,7 +262,7 @@ public class LastFMConceptRetriever {
     public static void main(String[] args) {
         try {
             LastFMConceptRetriever lcr = new LastFMConceptRetriever();
-            lcr.crawlUsers("rj", 1000, false);
+            lcr.crawlUsers("rj", 1000, true);
         } catch (IOException ioe) {
             System.out.println("error " + ioe);
         }
