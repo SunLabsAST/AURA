@@ -29,7 +29,7 @@ public class DeliciousConceptRetriever {
         InputStream is = null;
         List<String> elements = new ArrayList<String>();
         try {
-            URL url = new URL("http://del.icio.us/" + user);
+            URL url = new URL("http://del.icio.us/" + user + "?settagsort=freq");
             is = url.openStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             StringBuilder sb = new StringBuilder();

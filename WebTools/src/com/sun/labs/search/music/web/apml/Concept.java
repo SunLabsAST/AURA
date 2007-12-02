@@ -9,8 +9,10 @@
 
 package com.sun.labs.search.music.web.apml;
 
+import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  *
@@ -18,7 +20,11 @@ import java.util.Date;
  */
 public class Concept implements Comparable<Concept> {
     private static final String DEFAULT_SOURCE = "tastebroker.org";
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+    static {
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
     private String key;
     private float value;
     private String from;
@@ -56,7 +62,8 @@ public class Concept implements Comparable<Concept> {
     }
 
     private String normalize(String s) {
-        return s.replaceAll("[^\\w\\s]", " ");
+        s = URLDecoder.decode(s);
+        return s.replaceAll("[^\\w\\s]", " ").trim();
     }
     
     //   <Concept key="media" value="0.73" from="GatheringTool.com" updated="2007-03-11T01:55:00Z" / >
