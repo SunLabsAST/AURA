@@ -27,19 +27,22 @@ public class BerkeleyItemStoreTest {
 
     protected BerkeleyItemStore store = null;
 
+    protected static long startID = -1;
+    
+    
     public BerkeleyItemStoreTest() {
         
     }
     
     @BeforeClass
     public static void setUpClass() throws Exception {
-        File f = new File("/tmp/aura");
+        File f = new File("/tmp/aura-bdbtest");
         f.mkdir();
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        File f = new File("/tmp/aura");
+        File f = new File("/tmp/aura-bdbtest/itemStore.db");
         File[] content = f.listFiles();
         for (File c : content) {
             c.delete();
@@ -67,10 +70,10 @@ public class BerkeleyItemStoreTest {
         store.addItemListener(null, listener);
         User u = store.newItem(User.class, "jalex");
         u.setRecommenderFeedKey("paul-is-a-rockstar");
-        u.setStarredItemFeedURL(new URL("http://jalexurl.google.com/"));
         store.put(u);
         long id = u.getID();
         assertTrue(id > 0);
+        startID = id;
         assertTrue(listener.gotCreated);
         assertFalse(listener.gotChanged);
         listener.gotCreated = false;
@@ -96,11 +99,9 @@ public class BerkeleyItemStoreTest {
     public void b_getItems() throws AuraException {
         User u = (User) store.get("jalex");
         assertTrue(u.getRecommenderFeedKey().equals("paul-is-a-rockstar"));
-        assertTrue(u.getStarredItemFeedURL().toString().
-                equals("http://jalexurl.google.com/"));
-        assertTrue(u.getID() == 1);
+        assertTrue(u.getID() == startID);
         
-        Entry e = (Entry) store.get(2);
+        Entry e = (Entry) store.get(startID + 1);
         assertTrue(e.getKey().equals("pauls-blog-post1"));
         assertTrue(e.getContent().equals("music is awesome!"));
         
@@ -122,10 +123,10 @@ public class BerkeleyItemStoreTest {
         
         u = (User) store.get("jalex");
         assertTrue(u.getRecommenderFeedKey().equals("rockstar-is-paul"));
-        assertTrue(u.getID() == 1);
+        assertTrue(u.getID() == startID);
         
         store.removeItemListener(User.class, l);
-        u.setStarredItemFeedURL(new URL("http://newurl.google.com/"));
+        u.setRecommenderFeedKey("paul-is-a-rockstar");
         store.put(u);
         assertFalse(l.gotChanged);
         assertFalse(l.gotCreated);

@@ -1,6 +1,6 @@
 
 <config>
-    <property name="auraHome" value="/tmp/aura"/>
+    <property name="auraHome" value="/tmp/aura-bdbtest"/>
 
     <component name="itemStore"
             type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
