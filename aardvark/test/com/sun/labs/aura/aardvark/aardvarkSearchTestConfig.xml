@@ -38,6 +38,7 @@
     <component name="entryContentEngine" type="com.sun.labs.aura.aardvark.impl.recommender.EntryContentEngine">
         <property name="itemStore" value="itemStore"/>
         <property name="entryBatchSize" value="1"/>
+        <property name="engineLogLevel" value="1"/>
         <property name="indexDir" value="${indexDir}"/>
     </component>
     
