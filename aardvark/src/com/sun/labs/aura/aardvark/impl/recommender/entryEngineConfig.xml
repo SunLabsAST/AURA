@@ -12,7 +12,12 @@
     <!-- We're going to use a synchronous dumper so that when an entry is
     indexed, when control is returned to the caller the data is available for
     searching. -->
-    <property name="dumper" value="sync_dumper"/>
+    <property name="dumper" value="async_dumper"/>
+    
+    <!-- We'll use 4 indexing pipelines, which means that indexing will be 
+    asynchronous:  unless the indexing queues are full, when something is
+    indexed control will be returned immediately to the caller -->
+    <property name="num_pipelines" value="4"/>
     
     <component name="index_config" type="com.sun.kt.search.IndexConfig">
         <property name="index_directory" value="${index_directory}"/>

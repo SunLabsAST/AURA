@@ -28,7 +28,9 @@ import com.sun.labs.util.props.PropertySheet;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
@@ -48,8 +50,6 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
     private ItemStore itemStore;
 
     private Logger log;
-
-    private SimpleIndexer simpleIndexer;
 
     private int entryBatchSize;
     
@@ -76,7 +76,6 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
             engine = SearchEngineFactory.getSearchEngine(indexDir,
                     "simple_search_engine", config);
             itemStore = (ItemStore) ps.getComponent(PROP_ITEM_STORE);
-            simpleIndexer = engine.getSimpleIndexer();
 
             //
             // Catch up to what's in the item store already, if we need to.  This
@@ -116,25 +115,19 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      * @param e the entry to index.
      */
     public void index(Entry e) {
-        index(simpleIndexer, e);
-        if(++entryCount % entryBatchSize == 0) {
-            simpleIndexer.finish();
-            simpleIndexer = engine.getSimpleIndexer();
-        }
-    }
+        try {
+            Map<String, Object> dm =
+                    new LinkedHashMap<String, Object>();
+            dm.put("id", e.getID());
+            dm.put(null, e.getContent());
 
-    /**
-     * Indexes an entry with the given indexer.  This can be used for bulk
-     * indexing at engine startup time.
-     * 
-     * @param si a simple indexer to use to index the entry
-     * @param e the entry to index
-     */
-    private void index(SimpleIndexer si, Entry e) {
-        si.startDocument(e.getKey());
-        si.addField("id", e.getID());
-        si.addField(null, e.getContent());
-        si.endDocument();
+            engine.index(e.getKey(), dm);
+            if(++entryCount % entryBatchSize == 0) {
+                engine.flush();
+            }
+        } catch(SearchEngineException ex) {
+            log.log(Level.SEVERE, "Exception indexing " + e.getKey(), ex);
+        }
     }
 
     /**
@@ -320,7 +313,6 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
             shuttingDown = true;
             log.log(Level.INFO, "Shutting down search engine");
             itemStore.removeItemListener(Entry.class, this);
-            simpleIndexer.finish();
             engine.close();
         } catch(AuraException ae) {
             log.log(Level.WARNING, "Error removing item listener", ae);
