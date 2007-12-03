@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : aardvarkConfig.xml
+    Created on : November 2, 2007, 4:25 PM
+    Description:
+        Purpose of the document follows.
+-->
+
+<config>
+    
+    
+    <component name="itemStore" type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
+        <property name="dbEnv" value="/tmp/aura.crawler/itemStore.db"/>
+        <property name="overwrite" value="true"/>
+    </component>
+    
+    
+    <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.SimpleFeedCrawler">
+        <property name="itemStore" value="itemStore"/>
+        <property name="minimumFeedDelayInMinutes" value="0"/>
+        <property name="testMode" value="true"/>
+    </component>
+    
+</config>
