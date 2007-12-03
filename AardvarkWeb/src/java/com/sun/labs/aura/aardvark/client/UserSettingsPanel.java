@@ -8,14 +8,17 @@
  */
 package com.sun.labs.aura.aardvark.client;
 
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FileUpload;
 import com.google.gwt.user.client.ui.FormHandler;
 import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.FormSubmitCompleteEvent;
 import com.google.gwt.user.client.ui.FormSubmitEvent;
+import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -38,7 +41,7 @@ public class UserSettingsPanel extends DockPanel {
         form.setAction("/AardvarkWeb/opml/" + user.getName());
 
         // Because we're going to add a FileUpload widget, we'll need to set the
-    // form to use the POST method, and multipart MIME encoding.
+        // form to use the POST method, and multipart MIME encoding.
         form.setEncoding(FormPanel.ENCODING_MULTIPART);
         form.setMethod(FormPanel.METHOD_POST);
 
@@ -53,28 +56,29 @@ public class UserSettingsPanel extends DockPanel {
 
         // Add a 'submit' button.
         panel.add(new Button("Submit", new ClickListener() {
-                    public void onClick(Widget sender) {
-                        form.submit();
-                    }
-                }));
+
+            public void onClick(Widget sender) {
+                form.submit();
+            }
+        }));
 
         // Add an event handler to the form.
         form.addFormHandler(new FormHandler() {
 
-                    public void onSubmit(FormSubmitEvent event) {
-                        appState.info("Uploading form");
-                    }
+            public void onSubmit(FormSubmitEvent event) {
+                appState.info("Uploading form");
+            }
 
-                    public void onSubmitComplete(FormSubmitCompleteEvent event) {
-                        appState.clearInfo();
-                        if (results != null) {
-                            remove(results);
-                            results = null;
-                        }
-                        results = new HTML(event.getResults());
-                        add(results, SOUTH);
-                    }
-                });
+            public void onSubmitComplete(FormSubmitCompleteEvent event) {
+                appState.clearInfo();
+                if (results != null) {
+                    remove(results);
+                    results = null;
+                }
+                results = new HTML(event.getResults());
+                add(results, SOUTH);
+            }
+        });
 
         Label title = new Label("Settings for " + user.getName());
         title.setStyleName("title");
@@ -82,5 +86,40 @@ public class UserSettingsPanel extends DockPanel {
 
         add(title, NORTH);
         add(form, CENTER);
+        invokeGetFeeds(user);
+    }
+
+    private void invokeGetFeeds(WiUser user) {
+        //
+        AsyncCallback callback = new AsyncCallback() {
+
+            public void onSuccess(Object result) {
+                WiFeed[] feeds = (WiFeed[]) result;
+                appState.clearInfo();
+                FeedPanel feedPanel = new FeedPanel(feeds);
+                add(feedPanel, SOUTH);
+            }
+
+            public void onFailure(Throwable caught) {
+                appState.clearInfo();
+                appState.error(caught.getMessage());
+            }
+        };
+
+        appState.info("Getting recommendations");
+        AardvarkServiceFactory.getService().getFeeds(user.getName(), callback);
+    }
+}
+
+class FeedPanel extends Composite {
+
+    FeedPanel(WiFeed[] feeds) {
+        Grid grid = new Grid(feeds.length, 2);
+        for (int i = 0; i < feeds.length; i++) {
+            grid.setText(i, 0, feeds[i].getType());
+            grid.setText(i, 1, feeds[i].getName());
+        }
+        initWidget(grid);
+        setStyleName("FeedPanel");
     }
 }

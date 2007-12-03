@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
  * @author plamere
  */
 public class FeedUtils {
+    private final static boolean debug = true;
 
     /**
      * Gets the contents of an entry
@@ -133,7 +134,14 @@ public class FeedUtils {
             SyndEntry syndEntry = (SyndEntry) o;
             Entry entry = convertSyndEntryToFreshEntry(itemStore, syndEntry);
             if (entry != null) {
+                if (debug) {
+                    System.out.println("   Adding entry " + entry.getKey());
+                }
                 entries.add(entry);
+
+                if (debug) {
+                    System.out.println("   Done entry " + entry.getKey());
+                }
             }
         }
         return entries;

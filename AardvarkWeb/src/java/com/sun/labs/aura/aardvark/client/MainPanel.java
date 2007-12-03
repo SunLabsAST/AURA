@@ -269,7 +269,7 @@ class StatsPanel extends DockPanel {
 
     StatsPanel(WiStats stats) {
         add(new Label("Aardvark Stats"), NORTH);
-        Grid grid = new Grid(7, 2);
+        Grid grid = new Grid(8, 2);
         grid.setText(0, 0, "Version");
         grid.setText(0, 1, stats.getVersion());
 
@@ -290,6 +290,10 @@ class StatsPanel extends DockPanel {
 
         grid.setText(6, 0, "Feed Errors");
         grid.setText(6, 1, Integer.toString(stats.getFeedErrors()));
+
+        grid.setText(7, 0, "Memory Used");
+        grid.setText(7, 1, Long.toString(stats.getMemUsed() / (1024 * 1024)) + " mb");
+        add(grid, CENTER);
         add(grid, CENTER);
         setStyleName("statsPanel");
     }

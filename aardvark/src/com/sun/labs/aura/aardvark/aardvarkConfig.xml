@@ -29,7 +29,7 @@
     
     <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.SimpleFeedCrawler">
         <property name="itemStore" value="itemStore"/>
-        <property name="minimumFeedDelayInMinutes" value="30"/>
+        <property name="minimumFeedDelayInMinutes" value="60"/>
         <property name="validateOnAdd" value="false"/>
     </component>
     

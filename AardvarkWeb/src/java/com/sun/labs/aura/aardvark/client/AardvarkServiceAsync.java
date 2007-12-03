@@ -19,4 +19,5 @@ public interface AardvarkServiceAsync {
     public void registerUser(String name, String feed, AsyncCallback callback);
     public void loginUser(String name, AsyncCallback callback);
     public void getRecommendations(String name, AsyncCallback callback);
+    public void getFeeds(String name, AsyncCallback callback);
 }

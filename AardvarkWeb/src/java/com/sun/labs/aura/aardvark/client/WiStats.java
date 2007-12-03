@@ -23,9 +23,10 @@ public class WiStats implements IsSerializable {
     private int numFeeds;
     private int feedPulls;
     private int feedErrors;
+    private long memUsed;
 
     public WiStats(String version, long numUsers, long numItems, long numAttention,
-            int numFeeds, int feedPulls, int feedErrors) {
+            int numFeeds, int feedPulls, int feedErrors, long memUsed) {
         this.version = version;
         this.numUsers = numUsers;
         this.numItems = numItems;
@@ -33,6 +34,7 @@ public class WiStats implements IsSerializable {
         this.numFeeds = numFeeds;
         this.feedPulls = feedPulls;
         this.feedErrors = feedErrors;
+        this.memUsed = memUsed;
     }
 
     public WiStats() {
@@ -66,6 +68,9 @@ public class WiStats implements IsSerializable {
     public int getNumFeeds() {
         return numFeeds;
     }
-    
 
+    public long getMemUsed() {
+        return memUsed;
+    }
+    
 }
