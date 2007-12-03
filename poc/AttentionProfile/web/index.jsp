@@ -104,13 +104,14 @@
         There are also some <a href="apml/stats">usage stats</a>.
         <h2> History </h2>
         <ul>
+            <li> December 2, 2007 - timezone, concept normalization fixes
             <li> November 30, 2007 - added del.icio.us support
             <li> November 23, 2007 - added support for explicit concepts
             <li> November 21, 2007 - initial revision
         </ul>
         <hr>
         <center> 
-            <br>TasteBroker.org v.3 - Powered by APML, Cluztr, Del.icio.us, Last.fm, and Sun Microsystems inc.
+            <br>TasteBroker.org v.4 - Powered by APML, Cluztr, Del.icio.us, Last.fm, and Sun Microsystems inc.
             <br> Send comments/feedback or complaints to Paul.Lamere@sun.com
         </center>
     </body>

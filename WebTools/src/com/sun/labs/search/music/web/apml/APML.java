@@ -6,6 +6,7 @@ package com.sun.labs.search.music.web.apml;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  *
@@ -13,7 +14,11 @@ import java.util.Date;
  */
 public class APML {
 
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+    static {
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
     private String title;
     private String profile;
     private Concept[] implicit;
