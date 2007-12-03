@@ -224,6 +224,7 @@ public class Aardvark implements Configurable {
 
     private void addLocalOpml(String name) {
         try {
+            logger.info("Enrolling local opml " + name);
             OPMLProcessor op = new OPMLProcessor();
             URL opmlFile = Aardvark.class.getResource(name);
             List<URL> urls = op.getFeedURLs(opmlFile);
@@ -244,7 +245,8 @@ public class Aardvark implements Configurable {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(10 * 60 * 1000L);
+                    // Thread.sleep(10 * 60 * 1000L);
+                    Thread.sleep(10 * 1000L);
                     addLocalOpml("autoEnrolledFeeds.opml.xml");
                     if (autoEnrollMegaTestFeeds) {
                         addLocalOpml("tech_blogs.opml");
@@ -253,10 +255,11 @@ public class Aardvark implements Configurable {
                     }
                 } catch (InterruptedException ex) {
                     logger.info("autoenroller interrupted");
+                } catch (Throwable t) {
+                    logger.severe("bad thing happend " + t);
                 }
             }
         };
-
         t.start();
     }
 

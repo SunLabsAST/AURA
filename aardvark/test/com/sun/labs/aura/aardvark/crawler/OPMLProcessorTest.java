@@ -35,6 +35,16 @@ public class OPMLProcessorTest {
         assertTrue("last  should be cnn", urls.get(99).toExternalForm().equals("http://rss.cnn.com/rss/cnn_topstories.rss"));
     }
 
+    
+    @Test public void testLargeOpml() throws Exception {
+        OPMLProcessor op = new OPMLProcessor();
+        URL opmlFile = this.getClass().getResource("news_blogs.opml.xml");
+        List<URL> urls = op.getFeedURLs(opmlFile);
+        assertNotNull("should be url list", urls);
+        assertTrue("should be 31373, was" + urls.size(), urls.size() == 31373);
+    }
+
+
     @Test public void testRemoteOPML() throws Exception {
         OPMLProcessor op = new OPMLProcessor();
         URL opmlFile = new URL("http://share.opml.org/opml/top100.opml");

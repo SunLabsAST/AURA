@@ -10,7 +10,7 @@ package com.sun.labs.aura.aardvark.crawler;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +63,11 @@ public class OPMLProcessor {
                 String type = item.getAttribute("type");
                 if (isFeed(type)) {
                     String url = item.getAttribute("xmlUrl");
-                    feeds.add(new URL(url));
+                    try {
+                        feeds.add(new URL(url));
+                    } catch (MalformedURLException ex) {
+                    // skip feeds with bad urls
+                    }
                 }
             }
             return feeds;
