@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : entryEngineSyncConfig.xml
+    Created on : November 5, 2007, 9:39 AM
+    Author     : Stephen Green
+    Description:
+        A completely synchrnous (for indexing and dumping) search engine that can
+        be used to do testing when we want predictable(ish) results.
+-->
+
+<config>
+    <!-- We're going to use a synchronous dumper so that when an entry is
+    indexed, when control is returned to the caller the data is available for
+    searching. -->
+    <property name="dumper" value="sync_dumper"/>
+    
+    <!-- We'll use 1 indexing pipeline so that we get synchronous indexing. -->
+    <property name="num_pipelines" value="1"/>
+    
+    <component name="index_config" type="com.sun.kt.search.IndexConfig">
+        <property name="index_directory" value="${index_directory}"/>
+        <property name="default_field_info" value="unknown_field"/>
+        <propertylist name="field_info">
+            <item>id</item>
+        </propertylist>
+    </component>
+    
+    <!-- The ID of the entry -->
+    <component name="id" type="com.sun.kt.search.FieldInfo">
+        <property name="indexed" value="false"/>
+        <property name="tokenized" value="false"/>
+        <property name="vectored" value="false"/>
+        <property name="saved" value="true"/>
+        <property name="type" value="integer"/>
+    </component>    
+</config>
