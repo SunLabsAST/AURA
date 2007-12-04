@@ -77,7 +77,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
                 logger.warning("URL not associated with a feed " + feedUrl);
                 return null;
             } else {
-            //logger.info("   Skipping previously seen feed " + feedUrl);
+                feed = (Feed) item;
             }
             return feed;
         } catch (AuraException ex) {

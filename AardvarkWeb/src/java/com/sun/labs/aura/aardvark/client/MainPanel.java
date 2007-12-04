@@ -308,7 +308,7 @@ class RecommendationPanel extends VerticalPanel {
         add(new HTML("<h1> Your Recommendations</h1>"));
         for (int i = 0; i < entries.length; i++) {
             HTML h = new HTML("<a target='recwindow' href='" + entries[i].getLink() + "'>" +
-                    entries[i].getTitle() + "</a>");
+                    entries[i].getTitle() + "</a>" + " " + entries[i].getDate());
             add(h);
         }
         add(new HTML("<h1> Your Recommendation Feeds</h1>"));

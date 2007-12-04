@@ -18,11 +18,17 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 public class WiEntrySummary implements IsSerializable {
     private String title;
     private String link;
+    private String date;
+    //private String sourceTitle;
+    //private String sourceLink;
 
-    public WiEntrySummary(String title, String link) {
+    public WiEntrySummary(String title, String link, String date) {
         this.title = title;
         this.link = link;
+        this.date = date;
     }
+
+
 
     public WiEntrySummary() {
     }
@@ -33,5 +39,9 @@ public class WiEntrySummary implements IsSerializable {
 
     public String getTitle() {
         return title;
+    }
+
+    public String getDate() {
+        return date;
     }
 }

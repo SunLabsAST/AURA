@@ -79,6 +79,7 @@ public class FeedCrawlerTest {
         for (Object o : feed.getEntries()) {
             SyndEntry se = (SyndEntry) o;
             assertNotNull("Feed has contents", FeedUtils.getContent(se));
+            dumpRaw(se);
         }
     }
 

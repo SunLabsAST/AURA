@@ -252,6 +252,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
 
         for(Attention a : user.getAttentionData()) {
             if(a.getType() == Attention.Type.STARRED) {
+                System.out.println("Adding " + a);
                 starredAttentionData.add(a);
             }
         }

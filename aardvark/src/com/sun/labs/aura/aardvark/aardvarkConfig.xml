@@ -19,7 +19,7 @@
         <property name="feedCrawler" value="feedCrawler"/>
         <property name="recommenderManager" value="searchRecommenderManager"/>
         <property name="autoEnrollTestFeeds" value="true"/>
-        <property name="autoEnrollMegaTestFeeds" value="true"/>
+        <property name="autoEnrollMegaTestFeeds" value="false"/>
     </component>
     
     <component name="itemStore"
@@ -39,7 +39,7 @@
     
     <component name="entryContentEngine" type="com.sun.labs.aura.aardvark.impl.recommender.EntryContentEngine">
         <property name="itemStore" value="itemStore"/>
-        <property name="entryBatchSize" value="10"/>
+        <property name="entryBatchSize" value="100"/>
         <property name="indexDir" value="${indexDir}"/>
     </component>
     

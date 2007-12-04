@@ -133,7 +133,12 @@ public class AardvarkServiceImpl extends RemoteServiceServlet implements Aardvar
                     SyndEntry syndEntry = (SyndEntry) syndEntryObject;
                     String title = syndEntry.getTitle();
                     String link = syndEntry.getLink();
-                    summaries[index++] = new WiEntrySummary(title, link);
+                    String date = "";
+
+                    if (syndEntry.getPublishedDate() != null) {
+                        date = syndEntry.getPublishedDate().toString();
+                    }
+                    summaries[index++] = new WiEntrySummary(title, link, date);
                 }
                 return summaries;
             } else {

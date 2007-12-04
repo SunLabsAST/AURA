@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
  * @author plamere
  */
 public class FeedUtils {
-    private final static boolean debug = true;
+    private final static boolean debug = false;
 
     /**
      * Gets the contents of an entry
