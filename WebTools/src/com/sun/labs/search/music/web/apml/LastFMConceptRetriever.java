@@ -28,7 +28,7 @@ import java.util.Set;
  *
  * @author plamere
  */
-public class LastFMConceptRetriever {
+public class LastFMConceptRetriever implements ConceptRetriever {
 
     private static final float MIN_CONCEPT_SCORE = .03f;
     private LastFM lastfm;
@@ -53,7 +53,7 @@ public class LastFMConceptRetriever {
 
                 @Override
                 public void run() {
-                    crawlUsers("rj", 3000L, false);
+                    crawlUsers("rj", 10000L, false);
                 }
             };
             crawler.setDaemon(true);
@@ -82,7 +82,7 @@ public class LastFMConceptRetriever {
         return getImplicitConceptsFromArtists(artists);
     }
 
-    private Concept[] getExplicitConceptsForUser(Item[] artists) {
+    Concept[] getExplicitConceptsForUser(Item[] artists) {
         List<Concept> conceptList = new ArrayList<Concept>();
         Item mostFrequentArtist = findMostFrequentItem(artists);
         for (Item artist : artists) {
@@ -92,7 +92,7 @@ public class LastFMConceptRetriever {
         return normalizeAndPrune(conceptList, 0);
     }
 
-    private Concept[] getImplicitConceptsFromArtists(Item[] artists) throws IOException {
+    Concept[] getImplicitConceptsFromArtists(Item[] artists) throws IOException {
         Map<String, Float> conceptMap = new HashMap<String, Float>();
         Item mostFrequentArtist = findMostFrequentItem(artists);
 
@@ -223,8 +223,7 @@ public class LastFMConceptRetriever {
                     long start = System.currentTimeMillis();
                     Concept[] concepts = getImplicitConceptsForUser(user);
                     long delta = System.currentTimeMillis() - start;
-                    sumTime +=
-                            delta;
+                    sumTime += delta;
 
                     float time = delta / 1000.f;
                     float avg = sumTime / (1000.f * completedUsers.size());
@@ -236,11 +235,12 @@ public class LastFMConceptRetriever {
                     }
 
                     String[] neighbors = lastfm.getSimilarUsers(user);
-                    for (String neighbor : neighbors) {
-                        if (!completedUsers.contains(neighbor)) {
-                            outstandingUsers.offer(neighbor);
+                    if (neighbors != null) {
+                        for (String neighbor : neighbors) {
+                            if (!completedUsers.contains(neighbor)) {
+                                outstandingUsers.offer(neighbor);
+                            }
                         }
-
                     }
                     Thread.sleep(delay);
                 } catch (IOException ex) {
@@ -251,7 +251,6 @@ public class LastFMConceptRetriever {
                     break;
                 } catch (Throwable t) {
                     System.out.println("Some awful thing happened " + t);
-                    t.printStackTrace();
                 }
 
             }
