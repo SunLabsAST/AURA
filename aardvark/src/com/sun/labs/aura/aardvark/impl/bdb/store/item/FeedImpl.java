@@ -3,7 +3,9 @@ package com.sun.labs.aura.aardvark.impl.bdb.store.item;
 import com.sleepycat.persist.model.Persistent;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
+import com.sun.labs.aura.aardvark.store.item.Entry;
 import com.sun.labs.aura.aardvark.store.item.Feed;
+import java.util.Set;
 
 /**
  * A persistent implementation of a Feed via the Berkeley DB Java Edition
@@ -68,6 +70,10 @@ public class FeedImpl extends ItemImpl implements Feed {
      */
     public FeedImpl(String key) {
         super(key);
+    }
+    
+    public Set<Entry> getEntries() {
+        return bdb.getAllEntriesForFeed(getID());
     }
     
     public String getTypeString() {

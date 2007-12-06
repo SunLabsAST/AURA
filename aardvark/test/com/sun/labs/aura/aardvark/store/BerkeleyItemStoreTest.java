@@ -11,6 +11,7 @@ import com.sun.labs.util.props.ConfigurationManager;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.junit.After;
@@ -29,6 +30,7 @@ public class BerkeleyItemStoreTest {
 
     protected static long startID = -1;
     
+    protected static long currentTime =  -1;
     
     public BerkeleyItemStoreTest() {
         
@@ -80,6 +82,8 @@ public class BerkeleyItemStoreTest {
         
         Entry e = store.newItem(Entry.class, "pauls-blog-post1");
         e.setContent("music is awesome!");
+        currentTime = System.currentTimeMillis();
+        e.setTimeStamp(currentTime);
         store.put(e);
         assertTrue(e.getID() == ++id);
         assertTrue(listener.gotCreated);
@@ -88,6 +92,7 @@ public class BerkeleyItemStoreTest {
 
         e = store.newItem(Entry.class, "steves-blog-post1");
         e.setContent("search is awesome!");
+        e.setTimeStamp(currentTime);
         store.put(e);
         assertTrue(e.getID() == ++id);
         assertTrue(listener.gotCreated);
@@ -104,10 +109,12 @@ public class BerkeleyItemStoreTest {
         Entry e = (Entry) store.get(startID + 1);
         assertTrue(e.getKey().equals("pauls-blog-post1"));
         assertTrue(e.getContent().equals("music is awesome!"));
+        assertTrue(e.getTimeStamp() == currentTime);
         
         e = (Entry) store.get("steves-blog-post1");
         assertTrue(e.getID() == 3);
         assertTrue(e.getContent().equals("search is awesome!"));
+        assertTrue(e.getTimeStamp() == currentTime);
     }
 
     @Test

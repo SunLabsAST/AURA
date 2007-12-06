@@ -4,17 +4,20 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.persist.EntityCursor;
+import com.sleepycat.persist.EntityIndex;
 import com.sleepycat.persist.EntityJoin;
 import com.sleepycat.persist.EntityStore;
 import com.sleepycat.persist.ForwardCursor;
 import com.sleepycat.persist.PrimaryIndex;
 import com.sleepycat.persist.SecondaryIndex;
 import com.sleepycat.persist.StoreConfig;
+import com.sleepycat.persist.model.Entity;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.EntryImpl;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.FeedImpl;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.ItemImpl;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.UserImpl;
 import com.sun.labs.aura.aardvark.store.Attention;
+import com.sun.labs.aura.aardvark.store.item.Entry;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
@@ -61,6 +64,11 @@ public class BerkeleyDataWrapper {
      * A sub-index across all feeds in the item store
      */
     protected SecondaryIndex<Boolean,Long,FeedImpl> allFeeds;
+    
+    /**
+     * An index of entries, accessible by feed ID
+     */
+    protected SecondaryIndex<Long,Long,EntryImpl> entriesByFeedID;
     
     /**
      * The index of all Attention in the item store, accessible by ID
@@ -132,7 +140,6 @@ public class BerkeleyDataWrapper {
         
         dbEnv = new Environment(dir, econf);
         store = new EntityStore(dbEnv, "Aardvark", sconf);
-        
         //
         // Load the indexes that we'll use during regular operation
         itemByID = store.getPrimaryIndex(Long.class, ItemImpl.class);
@@ -145,9 +152,12 @@ public class BerkeleyDataWrapper {
         allEntries = store.getSubclassIndex(itemByID, EntryImpl.class,
                                             Boolean.class, "isEntry");
         
+        entriesByFeedID = store.getSubclassIndex(itemByID, EntryImpl.class,
+                                                 Long.class, "parentFeedID");
+        
         allFeeds = store.getSubclassIndex(itemByID, FeedImpl.class,
                                           Boolean.class, "isFeed");
-        
+                
         attnByID = store.getPrimaryIndex(Long.class,
                                          PersistentAttention.class);
         
@@ -311,6 +321,27 @@ public class BerkeleyDataWrapper {
                     + ")", e);
         }
         return u;
+    }
+    
+    public Set<Entry> getAllEntriesForFeed(long feedID) {
+        HashSet entries = new HashSet();
+        try {
+            EntityIndex<Long,EntryImpl> subIndex =
+                    entriesByFeedID.subIndex(feedID);
+            EntityCursor<EntryImpl> cursor = subIndex.entities();
+            try {
+                for (EntryImpl ent : cursor) {
+                    entries.add(ent);
+                }
+            } finally {
+                cursor.close();
+            }
+        } catch (DatabaseException e) {
+            log.log(Level.WARNING, "getAllEntriesForFeed() failed to get " +
+                    "entries for feed (id: " + feedID + ")");
+        }
+        return entries;
+        
     }
     
     public PersistentAttention getAttention(long id) {
