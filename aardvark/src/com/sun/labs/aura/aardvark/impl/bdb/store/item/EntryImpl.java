@@ -1,5 +1,6 @@
 package com.sun.labs.aura.aardvark.impl.bdb.store.item;
 
+import com.sleepycat.persist.model.DeleteAction;
 import com.sleepycat.persist.model.Persistent;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
@@ -33,7 +34,9 @@ public class EntryImpl extends ItemImpl implements Entry {
     /**
      * The parent feed from which this entry was derived.
      */
-    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE,
+                  relatedEntity=ItemImpl.class,
+                  onRelatedEntityDelete=DeleteAction.CASCADE)
     private long parentFeedID;
     
     /**
@@ -47,6 +50,11 @@ public class EntryImpl extends ItemImpl implements Entry {
     protected String syndEntryXML;
     
     /**
+     * The URL of this entry.  This is a persistent field.
+     */
+    protected String entryURL;
+    
+    /**
      * A cached instantiated version of this syndicatin entry.
      */
     protected transient SyndEntry cachedEntry;
@@ -58,7 +66,7 @@ public class EntryImpl extends ItemImpl implements Entry {
     }
     
     /**
-     * Instantiates an Entry with a particular key (probaby the URL)
+     * Instantiates an Entry with a particular key
      *
      * @param key the key for this entry
      */
@@ -108,7 +116,18 @@ public class EntryImpl extends ItemImpl implements Entry {
     public void setParentFeedID(long id) {
         this.parentFeedID = id;
     }
+
     
+    public String getEntryURL() {
+        return entryURL;
+    }
+
+    public void setEntryURL(String url) {
+        this.entryURL = url;
+    }
+
+    
+    @Override
     public String getTypeString() {
         return Entry.ITEM_TYPE;
     }

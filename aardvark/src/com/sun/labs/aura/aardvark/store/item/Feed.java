@@ -1,6 +1,8 @@
 
 package com.sun.labs.aura.aardvark.store.item;
 
+import java.util.SortedSet;
+
 /**
  * Represents an ATOM Feed.  The key of the feed should be its URL.
  */
@@ -8,6 +10,13 @@ public interface Feed extends Item {
     /** A unique string that each Item must define to identify its own type */
     public final static String ITEM_TYPE = "AardvarkFeed";
 
+    /**
+     * Get all the entries associated with this feed
+     * 
+     * @return the SortedSet of entries associated with this feed
+     */
+    public SortedSet<Entry> getEntries();
+    
     /**
      * Gets the time that this feed was last pulled.
      * 

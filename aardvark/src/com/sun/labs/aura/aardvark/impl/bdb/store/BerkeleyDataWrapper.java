@@ -11,7 +11,6 @@ import com.sleepycat.persist.ForwardCursor;
 import com.sleepycat.persist.PrimaryIndex;
 import com.sleepycat.persist.SecondaryIndex;
 import com.sleepycat.persist.StoreConfig;
-import com.sleepycat.persist.model.Entity;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.EntryImpl;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.FeedImpl;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.ItemImpl;
@@ -19,8 +18,11 @@ import com.sun.labs.aura.aardvark.impl.bdb.store.item.UserImpl;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.item.Entry;
 import java.io.File;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -323,8 +325,18 @@ public class BerkeleyDataWrapper {
         return u;
     }
     
-    public Set<Entry> getAllEntriesForFeed(long feedID) {
-        HashSet entries = new HashSet();
+    public SortedSet<Entry> getAllEntriesForFeed(long feedID) {
+        TreeSet<Entry> entries = new TreeSet<Entry>(new Comparator<Entry>() {
+            public int compare(Entry o1, Entry o2) {
+                if (o1.getTimeStamp() - o2.getTimeStamp() < 0) {
+                    return -1;
+                } else if (o1.getTimeStamp() == o2.getTimeStamp()) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            }
+        });
         try {
             EntityIndex<Long,EntryImpl> subIndex =
                     entriesByFeedID.subIndex(feedID);

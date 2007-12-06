@@ -5,7 +5,7 @@ import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
 import com.sun.labs.aura.aardvark.store.item.Entry;
 import com.sun.labs.aura.aardvark.store.item.Feed;
-import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * A persistent implementation of a Feed via the Berkeley DB Java Edition
@@ -72,10 +72,11 @@ public class FeedImpl extends ItemImpl implements Feed {
         super(key);
     }
     
-    public Set<Entry> getEntries() {
+    public SortedSet<Entry> getEntries() {
         return bdb.getAllEntriesForFeed(getID());
     }
     
+    @Override
     public String getTypeString() {
         return Feed.ITEM_TYPE;
     }
@@ -88,10 +89,12 @@ public class FeedImpl extends ItemImpl implements Feed {
         lastPullTime = time;
     }
 
+    @Deprecated
     public long getNextPullTime() {
         return nextPullTime;
     }
 
+    @Deprecated
     public void setNextPullTime(long time) {
         nextPullTime = time;
     }

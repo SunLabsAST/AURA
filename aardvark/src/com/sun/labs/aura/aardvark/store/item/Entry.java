@@ -51,6 +51,34 @@ public interface Entry extends Item {
     public SyndEntry getSyndEntry() throws AuraException;
 
     /**
+     * Gets the ID of the feed from which this entry was derived.
+     * 
+     * @return the ID of the feed
+     */
+    public long getParentFeedID();
+    
+    /**
+     * Sets the ID of the feed from which this entry was derived.
+     * 
+     * @param id the ID of the feed
+     */
+    public void setParentFeedID(long id);
+    
+    /**
+     * Gets the source URL from which this entry was pulled
+     * 
+     * @return a String representing the URL
+     */
+    public String getEntryURL();
+    
+    /**
+     * Sets the source URL from which this entry was pulled
+     * 
+     * @param url a String representing the URL
+     */
+    public void setEntryURL(String url);
+    
+    /**
      * Gets the time stamp associated with this entry (when it was posted).
      * 
      * @return the time stamp in milliseconds since the Java epoch

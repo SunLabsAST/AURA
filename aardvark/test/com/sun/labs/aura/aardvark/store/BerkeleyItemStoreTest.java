@@ -80,10 +80,18 @@ public class BerkeleyItemStoreTest {
         assertFalse(listener.gotChanged);
         listener.gotCreated = false;
         
+        Feed f = store.newItem(Feed.class, "http://some.blog");
+        store.put(f);
+        assertTrue(f.getID() == ++id);
+        assertTrue(listener.gotCreated);
+        assertFalse(listener.gotChanged);
+        listener.gotCreated = false;
+        
         Entry e = store.newItem(Entry.class, "pauls-blog-post1");
         e.setContent("music is awesome!");
         currentTime = System.currentTimeMillis();
         e.setTimeStamp(currentTime);
+        e.setParentFeedID(startID + 1);
         store.put(e);
         assertTrue(e.getID() == ++id);
         assertTrue(listener.gotCreated);
@@ -92,7 +100,8 @@ public class BerkeleyItemStoreTest {
 
         e = store.newItem(Entry.class, "steves-blog-post1");
         e.setContent("search is awesome!");
-        e.setTimeStamp(currentTime);
+        e.setTimeStamp(currentTime + 1);
+        e.setParentFeedID(startID + 1);
         store.put(e);
         assertTrue(e.getID() == ++id);
         assertTrue(listener.gotCreated);
@@ -106,15 +115,23 @@ public class BerkeleyItemStoreTest {
         assertTrue(u.getRecommenderFeedKey().equals("paul-is-a-rockstar"));
         assertTrue(u.getID() == startID);
         
-        Entry e = (Entry) store.get(startID + 1);
+        Entry e = (Entry) store.get(startID + 2);
         assertTrue(e.getKey().equals("pauls-blog-post1"));
         assertTrue(e.getContent().equals("music is awesome!"));
         assertTrue(e.getTimeStamp() == currentTime);
         
         e = (Entry) store.get("steves-blog-post1");
-        assertTrue(e.getID() == 3);
+        assertTrue(e.getID() == (startID + 3));
         assertTrue(e.getContent().equals("search is awesome!"));
-        assertTrue(e.getTimeStamp() == currentTime);
+        assertTrue(e.getTimeStamp() == currentTime + 1);
+        
+        //
+        // Get entries from the first feed
+        Feed f = (Feed) store.get(startID + 1);
+        long t = currentTime;
+        for (Entry ent : f.getEntries()) {
+            assertTrue(ent.getTimeStamp() == t++);
+        }
     }
 
     @Test
@@ -152,7 +169,7 @@ public class BerkeleyItemStoreTest {
     @Test
     public void d_attendItems() throws AuraException {
         User u = (User) store.get("jalex");
-        Entry e = (Entry) store.get(2);
+        Entry e = (Entry) store.get(startID + 2);
         List l = u.getAttentionData();
         assertTrue(l.isEmpty());
         l = e.getAttentionData();
