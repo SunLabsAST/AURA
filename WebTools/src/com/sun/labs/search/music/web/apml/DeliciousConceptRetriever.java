@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  *
  * @author plamere
  */
-public class DeliciousConceptRetriever {
+public class DeliciousConceptRetriever implements ConceptRetriever {
 
     private final static Concept[] EMPTY_CONCEPT = new Concept[0];
 

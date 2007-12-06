@@ -11,6 +11,8 @@ package com.sun.labs.aura.attention;
 import com.sun.labs.search.music.web.apml.APML;
 import com.sun.labs.search.music.web.apml.DeliciousConceptRetriever;
 import com.sun.labs.search.music.web.apml.LastFMConceptRetriever;
+import com.sun.labs.search.music.web.apml.PandoraConceptRetriever;
+import com.sun.labs.search.music.web.apml.ConceptRetriever;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -33,6 +35,7 @@ public class AttentionProfile extends HttpServlet {
     private int errors;
     private LastFMConceptRetriever lcr;
     private DeliciousConceptRetriever dcr;
+    private PandoraConceptRetriever pcr;
 
     private Set<String> requests = new HashSet<String>();
     private long sumTime = 0L;
@@ -47,6 +50,7 @@ public class AttentionProfile extends HttpServlet {
             lcr = new LastFMConceptRetriever();
             lcr.startCrawler();
             dcr = new DeliciousConceptRetriever();
+            pcr = new PandoraConceptRetriever(lcr);
         } catch (IOException ex) {
             throw new ServletException("Can't init the concept retriever");
         }
@@ -74,10 +78,12 @@ public class AttentionProfile extends HttpServlet {
         String op = restfulParams[1];
         String name = restfulParams[2];
 
-        if (op.equals("music")) {
-            processAPMLRequest(true, name, response);
+        if (op.equals("music") | op.equals("last.fm")) {
+            processAPMLRequest(lcr, name, response);
         } else if (op.equals("web")) {
-            processAPMLRequest(false, name, response);
+            processAPMLRequest(dcr, name, response);
+        } else if (op.equals("pandora")) {
+            processAPMLRequest(pcr, name, response);
         } else {
             response.setStatus(response.SC_BAD_REQUEST);
             errors++;
@@ -89,7 +95,7 @@ public class AttentionProfile extends HttpServlet {
      * @param request servlet request
      * @param response servlet response
      */
-    protected void processAPMLRequest(boolean music, String name, HttpServletResponse response)
+    protected void processAPMLRequest(ConceptRetriever cr, String name, HttpServletResponse response)
             throws ServletException, IOException {
         PrintWriter out = response.getWriter();
         try {
@@ -97,11 +103,7 @@ public class AttentionProfile extends HttpServlet {
             long startTime = System.currentTimeMillis();
             APML apml = null;
             
-            if (music) {
-                apml = lcr.getAPMLForUser(name);
-            } else {
-                apml = dcr.getAPMLForUser(name);
-            }
+            apml = cr.getAPMLForUser(name);
             long deltaTime = System.currentTimeMillis() - startTime;
             sumTime += deltaTime;
             if (deltaTime < minTime) {
