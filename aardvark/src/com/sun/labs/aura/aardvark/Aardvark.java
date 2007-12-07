@@ -5,8 +5,8 @@
 package com.sun.labs.aura.aardvark;
 
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
-import com.sun.labs.aura.aardvark.crawler.FeedUtils;
-import com.sun.labs.aura.aardvark.crawler.OPMLProcessor;
+import com.sun.labs.aura.aardvark.util.FeedUtils;
+import com.sun.labs.aura.aardvark.util.OPMLProcessor;
 import com.sun.labs.aura.aardvark.recommender.RecommenderManager;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.ItemStore;
@@ -36,7 +36,7 @@ import java.util.logging.Logger;
  */
 public class Aardvark implements Configurable {
 
-    private final static String VERSION = "aardvark version 0.12";
+    private final static String VERSION = "aardvark version 0.20";
     /**
      * the configurable property for the itemstore used by this manager
      */
@@ -145,7 +145,7 @@ public class Aardvark implements Configurable {
             SimpleAttention userAttention = new SimpleAttention(user, feed, type);
             itemStore.attend(userAttention);
         } else {
-            throw new AuraException("Invalid feed " + feed);
+            throw new AuraException("Invalid feed " + feedURL);
         }
     }
 

@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.  Which I did, which is why this text is here.
  */
-package com.sun.labs.aura.aardvark.crawler;
+package com.sun.labs.aura.aardvark.util;
 
 import com.sun.labs.aura.aardvark.store.ItemStore;
 import com.sun.labs.aura.aardvark.store.item.Entry;
@@ -203,21 +203,31 @@ public class FeedUtils {
 
     /**
      * Given a URL, returns the SyndFeed
-     * @param url the url
+//     * @param url the url
      * @return the feed 
      * @throws com.sun.labs.aura.aardvark.util.AuraException if an error occurs while 
      * loading or parsing the feed
      */
     public static SyndFeed readFeed(URL url) throws AuraException {
+        URLConnection connection = null;
         try {
             SyndFeedInput syndFeedInput = new SyndFeedInput();
-            URLConnection connection = url.openConnection();
+            connection = url.openConnection();
+            connection.setConnectTimeout(30000);
             connection.setRequestProperty("User-agent", "aardvark");
             return syndFeedInput.build(new XmlReader(connection));
         } catch (IOException ex) {
             throw new AuraException("I/O error while reading " + url, ex);
         } catch (FeedException ex) {
             throw new AuraException("feed error while reading " + url, ex);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.getInputStream().close();
+                } catch (IOException ex) {
+                    // Logger.getLogger(FeedUtils.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }
     }
 
@@ -290,7 +300,9 @@ public class FeedUtils {
             Logger.getLogger(FeedUtils.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {
-                is.close();
+                if (is != null) {
+                    is.close();
+                }
             } catch (IOException ex) {
                 Logger.getLogger(FeedUtils.class.getName()).log(Level.SEVERE, null, ex);
             }

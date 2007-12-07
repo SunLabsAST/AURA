@@ -3,7 +3,7 @@ package com.sun.labs.aura.aardvark.impl.bdb.store.item;
 import com.sleepycat.persist.model.Persistent;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
-import com.sun.labs.aura.aardvark.crawler.FeedUtils;
+import com.sun.labs.aura.aardvark.util.FeedUtils;
 import com.sun.labs.aura.aardvark.store.item.Entry;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.syndication.feed.synd.SyndEntry;

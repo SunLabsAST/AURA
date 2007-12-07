@@ -9,6 +9,7 @@
 
 package com.sun.labs.aura.aardvark.crawler;
 
+import com.sun.labs.aura.aardvark.util.OPMLProcessor;
 import com.sun.labs.aura.aardvark.Aardvark;
 import java.io.IOException;
 import java.net.URL;

@@ -44,6 +44,13 @@ public interface FeedCrawler extends Configurable {
 	public void crawlAllFeeds() throws AuraException ;
 
     /**
+     * Crawls a single feed. This method is used 
+     * in testing, only
+     * @throws AuraException
+     */
+	public void crawlFeed(Feed feed) throws AuraException ;
+
+    /**
      * Gets the number of feeds errors
      * @return the number of feeds errors
      */

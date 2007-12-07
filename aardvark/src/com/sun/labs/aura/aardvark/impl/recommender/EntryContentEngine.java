@@ -115,6 +115,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      * @param e the entry to index.
      */
     public void index(Entry e) {
+
         try {
             Map<String, Object> dm =
                     new LinkedHashMap<String, Object>();
@@ -205,6 +206,8 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
                     }
                 }
             }
+
+            System.out.println("Returning " + ret.size() + " entries");
             return ret;
         } catch(SearchEngineException ex) {
             log.log(Level.SEVERE, "Error finding most similar documents for " +
@@ -252,7 +255,6 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
 
         for(Attention a : user.getAttentionData()) {
             if(a.getType() == Attention.Type.STARRED) {
-                System.out.println("Adding " + a);
                 starredAttentionData.add(a);
             }
         }
