@@ -127,8 +127,12 @@ public class BerkeleyDataWrapper {
         StoreConfig sconf = new StoreConfig();
 
         econf.setAllowCreate(true);
+        econf.setTransactional(true);
         sconf.setAllowCreate(true);
 
+        sconf.setTransactional(true);
+        
+        
         File dir = new File(dbEnvDir);
         if (!dir.exists()) {
             dir.mkdirs();

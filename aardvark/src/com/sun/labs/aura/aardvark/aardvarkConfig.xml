@@ -29,8 +29,9 @@
     
     <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.SimpleFeedCrawler">
         <property name="itemStore" value="itemStore"/>
-        <property name="minimumFeedDelayInMinutes" value="30"/>
+        <property name="minimumFeedDelayInMinutes" value="60"/>
         <property name="validateOnAdd" value="false"/>
+        <property name="crawlingThreads" value="10"/>
     </component>
     
     <component name="searchRecommenderManager" type="com.sun.labs.aura.aardvark.impl.recommender.SearchRecommenderManager">
@@ -39,8 +40,10 @@
     
     <component name="entryContentEngine" type="com.sun.labs.aura.aardvark.impl.recommender.EntryContentEngine">
         <property name="itemStore" value="itemStore"/>
-        <property name="entryBatchSize" value="10"/>
+        <property name="entryBatchSize" value="100"/>
+        <property name="indexAtStartup" value="false"/>
         <property name="indexDir" value="${indexDir}"/>
+        <property name="engineLogLevel" value="1"/>
     </component>
     
 </config>

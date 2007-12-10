@@ -9,12 +9,27 @@
 package com.sun.labs.aura.aardvark.util;
 
 import com.sun.labs.aura.aardvark.Aardvark;
+import com.sun.labs.aura.aardvark.Stats;
+import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
+import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.ItemStore;
+import com.sun.labs.aura.aardvark.store.item.Entry;
+import com.sun.labs.aura.aardvark.store.item.Feed;
+import com.sun.labs.aura.aardvark.store.item.Item;
+import com.sun.labs.aura.aardvark.store.item.User;
+import com.sun.labs.util.LabsLogFormatter;
 import com.sun.labs.util.command.CommandInterface;
 import com.sun.labs.util.command.CommandInterpreter;
 import com.sun.labs.util.props.ConfigurationManager;
+import com.sun.syndication.feed.synd.SyndEntry;
+import com.sun.syndication.feed.synd.SyndFeed;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Handler;
+import java.util.logging.Logger;
 
 /**
  *
@@ -23,15 +38,30 @@ import java.net.URL;
 public class Shell {
 
     private CommandInterpreter shell;
+    private ItemStore itemStore;
+    private FeedCrawler feedCrawler;
+    private Aardvark aardvark;
 
-    public Shell(String config) throws IOException {
+    public Shell() throws IOException {
+        initComponents();
+
+        Logger rl = Logger.getLogger("");
+        for (Handler h : rl.getHandlers()) {
+            h.setFormatter(new LabsLogFormatter());
+        }
+
         shell = new CommandInterpreter();
-        ConfigurationManager cm = new ConfigurationManager();
-        cm.addProperties(new URL(config));
+        shell.setPrompt("aardv% ");
 
-        shell.add("users", new CommandInterface() {
+        shell.add("users",
+                new CommandInterface() {
 
-                    public String execute(CommandInterpreter ci, String[] arg1) {
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            dumpAllUsers();
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                        }
                         return "";
                     }
 
@@ -39,8 +69,379 @@ public class Shell {
                         return "shows the current users";
                     }
                 });
+
+        shell.add("user",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 2) {
+                                dumpAllUsers();
+                            } else {
+                                Item item = itemStore.get(args[1]);
+                                if (item != null && item instanceof User) {
+                                    dumpUser((User) item);
+                                }
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: user  name = shows info for a user";
+                    }
+                });
+
+        shell.add("addStarredFeed",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 3) {
+                                getHelp();
+                            } else {
+                                Item item = itemStore.get(args[1]);
+                                String surl = args[2];
+                                URL url = new URL(surl);
+                                aardvark.addUserFeed((User) item, url, Attention.Type.STARRED_FEED);
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: addStarredFeed user  url = adds a starred item feed to a user";
+                    }
+                });
+
+
+        shell.add("recommend",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 2) {
+                                getHelp();
+                            } else {
+                                Item item = itemStore.get(args[1]);
+                                if (item != null && item instanceof User) {
+                                    recommend((User) item);
+                                }
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: recommend  name = recommendations for a user";
+                    }
+                });
+
+        
+        shell.add("feed",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 2) {
+                                dumpAllFeeds();
+                            } else {
+                                long id = Long.parseLong(args[1]);
+                                Item item = itemStore.get(id);
+                                if (item != null && item instanceof Feed) {
+                                    dumpFeed((Feed) item);
+                                }
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: feed  id = shows info for a feed";
+                    }
+                });
+
+        shell.add("crawlFeed",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 2) {
+                                getHelp();
+                            } else {
+                                long id = Long.parseLong(args[1]);
+                                Item item = itemStore.get(id);
+                                if (item != null && item instanceof Feed) {
+                                    feedCrawler.crawlFeed((Feed) item);
+                                }
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: crawlFeed id = crawls a feed ";
+                    }
+                });
+
+        shell.add("crawlStart",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 1) {
+                                getHelp();
+                            } else {
+                                feedCrawler.start();
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: crawlStart";
+                    }
+                });
+
+        shell.add("crawlStop",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 1) {
+                                getHelp();
+                            } else {
+                                feedCrawler.stop();
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: crawlStop";
+                    }
+                });
+
+        shell.add("aaStart",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 1) {
+                                getHelp();
+                            } else {
+                                aardvark.startup();
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: aaStart";
+                    }
+                });
+
+        shell.add("aaStop",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 1) {
+                                getHelp();
+                            } else {
+                                aardvark.shutdown();
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: aaStop";
+                    }
+                });
+
+        shell.add("feeds",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] arg1) {
+                        try {
+                            dumpAllFeeds();
+                        } catch (Exception e) {
+                            System.out.println("Error " + e);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "shows the current feeds";
+                    }
+                });
+
+        shell.add("dbExerciseRead",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length == 2) {
+                                int count = Integer.parseInt(args[1]);
+                                for (int i = 0; i < count; i++) {
+                                    for (int j = 0; j < 1000; j++) {
+                                        itemStore.get(j);
+                                    }
+                                }
+                            } else {
+                                getHelp();
+                            }
+                        } catch (Exception e) {
+                            System.out.println("Error " + e);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "dbExercise count - exercise the database by repeated fetching items";
+                    }
+                });
+        shell.add("dbExerciseWrite",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length == 2) {
+                                long timeStamp = System.currentTimeMillis();
+                                int count = Integer.parseInt(args[1]);
+                                for (int i = 0; i < count; i++) {
+                                    String key = "key:" + timeStamp + "-" + i;
+                                    Item item = itemStore.newItem(Entry.class, key);
+                                    itemStore.put(item);
+                                }
+                            } else {
+                                getHelp();
+                            }
+                        } catch (Exception e) {
+                            System.out.println("Error " + e);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "dbExercise count - exercise the database by repeated fetching items";
+                    }
+                });
+        shell.add("stats",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] arg1) {
+                        try {
+                            Stats stats = aardvark.getStats();
+                            System.out.println("Stats: " + stats);
+                        } catch (Exception e) {
+                            System.out.println("Error " + e);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "shows the current stats";
+                    }
+                });
+    }
+
+    public void go() {
+        shell.run();
+    }
+
+    private void dumpAllUsers() throws AuraException {
+        Set<User> users = itemStore.getAll(User.class);
+        for (User user : users) {
+            dumpItem(user);
+        }
+    }
+
+    private void dumpUser(User user) throws AuraException {
+        dumpItem(user);
+        dumpAttentionData(user.getAttentionData());
+    }
+
+    private void recommend(User user) throws AuraException {
+        SyndFeed feed = aardvark.getRecommendedFeed(user);
+        for (Object syndEntryObject : feed.getEntries()) {
+            SyndEntry syndEntry = (SyndEntry) syndEntryObject;
+            String title = syndEntry.getTitle();
+            String link = syndEntry.getLink();
+            Date date = syndEntry.getPublishedDate();
+            String sdate = "";
+            if (date != null) {
+                sdate = "(" + date.toString() + ")";
+            }
+            System.out.printf("  %s from %s %s\n", title, link, sdate);
+        }
+
+    }
+
+    private void dumpAllFeeds() throws AuraException {
+        Set<Feed> feeds = itemStore.getAll(Feed.class);
+        for (Feed feed : feeds) {
+            dumpItem(feed);
+        }
+    }
+
+    private void dumpItem(Item item) throws AuraException {
+        System.out.printf(" %d %d %s\n", item.getID(), item.getAttentionData().size(), item.getKey());
+    }
+
+    private void dumpFeed(Feed feed) throws AuraException {
+        dumpItem(feed);
+        System.out.println("   Pulls  : " + feed.getNumPulls());
+        System.out.println("   Last   : " + feed.getLastPullTime());
+        System.out.println("   Errors : " + feed.getNumErrors());
+        dumpAttentionData(feed.getAttentionData());
+    }
+
+    private void dumpAttentionData(List<Attention> attentionData) throws AuraException {
+        for (Attention attention : attentionData) {
+            Item user = itemStore.get(attention.getUserID());
+            Item item = itemStore.get(attention.getItemID());
+            String type = attention.getType().toString();
+            System.out.printf("   %s(%d) %s(%d) %s(%d)\n", user.getKey(), user.getID(),
+                    type, attention.getType().ordinal(), item.getKey(), item.getID());
+        }
+
+    }
+
+    public void initComponents() throws IOException {
+        ConfigurationManager cm = new ConfigurationManager();
+        URL configFile = Aardvark.class.getResource("aardvarkConfig.xml");
+        cm.addProperties(configFile);
+        aardvark = (Aardvark) cm.lookup("aardvark");
+        itemStore = (ItemStore) cm.lookup("itemStore");
+        feedCrawler = (FeedCrawler) cm.lookup("feedCrawler");
     }
 
     public static void main(String[] args) {
+        try {
+            Shell shell = new Shell();
+            shell.go();
+        } catch (IOException ex) {
+            System.err.println("Can't run shell " + ex);
+        }
     }
 }

@@ -9,7 +9,7 @@
 package com.sun.labs.aura.aardvark.server;
 
 import com.sun.labs.aura.aardvark.Aardvark;
-import com.sun.labs.aura.aardvark.crawler.OPMLProcessor;
+import com.sun.labs.aura.aardvark.util.OPMLProcessor;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;

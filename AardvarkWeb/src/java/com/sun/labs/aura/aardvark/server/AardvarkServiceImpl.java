@@ -13,13 +13,18 @@ import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.aardvark.client.AardvarkService;
 import com.sun.labs.aura.aardvark.client.WiEntrySummary;
+import com.sun.labs.aura.aardvark.client.WiFeed;
 import com.sun.labs.aura.aardvark.client.WiStats;
 import com.sun.labs.aura.aardvark.client.WiUser;
 import com.sun.labs.aura.aardvark.client.WiUserStatus;
+import com.sun.labs.aura.aardvark.store.Attention;
+import com.sun.labs.aura.aardvark.store.item.Feed;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
@@ -30,8 +35,11 @@ import javax.servlet.ServletException;
  * @author plamere
  */
 public class AardvarkServiceImpl extends RemoteServiceServlet implements AardvarkService {
-
     private Aardvark aardvark;
+    private final static Attention.Type[] feedTypes = {Attention.Type.STARRED_FEED, 
+                Attention.Type.SUBSCRIBED_FEED, 
+                Attention.Type.DISLIKED_FEED};
+    private final static WiFeed[] EMPTY_WI_FEED = new WiFeed[0];
 
     @Override
     public void init(ServletConfig sc) throws ServletException {
@@ -68,7 +76,10 @@ public class AardvarkServiceImpl extends RemoteServiceServlet implements Aardvar
     public WiStats getStats() {
         try {
             Stats stats = aardvark.getStats();
-            return new WiStats(stats.getVersion(), stats.getNumUsers(), stats.getNumItems(), stats.getNumAttentionData(), stats.getNumFeeds(), stats.getFeedPullCount(), stats.getFeedErrorCount());
+            return new WiStats(stats.getVersion(), stats.getNumUsers(), stats.getNumItems(), 
+                    stats.getNumAttentionData(), stats.getNumFeeds(), 
+                    stats.getFeedPullCount(), stats.getFeedErrorCount(),
+                    Runtime.getRuntime().totalMemory());
         } catch (AuraException ex) {
             Logger.getLogger(AardvarkServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
             return new WiStats();
@@ -122,7 +133,12 @@ public class AardvarkServiceImpl extends RemoteServiceServlet implements Aardvar
                     SyndEntry syndEntry = (SyndEntry) syndEntryObject;
                     String title = syndEntry.getTitle();
                     String link = syndEntry.getLink();
-                    summaries[index++] = new WiEntrySummary(title, link);
+                    String date = "";
+
+                    if (syndEntry.getPublishedDate() != null) {
+                        date = syndEntry.getPublishedDate().toString();
+                    }
+                    summaries[index++] = new WiEntrySummary(title, link, date);
                 }
                 return summaries;
             } else {
@@ -132,5 +148,22 @@ public class AardvarkServiceImpl extends RemoteServiceServlet implements Aardvar
             Logger.getLogger(AardvarkServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
             return new WiEntrySummary[0];
         }
+    }
+
+    public WiFeed[] getFeeds(String name) {
+        List<WiFeed> feeds = new ArrayList<WiFeed>();
+        try {
+            User user = aardvark.getUser(name);
+            for (Attention.Type feedType : feedTypes) {
+                for (Feed feed : user.getFeeds(feedType)) {
+                    WiFeed wiFeed = new WiFeed(feed.getKey(), null, feed.getID(), feedType.toString());
+                    feeds.add(wiFeed);
+                }
+            }
+        } catch (AuraException ex) {
+            Logger.getLogger(AardvarkServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+            return EMPTY_WI_FEED;
+        }
+        return feeds.toArray(EMPTY_WI_FEED);
     }
 }

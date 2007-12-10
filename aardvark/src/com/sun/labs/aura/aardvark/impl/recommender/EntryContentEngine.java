@@ -7,7 +7,6 @@ import com.sun.kt.search.ResultSet;
 import com.sun.kt.search.SearchEngine;
 import com.sun.kt.search.SearchEngineException;
 import com.sun.kt.search.SearchEngineFactory;
-import com.sun.kt.search.SimpleIndexer;
 import com.sun.labs.aura.aardvark.recommender.Recommender;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.ItemStore;
@@ -115,6 +114,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      * @param e the entry to index.
      */
     public void index(Entry e) {
+
         try {
             Map<String, Object> dm =
                     new LinkedHashMap<String, Object>();
@@ -139,7 +139,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      */
     public DocumentVector getDocument(long id) {
         try {
-            ResultSet rs = engine.search(String.format("id = %d", id), "-score", null);
+            ResultSet rs = engine.search(String.format("id = %d", id));
             if(rs.size() == 0) {
                 return null;
             }
@@ -205,6 +205,8 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
                     }
                 }
             }
+
+            System.out.println("Returning " + ret.size() + " entries");
             return ret;
         } catch(SearchEngineException ex) {
             log.log(Level.SEVERE, "Error finding most similar documents for " +

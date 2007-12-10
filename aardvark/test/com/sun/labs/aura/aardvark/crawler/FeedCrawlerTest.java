@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.aardvark.crawler;
 
+import com.sun.labs.aura.aardvark.util.FeedUtils;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.LabsLogFormatter;
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -79,6 +80,7 @@ public class FeedCrawlerTest {
         for (Object o : feed.getEntries()) {
             SyndEntry se = (SyndEntry) o;
             assertNotNull("Feed has contents", FeedUtils.getContent(se));
+            dumpRaw(se);
         }
     }
 

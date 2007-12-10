@@ -3,6 +3,7 @@ package com.sun.labs.aura.aardvark.store;
 import com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore;
 import com.sun.labs.aura.aardvark.store.item.Entry;
 import com.sun.labs.aura.aardvark.store.item.Feed;
+import com.sun.labs.aura.aardvark.store.item.Item;
 import com.sun.labs.aura.aardvark.store.item.ItemEvent;
 import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.User;
@@ -190,6 +191,7 @@ public class BerkeleyItemStoreTest {
         assertTrue(a.equals(b));
     }
     
+    @Test
     public void e_multipleFeeds() throws AuraException {
         //
         // Make some data
@@ -233,7 +235,28 @@ public class BerkeleyItemStoreTest {
         assertTrue("Got wrong number of starred feeds", feeds.size() == 1);
         test = (Feed)feeds.toArray()[0];
         assertTrue("Wrong feed for starred test",
-                test.getKey().equals("http://steves.blog"));
+                test.getKey().equals("http://steves.blog/"));
+    }
+    
+    @Test
+    public void f_breakConsistency() throws AuraException {
+        Entry e = store.newItem(Entry.class, "steves-blog-post1");
+        e.setContent("foo bar");
+        store.put(e);
+        boolean exFired = false;
+        try {
+            store.attend(new SimpleAttention(startID, e.getID(), Attention.Type.VIEWED, System.currentTimeMillis()));
+        } catch (AuraException ex) {
+            exFired = true;
+        } finally {
+            assertTrue("Exception didn't fire", exFired);
+        }
+        Entry i = (Entry)store.get(e.getID());
+        assertTrue("Got an entry for a bogus ID", i == null);
+        
+        Entry e2 = store.newItem(Entry.class, "valid-item");
+        e2.setContent("bar foo");
+        store.put(e2);
     }
     
     private BerkeleyItemStore getStore() throws IOException {

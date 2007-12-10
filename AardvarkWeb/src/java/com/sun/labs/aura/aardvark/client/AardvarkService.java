@@ -18,4 +18,5 @@ public interface AardvarkService extends RemoteService{
     public WiUserStatus registerUser(String name, String feed);
     public WiUserStatus loginUser(String name);
     public WiEntrySummary[] getRecommendations(String name);
+    public WiFeed[] getFeeds(String name);
 }
