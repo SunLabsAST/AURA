@@ -78,6 +78,9 @@ Recommender use cases:
    - weed my feed
    - something new
 
+Parameterizing recommendations
+------------------------------
+   - ZZ
 
 
 Item Store Additions
