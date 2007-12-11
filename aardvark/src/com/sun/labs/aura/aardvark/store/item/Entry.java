@@ -77,18 +77,4 @@ public interface Entry extends Item {
      * @param url a String representing the URL
      */
     public void setEntryURL(String url);
-    
-    /**
-     * Gets the time stamp associated with this entry (when it was posted).
-     * 
-     * @return the time stamp in milliseconds since the Java epoch
-     */
-    public long getTimeStamp();
-    
-    /**
-     * Sets the time associated with this entry (when it was posted).
-     * 
-     * @param timeStamp the time in milliseconds since the Java epoch
-     */
-    public void setTimeStamp(long timeStamp);
 }

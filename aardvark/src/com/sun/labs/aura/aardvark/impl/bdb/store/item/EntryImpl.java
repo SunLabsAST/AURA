@@ -26,12 +26,6 @@ public class EntryImpl extends ItemImpl implements Entry {
     protected boolean isEntry = true;
 
     /**
-     * A timestamp to track when this entry was made.
-     */
-    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
-    private long timeStamp;
-
-    /**
      * The parent feed from which this entry was derived.
      */
     @SecondaryKey(relate=Relationship.MANY_TO_ONE,
@@ -99,14 +93,6 @@ public class EntryImpl extends ItemImpl implements Entry {
         }
         cachedEntry = FeedUtils.toSyndEntry(syndEntryXML);
         return cachedEntry;
-    }
-    
-    public void setTimeStamp(long timeStamp) {
-        this.timeStamp = timeStamp;
-    }
-    
-    public long getTimeStamp() {
-        return timeStamp;
     }
     
     public long getParentFeedID() {

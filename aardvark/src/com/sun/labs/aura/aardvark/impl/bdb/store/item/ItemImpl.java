@@ -28,6 +28,12 @@ public abstract class ItemImpl implements Item {
     private String key;
 
     /**
+     * A timestamp to track when this item was added.
+     */
+    @SecondaryKey(relate = Relationship.MANY_TO_ONE)
+    private long addedTime;
+    
+    /**
      * Attention must be stored as a set of IDs since entity types cannot
      * be stored as references in fields (in other words, the system won't
      * do a JOIN automatically).  We'll have to manually pull in the attention
@@ -38,6 +44,7 @@ public abstract class ItemImpl implements Item {
     private transient List<Attention> attention;
     
     protected transient BerkeleyDataWrapper bdb;
+
     
     /**
      * All persistent objects must have a default constructor.
@@ -52,7 +59,8 @@ public abstract class ItemImpl implements Item {
      */
     public ItemImpl(String key) {
         this.key = key;
-        attentionIDs = new HashSet<Long>();
+        this.attentionIDs = new HashSet<Long>();
+        this.addedTime = System.currentTimeMillis();
     }
     
     public long getID() {
@@ -103,5 +111,13 @@ public abstract class ItemImpl implements Item {
     
     public String getTypeString() {
         return this.ITEM_TYPE;
+    }
+
+    public long getTimeStamp() {
+        return addedTime;
+    }
+
+    public void setTimeStamp(long timeStamp) {
+        this.addedTime = timeStamp;
     }
 }
