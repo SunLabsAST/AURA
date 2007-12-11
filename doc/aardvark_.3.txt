@@ -1,0 +1,102 @@
+Goal
+----
+   - Polylithification
+       - break the system up into separate compnents that can run in
+         separate VMS (even on separate machines):
+         - the item store
+         - the crawler (or multiple crawlers)
+         - the indexer
+         - the recommender
+         - the web services
+   - Improve recommendations
+       - Make the recommendations more useful:
+           - Transparent recommendations
+           - implement several types of feeds:
+               - something I'll like - recommendations drawn from all feeds
+               - weed my feed - recommendations drawn from a users own feeds.
+               - something new - recommendations drawn from new feeds.
+           - More aggressive dup elimination
+               - eliminate duplicates from aggregate feeds
+               - eliminate duplicates by title or text similarity
+               - Advanced: topic clustering - present only one
+                 representative story
+           - include:
+               - negative feedback
+
+Non-goals
+--------
+    - we are not going to worry about recommendation query times for
+      this iteration
+
+Features:
+--------
+   - mult-threaded crawler
+   - about 10,000 blog feeds
+
+Issues to address:
+---------------------
+   - Incorporate IPC into the configuration system:
+        One possibility:
+
+        <property name="itemStore" value="search.east:itemStore"/>
+
+        or 
+
+        <property name="itemStore" value="itemStore@search.east"/>
+        <property name="itemStore" value="itemStore@search.east:8888"/>
+
+        or
+
+        <property name="itemStore" value="192.168.1.102:itemStore"/>
+        
+   - Shutting down the crawler and search engine can take a while (a minute 
+     or more) - this can cause problems for the app container
+   - The url of an entry is not a sufficient key - it is not always
+     the same (many aggregators have multiple entry links for the same
+     entry) - we need to perhaps use an entries GUID as the key.  This
+     problem leads to many duplicates in the recommendations (and no
+     doubt many dups in the database)
+   - Fragile locking in the search engine caused problems with startup
+     and merging
+   - Enrolling a new user - it can take some time before we can
+     generate recommedations for a new user (we have to wait until the
+     crawler identifies *new* starred items).
+   - User interface is *ugly* - in particular:
+       - no way to add more 'starred item ' feeds for a user
+       - no way to edit feeds
+   - Poor recommendations:
+      - lots of dups
+      - lots of stale entries
+      - lots of irrelevant entries
+      - lack of recommendation explanations
+   - Supplied feed has many entries that don't show the content in
+     Google Reader - instead shows <html> or <text>
+
+Recommender use cases:
+----------------------
+   - something I'll like
+   - weed my feed
+   - something new
+
+
+
+Item Store Additions
+-------------------
+    SortedSet<Attention> user.getLastAttention(Attention.Type type, int count);
+    SortedSet<Attention> user.getLastAttention(int count);
+    DBIterator itemStore.getAttentionAddedSince(Date date)
+    DBIterator itemStore.getAttentionAddedSince(Attention.Type type, Date date)
+    DBIterator itemStore.getItemsAddedSince(class, date);
+
+    Feed
+        String getName() -  Needs a 'name'
+
+    Entry -
+       long getFeedID(); - gets the id associated with the feed
+       String getURL(); - gets the URL for the entry (which is
+                          separate from the key)
+
+
+Recommender interface changes
+-----------------------------
+

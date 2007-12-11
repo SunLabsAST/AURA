@@ -1,0 +1,95 @@
+
+Goal
+----
+
+We'd like to be able to distribute an application across multiple VMs
+and even across multiple CPUs. 
+
+There are a few different models:
+
+   - topology specified in the code - this is obviously bad - so we
+     won't discuss this further
+
+   - topology specified in configuration files - this gives us control
+     over where to put things but can be hard to automatically
+     incorporate new hardware resources into the system
+
+   - topology not specified - resources added dynamically - lets us
+     add resources at will, but harder to tie specific processing to
+     specific nodes (such as the DB on the node where the fast disk
+     resides).
+
+Option 2 (topology specified in configuration files) seems to fit in
+best with our current configuration scheme, and if we do it properly
+should allow us to add new hardware resources into a running system.
+
+
+Specific goals
+-------------
+    - Extend the current configuration system to allow components to
+      be distributed across a number of different systems
+
+    - Should have no impact on a non-distributed configuration
+        - caveat: remote communications will likely need to catch a
+          RemoteException to signal when a communication error occurs
+
+    - It should be possible to add new components to an already
+      running distributed system.
+
+    - It would be nice if we could specify the configuration for an
+      entire system in a single configuration file.  This would
+      include the configuration and hookups for all components in the
+      system
+
+Implementation
+---------------
+The configuration system already includes configuration manager where
+components can be looked up by name. We can extend this to include
+remote lookups.  For instance to find a local itemStore a component
+includes this in their config file:
+
+<component name="feedCrawler" type="com.sun.labs...SimpleFeedCrawler">
+    <property name="itemStore" value="itemStore"/>
+    <property name="minimumFeedDelayInMinutes" value="60"/>
+    <property name="validateOnAdd" value="false"/>
+    <property name="crawlingThreads" value="10"/>
+</component
+
+To connect to a remote item store should be as simple as renaming the component
+like so:
+
+<component name="feedCrawler" type="com.sun.labs...SimpleFeedCrawler">
+    <property name="itemStore" value="rmi://search.east:1099/itemStore"/>
+    <property name="minimumFeedDelayInMinutes" value="60"/>
+    <property name="validateOnAdd" value="false"/>
+    <property name="crawlingThreads" value="10"/>
+</component
+
+
+When this feedCrawler.newProperties method is called, the feedCrawler gets the
+itemStore with the call:
+
+   ItemStore itemStore = (ItemStore) propertySheet.getComponent("itemStore");
+
+This will return a refererence to the remote stub for the itemStore that is located on search.east.
+
+On the server side - to create a component that can be accessed remotely, the
+component writer needs to do the following:
+
+   - Define a remote interface for the component.  This should be an interface
+     that extends java.rmi.Remote, defines the methods that can be called
+     remotely (these methods need to throw RemoteException, all input/output
+     data must be serializable).  The component should extent this new
+     remote interface.
+
+   - To make the component available to others the component needs to
+     set an implicit configuration property: enableRemoteAccess to true
+     like so:
+
+<component name="itemStore" type="com.sun.labs...BerkleyItemStore">
+    <!-- other props -->
+    <property name="enableRemoteAccess" value="true"/>
+</component
+
+
+
