@@ -6,6 +6,7 @@ import com.sun.labs.aura.aardvark.impl.bdb.store.item.FeedImpl;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.ItemImpl;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.UserImpl;
 import com.sun.labs.aura.aardvark.store.Attention;
+import com.sun.labs.aura.aardvark.store.DBIterator;
 import com.sun.labs.aura.aardvark.store.ItemStore;
 import com.sun.labs.aura.aardvark.store.ItemStoreStats;
 import com.sun.labs.aura.aardvark.store.item.Entry;
@@ -19,6 +20,7 @@ import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -122,7 +124,6 @@ public class BerkeleyItemStore implements ItemStore {
                           dbEnvDir + ": " + e);
         }
         store = this;
-
     }
 
     /**
@@ -238,6 +239,36 @@ public class BerkeleyItemStore implements ItemStore {
 
     }
 
+    
+    /**
+     * Gets all the items of a particular type that have been added since a
+     * particular time.  Returns an iterator over those items that must be
+     * closed when reading is done.
+     * 
+     * @param itemType the type of item to retrieve
+     * @param timeStamp the time from which to search (to the present time
+     * @return an iterator over the added items
+     * @throws com.sun.labs.aura.aardvark.util.AuraException 
+     */
+    public <T extends Item> DBIterator<T> getItemsAddedSince(Class<T> itemType,
+            Date timeStamp) throws AuraException {
+        return bdb.getItemsAddedSince(itemType, timeStamp.getTime());
+    }
+    
+    /**
+     * Gets all the attention that has been added to the store since a
+     * particular date.  Returns an iterator over the attention that must be
+     * closed when reading is done.
+     * 
+     * @param timeStamp the time to search back to
+     * @return the Attentions added since that time
+     * @throws com.sun.labs.aura.aardvark.util.AuraException
+     */
+    public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)
+            throws AuraException {
+        return bdb.getAttentionAddedSince(timeStamp.getTime());
+    }
+    
     /**
      * Store an attention record
      * 

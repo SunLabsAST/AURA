@@ -49,4 +49,46 @@ public interface Entry extends Item {
      * @return the RSS entry
      */
     public SyndEntry getSyndEntry() throws AuraException;
+
+    /**
+     * Gets the ID of the feed from which this entry was derived.
+     * 
+     * @return the ID of the feed
+     */
+    public long getParentFeedID();
+    
+    /**
+     * Sets the ID of the feed from which this entry was derived.
+     * 
+     * @param id the ID of the feed
+     */
+    public void setParentFeedID(long id);
+    
+    /**
+     * Gets the source URL from which this entry was pulled
+     * 
+     * @return a String representing the URL
+     */
+    public String getEntryURL();
+    
+    /**
+     * Sets the source URL from which this entry was pulled
+     * 
+     * @param url a String representing the URL
+     */
+    public void setEntryURL(String url);
+    
+    /**
+     * Gets the date that this entry was posted
+     * 
+     * @return the date, in milliseconds since the Java epoch
+     */
+    public long getPostDate();
+    
+    /**
+     * Sets the date that this entry was posted at
+     * 
+     * @param date the date in milliseconds since the Java epoch
+     */
+    public void setPostDate(long date);
 }

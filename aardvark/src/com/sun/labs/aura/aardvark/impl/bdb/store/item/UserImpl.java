@@ -14,6 +14,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * Implementation of a persistent User through the Berkeley DB Java Edition.
@@ -29,26 +30,16 @@ public class UserImpl extends ItemImpl implements User {
     @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     protected boolean isUser = true;
 
+
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
+    protected long userAddedTime;
     
     /**
      * The recommendation feed key unqiue to this user.
      * This field is persistent.
      */
     protected String rFeedKey;
-    
-    /**
-     * The String representation of the URL to the User's starred items
-     * feed.  This field is persistent.
-     */
-    protected String starredItemFeed;
-
-    /**
-     * Feeds that this user is interested in.  If storing feeds via attn
-     * proves to be too slow or too messy, we'll add a direct list here.
-     * This field is persistent.
-     */
-    //protected HashSet<String> interestedFeeds;
-    
+        
     /**
      * The last time data was fetched for this user.  This should probably
      * be moved to another table.
@@ -68,6 +59,7 @@ public class UserImpl extends ItemImpl implements User {
      */
     public UserImpl(String key) {
         super(key);
+        this.userAddedTime = System.currentTimeMillis();
     }
     
     public String getRecommenderFeedKey() {
@@ -114,30 +106,6 @@ public class UserImpl extends ItemImpl implements User {
         store.attend(attn);
     }
     
-    @Deprecated
-    public URL getStarredItemFeedURL() {
-        URL feed;
-        try {
-            if (starredItemFeed != null) {
-                feed = new URL(starredItemFeed);
-            } else {
-                feed = null;
-            }
-        } catch (MalformedURLException e) {
-            feed = null;
-        }
-        return feed;
-    }
-
-    @Deprecated
-    public void setStarredItemFeedURL(URL newURL) {
-        if (newURL != null) {
-            starredItemFeed = newURL.toString();
-        } else {
-            starredItemFeed = null;
-        }
-    }
-
     public long getLastFetchTime() {
         if (lastFetchTime != null) {
             return lastFetchTime;
@@ -149,7 +117,43 @@ public class UserImpl extends ItemImpl implements User {
         this.lastFetchTime = lastFetchTime;
     }
 
+    
+    /**
+     * Gets the N most recent attentions that this user has created.
+     * This method will only search back to at most one year.
+     * 
+     * @param type the type of attention to find
+     * @param count the number of attention to retrieve
+     * @return a set of up to <code>count</code> attentions
+     */
+    public SortedSet<Attention> getLastAttention(int count) {
+        return bdb.getLastAttentionForUser(getID(), null, count);
+    }
+    
+    
+    /**
+     * Gets the N most recent attentions of a particular type that this user
+     * has created.  This method will only search back to at most one year.
+     * 
+     * @param type the type of attention to find
+     * @param count the number of attention to retrieve
+     * @return a set of up to <code>count</code> attentions
+     */
+    public SortedSet<Attention> getLastAttention(Attention.Type type,
+                                                 int count) {
+        return bdb.getLastAttentionForUser(getID(), type, count);
+    }
+
     public String getTypeString() {
         return User.ITEM_TYPE;
     }
+    
+    public long getTimeStamp() {
+        return userAddedTime;
+    }
+
+    public void setTimeStamp(long timeStamp) {
+        this.userAddedTime = timeStamp;
+    }
+
 }
