@@ -14,6 +14,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * Implementation of a persistent User through the Berkeley DB Java Edition.
@@ -114,30 +115,6 @@ public class UserImpl extends ItemImpl implements User {
         store.attend(attn);
     }
     
-    @Deprecated
-    public URL getStarredItemFeedURL() {
-        URL feed;
-        try {
-            if (starredItemFeed != null) {
-                feed = new URL(starredItemFeed);
-            } else {
-                feed = null;
-            }
-        } catch (MalformedURLException e) {
-            feed = null;
-        }
-        return feed;
-    }
-
-    @Deprecated
-    public void setStarredItemFeedURL(URL newURL) {
-        if (newURL != null) {
-            starredItemFeed = newURL.toString();
-        } else {
-            starredItemFeed = null;
-        }
-    }
-
     public long getLastFetchTime() {
         if (lastFetchTime != null) {
             return lastFetchTime;
@@ -149,6 +126,33 @@ public class UserImpl extends ItemImpl implements User {
         this.lastFetchTime = lastFetchTime;
     }
 
+    
+    /**
+     * Gets the N most recent attentions that this user has created.
+     * This method will only search back to at most one year.
+     * 
+     * @param type the type of attention to find
+     * @param count the number of attention to retrieve
+     * @return a set of up to <code>count</code> attentions
+     */
+    public SortedSet<Attention> getLastAttention(int count) {
+        return bdb.getLastAttentionForUser(getID(), null, count);
+    }
+    
+    
+    /**
+     * Gets the N most recent attentions of a particular type that this user
+     * has created.  This method will only search back to at most one year.
+     * 
+     * @param type the type of attention to find
+     * @param count the number of attention to retrieve
+     * @return a set of up to <code>count</code> attentions
+     */
+    public SortedSet<Attention> getLastAttention(Attention.Type type,
+                                                 int count) {
+        return bdb.getLastAttentionForUser(getID(), type, count);
+    }
+    
     public String getTypeString() {
         return User.ITEM_TYPE;
     }

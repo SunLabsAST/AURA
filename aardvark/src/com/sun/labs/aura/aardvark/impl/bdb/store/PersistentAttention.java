@@ -6,6 +6,7 @@ import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
+import com.sun.labs.aura.aardvark.impl.bdb.store.item.IDTimeKey;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.ItemImpl;
 import com.sun.labs.aura.aardvark.store.Attention;
 
@@ -52,7 +53,9 @@ public class PersistentAttention implements Attention {
      */
     @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     private long timeStamp;
-    
+
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
+    private IDTimeKey userAndTime;
     
     /**
      * Default constructor for BDB to instantiate this object
@@ -70,6 +73,7 @@ public class PersistentAttention implements Attention {
         this.itemID = attn.getItemID();
         this.timeStamp = attn.getTimeStamp();
         this.type = attn.getType().ordinal();
+        this.userAndTime = new IDTimeKey(userID, timeStamp);
     }
 
     public long getID() {

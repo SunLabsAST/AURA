@@ -34,6 +34,12 @@ public class EntryImpl extends ItemImpl implements Entry {
     private long parentFeedID;
     
     /**
+     * The date & time at which this entry was posted
+     */
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
+    private long postDate;
+    
+    /**
      * The content of this entry.  This is a persistent field.
      */
     protected String content;
@@ -116,5 +122,13 @@ public class EntryImpl extends ItemImpl implements Entry {
     @Override
     public String getTypeString() {
         return Entry.ITEM_TYPE;
+    }
+
+    public long getPostDate() {
+        return postDate;
+    }
+
+    public void setPostDate(long date) {
+        this.postDate = date;
     }
 }

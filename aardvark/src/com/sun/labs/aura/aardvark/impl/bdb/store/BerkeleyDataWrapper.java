@@ -13,10 +13,13 @@ import com.sleepycat.persist.SecondaryIndex;
 import com.sleepycat.persist.StoreConfig;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.EntryImpl;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.FeedImpl;
+import com.sun.labs.aura.aardvark.impl.bdb.store.item.IDTimeKey;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.ItemImpl;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.UserImpl;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.item.Entry;
+import com.sun.labs.aura.aardvark.store.item.Item;
+import com.sun.labs.aura.aardvark.util.Times;
 import java.io.File;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -94,6 +97,14 @@ public class BerkeleyDataWrapper {
      * the type of attention
      */
     protected SecondaryIndex<Integer,Long,PersistentAttention> attnByType;
+    
+    /**
+     * The index of all Attention in the item store, accessible by
+     * the composite key of user ID and timestamp.
+     */
+    protected SecondaryIndex<IDTimeKey,Long,PersistentAttention>
+            attnByUserAndTime;
+    
     
     protected Logger log;
     
@@ -330,17 +341,8 @@ public class BerkeleyDataWrapper {
     }
     
     public SortedSet<Entry> getAllEntriesForFeed(long feedID) {
-        TreeSet<Entry> entries = new TreeSet<Entry>(new Comparator<Entry>() {
-            public int compare(Entry o1, Entry o2) {
-                if (o1.getTimeStamp() - o2.getTimeStamp() < 0) {
-                    return -1;
-                } else if (o1.getTimeStamp() == o2.getTimeStamp()) {
-                    return 0;
-                } else {
-                    return 1;
-                }
-            }
-        });
+        TreeSet<Entry> entries = new TreeSet<Entry>(
+                new RevItemTimeComparator());
         try {
             EntityIndex<Long,EntryImpl> subIndex =
                     entriesByFeedID.subIndex(feedID);
@@ -370,14 +372,15 @@ public class BerkeleyDataWrapper {
         }
         return pa;
     }
-    
-    public Set<PersistentAttention> getAttentionForUser(long userID,
+
+    public SortedSet<PersistentAttention> getAttentionForUser(long userID,
                                                         Attention.Type type) {
         EntityJoin<Long,PersistentAttention> join = new EntityJoin(attnByID);
         join.addCondition(attnByUserID, userID);
         join.addCondition(attnByType, type.ordinal());
         
-        Set<PersistentAttention> ret = new HashSet<PersistentAttention>();
+        TreeSet<PersistentAttention> ret = new TreeSet<PersistentAttention>(
+                new RevAttnTimeComparator());
         try {
             ForwardCursor<PersistentAttention> cur = null;
             try {
@@ -395,6 +398,142 @@ public class BerkeleyDataWrapper {
                     " for user " + userID, e);
         }        
         return ret;
+    }
+
+    /*
+    public SortedSet<PersistentAttention> getLastAttentionForUser(long userID,
+            Attention.Type type, int count) {
+        //
+        // We need to do the range selection manually, sadly only after
+        // instantiating all those attention objects
+        SortedSet<PersistentAttention> allAttn =
+                getAttentionForUser(userID, type);
+        TreeSet results = new TreeSet<PersistentAttention>(
+            new RevAttnTimeComparator());
+        Iterator<PersistentAttention> it = allAttn.iterator();
+        while (count-- > 0 && it.hasNext()) {
+            results.add(it.next());
+        }
+        return results;
+    }
+    */
+    
+    
+    /**
+     * Gets the most recent N attentions of a specified type) that
+     * a user has recorded.  This will potentially perform a series of time
+     * based queries, expanding the query range until enough attentions have
+     * been found to satisfy the count, or until all attentions within the last
+     * year have been considered.
+     * 
+     * @param userID the ID of the user to query for
+     * @param type the type of attention to limit to, or null for all attentions
+     * @param count the desired number of attentions to return
+     * @return a set of attentions, sorted by date
+     */
+    public SortedSet<Attention> getLastAttentionForUser(long userID,
+            Attention.Type type, int count) {
+        //
+        // Start querying for attention for this user based on time, expanding
+        // the time range until we have enough attention.
+        TreeSet<Attention> results = new TreeSet<Attention>(
+            new RevAttnTimeComparator());
+        long recent = System.currentTimeMillis();
+
+        // Try one hour first
+        SortedSet<Attention> curr =
+                getUserAttnForTimePeriod(userID, type, recent,
+                Times.ONE_HOUR, count);
+        
+        count -= curr.size();
+        recent -= Times.ONE_HOUR;
+        results.addAll(curr);
+        if (count <= 0) {
+            return results;
+        }
+
+        //
+        // Now add in from one hour ago to one day ago
+        curr = getUserAttnForTimePeriod(userID, type, recent,
+               Times.ONE_DAY, count);
+        count -= curr.size();
+        recent -= Times.ONE_DAY;
+        results.addAll(curr);
+        if (count <= 0) {
+            return results;
+        }
+        
+        //
+        // Now add in from one day ago to one week ago
+        curr = getUserAttnForTimePeriod(userID, type, recent,
+               Times.ONE_WEEK, count);
+        count -= curr.size();
+        recent -= Times.ONE_WEEK;
+        results.addAll(curr);
+        if (count <= 0) {
+            return results;
+        }
+        
+        //
+        // Now add in from one week ago to one month ago
+        curr = getUserAttnForTimePeriod(userID, type, recent,
+               Times.ONE_MONTH, count);
+        count -= curr.size();
+        recent -= Times.ONE_MONTH;
+        results.addAll(curr);
+        if (count <= 0) {
+            return results;
+        }
+        
+        //
+        // Finally, expand out to one year.
+        curr = getUserAttnForTimePeriod(userID, type, recent,
+               Times.ONE_YEAR, count);
+        //
+        // Take whatever we got and return it.  We won't search back more than
+        // one year.
+        results.addAll(curr);
+        return results;
+    }
+    
+    private SortedSet<Attention> getUserAttnForTimePeriod(
+            long userID,
+            Attention.Type type,
+            long recentTime,
+            long interval,
+            int count) {
+        TreeSet<Attention> result = new TreeSet<Attention>(
+                new RevAttnTimeComparator());
+        //
+        // Set the begin and end times chronologically
+        IDTimeKey begin = new IDTimeKey(userID, recentTime - interval);
+        IDTimeKey end = new IDTimeKey(userID + 1, recentTime);
+        EntityCursor<PersistentAttention> cursor = null;
+        try {
+            try {
+                //
+                // Examine each item in the cursor in reverse order (newest
+                // first) to see if it matches our requirements.  If so, add
+                // it to our return set.
+                cursor = attnByUserAndTime.entities(begin, true, end, false);
+                PersistentAttention curr = cursor.last();
+                while (curr != null && count > 0) {
+                    if ((type == null) || (curr.getType().equals(type))) {
+                        result.add(curr);
+                        count--;
+                    }
+                    curr = cursor.prev();
+                }
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        } catch (DatabaseException e) {
+            log.log(Level.WARNING, "Failed while retrieving " + count +
+                    " recent attentions for user " + userID, e);
+        }
+        return result;
     }
     
     /**
@@ -480,4 +619,36 @@ public class BerkeleyDataWrapper {
         
     }
 
+    /**
+     * Compares attention objects to sort in reverse chronological order
+     */
+    class RevAttnTimeComparator implements Comparator<Attention> {
+
+        public int compare(Attention o1, Attention o2) {
+            if (o1.getTimeStamp() - o2.getTimeStamp() < 0) {
+                return 1;
+            } else if (o1.getTimeStamp() == o2.getTimeStamp()) {
+                return 0;
+            } else {
+                return -1;
+            }
+
+        }
+    }
+    
+    /**
+     * Compares item objects to sort in reverse chronological order
+     */
+    class RevItemTimeComparator implements Comparator<Item> {
+        public int compare(Item o1, Item o2) {
+            if (o1.getTimeStamp() - o2.getTimeStamp() < 0) {
+                return 1;
+            } else if (o1.getTimeStamp() == o2.getTimeStamp()) {
+                return 0;
+            } else {
+                return -1;
+            }
+
+        }
+    }
 }

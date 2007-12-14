@@ -77,4 +77,18 @@ public interface Entry extends Item {
      * @param url a String representing the URL
      */
     public void setEntryURL(String url);
+    
+    /**
+     * Gets the date that this entry was posted
+     * 
+     * @return the date, in milliseconds since the Java epoch
+     */
+    public long getPostDate();
+    
+    /**
+     * Sets the date that this entry was posted at
+     * 
+     * @param date the date in milliseconds since the Java epoch
+     */
+    public void setPostDate(long date);
 }

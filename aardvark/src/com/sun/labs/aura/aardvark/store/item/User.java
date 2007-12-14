@@ -29,24 +29,6 @@ public interface User extends Item {
      */
     public void setRecommenderFeedKey(String newKey);
 
-    
-    /**
-     * Gets the URL that the User initially provided as the location of their
-     * Starred Items feed at Google.
-     * 
-     * @return the URL of the starred items feed
-     */
-    @Deprecated
-    public URL getStarredItemFeedURL();
-    
-    /**
-     * Sets the URL at which the User's Starred Item feed may be found
-     * 
-     * @param newURL the URL of the starried items feed
-     */
-    @Deprecated
-    public void setStarredItemFeedURL(URL newURL);
-
     /**
      * Get all the feeds associated with this user that have a particular
      * attention type in the association.

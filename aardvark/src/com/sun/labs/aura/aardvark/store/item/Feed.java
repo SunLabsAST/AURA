@@ -11,7 +11,8 @@ public interface Feed extends Item {
     public final static String ITEM_TYPE = "AardvarkFeed";
 
     /**
-     * Get all the entries associated with this feed
+     * Get all the entries associated with this feed with the most recent
+     * entry first.
      * 
      * @return the SortedSet of entries associated with this feed
      */

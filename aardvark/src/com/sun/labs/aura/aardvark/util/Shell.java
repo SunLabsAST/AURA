@@ -52,7 +52,7 @@ public class Shell {
 
         shell = new CommandInterpreter();
         shell.setPrompt("aardv% ");
-
+        
         shell.add("users",
                 new CommandInterface() {
 
