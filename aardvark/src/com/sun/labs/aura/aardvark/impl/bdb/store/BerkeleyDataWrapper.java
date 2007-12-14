@@ -118,6 +118,7 @@ public class BerkeleyDataWrapper {
 
         econf.setAllowCreate(true);
         econf.setTransactional(true);
+        econf.setLockTimeout(10000000L); // PBL test - set the lock timeout to 10 seconds
         sconf.setAllowCreate(true);
         sconf.setTransactional(true);
         

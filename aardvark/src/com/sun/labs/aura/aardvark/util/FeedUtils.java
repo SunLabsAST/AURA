@@ -174,7 +174,7 @@ public class FeedUtils {
             } catch (AuraException ex) {
                 Logger.getLogger(FeedUtils.class.getName()).log(Level.INFO, "can't get SyndEntry", ex);
             } catch (MalformedURLException ex) {
-                Logger.getLogger(FeedUtils.class.getName()).log(Level.INFO, "bad url " + link, ex);
+                // silently ignore bad URLs
             }
         }
         return false;
@@ -297,14 +297,14 @@ public class FeedUtils {
                 elements.add(linkMatcher.group());
             }
         } catch (IOException ex) {
-            Logger.getLogger(FeedUtils.class.getName()).log(Level.SEVERE, null, ex);
+            // silently ignore bad urls
         } finally {
             try {
                 if (is != null) {
                     is.close();
                 }
             } catch (IOException ex) {
-                Logger.getLogger(FeedUtils.class.getName()).log(Level.SEVERE, null, ex);
+                // silently ignore bad urls
             }
         }
         return elements;
