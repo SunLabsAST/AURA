@@ -17,8 +17,12 @@ import com.sun.labs.aura.aardvark.impl.bdb.store.item.IDTimeKey;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.ItemImpl;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.UserImpl;
 import com.sun.labs.aura.aardvark.store.Attention;
+import com.sun.labs.aura.aardvark.store.DBIterator;
 import com.sun.labs.aura.aardvark.store.item.Entry;
+import com.sun.labs.aura.aardvark.store.item.Feed;
 import com.sun.labs.aura.aardvark.store.item.Item;
+import com.sun.labs.aura.aardvark.store.item.User;
+import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.aura.aardvark.util.Times;
 import java.io.File;
 import java.util.Comparator;
@@ -61,6 +65,11 @@ public class BerkeleyDataWrapper {
     protected SecondaryIndex<Boolean,Long,UserImpl> allUsers;
     
     /**
+     * A sub-index of all users, accessible by the time they were added
+     */
+    protected SecondaryIndex<Long,Long,UserImpl> usersByAddedTime;
+    
+    /**
      * A sub-index across all entries in the item store
      */
     protected SecondaryIndex<Boolean,Long,EntryImpl> allEntries;
@@ -76,9 +85,19 @@ public class BerkeleyDataWrapper {
     protected SecondaryIndex<Long,Long,EntryImpl> entriesByFeedID;
     
     /**
+     * A sub-index of all entries, accessible by the time they were added
+     */
+    protected SecondaryIndex<Long,Long,EntryImpl> entriesByAddedTime;
+    
+    /**
+     * A sub-index of all feeds, accessible by the time they were added
+     */
+    protected SecondaryIndex <Long,Long,FeedImpl> feedsByAddedTime;
+    
+    /**
      * The index of all Attention in the item store, accessible by ID
      */
-    protected PrimaryIndex<Long,PersistentAttention> attnByID;
+    protected PrimaryIndex<Long,PersistentAttention> allAttn;
     
     /**
      * The index of all Attention in the item store, accessible by
@@ -97,6 +116,11 @@ public class BerkeleyDataWrapper {
      * the type of attention
      */
     protected SecondaryIndex<Integer,Long,PersistentAttention> attnByType;
+    
+    /**
+     * The index of all Attention, accessible by the timestamp
+     */
+    protected SecondaryIndex<Long,Long,PersistentAttention> attnByTime;
     
     /**
      * The index of all Attention in the item store, accessible by
@@ -166,29 +190,44 @@ public class BerkeleyDataWrapper {
         allUsers = store.getSubclassIndex(itemByID, UserImpl.class,
                                           Boolean.class, "isUser");
         
+        usersByAddedTime = store.getSubclassIndex(itemByID, UserImpl.class,
+                                                  Long.class, "userAddedTime");
+        
         allEntries = store.getSubclassIndex(itemByID, EntryImpl.class,
                                             Boolean.class, "isEntry");
         
         entriesByFeedID = store.getSubclassIndex(itemByID, EntryImpl.class,
                                                  Long.class, "parentFeedID");
         
+        entriesByAddedTime = store.getSubclassIndex(itemByID, EntryImpl.class,
+                                                  Long.class, "entryAddedTime");
+        
         allFeeds = store.getSubclassIndex(itemByID, FeedImpl.class,
                                           Boolean.class, "isFeed");
-                
-        attnByID = store.getPrimaryIndex(Long.class,
+        
+        feedsByAddedTime = store.getSubclassIndex(itemByID, FeedImpl.class,
+                                                  Long.class, "feedAddedTime");
+        
+        allAttn = store.getPrimaryIndex(Long.class,
                                          PersistentAttention.class);
         
-        attnByItemID = store.getSecondaryIndex(attnByID,
+        attnByItemID = store.getSecondaryIndex(allAttn,
                                                Long.class,
                                                "itemID");
         
-        attnByUserID = store.getSecondaryIndex(attnByID,
+        attnByUserID = store.getSecondaryIndex(allAttn,
                                                Long.class,
                                                "userID");
        
-        attnByType = store.getSecondaryIndex(attnByID,
+        attnByType = store.getSecondaryIndex(allAttn,
                                              Integer.class,
                                              "type");
+        
+        attnByTime = store.getSecondaryIndex(allAttn, Long.class, "timeStamp");
+        
+        attnByUserAndTime = store.getSecondaryIndex(allAttn,
+                                                    IDTimeKey.class,
+                                                    "userAndTime");
     }
     
     /**
@@ -320,6 +359,47 @@ public class BerkeleyDataWrapper {
     }
     
     /**
+     * Gets all the items of a particular type that have been added since a
+     * particular time.  Returns an iterator over those items that must be
+     * closed when reading is done.
+     * 
+     * @param itemType the type of item to retrieve
+     * @param timeStamp the time from which to search (to the present time
+     * @return an iterator over the added items
+     * @throws com.sun.labs.aura.aardvark.util.AuraException 
+     */
+    public <T extends Item> DBIterator<T> getItemsAddedSince(Class<T> itemType,
+            long timeStamp) throws AuraException {
+
+        EntityCursor c = null;
+        try {
+            if (itemType.equals(User.class)) {
+                c = usersByAddedTime.entities(timeStamp,true,
+                        System.currentTimeMillis(), true);
+            } else if (itemType.equals(Entry.class)) {
+                c = entriesByAddedTime.entities(timeStamp, true,
+                        System.currentTimeMillis(), true);
+            } else if (itemType.equals(Feed.class)) {
+                c = feedsByAddedTime.entities(timeStamp, true,
+                        System.currentTimeMillis(), true);
+            } else {
+                throw new AuraException("Unsupported item type");
+            }
+        } catch (DatabaseException e) {
+            if (c != null) {
+                try {
+                    c.close();
+                } catch (DatabaseException ex) {
+                    log.log(Level.WARNING, "Failed to close cursor", ex);
+                }
+            }
+            throw new AuraException("getItemsAddedSince failed", e);
+        }
+        DBIterator<T> dbIt = new EntityIterator<T>(c);
+        return dbIt;
+    }
+    
+    /**
      * Convenience method to get a user from the user subclass index
      * 
      * @param id the id of a user
@@ -365,7 +445,7 @@ public class BerkeleyDataWrapper {
     public PersistentAttention getAttention(long id) {
         PersistentAttention pa = null;
         try {
-            pa = attnByID.get(id);
+            pa = allAttn.get(id);
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "Failed to get attention (id:" + id + ")",
                     e);
@@ -375,7 +455,7 @@ public class BerkeleyDataWrapper {
 
     public SortedSet<PersistentAttention> getAttentionForUser(long userID,
                                                         Attention.Type type) {
-        EntityJoin<Long,PersistentAttention> join = new EntityJoin(attnByID);
+        EntityJoin<Long,PersistentAttention> join = new EntityJoin(allAttn);
         join.addCondition(attnByUserID, userID);
         join.addCondition(attnByType, type.ordinal());
         
@@ -399,25 +479,6 @@ public class BerkeleyDataWrapper {
         }        
         return ret;
     }
-
-    /*
-    public SortedSet<PersistentAttention> getLastAttentionForUser(long userID,
-            Attention.Type type, int count) {
-        //
-        // We need to do the range selection manually, sadly only after
-        // instantiating all those attention objects
-        SortedSet<PersistentAttention> allAttn =
-                getAttentionForUser(userID, type);
-        TreeSet results = new TreeSet<PersistentAttention>(
-            new RevAttnTimeComparator());
-        Iterator<PersistentAttention> it = allAttn.iterator();
-        while (count-- > 0 && it.hasNext()) {
-            results.add(it.next());
-        }
-        return results;
-    }
-    */
-    
     
     /**
      * Gets the most recent N attentions of a specified type) that
@@ -537,6 +598,35 @@ public class BerkeleyDataWrapper {
     }
     
     /**
+     * Gets all the attention that has been added to the store since a
+     * particular date.  Returns an iterator over the attention that must be
+     * closed when reading is done.
+     * 
+     * @param timeStamp the time to search back to
+     * @return the Attentions added since that time
+     * @throws com.sun.labs.aura.aardvark.util.AuraException
+     */
+    public DBIterator<Attention> getAttentionAddedSince(long timeStamp)
+            throws AuraException {
+        EntityCursor c = null;
+        try {
+            c = attnByTime.entities(timeStamp, true,
+                    System.currentTimeMillis(), true);
+        } catch (DatabaseException e) {
+            if (c != null) {
+                try {
+                    c.close();
+                } catch (DatabaseException ex) {
+                    log.log(Level.WARNING, "Failed to close cursor", ex);
+                }
+            }
+            throw new AuraException("getAttentionAddedSince failed", e);
+        }
+        DBIterator<Attention> dbIt = new EntityIterator<Attention>(c);
+        return dbIt;
+    }
+    
+    /**
      * Puts an attention into the entry store.  Attentions should never be
      * overwritten.
      * 
@@ -544,7 +634,7 @@ public class BerkeleyDataWrapper {
      */
     public void putAttention(PersistentAttention pa) {
         try {
-            attnByID.putNoOverwrite(pa);
+            allAttn.putNoOverwrite(pa);
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "putAttn() failed for userID:" +
                     pa.getUserID() + " and itemID:" + pa.getItemID(), e);
@@ -589,7 +679,7 @@ public class BerkeleyDataWrapper {
     public long getNumAttention() {
         long count = -1;
         try {
-            count = attnByID.count();
+            count = allAttn.count();
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "getNumAttn failed", e);
         }

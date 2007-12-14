@@ -3,7 +3,6 @@ package com.sun.labs.aura.aardvark.store;
 import com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore;
 import com.sun.labs.aura.aardvark.store.item.Entry;
 import com.sun.labs.aura.aardvark.store.item.Feed;
-import com.sun.labs.aura.aardvark.store.item.Item;
 import com.sun.labs.aura.aardvark.store.item.ItemEvent;
 import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.User;
@@ -12,9 +11,9 @@ import com.sun.labs.util.props.ConfigurationManager;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -130,9 +129,8 @@ public class BerkeleyItemStoreTest {
         // Get entries from the first feed
         Feed f = (Feed) store.get(startID + 1);
         long t = currentTime;
-        for (Entry ent : f.getEntries()) {
-            assertTrue(ent.getTimeStamp() == t++);
-        }
+        SortedSet<Entry> ents = f.getEntries();
+        assertTrue(ents.size() == 2);
     }
 
     @Test
@@ -189,6 +187,11 @@ public class BerkeleyItemStoreTest {
         assertTrue(l.size() == 1);
         Attention b = (Attention) l.get(0);
         assertTrue(a.equals(b));
+        
+        //
+        // and check that this is the most recent attention
+        SortedSet<Attention> attns = u.getLastAttention(1);
+        assertTrue(attns.first().equals(sattn));
     }
     
     @Test

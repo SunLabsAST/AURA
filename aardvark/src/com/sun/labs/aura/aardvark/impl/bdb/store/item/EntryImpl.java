@@ -29,7 +29,7 @@ public class EntryImpl extends ItemImpl implements Entry {
      * The parent feed from which this entry was derived.
      */
     @SecondaryKey(relate=Relationship.MANY_TO_ONE,
-                  relatedEntity=ItemImpl.class,
+                  /*relatedEntity=ItemImpl.class,*/
                   onRelatedEntityDelete=DeleteAction.CASCADE)
     private long parentFeedID;
     
@@ -38,6 +38,9 @@ public class EntryImpl extends ItemImpl implements Entry {
      */
     @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     private long postDate;
+    
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
+    private long entryAddedTime;
     
     /**
      * The content of this entry.  This is a persistent field.
@@ -72,6 +75,7 @@ public class EntryImpl extends ItemImpl implements Entry {
      */
     public EntryImpl(String key) {
         super(key);
+        entryAddedTime = System.currentTimeMillis();
     }
     
     public String getContent() {
@@ -123,7 +127,7 @@ public class EntryImpl extends ItemImpl implements Entry {
     public String getTypeString() {
         return Entry.ITEM_TYPE;
     }
-
+    
     public long getPostDate() {
         return postDate;
     }
@@ -131,4 +135,13 @@ public class EntryImpl extends ItemImpl implements Entry {
     public void setPostDate(long date) {
         this.postDate = date;
     }
+    
+    public long getTimeStamp() {
+        return entryAddedTime;
+    }
+
+    public void setTimeStamp(long timeStamp) {
+        this.entryAddedTime = timeStamp;
+    }
+
 }

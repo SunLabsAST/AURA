@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
 
@@ -344,6 +345,50 @@ public class Shell {
 
                     public String getHelp() {
                         return "dbExercise count - exercise the database by repeated fetching items";
+                    }
+                });
+        shell.add("getLastAttn",
+                new CommandInterface() {
+                    public String execute(CommandInterpreter ci,
+                                          String[] args) {
+                        try {
+                            if ((args.length < 3) || (args.length > 4)) {
+                                getHelp();
+                            } else {
+                                try {
+                                    long userID = Long.parseLong(args[1]);
+                                    int count = Integer.parseInt(args[2]);
+                                    Attention.Type type = null;
+                                    if (args.length == 4) {
+                                        type =Attention.Type.valueOf(args[3]);
+                                    }
+                                    
+                                    User u = (User) itemStore.get(userID);
+                                    SortedSet<Attention> attns = null;
+                                    if (type == null) {
+                                        attns = u.getLastAttention(count);
+                                    } else {
+                                        attns = u.getLastAttention(type, count);
+                                    }
+                                    for (Attention attn : attns) {
+                                        System.out.println(attn.getItemID() +
+                                                " " +
+                                                attn.getType().toString() +
+                                                " " +
+                                                new Date(attn.getTimeStamp()));
+                                    }
+                                } catch (NumberFormatException e) {
+                                    System.out.println("Error parsing args");
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return "";
+                    }
+                    
+                    public String getHelp() {
+                        return "getLastAttn <userID> <count> [<type>]";
                     }
                 });
         shell.add("stats",

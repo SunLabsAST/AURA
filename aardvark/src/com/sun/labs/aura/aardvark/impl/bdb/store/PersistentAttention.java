@@ -100,7 +100,7 @@ public class PersistentAttention implements Attention {
         }
         return null;
     }
-    
+    @Override
     public boolean equals(Object o) {
         if (o instanceof Attention) {
             Attention other = (Attention) o;
@@ -112,5 +112,10 @@ public class PersistentAttention implements Attention {
             }
         }
         return false;
+    }
+    
+    @Override
+    public int hashCode() {
+        return (int) ((userID * itemID) + timeStamp) % Integer.MAX_VALUE;
     }
 }

@@ -30,6 +30,9 @@ public class UserImpl extends ItemImpl implements User {
     @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     protected boolean isUser = true;
 
+
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
+    protected long userAddedTime;
     
     /**
      * The recommendation feed key unqiue to this user.
@@ -69,6 +72,7 @@ public class UserImpl extends ItemImpl implements User {
      */
     public UserImpl(String key) {
         super(key);
+        this.userAddedTime = System.currentTimeMillis();
     }
     
     public String getRecommenderFeedKey() {
@@ -152,8 +156,17 @@ public class UserImpl extends ItemImpl implements User {
                                                  int count) {
         return bdb.getLastAttentionForUser(getID(), type, count);
     }
-    
+
     public String getTypeString() {
         return User.ITEM_TYPE;
     }
+    
+    public long getTimeStamp() {
+        return userAddedTime;
+    }
+
+    public void setTimeStamp(long timeStamp) {
+        this.userAddedTime = timeStamp;
+    }
+
 }

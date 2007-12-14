@@ -33,6 +33,9 @@ public class FeedImpl extends ItemImpl implements Feed {
      */
     @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     protected long nextPullTime;
+
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
+    protected long feedAddedTime;
     
     /**
      * Number of times this feed has been pulled. 
@@ -70,6 +73,7 @@ public class FeedImpl extends ItemImpl implements Feed {
      */
     public FeedImpl(String key) {
         super(key);
+        feedAddedTime = System.currentTimeMillis();
     }
     
     public SortedSet<Entry> getEntries() {
@@ -130,4 +134,13 @@ public class FeedImpl extends ItemImpl implements Feed {
     public void setNumExternalLinks(int num) {
         numExternalLinks = num;
     }
+
+    public long getTimeStamp() {
+        return feedAddedTime;
+    }
+
+    public void setTimeStamp(long timeStamp) {
+        this.feedAddedTime = timeStamp;
+    }
+
 }

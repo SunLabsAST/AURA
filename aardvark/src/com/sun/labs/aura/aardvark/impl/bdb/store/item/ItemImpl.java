@@ -26,12 +26,6 @@ public abstract class ItemImpl implements Item {
     /** Items also have String keys that for now we'll say are unique */
     @SecondaryKey(relate=Relationship.ONE_TO_ONE)
     private String key;
-
-    /**
-     * A timestamp to track when this item was added.
-     */
-    @SecondaryKey(relate = Relationship.MANY_TO_ONE)
-    private long addedTime;
     
     /**
      * Attention must be stored as a set of IDs since entity types cannot
@@ -60,7 +54,6 @@ public abstract class ItemImpl implements Item {
     public ItemImpl(String key) {
         this.key = key;
         this.attentionIDs = new HashSet<Long>();
-        this.addedTime = System.currentTimeMillis();
     }
     
     public long getID() {
@@ -113,11 +106,4 @@ public abstract class ItemImpl implements Item {
         return this.ITEM_TYPE;
     }
 
-    public long getTimeStamp() {
-        return addedTime;
-    }
-
-    public void setTimeStamp(long timeStamp) {
-        this.addedTime = timeStamp;
-    }
 }
