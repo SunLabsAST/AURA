@@ -237,6 +237,8 @@ public class Aardvark implements Configurable {
             }
         } catch (IOException ex) {
             logger.warning("Problems loading opml " + name);
+        } finally {
+            logger.info("Finished enrolling local opml" + name);
         }
     }
 

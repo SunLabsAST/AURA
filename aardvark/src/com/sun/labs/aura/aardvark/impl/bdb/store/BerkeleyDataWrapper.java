@@ -26,67 +26,56 @@ import java.util.logging.Logger;
  * from other logic in the item store.
  */
 public class BerkeleyDataWrapper {
+
     /**
      * The actual database environment.
      */
     protected Environment dbEnv;
-
     /**
      * The store inside the environment where all our indexes will live
      */
     protected EntityStore store;
-    
-
     /**
      * The index of all Items in the store, accessible by ID
      */
-    protected PrimaryIndex<Long,ItemImpl> itemByID;
-    
+    protected PrimaryIndex<Long, ItemImpl> itemByID;
     /**
      * The index of all Items in the store, accessible by key
      */
-    protected SecondaryIndex<String,Long,ItemImpl> itemByKey;
-    
+    protected SecondaryIndex<String, Long, ItemImpl> itemByKey;
     /**
      * A sub-index across all users in the item store
      */
-    protected SecondaryIndex<Boolean,Long,UserImpl> allUsers;
-    
+    protected SecondaryIndex<Boolean, Long, UserImpl> allUsers;
     /**
      * A sub-index across all entries in the item store
      */
-    protected SecondaryIndex<Boolean,Long,EntryImpl> allEntries;
-    
+    protected SecondaryIndex<Boolean, Long, EntryImpl> allEntries;
     /**
      * A sub-index across all feeds in the item store
      */
-    protected SecondaryIndex<Boolean,Long,FeedImpl> allFeeds;
-    
+    protected SecondaryIndex<Boolean, Long, FeedImpl> allFeeds;
     /**
      * The index of all Attention in the item store, accessible by ID
      */
-    protected PrimaryIndex<Long,PersistentAttention> attnByID;
-    
+    protected PrimaryIndex<Long, PersistentAttention> attnByID;
     /**
      * The index of all Attention in the item store, accessible by
      * the associated item
      */
-    protected SecondaryIndex<Long,Long,PersistentAttention> attnByItemID;
-    
+    protected SecondaryIndex<Long, Long, PersistentAttention> attnByItemID;
     /**
      * The index of all Attention in the item store, accessible by
      * the associated user
      */
-    protected SecondaryIndex<Long,Long,PersistentAttention> attnByUserID;
-    
+    protected SecondaryIndex<Long, Long, PersistentAttention> attnByUserID;
     /**
      * The index of all Attention in the item store, accessible by
      * the type of attention
      */
-    protected SecondaryIndex<Integer,Long,PersistentAttention> attnByType;
-    
+    protected SecondaryIndex<Integer, Long, PersistentAttention> attnByType;
     protected Logger log;
-    
+
     /**
      * Constructs a database wrapper.
      * 
@@ -108,21 +97,21 @@ public class BerkeleyDataWrapper {
      * @throws com.sleepycat.je.DatabaseException
      */
     public BerkeleyDataWrapper(String dbEnvDir,
-                               Logger logger,
-                               boolean overwrite)
+            Logger logger,
+            boolean overwrite)
             throws DatabaseException {
         this.log = logger;
-        
+
         EnvironmentConfig econf = new EnvironmentConfig();
         StoreConfig sconf = new StoreConfig();
 
         econf.setAllowCreate(true);
         econf.setTransactional(true);
-        econf.setLockTimeout(10000000L); // PBL test - set the lock timeout to 10 seconds
+        econf.setLockTimeout(300000000L); // PBL test - set the lock timeout to 300 seconds
         sconf.setAllowCreate(true);
         sconf.setTransactional(true);
-        
-        
+
+
         File dir = new File(dbEnvDir);
         if (!dir.exists()) {
             dir.mkdirs();
@@ -133,41 +122,41 @@ public class BerkeleyDataWrapper {
             dir.delete();
             dir.mkdir();
         }
-        
+
         dbEnv = new Environment(dir, econf);
         store = new EntityStore(dbEnv, "Aardvark", sconf);
-        
+
         //
         // Load the indexes that we'll use during regular operation
         itemByID = store.getPrimaryIndex(Long.class, ItemImpl.class);
-        
+
         itemByKey = store.getSecondaryIndex(itemByID, String.class, "key");
-        
+
         allUsers = store.getSubclassIndex(itemByID, UserImpl.class,
-                                          Boolean.class, "isUser");
-        
+                Boolean.class, "isUser");
+
         allEntries = store.getSubclassIndex(itemByID, EntryImpl.class,
-                                            Boolean.class, "isEntry");
-        
+                Boolean.class, "isEntry");
+
         allFeeds = store.getSubclassIndex(itemByID, FeedImpl.class,
-                                          Boolean.class, "isFeed");
-        
+                Boolean.class, "isFeed");
+
         attnByID = store.getPrimaryIndex(Long.class,
-                                         PersistentAttention.class);
-        
+                PersistentAttention.class);
+
         attnByItemID = store.getSecondaryIndex(attnByID,
-                                               Long.class,
-                                               "itemID");
-        
+                Long.class,
+                "itemID");
+
         attnByUserID = store.getSecondaryIndex(attnByID,
-                                               Long.class,
-                                               "userID");
-       
+                Long.class,
+                "userID");
+
         attnByType = store.getSecondaryIndex(attnByID,
-                                             Integer.class,
-                                             "type");
+                Integer.class,
+                "type");
     }
-    
+
     /**
      * Gets the set of all users known to the store.  This could be a large
      * set.
@@ -215,7 +204,7 @@ public class BerkeleyDataWrapper {
         }
         return entries;
     }
-    
+
     /**
      * Gets the set of all feeds known to the store.  This could be a large
      * set.
@@ -239,7 +228,7 @@ public class BerkeleyDataWrapper {
         }
         return feeds;
     }
-    
+
     /**
      * Gets an item from the entity store
      * 
@@ -255,11 +244,11 @@ public class BerkeleyDataWrapper {
             }
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "getItem() failed to retrieve item (id:" +
-                           id + ")", e);
+                    id + ")", e);
         }
         return ret;
     }
-    
+
     /**
      * Gets an item from the entity store
      * @param key the key of the item to fetch
@@ -274,11 +263,11 @@ public class BerkeleyDataWrapper {
             }
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "getItem() failed to retrieve item (key:" +
-                           key + ")", e);
+                    key + ")", e);
         }
         return ret;
     }
-    
+
     /**
      * Puts an item into the entity store.  If the item already exists, it will
      * be replaced.
@@ -291,11 +280,11 @@ public class BerkeleyDataWrapper {
             ret = itemByID.put(item);
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "putItem() failed to put item (key:" +
-                           item.getKey() + ")", e);
+                    item.getKey() + ")", e);
         }
         return ret;
     }
-    
+
     /**
      * Convenience method to get a user from the user subclass index
      * 
@@ -305,18 +294,17 @@ public class BerkeleyDataWrapper {
     public UserImpl getUser(long id) {
         UserImpl u = null;
         try {
-            PrimaryIndex<Long,UserImpl> pi = allUsers.getPrimaryIndex();
+            PrimaryIndex<Long, UserImpl> pi = allUsers.getPrimaryIndex();
             u = pi.get(id);
             if (u != null) {
                 u.setBerkeleyDataWrapper(this);
             }
         } catch (DatabaseException e) {
-            log.log(Level.WARNING, "getUser() failed to get user (id:" + id
-                    + ")", e);
+            log.log(Level.WARNING, "getUser() failed to get user (id:" + id + ")", e);
         }
         return u;
     }
-    
+
     public PersistentAttention getAttention(long id) {
         PersistentAttention pa = null;
         try {
@@ -327,13 +315,13 @@ public class BerkeleyDataWrapper {
         }
         return pa;
     }
-    
+
     public Set<PersistentAttention> getAttentionForUser(long userID,
-                                                        Attention.Type type) {
-        EntityJoin<Long,PersistentAttention> join = new EntityJoin(attnByID);
+            Attention.Type type) {
+        EntityJoin<Long, PersistentAttention> join = new EntityJoin(attnByID);
         join.addCondition(attnByUserID, userID);
         join.addCondition(attnByType, type.ordinal());
-        
+
         Set<PersistentAttention> ret = new HashSet<PersistentAttention>();
         try {
             ForwardCursor<PersistentAttention> cur = null;
@@ -350,10 +338,10 @@ public class BerkeleyDataWrapper {
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "Failed to get attention type " + type +
                     " for user " + userID, e);
-        }        
+        }
         return ret;
     }
-    
+
     /**
      * Puts an attention into the entry store.  Attentions should never be
      * overwritten.
@@ -368,7 +356,7 @@ public class BerkeleyDataWrapper {
                     pa.getUserID() + " and itemID:" + pa.getItemID(), e);
         }
     }
-    
+
     /**
      * Get the number of user entities in the entity store
      * 
@@ -383,7 +371,7 @@ public class BerkeleyDataWrapper {
         }
         return count;
     }
-    
+
     /**
      * Gets the number of entry entities in the entity store
      * 
@@ -398,7 +386,7 @@ public class BerkeleyDataWrapper {
         }
         return count;
     }
-    
+
     /**
      * Gets the number of attention entities in the entity store
      * 
@@ -413,7 +401,7 @@ public class BerkeleyDataWrapper {
         }
         return count;
     }
-    
+
     /**
      * Close up the entity store and the database environment.
      */
@@ -425,7 +413,7 @@ public class BerkeleyDataWrapper {
                 log.log(Level.SEVERE, "Failed to close entity store", e);
             }
         }
-        
+
         if (dbEnv != null) {
             try {
                 dbEnv.close();
@@ -434,7 +422,6 @@ public class BerkeleyDataWrapper {
                         e);
             }
         }
-        
-    }
 
+    }
 }

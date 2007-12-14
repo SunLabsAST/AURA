@@ -79,9 +79,7 @@ public class OPMLProcessor {
         }
 
         InputStream is = null;
-
-        is = new BufferedInputStream(new FileInputStream(opml));
-
+        
         try {
             is = new BufferedInputStream(new FileInputStream(opml));
             List<URL> urls = getFeedURLs(is);

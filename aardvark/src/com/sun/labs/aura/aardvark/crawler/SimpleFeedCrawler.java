@@ -60,7 +60,6 @@ public class SimpleFeedCrawler implements FeedCrawler {
     @ConfigBoolean(defaultValue = false)
     public final static String PROP_TEST_MODE = "testMode";
     private boolean testMode = false;
-
     @ConfigBoolean(defaultValue = true)
     public final static String PROP_AUTO_ENROLL_ASSOCIATED_FEEDS = "autoEnrollAssociatedFeeds";
     private boolean autoEnrollAssociatedFeeds = true;
@@ -130,7 +129,9 @@ public class SimpleFeedCrawler implements FeedCrawler {
                     feed = (Feed) itemStore.get(feedID);
                     processFeed(feed);
                 } catch (AuraException ex) {
-                    logger.warning("Can't pull feed " + feed.getKey());
+                    logger.warning("Can't pull feed " + feedID);
+                } catch (Throwable t) {
+                    logger.severe("Something bad happened " + t);
                 } finally {
                     if (feed != null) {
                         releaseFeed(feed);
