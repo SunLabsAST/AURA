@@ -80,7 +80,14 @@ Recommender use cases:
 
 Parameterizing recommendations
 ------------------------------
-   - ZZ
+   - String algorithm name
+        - content based
+        - cf
+        - hybrid
+        - populare
+   - Filter: date range
+   - Filter: item source (user feeds, !user feeds, all)
+   - Filter: dup remover
 
 
 Item Store Additions
