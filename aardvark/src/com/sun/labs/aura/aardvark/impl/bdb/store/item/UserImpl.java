@@ -39,20 +39,7 @@ public class UserImpl extends ItemImpl implements User {
      * This field is persistent.
      */
     protected String rFeedKey;
-    
-    /**
-     * The String representation of the URL to the User's starred items
-     * feed.  This field is persistent.
-     */
-    protected String starredItemFeed;
-
-    /**
-     * Feeds that this user is interested in.  If storing feeds via attn
-     * proves to be too slow or too messy, we'll add a direct list here.
-     * This field is persistent.
-     */
-    //protected HashSet<String> interestedFeeds;
-    
+        
     /**
      * The last time data was fetched for this user.  This should probably
      * be moved to another table.

@@ -29,7 +29,7 @@ public class EntryImpl extends ItemImpl implements Entry {
      * The parent feed from which this entry was derived.
      */
     @SecondaryKey(relate=Relationship.MANY_TO_ONE,
-                  /*relatedEntity=ItemImpl.class,*/
+                  relatedEntity=ItemImpl.class,
                   onRelatedEntityDelete=DeleteAction.CASCADE)
     private long parentFeedID;
     
