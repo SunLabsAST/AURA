@@ -2,8 +2,8 @@ package com.sun.labs.aura.aardvark.store.item;
 
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.util.AuraException;
-import java.net.URL;
 import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * A User is a type of item that has some specific data associated with it.
@@ -28,24 +28,6 @@ public interface User extends Item {
      * @param newKey the key that should be in the URL
      */
     public void setRecommenderFeedKey(String newKey);
-
-    
-    /**
-     * Gets the URL that the User initially provided as the location of their
-     * Starred Items feed at Google.
-     * 
-     * @return the URL of the starred items feed
-     */
-    @Deprecated
-    public URL getStarredItemFeedURL();
-    
-    /**
-     * Sets the URL at which the User's Starred Item feed may be found
-     * 
-     * @param newURL the URL of the starried items feed
-     */
-    @Deprecated
-    public void setStarredItemFeedURL(URL newURL);
 
     /**
      * Get all the feeds associated with this user that have a particular
@@ -80,5 +62,26 @@ public interface User extends Item {
      *         Java epoch (Jan 1, 1970 
      */
     public void setLastFetchTime(long lastFetchTime);
+
+    /**
+     * Gets the N most recent attentions that this user has created.
+     * This method will only search back to at most one year.
+     * 
+     * @param type the type of attention to find
+     * @param count the number of attention to retrieve
+     * @return a set of up to <code>count</code> attentions
+     */
+    public SortedSet<Attention> getLastAttention(int count);
+
+        /**
+     * Gets the N most recent attentions of a particular type that this user
+     * has created.  This method will only search back to at most one year.
+     * 
+     * @param type the type of attention to find
+     * @param count the number of attention to retrieve
+     * @return a set of up to <code>count</code> attentions
+     */
+    public SortedSet<Attention> getLastAttention(Attention.Type type,
+                                                 int count);
 
 }

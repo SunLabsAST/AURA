@@ -3,7 +3,9 @@ package com.sun.labs.aura.aardvark.impl.bdb.store.item;
 import com.sleepycat.persist.model.Persistent;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
+import com.sun.labs.aura.aardvark.store.item.Entry;
 import com.sun.labs.aura.aardvark.store.item.Feed;
+import java.util.SortedSet;
 
 /**
  * A persistent implementation of a Feed via the Berkeley DB Java Edition
@@ -31,6 +33,9 @@ public class FeedImpl extends ItemImpl implements Feed {
      */
     @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     protected long nextPullTime;
+
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
+    protected long feedAddedTime;
     
     /**
      * Number of times this feed has been pulled. 
@@ -68,8 +73,14 @@ public class FeedImpl extends ItemImpl implements Feed {
      */
     public FeedImpl(String key) {
         super(key);
+        feedAddedTime = System.currentTimeMillis();
     }
     
+    public SortedSet<Entry> getEntries() {
+        return bdb.getAllEntriesForFeed(getID());
+    }
+    
+    @Override
     public String getTypeString() {
         return Feed.ITEM_TYPE;
     }
@@ -82,10 +93,12 @@ public class FeedImpl extends ItemImpl implements Feed {
         lastPullTime = time;
     }
 
+    @Deprecated
     public long getNextPullTime() {
         return nextPullTime;
     }
 
+    @Deprecated
     public void setNextPullTime(long time) {
         nextPullTime = time;
     }
@@ -121,4 +134,13 @@ public class FeedImpl extends ItemImpl implements Feed {
     public void setNumExternalLinks(int num) {
         numExternalLinks = num;
     }
+
+    public long getTimeStamp() {
+        return feedAddedTime;
+    }
+
+    public void setTimeStamp(long timeStamp) {
+        this.feedAddedTime = timeStamp;
+    }
+
 }
