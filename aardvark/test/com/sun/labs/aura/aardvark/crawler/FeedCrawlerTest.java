@@ -77,6 +77,8 @@ public class FeedCrawlerTest {
         int feedCount = feed.getEntries().size();
         assertTrue("Feed count matches", feedCount == 13);
 
+        dumpRaw(feed);
+
         for (Object o : feed.getEntries()) {
             SyndEntry se = (SyndEntry) o;
             assertNotNull("Feed has contents", FeedUtils.getContent(se));
@@ -157,6 +159,12 @@ public class FeedCrawlerTest {
     private void dumpRaw(SyndEntry se) {
         System.out.println("-----------------");
         System.out.println(se);
+    }
+
+    private void dumpRaw(SyndFeed feed) {
+        System.out.println("----- Feed --------------------------------");
+        System.out.println(feed);
+        System.out.println("-------------------------------------------");
     }
 
     @Test
