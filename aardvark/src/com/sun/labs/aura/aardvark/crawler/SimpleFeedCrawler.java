@@ -199,7 +199,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
             // for each entry
 
             feed.setLastPullTime(System.currentTimeMillis());
-            entries = FeedUtils.processFeed(itemStore, new URL(feed.getKey()));
+            entries = FeedUtils.processFeed(itemStore, feed);
             for (Attention feedAttention : feed.getAttentionData()) {
                 Attention.Type userAttentionType = getUserAttentionFromFeedAttention(feedAttention.getType());
                 if (userAttentionType != null) {
@@ -211,9 +211,6 @@ public class SimpleFeedCrawler implements FeedCrawler {
                 }
             }
             ok = true;
-        } catch (IOException ex) {
-            logger.severe("I/O error while processing " + feed.getKey() + " " + ex.getMessage());
-            feedErrorCount++;
         } catch (AuraException ex) {
             logger.warning("trouble processing " + feed.getKey() + " " + ex.getMessage());
             feedErrorCount++;

@@ -77,6 +77,8 @@ public interface Entry extends Item {
      * @param url a String representing the URL
      */
     public void setEntryURL(String url);
+
+
     
     /**
      * Gets the date that this entry was posted
