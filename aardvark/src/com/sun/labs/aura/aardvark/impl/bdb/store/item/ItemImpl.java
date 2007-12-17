@@ -26,7 +26,7 @@ public abstract class ItemImpl implements Item {
     /** Items also have String keys that for now we'll say are unique */
     @SecondaryKey(relate=Relationship.ONE_TO_ONE)
     private String key;
-
+    
     /**
      * Attention must be stored as a set of IDs since entity types cannot
      * be stored as references in fields (in other words, the system won't
@@ -38,6 +38,7 @@ public abstract class ItemImpl implements Item {
     private transient List<Attention> attention;
     
     protected transient BerkeleyDataWrapper bdb;
+
     
     /**
      * All persistent objects must have a default constructor.
@@ -52,7 +53,7 @@ public abstract class ItemImpl implements Item {
      */
     public ItemImpl(String key) {
         this.key = key;
-        attentionIDs = new HashSet<Long>();
+        this.attentionIDs = new HashSet<Long>();
     }
     
     public long getID() {
@@ -104,4 +105,5 @@ public abstract class ItemImpl implements Item {
     public String getTypeString() {
         return this.ITEM_TYPE;
     }
+
 }
