@@ -17,17 +17,19 @@ cd aardvark
 
 if ant  > antoutput.txt 2>&1
 then
-   echo BUILD SUCCEEDED > report.txt
-   echo "Results at  $link" >> report.txt
-   mailx -s "Aura Build OK" $recipients  < report.txt
+   echo "BUILD SUCCEEDED" > report.txt
+   echo "Full results at  $link" >> report.txt
+   mailx -s "Aura Nightly Build OK" $recipients  < report.txt
    buildStatus=OK
 else 
    # make the report
-   grep FAILED antoutput.txt > report.txt
-   echo BUILD FAILED >> report.txt
-   echo "Results at  $link" >> report.txt
+   echo "BUILD FAILED" > report.txt
+   echo "Full results at $link" >> report.txt
+   echo "-----------------" >> report.txt
+   grep FAILED antoutput.txt >> report.txt
+   echo "-----------------" >> report.txt
 
-   mailx -s "Aura Nightly Build Failure" $recipients  < report.txt
+   mailx -s "Aura Nightly Build FAILURE" $recipients  < report.txt
 fi
 
 
