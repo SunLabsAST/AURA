@@ -1,8 +1,10 @@
 package com.sun.labs.aura.aardvark.impl.bdb.store;
 
 import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.DeadlockException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.Transaction;
 import com.sleepycat.persist.EntityCursor;
 import com.sleepycat.persist.EntityIndex;
 import com.sleepycat.persist.EntityJoin;
@@ -39,6 +41,12 @@ import java.util.logging.Logger;
  */
 public class BerkeleyDataWrapper {
     /**
+     * The max number of times to retry a deadlocked transaction before
+     * admitting failure.
+     */
+    protected final static int MAX_DEADLOCK_RETRIES = 10;
+
+    /**
      * The actual database environment.
      */
     protected Environment dbEnv;
@@ -49,6 +57,7 @@ public class BerkeleyDataWrapper {
     protected EntityStore store;
     
 
+    
     /**
      * The index of all Items in the store, accessible by ID
      */
@@ -167,6 +176,7 @@ public class BerkeleyDataWrapper {
         sconf.setAllowCreate(true);
         sconf.setTransactional(true);
         
+        econf.setConfigParam("je.txn.dumpLocks", "true");
         
         File dir = new File(dbEnvDir);
         if (!dir.exists()) {
@@ -348,15 +358,58 @@ public class BerkeleyDataWrapper {
      * 
      * @param item the item to put
      */
-    public ItemImpl putItem(ItemImpl item) {
+    public ItemImpl putItem(ItemImpl item) throws AuraException {
         ItemImpl ret = null;
-        try {
-            ret = itemByID.put(item);
-        } catch (DatabaseException e) {
-            log.log(Level.WARNING, "putItem() failed to put item (key:" +
-                           item.getKey() + ")", e);
+        int numRetries = 0;
+        while (numRetries < MAX_DEADLOCK_RETRIES) {
+            Transaction txn = null;
+            try {
+                txn = dbEnv.beginTransaction(null, null);
+                ret = itemByID.put(txn, item);
+                txn.commit();
+                return ret;
+            } catch (DeadlockException e) {
+                try {
+                    txn.abort();
+                    numRetries++;
+                } catch (DatabaseException ex) {
+                    throw new AuraException("Txn abort failed", ex);
+                }
+            } catch (DatabaseException e) {
+                try {
+                    txn.abort();
+                } catch (DatabaseException ex) {
+                }
+                throw new AuraException("Txn abort failed", e);
+            }
         }
-        return ret;
+        //log.log(Level.WARNING, "putItem() failed to put item (key:" +
+        //               item.getKey() + ") after " + numRetries +
+        //               " retries");
+        throw new AuraException("putItem failed for " + item.getTypeString() +
+                ":" + item.getKey() + " after " + numRetries + " retries");
+    }
+
+    /**
+     * Puts an attention into the entry store.  Attentions should never be
+     * overwritten.
+     * 
+     * @param pa the attention
+     */
+    public void putAttention(PersistentAttention pa) throws AuraException {
+        int numRetries = 0;
+        while (numRetries < MAX_DEADLOCK_RETRIES) {
+            Transaction txn = null;
+            try {
+                txn = dbEnv.beginTransaction(null, null);
+                allAttn.putNoOverwrite(pa);
+                txn.commit();
+                return;
+            } catch (DatabaseException e) {
+                log.log(Level.WARNING, "putAttn() failed for userID:" +
+                        pa.getUserID() + " and itemID:" + pa.getItemID(), e);
+            }
+        }
     }
     
     /**

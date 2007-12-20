@@ -159,6 +159,15 @@ public class Shell {
                                     dumpFeed((Feed) item);
                                 }
                             }
+                        } catch (NumberFormatException e) {
+                            try {
+                                Item item = itemStore.get(args[1]);
+                                if (item != null && item instanceof Feed) {
+                                    dumpFeed((Feed) item);
+                                }
+                            } catch (Exception ex) {
+                                System.out.println("Error " + ex);
+                            }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
                         }
@@ -444,9 +453,12 @@ public class Shell {
 
     private void dumpAllFeeds() throws AuraException {
         Set<Feed> feeds = itemStore.getAll(Feed.class);
+        long numFeeds = 0;
         for (Feed feed : feeds) {
             dumpItem(feed);
+            numFeeds++;
         }
+        System.out.println("Dumped " + numFeeds + " feeds");
     }
 
     private void dumpItem(Item item) throws AuraException {
