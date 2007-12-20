@@ -33,22 +33,6 @@ public interface Feed extends Item {
     public void setLastPullTime(long time);
     
     /**
-     * Gets the time at which this feed should next be pulled.
-     * 
-     * @return the time in milliseconds since the Java epoch
-     * @deprecated 
-     */
-    public long getNextPullTime();
-
-    /**
-     * Sets the time at which this feed should next be pulled.
-     * 
-     * @param time the time in milliseconds since the Java epoch
-     * @deprecated
-     */
-    public void setNextPullTime(long time);
-    
-    /**
      * Gets the number of times this feed has been pulled.
      * 
      * @return the number of times this feed has been pulled
