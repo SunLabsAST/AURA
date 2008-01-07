@@ -380,7 +380,7 @@ public class BerkeleyDataWrapper {
                     txn.abort();
                 } catch (DatabaseException ex) {
                 }
-                throw new AuraException("Txn abort failed", e);
+                throw new AuraException("Transaction failed", e);
             }
         }
         //log.log(Level.WARNING, "putItem() failed to put item (key:" +
@@ -405,11 +405,24 @@ public class BerkeleyDataWrapper {
                 allAttn.putNoOverwrite(pa);
                 txn.commit();
                 return;
+            } catch (DeadlockException e) {
+                try {
+                    txn.abort();
+                    numRetries++;
+                } catch (DatabaseException ex) {
+                    throw new AuraException("Txn abort failed", ex);
+                }
             } catch (DatabaseException e) {
-                log.log(Level.WARNING, "putAttn() failed for userID:" +
-                        pa.getUserID() + " and itemID:" + pa.getItemID(), e);
+                try {
+                    txn.abort();
+                } catch (DatabaseException ex) {
+                }
+                throw new AuraException("Transaction failed", e);
             }
         }
+        throw new AuraException("putAttn failed for userID:" + pa.getUserID() +
+                " and itemID:" + pa.getItemID() + " after " + numRetries +
+                " retries");
     }
     
     /**
@@ -678,22 +691,7 @@ public class BerkeleyDataWrapper {
         DBIterator<Attention> dbIt = new EntityIterator<Attention>(c);
         return dbIt;
     }
-    
-    /**
-     * Puts an attention into the entry store.  Attentions should never be
-     * overwritten.
-     * 
-     * @param pa the attention
-     */
-    public void putAttention(PersistentAttention pa) {
-        try {
-            allAttn.putNoOverwrite(pa);
-        } catch (DatabaseException e) {
-            log.log(Level.WARNING, "putAttn() failed for userID:" +
-                    pa.getUserID() + " and itemID:" + pa.getItemID(), e);
-        }
-    }
-    
+        
     /**
      * Get the number of user entities in the entity store
      * 
