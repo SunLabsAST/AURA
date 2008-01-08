@@ -1,25 +1,22 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package com.sun.labs.aura.aardvark.store;
 
 /**
- *
- * @author ja151348
+ * Some stats about what is in the item store
  */
 public class ItemStoreStats {
     protected long numUsers;
     protected long numEntries;
     protected long numAttentions;
+    protected long numFeeds;
     
     public ItemStoreStats(long numUsers,
                           long numEntries,
-                          long numAttentions) {
+                          long numAttentions,
+                          long numFeeds) {
         this.numUsers = numUsers;
         this.numEntries = numEntries;
         this.numAttentions = numAttentions;
+        this.numFeeds = numFeeds;
     }
     
     public long getNumUsers() {
@@ -32,5 +29,9 @@ public class ItemStoreStats {
     
     public long getNumAttentions() {
         return numAttentions;
+    }
+    
+    public long getNumFeeds() {
+        return numFeeds;
     }
 }

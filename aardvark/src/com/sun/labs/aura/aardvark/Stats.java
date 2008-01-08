@@ -10,19 +10,18 @@
 package com.sun.labs.aura.aardvark;
 
 /**
- *
- * @author plamere
+ * Aardvark stats
  */
 public class Stats {
     private String version;
     private long numUsers;
     private long numItems;
     private long numAttentionData;
-    private int numFeeds;
+    private long numFeeds;
     private int feedPullCount;
     private int feedErrorCount;
 
-    public Stats(String version, long numUsers, long numItems, long numAttentionData, int numFeeds, int feedPullCount, int feedErrorCount) {
+    public Stats(String version, long numUsers, long numItems, long numAttentionData, long numFeeds, int feedPullCount, int feedErrorCount) {
         this.version = version;
         this.numUsers = numUsers;
         this.numItems = numItems;
@@ -56,7 +55,7 @@ public class Stats {
         return feedPullCount;
     }
 
-    public int getNumFeeds() {
+    public long getNumFeeds() {
         return numFeeds;
     }
 

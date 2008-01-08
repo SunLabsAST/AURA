@@ -61,9 +61,4 @@ public interface FeedCrawler extends Configurable {
      */
     int getFeedPullCount();
    
-    /**
-     * Gets the total number of feeds.
-     * @return the total number of feeds
-     */
-    int getNumFeeds();
 }
