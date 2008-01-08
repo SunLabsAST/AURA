@@ -4,6 +4,7 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.DeadlockException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.LockMode;
 import com.sleepycat.je.Transaction;
 import com.sleepycat.persist.EntityCursor;
 import com.sleepycat.persist.EntityIndex;
@@ -172,11 +173,11 @@ public class BerkeleyDataWrapper {
 
         econf.setAllowCreate(true);
         econf.setTransactional(true);
-        econf.setLockTimeout(10000000L); // PBL test - set the lock timeout to 10 seconds
+        //econf.setLockTimeout(10000000L); // PBL test - set the lock timeout to 10 seconds
         sconf.setAllowCreate(true);
         sconf.setTransactional(true);
         
-        econf.setConfigParam("je.txn.dumpLocks", "true");
+        //econf.setConfigParam("je.txn.dumpLocks", "true");
         
         File dir = new File(dbEnvDir);
         if (!dir.exists()) {
@@ -322,7 +323,7 @@ public class BerkeleyDataWrapper {
     public ItemImpl getItem(long id) {
         ItemImpl ret = null;
         try {
-            ret = itemByID.get(id);
+            ret = itemByID.get(null, id, LockMode.READ_UNCOMMITTED);
             if (ret != null) {
                 ret.setBerkeleyDataWrapper(this);
             }
@@ -341,7 +342,7 @@ public class BerkeleyDataWrapper {
     public ItemImpl getItem(String key) {
         ItemImpl ret = null;
         try {
-            ret = itemByKey.get(key);
+            ret = itemByKey.get(null, key, LockMode.READ_UNCOMMITTED);
             if (ret != null) {
                 ret.setBerkeleyDataWrapper(this);
             }
@@ -392,17 +393,24 @@ public class BerkeleyDataWrapper {
 
     /**
      * Puts an attention into the entry store.  Attentions should never be
-     * overwritten.
+     * overwritten.  Since Users and Items have links to their attentions by
+     * ID, we need to update that table too.
      * 
      * @param pa the attention
      */
-    public void putAttention(PersistentAttention pa) throws AuraException {
+    public void putAttention(PersistentAttention pa,
+            UserImpl user,
+            ItemImpl item) throws AuraException {
         int numRetries = 0;
         while (numRetries < MAX_DEADLOCK_RETRIES) {
             Transaction txn = null;
             try {
                 txn = dbEnv.beginTransaction(null, null);
-                allAttn.putNoOverwrite(pa);
+                allAttn.putNoOverwrite(txn, pa);
+                user.addAttention(pa.getID());
+                item.addAttention(pa.getID());
+                itemByID.put(txn, user);
+                itemByID.put(txn, item);
                 txn.commit();
                 return;
             } catch (DeadlockException e) {
@@ -476,7 +484,7 @@ public class BerkeleyDataWrapper {
         UserImpl u = null;
         try {
             PrimaryIndex<Long,UserImpl> pi = allUsers.getPrimaryIndex();
-            u = pi.get(id);
+            u = pi.get(null, id, LockMode.READ_UNCOMMITTED);
             if (u != null) {
                 u.setBerkeleyDataWrapper(this);
             }
@@ -733,6 +741,21 @@ public class BerkeleyDataWrapper {
             count = allAttn.count();
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "getNumAttn failed", e);
+        }
+        return count;
+    }
+    
+    /**
+     * Gets the number of feed entities in the entity store
+     * 
+     * @return the number of feeds or -1 if there was an error
+     */
+    public long getNumFeeds() {
+        long count = -1;
+        try {
+            count = allFeeds.count();
+        } catch (DatabaseException e) {
+            log.log(Level.WARNING, "getNumFeeds failed", e);
         }
         return count;
     }
