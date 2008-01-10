@@ -21,19 +21,25 @@ import java.util.regex.Pattern;
  *
  * @author plamere
  */
-public class PandoraConceptRetriever implements ConceptRetriever {
+public class PandoraProfileRetriever implements ProfileRetriever {
 
-    private LastFMConceptRetriever lcr;
+    private LastFMProfileRetriever lcr;
 
-    public PandoraConceptRetriever(LastFMConceptRetriever lcr) {
+    public PandoraProfileRetriever(LastFMProfileRetriever lcr) {
         this.lcr = lcr;
     }
 
     public APML getAPMLForUser(String user) throws IOException {
+        APML apml =  new APML("Taste for Pandora user " + user);
+        apml.addProfile(getProfileForUser(user));
+        return apml;
+    }
+    
+    public Profile getProfileForUser(String user) throws IOException {
         Item[] artists = getTopArtistsForUser(user);
         Concept[] implicit = lcr.getImplicitConceptsFromArtists(artists);
         Concept[] explicit = lcr.getExplicitConceptsForUser(artists);
-        return new APML("Taste for Pandora user " + user, "music", implicit, explicit);
+        return new Profile("music", implicit, explicit);
     }
 
     /* 
@@ -95,8 +101,8 @@ public class PandoraConceptRetriever implements ConceptRetriever {
 
     public static void main(String[] args) throws Exception {
 
-        LastFMConceptRetriever lcr = new LastFMConceptRetriever();
-        ConceptRetriever pcr = new PandoraConceptRetriever(lcr);
+        LastFMProfileRetriever lcr = new LastFMProfileRetriever();
+        ProfileRetriever pcr = new PandoraProfileRetriever(lcr);
 
         {
             System.out.println("Paul Lamere");

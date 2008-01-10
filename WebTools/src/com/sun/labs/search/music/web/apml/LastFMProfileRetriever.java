@@ -28,7 +28,7 @@ import java.util.Set;
  *
  * @author plamere
  */
-public class LastFMConceptRetriever implements ConceptRetriever {
+public class LastFMProfileRetriever implements ProfileRetriever {
 
     private static final float MIN_CONCEPT_SCORE = .03f;
     private LastFM lastfm;
@@ -37,11 +37,11 @@ public class LastFMConceptRetriever implements ConceptRetriever {
     private final static Item[] EMPTY_ITEM = new Item[0];
     private Thread crawler = null;
 
-    public LastFMConceptRetriever() throws IOException {
+    public LastFMProfileRetriever() throws IOException {
         this(10000, 30, new File("./cache"), new File("./users"));
     }
 
-    public LastFMConceptRetriever(int maxItemsInCache, int maxDaysInCache, File itemDir, File userDir) throws IOException {
+    public LastFMProfileRetriever(int maxItemsInCache, int maxDaysInCache, File itemDir, File userDir) throws IOException {
         itemCache = new Cache<Item[]>(maxItemsInCache, maxDaysInCache, itemDir);
         userCache = new Cache<Item[]>(maxItemsInCache, maxDaysInCache, userDir);
         lastfm = new LastFM();
@@ -71,13 +71,19 @@ public class LastFMConceptRetriever implements ConceptRetriever {
     }
 
     public APML getAPMLForUser(String user) throws IOException {
+        APML apml = new APML("Taste for last.fm user " + user);
+        apml.addProfile(getProfileForUser(user));
+        return apml;
+    }
+
+    public Profile getProfileForUser(String user) throws IOException {
         Item[] artists = getTopArtistsForUser(user);
         Concept[] implicit = getImplicitConceptsFromArtists(artists);
         Concept[] explicit = getExplicitConceptsForUser(artists);
-        return new APML("Taste for last.fm user " + user, "music", implicit, explicit);
+        return new Profile("music", implicit, explicit);
     }
 
-    public Concept[] getImplicitConceptsForUser(String user) throws IOException {
+    Concept[] getImplicitConceptsForUser(String user) throws IOException {
         Item[] artists = getTopArtistsForUser(user);
         return getImplicitConceptsFromArtists(artists);
     }
@@ -260,7 +266,7 @@ public class LastFMConceptRetriever implements ConceptRetriever {
 
     public static void main(String[] args) {
         try {
-            LastFMConceptRetriever lcr = new LastFMConceptRetriever();
+            LastFMProfileRetriever lcr = new LastFMProfileRetriever();
             lcr.crawlUsers("rj", 1000, true);
         } catch (IOException ioe) {
             System.out.println("error " + ioe);
