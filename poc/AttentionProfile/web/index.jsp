@@ -134,6 +134,7 @@
         There are also some <a href="apml/stats">usage stats</a>.
         <h2> History </h2>
         <ul>
+            <li> January  10, 2008 - Refactoring to support APML loading and recommendation
             <li> December  5, 2007 - Added Pandora support
             <li> December  2, 2007 - timezone, concept normalization fixes
             <li> November 30, 2007 - added del.icio.us support
@@ -142,7 +143,7 @@
         </ul>
         <hr>
         <center> 
-            <br>TasteBroker.org v.5 - Powered by APML, Cluztr, Del.icio.us, Last.fm, Pandora and Sun Microsystems inc.
+            <br>TasteBroker.org v.6 - Powered by APML, Cluztr, Del.icio.us, Last.fm, Pandora and Sun Microsystems inc.
             <br> Send comments/feedback or complaints to Paul.Lamere@sun.com
         </center>
     </body>

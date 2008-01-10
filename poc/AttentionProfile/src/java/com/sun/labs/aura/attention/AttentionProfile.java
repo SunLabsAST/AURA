@@ -9,10 +9,10 @@
 package com.sun.labs.aura.attention;
 
 import com.sun.labs.search.music.web.apml.APML;
-import com.sun.labs.search.music.web.apml.DeliciousConceptRetriever;
-import com.sun.labs.search.music.web.apml.LastFMConceptRetriever;
-import com.sun.labs.search.music.web.apml.PandoraConceptRetriever;
-import com.sun.labs.search.music.web.apml.ConceptRetriever;
+import com.sun.labs.search.music.web.apml.DeliciousProfileRetriever;
+import com.sun.labs.search.music.web.apml.LastFMProfileRetriever;
+import com.sun.labs.search.music.web.apml.PandoraProfileRetriever;
+import com.sun.labs.search.music.web.apml.ProfileRetriever;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -33,9 +33,9 @@ public class AttentionProfile extends HttpServlet {
 
     private int pagesServed;
     private int errors;
-    private LastFMConceptRetriever lcr;
-    private DeliciousConceptRetriever dcr;
-    private PandoraConceptRetriever pcr;
+    private LastFMProfileRetriever lcr;
+    private DeliciousProfileRetriever dcr;
+    private PandoraProfileRetriever pcr;
 
     private Set<String> requests = new HashSet<String>();
     private long sumTime = 0L;
@@ -47,10 +47,10 @@ public class AttentionProfile extends HttpServlet {
     @Override
     public void init(ServletConfig sc) throws ServletException {
         try {
-            lcr = new LastFMConceptRetriever();
+            lcr = new LastFMProfileRetriever();
             lcr.startCrawler();
-            dcr = new DeliciousConceptRetriever();
-            pcr = new PandoraConceptRetriever(lcr);
+            dcr = new DeliciousProfileRetriever();
+            pcr = new PandoraProfileRetriever(lcr);
         } catch (IOException ex) {
             throw new ServletException("Can't init the concept retriever");
         }
@@ -95,7 +95,7 @@ public class AttentionProfile extends HttpServlet {
      * @param request servlet request
      * @param response servlet response
      */
-    protected void processAPMLRequest(ConceptRetriever cr, String name, HttpServletResponse response)
+    protected void processAPMLRequest(ProfileRetriever cr, String name, HttpServletResponse response)
             throws ServletException, IOException {
         PrintWriter out = response.getWriter();
         try {
