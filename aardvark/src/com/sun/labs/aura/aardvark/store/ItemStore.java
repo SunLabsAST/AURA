@@ -9,14 +9,19 @@
 
 package com.sun.labs.aura.aardvark.store;
 
+import com.sun.labs.aura.aardvark.store.item.Entry;
+import com.sun.labs.aura.aardvark.store.item.Feed;
 import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.Item;
+import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.props.Component;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * The ItemStore is responsible for storing items and their associated
@@ -92,10 +97,14 @@ public interface ItemStore extends Component, Remote {
      * be stored.  In any other case, an AuraException will be thrown.
      * 
      * @param item the Item that should be placed into the ItemStore
+     * @return the item that was put into the database.  Because putting an
+     * item may change the state of an item and because an item store may be
+     * running remotely, it is recommended that further operations on the item
+     * that it put into the item store be performed on the return value.
      * @throws com.sun.labs.aura.aardvark.util.AuraException if the Item is
      *         not valid for adding/updating
      */
-    public void put(Item item) throws AuraException, RemoteException;
+    public Item put(Item item) throws AuraException, RemoteException;
 
     /**
      * Gets all the items of a particular type that have been added since a
@@ -111,6 +120,26 @@ public interface ItemStore extends Component, Remote {
             Date timeStamp) throws AuraException, RemoteException;
 
     /**
+     * Gets the last <code>count</code> attentions for the given user.
+     * @param user the user whose attention data we want
+     * @param count the number of attention data points to return
+     * @return a set of attention data points ordered by the date they were 
+     * added
+     * @throws java.rmi.RemoteException
+     */
+    public SortedSet<Attention> getLastAttention(User user, int count) throws RemoteException;
+    
+    /**
+     * Gets the last <code>count</code> attentions for the given user.
+     * @param user the user whose attention data we want
+     * @param type the type of attention items that we want to fetch
+     * @param count the number of attention data points to return
+     * @return a set of attention data points ordered by the date they were 
+     * added
+     * @throws java.rmi.RemoteException
+     */
+    public SortedSet<Attention> getLastAttention(User user, Attention.Type type, int count) throws RemoteException;
+    /**
      * Gets all the attention that has been added to the store since a
      * particular date.  Returns an iterator over the attention that must be
      * closed when reading is done.
@@ -121,6 +150,34 @@ public interface ItemStore extends Component, Remote {
      */
     public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)
             throws AuraException, RemoteException;
+    
+    /**
+     * Gets the attention data associated with an item.
+     * @param item the item whose attention data we want
+     * @return a list of attentions for this item
+     * @throws java.rmi.RemoteException if there is any error fetching the
+     * data.
+     */
+    public List<Attention> getAttentionData(Item item) throws AuraException, RemoteException;
+    
+    /**
+     * Gets the feeds for a given user of the given type.
+     * @param user the user whose feeds we want
+     * @param type the type of attention that the user has for the field
+     * @return a set of feeds for the user of the given type
+     * @throws com.sun.labs.aura.aardvark.util.AuraException 
+     * @throws java.rmi.RemoteException
+     */
+    public Set<Feed> getFeeds(User user, Attention.Type type) throws AuraException, RemoteException;
+
+    /**
+     * Gets all of the entries associated with a given feed.
+     * @param feed the feed whose entries we want.
+     * @return the entries from the given feed, sorted in order of addition
+     * @throws java.rmi.RemoteException if there is an error communicating with
+     * the item store.
+     */
+    public SortedSet<Entry> getEntries(Feed feed) throws RemoteException;
     
     /**
      * Adds attention to the the ItemStore.  The Attention should contain

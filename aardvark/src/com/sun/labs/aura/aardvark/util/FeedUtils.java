@@ -203,8 +203,7 @@ public class FeedUtils {
             entry.setSyndEntry(syndEntry);
             entry.setContent(getContent(syndEntry));
             entry.setParentFeedID(feed.getID());
-            itemStore.put(entry);
-            return entry;
+            return (Entry) itemStore.put(entry);
         } else {
             return null;
         }

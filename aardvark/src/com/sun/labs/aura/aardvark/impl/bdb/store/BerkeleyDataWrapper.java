@@ -254,7 +254,6 @@ public class BerkeleyDataWrapper {
             EntityCursor<UserImpl> cur = allUsers.entities();
             try {
                 for (UserImpl u : cur) {
-                    u.setBerkeleyDataWrapper(this);
                     users.add(u);
                 }
             } finally {
@@ -278,7 +277,6 @@ public class BerkeleyDataWrapper {
             EntityCursor<EntryImpl> cur = allEntries.entities();
             try {
                 for (EntryImpl e : cur) {
-                    e.setBerkeleyDataWrapper(this);
                     entries.add(e);
                 }
             } finally {
@@ -302,7 +300,6 @@ public class BerkeleyDataWrapper {
             EntityCursor<FeedImpl> cur = allFeeds.entities();
             try {
                 for (FeedImpl f : cur) {
-                    f.setBerkeleyDataWrapper(this);
                     feeds.add(f);
                 }
             } finally {
@@ -324,9 +321,6 @@ public class BerkeleyDataWrapper {
         ItemImpl ret = null;
         try {
             ret = itemByID.get(null, id, LockMode.READ_UNCOMMITTED);
-            if (ret != null) {
-                ret.setBerkeleyDataWrapper(this);
-            }
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "getItem() failed to retrieve item (id:" +
                            id + ")", e);
@@ -343,9 +337,6 @@ public class BerkeleyDataWrapper {
         ItemImpl ret = null;
         try {
             ret = itemByKey.get(null, key, LockMode.READ_UNCOMMITTED);
-            if (ret != null) {
-                ret.setBerkeleyDataWrapper(this);
-            }
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "getItem() failed to retrieve item (key:" +
                            key + ")", e);
@@ -485,9 +476,6 @@ public class BerkeleyDataWrapper {
         try {
             PrimaryIndex<Long,UserImpl> pi = allUsers.getPrimaryIndex();
             u = pi.get(null, id, LockMode.READ_UNCOMMITTED);
-            if (u != null) {
-                u.setBerkeleyDataWrapper(this);
-            }
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "getUser() failed to get user (id:" + id
                     + ")", e);

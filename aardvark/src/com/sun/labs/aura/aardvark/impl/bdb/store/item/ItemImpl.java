@@ -8,9 +8,9 @@ import com.sleepycat.persist.model.SecondaryKey;
 import com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyDataWrapper;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.item.Item;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Implementation of an Item that can be stored in a Berkeley DB Java
@@ -71,14 +71,8 @@ public abstract class ItemImpl implements Item {
      * 
      * @return the attention for this item
      */
-    public List<Attention> getAttentionData() {
-        if (attention == null) {
-            attention = new ArrayList();
-            for (Long aid : attentionIDs) {
-                attention.add(bdb.getAttention(aid));
-            }
-        }
-        return attention;
+    public Set<Long> getAttentionIDs() {
+        return attentionIDs;
     }
     
     /**
@@ -89,17 +83,6 @@ public abstract class ItemImpl implements Item {
      */
     public void addAttention(long id) {
         attentionIDs.add(id);
-    }
-    
-    /**
-     * Provides an instances of a berkeley data wrapper to this item.  The
-     * database access is intended to be used read-only for fetching the
-     * attention data using lazy evaluation.
-     * 
-     * @param b the database wrapper
-     */
-    public void setBerkeleyDataWrapper(BerkeleyDataWrapper b) {
-        this.bdb = b;
     }
     
     public String getTypeString() {

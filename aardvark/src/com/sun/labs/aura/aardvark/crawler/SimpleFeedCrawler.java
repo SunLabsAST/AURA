@@ -101,7 +101,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
                     FeedUtils.readFeed(feedUrl);
                 }
                 feed = itemStore.newItem(Feed.class, feedUrl.toExternalForm());
-                releaseFeed(feed);
+                feed = releaseFeed(feed);
                 logger.info("Adding new feed to item store " + feedUrl);
             } else if(!(item instanceof Feed)) {
                 logger.warning("URL not associated with a feed " + feedUrl);
@@ -155,7 +155,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
                     logger.severe("Something bad happened " + t);
                 } finally {
                     if(feed != null) {
-                        releaseFeed(feed);
+                        feed = releaseFeed(feed);
                     }
                 }
             }
@@ -232,7 +232,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
 
             feed.setLastPullTime(System.currentTimeMillis());
             entries = FeedUtils.processFeed(itemStore, feed);
-            for(Attention feedAttention : feed.getAttentionData()) {
+            for(Attention feedAttention : itemStore.getAttentionData(feed)) {
                 Attention.Type userAttentionType =
                         getUserAttentionFromFeedAttention(feedAttention.getType());
                 if(userAttentionType != null) {
@@ -399,15 +399,16 @@ public class SimpleFeedCrawler implements FeedCrawler {
      * Release a previously retrieve feed. 
      * @param feed the feed to release
      */
-    public void releaseFeed(Feed feed) {
+    public Feed releaseFeed(Feed feed) {
         try {
-            itemStore.put(feed);
+            feed = (Feed) itemStore.put(feed);
         } catch(AuraException ex) {
             logger.warning("Can't store feed " + feed.getKey());
         } catch(RemoteException rx) {
             logger.log(Level.SEVERE, "Can't store feed " + feed.getKey(), rx);
         } finally {
             enqueueFeed(feed);
+            return feed;
         }
     }
 

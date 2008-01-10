@@ -156,8 +156,7 @@ public class Aardvark implements Configurable {
         if(getUser(openID) == null) {
             try {
                 User theUser = itemStore.newItem(User.class, openID);
-                itemStore.put(theUser);
-                return theUser;
+                return (User) itemStore.put(theUser);
             } catch(RemoteException rx) {
                 throw new AuraException("Error communicating with item store",
                                         rx);

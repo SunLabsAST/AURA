@@ -1,9 +1,11 @@
 package com.sun.labs.aura.aardvark.store;
 
+import java.io.Serializable;
+
 /**
  * Some stats about what is in the item store
  */
-public class ItemStoreStats {
+public class ItemStoreStats implements Serializable {
     protected long numUsers;
     protected long numEntries;
     protected long numAttentions;

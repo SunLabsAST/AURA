@@ -243,24 +243,23 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      * @param user the use rof interest
      * @return the set of items
      */
-    private Set<Long> getUserItems(User user) {
+    private Set<Long> getUserItems(User user) throws AuraException, RemoteException {
         Set<Long> itemSet = new HashSet<Long>();
-        List<Attention> attentionData = user.getAttentionData();
-        for(Attention attention : attentionData) {
+        for(Attention attention : itemStore.getAttentionData(user)) {
             itemSet.add(attention.getItemID());
         }
         return itemSet;
     }
 
     /**
-     * Returns a list of the starred items for a suer
+     * Returns a list of the starred items for a user
      * @param user the user of interest
      * @return the list of starred items for a user
      */
-    private List<Attention> getUserStarredAttentionData(User user) {
+    private List<Attention> getUserStarredAttentionData(User user) throws AuraException, RemoteException {
         List<Attention> starredAttentionData = new ArrayList<Attention>();
 
-        for(Attention a : user.getAttentionData()) {
+        for(Attention a : itemStore.getAttentionData(user)) {
             if(a.getType() == Attention.Type.STARRED) {
                 starredAttentionData.add(a);
             }

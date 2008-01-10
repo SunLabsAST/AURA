@@ -76,10 +76,6 @@ public class FeedImpl extends ItemImpl implements Feed {
         feedAddedTime = System.currentTimeMillis();
     }
     
-    public SortedSet<Entry> getEntries() {
-        return bdb.getAllEntriesForFeed(getID());
-    }
-    
     @Override
     public String getTypeString() {
         return Feed.ITEM_TYPE;

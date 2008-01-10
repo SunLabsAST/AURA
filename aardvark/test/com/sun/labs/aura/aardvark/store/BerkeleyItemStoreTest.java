@@ -130,7 +130,7 @@ public class BerkeleyItemStoreTest {
         // Get entries from the first feed
         Feed f = (Feed) store.get(startID + 1);
         long t = currentTime;
-        SortedSet<Entry> ents = f.getEntries();
+        SortedSet<Entry> ents = store.getEntries(f);
         assertTrue(ents.size() == 2);
     }
 
@@ -170,9 +170,9 @@ public class BerkeleyItemStoreTest {
     public void d_attendItems() throws AuraException, RemoteException {
         User u = (User) store.get("jalex");
         Entry e = (Entry) store.get(startID + 2);
-        List l = u.getAttentionData();
+        List l = store.getAttentionData(u);
         assertTrue(l.isEmpty());
-        l = e.getAttentionData();
+        l = store.getAttentionData(e);
         assertTrue(l.isEmpty());
         SimpleAttention sattn = new SimpleAttention(u, e,
                                                     Attention.Type.STARRED);
@@ -180,18 +180,18 @@ public class BerkeleyItemStoreTest {
         // refresh objects
         u = (User) store.get(u.getID());
         e = (Entry) store.get(e.getID());
-        l = u.getAttentionData();
+        l = store.getAttentionData(u);
         assertTrue(l.size() == 1);
         Attention a = (Attention) l.get(0);
         
-        l = e.getAttentionData();
+        l = store.getAttentionData(e);
         assertTrue(l.size() == 1);
         Attention b = (Attention) l.get(0);
         assertTrue(a.equals(b));
         
         //
         // and check that this is the most recent attention
-        SortedSet<Attention> attns = u.getLastAttention(1);
+        SortedSet<Attention> attns = store.getLastAttention(u, 1);
         assertTrue(attns.first().equals(sattn));
     }
     
@@ -214,7 +214,7 @@ public class BerkeleyItemStoreTest {
         // Check that we get those items when we ask for all attentions
         u = (User)store.get("jalex");
         boolean found1 = false, found2 = false;
-        List<Attention> attns = u.getAttentionData();
+        List<Attention> attns = store.getAttentionData(u);
         for (Attention attn : attns) {
             if (attn.getItemID() == f1.getID()) {
                 found1 = true;
@@ -230,12 +230,12 @@ public class BerkeleyItemStoreTest {
         
         //
         // Check that we get the right feeds by type
-        Set<Feed> feeds = u.getFeeds(Attention.Type.SUBSCRIBED_FEED);
+        Set<Feed> feeds = store.getFeeds(u, Attention.Type.SUBSCRIBED_FEED);
         assertTrue("Got wrong number of subscribed feeds", feeds.size() == 1);
         Feed test = (Feed)feeds.toArray()[0];
         assertTrue("Wrong feed for subscribed test",
                 test.getKey().equals("http://pauls.blog/"));
-        feeds = u.getFeeds(Attention.Type.STARRED_FEED);
+        feeds = store.getFeeds(u, Attention.Type.STARRED_FEED);
         assertTrue("Got wrong number of starred feeds", feeds.size() == 1);
         test = (Feed)feeds.toArray()[0];
         assertTrue("Wrong feed for starred test",

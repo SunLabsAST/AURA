@@ -342,7 +342,7 @@ public class Shell {
                                 for (int i = 0; i < count; i++) {
                                     String key = "key:" + timeStamp + "-" + i;
                                     Item item = itemStore.newItem(Entry.class, key);
-                                    itemStore.put(item);
+                                    item = itemStore.put(item);
                                 }
                             } else {
                                 getHelp();
@@ -376,9 +376,9 @@ public class Shell {
                                     User u = (User) itemStore.get(userID);
                                     SortedSet<Attention> attns = null;
                                     if (type == null) {
-                                        attns = u.getLastAttention(count);
+                                        attns = itemStore.getLastAttention(u, count);
                                     } else {
-                                        attns = u.getLastAttention(type, count);
+                                        attns = itemStore.getLastAttention(u, type, count);
                                     }
                                     for (Attention attn : attns) {
                                         System.out.println(attn.getItemID() +
@@ -433,7 +433,7 @@ public class Shell {
 
     private void dumpUser(User user) throws AuraException, RemoteException {
         dumpItem(user);
-        dumpAttentionData(user.getAttentionData());
+        dumpAttentionData(itemStore.getAttentionData(user));
     }
 
     private void recommend(User user) throws AuraException {
@@ -462,8 +462,8 @@ public class Shell {
         System.out.println("Dumped " + numFeeds + " feeds");
     }
 
-    private void dumpItem(Item item) throws AuraException {
-        System.out.printf(" %d %d %s\n", item.getID(), item.getAttentionData().size(), item.getKey());
+    private void dumpItem(Item item) throws AuraException, RemoteException {
+        System.out.printf(" %d %d %s\n", item.getID(), itemStore.getAttentionData(item).size(), item.getKey());
     }
 
     private void dumpFeed(Feed feed) throws AuraException, RemoteException {
@@ -471,7 +471,7 @@ public class Shell {
         System.out.println("   Pulls  : " + feed.getNumPulls());
         System.out.println("   Last   : " + feed.getLastPullTime());
         System.out.println("   Errors : " + feed.getNumErrors());
-        dumpAttentionData(feed.getAttentionData());
+        dumpAttentionData(itemStore.getAttentionData(feed));
     }
 
     private void dumpAttentionData(List<Attention> attentionData) throws AuraException, RemoteException {

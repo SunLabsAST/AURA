@@ -72,24 +72,6 @@ public class UserImpl extends ItemImpl implements User {
     }
 
     /**
-     * Get all the feeds associated with this user that have a particular
-     * attention type in the association.
-     * 
-     * @param type the type of attention to get feeds for
-     * @return the feeds
-     */
-    public Set<Feed> getFeeds(Attention.Type type) {
-        Set<Feed> feeds = new HashSet<Feed>();
-        
-        Set<PersistentAttention> attns = bdb.getAttentionForUser(getID(), type);
-        for (PersistentAttention attn : attns) {
-            FeedImpl feed = (FeedImpl)bdb.getItem(attn.getItemID());
-            feeds.add(feed);
-        }
-        return feeds;
-    }
-    
-    /**
      * Adds a feed for this user.  This is a convenience method that is
      * equivalent to creating an Attention object and passing it to the
      * Item Store's attend method.
@@ -123,32 +105,6 @@ public class UserImpl extends ItemImpl implements User {
     }
 
     
-    /**
-     * Gets the N most recent attentions that this user has created.
-     * This method will only search back to at most one year.
-     * 
-     * @param type the type of attention to find
-     * @param count the number of attention to retrieve
-     * @return a set of up to <code>count</code> attentions
-     */
-    public SortedSet<Attention> getLastAttention(int count) {
-        return bdb.getLastAttentionForUser(getID(), null, count);
-    }
-    
-    
-    /**
-     * Gets the N most recent attentions of a particular type that this user
-     * has created.  This method will only search back to at most one year.
-     * 
-     * @param type the type of attention to find
-     * @param count the number of attention to retrieve
-     * @return a set of up to <code>count</code> attentions
-     */
-    public SortedSet<Attention> getLastAttention(Attention.Type type,
-                                                 int count) {
-        return bdb.getLastAttentionForUser(getID(), type, count);
-    }
-
     public String getTypeString() {
         return User.ITEM_TYPE;
     }

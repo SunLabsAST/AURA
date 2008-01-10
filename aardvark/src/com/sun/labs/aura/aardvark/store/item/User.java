@@ -30,15 +30,6 @@ public interface User extends Item {
     public void setRecommenderFeedKey(String newKey);
 
     /**
-     * Get all the feeds associated with this user that have a particular
-     * attention type in the association.
-     * 
-     * @param type the type of attention to get feeds for
-     * @return the feeds
-     */
-    public Set<Feed> getFeeds(Attention.Type type);
-    
-    /**
      * Adds a feed for this user.  This is a convenience method that is
      * equivalent to creating an Attention object and passing it to the
      * Item Store's attend method.
@@ -62,26 +53,5 @@ public interface User extends Item {
      *         Java epoch (Jan 1, 1970 
      */
     public void setLastFetchTime(long lastFetchTime);
-
-    /**
-     * Gets the N most recent attentions that this user has created.
-     * This method will only search back to at most one year.
-     * 
-     * @param type the type of attention to find
-     * @param count the number of attention to retrieve
-     * @return a set of up to <code>count</code> attentions
-     */
-    public SortedSet<Attention> getLastAttention(int count);
-
-        /**
-     * Gets the N most recent attentions of a particular type that this user
-     * has created.  This method will only search back to at most one year.
-     * 
-     * @param type the type of attention to find
-     * @param count the number of attention to retrieve
-     * @return a set of up to <code>count</code> attentions
-     */
-    public SortedSet<Attention> getLastAttention(Attention.Type type,
-                                                 int count);
 
 }

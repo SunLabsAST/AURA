@@ -22,11 +22,14 @@ import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -209,6 +212,49 @@ public class BerkeleyItemStore implements ItemStore, Configurable {
     public Item get(String key) throws RemoteException {
         return bdb.getItem(key);
     }
+    
+    public List<Attention> getAttentionData(Item item) throws AuraException, RemoteException {
+         if(item instanceof ItemImpl) {
+             Set<Long> ids = ((ItemImpl) item).getAttentionIDs();
+             List<Attention> ret = new ArrayList<Attention>();
+             for(Long aid : ids) {
+                 ret.add(bdb.getAttention(aid));
+             }
+             return ret;
+         } else {
+             throw new AuraException("Unknown item type: " + item.getClass());
+         }
+       
+    }
+
+    public SortedSet<Attention> getLastAttention(User user, int count) throws RemoteException {
+        return getLastAttention(user, null, count);
+    }
+    
+    public SortedSet<Attention> getLastAttention(User user, Attention.Type type, int count) throws RemoteException {
+        return bdb.getLastAttentionForUser(user.getID(), type, count);
+        
+    }
+    
+    public SortedSet<Entry> getEntries(Feed feed) throws RemoteException {
+        return bdb.getAllEntriesForFeed(feed.getID());
+    }
+    
+    public Set<Feed> getFeeds(User user, Attention.Type type) throws AuraException, RemoteException {
+        if(user instanceof UserImpl) {
+            Set<Feed> feeds = new HashSet<Feed>();
+
+            Set<PersistentAttention> attns = bdb.getAttentionForUser(user.getID(),
+                                                                     type);
+            for(PersistentAttention attn : attns) {
+                FeedImpl feed = (FeedImpl) bdb.getItem(attn.getItemID());
+                feeds.add(feed);
+            }
+            return feeds;
+        } else {
+            throw new AuraException("Unknown user type: " + user.getClass());
+        }
+    }
 
     /**
      * Puts an item into the item store.  If the item has the same ID as
@@ -217,7 +263,7 @@ public class BerkeleyItemStore implements ItemStore, Configurable {
      * @param item the item to put into the store
      * @throws AuraException if an invalid item is provided
      */
-    public void put(Item item) throws AuraException, RemoteException {
+    public Item put(Item item) throws AuraException, RemoteException {
         boolean existed = false;
         if(item instanceof ItemImpl) {
             ItemImpl itemImpl = (ItemImpl) item;
@@ -247,6 +293,7 @@ public class BerkeleyItemStore implements ItemStore, Configurable {
                     }
                 }
             }
+            return item;
         } else {
             throw new AuraException("Unsupported Item type");
         }
@@ -296,8 +343,12 @@ public class BerkeleyItemStore implements ItemStore, Configurable {
         UserImpl user = bdb.getUser(att.getUserID());
         ItemImpl item = bdb.getItem(att.getItemID());
 
-        if((user == null) || (item == null)) {
-            throw new AuraException("User or Item is invalid");
+        if(user == null) {
+            throw new AuraException("User " + att.getUserID() + " is invalid");
+        }
+        
+        if(item == null) {
+            throw new AuraException("Item " + att.getItemID() + " is invalid");
         }
 
         //

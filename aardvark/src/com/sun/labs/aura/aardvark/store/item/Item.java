@@ -56,13 +56,6 @@ public interface Item extends Serializable {
     //public void setField(String name, String value);
     
     /**
-     * Gets a list of all the attention data that is stored about this item.
-     * 
-     * @return a list of attention data
-     */
-    public List<Attention> getAttentionData();
-    
-    /**
      * Gets the time stamp associated with this entry (when it was posted).
      * 
      * @return the time stamp in milliseconds since the Java epoch
