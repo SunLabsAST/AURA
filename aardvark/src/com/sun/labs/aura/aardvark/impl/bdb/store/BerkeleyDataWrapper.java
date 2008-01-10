@@ -1,8 +1,11 @@
 package com.sun.labs.aura.aardvark.impl.bdb.store;
 
 import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.DeadlockException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.LockMode;
+import com.sleepycat.je.Transaction;
 import com.sleepycat.persist.EntityCursor;
 import com.sleepycat.persist.EntityIndex;
 import com.sleepycat.persist.EntityJoin;
@@ -39,6 +42,12 @@ import java.util.logging.Logger;
  */
 public class BerkeleyDataWrapper {
     /**
+     * The max number of times to retry a deadlocked transaction before
+     * admitting failure.
+     */
+    protected final static int MAX_DEADLOCK_RETRIES = 10;
+
+    /**
      * The actual database environment.
      */
     protected Environment dbEnv;
@@ -49,6 +58,7 @@ public class BerkeleyDataWrapper {
     protected EntityStore store;
     
 
+    
     /**
      * The index of all Items in the store, accessible by ID
      */
@@ -163,10 +173,11 @@ public class BerkeleyDataWrapper {
 
         econf.setAllowCreate(true);
         econf.setTransactional(true);
-        econf.setLockTimeout(10000000L); // PBL test - set the lock timeout to 10 seconds
+        //econf.setLockTimeout(10000000L); // PBL test - set the lock timeout to 10 seconds
         sconf.setAllowCreate(true);
         sconf.setTransactional(true);
         
+        //econf.setConfigParam("je.txn.dumpLocks", "true");
         
         File dir = new File(dbEnvDir);
         if (!dir.exists()) {
@@ -312,7 +323,7 @@ public class BerkeleyDataWrapper {
     public ItemImpl getItem(long id) {
         ItemImpl ret = null;
         try {
-            ret = itemByID.get(id);
+            ret = itemByID.get(null, id, LockMode.READ_UNCOMMITTED);
             if (ret != null) {
                 ret.setBerkeleyDataWrapper(this);
             }
@@ -331,7 +342,7 @@ public class BerkeleyDataWrapper {
     public ItemImpl getItem(String key) {
         ItemImpl ret = null;
         try {
-            ret = itemByKey.get(key);
+            ret = itemByKey.get(null, key, LockMode.READ_UNCOMMITTED);
             if (ret != null) {
                 ret.setBerkeleyDataWrapper(this);
             }
@@ -348,15 +359,78 @@ public class BerkeleyDataWrapper {
      * 
      * @param item the item to put
      */
-    public ItemImpl putItem(ItemImpl item) {
+    public ItemImpl putItem(ItemImpl item) throws AuraException {
         ItemImpl ret = null;
-        try {
-            ret = itemByID.put(item);
-        } catch (DatabaseException e) {
-            log.log(Level.WARNING, "putItem() failed to put item (key:" +
-                           item.getKey() + ")", e);
+        int numRetries = 0;
+        while (numRetries < MAX_DEADLOCK_RETRIES) {
+            Transaction txn = null;
+            try {
+                txn = dbEnv.beginTransaction(null, null);
+                ret = itemByID.put(txn, item);
+                txn.commit();
+                return ret;
+            } catch (DeadlockException e) {
+                try {
+                    txn.abort();
+                    numRetries++;
+                } catch (DatabaseException ex) {
+                    throw new AuraException("Txn abort failed", ex);
+                }
+            } catch (DatabaseException e) {
+                try {
+                    txn.abort();
+                } catch (DatabaseException ex) {
+                }
+                throw new AuraException("Transaction failed", e);
+            }
         }
-        return ret;
+        //log.log(Level.WARNING, "putItem() failed to put item (key:" +
+        //               item.getKey() + ") after " + numRetries +
+        //               " retries");
+        throw new AuraException("putItem failed for " + item.getTypeString() +
+                ":" + item.getKey() + " after " + numRetries + " retries");
+    }
+
+    /**
+     * Puts an attention into the entry store.  Attentions should never be
+     * overwritten.  Since Users and Items have links to their attentions by
+     * ID, we need to update that table too.
+     * 
+     * @param pa the attention
+     */
+    public void putAttention(PersistentAttention pa,
+            UserImpl user,
+            ItemImpl item) throws AuraException {
+        int numRetries = 0;
+        while (numRetries < MAX_DEADLOCK_RETRIES) {
+            Transaction txn = null;
+            try {
+                txn = dbEnv.beginTransaction(null, null);
+                allAttn.putNoOverwrite(txn, pa);
+                user.addAttention(pa.getID());
+                item.addAttention(pa.getID());
+                itemByID.put(txn, user);
+                itemByID.put(txn, item);
+                txn.commit();
+                return;
+            } catch (DeadlockException e) {
+                try {
+                    txn.abort();
+                    numRetries++;
+                } catch (DatabaseException ex) {
+                    throw new AuraException("Txn abort failed", ex);
+                }
+            } catch (DatabaseException e) {
+                try {
+                    txn.abort();
+                } catch (DatabaseException ex) {
+                }
+                throw new AuraException("Transaction failed", e);
+            }
+        }
+        throw new AuraException("putAttn failed for userID:" + pa.getUserID() +
+                " and itemID:" + pa.getItemID() + " after " + numRetries +
+                " retries");
     }
     
     /**
@@ -410,7 +484,7 @@ public class BerkeleyDataWrapper {
         UserImpl u = null;
         try {
             PrimaryIndex<Long,UserImpl> pi = allUsers.getPrimaryIndex();
-            u = pi.get(id);
+            u = pi.get(null, id, LockMode.READ_UNCOMMITTED);
             if (u != null) {
                 u.setBerkeleyDataWrapper(this);
             }
@@ -625,22 +699,7 @@ public class BerkeleyDataWrapper {
         DBIterator<Attention> dbIt = new EntityIterator<Attention>(c);
         return dbIt;
     }
-    
-    /**
-     * Puts an attention into the entry store.  Attentions should never be
-     * overwritten.
-     * 
-     * @param pa the attention
-     */
-    public void putAttention(PersistentAttention pa) {
-        try {
-            allAttn.putNoOverwrite(pa);
-        } catch (DatabaseException e) {
-            log.log(Level.WARNING, "putAttn() failed for userID:" +
-                    pa.getUserID() + " and itemID:" + pa.getItemID(), e);
-        }
-    }
-    
+        
     /**
      * Get the number of user entities in the entity store
      * 
@@ -682,6 +741,21 @@ public class BerkeleyDataWrapper {
             count = allAttn.count();
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "getNumAttn failed", e);
+        }
+        return count;
+    }
+    
+    /**
+     * Gets the number of feed entities in the entity store
+     * 
+     * @return the number of feeds or -1 if there was an error
+     */
+    public long getNumFeeds() {
+        long count = -1;
+        try {
+            count = allFeeds.count();
+        } catch (DatabaseException e) {
+            log.log(Level.WARNING, "getNumFeeds failed", e);
         }
         return count;
     }

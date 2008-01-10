@@ -93,16 +93,6 @@ public class FeedImpl extends ItemImpl implements Feed {
         lastPullTime = time;
     }
 
-    @Deprecated
-    public long getNextPullTime() {
-        return nextPullTime;
-    }
-
-    @Deprecated
-    public void setNextPullTime(long time) {
-        nextPullTime = time;
-    }
-
     public long getNumPulls() {
         return numPulls;
     }

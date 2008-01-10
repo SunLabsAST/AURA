@@ -283,7 +283,7 @@ class StatsPanel extends DockPanel {
         grid.setText(3, 1, Long.toString(stats.getNumAttention()));
 
         grid.setText(4, 0, "Num Feeds");
-        grid.setText(4, 1, Integer.toString(stats.getNumFeeds()));
+        grid.setText(4, 1, Long.toString(stats.getNumFeeds()));
 
         grid.setText(5, 0, "Feed Pulls");
         grid.setText(5, 1, Integer.toString(stats.getFeedPulls()));
