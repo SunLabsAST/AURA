@@ -11,6 +11,7 @@ import com.sun.labs.util.props.ConfigurationManager;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
@@ -110,7 +111,7 @@ public class BerkeleyItemStoreTest {
     }
 
     @Test
-    public void b_getItems() throws AuraException {
+    public void b_getItems() throws AuraException, RemoteException {
         User u = (User) store.get("jalex");
         assertTrue(u.getRecommenderFeedKey().equals("paul-is-a-rockstar"));
         assertTrue(u.getID() == startID);
@@ -166,7 +167,7 @@ public class BerkeleyItemStoreTest {
     }
     
     @Test
-    public void d_attendItems() throws AuraException {
+    public void d_attendItems() throws AuraException, RemoteException {
         User u = (User) store.get("jalex");
         Entry e = (Entry) store.get(startID + 2);
         List l = u.getAttentionData();
@@ -195,7 +196,7 @@ public class BerkeleyItemStoreTest {
     }
     
     @Test
-    public void e_multipleFeeds() throws AuraException {
+    public void e_multipleFeeds() throws AuraException, RemoteException {
         //
         // Make some data
         User u = (User) store.get("jalex");
@@ -242,7 +243,7 @@ public class BerkeleyItemStoreTest {
     }
     
     @Test
-    public void f_breakConsistency() throws AuraException {
+    public void f_breakConsistency() throws AuraException, RemoteException {
         Entry e = store.newItem(Entry.class, "steves-blog-post1");
         e.setContent("foo bar");
         store.put(e);

@@ -10,8 +10,11 @@ import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A recommender manager that returns the starred items for a user.
@@ -19,6 +22,8 @@ import java.util.List;
 public class SimpleRecommendationManager implements RecommenderManager {
 
     private ItemStore itemStore;
+    
+    private Logger log;
     
     public List<Entry> getRecommendations(User user) {
         List<Attention> attends = user.getAttentionData();
@@ -32,6 +37,8 @@ public class SimpleRecommendationManager implements RecommenderManager {
                 }
             } catch (AuraException ex) {
                 
+            } catch (RemoteException rx) {
+                log.log(Level.SEVERE, "Error getting entry from item store", rx);
             }
         }
         return ret;
@@ -39,6 +46,7 @@ public class SimpleRecommendationManager implements RecommenderManager {
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         itemStore = (ItemStore) ps.getComponent(PROP_ITEM_STORE);
+        log = ps.getLogger();
     }
     
     public void shutdown() {

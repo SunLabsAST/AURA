@@ -12,7 +12,9 @@ package com.sun.labs.aura.aardvark.store;
 import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.Item;
 import com.sun.labs.aura.aardvark.util.AuraException;
-import com.sun.labs.util.props.Configurable;
+import com.sun.labs.util.props.Component;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.Set;
 
@@ -23,7 +25,7 @@ import java.util.Set;
  * functions.
  * 
  */
-public interface ItemStore extends Configurable {
+public interface ItemStore extends Component, Remote {
     
     /**
      * Creates an Item of the specified type with the given string as its key.
@@ -38,7 +40,7 @@ public interface ItemStore extends Configurable {
      *         exists in the ItemStore
      */
     public <T extends Item> T newItem(Class<T> itemType, String key)
-            throws AuraException;
+            throws AuraException, RemoteException;
     
     /**
      * Looks up the Aura ID of an item in the ItemStore.  This operation is
@@ -59,7 +61,7 @@ public interface ItemStore extends Configurable {
      * @return a list containing all items of the given type
      */
     public <T extends Item> Set<T> getAll(Class<T> itemType)
-            throws AuraException;
+            throws AuraException, RemoteException;
     
     
     /**
@@ -69,7 +71,7 @@ public interface ItemStore extends Configurable {
      * @param id the Aura ID of the Item to fetch
      * @return the requested Item
      */
-    public Item get(long id) throws AuraException;
+    public Item get(long id) throws AuraException, RemoteException;
     
     /**
      * Gets an Item from the ItemStore that is associated with the given
@@ -79,7 +81,7 @@ public interface ItemStore extends Configurable {
      * @param key the globally unique key that was used to create the Item
      * @return the requested Item
      */
-    public Item get(String key) throws AuraException;
+    public Item get(String key) throws AuraException, RemoteException;
     
     /**
      * Puts an item into the ItemStore.  The Item may be either a new Item
@@ -93,7 +95,7 @@ public interface ItemStore extends Configurable {
      * @throws com.sun.labs.aura.aardvark.util.AuraException if the Item is
      *         not valid for adding/updating
      */
-    public void put(Item item) throws AuraException;
+    public void put(Item item) throws AuraException, RemoteException;
 
     /**
      * Gets all the items of a particular type that have been added since a
@@ -106,7 +108,7 @@ public interface ItemStore extends Configurable {
      * @throws com.sun.labs.aura.aardvark.util.AuraException 
      */
     public <T extends Item> DBIterator<T> getItemsAddedSince(Class<T> itemType,
-            Date timeStamp) throws AuraException;
+            Date timeStamp) throws AuraException, RemoteException;
 
     /**
      * Gets all the attention that has been added to the store since a
@@ -118,7 +120,7 @@ public interface ItemStore extends Configurable {
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
     public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)
-            throws AuraException;
+            throws AuraException, RemoteException;
     
     /**
      * Adds attention to the the ItemStore.  The Attention should contain
@@ -130,7 +132,7 @@ public interface ItemStore extends Configurable {
      * @throws com.sun.labs.aura.aardvark.util.AuraException in the event that
      *         the attention is invalid
      */
-    public void attend(Attention att) throws AuraException;
+    public void attend(Attention att) throws AuraException, RemoteException;
     
     /**
      * Adds an ItemListener to this ItemStore.  ItemListeners are sent
@@ -147,7 +149,7 @@ public interface ItemStore extends Configurable {
      */
     public <T extends Item> void addItemListener(Class<T> type,
                                                  ItemListener listener)
-            throws AuraException;
+            throws AuraException, RemoteException;
     
    
     /**
@@ -164,7 +166,7 @@ public interface ItemStore extends Configurable {
      */
     public <T extends Item> void removeItemListener(Class<T> type,
                                                     ItemListener listener)
-            throws AuraException;
+            throws AuraException, RemoteException;
 
     /**
      * Get stats about the Item Store.  The ItemStoreStats is implementation
@@ -173,11 +175,11 @@ public interface ItemStore extends Configurable {
      * 
      * @return the item store stats
      */
-    public ItemStoreStats getStats() throws AuraException;
+    public ItemStoreStats getStats() throws AuraException, RemoteException;
     
     /**
      * Closes the item store cleanly.  This should be called before the
      * application exits.
      */
-    public void close() throws AuraException;
+    public void close() throws AuraException, RemoteException;
 }

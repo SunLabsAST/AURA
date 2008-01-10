@@ -24,6 +24,7 @@ import com.sun.labs.util.props.PropertySheet;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,58 +43,78 @@ import java.util.logging.Logger;
 public class SimpleFeedCrawler implements FeedCrawler {
 
     private DelayQueue<DelayedFeed> feedQueue = new DelayQueue<DelayedFeed>();
+
     private Set<String> hostSet = new HashSet<String>();
+
     private int feedPullCount = 0;
+
     private int feedErrorCount = 0;
+
     /** the configurable property for the itemstore used by this manage     */
     @ConfigComponent(type = ItemStore.class)
     public final static String PROP_ITEM_STORE = "itemStore";
+
     private ItemStore itemStore;
+
     /** The minimum time (in minutes) between feed pulls */
     @ConfigInteger(defaultValue = 60, range = {0, 60 * 24 * 7})
-    public final static String PROP_MINIMUM_FEED_DELAY_IN_MINUTES = "minimumFeedDelayInMinutes";
+    public final static String PROP_MINIMUM_FEED_DELAY_IN_MINUTES =
+            "minimumFeedDelayInMinutes";
+
     private long minimumFeedDelay = 0L;
+
     /** Determines if we should validate feeds when added */
     @ConfigBoolean(defaultValue = false)
     public final static String PROP_VALIDATE_ON_ADD = "validateOnAdd";
+
     private boolean validateOnAdd = false;
+
     @ConfigBoolean(defaultValue = false)
     public final static String PROP_TEST_MODE = "testMode";
+
     private boolean testMode = false;
+
     @ConfigBoolean(defaultValue = true)
-    public final static String PROP_AUTO_ENROLL_ASSOCIATED_FEEDS = "autoEnrollAssociatedFeeds";
+    public final static String PROP_AUTO_ENROLL_ASSOCIATED_FEEDS =
+            "autoEnrollAssociatedFeeds";
+
     private boolean autoEnrollAssociatedFeeds = true;
 
     // manages the number of crawling threads
     @ConfigInteger(defaultValue = 1, range = {1, 100})
     public final static String PROP_CRAWLING_THREADS = "crawlingThreads";
+
     private int crawlingThreads = 0;
+
     private Logger logger;
+
     private volatile Thread crawler = null;
+
     private ExecutorService executorService;
 
     public Feed createFeed(URL feedUrl) {
+        Feed feed = null;
         try {
             Item item = itemStore.get(feedUrl.toExternalForm());
-
-            Feed feed = null;
-            if (item == null) {
-                if (validateOnAdd) {
+            if(item == null) {
+                if(validateOnAdd) {
                     FeedUtils.readFeed(feedUrl);
                 }
                 feed = itemStore.newItem(Feed.class, feedUrl.toExternalForm());
                 releaseFeed(feed);
                 logger.info("Adding new feed to item store " + feedUrl);
-            } else if (!(item instanceof Feed)) {
+            } else if(!(item instanceof Feed)) {
                 logger.warning("URL not associated with a feed " + feedUrl);
                 return null;
             } else {
                 feed = (Feed) item;
             }
-            return feed;
-        } catch (AuraException ex) {
+        } catch(AuraException ex) {
             logger.warning("bad feed " + feedUrl);
-            return null;
+        } catch(RemoteException rx) {
+            logger.log(Level.WARNING, "Error communicating with item store", rx);
+        } finally {
+            return feed;
         }
     }
 
@@ -102,13 +123,13 @@ public class SimpleFeedCrawler implements FeedCrawler {
      */
     private void crawler() {
         logger.info("Crawler started, processing " + feedQueue.size() + " feeds");
-        while (crawler != null) {
+        while(crawler != null) {
             try {
                 long feedID = getNextFeedForRefresh(3000L);
-                if (crawler != null && feedID > 0) {
+                if(crawler != null && feedID > 0) {
                     executorService.execute(new FeedPuller(feedID));
                 }
-            } catch (InterruptedException ex) {
+            } catch(InterruptedException ex) {
             }
         }
         logger.info("Crawler finished");
@@ -123,17 +144,17 @@ public class SimpleFeedCrawler implements FeedCrawler {
         }
 
         public void run() {
-            if (crawler != null) {
+            if(crawler != null) {
                 Feed feed = null;
                 try {
                     feed = (Feed) itemStore.get(feedID);
                     processFeed(feed);
-                } catch (AuraException ex) {
+                } catch(AuraException ex) {
                     logger.warning("Can't pull feed " + feedID);
-                } catch (Throwable t) {
+                } catch(Throwable t) {
                     logger.severe("Something bad happened " + t);
                 } finally {
-                    if (feed != null) {
+                    if(feed != null) {
                         releaseFeed(feed);
                     }
                 }
@@ -142,11 +163,17 @@ public class SimpleFeedCrawler implements FeedCrawler {
     }
 
     public void crawlAllFeeds() throws AuraException {
-        if (crawler == null) {
-            Set<Feed> feeds = itemStore.getAll(Feed.class);
-            for (Feed feed : feeds) {
-                processFeed(feed);
+        if(crawler == null) {
+            try {
+                Set<Feed> feeds = itemStore.getAll(Feed.class);
+                for(Feed feed : feeds) {
+                    processFeed(feed);
+                }
+            } catch(RemoteException rx) {
+                throw new AuraException("Error getting feeds from item store",
+                                        rx);
             }
+
         } else {
             throw new AuraException("Can't crawlAllFeeds when crawler is already running");
         }
@@ -159,11 +186,15 @@ public class SimpleFeedCrawler implements FeedCrawler {
         try {
             feedQueue.clear();
             Set<Feed> feeds = itemStore.getAll(Feed.class);
-            for (Feed feed : feeds) {
+            for(Feed feed : feeds) {
                 enqueueFeed(feed);
             }
-        } catch (AuraException ex) {
-            logger.severe("Can't get feeds from the item store " + ex.getMessage());
+        } catch(AuraException ex) {
+            logger.severe("Can't get feeds from the item store " +
+                          ex.getMessage());
+        } catch(RemoteException rx) {
+            logger.log(Level.SEVERE, "Error getting feeds from item store",
+                       rx);
         }
     }
 
@@ -173,9 +204,10 @@ public class SimpleFeedCrawler implements FeedCrawler {
      */
     private void processFeed(Feed feed) {
         List<Entry> entries = pullFeed(feed);
-        if (entries != null) {
-            logger.info("Processed " + entries.size() + " new entries from " + feed.getKey());
-            if (autoEnrollAssociatedFeeds) { // TODO Disabled for now
+        if(entries != null) {
+            logger.info("Processed " + entries.size() + " new entries from " +
+                        feed.getKey());
+            if(autoEnrollAssociatedFeeds) { // TODO Disabled for now
                 enrollAssociatedFeeds(entries);
             }
         }
@@ -200,24 +232,33 @@ public class SimpleFeedCrawler implements FeedCrawler {
 
             feed.setLastPullTime(System.currentTimeMillis());
             entries = FeedUtils.processFeed(itemStore, feed);
-            for (Attention feedAttention : feed.getAttentionData()) {
-                Attention.Type userAttentionType = getUserAttentionFromFeedAttention(feedAttention.getType());
-                if (userAttentionType != null) {
-                    for (Entry entry : entries) {
-                        Attention entryAttention = new SimpleAttention(feedAttention.getUserID(),
-                                entry.getID(), userAttentionType, System.currentTimeMillis());
+            for(Attention feedAttention : feed.getAttentionData()) {
+                Attention.Type userAttentionType =
+                        getUserAttentionFromFeedAttention(feedAttention.getType());
+                if(userAttentionType != null) {
+                    for(Entry entry : entries) {
+                        Attention entryAttention =
+                                new SimpleAttention(feedAttention.getUserID(),
+                                                    entry.getID(),
+                                                    userAttentionType,
+                                                    System.currentTimeMillis());
                         itemStore.attend(entryAttention);
                     }
                 }
             }
             ok = true;
-        } catch (AuraException ex) {
-            logger.warning("trouble processing " + feed.getKey() + " " + ex.getMessage());
+        } catch(AuraException ex) {
+            logger.warning("trouble processing " + feed.getKey() + " " +
+                           ex.getMessage());
             feedErrorCount++;
+        } catch(RemoteException rx) {
+             logger.log(Level.SEVERE, "remote exception processing " + feed.getKey(), rx);
+            feedErrorCount++;
+           
         }
         feedPullCount++;
 
-        if (ok) {
+        if(ok) {
             feed.setNumPulls(feed.getNumPulls() + 1);
             feed.setNumConsecutiveErrors(0);
         } else {
@@ -236,24 +277,24 @@ public class SimpleFeedCrawler implements FeedCrawler {
     private void enrollAssociatedFeeds(List<Entry> entries) {
         // if the feed is an aggregation of other feeds then we
         // can try to find the associated feeds
-        if (FeedUtils.isAggregatedFeed(entries)) {
-            for (Entry entry : entries) {
+        if(FeedUtils.isAggregatedFeed(entries)) {
+            for(Entry entry : entries) {
                 String link = null;
                 try {
                     link = entry.getSyndEntry().getUri();
                     URL url = new URL(link);
-                    if (!linkHasBeenProcessed(url)) {
+                    if(!linkHasBeenProcessed(url)) {
                         List<URL> feeds = FeedUtils.findFeeds(url);
-                        for (URL f : feeds) {
+                        for(URL f : feeds) {
                             createFeed(f);
                         }
                         processedLink(url);
                     }
-                } catch (MalformedURLException ex) {
+                } catch(MalformedURLException ex) {
                     logger.info("Bad URL, Skipping " + link);
-                } catch (IOException ex) {
+                } catch(IOException ex) {
                     logger.info("Problem loading, Skipping " + link);
-                } catch (AuraException ex) {
+                } catch(AuraException ex) {
                     logger.info("Problem getting SyndEntry, Skipping " + link);
                 }
             }
@@ -267,11 +308,11 @@ public class SimpleFeedCrawler implements FeedCrawler {
      */
     private Attention.Type getUserAttentionFromFeedAttention(Attention.Type feedAttentionType) {
         Attention.Type userAttentionType = null;
-        if (feedAttentionType == Attention.Type.STARRED_FEED) {
+        if(feedAttentionType == Attention.Type.STARRED_FEED) {
             userAttentionType = Attention.Type.STARRED;
-        } else if (feedAttentionType == Attention.Type.SUBSCRIBED_FEED) {
+        } else if(feedAttentionType == Attention.Type.SUBSCRIBED_FEED) {
             userAttentionType = Attention.Type.SUBSCRIBED;
-        } else if (feedAttentionType == Attention.Type.DISLIKED_FEED) {
+        } else if(feedAttentionType == Attention.Type.DISLIKED_FEED) {
             userAttentionType = Attention.Type.DISLIKED;
         }
         return userAttentionType;
@@ -295,7 +336,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
     }
 
     public synchronized void start() {
-        if (!testMode && crawler == null) {
+        if(!testMode && crawler == null) {
 
             executorService = Executors.newFixedThreadPool(crawlingThreads);
 
@@ -315,7 +356,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
     }
 
     public synchronized void stop() {
-        if (crawler != null) {
+        if(crawler != null) {
             try {
                 Thread t = crawler;
                 crawler = null;
@@ -323,7 +364,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
                 executorService.shutdown();
                 executorService.awaitTermination(120, TimeUnit.SECONDS);
                 logger.info("Crawling stopped");
-            } catch (InterruptedException ex) {
+            } catch(InterruptedException ex) {
                 logger.warning("interrupted while stopping");
             }
         }
@@ -336,16 +377,18 @@ public class SimpleFeedCrawler implements FeedCrawler {
      * @throws java.lang.InterruptedException
      */
     public long getNextFeedForRefresh(long maxWait) throws InterruptedException {
-        if (false) {
+        if(false) {
             DelayedFeed dfeed = feedQueue.peek();
-            if (dfeed != null) {
-                logger.info("Feed queue - size " + feedQueue.size() + " next in " + dfeed.getDelay(TimeUnit.MILLISECONDS) + " ms");
+            if(dfeed != null) {
+                logger.info("Feed queue - size " + feedQueue.size() +
+                            " next in " + dfeed.getDelay(TimeUnit.MILLISECONDS) +
+                            " ms");
             }
 
         }
         DelayedFeed dfeed = feedQueue.poll(maxWait, TimeUnit.MILLISECONDS);
 
-        if (dfeed != null) {
+        if(dfeed != null) {
             return dfeed.getFeedID();
         } else {
             return 0;
@@ -359,8 +402,10 @@ public class SimpleFeedCrawler implements FeedCrawler {
     public void releaseFeed(Feed feed) {
         try {
             itemStore.put(feed);
-        } catch (AuraException ex) {
+        } catch(AuraException ex) {
             logger.warning("Can't store feed " + feed.getKey());
+        } catch(RemoteException rx) {
+            logger.log(Level.SEVERE, "Can't store feed " + feed.getKey(), rx);
         } finally {
             enqueueFeed(feed);
         }
@@ -384,11 +429,13 @@ public class SimpleFeedCrawler implements FeedCrawler {
 
     public synchronized void newProperties(PropertySheet ps) throws PropertyException {
         itemStore = (ItemStore) ps.getComponent(PROP_ITEM_STORE);
-        minimumFeedDelay = ps.getInt(PROP_MINIMUM_FEED_DELAY_IN_MINUTES) * 60 * 1000L;
+        minimumFeedDelay = ps.getInt(PROP_MINIMUM_FEED_DELAY_IN_MINUTES) * 60 *
+                1000L;
         validateOnAdd = ps.getBoolean(PROP_VALIDATE_ON_ADD);
         testMode = ps.getBoolean(PROP_TEST_MODE);
         crawlingThreads = ps.getInt(PROP_CRAWLING_THREADS);
-        autoEnrollAssociatedFeeds = ps.getBoolean(PROP_AUTO_ENROLL_ASSOCIATED_FEEDS);
+        autoEnrollAssociatedFeeds =
+                ps.getBoolean(PROP_AUTO_ENROLL_ASSOCIATED_FEEDS);
         logger = ps.getLogger();
         // BUG: until the config logLevel is fixed
         logger.setLevel(Level.SEVERE);
@@ -401,11 +448,13 @@ public class SimpleFeedCrawler implements FeedCrawler {
     class DelayedFeed implements Delayed {
 
         private long feedID;
+
         private long nextPullTime;
 
         public DelayedFeed(Feed feed) {
             this.feedID = feed.getID();
-            nextPullTime = feed.getLastPullTime() + (feed.getNumConsecutiveErrors() + 1) * minimumFeedDelay;
+            nextPullTime = feed.getLastPullTime() +
+                    (feed.getNumConsecutiveErrors() + 1) * minimumFeedDelay;
         }
 
         /**
@@ -418,11 +467,13 @@ public class SimpleFeedCrawler implements FeedCrawler {
         }
 
         public long getDelay(TimeUnit unit) {
-            return unit.convert(nextPullTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+            return unit.convert(nextPullTime - System.currentTimeMillis(),
+                                TimeUnit.MILLISECONDS);
         }
 
         public int compareTo(Delayed o) {
-            long result = getDelay(TimeUnit.MILLISECONDS) - o.getDelay(TimeUnit.MILLISECONDS);
+            long result = getDelay(TimeUnit.MILLISECONDS) -
+                    o.getDelay(TimeUnit.MILLISECONDS);
             return result < 0 ? -1 : result > 0 ? 1 : 0;
         }
     }

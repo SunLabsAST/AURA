@@ -27,6 +27,7 @@ import com.sun.syndication.feed.synd.SyndFeedImpl;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -37,11 +38,13 @@ import java.util.logging.Logger;
 public class Aardvark implements Configurable {
 
     private final static String VERSION = "aardvark version 0.20";
+
     /**
      * the configurable property for the itemstore used by this manager
      */
     @ConfigComponent(type = ItemStore.class)
     public final static String PROP_ITEM_STORE = "itemStore";
+
     private ItemStore itemStore;
 
     /**
@@ -49,20 +52,30 @@ public class Aardvark implements Configurable {
      */
     @ConfigComponent(type = FeedCrawler.class)
     public final static String PROP_FEED_CRAWLER = "feedCrawler";
+
     private FeedCrawler feedCrawler;
+
     @ConfigBoolean(defaultValue = false)
-    public final static String PROP_AUTO_ENROLL_TEST_FEEDS = "autoEnrollTestFeeds";
+    public final static String PROP_AUTO_ENROLL_TEST_FEEDS =
+            "autoEnrollTestFeeds";
+
     private boolean autoEnrollTestFeeds;
+
     @ConfigBoolean(defaultValue = false)
-    public final static String PROP_AUTO_ENROLL_MEGA_TEST_FEEDS = "autoEnrollMegaTestFeeds";
+    public final static String PROP_AUTO_ENROLL_MEGA_TEST_FEEDS =
+            "autoEnrollMegaTestFeeds";
+
     private boolean autoEnrollMegaTestFeeds;
 
     /**
      * the configurable property for the RecommenderManager used by this manager
      */
     @ConfigComponent(type = RecommenderManager.class)
-    public final static String PROP_RECOMMENDER_MANAGER = "recommenderManager";
+    public final static String PROP_RECOMMENDER_MANAGER =
+            "recommenderManager";
+
     private RecommenderManager recommenderManager;
+
     private Logger logger;
 
     /**
@@ -77,7 +90,7 @@ public class Aardvark implements Configurable {
             URL configFile = Aardvark.class.getResource("aardvarkConfig.xml");
             cm.addProperties(configFile);
             return (Aardvark) cm.lookup("aardvark");
-        } catch (IOException ioe) {
+        } catch(IOException ioe) {
             throw new AuraException("Problem loading config", ioe);
         }
     }
@@ -85,9 +98,11 @@ public class Aardvark implements Configurable {
     public void newProperties(PropertySheet ps) throws PropertyException {
         itemStore = (ItemStore) ps.getComponent(PROP_ITEM_STORE);
         feedCrawler = (FeedCrawler) ps.getComponent(PROP_FEED_CRAWLER);
-        recommenderManager = (RecommenderManager) ps.getComponent(PROP_RECOMMENDER_MANAGER);
+        recommenderManager =
+                (RecommenderManager) ps.getComponent(PROP_RECOMMENDER_MANAGER);
         autoEnrollTestFeeds = ps.getBoolean(PROP_AUTO_ENROLL_TEST_FEEDS);
-        autoEnrollMegaTestFeeds = ps.getBoolean(PROP_AUTO_ENROLL_MEGA_TEST_FEEDS);
+        autoEnrollMegaTestFeeds =
+                ps.getBoolean(PROP_AUTO_ENROLL_MEGA_TEST_FEEDS);
         logger = ps.getLogger();
     }
 
@@ -98,7 +113,7 @@ public class Aardvark implements Configurable {
         logger.info("started");
         feedCrawler.start();
 
-        if (autoEnrollTestFeeds) {
+        if(autoEnrollTestFeeds) {
             autoEnroll();
         }
     }
@@ -109,7 +124,11 @@ public class Aardvark implements Configurable {
     public void shutdown() throws AuraException {
         feedCrawler.stop();
         recommenderManager.shutdown();
+        try {
         itemStore.close();
+        } catch(RemoteException rx) {
+            
+        }
         logger.info("shutdown");
     }
 
@@ -119,7 +138,11 @@ public class Aardvark implements Configurable {
      * @return the user or null if the user doesn't exist
      */
     public User getUser(String openID) throws AuraException {
-        return (User) itemStore.get(openID);
+        try {
+            return (User) itemStore.get(openID);
+        } catch(RemoteException rx) {
+            throw new AuraException("Error communicating with item store", rx);
+        }
     }
 
     /**
@@ -130,12 +153,18 @@ public class Aardvark implements Configurable {
      */
     public User enrollUser(String openID) throws AuraException {
         logger.info("Added user " + openID);
-        if (getUser(openID) == null) {
-            User theUser = itemStore.newItem(User.class, openID);
-            itemStore.put(theUser);
-            return theUser;
+        if(getUser(openID) == null) {
+            try {
+                User theUser = itemStore.newItem(User.class, openID);
+                itemStore.put(theUser);
+                return theUser;
+            } catch(RemoteException rx) {
+                throw new AuraException("Error communicating with item store",
+                                        rx);
+            }
         } else {
-            throw new AuraException("attempting to enroll duplicate user " + openID);
+            throw new AuraException("attempting to enroll duplicate user " +
+                                    openID);
         }
     }
 
@@ -148,9 +177,15 @@ public class Aardvark implements Configurable {
      */
     public void addUserFeed(User user, URL feedURL, Attention.Type type) throws AuraException {
         Feed feed = feedCrawler.createFeed(feedURL);
-        if (feed != null) {
-            SimpleAttention userAttention = new SimpleAttention(user, feed, type);
-            itemStore.attend(userAttention);
+        if(feed != null) {
+            SimpleAttention userAttention =
+                    new SimpleAttention(user, feed, type);
+            try {
+                itemStore.attend(userAttention);
+            } catch(RemoteException rx) {
+                throw new AuraException("Error communicating with item store",
+                                        rx);
+            }
         } else {
             throw new AuraException("Invalid feed " + feedURL);
         }
@@ -173,7 +208,7 @@ public class Aardvark implements Configurable {
     public void addFeed(String feedURL) throws AuraException {
         try {
             feedCrawler.createFeed(new URL(feedURL));
-        } catch (MalformedURLException ex) {
+        } catch(MalformedURLException ex) {
             throw new AuraException("bad url " + feedURL, ex);
         }
     }
@@ -191,7 +226,7 @@ public class Aardvark implements Configurable {
             User user = enrollUser(openID);
             addUserFeed(user, feedURL, Attention.Type.STARRED_FEED);
             return user;
-        } catch (MalformedURLException ex) {
+        } catch(MalformedURLException ex) {
             throw new AuraException("Bad url " + feed, ex);
         }
     }
@@ -219,14 +254,18 @@ public class Aardvark implements Configurable {
      * @return the stats
      */
     public Stats getStats() throws AuraException {
-        ItemStoreStats itemStoreStats = itemStore.getStats();
-        int feedPullCount = feedCrawler.getFeedPullCount();
-        int feedErrorCount = feedCrawler.getFeedErrorCount();
-        return new Stats(VERSION, itemStoreStats.getNumUsers(),
-                itemStoreStats.getNumEntries(),
-                itemStoreStats.getNumAttentions(),
-                itemStoreStats.getNumFeeds(),
-                feedPullCount, feedErrorCount);
+        try {
+            ItemStoreStats itemStoreStats = itemStore.getStats();
+            int feedPullCount = feedCrawler.getFeedPullCount();
+            int feedErrorCount = feedCrawler.getFeedErrorCount();
+            return new Stats(VERSION, itemStoreStats.getNumUsers(),
+                             itemStoreStats.getNumEntries(),
+                             itemStoreStats.getNumAttentions(),
+                             itemStoreStats.getNumFeeds(),
+                             feedPullCount, feedErrorCount);
+        } catch(RemoteException rx) {
+            throw new AuraException("Error communicating with item store", rx);
+        }
     }
 
     /**
@@ -235,7 +274,8 @@ public class Aardvark implements Configurable {
      * @return an array of recommended entries
      */
     private List<Entry> getRecommendedEntries(User user) {
-        List<Entry> recommendations = recommenderManager.getRecommendations(user);
+        List<Entry> recommendations =
+                recommenderManager.getRecommendations(user);
         return recommendations;
     }
 
@@ -245,14 +285,14 @@ public class Aardvark implements Configurable {
             OPMLProcessor op = new OPMLProcessor();
             URL opmlFile = Aardvark.class.getResource(name);
             List<URL> urls = op.getFeedURLs(opmlFile);
-            for (URL url : urls) {
+            for(URL url : urls) {
                 try {
                     addFeed(url);
-                } catch (AuraException ex) {
+                } catch(AuraException ex) {
                     logger.warning("Problems enrolling " + url);
                 }
             }
-        } catch (IOException ex) {
+        } catch(IOException ex) {
             logger.warning("Problems loading opml " + name);
         } finally {
             logger.info("Finished enrolling local opml" + name);
@@ -261,20 +301,21 @@ public class Aardvark implements Configurable {
 
     private void autoEnroll() {
         Thread t = new Thread() {
+
             @Override
             public void run() {
                 try {
                     // Thread.sleep(10 * 60 * 1000L);
                     Thread.sleep(10 * 1000L);
                     addLocalOpml("autoEnrolledFeeds.opml.xml");
-                    if (autoEnrollMegaTestFeeds) {
+                    if(autoEnrollMegaTestFeeds) {
                         addLocalOpml("tech_blogs.opml");
                         addLocalOpml("politics_blogs.opml");
                         addLocalOpml("news_blogs.opml");
                     }
-                } catch (InterruptedException ex) {
+                } catch(InterruptedException ex) {
                     logger.info("autoenroller interrupted");
-                } catch (Throwable t) {
+                } catch(Throwable t) {
                     logger.severe("bad thing happend " + t);
                 }
             }
@@ -288,7 +329,7 @@ public class Aardvark implements Configurable {
         Aardvark aardvark = getDefault();
 
         aardvark.startup();
-        for (int i = 0; i < 20 * 60; i++) {
+        for(int i = 0; i < 20 * 60; i++) {
             Thread.sleep(3000L);
             Stats stats = aardvark.getStats();
             System.out.println(i + ") " + stats);

@@ -34,4 +34,9 @@ public class ItemStoreStats {
     public long getNumFeeds() {
         return numFeeds;
     }
+    
+    public String toString() {
+        return String.format("users: %d entries: %d attentions: %d feeds: %d", 
+                numUsers, numEntries, numAttentions, numFeeds);
+    }
 }

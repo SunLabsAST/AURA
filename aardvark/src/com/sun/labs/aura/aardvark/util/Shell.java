@@ -25,6 +25,7 @@ import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import java.io.IOException;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -423,14 +424,14 @@ public class Shell {
         shell.run();
     }
 
-    private void dumpAllUsers() throws AuraException {
+    private void dumpAllUsers() throws AuraException, RemoteException {
         Set<User> users = itemStore.getAll(User.class);
         for (User user : users) {
             dumpItem(user);
         }
     }
 
-    private void dumpUser(User user) throws AuraException {
+    private void dumpUser(User user) throws AuraException, RemoteException {
         dumpItem(user);
         dumpAttentionData(user.getAttentionData());
     }
@@ -451,7 +452,7 @@ public class Shell {
 
     }
 
-    private void dumpAllFeeds() throws AuraException {
+    private void dumpAllFeeds() throws AuraException, RemoteException {
         Set<Feed> feeds = itemStore.getAll(Feed.class);
         long numFeeds = 0;
         for (Feed feed : feeds) {
@@ -465,7 +466,7 @@ public class Shell {
         System.out.printf(" %d %d %s\n", item.getID(), item.getAttentionData().size(), item.getKey());
     }
 
-    private void dumpFeed(Feed feed) throws AuraException {
+    private void dumpFeed(Feed feed) throws AuraException, RemoteException {
         dumpItem(feed);
         System.out.println("   Pulls  : " + feed.getNumPulls());
         System.out.println("   Last   : " + feed.getLastPullTime());
@@ -473,7 +474,7 @@ public class Shell {
         dumpAttentionData(feed.getAttentionData());
     }
 
-    private void dumpAttentionData(List<Attention> attentionData) throws AuraException {
+    private void dumpAttentionData(List<Attention> attentionData) throws AuraException, RemoteException {
         for (Attention attention : attentionData) {
             Item user = itemStore.get(attention.getUserID());
             Item item = itemStore.get(attention.getItemID());

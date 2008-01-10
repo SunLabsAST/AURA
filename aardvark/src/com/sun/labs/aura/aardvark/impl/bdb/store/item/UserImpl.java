@@ -12,6 +12,7 @@ import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
@@ -101,9 +102,13 @@ public class UserImpl extends ItemImpl implements User {
             throw new AuraException("Feed must be made persistent before it "+
                     "can be added to a user");
         }
-        SimpleAttention attn = new SimpleAttention(this, f, type);
-        BerkeleyItemStore store = BerkeleyItemStore.getItemStore();
-        store.attend(attn);
+        try {
+            SimpleAttention attn = new SimpleAttention(this, f, type);
+            BerkeleyItemStore store = BerkeleyItemStore.getItemStore();
+            store.attend(attn);
+        } catch(RemoteException rx) {
+            throw new AuraException("Error adding feed " + f, rx);
+        }
     }
     
     public long getLastFetchTime() {

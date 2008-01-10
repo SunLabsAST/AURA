@@ -6,7 +6,6 @@
  *  redistribution of this file, and for a DISCLAIMER OF ALL
  *  WARRANTIES. 
  */
-
 package com.sun.labs.aura.aardvark.crawler;
 
 import com.sun.labs.aura.aardvark.store.item.Feed;
@@ -41,24 +40,24 @@ public interface FeedCrawler extends Configurable {
      * in testing, when a single threaded crawl is desireable.
      * @throws AuraException
      */
-	public void crawlAllFeeds() throws AuraException ;
+    public void crawlAllFeeds() throws AuraException;
 
     /**
      * Crawls a single feed. This method is used 
      * in testing, only
      * @throws AuraException
      */
-	public void crawlFeed(Feed feed) throws AuraException ;
+    public void crawlFeed(Feed feed) throws AuraException;
 
     /**
      * Gets the number of feeds errors
      * @return the number of feeds errors
      */
     int getFeedErrorCount();
+
     /**
      * Gets the number of feeds pulled
      * @return the number of feeds pulled
      */
     int getFeedPullCount();
-   
 }

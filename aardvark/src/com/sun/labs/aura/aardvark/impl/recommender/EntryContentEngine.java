@@ -25,6 +25,7 @@ import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -92,6 +93,8 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
                     }
                 } catch(AuraException ex) {
                     log.severe("Failed to get all Entries");
+                } catch(RemoteException rx) {
+                    log.log(Level.SEVERE, "Error getting all entries", rx);
                 }
             }
 
@@ -101,6 +104,8 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
                 itemStore.addItemListener(Entry.class, this);
             } catch(AuraException ex) {
                 log.warning("Failed to add content engine as listener");
+            } catch(RemoteException rx) {
+                log.log(Level.SEVERE, "Error adding item listener", rx);
             }
         } catch(SearchEngineException see) {
             log.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
@@ -215,6 +220,9 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
         } catch(AuraException ex) {
             log.log(Level.SEVERE, "Exception while attending to items", ex);
             return new ArrayList<Entry>();
+        } catch(RemoteException rx) {
+            log.log(Level.SEVERE, "Exception while attending to items", rx);
+            return new ArrayList<Entry>();
         }
     }
 
@@ -224,7 +232,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      * @param item the item
      * @param type the type of attention
      */
-    private void attend(User user, Item item, Attention.Type type) throws AuraException {
+    private void attend(User user, Item item, Attention.Type type) throws AuraException, RemoteException {
         Attention attention = new SimpleAttention(user, item, Attention.Type.VIEWED);
         itemStore.attend(attention);
     }
@@ -320,6 +328,8 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
             log.log(Level.WARNING, "Error removing item listener", ae);
         } catch(SearchEngineException ex) {
             log.log(Level.WARNING, "Error closing entry content engine", ex);
+        } catch(RemoteException rx) {
+            log.log(Level.WARNING, "Error removing item listenger", rx);
         }
     }
     

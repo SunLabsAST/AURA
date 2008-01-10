@@ -1,11 +1,12 @@
 package com.sun.labs.aura.aardvark.store;
 
 import com.sleepycat.persist.model.Persistent;
+import java.io.Serializable;
 
 /**
  * Represents some form of attention that a User can attribute to an Item.
  */
-public interface Attention {
+public interface Attention extends Serializable {
     /**
      * The type of attention data that this Attention represents.
      */
