@@ -144,7 +144,14 @@ public class Aardvark implements Configurable {
             throw new AuraException("Error communicating with item store", rx);
         }
     }
-
+    
+    public List<Attention> getAttentionData(User user) throws AuraException {
+        try {
+            return itemStore.getAttentionData(user);
+        } catch(RemoteException rx) {
+            throw new AuraException("Error communicating with item store", rx);
+        }
+    }
     /**
      * Enrolls a user in the recommender
      * @param openID the openID of the user

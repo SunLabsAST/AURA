@@ -91,7 +91,7 @@ public class AardvarkSearchTest {
         crawler.crawlAllFeeds();
 
         user1 = aardvark.getUser(user1.getKey());
-        assertTrue("user1 should have attention data", user1.getAttentionData().size() > 0);
+        assertTrue("user1 should have attention data", aardvark.getAttentionData(user1).size() > 0);
         SyndFeed feed = aardvark.getRecommendedFeed(user1);
         int entryCount = feed.getEntries().size();
         assertTrue("The random document should have been returned: " + entryCount, entryCount > 0);
