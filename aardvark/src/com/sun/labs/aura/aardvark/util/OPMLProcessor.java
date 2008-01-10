@@ -20,16 +20,24 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
  * A class for manipulating OPML files
@@ -72,8 +80,6 @@ public class OPMLProcessor {
 
         InputStream is = null;
         
-        is = new BufferedInputStream(new FileInputStream(opml));
-
         try {
             is = new BufferedInputStream(new FileInputStream(opml));
             List<URL> urls = getFeedURLs(is);
@@ -84,6 +90,7 @@ public class OPMLProcessor {
             }
         }
     }
+
     public List<URL> getURLs(URL opml) throws IOException {
         if (opml == null) {
             throw new IOException("url is null");
@@ -128,7 +135,6 @@ public class OPMLProcessor {
                     }
                     if (url != null) {
                         try {
-                            System.out.println("Adding " + url);
                             feeds.add(new URL(url));
                         } catch (MalformedURLException ex) {
                         // skip feeds with bad urls
@@ -137,7 +143,13 @@ public class OPMLProcessor {
                 }
             }
             return feeds;
+        } catch (SAXParseException ex) {
+            System.err.println("error " + ex  + " at " + 
+                    ex.getPublicId() +":" + ex.getSystemId() +
+                    " at: " + ex.getLineNumber() + " col:" + ex.getColumnNumber());
+            throw new IOException("trouble parsing" + ex.getMessage());
         } catch (SAXException ex) {
+            System.err.println("error " + ex);
             throw new IOException("trouble parsing" + ex.getMessage());
         } catch (ParserConfigurationException ex) {
             throw new IOException("parse config trouble " + ex.getMessage());
@@ -161,7 +173,6 @@ public class OPMLProcessor {
                 }
                 if (url != null && url.length() > 0) {
                     try {
-                        System.out.println("Adding " + url);
                         feeds.add(new URL(url));
                     } catch (MalformedURLException ex) {
                     // skip feeds with bad urls
@@ -169,6 +180,11 @@ public class OPMLProcessor {
                 }
             }
             return feeds;
+        } catch (SAXParseException ex) {
+            System.err.println("error " + ex  + " at " + 
+                    ex.getPublicId() +":" + ex.getSystemId() +
+                    " at: " + ex.getLineNumber() + " col:" + ex.getColumnNumber());
+            throw new IOException("trouble parsing" + ex.getMessage());
         } catch (SAXException ex) {
             throw new IOException("trouble parsing" + ex.getMessage());
         } catch (ParserConfigurationException ex) {
@@ -176,29 +192,30 @@ public class OPMLProcessor {
         }
     }
 
-    public void crawl(Set<URL> feeds, URL url) throws IOException {
-        // just for testing
-        if (feeds.size() >= 10) {
-            return;
-        }
-        delay(5000L);
-        List<URL> l = getURLs(url);
-
-        for (URL u : l) {
-            if (u.toExternalForm().endsWith(".opml")) {
-                System.out.println("recursing " + u);
-                crawl(feeds, u);
-            } else {
-                feeds.add(u);
-            }
-        }
-    }
-    
-    private void delay(long milli) {
+    public List<String> getURLsAsStrings(InputStream is) throws IOException {
         try {
-            Thread.sleep(milli);
-        } catch (InterruptedException e) {
 
+            List<String> feeds = new ArrayList<String>();
+            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+
+            Document doc = builder.parse(is);
+            Element docElement = doc.getDocumentElement();
+            NodeList itemList = docElement.getElementsByTagName("outline");
+            for (int i = 0; i < itemList.getLength(); i++) {
+                Element item = (Element) itemList.item(i);
+                String url = item.getAttribute("xmlUrl");
+                if (url == null || url.length() == 0) {
+                    url = item.getAttribute("url");
+                }
+                if (url != null && url.length() > 0) {
+                    feeds.add(url);
+                }
+            }
+            return feeds;
+        } catch (SAXException ex) {
+            throw new IOException("trouble parsing" + ex.getMessage());
+        } catch (ParserConfigurationException ex) {
+            throw new IOException("parse config trouble " + ex.getMessage());
         }
     }
 
@@ -223,18 +240,28 @@ public class OPMLProcessor {
         return "link".equals(type);
     }
 
-    public static void main(String[] args) {
+    static void dumpDocument(File path, Document document) {
         try {
-            OPMLProcessor op = new OPMLProcessor();
-            Set<URL> urls = new HashSet<URL>();
-            op.crawl(urls, new URL("http://www.opmlmanager.com/userlist"));
-            op.saveAsOPML(new File("bigopml.opml"), urls);
-            
-            // now make sure that we can load it
-            
-            op.getFeedURLs(new File("bigopml.opml"));
-        } catch (IOException ioe) {
-            System.out.println("Trouble " + ioe);
+            // Prepare the DOM document for writing
+            Source source = new DOMSource(document);
+            Result result = new StreamResult(path);
+
+            // Write the DOM document to the file
+            // Get Transformer
+            Transformer xformer =
+                    TransformerFactory.newInstance().newTransformer();
+            // Write to a file
+
+            xformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            xformer.setOutputProperty(OutputKeys.METHOD, "xml");
+            xformer.setOutputProperty(
+                    "{http://xml.apache.org/xalan}indent-amount", "4");
+
+            xformer.transform(source, result);
+        } catch (TransformerConfigurationException e) {
+            System.out.println("TransformerConfigurationException: " + e);
+        } catch (TransformerException e) {
+            System.out.println("TransformerException: " + e);
         }
     }
 }

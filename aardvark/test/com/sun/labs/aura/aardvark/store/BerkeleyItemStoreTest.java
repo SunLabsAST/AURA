@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -29,6 +30,7 @@ public class BerkeleyItemStoreTest {
 
     protected static long startID = -1;
     
+    protected static long currentTime =  -1;
     
     public BerkeleyItemStoreTest() {
         
@@ -78,8 +80,18 @@ public class BerkeleyItemStoreTest {
         assertFalse(listener.gotChanged);
         listener.gotCreated = false;
         
+        Feed f = store.newItem(Feed.class, "http://some.blog");
+        store.put(f);
+        assertTrue(f.getID() == ++id);
+        assertTrue(listener.gotCreated);
+        assertFalse(listener.gotChanged);
+        listener.gotCreated = false;
+        
         Entry e = store.newItem(Entry.class, "pauls-blog-post1");
         e.setContent("music is awesome!");
+        currentTime = System.currentTimeMillis();
+        e.setTimeStamp(currentTime);
+        e.setParentFeedID(startID + 1);
         store.put(e);
         assertTrue(e.getID() == ++id);
         assertTrue(listener.gotCreated);
@@ -88,6 +100,8 @@ public class BerkeleyItemStoreTest {
 
         e = store.newItem(Entry.class, "steves-blog-post1");
         e.setContent("search is awesome!");
+        e.setTimeStamp(currentTime + 1);
+        e.setParentFeedID(startID + 1);
         store.put(e);
         assertTrue(e.getID() == ++id);
         assertTrue(listener.gotCreated);
@@ -101,13 +115,22 @@ public class BerkeleyItemStoreTest {
         assertTrue(u.getRecommenderFeedKey().equals("paul-is-a-rockstar"));
         assertTrue(u.getID() == startID);
         
-        Entry e = (Entry) store.get(startID + 1);
+        Entry e = (Entry) store.get(startID + 2);
         assertTrue(e.getKey().equals("pauls-blog-post1"));
         assertTrue(e.getContent().equals("music is awesome!"));
+        assertTrue(e.getTimeStamp() == currentTime);
         
         e = (Entry) store.get("steves-blog-post1");
-        assertTrue(e.getID() == 3);
+        assertTrue(e.getID() == (startID + 3));
         assertTrue(e.getContent().equals("search is awesome!"));
+        assertTrue(e.getTimeStamp() == currentTime + 1);
+        
+        //
+        // Get entries from the first feed
+        Feed f = (Feed) store.get(startID + 1);
+        long t = currentTime;
+        SortedSet<Entry> ents = f.getEntries();
+        assertTrue(ents.size() == 2);
     }
 
     @Test
@@ -145,7 +168,7 @@ public class BerkeleyItemStoreTest {
     @Test
     public void d_attendItems() throws AuraException {
         User u = (User) store.get("jalex");
-        Entry e = (Entry) store.get(2);
+        Entry e = (Entry) store.get(startID + 2);
         List l = u.getAttentionData();
         assertTrue(l.isEmpty());
         l = e.getAttentionData();
@@ -164,8 +187,14 @@ public class BerkeleyItemStoreTest {
         assertTrue(l.size() == 1);
         Attention b = (Attention) l.get(0);
         assertTrue(a.equals(b));
+        
+        //
+        // and check that this is the most recent attention
+        SortedSet<Attention> attns = u.getLastAttention(1);
+        assertTrue(attns.first().equals(sattn));
     }
     
+    @Test
     public void e_multipleFeeds() throws AuraException {
         //
         // Make some data
@@ -209,7 +238,28 @@ public class BerkeleyItemStoreTest {
         assertTrue("Got wrong number of starred feeds", feeds.size() == 1);
         test = (Feed)feeds.toArray()[0];
         assertTrue("Wrong feed for starred test",
-                test.getKey().equals("http://steves.blog"));
+                test.getKey().equals("http://steves.blog/"));
+    }
+    
+    @Test
+    public void f_breakConsistency() throws AuraException {
+        Entry e = store.newItem(Entry.class, "steves-blog-post1");
+        e.setContent("foo bar");
+        store.put(e);
+        boolean exFired = false;
+        try {
+            store.attend(new SimpleAttention(startID, e.getID(), Attention.Type.VIEWED, System.currentTimeMillis()));
+        } catch (AuraException ex) {
+            exFired = true;
+        } finally {
+            assertTrue("Exception didn't fire", exFired);
+        }
+        Entry i = (Entry)store.get(e.getID());
+        assertTrue("Got an entry for a bogus ID", i == null);
+        
+        Entry e2 = store.newItem(Entry.class, "valid-item");
+        e2.setContent("bar foo");
+        store.put(e2);
     }
     
     private BerkeleyItemStore getStore() throws IOException {

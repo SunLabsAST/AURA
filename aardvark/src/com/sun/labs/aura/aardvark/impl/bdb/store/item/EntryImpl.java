@@ -1,5 +1,6 @@
 package com.sun.labs.aura.aardvark.impl.bdb.store.item;
 
+import com.sleepycat.persist.model.DeleteAction;
 import com.sleepycat.persist.model.Persistent;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
@@ -23,6 +24,23 @@ public class EntryImpl extends ItemImpl implements Entry {
      */
     @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     protected boolean isEntry = true;
+
+    /**
+     * The parent feed from which this entry was derived.
+     */
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE,
+                  relatedEntity=ItemImpl.class,
+                  onRelatedEntityDelete=DeleteAction.CASCADE)
+    private long parentFeedID;
+    
+    /**
+     * The date & time at which this entry was posted
+     */
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
+    private long postDate;
+    
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
+    private long entryAddedTime;
     
     /**
      * The content of this entry.  This is a persistent field.
@@ -33,6 +51,11 @@ public class EntryImpl extends ItemImpl implements Entry {
      * The XML data from the synd entry.  This is a persistent field.
      */
     protected String syndEntryXML;
+    
+    /**
+     * The URL of this entry.  This is a persistent field.
+     */
+    protected String entryURL;
     
     /**
      * A cached instantiated version of this syndicatin entry.
@@ -46,12 +69,13 @@ public class EntryImpl extends ItemImpl implements Entry {
     }
     
     /**
-     * Instantiates an Entry with a particular key (probaby the URL)
+     * Instantiates an Entry with a particular key
      *
      * @param key the key for this entry
      */
     public EntryImpl(String key) {
         super(key);
+        entryAddedTime = System.currentTimeMillis();
     }
     
     public String getContent() {
@@ -81,7 +105,43 @@ public class EntryImpl extends ItemImpl implements Entry {
         return cachedEntry;
     }
     
+    public long getParentFeedID() {
+        return parentFeedID;
+    }
+    
+    public void setParentFeedID(long id) {
+        this.parentFeedID = id;
+    }
+
+    
+    public String getEntryURL() {
+        return entryURL;
+    }
+
+    public void setEntryURL(String url) {
+        this.entryURL = url;
+    }
+
+    
+    @Override
     public String getTypeString() {
         return Entry.ITEM_TYPE;
     }
+    
+    public long getPostDate() {
+        return postDate;
+    }
+
+    public void setPostDate(long date) {
+        this.postDate = date;
+    }
+    
+    public long getTimeStamp() {
+        return entryAddedTime;
+    }
+
+    public void setTimeStamp(long timeStamp) {
+        this.entryAddedTime = timeStamp;
+    }
+
 }

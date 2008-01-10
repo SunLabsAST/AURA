@@ -6,6 +6,7 @@ package com.sun.labs.aura.aardvark.util;
 
 import com.sun.labs.aura.aardvark.store.ItemStore;
 import com.sun.labs.aura.aardvark.store.item.Entry;
+import com.sun.labs.aura.aardvark.store.item.Feed;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.syndication.feed.synd.SyndContent;
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -126,25 +127,30 @@ public class FeedUtils {
      * @throws com.sun.labs.aura.aardvark.util.AuraException if a proble occurs while retriveing the feed
      * or accessing the item store.
      */
-    public static List<Entry> processFeed(ItemStore itemStore, URL feedUrl) throws AuraException {
-        SyndFeed feed = readFeed(feedUrl);
-        List<Entry> entries = new ArrayList<Entry>();
-        List entryList = feed.getEntries();
-        for (Object o : entryList) {
-            SyndEntry syndEntry = (SyndEntry) o;
-            Entry entry = convertSyndEntryToFreshEntry(itemStore, syndEntry);
-            if (entry != null) {
-                if (debug) {
-                    System.out.println("   Adding entry " + entry.getKey());
-                }
-                entries.add(entry);
+    public static List<Entry> processFeed(ItemStore itemStore, Feed feed) throws AuraException {
+        try {
+            URL feedUrl = new URL(feed.getKey());
+            SyndFeed syndFeed = readFeed(feedUrl);
+            List<Entry> entries = new ArrayList<Entry>();
+            List entryList = syndFeed.getEntries();
+            for (Object o : entryList) {
+                SyndEntry syndEntry = (SyndEntry) o;
+                Entry entry = convertSyndEntryToFreshEntry(itemStore, feed, syndEntry);
+                if (entry != null) {
+                    if (debug) {
+                        System.out.println("   Adding entry " + entry.getKey());
+                    }
+                    entries.add(entry);
 
-                if (debug) {
-                    System.out.println("   Done entry " + entry.getKey());
+                    if (debug) {
+                        System.out.println("   Done entry " + entry.getKey());
+                    }
                 }
             }
+            return entries;
+        } catch (MalformedURLException ex) {
+            throw new AuraException("bad url " + feed.getKey(), ex);
         }
-        return entries;
     }
 
     /**
@@ -174,7 +180,7 @@ public class FeedUtils {
             } catch (AuraException ex) {
                 Logger.getLogger(FeedUtils.class.getName()).log(Level.INFO, "can't get SyndEntry", ex);
             } catch (MalformedURLException ex) {
-                Logger.getLogger(FeedUtils.class.getName()).log(Level.INFO, "bad url " + link, ex);
+                // silently ignore bad URLs
             }
         }
         return false;
@@ -188,12 +194,13 @@ public class FeedUtils {
      * @return the itemstore entry or null if the syndEntry was a duplicate
      * @throws com.sun.labs.aura.aardvark.util.AuraException if an error occurs while accesing the itemstore
      */
-    public static Entry convertSyndEntryToFreshEntry(ItemStore itemStore, SyndEntry syndEntry) throws AuraException {
+    public static Entry convertSyndEntryToFreshEntry(ItemStore itemStore, Feed feed, SyndEntry syndEntry) throws AuraException {
         String key = getKey(syndEntry);
         if (itemStore.get(key) == null) {
             Entry entry = itemStore.newItem(Entry.class, key);
             entry.setSyndEntry(syndEntry);
             entry.setContent(getContent(syndEntry));
+            entry.setParentFeedID(feed.getID());
             itemStore.put(entry);
             return entry;
         } else {
@@ -297,14 +304,14 @@ public class FeedUtils {
                 elements.add(linkMatcher.group());
             }
         } catch (IOException ex) {
-            Logger.getLogger(FeedUtils.class.getName()).log(Level.SEVERE, null, ex);
+            // silently ignore bad urls
         } finally {
             try {
                 if (is != null) {
                     is.close();
                 }
             } catch (IOException ex) {
-                Logger.getLogger(FeedUtils.class.getName()).log(Level.SEVERE, null, ex);
+                // silently ignore bad urls
             }
         }
         return elements;

@@ -13,6 +13,7 @@ import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.Item;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.props.Configurable;
+import java.util.Date;
 import java.util.Set;
 
 /**
@@ -94,6 +95,31 @@ public interface ItemStore extends Configurable {
      */
     public void put(Item item) throws AuraException;
 
+    /**
+     * Gets all the items of a particular type that have been added since a
+     * particular time.  Returns an iterator over those items that must be
+     * closed when reading is done.
+     * 
+     * @param itemType the type of item to retrieve
+     * @param timeStamp the time from which to search (to the present time
+     * @return an iterator over the added items
+     * @throws com.sun.labs.aura.aardvark.util.AuraException 
+     */
+    public <T extends Item> DBIterator<T> getItemsAddedSince(Class<T> itemType,
+            Date timeStamp) throws AuraException;
+
+    /**
+     * Gets all the attention that has been added to the store since a
+     * particular date.  Returns an iterator over the attention that must be
+     * closed when reading is done.
+     * 
+     * @param timeStamp the time to search back to
+     * @return the Attentions added since that time
+     * @throws com.sun.labs.aura.aardvark.util.AuraException
+     */
+    public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)
+            throws AuraException;
+    
     /**
      * Adds attention to the the ItemStore.  The Attention should contain
      * the User, the Item, the type of attention, and optionally a value

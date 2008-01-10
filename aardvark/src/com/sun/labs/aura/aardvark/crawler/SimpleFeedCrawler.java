@@ -60,7 +60,6 @@ public class SimpleFeedCrawler implements FeedCrawler {
     @ConfigBoolean(defaultValue = false)
     public final static String PROP_TEST_MODE = "testMode";
     private boolean testMode = false;
-
     @ConfigBoolean(defaultValue = true)
     public final static String PROP_AUTO_ENROLL_ASSOCIATED_FEEDS = "autoEnrollAssociatedFeeds";
     private boolean autoEnrollAssociatedFeeds = true;
@@ -130,7 +129,9 @@ public class SimpleFeedCrawler implements FeedCrawler {
                     feed = (Feed) itemStore.get(feedID);
                     processFeed(feed);
                 } catch (AuraException ex) {
-                    logger.warning("Can't pull feed " + feed.getKey());
+                    logger.warning("Can't pull feed " + feedID);
+                } catch (Throwable t) {
+                    logger.severe("Something bad happened " + t);
                 } finally {
                     if (feed != null) {
                         releaseFeed(feed);
@@ -198,7 +199,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
             // for each entry
 
             feed.setLastPullTime(System.currentTimeMillis());
-            entries = FeedUtils.processFeed(itemStore, new URL(feed.getKey()));
+            entries = FeedUtils.processFeed(itemStore, feed);
             for (Attention feedAttention : feed.getAttentionData()) {
                 Attention.Type userAttentionType = getUserAttentionFromFeedAttention(feedAttention.getType());
                 if (userAttentionType != null) {
@@ -210,9 +211,6 @@ public class SimpleFeedCrawler implements FeedCrawler {
                 }
             }
             ok = true;
-        } catch (IOException ex) {
-            logger.severe("I/O error while processing " + feed.getKey() + " " + ex.getMessage());
-            feedErrorCount++;
         } catch (AuraException ex) {
             logger.warning("trouble processing " + feed.getKey() + " " + ex.getMessage());
             feedErrorCount++;

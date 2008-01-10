@@ -131,14 +131,21 @@ public class Aardvark implements Configurable {
     public User enrollUser(String openID) throws AuraException {
         logger.info("Added user " + openID);
         if (getUser(openID) == null) {
-            User user = itemStore.newItem(User.class, openID);
-            itemStore.put(user);
-            return user;
+            User theUser = itemStore.newItem(User.class, openID);
+            itemStore.put(theUser);
+            return theUser;
         } else {
             throw new AuraException("attempting to enroll duplicate user " + openID);
         }
     }
 
+    /**
+     * Adds a feed of a particular type for a user
+     * @param user the user
+     * @param feedURL the url of the feed to add
+     * @param type the type of attention the user pays to the URL
+     * @throws com.sun.labs.aura.aardvark.util.AuraException
+     */
     public void addUserFeed(User user, URL feedURL, Attention.Type type) throws AuraException {
         Feed feed = feedCrawler.createFeed(feedURL);
         if (feed != null) {
@@ -149,10 +156,20 @@ public class Aardvark implements Configurable {
         }
     }
 
+    /**
+     * Adds a new fed to the system
+     * @param feedURL the feed to add
+     * @throws com.sun.labs.aura.aardvark.util.AuraException
+     */
     public void addFeed(URL feedURL) throws AuraException {
         feedCrawler.createFeed(feedURL);
     }
 
+    /**
+     * Adds a new feed to the system
+     * @param feedURL the feed to add
+     * @throws com.sun.labs.aura.aardvark.util.AuraException
+     */
     public void addFeed(String feedURL) throws AuraException {
         try {
             feedCrawler.createFeed(new URL(feedURL));
@@ -237,6 +254,8 @@ public class Aardvark implements Configurable {
             }
         } catch (IOException ex) {
             logger.warning("Problems loading opml " + name);
+        } finally {
+            logger.info("Finished enrolling local opml" + name);
         }
     }
 
