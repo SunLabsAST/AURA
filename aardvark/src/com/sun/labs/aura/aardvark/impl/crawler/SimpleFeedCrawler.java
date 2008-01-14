@@ -20,6 +20,7 @@ import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
+import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.IOException;
@@ -41,7 +42,7 @@ import java.util.logging.Logger;
  *
  * @author plamere
  */
-public class SimpleFeedCrawler implements FeedCrawler {
+public class SimpleFeedCrawler implements FeedCrawler, Configurable {
 
     private DelayQueue<DelayedFeed> feedQueue = new DelayQueue<DelayedFeed>();
 
@@ -93,7 +94,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
 
     private ExecutorService executorService;
 
-    public Feed createFeed(URL feedUrl) {
+    public Feed createFeed(URL feedUrl) throws RemoteException {
         Feed feed = null;
         try {
             Item item = itemStore.get(feedUrl.toExternalForm());
@@ -163,7 +164,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
         }
     }
 
-    public void crawlAllFeeds() throws AuraException {
+    public void crawlAllFeeds() throws AuraException, RemoteException {
         if(crawler == null) {
             try {
                 Set<Feed> feeds = itemStore.getAll(Feed.class);
@@ -214,7 +215,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
         }
     }
 
-    public void crawlFeed(Feed feed) throws AuraException {
+    public void crawlFeed(Feed feed) throws AuraException, RemoteException {
         processFeed(feed);
     }
 
@@ -336,7 +337,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
         hostSet.add(url.getHost());
     }
 
-    public synchronized void start() {
+    public synchronized void start() throws RemoteException {
         if(!testMode && crawler == null) {
 
             executorService = Executors.newFixedThreadPool(crawlingThreads);
@@ -356,7 +357,7 @@ public class SimpleFeedCrawler implements FeedCrawler {
         }
     }
 
-    public synchronized void stop() {
+    public synchronized void stop() throws RemoteException {
         if(crawler != null) {
             try {
                 Thread t = crawler;

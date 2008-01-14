@@ -114,7 +114,11 @@ public class AardvarkImpl implements Configurable, Aardvark {
      */
     public void startup() {
         logger.info("started");
+        try {
         feedCrawler.start();
+        } catch(RemoteException rx) {
+            logger.log(Level.SEVERE, "Error starting feed crawler", rx);
+        }
 
         if(autoEnrollTestFeeds) {
             autoEnroll();
@@ -125,8 +129,8 @@ public class AardvarkImpl implements Configurable, Aardvark {
      * Stops all processing
      */
     public void shutdown() throws AuraException {
-        feedCrawler.stop();
         try {
+            feedCrawler.stop();
             recommenderManager.shutdown();
             itemStore.close();
         } catch(RemoteException rx) {
@@ -215,7 +219,7 @@ public class AardvarkImpl implements Configurable, Aardvark {
      * @param feedURL the feed to add
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    public void addFeed(String feedURL) throws AuraException {
+    public void addFeed(String feedURL) throws AuraException, RemoteException {
         try {
             feedCrawler.createFeed(new URL(feedURL));
         } catch(MalformedURLException ex) {
