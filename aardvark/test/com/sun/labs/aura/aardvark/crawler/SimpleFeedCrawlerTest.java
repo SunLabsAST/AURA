@@ -11,6 +11,7 @@ import com.sun.labs.util.LabsLogFormatter;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.io.IOException;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
@@ -36,7 +37,7 @@ public class SimpleFeedCrawlerTest {
     public static void setUpClass() throws Exception {
         // Use the labs format logging.
         Logger rl = Logger.getLogger("");
-        for(Handler h : rl.getHandlers()) {
+        for (Handler h : rl.getHandlers()) {
             h.setFormatter(new LabsLogFormatter());
         }
     }
@@ -53,8 +54,12 @@ public class SimpleFeedCrawlerTest {
     @After
     public void tearDown() {
         if (crawler != null) {
-            crawler.stop();
-            crawler = null;
+            try {
+                crawler.stop();
+                crawler = null;
+            } catch (RemoteException rx) {
+
+            }
         }
     }
 
@@ -93,7 +98,7 @@ public class SimpleFeedCrawlerTest {
             fail("Problems loading opml " + name + " " + ex);
         }
     }
-    
+
     private void prepareFreshCrawler() {
         try {
             ConfigurationManager cm = new ConfigurationManager();
@@ -104,5 +109,4 @@ public class SimpleFeedCrawlerTest {
         } catch (IOException ioe) {
         }
     }
-    
 }
