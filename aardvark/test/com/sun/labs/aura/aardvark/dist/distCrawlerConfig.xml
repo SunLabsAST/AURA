@@ -19,7 +19,7 @@
     
     <component name="itemStore" type="com.sun.labs.aura.aardvark.store.ItemStore"/>
     
-    <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.SimpleFeedCrawler">
+    <component name="feedCrawler" type="com.sun.labs.aura.aardvark.impl.crawler.SimpleFeedCrawler">
         <property name="itemStore" value="itemStore"/>
         <property name="minimumFeedDelayInMinutes" value="0"/>
         <property name="testMode" value="true"/>

@@ -8,6 +8,7 @@
  */
 package com.sun.labs.aura.aardvark;
 
+import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
@@ -17,6 +18,7 @@ import com.sun.syndication.feed.synd.SyndFeed;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
 import org.junit.After;
@@ -31,7 +33,7 @@ import static org.junit.Assert.*;
  */
 public class AardvarkSearchTest {
 
-    private Aardvark aardvark = null;
+    private AardvarkImpl aardvark = null;
     private FeedCrawler crawler = null;
 
     public AardvarkSearchTest() {
@@ -171,7 +173,7 @@ public class AardvarkSearchTest {
 
     }
 
-    private void enroll(Aardvark aardvark, String feedBaseName) throws AuraException {
+    private void enroll(Aardvark aardvark, String feedBaseName) throws AuraException, RemoteException {
         URL feedURL = this.getClass().getResource(feedBaseName);
         aardvark.enrollUser(feedBaseName, feedURL.toString());
     }
@@ -202,7 +204,7 @@ public class AardvarkSearchTest {
                     assertTrue("can't delete " + indexDir, indexDir.delete());
                 }
             }
-            aardvark = (Aardvark) cm.lookup("aardvark");
+            aardvark = (AardvarkImpl) cm.lookup("aardvark");
             aardvark.startup();
             crawler = (FeedCrawler) cm.lookup("feedCrawler");
         } catch (IOException ioe) {

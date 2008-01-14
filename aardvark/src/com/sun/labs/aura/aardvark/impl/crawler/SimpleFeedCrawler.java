@@ -6,8 +6,9 @@
  *  redistribution of this file, and for a DISCLAIMER OF ALL
  *  WARRANTIES. 
  */
-package com.sun.labs.aura.aardvark.crawler;
+package com.sun.labs.aura.aardvark.impl.crawler;
 
+import com.sun.labs.aura.aardvark.crawler.*;
 import com.sun.labs.aura.aardvark.util.FeedUtils;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.ItemStore;

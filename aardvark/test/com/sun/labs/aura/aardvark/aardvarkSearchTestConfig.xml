@@ -11,7 +11,7 @@
     <property name="auraHome" value="/tmp/aura"/>
     <property name="indexDir" value="/tmp/aardvarkSearchTestEntryContent.idx"/>
     
-    <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark">
+    <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl">
         <property name="itemStore" value="itemStore"/>
         <property name="feedCrawler" value="feedCrawler"/>
         <property name="recommenderManager" value="searchRecommenderManager"/>
@@ -23,7 +23,7 @@
     </component>
     
     
-    <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.SimpleFeedCrawler">
+    <component name="feedCrawler" type="com.sun.labs.aura.aardvark.impl.crawler.SimpleFeedCrawler">
         <property name="itemStore" value="itemStore"/>
         <property name="minimumFeedDelayInMinutes" value="1"/>
         <property name="validateOnAdd" value="false"/>

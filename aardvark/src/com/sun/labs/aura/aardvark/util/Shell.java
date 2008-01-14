@@ -8,7 +8,7 @@
  */
 package com.sun.labs.aura.aardvark.util;
 
-import com.sun.labs.aura.aardvark.Aardvark;
+import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.store.Attention;
@@ -42,7 +42,7 @@ public class Shell {
     private CommandInterpreter shell;
     private ItemStore itemStore;
     private FeedCrawler feedCrawler;
-    private Aardvark aardvark;
+    private AardvarkImpl aardvark;
 
     public Shell() throws IOException {
         initComponents();
@@ -436,7 +436,7 @@ public class Shell {
         dumpAttentionData(itemStore.getAttentionData(user));
     }
 
-    private void recommend(User user) throws AuraException {
+    private void recommend(User user) throws AuraException, RemoteException {
         SyndFeed feed = aardvark.getRecommendedFeed(user);
         for (Object syndEntryObject : feed.getEntries()) {
             SyndEntry syndEntry = (SyndEntry) syndEntryObject;
@@ -487,9 +487,9 @@ public class Shell {
 
     public void initComponents() throws IOException {
         ConfigurationManager cm = new ConfigurationManager();
-        URL configFile = Aardvark.class.getResource("aardvarkConfig.xml");
+        URL configFile = AardvarkImpl.class.getResource("aardvarkConfig.xml");
         cm.addProperties(configFile);
-        aardvark = (Aardvark) cm.lookup("aardvark");
+        aardvark = (AardvarkImpl) cm.lookup("aardvark");
         itemStore = (ItemStore) cm.lookup("itemStore");
         feedCrawler = (FeedCrawler) cm.lookup("feedCrawler");
     }

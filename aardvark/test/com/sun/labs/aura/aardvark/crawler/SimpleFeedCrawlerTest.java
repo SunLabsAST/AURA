@@ -5,7 +5,7 @@
 package com.sun.labs.aura.aardvark.crawler;
 
 import com.sun.labs.aura.aardvark.util.OPMLProcessor;
-import com.sun.labs.aura.aardvark.Aardvark;
+import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.LabsLogFormatter;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -84,7 +84,7 @@ public class SimpleFeedCrawlerTest {
         try {
             System.out.println("Enrolling local opml " + name);
             OPMLProcessor op = new OPMLProcessor();
-            URL opmlFile = Aardvark.class.getResource(name);
+            URL opmlFile = AardvarkImpl.class.getResource(name);
             List<URL> urls = op.getFeedURLs(opmlFile);
             for (URL url : urls) {
                 crawler.createFeed(url);

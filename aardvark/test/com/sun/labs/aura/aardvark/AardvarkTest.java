@@ -8,6 +8,7 @@
  */
 package com.sun.labs.aura.aardvark;
 
+import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
@@ -31,7 +32,7 @@ import static org.junit.Assert.*;
  */
 public class AardvarkTest {
 
-    Aardvark aardvark = null;
+    AardvarkImpl aardvark = null;
     FeedCrawler crawler = null;
 
     public AardvarkTest() {
@@ -149,7 +150,7 @@ public class AardvarkTest {
             ConfigurationManager cm = new ConfigurationManager();
             URL configFile = this.getClass().getResource("aardvarkTestConfig.xml");
             cm.addProperties(configFile);
-            aardvark = (Aardvark) cm.lookup("aardvark");
+            aardvark = (AardvarkImpl) cm.lookup("aardvark");
             aardvark.startup();
             crawler = (FeedCrawler) cm.lookup("feedCrawler");
         } catch (IOException ioe) {

@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.  Which I did, which is why this text is here.
  */
-package com.sun.labs.aura.aardvark;
+package com.sun.labs.aura.aardvark.impl;
 
+import com.sun.labs.aura.aardvark.*;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.util.FeedUtils;
 import com.sun.labs.aura.aardvark.util.OPMLProcessor;
@@ -37,7 +38,7 @@ import java.util.logging.Logger;
 /**
  * A Blog Recommender
  */
-public class Aardvark implements Configurable {
+public class AardvarkImpl implements Configurable, Aardvark {
 
     private final static String VERSION = "aardvark version 0.20";
 
@@ -86,12 +87,12 @@ public class Aardvark implements Configurable {
      * @return the default configuraiton of aardvark
      * @throws AuraException if an exception occurs while configuring aardvark
      */
-    public static Aardvark getDefault() throws AuraException {
+    public static AardvarkImpl getDefault() throws AuraException {
         try {
             ConfigurationManager cm = new ConfigurationManager();
-            URL configFile = Aardvark.class.getResource("aardvarkConfig.xml");
+            URL configFile = AardvarkImpl.class.getResource("aardvarkConfig.xml");
             cm.addProperties(configFile);
-            return (Aardvark) cm.lookup("aardvark");
+            return (AardvarkImpl) cm.lookup("aardvark");
         } catch(IOException ioe) {
             throw new AuraException("Problem loading config", ioe);
         }
@@ -139,7 +140,7 @@ public class Aardvark implements Configurable {
      * @param openID the openID for the user
      * @return the user or null if the user doesn't exist
      */
-    public User getUser(String openID) throws AuraException {
+    public User getUser(String openID) throws AuraException, RemoteException {
         try {
             return (User) itemStore.get(openID);
         } catch(RemoteException rx) {
@@ -147,7 +148,7 @@ public class Aardvark implements Configurable {
         }
     }
 
-    public List<Attention> getAttentionData(User user) throws AuraException {
+    public List<Attention> getAttentionData(User user) throws AuraException, RemoteException {
         try {
             return itemStore.getAttentionData(user);
         } catch(RemoteException rx) {
@@ -161,7 +162,7 @@ public class Aardvark implements Configurable {
      * @return the user
      * @throws AuraException if the user is already enrolled or a problem occurs while enrolling the user
      */
-    public User enrollUser(String openID) throws AuraException {
+    public User enrollUser(String openID) throws AuraException, RemoteException {
         logger.info("Added user " + openID);
         if(getUser(openID) == null) {
             try {
@@ -184,7 +185,7 @@ public class Aardvark implements Configurable {
      * @param type the type of attention the user pays to the URL
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    public void addUserFeed(User user, URL feedURL, Attention.Type type) throws AuraException {
+    public void addUserFeed(User user, URL feedURL, Attention.Type type) throws AuraException, RemoteException {
         Feed feed = feedCrawler.createFeed(feedURL);
         if(feed != null) {
             SimpleAttention userAttention =
@@ -205,7 +206,7 @@ public class Aardvark implements Configurable {
      * @param feedURL the feed to add
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    public void addFeed(URL feedURL) throws AuraException {
+    public void addFeed(URL feedURL) throws AuraException, RemoteException {
         feedCrawler.createFeed(feedURL);
     }
 
@@ -229,7 +230,7 @@ public class Aardvark implements Configurable {
      * @return the user
      * @throws AuraException
      */
-    public User enrollUser(String openID, String feed) throws AuraException {
+    public User enrollUser(String openID, String feed) throws AuraException, RemoteException {
         try {
             URL feedURL = new URL(feed);
             User user = enrollUser(openID);
@@ -245,7 +246,7 @@ public class Aardvark implements Configurable {
      * @param user the user
      * @return the feed
      */
-    public SyndFeed getRecommendedFeed(User user) throws AuraException {
+    public SyndFeed getRecommendedFeed(User user) throws AuraException, RemoteException {
 
         // freshen the user:
         User freshUser = getUser(user.getKey());
@@ -262,7 +263,7 @@ public class Aardvark implements Configurable {
      * Returns interesting stats about aardvark
      * @return the stats
      */
-    public Stats getStats() throws AuraException {
+    public Stats getStats() throws AuraException, RemoteException {
         try {
             ItemStoreStats itemStoreStats = itemStore.getStats();
             int feedPullCount = feedCrawler.getFeedPullCount();
@@ -297,7 +298,7 @@ public class Aardvark implements Configurable {
         try {
             logger.info("Enrolling local opml " + name);
             OPMLProcessor op = new OPMLProcessor();
-            URL opmlFile = Aardvark.class.getResource(name);
+            URL opmlFile = AardvarkImpl.class.getResource(name);
             List<URL> urls = op.getFeedURLs(opmlFile);
             for(URL url : urls) {
                 try {
@@ -340,7 +341,7 @@ public class Aardvark implements Configurable {
     public static void main(String[] args) throws Exception {
         // enroll test
 
-        Aardvark aardvark = getDefault();
+        AardvarkImpl aardvark = getDefault();
 
         aardvark.startup();
         for(int i = 0; i < 20 * 60; i++) {

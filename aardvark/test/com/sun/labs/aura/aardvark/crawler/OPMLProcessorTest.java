@@ -10,7 +10,7 @@
 package com.sun.labs.aura.aardvark.crawler;
 
 import com.sun.labs.aura.aardvark.util.OPMLProcessor;
-import com.sun.labs.aura.aardvark.Aardvark;
+import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
@@ -40,7 +40,7 @@ public class OPMLProcessorTest {
     
     @Test public void testLargeOpml() throws Exception {
         OPMLProcessor op = new OPMLProcessor();
-        URL opmlFile = Aardvark.class.getResource("news_blogs.opml");
+        URL opmlFile = AardvarkImpl.class.getResource("news_blogs.opml");
         List<URL> urls = op.getFeedURLs(opmlFile);
         assertNotNull("should be url list", urls);
         assertTrue("should be 31373, was" + urls.size(), urls.size() == 31373);

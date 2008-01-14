@@ -4,8 +4,8 @@
  */
 package com.sun.labs.aura.aardvark.dist;
 
-import com.sun.labs.aura.aardvark.dist.*;
-import com.sun.labs.aura.aardvark.*;
+import com.sun.labs.aura.aardvark.Aardvark;
+import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.recommender.RecommenderManager;
 import com.sun.labs.aura.aardvark.store.ItemStore;
@@ -53,7 +53,7 @@ public class DistributionTest {
         }
     }
 
-    @Test
+//    @Test
     public void registerItemStore() throws Exception {
         URL cu = getClass().getResource("distItemStoreConfig.xml");
         ConfigurationManager cm = new ConfigurationManager(cu);

@@ -15,7 +15,7 @@
         <propertylist name="groupList">
             <item>Aura</item>
         </propertylist>
-        <property name="csDirs" value="/big/Projects/Aura/aura-jini/aardvark/build/classes:/big/Projects/LabsUtil/build/classes"/>
+        <property name="csDirs" value="/export/home/stgreen/Projects/Aura/aura-jini/aardvark/build/classes:/export/home/stgreen/Projects/LabsUtil/build/classes"/>
     </component>
     
     <!-- An item store that can be sent to a service registrar for use by others. -->

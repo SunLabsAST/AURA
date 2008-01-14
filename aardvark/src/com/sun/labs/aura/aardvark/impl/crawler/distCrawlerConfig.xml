@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : aardvarkConfig.xml
+    Created on : November 2, 2007, 4:25 PM
+    Description:
+        A configuration for aardvark that assumes that the various pieces needed
+        for Aardvark are running on different machines and available via a Jini
+        service registrar.  Preconditions for using this configuration:
+        
+        1. The jar files needed by aardvark are available in /aura/lib
+        2. A Jini service registrar is running somewhere that a multicast 
+        discovery can find it.
+        3. The item store and the recommender manager have been registered in
+        the service registry.
+        4. The JVM that is used to start Aardvark has the correct 
+        java.rmi.codebaseproperty,  i.e., it points to the same place that the
+        class server in the component registry points.
+-->
+
+<config>
+
+    <!-- Where Aura lives -->
+    <property name="auraHome" value="/aura"/>
+    
+    <!-- A component registry that will serve the component classes -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>Aura</item>
+        </propertylist>
+        <property name="csDirs" value="${auraHome}/lib"/>
+    </component>
+    
+    <component name="feedCrawler" type="com.sun.labs.aura.aardvark.impl.crawler.SimpleFeedCrawler" export="true">
+        <property name="itemStore" value="itemStore"/>
+        <property name="minimumFeedDelayInMinutes" value="60"/>
+        <property name="validateOnAdd" value="false"/>
+        <property name="crawlingThreads" value="10"/>
+    </component>
+    
+    <component name="itemStore" type="com.sun.labs.aura.aardvark.store.ItemStore"/>
+    
+</config>

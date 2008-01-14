@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : distSearchRecommenderConfig.xml
+    Created on : November 2, 2007, 4:25 PM
+    Description:
+        A configuration for a search based recommender that can be registered
+        with a Jini service registrar and used by other components.
+-->
+
+<config>
+
+    <!-- Where Aura lives -->
+    <property name="auraHome" value="/aura"/>
+    
+    <property name="indexDir" value="${auraHome}/entryContent.idx"/>
+    
+    <!-- A component registry that will serve the component classes -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>Aura</item>
+        </propertylist>
+        <property name="csDirs" value="${auraHome}/lib"/>
+    </component>
+    
+    <component name="searchRecommenderManager" type="com.sun.labs.aura.aardvark.impl.recommender.SearchRecommenderManager" export="true">
+        <property name="entryEngine" value="entryContentEngine"/>
+    </component>
+    
+    <component name="entryContentEngine" type="com.sun.labs.aura.aardvark.impl.recommender.EntryContentEngine">
+        <property name="itemStore" value="itemStore"/>
+        <property name="entryBatchSize" value="100"/>
+        <property name="indexAtStartup" value="false"/>
+        <property name="indexDir" value="${indexDir}"/>
+        <property name="engineLogLevel" value="1"/>
+    </component>
+    
+</config>
