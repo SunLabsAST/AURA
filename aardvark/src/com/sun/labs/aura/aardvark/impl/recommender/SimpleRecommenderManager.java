@@ -19,13 +19,13 @@ import java.util.logging.Logger;
 /**
  * A recommender manager that returns the starred items for a user.
  */
-public class SimpleRecommendationManager implements RecommenderManager {
+public class SimpleRecommenderManager implements RecommenderManager {
 
     private ItemStore itemStore;
 
     private Logger log;
 
-    public List<Entry> getRecommendations(User user) {
+    public List<Entry> getRecommendations(User user) throws RemoteException {
         List<Entry> ret = new ArrayList<Entry>();
         try {
             List<Attention> attends = itemStore.getAttentionData(user);
@@ -38,8 +38,6 @@ public class SimpleRecommendationManager implements RecommenderManager {
             }
         } catch(AuraException ex) {
             log.log(Level.SEVERE, "Error getting recommendations", ex);
-        } catch(RemoteException rx) {
-            log.log(Level.SEVERE, "Error getting recommendations", rx);
         } finally {
             return ret;
         }
@@ -50,7 +48,7 @@ public class SimpleRecommendationManager implements RecommenderManager {
         log = ps.getLogger();
     }
 
-    public void shutdown() {
+    public void shutdown() throws RemoteException {
     }
     @ConfigComponent(type = com.sun.labs.aura.aardvark.store.ItemStore.class)
     public static final String PROP_ITEM_STORE = "itemStore";

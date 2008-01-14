@@ -28,8 +28,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -123,11 +125,11 @@ public class Aardvark implements Configurable {
      */
     public void shutdown() throws AuraException {
         feedCrawler.stop();
-        recommenderManager.shutdown();
         try {
-        itemStore.close();
+            recommenderManager.shutdown();
+            itemStore.close();
         } catch(RemoteException rx) {
-            
+
         }
         logger.info("shutdown");
     }
@@ -144,7 +146,7 @@ public class Aardvark implements Configurable {
             throw new AuraException("Error communicating with item store", rx);
         }
     }
-    
+
     public List<Attention> getAttentionData(User user) throws AuraException {
         try {
             return itemStore.getAttentionData(user);
@@ -152,6 +154,7 @@ public class Aardvark implements Configurable {
             throw new AuraException("Error communicating with item store", rx);
         }
     }
+
     /**
      * Enrolls a user in the recommender
      * @param openID the openID of the user
@@ -280,9 +283,14 @@ public class Aardvark implements Configurable {
      * @return an array of recommended entries
      */
     private List<Entry> getRecommendedEntries(User user) {
+        try {
         List<Entry> recommendations =
                 recommenderManager.getRecommendations(user);
         return recommendations;
+        } catch (RemoteException rx) {
+            logger.log(Level.SEVERE, "Error getting recommendations", rx);
+            return Collections.emptyList();
+        }
     }
 
     private void addLocalOpml(String name) {
