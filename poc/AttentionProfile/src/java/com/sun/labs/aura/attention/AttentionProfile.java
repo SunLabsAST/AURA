@@ -8,11 +8,12 @@
  */
 package com.sun.labs.aura.attention;
 
+import com.sun.labs.search.music.minidatabase.MusicDatabase;
 import com.sun.labs.search.music.web.apml.APML;
 import com.sun.labs.search.music.web.apml.DeliciousProfileRetriever;
-import com.sun.labs.search.music.web.apml.LastFMProfileRetriever;
+import com.sun.labs.search.music.web.apml.MiniDBLastFMProfileRetriever;
 import com.sun.labs.search.music.web.apml.PandoraProfileRetriever;
-import com.sun.labs.search.music.web.apml.ProfileRetriever;
+import com.sun.labs.search.music.web.apml.APMLRetriever;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -33,7 +34,8 @@ public class AttentionProfile extends HttpServlet {
 
     private int pagesServed;
     private int errors;
-    private LastFMProfileRetriever lcr;
+    //private LastFMProfileRetriever lcr;
+    private MiniDBLastFMProfileRetriever lcr;
     private DeliciousProfileRetriever dcr;
     private PandoraProfileRetriever pcr;
 
@@ -41,18 +43,22 @@ public class AttentionProfile extends HttpServlet {
     private long sumTime = 0L;
     private long minTime = Long.MAX_VALUE;
     private long maxTime = 0;
-    private String VERSION = "TasteBroker Version 0.3";
+    private String VERSION = "TasteBroker Version 0.7";
     private Date startupTime = new Date();
+    private MusicDatabase mdb;
 
     @Override
     public void init(ServletConfig sc) throws ServletException {
         try {
-            lcr = new LastFMProfileRetriever();
-            lcr.startCrawler();
+            String path = sc.getServletContext().getInitParameter("dbPath");
+            mdb = new MusicDatabase(path);
+
+            lcr = new MiniDBLastFMProfileRetriever(mdb);
+            //lcr = new LastFMProfileRetriever();
             dcr = new DeliciousProfileRetriever();
             pcr = new PandoraProfileRetriever(lcr);
         } catch (IOException ex) {
-            throw new ServletException("Can't init the concept retriever");
+            throw new ServletException("Can't initialize, " + ex.getMessage(), ex);
         }
     }
 
@@ -95,8 +101,9 @@ public class AttentionProfile extends HttpServlet {
      * @param request servlet request
      * @param response servlet response
      */
-    protected void processAPMLRequest(ProfileRetriever cr, String name, HttpServletResponse response)
+    protected void processAPMLRequest(APMLRetriever cr, String name, HttpServletResponse response)
             throws ServletException, IOException {
+        response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
 
@@ -114,7 +121,6 @@ public class AttentionProfile extends HttpServlet {
                 maxTime = deltaTime;
             }
 
-            response.setContentType("text/xml;charset=UTF-8");
             out.println(apml.toString());
             pagesServed++;
         } catch (IOException ex) {
@@ -128,12 +134,12 @@ public class AttentionProfile extends HttpServlet {
 
     protected void showStats(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        PrintWriter out = response.getWriter();
-
         response.setContentType("text/html;charset=UTF-8");
+        PrintWriter out = response.getWriter();
 
         out.println("<head>");
         out.println("<title> TasteBroker Statistics</title>");
+        out.println("<link rel=\"stylesheet\" href=\"../styles.css\">");
         out.println("</head>");
         out.println("<body>");
 
