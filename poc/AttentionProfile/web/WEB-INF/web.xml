@@ -11,7 +11,7 @@
     </context-param>
     <context-param>
         <param-name>dbPath</param-name>
-        <param-value>/lab/mir/db/mdbtest</param-value>
+        <param-value>/aura/mdb</param-value>
     </context-param>
     <servlet>
         <servlet-name>AttentionProfile</servlet-name>

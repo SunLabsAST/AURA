@@ -215,6 +215,9 @@
                     <li><a href='RecommenderService?apmlURL=http://aura.darkstar.sunlabs.com/AttentionProfile/apml/last.fm/lamere&alg=exp2&type=artist&profile=weekly-music&num=100'> 
                         Paul's recommendations</a> using the explicit-2 recommender, the weekly-music profile, with 20 artists output
                     </li>
+                    <li><a href='RecommenderService?apmlURL=http://aura.darkstar.sunlabs.com/AttentionProfile/lamere.lastfm.apml&alg=imp1'> 
+                        Paul's recommendations</a> using a local copy of Paul's APML profile.
+                    </li>
                     
                 </ul>
                     <p>

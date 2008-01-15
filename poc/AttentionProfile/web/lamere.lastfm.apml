@@ -1,0 +1,257 @@
+<?xml version="1.0"?>
+<APML xmlns="http://www.apml.org/apml-0.6" version="0.6" >
+<Head>
+   <Title>Taste for last.fm user lamere</Title>
+   <Generator>Created by TasteBroker.org </Generator>
+   <DateCreated>2008-01-15T03:31:31</DateCreated>
+</Head>
+<Body defaultprofile="overall-music">
+<Profile name="overall-music">
+  <ImplicitData>
+            <Concepts>
+                <Concept key="rock" value="1.0" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="alternative" value="0.73543173" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="indie" value="0.6654509" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="seen live" value="0.36162165" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="alternative rock" value="0.35576928" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="indie rock" value="0.3038665" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="female vocalists" value="0.25726274" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="electronic" value="0.17613171" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="singer-songwriter" value="0.17578542" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="emo" value="0.16630508" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="pop" value="0.16553329" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="metal" value="0.13901567" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="classic rock" value="0.13349563" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="experimental" value="0.13213114" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="punk" value="0.114259884" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="indie pop" value="0.09790597" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="hard rock" value="0.08939048" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="electronica" value="0.08401765" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="Progressive rock" value="0.08012875" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="acoustic" value="0.07435773" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="folk" value="0.072803706" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="Gothic" value="0.07079308" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="punk rock" value="0.06792457" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="britpop" value="0.064429596" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="Gothic Rock" value="0.062278554" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="british" value="0.055028822" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="trip-hop" value="0.05396243" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="Gothic Metal" value="0.052129626" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="favorites" value="0.052094605" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="Alt-country" value="0.046999495" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="pop punk" value="0.040199365" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="icelandic" value="0.039441142" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="Grunge" value="0.038117047" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="Canadian" value="0.03748265" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="piano" value="0.036647696" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="90s" value="0.036481842" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="alternative metal" value="0.03196958" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+                <Concept key="noise rock" value="0.030805837" from="tastebroker.org" updated="2008-01-15T03:31:29" />
+            </Concepts>
+  </ImplicitData>
+  <ExplicitData>
+            <Concepts>
+                <Concept key="Breaking Benjamin" value="1.0" />
+                <Concept key="Evanescence" value="0.60820895" />
+                <Concept key="Deerhoof" value="0.4552239" />
+                <Concept key="The Arcade Fire" value="0.3955224" />
+                <Concept key="Radiohead" value="0.38432837" />
+                <Concept key="Björk" value="0.35820895" />
+                <Concept key="Weezer" value="0.34701493" />
+                <Concept key="The Postal Service" value="0.32462686" />
+                <Concept key="The Beatles" value="0.31343284" />
+                <Concept key="Wilco" value="0.2761194" />
+                <Concept key="Dashboard Confessional" value="0.21268657" />
+                <Concept key="Rodrigo y Gabriela" value="0.20522387" />
+                <Concept key="Fiona Apple" value="0.20149253" />
+                <Concept key="Arcade Fire" value="0.16791044" />
+                <Concept key="Coldplay" value="0.15671642" />
+                <Concept key="The Rolling Stones" value="0.15671642" />
+                <Concept key="Modest Mouse" value="0.15298508" />
+                <Concept key="Death Cab for Cutie" value="0.15298508" />
+                <Concept key="Green Day" value="0.14925373" />
+                <Concept key="Andrew Lloyd Webber" value="0.14179105" />
+                <Concept key="Eve 6" value="0.14179105" />
+                <Concept key="Cat Power" value="0.14179105" />
+                <Concept key="Panic! At the Disco" value="0.14179105" />
+                <Concept key="Clap Your Hands Say Yeah" value="0.1380597" />
+                <Concept key="Franz Ferdinand" value="0.13432837" />
+                <Concept key="Tom Waits" value="0.12686567" />
+                <Concept key="Barenaked Ladies" value="0.11567164" />
+                <Concept key="Elliott Smith" value="0.1119403" />
+                <Concept key="The Shins" value="0.108208954" />
+                <Concept key="Jeff Buckley" value="0.108208954" />
+                <Concept key="Blood, Sweat &amp; Tears" value="0.108208954" />
+                <Concept key="Alanis Morissette" value="0.108208954" />
+                <Concept key="The Killers" value="0.104477614" />
+                <Concept key="The Alan Parsons Project" value="0.104477614" />
+                <Concept key="The Smashing Pumpkins" value="0.10074627" />
+                <Concept key="Regina Spektor" value="0.10074627" />
+                <Concept key="Jimmy Eat World" value="0.10074627" />
+                <Concept key="Gorillaz" value="0.10074627" />
+                <Concept key="Pearl Jam" value="0.09701493" />
+                <Concept key="Porcupine Tree" value="0.09701493" />
+                <Concept key="Tori Amos" value="0.09328358" />
+                <Concept key="Muse" value="0.09328358" />
+                <Concept key="Yes" value="0.09328358" />
+                <Concept key="Garbage" value="0.09328358" />
+                <Concept key="Lacuna Coil" value="0.09328358" />
+                <Concept key="Blink-182" value="0.08955224" />
+                <Concept key="Shinedown" value="0.0858209" />
+                <Concept key="Everything but the Girl" value="0.0858209" />
+                <Concept key="ABBA" value="0.0858209" />
+                <Concept key="Red Hot Chili Peppers" value="0.08208955" />
+            </Concepts>
+  </ExplicitData>
+</Profile>
+<Profile name="weekly-music">
+  <ImplicitData>
+            <Concepts>
+                <Concept key="indie" value="1.0" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="female vocalists" value="0.96371764" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="electronic" value="0.8031551" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="alternative" value="0.62521917" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="singer-songwriter" value="0.6192131" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="folk" value="0.54921424" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="seen live" value="0.5468196" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="trip-hop" value="0.49578017" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="electronica" value="0.4134595" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="rock" value="0.27262908" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="pop" value="0.22636253" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="indie rock" value="0.19025102" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="chillout" value="0.18468204" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="icelandic" value="0.15518288" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="indie pop" value="0.14858882" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="post-rock" value="0.11675646" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="experimental" value="0.115800746" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="downtempo" value="0.11574842" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="female" value="0.11563635" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="New Weird America" value="0.10751101" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="acoustic" value="0.106236994" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="freak folk" value="0.09388861" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="ambient" value="0.092397556" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="dance" value="0.08618728" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="swedish" value="0.08221172" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="alternative rock" value="0.07923329" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="anti-folk" value="0.077894844" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="female vocalist" value="0.072933815" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="piano" value="0.06936599" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="indie folk" value="0.06699067" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="new wave" value="0.06520004" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="synthpop" value="0.058446113" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="80s" value="0.056461133" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="Mellow" value="0.055333383" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="electro" value="0.054932334" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="favorites" value="0.048026357" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="jazz" value="0.045030087" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="Lo-Fi" value="0.04413928" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="chill" value="0.042654637" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="british" value="0.039979093" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="cello rock" value="0.036729332" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="Alt-country" value="0.036002215" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="beautiful" value="0.03527752" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="instrumental" value="0.034972727" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="female vocals" value="0.03169798" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+                <Concept key="harp" value="0.030221732" from="tastebroker.org" updated="2008-01-15T03:31:31" />
+            </Concepts>
+  </ImplicitData>
+  <ExplicitData>
+            <Concepts>
+                <Concept key="Björk" value="1.0" />
+                <Concept key="Joanna Newsom" value="0.75" />
+                <Concept key="Goldfrapp" value="0.6875" />
+                <Concept key="Regina Spektor" value="0.5" />
+                <Concept key="Ani DiFranco" value="0.375" />
+                <Concept key="Mono" value="0.3125" />
+                <Concept key="Anais Mitchell" value="0.3125" />
+                <Concept key="Anna Ternheim" value="0.3125" />
+                <Concept key="Nina Nastasia" value="0.25" />
+                <Concept key="Sneaker Pimps" value="0.25" />
+                <Concept key="Portishead" value="0.25" />
+                <Concept key="Baxter" value="0.25" />
+                <Concept key="The Finches" value="0.25" />
+                <Concept key="Imogen Heap" value="0.25" />
+                <Concept key="Radiohead" value="0.1875" />
+                <Concept key="Kate Havnevik" value="0.1875" />
+                <Concept key="Astaire" value="0.1875" />
+                <Concept key="Hooverphonic" value="0.1875" />
+                <Concept key="The Knife" value="0.1875" />
+                <Concept key="Diane Cluck" value="0.1875" />
+                <Concept key="The Postal Service" value="0.1875" />
+                <Concept key="Elliott Smith" value="0.1875" />
+                <Concept key="Jana Hunter" value="0.1875" />
+                <Concept key="Pepi Ginsberg" value="0.125" />
+                <Concept key="Depeche Mode" value="0.125" />
+                <Concept key="Laika" value="0.125" />
+                <Concept key="Beck" value="0.125" />
+                <Concept key="Rasputina" value="0.125" />
+                <Concept key="Frou Frou" value="0.125" />
+                <Concept key="Cat Power" value="0.125" />
+                <Concept key="Lamb" value="0.125" />
+                <Concept key="Neutral Milk Hotel" value="0.125" />
+                <Concept key="Psapp" value="0.125" />
+                <Concept key="Sean Hayes" value="0.125" />
+                <Concept key="The Blow" value="0.125" />
+                <Concept key="Grateful Dead" value="0.0625" />
+                <Concept key="Laura Gibson" value="0.0625" />
+                <Concept key="My Brightest Diamond" value="0.0625" />
+                <Concept key="The Psychedelic Furs" value="0.0625" />
+                <Concept key="Sigur Rós" value="0.0625" />
+                <Concept key="The Innocence Mission" value="0.0625" />
+                <Concept key="Soma Sonic" value="0.0625" />
+                <Concept key="Amina" value="0.0625" />
+                <Concept key="Belle and Sebastian" value="0.0625" />
+                <Concept key="Supreme Beings of Leisure" value="0.0625" />
+                <Concept key="The Sugarcubes" value="0.0625" />
+                <Concept key="Mirah" value="0.0625" />
+                <Concept key="Reykjavik!" value="0.0625" />
+                <Concept key="Ms. John Soda" value="0.0625" />
+                <Concept key="Enon" value="0.0625" />
+                <Concept key="Berlin" value="0.0625" />
+                <Concept key="Jaga Jazzist" value="0.0625" />
+                <Concept key="Artemis" value="0.0625" />
+                <Concept key="Nymph" value="0.0625" />
+                <Concept key="Iron &amp; Wine" value="0.0625" />
+                <Concept key="Emilie Simon" value="0.0625" />
+                <Concept key="Strawbs" value="0.0625" />
+                <Concept key="The Tiny" value="0.0625" />
+                <Concept key="Brodsky Quartet" value="0.0625" />
+                <Concept key="Esthero" value="0.0625" />
+                <Concept key="Everything but the Girl" value="0.0625" />
+                <Concept key="Sinéad O&amp;apos;Connor" value="0.0625" />
+                <Concept key="Madonna" value="0.0625" />
+                <Concept key="Massive Attack" value="0.0625" />
+                <Concept key="Devendra Banhart" value="0.0625" />
+                <Concept key="Dido" value="0.0625" />
+                <Concept key="K." value="0.0625" />
+                <Concept key="Mazzy Star" value="0.0625" />
+                <Concept key="Inga Liljestrom" value="0.0625" />
+                <Concept key="Le Tigre" value="0.0625" />
+                <Concept key="Eberg" value="0.0625" />
+                <Concept key="múm" value="0.0625" />
+                <Concept key="Gabriel &amp; Dresden" value="0.0625" />
+                <Concept key="Keren Ann" value="0.0625" />
+                <Concept key="Bree Sharp" value="0.0625" />
+                <Concept key="Tori Amos" value="0.0625" />
+                <Concept key="Sia" value="0.0625" />
+                <Concept key="Azure Ray" value="0.0625" />
+                <Concept key="KT Tunstall" value="0.0625" />
+                <Concept key="Matson Jones" value="0.0625" />
+                <Concept key="The Microphones" value="0.0625" />
+                <Concept key="The Smashing Pumpkins" value="0.0625" />
+                <Concept key="Beth Orton" value="0.0625" />
+                <Concept key="Babble" value="0.0625" />
+                <Concept key="New Order" value="0.0625" />
+                <Concept key="Mia Doi Todd" value="0.0625" />
+                <Concept key="The Decemberists" value="0.0625" />
+                <Concept key="Flunk" value="0.0625" />
+                <Concept key="Tiësto" value="0.0625" />
+                <Concept key="Emiliana Torrini" value="0.0625" />
+                <Concept key="Sixpence None the Richer" value="0.0625" />
+                <Concept key="Son, Ambulance" value="0.0625" />
+            </Concepts>
+  </ExplicitData>
+</Profile>
+</Body>
+</APML>
+
