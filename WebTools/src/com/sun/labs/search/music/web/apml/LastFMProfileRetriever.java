@@ -15,7 +15,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -28,7 +27,7 @@ import java.util.Set;
  *
  * @author plamere
  */
-public class LastFMProfileRetriever implements ProfileRetriever {
+public class LastFMProfileRetriever implements APMLRetriever, ConceptRetriever {
 
     private static final float MIN_CONCEPT_SCORE = .03f;
     private LastFM lastfm;
@@ -76,31 +75,22 @@ public class LastFMProfileRetriever implements ProfileRetriever {
         return apml;
     }
 
-    public Profile getProfileForUser(String user) throws IOException {
+    private Profile getProfileForUser(String user) throws IOException {
         Item[] artists = getTopArtistsForUser(user);
-        Concept[] implicit = getImplicitConceptsFromArtists(artists);
-        Concept[] explicit = getExplicitConceptsForUser(artists);
+        Concept[] implicit = getImplicitFromExplicit(artists);
+        Concept[] explicit = APML.getExplicitConceptsFromItems(artists);
         return new Profile("music", implicit, explicit);
     }
 
-    Concept[] getImplicitConceptsForUser(String user) throws IOException {
+    private Concept[] getImplicitConceptsForUser(String user) throws IOException {
         Item[] artists = getTopArtistsForUser(user);
-        return getImplicitConceptsFromArtists(artists);
+        return getImplicitFromExplicit(artists);
     }
 
-    Concept[] getExplicitConceptsForUser(Item[] artists) {
-        List<Concept> conceptList = new ArrayList<Concept>();
-        Item mostFrequentArtist = findMostFrequentItem(artists);
-        for (Item artist : artists) {
-            Concept concept = new Concept(artist.getName(), artist.getFreq() / (float) mostFrequentArtist.getFreq());
-            conceptList.add(concept);
-        }
-        return normalizeAndPrune(conceptList, 0);
-    }
 
-    Concept[] getImplicitConceptsFromArtists(Item[] artists) throws IOException {
+    public Concept[] getImplicitFromExplicit(Item[] artists) throws IOException {
         Map<String, Float> conceptMap = new HashMap<String, Float>();
-        Item mostFrequentArtist = findMostFrequentItem(artists);
+        Item mostFrequentArtist = APML.findMostFrequentItem(artists);
 
         for (Item item : artists) {
             Item[] tags = null;
@@ -110,7 +100,7 @@ public class LastFMProfileRetriever implements ProfileRetriever {
                 continue;
             }
 
-            Item mostFrequentTag = findMostFrequentItem(tags);
+            Item mostFrequentTag = APML.findMostFrequentItem(tags);
             float artistWeight = item.getFreq() / (float) mostFrequentArtist.getFreq();
             for (Item tag : tags) {
                 float tagWeight = tag.getFreq() / (float) mostFrequentTag.getFreq();
@@ -126,7 +116,7 @@ public class LastFMProfileRetriever implements ProfileRetriever {
             conceptList.add(concept);
         }
 
-        Concept[] concepts = normalizeAndPrune(conceptList, MIN_CONCEPT_SCORE);
+        Concept[] concepts = APML.normalizeAndPrune(conceptList, MIN_CONCEPT_SCORE);
         return concepts;
     }
 
@@ -160,28 +150,6 @@ public class LastFMProfileRetriever implements ProfileRetriever {
         return artists;
     }
 
-    private Concept[] normalizeAndPrune(List<Concept> conceptList, float minValue) {
-        Collections.sort(conceptList);
-        Collections.reverse(conceptList);
-
-        float maxValue = 1.0f;
-        if (conceptList.size() > 0) {
-            maxValue = conceptList.get(0).getValue();
-        }
-
-        int lastIndex = 0;
-        for (Concept c : conceptList) {
-            c.setValue(c.getValue() / maxValue);
-            if (c.getValue() < minValue) {
-                break;
-            }
-
-            lastIndex++;
-        }
-
-        conceptList = conceptList.subList(0, lastIndex);
-        return conceptList.toArray(new Concept[0]);
-    }
 
     private void accum(Map<String, Float> conceptMap, String key, float val) {
         Float v = conceptMap.get(key);
@@ -193,17 +161,6 @@ public class LastFMProfileRetriever implements ProfileRetriever {
 
     }
 
-    private Item findMostFrequentItem(Item[] items) {
-        Item maxItem = null;
-
-        for (Item item : items) {
-            if (maxItem == null || item.getFreq() > maxItem.getFreq()) {
-                maxItem = item;
-            }
-
-        }
-        return maxItem;
-    }
 
     void dumpUserConcepts(String user) throws IOException {
         System.out.printf("Concepts for %s\n", user);

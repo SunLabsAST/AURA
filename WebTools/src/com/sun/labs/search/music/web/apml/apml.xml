@@ -1,4 +1,3 @@
- 
 <?xml version="1.0"?>
 
 <APML xmlns="http://www.apml.org/apml-0.6" version="0.6" >
@@ -25,6 +24,8 @@
 
         <Concepts>
 
+          <Concept key="bs&amp;t" value="0.99" from="GatheringTool.com" updated="2007-03-11T01:55:00Z" />
+          <Concept key="bs&quot;t" value="0.99" from="GatheringTool.com" updated="2007-03-11T01:55:00Z" />
           <Concept key="attention" value="0.99" from="GatheringTool.com" updated="2007-03-11T01:55:00Z" />
 
           <Concept key="content distribution" value="0.97" from="GatheringTool.com" updated="2007-03-11T01:55:00Z" />

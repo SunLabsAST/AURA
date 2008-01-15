@@ -4,6 +4,7 @@
  */
 package com.sun.labs.search.music.web.apml;
 
+import com.sun.labs.search.music.web.Utilities;
 import com.sun.labs.search.music.web.XmlUtil;
 import java.io.IOException;
 import java.io.InputStream;
@@ -90,8 +91,9 @@ public class APMLLoader {
                         //           <Concept key="attention" value="0.99" from="GatheringTool.com" updated="2007-03-11T01:55:00Z" />
                         String key = conceptElement.getAttribute("key");
                         String value = conceptElement.getAttribute("value");
-
                         float fval = Float.parseFloat(value);
+
+                        key = Utilities.XMLUnescape(key);
                         String from = conceptElement.getAttribute("from");
                         String updated = conceptElement.getAttribute("updated");
                         Concept concept = new Concept(key, fval, from, updated);

@@ -6,21 +6,18 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.sun.labs.search.music.web.apml;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
+import com.sun.labs.search.music.web.Utilities;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author plamere
  */
 public class Concept implements Comparable<Concept> {
+
     private static final String DEFAULT_SOURCE = "tastebroker.org";
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     private String key;
@@ -29,12 +26,12 @@ public class Concept implements Comparable<Concept> {
     private String update;
 
     public Concept(String key, float value, String from, String update) {
-        this.key = normalize(key);
+        this.key = key;
         this.value = value;
         this.from = from;
         this.update = update;
     }
-    
+
     public Concept(String key, float value) {
         this(key, value, DEFAULT_SOURCE, sdf.format(new Date()));
     }
@@ -55,30 +52,23 @@ public class Concept implements Comparable<Concept> {
         return value;
     }
 
-    private String normalize(String s) {
-        try {
-            URLDecoder.decode(s, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(Concept.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return s.replaceAll("[^\\w\\s]", " ");
-    }
-    
     //   <Concept key="media" value="0.73" from="GatheringTool.com" updated="2007-03-11T01:55:00Z" / >
-    public String toXML() {
+    public String toXML(boolean explicit) {
         StringBuilder sb = new StringBuilder();
         sb.append("<Concept ");
-        append(sb, "key", getKey());
+        append(sb, "key", Utilities.XMLEscape(getKey()));
         append(sb, "value", Float.toString(getValue()));
-        append(sb, "from", getFrom());
-        append(sb, "updated", getUpdate());
+        if (!explicit) {
+            append(sb, "from", getFrom());
+            append(sb, "updated", getUpdate());
+        }
         sb.append("/>");
         return sb.toString();
     }
-    
+
     @Override
     public String toString() {
-        return toXML();
+        return toXML(true);
     }
 
     private void append(StringBuilder sb, String key, String val) {

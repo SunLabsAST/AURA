@@ -20,11 +20,11 @@ import java.util.regex.Pattern;
  *
  * @author plamere
  */
-public class DeliciousProfileRetriever implements ProfileRetriever {
+public class DeliciousProfileRetriever implements APMLRetriever {
 
     private final static Concept[] EMPTY_CONCEPT = new Concept[0];
 
-    public Profile getProfileForUser(String user) throws IOException {
+    private Profile getProfileForUser(String user) throws IOException {
         List<Concept> concepts = new ArrayList<Concept>();
         InputStream is = null;
         List<String> elements = new ArrayList<String>();
