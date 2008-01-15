@@ -220,13 +220,13 @@ public class Aardvark implements Configurable {
      */
     public Stats getStats() throws AuraException {
         ItemStoreStats itemStoreStats = itemStore.getStats();
-        int feedCount = feedCrawler.getNumFeeds();
         int feedPullCount = feedCrawler.getFeedPullCount();
         int feedErrorCount = feedCrawler.getFeedErrorCount();
         return new Stats(VERSION, itemStoreStats.getNumUsers(),
                 itemStoreStats.getNumEntries(),
                 itemStoreStats.getNumAttentions(),
-                feedCount, feedPullCount, feedErrorCount);
+                itemStoreStats.getNumFeeds(),
+                feedPullCount, feedErrorCount);
     }
 
     /**

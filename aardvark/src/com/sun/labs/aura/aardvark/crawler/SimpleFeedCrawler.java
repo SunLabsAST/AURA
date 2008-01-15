@@ -395,15 +395,6 @@ public class SimpleFeedCrawler implements FeedCrawler {
 
     }
 
-    public int getNumFeeds() {
-        try {
-            return itemStore.getAll(Feed.class).size();
-        } catch (AuraException ex) {
-            logger.warning("Can't get the feed count");
-            return -1;
-        }
-    }
-
     /**
      * Represents a feed with its delay until the feed should be pulled next.
      */

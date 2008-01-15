@@ -288,13 +288,9 @@ public class BerkeleyItemStore implements ItemStore {
         
         //
         // Create the attention and add references to it from the item and
-        // the user.  In version .2.1 this should be in a transaction.
+        // the user. (bdb wrapper does this)
         PersistentAttention pa = new PersistentAttention(att);
-        bdb.putAttention(pa);
-        user.addAttention(pa.getID());
-        bdb.putItem(user);
-        item.addAttention(pa.getID());
-        bdb.putItem(item);
+        bdb.putAttention(pa, user, item);
         
         //
         // Finally, notify the listeners that the user and the item changed
@@ -375,7 +371,8 @@ public class BerkeleyItemStore implements ItemStore {
         long numUsers = bdb.getNumUsers();
         long numEntries = bdb.getNumEntries();
         long numAttn = bdb.getNumAttention();
-        return new ItemStoreStats(numUsers, numEntries, numAttn);
+        long numFeeds = bdb.getNumFeeds();
+        return new ItemStoreStats(numUsers, numEntries, numAttn, numFeeds);
     }
 
 }
