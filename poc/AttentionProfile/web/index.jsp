@@ -217,19 +217,29 @@
                     </li>
                     
                 </ul>
-                <!--
-        <p>
-        <script type="text/javascript">
-            tagcloud_title = "Paul's last.fm music interests";
-            apml_url = "http://research.sun.com:8080/AttentionProfile/apml/last.fm/lamere/";
-        </script>
-        <script language="javascript" type="text/javascript" src="http://www.cluztr.com/api/apml_tag_cloud.js"></script>
-        -->
+                    <p>
+                    <b>Last.fm users try it yourself:</b>
+                    <div class="tryit">
+                        http://aura.darkstar.sunlabs.com/apml/last.fm/<input type="text" 
+                        onChange="window.location = 'RecommenderService?apmlURL=http://aura.darkstar.sunlabs.com/AttentionProfile/apml/last.fm/' + this.value;" /> 
+                    </div>
+                    <p>
+                        If you are a last.fm user, enter your last.fm user name, and an APML with recommendations will
+                        be created for you.
+                    <p>
+                    <b>Pandora users try it yourself:</b>
+
+                    <div class="tryit">
+                        http://aura.darkstar.sunlabs.com/apml/pandora/<input type="text" 
+                        onChange="window.location = 'RecommenderService?apmlURL=http://aura.darkstar.sunlabs.com/AttentionProfile/apml/pandora/' + this.value;" /> 
+                    </div>
+                    <p>
+                        If you are a Pandora user, enter your Pandora user name, and an APML with recommendations will
+                        be created for you.
             </div>
             <div class="nested2">
                 <h2> What is this all about?</h2>
-                This is an experiment to see how easy it is to generate a useful APML file from
-                existing web services. 
+                This is an experiment to explore web services that produce and consume APML.
                 <p>
                 We can combine this APML generator with other services that process
                 APML.  For instance <a href="http://www.cluztr.com/"> Cluztr </a> provides
@@ -263,7 +273,7 @@
             
             <hr>
             <center> 
-                <br>TasteBroker.org v.71 - Powered by APML, Cluztr, Del.icio.us, Last.fm, Pandora and Sun Microsystems inc.
+                <br>TasteBroker.org v.72 - Powered by APML, Cluztr, Del.icio.us, Last.fm, Pandora and Sun Microsystems inc.
                 <br> Send comments/feedback or complaints to Paul.Lamere@sun.com
                 <br> Don't forget to read <a href="http://blogs.sun.com/plamere">Duke Listens!</a>
             </center>
