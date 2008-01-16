@@ -20,11 +20,15 @@ import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -56,6 +60,16 @@ public class BerkeleyItemStore implements ItemStore {
     protected Map<String,Set<ItemListener>> listenerMap;
     
     /**
+     * A queue of change events that need to be sent
+     */
+    private ConcurrentLinkedQueue<ItemEvent> changeEvents;
+    
+    /**
+     * A queue of create events that need to be sent
+     */
+    private ConcurrentLinkedQueue<ItemImpl> createEventItems;
+    
+    /**
      * Indicates if the item store has been closed.  Once the store is
      * closed, no more operators are permitted.
      */
@@ -79,6 +93,8 @@ public class BerkeleyItemStore implements ItemStore {
         listenerMap.put(User.ITEM_TYPE, new HashSet<ItemListener>());
         listenerMap.put(Feed.ITEM_TYPE, new HashSet<ItemListener>());
         listenerMap.put(Entry.ITEM_TYPE, new HashSet<ItemListener>());
+        changeEvents = new ConcurrentLinkedQueue<ItemEvent>();
+        createEventItems = new ConcurrentLinkedQueue<ItemImpl>();
     }
     
     /**
@@ -222,16 +238,10 @@ public class BerkeleyItemStore implements ItemStore {
                 existed = true;
             }
         
-            //
-            // Notify listeners that an item was added or updated
-            Set<ItemListener> l = listenerMap.get(itemImpl.getTypeString());
-            for (ItemListener il : l) {
-                if (existed) {
-                    il.itemChanged(new ItemEvent(new Item[] {item},
-                                                 ItemEvent.ChangeType.AURA));
-                } else {
-                    il.itemCreated(new ItemEvent(new Item[] {item}));
-                }
+            if (existed) {
+                itemChanged(itemImpl, ItemEvent.ChangeType.AURA);
+            } else {
+                itemCreated(itemImpl);
             }
         } else {
             throw new AuraException ("Unsupported Item type");
@@ -294,18 +304,8 @@ public class BerkeleyItemStore implements ItemStore {
         
         //
         // Finally, notify the listeners that the user and the item changed
-        Set<ItemListener> l = listenerMap.get(item.getTypeString());
-        for (ItemListener il : l) {
-            il.itemChanged(new ItemEvent(new Item[] {item},
-                                         ItemEvent.ChangeType.ATTENTION));
-        }
-
-        l = listenerMap.get(user.getTypeString());
-        for (ItemListener il : l) {
-            il.itemChanged(new ItemEvent(new Item[] {user},
-                                         ItemEvent.ChangeType.ATTENTION));
-        }
-
+        itemChanged(item, ItemEvent.ChangeType.ATTENTION);
+        itemChanged(user, ItemEvent.ChangeType.ATTENTION);
     }
 
     /**
@@ -373,6 +373,137 @@ public class BerkeleyItemStore implements ItemStore {
         long numAttn = bdb.getNumAttention();
         long numFeeds = bdb.getNumFeeds();
         return new ItemStoreStats(numUsers, numEntries, numAttn, numFeeds);
+    }
+
+    /**
+     * Internal method to handle sending/queueing item changed events.
+     */
+    private void itemChanged(ItemImpl item, ItemEvent.ChangeType ctype) {
+        //
+        // Queue the event for later delivery
+        changeEvents.add(new ItemEvent(new Item[] {item},
+                                       ctype));
+        sendChangedEvents();
+    }
+    
+    private void sendChangedEvents() {
+        //
+        // Get all the item events that we'll use.
+        ArrayList events = new ArrayList();
+        for (Iterator<ItemEvent> itemIt = changeEvents.iterator();
+             itemIt.hasNext();) {
+            ItemEvent ie = itemIt.next();
+            events.add(ie);
+            itemIt.remove();
+        }
+        
+        //
+        // For each type for which there is at least one listener:
+        for (String itemType : listenerMap.keySet()) {
+            //
+            // Collect the items of type attention and of type aura
+            ArrayList<Item> attnItems = new ArrayList<Item>();
+            ArrayList<Item> auraItems = new ArrayList<Item>();
+            
+            //
+            // For each item event with an item of this type, sort out the
+            // items by change type in order to accumulate them all
+            for (Iterator<ItemEvent> itemIt = events.iterator();
+                 itemIt.hasNext();) {
+                ItemEvent ie = itemIt.next();
+                ItemImpl i = (ItemImpl) ie.getItems()[0];
+                if (i.getTypeString().equals(itemType)) {
+                    //
+                    // The listener I'm going to send to is interested in
+                    // items of this type.  Filter the items by change-type.
+                    try {
+                        switch (ie.getChangeType()) {
+                            case AURA:
+                                auraItems.add(i);
+                                break;
+                            case ATTENTION:
+                                attnItems.add(i);
+                                break;
+                        }
+                    } catch (AuraException e) {
+                        //
+                        // If no type was specified, send the update as an
+                        // aura change.
+                        auraItems.add(i);
+                        logger.log(Level.INFO, "Sending change event that " +
+                                   "had no change type");
+                    }
+                    
+                    //
+                    // We're handling this item, so remove it from the list
+                    // of outstanding items
+                    itemIt.remove();
+                }
+            }
+            
+            //
+            // Now send events to all the listeners for items of this type
+            // that were of change-type attention
+            ItemEvent big = new ItemEvent(attnItems.toArray(new Item[0]),
+                                          ItemEvent.ChangeType.ATTENTION);
+            Set<ItemListener> l = listenerMap.get(itemType);
+            for (ItemListener il : l) {
+                il.itemChanged(big);
+            }
+            
+            //
+            // And finally, send events to all the listeners for items of this
+            // type that were of change-type aura
+            big = new ItemEvent(auraItems.toArray(new Item[0]),
+                                          ItemEvent.ChangeType.AURA);
+            for (ItemListener il : l) {
+                il.itemChanged(big);
+            }
+        }
+    }
+
+    /**
+     * Internal method to handle sending/queueing item created events.
+     */
+    private void itemCreated(ItemImpl item) {
+        //
+        // Queue up this item to be sent out
+        createEventItems.add(item);
+        sendCreatedEvents();
+    }
+    
+    private void sendCreatedEvents() {
+        //
+        // Get all the item events that we'll use.
+        ArrayList<ItemImpl> events = new ArrayList<ItemImpl>();
+        for (Iterator<ItemImpl> itemIt = createEventItems.iterator();
+             itemIt.hasNext();) {
+            ItemImpl ie = itemIt.next();
+            events.add(ie);
+            itemIt.remove();
+        }
+        
+        //
+        // For each type of item for which there is a listener, batch up
+        // the items of that type and send them off together.
+        for (String itemType : listenerMap.keySet()) {
+            ArrayList<Item> itemsToSend = new ArrayList<Item>();
+            for (Iterator<ItemImpl> itemIt = events.iterator();
+                 itemIt.hasNext();) {
+                ItemImpl i = itemIt.next();
+                if (i.getTypeString().equals(itemType)) {
+                    itemsToSend.add(i);
+                    itemIt.remove();
+                }
+            }
+            
+            // Send the events
+            ItemEvent big = new ItemEvent(itemsToSend.toArray(new Item[0]));
+            Set<ItemListener> l = listenerMap.get(itemType);
+            for (ItemListener il : l) {
+                il.itemCreated(big);
+            }
+        }
     }
 
 }
