@@ -6,6 +6,8 @@ package com.sun.labs.aura.aardvark.crawler;
 
 import com.sun.labs.aura.aardvark.util.OPMLProcessor;
 import com.sun.labs.aura.aardvark.Aardvark;
+import com.sun.labs.aura.aardvark.store.ItemStore;
+import com.sun.labs.aura.aardvark.store.ItemStoreStats;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.LabsLogFormatter;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -28,6 +30,8 @@ import static org.junit.Assert.*;
 public class SimpleFeedCrawlerTest {
 
     private FeedCrawler crawler;
+    
+    private ItemStore store;
 
     public SimpleFeedCrawlerTest() {
     }
@@ -64,19 +68,20 @@ public class SimpleFeedCrawlerTest {
     @Test
     public void megaTest() throws AuraException {
         addLocalOpml("autoEnrolledFeeds.opml.xml");
-        assertTrue("top 100", crawler.getNumFeeds() == 100);
+        ItemStoreStats stats = store.getStats();
+        assertTrue("top 100", stats.getNumFeeds() == 100);
 
        // crawler.crawlAllFeeds();
 
         addLocalOpml("tech_blogs.opml");
-        assertTrue("tech blogs has " + crawler.getNumFeeds(), crawler.getNumFeeds() == 867);
+        assertTrue("tech blogs has " + stats.getNumFeeds(), stats.getNumFeeds() == 867);
 
         addLocalOpml("politics_blogs.opml");
-        assertTrue("tech blogs has " + crawler.getNumFeeds(), crawler.getNumFeeds() == 1264);
+        assertTrue("tech blogs has " + stats.getNumFeeds(), stats.getNumFeeds() == 1264);
 
 
         addLocalOpml("news_blogs.opml");
-        assertTrue("tech blogs has " + crawler.getNumFeeds(), crawler.getNumFeeds() == 8337);
+        assertTrue("tech blogs has " + stats.getNumFeeds(), stats.getNumFeeds() == 8337);
 
     }
 
@@ -101,6 +106,7 @@ public class SimpleFeedCrawlerTest {
             cm.addProperties(configFile);
             crawler = (FeedCrawler) cm.lookup("feedCrawler");
             crawler.start();
+            store = (ItemStore) cm.lookup("itemStore");
         } catch (IOException ioe) {
         }
     }
