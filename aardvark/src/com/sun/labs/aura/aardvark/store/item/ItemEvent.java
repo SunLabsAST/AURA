@@ -1,16 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package com.sun.labs.aura.aardvark.store.item;
 
 import com.sun.labs.aura.aardvark.util.AuraException;
 
 /**
  * Represents an event as related to an Item.
- * 
- * @author ja151348
  */
 public class ItemEvent {
     /** Describes the type of change if this is event is sent for a change */

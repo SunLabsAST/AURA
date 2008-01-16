@@ -32,6 +32,8 @@ public class BerkeleyItemStoreTest {
     
     protected static long currentTime =  -1;
     
+    protected static long validFeed = -1;
+    
     public BerkeleyItemStoreTest() {
         
     }
@@ -86,6 +88,7 @@ public class BerkeleyItemStoreTest {
         assertTrue(listener.gotCreated);
         assertFalse(listener.gotChanged);
         listener.gotCreated = false;
+        validFeed = f.getID();
         
         Entry e = store.newItem(Entry.class, "pauls-blog-post1");
         e.setContent("music is awesome!");
@@ -245,10 +248,11 @@ public class BerkeleyItemStoreTest {
     public void f_breakConsistency() throws AuraException {
         Entry e = store.newItem(Entry.class, "steves-blog-post1");
         e.setContent("foo bar");
-        store.put(e);
+        e.setParentFeedID(validFeed);
         boolean exFired = false;
         try {
-            store.attend(new SimpleAttention(startID, e.getID(), Attention.Type.VIEWED, System.currentTimeMillis()));
+            store.put(e);
+            //store.attend(new SimpleAttention(startID, e.getID(), Attention.Type.VIEWED, System.currentTimeMillis()));
         } catch (AuraException ex) {
             exFired = true;
         } finally {
@@ -259,6 +263,7 @@ public class BerkeleyItemStoreTest {
         
         Entry e2 = store.newItem(Entry.class, "valid-item");
         e2.setContent("bar foo");
+        e2.setParentFeedID(validFeed);
         store.put(e2);
     }
     
