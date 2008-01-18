@@ -234,9 +234,4 @@ public interface ItemStore extends Component, Remote {
      */
     public ItemStoreStats getStats() throws AuraException, RemoteException;
     
-    /**
-     * Closes the item store cleanly.  This should be called before the
-     * application exits.
-     */
-    public void close() throws AuraException, RemoteException;
 }

@@ -38,7 +38,7 @@ import java.util.logging.Logger;
 /**
  * A Blog Recommender
  */
-public class AardvarkImpl implements Configurable, Aardvark {
+public class AardvarkImpl implements Configurable, Aardvark, AardvarkService {
 
     private final static String VERSION = "aardvark version 0.20";
 
@@ -107,36 +107,6 @@ public class AardvarkImpl implements Configurable, Aardvark {
         autoEnrollMegaTestFeeds =
                 ps.getBoolean(PROP_AUTO_ENROLL_MEGA_TEST_FEEDS);
         logger = ps.getLogger();
-    }
-
-    /**
-     * Starts all processing
-     */
-    public void startup() {
-        logger.info("started");
-        try {
-        feedCrawler.start();
-        } catch(RemoteException rx) {
-            logger.log(Level.SEVERE, "Error starting feed crawler", rx);
-        }
-
-        if(autoEnrollTestFeeds) {
-            autoEnroll();
-        }
-    }
-
-    /**
-     * Stops all processing
-     */
-    public void shutdown() throws AuraException {
-        try {
-            feedCrawler.stop();
-            recommenderManager.shutdown();
-            itemStore.close();
-        } catch(RemoteException rx) {
-
-        }
-        logger.info("shutdown");
     }
 
     /**
@@ -342,17 +312,9 @@ public class AardvarkImpl implements Configurable, Aardvark {
         t.start();
     }
 
-    public static void main(String[] args) throws Exception {
-        // enroll test
+    public void start() {
+    }
 
-        AardvarkImpl aardvark = getDefault();
-
-        aardvark.startup();
-        for(int i = 0; i < 20 * 60; i++) {
-            Thread.sleep(3000L);
-            Stats stats = aardvark.getStats();
-            System.out.println(i + ") " + stats);
-        }
-        aardvark.shutdown();
+    public void stop() {
     }
 }

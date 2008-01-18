@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -33,8 +34,9 @@ import static org.junit.Assert.*;
  */
 public class AardvarkSearchTest {
 
-    private AardvarkImpl aardvark = null;
-    private FeedCrawler crawler = null;
+    private AardvarkServiceStarter starter;
+    private AardvarkImpl aardvark;
+    private FeedCrawler crawler;
 
     public AardvarkSearchTest() {
     }
@@ -60,9 +62,9 @@ public class AardvarkSearchTest {
 
     @After
     public void tearDown() throws Exception {
-        if (aardvark != null) {
-            aardvark.shutdown();
-            aardvark = null;
+        if (starter != null) {
+            starter.stopServices();
+            starter = null;
         }
     }
 
@@ -193,9 +195,7 @@ public class AardvarkSearchTest {
 
     private void prepareFreshAardvark() {
         try {
-            ConfigurationManager cm = new ConfigurationManager();
-            URL configFile = this.getClass().getResource("aardvarkSearchTestConfig.xml");
-            cm.addProperties(configFile);
+            ConfigurationManager cm = new ConfigurationManager(this.getClass().getResource("aardvarkSearchTestConfig.xml"));
             File indexDir = new File(cm.getGlobalProperty("indexDir"));
             if (indexDir.exists()) {
                 if (indexDir.isDirectory()) {
@@ -204,10 +204,11 @@ public class AardvarkSearchTest {
                     assertTrue("can't delete " + indexDir, indexDir.delete());
                 }
             }
+            starter = (AardvarkServiceStarter) cm.lookup("aardvarkStarter");
             aardvark = (AardvarkImpl) cm.lookup("aardvark");
-            aardvark.startup();
             crawler = (FeedCrawler) cm.lookup("feedCrawler");
         } catch (IOException ioe) {
+            Logger.getLogger("").log(Level.SEVERE,"what?", ioe);
         }
     }
 }

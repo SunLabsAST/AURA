@@ -19,8 +19,4 @@ public interface RecommenderManager extends Component, Remote {
      */
     public List<Entry> getRecommendations(User user) throws RemoteException;
     
-    /**
-     * Shuts down any recommenders that have open resources.
-     */
-    public void shutdown() throws RemoteException;
 }

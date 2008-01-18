@@ -8,6 +8,7 @@
  */
 package com.sun.labs.aura.aardvark.impl.crawler;
 
+import com.sun.labs.aura.aardvark.AardvarkService;
 import com.sun.labs.aura.aardvark.crawler.*;
 import com.sun.labs.aura.aardvark.util.FeedUtils;
 import com.sun.labs.aura.aardvark.store.Attention;
@@ -42,7 +43,7 @@ import java.util.logging.Logger;
  *
  * @author plamere
  */
-public class SimpleFeedCrawler implements FeedCrawler, Configurable {
+public class SimpleFeedCrawler implements FeedCrawler, Configurable, AardvarkService {
 
     private DelayQueue<DelayedFeed> feedQueue = new DelayQueue<DelayedFeed>();
 
@@ -337,7 +338,7 @@ public class SimpleFeedCrawler implements FeedCrawler, Configurable {
         hostSet.add(url.getHost());
     }
 
-    public synchronized void start() throws RemoteException {
+    public synchronized void start() {
         if(!testMode && crawler == null) {
 
             executorService = Executors.newFixedThreadPool(crawlingThreads);
@@ -357,7 +358,7 @@ public class SimpleFeedCrawler implements FeedCrawler, Configurable {
         }
     }
 
-    public synchronized void stop() throws RemoteException {
+    public synchronized void stop() {
         if(crawler != null) {
             try {
                 Thread t = crawler;

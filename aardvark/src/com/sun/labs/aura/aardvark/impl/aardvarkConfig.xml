@@ -14,6 +14,15 @@
     
     <property name="indexDir" value="/aura/entryContent.idx"/>
     
+    <property name="aardvarkStarter" type="com.sun.labs.aura.aardvark.AardvarkServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>itemStore</item>
+            <item>feedCrawler</item>
+            <item>recommenderManager</item>
+            <item>aardvark</item>
+        </propertylist>
+    </property>
+    
     <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl">
         <property name="itemStore" value="itemStore"/>
         <property name="feedCrawler" value="feedCrawler"/>

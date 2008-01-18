@@ -21,16 +21,6 @@ import java.rmi.RemoteException;
 public interface FeedCrawler extends Component, Remote {
 
     /**
-     * Starts crawling the feeds
-     */
-    void start() throws RemoteException;
-
-    /**
-     * Stops crawling the feeds
-     */
-    void stop() throws RemoteException;
-
-    /**
      * Create a feed for a given url
      * @param feedUrl the url
      * @return the feed

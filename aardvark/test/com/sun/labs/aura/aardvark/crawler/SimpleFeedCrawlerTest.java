@@ -6,6 +6,7 @@ package com.sun.labs.aura.aardvark.crawler;
 
 import com.sun.labs.aura.aardvark.util.OPMLProcessor;
 import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
+import com.sun.labs.aura.aardvark.impl.crawler.SimpleFeedCrawler;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.LabsLogFormatter;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -28,7 +29,7 @@ import static org.junit.Assert.*;
  */
 public class SimpleFeedCrawlerTest {
 
-    private FeedCrawler crawler;
+    private SimpleFeedCrawler crawler;
 
     public SimpleFeedCrawlerTest() {
     }
@@ -37,7 +38,7 @@ public class SimpleFeedCrawlerTest {
     public static void setUpClass() throws Exception {
         // Use the labs format logging.
         Logger rl = Logger.getLogger("");
-        for (Handler h : rl.getHandlers()) {
+        for(Handler h : rl.getHandlers()) {
             h.setFormatter(new LabsLogFormatter());
         }
     }
@@ -53,13 +54,9 @@ public class SimpleFeedCrawlerTest {
 
     @After
     public void tearDown() {
-        if (crawler != null) {
-            try {
-                crawler.stop();
-                crawler = null;
-            } catch (RemoteException rx) {
-
-            }
+        if(crawler != null) {
+            crawler.stop();
+            crawler = null;
         }
     }
 
@@ -91,10 +88,10 @@ public class SimpleFeedCrawlerTest {
             OPMLProcessor op = new OPMLProcessor();
             URL opmlFile = AardvarkImpl.class.getResource(name);
             List<URL> urls = op.getFeedURLs(opmlFile);
-            for (URL url : urls) {
+            for(URL url : urls) {
                 crawler.createFeed(url);
             }
-        } catch (IOException ex) {
+        } catch(IOException ex) {
             fail("Problems loading opml " + name + " " + ex);
         }
     }
@@ -102,11 +99,12 @@ public class SimpleFeedCrawlerTest {
     private void prepareFreshCrawler() {
         try {
             ConfigurationManager cm = new ConfigurationManager();
-            URL configFile = this.getClass().getResource("crawlerTestConfig.xml");
+            URL configFile =
+                    this.getClass().getResource("crawlerTestConfig.xml");
             cm.addProperties(configFile);
-            crawler = (FeedCrawler) cm.lookup("feedCrawler");
+            crawler = (SimpleFeedCrawler) cm.lookup("feedCrawler");
             crawler.start();
-        } catch (IOException ioe) {
+        } catch(IOException ioe) {
         }
     }
 }

@@ -31,6 +31,12 @@
         <property name="csDirs" value="${auraHome}/lib"/>
     </component>
     
+    <property name="aardvarkStarter" type="com.sun.labs.aura.aardvark.AardvarkServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>aardvark</item>
+        </propertylist>
+    </property>
+    
     <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark" export="true">
         <property name="itemStore" value="itemStore"/>
         <property name="feedCrawler" value="feedCrawler"/>

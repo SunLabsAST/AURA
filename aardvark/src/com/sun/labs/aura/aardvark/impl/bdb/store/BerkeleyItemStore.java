@@ -1,6 +1,7 @@
 package com.sun.labs.aura.aardvark.impl.bdb.store;
 
 import com.sleepycat.je.DatabaseException;
+import com.sun.labs.aura.aardvark.AardvarkService;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.EntryImpl;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.FeedImpl;
 import com.sun.labs.aura.aardvark.impl.bdb.store.item.ItemImpl;
@@ -38,7 +39,7 @@ import java.util.logging.Logger;
  * Edition database.  It uses the Direct Persistence Layer to map its data
  * types into the database.
  */
-public class BerkeleyItemStore implements ItemStore, Configurable {
+public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkService {
 
     /**
      * The location of the BDB/JE Database Environment
@@ -128,8 +129,8 @@ public class BerkeleyItemStore implements ItemStore, Configurable {
         try {
             bdb = new BerkeleyDataWrapper(dbEnvDir, logger, overwriteExisting);
         } catch(DatabaseException e) {
-            logger.severe("Failed to load the database environment at " +
-                          dbEnvDir + ": " + e);
+            throw new PropertyException(e, ps.getInstanceName(), PROP_DB_ENV, "Failed to load the database environment at " +
+                          dbEnvDir);
         }
         store = this;
     }
@@ -138,6 +139,11 @@ public class BerkeleyItemStore implements ItemStore, Configurable {
      * Close up the entity store and the database environment.
      */
     public void close() throws AuraException {
+        //
+        // If we're already closed, then we're done.
+        if(closed) {
+            return;
+        }
         closed = true;
         bdb.close();
     }
@@ -450,5 +456,16 @@ public class BerkeleyItemStore implements ItemStore, Configurable {
         long numAttn = bdb.getNumAttention();
         long numFeeds = bdb.getNumFeeds();
         return new ItemStoreStats(numUsers, numEntries, numAttn, numFeeds);
+    }
+
+    public void start() {
+    }
+
+    public void stop() {
+        try {
+            close();
+        } catch (AuraException ae) {
+            logger.log(Level.WARNING, "Error closing item store", ae);
+        }
     }
 }

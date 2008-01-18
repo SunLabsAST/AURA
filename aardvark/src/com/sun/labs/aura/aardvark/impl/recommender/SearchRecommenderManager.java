@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.aardvark.impl.recommender;
 
+import com.sun.labs.aura.aardvark.AardvarkService;
 import com.sun.labs.aura.aardvark.recommender.RecommenderManager;
 import com.sun.labs.aura.aardvark.store.item.Entry;
 import com.sun.labs.aura.aardvark.store.item.User;
@@ -18,7 +19,7 @@ import java.util.List;
 /**
  * A recommender manager for recommenders that are based on the search engine.
  */
-public class SearchRecommenderManager implements RecommenderManager, Configurable {
+public class SearchRecommenderManager implements RecommenderManager, Configurable, AardvarkService {
     
     private EntryContentEngine contentEngine;
     
@@ -30,7 +31,11 @@ public class SearchRecommenderManager implements RecommenderManager, Configurabl
         contentEngine = (EntryContentEngine) ps.getComponent(PROP_ENTRY_ENGINE);
     }
     
-    public void shutdown() throws RemoteException {
+    public void start() {
+        
+    }
+    
+    public void stop() {
         contentEngine.shutdown();
     }
 

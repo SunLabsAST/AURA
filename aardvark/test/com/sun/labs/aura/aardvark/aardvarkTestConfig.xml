@@ -8,7 +8,15 @@
 -->
 
 <config>
-    
+
+    <component name="aardvarkStarter" type="com.sun.labs.aura.aardvark.AardvarkServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>itemStore</item>
+            <item>feedCrawler</item>
+            <item>recommenderManager</item>
+            <item>aardvark</item>
+        </propertylist>
+    </component>
     
     <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl">
         <property name="itemStore" value="itemStore"/>
@@ -27,8 +35,6 @@
         <property name="minimumFeedDelayInMinutes" value="0"/>
         <property name="testMode" value="true"/>
     </component>
-    
-    
     
     <component name="recommenderManager" type="com.sun.labs.aura.aardvark.impl.recommender.SimpleRecommenderManager">
         <property name="itemStore" value="itemStore"/>

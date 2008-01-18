@@ -1,5 +1,6 @@
 package com.sun.labs.aura.aardvark.impl.recommender;
 
+import com.sun.labs.aura.aardvark.AardvarkService;
 import com.sun.labs.aura.aardvark.recommender.RecommenderManager;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.ItemStore;
@@ -19,7 +20,7 @@ import java.util.logging.Logger;
 /**
  * A recommender manager that returns the starred items for a user.
  */
-public class SimpleRecommenderManager implements RecommenderManager {
+public class SimpleRecommenderManager implements RecommenderManager, AardvarkService {
 
     private ItemStore itemStore;
 
@@ -48,8 +49,12 @@ public class SimpleRecommenderManager implements RecommenderManager {
         log = ps.getLogger();
     }
 
-    public void shutdown() throws RemoteException {
+    public void start() {
     }
+
+    public void stop() {
+    }
+
     @ConfigComponent(type = com.sun.labs.aura.aardvark.store.ItemStore.class)
     public static final String PROP_ITEM_STORE = "itemStore";
 

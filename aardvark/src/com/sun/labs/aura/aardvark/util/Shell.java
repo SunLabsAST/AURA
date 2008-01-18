@@ -8,6 +8,8 @@
  */
 package com.sun.labs.aura.aardvark.util;
 
+import com.sun.labs.aura.aardvark.AardvarkService;
+import com.sun.labs.aura.aardvark.AardvarkServiceStarter;
 import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
@@ -23,6 +25,7 @@ import com.sun.labs.util.command.CommandInterpreter;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -43,6 +46,7 @@ public class Shell {
     private ItemStore itemStore;
     private FeedCrawler feedCrawler;
     private AardvarkImpl aardvark;
+    private AardvarkServiceStarter starter;
 
     public Shell() throws IOException {
         initComponents();
@@ -213,7 +217,7 @@ public class Shell {
                             if (args.length != 1) {
                                 getHelp();
                             } else {
-                                feedCrawler.start();
+                                ((AardvarkService) feedCrawler).start();
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
@@ -234,7 +238,7 @@ public class Shell {
                             if (args.length != 1) {
                                 getHelp();
                             } else {
-                                feedCrawler.stop();
+                                ((AardvarkService) feedCrawler).stop();
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
@@ -252,10 +256,13 @@ public class Shell {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length != 1) {
+                            if (args.length != 3) {
                                 getHelp();
                             } else {
-                                aardvark.startup();
+                                //
+                                // Get the service starter, which starts Aardvark.
+                                ConfigurationManager cm = new ConfigurationManager(new File(args[1]).toURI().toURL());
+                                starter = (AardvarkServiceStarter) cm.lookup(args[2]);
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
@@ -264,7 +271,7 @@ public class Shell {
                     }
 
                     public String getHelp() {
-                        return "usage: aaStart";
+                        return "usage: aaStart <configuration file> <starter component name>";
                     }
                 });
 
@@ -276,7 +283,9 @@ public class Shell {
                             if (args.length != 1) {
                                 getHelp();
                             } else {
-                                aardvark.shutdown();
+                                if(starter != null) {
+                                    starter.stopServices();
+                                }
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);

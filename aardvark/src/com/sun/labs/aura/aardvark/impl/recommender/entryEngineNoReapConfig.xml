@@ -34,5 +34,13 @@
         <property name="vectored" value="false"/>
         <property name="saved" value="true"/>
         <property name="type" value="integer"/>
-    </component>    
+    </component> 
+    
+    <!-- A partition manager for inverted file partitions that use simple id and 
+    frequency entries -->
+    <component name="simple_partition_manager" inherit="partition_manager">
+        <property name="partition_factory" value="simple_partition_factory"/>
+        <property name="reap_does_nothing" value="true"/>
+    </component>
+    
 </config>
