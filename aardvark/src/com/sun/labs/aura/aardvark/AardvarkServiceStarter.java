@@ -4,17 +4,19 @@
  */
 package com.sun.labs.aura.aardvark;
 
+import com.sun.jini.config.ConfigUtil;
 import com.sun.labs.util.LabsLogFormatter;
-import com.sun.labs.util.props.Component;
 import com.sun.labs.util.props.ComponentRegistry;
 import com.sun.labs.util.props.ConfigComponentList;
+import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.net.UnknownHostException;
+import java.rmi.RMISecurityManager;
 import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
@@ -43,8 +45,8 @@ public class AardvarkServiceStarter implements Configurable {
         }
     }
     /**
-     * A configuration property for the component to load to initialize the
-     * service.
+     * A configuration property for the services that we will be starting and
+     * stopping.
      */
     @ConfigComponentList(type = com.sun.labs.aura.aardvark.AardvarkService.class)
     public static final String PROP_SERVICE_COMPONENTS = "serviceComponents";

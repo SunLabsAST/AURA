@@ -38,6 +38,11 @@
         </propertylist>
         <property name="csDirs" value="${auraHome}/lib"/>
         <property name="csPort" value="${csPort}"/>
+        <propertylist name="codebaseJars">
+            <item>aardvark.jar</item>
+            <item>LabsUtil.jar</item>
+        </propertylist>
+        <property name="securityPolicy" value="${auraHome}/jsk-all.policy"/>
     </component>
     
     <component name="feedCrawler" type="com.sun.labs.aura.aardvark.impl.crawler.SimpleFeedCrawler" export="true">

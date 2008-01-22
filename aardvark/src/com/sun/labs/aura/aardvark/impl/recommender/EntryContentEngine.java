@@ -17,6 +17,7 @@ import com.sun.labs.aura.aardvark.store.item.ItemEvent;
 import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.util.props.ComponentRegistry;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
@@ -51,12 +52,14 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
 
     private Logger log;
 
+    private ItemListener exported;
+
     private int entryBatchSize;
-    
+
     private int engineLogLevel;
 
     private int entryCount = 0;
-    
+
     private boolean shuttingDown;
 
     public void newProperties(PropertySheet ps) throws PropertyException {
@@ -74,7 +77,8 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
             // Creates the search engine, using a simple doc and freq unfielded
             // postings type, since we want things to be fast.
             engine = SearchEngineFactory.getSearchEngine(indexDir,
-                    "simple_search_engine", config);
+                                                         "simple_search_engine",
+                                                         config);
             itemStore = (ItemStore) ps.getComponent(PROP_ITEM_STORE);
 
             //
@@ -101,7 +105,18 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
             //
             // Listen for new things.
             try {
-                itemStore.addItemListener(Entry.class, this);
+                //
+                // Not sure how to do this, but if we have a component registry
+                // running, we'll assume that we're sending an exported proxy
+                // to a remote item store.  Otherwise, we can just send ourself.
+                ComponentRegistry cr = ps.getPropertyManager().
+                        getComponentRegistry();
+                if(cr == null) {
+                    exported = this;
+                } else {
+                    exported = (ItemListener) cr.getRemote(this);
+                }
+                itemStore.addItemListener(Entry.class, exported);
             } catch(AuraException ex) {
                 log.warning("Failed to add content engine as listener");
             } catch(RemoteException rx) {
@@ -195,9 +210,11 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
             List<Entry> ret = new ArrayList<Entry>();
             ResultSet rs = dv.findSimilar();
 
-            for(int i = 0; ret.size() < numResults && i < rs.size(); i += numResults) {
+            for(int i = 0; ret.size() < numResults && i < rs.size(); i +=
+                            numResults) {
                 for(Result r : rs.getResults(i, numResults)) {
-                    Entry entry = (Entry) itemStore.get((Long) r.getSingleFieldValue("id"));
+                    Entry entry =
+                            (Entry) itemStore.get((Long) r.getSingleFieldValue("id"));
                     if(entry != null) {
                         if(!userItems.contains(entry.getID())) {
                             userItems.add(entry.getID());   // to avoid dups
@@ -232,8 +249,10 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      * @param item the item
      * @param type the type of attention
      */
-    private void attend(User user, Item item, Attention.Type type) throws AuraException, RemoteException {
-        Attention attention = new SimpleAttention(user, item, Attention.Type.VIEWED);
+    private void attend(User user, Item item, Attention.Type type) throws AuraException,
+            RemoteException {
+        Attention attention = new SimpleAttention(user, item,
+                                                  Attention.Type.VIEWED);
         itemStore.attend(attention);
     }
 
@@ -243,7 +262,8 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      * @param user the use rof interest
      * @return the set of items
      */
-    private Set<Long> getUserItems(User user) throws AuraException, RemoteException {
+    private Set<Long> getUserItems(User user) throws AuraException,
+            RemoteException {
         Set<Long> itemSet = new HashSet<Long>();
         for(Attention attention : itemStore.getAttentionData(user)) {
             itemSet.add(attention.getItemID());
@@ -256,7 +276,8 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      * @param user the user of interest
      * @return the list of starred items for a user
      */
-    private List<Attention> getUserStarredAttentionData(User user) throws AuraException, RemoteException {
+    private List<Attention> getUserStarredAttentionData(User user) throws AuraException,
+            RemoteException {
         List<Attention> starredAttentionData = new ArrayList<Attention>();
 
         for(Attention a : itemStore.getAttentionData(user)) {
@@ -268,7 +289,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
     }
 
     public synchronized void itemCreated(ItemEvent e) {
-        
+
         if(shuttingDown) {
             return;
         }
@@ -298,7 +319,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
     }
 
     public synchronized void itemDeleted(ItemEvent e) {
-        
+
         if(shuttingDown) {
             return;
         }
@@ -321,7 +342,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
             // Stop listening for things and shut down the engine.
             shuttingDown = true;
             log.log(Level.INFO, "Shutting down search engine");
-            itemStore.removeItemListener(Entry.class, this);
+            itemStore.removeItemListener(Entry.class, exported);
             engine.close();
         } catch(AuraException ae) {
             log.log(Level.WARNING, "Error removing item listener", ae);
@@ -331,7 +352,6 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
             log.log(Level.WARNING, "Error removing item listenger", rx);
         }
     }
-    
     /**
      * The resource to load for the engine configuration.  This gives us the
      * opportunity to use different configs as necessary (e.g., for testing).
@@ -340,12 +360,12 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
      */
     @ConfigString(defaultValue = "entryEngineConfig.xml")
     public static final String PROP_ENGINE_CONFIG_FILE = "engineConfigFile";
-    
+
     /**
      * The default logging level for the search engine.  Paul likes things nice
      * and quiet.
      */
-    @ConfigInteger(defaultValue=2)
+    @ConfigInteger(defaultValue = 2)
     public static final String PROP_ENGINE_LOG_LEVEL = "engineLogLevel";
 
     /**
