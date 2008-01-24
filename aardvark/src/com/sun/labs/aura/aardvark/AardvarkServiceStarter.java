@@ -53,7 +53,7 @@ public class AardvarkServiceStarter implements Configurable {
 
     public void newProperties(PropertySheet ps) throws PropertyException {
 
-        cm = ps.getPropertyManager();
+        cm = ps.getConfigurationManager();
 
         //
         // Get the names of the components we're to start, then start them.

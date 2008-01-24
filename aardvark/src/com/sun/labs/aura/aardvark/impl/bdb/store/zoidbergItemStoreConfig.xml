@@ -28,7 +28,7 @@
         <propertylist name="groupList">
             <item>Aura</item>
         </propertylist>
-        <property name="regHost" value="lur.east.sun.com"/>
+        <property name="registryHost" value="lur.east.sun.com"/>
         <property name="csDirs" value="${auraHome}/lib"/>
         <property name="csPort" value="${csPort}"/>
         <propertylist name="codebaseJars">
