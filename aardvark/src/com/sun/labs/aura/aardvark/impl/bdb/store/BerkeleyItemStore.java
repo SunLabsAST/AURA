@@ -431,32 +431,6 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
         }
     }
 
-    /**
-     * Remove an item listener for a particular type, or for all types
-     * 
-     * @param type the specific type for this listener, or null for all types
-     * @param listener the listener
-     */
-    public <T extends Item> void removeItemListener(Class<T> type,
-                                                    ItemListener listener) {
-        if (type == null) {
-            for (String k : listenerMap.keySet()) {
-                Set l = listenerMap.get(k);
-                l.remove(listener);
-            }
-        } else {
-            String key = "";
-            if (type.equals(User.class)) {
-                key = User.ITEM_TYPE;
-            } else if (type.equals(Entry.class)) {
-                key = Entry.ITEM_TYPE;
-            } else if (type.equals(Feed.class)) {
-                key = Feed.ITEM_TYPE;
-            }
-            Set l = listenerMap.get(key);
-            l.remove(listener);
-        }
-    }
 
     /**
      * Get statistics about this item store
@@ -544,7 +518,12 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
                                           ItemEvent.ChangeType.ATTENTION);
             Set<ItemListener> l = listenerMap.get(itemType);
             for (ItemListener il : l) {
-                il.itemChanged(big);
+                try {
+                    il.itemChanged(big);
+                } catch (RemoteException e) {
+                    logger.log(Level.WARNING,
+                            "Error sending change event to " + il, e);
+                }
             }
             
             //
@@ -553,7 +532,12 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
             big = new ItemEvent(auraItems.toArray(new Item[0]),
                                           ItemEvent.ChangeType.AURA);
             for (ItemListener il : l) {
-                il.itemChanged(big);
+                try {
+                    il.itemChanged(big);
+                } catch (RemoteException e) {
+                    logger.log(Level.WARNING,
+                            "Error sending change event to " + il, e);
+                }
             }
         }
     }
@@ -597,7 +581,12 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
             ItemEvent big = new ItemEvent(itemsToSend.toArray(new Item[0]));
             Set<ItemListener> l = listenerMap.get(itemType);
             for (ItemListener il : l) {
-                il.itemCreated(big);
+                try {
+                    il.itemCreated(big);
+                } catch (RemoteException e) {
+                    logger.log(Level.WARNING,
+                            "Error sending change event to " + il, e);
+                }
             }
         }
     }
