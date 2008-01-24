@@ -1,13 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
     <display-name>Taste Broker</display-name>
+    <context-param>
+        <param-name>dbPath_test</param-name>
+        <param-value>/lab/mir/db/mdbtest</param-value>
+    </context-param>
+    <context-param>
+        <param-name>dbPath_aura</param-name>
+        <param-value>/aura/mdb</param-value>
+    </context-param>
+    <context-param>
+        <param-name>dbPath</param-name>
+        <param-value>/aura/mdb</param-value>
+    </context-param>
     <servlet>
         <servlet-name>AttentionProfile</servlet-name>
         <servlet-class>com.sun.labs.aura.attention.AttentionProfile</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>RecommenderService</servlet-name>
+        <servlet-class>com.sun.labs.aura.attention.RecommenderService</servlet-class>
+        </servlet>
     <servlet-mapping>
         <servlet-name>AttentionProfile</servlet-name>
         <url-pattern>/apml/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>RecommenderService</servlet-name>
+        <url-pattern>/RecommenderService</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

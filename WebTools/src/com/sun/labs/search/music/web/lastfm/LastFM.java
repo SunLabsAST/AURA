@@ -49,7 +49,12 @@ public class LastFM {
 
     public Item[] getTopArtistsForUser(String user) throws IOException {
         String url = getTopArtistsForUserURL(user);
-        return getTopArtistForUserFromLastFM(url);
+        return getArtistsForUser(url);
+    }
+
+    public Item[] getWeeklyArtistsForUser(String user) throws IOException {
+        String url = getWeeklyArtistsForUserURL(user);
+        return getArtistsForUser(url);
     }
 
     public String[] getSimilarUsers(String user) throws IOException {
@@ -70,7 +75,7 @@ public class LastFM {
         return users.toArray(new String[0]);
     }
 
-    private Item[] getTopArtistForUserFromLastFM(String url) throws IOException {
+    private Item[] getArtistsForUser(String url) throws IOException {
         List<Item> items = new ArrayList<Item>();
 
         Document doc = commander.sendCommand(url);
@@ -131,8 +136,11 @@ public class LastFM {
     }
 
     private String getTopArtistsForUserURL(String user) {
-        String url = "user/" + user + "/topartists.xml";
-        return url;
+        return "user/" + user + "/topartists.xml";
+    }
+
+    private String getWeeklyArtistsForUserURL(String user) {
+        return "user/" + user + "/weeklyartistchart.xml";
     }
 
     void dumpArtistTags(String artistName) throws IOException {

@@ -15,7 +15,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -28,7 +27,7 @@ import java.util.Set;
  *
  * @author plamere
  */
-public class LastFMConceptRetriever implements ConceptRetriever {
+public class LastFMProfileRetriever implements APMLRetriever, ConceptRetriever {
 
     private static final float MIN_CONCEPT_SCORE = .03f;
     private LastFM lastfm;
@@ -37,11 +36,11 @@ public class LastFMConceptRetriever implements ConceptRetriever {
     private final static Item[] EMPTY_ITEM = new Item[0];
     private Thread crawler = null;
 
-    public LastFMConceptRetriever() throws IOException {
+    public LastFMProfileRetriever() throws IOException {
         this(10000, 30, new File("./cache"), new File("./users"));
     }
 
-    public LastFMConceptRetriever(int maxItemsInCache, int maxDaysInCache, File itemDir, File userDir) throws IOException {
+    public LastFMProfileRetriever(int maxItemsInCache, int maxDaysInCache, File itemDir, File userDir) throws IOException {
         itemCache = new Cache<Item[]>(maxItemsInCache, maxDaysInCache, itemDir);
         userCache = new Cache<Item[]>(maxItemsInCache, maxDaysInCache, userDir);
         lastfm = new LastFM();
@@ -71,30 +70,27 @@ public class LastFMConceptRetriever implements ConceptRetriever {
     }
 
     public APML getAPMLForUser(String user) throws IOException {
+        APML apml = new APML("Taste for last.fm user " + user);
+        apml.addProfile(getProfileForUser(user));
+        return apml;
+    }
+
+    private Profile getProfileForUser(String user) throws IOException {
         Item[] artists = getTopArtistsForUser(user);
-        Concept[] implicit = getImplicitConceptsFromArtists(artists);
-        Concept[] explicit = getExplicitConceptsForUser(artists);
-        return new APML("Taste for last.fm user " + user, "music", implicit, explicit);
+        Concept[] implicit = getImplicitFromExplicit(artists);
+        Concept[] explicit = APML.getExplicitConceptsFromItems(artists);
+        return new Profile("music", implicit, explicit);
     }
 
-    public Concept[] getImplicitConceptsForUser(String user) throws IOException {
+    private Concept[] getImplicitConceptsForUser(String user) throws IOException {
         Item[] artists = getTopArtistsForUser(user);
-        return getImplicitConceptsFromArtists(artists);
+        return getImplicitFromExplicit(artists);
     }
 
-    Concept[] getExplicitConceptsForUser(Item[] artists) {
-        List<Concept> conceptList = new ArrayList<Concept>();
-        Item mostFrequentArtist = findMostFrequentItem(artists);
-        for (Item artist : artists) {
-            Concept concept = new Concept(artist.getName(), artist.getFreq() / (float) mostFrequentArtist.getFreq());
-            conceptList.add(concept);
-        }
-        return normalizeAndPrune(conceptList, 0);
-    }
 
-    Concept[] getImplicitConceptsFromArtists(Item[] artists) throws IOException {
+    public Concept[] getImplicitFromExplicit(Item[] artists) throws IOException {
         Map<String, Float> conceptMap = new HashMap<String, Float>();
-        Item mostFrequentArtist = findMostFrequentItem(artists);
+        Item mostFrequentArtist = APML.findMostFrequentItem(artists);
 
         for (Item item : artists) {
             Item[] tags = null;
@@ -104,7 +100,7 @@ public class LastFMConceptRetriever implements ConceptRetriever {
                 continue;
             }
 
-            Item mostFrequentTag = findMostFrequentItem(tags);
+            Item mostFrequentTag = APML.findMostFrequentItem(tags);
             float artistWeight = item.getFreq() / (float) mostFrequentArtist.getFreq();
             for (Item tag : tags) {
                 float tagWeight = tag.getFreq() / (float) mostFrequentTag.getFreq();
@@ -120,7 +116,7 @@ public class LastFMConceptRetriever implements ConceptRetriever {
             conceptList.add(concept);
         }
 
-        Concept[] concepts = normalizeAndPrune(conceptList, MIN_CONCEPT_SCORE);
+        Concept[] concepts = APML.normalizeAndPrune(conceptList, MIN_CONCEPT_SCORE);
         return concepts;
     }
 
@@ -154,28 +150,6 @@ public class LastFMConceptRetriever implements ConceptRetriever {
         return artists;
     }
 
-    private Concept[] normalizeAndPrune(List<Concept> conceptList, float minValue) {
-        Collections.sort(conceptList);
-        Collections.reverse(conceptList);
-
-        float maxValue = 1.0f;
-        if (conceptList.size() > 0) {
-            maxValue = conceptList.get(0).getValue();
-        }
-
-        int lastIndex = 0;
-        for (Concept c : conceptList) {
-            c.setValue(c.getValue() / maxValue);
-            if (c.getValue() < minValue) {
-                break;
-            }
-
-            lastIndex++;
-        }
-
-        conceptList = conceptList.subList(0, lastIndex);
-        return conceptList.toArray(new Concept[0]);
-    }
 
     private void accum(Map<String, Float> conceptMap, String key, float val) {
         Float v = conceptMap.get(key);
@@ -187,17 +161,6 @@ public class LastFMConceptRetriever implements ConceptRetriever {
 
     }
 
-    private Item findMostFrequentItem(Item[] items) {
-        Item maxItem = null;
-
-        for (Item item : items) {
-            if (maxItem == null || item.getFreq() > maxItem.getFreq()) {
-                maxItem = item;
-            }
-
-        }
-        return maxItem;
-    }
 
     void dumpUserConcepts(String user) throws IOException {
         System.out.printf("Concepts for %s\n", user);
@@ -260,7 +223,7 @@ public class LastFMConceptRetriever implements ConceptRetriever {
 
     public static void main(String[] args) {
         try {
-            LastFMConceptRetriever lcr = new LastFMConceptRetriever();
+            LastFMProfileRetriever lcr = new LastFMProfileRetriever();
             lcr.crawlUsers("rj", 1000, true);
         } catch (IOException ioe) {
             System.out.println("error " + ioe);

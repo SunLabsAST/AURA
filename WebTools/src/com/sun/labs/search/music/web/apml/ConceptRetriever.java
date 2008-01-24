@@ -5,6 +5,7 @@
 
 package com.sun.labs.search.music.web.apml;
 
+import com.sun.labs.search.music.web.lastfm.Item;
 import java.io.IOException;
 
 /**
@@ -12,7 +13,5 @@ import java.io.IOException;
  * @author plamere
  */
 public interface ConceptRetriever {
-
-    APML getAPMLForUser(String user) throws IOException;
-
+    Concept[] getImplicitFromExplicit(Item[] explicit) throws IOException ;
 }

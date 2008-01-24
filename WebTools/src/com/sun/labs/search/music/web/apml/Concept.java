@@ -6,39 +6,34 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.sun.labs.search.music.web.apml;
 
-import java.net.URLDecoder;
+import com.sun.labs.search.music.web.Utilities;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.TimeZone;
 
 /**
  *
  * @author plamere
  */
 public class Concept implements Comparable<Concept> {
-    private static final String DEFAULT_SOURCE = "tastebroker.org";
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
-    static {
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
+    private static final String DEFAULT_SOURCE = "tastebroker.org";
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     private String key;
     private float value;
     private String from;
-    private long update;
+    private String update;
 
-    public Concept(String key, float value, String from, long update) {
-        this.key = normalize(key);
+    public Concept(String key, float value, String from, String update) {
+        this.key = key;
         this.value = value;
         this.from = from;
         this.update = update;
     }
-    
+
     public Concept(String key, float value) {
-        this(key, value, DEFAULT_SOURCE, 0);
+        this(key, value, DEFAULT_SOURCE, sdf.format(new Date()));
     }
 
     public String getFrom() {
@@ -49,40 +44,31 @@ public class Concept implements Comparable<Concept> {
         return key;
     }
 
-    public long getUpdate() {
-        if (update == 0) {
-            return System.currentTimeMillis();
-        } else {
-            return update;
-        }
+    public String getUpdate() {
+        return update;
     }
 
     public float getValue() {
         return value;
     }
 
-    private String normalize(String s) {
-        s = URLDecoder.decode(s);
-        return s.replaceAll("[^\\w\\s]", " ").trim();
-    }
-    
     //   <Concept key="media" value="0.73" from="GatheringTool.com" updated="2007-03-11T01:55:00Z" / >
-    public String toXML() {
+    public String toXML(boolean explicit) {
         StringBuilder sb = new StringBuilder();
         sb.append("<Concept ");
-        append(sb, "key", getKey());
+        append(sb, "key", Utilities.XMLEscape(getKey()));
         append(sb, "value", Float.toString(getValue()));
-        append(sb, "from", getFrom());
-
-        Date updated = new Date(getUpdate());
-        append(sb, "updated", sdf.format(updated));
-
+        if (!explicit) {
+            append(sb, "from", getFrom());
+            append(sb, "updated", getUpdate());
+        }
         sb.append("/>");
         return sb.toString();
     }
-    
+
+    @Override
     public String toString() {
-        return toXML();
+        return toXML(true);
     }
 
     private void append(StringBuilder sb, String key, String val) {

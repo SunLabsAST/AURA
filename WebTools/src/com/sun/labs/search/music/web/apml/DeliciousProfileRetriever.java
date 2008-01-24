@@ -20,11 +20,11 @@ import java.util.regex.Pattern;
  *
  * @author plamere
  */
-public class DeliciousConceptRetriever implements ConceptRetriever {
+public class DeliciousProfileRetriever implements APMLRetriever {
 
     private final static Concept[] EMPTY_CONCEPT = new Concept[0];
 
-    public APML getAPMLForUser(String user) throws IOException {
+    private Profile getProfileForUser(String user) throws IOException {
         List<Concept> concepts = new ArrayList<Concept>();
         InputStream is = null;
         List<String> elements = new ArrayList<String>();
@@ -64,11 +64,17 @@ public class DeliciousConceptRetriever implements ConceptRetriever {
                 is.close();
             }
         }
-        return new APML("Taste for del.icio.us user " + user, "web", concepts.toArray(EMPTY_CONCEPT), EMPTY_CONCEPT);
+        return new Profile("web", concepts.toArray(EMPTY_CONCEPT), EMPTY_CONCEPT);
+    }
+
+    public APML getAPMLForUser(String user) throws IOException {
+        APML apml = new APML("Del.icio.us data taste for " + user);
+        apml.addProfile(getProfileForUser(user));
+        return apml;
     }
 
     public static void main(String[] args) throws Exception {
-        DeliciousConceptRetriever dcr = new DeliciousConceptRetriever();
+        DeliciousProfileRetriever dcr = new DeliciousProfileRetriever();
         APML apml = dcr.getAPMLForUser("plamere");
         System.out.println(apml.toString());
 
