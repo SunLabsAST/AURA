@@ -8,6 +8,7 @@
  */
 package com.sun.labs.aura.aardvark;
 
+import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
@@ -17,7 +18,9 @@ import com.sun.syndication.feed.synd.SyndFeed;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -31,8 +34,9 @@ import static org.junit.Assert.*;
  */
 public class AardvarkSearchTest {
 
-    private Aardvark aardvark = null;
-    private FeedCrawler crawler = null;
+    private AardvarkServiceStarter starter;
+    private AardvarkImpl aardvark;
+    private FeedCrawler crawler;
 
     public AardvarkSearchTest() {
     }
@@ -58,9 +62,9 @@ public class AardvarkSearchTest {
 
     @After
     public void tearDown() throws Exception {
-        if (aardvark != null) {
-            aardvark.shutdown();
-            aardvark = null;
+        if (starter != null) {
+            starter.stopServices();
+            starter = null;
         }
     }
 
@@ -91,7 +95,7 @@ public class AardvarkSearchTest {
         crawler.crawlAllFeeds();
 
         user1 = aardvark.getUser(user1.getKey());
-        assertTrue("user1 should have attention data", user1.getAttentionData().size() > 0);
+        assertTrue("user1 should have attention data", aardvark.getAttentionData(user1).size() > 0);
         SyndFeed feed = aardvark.getRecommendedFeed(user1);
         int entryCount = feed.getEntries().size();
         assertTrue("The random document should have been returned: " + entryCount, entryCount > 0);
@@ -171,7 +175,7 @@ public class AardvarkSearchTest {
 
     }
 
-    private void enroll(Aardvark aardvark, String feedBaseName) throws AuraException {
+    private void enroll(Aardvark aardvark, String feedBaseName) throws AuraException, RemoteException {
         URL feedURL = this.getClass().getResource(feedBaseName);
         aardvark.enrollUser(feedBaseName, feedURL.toString());
     }
@@ -191,9 +195,7 @@ public class AardvarkSearchTest {
 
     private void prepareFreshAardvark() {
         try {
-            ConfigurationManager cm = new ConfigurationManager();
-            URL configFile = this.getClass().getResource("aardvarkSearchTestConfig.xml");
-            cm.addProperties(configFile);
+            ConfigurationManager cm = new ConfigurationManager(this.getClass().getResource("aardvarkSearchTestConfig.xml"));
             File indexDir = new File(cm.getGlobalProperty("indexDir"));
             if (indexDir.exists()) {
                 if (indexDir.isDirectory()) {
@@ -202,10 +204,11 @@ public class AardvarkSearchTest {
                     assertTrue("can't delete " + indexDir, indexDir.delete());
                 }
             }
-            aardvark = (Aardvark) cm.lookup("aardvark");
-            aardvark.startup();
+            starter = (AardvarkServiceStarter) cm.lookup("aardvarkStarter");
+            aardvark = (AardvarkImpl) cm.lookup("aardvark");
             crawler = (FeedCrawler) cm.lookup("feedCrawler");
         } catch (IOException ioe) {
+            Logger.getLogger("").log(Level.SEVERE,"what?", ioe);
         }
     }
 }

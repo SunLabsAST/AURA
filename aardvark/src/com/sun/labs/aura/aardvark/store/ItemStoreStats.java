@@ -1,9 +1,11 @@
 package com.sun.labs.aura.aardvark.store;
 
+import java.io.Serializable;
+
 /**
  * Some stats about what is in the item store
  */
-public class ItemStoreStats {
+public class ItemStoreStats implements Serializable {
     protected long numUsers;
     protected long numEntries;
     protected long numAttentions;
@@ -33,5 +35,10 @@ public class ItemStoreStats {
     
     public long getNumFeeds() {
         return numFeeds;
+    }
+    
+    public String toString() {
+        return String.format("users: %d entries: %d attentions: %d feeds: %d", 
+                numUsers, numEntries, numAttentions, numFeeds);
     }
 }

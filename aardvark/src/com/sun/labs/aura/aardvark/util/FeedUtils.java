@@ -27,6 +27,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -127,7 +128,7 @@ public class FeedUtils {
      * @throws com.sun.labs.aura.aardvark.util.AuraException if a proble occurs while retriveing the feed
      * or accessing the item store.
      */
-    public static List<Entry> processFeed(ItemStore itemStore, Feed feed) throws AuraException {
+    public static List<Entry> processFeed(ItemStore itemStore, Feed feed) throws AuraException, RemoteException {
         try {
             URL feedUrl = new URL(feed.getKey());
             SyndFeed syndFeed = readFeed(feedUrl);
@@ -193,16 +194,16 @@ public class FeedUtils {
      * @param syndEntry the feed entry
      * @return the itemstore entry or null if the syndEntry was a duplicate
      * @throws com.sun.labs.aura.aardvark.util.AuraException if an error occurs while accesing the itemstore
+     * @throws java.rmi.RemoteException if there is an error communicating with the item store.
      */
-    public static Entry convertSyndEntryToFreshEntry(ItemStore itemStore, Feed feed, SyndEntry syndEntry) throws AuraException {
+    public static Entry convertSyndEntryToFreshEntry(ItemStore itemStore, Feed feed, SyndEntry syndEntry) throws AuraException, RemoteException {
         String key = getKey(syndEntry);
         if (itemStore.get(key) == null) {
             Entry entry = itemStore.newItem(Entry.class, key);
             entry.setSyndEntry(syndEntry);
             entry.setContent(getContent(syndEntry));
             entry.setParentFeedID(feed.getID());
-            itemStore.put(entry);
-            return entry;
+            return (Entry) itemStore.put(entry);
         } else {
             return null;
         }

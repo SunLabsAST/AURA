@@ -10,6 +10,7 @@
 package com.sun.labs.aura.aardvark.store.item;
 
 import com.sun.labs.aura.aardvark.store.*;
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -19,7 +20,7 @@ import java.util.List;
  * 
  * @author ja151348
  */
-public interface Item {
+public interface Item extends Serializable {
     /** A unique string that each Item must define to identify its own type */
     public final static String ITEM_TYPE = "Generic";
 
@@ -53,13 +54,6 @@ public interface Item {
      * @param value the value to assign to the named field
      */
     //public void setField(String name, String value);
-    
-    /**
-     * Gets a list of all the attention data that is stored about this item.
-     * 
-     * @return a list of attention data
-     */
-    public List<Attention> getAttentionData();
     
     /**
      * Gets the time stamp associated with this entry (when it was posted).

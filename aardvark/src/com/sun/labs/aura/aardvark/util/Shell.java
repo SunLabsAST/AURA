@@ -8,7 +8,9 @@
  */
 package com.sun.labs.aura.aardvark.util;
 
-import com.sun.labs.aura.aardvark.Aardvark;
+import com.sun.labs.aura.aardvark.AardvarkService;
+import com.sun.labs.aura.aardvark.AardvarkServiceStarter;
+import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.store.Attention;
@@ -23,8 +25,10 @@ import com.sun.labs.util.command.CommandInterpreter;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -41,7 +45,8 @@ public class Shell {
     private CommandInterpreter shell;
     private ItemStore itemStore;
     private FeedCrawler feedCrawler;
-    private Aardvark aardvark;
+    private AardvarkImpl aardvark;
+    private AardvarkServiceStarter starter;
 
     public Shell() throws IOException {
         initComponents();
@@ -212,7 +217,7 @@ public class Shell {
                             if (args.length != 1) {
                                 getHelp();
                             } else {
-                                feedCrawler.start();
+                                ((AardvarkService) feedCrawler).start();
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
@@ -233,7 +238,7 @@ public class Shell {
                             if (args.length != 1) {
                                 getHelp();
                             } else {
-                                feedCrawler.stop();
+                                ((AardvarkService) feedCrawler).stop();
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
@@ -251,10 +256,13 @@ public class Shell {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length != 1) {
+                            if (args.length != 3) {
                                 getHelp();
                             } else {
-                                aardvark.startup();
+                                //
+                                // Get the service starter, which starts Aardvark.
+                                ConfigurationManager cm = new ConfigurationManager(new File(args[1]).toURI().toURL());
+                                starter = (AardvarkServiceStarter) cm.lookup(args[2]);
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
@@ -263,7 +271,7 @@ public class Shell {
                     }
 
                     public String getHelp() {
-                        return "usage: aaStart";
+                        return "usage: aaStart <configuration file> <starter component name>";
                     }
                 });
 
@@ -275,7 +283,9 @@ public class Shell {
                             if (args.length != 1) {
                                 getHelp();
                             } else {
-                                aardvark.shutdown();
+                                if(starter != null) {
+                                    starter.stopServices();
+                                }
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
@@ -341,7 +351,7 @@ public class Shell {
                                 for (int i = 0; i < count; i++) {
                                     String key = "key:" + timeStamp + "-" + i;
                                     Item item = itemStore.newItem(Entry.class, key);
-                                    itemStore.put(item);
+                                    item = itemStore.put(item);
                                 }
                             } else {
                                 getHelp();
@@ -375,9 +385,9 @@ public class Shell {
                                     User u = (User) itemStore.get(userID);
                                     SortedSet<Attention> attns = null;
                                     if (type == null) {
-                                        attns = u.getLastAttention(count);
+                                        attns = itemStore.getLastAttention(u, count);
                                     } else {
-                                        attns = u.getLastAttention(type, count);
+                                        attns = itemStore.getLastAttention(u, type, count);
                                     }
                                     for (Attention attn : attns) {
                                         System.out.println(attn.getItemID() +
@@ -423,19 +433,19 @@ public class Shell {
         shell.run();
     }
 
-    private void dumpAllUsers() throws AuraException {
+    private void dumpAllUsers() throws AuraException, RemoteException {
         Set<User> users = itemStore.getAll(User.class);
         for (User user : users) {
             dumpItem(user);
         }
     }
 
-    private void dumpUser(User user) throws AuraException {
+    private void dumpUser(User user) throws AuraException, RemoteException {
         dumpItem(user);
-        dumpAttentionData(user.getAttentionData());
+        dumpAttentionData(itemStore.getAttentionData(user));
     }
 
-    private void recommend(User user) throws AuraException {
+    private void recommend(User user) throws AuraException, RemoteException {
         SyndFeed feed = aardvark.getRecommendedFeed(user);
         for (Object syndEntryObject : feed.getEntries()) {
             SyndEntry syndEntry = (SyndEntry) syndEntryObject;
@@ -451,7 +461,7 @@ public class Shell {
 
     }
 
-    private void dumpAllFeeds() throws AuraException {
+    private void dumpAllFeeds() throws AuraException, RemoteException {
         Set<Feed> feeds = itemStore.getAll(Feed.class);
         long numFeeds = 0;
         for (Feed feed : feeds) {
@@ -461,19 +471,19 @@ public class Shell {
         System.out.println("Dumped " + numFeeds + " feeds");
     }
 
-    private void dumpItem(Item item) throws AuraException {
-        System.out.printf(" %d %d %s\n", item.getID(), item.getAttentionData().size(), item.getKey());
+    private void dumpItem(Item item) throws AuraException, RemoteException {
+        System.out.printf(" %d %d %s\n", item.getID(), itemStore.getAttentionData(item).size(), item.getKey());
     }
 
-    private void dumpFeed(Feed feed) throws AuraException {
+    private void dumpFeed(Feed feed) throws AuraException, RemoteException {
         dumpItem(feed);
         System.out.println("   Pulls  : " + feed.getNumPulls());
         System.out.println("   Last   : " + feed.getLastPullTime());
         System.out.println("   Errors : " + feed.getNumErrors());
-        dumpAttentionData(feed.getAttentionData());
+        dumpAttentionData(itemStore.getAttentionData(feed));
     }
 
-    private void dumpAttentionData(List<Attention> attentionData) throws AuraException {
+    private void dumpAttentionData(List<Attention> attentionData) throws AuraException, RemoteException {
         for (Attention attention : attentionData) {
             Item user = itemStore.get(attention.getUserID());
             Item item = itemStore.get(attention.getItemID());
@@ -486,9 +496,9 @@ public class Shell {
 
     public void initComponents() throws IOException {
         ConfigurationManager cm = new ConfigurationManager();
-        URL configFile = Aardvark.class.getResource("aardvarkConfig.xml");
+        URL configFile = AardvarkImpl.class.getResource("aardvarkConfig.xml");
         cm.addProperties(configFile);
-        aardvark = (Aardvark) cm.lookup("aardvark");
+        aardvark = (AardvarkImpl) cm.lookup("aardvark");
         itemStore = (ItemStore) cm.lookup("itemStore");
         feedCrawler = (FeedCrawler) cm.lookup("feedCrawler");
     }

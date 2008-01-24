@@ -16,7 +16,7 @@
     
     <!-- We'll use 4 indexing pipelines, which means that indexing will be 
     asynchronous:  unless the indexing queues are full, when something is
-    indexed control will be returned immediately to the caller -->
+    indexed, control will be returned immediately to the caller -->
     <property name="num_pipelines" value="4"/>
     
     <component name="index_config" type="com.sun.kt.search.IndexConfig">

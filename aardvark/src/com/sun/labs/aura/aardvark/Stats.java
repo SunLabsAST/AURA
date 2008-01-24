@@ -9,10 +9,12 @@
 
 package com.sun.labs.aura.aardvark;
 
+import java.io.Serializable;
+
 /**
  * Aardvark stats
  */
-public class Stats {
+public class Stats implements Serializable {
     private String version;
     private long numUsers;
     private long numItems;

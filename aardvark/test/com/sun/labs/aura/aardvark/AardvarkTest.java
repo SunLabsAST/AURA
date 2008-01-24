@@ -8,6 +8,7 @@
  */
 package com.sun.labs.aura.aardvark;
 
+import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
@@ -31,8 +32,11 @@ import static org.junit.Assert.*;
  */
 public class AardvarkTest {
 
-    Aardvark aardvark = null;
-    FeedCrawler crawler = null;
+    AardvarkImpl aardvark;
+
+    FeedCrawler crawler;
+
+    AardvarkServiceStarter starter;
 
     public AardvarkTest() {
     }
@@ -58,9 +62,9 @@ public class AardvarkTest {
 
     @After
     public void tearDown() throws Exception {
-        if (aardvark != null) {
-            aardvark.shutdown();
-            aardvark = null;
+        if(starter != null) {
+            starter.stopServices();
+            starter = null;
         }
     }
 
@@ -90,21 +94,25 @@ public class AardvarkTest {
         assertNull("missing user must be null", aardvark.getUser("missingUser"));
         URL feedURL1 = this.getClass().getResource("gr_pbl_starred.atom.xml");
         URL feedURL2 = this.getClass().getResource("gr_pbl_favorite.atom.xml");
-        User user1 = aardvark.enrollUser("openid.sun.com/plamere", feedURL1.toString());
+        User user1 = aardvark.enrollUser("openid.sun.com/plamere",
+                                         feedURL1.toString());
         assertNotNull("enrolled user can't be null", user1);
 
         User user2 = aardvark.getUser("openid.sun.com/plamere");
         assertTrue("users should match", user1.getID() == user2.getID());
 
-        User user3 = aardvark.enrollUser("openid.sun.com/stgreen", feedURL2.toString());
+        User user3 = aardvark.enrollUser("openid.sun.com/stgreen",
+                                         feedURL2.toString());
         assertNotNull("enrolled user can't be null", user3);
 
-        assertTrue("different users should not match", user1.getID() != user3.getID());
+        assertTrue("different users should not match", user1.getID() !=
+                   user3.getID());
 
         try {
-            User user4 = aardvark.enrollUser("openid.sun.com/plamere", feedURL1.toString());
+            User user4 = aardvark.enrollUser("openid.sun.com/plamere",
+                                             feedURL1.toString());
             fail("can't enroll duplicate user");
-        } catch (AuraException e) {
+        } catch(AuraException e) {
             assertTrue("can't enroll duplicate user", true);
         }
     }
@@ -116,43 +124,50 @@ public class AardvarkTest {
     public void getRecommendedFeed() throws Exception {
         assertNotNull("getting default aardvark", aardvark);
         URL feedURL1 = this.getClass().getResource("gr_pbl_starred.atom.xml");
-        User user1 = aardvark.enrollUser("openid.sun.com/plamere", feedURL1.toString());
+        User user1 = aardvark.enrollUser("openid.sun.com/plamere",
+                                         feedURL1.toString());
         assertNotNull("enrolled user can't be null", user1);
         crawler.crawlAllFeeds();
         SyndFeed feed = aardvark.getRecommendedFeed(user1);
         int entryCount = feed.getEntries().size();
-        assertTrue("proper recommendation feed count count: " + entryCount, entryCount == 13);
+        assertTrue("proper recommendation feed count count: " + entryCount,
+                   entryCount == 13);
 
         feed = aardvark.getRecommendedFeed(user1);
         entryCount = feed.getEntries().size();
-        assertTrue("Still proper recommendation feed count: " + entryCount, entryCount == 13);
+        assertTrue("Still proper recommendation feed count: " + entryCount,
+                   entryCount == 13);
     }
 
-    @Test public void testMultiUserRecommendedFeed() throws Exception {
+    @Test
+    public void testMultiUserRecommendedFeed() throws Exception {
         assertNotNull("getting default aardvark", aardvark);
         URL feedURL1 = this.getClass().getResource("gr_pbl_starred.atom.xml");
-        User user1 = aardvark.enrollUser("openid.sun.com/plamere", feedURL1.toString());
+        User user1 = aardvark.enrollUser("openid.sun.com/plamere",
+                                         feedURL1.toString());
         URL feedURL2 = this.getClass().getResource("gr_pbl_favorite.atom.xml");
-        User user2 = aardvark.enrollUser("openid.sun.com/stgreen", feedURL2.toString());
+        User user2 = aardvark.enrollUser("openid.sun.com/stgreen",
+                                         feedURL2.toString());
         crawler.crawlAllFeeds();
 
         SyndFeed feed = aardvark.getRecommendedFeed(user1);
         int entryCount = feed.getEntries().size();
-        assertTrue("proper recommendation feed count count: " + entryCount, entryCount == 13);
+        assertTrue("proper recommendation feed count count: " + entryCount,
+                   entryCount == 13);
         feed = aardvark.getRecommendedFeed(user2);
         entryCount = feed.getEntries().size();
-        assertTrue("proper recommendation feed count count: " + entryCount, entryCount == 4);
+        assertTrue("proper recommendation feed count count: " + entryCount,
+                   entryCount == 4);
     }
 
     private void prepareFreshAardvark() {
         try {
-            ConfigurationManager cm = new ConfigurationManager();
-            URL configFile = this.getClass().getResource("aardvarkTestConfig.xml");
-            cm.addProperties(configFile);
-            aardvark = (Aardvark) cm.lookup("aardvark");
-            aardvark.startup();
+            ConfigurationManager cm =
+                    new ConfigurationManager(this.getClass().getResource("aardvarkTestConfig.xml"));
+            starter = (AardvarkServiceStarter) cm.lookup("aardvarkStarter");
+            aardvark = (AardvarkImpl) cm.lookup("aardvark");
             crawler = (FeedCrawler) cm.lookup("feedCrawler");
-        } catch (IOException ioe) {
+        } catch(IOException ioe) {
         }
     }
 }

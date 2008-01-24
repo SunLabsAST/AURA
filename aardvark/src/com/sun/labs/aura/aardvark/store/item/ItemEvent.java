@@ -1,11 +1,12 @@
 package com.sun.labs.aura.aardvark.store.item;
 
 import com.sun.labs.aura.aardvark.util.AuraException;
+import java.io.Serializable;
 
 /**
  * Represents an event as related to an Item.
  */
-public class ItemEvent {
+public class ItemEvent implements Serializable {
     /** Describes the type of change if this is event is sent for a change */
     public enum ChangeType {
         /** Only the attention was changed, not the Aura */

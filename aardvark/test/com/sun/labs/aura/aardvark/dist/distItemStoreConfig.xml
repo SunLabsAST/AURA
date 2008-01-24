@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : distItemStoreConfig.xml
+    Created on : January 9, 2008, 3:03 PM
+    Author     : stgreen
+    Description:
+        A configuration for a distributed item store.
+-->
+
+<config>
+    
+    <!-- A component registry that will serve the component classes -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>Aura</item>
+        </propertylist>
+        <property name="csDirs" value="/export/home/stgreen/Projects/Aura/aura-jini/aardvark/build/classes:/export/home/stgreen/Projects/LabsUtil/build/classes"/>
+    </component>
+    
+    <!-- An item store that can be sent to a service registrar for use by others. -->
+    <component name="itemStore" type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore" export="true" lease="100000">
+        <property name="dbEnv" value="/tmp/aura/itemStore.db"/>
+        <property name="overwrite" value="true"/>
+    </component>
+</config>

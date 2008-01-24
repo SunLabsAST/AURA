@@ -3,12 +3,13 @@ package com.sun.labs.aura.aardvark.impl.bdb.store.item;
 
 import com.sleepycat.persist.model.KeyField;
 import com.sleepycat.persist.model.Persistent;
+import java.io.Serializable;
 
 /**
  * A persistent composite key class incorporating an ID and a timestamp
  */
 @Persistent
-public class IDTimeKey {
+public class IDTimeKey implements Serializable {
     @KeyField(1) private long ID;
     @KeyField(2) private long timeStamp;
     

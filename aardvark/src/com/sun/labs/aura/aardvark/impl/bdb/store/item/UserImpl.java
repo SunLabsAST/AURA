@@ -12,6 +12,7 @@ import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
@@ -71,24 +72,6 @@ public class UserImpl extends ItemImpl implements User {
     }
 
     /**
-     * Get all the feeds associated with this user that have a particular
-     * attention type in the association.
-     * 
-     * @param type the type of attention to get feeds for
-     * @return the feeds
-     */
-    public Set<Feed> getFeeds(Attention.Type type) {
-        Set<Feed> feeds = new HashSet<Feed>();
-        
-        Set<PersistentAttention> attns = bdb.getAttentionForUser(getID(), type);
-        for (PersistentAttention attn : attns) {
-            FeedImpl feed = (FeedImpl)bdb.getItem(attn.getItemID());
-            feeds.add(feed);
-        }
-        return feeds;
-    }
-    
-    /**
      * Adds a feed for this user.  This is a convenience method that is
      * equivalent to creating an Attention object and passing it to the
      * Item Store's attend method.
@@ -101,9 +84,13 @@ public class UserImpl extends ItemImpl implements User {
             throw new AuraException("Feed must be made persistent before it "+
                     "can be added to a user");
         }
-        SimpleAttention attn = new SimpleAttention(this, f, type);
-        BerkeleyItemStore store = BerkeleyItemStore.getItemStore();
-        store.attend(attn);
+        try {
+            SimpleAttention attn = new SimpleAttention(this, f, type);
+            BerkeleyItemStore store = BerkeleyItemStore.getItemStore();
+            store.attend(attn);
+        } catch(RemoteException rx) {
+            throw new AuraException("Error adding feed " + f, rx);
+        }
     }
     
     public long getLastFetchTime() {
@@ -118,32 +105,6 @@ public class UserImpl extends ItemImpl implements User {
     }
 
     
-    /**
-     * Gets the N most recent attentions that this user has created.
-     * This method will only search back to at most one year.
-     * 
-     * @param type the type of attention to find
-     * @param count the number of attention to retrieve
-     * @return a set of up to <code>count</code> attentions
-     */
-    public SortedSet<Attention> getLastAttention(int count) {
-        return bdb.getLastAttentionForUser(getID(), null, count);
-    }
-    
-    
-    /**
-     * Gets the N most recent attentions of a particular type that this user
-     * has created.  This method will only search back to at most one year.
-     * 
-     * @param type the type of attention to find
-     * @param count the number of attention to retrieve
-     * @return a set of up to <code>count</code> attentions
-     */
-    public SortedSet<Attention> getLastAttention(Attention.Type type,
-                                                 int count) {
-        return bdb.getLastAttentionForUser(getID(), type, count);
-    }
-
     public String getTypeString() {
         return User.ITEM_TYPE;
     }
