@@ -24,7 +24,7 @@
     <property name="auraHome" value="/aura"/>
     
     <!-- Where the aura distribution jar was unpacked. -->
-    <property name="auraDistDir" value="${user.dir}"/>
+    <property name="auraDistDir" value="${auraHome}/dist"/>
 
     <property name="csPort" value="4444"/>
     
@@ -33,14 +33,14 @@
         <propertylist name="groupList">
             <item>Aura</item>
         </propertylist>
-        <property name="csDirs" value="${auraHome}/lib"/>
+        <property name="csDirs" value="${auraDistDir}/lib"/>
         <property name="csPort" value="${csPort}"/>
         <propertylist name="codebaseJars">
             <item>aardvark.jar</item>
             <item>LabsUtil.jar</item>
             <item>rome-0.9.jar</item>
         </propertylist>
-        <property name="securityPolicy" value="${auraHome}/jsk-all.policy"/>
+        <property name="securityPolicy" value="${auraDistDir}/jsk-all.policy"/>
     </component>
     
     <component name="aardvarkStarter" type="com.sun.labs.aura.aardvark.AardvarkServiceStarter">

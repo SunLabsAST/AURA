@@ -14,7 +14,8 @@
     <property name="auraHome" value="/aura"/>
     
     <!-- Where the aura distribution jar was unpacked. -->
-    <property name="auraDistDir" value="${user.dir}"/>
+    <property name="auraDistDir" value="${auraHome}/dist"/>
+
     <property name="csPort" value="2222"/>
     
     <property name="indexDir" value="${auraHome}/entryContent.idx"/>
@@ -30,7 +31,7 @@
         <propertylist name="groupList">
             <item>Aura</item>
         </propertylist>
-        <property name="csDirs" value="${auraHome}/lib"/>
+        <property name="csDirs" value="${auraDistDir}/lib"/>
         <property name="csPort" value="${csPort}"/>
         <propertylist name="codebaseJars">
             <item>aardvark.jar</item>
