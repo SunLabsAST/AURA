@@ -32,6 +32,7 @@ import java.rmi.RemoteException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -129,6 +130,14 @@ public class AardvarkImpl implements Configurable, Aardvark, AardvarkService {
             throw new AuraException("Error communicating with item store", rx);
         }
     }
+    
+    public Set<Feed> getFeeds(User user, Attention.Type type)  throws AuraException, RemoteException {
+        try {
+            return itemStore.getFeeds(user, type);
+        } catch(RemoteException rx) {
+            throw new AuraException("Error communicating with item store", rx);
+        }
+   }
 
     /**
      * Enrolls a user in the recommender
@@ -295,15 +304,12 @@ public class AardvarkImpl implements Configurable, Aardvark, AardvarkService {
             public void run() {
                 try {
                     // Thread.sleep(10 * 60 * 1000L);
-                    Thread.sleep(10 * 1000L);
                     addLocalOpml("autoEnrolledFeeds.opml.xml");
                     if(autoEnrollMegaTestFeeds) {
                         addLocalOpml("tech_blogs.opml");
                         addLocalOpml("politics_blogs.opml");
                         addLocalOpml("news_blogs.opml");
                     }
-                } catch(InterruptedException ex) {
-                    logger.info("autoenroller interrupted");
                 } catch(Throwable t) {
                     logger.severe("bad thing happend " + t);
                 }
@@ -313,6 +319,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AardvarkService {
     }
 
     public void start() {
+        autoEnroll();
     }
 
     public void stop() {
