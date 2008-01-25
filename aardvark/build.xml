@@ -5,7 +5,7 @@
 <project name="aardvark" default="default" basedir=".">
     <description>Builds, tests, and runs the project aardvark.</description>
     <import file="nbproject/build-impl.xml"/>
-
+    
     <import file="nbproject/profiler-build-impl.xml"/>    <!--
 
     There exist several targets which are by default empty and which can be 
@@ -93,13 +93,47 @@
                     <formatter type="xml"/>
                     <jvmarg line="${run.jvmargs}"/>
                 </junit>
-                 <junitreport todir="${build.test.results.dir}">
-                      <fileset dir="${build.test.results.dir}">
-                            <include name="TEST-*.xml" />
-                       </fileset>
+                <junitreport todir="${build.test.results.dir}">
+                    <fileset dir="${build.test.results.dir}">
+                        <include name="TEST-*.xml" />
+                    </fileset>
                     <report todir="${build.test.results.dir}" />
-               </junitreport>
+                </junitreport>
             </sequential>
         </macrodef>
+    </target>
+    
+    <!-- Builds a copy of the jar with a specific main class -->
+    <target depends="init,compile,-pre-pre-jar,-pre-jar" name="do-dist-jar-with-libraries">
+        <property location="${build.classes.dir}" name="build.classes.dir.resolved"/>
+        <pathconvert property="run.classpath.without.build.classes.dir">
+            <path path="${run.classpath}"/>
+            <map from="${build.classes.dir.resolved}" to=""/>
+        </pathconvert>
+        <pathconvert pathsep=" " property="jar.classpath">
+            <path path="${run.classpath.without.build.classes.dir}"/>
+            <chainedmapper>
+                <flattenmapper/>
+                <globmapper from="*" to="lib/*"/>
+            </chainedmapper>
+        </pathconvert>
+        <taskdef classname="org.netbeans.modules.java.j2seproject.copylibstask.CopyLibs" classpath="${libs.CopyLibs.classpath}" name="copylibs"/>
+        <copylibs compress="${jar.compress}" jarfile="${dist.jar}" manifest="${manifest.file}" runtimeclasspath="${run.classpath.without.build.classes.dir}">
+            <fileset dir="${build.classes.dir}"/>
+            <manifest>
+                <attribute name="Main-Class" value="com.sun.labs.aura.aardvark.AardvarkServiceStarter"/>
+                <attribute name="Class-Path" value="${jar.classpath}"/>
+            </manifest>
+        </copylibs>
+    </target>
+    
+    <!-- Package up the jar with the service starter main class along with some
+         other things. -->
+    <target name="dist-jar" description="Build a jar to distribute" depends="do-dist-jar-with-libraries">
+        <delete file="${dist.dir}/aardvark-dist.jar"/>
+        <copy file="lib/jini/jsk-all.policy" todir="${dist.dir}"/>
+        <jar jarfile="${dist.dir}/aardvark-dist.jar">
+            <fileset dir="${dist.dir}"/>
+        </jar>
     </target>
 </project>

@@ -4,19 +4,16 @@
  */
 package com.sun.labs.aura.aardvark;
 
-import com.sun.jini.config.ConfigUtil;
 import com.sun.labs.util.LabsLogFormatter;
 import com.sun.labs.util.props.ComponentRegistry;
 import com.sun.labs.util.props.ConfigComponentList;
-import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
 import java.io.IOException;
-import java.net.UnknownHostException;
-import java.rmi.RMISecurityManager;
+import java.net.URL;
 import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
@@ -76,6 +73,9 @@ public class AardvarkServiceStarter implements Configurable {
 
     public static void usage() {
         System.err.println("Usage: com.sun.labs.aura.aardvark.AardvarkServiceStarter <config> <component name>");
+        System.err.println("  Some useful global properties are auraHome and auraDistDir");
+        System.err.println("  auraHome defaults to /aura.");
+        System.err.println("  auraDistDir defaults to the current working directory");
     }
 
     /**
@@ -97,8 +97,14 @@ public class AardvarkServiceStarter implements Configurable {
         }
 
         try {
-            ConfigurationManager cm =
-                    new ConfigurationManager((new File(args[0])).toURI().toURL());
+            //
+            // See if we can get a resource for the configuration file first.
+            // This is mostly a convenience.
+            URL cu = AardvarkServiceStarter.class.getResource(args[0]);
+            if(cu == null) {
+                cu = (new File(args[0])).toURI().toURL();
+            }
+            ConfigurationManager cm = new ConfigurationManager(cu);
             AardvarkServiceStarter starter =
                     (AardvarkServiceStarter) cm.lookup(args[1]);
 
