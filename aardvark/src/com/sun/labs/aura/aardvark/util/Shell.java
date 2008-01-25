@@ -10,8 +10,6 @@ package com.sun.labs.aura.aardvark.util;
 
 import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.AardvarkService;
-import com.sun.labs.aura.aardvark.AardvarkServiceStarter;
-import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.store.Attention;
