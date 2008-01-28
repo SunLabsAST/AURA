@@ -1,15 +1,15 @@
 
 package com.sun.labs.aura.aardvark.store.item;
 
-import com.sun.labs.aura.aardvark.store.Attention;
-import java.util.List;
+import java.io.Serializable;
+import java.util.HashMap;
 
 /**
  * A simple item for storage in an item store.  Items have keys, types, and
  * names.  Items also store a map from string names to object values for
  * storage of arbitrary data.
  */
-public interface SimpleItem {
+public interface SimpleItem extends Serializable {
     public enum ItemType {
         FEED,
         BLOGENTRY,
@@ -48,4 +48,24 @@ public interface SimpleItem {
      */
     public String getName();
     
+    /**
+     * Sets the name of this item.  The name should be an end-user readable
+     * name for this item.
+     * 
+     * @param name the new name of this item
+     */
+    public void setName(String name);
+    
+    /**
+     * Gets the internal copy of the data storage map used by this item.
+     * 
+     * @return the item's map
+     */
+    public HashMap<String,Serializable> getMap();
+    
+    /**
+     * Replaces the internal copy of the data storage map with the provided map
+     */
+    public void setMap(HashMap<String,Serializable> map);
+
 }

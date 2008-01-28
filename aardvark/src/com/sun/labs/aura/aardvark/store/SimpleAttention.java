@@ -10,6 +10,8 @@
 package com.sun.labs.aura.aardvark.store;
 
 import com.sun.labs.aura.aardvark.store.item.Item;
+import com.sun.labs.aura.aardvark.store.item.SimpleItem;
+import com.sun.labs.aura.aardvark.store.item.SimpleUser;
 import com.sun.labs.aura.aardvark.store.item.User;
 
 /**
@@ -41,6 +43,19 @@ public class SimpleAttention implements Attention {
     public SimpleAttention(User u, Item i, Type type) {
         this(u, i, type, System.currentTimeMillis());
     }
+
+    /**
+     * Creates a SimpleAttention object.  The timestamp is set to the current
+     * system time.
+     * 
+     * @param u the related user
+     * @param i the related item
+     * @param type the type of this Attention
+     */
+    public SimpleAttention(SimpleUser u, SimpleItem i, Type type) {
+        this(u, i, type, System.currentTimeMillis());
+    }
+
     
     /**
      * Creates a SimpleAttention object with a specified time.
@@ -58,8 +73,23 @@ public class SimpleAttention implements Attention {
         this.timeStamp = timeStamp;
     }
     
+     /**
+     * Creates a SimpleAttention object with a specified time.
+     * 
+     * @param u the related user
+     * @param i the related item
+     * @param type the type of this Attention
+     * @param timeStamp the time at which the attention occurred
+     */
+    public SimpleAttention(SimpleUser u, SimpleItem i,
+                           Type type, long timeStamp) {
+        this.userID = u.getID();
+        this.itemID = i.getID();
+        this.type = type;
+        this.timeStamp = timeStamp;
+    }
     
-        /**
+    /**
      * Creates a SimpleAttention object with a specified time.
      * 
      * @param userID the ID of the related user

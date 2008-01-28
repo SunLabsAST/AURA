@@ -15,8 +15,10 @@ import com.sun.labs.aura.aardvark.store.item.SimpleUser;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigString;
+import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,7 +34,7 @@ import java.util.logging.Logger;
  * An implementation of the item store using the berkeley database as a back
  * end.
  */
-public class BerkeleyItemStore implements SimpleItemStore {
+public class BerkeleyItemStore implements SimpleItemStore, Configurable {
     /**
      * The location of the BDB/JE Database Environment
      */
@@ -168,10 +170,15 @@ public class BerkeleyItemStore implements SimpleItemStore {
         return (SimpleUser)bdb.getItem(key);
     }
 
-    public SimpleItem put(SimpleItem item) throws AuraException {
+    public SimpleItem putItem(SimpleItem item) throws AuraException {
         boolean existed = false;
         if (item instanceof ItemImpl) {
             ItemImpl itemImpl = (ItemImpl)item;
+            //
+            // If this was a remote object, its transient map will be null
+            // and storeMap will be a no-op.  If it was a local object then
+            // storeMap will serialize the map (if there is one).
+            itemImpl.storeMap();
             ItemImpl prev = bdb.putItem(itemImpl);
             if (prev != null) {
                 existed = true;
@@ -187,6 +194,10 @@ public class BerkeleyItemStore implements SimpleItemStore {
             throw new AuraException ("Unsupported Item type");
         }
 
+    }
+    
+    public SimpleUser putUser(SimpleUser user) throws AuraException {
+        return (SimpleUser)putItem(user);
     }
     
     public Set<SimpleItem> getItems(SimpleUser user, Type attnType, ItemType itemType) {
@@ -360,7 +371,12 @@ public class BerkeleyItemStore implements SimpleItemStore {
                 l.addAll(nulls);
             }
             for (SimpleItemListener il : l) {
-                il.itemChanged(big);
+                try {
+                    il.itemChanged(big);
+                } catch (RemoteException e)  {
+                    logger.log(Level.WARNING,
+                            "Error sending change event to " + il, e);
+                }
             }
             
             //
@@ -369,7 +385,12 @@ public class BerkeleyItemStore implements SimpleItemStore {
             big = new SimpleItemEvent(auraItems.toArray(new SimpleItem[0]),
                                           SimpleItemEvent.ChangeType.AURA);
             for (SimpleItemListener il : l) {
-                il.itemChanged(big);
+                try {
+                    il.itemChanged(big);
+                } catch (RemoteException e)  {
+                    logger.log(Level.WARNING,
+                            "Error sending change event to " + il, e);
+                }
             }
         }
     }
@@ -425,7 +446,12 @@ public class BerkeleyItemStore implements SimpleItemStore {
             //
             // Finally, sned the event out
             for (SimpleItemListener il : l) {
-                il.itemCreated(big);
+                try {
+                    il.itemCreated(big);
+                } catch (RemoteException e)  {
+                    logger.log(Level.WARNING,
+                            "Error sending create event to " + il, e);
+                }
             }
         }
     }

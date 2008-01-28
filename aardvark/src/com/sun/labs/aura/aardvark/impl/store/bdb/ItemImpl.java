@@ -28,22 +28,22 @@ import java.util.logging.Logger;
 public class ItemImpl implements SimpleItem {
     /** The primary key will be the Item's id */
     @PrimaryKey(sequence="Items")
-    private long id;
+    protected long id;
 
     /** Items also have String keys that for now we'll say are unique */
     @SecondaryKey(relate=Relationship.ONE_TO_ONE)
-    private String key;
+    protected String key;
     
     /** The type of this item, used for building sub indexes */
     @SecondaryKey(relate=Relationship.MANY_TO_ONE)
-    private int itemType;
+    protected int itemType;
     
     /** The type combined with the time added, for faster querying */
     @SecondaryKey(relate=Relationship.MANY_TO_ONE)
-    private IntAndTimeKey typeAndTimeAdded;
+    protected IntAndTimeKey typeAndTimeAdded;
     
     /** The name of this item.  This is a persistent field. */
-    private String name;
+    protected String name;
     
     /**
      * Attention must be stored as a set of IDs since entity types cannot
@@ -51,14 +51,13 @@ public class ItemImpl implements SimpleItem {
      * do a JOIN automatically).  We'll have to manually pull in the attention
      * data when somebody asks for it.
      */
-    private HashSet<Long> attentionIDs;
-
-    private transient List<Attention> attention;
+    protected HashSet<Long> attentionIDs;
 
     /** Persistent data for the HashMap of values */
-    private byte[] mapBytes;
+    protected byte[] mapBytes;
     
-    private transient HashMap<String,Serializable> map;
+    /** Instantiated hashmap from the mapBytes */
+    private transient HashMap<String,Serializable> map = null;
     
     protected static Logger logger = Logger.getLogger("");
     
@@ -105,6 +104,10 @@ public class ItemImpl implements SimpleItem {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+    
     /**
      * Internal method.  Adds the ID of an attention to this Item for storage
      * in the database.
@@ -124,7 +127,7 @@ public class ItemImpl implements SimpleItem {
      * @return the item's map
      */
     public HashMap<String,Serializable> getMap() {
-        if (map == null && mapBytes.length > 0) {
+        if (map == null && mapBytes != null && mapBytes.length > 0) {
             // deserialize mapBytes into map object
             try {
                 ByteArrayInputStream bais = new ByteArrayInputStream(mapBytes);
@@ -152,7 +155,7 @@ public class ItemImpl implements SimpleItem {
      * This method should be called before the HashMap is stored in the BDB.
      * This will cause the HashMap to get serialized into byte[] form.
      */
-    protected void storeMap() {
+    public void storeMap() {
         if (map != null) {
             try {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -168,4 +171,19 @@ public class ItemImpl implements SimpleItem {
         }
     }
 
+    /**
+     * When this item is serialized, see if we have an in-memory (transient)
+     * version of our data hash map.  If so, serialize it to the byte array
+     * before any further serialization happens.
+     * 
+     * @param oos
+     */
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+        //
+        // If the map has been instantiated, we'll assume that it is dirty.
+        if (map != null) {
+            storeMap();
+        }
+        oos.defaultWriteObject();
+    }
 }

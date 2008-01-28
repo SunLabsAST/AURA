@@ -8,6 +8,7 @@ import com.sun.labs.aura.aardvark.store.item.SimpleUser;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.props.Component;
 import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.Set;
 
@@ -25,7 +26,7 @@ public interface SimpleItemStore extends Component, Remote {
      * @return a list containing all items of the given type
      */
     public Set<SimpleItem> getAll(ItemType itemType)
-            throws AuraException;
+            throws AuraException, RemoteException;
 
     /**
      * Gets an item from the store that has the given aura ID number
@@ -35,7 +36,7 @@ public interface SimpleItemStore extends Component, Remote {
      * @throws com.sun.labs.aura.aardvark.util.AuraException if the id is
      *         invalid
      */
-    public SimpleItem getItem(long id) throws AuraException;
+    public SimpleItem getItem(long id) throws AuraException, RemoteException;
 
     /**
      * Gets an item from the store that has the given key
@@ -44,7 +45,8 @@ public interface SimpleItemStore extends Component, Remote {
      * @return the requested item
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    public SimpleItem getItem(String key) throws AuraException;
+    public SimpleItem getItem(String key)
+            throws AuraException, RemoteException;
 
     
     /**
@@ -54,7 +56,7 @@ public interface SimpleItemStore extends Component, Remote {
      * @return the requested user
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    public SimpleUser getUser(long id) throws AuraException;
+    public SimpleUser getUser(long id) throws AuraException, RemoteException;
 
     /**
      * Gets a user from the store that has the given key
@@ -63,7 +65,8 @@ public interface SimpleItemStore extends Component, Remote {
      * @return the requested user
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    public SimpleUser getUser(String key) throws AuraException;
+    public SimpleUser getUser(String key)
+            throws AuraException, RemoteException;
 
     /**
      * Puts an item into the ItemStore.  The Item may be either a new Item
@@ -77,7 +80,23 @@ public interface SimpleItemStore extends Component, Remote {
      * @throws com.sun.labs.aura.aardvark.util.AuraException if the Item is
      *         not valid for adding/updating
      */
-    public SimpleItem put(SimpleItem item) throws AuraException;
+    public SimpleItem putItem(SimpleItem item)
+            throws AuraException, RemoteException;
+
+    /**
+     * Puts a user into the ItemStore.  The User may be either a new User
+     * or a modification of an existing User that was retrieved using one of
+     * the get methods.  If the User has the same aura ID and key as an
+     * existing user, the existing user will be updated.  If the aura ID and
+     * key are new, the user will be stored.  In any other case, an
+     * AuraException will be thrown.
+     * 
+     * @param user the User that should be placed into the ItemStore
+     * @throws com.sun.labs.aura.aardvark.util.AuraException if the User is
+     *         not valid for adding/updating
+     */
+    public SimpleUser putUser(SimpleUser user)
+            throws AuraException, RemoteException;
 
     /**
      * Gets all the items of a particular type that have been added since a
@@ -92,7 +111,7 @@ public interface SimpleItemStore extends Component, Remote {
     public DBIterator<SimpleItem> getItemsAddedSince(
             ItemType type,
             Date timeStamp)
-            throws AuraException;
+            throws AuraException, RemoteException;
     
     /**
      * Gets all the items of a particular type to which a particular user has
@@ -107,7 +126,7 @@ public interface SimpleItemStore extends Component, Remote {
     public Set<SimpleItem> getItems(
             SimpleUser user,
             Attention.Type attnType,
-            ItemType itemType) throws AuraException;
+            ItemType itemType) throws AuraException, RemoteException;
 
 
     /**
@@ -117,7 +136,8 @@ public interface SimpleItemStore extends Component, Remote {
      * @return the attention or null if the attention doesn't exist
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    public Attention getAttention(long attnID) throws AuraException;
+    public Attention getAttention(long attnID) 
+            throws AuraException, RemoteException;
     
     /**
      * Get all the attention related to a particular item
@@ -126,7 +146,8 @@ public interface SimpleItemStore extends Component, Remote {
      * @return the set of all attention
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    public Set<Attention> getAttention(SimpleItem item) throws AuraException;
+    public Set<Attention> getAttention(SimpleItem item)
+            throws AuraException, RemoteException;
     
     /**
      * Adds attention to the the ItemStore.  The Attention should contain
@@ -138,7 +159,8 @@ public interface SimpleItemStore extends Component, Remote {
      * @throws com.sun.labs.aura.aardvark.util.AuraException in the event that
      *         the attention is invalid
      */
-    public Attention attend(Attention att) throws AuraException;
+    public Attention attend(Attention att)
+            throws AuraException, RemoteException;
     
     
     /**
@@ -151,7 +173,7 @@ public interface SimpleItemStore extends Component, Remote {
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
     public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)
-            throws AuraException;
+            throws AuraException, RemoteException;
     
 
     /**
@@ -170,7 +192,7 @@ public interface SimpleItemStore extends Component, Remote {
      */
     public void addItemListener(ItemType itemType,
                                 SimpleItemListener listener)
-            throws AuraException;
+            throws AuraException, RemoteException;
     
    
     /**
@@ -187,7 +209,7 @@ public interface SimpleItemStore extends Component, Remote {
      */
     public void removeItemListener(ItemType itemType,
                                    SimpleItemListener listener)
-            throws AuraException;
+            throws AuraException, RemoteException;
 
     /**
      * Gets the count of the number of items of a particular type that are
@@ -196,21 +218,13 @@ public interface SimpleItemStore extends Component, Remote {
      * @param itemType the type of item to count
      * @return the number of items of that type
      */
-    public long getItemCount(ItemType itemType);
-    
-    /**
-     * Get stats about the Item Store.  The ItemStoreStats is implementation
-     * specfic to Aardvark and returns info about users, entries, and
-     * attention.
-     * 
-     * @return the item store stats
-     */
-    public ItemStoreStats getStats() throws AuraException;
+    public long getItemCount(ItemType itemType)
+            throws AuraException, RemoteException;
     
     /**
      * Closes the item store cleanly.  This should be called before the
      * application exits.
      */
-    public void close() throws AuraException;
+    public void close() throws AuraException, RemoteException;
 
 }

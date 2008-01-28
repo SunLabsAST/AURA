@@ -3,12 +3,13 @@ package com.sun.labs.aura.aardvark.impl.store.bdb;
 
 import com.sleepycat.persist.model.KeyField;
 import com.sleepycat.persist.model.Persistent;
+import java.io.Serializable;
 
 /**
  * A persistent composite key class incorporating an int and a timestamp
  */
 @Persistent
-public class IntAndTimeKey {
+public class IntAndTimeKey implements Serializable {
     @KeyField(1) private int value;
     @KeyField(2) private long timeStamp;
     

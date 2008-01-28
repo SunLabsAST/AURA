@@ -286,12 +286,12 @@ public class BerkeleyDataWrapper {
                 } catch (DatabaseException ex) {
                     throw new AuraException("Txn abort failed", ex);
                 }
-            } catch (DatabaseException e) {
+            } catch (Exception e) {
                 try {
                     txn.abort();
                 } catch (DatabaseException ex) {
                 }
-                throw new AuraException("Transaction failed", e);
+                throw new AuraException("putItem transaction failed", e);
             }
         }
         throw new AuraException("putItem failed for " +

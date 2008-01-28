@@ -1,6 +1,5 @@
 package com.sun.labs.aura.aardvark.store;
 
-import com.sleepycat.persist.model.Persistent;
 import java.io.Serializable;
 
 /**
