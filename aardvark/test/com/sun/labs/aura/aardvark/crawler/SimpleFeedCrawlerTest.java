@@ -5,17 +5,14 @@
 package com.sun.labs.aura.aardvark.crawler;
 
 import com.sun.labs.aura.aardvark.util.OPMLProcessor;
-import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import com.sun.labs.aura.aardvark.impl.crawler.SimpleFeedCrawler;
 import com.sun.labs.aura.aardvark.store.ItemStore;
-import com.sun.labs.aura.aardvark.store.ItemStoreStats;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.LabsLogFormatter;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.io.IOException;
 import java.net.URL;
-import java.rmi.RemoteException;
 import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
@@ -32,8 +29,6 @@ import static org.junit.Assert.*;
  */
 public class SimpleFeedCrawlerTest {
 
-    private FeedCrawler crawler;
-    
     private ItemStore store;
     private SimpleFeedCrawler crawler;
 
