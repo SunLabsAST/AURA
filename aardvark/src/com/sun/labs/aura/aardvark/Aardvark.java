@@ -6,6 +6,7 @@
 package com.sun.labs.aura.aardvark;
 
 import com.sun.labs.aura.aardvark.store.Attention;
+import com.sun.labs.aura.aardvark.store.item.Feed;
 import com.sun.labs.aura.aardvark.store.item.User;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.util.props.Component;
@@ -14,6 +15,7 @@ import java.net.URL;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -62,6 +64,14 @@ public interface Aardvark extends Component, Remote {
     User enrollUser(String openID, String feed) throws AuraException, RemoteException;
 
     List<Attention> getAttentionData(User user) throws AuraException, RemoteException;
+    
+    /**
+     * Get the feeds of a particular type associated with a user.
+     * @param user the user whose feeds we want
+     * @param type the type of attention that we want the feeds to have
+     * @return a list of the feeds of the given type for the given user.
+     */
+    Set<Feed> getFeeds(User user, Attention.Type type) throws AuraException, RemoteException;
 
     /**
      * Gets the feed for the particular user

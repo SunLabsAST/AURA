@@ -8,9 +8,8 @@
  */
 package com.sun.labs.aura.aardvark.util;
 
+import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.AardvarkService;
-import com.sun.labs.aura.aardvark.AardvarkServiceStarter;
-import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.store.Attention;
@@ -45,11 +44,10 @@ public class Shell {
     private CommandInterpreter shell;
     private ItemStore itemStore;
     private FeedCrawler feedCrawler;
-    private AardvarkImpl aardvark;
-    private AardvarkServiceStarter starter;
+    private Aardvark aardvark;
 
-    public Shell() throws IOException {
-        initComponents();
+    public Shell(String configFile) throws IOException {
+        initComponents(configFile);
 
         Logger rl = Logger.getLogger("");
         for (Handler h : rl.getHandlers()) {
@@ -251,53 +249,6 @@ public class Shell {
                     }
                 });
 
-        shell.add("aaStart",
-                new CommandInterface() {
-
-                    public String execute(CommandInterpreter ci, String[] args) {
-                        try {
-                            if (args.length != 3) {
-                                getHelp();
-                            } else {
-                                //
-                                // Get the service starter, which starts Aardvark.
-                                ConfigurationManager cm = new ConfigurationManager(new File(args[1]).toURI().toURL());
-                                starter = (AardvarkServiceStarter) cm.lookup(args[2]);
-                            }
-                        } catch (Exception ex) {
-                            System.out.println("Error " + ex);
-                        }
-                        return "";
-                    }
-
-                    public String getHelp() {
-                        return "usage: aaStart <configuration file> <starter component name>";
-                    }
-                });
-
-        shell.add("aaStop",
-                new CommandInterface() {
-
-                    public String execute(CommandInterpreter ci, String[] args) {
-                        try {
-                            if (args.length != 1) {
-                                getHelp();
-                            } else {
-                                if(starter != null) {
-                                    starter.stopServices();
-                                }
-                            }
-                        } catch (Exception ex) {
-                            System.out.println("Error " + ex);
-                        }
-                        return "";
-                    }
-
-                    public String getHelp() {
-                        return "usage: aaStop";
-                    }
-                });
-
         shell.add("feeds",
                 new CommandInterface() {
 
@@ -494,18 +445,20 @@ public class Shell {
 
     }
 
-    public void initComponents() throws IOException {
-        ConfigurationManager cm = new ConfigurationManager();
-        URL configFile = AardvarkImpl.class.getResource("aardvarkConfig.xml");
-        cm.addProperties(configFile);
-        aardvark = (AardvarkImpl) cm.lookup("aardvark");
+    public void initComponents(String configFile) throws IOException {
+        URL cu = getClass().getResource(configFile);
+        if(cu == null) {
+            cu = (new File(configFile)).toURI().toURL();
+        }
+        ConfigurationManager cm = new ConfigurationManager(cu);
+        aardvark = (Aardvark) cm.lookup("aardvark");
         itemStore = (ItemStore) cm.lookup("itemStore");
         feedCrawler = (FeedCrawler) cm.lookup("feedCrawler");
     }
 
     public static void main(String[] args) {
         try {
-            Shell shell = new Shell();
+            Shell shell = new Shell(args[0]);
             shell.go();
         } catch (IOException ex) {
             System.err.println("Can't run shell " + ex);
