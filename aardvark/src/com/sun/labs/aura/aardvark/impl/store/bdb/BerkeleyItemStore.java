@@ -2,6 +2,7 @@
 package com.sun.labs.aura.aardvark.impl.store.bdb;
 
 import com.sleepycat.je.DatabaseException;
+import com.sun.labs.aura.aardvark.AardvarkService;
 import com.sun.labs.aura.aardvark.store.Attention;
 import com.sun.labs.aura.aardvark.store.Attention.Type;
 import com.sun.labs.aura.aardvark.store.DBIterator;
@@ -13,11 +14,13 @@ import com.sun.labs.aura.aardvark.store.item.SimpleItem;
 import com.sun.labs.aura.aardvark.store.item.SimpleItem.ItemType;
 import com.sun.labs.aura.aardvark.store.item.SimpleUser;
 import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.util.props.ComponentRegistry;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.io.File;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,7 +37,7 @@ import java.util.logging.Logger;
  * An implementation of the item store using the berkeley database as a back
  * end.
  */
-public class BerkeleyItemStore implements SimpleItemStore, Configurable {
+public class BerkeleyItemStore implements SimpleItemStore, Configurable, AardvarkService {
     /**
      * The location of the BDB/JE Database Environment
      */
@@ -45,6 +48,11 @@ public class BerkeleyItemStore implements SimpleItemStore, Configurable {
     @ConfigBoolean(defaultValue=false)
     public final static String PROP_OVERWRITE="overwrite";
     protected boolean overwriteExisting;
+    
+    /**
+     * ComponentRegistry will be non-null if we're running in a RMI environment
+     */
+    protected ComponentRegistry compReg = null;
     
     /**
      * The wrapper around all the BDB/JE implementation
@@ -120,6 +128,8 @@ public class BerkeleyItemStore implements SimpleItemStore, Configurable {
         //
         // Get the database environment
         dbEnvDir = ps.getString(PROP_DB_ENV);
+        File f = new File(dbEnvDir);
+        f.mkdirs();
         
         //
         // See if we should overwrite any existing database at that path
@@ -133,6 +143,11 @@ public class BerkeleyItemStore implements SimpleItemStore, Configurable {
             logger.severe("Failed to load the database environment at " +
                           dbEnvDir + ": " + e);
         }
+        
+        //
+        // Get a component registry if we have one
+        compReg = ps.getConfigurationManager().getComponentRegistry();
+        
         store = this;
     }
 
@@ -205,7 +220,13 @@ public class BerkeleyItemStore implements SimpleItemStore, Configurable {
     }
 
     public DBIterator<SimpleItem> getItemsAddedSince(ItemType type, Date timeStamp) throws AuraException {
-        return bdb.getItemsAddedSince(type, timeStamp.getTime());
+        DBIterator<SimpleItem> res =
+                bdb.getItemsAddedSince(type, timeStamp.getTime());
+        
+        if (compReg != null) {
+            return (DBIterator<SimpleItem>) compReg.getRemote(res);
+        }
+        return res;
     }
     
     public Attention getAttention(long attnID) throws AuraException {
@@ -247,7 +268,13 @@ public class BerkeleyItemStore implements SimpleItemStore, Configurable {
     }
 
     public DBIterator<Attention> getAttentionAddedSince(Date timeStamp) throws AuraException {
-        return bdb.getAttentionAddedSince(timeStamp.getTime());
+        DBIterator<Attention> res = 
+                bdb.getAttentionAddedSince(timeStamp.getTime());
+        
+        if (compReg != null) {
+            return (DBIterator<Attention>) compReg.getRemote(res);
+        }
+        return res;
     }
 
     public void addItemListener(ItemType itemType, SimpleItemListener listener) throws AuraException {
@@ -456,6 +483,26 @@ public class BerkeleyItemStore implements SimpleItemStore, Configurable {
         }
     }
 
+    public void start() {
+    }
 
-
+    public void stop() {
+        try {
+            close();
+        } catch (AuraException ae) {
+            logger.log(Level.WARNING, "Error closing item store", ae);
+        }
+    }
+    /**
+     * Never call this.
+     */
+    public void closeAndDestroy() throws AuraException {
+        close();
+        File f = new File(dbEnvDir);
+        File[] content = f.listFiles();
+        for (File c : content) {
+            c.delete();
+        }
+        f.delete();
+    }
 }

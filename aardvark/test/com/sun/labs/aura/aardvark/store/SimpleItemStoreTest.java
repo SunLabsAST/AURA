@@ -23,11 +23,17 @@ import static org.junit.Assert.*;
  */
 public class SimpleItemStoreTest {
 
-    protected BerkeleyItemStore store = null;
+    protected BerkeleyItemStore localStore = null;
+    
+    protected SimpleItemStore remoteStore = null;
     
     protected static Date runTime = new Date();
     
     protected HashSet<Attention> createdAttn = new HashSet<Attention>();
+    
+    protected ConfigurationManager mcm = null;
+    
+    protected ConfigurationManager rcm = null;
     
     public SimpleItemStoreTest() {
         
@@ -52,29 +58,30 @@ public class SimpleItemStoreTest {
     
     @Before
     public void setUp() throws Exception {
-        File f = new File("/tmp/aura-bdbtest");
-        f.mkdir();
-        store = getStore();
-        assertTrue(store != null);
+        remoteStore = getFreshStore();
+        assertTrue(remoteStore != null);
     }
 
     @After
     public void tearDown() throws Exception {
-        store.close();
-        File f = new File("/tmp/aura-bdbtest/itemStore.db");
-        File[] content = f.listFiles();
-        for (File c : content) {
-            c.delete();
-        }
-        f.delete();
+        localStore.closeAndDestroy();
+        mcm.getComponentRegistry().unregister();
+        rcm.getComponentRegistry().unregister();
     }
     
-    private BerkeleyItemStore getStore() throws IOException {
-        ConfigurationManager cm = new ConfigurationManager();
-        URL configFile = this.getClass().getResource("simpleConfig.xml");
-        cm.addProperties(configFile);
-        return (BerkeleyItemStore) cm.lookup("itemStore");
-
+    private SimpleItemStore getFreshStore() throws IOException {
+        //
+        // First, get the local store for local control
+        URL configFile = getClass().getResource("distMasterConfig.xml");
+        mcm = new ConfigurationManager(configFile);
+        localStore = (BerkeleyItemStore) mcm.lookup("itemStore");
+        
+        //
+        // Now get the remote interface to the store
+        configFile = getClass().getResource("distRemoteConfig.xml");
+        rcm = new ConfigurationManager(configFile);
+        remoteStore = (SimpleItemStore) rcm.lookup("itemStore");
+        return remoteStore;
     }
         
     @Test
@@ -86,39 +93,39 @@ public class SimpleItemStoreTest {
         map = new HashMap<String,Serializable>();
         map.put("Favorite Color", "Red");
         u.setMap(map);
-        u = store.putUser(u);
+        u = remoteStore.putUser(u);
         
         SimpleItem i = SimpleItemFactory.newItem(ItemType.FEED,
                 "http://user1blogs.com/blog1", "User 1's Awesome blog");
         map = new HashMap<String,Serializable>();
         map.put("LastFetched", runTime);
         i.setMap(map);
-        i = store.putItem(i);
+        i = remoteStore.putItem(i);
         
         i = SimpleItemFactory.newItem(ItemType.FEED,
                 "http://user1blogs.com/blog2", "User 1's second blog");
         map.put("NumErrors", 5);
         i.setMap(map);
-        i = store.putItem(i);
+        i = remoteStore.putItem(i);
         
         SimpleItem e = SimpleItemFactory.newItem(ItemType.BLOGENTRY,
                 "http://user1blogs.com/blog1/someEntry", "Awesome blog entry");
         map = new HashMap<String,Serializable>();
         map.put("parentFeedID", i.getID());
         e.setMap(map);
-        e = store.putItem(e);
+        e = remoteStore.putItem(e);
     }
     
     @Test
     public void readItems() throws Exception {
         addItems();
-        SimpleUser u = store.getUser("user1@openid.sun.com");
+        SimpleUser u = remoteStore.getUser("user1@openid.sun.com");
         assertTrue(u.getName().equals("User One"));
         HashMap<String,Serializable> map = u.getMap();
         String c = (String)map.get("Favorite Color");
         assertTrue(c.equals("Red"));
         
-        SimpleItem i = store.getItem("http://user1blogs.com/blog1");
+        SimpleItem i = remoteStore.getItem("http://user1blogs.com/blog1");
         assertTrue(i.getName().equals("User 1's Awesome blog"));
         map = i.getMap();
         Date d = (Date)map.get("LastFetched");
@@ -126,7 +133,7 @@ public class SimpleItemStoreTest {
         Integer numErr = (Integer)map.get("NumErrors");
         assertTrue(numErr == null);
         
-        i = store.getItem("http://user1blogs.com/blog2");
+        i = remoteStore.getItem("http://user1blogs.com/blog2");
         map = i.getMap();
         d = (Date)map.get("LastFetched");
         assertTrue(d.equals(runTime));
@@ -137,23 +144,23 @@ public class SimpleItemStoreTest {
     @Test
     public void makeAttention() throws Exception {
         addItems();
-        SimpleUser u = store.getUser("user1@openid.sun.com");
-        SimpleItem i = store.getItem("http://user1blogs.com/blog1");
+        SimpleUser u = remoteStore.getUser("user1@openid.sun.com");
+        SimpleItem i = remoteStore.getItem("http://user1blogs.com/blog1");
         Attention att = new SimpleAttention(u, i,
                 Attention.Type.SUBSCRIBED_FEED);
-        store.attend(att);
+        remoteStore.attend(att);
         createdAttn.add(att);
         
-        i = store.getItem("http://user1blogs.com/blog1/someEntry");
+        i = remoteStore.getItem("http://user1blogs.com/blog1/someEntry");
         att = new SimpleAttention(u, i, Attention.Type.STARRED);
-        store.attend(att);
+        remoteStore.attend(att);
         createdAttn.add(att);        
     }
     
     @Test
     public void getAttention() throws Exception {
         makeAttention();
-        DBIterator<Attention> dbit = store.getAttentionAddedSince(runTime);
+        DBIterator<Attention> dbit = remoteStore.getAttentionAddedSince(runTime);
         Set<Attention> dbattns = new HashSet<Attention>();
         while (dbit.hasNext()) {
             dbattns.add(dbit.next());
@@ -162,12 +169,12 @@ public class SimpleItemStoreTest {
         
         assertTrue(createdAttn.size() == dbattns.size());
         
-        SimpleUser u = store.getUser("user1@openid.sun.com");
-        dbattns = store.getAttention(u);
+        SimpleUser u = remoteStore.getUser("user1@openid.sun.com");
+        dbattns = remoteStore.getAttention(u);
         assertTrue(createdAttn.size() == dbattns.size());
         
-        SimpleItem i = store.getItem("http://user1blogs.com/blog1/someEntry");
-        dbattns = store.getAttention(i);
+        SimpleItem i = remoteStore.getItem("http://user1blogs.com/blog1/someEntry");
+        dbattns = remoteStore.getAttention(i);
         assertTrue(dbattns.size() == 1);
         Attention attn = (Attention) dbattns.toArray()[0];
         assertTrue(attn.getUserID() == u.getID());
@@ -177,15 +184,15 @@ public class SimpleItemStoreTest {
     @Test
     public void changeItems() throws Exception {
         addItems();
-        SimpleItem i = store.getItem("http://user1blogs.com/blog2");
+        SimpleItem i = remoteStore.getItem("http://user1blogs.com/blog2");
         i.setName("Another blog");
         HashMap<String,Serializable> map = i.getMap();
         Integer numErrs = (Integer) map.get("NumErrors");
         assertTrue(numErrs.equals(5));
         map.put("NumErrors", 10);
-        store.putItem(i);
+        remoteStore.putItem(i);
         
-        i = store.getItem("http://user1blogs.com/blog2");
+        i = remoteStore.getItem("http://user1blogs.com/blog2");
         assertTrue(i.getName().equals("Another blog"));
         map = i.getMap();
         numErrs = (Integer) map.get("NumErrors");

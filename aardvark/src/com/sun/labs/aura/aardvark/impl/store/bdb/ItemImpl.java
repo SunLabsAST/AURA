@@ -149,6 +149,9 @@ public class ItemImpl implements SimpleItem {
      */
     public void setMap(HashMap<String,Serializable> map) {
         this.map = map;
+        if (map == null) {
+            mapBytes = new byte[0];
+        }
     }
     
     /**
@@ -166,8 +169,6 @@ public class ItemImpl implements SimpleItem {
                 logger.log(Level.WARNING,
                         "Map serialization failed for item " + id, e);
             }
-        } else {
-            mapBytes = new byte[0];
         }
     }
 
