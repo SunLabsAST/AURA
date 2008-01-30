@@ -166,7 +166,7 @@ public class LastFMProfileRetriever implements APMLRetriever, ConceptRetriever {
         System.out.printf("Concepts for %s\n", user);
         Concept[] concepts = getImplicitConceptsForUser(user);
         for (Concept concept : concepts) {
-            System.out.printf("  %s\n", concept.toXML());
+            System.out.printf("  %s\n", concept.toXML(false));
         }
 
     }
