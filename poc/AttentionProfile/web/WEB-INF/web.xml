@@ -21,6 +21,10 @@
         <servlet-name>RecommenderService</servlet-name>
         <servlet-class>com.sun.labs.aura.attention.RecommenderService</servlet-class>
         </servlet>
+    <servlet>
+        <servlet-name>addAttention</servlet-name>
+        <servlet-class>com.sun.labs.aura.attention.addAttention</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>AttentionProfile</servlet-name>
         <url-pattern>/apml/*</url-pattern>
@@ -28,6 +32,10 @@
     <servlet-mapping>
         <servlet-name>RecommenderService</servlet-name>
         <url-pattern>/RecommenderService</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>addAttention</servlet-name>
+        <url-pattern>/addAttention</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
