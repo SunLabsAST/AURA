@@ -44,6 +44,7 @@ public class RecommenderService extends HttpServlet {
             // supported algorithms
             algSet.add("exp1");
             algSet.add("exp2");
+            algSet.add("exp3");
             algSet.add("imp1");
             algSet.add("default");
 

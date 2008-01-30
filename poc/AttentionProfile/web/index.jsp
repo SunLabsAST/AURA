@@ -175,7 +175,8 @@
                                 <li> imp1 - recommendations based upon your implicit tastes</li>
                                 <li> exp1 - recommendations based upon your explicit listening behavior</li>
                                 <li> exp2 - alternative recommendations based upon your explicit listening behavior</li>
-                                <li> default - use a well-rounded recommendation algorithim</li>
+                                <li> exp3 - recommendations based on your explicit tastes (a faster version) </li>
+                                <li> default - use a well-rounded recommendation algorithm</li>
                             </ul>
                         </tr>
                         <tr>
@@ -218,44 +219,72 @@
                     <li><a href='RecommenderService?apmlURL=http://aura.darkstar.sunlabs.com/AttentionProfile/lamere.lastfm.apml&alg=imp1'> 
                         Paul's recommendations</a> using a local copy of Paul's APML profile.
                     </li>
-                    
                 </ul>
-                    <p>
-                    <b>Last.fm users try it yourself:</b>
-                    <div class="tryit">
-                        http://aura.darkstar.sunlabs.com/apml/last.fm/<input type="text" 
-                        onChange="window.location = 'RecommenderService?apmlURL=http://aura.darkstar.sunlabs.com/AttentionProfile/apml/last.fm/' + this.value;" /> 
-                    </div>
-                    <p>
-                        If you are a last.fm user, enter your last.fm user name, and an APML with recommendations will
-                        be created for you.
-                    <p>
-                    <b>Pandora users try it yourself:</b>
-
-                    <div class="tryit">
-                        http://aura.darkstar.sunlabs.com/apml/pandora/<input type="text" 
-                        onChange="window.location = 'RecommenderService?apmlURL=http://aura.darkstar.sunlabs.com/AttentionProfile/apml/pandora/' + this.value;" /> 
-                    </div>
-                    <p>
-                        If you are a Pandora user, enter your Pandora user name, and an APML with recommendations will
-                        be created for you.
+                Recommendations based upon BBC Radio shows:
+                <ul>
+                    <li><a href='http://aura.darkstar.sunlabs.com/AttentionProfile/RecommenderService?apmlURL=http://aura.darkstar.sunlabs.com/AttentionProfile/gregjames.bbc.apml&alg=exp3'> 
+                        The Greg James BBC Radio Show</a>
+                    </li>
+                    <li><a href='http://aura.darkstar.sunlabs.com/AttentionProfile/RecommenderService?apmlURL=http://aura.darkstar.sunlabs.com/AttentionProfile/edithbowman.bbc.apml&alg=exp3'> 
+                        The Edith Bowman BBC Radio Show</a>
+                    </li>
+                    <li><a href='http://aura.darkstar.sunlabs.com/AttentionProfile/RecommenderService?apmlURL=http://aura.darkstar.sunlabs.com/AttentionProfile/petetong.bbc.apml&alg=exp3'> 
+                        The Pete Tong BBC Radio Show</a>
+                    </li>
+                    <li><a href='http://aura.darkstar.sunlabs.com/AttentionProfile/RecommenderService?apmlURL=http://aura.darkstar.sunlabs.com/AttentionProfile/ayesha.bbc.apml&alg=exp3'>
+                        Ayesha BBC Radio Show</a
+                    </li>
+                </ul>
+                <p>
+                <b>Last.fm users try it yourself:</b>
+                <div class="tryit">
+                    http://aura.darkstar.sunlabs.com/apml/last.fm/<input type="text" 
+                                                                         onChange="window.location = 'RecommenderService?apmlURL=http://aura.darkstar.sunlabs.com/AttentionProfile/apml/last.fm/' + this.value;" /> 
+                </div>
+                <p>
+                If you are a last.fm user, enter your last.fm user name, and an APML with recommendations will
+                be created for you.
+                <p>
+                <b>Pandora users try it yourself:</b>
+                
+                <div class="tryit">
+                    http://aura.darkstar.sunlabs.com/apml/pandora/<input type="text" 
+                                                                         onChange="window.location = 'RecommenderService?apmlURL=http://aura.darkstar.sunlabs.com/AttentionProfile/apml/pandora/' + this.value;" /> 
+                </div>
+                <p>
+                If you are a Pandora user, enter your Pandora user name, and an APML with recommendations will
+                be created for you.
+                <p>  
+                Recommendations based on APML from the BBC:
             </div>
             <div class="nested2">
                 <h2> What is this all about?</h2>
                 This is an experiment to explore web services that produce and consume APML.
                 <p>
                 We can combine this APML generator with other services that process
-                APML.  For instance <a href="http://www.cluztr.com/"> Cluztr </a> provides
+                APML.  For instance <a href="http://www.tagurself.com/"> Tagurself </a> provides
                 some Javascript that will turn an APML file into a tag cloud.  For example, here's
-                a tag cloud generated from my APML file:
+                a couple of tag clouds generated from my taste data:
                 
-                <p>
+                <div class="nested3">
+                Paul's web browsing interests:
                 <script type="text/javascript">
-                    tagcloud_title = "Paul's web browing interests";
-                    apml_url = "http://aura.darkstar.sunlabs.com/AttentionProfile/apml/web/plamere/";
+                    var url = "http://aura.darkstar.sunlabs.com/AttentionProfile/apml/web/plamere";
+                    var bg_color = "#b0b8a6";
+                    var font_color = "green";
                 </script>
-                <script language="javascript" type="text/javascript" src="http://www.cluztr.com/api/apml_tag_cloud.js"></script>
-                <p>
+                <script type="text/javascript" src="http://www.tagurself.com/widget/js/"></script>
+                </div>
+
+                <div class="nested3">
+                Paul's Pandora music interests:
+                <script type="text/javascript">
+                    var url = "http://aura.darkstar.sunlabs.com/AttentionProfile/apml/pandora/paul.lamere";
+                    var bg_color = "#b0b8a6";
+                    var font_color = "#53684D";
+                </script>
+                <script type="text/javascript" src="http://www.tagurself.com/widget/js/"></script>
+                </div>
                 
                 <p>
                 There are also some <a href="apml/stats">usage stats</a>.
@@ -263,6 +292,9 @@
             <div class="nested2">
                 <h2> History </h2>
                 <ul>
+                    <li> January  18, 2008 - Added tagurself cloud
+                    <li> January  17, 2008 - Improved performance for large APML, added some BBC examples
+                    <li> January  14, 2008 - Added webservice for recommendations
                     <li> January  14, 2008 - Added webservice for recommendations
                     <li> January  12, 2008 - Fixed up encoding of explicit and implicit concept keys
                     <li> January  10, 2008 - Refactoring to support APML loading and recommendation
@@ -276,7 +308,7 @@
             
             <hr>
             <center> 
-                <br>TasteBroker.org v.72 - Powered by APML, Cluztr, Del.icio.us, Last.fm, Pandora and Sun Microsystems inc.
+                <br>TasteBroker.org v.73 - Powered by APML, Cluztr, Del.icio.us, Last.fm, Pandora, tagurself.com and Sun Microsystems inc.
                 <br> Send comments/feedback or complaints to Paul.Lamere@sun.com
                 <br> Don't forget to read <a href="http://blogs.sun.com/plamere">Duke Listens!</a>
             </center>

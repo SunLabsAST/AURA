@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<APML version="0.6" xmlns="http://www.apml.org/apml-0.6">
+  <Head>
+    <Title>APML Feed for Greg James</Title>
+    <Generator>BBC Audio and Music</Generator>
+    <DateCreated>2008-01-18T10:26:07+00:00</DateCreated>
+  </Head>
+  <Body defaultprofile="music">
+    <Profile name="music">
+      <ExplicitData>
+        <Concepts>
+          <Concept updated="2007-07-09T06:18:59+01:00" key="Newton Faulkner" value="1.0" from="bbc.co.uk"/>
+          <Concept updated="2007-07-10T04:49:27+01:00" key="Foo Fighters" value="1.0" from="bbc.co.uk"/>
+          <Concept updated="2007-07-12T05:35:08+01:00" key="Sugababes" value="0.975" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T06:33:25+01:00" key="The Pigeon Detectives" value="0.975" from="bbc.co.uk"/>
+          <Concept updated="2007-07-05T05:15:57+01:00" key="The Hoosiers" value="0.975" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T05:00:18+01:00" key="Arctic Monkeys" value="0.975" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T05:13:39+01:00" key="Jack Penate" value="0.9" from="bbc.co.uk"/>
+          <Concept updated="2007-06-29T05:55:31+01:00" key="Scouting For Girls" value="0.9" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T05:03:27+01:00" key="Mika" value="0.9" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T05:38:35+01:00" key="Robyn" value="0.85" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T05:15:58+01:00" key="Kate Nash" value="0.85" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T05:42:43+01:00" key="The White Stripes" value="0.8" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T06:11:09+01:00" key="Bloc Party" value="0.775" from="bbc.co.uk"/>
+          <Concept updated="2007-10-08T05:07:59+01:00" key="Take That" value="0.75" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T05:18:52+01:00" key="Rihanna" value="0.725" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T05:32:13+01:00" key="The Enemy" value="0.7" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T06:46:43+01:00" key="Avril Lavigne" value="0.675" from="bbc.co.uk"/>
+          <Concept updated="2007-11-20T05:22:20+00:00" key="Soulja Boy" value="0.65" from="bbc.co.uk"/>
+          <Concept updated="2007-07-05T05:05:43+01:00" key="The Wombats" value="0.65" from="bbc.co.uk"/>
+          <Concept updated="2007-06-26T05:32:51+01:00" key="Fall Out Boy" value="0.625" from="bbc.co.uk"/>
+          <Concept updated="2007-10-04T05:22:27+01:00" key="30 Seconds To Mars" value="0.625" from="bbc.co.uk"/>
+          <Concept updated="2007-07-09T06:22:50+01:00" key="Hard-Fi" value="0.625" from="bbc.co.uk"/>
+          <Concept updated="2007-07-10T05:07:14+01:00" key="Kanye West" value="0.6" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T04:47:02+01:00" key="Oasis" value="0.6" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T04:34:56+01:00" key="Girls Aloud" value="0.6" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T05:06:38+01:00" key="Editors" value="0.6" from="bbc.co.uk"/>
+          <Concept updated="2007-10-11T04:52:30+01:00" key="Kylie Minogue" value="0.6" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T05:44:43+01:00" key="Booty Luv" value="0.6" from="bbc.co.uk"/>
+          <Concept updated="2007-06-26T06:49:46+01:00" key="My Chemical Romance" value="0.6" from="bbc.co.uk"/>
+          <Concept updated="2007-07-23T05:54:42+01:00" key="The Fray" value="0.575" from="bbc.co.uk"/>
+          <Concept updated="2007-06-29T06:18:40+01:00" key="Armand Van Helden" value="0.575" from="bbc.co.uk"/>
+          <Concept updated="2007-06-26T05:03:34+01:00" key="Justin Timberlake" value="0.525" from="bbc.co.uk"/>
+          <Concept updated="2007-08-05T14:09:17+01:00" key="Plain White T's" value="0.525" from="bbc.co.uk"/>
+          <Concept updated="2007-07-05T06:33:04+01:00" key="Kaiser Chiefs" value="0.525" from="bbc.co.uk"/>
+          <Concept updated="2007-10-07T14:40:32+01:00" key="Adele" value="0.5" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T06:19:43+01:00" key="Klaxons" value="0.5" from="bbc.co.uk"/>
+          <Concept updated="2007-06-26T05:36:09+01:00" key="Amy Winehouse" value="0.5" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T05:57:01+01:00" key="Stereophonics" value="0.475" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T06:52:16+01:00" key="The Killers" value="0.475" from="bbc.co.uk"/>
+          <Concept updated="2007-10-09T05:22:04+01:00" key="Leona Lewis" value="0.45" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T06:04:59+01:00" key="Maroon 5" value="0.45" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T05:42:22+01:00" key="The Holloways" value="0.45" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T06:50:23+01:00" key="Reverend And The Makers" value="0.45" from="bbc.co.uk"/>
+          <Concept updated="2007-10-28T15:13:40+00:00" key="T2" value="0.425" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T05:58:00+01:00" key="KT Tunstall" value="0.425" from="bbc.co.uk"/>
+          <Concept updated="2007-12-01T14:08:36+00:00" key="Cascada" value="0.425" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T05:53:47+01:00" key="Jack Johnson" value="0.425" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T05:28:14+01:00" key="Linkin Park" value="0.425" from="bbc.co.uk"/>
+          <Concept updated="2007-06-26T05:00:37+01:00" key="Razorlight" value="0.4" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T04:49:49+01:00" key="Britney Spears" value="0.4" from="bbc.co.uk"/>
+          <Concept updated="2007-06-26T06:15:08+01:00" key="Kings Of Leon" value="0.4" from="bbc.co.uk"/>
+          <Concept updated="2007-07-05T06:49:28+01:00" key="Nelly Furtado" value="0.375" from="bbc.co.uk"/>
+          <Concept updated="2007-06-29T05:10:19+01:00" key="Gym Class Heroes" value="0.375" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T06:22:00+01:00" key="Biffy Clyro" value="0.375" from="bbc.co.uk"/>
+          <Concept updated="2007-11-29T04:20:56+00:00" key="Filo &amp;amp; Peri / Eric Lumiere" value="0.35" from="bbc.co.uk"/>
+          <Concept updated="2007-10-04T05:40:13+01:00" key="Timbaland presents OneRepublic / Timbaland / OneRepublic" value="0.35" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T06:33:12+01:00" key="Bodyrox / Luciana" value="0.35" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T05:30:44+01:00" key="The Fratellis" value="0.325" from="bbc.co.uk"/>
+          <Concept updated="2007-11-16T05:47:46+00:00" key="T2 / Jodie Aysha" value="0.325" from="bbc.co.uk"/>
+          <Concept updated="2007-10-08T05:03:21+01:00" key="Mark Ronson" value="0.325" from="bbc.co.uk"/>
+          <Concept updated="2007-10-15T05:03:11+01:00" key="David Guetta" value="0.325" from="bbc.co.uk"/>
+          <Concept updated="2007-11-16T06:09:48+00:00" key="Peter Gelderblom" value="0.3" from="bbc.co.uk"/>
+          <Concept updated="2007-10-06T14:07:53+01:00" key="Orson" value="0.3" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T06:35:41+01:00" key="McFly" value="0.3" from="bbc.co.uk"/>
+          <Concept updated="2007-07-11T06:43:12+01:00" key="Snow Patrol" value="0.3" from="bbc.co.uk"/>
+          <Concept updated="2007-11-14T05:07:23+00:00" key="Alicia Keys" value="0.275" from="bbc.co.uk"/>
+          <Concept updated="2007-08-04T15:40:46+01:00" key="Maximo Park" value="0.275" from="bbc.co.uk"/>
+          <Concept updated="2007-06-26T05:55:15+01:00" key="Gwen Stefani" value="0.275" from="bbc.co.uk"/>
+          <Concept updated="2007-10-08T05:49:41+01:00" key="kanye west / T-Pain" value="0.275" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T05:34:33+01:00" key="Calvin Harris" value="0.275" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T06:36:27+01:00" key="Jay-Z" value="0.275" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T06:44:24+01:00" key="Amerie" value="0.25" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T06:10:57+01:00" key="The View" value="0.25" from="bbc.co.uk"/>
+          <Concept updated="2007-12-11T05:15:35+00:00" key="Radiohead" value="0.25" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T05:59:06+01:00" key="The Twang" value="0.25" from="bbc.co.uk"/>
+          <Concept updated="2007-10-16T04:21:21+01:00" key="One Night Only" value="0.25" from="bbc.co.uk"/>
+          <Concept updated="2007-10-06T14:17:46+01:00" key="Ida Corr Vs Fedde Le Grand / Fedde Le Grand / Ida Corr" value="0.25" from="bbc.co.uk"/>
+          <Concept updated="2007-12-10T04:08:32+00:00" key="Lupe Fiasco / Matthew Santos" value="0.25" from="bbc.co.uk"/>
+          <Concept updated="2007-12-03T04:29:24+00:00" key="Dave Armstrong / Redroche / H-Boogie" value="0.225" from="bbc.co.uk"/>
+          <Concept updated="2007-10-09T05:51:46+01:00" key="Unklejam" value="0.225" from="bbc.co.uk"/>
+          <Concept updated="2007-10-04T05:14:32+01:00" key="Freemasons / Bailey Tzuke" value="0.225" from="bbc.co.uk"/>
+          <Concept updated="2007-10-16T05:43:22+01:00" key="Rihanna / Ne*Yo" value="0.225" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T06:18:31+01:00" key="Timbaland / Keri Hilson" value="0.225" from="bbc.co.uk"/>
+          <Concept updated="2007-11-20T04:15:00+00:00" key="The Feeling" value="0.225" from="bbc.co.uk"/>
+          <Concept updated="2007-11-08T04:21:44+00:00" key="Pendulum" value="0.225" from="bbc.co.uk"/>
+          <Concept updated="2007-10-07T14:22:34+01:00" key="Mark Ronson / Amy Winehouse" value="0.2" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T04:42:25+01:00" key="Uniting Nations" value="0.2" from="bbc.co.uk"/>
+          <Concept updated="2007-12-18T04:21:37+00:00" key="Mark Brown / Sarah Cracknell" value="0.2" from="bbc.co.uk"/>
+          <Concept updated="2007-12-04T04:24:32+00:00" key="The Maccabees" value="0.2" from="bbc.co.uk"/>
+          <Concept updated="2007-10-09T06:19:18+01:00" key="Samim" value="0.2" from="bbc.co.uk"/>
+          <Concept updated="2007-07-09T05:07:40+01:00" key="Axwell / Max C" value="0.2" from="bbc.co.uk"/>
+          <Concept updated="2007-08-03T05:26:18+01:00" key="David Guetta / Chris Willis" value="0.2" from="bbc.co.uk"/>
+          <Concept updated="2007-12-13T04:24:08+00:00" key="Kanye West / Chris Martin" value="0.2" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T06:17:00+01:00" key="Paolo Nutini" value="0.2" from="bbc.co.uk"/>
+          <Concept updated="2007-08-03T06:40:22+01:00" key="Gossip" value="0.2" from="bbc.co.uk"/>
+          <Concept updated="2007-10-06T14:57:38+01:00" key="Peter, Bjorn &amp;amp; John" value="0.2" from="bbc.co.uk"/>
+          <Concept updated="2007-10-09T05:33:48+01:00" key="Muse" value="0.175" from="bbc.co.uk"/>
+          <Concept updated="2007-10-14T13:58:08+01:00" key="N Dubz" value="0.175" from="bbc.co.uk"/>
+          <Concept updated="2007-12-18T05:15:29+00:00" key="Lupe Fiasco" value="0.175" from="bbc.co.uk"/>
+          <Concept updated="2007-12-26T08:24:36+00:00" key="Jay Sean" value="0.175" from="bbc.co.uk"/>
+          <Concept updated="2007-06-29T06:02:15+01:00" key="Just Jack" value="0.175" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T05:49:27+01:00" key="Groove Armada / Mutya Buena" value="0.175" from="bbc.co.uk"/>
+          <Concept updated="2007-12-27T06:42:01+00:00" key="Hot Chip" value="0.175" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T06:27:36+01:00" key="James Morrison" value="0.175" from="bbc.co.uk"/>
+          <Concept updated="2007-10-23T04:22:42+01:00" key="Elliot Minor" value="0.175" from="bbc.co.uk"/>
+          <Concept updated="2007-08-03T06:21:45+01:00" key="Fergie" value="0.175" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T06:53:45+01:00" key="Timbaland / Justin Timberlake / Nelly Furtado" value="0.175" from="bbc.co.uk"/>
+          <Concept updated="2007-08-04T14:04:50+01:00" key="Keane" value="0.15" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T05:24:04+01:00" key="Mark Ronson / Lily Allen" value="0.15" from="bbc.co.uk"/>
+          <Concept updated="2007-07-10T06:53:13+01:00" key="Green Day" value="0.15" from="bbc.co.uk"/>
+          <Concept updated="2007-06-29T06:21:46+01:00" key="Ali Love" value="0.15" from="bbc.co.uk"/>
+          <Concept updated="2007-08-03T05:38:46+01:00" key="dizzee rascal" value="0.15" from="bbc.co.uk"/>
+          <Concept updated="2007-06-29T06:43:23+01:00" key="Natasha Bedingfield" value="0.15" from="bbc.co.uk"/>
+          <Concept updated="2007-10-06T14:33:20+01:00" key="The Hives" value="0.15" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T06:39:12+01:00" key="Scissor Sisters" value="0.15" from="bbc.co.uk"/>
+          <Concept updated="2007-07-05T06:37:28+01:00" key="Red Hot Chili Peppers" value="0.15" from="bbc.co.uk"/>
+          <Concept updated="2007-10-13T13:34:52+01:00" key="Freemasons" value="0.15" from="bbc.co.uk"/>
+          <Concept updated="2007-10-07T13:03:11+01:00" key="Bob Sinclar" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-10-25T04:23:31+01:00" key="Gallows / Lethal Bizzle" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T06:47:42+01:00" key="Beyonce" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T05:07:08+01:00" key="Yves Larock" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-07-23T05:39:56+01:00" key="Freaks" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-06-29T05:16:19+01:00" key="Sunfreakz / Andrea Britton" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-07-23T05:46:21+01:00" key="Kasabian" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-10-14T15:01:23+01:00" key="Ida Corr vs. Fedde Le Grand" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T05:38:33+01:00" key="Gorillaz" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-12-04T05:03:59+00:00" key="Alex Gaudino" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-12-19T04:09:50+00:00" key="Kelly Rowland / Freemasons" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T05:54:20+01:00" key="Kelis / Cee-Lo" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-10-29T05:24:14+00:00" key="Se:Sa / Sharon Phillips" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-12-05T04:04:19+00:00" key="Kelly Rowland" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-07-11T05:06:27+01:00" key="Akon" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T06:03:31+01:00" key="Fedde Le Grand" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-06-26T06:23:32+01:00" key="Coldplay" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T06:21:43+01:00" key="Chemical Brothers" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-06-26T06:52:59+01:00" key="Akon / Eminem" value="0.125" from="bbc.co.uk"/>
+          <Concept updated="2007-11-20T04:55:56+00:00" key="Sean Kingston" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T06:40:28+01:00" key="Super Mal / Luciana" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-06-29T05:04:24+01:00" key="Christina Aguilera" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-10-14T13:03:36+01:00" key="Bodyrockers" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-12-10T05:23:04+00:00" key="Craig David" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-10-25T05:14:47+01:00" key="palladium" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T04:39:05+01:00" key="The Libertines" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-12-17T04:37:45+00:00" key="Filo &amp;amp; Peri" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T05:34:33+01:00" key="Xzibit" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T06:15:10+01:00" key="Meck" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-08-03T05:13:59+01:00" key="Supermode" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T05:34:45+01:00" key="Pink" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-10-04T05:54:38+01:00" key="Justice" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T05:57:58+01:00" key="The Kooks" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T06:08:25+01:00" key="Shapeshifters" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-12-01T14:32:30+00:00" key="Timbaland" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T05:47:59+01:00" key="Mutya Buena" value="0.1" from="bbc.co.uk"/>
+          <Concept updated="2007-12-14T04:56:37+00:00" key="50 Cent / Justin Timberlake / Timbaland" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-07-13T06:00:56+01:00" key="Timberland" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-08-04T13:00:57+01:00" key="U2" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-10-04T04:41:39+01:00" key="Daft Punk" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T05:52:40+01:00" key="Robin Thicke" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-10-18T05:20:02+01:00" key="The Cribs" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-12-02T15:52:36+00:00" key="Paramore" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-12-17T04:11:38+00:00" key="Meck / Dino" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-10-07T14:00:02+01:00" key="Mylo vs Miami Sound Machine" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-10-18T05:30:25+01:00" key="Gerry Rafferty" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-07-05T04:31:16+01:00" key="James" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2008-01-10T04:29:10+00:00" key="Goldfrapp" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T05:28:55+01:00" key="Sharam" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-11-29T04:16:43+00:00" key="Lostprophets" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-07-10T06:05:47+01:00" key="Boogie Pimps" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2008-01-11T04:21:21+00:00" key="David Jordan" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-10-04T04:59:07+01:00" key="Basement Jaxx" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-10-07T15:12:35+01:00" key="Lethal Bizzle" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-10-14T14:58:50+01:00" key="The Young Knives" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-06-26T05:24:02+01:00" key="The Game / 50 Cent" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-06-29T05:59:35+01:00" key="Camille Jones Vs Fedde Le Grand / Fedde Le Grand / Camille Jones" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-11-16T04:09:54+00:00" key="J Holiday" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T05:06:24+01:00" key="Funeral For A Friend" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-10-07T15:35:52+01:00" key="Ida Corr Vs Fedde Le Grand" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-11-16T04:19:49+00:00" key="Mark Ronson / Daniel Merriweather" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-11-29T04:42:25+00:00" key="Kano / DAMON ALBARN" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-12-18T05:29:29+00:00" key="The Pogues / Kirsty Maccoll" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-06-29T06:13:41+01:00" key="The Zutons" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T05:19:59+01:00" key="Notorious B.I.G / P Diddy / Nelly / Jagged Edge / Avery Storm" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-07-09T06:09:18+01:00" key="Kelis" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-07-12T06:37:22+01:00" key="N-Trance" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-08-05T13:57:27+01:00" key="Blink 182" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-10-09T06:58:39+01:00" key="N.E.R.D." value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T05:32:52+01:00" key="Lily Allen" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-12-04T05:58:35+00:00" key="Seamus Haji / KayJay" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-12-11T06:14:25+00:00" key="Rascal Flatts" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-08-03T05:16:51+01:00" key="The Coral" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T05:40:32+01:00" key="Eyerer &amp;amp; Chopstick ft Zdar" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-12-12T04:32:26+00:00" key="Pet Shop Boys" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T05:11:40+01:00" key="Kelly Rowland / Eve" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-10-22T05:45:05+01:00" key="Usher / Ludacris" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-06-29T06:34:22+01:00" key="Kayne West" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-12-29T14:58:00+00:00" key="The Courteeners" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T06:36:54+01:00" key="Beatfreakz" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-07-10T04:39:35+01:00" key="Eminem" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T06:11:48+01:00" key="Franz Ferdinand" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-12-13T04:54:27+00:00" key="Duffy" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2008-01-07T04:25:41+00:00" key="Out Of Office / Marcella Woods" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T05:38:12+01:00" key="2 Pac" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2008-01-08T05:44:16+00:00" key="Mary J Blige" value="0.075" from="bbc.co.uk"/>
+          <Concept updated="2007-10-23T06:03:13+01:00" key="David Guetta Vs The Egg" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-06-29T05:01:07+01:00" key="Reverend &amp;amp; The Makers" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T04:38:49+01:00" key="JX" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-12-02T14:41:43+00:00" key="Malcolm Middleton" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-12-10T04:36:48+00:00" key="Mariah Carey" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-10-09T04:58:04+01:00" key="Guns N' Roses" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T05:02:49+01:00" key="Ciara" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-09T04:40:31+01:00" key="Robbie Williams" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-12T04:49:16+01:00" key="Good Charlotte" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-08-04T14:33:40+01:00" key="Beyonce/Freemasons" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T06:01:33+01:00" key="Rogue Traders" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T04:52:21+01:00" key="Ini Kamoze" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-12-10T06:16:14+00:00" key="Hellogoodbye" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-10-20T13:01:37+01:00" key="Outkast" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-10-25T05:41:42+01:00" key="Nicole Scherzinger / Will.I.Am" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-05T04:38:38+01:00" key="Blur" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-12T04:56:58+01:00" key="Electric Six" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-10-09T05:58:10+01:00" key="Audio Bullys / Nancy Sinatra" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T04:46:27+01:00" key="The Streets" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-08-03T04:41:40+01:00" key="R Kelly" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2008-01-14T04:43:23+00:00" key="Mark Ronson / Alex Greenwald" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-08-03T04:46:42+01:00" key="Junior Senior" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-08-05T13:40:31+01:00" key="Athlete" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-11-16T04:33:14+00:00" key="Reverand And The Makers" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-12-04T05:35:27+00:00" key="Mason Vs Princess Superstar" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T05:54:55+01:00" key="Cherry Ghost" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-10-29T05:18:00+00:00" key="Snoop Dogg / Justin Timberlake" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T05:17:54+01:00" key="Amy Winehouse / Ghostface Killah / Ghostface" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-10-21T15:44:55+01:00" key="Madina Lake" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2008-01-15T05:14:50+00:00" key="Simple Plan" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-06-26T06:05:01+01:00" key="J-Kwon" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-11-19T04:14:40+00:00" key="Dean Martin" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T06:06:29+01:00" key="Mark Ronson Feat Lilly Allen" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-12-06T05:24:09+00:00" key="Jamie T" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-12-12T05:28:52+00:00" key="Embrace" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-12-19T06:12:27+00:00" key="The Waitresses" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-09T06:43:49+01:00" key="P Diddy / Christina Aguilera" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2008-01-15T05:25:17+00:00" key="Basshunter" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-13T04:38:52+01:00" key="Spice Girls" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-08-03T05:34:43+01:00" key="Mark Ronson/Lily Allen" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-10-06T13:03:27+01:00" key="Eric Prydz" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-10-30T04:03:48+00:00" key="Timbaland presents OneRepublic" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T06:27:49+01:00" key="Akon / Snoop Dogg" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-12-06T05:33:20+00:00" key="Axwell" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-12-20T05:28:21+00:00" key="East 17" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-13T04:43:04+01:00" key="Robert Miles" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-10-06T13:06:45+01:00" key="Jennifer Lopez" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-10-31T05:03:10+00:00" key="The Gossip" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T06:05:41+01:00" key="The Black Eyed Peas" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-10-08T05:58:33+01:00" key="Gwen Stefani / Damian Marley" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-11-19T05:22:39+00:00" key="Plain White Ts" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T06:25:49+01:00" key="Hi Tack" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-12-07T05:57:20+00:00" key="Peter, Bjorn &amp;amp; John / Victoria Bergsman" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-11T06:39:30+01:00" key="Feeder" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-08-03T06:17:44+01:00" key="Mason Vs Princess Superstar / Mason / Princess Superstar" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-10-11T06:41:54+01:00" key="Energy 52" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-12-01T14:55:12+00:00" key="Foals" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-12-21T06:04:43+00:00" key="The Darkness" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-10T04:53:39+01:00" key="Missy Misdemeanor Elliott" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-10-08T06:50:40+01:00" key="Shakedown" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T06:36:36+01:00" key="Michael Gray" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-11-20T04:25:16+00:00" key="Babyshambles" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-12-14T04:27:51+00:00" key="Mutya Buena / Amy Winehouse" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-10T05:00:41+01:00" key="Groove Armada" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-07-11T06:53:34+01:00" key="Gnarls Barkley" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-10-09T04:44:30+01:00" key="The Shamen" value="0.05" from="bbc.co.uk"/>
+          <Concept updated="2007-11-08T04:25:44+00:00" key="Eric Winstone &amp;amp; his Orchestra" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T04:52:15+01:00" key="Harold Faltermeyer" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-25T06:15:13+00:00" key="Andy Williams" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2008-01-09T05:57:42+00:00" key="The Automatic" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-12T04:34:41+01:00" key="Mis-Teeq" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-13T14:00:02+01:00" key="Nelly" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T06:48:06+01:00" key="JoJo" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-11-08T04:44:27+00:00" key="Led Zeppelin" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T04:55:36+01:00" key="Bonnie Tyler" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-11-20T05:11:27+00:00" key="Whitney Houston" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T04:42:21+01:00" key="Bjork" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T04:31:14+01:00" key="Usher" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-10T05:13:26+00:00" key="Kano" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-25T07:45:50+00:00" key="Greg Lake" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-10T05:27:55+01:00" key="Eric Prydz Vs Floyd / Eric Prydz / Pink Floyd" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2008-01-09T06:01:23+00:00" key="The Pigeon Detectives / Leona Lewis" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-12T04:44:34+01:00" key="Room 5 / Oliver Cheatham" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-13T06:52:24+01:00" key="P Diddy / Nicole" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-04T04:42:58+01:00" key="Spooks" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-25T04:45:31+01:00" key="The Avalanches" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-17T04:14:34+00:00" key="Wham" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-09T04:45:05+01:00" key="Placebo" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-25T09:19:38+00:00" key="Band Aid" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-10T05:32:45+01:00" key="Kaiser Cheifs" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-04T04:49:23+01:00" key="Limp Bizkit" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-18T06:16:46+01:00" key="Jay-Z / Linkin Park" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-11-14T05:11:58+00:00" key="Gallows" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-11-20T06:15:24+00:00" key="Madness" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-03T05:17:13+00:00" key="Big Brovaz" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-05T04:35:03+01:00" key="KLF" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-09T04:49:14+01:00" key="Backstreet Boys" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-25T09:42:38+00:00" key="Paul McCartney" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-10T05:38:55+01:00" key="Arcade Fire" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2008-01-10T05:42:44+00:00" key="Shania Twain" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-12T04:52:58+01:00" key="Ultrabeat" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-08-04T14:41:09+01:00" key="Katrina And The Waves" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-04T04:54:14+01:00" key="Shaggy / Ducent" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-14T14:37:48+01:00" key="Kelly Clarkson" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-06-26T05:08:38+01:00" key="Interpol" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-11-14T06:01:23+00:00" key="Frankie Goes To Hollywood" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T04:56:23+01:00" key="The Rembrandts" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-03T05:28:51+00:00" key="Alan Fletcher" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-10T06:19:57+00:00" key="Wrong Planet" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-09T04:53:47+01:00" key="LL Cool J" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-25T09:58:02+00:00" key="Ronettes" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-20T14:03:07+01:00" key="Studio B" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-20T15:33:19+01:00" key="The Ordinary Boys" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-28T13:03:41+00:00" key="Candi Staton" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-11T04:01:46+00:00" key="The Pigeon Dectectives" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-05T04:41:49+01:00" key="Heavy D And The Boyz" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-09T04:57:08+01:00" key="Gala" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-10T06:38:09+01:00" key="Modjo" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2008-01-11T06:17:22+00:00" key="Lasgo" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-12T05:01:08+01:00" key="PJ &amp;amp; Duncan" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-08-05T13:27:04+01:00" key="Shop Boyz" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-21T13:03:39+01:00" key="Armand Van Helden/Tara McDonald" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-11T05:02:13+00:00" key="Rhianna" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-05T04:52:11+01:00" key="Kym Sims" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-26T08:39:12+00:00" key="Beyonce &amp;amp; Shakira" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-08T04:38:29+01:00" key="Lumidee" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-09T06:38:35+01:00" key="Ray Parker Jnr" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-14T15:32:04+01:00" key="Pharrell Williams" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-21T13:44:44+01:00" key="kanye west / Adam Levine" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-29T04:34:30+00:00" key="N-Dubz" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-11-29T05:23:34+00:00" key="Daniel Powter" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-04T04:57:23+01:00" key="Lou Reed" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-05T04:56:01+01:00" key="Wonder Stuff" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-27T06:31:03+00:00" key="Junior Jack / Shena" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-11T04:31:10+01:00" key="Primal Scream" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2008-01-14T05:34:49+00:00" key="The Fray / Rihanna" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-04T05:33:20+01:00" key="Kooks" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-08T04:50:16+01:00" key="Turin Brakes" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T06:23:23+01:00" key="Pharoahe Monch" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-15T04:00:08+01:00" key="C&amp;amp;E" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-21T15:03:11+01:00" key="Freemasons/Bailey Tzuke" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-06-26T05:41:51+01:00" key="Air Traffic" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-11-30T04:28:20+00:00" key="Michael Jackson" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-05T05:01:50+01:00" key="Akon/Eminem" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-19T04:40:12+00:00" key="Jimmy Eat World" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-11T04:34:22+01:00" key="Salt 'n' Pepa" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2008-01-15T04:24:51+00:00" key="H 'two' O / Platinum" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-13T04:31:12+01:00" key="Prodigy" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-08T04:58:07+01:00" key="Jason Nevins / Holly James" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-11T04:39:43+01:00" key="Beck" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-15T04:45:10+01:00" key="Hot Hot Heat" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-11-30T06:16:15+00:00" key="Zombie Nation" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-19T04:46:26+00:00" key="Leon Jackson" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-27T08:55:42+00:00" key="Ne*Yo" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-11T04:40:11+01:00" key="Everything But The Girl" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-13T04:34:42+01:00" key="Darude" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-08-05T15:04:36+01:00" key="Groove Armada/Mutya Buena" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T06:02:33+01:00" key="Mutya Beuna" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-29T06:14:04+00:00" key="Lee-Cabrera / Alex Cartana" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-08-10T04:40:50+01:00" key="Supermen Lovers / Mani Hoffman" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T05:17:02+01:00" key="Layo / Bushwacka" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-11T04:56:41+01:00" key="Reel 2 Real / Mad Stuntman" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-06-29T06:38:28+01:00" key="Queen" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-11-19T04:44:31+00:00" key="Dandy Warhols" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-05T05:27:40+01:00" key="Bedouin Soundclash" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-31T15:19:37+00:00" key="Mika Vs armand Van Helden" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-11T05:27:55+01:00" key="Nelly Furtado / Timbaland" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2008-01-16T04:32:47+00:00" key="Westlife" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-08-10T04:46:22+01:00" key="Uncle Kracker" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-11T05:56:17+01:00" key="kanye west / Syleena Johnson" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-06-15T06:40:41+01:00" key="AC/DC" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-16T05:03:38+01:00" key="P Diddy" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-23T04:44:21+01:00" key="Pharrell Williams / Jay-Z" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-11-19T05:02:43+00:00" key="Arctic Monkeys / Freemasons" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-01T14:40:23+00:00" key="Whigfield" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-06T05:55:33+00:00" key="Atomic Kitten / Kool &amp;amp; The Gang" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-05T05:35:45+01:00" key="Bob Sinclar/Steve Edwards" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-20T06:20:46+00:00" key="Noel Gallagher" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-10T04:44:47+01:00" key="Puretone" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-31T15:39:44+00:00" key="The Raconteurs" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-11T05:35:51+01:00" key="Layo &amp;amp; Bushwacka" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2008-01-18T04:33:35+00:00" key="King Of Wishful Thinking" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-13T04:49:04+01:00" key="Blackstreet" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-08-03T06:13:31+01:00" key="Remi Nicole" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-08-10T04:50:32+01:00" key="Ash" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-11T06:03:02+01:00" key="Deep Dish" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-23T05:03:29+01:00" key="Beyonce/ Shakira/ Freemasons" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-06-26T06:37:01+01:00" key="Madonna" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-11-01T04:20:55+00:00" key="Hadouken!" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T04:37:13+01:00" key="Prince" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T06:37:03+01:00" key="Mc Hammer" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-01T14:45:15+00:00" key="Bob Sinclar / Steve Edwards" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-13T05:33:01+00:00" key="Seamus Haji" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-05T06:26:56+01:00" key="Pussycat Dolls / Busta Rhymes" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-21T04:56:29+00:00" key="Chris Rea" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2008-01-18T06:22:09+00:00" key="Nickelback" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-13T04:54:18+01:00" key="Bluetones" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-08-10T06:18:15+01:00" key="Candi Staton / The Source" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-08T06:41:32+01:00" key="Aaliyah" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-16T06:00:02+01:00" key="Stonebridge" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-23T05:27:58+01:00" key="The Thrills" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-11-01T06:03:14+00:00" key="Panic! At The Disco" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T04:40:44+01:00" key="The Smiths" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T04:31:10+01:00" key="Boo Radleys" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-14T04:23:54+00:00" key="Christina Aguilera / Redman" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2008-01-07T05:58:45+00:00" key="Manic Street Preachers" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-13T04:57:30+01:00" key="Jamiroquai" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-08-10T06:21:45+01:00" key="Music 4" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-13T13:03:45+01:00" key="Lee Cabrera" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-17T04:00:08+01:00" key="William Orbit" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-23T05:33:01+01:00" key="The Bravery" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-02T04:48:25+01:00" key="Huey Lewis &amp;amp; The News" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-03T04:34:08+01:00" key="Coolio" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-02T14:18:56+00:00" key="Pete Heller" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-10T04:33:17+00:00" key="The Editors" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-12-25T06:01:45+00:00" key="Slade" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-07-13T05:46:22+01:00" key="Beyonce / Freemasons" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-08-10T06:39:53+01:00" key="Stardust" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-10-17T04:18:46+01:00" key="Cheeky Girls" value="0.025" from="bbc.co.uk"/>
+          <Concept updated="2007-06-22T06:41:04+01:00" key="Puddle Of Mudd" value="0.025" from="bbc.co.uk"/>
+        </Concepts>
+      </ExplicitData>
+    </Profile>
+  </Body>
+</APML>
