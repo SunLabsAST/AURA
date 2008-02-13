@@ -34,7 +34,6 @@ public class AttentionProfile extends HttpServlet {
 
     private int pagesServed;
     private int errors;
-    //private LastFMProfileRetriever lcr;
     private MiniDBLastFMProfileRetriever lcr;
     private DeliciousProfileRetriever dcr;
     private PandoraProfileRetriever pcr;
