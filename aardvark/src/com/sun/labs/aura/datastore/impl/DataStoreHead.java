@@ -1,6 +1,7 @@
 
 package com.sun.labs.aura.datastore.impl;
 
+import com.sun.labs.aura.aardvark.AardvarkService;
 import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DataStore;
@@ -23,6 +24,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -31,13 +33,15 @@ import java.util.logging.Logger;
  * Each head can distribute data 
  * 
  */
-public class DataStoreHead implements DataStore, Configurable {
+public class DataStoreHead implements DataStore, Configurable, AardvarkService {
     
     protected BinaryTrie<PartitionCluster> trie = null;
 
     protected ExecutorService executor;
     
     protected ComponentRegistry compReg = null;
+    
+    protected boolean closed = false;
     
     protected static Logger logger = Logger.getLogger("");
     
@@ -342,29 +346,32 @@ public class DataStoreHead implements DataStore, Configurable {
         return count;
     }
 
-    public void close() throws AuraException, RemoteException {
-        //
-        // Inform all partition clusters that they should close down
-        Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<Object>> callers = new HashSet<Callable<Object>>();
-        for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
-                public Object call() throws AuraException, RemoteException {
-                    pc.close();
-                    return null;
-                }
-            });
-        }
-        
-        try {
-            List<Future<Object>> results = executor.invokeAll(callers);
-            for (Future<Object> future : results) {
-                future.get();
+    public synchronized void close() throws AuraException, RemoteException {
+        if (!closed) {
+            //
+            // Inform all partition clusters that they should close down
+            Set<PartitionCluster> clusters = trie.getAll();
+            Set<Callable<Object>> callers = new HashSet<Callable<Object>>();
+            for (PartitionCluster p : clusters) {
+                callers.add(new PCCaller(p) {
+                    public Object call() throws AuraException, RemoteException {
+                        pc.close();
+                        return null;
+                    }
+                });
             }
-        } catch (InterruptedException e) {
-            throw new AuraException("Execution was interrupted", e);
-        } catch (ExecutionException e) {
-            checkAndThrow(e);
+
+            try {
+                List<Future<Object>> results = executor.invokeAll(callers);
+                for (Future<Object> future : results) {
+                    future.get();
+                }
+            } catch (InterruptedException e) {
+                throw new AuraException("Execution was interrupted", e);
+            } catch (ExecutionException e) {
+                checkAndThrow(e);
+            }
+            closed = true;
         }
     }
 
@@ -401,5 +408,16 @@ public class DataStoreHead implements DataStore, Configurable {
             throw new AuraException("Execution failed", e);
         }
 
+    }
+
+    public void start() {
+    }
+
+    public void stop() {
+        try {
+            close();
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Failed to close DataStoreHead cleanly", e);
+        }
     }
 }
