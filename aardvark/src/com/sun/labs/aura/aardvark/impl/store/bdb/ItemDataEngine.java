@@ -85,10 +85,17 @@ public class ItemDataEngine implements Configurable {
     }
 
     /**
-     * Indexes an item.
+     * Indexes an item.  Note that the data indexed may not be available immediately
+     * for searching, depending on the configuration of the indexer.
+     * 
      * @param item the item to index
+     * @return <code>true</code> if the item was added to the index, <code>false</code>
+     * otherwise.
      */
-    public void index(SimpleItem item) {
+    public boolean index(SimpleItem item) {
+        if(shuttingDown) {
+            return false;
+        }
 
         try {
 
@@ -149,9 +156,11 @@ public class ItemDataEngine implements Configurable {
                 engine.flush();
                 entryCount = 0;
             }
+            return true;
         } catch(SearchEngineException ex) {
             log.log(Level.SEVERE, "Exception indexing " + item.getKey(), ex);
         }
+        return false;
     }
     
     /**
