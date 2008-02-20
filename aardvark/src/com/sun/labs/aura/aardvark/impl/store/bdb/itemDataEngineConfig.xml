@@ -23,13 +23,14 @@
         <property name="index_directory" value="${index_directory}"/>
         <property name="default_field_info" value="unknown_field"/>
         <propertylist name="field_info">
-            <item>id</item>
-            <item>name</item>
+            <item>aura-id</item>
+            <item>aura-name</item>
+            <item>aura-type</item>
         </propertylist>
     </component>
     
     <!-- The ID of the entry -->
-    <component name="id" type="com.sun.kt.search.FieldInfo">
+    <component name="aura-id" type="com.sun.kt.search.FieldInfo">
         <property name="indexed" value="false"/>
         <property name="tokenized" value="false"/>
         <property name="vectored" value="false"/>
@@ -38,7 +39,16 @@
     </component> 
     
     <!-- The Name of the entry -->
-    <component name="name" type="com.sun.kt.search.FieldInfo">
+    <component name="aura-name" type="com.sun.kt.search.FieldInfo">
+        <property name="indexed" value="false"/>
+        <property name="tokenized" value="false"/>
+        <property name="vectored" value="false"/>
+        <property name="saved" value="true"/>
+        <property name="type" value="string"/>
+    </component>
+    
+    <!-- The type of the entry -->
+    <component name="aura-type" type="com.sun.kt.search.FieldInfo">
         <property name="indexed" value="false"/>
         <property name="tokenized" value="false"/>
         <property name="vectored" value="false"/>

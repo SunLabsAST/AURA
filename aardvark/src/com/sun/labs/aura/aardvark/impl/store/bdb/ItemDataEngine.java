@@ -51,8 +51,6 @@ public class ItemDataEngine implements Configurable {
 
     private SearchEngine engine;
 
-    private SimpleItemStore itemStore;
-
     private Logger log;
 
     private int entryBatchSize;
@@ -81,7 +79,6 @@ public class ItemDataEngine implements Configurable {
             engine = SearchEngineFactory.getSearchEngine(indexDir,
                                                          "search_engine",
                                                          config);
-            itemStore = (SimpleItemStore) ps.getComponent(PROP_ITEM_STORE);
         } catch(SearchEngineException see) {
             log.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
         }
@@ -103,8 +100,9 @@ public class ItemDataEngine implements Configurable {
             
             //
             // Add the data that we want in every map.
-            im.put("id", item.getID());
-            im.put("name", item.getName());
+            im.put("aura-id", item.getID());
+            im.put("aura-name", item.getName());
+            im.put("aura-type", item.getType().toString());
             for(Map.Entry<String,Serializable> e : dm.entrySet()) {
                 Serializable val = e.getValue();
                 
