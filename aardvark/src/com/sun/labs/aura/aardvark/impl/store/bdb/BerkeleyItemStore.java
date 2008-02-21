@@ -14,10 +14,10 @@ import com.sun.labs.aura.aardvark.store.item.SimpleItem;
 import com.sun.labs.aura.aardvark.store.item.SimpleItem.ItemType;
 import com.sun.labs.aura.aardvark.store.item.SimpleUser;
 import com.sun.labs.aura.aardvark.util.AuraException;
-import com.sun.labs.util.props.ComponentRegistry;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
+import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
@@ -52,7 +52,7 @@ public class BerkeleyItemStore implements SimpleItemStore, Configurable, Aardvar
     /**
      * ComponentRegistry will be non-null if we're running in a RMI environment
      */
-    protected ComponentRegistry compReg = null;
+    protected ConfigurationManager cm = null;
     
     /**
      * The wrapper around all the BDB/JE implementation
@@ -124,6 +124,7 @@ public class BerkeleyItemStore implements SimpleItemStore, Configurable, Aardvar
      */
     public void newProperties(PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
+        cm = ps.getConfigurationManager();
         
         //
         // Get the database environment
@@ -143,10 +144,6 @@ public class BerkeleyItemStore implements SimpleItemStore, Configurable, Aardvar
             logger.severe("Failed to load the database environment at " +
                           dbEnvDir + ": " + e);
         }
-        
-        //
-        // Get a component registry if we have one
-        compReg = ps.getConfigurationManager().getComponentRegistry();
         
         store = this;
     }
@@ -223,10 +220,8 @@ public class BerkeleyItemStore implements SimpleItemStore, Configurable, Aardvar
         DBIterator<SimpleItem> res =
                 bdb.getItemsAddedSince(type, timeStamp.getTime());
         
-        if (compReg != null) {
-            return (DBIterator<SimpleItem>) compReg.getRemote(res);
-        }
-        return res;
+ 
+        return (DBIterator<SimpleItem>) cm.getRemote(res, this);
     }
     
     public Attention getAttention(long attnID) throws AuraException {
@@ -271,10 +266,7 @@ public class BerkeleyItemStore implements SimpleItemStore, Configurable, Aardvar
         DBIterator<Attention> res = 
                 bdb.getAttentionAddedSince(timeStamp.getTime());
         
-        if (compReg != null) {
-            return (DBIterator<Attention>) compReg.getRemote(res);
-        }
-        return res;
+        return (DBIterator<Attention>) cm.getRemote(res, this);
     }
 
     public void addItemListener(ItemType itemType, SimpleItemListener listener) throws AuraException {
@@ -488,6 +480,7 @@ public class BerkeleyItemStore implements SimpleItemStore, Configurable, Aardvar
 
     public void stop() {
         try {
+            cm.shutdown();
             close();
         } catch (AuraException ae) {
             logger.log(Level.WARNING, "Error closing item store", ae);

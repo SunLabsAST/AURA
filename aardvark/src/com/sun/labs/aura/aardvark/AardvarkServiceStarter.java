@@ -4,8 +4,7 @@
  */
 package com.sun.labs.aura.aardvark;
 
-import com.sun.labs.util.LabsLogFormatter;
-import com.sun.labs.util.props.ComponentRegistry;
+import com.sun.labs.util.SimpleLabsLogFormatter;
 import com.sun.labs.util.props.ConfigComponentList;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -33,10 +32,7 @@ public class AardvarkServiceStarter implements Configurable {
         //
         // If the services were registered with a service registry, then we need
         // to unregister them.
-        ComponentRegistry cr = cm.getComponentRegistry();
-        if(cr != null) {
-            cr.unregister();
-        }
+        cm.shutdown();
         for(AardvarkService s : services) {
             s.stop();
         }
@@ -93,7 +89,7 @@ public class AardvarkServiceStarter implements Configurable {
         // Use the labs format logging.
         Logger rl = Logger.getLogger("");
         for(Handler h : rl.getHandlers()) {
-            h.setFormatter(new LabsLogFormatter());
+            h.setFormatter(new SimpleLabsLogFormatter());
         }
 
         try {

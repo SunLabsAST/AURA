@@ -12,12 +12,11 @@ import com.sun.labs.aura.datastore.ItemEvent;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
-import com.sun.labs.aura.datastore.impl.store.persist.UserImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
-import com.sun.labs.util.props.ComponentRegistry;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
+import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
@@ -52,7 +51,7 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
     /**
      * ComponentRegistry will be non-null if we're running in a RMI environment
      */
-    protected ComponentRegistry compReg = null;
+    protected ConfigurationManager cm = null;
     
     /**
      * The wrapper around all the BDB/JE implementation
@@ -145,8 +144,9 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
         }
         
         //
-        // Get a component registry if we have one
-        compReg = ps.getConfigurationManager().getComponentRegistry();
+        // Get the configuration manager, which we'll use to export things, if
+        // necessary.
+        cm = ps.getConfigurationManager();
         
         store = this;
     }
@@ -219,10 +219,7 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
         DBIterator<Item> res =
                 bdb.getItemsAddedSince(type, timeStamp.getTime());
         
-        if (compReg != null) {
-            return (DBIterator<Item>) compReg.getRemote(res);
-        }
-        return res;
+        return (DBIterator<Item>) cm.getRemote(res, this);
     }
     
     public Attention getAttention(long attnID) throws AuraException {
@@ -248,10 +245,7 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
         DBIterator<Attention> res = 
                 bdb.getAttentionAddedSince(timeStamp.getTime());
         
-        if (compReg != null) {
-            return (DBIterator<Attention>) compReg.getRemote(res);
-        }
-        return res;
+        return (DBIterator<Attention>) cm.getRemote(res, this);
     }
 
     public void addItemListener(ItemType itemType, ItemListener listener) throws AuraException {
@@ -443,6 +437,7 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
 
     public void stop() {
         try {
+            cm.shutdown();
             close();
         } catch (AuraException ae) {
             logger.log(Level.WARNING, "Error closing item store", ae);
