@@ -11,6 +11,7 @@ package com.sun.labs.aura.aardvark;
 
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
+import com.sun.labs.aura.util.AuraException;
 import java.util.List;
 import java.util.Set;
 
@@ -46,7 +47,7 @@ public class BlogFeed extends ItemAdapter {
      * @param name the name of the feed
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    public BlogFeed(String key, String name) {
+    public BlogFeed(String key, String name) throws AuraException {
         this(StoreFactory.newItem(Item.ItemType.FEED, key, name));
     }
 

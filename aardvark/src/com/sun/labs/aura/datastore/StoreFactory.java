@@ -1,11 +1,11 @@
 
 package com.sun.labs.aura.datastore;
 
-import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.impl.store.persist.UserImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
+import com.sun.labs.aura.util.AuraException;
 
 
 /**

@@ -145,7 +145,7 @@ public class FeedManager implements AardvarkService, Configurable, FeedCrawler {
             // for each entry
 
             List<BlogEntry> entries = FeedUtils.processFeed(feed);
-            Set<Attention> attentions = myItemStore.getAttentionForTarget(feed.getItem());
+            Set<Attention> attentions = myItemStore.getAttentionForTarget(feed.getKey());
 
             for (BlogEntry entry : entries) {
                 entry.flush(myItemStore);

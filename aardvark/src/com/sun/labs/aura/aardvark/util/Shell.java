@@ -20,7 +20,6 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
-import com.sun.labs.aura.datastore.impl.store.ItemStore;
 import com.sun.labs.util.LabsLogFormatter;
 import com.sun.labs.util.command.CommandInterface;
 import com.sun.labs.util.command.CommandInterpreter;
@@ -259,7 +258,7 @@ public class Shell {
         shell.add("dbExerciseWrite",
                 new CommandInterface() {
 
-                    public String execute(CommandInterpreter ci, String[] args) {
+                    public String execute(CommandInterpreter ci, String[] args) throws Exception {
                         try {
                             if (args.length == 2) {
                                 long timeStamp = System.currentTimeMillis();
@@ -399,7 +398,7 @@ public class Shell {
     }
 
     private void dumpItem(Item item) throws AuraException, RemoteException {
-        System.out.printf(" %d %s\n", dataStore.getAttentionForTarget(item).size(), item.getKey());
+        System.out.printf(" %d %s\n", dataStore.getAttentionForTarget(item.getKey()).size(), item.getKey());
     }
 
     private void dumpFeed(Item feedItem) throws AuraException, RemoteException {
