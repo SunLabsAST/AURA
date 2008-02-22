@@ -184,12 +184,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable, ItemListe
 
     // replace me when this is supported in the config system
     private ItemListener exportIfNecessary(PropertySheet ps, Component component, ItemListener listener) {
-        ItemListener exported = null;
-        ComponentRegistry cr = ps.getConfigurationManager().getComponentRegistry();
-        if (cr != null) {
-            exported = (ItemListener) cr.getRemote(this);
-        }
-        return exported;
+        return (ItemListener) ps.getConfigurationManager().getRemote(listener, component);
     }
 
     /**

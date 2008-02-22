@@ -1,4 +1,4 @@
-package com.sun.labs.aura.aardvark.store.item;
+package com.sun.labs.aura.datastore.impl.store;
 
 /**
  * A tagging interface that can be implemented by objects that are the values
