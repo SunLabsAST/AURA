@@ -1,6 +1,7 @@
 
 package com.sun.labs.aura.datastore;
 
+import com.sun.labs.aura.aardvark.util.AuraException;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.impl.store.persist.UserImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
@@ -20,7 +21,12 @@ public class StoreFactory {
      * 
      * @return the item
      */
-    public static Item newItem(ItemType type, String key, String name) {
+    public static Item newItem(ItemType type, String key, String name)
+            throws AuraException {
+        if (type == ItemType.USER) {
+            throw new AuraException("Invalid item type: USER. " +
+                                    "Use newUser(...) instead.");
+        }
         return new ItemImpl(type, key, name);
     }
     

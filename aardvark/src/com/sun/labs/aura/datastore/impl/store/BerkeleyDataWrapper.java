@@ -500,12 +500,12 @@ public class BerkeleyDataWrapper {
      * been found to satisfy the count, or until all attentions within the last
      * year have been considered.
      * 
-     * @param userID the ID of the user to query for
+     * @param srcKey the ID of the attention source to query for
      * @param type the type of attention to limit to, or null for all attentions
      * @param count the desired number of attentions to return
      * @return a set of attentions, sorted by date
      */
-    public SortedSet<Attention> getLastAttentionForUser(String userKey,
+    public SortedSet<Attention> getLastAttentionForUser(String srcKey,
             Attention.Type type, int count) {
         //
         // Start querying for attention for this user based on time, expanding
@@ -516,7 +516,7 @@ public class BerkeleyDataWrapper {
 
         // Try one hour first
         SortedSet<Attention> curr = 
-                getUserAttnForTimePeriod(userKey, type, recent,
+                getUserAttnForTimePeriod(srcKey, type, recent,
                 Times.ONE_HOUR, count);
         
         count -= curr.size();
@@ -528,7 +528,7 @@ public class BerkeleyDataWrapper {
 
         //
         // Now add in from one hour ago to one day ago
-        curr = getUserAttnForTimePeriod(userKey, type, recent,
+        curr = getUserAttnForTimePeriod(srcKey, type, recent,
                Times.ONE_DAY, count);
         count -= curr.size();
         recent -= Times.ONE_DAY;
@@ -539,7 +539,7 @@ public class BerkeleyDataWrapper {
         
         //
         // Now add in from one day ago to one week ago
-        curr = getUserAttnForTimePeriod(userKey, type, recent,
+        curr = getUserAttnForTimePeriod(srcKey, type, recent,
                Times.ONE_WEEK, count);
         count -= curr.size();
         recent -= Times.ONE_WEEK;
@@ -550,7 +550,7 @@ public class BerkeleyDataWrapper {
         
         //
         // Now add in from one week ago to one month ago
-        curr = getUserAttnForTimePeriod(userKey, type, recent,
+        curr = getUserAttnForTimePeriod(srcKey, type, recent,
                Times.ONE_MONTH, count);
         count -= curr.size();
         recent -= Times.ONE_MONTH;
@@ -561,7 +561,7 @@ public class BerkeleyDataWrapper {
         
         //
         // Finally, expand out to one year.
-        curr = getUserAttnForTimePeriod(userKey, type, recent,
+        curr = getUserAttnForTimePeriod(srcKey, type, recent,
                Times.ONE_YEAR, count);
         //
         // Take whatever we got and return it.  We won't search back more than
@@ -571,7 +571,7 @@ public class BerkeleyDataWrapper {
     }
 
     private SortedSet<Attention> getUserAttnForTimePeriod(
-            String userKey,
+            String srcKey,
             Attention.Type type,
             long recentTime,
             long interval,
@@ -580,8 +580,8 @@ public class BerkeleyDataWrapper {
                 new RevAttnTimeComparator());
         //
         // Set the begin and end times chronologically
-        StringAndTimeKey begin = new StringAndTimeKey(userKey, recentTime - interval);
-        StringAndTimeKey end = new StringAndTimeKey(userKey + 1, recentTime);
+        StringAndTimeKey begin = new StringAndTimeKey(srcKey, recentTime - interval);
+        StringAndTimeKey end = new StringAndTimeKey(srcKey + 1, recentTime);
         EntityCursor<PersistentAttention> cursor = null;
         try {
             try {
@@ -605,7 +605,7 @@ public class BerkeleyDataWrapper {
             }
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "Failed while retrieving " + count +
-                    " recent attentions for user " + userKey, e);
+                    " recent attentions for user " + srcKey, e);
         }
         return result;
     }
@@ -624,6 +624,20 @@ public class BerkeleyDataWrapper {
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "Failed to get count for items of type " +
                     type);
+        }
+        return 0;
+    }
+    
+    /**
+     * Gets the number of attentions that are in the attention index
+     * 
+     * @return the number of instances of attention in the index
+     */
+    public long getAttentionCount() {
+        try {
+            return allAttn.count();
+        } catch (DatabaseException e) {
+            log.log(Level.WARNING, "Failed to get count of attentions");
         }
         return 0;
     }

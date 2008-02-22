@@ -9,9 +9,8 @@ import com.sun.kt.search.ResultSet;
 import com.sun.kt.search.SearchEngine;
 import com.sun.kt.search.SearchEngineException;
 import com.sun.kt.search.SearchEngineFactory;
-import com.sun.labs.aura.aardvark.store.SimpleItemStore;
-import com.sun.labs.aura.aardvark.store.item.Indexable;
-import com.sun.labs.aura.aardvark.store.item.SimpleItem;
+import com.sun.labs.aura.datastore.Indexable;
+import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
@@ -24,7 +23,6 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -47,7 +45,7 @@ import java.util.logging.Logger;
  * before it is indexed.
  * 
  */
-public class ItemDataEngine implements Configurable {
+public class ItemSearchEngine implements Configurable {
 
     private SearchEngine engine;
 
@@ -70,7 +68,7 @@ public class ItemDataEngine implements Configurable {
         String indexDir = ps.getString(PROP_INDEX_DIR);
         String engineConfig = ps.getString(PROP_ENGINE_CONFIG_FILE);
         try {
-            URL config = ItemDataEngine.class.getResource(engineConfig);
+            URL config = ItemSearchEngine.class.getResource(engineConfig);
 
             //
             // Creates the search engine.  We'll use a full blown fields-and-all
@@ -92,7 +90,7 @@ public class ItemDataEngine implements Configurable {
      * @return <code>true</code> if the item was added to the index, <code>false</code>
      * otherwise.
      */
-    public boolean index(SimpleItem item) {
+    public boolean index(Item item) {
         if(shuttingDown) {
             return false;
         }
@@ -107,7 +105,7 @@ public class ItemDataEngine implements Configurable {
             
             //
             // Add the data that we want in every map.
-            im.put("aura-id", item.getID());
+            //im.put("aura-id", item.getID());
             im.put("aura-name", item.getName());
             im.put("aura-type", item.getType().toString());
             for(Map.Entry<String,Serializable> e : dm.entrySet()) {
@@ -277,14 +275,6 @@ public class ItemDataEngine implements Configurable {
      */
     @ConfigInteger(defaultValue = 2)
     public static final String PROP_ENGINE_LOG_LEVEL = "engineLogLevel";
-
-    /**
-     * The configurable item store.  We'll listen to this item store for new
-     * entries and generate recommendations for the entries in this store.
-     */
-    @ConfigComponent(type = com.sun.labs.aura.aardvark.store.ItemStore.class)
-    public static final String PROP_ITEM_STORE =
-            "itemStore";
 
     /**
      * The configurable index directory.
