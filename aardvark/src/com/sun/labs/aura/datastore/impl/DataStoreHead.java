@@ -10,8 +10,8 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.store.DBIterator;
-import com.sun.labs.util.props.ComponentRegistry;
 import com.sun.labs.util.props.Configurable;
+import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
@@ -39,7 +39,7 @@ public class DataStoreHead implements DataStore, Configurable, AardvarkService {
 
     protected ExecutorService executor;
     
-    protected ComponentRegistry compReg = null;
+    protected ConfigurationManager cm = null;
     
     protected boolean closed = false;
     
@@ -168,10 +168,7 @@ public class DataStoreHead implements DataStore, Configurable, AardvarkService {
         // iterate over all of them.  Since no particular ordering is
         // promised by this method, we'll use a simple composite iterator.
         MultiDBIterator<Item> mdbi = new MultiDBIterator<Item>(iterators);
-        if (compReg != null) {
-            mdbi = (MultiDBIterator<Item>) compReg.getRemote(mdbi);
-        }
-        return mdbi;
+        return (MultiDBIterator<Item>) cm.getRemote(mdbi, this);
     }
 
     public Set<Item> getItems(final User user,
@@ -376,7 +373,7 @@ public class DataStoreHead implements DataStore, Configurable, AardvarkService {
     }
 
     public void newProperties(PropertySheet arg0) throws PropertyException {
-        compReg = arg0.getConfigurationManager().getComponentRegistry();
+        cm = arg0.getConfigurationManager();
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -415,6 +412,7 @@ public class DataStoreHead implements DataStore, Configurable, AardvarkService {
 
     public void stop() {
         try {
+            cm.shutdown();
             close();
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to close DataStoreHead cleanly", e);

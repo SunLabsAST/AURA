@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : entryEngineConfig.xml
+    Created on : November 5, 2007, 9:39 AM
+    Author     : Stephen Green
+    Description:
+        Configuration for the search engine used to index and search feed entries.
+-->
+
+<config>
+    <!-- We're going to use a synchronous dumper so that when an entry is
+    indexed, when control is returned to the caller the data is available for
+    searching. -->
+    <property name="dumper" value="async_dumper"/>
+    
+    <!-- We'll use 2 indexing pipelines, which means that indexing will be 
+    asynchronous:  unless the indexing queues are full, when something is
+    indexed, control will be returned immediately to the caller -->
+    <property name="num_pipelines" value="2"/>
+    
+    <!-- Our fields.  The things that we'll put in every item will be prefixed with
+    aura- to avoid collisions with user-defined field names. -->
+    <component name="index_config" type="com.sun.kt.search.IndexConfig">
+        <property name="index_directory" value="${index_directory}"/>
+        <property name="default_field_info" value="unknown_field"/>
+        <propertylist name="field_info">
+            <item>aura-id</item>
+            <item>aura-name</item>
+            <item>aura-type</item>
+        </propertylist>
+    </component>
+    
+    <!-- The ID of the entry -->
+    <component name="aura-id" type="com.sun.kt.search.FieldInfo">
+        <property name="indexed" value="false"/>
+        <property name="tokenized" value="false"/>
+        <property name="vectored" value="false"/>
+        <property name="saved" value="true"/>
+        <property name="type" value="integer"/>
+    </component> 
+    
+    <!-- The Name of the entry -->
+    <component name="aura-name" type="com.sun.kt.search.FieldInfo">
+        <property name="indexed" value="false"/>
+        <property name="tokenized" value="false"/>
+        <property name="vectored" value="false"/>
+        <property name="saved" value="true"/>
+        <property name="type" value="string"/>
+    </component>
+    
+    <!-- The type of the entry -->
+    <component name="aura-type" type="com.sun.kt.search.FieldInfo">
+        <property name="indexed" value="false"/>
+        <property name="tokenized" value="false"/>
+        <property name="vectored" value="false"/>
+        <property name="saved" value="true"/>
+        <property name="type" value="string"/>
+    </component>    
+</config>

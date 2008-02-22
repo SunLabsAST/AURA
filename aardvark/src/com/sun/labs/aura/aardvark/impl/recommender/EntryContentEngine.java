@@ -109,13 +109,7 @@ public class EntryContentEngine implements Configurable, Recommender, ItemListen
                 // Not sure how to do this, but if we have a component registry
                 // running, we'll assume that we're sending an exported proxy
                 // to a remote item store.  Otherwise, we can just send ourself.
-                ComponentRegistry cr = ps.getConfigurationManager().
-                        getComponentRegistry();
-                if(cr == null) {
-                    exported = this;
-                } else {
-                    exported = (ItemListener) cr.getRemote(this);
-                }
+                exported = (ItemListener) ps.getConfigurationManager().getRemote(this, this);
                 itemStore.addItemListener(Entry.class, exported);
             } catch(AuraException ex) {
                 log.warning("Failed to add content engine as listener");
