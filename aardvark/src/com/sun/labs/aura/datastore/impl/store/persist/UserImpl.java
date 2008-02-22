@@ -4,7 +4,6 @@ import com.sleepycat.persist.model.Persistent;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
 import com.sun.labs.aura.datastore.User;
-import java.util.HashSet;
 
 /**
  * Provides a user implementation that is persistent in the BDB.
@@ -22,7 +21,7 @@ public class UserImpl extends ItemImpl implements User {
     }
     
     public UserImpl(String key, String name) {
-        this.itemType = -1;
+        this.itemType = ItemType.USER.ordinal();
         this.key = key;
         this.name = name;
         this.typeAndTimeAdded = new IntAndTimeKey(this.itemType,

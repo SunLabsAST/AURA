@@ -14,6 +14,7 @@ import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.util.props.ConfigBoolean;
+import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -28,6 +29,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,6 +49,15 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
     @ConfigBoolean(defaultValue=false)
     public final static String PROP_OVERWRITE="overwrite";
     protected boolean overwriteExisting;
+    
+    /**
+     * The search engine that will store item info
+     */
+    @ConfigComponent(type = ItemSearchEngine.class)
+    public static final String PROP_SEARCH_ENGINE =
+            "itemSearchEngine";
+    protected ItemSearchEngine searchEngine;
+
     
     /**
      * ComponentRegistry will be non-null if we're running in a RMI environment
@@ -144,6 +155,10 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
         }
         
         //
+        // Get the search engine from the config system
+        searchEngine = (ItemSearchEngine)ps.getComponent(PROP_SEARCH_ENGINE);
+        
+        //
         // Get the configuration manager, which we'll use to export things, if
         // necessary.
         cm = ps.getConfigurationManager();
@@ -191,6 +206,13 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
                 existed = true;
             }
         
+            //
+            // The item was modified and/or created, so tell the indexer
+            // about it
+            searchEngine.index(item);
+            
+            //
+            // Finally, send out relevant events.
             if (existed) {
                 itemChanged(itemImpl, ItemEvent.ChangeType.AURA);
             } else {
@@ -214,7 +236,7 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
     }
 
     public DBIterator<Item> getItemsAddedSince(ItemType type,
-                                                     Date timeStamp)
+                                               Date timeStamp)
             throws AuraException {
         DBIterator<Item> res =
                 bdb.getItemsAddedSince(type, timeStamp.getTime());
@@ -226,9 +248,9 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
         return bdb.getAttention(attnID);
     }
     
-    public Set<Attention> getAttentionForTarget(Item item)
+    public Set<Attention> getAttentionForTarget(String itemKey)
             throws AuraException {
-        return bdb.getAttentionForTarget(item.getKey());
+        return bdb.getAttentionForTarget(itemKey);
     }
     
     
@@ -241,14 +263,29 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
         return pa;
     }
 
-    public DBIterator<Attention> getAttentionAddedSince(Date timeStamp) throws AuraException {
+    public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)
+            throws AuraException {
         DBIterator<Attention> res = 
                 bdb.getAttentionAddedSince(timeStamp.getTime());
         
         return (DBIterator<Attention>) cm.getRemote(res, this);
     }
 
-    public void addItemListener(ItemType itemType, ItemListener listener) throws AuraException {
+    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+                                                          int count)
+            throws AuraException, RemoteException {
+        return getLastAttentionForSource(srcKey, null, count);
+    }
+
+    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+                                                          Type type,
+                                                          int count)
+            throws AuraException, RemoteException {
+        return bdb.getLastAttentionForUser(srcKey, type, count);
+    }
+
+    public void addItemListener(ItemType itemType, ItemListener listener)
+            throws AuraException {
         //
         // Find the set of listeners for this type and add it, adding a set to
         // track these listeners if there isn't one.
@@ -279,9 +316,14 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkServi
     }
 
     public long getItemCount(ItemType type) {
-        return 0;
+        return bdb.getItemCount(type);
     }
 
+    public long getAttentionCount() {
+        return bdb.getAttentionCount();
+    }
+
+    
     /**
      * Internal method to handle sending/queueing item changed events.
      */

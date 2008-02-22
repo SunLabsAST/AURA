@@ -12,6 +12,7 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * The interface for a simple item store that allow the storage of users, items,
@@ -114,11 +115,11 @@ public interface ItemStore extends Component, Remote {
     /**
      * Get all the attention related to a particular item
      * 
-     * @param item the item to fetch attention for
+     * @param itemKey the item to fetch attention for
      * @return the set of all attention
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    public Set<Attention> getAttentionForTarget(Item item)
+    public Set<Attention> getAttentionForTarget(String itemKey)
             throws AuraException, RemoteException;
     
     /**
@@ -147,7 +148,32 @@ public interface ItemStore extends Component, Remote {
     public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)
             throws AuraException, RemoteException;
     
+    /**
+     * Gets the N most recent attention objects that an attention source
+     * has recorded.
+     * 
+     * @param srcKey the source to examine
+     * @param count the number of attentions to fetch
+     * @return the most recent attentions, sorted by date
+     */
+    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+                                                          int count)
+            throws AuraException, RemoteException;
 
+    /**
+     * Gets the N most recent attention objects of a particular type that
+     * an attention source has recorded.
+     * 
+     * @param srcKey the source to examine
+     * @param type the type of attention
+     * @param count the number of attentions to fetch
+     * @return the most recent attentions, sorted by date
+     */
+    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+                                                          Attention.Type type,
+                                                          int count)
+            throws AuraException, RemoteException;
+    
     /**
      * Adds an ItemListener to this ItemStore.  ItemListeners are sent
      * batches of Item-related events.  The policy for when to send events
@@ -192,6 +218,13 @@ public interface ItemStore extends Component, Remote {
      */
     public long getItemCount(ItemType itemType)
             throws AuraException, RemoteException;
+    
+    /**
+     * Gets the count of the number of attentions in the data store
+     * 
+     * @return the count
+     */
+    public long getAttentionCount() throws AuraException, RemoteException;
     
     /**
      * Closes the item store cleanly.  This should be called before the

@@ -13,8 +13,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -85,7 +83,7 @@ public class ItemImpl implements Item {
             return false;
         }
         final ItemImpl other = (ItemImpl) obj;
-        if (this.key != other.key && (this.key == null || !this.key.equals(other.key))) {
+        if (this.key == null || !this.key.equals(other.key)) {
             return false;
         }
         return true;
