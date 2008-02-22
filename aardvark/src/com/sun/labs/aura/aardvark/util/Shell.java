@@ -8,16 +8,19 @@
  */
 package com.sun.labs.aura.aardvark.util;
 
+import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.AardvarkService;
+import com.sun.labs.aura.aardvark.BlogFeed;
 import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
-import com.sun.labs.aura.aardvark.store.Attention;
-import com.sun.labs.aura.aardvark.store.ItemStore;
-import com.sun.labs.aura.aardvark.store.item.Entry;
-import com.sun.labs.aura.aardvark.store.item.Feed;
-import com.sun.labs.aura.aardvark.store.item.Item;
-import com.sun.labs.aura.aardvark.store.item.User;
+import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.datastore.StoreFactory;
+import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.datastore.impl.store.ItemStore;
 import com.sun.labs.util.LabsLogFormatter;
 import com.sun.labs.util.command.CommandInterface;
 import com.sun.labs.util.command.CommandInterpreter;
@@ -42,7 +45,7 @@ import java.util.logging.Logger;
 public class Shell {
 
     private CommandInterpreter shell;
-    private ItemStore itemStore;
+    private DataStore dataStore;
     private FeedCrawler feedCrawler;
     private Aardvark aardvark;
 
@@ -56,7 +59,7 @@ public class Shell {
 
         shell = new CommandInterpreter();
         shell.setPrompt("aardv% ");
-        
+
         shell.add("users",
                 new CommandInterface() {
 
@@ -82,7 +85,7 @@ public class Shell {
                             if (args.length != 2) {
                                 dumpAllUsers();
                             } else {
-                                Item item = itemStore.get(args[1]);
+                                Item item = dataStore.getItem(args[1]);
                                 if (item != null && item instanceof User) {
                                     dumpUser((User) item);
                                 }
@@ -106,7 +109,7 @@ public class Shell {
                             if (args.length != 3) {
                                 getHelp();
                             } else {
-                                Item item = itemStore.get(args[1]);
+                                Item item = dataStore.getItem(args[1]);
                                 String surl = args[2];
                                 URL url = new URL(surl);
                                 aardvark.addUserFeed((User) item, url, Attention.Type.STARRED_FEED);
@@ -131,7 +134,7 @@ public class Shell {
                             if (args.length != 2) {
                                 getHelp();
                             } else {
-                                Item item = itemStore.get(args[1]);
+                                Item item = dataStore.getItem(args[1]);
                                 if (item != null && item instanceof User) {
                                     recommend((User) item);
                                 }
@@ -147,32 +150,19 @@ public class Shell {
                     }
                 });
 
-        
+
         shell.add("feed",
                 new CommandInterface() {
 
-                    public String execute(CommandInterpreter ci, String[] args) {
-                        try {
-                            if (args.length != 2) {
-                                dumpAllFeeds();
-                            } else {
-                                long id = Long.parseLong(args[1]);
-                                Item item = itemStore.get(id);
-                                if (item != null && item instanceof Feed) {
-                                    dumpFeed((Feed) item);
-                                }
+                    public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                        if (args.length != 2) {
+                            dumpAllFeeds();
+                        } else {
+                            String key = args[1];
+                            Item item = dataStore.getItem(key);
+                            if (item != null && item instanceof BlogFeed) {
+                                dumpFeed(item);
                             }
-                        } catch (NumberFormatException e) {
-                            try {
-                                Item item = itemStore.get(args[1]);
-                                if (item != null && item instanceof Feed) {
-                                    dumpFeed((Feed) item);
-                                }
-                            } catch (Exception ex) {
-                                System.out.println("Error " + ex);
-                            }
-                        } catch (Exception ex) {
-                            System.out.println("Error " + ex);
                         }
                         return "";
                     }
@@ -190,10 +180,10 @@ public class Shell {
                             if (args.length != 2) {
                                 getHelp();
                             } else {
-                                long id = Long.parseLong(args[1]);
-                                Item item = itemStore.get(id);
-                                if (item != null && item instanceof Feed) {
-                                    feedCrawler.crawlFeed((Feed) item);
+                                String key = args[1];
+                                Item item = dataStore.getItem(key);
+                                if (item != null && item instanceof BlogFeed) {
+                                    feedCrawler.crawlFeed((BlogFeed) item);
                                 }
                             }
                         } catch (Exception ex) {
@@ -266,31 +256,6 @@ public class Shell {
                     }
                 });
 
-        shell.add("dbExerciseRead",
-                new CommandInterface() {
-
-                    public String execute(CommandInterpreter ci, String[] args) {
-                        try {
-                            if (args.length == 2) {
-                                int count = Integer.parseInt(args[1]);
-                                for (int i = 0; i < count; i++) {
-                                    for (int j = 0; j < 1000; j++) {
-                                        itemStore.get(j);
-                                    }
-                                }
-                            } else {
-                                getHelp();
-                            }
-                        } catch (Exception e) {
-                            System.out.println("Error " + e);
-                        }
-                        return "";
-                    }
-
-                    public String getHelp() {
-                        return "dbExercise count - exercise the database by repeated fetching items";
-                    }
-                });
         shell.add("dbExerciseWrite",
                 new CommandInterface() {
 
@@ -301,8 +266,8 @@ public class Shell {
                                 int count = Integer.parseInt(args[1]);
                                 for (int i = 0; i < count; i++) {
                                     String key = "key:" + timeStamp + "-" + i;
-                                    Item item = itemStore.newItem(Entry.class, key);
-                                    item = itemStore.put(item);
+                                    Item item = StoreFactory.newItem(Item.ItemType.BLOGENTRY, key, key);
+                                    item = dataStore.putItem(item);
                                 }
                             } else {
                                 getHelp();
@@ -319,34 +284,41 @@ public class Shell {
                 });
         shell.add("getLastAttn",
                 new CommandInterface() {
+
                     public String execute(CommandInterpreter ci,
-                                          String[] args) {
+                            String[] args) {
                         try {
                             if ((args.length < 3) || (args.length > 4)) {
                                 getHelp();
                             } else {
                                 try {
-                                    long userID = Long.parseLong(args[1]);
+                                    String userKey = args[1];
                                     int count = Integer.parseInt(args[2]);
                                     Attention.Type type = null;
                                     if (args.length == 4) {
-                                        type =Attention.Type.valueOf(args[3]);
+                                        type = Attention.Type.valueOf(args[3]);
                                     }
-                                    
-                                    User u = (User) itemStore.get(userID);
+
+                                    User u = (User) dataStore.getUser(userKey);
                                     SortedSet<Attention> attns = null;
-                                    if (type == null) {
-                                        attns = itemStore.getLastAttention(u, count);
-                                    } else {
-                                        attns = itemStore.getLastAttention(u, type, count);
-                                    }
-                                    for (Attention attn : attns) {
-                                        System.out.println(attn.getItemID() +
-                                                " " +
-                                                attn.getType().toString() +
-                                                " " +
-                                                new Date(attn.getTimeStamp()));
-                                    }
+                                /**
+                                 * TODO: removed pending support from the datasore
+                                 * for retrieving user-based attention data
+                                 */
+                                /*
+                                if (type == null) {
+                                attns = dataStore.getLastAttention(u, count);
+                                } else {
+                                attns = dataStore.getLastAttention(u, type, count);
+                                }
+                                for (Attention attn : attns) {
+                                System.out.println(attn.getItemID() +
+                                " " +
+                                attn.getType().toString() +
+                                " " +
+                                new Date(attn.getTimeStamp()));
+                                }
+                                 */
                                 } catch (NumberFormatException e) {
                                     System.out.println("Error parsing args");
                                 }
@@ -356,7 +328,7 @@ public class Shell {
                         }
                         return "";
                     }
-                    
+
                     public String getHelp() {
                         return "getLastAttn <userID> <count> [<type>]";
                     }
@@ -385,15 +357,19 @@ public class Shell {
     }
 
     private void dumpAllUsers() throws AuraException, RemoteException {
-        Set<User> users = itemStore.getAll(User.class);
-        for (User user : users) {
-            dumpItem(user);
-        }
+    //TODO:
+    // we can't get all users from the datastore right now
+
+    /*
+    Set<User> users = dataStore.getAll(User.class);
+    for (User user : users) {
+    dumpItem(user);
+    }
+     * */
     }
 
     private void dumpUser(User user) throws AuraException, RemoteException {
         dumpItem(user);
-        dumpAttentionData(itemStore.getAttentionData(user));
     }
 
     private void recommend(User user) throws AuraException, RemoteException {
@@ -413,46 +389,45 @@ public class Shell {
     }
 
     private void dumpAllFeeds() throws AuraException, RemoteException {
-        Set<Feed> feeds = itemStore.getAll(Feed.class);
+        Set<Item> feedItems = dataStore.getAll(ItemType.FEED);
         long numFeeds = 0;
-        for (Feed feed : feeds) {
-            dumpItem(feed);
+        for (Item feedItem : feedItems) {
+            dumpItem(feedItem);
             numFeeds++;
         }
         System.out.println("Dumped " + numFeeds + " feeds");
     }
 
     private void dumpItem(Item item) throws AuraException, RemoteException {
-        System.out.printf(" %d %d %s\n", item.getID(), itemStore.getAttentionData(item).size(), item.getKey());
+        System.out.printf(" %d %s\n", dataStore.getAttentionForTarget(item).size(), item.getKey());
     }
 
-    private void dumpFeed(Feed feed) throws AuraException, RemoteException {
-        dumpItem(feed);
+    private void dumpFeed(Item feedItem) throws AuraException, RemoteException {
+        dumpItem(feedItem);
+        BlogFeed feed = new BlogFeed(feedItem);
         System.out.println("   Pulls  : " + feed.getNumPulls());
-        System.out.println("   Last   : " + feed.getLastPullTime());
         System.out.println("   Errors : " + feed.getNumErrors());
-        dumpAttentionData(itemStore.getAttentionData(feed));
     }
 
     private void dumpAttentionData(List<Attention> attentionData) throws AuraException, RemoteException {
         for (Attention attention : attentionData) {
-            Item user = itemStore.get(attention.getUserID());
-            Item item = itemStore.get(attention.getItemID());
+            Item source = dataStore.getItem(attention.getSourceKey());
+            Item target = dataStore.getItem(attention.getTargetKey());
             String type = attention.getType().toString();
-            System.out.printf("   %s(%d) %s(%d) %s(%d)\n", user.getKey(), user.getID(),
-                    type, attention.getType().ordinal(), item.getKey(), item.getID());
+            System.out.printf("   %s(%s) -- %s -- %s(%s)\n", source.getKey(), source.getName(),
+                    type, target.getKey(), target.getName());
         }
 
     }
 
     public void initComponents(String configFile) throws IOException {
         URL cu = getClass().getResource(configFile);
-        if(cu == null) {
+        if (cu == null) {
             cu = (new File(configFile)).toURI().toURL();
         }
         ConfigurationManager cm = new ConfigurationManager(cu);
         aardvark = (Aardvark) cm.lookup("aardvark");
-        itemStore = (ItemStore) cm.lookup("itemStore");
+        dataStore = (DataStore) cm.lookup("dataStore");
         feedCrawler = (FeedCrawler) cm.lookup("feedCrawler");
     }
 

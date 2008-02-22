@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.sun.labs.aura.aardvark.util;
+package com.sun.labs.aura.aardvark.impl.crawler;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

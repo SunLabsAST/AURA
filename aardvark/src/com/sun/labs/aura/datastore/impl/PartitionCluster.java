@@ -1,7 +1,7 @@
 package com.sun.labs.aura.datastore.impl;
 
 import com.sun.labs.aura.aardvark.AardvarkService;
-import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
 import com.sun.labs.aura.datastore.Item;

@@ -1,14 +1,17 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright 2007 Sun Microsystems, Inc. 
+ *  All Rights Reserved. Use is subject to license terms.
+ * 
+ *  See the file "license.terms" for information on usage and
+ *  redistribution of this file, and for a DISCLAIMER OF ALL
+ *  WARRANTIES..
  */
 
 package com.sun.labs.aura.aardvark;
 
-import com.sun.labs.aura.aardvark.store.Attention;
-import com.sun.labs.aura.aardvark.store.item.Feed;
-import com.sun.labs.aura.aardvark.store.item.User;
-import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.User;
 import com.sun.labs.util.props.Component;
 import com.sun.syndication.feed.synd.SyndFeed;
 import java.net.URL;
@@ -71,7 +74,7 @@ public interface Aardvark extends Component, Remote {
      * @param type the type of attention that we want the feeds to have
      * @return a list of the feeds of the given type for the given user.
      */
-    Set<Feed> getFeeds(User user, Attention.Type type) throws AuraException, RemoteException;
+    Set<BlogFeed> getFeeds(User user, Attention.Type type) throws AuraException, RemoteException;
 
     /**
      * Gets the feed for the particular user

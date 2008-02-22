@@ -14,7 +14,7 @@ import com.sleepycat.persist.ForwardCursor;
 import com.sleepycat.persist.PrimaryIndex;
 import com.sleepycat.persist.SecondaryIndex;
 import com.sleepycat.persist.StoreConfig;
-import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.aardvark.util.Times;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Item;

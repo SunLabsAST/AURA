@@ -5,7 +5,7 @@
  * 
  */
 
-package com.sun.labs.aura.aardvark.util;
+package com.sun.labs.aura.util;
 
 /**
  * An exception thrown by the Aura system.

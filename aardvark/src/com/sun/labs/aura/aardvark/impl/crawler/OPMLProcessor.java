@@ -6,7 +6,7 @@
  *  redistribution of this file, and for a DISCLAIMER OF ALL
  *  WARRANTIES. 
  */
-package com.sun.labs.aura.aardvark.util;
+package com.sun.labs.aura.aardvark.impl.crawler;
 
 import java.io.BufferedInputStream;
 import java.io.File;

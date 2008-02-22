@@ -1,7 +1,15 @@
+/*
+ *  Copyright 2007 Sun Microsystems, Inc. 
+ *  All Rights Reserved. Use is subject to license terms.
+ * 
+ *  See the file "license.terms" for information on usage and
+ *  redistribution of this file, and for a DISCLAIMER OF ALL
+ *  WARRANTIES.
+ */
 package com.sun.labs.aura.aardvark.recommender;
 
-import com.sun.labs.aura.aardvark.store.item.Entry;
-import com.sun.labs.aura.aardvark.store.item.User;
+import com.sun.labs.aura.aardvark.BlogEntry;
+import com.sun.labs.aura.datastore.User;
 import com.sun.labs.util.props.Component;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -17,6 +25,6 @@ public interface RecommenderManager extends Component, Remote {
      * @param user the user that we want recommendations for
      * @return a list of the entries that we want to recommend to the user.
      */
-    public List<Entry> getRecommendations(User user) throws RemoteException;
+    public List<BlogEntry> getRecommendations(User user) throws RemoteException;
     
 }

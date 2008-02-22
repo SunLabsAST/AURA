@@ -1,7 +1,7 @@
 
 package com.sun.labs.aura.datastore.impl;
 
-import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.aura.util.AuraException;
 import java.io.Serializable;
 import java.util.BitSet;
 import java.util.HashSet;

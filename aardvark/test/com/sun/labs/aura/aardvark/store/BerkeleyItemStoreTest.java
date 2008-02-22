@@ -6,7 +6,7 @@ import com.sun.labs.aura.aardvark.store.item.Feed;
 import com.sun.labs.aura.aardvark.store.item.ItemEvent;
 import com.sun.labs.aura.aardvark.store.item.ItemListener;
 import com.sun.labs.aura.aardvark.store.item.User;
-import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.io.File;
 import java.io.IOException;

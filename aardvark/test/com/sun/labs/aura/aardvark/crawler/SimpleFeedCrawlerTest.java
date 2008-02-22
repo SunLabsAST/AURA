@@ -4,11 +4,11 @@
  */
 package com.sun.labs.aura.aardvark.crawler;
 
-import com.sun.labs.aura.aardvark.util.OPMLProcessor;
+import com.sun.labs.aura.aardvark.impl.crawler.OPMLProcessor;
 import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import com.sun.labs.aura.aardvark.impl.crawler.SimpleFeedCrawler;
 import com.sun.labs.aura.aardvark.store.ItemStore;
-import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.LabsLogFormatter;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.io.IOException;

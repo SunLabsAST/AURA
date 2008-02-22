@@ -8,8 +8,8 @@
  */
 package com.sun.labs.aura.aardvark.crawler;
 
-import com.sun.labs.aura.aardvark.store.item.Feed;
-import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.aura.aardvark.BlogFeed;
+import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.Component;
 import java.net.URL;
 import java.rmi.Remote;
@@ -25,7 +25,7 @@ public interface FeedCrawler extends Component, Remote {
      * @param feedUrl the url
      * @return the feed
      */
-    public Feed createFeed(URL feedUrl) throws RemoteException;
+    public BlogFeed createFeed(URL feedUrl) throws AuraException, RemoteException;
 
     /**
      * Crawls all of the feeds once. This method is suitable for use
@@ -39,7 +39,7 @@ public interface FeedCrawler extends Component, Remote {
      * in testing, only
      * @throws AuraException
      */
-    public void crawlFeed(Feed feed) throws AuraException, RemoteException;
+    public void crawlFeed(BlogFeed feed) throws AuraException, RemoteException;
 
     /**
      * Gets the number of feeds errors

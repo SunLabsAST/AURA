@@ -2,12 +2,12 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.  Which I did, which is why this text is here.
  */
-package com.sun.labs.aura.aardvark.util;
+package com.sun.labs.aura.aardvark.impl.crawler;
 
-import com.sun.labs.aura.aardvark.store.ItemStore;
-import com.sun.labs.aura.aardvark.store.item.Entry;
-import com.sun.labs.aura.aardvark.store.item.Feed;
-import com.sun.labs.aura.aardvark.util.AuraException;
+import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.aardvark.BlogEntry;
+import com.sun.labs.aura.aardvark.BlogFeed;
+import com.sun.syndication.feed.synd.SyndCategory;
 import com.sun.syndication.feed.synd.SyndContent;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
@@ -33,8 +33,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,6 +41,7 @@ import java.util.regex.Pattern;
  * @author plamere
  */
 public class FeedUtils {
+
     private final static boolean debug = false;
 
     /**
@@ -96,9 +95,9 @@ public class FeedUtils {
      * @param entries the list of Entry objects
      * @return a list of SyndEntry objects
      */
-    public static List<SyndEntry> getSyndEntries(List<Entry> entries) throws AuraException {
+    public static List<SyndEntry> getSyndEntries(List<BlogEntry> entries) throws AuraException {
         List<SyndEntry> list = new ArrayList<SyndEntry>();
-        for (Entry e : entries) {
+        for (BlogEntry e : entries) {
             list.add(e.getSyndEntry());
         }
         return list;
@@ -120,23 +119,23 @@ public class FeedUtils {
     }
 
     /**
-     * Given a URL to an RSS feed, extract the entries, add the fresh items to the itemstore and
-     * return them as a list of entries
-     * @param itemStore the item store
-     * @param feedUrl the url to the feed
+     * Given a URL to an RSS feed, extract the entries, 
+     * @param feed the feed to process
      * @return a list of fresh entries
      * @throws com.sun.labs.aura.aardvark.util.AuraException if a proble occurs while retriveing the feed
-     * or accessing the item store.
      */
-    public static List<Entry> processFeed(ItemStore itemStore, Feed feed) throws AuraException, RemoteException {
+    public static List<BlogEntry> processFeed(BlogFeed feed) throws AuraException, RemoteException {
         try {
-            URL feedUrl = new URL(feed.getKey());
+            URL feedUrl = new URL(feed.getURL());
             SyndFeed syndFeed = readFeed(feedUrl);
-            List<Entry> entries = new ArrayList<Entry>();
+
+            feed.setName(syndFeed.getTitle());
+            
+            List<BlogEntry> entries = new ArrayList<BlogEntry>();
             List entryList = syndFeed.getEntries();
             for (Object o : entryList) {
                 SyndEntry syndEntry = (SyndEntry) o;
-                Entry entry = convertSyndEntryToFreshEntry(itemStore, feed, syndEntry);
+                BlogEntry entry = convertSyndEntryToFreshEntry(feed, syndEntry);
                 if (entry != null) {
                     if (debug) {
                         System.out.println("   Adding entry " + entry.getKey());
@@ -150,7 +149,7 @@ public class FeedUtils {
             }
             return entries;
         } catch (MalformedURLException ex) {
-            throw new AuraException("bad url " + feed.getKey(), ex);
+            throw new AuraException("bad url " + feed.getURL(), ex);
         }
     }
 
@@ -159,10 +158,10 @@ public class FeedUtils {
      * @param entries the entries to check
      * @return true if some of  entries  come from different hosts
      */
-    public static boolean isAggregatedFeed(List<Entry> entries) {
+    public static boolean isAggregatedFeed(List<BlogEntry> entries) {
         String lastHost = null;
         String link = null;
-        for (Entry entry : entries) {
+        for (BlogEntry entry : entries) {
             try {
                 link = entry.getSyndEntry().getLink();
                 if (link != null) {
@@ -178,40 +177,49 @@ public class FeedUtils {
                         }
                     }
                 }
-            } catch (AuraException ex) {
-                Logger.getLogger(FeedUtils.class.getName()).log(Level.INFO, "can't get SyndEntry", ex);
             } catch (MalformedURLException ex) {
-                // silently ignore bad URLs
+            // silently ignore bad URLs
             }
         }
         return false;
     }
 
     /**
-     * Converts the syndEntry into an Entry and adds it to the itemstore if the itemstore does not 
-     * already contain the entry, returns the itemstore entry if the entry was added
-     * @param itemStore the item store
+     * Converts the syndEntry into a BlogEntry 
+     * @param feed the owning feed
      * @param syndEntry the feed entry
      * @return the itemstore entry or null if the syndEntry was a duplicate
      * @throws com.sun.labs.aura.aardvark.util.AuraException if an error occurs while accesing the itemstore
      * @throws java.rmi.RemoteException if there is an error communicating with the item store.
      */
-    public static Entry convertSyndEntryToFreshEntry(ItemStore itemStore, Feed feed, SyndEntry syndEntry) throws AuraException, RemoteException {
+    public static BlogEntry convertSyndEntryToFreshEntry(BlogFeed feed, SyndEntry syndEntry) throws AuraException, RemoteException {
         String key = getKey(syndEntry);
-        if (itemStore.get(key) == null) {
-            Entry entry = itemStore.newItem(Entry.class, key);
-            entry.setSyndEntry(syndEntry);
-            entry.setContent(getContent(syndEntry));
-            entry.setParentFeedID(feed.getID());
-            return (Entry) itemStore.put(entry);
-        } else {
-            return null;
+        String title = syndEntry.getTitle();
+        BlogEntry entry = new BlogEntry(key, title);
+
+        List categories = syndEntry.getCategories();
+
+        if (categories != null) {
+            for (Object o : categories) {
+                SyndCategory category = (SyndCategory) o;
+                entry.addTag(category.getName(), 1);
+            }
         }
+
+        String author = syndEntry.getAuthor();
+        if (author != null) {
+            entry.setAuthor(author);
+        }
+
+        entry.setSyndEntry(syndEntry);
+        entry.setContent(getContent(syndEntry));
+        entry.setFeedKey(feed.getKey());
+        return entry;
     }
 
     /**
      * Given a URL, returns the SyndFeed
-//     * @param url the url
+    //     * @param url the url
      * @return the feed 
      * @throws com.sun.labs.aura.aardvark.util.AuraException if an error occurs while 
      * loading or parsing the feed
@@ -233,7 +241,7 @@ public class FeedUtils {
                 try {
                     connection.getInputStream().close();
                 } catch (IOException ex) {
-                    // Logger.getLogger(FeedUtils.class.getName()).log(Level.SEVERE, null, ex);
+                // Logger.getLogger(FeedUtils.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
@@ -305,14 +313,14 @@ public class FeedUtils {
                 elements.add(linkMatcher.group());
             }
         } catch (IOException ex) {
-            // silently ignore bad urls
+        // silently ignore bad urls
         } finally {
             try {
                 if (is != null) {
                     is.close();
                 }
             } catch (IOException ex) {
-                // silently ignore bad urls
+            // silently ignore bad urls
             }
         }
         return elements;
