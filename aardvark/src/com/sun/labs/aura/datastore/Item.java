@@ -11,6 +11,7 @@ import java.util.HashMap;
  */
 public interface Item extends Serializable {
     public enum ItemType {
+        USER,
         FEED,
         BLOGENTRY,
         ALBUM,

@@ -4,6 +4,7 @@ package com.sun.labs.aura.datastore.impl;
 import com.sun.labs.aura.aardvark.AardvarkService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.Attention.Type;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
@@ -17,8 +18,11 @@ import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -205,7 +209,7 @@ public class DataStoreHead implements DataStore, Configurable, AardvarkService {
         return ret;
     }
 
-    public Set<Attention> getAttentionForTarget(final Item item)
+    public Set<Attention> getAttentionForTarget(final String itemKey)
             throws AuraException, RemoteException {
         //
         // Ask all the partitions to gather up their attention for this item.
@@ -217,7 +221,7 @@ public class DataStoreHead implements DataStore, Configurable, AardvarkService {
             callers.add(new PCCaller(p) {
                 public Set<Attention> call()
                         throws AuraException, RemoteException {
-                    return pc.getAttentionForTarget(item);
+                    return pc.getAttentionForTarget(itemKey);
                 }
             });
         }
@@ -252,6 +256,71 @@ public class DataStoreHead implements DataStore, Configurable, AardvarkService {
             throws AuraException, RemoteException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+                                                         int count)
+            throws AuraException, RemoteException {
+        return getLastAttentionForSource(srcKey, null, count);
+    }
+
+    public SortedSet<Attention> getLastAttentionForSource(final String srcKey,
+                                                          final Type type,
+                                                          final int count)
+            throws AuraException, RemoteException {
+        //
+        // Call out to all the clusters to search for attention for this user,
+        // type, and no more than count.  Then we'll combine all the results
+        // and only take the first 'count' of those.
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<SortedSet<Attention>>> callers =
+                new HashSet<Callable<SortedSet<Attention>>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+               public SortedSet<Attention> call()
+                       throws AuraException, RemoteException {
+                   return pc.getLastAttentionForSource(srcKey, type, count);
+               }
+            });
+        }
+        
+        SortedSet<Attention> ret = null;
+        try {
+            List<Future<SortedSet<Attention>>> results =
+                    executor.invokeAll(callers);
+            for (Future<SortedSet<Attention>> future : results) {
+                SortedSet<Attention> curr = future.get();
+                if (curr != null) {
+                    if (ret == null) {
+                        //
+                        // Make a new set based on the existing one, including
+                        // the comparator
+                        ret = new TreeSet<Attention>(curr);
+                    } else {
+                        ret.addAll(curr);
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+        
+        //
+        // Now put together a set with the right count of attentions in it
+        SortedSet<Attention> retCnted = new TreeSet(ret.comparator());
+        Iterator<Attention> it = ret.iterator();
+        for (int i = 0; i < count; i++) {
+            if (it.hasNext()) {
+                retCnted.add(it.next());
+            } else {
+                break;
+            }
+        }
+        
+        return retCnted;
+    }
+
 
     public void addItemListener(final ItemType itemType,
                                 final ItemListener listener)
@@ -343,6 +412,35 @@ public class DataStoreHead implements DataStore, Configurable, AardvarkService {
         return count;
     }
 
+    public long getAttentionCount() throws AuraException, RemoteException {
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<Long>> callers = new HashSet<Callable<Long>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+                public Long call() throws AuraException, RemoteException {
+                    return pc.getAttentionCount();
+                }
+            });
+        }
+        
+        //
+        // Tally up the counts and return
+        long count = 0;
+        try {
+            List<Future<Long>> results = executor.invokeAll(callers);
+            for (Future<Long> future : results) {
+                count += future.get();
+            }
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+        return count;
+
+    }
+
+
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
             //
@@ -418,4 +516,5 @@ public class DataStoreHead implements DataStore, Configurable, AardvarkService {
             logger.log(Level.WARNING, "Failed to close DataStoreHead cleanly", e);
         }
     }
+
 }

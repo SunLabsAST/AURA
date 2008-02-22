@@ -19,6 +19,7 @@ import java.util.BitSet;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -86,9 +87,9 @@ public class PartitionCluster implements ItemStore, Configurable, AardvarkServic
         return replicant.getAttention(attnID);
     }
 
-    public Set<Attention> getAttentionForTarget(Item item)
+    public Set<Attention> getAttentionForTarget(String itemKey)
             throws AuraException, RemoteException {
-        return replicant.getAttentionForTarget(item);
+        return replicant.getAttentionForTarget(itemKey);
     }
 
     public Attention attend(Attention att)
@@ -99,6 +100,19 @@ public class PartitionCluster implements ItemStore, Configurable, AardvarkServic
     public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)
             throws AuraException, RemoteException {
         return replicant.getAttentionAddedSince(timeStamp);
+    }
+
+    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+                                                          int count)
+            throws AuraException, RemoteException {
+        return getLastAttentionForSource(srcKey, null, count);
+    }
+
+    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+                                                          Type type,
+                                                          int count)
+            throws AuraException, RemoteException {
+        return replicant.getLastAttentionForSource(srcKey, type, count);
     }
 
     public void addItemListener(ItemType itemType, ItemListener listener)
@@ -117,9 +131,14 @@ public class PartitionCluster implements ItemStore, Configurable, AardvarkServic
 
     public long getItemCount(ItemType itemType)
             throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return replicant.getItemCount(itemType);
     }
 
+    public long getAttentionCount() throws AuraException, RemoteException {
+        return replicant.getAttentionCount();
+    }
+
+    
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
             //
