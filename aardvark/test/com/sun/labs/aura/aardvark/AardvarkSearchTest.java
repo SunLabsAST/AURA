@@ -8,6 +8,7 @@
  */
 package com.sun.labs.aura.aardvark;
 
+import com.sun.labs.aura.AuraServiceStarter;
 import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.store.item.User;
@@ -34,7 +35,7 @@ import static org.junit.Assert.*;
  */
 public class AardvarkSearchTest {
 
-    private AardvarkServiceStarter starter;
+    private AuraServiceStarter starter;
     private AardvarkImpl aardvark;
     private FeedCrawler crawler;
 
@@ -204,7 +205,7 @@ public class AardvarkSearchTest {
                     assertTrue("can't delete " + indexDir, indexDir.delete());
                 }
             }
-            starter = (AardvarkServiceStarter) cm.lookup("aardvarkStarter");
+            starter = (AuraServiceStarter) cm.lookup("aardvarkStarter");
             aardvark = (AardvarkImpl) cm.lookup("aardvark");
             crawler = (FeedCrawler) cm.lookup("feedCrawler");
         } catch (IOException ioe) {

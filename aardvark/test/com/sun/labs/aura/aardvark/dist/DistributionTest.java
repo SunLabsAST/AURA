@@ -5,7 +5,7 @@
 package com.sun.labs.aura.aardvark.dist;
 
 import com.sun.labs.aura.aardvark.Aardvark;
-import com.sun.labs.aura.aardvark.AardvarkService;
+import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.recommender.RecommenderManager;
@@ -77,7 +77,7 @@ public class DistributionTest {
         assertNotNull(feed);
         crawler.crawlFeed(feed);
         iscm.getComponentRegistry().unregister();
-        ((AardvarkService) is).stop();
+        ((AuraService) is).stop();
     }
 
     @Test
@@ -124,7 +124,7 @@ public class DistributionTest {
         // Clean up.
         iscm.getComponentRegistry().unregister();
         rmcm.getComponentRegistry().unregister();
-        ((AardvarkService) is).stop();
-        ((AardvarkService) rm).stop();
+        ((AuraService) is).stop();
+        ((AuraService) rm).stop();
     }
 }

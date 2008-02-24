@@ -2,7 +2,7 @@
 package com.sun.labs.aura.datastore.impl.store;
 
 import com.sleepycat.je.DatabaseException;
-import com.sun.labs.aura.aardvark.AardvarkService;
+import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
@@ -38,7 +38,7 @@ import java.util.logging.Logger;
  * An implementation of the item store using the berkeley database as a back
  * end.
  */
-public class BerkeleyItemStore implements ItemStore, Configurable, AardvarkService {
+public class BerkeleyItemStore implements ItemStore, Configurable, AuraService {
     /**
      * The location of the BDB/JE Database Environment
      */

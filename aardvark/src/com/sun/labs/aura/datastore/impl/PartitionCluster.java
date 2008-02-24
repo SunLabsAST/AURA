@@ -1,6 +1,6 @@
 package com.sun.labs.aura.datastore.impl;
 
-import com.sun.labs.aura.aardvark.AardvarkService;
+import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  * segment that it stores is determined by matching the prefix of each item's
  * key with the prefix for the cluster.
  */
-public class PartitionCluster implements ItemStore, Configurable, AardvarkService {
+public class PartitionCluster implements ItemStore, Configurable, AuraService {
     protected BitSet prefixCode;
     
     protected boolean closed = false;

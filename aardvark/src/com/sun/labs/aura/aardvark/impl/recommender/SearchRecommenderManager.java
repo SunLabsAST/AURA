@@ -9,7 +9,7 @@
 
 package com.sun.labs.aura.aardvark.impl.recommender;
 
-import com.sun.labs.aura.aardvark.AardvarkService;
+import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.recommender.RecommenderManager;
 import com.sun.labs.aura.datastore.DataStore;
@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * A recommender manager for recommenders that are based on the search engine.
  */
-public class SearchRecommenderManager implements RecommenderManager, Configurable, AardvarkService {
+public class SearchRecommenderManager implements RecommenderManager, Configurable, AuraService {
     
     public List<BlogEntry> getRecommendations(User user) throws RemoteException {
         // TODO: write this once we have findSimilar working in

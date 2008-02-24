@@ -5,7 +5,7 @@
 package com.sun.labs.aura.aardvark.impl;
 
 import com.sun.labs.aura.aardvark.Aardvark;
-import com.sun.labs.aura.aardvark.AardvarkService;
+import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
 import com.sun.labs.aura.aardvark.Stats;
@@ -43,7 +43,7 @@ import java.util.logging.Logger;
 /**
  * A Blog Recommender
  */
-public class AardvarkImpl implements Configurable, Aardvark, AardvarkService {
+public class AardvarkImpl implements Configurable, Aardvark, AuraService {
 
     private final static String VERSION = "aardvark version 0.30";
     /**

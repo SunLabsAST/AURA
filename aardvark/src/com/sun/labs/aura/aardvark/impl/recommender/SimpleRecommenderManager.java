@@ -10,7 +10,7 @@
 
 package com.sun.labs.aura.aardvark.impl.recommender;
 
-import com.sun.labs.aura.aardvark.AardvarkService;
+import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.recommender.RecommenderManager;
 import com.sun.labs.aura.datastore.Attention;
@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 /**
  * A recommender manager that returns the starred items for a user.
  */
-public class SimpleRecommenderManager implements RecommenderManager, AardvarkService {
+public class SimpleRecommenderManager implements RecommenderManager, AuraService {
 
     private DataStore dataStore;
 

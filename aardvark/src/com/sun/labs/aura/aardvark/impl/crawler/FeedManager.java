@@ -4,7 +4,7 @@
  */
 package com.sun.labs.aura.aardvark.impl.crawler;
 
-import com.sun.labs.aura.aardvark.AardvarkService;
+import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
 import com.sun.labs.aura.aardvark.ItemScheduler;
@@ -32,7 +32,7 @@ import java.util.logging.Logger;
  * Manages the set of feed crawling threads
  * @author plamere
  */
-public class FeedManager implements AardvarkService, Configurable, FeedCrawler {
+public class FeedManager implements AuraService, Configurable, FeedCrawler {
 
     private Set<Thread> runningThreads = Collections.synchronizedSet(new HashSet<Thread>());
     private int feedPullCount = 0;

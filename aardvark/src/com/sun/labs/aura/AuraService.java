@@ -3,7 +3,7 @@
  *   Use is subject to license terms.
  */
 
-package com.sun.labs.aura.aardvark;
+package com.sun.labs.aura;
 
 import com.sun.labs.util.props.Component;
 
@@ -12,7 +12,7 @@ import com.sun.labs.util.props.Component;
  * 
  * @see AardvarkServiceStarter
  */
-public interface AardvarkService extends Component {
+public interface AuraService extends Component {
     
     /**
      * Starts the service.

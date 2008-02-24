@@ -10,7 +10,7 @@ package com.sun.labs.aura.aardvark.util;
 
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.aardvark.Aardvark;
-import com.sun.labs.aura.aardvark.AardvarkService;
+import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogFeed;
 import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
@@ -204,7 +204,7 @@ public class Shell {
                             if (args.length != 1) {
                                 getHelp();
                             } else {
-                                ((AardvarkService) feedCrawler).start();
+                                ((AuraService) feedCrawler).start();
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
@@ -225,7 +225,7 @@ public class Shell {
                             if (args.length != 1) {
                                 getHelp();
                             } else {
-                                ((AardvarkService) feedCrawler).stop();
+                                ((AuraService) feedCrawler).stop();
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);

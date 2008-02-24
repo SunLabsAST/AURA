@@ -2,7 +2,7 @@
  *   Copyright 2008 Sun Microsystems, Inc. All rights reserved
  *   Use is subject to license terms.
  */
-package com.sun.labs.aura.aardvark;
+package com.sun.labs.aura;
 
 import com.sun.labs.util.SimpleLabsLogFormatter;
 import com.sun.labs.util.props.ConfigComponentList;
@@ -22,9 +22,9 @@ import java.util.logging.Logger;
  * this class will point to a configuration that can be used to create 
  * and start the service.
  */
-public class AardvarkServiceStarter implements Configurable {
+public class AuraServiceStarter implements Configurable {
 
-    private List<AardvarkService> services;
+    private List<AuraService> services;
 
     private ConfigurationManager cm;
 
@@ -33,7 +33,7 @@ public class AardvarkServiceStarter implements Configurable {
         // If the services were registered with a service registry, then we need
         // to unregister them.
         cm.shutdown();
-        for(AardvarkService s : services) {
+        for(AuraService s : services) {
             s.stop();
         }
     }
@@ -41,7 +41,7 @@ public class AardvarkServiceStarter implements Configurable {
      * A configuration property for the services that we will be starting and
      * stopping.
      */
-    @ConfigComponentList(type = com.sun.labs.aura.aardvark.AardvarkService.class)
+    @ConfigComponentList(type = com.sun.labs.aura.AuraService.class)
     public static final String PROP_SERVICE_COMPONENTS = "serviceComponents";
 
     public void newProperties(PropertySheet ps) throws PropertyException {
@@ -51,8 +51,8 @@ public class AardvarkServiceStarter implements Configurable {
         //
         // Get the names of the components we're to start, then start them.
         services =
-                (List<AardvarkService>) ps.getComponentList(PROP_SERVICE_COMPONENTS);
-        for(AardvarkService service : services) {
+                (List<AuraService>) ps.getComponentList(PROP_SERVICE_COMPONENTS);
+        for(AuraService service : services) {
             service.start();
         }
 
@@ -96,13 +96,13 @@ public class AardvarkServiceStarter implements Configurable {
             //
             // See if we can get a resource for the configuration file first.
             // This is mostly a convenience.
-            URL cu = AardvarkServiceStarter.class.getResource(args[0]);
+            URL cu = AuraServiceStarter.class.getResource(args[0]);
             if(cu == null) {
                 cu = (new File(args[0])).toURI().toURL();
             }
             ConfigurationManager cm = new ConfigurationManager(cu);
-            AardvarkServiceStarter starter =
-                    (AardvarkServiceStarter) cm.lookup(args[1]);
+            AuraServiceStarter starter =
+                    (AuraServiceStarter) cm.lookup(args[1]);
 
             //
             // Sleep until we're killed.

@@ -8,6 +8,7 @@
  */
 package com.sun.labs.aura.aardvark;
 
+import com.sun.labs.aura.AuraServiceStarter;
 import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.aardvark.store.item.User;
@@ -36,7 +37,7 @@ public class AardvarkTest {
 
     FeedCrawler crawler;
 
-    AardvarkServiceStarter starter;
+    AuraServiceStarter starter;
 
     public AardvarkTest() {
     }
@@ -164,7 +165,7 @@ public class AardvarkTest {
         try {
             ConfigurationManager cm =
                     new ConfigurationManager(this.getClass().getResource("aardvarkTestConfig.xml"));
-            starter = (AardvarkServiceStarter) cm.lookup("aardvarkStarter");
+            starter = (AuraServiceStarter) cm.lookup("aardvarkStarter");
             aardvark = (AardvarkImpl) cm.lookup("aardvark");
             crawler = (FeedCrawler) cm.lookup("feedCrawler");
         } catch(IOException ioe) {
