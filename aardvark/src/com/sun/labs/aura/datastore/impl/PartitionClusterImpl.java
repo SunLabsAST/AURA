@@ -8,16 +8,12 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
-import com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore;
 import com.sun.labs.aura.datastore.impl.store.DBIterator;
-import com.sun.labs.aura.datastore.impl.store.ItemStore;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
-import java.util.BitSet;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.logging.Level;
@@ -28,22 +24,23 @@ import java.util.logging.Logger;
  * segment that it stores is determined by matching the prefix of each item's
  * key with the prefix for the cluster.
  */
-public class PartitionCluster implements ItemStore, Configurable, AuraService {
+public class PartitionClusterImpl implements PartitionCluster,
+                                             Configurable, AuraService {
     protected DSBitSet prefixCode;
     
     protected boolean closed = false;
 
     //protected List<BerkeleyItemStore> replicants;
-    protected BerkeleyItemStore replicant;
+    protected Replicant replicant;
     
     protected Logger logger = Logger.getLogger("");
     
     /**
-     * Construct a PartitionCluster for use with a particular item prefix.
+     * Construct a PartitionClusterImpl for use with a particular item prefix.
      * 
      * @param prefixCode the initial prefix that this cluster represents
      */
-    public PartitionCluster() {
+    public PartitionClusterImpl() {
 
     }
     
@@ -81,12 +78,12 @@ public class PartitionCluster implements ItemStore, Configurable, AuraService {
             throws AuraException, RemoteException {
         return replicant.getItems(user, attnType, itemType);
     }
-
+/*
     public Attention getAttention(long attnID)
             throws AuraException, RemoteException {
         return replicant.getAttention(attnID);
     }
-
+*/
     public Set<Attention> getAttentionForTarget(String itemKey)
             throws AuraException, RemoteException {
         return replicant.getAttentionForTarget(itemKey);
@@ -152,6 +149,12 @@ public class PartitionCluster implements ItemStore, Configurable, AuraService {
         
         //
         // Get replicas?
+    }
+    
+    public void addReplicant(Replicant replicant) throws RemoteException {
+        if (replicant.getPrefix().equals(prefixCode)) {
+            this.replicant = replicant;
+        }
     }
 
     public void start() {

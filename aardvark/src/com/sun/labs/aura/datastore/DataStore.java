@@ -1,7 +1,9 @@
 package com.sun.labs.aura.datastore;
 
+import com.sun.labs.aura.datastore.impl.PartitionCluster;
 import com.sun.labs.aura.datastore.impl.store.ItemStore;
 import java.rmi.Remote;
+import java.rmi.RemoteException;
 
 
 /**
@@ -12,4 +14,6 @@ import java.rmi.Remote;
 
 public interface DataStore extends ItemStore, Remote {
 
+    public void registerPartitionCluster(PartitionCluster pc)
+            throws RemoteException;
 }

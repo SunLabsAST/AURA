@@ -30,6 +30,19 @@ public class DSBitSet extends BitSet {
     public int prefixLength() {
         return prefixLen;
     }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (super.equals(o)) {
+            if (o instanceof DSBitSet) {
+                DSBitSet bs = (DSBitSet) o;
+                if (bs.prefixLength() == prefixLength()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     /**
      * Create a DSBitSet from an int, ignoring the sign bit

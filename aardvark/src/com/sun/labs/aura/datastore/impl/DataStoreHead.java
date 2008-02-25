@@ -474,6 +474,11 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         cm = arg0.getConfigurationManager();
         throw new UnsupportedOperationException("Not supported yet.");
     }
+    
+    public void registerPartitionCluster(PartitionCluster pc)
+            throws RemoteException {
+        trie.add(pc, pc.getPrefix());
+    }
 
     protected abstract class PCCaller<V> implements Callable {
         protected PartitionCluster pc;

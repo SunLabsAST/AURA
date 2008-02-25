@@ -384,23 +384,6 @@ public class BerkeleyDataWrapper {
         return result;
     }
 
-    /**
-     * Look up an attention in the database and return it.
-     * 
-     * @param id the ID of the attention to retrieve
-     * @return the attention
-     */
-    public PersistentAttention getAttention(long id) {
-        PersistentAttention pa = null;
-        try {
-            pa = allAttn.get(id);
-        } catch (DatabaseException e) {
-            log.log(Level.WARNING, "Failed to get attention (id:" + id + ")",
-                    e);
-        }
-        return pa;
-    }
-
     
     /**
      * Gets all the attention that has been added to the store since a

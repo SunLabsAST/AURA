@@ -11,6 +11,8 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemEvent;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.datastore.impl.DSBitSet;
+import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.util.props.ConfigBoolean;
@@ -38,13 +40,17 @@ import java.util.logging.Logger;
  * An implementation of the item store using the berkeley database as a back
  * end.
  */
-public class BerkeleyItemStore implements ItemStore, Configurable, AuraService {
+public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
     /**
      * The location of the BDB/JE Database Environment
      */
     @ConfigString(defaultValue="/tmp/aura")
     public final static String PROP_DB_ENV="dbEnv";
     protected String dbEnvDir;
+    
+    @ConfigString
+    public final static String PROP_PREFIX="prefix";
+    protected DSBitSet prefixCode;
     
     @ConfigBoolean(defaultValue=false)
     public final static String PROP_OVERWRITE="overwrite";
@@ -162,10 +168,15 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AuraService {
         // Get the configuration manager, which we'll use to export things, if
         // necessary.
         cm = ps.getConfigurationManager();
-        
+
+        prefixCode = DSBitSet.parse(ps.getString(PROP_PREFIX));
         store = this;
     }
 
+    public DSBitSet getPrefix() {
+        return prefixCode;
+    }
+    
     /**
      * Close up the entity store and the database environment.
      */
@@ -242,10 +253,6 @@ public class BerkeleyItemStore implements ItemStore, Configurable, AuraService {
                 bdb.getItemsAddedSince(type, timeStamp.getTime());
         
         return (DBIterator<Item>) cm.getRemote(res, this);
-    }
-    
-    public Attention getAttention(long attnID) throws AuraException {
-        return bdb.getAttention(attnID);
     }
     
     public Set<Attention> getAttentionForTarget(String itemKey)
