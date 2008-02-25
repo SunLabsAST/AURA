@@ -470,9 +470,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
     }
 
-    public void newProperties(PropertySheet arg0) throws PropertyException {
-        cm = arg0.getConfigurationManager();
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void newProperties(PropertySheet ps) throws PropertyException {
+        cm = ps.getConfigurationManager();
     }
     
     public void registerPartitionCluster(PartitionCluster pc)
