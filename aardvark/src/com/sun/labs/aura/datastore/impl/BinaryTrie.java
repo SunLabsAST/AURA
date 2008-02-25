@@ -5,6 +5,8 @@ import com.sun.labs.aura.util.AuraException;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * A binary tree whose leaf nodes point to particular partition clusters that
@@ -23,9 +25,12 @@ public class BinaryTrie<E> implements Serializable {
      */
     private Set<E> contents;
     
+    private ReadWriteLock lock;
+    
     public BinaryTrie() {
         root = new TrieNode();
         contents = new HashSet<E>();
+        lock = new ReentrantReadWriteLock();
     }
     
     /**
@@ -38,8 +43,13 @@ public class BinaryTrie<E> implements Serializable {
      * @param prefix the prefix describing where the element should be added
      */
     public void add(E newElem, DSBitSet prefix) {
-        contents.add(newElem);
-        add(newElem, prefix, root, 0);
+        lock.writeLock().lock();
+        try {
+            contents.add(newElem);
+            add(newElem, prefix, root, 0);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
     
     protected void add(E newElem, DSBitSet prefix, TrieNode curr, int offset) {
@@ -91,28 +101,32 @@ public class BinaryTrie<E> implements Serializable {
      * @return the element at the leaf matching the initial bits of the prefix
      */
     public E get(DSBitSet prefix) {
-        TrieNode curr = root;
-        for (int i = 0; i < prefix.prefixLength(); i++) {
-            //
-            // If this is a leaf, then return it
-            if (curr.getLeafObject() != null) {
-                return curr.getLeafObject();
-            }
-            if (prefix.get(i)) {
-                curr = curr.getOne();
-                if (curr == null) {
-                    throw new IllegalStateException("Encountered null child " +
-                            "at prefix " + prefix + " offset " + i);
+        lock.readLock().lock();
+        try {
+            TrieNode curr = root;
+            for (int i = 0; i < prefix.prefixLength(); i++) {
+                //
+                // If this is a leaf, then return it
+                if (curr.getLeafObject() != null) {
+                    return curr.getLeafObject();
                 }
-            } else {
-                curr = curr.getZero();
-                if (curr == null) {
-                    throw new IllegalStateException("Encountered null child " +
-                            "at prefix " + prefix + " offset " + i);
+                if (prefix.get(i)) {
+                    curr = curr.getOne();
+                    if (curr == null) {
+                        throw new IllegalStateException("Encountered null child " +
+                                "at prefix " + prefix + " offset " + i);
+                    }
+                } else {
+                    curr = curr.getZero();
+                    if (curr == null) {
+                        throw new IllegalStateException("Encountered null child " +
+                                "at prefix " + prefix + " offset " + i);
+                    }
                 }
             }
-        }
-        
+        } finally {
+            lock.readLock().unlock();
+        }        
         //
         // If we made it all the way through and didn't
         // find anything, we're probably in trouble.
@@ -120,7 +134,37 @@ public class BinaryTrie<E> implements Serializable {
     }
     
     public Set<E> getAll() {
-        return new HashSet<E>(contents);
+        lock.readLock().lock();
+        try {
+            return new HashSet<E>(contents);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+    
+    /**
+     * Determines if every leaf node of this trie has an element at it.
+     * 
+     * @return true if the tree is completed
+     */
+    public boolean isComplete() {
+        lock.readLock().lock();
+        try {
+            return isComplete(root);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+    
+    protected boolean isComplete(TrieNode node) {
+        if (node.getLeafObject() != null) {
+            return true;
+        } else {
+            if (isComplete(node.getZero()) && isComplete(node.getOne())) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**
