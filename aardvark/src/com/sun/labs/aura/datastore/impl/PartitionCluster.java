@@ -29,7 +29,7 @@ import java.util.logging.Logger;
  * key with the prefix for the cluster.
  */
 public class PartitionCluster implements ItemStore, Configurable, AuraService {
-    protected BitSet prefixCode;
+    protected DSBitSet prefixCode;
     
     protected boolean closed = false;
 
@@ -47,7 +47,7 @@ public class PartitionCluster implements ItemStore, Configurable, AuraService {
 
     }
     
-    public BitSet getPrefix() {
+    public DSBitSet getPrefix() {
         return prefixCode;
     }
 
@@ -148,7 +148,7 @@ public class PartitionCluster implements ItemStore, Configurable, AuraService {
     }
 
     public void newProperties(PropertySheet arg0) throws PropertyException {
-        prefixCode = new BitSet();
+        prefixCode = null;
         
         //
         // Get replicas?

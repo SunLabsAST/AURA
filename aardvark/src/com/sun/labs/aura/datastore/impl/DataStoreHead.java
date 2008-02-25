@@ -94,7 +94,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     public Item getItem(String key) throws AuraException, RemoteException {
         //
         // Which partition cluster does this key belong to?
-        PartitionCluster pc = trie.get(Util.intToBitSet(key.hashCode()));
+        PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         
         //
         // Ask the partition cluster for the item and return it.
@@ -104,7 +104,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     public User getUser(String key) throws AuraException, RemoteException {
         //
         // Which partition cluster does this key belong to?
-        PartitionCluster pc = trie.get(Util.intToBitSet(key.hashCode()));
+        PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         
         //
         // Ask the partition cluster for the user and return it.
@@ -114,7 +114,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     public Item putItem(Item item) throws AuraException, RemoteException {
         //
         // Which partition cluster does this item belong to?
-        PartitionCluster pc = trie.get(Util.intToBitSet(item.hashCode()));
+        PartitionCluster pc = trie.get(DSBitSet.parse(item.hashCode()));
         
         //
         // Ask the partition cluster to store the item and return it.
@@ -124,7 +124,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     public User putUser(User user) throws AuraException, RemoteException {
         //
         // Which partition cluster does this item belong to?
-        PartitionCluster pc = trie.get(Util.intToBitSet(user.hashCode()));
+        PartitionCluster pc = trie.get(DSBitSet.parse(user.hashCode()));
         
         //
         // Ask the partition cluster to store the user and return it.
@@ -247,7 +247,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         //
         // Store the attention -- first figure out where it is supposed to go,
         // then store it in the right place.
-        PartitionCluster pc = trie.get(Util.intToBitSet(att.hashCode()));
+        PartitionCluster pc = trie.get(DSBitSet.parse(att.hashCode()));
         
         return pc.attend(att);
     }

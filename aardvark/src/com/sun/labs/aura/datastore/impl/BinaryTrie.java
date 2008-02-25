@@ -3,7 +3,6 @@ package com.sun.labs.aura.datastore.impl;
 
 import com.sun.labs.aura.util.AuraException;
 import java.io.Serializable;
-import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,15 +37,15 @@ public class BinaryTrie<E> implements Serializable {
      * @param newElem the element to add
      * @param prefix the prefix describing where the element should be added
      */
-    public void add(E newElem, BitSet prefix) {
+    public void add(E newElem, DSBitSet prefix) {
         contents.add(newElem);
         add(newElem, prefix, root, 0);
     }
     
-    protected void add(E newElem, BitSet prefix, TrieNode curr, int offset) {
+    protected void add(E newElem, DSBitSet prefix, TrieNode curr, int offset) {
         //
         // The base case:
-        if (offset == (prefix.length() - 1)) {
+        if (offset == (prefix.prefixLength() - 1)) {
             //
             // We've traversed to where we want to insert.  Insert either to
             // the left or right depending on the value.  If this is a leaf
@@ -91,9 +90,9 @@ public class BinaryTrie<E> implements Serializable {
      * @param prefix the prefix to match
      * @return the element at the leaf matching the initial bits of the prefix
      */
-    public E get(BitSet prefix) {
+    public E get(DSBitSet prefix) {
         TrieNode curr = root;
-        for (int i = 0; i < prefix.length(); i++) {
+        for (int i = 0; i < prefix.prefixLength(); i++) {
             //
             // If this is a leaf, then return it
             if (curr.getLeafObject() != null) {
