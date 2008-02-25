@@ -170,7 +170,7 @@ public class BinaryTrie<E> implements Serializable {
     /**
      * A node in the Trie
      */
-    class TrieNode {
+    protected class TrieNode {
         /** If this is a leaf node, the object hanging at the leaf */
         private E leafObject = null;
         
