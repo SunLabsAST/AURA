@@ -266,7 +266,7 @@ public class ItemSearchEngine implements Configurable {
      * Note that any resource named by this property must be accessible via
      * <code>Class.getResource()</code>!
      */
-    @ConfigString(defaultValue = "entryEngineConfig.xml")
+    @ConfigString(defaultValue = "itemSearchEngineConfig.xml")
     public static final String PROP_ENGINE_CONFIG_FILE = "engineConfigFile";
 
     /**

@@ -4,11 +4,14 @@ import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
+import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.store.DBIterator;
+import com.sun.labs.util.props.ConfigComponent;
+import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -26,6 +29,15 @@ import java.util.logging.Logger;
  */
 public class PartitionClusterImpl implements PartitionCluster,
                                              Configurable, AuraService {
+    
+    @ConfigString
+    public static final String PROP_PREFIX = "prefix";
+    
+    @ConfigComponent(type=com.sun.labs.aura.datastore.DataStore.class)
+    public static final String PROP_DATA_STORE_HEAD = "dataStoreHead";
+    
+    private DataStore dataStoreHead;
+    
     protected DSBitSet prefixCode;
     
     protected boolean closed = false;
@@ -33,7 +45,7 @@ public class PartitionClusterImpl implements PartitionCluster,
     //protected List<BerkeleyItemStore> replicants;
     protected Replicant replicant;
     
-    protected Logger logger = Logger.getLogger("");
+    protected Logger logger;
     
     /**
      * Construct a PartitionClusterImpl for use with a particular item prefix.
@@ -144,11 +156,17 @@ public class PartitionClusterImpl implements PartitionCluster,
         }
     }
 
-    public void newProperties(PropertySheet arg0) throws PropertyException {
-        prefixCode = null;
-        
-        //
-        // Get replicas?
+    public void newProperties(PropertySheet ps) throws PropertyException {
+        prefixCode = DSBitSet.parse(ps.getString(PROP_PREFIX));
+        logger = ps.getLogger();
+        dataStoreHead = (DataStore) ps.getComponent(PROP_DATA_STORE_HEAD);
+        PartitionCluster exported = (PartitionCluster) ps.getConfigurationManager().getRemote(this, dataStoreHead);
+        try {
+            dataStoreHead.registerPartitionCluster(exported);
+        } catch (RemoteException rx) {
+            throw new PropertyException(ps.getInstanceName(), PROP_DATA_STORE_HEAD, 
+                    "Unable to add partition cluster to data store");
+        }
     }
     
     public void addReplicant(Replicant replicant) throws RemoteException {
