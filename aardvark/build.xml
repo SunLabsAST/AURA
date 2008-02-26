@@ -121,7 +121,7 @@
         <copylibs compress="${jar.compress}" jarfile="${dist.jar}" manifest="${manifest.file}" runtimeclasspath="${run.classpath.without.build.classes.dir}">
             <fileset dir="${build.classes.dir}"/>
             <manifest>
-                <attribute name="Main-Class" value="com.sun.labs.aura.aardvark.AardvarkServiceStarter"/>
+                <attribute name="Main-Class" value="com.sun.labs.aura.AuraServiceStarter"/>
                 <attribute name="Class-Path" value="${jar.classpath}"/>
             </manifest>
         </copylibs>

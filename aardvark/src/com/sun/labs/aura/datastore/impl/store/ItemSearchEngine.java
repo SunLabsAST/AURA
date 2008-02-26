@@ -58,7 +58,7 @@ public class ItemSearchEngine implements Configurable {
     private int entryCount = 0;
 
     private boolean shuttingDown;
-    
+
     public void newProperties(PropertySheet ps) throws PropertyException {
         entryBatchSize = ps.getInt(PROP_ENTRY_BATCH_SIZE);
         engineLogLevel = ps.getInt(PROP_ENGINE_LOG_LEVEL);
@@ -75,8 +75,8 @@ public class ItemSearchEngine implements Configurable {
             // engine because we need to be able to handle fielded doc vectors
             // and postings.
             engine = SearchEngineFactory.getSearchEngine(indexDir,
-                                                         "search_engine",
-                                                         config);
+                    "search_engine",
+                    config);
         } catch(SearchEngineException see) {
             log.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
         }
@@ -100,53 +100,58 @@ public class ItemSearchEngine implements Configurable {
             //
             // Get the item's map, and make a map for ourselves of just the 
             // stuff that we want to index.
-            Map<String,Serializable> dm = item.getMap();
-            Map<String,Object> im = new HashMap<String,Object>();
-            
+            Map<String, Serializable> dm = item.getMap();
+            Map<String, Object> im = new HashMap<String, Object>();
+
             //
             // Add the data that we want in every map.
             //im.put("aura-id", item.getID());
+            im.put("aura-key", item.getKey());
             im.put("aura-name", item.getName());
             im.put("aura-type", item.getType().toString());
-            for(Map.Entry<String,Serializable> e : dm.entrySet()) {
-                Serializable val = e.getValue();
-                
-                //
-                // OK, first up, make sure that we have an appropriately defined
-                // field for this name.  We'll need to make sure that we're not
-                // clobbering field types as we go.
-                FieldInfo fi = engine.getFieldInfo(e.getKey());
-                FieldInfo.Type type = getType(val);
-                
-                //
-                // Ignore stuff we don't know how to handle.
-                if(type == FieldInfo.Type.NONE) {
-                    continue;
-                }
-                
-                if(fi == null) {
+            if(dm != null) {
+                for(Map.Entry<String, Serializable> e : dm.entrySet()) {
+                    Serializable val = e.getValue();
+
                     //
-                    // We haven't encountered this field name before, so define
-                    // the field.
-                    fi = new FieldInfo(e.getKey(), getAttributes(type), type);
-                    engine.defineField(fi);
-                } else {
+                    // OK, first up, make sure that we have an appropriately defined
+                    // field for this name.  We'll need to make sure that we're not
+                    // clobbering field types as we go.
+                    FieldInfo fi = engine.getFieldInfo(e.getKey());
+                    FieldInfo.Type type = getType(val);
+
                     //
-                    // Make sure we're not clobbering something here.
-                    if(fi.getType() != type) {
-                        log.severe(String.format("Attempting to redefine field %s from %s to %s!",
-                                e.getKey(), fi.getType(), type));
+                    // Ignore stuff we don't know how to handle.
+                    if(type == FieldInfo.Type.NONE) {
                         continue;
                     }
+
+                    if(fi == null) {
+                        //
+                        // We haven't encountered this field name before, so define
+                        // the field.
+                        fi =
+                                new FieldInfo(e.getKey(), getAttributes(type),
+                                type);
+                        engine.defineField(fi);
+                    } else {
+                        //
+                        // Make sure we're not clobbering something here.
+                        if(fi.getType() != type) {
+                            log.severe(String.format("Attempting to redefine field %s from %s to %s!",
+                                    e.getKey(), fi.getType(), type));
+                            continue;
+                        }
+                    }
+
+                    //
+                    // Now get a value to put in the index map.
+                    Object indexVal = val;
+                    if(val instanceof Indexable) {
+                        indexVal = indexVal.toString();
+                    }
+                    im.put(e.getKey(), indexVal);
                 }
-                
-                //
-                // Now get a value to put in the index map.
-                Object indexVal = val;
-                if(val instanceof Indexable) {
-                    indexVal = indexVal.toString();
-                }
-                im.put(e.getKey(), indexVal);
             }
 
             engine.index(item.getKey(), im);
@@ -160,7 +165,7 @@ public class ItemSearchEngine implements Configurable {
         }
         return false;
     }
-    
+
     /**
      * Gets the field type appropriate for an object.
      * @param val the value that we want the appropriate type for
@@ -171,27 +176,27 @@ public class ItemSearchEngine implements Configurable {
         if(val instanceof Indexable) {
             return FieldInfo.Type.STRING;
         }
-        
+
         if(val instanceof String) {
             return FieldInfo.Type.STRING;
         }
-        
+
         if(val instanceof Date) {
             return FieldInfo.Type.DATE;
         }
-        
+
         if(val instanceof Integer || val instanceof Long) {
             return FieldInfo.Type.INTEGER;
         }
-        
+
         if(val instanceof Float || val instanceof Double) {
             return FieldInfo.Type.FLOAT;
         }
-        
+
         return FieldInfo.Type.NONE;
-        
+
     }
-    
+
     /**
      * Gets a set of attributes suitable for a given field type.
      */
@@ -246,7 +251,6 @@ public class ItemSearchEngine implements Configurable {
             return null;
         }
     }
-    
 
     public synchronized void shutdown() {
         try {
@@ -259,14 +263,13 @@ public class ItemSearchEngine implements Configurable {
             log.log(Level.WARNING, "Error closing index data engine", ex);
         }
     }
-    
     /**
      * The resource to load for the engine configuration.  This gives us the
      * opportunity to use different configs as necessary (e.g., for testing).
      * Note that any resource named by this property must be accessible via
      * <code>Class.getResource()</code>!
      */
-    @ConfigString(defaultValue = "entryEngineConfig.xml")
+    @ConfigString(defaultValue = "itemSearchEngineConfig.xml")
     public static final String PROP_ENGINE_CONFIG_FILE = "engineConfigFile";
 
     /**

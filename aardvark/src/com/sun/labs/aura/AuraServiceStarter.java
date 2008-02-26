@@ -68,7 +68,7 @@ public class AuraServiceStarter implements Configurable {
     }
 
     public static void usage() {
-        System.err.println("Usage: com.sun.labs.aura.aardvark.AardvarkServiceStarter <config> <component name>");
+        System.err.println("Usage: com.sun.labs.aura.AuraServiceStarter <config> <component name>");
         System.err.println("  Some useful global properties are auraHome and auraDistDir");
         System.err.println("  auraHome defaults to /aura.");
         System.err.println("  auraDistDir defaults to the current working directory");
