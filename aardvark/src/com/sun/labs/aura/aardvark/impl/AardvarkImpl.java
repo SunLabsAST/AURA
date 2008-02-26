@@ -46,33 +46,44 @@ import java.util.logging.Logger;
 public class AardvarkImpl implements Configurable, Aardvark, AuraService {
 
     private final static String VERSION = "aardvark version 0.30";
+
     /**
      * the configurable property for the itemstore used by this manager
      */
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_ITEM_STORE = "itemStore";
+
     private DataStore dataStore;
+
     /**
      * the configurable property for the FeedCrawler used by this manager
      */
     @ConfigComponent(type = FeedCrawler.class)
     public final static String PROP_FEED_CRAWLER = "feedCrawler";
+
     private FeedCrawler feedCrawler;
+
     @ConfigBoolean(defaultValue = false)
     public final static String PROP_AUTO_ENROLL_TEST_FEEDS =
             "autoEnrollTestFeeds";
+
     private boolean autoEnrollTestFeeds;
+
     @ConfigBoolean(defaultValue = false)
     public final static String PROP_AUTO_ENROLL_MEGA_TEST_FEEDS =
             "autoEnrollMegaTestFeeds";
+
     private boolean autoEnrollMegaTestFeeds;
+
     /**
      * the configurable property for the RecommenderManager used by this manager
      */
     @ConfigComponent(type = RecommenderManager.class)
     public final static String PROP_RECOMMENDER_MANAGER =
             "recommenderManager";
+
     private RecommenderManager recommenderManager;
+
     private Logger logger;
 
     /**
@@ -84,10 +95,11 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
     public static AardvarkImpl getDefault() throws AuraException {
         try {
             ConfigurationManager cm = new ConfigurationManager();
-            URL configFile = AardvarkImpl.class.getResource("aardvarkConfig.xml");
+            URL configFile =
+                    AardvarkImpl.class.getResource("aardvarkConfig.xml");
             cm.addProperties(configFile);
             return (AardvarkImpl) cm.lookup("aardvark");
-        } catch (IOException ioe) {
+        } catch(IOException ioe) {
             throw new AuraException("Problem loading config", ioe);
         }
     }
@@ -111,7 +123,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
     public User getUser(String openID) throws AuraException, RemoteException {
         try {
             return dataStore.getUser(openID);
-        } catch (RemoteException rx) {
+        } catch(RemoteException rx) {
             throw new AuraException("Error communicating with item store", rx);
         }
     }
@@ -122,10 +134,10 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
     }
 
     public Set<BlogFeed> getFeeds(User user, Attention.Type type) throws AuraException, RemoteException {
-        
+
         Set<Item> items = dataStore.getItems(user, type, ItemType.FEED);
         Set<BlogFeed> feeds = new HashSet<BlogFeed>();
-        for (Item item : items) {
+        for(Item item : items) {
             feeds.add(new BlogFeed(item));
         }
         return feeds;
@@ -139,15 +151,17 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
      */
     public User enrollUser(String openID) throws AuraException, RemoteException {
         logger.info("Added user " + openID);
-        if (getUser(openID) == null) {
+        if(getUser(openID) == null) {
             try {
                 User theUser = StoreFactory.newUser(openID, openID);
                 return dataStore.putUser(theUser);
-            } catch (RemoteException rx) {
-                throw new AuraException("Error communicating with item store", rx);
+            } catch(RemoteException rx) {
+                throw new AuraException("Error communicating with item store",
+                        rx);
             }
         } else {
-            throw new AuraException("attempting to enroll duplicate user " + openID);
+            throw new AuraException("attempting to enroll duplicate user " +
+                    openID);
         }
     }
 
@@ -160,7 +174,8 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
      */
     public void addUserFeed(User user, URL feedURL, Attention.Type type) throws AuraException, RemoteException {
         BlogFeed feed = feedCrawler.createFeed(feedURL);
-        Attention userAttention = StoreFactory.newAttention(user, feed.getItem(), type);
+        Attention userAttention =
+                StoreFactory.newAttention(user, feed.getItem(), type);
         dataStore.attend(userAttention);
     }
 
@@ -181,7 +196,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
     public void addFeed(String feedURL) throws AuraException, RemoteException {
         try {
             feedCrawler.createFeed(new URL(feedURL));
-        } catch (MalformedURLException ex) {
+        } catch(MalformedURLException ex) {
             throw new AuraException("bad url " + feedURL, ex);
         }
     }
@@ -199,7 +214,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
             User user = enrollUser(openID);
             addUserFeed(user, feedURL, Attention.Type.STARRED_FEED);
             return user;
-        } catch (MalformedURLException ex) {
+        } catch(MalformedURLException ex) {
             throw new AuraException("Bad url " + feed, ex);
         }
     }
@@ -241,7 +256,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
             return new Stats(VERSION, numUsers,
                     numEntries, numAttentions, numFeeds,
                     feedPullCount, feedErrorCount);
-        } catch (RemoteException rx) {
+        } catch(RemoteException rx) {
             throw new AuraException("Error communicating with item store", rx);
         }
     }
@@ -256,7 +271,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
             List<BlogEntry> recommendations =
                     recommenderManager.getRecommendations(user);
             return recommendations;
-        } catch (RemoteException rx) {
+        } catch(RemoteException rx) {
             logger.log(Level.SEVERE, "Error getting recommendations", rx);
             return Collections.emptyList();
         }
@@ -268,14 +283,14 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
             OPMLProcessor op = new OPMLProcessor();
             URL opmlFile = AardvarkImpl.class.getResource(name);
             List<URL> urls = op.getFeedURLs(opmlFile);
-            for (URL url : urls) {
+            for(URL url : urls) {
                 try {
                     addFeed(url);
-                } catch (AuraException ex) {
+                } catch(AuraException ex) {
                     logger.warning("Problems enrolling " + url);
                 }
             }
-        } catch (IOException ex) {
+        } catch(IOException ex) {
             logger.warning("Problems loading opml " + name);
         } finally {
             logger.info("Finished enrolling local opml" + name);
@@ -289,13 +304,15 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
             public void run() {
                 try {
                     // Thread.sleep(10 * 60 * 1000L);
-                    addLocalOpml("autoEnrolledFeeds.opml.xml");
-                    if (autoEnrollMegaTestFeeds) {
+                    if(autoEnrollTestFeeds) {
+                        addLocalOpml("autoEnrolledFeeds.opml.xml");
+                    }
+                    if(autoEnrollMegaTestFeeds) {
                         addLocalOpml("tech_blogs.opml");
                         addLocalOpml("politics_blogs.opml");
                         addLocalOpml("news_blogs.opml");
                     }
-                } catch (Throwable t) {
+                } catch(Throwable t) {
                     logger.severe("bad thing happend " + t);
                 }
             }

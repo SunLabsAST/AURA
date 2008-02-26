@@ -111,7 +111,7 @@ public class ItemAdapter {
      */
     public void setName(String name) {
         if (name != null && !name.equals(getName())) {
-            setName(name);
+            item.setName(name);
             modified = true;
         }
     }

@@ -22,7 +22,6 @@ import java.util.Set;
 
 /**
  *
- * @author stgreen
  */
 public interface Aardvark extends Component, Remote {
 

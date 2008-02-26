@@ -60,10 +60,10 @@ public class AuraServiceStarter implements Configurable {
         // Add a shutdown hook to stop the services.
         Runtime.getRuntime().addShutdownHook(new Thread() {
 
-                                         public void run() {
-                                             stopServices();
-                                         }
-                                         });
+            public void run() {
+                stopServices();
+            }
+        });
 
     }
 
@@ -92,6 +92,7 @@ public class AuraServiceStarter implements Configurable {
             h.setFormatter(new SimpleLabsLogFormatter());
         }
 
+        AuraServiceStarter starter = null;
         try {
             //
             // See if we can get a resource for the configuration file first.
@@ -101,7 +102,7 @@ public class AuraServiceStarter implements Configurable {
                 cu = (new File(args[0])).toURI().toURL();
             }
             ConfigurationManager cm = new ConfigurationManager(cu);
-            AuraServiceStarter starter =
+            starter =
                     (AuraServiceStarter) cm.lookup(args[1]);
 
             //
@@ -114,6 +115,12 @@ public class AuraServiceStarter implements Configurable {
             System.err.println("Error parsing configuration file: " + ex);
             usage();
         } catch(InterruptedException ie) {
+        } catch(Exception e) {
+            usage();
+        } finally {
+            if(starter != null) {
+                starter.stopServices();
+            }
         }
     }
 }

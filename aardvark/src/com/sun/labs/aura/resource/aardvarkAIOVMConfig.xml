@@ -67,6 +67,7 @@
     <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager">
         <property name="itemStore" value="dataStoreHead"/>
         <property name="feedScheduler" value="feedScheduler"/>
+        <property name="numThreads" value="1"/>
     </component>
     
     <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl">
