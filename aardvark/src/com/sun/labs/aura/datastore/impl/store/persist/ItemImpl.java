@@ -125,6 +125,8 @@ public class ItemImpl implements Item {
                 logger.log(Level.WARNING,
                         "Map serialization failed for item " + this, e);
             }
+        } else if (map == null) {
+            map = new HashMap<String,Serializable>();
         }
         return map;
     }
@@ -134,17 +136,18 @@ public class ItemImpl implements Item {
      */
     public void setMap(HashMap<String,Serializable> map) {
         this.map = map;
-        if (map == null) {
+        if ((map == null) || (map.isEmpty())) {
             mapBytes = new byte[0];
         }
     }
     
     /**
-     * This method should be called before the HashMap is stored in the BDB.
-     * This will cause the HashMap to get serialized into byte[] form.
+     * This method should be called before the HashMap is stored in the
+     * database.  This will cause the HashMap to get serialized into byte[]
+     * form.
      */
     public void storeMap() {
-        if (map != null) {
+        if ((map != null) && (!map.isEmpty())) {
             try {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -166,10 +169,8 @@ public class ItemImpl implements Item {
      */
     private void writeObject(ObjectOutputStream oos) throws IOException {
         //
-        // If the map has been instantiated, we'll assume that it is dirty.
-        if (map != null) {
-            storeMap();
-        }
+        // Try to store the map (storeMap checks to see if it needs storing)
+        storeMap();
         oos.defaultWriteObject();
     }
     
