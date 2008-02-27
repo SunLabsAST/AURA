@@ -161,7 +161,7 @@ public class BerkeleyDataWrapper {
         }
         
         dbEnv = new Environment(dir, econf);
-        store = new EntityStore(dbEnv, "Aardvark", sconf);
+        store = new EntityStore(dbEnv, "Aura", sconf);
         
         //
         // Load the indexes that we'll use during regular operation
