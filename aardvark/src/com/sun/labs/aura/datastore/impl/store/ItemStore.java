@@ -1,6 +1,7 @@
 
 package com.sun.labs.aura.datastore.impl.store;
 
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Item;
@@ -111,6 +112,16 @@ public interface ItemStore extends Component, Remote {
             Attention.Type attnType,
             ItemType itemType) throws AuraException, RemoteException;
 
+
+    /**
+     * Get all the attention related to a particular item
+     * 
+     * @param srcKey the source to fetch attention for
+     * @return the set of all attention
+     * @throws com.sun.labs.aura.aardvark.util.AuraException
+     */
+    public Set<Attention> getAttentionForSource(String srcKey)
+            throws AuraException, RemoteException;
 
     /**
      * Get all the attention related to a particular item

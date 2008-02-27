@@ -1,7 +1,7 @@
 
 package com.sun.labs.aura.datastore.impl;
 
-import com.sun.labs.aura.datastore.impl.store.DBIterator;
+import com.sun.labs.aura.datastore.DBIterator;
 import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.Iterator;

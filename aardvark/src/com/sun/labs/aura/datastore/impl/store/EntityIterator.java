@@ -1,7 +1,9 @@
 
 package com.sun.labs.aura.datastore.impl.store;
 
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.Transaction;
 import com.sleepycat.persist.EntityCursor;
 import java.util.Iterator;
 
@@ -14,9 +16,16 @@ public class EntityIterator<E> implements DBIterator {
     
     private Iterator<E> it;
     
+    private Transaction txn;
+    
     public EntityIterator(EntityCursor<E> cursor) {
         this.cursor = cursor;
         it = cursor.iterator();
+    }
+    
+    public EntityIterator(EntityCursor<E> cursor, Transaction txn) {
+        this(cursor);
+        this.txn = txn;
     }
     
     public boolean hasNext() {
@@ -30,6 +39,9 @@ public class EntityIterator<E> implements DBIterator {
     public void close() {
         try {
             cursor.close();
+            if (txn != null) {
+                txn.commitNoSync();
+            }
         } catch (DatabaseException e) {
             // ???
         }

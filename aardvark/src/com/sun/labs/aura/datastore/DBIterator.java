@@ -1,5 +1,5 @@
 
-package com.sun.labs.aura.datastore.impl.store;
+package com.sun.labs.aura.datastore;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;

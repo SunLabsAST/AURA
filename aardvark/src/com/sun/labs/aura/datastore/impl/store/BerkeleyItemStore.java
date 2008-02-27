@@ -1,5 +1,6 @@
 package com.sun.labs.aura.datastore.impl.store;
 
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sleepycat.je.DatabaseException;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
@@ -217,6 +218,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
     public void close() throws AuraException {
         closed = true;
         bdb.close();
+        searchEngine.shutdown();
     }
 
     /**
@@ -289,6 +291,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
         return (DBIterator<Item>) cm.getRemote(res, this);
     }
 
+    public Set<Attention> getAttentionForSource(String srcKey)
+            throws AuraException {
+        return bdb.getAttentionForSource(srcKey);
+    }
+
+    
     public Set<Attention> getAttentionForTarget(String itemKey)
             throws AuraException {
         return bdb.getAttentionForTarget(itemKey);
