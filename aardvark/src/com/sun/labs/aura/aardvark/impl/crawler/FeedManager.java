@@ -71,14 +71,10 @@ public class FeedManager implements AuraService, Configurable, FeedCrawler {
      * @throws com.sun.labs.util.props.PropertyException
      */
     public void newProperties(PropertySheet ps) throws PropertyException {
-        stop();
-
         dataStore = (DataStore) ps.getComponent(PROP_ITEM_STORE);
         feedScheduler = (ItemScheduler) ps.getComponent(PROP_FEED_SCHEDULER);
         numThreads = ps.getInt(PROP_NUM_THREADS);
         logger = ps.getLogger();
-
-        start();
     }
 
     public BlogFeed createFeed(URL feedUrl) throws RemoteException, AuraException {

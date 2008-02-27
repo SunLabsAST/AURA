@@ -123,7 +123,8 @@ public class ItemAdapter {
      * @return the value as a float
      */
     protected float getFieldAsFloat(String name) {
-        return (Float) item.getMap().get(name);
+        Float f = (Float) item.getMap().get(name);
+        return f == null ? 0 : 1;
     }
 
     /**
@@ -141,7 +142,8 @@ public class ItemAdapter {
      * @return the value as a int
      */
     protected int getFieldAsInt(String name) {
-        return (Integer) item.getMap().get(name);
+        Integer i = (Integer) item.getMap().get(name);
+        return i == null ? 0 : i;
     }
 
     /**
@@ -150,7 +152,8 @@ public class ItemAdapter {
      * @return the value as a long
      */
     protected long getFieldAsLong(String name) {
-        return (Long) item.getMap().get(name);
+        Long l = (Long) item.getMap().get(name);
+        return l == null ? 0 : l;
     }
 
     /**

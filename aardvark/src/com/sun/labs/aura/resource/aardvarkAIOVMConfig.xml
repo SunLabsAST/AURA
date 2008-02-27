@@ -47,11 +47,13 @@
     <!-- The configuration for the search engine associated with this replicant -->
     <component name="itemSearchEngine0" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
         <property name="indexDir" value="${auraHome}/0/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
     <component name="itemSearchEngine1" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
         <property name="indexDir" value="${auraHome}/1/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineNoReapConfig.xml"/>
     </component>
     
     <!-- A simple recommender -->
