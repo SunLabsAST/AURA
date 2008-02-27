@@ -276,7 +276,7 @@ public class ItemSearchEngine implements Configurable {
      * The default logging level for the search engine.  Paul likes things nice
      * and quiet.
      */
-    @ConfigInteger(defaultValue = 2)
+    @ConfigInteger(defaultValue = 1)
     public static final String PROP_ENGINE_LOG_LEVEL = "engineLogLevel";
 
     /**
