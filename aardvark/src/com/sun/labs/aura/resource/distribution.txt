@@ -1,0 +1,8 @@
+Machines		auraHome			datastore prefix
+
+bobism.east		/scratch/aura			00
+search.east	   	/scratch2/stgreen/aura		01
+lur.east		/big/aura			10
+faber.east	   	/export/aura			11
+
+

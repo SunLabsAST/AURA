@@ -20,7 +20,7 @@
     
     <property name="prefix" value="01"/>
     
-    <property name="dataFS" value="/aura/01"/>
+    <property name="dataFS" value="${auraHome}/01"/>
     
     <component name="prefixEntries" type="com.sun.labs.util.props.ConfigurationEntries">
         <propertylist name="entries">
@@ -47,6 +47,7 @@
         <property name="prefix" value="${prefix}"/>
         <property name="dbEnv" value="${dataFS}"/>
         <property name="itemSearchEngine" value="itemSearchEngine"/>
+        <property name="partitionCluster" value="partitionCluster"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
@@ -54,13 +55,13 @@
         <property name="indexDir" value="${dataFS}/itemIndex.idx"/>
     </component>
     
+    <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" entries="prefixEntries"/>
+    
     <!-- A service starter for this replicant -->
     <component name="replicantStarter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>replicant</item>
         </propertylist>
     </component>
-    
-    <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" entries="prefixEntries"/>
     
 </config>

@@ -1,24 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-    Document   : partitionClusterConfig.xml
-    Created on : February 25, 2008, 10:24 AM
+    Document   : feedManagerConfig.xml
+    Created on : February 27, 2008, 4:32 PM
     Author     : stgreen
     Description:
-        Configuration for a partition cluster object.
+        Configuration for a feed manager.
 -->
 
 <config>
-    
+
     <!-- Where the aura data lives -->
     <property name="auraHome" value="/aura"/>
     
     <!-- Where the aura distribution jar was unpacked. -->
     <property name="auraDistDir" value="${auraHome}/dist"/>
 
-    <property name="csPort" value="4401"/>
-    
-    <property name="prefix" value="01"/>
+    <property name="csPort" value="7700"/>
     
     <component name="prefixEntries" type="com.sun.labs.util.props.ConfigurationEntries">
         <propertylist name="entries">
@@ -40,18 +38,20 @@
         <property name="securityPolicy" value="${auraDistDir}/jsk-all.policy"/>
     </component>
     
-    <!-- The configuration for a partition cluster. -->
-    <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" export="true" entries="prefixEntries">
-        <property name="prefix" value="${prefix}"/>
-        <property name="dataStoreHead" value="dataStoreHead"/>
+    <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager">
+        <property name="itemStore" value="dataStoreHead"/>
+        <property name="feedScheduler" value="feedScheduler"/>
+        <property name="numThreads" value="5"/>
     </component>
-
-    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
     
-    <!-- A service starter for this cluster -->
-    <component name="partitionClusterStarter" type="com.sun.labs.aura.AuraServiceStarter">
+    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
+
+    <component name="feedScheduler" type="com.sun.labs.aura.aardvark.ItemScheduler"/>
+    
+    <!-- A service starter for this feedManager -->
+    <component name="feedManagerStarter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
-            <item>partitionCluster</item>
+            <item>feedManager</item>
         </propertylist>
     </component>
     
