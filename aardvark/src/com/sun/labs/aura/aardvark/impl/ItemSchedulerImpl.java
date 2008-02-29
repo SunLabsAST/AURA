@@ -6,13 +6,11 @@ package com.sun.labs.aura.aardvark.impl;
 
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.ItemScheduler;
-import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.ItemEvent;
 import com.sun.labs.aura.datastore.ItemListener;
-import com.sun.labs.util.props.Component;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigEnum;
 import com.sun.labs.util.props.ConfigInteger;
@@ -150,7 +148,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
 
             try {
                 exportedItemListener = (ItemListener) ps.getConfigurationManager().
-                        getRemote(this, itemStore);
+                        getRemote(this, newItemStore);
                 newItemStore.addItemListener(newItemType, exportedItemListener);
             } catch(AuraException ex) {
                 throw new PropertyException(ps.getInstanceName(),

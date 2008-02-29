@@ -38,7 +38,7 @@
         <property name="securityPolicy" value="${auraDistDir}/jsk-all.policy"/>
     </component>
     
-    <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager">
+    <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager" export="true">
         <property name="itemStore" value="dataStoreHead"/>
         <property name="feedScheduler" value="feedScheduler"/>
         <property name="numThreads" value="5"/>

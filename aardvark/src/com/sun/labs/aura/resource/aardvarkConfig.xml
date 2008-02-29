@@ -33,7 +33,7 @@
     </component>
     
     <!-- An aardvark system -->
-    <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl">
+    <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl" export="true">
         <property name="itemStore" value="dataStoreHead"/>
         <property name="recommenderManager" value="recommenderManager"/>
         <property name="feedCrawler" value="feedManager"/>
