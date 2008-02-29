@@ -23,7 +23,11 @@ elif [ "$HOST" = "faber" ]; then
     AURAHOME=/export/aura
 fi
 
-This will set up the environment variables so that you can cut and paste things
+This will set up the environment variables so that you can cut and
+paste things.
+
+You need to start up a reggie instance on one of the machines.  You
+can do this from the LabsUtil/jini directory.
 
 
 Copying:
