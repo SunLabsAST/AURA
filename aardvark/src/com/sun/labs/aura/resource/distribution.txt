@@ -1,0 +1,100 @@
+Machines		auraHome			datastore prefix
+
+bobism.east		/scratch/aura			00
+search.east	   	/scratch2/stgreen/aura		01
+lur.east		/big/aura			10
+faber.east	   	/export/aura			11
+
+A little script:
+
+#!/bin/bash
+HOST=`hostname`
+if [ "${HOST}" = "bobism" ]; then
+    PREFIX=00
+    AURAHOME=/scratch/aura
+elif [ "${HOST}" = "search" ]; then
+    PREFIX=01
+    AURAHOME=/scratch2/stgreen/aura
+elif [ "$HOST" = "lur" ]; then
+    PREFIX=10
+    AURAHOME=/big/aura
+elif [ "$HOST" = "faber" ]; then
+    PREFIX=11
+    AURAHOME=/export/aura
+fi
+
+save as distSetup.sh somewhere, and then do:
+
+ . distSetup.sh 
+
+to make sure that the variables exist in the current shell.
+
+This will set up the environment variables so that you can cut and
+paste things from this file.
+
+You need to start up a reggie instance on one of the machines.  You
+can do this from the LabsUtil/jini directory like so:
+
+nohup ./startReggieNB.sh &> ${AURAHOME}/reggie.out
+
+I usually do this on search.east.
+
+This starts up a reggie without a browser, but you can run a browser
+elsewhere and point it at the one that's running.
+
+Copying:
+
+scp aardvark-dist.jar bobism:/scratch/aura
+scp aardvark-dist.jar search:/scratch2/stgreen/aura
+scp aardvark-dist.jar lur:/big/aura
+scp aardvark-dist.jar faber:/export/aura
+
+Starting up a data store head, a replicant and a partition cluster:
+
+On search.east:
+
+nohup java -DauraHome=${AURAHOME} \
+      -jar dist/aardvark.jar \
+      /com/sun/labs/aura/resource/dataStoreHeadConfig.xml \
+      dataStoreHeadStarter &> dsh.out &
+
+On each of the machines run a partition cluster and a replicant:
+
+nohup java -DauraHome=${AURAHOME} -Dprefix=${PREFIX} \
+      -jar dist/aardvark.jar \
+      /com/sun/labs/aura/resource/partitionClusterConfig.xml \
+      partitionClusterStarter &> pc.out &
+nohup java -DauraHome=${AURAHOME} -Dprefix=${PREFIX} \
+      -jar dist/aardvark.jar \
+      /com/sun/labs/aura/resource/replicantConfig.xml \
+      replicantStarter &> rep.out & 
+
+On search.east:
+
+nohup java -DauraHome=${AURAHOME} \
+      -jar dist/aardvark.jar \
+      /com/sun/labs/aura/resource/feedSchedulerConfig.xml \
+      feedSchedulerStarter &> fs.out &
+
+This is the scheduler for the feeds that the crawlers will use.
+
+On each of the machines except search.east:
+
+nohup java -DauraHome=${AURAHOME} \
+      -jar dist/aardvark.jar \
+      /com/sun/labs/aura/resource/feedManagerConfig.xml \
+      feedManagerStarter &> fm.out &
+
+these are the crawlers.  We'll have 10 threads per feed Manager, so a total of 30 crawling threads.
+
+On search.east:
+
+nohup java -DauraHome=${AURAHOME} \
+      -jar dist/aardvark.jar \
+      /com/sun/labs/aura/resource/aardvarkConfig.xml \
+      aardvarkStarter &> aardvark.out &
+
+
+
+
+

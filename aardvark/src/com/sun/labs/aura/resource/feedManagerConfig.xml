@@ -1,22 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-    Document   : dataStoreHeadConfig.xml
-    Created on : February 25, 2008, 10:24 AM
+    Document   : feedManagerConfig.xml
+    Created on : February 27, 2008, 4:32 PM
     Author     : stgreen
     Description:
-        Configuration for a data store head.
+        Configuration for a feed manager.
 -->
 
 <config>
-    
+
     <!-- Where the aura data lives -->
     <property name="auraHome" value="/aura"/>
     
     <!-- Where the aura distribution jar was unpacked. -->
     <property name="auraDistDir" value="${auraHome}/dist"/>
+
+    <property name="csPort" value="7700"/>
     
-    <property name="csPort" value="5500"/>
+    <component name="prefixEntries" type="com.sun.labs.util.props.ConfigurationEntries">
+        <propertylist name="entries">
+            <item>${prefix}</item>
+        </propertylist>
+    </component>
     
     <!-- A component registry that will be used to lookup and register components. -->
     <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
@@ -32,14 +38,20 @@
         <property name="securityPolicy" value="${auraDistDir}/jsk-all.policy"/>
     </component>
     
-    <!-- The configuration for a partition cluster. We set import to false because there's no properties. -->
-    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true" import="false">
+    <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager" export="true">
+        <property name="itemStore" value="dataStoreHead"/>
+        <property name="feedScheduler" value="feedScheduler"/>
+        <property name="numThreads" value="5"/>
     </component>
     
-    <!-- A service starter for this replicant -->
-    <component name="dataStoreHeadStarter" type="com.sun.labs.aura.AuraServiceStarter">
+    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
+
+    <component name="feedScheduler" type="com.sun.labs.aura.aardvark.ItemScheduler"/>
+    
+    <!-- A service starter for this feedManager -->
+    <component name="feedManagerStarter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
-            <item>dataStoreHead</item>
+            <item>feedManager</item>
         </propertylist>
     </component>
     
