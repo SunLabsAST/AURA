@@ -5,4 +5,63 @@ search.east	   	/scratch2/stgreen/aura		01
 lur.east		/big/aura			10
 faber.east	   	/export/aura			11
 
+A little script:
+
+#!/bin/bash
+HOST=`hostname`
+if [ "${HOST}" = "bobism" ]; then
+    PREFIX=00
+    AURAHOME=/scratch/aura
+elif [ "${HOST}" = "search" ]; then
+    PREFIX=01
+    AURAHOME=/scratch2/stgreen/aura
+elif [ "$HOST" = "lur" ]; then
+    PREFIX=10
+    AURAHOME=/big/aura
+elif [ "$HOST" = "faber" ]; then
+    PREFIX=11
+    AURAHOME=/export/aura
+fi
+
+This will set up the environment variables so that you can cut and paste things
+
+
+Copying:
+
+scp aardvark-dist.jar bobism:/scratch/aura
+scp aardvark-dist.jar search:/scratch2/stgreen/aura
+scp aardvark-dist.jar lur:/big/aura
+scp aardvark-dist.jar faber:/export/aura
+
+Starting up a data store head, a replicant and a partition cluster:
+
+On search.east:
+
+java -DauraHome=${AURAHOME} -jar aardvark-dist.jar /com/sun/labs/aura/resource/dataStoreHeadConfig.xml dataStoreHeadStarter
+
+On each of the machines:
+
+java -DauraHome=${AURAHOME} -Dprefix=${PREFIX} -jar aardvark-dist.jar /com/sun/labs/aura/resource/partitionClusterConfig.xml partitionClusterStarter
+java -DauraHome=${AURAHOME} -Dprefix=${PREFIX} -jar aardvark-dist.jar /com/sun/labs/aura/resource/replicantConfig.xml replicantStarter
+
+with the appropriate prefix
+
+On search.east:
+
+java -DauraHome=${AURAHOME} -jar aardvark-dist.jar /com/sun/labs/aura/resource/feedSchedulerConfig.xml feedSchedulerStarter
+
+This is the scheduler for the feeds that the crawlers will use.
+
+On each of the machines except search.east:
+
+java -DauraHome=${AURAHOME} -jar aardvark-dist.jar /com/sun/labs/aura/resource/feedManagerConfig.xml feedManagerStarter
+
+these are the crawlers.  We'll have 10 threads per feed Manager, so a total of 30 crawling threads.
+
+On search.east:
+
+java -DauraHome=${AURAHOME} -jar aardvark-dist.jar /com/sun/labs/aura/resource/aardvarkConfig.xml aardvarkStarter
+
+
+
 

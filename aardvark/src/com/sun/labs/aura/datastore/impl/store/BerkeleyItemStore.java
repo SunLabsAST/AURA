@@ -189,10 +189,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
         cm = ps.getConfigurationManager();
 
         //
-        // Fetch the partition cluster with this prefix. We'll start by getting
-        // the entries that we want to use to do the service lookup.
-        ConfigurationEntries re =
-                (ConfigurationEntries) cm.lookup("replicantEntries");
+        // Fetch the partition cluster with this prefix.
         partitionCluster =
                 (PartitionCluster) ps.getComponent(PROP_PARTITION_CLUSTER);
         Replicant exported = (Replicant) cm.getRemote(this, partitionCluster);

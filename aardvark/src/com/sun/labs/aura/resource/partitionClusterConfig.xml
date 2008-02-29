@@ -37,11 +37,13 @@
             <item>aardvark.jar</item>
             <item>LabsUtil.jar</item>
         </propertylist>
+        <property name="lookupTries" value="20"/>
+        <property name="lookupWait" value="2"/>
         <property name="securityPolicy" value="${auraDistDir}/jsk-all.policy"/>
     </component>
     
     <!-- The configuration for a partition cluster. -->
-    <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" export="true" entries="prefixEntries">
+    <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true" entries="prefixEntries">
         <property name="prefix" value="${prefix}"/>
         <property name="dataStoreHead" value="dataStoreHead"/>
     </component>
