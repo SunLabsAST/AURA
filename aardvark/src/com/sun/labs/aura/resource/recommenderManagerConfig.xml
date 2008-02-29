@@ -33,7 +33,7 @@
     </component>
     
     <!-- A simple recommender -->
-    <component name="recommenderManager" type="com.sun.labs.aura.aardvark.impl.recommender.SimpleRecommenderManager">
+    <component name="recommenderManager" type="com.sun.labs.aura.aardvark.impl.recommender.SimpleRecommenderManager" export="true">
         <property name="dataStore" value="dataStoreHead"/>
     </component>
     
