@@ -54,7 +54,6 @@
     <component name="itemSearchEngine" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
         <property name="indexDir" value="${dataFS}/itemIndex.idx"/>
         <property name="engineLogLevel" value="3"/>
-        <property name="engineConfigFile" value="itemSearchEngineNoReapConfig.xml"/>
     </component>
     
     <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" entries="prefixEntries"/>
