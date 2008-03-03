@@ -11,7 +11,7 @@
 
     <component name="aardvarkStarter" type="com.sun.labs.aura.aardvark.AardvarkServiceStarter">
         <propertylist name="serviceComponents">
-            <item>itemStore</item>
+            <item>dataStore</item>
             <item>feedCrawler</item>
             <item>recommenderManager</item>
             <item>aardvark</item>
@@ -19,25 +19,25 @@
     </component>
     
     <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl">
-        <property name="itemStore" value="itemStore"/>
+        <property name="dataStore" value="dataStore"/>
         <property name="feedCrawler" value="feedCrawler"/>
         <property name="recommenderManager" value="recommenderManager"/>
     </component>
     
-    <component name="itemStore" type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
-        <property name="dbEnv" value="/tmp/aura/itemStore.db"/>
+    <component name="dataStore" type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
+        <property name="dbEnv" value="/tmp/aura/dataStore.db"/>
         <property name="overwrite" value="true"/>
     </component>
     
     
     <component name="feedCrawler" type="com.sun.labs.aura.aardvark.impl.crawler.SimpleFeedCrawler">
-        <property name="itemStore" value="itemStore"/>
+        <property name="dataStore" value="dataStore"/>
         <property name="minimumFeedDelayInMinutes" value="0"/>
         <property name="testMode" value="true"/>
     </component>
     
     <component name="recommenderManager" type="com.sun.labs.aura.aardvark.impl.recommender.SimpleRecommenderManager">
-        <property name="itemStore" value="itemStore"/>
+        <property name="dataStore" value="dataStore"/>
     </component>
     
 </config>

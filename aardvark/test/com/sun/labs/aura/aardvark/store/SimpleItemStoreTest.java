@@ -47,7 +47,7 @@ public class SimpleItemStoreTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        File f = new File("/tmp/aura-bdbtest/itemStore.db");
+        File f = new File("/tmp/aura-bdbtest/dataStore.db");
         File[] content = f.listFiles();
         for (File c : content) {
             c.delete();
@@ -74,13 +74,13 @@ public class SimpleItemStoreTest {
         // First, get the local store for local control
         URL configFile = getClass().getResource("distMasterConfig.xml");
         mcm = new ConfigurationManager(configFile);
-        localStore = (BerkeleyItemStore) mcm.lookup("itemStore");
+        localStore = (BerkeleyItemStore) mcm.lookup("dataStore");
         
         //
         // Now get the remote interface to the store
         configFile = getClass().getResource("distRemoteConfig.xml");
         rcm = new ConfigurationManager(configFile);
-        remoteStore = (SimpleItemStore) rcm.lookup("itemStore");
+        remoteStore = (SimpleItemStore) rcm.lookup("dataStore");
         return remoteStore;
     }
         

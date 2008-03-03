@@ -2,8 +2,8 @@
 <config>
     <property name="auraHome" value="/tmp/aura-bdbtest"/>
 
-    <component name="itemStore"
+    <component name="dataStore"
             type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
-        <property name="dbEnv" value="${auraHome}/itemStore.db" />
+        <property name="dbEnv" value="${auraHome}/dataStore.db" />
     </component>
 </config>

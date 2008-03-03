@@ -2,10 +2,11 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.sun.labs.aura.aardvark.impl;
+package com.sun.labs.aura.util;
 
+import com.sun.labs.aura.aardvark.impl.*;
 import com.sun.labs.aura.AuraService;
-import com.sun.labs.aura.aardvark.ItemScheduler;
+import com.sun.labs.aura.util.ItemScheduler;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
@@ -90,10 +91,10 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     synchronized public void newProperties(PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
 
-        DataStore oldStore = itemStore;
+        DataStore oldStore = dataStore;
         Item.ItemType oldItemType = itemType;
 
-        DataStore newItemStore = (DataStore) ps.getComponent(PROP_ITEM_STORE);
+        DataStore newItemStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
         Item.ItemType newItemType = (Item.ItemType) ps.getEnum(PROP_ITEM_TYPE);
 
         // everything is connected OK, so lets create our item queues
@@ -152,10 +153,10 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
                 newItemStore.addItemListener(newItemType, exportedItemListener);
             } catch(AuraException ex) {
                 throw new PropertyException(ps.getInstanceName(),
-                        PROP_ITEM_STORE, "aura exception " + ex.getMessage());
+                        PROP_DATA_STORE, "aura exception " + ex.getMessage());
             } catch(RemoteException ex) {
                 throw new PropertyException(ps.getInstanceName(),
-                        PROP_ITEM_STORE, "remote exception " + ex.getMessage());
+                        PROP_DATA_STORE, "remote exception " + ex.getMessage());
             }
 
 
@@ -176,16 +177,16 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
                     }
                 }
 
-                itemStore = newItemStore;
+                dataStore = newItemStore;
                 itemType = newItemType;
 
             } catch(AuraException ex) {
                 throw new PropertyException(ps.getInstanceName(),
-                        PROP_ITEM_STORE,
+                        PROP_DATA_STORE,
                         "Can't get items from the store " + ex.getMessage());
             } catch(RemoteException ex) {
                 throw new PropertyException(ps.getInstanceName(),
-                        PROP_ITEM_STORE,
+                        PROP_DATA_STORE,
                         "Can't get items from the store " + ex.getMessage());
             }
         }
@@ -245,9 +246,9 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
      * the configurable property for the itemstore used by this manager
      */
     @ConfigComponent(type = DataStore.class)
-    public final static String PROP_ITEM_STORE = "itemStore";
+    public final static String PROP_DATA_STORE = "dataStore";
 
-    private DataStore itemStore;
+    private DataStore dataStore;
 
     /**
      * the configurable property for maximum item lease time in seconds

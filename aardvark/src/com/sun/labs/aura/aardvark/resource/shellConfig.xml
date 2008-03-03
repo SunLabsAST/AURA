@@ -17,7 +17,9 @@
         java.rmi.codebaseproperty,  i.e., it points to the same place that the
         class server in the component registry points.
 -->
-
+<!-- woah - this is out of date and needs to be adapted to use the latest set
+     of components -->
+     
 <config>
     
     <!-- A component registry that we can use to get things. -->
@@ -29,7 +31,7 @@
     
     <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark"/>
     
-    <component name="itemStore" type="com.sun.labs.aura.aardvark.store.ItemStore"/>
+    <component name="dataStore" type="com.sun.labs.aura.aardvark.store.ItemStore"/>
     
     <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.FeedCrawler"/>
     

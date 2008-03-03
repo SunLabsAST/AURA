@@ -30,14 +30,8 @@ public interface Aardvark extends Component, Remote {
      * @param feedURL the feed to add
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    void addFeed(URL feedURL) throws AuraException, RemoteException;
-
-    /**
-     * Adds a new feed to the system
-     * @param feedURL the feed to add
-     * @throws com.sun.labs.aura.aardvark.util.AuraException
-     */
     void addFeed(String feedURL) throws AuraException, RemoteException;
+
 
     /**
      * Adds a feed of a particular type for a user
@@ -46,7 +40,7 @@ public interface Aardvark extends Component, Remote {
      * @param type the type of attention the user pays to the URL
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    void addUserFeed(User user, URL feedURL, Attention.Type type) throws AuraException, RemoteException;
+    void addUserFeed(User user, String feedURL, Attention.Type type) throws AuraException, RemoteException;
 
     /**
      * Enrolls a user in the recommender

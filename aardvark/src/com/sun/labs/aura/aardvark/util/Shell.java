@@ -13,7 +13,6 @@ import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogFeed;
 import com.sun.labs.aura.aardvark.Stats;
-import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
@@ -45,7 +44,6 @@ public class Shell {
 
     private CommandInterpreter shell;
     private DataStore dataStore;
-    private FeedCrawler feedCrawler;
     private Aardvark aardvark;
 
     public Shell(String configFile) throws IOException {
@@ -110,8 +108,7 @@ public class Shell {
                             } else {
                                 Item item = dataStore.getItem(args[1]);
                                 String surl = args[2];
-                                URL url = new URL(surl);
-                                aardvark.addUserFeed((User) item, url, Attention.Type.STARRED_FEED);
+                                aardvark.addUserFeed((User) item, surl, Attention.Type.STARRED_FEED);
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
@@ -171,72 +168,7 @@ public class Shell {
                     }
                 });
 
-        shell.add("crawlFeed",
-                new CommandInterface() {
 
-                    public String execute(CommandInterpreter ci, String[] args) {
-                        try {
-                            if (args.length != 2) {
-                                getHelp();
-                            } else {
-                                String key = args[1];
-                                Item item = dataStore.getItem(key);
-                                if (item != null && item instanceof BlogFeed) {
-                                    feedCrawler.crawlFeed((BlogFeed) item);
-                                }
-                            }
-                        } catch (Exception ex) {
-                            System.out.println("Error " + ex);
-                        }
-                        return "";
-                    }
-
-                    public String getHelp() {
-                        return "usage: crawlFeed id = crawls a feed ";
-                    }
-                });
-
-        shell.add("crawlStart",
-                new CommandInterface() {
-
-                    public String execute(CommandInterpreter ci, String[] args) {
-                        try {
-                            if (args.length != 1) {
-                                getHelp();
-                            } else {
-                                ((AuraService) feedCrawler).start();
-                            }
-                        } catch (Exception ex) {
-                            System.out.println("Error " + ex);
-                        }
-                        return "";
-                    }
-
-                    public String getHelp() {
-                        return "usage: crawlStart";
-                    }
-                });
-
-        shell.add("crawlStop",
-                new CommandInterface() {
-
-                    public String execute(CommandInterpreter ci, String[] args) {
-                        try {
-                            if (args.length != 1) {
-                                getHelp();
-                            } else {
-                                ((AuraService) feedCrawler).stop();
-                            }
-                        } catch (Exception ex) {
-                            System.out.println("Error " + ex);
-                        }
-                        return "";
-                    }
-
-                    public String getHelp() {
-                        return "usage: crawlStop";
-                    }
-                });
 
         shell.add("feeds",
                 new CommandInterface() {
@@ -427,7 +359,6 @@ public class Shell {
         ConfigurationManager cm = new ConfigurationManager(cu);
         aardvark = (Aardvark) cm.lookup("aardvark");
         dataStore = (DataStore) cm.lookup("dataStore");
-        feedCrawler = (FeedCrawler) cm.lookup("feedCrawler");
     }
 
     public static void main(String[] args) {

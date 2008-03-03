@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * A recommender manager for recommenders that are based on the search engine.
  */
-public class SearchRecommenderManager implements RecommenderManager, Configurable, AuraService {
+public class ContentBasedRecommenderManager implements RecommenderManager, Configurable, AuraService {
     
     public List<BlogEntry> getRecommendations(User user) throws RemoteException {
         // TODO: write this once we have findSimilar working in

@@ -33,8 +33,8 @@
         <property name="securityPolicy" value="${auraDistDir}/jsk-all.policy"/>
     </component>
     
-    <component name="feedScheduler" type="com.sun.labs.aura.aardvark.impl.ItemSchedulerImpl" export="true">
-        <property name="itemStore" value="dataStoreHead"/>
+    <component name="feedScheduler" type="com.sun.labs.aura.util.ItemSchedulerImpl" export="true">
+        <property name="dataStore" value="dataStoreHead"/>
         <property name="itemType" value="FEED"/>
     </component>
     

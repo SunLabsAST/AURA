@@ -7,7 +7,7 @@
  *  WARRANTIES..
  */
 
-package com.sun.labs.aura.aardvark;
+package com.sun.labs.aura.util;
 
 import com.sun.labs.util.props.Component;
 import java.rmi.Remote;
