@@ -315,7 +315,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public SortedSet<Item> findSimilar(String key, int n) {
+    public SortedSet<Item> findSimilar(String key, int n)
+            throws AuraException, RemoteException {
         return null;
     }
 
@@ -330,7 +331,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
      * data indexed into the given field.  Note that the returned set may be
      * smaller than the number of items requested!
      */
-    public SortedSet<Item> findSimilar(String key, String field, int n) {
+    public SortedSet<Item> findSimilar(String key, String field, int n)
+            throws AuraException, RemoteException {
         return null;
     }
     
@@ -345,7 +347,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
      * in the provided fields.   Note that the returned set may be
      * smaller than the number of items requested!
      */
-    public SortedSet<Item> findSimilar(String key, WeightedField[] fields, int n) {
+    public SortedSet<Item> findSimilar(String key, WeightedField[] fields, int n)
+            throws AuraException, RemoteException {
         return null;
     }
 
