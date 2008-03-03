@@ -34,6 +34,7 @@
         <propertylist name="codebaseJars">
             <item>aardvark.jar</item>
             <item>LabsUtil.jar</item>
+            <item>rome-0.9.jar</item>
         </propertylist>
         <property name="securityPolicy" value="${auraDistDir}/jsk-all.policy"/>
     </component>

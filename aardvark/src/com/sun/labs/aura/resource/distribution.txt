@@ -45,9 +45,9 @@ elsewhere and point it at the one that's running.
 Copying:
 
 scp aardvark-dist.jar bobism:/scratch/aura
-scp aardvark-dist.jar search:/scratch2/stgreen/aura
-scp aardvark-dist.jar lur:/big/aura
 scp aardvark-dist.jar faber:/export/aura
+scp aardvark-dist.jar lur:/big/aura
+scp aardvark-dist.jar search:/scratch2/stgreen/aura
 
 Starting up a data store head, a replicant and a partition cluster:
 
@@ -89,12 +89,49 @@ these are the crawlers.  We'll have 10 threads per feed Manager, so a total of 3
 
 On search.east:
 
+nohup java -DauraHome=${AURAHOME} -jar dist/aardvark.jar /com/sun/labs/aura/resource/aardvarkConfig.xml aardvarkStarter &> aardvark.out &
+
+Using scripts:
+
+When logging in:
+
+. bin/distSetup.sh 
+cd $AURAHOME 
+rm -rf $PREFIX
+jar -xf aardvark-dist.jar 
+cd dist/
+jar -xf aardvark.jar 
+cd ..
+
+which assumes that you have the script above saved as bin/distSetup.sh
+
+This sets up the env variables and unpacks the distribution jar and
+the jar that it contains.
+
+On search.east:
+
+bash dist/com/sun/labs/aura/resource/search.sh
+
+On each of the machines:
+
+bash dist/com/sun/labs/aura/resource/replicant.sh 
+
+On search.east:
+
 nohup java -DauraHome=${AURAHOME} \
       -jar dist/aardvark.jar \
-      /com/sun/labs/aura/resource/aardvarkConfig.xml \
-      aardvarkStarter &> aardvark.out &
+      /com/sun/labs/aura/resource/feedSchedulerConfig.xml \
+      feedSchedulerStarter &> fs.out &
 
+On bobism, lur, and faber:
 
+nohup java -DauraHome=${AURAHOME} \
+      -jar dist/aardvark.jar \
+      /com/sun/labs/aura/resource/feedManagerConfig.xml \
+      feedManagerStarter &> fm.out &
 
+On search.east:
+
+bash dist/com/sun/labs/aura/resource/search2.sh
 
 

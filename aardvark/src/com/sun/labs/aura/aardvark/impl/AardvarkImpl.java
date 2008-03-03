@@ -287,11 +287,11 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
                 try {
                     addFeed(url);
                 } catch(AuraException ex) {
-                    logger.warning("Problems enrolling " + url);
+                    logger.log(Level.WARNING, "Problems enrolling " + url, ex);
                 }
             }
         } catch(IOException ex) {
-            logger.warning("Problems loading opml " + name);
+            logger.log(Level.WARNING, "Problems loading opml " + name, ex);
         } finally {
             logger.info("Finished enrolling local opml" + name);
         }
