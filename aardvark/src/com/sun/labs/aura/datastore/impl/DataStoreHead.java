@@ -10,7 +10,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
-import com.sun.labs.aura.datastore.impl.store.DBIterator;
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
@@ -209,7 +209,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return ret;
     }
 
-    public Set<Attention> getAttentionForTarget(final String itemKey)
+    public Set<Attention> getAttentionFor(final String itemKey,
+                                          final boolean isSrc)
             throws AuraException, RemoteException {
         //
         // Ask all the partitions to gather up their attention for this item.
@@ -221,7 +222,11 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             callers.add(new PCCaller(p) {
                 public Set<Attention> call()
                         throws AuraException, RemoteException {
-                    return pc.getAttentionForTarget(itemKey);
+                    if (isSrc) {
+                        return pc.getAttentionForSource(itemKey);
+                    } else {
+                        return pc.getAttentionForTarget(itemKey);
+                    }
                 }
             });
         }
@@ -242,6 +247,16 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return ret;
     }
 
+    public Set<Attention> getAttentionForSource(String srcKey)
+            throws AuraException, RemoteException {
+        return getAttentionFor(srcKey, true);
+    }
+
+    public Set<Attention> getAttentionForTarget(String itemKey)
+            throws AuraException, RemoteException {
+        return getAttentionFor(itemKey, false);
+    }
+
     public Attention attend(Attention att)
             throws AuraException, RemoteException {
         //
@@ -252,9 +267,40 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return pc.attend(att);
     }
 
-    public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)
+    public DBIterator<Attention> getAttentionAddedSince(final Date timeStamp)
             throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Set<PartitionCluster> cluster = trie.getAll();
+        Set<Callable<DBIterator<Attention>>> callers =
+                new HashSet<Callable<DBIterator<Attention>>>();
+        for (PartitionCluster p : cluster) {
+            callers.add(new PCCaller(p) {
+               public DBIterator<Attention> call()
+                       throws AuraException, RemoteException {
+                   return pc.getAttentionAddedSince(timeStamp);
+               } 
+            });
+        }
+        
+        Set<DBIterator<Attention>> ret = new HashSet<DBIterator<Attention>>();
+        try {
+            List<Future<DBIterator<Attention>>> results =
+                    executor.invokeAll(callers);
+            for (Future<DBIterator<Attention>> future : results) {
+                ret.add(future.get());
+            }
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+        
+        //
+        // Now throw all the DBIterators together into a list so we can
+        // iterate over all of them.  Since no particular ordering is
+        // promised by this method, we'll use a simple composite iterator.
+        MultiDBIterator<Attention> mdbi = new MultiDBIterator<Attention>(ret);
+        return (MultiDBIterator<Attention>) cm.getRemote(mdbi, this);
+
     }
 
     public SortedSet<Attention> getLastAttentionForSource(String srcKey,

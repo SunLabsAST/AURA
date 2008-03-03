@@ -24,18 +24,14 @@ public class PersistentAttention implements Attention {
      * The user ID for this Attention.
      * Many attentions will have the same user ID
      */
-    @SecondaryKey(relate=Relationship.MANY_TO_ONE,
-                  relatedEntity=ItemImpl.class,
-                  onRelatedEntityDelete=DeleteAction.CASCADE)
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     private String sourceKey;
     
     /**
      * The item ID for this Attention.
      * Many attentions will have the same item ID
      */
-    @SecondaryKey(relate=Relationship.MANY_TO_ONE,
-                  relatedEntity=ItemImpl.class,
-                  onRelatedEntityDelete=DeleteAction.CASCADE)
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     private String targetKey;
         
     /**

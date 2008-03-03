@@ -9,7 +9,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
-import com.sun.labs.aura.datastore.impl.store.DBIterator;
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
@@ -90,12 +90,12 @@ public class PartitionClusterImpl implements PartitionCluster,
             throws AuraException, RemoteException {
         return replicant.getItems(user, attnType, itemType);
     }
-/*
-    public Attention getAttention(long attnID)
+
+    public Set<Attention> getAttentionForSource(String srcKey)
             throws AuraException, RemoteException {
-        return replicant.getAttention(attnID);
+        return replicant.getAttentionForSource(srcKey);
     }
-*/
+    
     public Set<Attention> getAttentionForTarget(String itemKey)
             throws AuraException, RemoteException {
         return replicant.getAttentionForTarget(itemKey);

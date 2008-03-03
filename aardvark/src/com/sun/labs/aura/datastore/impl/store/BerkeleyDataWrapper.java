@@ -1,5 +1,7 @@
 package com.sun.labs.aura.datastore.impl.store;
 
+import com.sleepycat.je.CursorConfig;
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.DeadlockException;
 import com.sleepycat.je.Environment;
@@ -159,7 +161,7 @@ public class BerkeleyDataWrapper {
         }
         
         dbEnv = new Environment(dir, econf);
-        store = new EntityStore(dbEnv, "Aardvark", sconf);
+        store = new EntityStore(dbEnv, "Aura", sconf);
         
         //
         // Load the indexes that we'll use during regular operation
@@ -335,20 +337,44 @@ public class BerkeleyDataWrapper {
                                               System.currentTimeMillis());
         
         EntityCursor cursor = null;
+        Transaction txn = null;
         try {
-            cursor = itemByTypeAndTime.entities(begin, true, end, true);
+            txn = dbEnv.beginTransaction(null, null);
+            //
+            // This transaction is read-only and it is up to the developer
+            // to release it.  Don't time out the transaction.
+            txn.setTxnTimeout(0);
+            
+            //
+            // Set Read Committed behavior - this ensures the stability of
+            // the current item being read (puts a read lock on it) but allows
+            // previously read items to change (releases the read lock after
+            // reading).
+            CursorConfig cc = new CursorConfig();
+            cc.setReadCommitted(true);
+            cursor = itemByTypeAndTime.entities(txn,
+                                                begin, true,
+                                                end, true,
+                                                cc);
         } catch (DatabaseException e) {
-            if (cursor != null) {
-                try {
+            try {
+                if (cursor != null) {
                     cursor.close();
-                } catch (DatabaseException ex) {
-                    log.log(Level.WARNING, "Failed to close cursor", ex);
                 }
+            } catch (DatabaseException ex) {
+                log.log(Level.WARNING, "Failed to close cursor", ex);
+            }
+            try {
+                if (txn != null) {
+                    txn.abort();
+                }
+            } catch (DatabaseException ex) {
+                log.log(Level.WARNING, "Failed to abort cursor txn", ex);
             }
             throw new AuraException("getAttentionAddedSince failed", e);
         }
 
-        DBIterator<Item> dbIt = new EntityIterator<Item>(cursor);
+        DBIterator<Item> dbIt = new EntityIterator<Item>(cursor, txn);
         return dbIt;
     }
 
@@ -397,20 +423,41 @@ public class BerkeleyDataWrapper {
     public DBIterator<Attention> getAttentionAddedSince(long timeStamp)
             throws AuraException {
         EntityCursor c = null;
+        Transaction txn = null;
         try {
-            c = attnByTime.entities(timeStamp, true,
-                    System.currentTimeMillis(), true);
+            txn = dbEnv.beginTransaction(null, null);
+            //
+            // This transaction is read-only and it is up to the developer
+            // to release it.  Don't time out the transaction.
+            txn.setTxnTimeout(0);
+            
+            //
+            // Set Read Committed behavior - this ensures the stability of
+            // the current item being read (puts a read lock on it) but allows
+            // previously read items to change (releases the read lock after
+            // reading).
+            CursorConfig cc = new CursorConfig();
+            cc.setReadCommitted(true);
+            c = attnByTime.entities(txn, timeStamp, true,
+                    System.currentTimeMillis(), true, cc);
         } catch (DatabaseException e) {
-            if (c != null) {
-                try {
+            try {
+                if (c != null) {
                     c.close();
-                } catch (DatabaseException ex) {
-                    log.log(Level.WARNING, "Failed to close cursor", ex);
                 }
+            } catch (DatabaseException ex) {
+                log.log(Level.WARNING, "Failed to close cursor", ex);
+            }
+            try {
+                if (txn != null) {
+                    txn.abort();
+                }
+            } catch (DatabaseException ex) {
+                log.log(Level.WARNING, "Failed to abort cursor txn", ex);
             }
             throw new AuraException("getAttentionAddedSince failed", e);
         }
-        DBIterator<Attention> dbIt = new EntityIterator<Attention>(c);
+        DBIterator<Attention> dbIt = new EntityIterator<Attention>(c, txn);
         return dbIt;
     }
     

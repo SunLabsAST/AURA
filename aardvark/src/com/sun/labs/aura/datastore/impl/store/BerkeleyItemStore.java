@@ -1,5 +1,6 @@
 package com.sun.labs.aura.datastore.impl.store;
 
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sleepycat.je.DatabaseException;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
@@ -119,32 +120,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
     protected Logger logger;
 
     /**
-     * The system-wide item store instance
-     */
-    protected static BerkeleyItemStore store;
-
-    /**
      * Constructs an empty item store, ready to be configured.
      */
     public BerkeleyItemStore() {
         listenerMap = new HashMap<ItemType, Set<ItemListener>>();
         changeEvents = new ConcurrentLinkedQueue<ItemEvent>();
         createEventItems = new ConcurrentLinkedQueue<ItemImpl>();
-    }
-
-    /**
-     * Gets the system-wide instance of the item store.  Right now this
-     * just returns a static reference, but in the future this might
-     * provide a means of looking up the service and generating an RMI proxy.
-     * 
-     * @return the item store
-     */
-    public static BerkeleyItemStore getItemStore() throws AuraException {
-        if(store != null) {
-            return store;
-        } else {
-            throw new AuraException("Store has not yet been initialized");
-        }
     }
 
     /**
@@ -200,8 +181,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
                     PROP_PARTITION_CLUSTER, "Unable to add " +
                     "replicant to partition cluster.");
         }
-
-        store = this;
     }
 
     public DSBitSet getPrefix() {
@@ -214,6 +193,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
     public void close() throws AuraException {
         closed = true;
         bdb.close();
+        searchEngine.shutdown();
     }
 
     /**
@@ -286,6 +266,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
         return (DBIterator<Item>) cm.getRemote(res, this);
     }
 
+    public Set<Attention> getAttentionForSource(String srcKey)
+            throws AuraException {
+        return bdb.getAttentionForSource(srcKey);
+    }
+
+    
     public Set<Attention> getAttentionForTarget(String itemKey)
             throws AuraException {
         return bdb.getAttentionForTarget(itemKey);
@@ -521,18 +507,5 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
         } catch(AuraException ae) {
             logger.log(Level.WARNING, "Error closing item store", ae);
         }
-    }
-
-    /**
-     * Never call this.
-     */
-    public void closeAndDestroy() throws AuraException {
-        close();
-        File f = new File(dbEnvDir);
-        File[] content = f.listFiles();
-        for(File c : content) {
-            c.delete();
-        }
-        f.delete();
     }
 }
