@@ -451,6 +451,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
         // We'll try to process however many elements are in the queue at 
         // this point.
         int n = changeEvents.size();
+        logger.info(n + " change events");
         for(int i = 0; i < n; i++) {
             ChangeEvent ce = changeEvents.poll();
             
@@ -488,12 +489,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
             //
             // Send the events of each change type to each of the listeners.
             for(Map.Entry<ItemEvent.ChangeType,List<ItemImpl>> e : te.entrySet()) {
-                ItemEvent event = new ItemEvent(e.getValue().
-                        toArray(new ItemImpl[0]), e.getKey());
-                
                 for(ItemListener il : listenerMap.get(itemType)) {
                     try {
-                        il.itemChanged(event);
+                        il.itemChanged(new ItemEvent(e.getValue().
+                        toArray(new ItemImpl[0]), e.getKey()));
                     } catch(RemoteException ex) {
                         logger.log(Level.SEVERE, "Error sending change events", ex);
                     }
@@ -555,11 +554,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
                 continue;
             }
             
-            ItemEvent event = new ItemEvent(l.toArray(new ItemImpl[0]));
-            
             for(ItemListener il : listenerMap.get(itemType)) {
                 try {
-                    il.itemCreated(event);
+                    il.itemCreated(new ItemEvent(l.toArray(new ItemImpl[0])));
                 } catch(RemoteException ex) {
                     logger.log(Level.SEVERE, "Error sending new item events", ex);
                 }

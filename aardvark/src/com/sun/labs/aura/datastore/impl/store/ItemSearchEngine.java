@@ -52,16 +52,14 @@ public class ItemSearchEngine implements Configurable {
 
     private Logger log;
 
-    private int entryBatchSize;
-
     private int engineLogLevel;
 
     private boolean shuttingDown;
     
-    private Timer flushTimer;
-    
     private long flushCheckInterval;
 
+    private Timer flushTimer;
+    
     public void newProperties(PropertySheet ps) throws PropertyException {
         
         //
@@ -281,10 +279,13 @@ public class ItemSearchEngine implements Configurable {
      */
     class FlushTimerTask extends TimerTask {
 
+        private long last = System.currentTimeMillis();
         @Override
         public void run() {
             try {
+                long curr = System.currentTimeMillis();
                 engine.flush();
+                last = curr;
             } catch(SearchEngineException ex) {
                 log.log(Level.SEVERE, "Error flushing engine data", ex);
             }
