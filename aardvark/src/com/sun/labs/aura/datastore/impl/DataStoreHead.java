@@ -12,6 +12,7 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
+import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
@@ -492,27 +493,27 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
      *  Search methods
      *
      */
-    public SortedSet<Item> findSimilar(String key, int n)
+    public SortedSet<Scored<Item>> findSimilar(String key, int n)
             throws AuraException, RemoteException {
-        return findSimilar(key, (String)null, n);
+        return findSimilar(key, (String) null, n);
     }
 
-    public SortedSet<Item> findSimilar(String key, final String field, int n)
+    public SortedSet<Scored<Item>> findSimilar(String key, final String field, int n)
             throws AuraException, RemoteException {
         WeightedField wf = new WeightedField(field, 1);
         return findSimilar(key, new WeightedField[]{wf}, n);
     }
 
-    public SortedSet<Item> findSimilar(final String key,
+    public SortedSet<Scored<Item>> findSimilar(final String key,
                                        final WeightedField[] fields,
                                        final int n)
             throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<SortedSet<Item>>> callers =
-                new HashSet<Callable<SortedSet<Item>>>();
+        Set<Callable<SortedSet<Scored<Item>>>> callers =
+                new HashSet<Callable<SortedSet<Scored<Item>>>>();
         for (PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
-                public SortedSet<Item> call()
+                public SortedSet<Scored<Item>> call()
                         throws AuraException, RemoteException {
                     if (fields == null) {
                         return pc.findSimilar(key, n);
@@ -527,17 +528,17 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         
         //
         // Combine the results, then return only the top n
-        SortedSet<Item> ret = null;
+        SortedSet<Scored<Item>> ret = null;
         try {
-            List<Future<SortedSet<Item>>> results = executor.invokeAll(callers);
-            for (Future<SortedSet<Item>> future : results) {
-                SortedSet<Item> curr = future.get();
+            List<Future<SortedSet<Scored<Item>>>> results = executor.invokeAll(callers);
+            for (Future<SortedSet<Scored<Item>>> future : results) {
+                SortedSet<Scored<Item>> curr = future.get();
                 if (curr != null) {
                     if (ret == null) {
                         //
                         // Make a new set with the contents and comparator from
                         // curr
-                        ret = new TreeSet<Item>(curr);
+                        ret = new TreeSet<Scored<Item>>(curr);
                     } else {
                         ret.addAll(curr);
                     }
@@ -550,13 +551,13 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
         
         if (ret == null) {
-            return new TreeSet<Item>();
+            return new TreeSet<Scored<Item>>();
         }
         
         //
         // Make a set of the top n to return
-        SortedSet<Item> retCnted = new TreeSet<Item>(ret.comparator());
-        Iterator<Item> it = ret.iterator();
+        SortedSet<Scored<Item>> retCnted = new TreeSet<Scored<Item>>(ret.comparator());
+        Iterator<Scored<Item>> it = ret.iterator();
         for (int i = 0; i < n; i++) {
             if (it.hasNext()) {
                 retCnted.add(it.next());

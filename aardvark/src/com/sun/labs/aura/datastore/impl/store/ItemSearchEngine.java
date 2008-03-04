@@ -9,8 +9,11 @@ import com.sun.kt.search.ResultSet;
 import com.sun.kt.search.SearchEngine;
 import com.sun.kt.search.SearchEngineException;
 import com.sun.kt.search.SearchEngineFactory;
+import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.datastore.Indexable;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
@@ -18,9 +21,12 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.Serializable;
 import java.net.URL;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -55,13 +61,13 @@ public class ItemSearchEngine implements Configurable {
     private int engineLogLevel;
 
     private boolean shuttingDown;
-    
+
     private long flushCheckInterval;
 
     private Timer flushTimer;
-    
+
     public void newProperties(PropertySheet ps) throws PropertyException {
-        
+
         //
         // Load up the search engine.
         engineLogLevel = ps.getInt(PROP_ENGINE_LOG_LEVEL);
@@ -70,7 +76,7 @@ public class ItemSearchEngine implements Configurable {
         Log.setLevel(engineLogLevel);
         String indexDir = ps.getString(PROP_INDEX_DIR);
         String engineConfig = ps.getString(PROP_ENGINE_CONFIG_FILE);
-        
+
         try {
             URL config = getClass().getResource(engineConfig);
 
@@ -84,14 +90,15 @@ public class ItemSearchEngine implements Configurable {
         } catch(SearchEngineException see) {
             log.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
         }
-        
+
         //
         // Set up for periodically flushing the data to disk.
         flushCheckInterval = ps.getInt(PROP_FLUSH_INTERVAL);
         flushTimer = new Timer("ItemSearchEngineFlushTimer");
-        flushTimer.scheduleAtFixedRate(new FlushTimerTask(), flushCheckInterval, flushCheckInterval);
+        flushTimer.scheduleAtFixedRate(new FlushTimerTask(), flushCheckInterval,
+                flushCheckInterval);
     }
-    
+
     public SearchEngine getSearchEngine() {
         return engine;
     }
@@ -262,6 +269,56 @@ public class ItemSearchEngine implements Configurable {
         }
     }
 
+    /**
+     * Finds the n most-similar items to the given item, based on the data in the 
+     * provided field.
+     * @param key the item for which we want similar items
+     * @param field the name of the field that should be used to find similar
+     * items
+     * @param n the number of similar items to return
+     * @return the set of items most similar to the given item, based on the 
+     * data indexed into the given field.  Note that the returned set may be
+     * smaller than the number of items requested!
+     */
+    public List<Scored<String>> findSimilar(String key, String field,
+            int n)
+            throws AuraException, RemoteException {
+        DocumentVector dv = engine.getDocumentVector(key, field);
+        return findSimilar(dv, n);
+    }
+
+    /**
+     * Finds the n most-similar items to the given items, based on a combination
+     * of the data held in the provided fields.
+     * @param key the item for which we want similar items
+     * @param fields the fields (and associated weights) that we should use to 
+     * compute the similarity between items.
+     * @param n the number of similar items to return
+     * @return the set of items most similar to the given item, based on the data
+     * in the provided fields.   Note that the returned set may be
+     * smaller than the number of items requested!
+     */
+    public List<Scored<String>> findSimilar(String key,
+            WeightedField[] fields, int n)
+            throws AuraException, RemoteException {
+        DocumentVector dv = engine.getDocumentVector(key, fields);
+        return findSimilar(dv, n);
+    }
+
+    private List<Scored<String>> findSimilar(DocumentVector dv, int n)
+            throws AuraException {
+        ResultSet sim = dv.findSimilar("-score");
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        try {
+            for(Result r : sim.getResults(0, n)) {
+                ret.add(new Scored<String>(r.getKey(), r.getScore()));
+            }
+        } catch(SearchEngineException see) {
+            throw new AuraException("Error getting similar items", see);
+        }
+        return ret;
+    }
+
     public synchronized void shutdown() {
         try {
             //
@@ -273,13 +330,14 @@ public class ItemSearchEngine implements Configurable {
             log.log(Level.WARNING, "Error closing index data engine", ex);
         }
     }
-    
+
     /**
      * A timer task for flushing the engine periodically.
      */
     class FlushTimerTask extends TimerTask {
 
         private long last = System.currentTimeMillis();
+
         @Override
         public void run() {
             try {
@@ -291,7 +349,6 @@ public class ItemSearchEngine implements Configurable {
             }
         }
     }
-    
     /**
      * The resource to load for the engine configuration.  This gives us the
      * opportunity to use different configs as necessary (e.g., for testing).
@@ -317,7 +374,7 @@ public class ItemSearchEngine implements Configurable {
     /**
      * The interval (in milliseconds) between index flushes.
      */
-    @ConfigInteger(defaultValue=3000, range = {1,300000})
+    @ConfigInteger(defaultValue = 3000, range = {1, 300000})
     public static final String PROP_FLUSH_INTERVAL = "flushInterval";
 
 }

@@ -11,6 +11,7 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
+import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
@@ -148,17 +149,17 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getAttentionCount();
     }
 
-    public SortedSet<Item> findSimilar(String key, int n)
+    public SortedSet<Scored<Item>> findSimilar(String key, int n)
             throws AuraException, RemoteException {
         return replicant.findSimilar(key, n);
     }
 
-    public SortedSet<Item> findSimilar(String key, String field, int n)
+    public SortedSet<Scored<Item>> findSimilar(String key, String field, int n)
             throws AuraException, RemoteException {
         return replicant.findSimilar(key, field, n);
     }
 
-    public SortedSet<Item> findSimilar(String key,
+    public SortedSet<Scored<Item>> findSimilar(String key,
                                        WeightedField[] fields,
                                        int n)
             throws AuraException, RemoteException {

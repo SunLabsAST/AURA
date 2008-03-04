@@ -19,6 +19,7 @@ import com.sun.labs.aura.datastore.impl.PartitionCluster;
 import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
+import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigString;
@@ -32,11 +33,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -319,9 +320,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public SortedSet<Item> findSimilar(String key, int n)
+    public SortedSet<Scored<Item>> findSimilar(String key, int n)
             throws AuraException, RemoteException {
-        return null;
+        return findSimilar(key, (String) null, n);
     }
 
     /**
@@ -335,9 +336,13 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
      * data indexed into the given field.  Note that the returned set may be
      * smaller than the number of items requested!
      */
-    public SortedSet<Item> findSimilar(String key, String field, int n)
+    public SortedSet<Scored<Item>> findSimilar(String key, String field, int n)
             throws AuraException, RemoteException {
-        return null;
+        SortedSet<Scored<Item>> ret = new TreeSet<Scored<Item>>();
+        for(Scored<String> ss : searchEngine.findSimilar(key, field, n)) {
+            ret.add(new Scored<Item>(getItem(ss.getItem()), ss.getScore()));
+        }
+        return ret;
     }
     
     /**
@@ -351,9 +356,13 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
      * in the provided fields.   Note that the returned set may be
      * smaller than the number of items requested!
      */
-    public SortedSet<Item> findSimilar(String key, WeightedField[] fields, int n)
+    public SortedSet<Scored<Item>> findSimilar(String key, WeightedField[] fields, int n)
             throws AuraException, RemoteException {
-        return null;
+        SortedSet<Scored<Item>> ret = new TreeSet<Scored<Item>>();
+        for(Scored<String> ss : searchEngine.findSimilar(key, fields, n)) {
+            ret.add(new Scored<Item>(getItem(ss.getItem()), ss.getScore()));
+        }
+        return ret;
     }
 
     public void addItemListener(ItemType itemType, ItemListener listener)
@@ -451,7 +460,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
         // We'll try to process however many elements are in the queue at 
         // this point.
         int n = changeEvents.size();
-        logger.info(n + " change events");
         for(int i = 0; i < n; i++) {
             ChangeEvent ce = changeEvents.poll();
             

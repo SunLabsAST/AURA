@@ -4,6 +4,7 @@ package com.sun.labs.aura.datastore.impl.store;
 import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Scored;
 import java.rmi.RemoteException;
 import java.util.SortedSet;
 
@@ -19,7 +20,7 @@ public interface ItemSearch {
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public SortedSet<Item> findSimilar(String key, int n)
+    public SortedSet<Scored<Item>> findSimilar(String key, int n)
             throws AuraException, RemoteException;
 
     /**
@@ -33,7 +34,7 @@ public interface ItemSearch {
      * data indexed into the given field.  Note that the returned set may be
      * smaller than the number of items requested!
      */
-    public SortedSet<Item> findSimilar(String key, String field, int n)
+    public SortedSet<Scored<Item>> findSimilar(String key, String field, int n)
             throws AuraException, RemoteException;
     
     /**
@@ -47,7 +48,7 @@ public interface ItemSearch {
      * in the provided fields.   Note that the returned set may be
      * smaller than the number of items requested!
      */
-    public SortedSet<Item> findSimilar(String key, WeightedField[] fields, int n)
+    public SortedSet<Scored<Item>> findSimilar(String key, WeightedField[] fields, int n)
             throws AuraException, RemoteException;
 
 }
