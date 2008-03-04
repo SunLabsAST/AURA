@@ -17,10 +17,10 @@
         </propertylist>
     </component>
     
-    <component name="itemStore" type="com.sun.labs.aura.aardvark.store.ItemStore"/>
+    <component name="dataStore" type="com.sun.labs.aura.aardvark.store.ItemStore"/>
     
     <component name="feedCrawler" type="com.sun.labs.aura.aardvark.impl.crawler.SimpleFeedCrawler">
-        <property name="itemStore" value="itemStore"/>
+        <property name="dataStore" value="dataStore"/>
         <property name="minimumFeedDelayInMinutes" value="0"/>
         <property name="testMode" value="true"/>
     </component>

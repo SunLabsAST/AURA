@@ -13,7 +13,7 @@
     
    <component name="aardvarkStarter" type="com.sun.labs.aura.aardvark.AardvarkServiceStarter">
         <propertylist name="serviceComponents">
-            <item>itemStore</item>
+            <item>dataStore</item>
             <item>feedCrawler</item>
             <item>searchRecommenderManager</item>
             <item>aardvark</item>
@@ -21,19 +21,19 @@
     </component>
     
     <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl">
-        <property name="itemStore" value="itemStore"/>
+        <property name="dataStore" value="dataStore"/>
         <property name="feedCrawler" value="feedCrawler"/>
         <property name="recommenderManager" value="searchRecommenderManager"/>
     </component>
     
-    <component name="itemStore" type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
-        <property name="dbEnv" value="/tmp/aura/itemStore.db"/>
+    <component name="dataStore" type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
+        <property name="dbEnv" value="/tmp/aura/dataStore.db"/>
         <property name="overwrite" value="true"/>
     </component>
     
     
     <component name="feedCrawler" type="com.sun.labs.aura.aardvark.impl.crawler.SimpleFeedCrawler">
-        <property name="itemStore" value="itemStore"/>
+        <property name="dataStore" value="dataStore"/>
         <property name="minimumFeedDelayInMinutes" value="1"/>
         <property name="validateOnAdd" value="false"/>
         <property name="testMode" value="true"/>
@@ -46,7 +46,7 @@
     
     <component name="entryContentEngine" type="com.sun.labs.aura.aardvark.impl.recommender.EntryContentEngine">
         <property name="engineConfigFile" value="entryEngineSyncConfig.xml"/>
-        <property name="itemStore" value="itemStore"/>
+        <property name="dataStore" value="dataStore"/>
         <property name="entryBatchSize" value="1"/>
         <property name="engineLogLevel" value="1"/>
         <property name="indexDir" value="${indexDir}"/>

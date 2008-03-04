@@ -61,21 +61,24 @@
         <property name="dataStore" value="dataStoreHead"/>
     </component>
     
-    <component name="feedScheduler" type="com.sun.labs.aura.aardvark.impl.ItemSchedulerImpl">
-        <property name="itemStore" value="dataStoreHead"/>
+    <component name="feedScheduler" type="com.sun.labs.aura.util.ItemSchedulerImpl">
+        <property name="dataStore" value="dataStoreHead"/>
         <property name="itemType" value="FEED"/>
     </component>
     
     <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager">
-        <property name="itemStore" value="dataStoreHead"/>
+        <property name="dataStore" value="dataStoreHead"/>
         <property name="feedScheduler" value="feedScheduler"/>
         <property name="numThreads" value="5"/>
     </component>
+
+    <component name="aardvarkStatusReporter" type="com.sun.labs.aura.aardvark.util.AardvarkStatusReporter">
+        <property name="dataStore" value="dataStoreHead"/>
+    </component>
     
     <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl">
-        <property name="itemStore" value="dataStoreHead"/>
+        <property name="dataStore" value="dataStoreHead"/>
         <property name="recommenderManager" value="recommenderManager"/>
-        <property name="feedCrawler" value="feedManager"/>
         <property name="autoEnrollTestFeeds" value="true"/>
         <property name="autoEnrollMegaTestFeeds" value="true"/>
     </component>
@@ -90,6 +93,7 @@
             <item>recommenderManager</item>
             <item>feedScheduler</item>
             <item>feedManager</item>
+            <item>aardvarkStatusReporter</item>
             <item>aardvark</item>
         </propertylist>
     </component>

@@ -7,8 +7,7 @@ package com.sun.labs.aura.aardvark.impl.crawler;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
-import com.sun.labs.aura.aardvark.ItemScheduler;
-import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
+import com.sun.labs.aura.util.ItemScheduler;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DataStore;
@@ -32,7 +31,7 @@ import java.util.logging.Logger;
  * Manages the set of feed crawling threads
  * @author plamere
  */
-public class FeedManager implements AuraService, Configurable, FeedCrawler {
+public class FeedManager implements AuraService, Configurable {
 
     private Set<Thread> runningThreads = Collections.synchronizedSet(new HashSet<Thread>());
     private int feedPullCount = 0;
@@ -71,7 +70,7 @@ public class FeedManager implements AuraService, Configurable, FeedCrawler {
      * @throws com.sun.labs.util.props.PropertyException
      */
     public void newProperties(PropertySheet ps) throws PropertyException {
-        dataStore = (DataStore) ps.getComponent(PROP_ITEM_STORE);
+        dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
         feedScheduler = (ItemScheduler) ps.getComponent(PROP_FEED_SCHEDULER);
         numThreads = ps.getInt(PROP_NUM_THREADS);
         logger = ps.getLogger();
@@ -189,7 +188,7 @@ public class FeedManager implements AuraService, Configurable, FeedCrawler {
      * the configurable property for the itemstore used by this manager
      */
     @ConfigComponent(type = DataStore.class)
-    public final static String PROP_ITEM_STORE = "itemStore";
+    public final static String PROP_DATA_STORE = "dataStore";
     private DataStore dataStore;
     /**
      * the configurable property for the feed itemScheuler used by this manager

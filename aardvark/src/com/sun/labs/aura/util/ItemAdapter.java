@@ -7,11 +7,12 @@
  *  WARRANTIES..
  */
 
-package com.sun.labs.aura.aardvark;
 
+package com.sun.labs.aura.util;
+
+import com.sun.labs.aura.aardvark.*;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
-import com.sun.labs.aura.util.AuraException;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;

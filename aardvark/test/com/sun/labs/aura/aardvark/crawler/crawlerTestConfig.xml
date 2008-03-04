@@ -10,14 +10,14 @@
 <config>
     
     
-    <component name="itemStore" type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
-        <property name="dbEnv" value="/tmp/aura.crawler/itemStore.db"/>
+    <component name="dataStore" type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore">
+        <property name="dbEnv" value="/tmp/aura.crawler/dataStore.db"/>
         <property name="overwrite" value="true"/>
     </component>
     
     
     <component name="feedCrawler" type="com.sun.labs.aura.aardvark.impl.crawler.SimpleFeedCrawler">
-        <property name="itemStore" value="itemStore"/>
+        <property name="dataStore" value="dataStore"/>
         <property name="minimumFeedDelayInMinutes" value="0"/>
         <property name="testMode" value="true"/>
     </component>
