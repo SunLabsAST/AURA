@@ -112,9 +112,12 @@ public class FeedManager implements AuraService, Configurable {
         while (runningThreads.contains(Thread.currentThread())) {
             try {
                 String key = myFeedScheduler.getNextItemKey();
+                try {
                 BlogFeed feed = new BlogFeed(myItemStore.getItem(key));
                 crawlFeed(myItemStore, feed);
+                } finally {
                 feedScheduler.releaseItem(key, 0);
+                }
             } catch (InterruptedException ex) {
                 break;
             } catch (RemoteException ex) {
@@ -202,5 +205,4 @@ public class FeedManager implements AuraService, Configurable {
     @ConfigInteger(defaultValue = 10, range = {1, 1000})
     public final static String PROP_NUM_THREADS = "numThreads";
     private int numThreads;
-
 }

@@ -36,13 +36,11 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     private Thread leaseReclaimer = null;
 
     public String getNextItemKey() throws InterruptedException {
-        synchronized (itemQueue) {
-            DelayedItem delayedItem = itemQueue.take();
-            DelayedItem leasedItem = new DelayedItem(delayedItem.getItemKey(),
-                    itemLeaseTime);
-            outstandingQueue.add(leasedItem);
-            return delayedItem.getItemKey();
-        }
+        DelayedItem delayedItem = itemQueue.take();
+        DelayedItem leasedItem = new DelayedItem(delayedItem.getItemKey(),
+                itemLeaseTime * 1000);
+        outstandingQueue.add(leasedItem);
+        return delayedItem.getItemKey();
     }
 
     public void releaseItem(String itemKey, int secondsUntilNextScheduledProcessing) {
@@ -62,12 +60,16 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     }
 
     public void itemDeleted(ItemEvent e) throws RemoteException {
-        synchronized (itemQueue) {
-            for (Item item : e.getItems()) {
-                removeFromQueue(item.getKey(), outstandingQueue);
-                removeFromQueue(item.getKey(), itemQueue);
-            }
+        for (Item item : e.getItems()) {
+            deleteItemByKeyFromQueues(item.getKey());
         }
+    }
+
+
+    private void deleteItemByKeyFromQueues(String itemKey) {
+        DelayedItem itemToDelete = new DelayedItem(itemKey);
+        outstandingQueue.remove(itemToDelete);
+        itemQueue.remove(itemToDelete);
     }
 
     private void processExpiredLeases() {
@@ -75,7 +77,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         try {
             DelayedItem item = null;
             while ((item = outstandingQueue.take()) != null) {
-                logger.warning("reclaimed item after lease expired");
+                logger.warning("reclaimed item after lease expired: " + item.getItemKey());
                 addItem(item.getItemKey(), 0);
             }
         } catch (InterruptedException ex) {
@@ -196,47 +198,10 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
      * available for processing
      */
     private void addItem(String itemKey, long delay) {
-        synchronized (itemQueue) {
-            boolean inQueue = false;
-
-            // first remove it from the outstanding queue
-
-            removeFromQueue(itemKey, outstandingQueue);
-
-            // check to make sure the item isn't already in the queue
-
-            for (DelayedItem item : itemQueue) {
-                if (itemKey.equals(item.getItemKey())) {
-                    inQueue = true;
-                    break;
-                }
-            }
-
-            // it's not in the queue, so add it
-            if (!inQueue) {
-                itemQueue.add(new DelayedItem(itemKey, delay));
-            }
-        }
+        deleteItemByKeyFromQueues(itemKey);
+        itemQueue.add(new DelayedItem(itemKey, delay));
     }
 
-    /**
-     * Removed the given item from the given queue
-     * @param id the id of the item to remove
-     * @param queue the queue from which to remove the item
-     */
-    private void removeFromQueue(String key, DelayQueue<DelayedItem> queue) {
-        DelayedItem queuedItem = null;
-        for (DelayedItem item : queue) {
-            if (key.equals(item.getItemKey())) {
-                queuedItem = item;
-                break;
-            }
-        }
-
-        if (queuedItem != null) {
-            queue.remove(queuedItem);
-        }
-    }
     /**
      * the configurable property for the itemstore used by this manager
      */
@@ -290,6 +255,10 @@ class DelayedItem implements Delayed {
                 deltaTimeInMilliseconds;
     }
 
+    public DelayedItem(String itemKey) {
+        this(itemKey, 0L);
+    }
+
     /**
      * Gets the feed represented by this DelayedFeed
      * @return the feed
@@ -303,6 +272,30 @@ class DelayedItem implements Delayed {
         return unit.convert(nextProcessingTime - System.currentTimeMillis(),
                 TimeUnit.MILLISECONDS);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final DelayedItem other = (DelayedItem) obj;
+        if (this.itemKey != other.itemKey && (this.itemKey == null || !this.itemKey.equals(other.itemKey))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 47 * hash + (this.itemKey != null ? this.itemKey.hashCode() : 0);
+        return hash;
+    }
+
+    
 
     public int compareTo(Delayed o) {
         long result = getDelay(TimeUnit.MILLISECONDS) -
