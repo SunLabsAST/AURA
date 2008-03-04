@@ -1,13 +1,15 @@
 package com.sun.labs.aura.datastore.impl;
 
+import com.sun.labs.aura.datastore.impl.store.ItemSearch;
 import com.sun.labs.aura.datastore.impl.store.ItemStore;
+import com.sun.labs.util.props.Component;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 /**
  * The interface to the Partition Cluster, used for RMI.
  */
-public interface PartitionCluster extends ItemStore, Remote {
+public interface PartitionCluster extends ItemStore, ItemSearch, Component, Remote {
 
     /**
      * Get the prefix code for the objects in this partition cluster.
