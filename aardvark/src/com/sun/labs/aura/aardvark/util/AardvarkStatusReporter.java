@@ -5,12 +5,14 @@
 package com.sun.labs.aura.aardvark.util;
 
 import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.aardvark.BlogFeed;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemEvent;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
@@ -36,7 +38,7 @@ public class AardvarkStatusReporter implements Configurable, AuraService, ItemLi
         try {
             ItemListener exportedItemListener = (ItemListener) ps.getConfigurationManager().getRemote(this, dataStore);
             dataStore.addItemListener(ItemType.FEED, exportedItemListener);
-            dataStore.addItemListener(ItemType.BLOGENTRY, exportedItemListener);
+            // dataStore.addItemListener(ItemType.BLOGENTRY, exportedItemListener);
 
         } catch (RemoteException ex) {
             throw new PropertyException(ps.getInstanceName(),
@@ -57,19 +59,22 @@ public class AardvarkStatusReporter implements Configurable, AuraService, ItemLi
 
     public void itemCreated(ItemEvent e) throws RemoteException {
         for (Item item : e.getItems()) {
-            System.out.println(" new: " +item.getType() + ": " + item.getKey() + " : " + item.getName());
+            System.out.println("============ new ========= ");
+            System.out.println(ItemAdapter.toString(item));
         }
     }
 
     public void itemChanged(ItemEvent e) throws RemoteException {
         for (Item item : e.getItems()) {
-            System.out.println(" mod: " +item.getType() + ": " + item.getKey() + " : " + item.getName());
+            System.out.println("============ mod ========= ");
+            System.out.println(ItemAdapter.toString(item));
         }
     }
 
     public void itemDeleted(ItemEvent e) throws RemoteException {
         for (Item item : e.getItems()) {
-            System.out.println(" del: " +item.getType() + ": " + item.getKey() + " : " + item.getName());
+            System.out.println("============ del ========= ");
+            System.out.println(ItemAdapter.toString(item));
         }
     }
 }

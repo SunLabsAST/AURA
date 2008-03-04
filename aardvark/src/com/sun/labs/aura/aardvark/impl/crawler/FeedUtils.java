@@ -130,6 +130,7 @@ public class FeedUtils {
             SyndFeed syndFeed = readFeed(feedUrl);
 
             feed.setName(syndFeed.getTitle());
+            feed.setLink(syndFeed.getLink());
             
             List<BlogEntry> entries = new ArrayList<BlogEntry>();
             List entryList = syndFeed.getEntries();

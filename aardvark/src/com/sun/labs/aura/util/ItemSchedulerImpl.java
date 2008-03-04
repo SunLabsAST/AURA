@@ -37,8 +37,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
 
     public String getNextItemKey() throws InterruptedException {
         DelayedItem delayedItem = itemQueue.take();
-        DelayedItem leasedItem = new DelayedItem(delayedItem.getItemKey(),
-                itemLeaseTime * 1000);
+        DelayedItem leasedItem = new DelayedItem(delayedItem.getItemKey(), itemLeaseTime);
         outstandingQueue.add(leasedItem);
         return delayedItem.getItemKey();
     }
@@ -47,7 +46,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         if (secondsUntilNextScheduledProcessing <= 0) {
             secondsUntilNextScheduledProcessing = defaultPeriod;
         }
-        addItem(itemKey, secondsUntilNextScheduledProcessing * 1000);
+        addItem(itemKey, secondsUntilNextScheduledProcessing);
     }
 
     public void itemCreated(ItemEvent e) throws RemoteException {
@@ -94,6 +93,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         DataStore newItemStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
         Item.ItemType newItemType = (Item.ItemType) ps.getEnum(PROP_ITEM_TYPE);
 
+
         // everything is connected OK, so lets create our item queues
         // but don't create it if it already exists, since we may already
         // have some clients pending on it.
@@ -125,7 +125,8 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         }
 
 
-        itemLeaseTime = ps.getInt(PROP_ITEM_LEASE_TIME) * 1000;
+        itemLeaseTime = ps.getInt(PROP_ITEM_LEASE_TIME);
+        defaultPeriod = ps.getInt(PROP_DEFAULT_PERIOD);
 
         // if we have a new item store, or a new item type, disconnect from 
         // the old item store, and connect up to the new store.
@@ -165,8 +166,8 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
 
                 Set<Item> items = newItemStore.getAll(newItemType);
                 if (items.size() > 0) {
-                    long initialDelay = 0L;
-                    long delayIncrement = defaultPeriod * 1000 / items.size();
+                    int initialDelay = 0;
+                    int delayIncrement = defaultPeriod / items.size();
 
                     for (Item item : items) {
                         addItem(item.getKey(), initialDelay);
@@ -197,7 +198,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
      * @param delay the delay, in milliseconds, until the item should be made
      * available for processing
      */
-    private void addItem(String itemKey, long delay) {
+    private void addItem(String itemKey, int delay) {
         deleteItemByKeyFromQueues(itemKey);
         itemQueue.add(new DelayedItem(itemKey, delay));
     }
@@ -211,7 +212,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     /**
      * the configurable property for maximum item lease time in seconds
      */
-    @ConfigInteger(defaultValue = 60, range = {1, 60 * 60})
+    @ConfigInteger(defaultValue = 60 * 30, range = {1, 60 * 60 * 24})
     public final static String PROP_ITEM_LEASE_TIME = "itemLeaseTime";
     private int itemLeaseTime;
     /**
@@ -245,18 +246,17 @@ class DelayedItem implements Delayed {
     private String itemKey;
     private long nextProcessingTime;
 
-    public DelayedItem(String itemKey, long deltaTimeInMilliseconds) {
-        if (deltaTimeInMilliseconds < 0) {
-            deltaTimeInMilliseconds = 0;
+    public DelayedItem(String itemKey, int seconds) {
+        if (seconds < 0) {
+            seconds = 0;
         }
 
         this.itemKey = itemKey;
-        nextProcessingTime = System.currentTimeMillis() +
-                deltaTimeInMilliseconds;
+        nextProcessingTime = System.currentTimeMillis() + seconds * 1000;
     }
 
     public DelayedItem(String itemKey) {
-        this(itemKey, 0L);
+        this(itemKey, 0);
     }
 
     /**
