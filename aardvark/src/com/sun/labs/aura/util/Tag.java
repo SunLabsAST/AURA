@@ -7,7 +7,7 @@
  *  WARRANTIES..
  */
 
-package com.sun.labs.aura.aardvark;
+package com.sun.labs.aura.util;
 
 import java.io.Serializable;
 

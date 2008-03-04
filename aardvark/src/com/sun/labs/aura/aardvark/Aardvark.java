@@ -14,7 +14,6 @@ import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.util.props.Component;
 import com.sun.syndication.feed.synd.SyndFeed;
-import java.net.URL;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
