@@ -2,6 +2,8 @@ package com.sun.labs.aura.datastore.impl.store;
 
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sleepycat.je.DatabaseException;
+import com.sun.kt.search.IndexListener;
+import com.sun.kt.search.SearchEngine;
 import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
@@ -31,6 +33,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -42,7 +45,7 @@ import java.util.logging.Logger;
  * An implementation of the item store using the berkeley database as a back
  * end.
  */
-public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
+public class BerkeleyItemStore implements Replicant, Configurable, AuraService, IndexListener {
 
     /**
      * The location of the BDB/JE Database Environment
@@ -101,7 +104,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
     /**
      * A queue of change events that need to be sent
      */
-    private ConcurrentLinkedQueue<ItemEvent> changeEvents;
+    private ConcurrentLinkedQueue<ChangeEvent> changeEvents;
 
     /**
      * A queue of create events that need to be sent
@@ -124,7 +127,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
      */
     public BerkeleyItemStore() {
         listenerMap = new HashMap<ItemType, Set<ItemListener>>();
-        changeEvents = new ConcurrentLinkedQueue<ItemEvent>();
+        changeEvents = new ConcurrentLinkedQueue<ChangeEvent>();
         createEventItems = new ConcurrentLinkedQueue<ItemImpl>();
     }
 
@@ -163,6 +166,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
         //
         // Get the search engine from the config system
         searchEngine = (ItemSearchEngine) ps.getComponent(PROP_SEARCH_ENGINE);
+        searchEngine.getSearchEngine().addIndexListener(this);
 
         //
         // Get the configuration manager, which we'll use to export things, if
@@ -398,84 +402,89 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
     private void itemChanged(ItemImpl item, ItemEvent.ChangeType ctype) {
         //
         // Queue the event for later delivery
-        changeEvents.add(new ItemEvent(new Item[]{item},
-                ctype));
-        sendChangedEvents();
+        changeEvents.add(new ChangeEvent(item, ctype));
+    }
+    
+    /**
+     * Adds an item to a itemType->changeType->item map of maps.
+     */
+    private void addItem(ChangeEvent ce, 
+            Map<ItemType, Map<ItemEvent.ChangeType,List<ItemImpl>>> eventsByType, 
+            ItemType type) {
+        
+        //
+        // Our per-item type map.
+        Map<ItemEvent.ChangeType, List<ItemImpl>> eventMap = eventsByType.get(type);
+        if(eventMap == null) {
+            eventMap = new HashMap<ItemEvent.ChangeType, List<ItemImpl>>();
+            eventsByType.put(type, eventMap);
+        }
+        
+        //
+        // Our per-change type map and list of items.
+        List<ItemImpl> l = eventMap.get(ce.type);
+        if(l == null) {
+            l = new ArrayList<ItemImpl>();
+            eventMap.put(ce.type, l);
+        }
+        l.add(ce.item);
     }
 
     /**
-     * Send any queued up change events
+     * Sends any queued up change events when the changed data has been flushed.
+     * 
+     * @param keys the set of keys that are in a partition that has just been
+     * dumped to disk.  These are really strings.
      */
-    private void sendChangedEvents() {
+    private void sendChangedEvents(Set<Object> keys) {
+        
         //
-        // Get all the item events that we'll use.
-        ArrayList events = new ArrayList();
-        for(Iterator<ItemEvent> itemIt = changeEvents.iterator();
+        // OK, this is a bit tricky:  we want to send events by item type and
+        // then by change type, so we need a map to a map.  We also want to send
+        // events of all types, so we'll have a separate map from change type
+        // to item for that.
+        Map<ItemType, Map<ItemEvent.ChangeType,List<ItemImpl>>> eventsByType =
+                new HashMap<ItemType, Map<ItemEvent.ChangeType,List<ItemImpl>>>();
+
+        //
+        // Process our stored change events against the 
+        for(Iterator<ChangeEvent> itemIt = changeEvents.iterator();
                 itemIt.hasNext();) {
-            ItemEvent ie = itemIt.next();
-            events.add(ie);
-            itemIt.remove();
+            ChangeEvent ce = itemIt.next();
+            
+            //
+            // If this item is in our set, then process it.
+            if(keys.contains(ce.item.getKey())) {
+         
+                //
+                // Add this item to the all events type map and the per-events
+                // type map.
+                addItem(ce, eventsByType, null);
+                addItem(ce, eventsByType, ce.item.getType());
+            }
         }
 
         //
         // For each type for which there is at least one listener:
         for(ItemType itemType : listenerMap.keySet()) {
+            
+            Map<ItemEvent.ChangeType,List<ItemImpl>> te = eventsByType.get(itemType);
+            if(te == null) {
+                continue;
+            }
+            
             //
-            // Collect the items of type aura change
-            ArrayList<Item> auraItems = new ArrayList<Item>();
-
-            //
-            // For each item event with an item of this type, sort out the
-            // items by change type in order to accumulate them all
-            for(Iterator<ItemEvent> itemIt = events.iterator();
-                    itemIt.hasNext();) {
-                ItemEvent ie = itemIt.next();
-                ItemImpl i = (ItemImpl) ie.getItems()[0];
-                if(i.getType() == itemType) {
-                    //
-                    // The listener I'm going to send to is interested in
-                    // items of this type.  Filter the items by change-type.
+            // Send the events of each change type to each of the listeners.
+            for(Map.Entry<ItemEvent.ChangeType,List<ItemImpl>> e : te.entrySet()) {
+                ItemEvent event = new ItemEvent(e.getValue().
+                        toArray(new ItemImpl[0]), e.getKey());
+                
+                for(ItemListener il : listenerMap.get(itemType)) {
                     try {
-                        switch(ie.getChangeType()) {
-                            case AURA:
-                                auraItems.add(i);
-                                break;
-                        }
-                    } catch(AuraException e) {
-                        //
-                        // If no type was specified, send the update as an
-                        // aura change.
-                        auraItems.add(i);
-                        logger.log(Level.INFO, "Sending change event that " +
-                                "had no change type");
+                        il.itemChanged(event);
+                    } catch(RemoteException ex) {
+                        logger.log(Level.SEVERE, "Error sending change events", ex);
                     }
-
-                    //
-                    // We're handling this item, so remove it from the list
-                    // of outstanding items
-                    itemIt.remove();
-                }
-            }
-
-            //
-            // And finally, send events to all the listeners for items of this
-            // type that were of change-type aura
-            ItemEvent big = new ItemEvent(
-                    auraItems.toArray(new Item[0]),
-                    ItemEvent.ChangeType.AURA);
-            Set<ItemListener> l = listenerMap.get(itemType);
-            //
-            // Also send to all listeners for the "null" (all) item list
-            Set<ItemListener> nulls = listenerMap.get(null);
-            if(nulls != null) {
-                l.addAll(nulls);
-            }
-            for(ItemListener il : l) {
-                try {
-                    il.itemChanged(big);
-                } catch(RemoteException e) {
-                    logger.log(Level.WARNING,
-                            "Error sending change event to " + il, e);
                 }
             }
         }
@@ -488,55 +497,54 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
         //
         // Queue up this item to be sent out
         createEventItems.add(item);
-        sendCreatedEvents();
+    }
+    
+    private void addItem(ItemImpl item, Map<ItemType, List<ItemImpl>> m, ItemType type) {
+        List<ItemImpl> l = m.get(type);
+        if(l == null) {
+            l = new ArrayList<ItemImpl>();
+            m.put(type, l);
+        }
+        l.add(item);
     }
 
     /**
-     * Send any queued up create events
+     * Sends any queued up create events
      */
-    private void sendCreatedEvents() {
+    private void sendCreatedEvents(Set<Object> keys) {
+        
+        Map<ItemType, List<ItemImpl>> newItems = new HashMap<ItemType, List<ItemImpl>>();
+        
         //
-        // Get all the item events that we'll use.
-        ArrayList<ItemImpl> newItems = new ArrayList<ItemImpl>();
+        // Process the new items we've accumulated, sending events for those
+        // that are in our set of keys.
         for(Iterator<ItemImpl> itemIt = createEventItems.iterator();
                 itemIt.hasNext();) {
             ItemImpl ie = itemIt.next();
-            newItems.add(ie);
-            itemIt.remove();
+            if(keys.contains(ie.getKey())) {
+                addItem(ie, newItems, null);
+                addItem(ie, newItems, ie.getType());
+                itemIt.remove();
+            }
         }
 
         //
         // For each type of item for which there is a listener, batch up
         // the items of that type and send them off together.
         for(ItemType itemType : listenerMap.keySet()) {
-            ArrayList<Item> itemsToSend = new ArrayList<Item>();
-            for(Iterator<ItemImpl> itemIt = newItems.iterator();
-                    itemIt.hasNext();) {
-                ItemImpl i = itemIt.next();
-                if(i.getType() == itemType) {
-                    itemsToSend.add(i);
-                    itemIt.remove();
-                }
+            
+            List<ItemImpl> l = newItems.get(itemType);
+            if(l == null) {
+                continue;
             }
-
-            // Send the events
-            ItemEvent big = new ItemEvent(
-                    itemsToSend.toArray(new Item[0]));
-            Set<ItemListener> l = listenerMap.get(itemType);
-            //
-            // Also send to the "null" (all) item listeners
-            Set<ItemListener> nulls = listenerMap.get(itemType);
-            if(nulls != null) {
-                l.addAll(nulls);
-            }
-            //
-            // Finally, sned the event out
-            for(ItemListener il : l) {
+            
+            ItemEvent event = new ItemEvent(l.toArray(new ItemImpl[0]));
+            
+            for(ItemListener il : listenerMap.get(itemType)) {
                 try {
-                    il.itemCreated(big);
-                } catch(RemoteException e) {
-                    logger.log(Level.WARNING,
-                            "Error sending create event to " + il, e);
+                    il.itemCreated(event);
+                } catch(RemoteException ex) {
+                    logger.log(Level.SEVERE, "Error sending new item events", ex);
                 }
             }
         }
@@ -552,5 +560,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService {
         } catch(AuraException ae) {
             logger.log(Level.WARNING, "Error closing item store", ae);
         }
+    }
+    
+    public void partitionAdded(SearchEngine e, Set<Object> keys) {
+        sendCreatedEvents(keys);
+        sendChangedEvents(keys);
     }
 }

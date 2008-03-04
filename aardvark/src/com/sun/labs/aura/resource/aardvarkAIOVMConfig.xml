@@ -53,7 +53,7 @@
     <!-- The configuration for the search engine associated with this replicant -->
     <component name="itemSearchEngine1" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
         <property name="indexDir" value="${auraHome}/1/itemIndex.idx"/>
-        <property name="engineConfigFile" value="itemSearchEngineNoReapConfig.xml"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
     </component>
     
     <!-- A simple recommender -->
@@ -69,7 +69,7 @@
     <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager">
         <property name="itemStore" value="dataStoreHead"/>
         <property name="feedScheduler" value="feedScheduler"/>
-        <property name="numThreads" value="1"/>
+        <property name="numThreads" value="5"/>
     </component>
     
     <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl">

@@ -176,6 +176,6 @@ public class ItemImpl implements Item {
     
     @Override
     public String toString() {
-        return key + "[" + Integer.toBinaryString(key.hashCode()) + "]";
+        return key + " [" + Integer.toBinaryString(key.hashCode()) + "]";
     }
 }
