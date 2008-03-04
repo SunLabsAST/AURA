@@ -109,7 +109,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
     /**
      * A queue of create events that need to be sent
      */
-    private ConcurrentLinkedQueue<ItemImpl> createEventItems;
+    private ConcurrentLinkedQueue<ItemImpl> createEvents;
 
     /**
      * Indicates if the item store has been closed.  Once the store is
@@ -128,7 +128,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
     public BerkeleyItemStore() {
         listenerMap = new HashMap<ItemType, Set<ItemListener>>();
         changeEvents = new ConcurrentLinkedQueue<ChangeEvent>();
-        createEventItems = new ConcurrentLinkedQueue<ItemImpl>();
+        createEvents = new ConcurrentLinkedQueue<ItemImpl>();
     }
 
     /**
@@ -402,7 +402,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
     private void itemChanged(ItemImpl item, ItemEvent.ChangeType ctype) {
         //
         // Queue the event for later delivery
-        changeEvents.add(new ChangeEvent(item, ctype));
+        changeEvents.offer(new ChangeEvent(item, ctype));
     }
     
     /**
@@ -436,7 +436,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
      * @param keys the set of keys that are in a partition that has just been
      * dumped to disk.  These are really strings.
      */
-    private void sendChangedEvents(Set<Object> keys) {
+    private synchronized void sendChangedEvents(Set<Object> keys) {
         
         //
         // OK, this is a bit tricky:  we want to send events by item type and
@@ -447,10 +447,18 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
                 new HashMap<ItemType, Map<ItemEvent.ChangeType,List<ItemImpl>>>();
 
         //
-        // Process our stored change events against the 
-        for(Iterator<ChangeEvent> itemIt = changeEvents.iterator();
-                itemIt.hasNext();) {
-            ChangeEvent ce = itemIt.next();
+        // Process our stored change events against the keys we were given.
+        // We'll try to process however many elements are in the queue at 
+        // this point.
+        int n = changeEvents.size();
+        for(int i = 0; i < n; i++) {
+            ChangeEvent ce = changeEvents.poll();
+            
+            //
+            // We probably shouldn't get null, but just in case.
+            if(ce == null) {
+                break;
+            }
             
             //
             // If this item is in our set, then process it.
@@ -461,6 +469,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
                 // type map.
                 addItem(ce, eventsByType, null);
                 addItem(ce, eventsByType, ce.item.getType());
+            } else {
+                //
+                // Put it back on the queue for the next guy.
+                changeEvents.offer(ce);
             }
         }
 
@@ -496,7 +508,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
     private void itemCreated(ItemImpl item) {
         //
         // Queue up this item to be sent out
-        createEventItems.add(item);
+        createEvents.offer(item);
     }
     
     private void addItem(ItemImpl item, Map<ItemType, List<ItemImpl>> m, ItemType type) {
@@ -511,20 +523,25 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
     /**
      * Sends any queued up create events
      */
-    private void sendCreatedEvents(Set<Object> keys) {
+    private synchronized void sendCreatedEvents(Set<Object> keys) {
         
         Map<ItemType, List<ItemImpl>> newItems = new HashMap<ItemType, List<ItemImpl>>();
         
         //
         // Process the new items we've accumulated, sending events for those
-        // that are in our set of keys.
-        for(Iterator<ItemImpl> itemIt = createEventItems.iterator();
-                itemIt.hasNext();) {
-            ItemImpl ie = itemIt.next();
+        // that are in our set of keys.  We'll process however much stuff is 
+        // on the queue when we get here.
+        int n = createEvents.size();
+        for(int i = 0; i < n; i++) {
+            ItemImpl ie = createEvents.poll();
+            if(ie == null) {
+                break;
+            }
             if(keys.contains(ie.getKey())) {
                 addItem(ie, newItems, null);
                 addItem(ie, newItems, ie.getType());
-                itemIt.remove();
+            } else {
+                createEvents.offer(ie);
             }
         }
 
