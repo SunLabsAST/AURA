@@ -79,7 +79,16 @@ public class AttnPanel extends DockPanel {
         }
     }
     
+    public void replaceAttns(AttnDesc[] attns) {
+        this.attns = attns;
+        empty();
+        fillAttns();
+    }
+    
     public void empty() {
-        
+        int cnt = results.getRowCount() - 1;
+        for (int i = cnt; i >= 1; i--) {
+            results.removeRow(i);
+        }
     }
 }

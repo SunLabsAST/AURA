@@ -86,6 +86,29 @@ public class ResultsPanel extends DockPanel {
                     });
                 }
             });
+            AttnButton trgBtn = new AttnButton(items[i].getKey());
+            trgBtn.addClickListener(new ClickListener() {
+                public void onClick(Widget arg0) {
+                    service.getAttentionForTarget(
+                            ((AttnButton)arg0).getKey(),
+                            new AsyncCallback() {
+
+                        public void onFailure(Throwable ex) {
+                            parent.showError(ex.getMessage());
+                        }
+
+                        public void onSuccess(Object result) {
+                            //
+                            // insert code to show attn dialog or panel here
+                            // and also made that dialog or panel
+                            parent.showAttention((AttnDesc[])result);
+                        }
+                        
+                    });
+                }
+            });
+            results.setWidget(row, SRC_ATTN_COL, srcBtn);
+            results.setWidget(row, TRG_ATTN_COL, trgBtn);
             //
             // Stylize the row
             if (lightRow) {
@@ -101,6 +124,7 @@ public class ResultsPanel extends DockPanel {
     public class AttnButton extends Button {
         protected String key;
         public AttnButton(String key) {
+            super("Attention");
             this.key = key;
         }
         

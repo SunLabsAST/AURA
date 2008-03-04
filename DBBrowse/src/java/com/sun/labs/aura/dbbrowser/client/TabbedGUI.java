@@ -28,12 +28,22 @@ public class TabbedGUI extends TabPanel {
     public void addResults(String name, ItemDesc[] items) {
         ResultsPanel panel = new ResultsPanel(items, this);
         resultsPanels.add(panel);
-        add(panel, name);
+        if (attnPanel != null) {
+            insert(panel, name, getWidgetIndex(attnPanel));
+        } else {
+            add(panel, name);
+        }
         selectTab(this.getWidgetIndex(panel));
     }
     
     public void showAttention(AttnDesc[] attns) {
-        
+        if (attnPanel == null) {
+            attnPanel = new AttnPanel(attns, this);
+            add(attnPanel, "Attention");
+        } else {
+            attnPanel.replaceAttns(attns);
+        }
+        selectTab(getWidgetIndex(attnPanel));
     }
     
     public void showError(String msg) {
@@ -53,5 +63,8 @@ public class TabbedGUI extends TabPanel {
     public void removeTab(Widget tab) {
         remove(tab);
         selectTab(0);
+        if (tab.equals(attnPanel)) {
+            attnPanel = null;
+        }
     }
 }
