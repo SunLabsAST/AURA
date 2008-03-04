@@ -460,7 +460,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
         // We'll try to process however many elements are in the queue at 
         // this point.
         int n = changeEvents.size();
-        logger.info(n + " change events");
         for(int i = 0; i < n; i++) {
             ChangeEvent ce = changeEvents.poll();
             
