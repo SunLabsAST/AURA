@@ -1,0 +1,153 @@
+body, html {
+  height: 100%;
+}
+body {
+  background: #fff;
+  color: black;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: small;
+  margin: 8px;
+  margin-top: 3px;
+}
+
+a { 
+  color: #000;
+}
+
+a:visited {
+  color: #000; 
+}
+
+.db-TableHeader {
+  font-weight: bold;
+  background: url(gradient.gif) repeat-x top left;
+}
+
+.db-SearchPanel {
+  padding: 10px;
+}
+
+.db-ResultsPanel {
+  padding: 5px;
+}
+
+.gwt-TabPanel {
+  margin-top: 4px;
+}
+
+.gwt-TabPanelBottom {
+    
+  background-color: #6cb0e4;
+  border: 2px solid #6cb0e4;
+  /* gradient initial top color #6cb0e4; */
+/* #E8EEF7; */
+}
+
+.db-DarkRow {
+  background-color: #d7e9f7;
+}
+
+.db-LightRow {
+  background-color: #eff7fd;
+}
+
+.gwt-TabBar {
+  padding-top: 2px;
+  border-bottom: 4px solid #6cb0e4;
+  background-color: #fff;
+}
+
+.gwt-TabBar .gwt-TabBarFirst {
+}
+
+.gwt-TabBar .gwt-TabBarRest {
+}
+
+.gwt-TabBar .gwt-TabBarItem {
+  padding: 4px;
+  cursor: pointer;
+  cursor: hand;
+
+  background-color: #e8eef7;
+  border-bottom: 2px solid white;
+  margin-right: 2px;
+}
+
+.gwt-TabBar .gwt-TabBarItem-selected {
+  padding: 4px;
+  font-weight: bold;
+  cursor: default;
+
+  background-color: #6cb0e4;
+  border-bottom: 2px solid #6cb0e4;
+  margin-right: 2px;
+}
+
+.gwt-DialogBox {
+  background-color: white;
+  border-left: 1px solid #666;
+  border-right: 1px solid #666;
+  border-bottom: 1px solid #666;
+}
+
+.gwt-DialogBox .Caption {
+  background: url(gradient.gif) repeat-x top left;
+  font-weight: bold;
+  cursor: default;
+  padding: 5px 10px;
+  border-bottom: 1px solid #666;
+  border-top: 1px solid #666;
+  text-align: left;
+}
+
+.gwt-DialogBox td {
+  text-align: right;
+}
+
+.gwt-DialogBox .gwt-Button {
+  margin: 10px;
+}
+
+.gwt-MenuBar {
+  background: #c3d9ff;
+  cursor: default;
+}
+
+.gwt-MenuItem {
+  font-size: 80%;
+  margin: 1px;
+  cursor: default;
+}
+
+.gwt-MenuItem-selected {
+  background: #e8eef7;
+}
+
+
+.gwt-StackPanel {
+  background: #fff;
+  width: 15em;
+  border-bottom: 1px solid #666;
+}
+
+.gwt-StackPanel .gwt-StackPanelItem {
+  cursor: pointer;
+  cursor: hand;
+}
+
+.gwt-StackPanel .gwt-StackPanelItem-selected {
+  border-bottom: 1px solid #666;
+}
+
+.gwt-StackPanel .lcaption {
+  width: 32px;
+  padding: 0 0 4px 5px;
+}
+
+.gwt-StackPanel .rcaption {
+  padding: 0 0 4px 5px;
+} 
+
+.gwt-StackPanel .box-20 {
+  text-align: right;
+}
