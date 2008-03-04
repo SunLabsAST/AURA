@@ -1,5 +1,6 @@
 package com.sun.labs.aura.datastore.impl;
 
+import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
@@ -135,7 +136,7 @@ public class PartitionClusterImpl implements PartitionCluster,
             throws AuraException, RemoteException {
         //
         // Should the listener only go down to the partition cluster level?
-        replicant.addItemListener(itemType, listener);
+        replicant.removeItemListener(itemType, listener);
     }
 
     public long getItemCount(ItemType itemType)
@@ -147,7 +148,24 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getAttentionCount();
     }
 
-    
+    public SortedSet<Item> findSimilar(String key, int n)
+            throws AuraException, RemoteException {
+        return replicant.findSimilar(key, n);
+    }
+
+    public SortedSet<Item> findSimilar(String key, String field, int n)
+            throws AuraException, RemoteException {
+        return replicant.findSimilar(key, field, n);
+    }
+
+    public SortedSet<Item> findSimilar(String key,
+                                       WeightedField[] fields,
+                                       int n)
+            throws AuraException, RemoteException {
+        return replicant.findSimilar(key, fields, n);
+    }
+
+
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
             //

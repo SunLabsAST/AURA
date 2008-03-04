@@ -48,11 +48,11 @@ public class AardvarkStatusReporter implements Configurable, AuraService, ItemLi
     }
 
     public void start() {
-        System.out.println("AardvarkStatusReportere started");
+        System.out.println("AardvarkStatusReporter started");
     }
 
     public void stop() {
-        System.out.println("AardvarkStatusReportere stopped");
+        System.out.println("AardvarkStatusReporter stopped");
     }
 
     public void itemCreated(ItemEvent e) throws RemoteException {

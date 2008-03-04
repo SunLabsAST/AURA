@@ -8,8 +8,6 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
-import com.sun.labs.util.props.Component;
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.Set;
@@ -20,7 +18,7 @@ import java.util.SortedSet;
  * and attentions.  Methods in the Item Store may throw AuraExceptions when an
  * error has occurred in the underlying database that backs the item store.
  */
-public interface ItemStore extends Component, Remote {
+public interface ItemStore {
     /**
      * Gets all of the items in the store that are of the given type.  This
      * could be a very large operation.
