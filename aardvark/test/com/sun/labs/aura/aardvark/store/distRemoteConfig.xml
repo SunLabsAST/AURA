@@ -11,5 +11,5 @@
     </component>
     
     <!-- An item store that can be sent to a service registrar for use by others. -->
-    <component name="itemStore" type="com.sun.labs.aura.aardvark.store.SimpleItemStore" />
+    <component name="dataStore" type="com.sun.labs.aura.aardvark.store.SimpleItemStore" />
 </config>

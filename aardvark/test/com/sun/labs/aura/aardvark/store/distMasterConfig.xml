@@ -18,16 +18,16 @@
 
     </component>
     
-    <component name="itemStoreStarter" type="com.sun.labs.aura.aardvark.AardvarkServiceStarter">
+    <component name="dataStoreStarter" type="com.sun.labs.aura.aardvark.AardvarkServiceStarter">
         <propertylist name="serviceComponents">
-            <item>itemStore</item>
+            <item>dataStore</item>
         </propertylist>
     </component>
     
     
     <!-- An item store that can be sent to a service registrar for use by others. -->
-    <component name="itemStore" type="com.sun.labs.aura.aardvark.impl.store.bdb.BerkeleyItemStore" export="true" lease="100000">
-        <property name="dbEnv" value="${auraHome}/itemStore.db"/>
+    <component name="dataStore" type="com.sun.labs.aura.aardvark.impl.store.bdb.BerkeleyItemStore" export="true" lease="100000">
+        <property name="dbEnv" value="${auraHome}/dataStore.db"/>
         <property name="overwrite" value="true"/>
     </component>
 </config>

@@ -40,6 +40,7 @@ import java.util.logging.Logger;
  * from other logic in the item store.
  */
 public class BerkeleyDataWrapper {
+
     /**
      * The max number of times to retry a deadlocked transaction before
      * admitting failure.
@@ -55,64 +56,60 @@ public class BerkeleyDataWrapper {
      * The store inside the environment where all our indexes will live
      */
     protected EntityStore store;
-    
 
-    
     /**
      * The index of all Items in the store, accessible by key
      */
-    protected PrimaryIndex<String,ItemImpl> itemByKey;
-        
+    protected PrimaryIndex<String, ItemImpl> itemByKey;
+
     /**
      * The index of all Items in the store, accessible by type
      */
-    protected SecondaryIndex<Integer,String,ItemImpl> itemByType;
-    
-    protected SecondaryIndex<IntAndTimeKey,String,ItemImpl> itemByTypeAndTime;
-    
+    protected SecondaryIndex<Integer, String, ItemImpl> itemByType;
+
+    protected SecondaryIndex<IntAndTimeKey, String, ItemImpl> itemByTypeAndTime;
+
     /**
      * A subset of the item index that only indexes users
      */
-    protected SecondaryIndex<Boolean,String,UserImpl> allUsers;
-        
+    protected SecondaryIndex<Boolean, String, UserImpl> allUsers;
+
     /**
      * The index of all Attention in the item store, accessible by ID
      */
-    protected PrimaryIndex<Long,PersistentAttention> allAttn;
-    
+    protected PrimaryIndex<Long, PersistentAttention> allAttn;
+
     /**
      * The index of all Attention in the item store, accessible by
      * the associated item
      */
-    protected SecondaryIndex<String,Long,PersistentAttention> attnByTargetKey;
-    
+    protected SecondaryIndex<String, Long, PersistentAttention> attnByTargetKey;
+
     /**
      * The index of all Attention in the item store, accessible by
      * the associated user
      */
-    protected SecondaryIndex<String,Long,PersistentAttention> attnBySourceKey;
-    
+    protected SecondaryIndex<String, Long, PersistentAttention> attnBySourceKey;
+
     /**
      * The index of all Attention in the item store, accessible by
      * the type of attention
      */
-    protected SecondaryIndex<Integer,Long,PersistentAttention> attnByType;
-    
+    protected SecondaryIndex<Integer, Long, PersistentAttention> attnByType;
+
     /**
      * The index of all Attention, accessible by the timestamp
      */
-    protected SecondaryIndex<Long,Long,PersistentAttention> attnByTime;
-    
+    protected SecondaryIndex<Long, Long, PersistentAttention> attnByTime;
+
     /**
      * The index of all Attention in the item store, accessible by
      * the composite key of user ID and timestamp.
      */
-    protected SecondaryIndex<StringAndTimeKey,Long,PersistentAttention>
-            attnBySourceAndTime;
-    
-    
+    protected SecondaryIndex<StringAndTimeKey, Long, PersistentAttention> attnBySourceAndTime;
+
     protected Logger log;
-    
+
     /**
      * Constructs a database wrapper.
      * 
@@ -134,11 +131,11 @@ public class BerkeleyDataWrapper {
      * @throws com.sleepycat.je.DatabaseException
      */
     public BerkeleyDataWrapper(String dbEnvDir,
-                               Logger logger,
-                               boolean overwrite)
+            Logger logger,
+            boolean overwrite)
             throws DatabaseException {
         this.log = logger;
-        
+
         EnvironmentConfig econf = new EnvironmentConfig();
         StoreConfig sconf = new StoreConfig();
 
@@ -146,62 +143,62 @@ public class BerkeleyDataWrapper {
         econf.setTransactional(true);
         sconf.setAllowCreate(true);
         sconf.setTransactional(true);
-        
+
         //econf.setConfigParam("je.txn.dumpLocks", "true");
-        
+
         File dir = new File(dbEnvDir);
-        if (!dir.exists()) {
+        if(!dir.exists()) {
             dir.mkdirs();
-        } else if (overwrite) {
-            for (File f : dir.listFiles()) {
+        } else if(overwrite) {
+            for(File f : dir.listFiles()) {
                 f.delete();
             }
             dir.delete();
             dir.mkdir();
         }
-        
+
         dbEnv = new Environment(dir, econf);
         store = new EntityStore(dbEnv, "Aura", sconf);
-        
+
         //
         // Load the indexes that we'll use during regular operation
         //itemByID = store.getPrimaryIndex(Long.class, ItemImpl.class);
-        
+
         //itemByKey = store.getSecondaryIndex(itemByID, String.class, "key");
         itemByKey = store.getPrimaryIndex(String.class, ItemImpl.class);
-        
+
         itemByType = store.getSecondaryIndex(itemByKey,
-                                             Integer.class,
-                                             "itemType");
+                Integer.class,
+                "itemType");
         itemByTypeAndTime = store.getSecondaryIndex(itemByKey,
                 IntAndTimeKey.class,
                 "typeAndTimeAdded");
-        
+
         allUsers = store.getSubclassIndex(itemByKey, UserImpl.class,
                 Boolean.class, "isUser");
-        
+
         allAttn = store.getPrimaryIndex(Long.class,
-                                         PersistentAttention.class);
-        
+                PersistentAttention.class);
+
         attnByTargetKey = store.getSecondaryIndex(allAttn,
-                                               String.class,
-                                               "targetKey");
-        
+                String.class,
+                "targetKey");
+
         attnBySourceKey = store.getSecondaryIndex(allAttn,
-                                               String.class,
-                                               "sourceKey");
-       
+                String.class,
+                "sourceKey");
+
         attnByType = store.getSecondaryIndex(allAttn,
-                                             Integer.class,
-                                             "type");
-        
+                Integer.class,
+                "type");
+
         attnByTime = store.getSecondaryIndex(allAttn, Long.class, "timeStamp");
-        
+
         attnBySourceAndTime = store.getSecondaryIndex(allAttn,
-                                                      StringAndTimeKey.class,
-                                                      "sourceAndTime");
+                StringAndTimeKey.class,
+                "sourceAndTime");
     }
-    
+
     /**
      * Gets the set of all items of a particular type.  This could be a large
      * set.
@@ -214,18 +211,17 @@ public class BerkeleyDataWrapper {
             EntityIndex index = itemByType.subIndex(type.ordinal());
             EntityCursor<ItemImpl> cur = index.entities();
             try {
-                for (ItemImpl i : cur) {
+                for(ItemImpl i : cur) {
                     items.add(i);
                 }
             } finally {
                 cur.close();
             }
-        } catch (DatabaseException e) {
+        } catch(DatabaseException e) {
             log.log(Level.WARNING, "Failed to retrieve users", e);
         }
         return items;
     }
-
 
     /**
      * Gets an item from the entity store
@@ -236,13 +232,13 @@ public class BerkeleyDataWrapper {
         ItemImpl ret = null;
         try {
             ret = itemByKey.get(null, key, LockMode.READ_UNCOMMITTED);
-        } catch (DatabaseException e) {
+        } catch(DatabaseException e) {
             log.log(Level.WARNING, "getItem() failed to retrieve item (key:" +
-                           key + ")", e);
+                    key + ")", e);
         }
         return ret;
     }
-    
+
     /**
      * Puts an item into the entity store.  If the item already exists, it will
      * be replaced.
@@ -252,24 +248,26 @@ public class BerkeleyDataWrapper {
     public ItemImpl putItem(ItemImpl item) throws AuraException {
         ItemImpl ret = null;
         int numRetries = 0;
-        while (numRetries < MAX_DEADLOCK_RETRIES) {
+        while(numRetries < MAX_DEADLOCK_RETRIES) {
             Transaction txn = null;
             try {
                 txn = dbEnv.beginTransaction(null, null);
                 ret = itemByKey.put(txn, item);
                 txn.commit();
                 return ret;
-            } catch (DeadlockException e) {
+            } catch(DeadlockException e) {
                 try {
                     txn.abort();
                     numRetries++;
-                } catch (DatabaseException ex) {
+                } catch(DatabaseException ex) {
                     throw new AuraException("Txn abort failed", ex);
                 }
-            } catch (Exception e) {
+            } catch(Exception e) {
                 try {
-                    txn.abort();
-                } catch (DatabaseException ex) {
+                    if(txn != null) {
+                        txn.abort();
+                    }
+                } catch(DatabaseException ex) {
                 }
                 throw new AuraException("putItem transaction failed", e);
             }
@@ -279,7 +277,6 @@ public class BerkeleyDataWrapper {
                 " after " + numRetries + " retries");
     }
 
-    
     /**
      * Puts an attention into the entry store.  Attentions should never be
      * overwritten.  Since Users and Items have links to their attentions by
@@ -289,32 +286,32 @@ public class BerkeleyDataWrapper {
      */
     public void putAttention(PersistentAttention pa) throws AuraException {
         int numRetries = 0;
-        while (numRetries < MAX_DEADLOCK_RETRIES) {
+        while(numRetries < MAX_DEADLOCK_RETRIES) {
             Transaction txn = null;
             try {
                 txn = dbEnv.beginTransaction(null, null);
                 allAttn.putNoOverwrite(txn, pa);
                 txn.commit();
                 return;
-            } catch (DeadlockException e) {
+            } catch(DeadlockException e) {
                 try {
                     txn.abort();
                     numRetries++;
-                } catch (DatabaseException ex) {
+                } catch(DatabaseException ex) {
                     throw new AuraException("Txn abort failed", ex);
                 }
-            } catch (DatabaseException e) {
+            } catch(DatabaseException e) {
                 try {
                     txn.abort();
-                } catch (DatabaseException ex) {
+                } catch(DatabaseException ex) {
                 }
                 throw new AuraException("Transaction failed", e);
             }
         }
-        throw new AuraException("putAttn failed for " + pa + " after "
-                + numRetries + " retries");
+        throw new AuraException("putAttn failed for " + pa + " after " +
+                numRetries + " retries");
     }
-    
+
     /**
      * Gets all the items of a particular type that have been added since a
      * particular time.  Returns an iterator over those items that must be
@@ -334,8 +331,8 @@ public class BerkeleyDataWrapper {
         // timestamp to the current time.
         IntAndTimeKey begin = new IntAndTimeKey(itemType.ordinal(), timeStamp);
         IntAndTimeKey end = new IntAndTimeKey(itemType.ordinal(),
-                                              System.currentTimeMillis());
-        
+                System.currentTimeMillis());
+
         EntityCursor cursor = null;
         Transaction txn = null;
         try {
@@ -344,7 +341,7 @@ public class BerkeleyDataWrapper {
             // This transaction is read-only and it is up to the developer
             // to release it.  Don't time out the transaction.
             txn.setTxnTimeout(0);
-            
+
             //
             // Set Read Committed behavior - this ensures the stability of
             // the current item being read (puts a read lock on it) but allows
@@ -353,22 +350,22 @@ public class BerkeleyDataWrapper {
             CursorConfig cc = new CursorConfig();
             cc.setReadCommitted(true);
             cursor = itemByTypeAndTime.entities(txn,
-                                                begin, true,
-                                                end, true,
-                                                cc);
-        } catch (DatabaseException e) {
+                    begin, true,
+                    end, true,
+                    cc);
+        } catch(DatabaseException e) {
             try {
-                if (cursor != null) {
+                if(cursor != null) {
                     cursor.close();
                 }
-            } catch (DatabaseException ex) {
+            } catch(DatabaseException ex) {
                 log.log(Level.WARNING, "Failed to close cursor", ex);
             }
             try {
-                if (txn != null) {
+                if(txn != null) {
                     txn.abort();
                 }
-            } catch (DatabaseException ex) {
+            } catch(DatabaseException ex) {
                 log.log(Level.WARNING, "Failed to abort cursor txn", ex);
             }
             throw new AuraException("getAttentionAddedSince failed", e);
@@ -398,19 +395,18 @@ public class BerkeleyDataWrapper {
         // First get all the attention of the particular type with the
         // particular user
         Set<PersistentAttention> attns = getAttentionForUser(userKey, attnType);
-        
+
         //
         // Now do the in-memory join, looking up each item as we go
-        for (PersistentAttention attn : attns) {
+        for(PersistentAttention attn : attns) {
             ItemImpl item = getItem(attn.getTargetKey());
-            if (item.getType() == itemType) {
+            if(item.getType() == itemType) {
                 result.add(item);
             }
         }
         return result;
     }
 
-    
     /**
      * Gets all the attention that has been added to the store since a
      * particular date.  Returns an iterator over the attention that must be
@@ -430,7 +426,7 @@ public class BerkeleyDataWrapper {
             // This transaction is read-only and it is up to the developer
             // to release it.  Don't time out the transaction.
             txn.setTxnTimeout(0);
-            
+
             //
             // Set Read Committed behavior - this ensures the stability of
             // the current item being read (puts a read lock on it) but allows
@@ -440,19 +436,19 @@ public class BerkeleyDataWrapper {
             cc.setReadCommitted(true);
             c = attnByTime.entities(txn, timeStamp, true,
                     System.currentTimeMillis(), true, cc);
-        } catch (DatabaseException e) {
+        } catch(DatabaseException e) {
             try {
-                if (c != null) {
+                if(c != null) {
                     c.close();
                 }
-            } catch (DatabaseException ex) {
+            } catch(DatabaseException ex) {
                 log.log(Level.WARNING, "Failed to close cursor", ex);
             }
             try {
-                if (txn != null) {
+                if(txn != null) {
                     txn.abort();
                 }
-            } catch (DatabaseException ex) {
+            } catch(DatabaseException ex) {
                 log.log(Level.WARNING, "Failed to abort cursor txn", ex);
             }
             throw new AuraException("getAttentionAddedSince failed", e);
@@ -460,69 +456,69 @@ public class BerkeleyDataWrapper {
         DBIterator<Attention> dbIt = new EntityIterator<Attention>(c, txn);
         return dbIt;
     }
-    
+
     public Set<Attention> getAttentionForSource(String key) {
         return getAttentionFor(key, true);
     }
-    
+
     public Set<Attention> getAttentionForTarget(String key) {
         return getAttentionFor(key, false);
     }
 
     protected Set<Attention> getAttentionFor(String key,
-                                                       boolean isSrc) {
+            boolean isSrc) {
         HashSet<Attention> res = new HashSet<Attention>();
 
         try {
-            EntityIndex<Long,PersistentAttention> attns = null;
-            if (isSrc) {
+            EntityIndex<Long, PersistentAttention> attns = null;
+            if(isSrc) {
                 attns = attnBySourceKey.subIndex(key);
             } else {
                 attns = attnByTargetKey.subIndex(key);
             }
             EntityCursor<PersistentAttention> c = attns.entities();
             try {
-                for (PersistentAttention a : c) {
+                for(PersistentAttention a : c) {
                     res.add(a);
                 }
             } finally {
-                if (c != null) {
+                if(c != null) {
                     c.close();
                 }
             }
-        } catch (DatabaseException ex) {
-                    log.log(Level.WARNING, "Failed to close cursor", ex);
+        } catch(DatabaseException ex) {
+            log.log(Level.WARNING, "Failed to close cursor", ex);
         }
         return res;
     }
-    
+
     public SortedSet<PersistentAttention> getAttentionForUser(String userKey,
-                                                        Attention.Type type) {
-        EntityJoin<Long,PersistentAttention> join = new EntityJoin(allAttn);
+            Attention.Type type) {
+        EntityJoin<Long, PersistentAttention> join = new EntityJoin(allAttn);
         join.addCondition(attnBySourceKey, userKey);
         join.addCondition(attnByType, type.ordinal());
-        
+
         TreeSet<PersistentAttention> ret = new TreeSet<PersistentAttention>(
                 new RevAttnTimeComparator());
         try {
             ForwardCursor<PersistentAttention> cur = null;
             try {
                 cur = join.entities();
-                for (PersistentAttention attn : cur) {
+                for(PersistentAttention attn : cur) {
                     ret.add(attn);
                 }
             } finally {
-                if (cur != null) {
+                if(cur != null) {
                     cur.close();
                 }
             }
-        } catch (DatabaseException e) {
+        } catch(DatabaseException e) {
             log.log(Level.WARNING, "Failed to get attention type " + type +
                     " for user " + userKey, e);
-        }        
+        }
         return ret;
     }
-    
+
     /**
      * Gets the most recent N attentions of a specified type) that
      * a user has recorded.  This will potentially perform a series of time
@@ -541,58 +537,58 @@ public class BerkeleyDataWrapper {
         // Start querying for attention for this user based on time, expanding
         // the time range until we have enough attention.
         TreeSet<Attention> results = new TreeSet<Attention>(
-            new RevAttnTimeComparator());
+                new RevAttnTimeComparator());
         long recent = System.currentTimeMillis();
 
         // Try one hour first
-        SortedSet<Attention> curr = 
+        SortedSet<Attention> curr =
                 getUserAttnForTimePeriod(srcKey, type, recent,
                 Times.ONE_HOUR, count);
-        
+
         count -= curr.size();
         recent -= Times.ONE_HOUR;
         results.addAll(curr);
-        if (count <= 0) {
+        if(count <= 0) {
             return results;
         }
 
         //
         // Now add in from one hour ago to one day ago
         curr = getUserAttnForTimePeriod(srcKey, type, recent,
-               Times.ONE_DAY, count);
+                Times.ONE_DAY, count);
         count -= curr.size();
         recent -= Times.ONE_DAY;
         results.addAll(curr);
-        if (count <= 0) {
+        if(count <= 0) {
             return results;
         }
-        
+
         //
         // Now add in from one day ago to one week ago
         curr = getUserAttnForTimePeriod(srcKey, type, recent,
-               Times.ONE_WEEK, count);
+                Times.ONE_WEEK, count);
         count -= curr.size();
         recent -= Times.ONE_WEEK;
         results.addAll(curr);
-        if (count <= 0) {
+        if(count <= 0) {
             return results;
         }
-        
+
         //
         // Now add in from one week ago to one month ago
         curr = getUserAttnForTimePeriod(srcKey, type, recent,
-               Times.ONE_MONTH, count);
+                Times.ONE_MONTH, count);
         count -= curr.size();
         recent -= Times.ONE_MONTH;
         results.addAll(curr);
-        if (count <= 0) {
+        if(count <= 0) {
             return results;
         }
-        
+
         //
         // Finally, expand out to one year.
         curr = getUserAttnForTimePeriod(srcKey, type, recent,
-               Times.ONE_YEAR, count);
+                Times.ONE_YEAR, count);
         //
         // Take whatever we got and return it.  We won't search back more than
         // one year.
@@ -610,7 +606,8 @@ public class BerkeleyDataWrapper {
                 new RevAttnTimeComparator());
         //
         // Set the begin and end times chronologically
-        StringAndTimeKey begin = new StringAndTimeKey(srcKey, recentTime - interval);
+        StringAndTimeKey begin = new StringAndTimeKey(srcKey, recentTime -
+                interval);
         StringAndTimeKey end = new StringAndTimeKey(srcKey + 1, recentTime);
         EntityCursor<PersistentAttention> cursor = null;
         try {
@@ -621,25 +618,24 @@ public class BerkeleyDataWrapper {
                 // it to our return set.
                 cursor = attnBySourceAndTime.entities(begin, true, end, false);
                 PersistentAttention curr = cursor.last();
-                while (curr != null && count > 0) {
-                    if ((type == null) || (curr.getType().equals(type))) {
+                while(curr != null && count > 0) {
+                    if((type == null) || (curr.getType().equals(type))) {
                         result.add(curr);
                         count--;
                     }
                     curr = cursor.prev();
                 }
             } finally {
-                if (cursor != null) {
+                if(cursor != null) {
                     cursor.close();
                 }
             }
-        } catch (DatabaseException e) {
+        } catch(DatabaseException e) {
             log.log(Level.WARNING, "Failed while retrieving " + count +
                     " recent attentions for user " + srcKey, e);
         }
         return result;
     }
-    
 
     /**
      * Gets the number of items of a particular type that are in the index.
@@ -651,13 +647,13 @@ public class BerkeleyDataWrapper {
         try {
             EntityIndex idx = itemByType.subIndex(type.ordinal());
             return idx.count();
-        } catch (DatabaseException e) {
+        } catch(DatabaseException e) {
             log.log(Level.WARNING, "Failed to get count for items of type " +
                     type);
         }
         return 0;
     }
-    
+
     /**
      * Gets the number of attentions that are in the attention index
      * 
@@ -666,12 +662,12 @@ public class BerkeleyDataWrapper {
     public long getAttentionCount() {
         try {
             return allAttn.count();
-        } catch (DatabaseException e) {
+        } catch(DatabaseException e) {
             log.log(Level.WARNING, "Failed to get count of attentions");
         }
         return 0;
     }
-    
+
     /**
      * Get the number of user entities in the entity store
      * 
@@ -681,33 +677,33 @@ public class BerkeleyDataWrapper {
         long count = -1;
         try {
             count = allUsers.count();
-        } catch (DatabaseException e) {
+        } catch(DatabaseException e) {
             log.log(Level.WARNING, "getNumUsers failed", e);
         }
         return count;
     }
-        
+
     /**
      * Close up the entity store and the database environment.
      */
     public void close() {
-        if (store != null) {
+        if(store != null) {
             try {
                 store.close();
-            } catch (DatabaseException e) {
+            } catch(DatabaseException e) {
                 log.log(Level.SEVERE, "Failed to close entity store", e);
             }
         }
-        
-        if (dbEnv != null) {
+
+        if(dbEnv != null) {
             try {
                 dbEnv.close();
-            } catch (DatabaseException e) {
+            } catch(DatabaseException e) {
                 log.log(Level.SEVERE, "Failed to close database environment",
                         e);
             }
         }
-        
+
     }
 
     /**
@@ -716,9 +712,9 @@ public class BerkeleyDataWrapper {
     class RevAttnTimeComparator implements Comparator<Attention> {
 
         public int compare(Attention o1, Attention o2) {
-            if (o1.getTimeStamp() - o2.getTimeStamp() < 0) {
+            if(o1.getTimeStamp() - o2.getTimeStamp() < 0) {
                 return 1;
-            } else if (o1.getTimeStamp() == o2.getTimeStamp()) {
+            } else if(o1.getTimeStamp() == o2.getTimeStamp()) {
                 return 0;
             } else {
                 return -1;
@@ -726,22 +722,20 @@ public class BerkeleyDataWrapper {
 
         }
     }
-    
     /**
      * Compares item objects to sort in reverse chronological order
      */
     /*
     class RevItemTimeComparator implements Comparator<Item> {
-        public int compare(Item o1, Item o2) {
-            if (o1.getTimeStamp() - o2.getTimeStamp() < 0) {
-                return 1;
-            } else if (o1.getTimeStamp() == o2.getTimeStamp()) {
-                return 0;
-            } else {
-                return -1;
-            }
-
-        }
+    public int compare(Item o1, Item o2) {
+    if (o1.getTimeStamp() - o2.getTimeStamp() < 0) {
+    return 1;
+    } else if (o1.getTimeStamp() == o2.getTimeStamp()) {
+    return 0;
+    } else {
+    return -1;
+    }
+    }
     }
      */
 }

@@ -44,7 +44,7 @@ public class DistributionTest {
 
     @After
     public void deleteBDBDir() throws Exception {
-        File f = new File("/tmp/aura/itemStore.db");
+        File f = new File("/tmp/aura/dataStore.db");
         if(f.exists()) {
             File[] content = f.listFiles();
             for(File c : content) {
@@ -58,7 +58,7 @@ public class DistributionTest {
     public void registerItemStore() throws Exception {
         URL cu = getClass().getResource("distItemStoreConfig.xml");
         ConfigurationManager cm = new ConfigurationManager(cu);
-        ItemStore is = (ItemStore) cm.lookup("itemStore");
+        ItemStore is = (ItemStore) cm.lookup("dataStore");
         assertNotNull(is);
         cm.getComponentRegistry().unregister();
     }
@@ -67,7 +67,7 @@ public class DistributionTest {
     public void crawlOneFeed() throws Exception {
         URL cu = getClass().getResource("distItemStoreConfig.xml");
         ConfigurationManager iscm = new ConfigurationManager(cu);
-        ItemStore is = (ItemStore) iscm.lookup("itemStore");
+        ItemStore is = (ItemStore) iscm.lookup("dataStore");
         assertNotNull(is);
         cu = getClass().getResource("distCrawlerConfig.xml");
         ConfigurationManager crcm = new ConfigurationManager(cu);
@@ -87,7 +87,7 @@ public class DistributionTest {
         // Get our item store.
         URL cu = getClass().getResource("distItemStoreConfig.xml");
         ConfigurationManager iscm = new ConfigurationManager(cu);
-        ItemStore is = (ItemStore) iscm.lookup("itemStore");
+        ItemStore is = (ItemStore) iscm.lookup("dataStore");
         assertNotNull(is);
 
         //

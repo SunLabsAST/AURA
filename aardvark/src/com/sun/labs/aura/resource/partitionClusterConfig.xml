@@ -20,6 +20,12 @@
     
     <property name="prefix" value="01"/>
     
+    <component name="prefixEntries" type="com.sun.labs.util.props.ConfigurationEntries">
+        <propertylist name="entries">
+            <item>${prefix}</item>
+        </propertylist>
+    </component>
+    
     <!-- A component registry that will be used to lookup and register components. -->
     <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
         <propertylist name="groupList">
@@ -31,19 +37,18 @@
             <item>aardvark.jar</item>
             <item>LabsUtil.jar</item>
         </propertylist>
+        <property name="lookupTries" value="20"/>
+        <property name="lookupWait" value="2"/>
         <property name="securityPolicy" value="${auraDistDir}/jsk-all.policy"/>
     </component>
     
     <!-- The configuration for a partition cluster. -->
-    <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" export="true" entries="prefixEntries">
+    <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true" entries="prefixEntries">
         <property name="prefix" value="${prefix}"/>
+        <property name="dataStoreHead" value="dataStoreHead"/>
     </component>
 
-    <component name="prefixEntries" type="com.sun.labs.util.props.ConfigurationEntries">
-        <propertylist name="entries">
-            <item>${prefix}</item>
-        </propertylist>
-    </component>
+    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
     
     <!-- A service starter for this cluster -->
     <component name="partitionClusterStarter" type="com.sun.labs.aura.AuraServiceStarter">
@@ -51,7 +56,5 @@
             <item>partitionCluster</item>
         </propertylist>
     </component>
-    
-    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
     
 </config>

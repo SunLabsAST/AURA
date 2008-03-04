@@ -1,6 +1,7 @@
 
 package com.sun.labs.aura.datastore.impl;
 
+import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
@@ -486,6 +487,86 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
     }
 
+    /* **********
+     * 
+     *  Search methods
+     *
+     */
+    public SortedSet<Item> findSimilar(String key, int n)
+            throws AuraException, RemoteException {
+        return findSimilar(key, (String)null, n);
+    }
+
+    public SortedSet<Item> findSimilar(String key, final String field, int n)
+            throws AuraException, RemoteException {
+        WeightedField wf = new WeightedField(field, 1);
+        return findSimilar(key, new WeightedField[]{wf}, n);
+    }
+
+    public SortedSet<Item> findSimilar(final String key,
+                                       final WeightedField[] fields,
+                                       final int n)
+            throws AuraException, RemoteException {
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<SortedSet<Item>>> callers =
+                new HashSet<Callable<SortedSet<Item>>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+                public SortedSet<Item> call()
+                        throws AuraException, RemoteException {
+                    if (fields == null) {
+                        return pc.findSimilar(key, n);
+                    } else if (fields.length == 1) {
+                        return pc.findSimilar(key, fields[0].getFieldName(), n);
+                    } else {
+                        return pc.findSimilar(key, fields, n);
+                    }
+                }
+            });
+        }
+        
+        //
+        // Combine the results, then return only the top n
+        SortedSet<Item> ret = null;
+        try {
+            List<Future<SortedSet<Item>>> results = executor.invokeAll(callers);
+            for (Future<SortedSet<Item>> future : results) {
+                SortedSet<Item> curr = future.get();
+                if (curr != null) {
+                    if (ret == null) {
+                        //
+                        // Make a new set with the contents and comparator from
+                        // curr
+                        ret = new TreeSet<Item>(curr);
+                    } else {
+                        ret.addAll(curr);
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+        
+        if (ret == null) {
+            return new TreeSet<Item>();
+        }
+        
+        //
+        // Make a set of the top n to return
+        SortedSet<Item> retCnted = new TreeSet<Item>(ret.comparator());
+        Iterator<Item> it = ret.iterator();
+        for (int i = 0; i < n; i++) {
+            if (it.hasNext()) {
+                retCnted.add(it.next());
+            } else {
+                break;
+            }
+        }
+        return retCnted;
+    }
+
 
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
@@ -516,6 +597,12 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
     }
 
+    /* **************
+     * 
+     *  Utility and configuration methods
+     * 
+     */
+    
     public void newProperties(PropertySheet ps) throws PropertyException {
         cm = ps.getConfigurationManager();
     }

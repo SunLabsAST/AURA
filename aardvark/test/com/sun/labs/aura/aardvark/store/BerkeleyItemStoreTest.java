@@ -47,7 +47,7 @@ public class BerkeleyItemStoreTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        File f = new File("/tmp/aura-bdbtest/itemStore.db");
+        File f = new File("/tmp/aura-bdbtest/dataStore.db");
         File[] content = f.listFiles();
         for (File c : content) {
             c.delete();
@@ -272,7 +272,7 @@ public class BerkeleyItemStoreTest {
         ConfigurationManager cm = new ConfigurationManager();
         URL configFile = this.getClass().getResource("berkeleyConfig.xml");
         cm.addProperties(configFile);
-        return (BerkeleyItemStore) cm.lookup("itemStore");
+        return (BerkeleyItemStore) cm.lookup("dataStore");
 
     }
     

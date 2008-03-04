@@ -11,7 +11,6 @@ import com.sun.kt.search.SearchEngineException;
 import com.sun.kt.search.SearchEngineFactory;
 import com.sun.labs.aura.datastore.Indexable;
 import com.sun.labs.aura.datastore.Item;
-import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
@@ -23,6 +22,8 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -51,24 +52,27 @@ public class ItemSearchEngine implements Configurable {
 
     private Logger log;
 
-    private int entryBatchSize;
-
     private int engineLogLevel;
 
-    private int entryCount = 0;
-
     private boolean shuttingDown;
+    
+    private long flushCheckInterval;
 
+    private Timer flushTimer;
+    
     public void newProperties(PropertySheet ps) throws PropertyException {
-        entryBatchSize = ps.getInt(PROP_ENTRY_BATCH_SIZE);
+        
+        //
+        // Load up the search engine.
         engineLogLevel = ps.getInt(PROP_ENGINE_LOG_LEVEL);
         log = ps.getLogger();
         Log.setLogger(log);
         Log.setLevel(engineLogLevel);
         String indexDir = ps.getString(PROP_INDEX_DIR);
         String engineConfig = ps.getString(PROP_ENGINE_CONFIG_FILE);
+        
         try {
-            URL config = ItemSearchEngine.class.getResource(engineConfig);
+            URL config = getClass().getResource(engineConfig);
 
             //
             // Creates the search engine.  We'll use a full blown fields-and-all
@@ -80,6 +84,16 @@ public class ItemSearchEngine implements Configurable {
         } catch(SearchEngineException see) {
             log.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
         }
+        
+        //
+        // Set up for periodically flushing the data to disk.
+        flushCheckInterval = ps.getInt(PROP_FLUSH_INTERVAL);
+        flushTimer = new Timer("ItemSearchEngineFlushTimer");
+        flushTimer.scheduleAtFixedRate(new FlushTimerTask(), flushCheckInterval, flushCheckInterval);
+    }
+    
+    public SearchEngine getSearchEngine() {
+        return engine;
     }
 
     /**
@@ -155,10 +169,6 @@ public class ItemSearchEngine implements Configurable {
             }
 
             engine.index(item.getKey(), im);
-            if(++entryCount % entryBatchSize == 0) {
-                engine.flush();
-                entryCount = 0;
-            }
             return true;
         } catch(SearchEngineException ex) {
             log.log(Level.SEVERE, "Exception indexing " + item.getKey(), ex);
@@ -263,6 +273,25 @@ public class ItemSearchEngine implements Configurable {
             log.log(Level.WARNING, "Error closing index data engine", ex);
         }
     }
+    
+    /**
+     * A timer task for flushing the engine periodically.
+     */
+    class FlushTimerTask extends TimerTask {
+
+        private long last = System.currentTimeMillis();
+        @Override
+        public void run() {
+            try {
+                long curr = System.currentTimeMillis();
+                engine.flush();
+                last = curr;
+            } catch(SearchEngineException ex) {
+                log.log(Level.SEVERE, "Error flushing engine data", ex);
+            }
+        }
+    }
+    
     /**
      * The resource to load for the engine configuration.  This gives us the
      * opportunity to use different configs as necessary (e.g., for testing).
@@ -276,20 +305,19 @@ public class ItemSearchEngine implements Configurable {
      * The default logging level for the search engine.  Paul likes things nice
      * and quiet.
      */
-    @ConfigInteger(defaultValue = 2)
+    @ConfigInteger(defaultValue = 1)
     public static final String PROP_ENGINE_LOG_LEVEL = "engineLogLevel";
 
     /**
      * The configurable index directory.
      */
     @ConfigString(defaultValue = "itemData.idx")
-    public static final String PROP_INDEX_DIR =
-            "indexDir";
+    public static final String PROP_INDEX_DIR = "indexDir";
 
     /**
-     * Number of entries to batch up before indexing
+     * The interval (in milliseconds) between index flushes.
      */
-    @ConfigInteger(defaultValue = 20, range = {1, 8192})
-    public static final String PROP_ENTRY_BATCH_SIZE = "entryBatchSize";
+    @ConfigInteger(defaultValue=3000, range = {1,300000})
+    public static final String PROP_FLUSH_INTERVAL = "flushInterval";
 
 }

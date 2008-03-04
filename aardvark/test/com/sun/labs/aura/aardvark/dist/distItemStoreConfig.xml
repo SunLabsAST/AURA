@@ -19,8 +19,8 @@
     </component>
     
     <!-- An item store that can be sent to a service registrar for use by others. -->
-    <component name="itemStore" type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore" export="true" lease="100000">
-        <property name="dbEnv" value="/tmp/aura/itemStore.db"/>
+    <component name="dataStore" type="com.sun.labs.aura.aardvark.impl.bdb.store.BerkeleyItemStore" export="true" lease="100000">
+        <property name="dbEnv" value="/tmp/aura/dataStore.db"/>
         <property name="overwrite" value="true"/>
     </component>
 </config>

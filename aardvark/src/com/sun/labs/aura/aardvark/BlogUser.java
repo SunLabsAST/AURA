@@ -9,6 +9,7 @@
 
 package com.sun.labs.aura.aardvark;
 
+import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
 

@@ -61,4 +61,19 @@ public class ItemEvent implements Serializable {
         }
         return ct;
     }
+    
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(ct);
+        sb.append(" [");
+        for(int i = 0; i < items.length; i++) {
+            if(i > 0) {
+                sb.append(", ");
+            }
+            sb.append(items[i].toString());
+        }
+        sb.append("]");
+        return sb.toString();
+        
+    }
 }

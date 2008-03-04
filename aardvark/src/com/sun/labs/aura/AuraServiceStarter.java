@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -116,6 +117,7 @@ public class AuraServiceStarter implements Configurable {
             usage();
         } catch(InterruptedException ie) {
         } catch(Exception e) {
+            System.err.println("Other error: " + e);
             usage();
         } finally {
             if(starter != null) {
