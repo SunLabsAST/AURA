@@ -136,7 +136,7 @@ public class PartitionClusterImpl implements PartitionCluster,
             throws AuraException, RemoteException {
         //
         // Should the listener only go down to the partition cluster level?
-        replicant.addItemListener(itemType, listener);
+        replicant.removeItemListener(itemType, listener);
     }
 
     public long getItemCount(ItemType itemType)
