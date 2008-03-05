@@ -36,12 +36,16 @@ public class FeedManager implements AuraService, Configurable {
     private Set<Thread> runningThreads = Collections.synchronizedSet(new HashSet<Thread>());
     private int feedPullCount = 0;
     private int feedErrorCount = 0;
+    private int entryPullCount = 0;
     private Logger logger;
+    private long startTime = 0;
+    private int defaultCrawlingPeriod = 60 * 60;
 
     /**
      * Starts crawling all of the feeds
      */
     public void start() {
+        startTime = System.currentTimeMillis();
         for (int i = 0; i < numThreads; i++) {
             Thread t = new Thread() {
 
@@ -109,24 +113,34 @@ public class FeedManager implements AuraService, Configurable {
     private void crawlFeeds() {
         ItemScheduler myFeedScheduler = feedScheduler;
         DataStore myItemStore = dataStore;
-        while (runningThreads.contains(Thread.currentThread())) {
-            try {
-                String key = myFeedScheduler.getNextItemKey();
+        try {
+            while (runningThreads.contains(Thread.currentThread())) {
                 try {
-                BlogFeed feed = new BlogFeed(myItemStore.getItem(key));
-                crawlFeed(myItemStore, feed);
-                } finally {
-                feedScheduler.releaseItem(key, 0);
+                    String key = myFeedScheduler.getNextItemKey();
+                    int nextCrawl = defaultCrawlingPeriod;
+                    try {
+                        Item item = myItemStore.getItem(key);
+                        if (item != null) {
+                            BlogFeed feed = new BlogFeed(item);
+                            crawlFeed(myItemStore, feed);
+                            nextCrawl += feed.getNumConsecutiveErrors() * defaultCrawlingPeriod;
+                        }
+                    } finally {
+                        feedScheduler.releaseItem(key, nextCrawl);
+                    }
+                } catch (InterruptedException ex) {
+                    break;
+                } catch (RemoteException ex) {
+                    break;
+                } catch (AuraException ex) {
+                    logger.warning("AuraException in crawler, still trying " + ex.getMessage());
                 }
-            } catch (InterruptedException ex) {
-                break;
-            } catch (RemoteException ex) {
-                break;
-            } catch (AuraException ex) {
-            // TBD: what does an AuraException mean here.
             }
+        } finally {
+            runningThreads.remove(Thread.currentThread());
+            logger.info("Crawling thread shutdown " + runningThreads.size() 
+                    + " remaining");
         }
-        runningThreads.remove(Thread.currentThread());
     }
 
     /**
@@ -157,6 +171,8 @@ public class FeedManager implements AuraService, Configurable {
                     }
                 }
             }
+            entryPullCount += entries.size();
+            logger.info(entries.size() + " entries from  " + feed.getURL());
             ok = true;
         } catch (AuraException ex) {
             logger.warning("trouble processing " + feed.getKey() + " " +
@@ -169,6 +185,15 @@ public class FeedManager implements AuraService, Configurable {
         feedPullCount++;
         feed.pulled(ok);
         feed.flush(myItemStore);
+
+        if (feedPullCount % 100 == 0) {
+            float mins = (System.currentTimeMillis() - startTime) / (1000.0f * 60.0f);
+            float ppm = feedPullCount / mins;
+            logger.info("Feeds: " + feedScheduler.size() + " FeedPulls: " + feedPullCount 
+                    + " errors: " + feedErrorCount + " entries: " 
+                    + entryPullCount + " ppm: " + ppm +
+                    " Threads: " + runningThreads.size());
+        }
     }
 
     /**

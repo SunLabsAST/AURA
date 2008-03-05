@@ -16,6 +16,7 @@ import com.sun.labs.aura.datastore.Item;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -310,5 +311,34 @@ public class ItemAdapter {
             tag.accum(count);
         }
         modified = true;
+    }
+
+    @Override
+    public String toString() {
+        return toString(getItem());
+    }
+    
+    public static String toString(Item item) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("key : " + item.getKey() + "\n");
+        sb.append("name: " + item.getName() + "\n");
+        sb.append("type: " + item.getType() + "\n");
+
+        List<String> keys = new ArrayList<String>(item.getMap().keySet());
+        Collections.sort(keys);
+
+        for (String name : keys) {
+            Object o = item.getMap().get(name);
+            sb.append("    " + name + ": ");
+            if (o instanceof Collection) {
+                for (Object element : (Collection) o) {
+                    sb.append(element + ",");
+                }
+            } else {
+                sb.append(o);
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
     }
 }

@@ -28,6 +28,7 @@ public class BlogFeed extends ItemAdapter {
     private final static String FIELD_IMAGE = "image";
     private final static String FIELD_AUTHOR = "author";
     private final static String FIELD_TAG = "tag";
+    private final static String FIELD_LINK = "link";
     private final static String FIELD_AUTHORITY = "authority";
     private final static String FIELD_LAST_PULL_TIME = "lastPullTime";
     private final static String FIELD_NUM_PULLS = "numPulls";
@@ -68,6 +69,14 @@ public class BlogFeed extends ItemAdapter {
      */
     public void setImage(String imageLink) {
         setField(FIELD_IMAGE, imageLink);
+    }
+
+    /**
+     * Sets the link for a feed. 
+     * @param link the link ot the image
+     */
+    public void setLink(String link) {
+        setField(FIELD_LINK, link);
     }
 
     /**
@@ -158,6 +167,14 @@ public class BlogFeed extends ItemAdapter {
      */
     public String getImage() {
         return getFieldAsString(FIELD_IMAGE);
+    }
+
+    /**
+     * Gets a link to the feed
+     * @return the link to the image
+     */
+    public String getLink() {
+        return getFieldAsString(FIELD_LINK);
     }
 
     /**
