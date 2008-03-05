@@ -21,7 +21,10 @@ import java.util.Set;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 /**
  * An implementation of the ItemScheduler interface
@@ -34,11 +37,35 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     private DelayQueue<DelayedItem> outstandingQueue;
     private ItemListener exportedItemListener;
     private Thread leaseReclaimer = null;
+    private AtomicInteger waiters = new AtomicInteger();
 
     public String getNextItemKey() throws InterruptedException {
+
+
+        waiters.incrementAndGet();
+
+        if (logger.isLoggable(Level.INFO)) {
+            DelayedItem next = itemQueue.peek();
+            logger.info("waiters: " + waiters.get() + " waiting " + next.getDelay(TimeUnit.SECONDS) 
+                    + " secs, items: " + itemQueue.size());
+        }
+
         DelayedItem delayedItem = itemQueue.take();
+        waiters.decrementAndGet();
+
         DelayedItem leasedItem = new DelayedItem(delayedItem.getItemKey(), itemLeaseTime);
         outstandingQueue.add(leasedItem);
+
+        // if the delay time is negative, then, we are late at getting to this
+        // item to process it.  If we are later than lateTime, issue a warning
+        // so we will know to add more resources to the scheduling of these items
+        if (-delayedItem.getDelay(TimeUnit.SECONDS) > lateTime) {
+            logger.warning("schedule of " + delayedItem.getItemKey() + " was " 
+                        + -delayedItem.getDelay(TimeUnit.SECONDS) + " late.");
+        }
+        logger.info("getting " + delayedItem.getItemKey() + " was late by " +
+                -delayedItem.getDelay(TimeUnit.SECONDS) + " secs");
+
         return delayedItem.getItemKey();
     }
 
@@ -47,12 +74,14 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
             secondsUntilNextScheduledProcessing = defaultPeriod;
         }
         addItem(itemKey, secondsUntilNextScheduledProcessing);
+        logger.info("released item " + itemKey + " next time is " + secondsUntilNextScheduledProcessing + " secs");
     }
 
     public void itemCreated(ItemEvent e) throws RemoteException {
         for (Item item : e.getItems()) {
             addItem(item.getKey(), 0);
         }
+        logger.info("Total items: " + (itemQueue.size() + outstandingQueue.size()));
     }
 
     public void itemChanged(ItemEvent e) throws RemoteException {
@@ -63,7 +92,6 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
             deleteItemByKeyFromQueues(item.getKey());
         }
     }
-
 
     private void deleteItemByKeyFromQueues(String itemKey) {
         DelayedItem itemToDelete = new DelayedItem(itemKey);
@@ -127,6 +155,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
 
         itemLeaseTime = ps.getInt(PROP_ITEM_LEASE_TIME);
         defaultPeriod = ps.getInt(PROP_DEFAULT_PERIOD);
+        lateTime = ps.getInt(PROP_LATE_TIME);
 
         // if we have a new item store, or a new item type, disconnect from 
         // the old item store, and connect up to the new store.
@@ -166,11 +195,11 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
 
                 Set<Item> items = newItemStore.getAll(newItemType);
                 if (items.size() > 0) {
-                    int initialDelay = 0;
-                    int delayIncrement = defaultPeriod / items.size();
+                    float initialDelay = 0;
+                    float delayIncrement = ((float) defaultPeriod) / items.size();
 
                     for (Item item : items) {
-                        addItem(item.getKey(), initialDelay);
+                        addItem(item.getKey(), (int) initialDelay);
                         initialDelay += delayIncrement;
                     }
                 }
@@ -195,14 +224,13 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
      * outstanding queue, make sure that no duplicates of the item are on the item queue
      * 
      * @param itemID the item to add
-     * @param delay the delay, in milliseconds, until the item should be made
+     * @param delay the delay, in seconds, until the item should be made
      * available for processing
      */
     private void addItem(String itemKey, int delay) {
         deleteItemByKeyFromQueues(itemKey);
         itemQueue.add(new DelayedItem(itemKey, delay));
     }
-
     /**
      * the configurable property for the itemstore used by this manager
      */
@@ -228,15 +256,25 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
      */
     @ConfigInteger(defaultValue = 60 * 60, range = {1, 60 * 60 * 24 * 365})
     public final static String PROP_DEFAULT_PERIOD = "defaultPeriod";
-   private int defaultPeriod;
+    private int defaultPeriod;
+
+    /**
+     * the configurable property for late processing notification tim (in seconds)
+     */
+    @ConfigInteger(defaultValue = 60, range = {1, 60 * 60 * 24 * 365})
+    public final static String PROP_LATE_TIME = "lateTime";
+    private int lateTime;
 
     public void start() {
     }
 
     public void stop() {
     }
-}
 
+    public int size() {
+        return itemQueue.size() + outstandingQueue.size();
+    }
+}
 /**
  * Represents an item and its delay time, suitable for use with a DelayQueue
  * @author plamere
@@ -294,8 +332,6 @@ class DelayedItem implements Delayed {
         hash = 47 * hash + (this.itemKey != null ? this.itemKey.hashCode() : 0);
         return hash;
     }
-
-    
 
     public int compareTo(Delayed o) {
         long result = getDelay(TimeUnit.MILLISECONDS) -
