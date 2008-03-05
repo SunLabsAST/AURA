@@ -39,6 +39,7 @@ public class FeedManager implements AuraService, Configurable {
     private int entryPullCount = 0;
     private Logger logger;
     private long startTime = 0;
+    private int defaultCrawlingPeriod = 60 * 60;
 
     /**
      * Starts crawling all of the feeds
@@ -116,14 +117,16 @@ public class FeedManager implements AuraService, Configurable {
             while (runningThreads.contains(Thread.currentThread())) {
                 try {
                     String key = myFeedScheduler.getNextItemKey();
+                    int nextCrawl = defaultCrawlingPeriod;
                     try {
                         Item item = myItemStore.getItem(key);
                         if (item != null) {
                             BlogFeed feed = new BlogFeed(item);
                             crawlFeed(myItemStore, feed);
+                            nextCrawl += feed.getNumConsecutiveErrors() * defaultCrawlingPeriod;
                         }
                     } finally {
-                        feedScheduler.releaseItem(key, 0);
+                        feedScheduler.releaseItem(key, nextCrawl);
                     }
                 } catch (InterruptedException ex) {
                     break;

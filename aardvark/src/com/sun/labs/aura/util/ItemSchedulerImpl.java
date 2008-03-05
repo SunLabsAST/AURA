@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 /**
  * An implementation of the ItemScheduler interface
  * @author plamere
@@ -34,38 +33,39 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         ItemListener, AuraService {
 
     private DelayQueue<DelayedItem> itemQueue;
-    private DelayQueue<DelayedItem> outstandingQueue;
     private ItemListener exportedItemListener;
-    private Thread leaseReclaimer = null;
     private AtomicInteger waiters = new AtomicInteger();
 
     public String getNextItemKey() throws InterruptedException {
-
-
         waiters.incrementAndGet();
 
         if (logger.isLoggable(Level.INFO)) {
             DelayedItem next = itemQueue.peek();
-            logger.info("waiters: " + waiters.get() + " waiting " + next.getDelay(TimeUnit.SECONDS) 
-                    + " secs, items: " + itemQueue.size());
+            if (next != null) {
+                logger.info("waiters: " + waiters.get() + " waiting " + next.getDelay(TimeUnit.SECONDS) 
+                        + " secs, items: " + itemQueue.size());
+            } 
         }
 
         DelayedItem delayedItem = itemQueue.take();
-        waiters.decrementAndGet();
 
-        DelayedItem leasedItem = new DelayedItem(delayedItem.getItemKey(), itemLeaseTime);
-        outstandingQueue.add(leasedItem);
+
+        long lateSeconds = -delayedItem.getDelay(TimeUnit.SECONDS);
+        if (lateSeconds > 0) {
 
         // if the delay time is negative, then, we are late at getting to this
         // item to process it.  If we are later than lateTime, issue a warning
         // so we will know to add more resources to the scheduling of these items
-        if (-delayedItem.getDelay(TimeUnit.SECONDS) > lateTime) {
-            logger.warning("schedule of " + delayedItem.getItemKey() + " was " 
-                        + -delayedItem.getDelay(TimeUnit.SECONDS) + " late.");
-        }
-        logger.info("getting " + delayedItem.getItemKey() + " was late by " +
-                -delayedItem.getDelay(TimeUnit.SECONDS) + " secs");
 
+            if (lateSeconds > lateTime) {
+                logger.warning("schedule of " + delayedItem.getItemKey() + " was " 
+                            + lateSeconds + " seconds late.");
+            }
+            logger.info("getting " + delayedItem.getItemKey() + " was late by " +
+                    -delayedItem.getDelay(TimeUnit.SECONDS) + " secs");
+        }
+
+        waiters.decrementAndGet();
         return delayedItem.getItemKey();
     }
 
@@ -81,7 +81,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         for (Item item : e.getItems()) {
             addItem(item.getKey(), 0);
         }
-        logger.info("Total items: " + (itemQueue.size() + outstandingQueue.size()));
+        logger.info("Added " + e.getItems().length + " items " + " total size is " + size());
     }
 
     public void itemChanged(ItemEvent e) throws RemoteException {
@@ -95,21 +95,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
 
     private void deleteItemByKeyFromQueues(String itemKey) {
         DelayedItem itemToDelete = new DelayedItem(itemKey);
-        outstandingQueue.remove(itemToDelete);
         itemQueue.remove(itemToDelete);
-    }
-
-    private void processExpiredLeases() {
-        logger.info("lease processing started");
-        try {
-            DelayedItem item = null;
-            while ((item = outstandingQueue.take()) != null) {
-                logger.warning("reclaimed item after lease expired: " + item.getItemKey());
-                addItem(item.getItemKey(), 0);
-            }
-        } catch (InterruptedException ex) {
-        }
-        logger.info("lease processing finished");
     }
 
     synchronized public void newProperties(PropertySheet ps) throws PropertyException {
@@ -129,31 +115,9 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
             itemQueue = new DelayQueue<DelayedItem>();
         }
 
-        if (outstandingQueue == null) {
-            outstandingQueue = new DelayQueue<DelayedItem>();
-        }
 
         itemQueue.clear();
-        outstandingQueue.clear();
 
-
-        if (leaseReclaimer == null) {
-            leaseReclaimer = new Thread() {
-
-                @Override
-                public void run() {
-                    try {
-                        processExpiredLeases();
-                    } finally {
-                        leaseReclaimer = null;
-                    }
-                }
-            };
-            leaseReclaimer.start();
-        }
-
-
-        itemLeaseTime = ps.getInt(PROP_ITEM_LEASE_TIME);
         defaultPeriod = ps.getInt(PROP_DEFAULT_PERIOD);
         lateTime = ps.getInt(PROP_LATE_TIME);
 
@@ -188,8 +152,6 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
 
 
             try {
-
-
                 // collect all of the items of our item type and add them to the
                 // itemQueue.  Stagger the period over the default period
 
@@ -228,7 +190,6 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
      * available for processing
      */
     private void addItem(String itemKey, int delay) {
-        deleteItemByKeyFromQueues(itemKey);
         itemQueue.add(new DelayedItem(itemKey, delay));
     }
     /**
@@ -237,14 +198,9 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
     private DataStore dataStore;
+
     /**
-     * the configurable property for maximum item lease time in seconds
-     */
-    @ConfigInteger(defaultValue = 60 * 30, range = {1, 60 * 60 * 24})
-    public final static String PROP_ITEM_LEASE_TIME = "itemLeaseTime";
-    private int itemLeaseTime;
-    /**
-     * the configurable property for type of item to be managed
+     * the confieurable property for type of item to be managed
      */
     @ConfigEnum(type = com.sun.labs.aura.datastore.Item.ItemType.class, defaultValue =
     "")
@@ -272,7 +228,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     }
 
     public int size() {
-        return itemQueue.size() + outstandingQueue.size();
+        return itemQueue.size();
     }
 }
 /**
@@ -339,4 +295,3 @@ class DelayedItem implements Delayed {
         return result < 0 ? -1 : result > 0 ? 1 : 0;
     }
 }
-    
