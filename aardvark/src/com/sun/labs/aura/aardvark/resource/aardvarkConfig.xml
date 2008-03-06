@@ -27,6 +27,7 @@
         <property name="csPort" value="${csPort}"/>
         <propertylist name="codebaseJars">
             <item>aardvark.jar</item>
+            <item>ktsearch.jar</item>
             <item>LabsUtil.jar</item>
             <item>rome-0.9.jar</item>
         </propertylist>
@@ -37,7 +38,6 @@
     <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl" export="true">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="recommenderManager" value="recommenderManager"/>
-        <property name="feedCrawler" value="feedManager"/>
         <property name="autoEnrollTestFeeds" value="true"/>
         <property name="autoEnrollMegaTestFeeds" value="true"/>
     </component>
@@ -46,8 +46,6 @@
 
     <component name="recommenderManager" type="com.sun.labs.aura.aardvark.recommender.RecommenderManager"/>
     
-    <component name="feedManager" type="com.sun.labs.aura.aardvark.crawler.FeedCrawler"/>
-
     <!-- A service starter for this feed scheduler -->
     <component name="aardvarkStarter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">

@@ -93,15 +93,15 @@ nohup java -DauraHome=${AURAHOME} -jar dist/aardvark.jar /com/sun/labs/aura/reso
 
 Using scripts:
 
+Copy things over:
+
+scp aardvark-dist.jar bobism:/scratch/aura; scp aardvark-dist.jar faber:/export/aura; scp aardvark-dist.jar lur:/big/aura; scp aardvark-dist.jar search:/scratch2/stgreen/aura
+
 When logging in:
 
 . bin/distSetup.sh 
 cd $AURAHOME 
-rm -rf $PREFIX
-jar -xf aardvark-dist.jar 
-cd dist/
-jar -xf aardvark.jar 
-cd ..
+rm -rf $PREFIX; jar -xf aardvark-dist.jar; pushd dist/; jar -xf aardvark.jar; popd
 
 which assumes that you have the script above saved as bin/distSetup.sh
 

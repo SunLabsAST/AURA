@@ -362,6 +362,10 @@ public class Shell {
     }
 
     public static void main(String[] args) {
+        if(args.length == 0) {
+            System.err.println("Usage:  Shell <configFile>");
+            return;
+        }
         try {
             Shell shell = new Shell(args[0]);
             shell.go();

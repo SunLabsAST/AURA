@@ -35,6 +35,7 @@
         <property name="csPort" value="${csPort}"/>
         <propertylist name="codebaseJars">
             <item>aardvark.jar</item>
+            <item>ktsearch.jar</item>
             <item>LabsUtil.jar</item>
         </propertylist>
         <property name="lookupTries" value="20"/>

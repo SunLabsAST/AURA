@@ -49,6 +49,7 @@ public interface ItemScheduler extends Component, Remote {
 
     /**
      * Gets the total number of items that are currently being scheduled
+     * @return the number of items being scheduled.
      */
-    public int size();
+    public int size() throws RemoteException;
 }

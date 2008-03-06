@@ -31,10 +31,6 @@
     
     <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark"/>
     
-    <component name="dataStore" type="com.sun.labs.aura.aardvark.store.ItemStore"/>
-    
-    <component name="feedCrawler" type="com.sun.labs.aura.aardvark.crawler.FeedCrawler"/>
-    
-    <component name="searchRecommenderManager" type="com.sun.labs.aura.aardvark.recommender.RecommenderManager"/>
+    <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
     
 </config>

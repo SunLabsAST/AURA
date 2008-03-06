@@ -275,6 +275,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
                         addLocalOpml("tech_blogs.opml");
                         addLocalOpml("politics_blogs.opml");
                         addLocalOpml("news_blogs.opml");
+                        addLocalOpml("mega.opml");
                     }
                 } catch (Throwable t) {
                     logger.severe("bad thing happend " + t);
