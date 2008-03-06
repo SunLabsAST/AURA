@@ -47,11 +47,12 @@ public class MultiDBIterator<E> implements DBIterator {
             if (currValIt.hasNext()) {
                 return true;
             }
-            //
-            // note: need to handle case where an iterator in the set was empty
+
             if (itIt.hasNext()) {
-                currValIt = itIt.next();
-                return true;
+                while (itIt.hasNext() && !currValIt.hasNext()) {
+                    currValIt = itIt.next();
+                }
+                return currValIt.hasNext();
             }
         }
         return false;
@@ -62,10 +63,11 @@ public class MultiDBIterator<E> implements DBIterator {
             if (currValIt.hasNext()) {
                 return currValIt.next();
             }
-            //
-            // note: need to handle case where an iterator in the set was empty
+
             if (itIt.hasNext()) {
-                currValIt = itIt.next();
+                while (itIt.hasNext() && !currValIt.hasNext()) {
+                    currValIt = itIt.next();
+                }
                 return currValIt.next();
             }
         }
