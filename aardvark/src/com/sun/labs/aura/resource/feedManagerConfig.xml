@@ -47,7 +47,7 @@
     
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
 
-    <component name="feedScheduler" type="com.sun.labs.aura.aardvark.ItemScheduler"/>
+    <component name="feedScheduler" type="com.sun.labs.aura.util.ItemScheduler"/>
     
     <!-- A service starter for this feedManager -->
     <component name="feedManagerStarter" type="com.sun.labs.aura.AuraServiceStarter">

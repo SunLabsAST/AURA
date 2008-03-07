@@ -118,7 +118,7 @@ bash dist/com/sun/labs/aura/resource/replicant.sh
 
 On search.east:
 
-nohup java -DauraHome=${AURAHOME} \
+nohup java -Xmx2g -DauraHome=${AURAHOME} \
       -jar dist/aardvark.jar \
       /com/sun/labs/aura/resource/feedSchedulerConfig.xml \
       feedSchedulerStarter &> fs.out &

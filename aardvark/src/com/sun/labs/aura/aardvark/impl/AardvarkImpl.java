@@ -257,7 +257,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         } catch (IOException ex) {
             logger.log(Level.WARNING, "Problems loading opml " + name, ex);
         } finally {
-            logger.info("Finished enrolling local opml" + name);
+            logger.info("Finished enrolling local opml " + name);
         }
     }
 
