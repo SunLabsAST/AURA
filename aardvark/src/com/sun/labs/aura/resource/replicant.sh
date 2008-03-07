@@ -21,7 +21,7 @@ nohup java -DauraHome=${AURAHOME} -Dprefix=${PREFIX} \
 
 sleep 5
 
-nohup java -DauraHome=${AURAHOME} -Dprefix=${PREFIX} \
+nohup java -Xmx2g -DauraHome=${AURAHOME} -Dprefix=${PREFIX} \
       -jar dist/aardvark.jar \
       /com/sun/labs/aura/resource/replicantConfig.xml \
       replicantStarter &> rep.out & 

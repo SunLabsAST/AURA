@@ -118,6 +118,7 @@ public class AuraServiceStarter implements Configurable {
         } catch(InterruptedException ie) {
         } catch(Exception e) {
             System.err.println("Other error: " + e);
+            e.printStackTrace();
             usage();
         } finally {
             if(starter != null) {
