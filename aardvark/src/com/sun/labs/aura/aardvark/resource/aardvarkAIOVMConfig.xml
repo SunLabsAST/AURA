@@ -78,6 +78,10 @@
         <property name="dataStore" value="dataStoreHead"/>
     </component>
     
+    <component name="shell" type="com.sun.labs.aura.aardvark.util.AardvarkShell">
+        <property name="dataStore" value="dataStoreHead"/>
+    </component>
+
     <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="recommenderManager" value="recommenderManager"/>
@@ -95,7 +99,8 @@
             <item>recommenderManager</item>
             <item>feedScheduler</item>
             <item>feedManager</item>
-            <!-- <item>aardvarkStatusReporter</item> -->
+            <!--<item>aardvarkStatusReporter</item> -->
+            <!--<item>shell</item> -->
             <item>aardvark</item>
         </propertylist>
     </component>

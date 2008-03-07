@@ -12,6 +12,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
@@ -113,17 +114,22 @@ public class FeedManager implements AuraService, Configurable {
     private void crawlFeeds() {
         ItemScheduler myFeedScheduler = feedScheduler;
         DataStore myItemStore = dataStore;
+        String key = null;
         try {
             while (runningThreads.contains(Thread.currentThread())) {
                 try {
-                    String key = myFeedScheduler.getNextItemKey();
+                    key = myFeedScheduler.getNextItemKey();
                     int nextCrawl = defaultCrawlingPeriod;
                     try {
                         Item item = myItemStore.getItem(key);
                         if (item != null) {
-                            BlogFeed feed = new BlogFeed(item);
-                            crawlFeed(myItemStore, feed);
-                            nextCrawl += feed.getNumConsecutiveErrors() * defaultCrawlingPeriod;
+                            if (item.getType() == ItemType.FEED) {
+                                BlogFeed feed = new BlogFeed(item);
+                                crawlFeed(myItemStore, feed);
+                                nextCrawl += feed.getNumConsecutiveErrors() * defaultCrawlingPeriod;
+                            } else {
+                                logger.warning("Expected FEED type, found " + item.getType() + " for " + item.getKey());
+                            }
                         }
                     } finally {
                         feedScheduler.releaseItem(key, nextCrawl);
@@ -134,12 +140,13 @@ public class FeedManager implements AuraService, Configurable {
                     break;
                 } catch (AuraException ex) {
                     logger.warning("AuraException in crawler, still trying " + ex.getMessage());
+                } catch (Throwable ex) {
+                    logger.warning("Unexpected exception when crawling feed " + key + " exception: " + ex.getMessage());
                 }
             }
         } finally {
             runningThreads.remove(Thread.currentThread());
-            logger.info("Crawling thread shutdown " + runningThreads.size() 
-                    + " remaining");
+            logger.info("Crawling thread shutdown " + runningThreads.size() + " remaining");
         }
     }
 
@@ -189,9 +196,7 @@ public class FeedManager implements AuraService, Configurable {
         if (feedPullCount % 100 == 0) {
             float mins = (System.currentTimeMillis() - startTime) / (1000.0f * 60.0f);
             float ppm = feedPullCount / mins;
-            logger.info("Feeds: " + feedScheduler.size() + " FeedPulls: " + feedPullCount 
-                    + " errors: " + feedErrorCount + " entries: " 
-                    + entryPullCount + " ppm: " + ppm +
+            logger.info("Feeds: " + feedScheduler.size() + " FeedPulls: " + feedPullCount + " errors: " + feedErrorCount + " entries: " + entryPullCount + " ppm: " + ppm +
                     " Threads: " + runningThreads.size());
         }
     }
