@@ -56,7 +56,10 @@ public class GridDeploy {
     
     private String instance = "live";
     
-    private String[] prefixCodeList = new String[] { "00", "01", "10", "11" };
+    //private String[] prefixCodeList = new String[] { "00", "01", "10", "11" };
+    private String[] prefixCodeList = new String[] {
+        "000", "001", "010", "011", "100", "101", "110", "111"
+    };
 
     private static String usage = "GridDeploy createCode | startAura | startAardvark";
 
@@ -228,7 +231,7 @@ public class GridDeploy {
 
         //
         // Start a few feed crawlers
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 6; i++) {
             ProcessConfiguration feedMgrConfig = getFeedManagerConfig(i);
             ProcessRegistration feedMgrReg = null;
             try {
@@ -492,7 +495,12 @@ public class GridDeploy {
         
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.DESTROY);
-        
+  
+        // don't overlap with other replicants
+        pc.setLocationConstraint(
+                new ProcessRegistrationFilter.NameMatch(
+                        Pattern.compile(instance + "-feedMgr-*")));
+
         return pc;
     }
     
