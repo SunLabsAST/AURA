@@ -130,6 +130,14 @@ nohup java -DauraHome=${AURAHOME} \
       /com/sun/labs/aura/resource/feedManagerConfig.xml \
       feedManagerStarter &> fm.out &
 
+On one of the machines:
+
+nohup java -DauraHome=${AURAHOME} \
+      -jar dist/aardvark.jar \
+      /com/sun/labs/aura/resource/statServiceConfig.xml \
+      statServiceStarter &> stats.out &
+
+
 On search.east:
 
 bash dist/com/sun/labs/aura/resource/search2.sh

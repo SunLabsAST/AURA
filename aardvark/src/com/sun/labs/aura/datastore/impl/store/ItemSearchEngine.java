@@ -23,9 +23,11 @@ import java.io.Serializable;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -151,8 +153,7 @@ public class ItemSearchEngine implements Configurable {
                         //
                         // We haven't encountered this field name before, so define
                         // the field.
-                        fi =
-                                new FieldInfo(e.getKey(), getAttributes(type),
+                        fi = new FieldInfo(e.getKey(), getAttributes(type),
                                 type);
                         engine.defineField(fi);
                     } else {
@@ -190,24 +191,57 @@ public class ItemSearchEngine implements Configurable {
      * is no appropriate type.
      */
     private FieldInfo.Type getType(Object val) {
-        if(val instanceof Indexable) {
+        if(val instanceof Indexable || val instanceof Indexable[]) {
             return FieldInfo.Type.STRING;
         }
 
-        if(val instanceof String) {
+        if(val instanceof String || val instanceof String[]) {
             return FieldInfo.Type.STRING;
         }
 
-        if(val instanceof Date) {
+        if(val instanceof Date || val instanceof Date[]) {
             return FieldInfo.Type.DATE;
         }
 
-        if(val instanceof Integer || val instanceof Long) {
+        if(val instanceof Integer || val instanceof Integer[] || 
+                val instanceof Long || val instanceof Long[]) {
             return FieldInfo.Type.INTEGER;
         }
 
-        if(val instanceof Float || val instanceof Double) {
+        if(val instanceof Float || val instanceof Float[] || 
+                val instanceof Double || val instanceof Double[]) {
             return FieldInfo.Type.FLOAT;
+        }
+        
+        //
+        // Figure out an appropriate type for a collection.  We first want to 
+        // make sure that all of the elements are of the same type.  This would
+        // be a lot easier if we had real generic types, but there you go.  We'll
+        // ignore zero length collections, because how would we know if it was 
+        // indexed or not, eh?
+        //
+        // Once we figure out that everything is the same type, then we can
+        // return a field type.  The underlying search engine can handle the
+        // collection for itself.
+        if(val instanceof Collection) {
+            Collection c = (Collection) val;
+            if(c.size() > 0) {
+                Iterator i = c.iterator();
+                Object o = i.next();
+                FieldInfo.Type type = getType(o);
+                if(type == FieldInfo.Type.NONE) {
+                    return type;
+                }
+                while(i.hasNext()) {
+                    Object o2 = i.next();
+                    if(!o2.getClass().equals(o.getClass())) {
+                        return FieldInfo.Type.NONE;
+                    }
+                }
+                //
+                // Return the type for the first object.
+                return type;
+            }
         }
 
         return FieldInfo.Type.NONE;

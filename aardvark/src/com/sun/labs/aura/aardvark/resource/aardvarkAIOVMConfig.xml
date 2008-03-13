@@ -69,9 +69,14 @@
     
     <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager">
         <property name="dataStore" value="dataStoreHead"/>
+        <property name="statService" value="statService"/>
         <property name="feedScheduler" value="feedScheduler"/>
         <property name="numThreads" value="5"/>
         <property name="logLevel" value="INFO"/>
+    </component>
+    
+    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl">
+        <property name="dataStore" value="dataStoreHead"/>
     </component>
 
     <component name="aardvarkStatusReporter" type="com.sun.labs.aura.aardvark.util.AardvarkStatusReporter">
@@ -99,6 +104,7 @@
             <item>recommenderManager</item>
             <item>feedScheduler</item>
             <item>feedManager</item>
+            <item>statService</item>
             <!--<item>aardvarkStatusReporter</item> -->
             <!--<item>shell</item> -->
             <item>aardvark</item>
