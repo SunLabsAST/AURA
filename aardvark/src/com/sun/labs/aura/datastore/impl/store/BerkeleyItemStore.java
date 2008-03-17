@@ -322,7 +322,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
      */
     public SortedSet<Scored<Item>> findSimilar(String key, int n)
             throws AuraException, RemoteException {
-        return findSimilar(key, (String) null, n);
+        SortedSet<Scored<Item>> ret = new TreeSet<Scored<Item>>();
+        for(Scored<String> ss : searchEngine.findSimilar(key, n)) {
+            ret.add(new Scored<Item>(getItem(ss.getItem()), ss.getScore()));
+        }
+        return ret;
     }
 
     /**

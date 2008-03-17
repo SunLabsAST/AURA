@@ -304,6 +304,26 @@ public class ItemSearchEngine implements Configurable {
     }
 
     /**
+     * Finds the n most-similar items to the given item, based on the item
+     * data
+     * @param key the item for which we want similar items
+     * @param n the number of similar items to return
+     * @return the set of items most similar to the given item, based on the 
+     * data indexed.  Note that the returned set may be
+     * smaller than the number of items requested!
+     */
+    public List<Scored<String>> findSimilar(String key, int n)
+            throws AuraException, RemoteException {
+        try {
+            DocumentVector dv = engine.getDocumentVector(key);
+            return findSimilar(dv, n);
+        } catch (SearchEngineException ex) {
+            log.log(Level.SEVERE, "Error in findSimilar for key " + key, ex);
+            return null;
+        }
+    }
+    
+    /**
      * Finds the n most-similar items to the given item, based on the data in the 
      * provided field.
      * @param key the item for which we want similar items
