@@ -165,6 +165,17 @@ public class PartitionClusterImpl implements PartitionCluster,
             throws AuraException, RemoteException {
         return replicant.findSimilar(key, fields, n);
     }
+    
+    public SortedSet<Scored<Item>> query(String query, int n) 
+            throws AuraException, RemoteException {
+        return replicant.query(query, n);
+    }
+
+
+    public SortedSet<Scored<Item>> query(String query, String sort, int n) 
+            throws AuraException, RemoteException {
+        return replicant.query(query, sort, n);
+    }
 
 
     public synchronized void close() throws AuraException, RemoteException {

@@ -50,5 +50,24 @@ public interface ItemSearch {
      */
     public SortedSet<Scored<Item>> findSimilar(String key, WeightedField[] fields, int n)
             throws AuraException, RemoteException;
+    
+    /**
+     * Runs a query against the map data and returns the top n results.
+     * @param query the query to run
+     * @param n the number of results to return
+     * @return the top results for the query, sorted by score
+     */
+    public SortedSet<Scored<Item>> query(String query, int n)
+            throws AuraException, RemoteException;
+
+    /**
+     * Runs a query against the map data and returns the top n results.
+     * @param query the query to run
+     * @param sort the sorting specification to use to sort the results
+     * @param n the number of results to return
+     * @return the top results for the query
+     */
+    public SortedSet<Scored<Item>> query(String query, String sort, int n)
+            throws AuraException, RemoteException;
 
 }
