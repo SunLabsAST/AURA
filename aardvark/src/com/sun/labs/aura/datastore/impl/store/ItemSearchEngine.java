@@ -34,6 +34,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import ngnova.retrieval.FieldEvaluator;
+import ngnova.retrieval.FieldTerm;
 
 /**
  * A search engine for the data associated with items in the item store.
@@ -203,16 +205,16 @@ public class ItemSearchEngine implements Configurable {
             return FieldInfo.Type.DATE;
         }
 
-        if(val instanceof Integer || val instanceof Integer[] || 
+        if(val instanceof Integer || val instanceof Integer[] ||
                 val instanceof Long || val instanceof Long[]) {
             return FieldInfo.Type.INTEGER;
         }
 
-        if(val instanceof Float || val instanceof Float[] || 
+        if(val instanceof Float || val instanceof Float[] ||
                 val instanceof Double || val instanceof Double[]) {
             return FieldInfo.Type.FLOAT;
         }
-        
+
         //
         // Figure out an appropriate type for a collection.  We first want to 
         // make sure that all of the elements are of the same type.  This would
@@ -349,6 +351,41 @@ public class ItemSearchEngine implements Configurable {
             }
         } catch(SearchEngineException see) {
             throw new AuraException("Error getting similar items", see);
+        }
+        return ret;
+    }
+
+    /**
+     * Gets a list of the keys for the items that have a field with a given value.
+     * @param name the name of the field
+     * @param val the value
+     * @param n the number of keys to return
+     * @return a list of the keys of the items whose fields have the given value
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<Scored<String>> find(String name, String val, int n) throws AuraException, RemoteException {
+        FieldEvaluator fe = new FieldEvaluator(name, FieldTerm.EQUAL, val);
+        ResultSet rs = fe.eval(engine);
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        try {
+            for(Result r : rs.getResults(0, n)) {
+                ret.add(new Scored<String>(r.getKey(), r.getScore()));
+            }
+        } catch(SearchEngineException see) {
+            throw new AuraException("Error finding items", see);
+        }
+        return ret;
+    }
+
+    public List<Scored<String>> query(String query, String sort, int n) throws AuraException, RemoteException {
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        try {
+            for(Result r : engine.search(query, sort).getResults(0, n)) {
+                ret.add(new Scored<String>(r.getKey(), r.getScore()));
+            }
+        } catch(SearchEngineException see) {
+            throw new AuraException("Error finding items", see);
         }
         return ret;
     }
