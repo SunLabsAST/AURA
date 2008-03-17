@@ -316,6 +316,9 @@ public class ItemSearchEngine implements Configurable {
             throws AuraException, RemoteException {
         try {
             DocumentVector dv = engine.getDocumentVector(key);
+            if (dv == null) {
+                return new ArrayList<Scored<String>>(); // FIXME
+            }
             return findSimilar(dv, n);
         } catch (SearchEngineException ex) {
             log.log(Level.SEVERE, "Error in findSimilar for key " + key, ex);

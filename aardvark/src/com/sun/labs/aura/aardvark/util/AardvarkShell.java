@@ -12,7 +12,6 @@ import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
-import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DBIterator;
@@ -21,6 +20,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.util.StatService;
 import com.sun.labs.util.command.CommandInterface;
 import com.sun.labs.util.command.CommandInterpreter;
 import com.sun.labs.util.props.ConfigComponent;
@@ -30,12 +30,12 @@ import com.sun.labs.util.props.PropertySheet;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import java.rmi.RemoteException;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.logging.Logger;
 
 /**
  * Manages the set of feed crawling threads
@@ -43,10 +43,10 @@ import java.util.logging.Logger;
  */
 public class AardvarkShell implements AuraService, Configurable {
 
-    private Logger logger;
     private DataStore dataStore;
     private CommandInterpreter shell;
     private Aardvark aardvark;
+    private StatService statService;
 
     /**
      * Starts crawling all of the feeds
@@ -54,23 +54,6 @@ public class AardvarkShell implements AuraService, Configurable {
     public void start() {
         shell = new CommandInterpreter();
         shell.setPrompt("aardv% ");
-
-        shell.add("users",
-                new CommandInterface() {
-
-                    public String execute(CommandInterpreter ci, String[] args) {
-                        try {
-                            dumpAllUsers();
-                        } catch (Exception ex) {
-                            System.out.println("Error " + ex);
-                        }
-                        return "";
-                    }
-
-                    public String getHelp() {
-                        return "shows the current users";
-                    }
-                });
 
         shell.add("user",
                 new CommandInterface() {
@@ -80,9 +63,9 @@ public class AardvarkShell implements AuraService, Configurable {
                             if (args.length != 2) {
                                 dumpAllUsers();
                             } else {
-                                Item item = dataStore.getItem(args[1]);
-                                if (item != null && item instanceof User) {
-                                    dumpUser((User) item);
+                                User user = aardvark.getUser(args[1]);
+                                if (user != null) {
+                                    dumpUser(user);
                                 }
                             }
                         } catch (Exception ex) {
@@ -96,6 +79,31 @@ public class AardvarkShell implements AuraService, Configurable {
                     }
                 });
 
+        shell.add("attn",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 2) {
+                                return "Usage: attn user";
+                            } else {
+                                User user = aardvark.getUser(args[1]);
+                                SortedSet<Attention> attns = aardvark.getLastAttentionData(user, null, 100);
+                                for (Attention attn : attns) {
+                                    System.out.printf("%8s %s at %s\n", attn.getType(), attn.getTargetKey(), new Date(attn.getTimeStamp()));
+                                }
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: attn user - show attention data for a user";
+                    }
+                });
+
         shell.add("addStarredFeed",
                 new CommandInterface() {
 
@@ -104,9 +112,13 @@ public class AardvarkShell implements AuraService, Configurable {
                             if (args.length != 3) {
                                 getHelp();
                             } else {
-                                Item item = dataStore.getItem(args[1]);
-                                String surl = args[2];
-                                aardvark.addUserFeed((User) item, surl, Attention.Type.STARRED_FEED);
+                                User user = aardvark.getUser(args[1]);
+                                if (user != null) {
+                                    String surl = args[2];
+                                    aardvark.addUserFeed(user, surl, Attention.Type.STARRED_FEED);
+                                } else {
+                                    return "Can't find user " + args[1];
+                                }
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
@@ -128,9 +140,9 @@ public class AardvarkShell implements AuraService, Configurable {
                             if (args.length != 2) {
                                 getHelp();
                             } else {
-                                Item item = dataStore.getItem(args[1]);
-                                if (item != null && item instanceof User) {
-                                    recommend((User) item);
+                                User user = aardvark.getUser(args[1]);
+                                if (user != null) {
+                                    recommend(user);
                                 }
                             }
                         } catch (Exception ex) {
@@ -202,6 +214,32 @@ public class AardvarkShell implements AuraService, Configurable {
                     }
                 });
 
+        shell.add("enrollUser",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        if (args.length != 2) {
+                            return "Usage: addUser user-id";
+                        }
+                        try {
+                            String id = args[1];
+                            if (aardvark.getUser(id) != null) {
+                                return "user " + id + " already exists";
+                            } else {
+                                User user = aardvark.enrollUser(id);
+                                return "User " + user.getKey() + " created.";
+                            }
+                        } catch (Exception e) {
+                            System.out.println("Error " + e);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Enrolls a new user in the database";
+                    }
+                });
+
         shell.add("dbExerciseWrite",
                 new CommandInterface() {
 
@@ -228,64 +266,48 @@ public class AardvarkShell implements AuraService, Configurable {
                         return "dbExercise count - exercise the database by repeated fetching items";
                     }
                 });
-        shell.add("getLastAttn",
+        shell.add("astats",
                 new CommandInterface() {
 
-                    public String execute(CommandInterpreter ci,
-                            String[] args) {
+                    public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if ((args.length < 3) || (args.length > 4)) {
-                                getHelp();
-                            } else {
-                                try {
-                                    String userKey = args[1];
-                                    int count = Integer.parseInt(args[2]);
-                                    Attention.Type type = null;
-                                    if (args.length == 4) {
-                                        type = Attention.Type.valueOf(args[3]);
-                                    }
-
-                                    User u = (User) dataStore.getUser(userKey);
-                                    SortedSet<Attention> attns = null;
-                                /**
-                                 * TODO: removed pending support from the datasore
-                                 * for retrieving user-based attention data
-                                 */
-                                /*
-                                if (type == null) {
-                                attns = dataStore.getLastAttention(u, count);
-                                } else {
-                                attns = dataStore.getLastAttention(u, type, count);
-                                }
-                                for (Attention attn : attns) {
-                                System.out.println(attn.getItemID() +
-                                " " +
-                                attn.getType().toString() +
-                                " " +
-                                new Date(attn.getTimeStamp()));
-                                }
-                                 */
-                                } catch (NumberFormatException e) {
-                                    System.out.println("Error parsing args");
-                                }
+                            if (args.length > 2) {
+                                return "Usage: astats";
                             }
+
+                            System.out.println(aardvark.getStats());
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            System.out.println("Error " + e);
                         }
                         return "";
                     }
 
                     public String getHelp() {
-                        return "getLastAttn <userID> <count> [<type>]";
+                        return "shows the current stats";
                     }
                 });
         shell.add("stats",
                 new CommandInterface() {
 
-                    public String execute(CommandInterpreter ci, String[] arg1) {
+                    public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            Stats stats = aardvark.getStats();
-                            System.out.println("Stats: " + stats);
+                            if (args.length > 2) {
+                                return "Usage: stats [prefix]";
+                            }
+
+                            String prefix = args.length == 2 ? args[1] : "";
+                            String[] counters = statService.getCounterNames();
+                            Arrays.sort(counters);
+                            System.out.printf("%20s %8s %8s %8s\n", "Stat", "counter", "average", "per min");
+                            System.out.printf("%20s %8s %8s %8s\n", "----", "-------", "-------", "-------");
+                            for (String counter : counters) {
+                                if (counter.startsWith(prefix)) {
+                                    long count = statService.get(counter);
+                                    double avg = statService.getAverage(counter);
+                                    double avgPerMin = statService.getAveragePerMinute(counter);
+                                    System.out.printf("%20s %8d %8.3f %8.3f\n", counter, count, avg, avgPerMin);
+                                }
+                            }
                         } catch (Exception e) {
                             System.out.println("Error " + e);
                         }
@@ -308,17 +330,10 @@ public class AardvarkShell implements AuraService, Configurable {
         t.start();
     }
 
-
     private void dumpAllUsers() throws AuraException, RemoteException {
-    //TODO:
-    // we can't get all users from the datastore right now
-
-    /*
-    Set<User> users = dataStore.getAll(User.class);
-    for (User user : users) {
-    dumpItem(user);
-    }
-     * */
+        for (Item item : dataStore.getAll(ItemType.USER)) {
+            dumpUser((User) item);
+        }
     }
 
     private void dumpUser(User user) throws AuraException, RemoteException {
@@ -327,6 +342,7 @@ public class AardvarkShell implements AuraService, Configurable {
 
     private void recommend(User user) throws AuraException, RemoteException {
         SyndFeed feed = aardvark.getRecommendedFeed(user);
+        System.out.println("Feed " + feed.getTitle());
         for (Object syndEntryObject : feed.getEntries()) {
             SyndEntry syndEntry = (SyndEntry) syndEntryObject;
             String title = syndEntry.getTitle();
@@ -407,11 +423,16 @@ public class AardvarkShell implements AuraService, Configurable {
      */
     public void newProperties(PropertySheet ps) throws PropertyException {
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
-        logger = ps.getLogger();
+        aardvark = (Aardvark) ps.getComponent(PROP_AARDVARK);
+        statService = (StatService) ps.getComponent(PROP_STAT_SERVICE);
     }
     /**
      * the configurable property for the itemstore used by this manager
      */
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
+    @ConfigComponent(type = Aardvark.class)
+    public final static String PROP_AARDVARK = "aardvark";
+    @ConfigComponent(type = StatService.class)
+    public final static String PROP_STAT_SERVICE = "statService";
 }

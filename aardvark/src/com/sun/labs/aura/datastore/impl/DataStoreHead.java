@@ -495,7 +495,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
      */
     public SortedSet<Scored<Item>> findSimilar(String key, int n)
             throws AuraException, RemoteException {
-        return findSimilar(key, (String) null, n);
+        return findSimilar(key, (WeightedField[]) null, n);
     }
 
     public SortedSet<Scored<Item>> findSimilar(String key, final String field, int n)

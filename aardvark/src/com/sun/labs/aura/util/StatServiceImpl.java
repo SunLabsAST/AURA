@@ -77,6 +77,10 @@ public class StatServiceImpl implements StatService, Configurable {
         return c.value.get() / time;
     }
 
+    public String[] getCounterNames() throws RemoteException {
+        return counters.keySet().toArray(new String[counters.keySet().size()]);
+    }
+
     public void newProperties(PropertySheet ps) throws PropertyException {
         dataStore = (DataStoreHead) ps.getComponent(PROP_DATA_STORE);
     }
@@ -117,4 +121,5 @@ public class StatServiceImpl implements StatService, Configurable {
         //
         // Write to persistent storage.
     }
+
 }

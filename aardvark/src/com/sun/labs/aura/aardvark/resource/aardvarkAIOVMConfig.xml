@@ -72,7 +72,7 @@
         <property name="statService" value="statService"/>
         <property name="feedScheduler" value="feedScheduler"/>
         <property name="numThreads" value="5"/>
-        <property name="logLevel" value="INFO"/>
+        <property name="logLevel" value="SEVERE"/>
     </component>
     
     <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl">
@@ -85,14 +85,19 @@
     
     <component name="shell" type="com.sun.labs.aura.aardvark.util.AardvarkShell">
         <property name="dataStore" value="dataStoreHead"/>
+        <property name="aardvark" value="aardvark"/>
+        <property name="statService" value="statService"/>
     </component>
 
     <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="recommenderManager" value="recommenderManager"/>
+        <property name="statService" value="statService"/>
         <property name="autoEnrollTestFeeds" value="true"/>
-        <property name="autoEnrollMegaTestFeeds" value="true"/>
+        <property name="autoEnrollMegaTestFeeds" value="false"/>
     </component>
+
+
     
     <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
@@ -106,7 +111,7 @@
             <item>feedManager</item>
             <item>statService</item>
             <!--<item>aardvarkStatusReporter</item> -->
-            <!--<item>shell</item> -->
+            <item>shell</item>
             <item>aardvark</item>
         </propertylist>
     </component>
