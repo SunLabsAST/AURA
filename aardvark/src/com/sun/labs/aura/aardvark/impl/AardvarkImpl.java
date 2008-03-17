@@ -273,6 +273,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
                     }
                     if (autoEnrollMegaTestFeeds) {
                         addLocalOpml("tech_blogs.opml");
+                        addLocalOpml("toptags.opml");
                         addLocalOpml("politics_blogs.opml");
                         addLocalOpml("news_blogs.opml");
                         addLocalOpml("mega.opml");
