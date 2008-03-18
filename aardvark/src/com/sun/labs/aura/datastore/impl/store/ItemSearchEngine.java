@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import ngnova.retrieval.FieldEvaluator;
 import ngnova.retrieval.FieldTerm;
+import ngnova.retrieval.ResultImpl;
 
 /**
  * A search engine for the data associated with items in the item store.
@@ -367,7 +368,11 @@ public class ItemSearchEngine implements Configurable {
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         try {
             for(Result r : engine.search(query, sort).getResults(0, n)) {
-                ret.add(new Scored<String>(r.getKey(), r.getScore()));
+                ResultImpl ri = (ResultImpl) r;
+                ret.add(new Scored<String>(ri.getKey(), 
+                        ri.getScore(),
+                        ri.getSortVals(), 
+                        ri.getDirections()));
             }
         } catch(SearchEngineException see) {
             //

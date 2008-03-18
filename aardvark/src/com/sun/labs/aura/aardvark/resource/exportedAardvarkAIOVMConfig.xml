@@ -96,7 +96,7 @@
         <property name="logLevel" value="INFO"/>
     </component>
     
-    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl">
+    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl" export="true">
         <property name="dataStore" value="dataStoreHead"/>
     </component>
 
@@ -106,11 +106,14 @@
     
     <component name="shell" type="com.sun.labs.aura.aardvark.util.AardvarkShell">
         <property name="dataStore" value="dataStoreHead"/>
+        <property name="aardvark" value="aardvark"/>
+        <property name="statService" value="statService"/>
     </component>
 
     <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl" export="true">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="recommenderManager" value="recommenderManager"/>
+        <property name="statService" value="statService"/>
         <property name="autoEnrollTestFeeds" value="true"/>
         <property name="autoEnrollMegaTestFeeds" value="true"/>
     </component>
@@ -127,9 +130,9 @@
             <item>feedManager</item>
             <item>statService</item>
             <!--<item>aardvarkStatusReporter</item> -->
-            <!--<item>shell</item> -->
+            <!-- <item>shell</item> -->
             <item>aardvark</item>
         </propertylist>
     </component>
-
+    
 </config>

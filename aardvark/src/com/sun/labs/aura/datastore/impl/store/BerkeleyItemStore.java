@@ -20,6 +20,7 @@ import com.sun.labs.aura.datastore.impl.PartitionCluster;
 import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
+import com.sun.labs.aura.util.DecreasingScoredComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
@@ -358,9 +359,14 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      */
     private SortedSet<Scored<Item>> keysToItems(List<Scored<String>> s)
             throws AuraException, RemoteException {
-        SortedSet<Scored<Item>> ret = new TreeSet<Scored<Item>>();
+        SortedSet<Scored<Item>> ret = new TreeSet<Scored<Item>>(new DecreasingScoredComparator());
         for(Scored<String> ss : s) {
-            ret.add(new Scored<Item>(getItem(ss.getItem()), ss.getScore()));
+            Item item = getItem(ss.getItem());
+            if(item == null) {
+                logger.info("null item for key: " + ss.getItem());
+                continue;
+            }
+            ret.add(new Scored<Item>(item, ss));
         }
         return ret;
 

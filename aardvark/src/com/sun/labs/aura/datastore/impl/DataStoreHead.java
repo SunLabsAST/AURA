@@ -13,6 +13,7 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
+import com.sun.labs.aura.util.DecreasingScoredComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -517,7 +518,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return findSimilar(dv, n);
     }
         
-    public SortedSet<Scored<Item>> findSimilar(DocumentVector dv, final int n) throws AuraException, RemoteException {
+    private SortedSet<Scored<Item>> findSimilar(DocumentVector dv, final int n) throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
 
         Set<Callable<SortedSet<Scored<Item>>>> callers =
@@ -547,7 +548,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                         //
                         // Make a new set with the contents and comparator from
                         // curr
-                        ret = new TreeSet<Scored<Item>>(curr);
+                        ret = new TreeSet<Scored<Item>>(new DecreasingScoredComparator());
+                        ret.addAll(curr);
                     } else {
                         ret.addAll(curr);
                     }
@@ -560,7 +562,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
 
         if(ret == null) {
-            return new TreeSet<Scored<Item>>();
+            return new TreeSet<Scored<Item>>(new DecreasingScoredComparator());
         }
 
         //
@@ -703,7 +705,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                         //
                         // Make a new set with the contents and comparator from
                         // curr
-                        ret = new TreeSet<Scored<Item>>(curr);
+                        ret = new TreeSet<Scored<Item>>();
+                        ret.addAll(curr);
                     } else {
                         ret.addAll(curr);
                     }
@@ -721,7 +724,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         
         //
         // Make a set of the top n to return
-        SortedSet<Scored<Item>> retCnted = new TreeSet<Scored<Item>>(ret.comparator());
+        SortedSet<Scored<Item>> retCnted = new TreeSet<Scored<Item>>();
         Iterator<Scored<Item>> it = ret.iterator();
         for (int i = 0; i < n; i++) {
             if (it.hasNext()) {
