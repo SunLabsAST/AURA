@@ -20,10 +20,11 @@ public class Stats implements Serializable {
     private long numItems;
     private long numAttentionData;
     private long numFeeds;
-    private int feedPullCount;
-    private int feedErrorCount;
+    private long feedPullCount;
+    private long feedErrorCount;
 
-    public Stats(String version, long numUsers, long numItems, long numAttentionData, long numFeeds, int feedPullCount, int feedErrorCount) {
+    public Stats(String version, long numUsers, long numItems, long numAttentionData, 
+                long numFeeds, long feedPullCount, long feedErrorCount) {
         this.version = version;
         this.numUsers = numUsers;
         this.numItems = numItems;
@@ -49,11 +50,11 @@ public class Stats implements Serializable {
         return version;
     }
 
-    public int getFeedErrorCount() {
+    public long getFeedErrorCount() {
         return feedErrorCount;
     }
 
-    public int getFeedPullCount() {
+    public long getFeedPullCount() {
         return feedPullCount;
     }
 

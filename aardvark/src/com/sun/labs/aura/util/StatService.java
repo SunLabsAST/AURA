@@ -93,4 +93,11 @@ public interface StatService extends AuraService, Serializable, Remote, Componen
      * not exist, then a value less than zero will be returned.
      */
     public double getAveragePerMinute(String counterName) throws RemoteException;
+
+    /**
+     * Gets all of the counter names
+     * @return an array of the counter names
+     * @throws java.rmi.RemoteException
+     */
+    public String[] getCounterNames() throws RemoteException;
 }
