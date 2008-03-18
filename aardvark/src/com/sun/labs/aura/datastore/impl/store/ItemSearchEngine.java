@@ -1,6 +1,5 @@
 package com.sun.labs.aura.datastore.impl.store;
 
-import com.sun.labs.aura.aardvark.impl.recommender.*;
 import com.sun.kt.search.DocumentVector;
 import com.sun.kt.search.FieldInfo;
 import com.sun.kt.search.Log;
@@ -296,7 +295,7 @@ public class ItemSearchEngine implements Configurable {
      * key has not been indexed or if an error occurs while fetching the docuemnt,
      * then <code>null</code> will be returned.
      */
-    public DocumentVector getDocument(String key) {
+    public DocumentVector getDocumentVector(String key) {
         try {
             return engine.getDocumentVector(key);
         } catch(SearchEngineException ex) {
@@ -305,44 +304,30 @@ public class ItemSearchEngine implements Configurable {
         }
     }
 
+    public DocumentVector getDocumentVector(String key, String field) {
+        return engine.getDocumentVector(key, field);
+    }
+
+    public DocumentVector getDocumentVector(String key, WeightedField[] fields) {
+        return engine.getDocumentVector(key, fields);
+    }
+
     /**
      * Finds the n most-similar items to the given item, based on the data in the 
      * provided field.
-     * @param key the item for which we want similar items
-     * @param field the name of the field that should be used to find similar
-     * items
+     * @param dv the document vector for the item of interest
      * @param n the number of similar items to return
      * @return the set of items most similar to the given item, based on the 
      * data indexed into the given field.  Note that the returned set may be
      * smaller than the number of items requested!
+     * @see #getDocumentVector
      */
-    public List<Scored<String>> findSimilar(String key, String field,
-            int n)
-            throws AuraException, RemoteException {
-        DocumentVector dv = engine.getDocumentVector(key, field);
-        return findSimilar(dv, n);
-    }
-
-    /**
-     * Finds the n most-similar items to the given items, based on a combination
-     * of the data held in the provided fields.
-     * @param key the item for which we want similar items
-     * @param fields the fields (and associated weights) that we should use to 
-     * compute the similarity between items.
-     * @param n the number of similar items to return
-     * @return the set of items most similar to the given item, based on the data
-     * in the provided fields.   Note that the returned set may be
-     * smaller than the number of items requested!
-     */
-    public List<Scored<String>> findSimilar(String key,
-            WeightedField[] fields, int n)
-            throws AuraException, RemoteException {
-        DocumentVector dv = engine.getDocumentVector(key, fields);
-        return findSimilar(dv, n);
-    }
-
-    private List<Scored<String>> findSimilar(DocumentVector dv, int n)
+    public List<Scored<String>> findSimilar(DocumentVector dv, int n)
             throws AuraException {
+
+        //
+        // Recover from having been serialized.
+        dv.setEngine(engine);
         ResultSet sim = dv.findSimilar("-score");
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         try {
@@ -385,6 +370,16 @@ public class ItemSearchEngine implements Configurable {
                 ret.add(new Scored<String>(r.getKey(), r.getScore()));
             }
         } catch(SearchEngineException see) {
+            //
+            // The search engine exception may be wrapping an exception that
+            // we don't want to send across the wire, so we should see what if
+            // there's one of these in there.
+            Throwable ex = see.getCause();
+            if(ex instanceof ngnova.retrieval.parser.ParseException ||
+                    ex instanceof java.text.ParseException) {
+                throw new AuraException("Error parsing query: " +
+                        ex.getMessage());
+            }
             throw new AuraException("Error finding items", see);
         }
         return ret;

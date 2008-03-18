@@ -12,6 +12,7 @@ import java.util.SortedSet;
  * ItemSearch describes the search methods available for use in the data store.
  */
 public interface ItemSearch {
+    
     /**
      * Finds a the n most similar items to the given item.
      * @param key the item that we want to find similar items for

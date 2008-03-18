@@ -10,7 +10,6 @@ package com.sun.labs.aura.aardvark.util;
 
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.aardvark.Aardvark;
-import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogFeed;
 import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.datastore.Attention;
@@ -19,6 +18,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.LabsLogFormatter;
 import com.sun.labs.util.command.CommandInterface;
 import com.sun.labs.util.command.CommandInterpreter;
@@ -43,14 +43,16 @@ import java.util.logging.Logger;
 public class Shell {
 
     private CommandInterpreter shell;
+
     private DataStore dataStore;
+
     private Aardvark aardvark;
 
     public Shell(String configFile) throws IOException {
         initComponents(configFile);
 
         Logger rl = Logger.getLogger("");
-        for (Handler h : rl.getHandlers()) {
+        for(Handler h : rl.getHandlers()) {
             h.setFormatter(new LabsLogFormatter());
         }
 
@@ -63,7 +65,7 @@ public class Shell {
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
                             dumpAllUsers();
-                        } catch (Exception ex) {
+                        } catch(Exception ex) {
                             System.out.println("Error " + ex);
                         }
                         return "";
@@ -79,15 +81,15 @@ public class Shell {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length != 2) {
+                            if(args.length != 2) {
                                 dumpAllUsers();
                             } else {
                                 Item item = dataStore.getItem(args[1]);
-                                if (item != null && item instanceof User) {
+                                if(item != null && item instanceof User) {
                                     dumpUser((User) item);
                                 }
                             }
-                        } catch (Exception ex) {
+                        } catch(Exception ex) {
                             System.out.println("Error " + ex);
                         }
                         return "";
@@ -103,14 +105,15 @@ public class Shell {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length != 3) {
+                            if(args.length != 3) {
                                 getHelp();
                             } else {
                                 Item item = dataStore.getItem(args[1]);
                                 String surl = args[2];
-                                aardvark.addUserFeed((User) item, surl, Attention.Type.STARRED_FEED);
+                                aardvark.addUserFeed((User) item, surl,
+                                        Attention.Type.STARRED_FEED);
                             }
-                        } catch (Exception ex) {
+                        } catch(Exception ex) {
                             System.out.println("Error " + ex);
                         }
                         return "";
@@ -127,15 +130,15 @@ public class Shell {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length != 2) {
+                            if(args.length != 2) {
                                 getHelp();
                             } else {
                                 Item item = dataStore.getItem(args[1]);
-                                if (item != null && item instanceof User) {
+                                if(item != null && item instanceof User) {
                                     recommend((User) item);
                                 }
                             }
-                        } catch (Exception ex) {
+                        } catch(Exception ex) {
                             System.out.println("Error " + ex);
                         }
                         return "";
@@ -150,13 +153,14 @@ public class Shell {
         shell.add("feed",
                 new CommandInterface() {
 
-                    public String execute(CommandInterpreter ci, String[] args) throws Exception {
-                        if (args.length != 2) {
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        if(args.length != 2) {
                             dumpAllFeeds();
                         } else {
                             String key = args[1];
                             Item item = dataStore.getItem(key);
-                            if (item != null && item instanceof BlogFeed) {
+                            if(item != null && item instanceof BlogFeed) {
                                 dumpFeed(item);
                             }
                         }
@@ -176,7 +180,7 @@ public class Shell {
                     public String execute(CommandInterpreter ci, String[] arg1) {
                         try {
                             dumpAllFeeds();
-                        } catch (Exception e) {
+                        } catch(Exception e) {
                             System.out.println("Error " + e);
                         }
                         return "";
@@ -190,20 +194,22 @@ public class Shell {
         shell.add("dbExerciseWrite",
                 new CommandInterface() {
 
-                    public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
                         try {
-                            if (args.length == 2) {
+                            if(args.length == 2) {
                                 long timeStamp = System.currentTimeMillis();
                                 int count = Integer.parseInt(args[1]);
-                                for (int i = 0; i < count; i++) {
+                                for(int i = 0; i < count; i++) {
                                     String key = "key:" + timeStamp + "-" + i;
-                                    Item item = StoreFactory.newItem(Item.ItemType.BLOGENTRY, key, key);
+                                    Item item =
+                                            StoreFactory.newItem(Item.ItemType.BLOGENTRY, key, key);
                                     item = dataStore.putItem(item);
                                 }
                             } else {
                                 getHelp();
                             }
-                        } catch (Exception e) {
+                        } catch(Exception e) {
                             System.out.println("Error " + e);
                         }
                         return "";
@@ -219,14 +225,14 @@ public class Shell {
                     public String execute(CommandInterpreter ci,
                             String[] args) {
                         try {
-                            if ((args.length < 3) || (args.length > 4)) {
+                            if((args.length < 3) || (args.length > 4)) {
                                 getHelp();
                             } else {
                                 try {
                                     String userKey = args[1];
                                     int count = Integer.parseInt(args[2]);
                                     Attention.Type type = null;
-                                    if (args.length == 4) {
+                                    if(args.length == 4) {
                                         type = Attention.Type.valueOf(args[3]);
                                     }
 
@@ -250,11 +256,11 @@ public class Shell {
                                 new Date(attn.getTimeStamp()));
                                 }
                                  */
-                                } catch (NumberFormatException e) {
+                                } catch(NumberFormatException e) {
                                     System.out.println("Error parsing args");
                                 }
                             }
-                        } catch (Exception e) {
+                        } catch(Exception e) {
                             e.printStackTrace();
                         }
                         return "";
@@ -271,7 +277,7 @@ public class Shell {
                         try {
                             Stats stats = aardvark.getStats();
                             System.out.println("Stats: " + stats);
-                        } catch (Exception e) {
+                        } catch(Exception e) {
                             System.out.println("Error " + e);
                         }
                         return "";
@@ -281,8 +287,76 @@ public class Shell {
                         return "shows the current stats";
                     }
                 });
+        shell.add("query",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String query = stuff(args, 1);
+                        SortedSet<Scored<Item>> items = dataStore.query(query, 10);
+                        for(Scored<Item> item : items) {
+                           System.out.printf("%.3f ", item.getScore());
+                           dumpItem(item.getItem());
+                        }
+                            
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Runs a query";
+                    }
+                });
+                
+        shell.add("fs",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String key = args[1];
+                        SortedSet<Scored<Item>> items = dataStore.findSimilar(key, 10);
+                        for(Scored<Item> item : items) {
+                           System.out.printf("%.3f ", item.getScore());
+                           dumpItem(item.getItem());
+                        }
+                            
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Runs a query";
+                    }
+                });
+        shell.add("ffs",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String field = args[1];
+                        String key = args[2];
+                        SortedSet<Scored<Item>> items = dataStore.findSimilar(key, field, 10);
+                        for(Scored<Item> item : items) {
+                           System.out.printf("%.3f ", item.getScore());
+                           dumpItem(item.getItem());
+                        }
+                            
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Runs a query";
+                    }
+                });
     }
 
+    private String stuff(String[] args, int p) {
+        StringBuilder sb = new StringBuilder();
+        for(int i = p; i < args.length; i++) {
+            sb.append(args[i]);
+            sb.append(' ');
+        }
+        return sb.toString();
+    }
+    
     public void go() {
         shell.run();
     }
@@ -305,13 +379,13 @@ public class Shell {
 
     private void recommend(User user) throws AuraException, RemoteException {
         SyndFeed feed = aardvark.getRecommendedFeed(user);
-        for (Object syndEntryObject : feed.getEntries()) {
+        for(Object syndEntryObject : feed.getEntries()) {
             SyndEntry syndEntry = (SyndEntry) syndEntryObject;
             String title = syndEntry.getTitle();
             String link = syndEntry.getLink();
             Date date = syndEntry.getPublishedDate();
             String sdate = "";
-            if (date != null) {
+            if(date != null) {
                 sdate = "(" + date.toString() + ")";
             }
             System.out.printf("  %s from %s %s\n", title, link, sdate);
@@ -322,7 +396,7 @@ public class Shell {
     private void dumpAllFeeds() throws AuraException, RemoteException {
         Set<Item> feedItems = dataStore.getAll(ItemType.FEED);
         long numFeeds = 0;
-        for (Item feedItem : feedItems) {
+        for(Item feedItem : feedItems) {
             dumpItem(feedItem);
             numFeeds++;
         }
@@ -330,7 +404,8 @@ public class Shell {
     }
 
     private void dumpItem(Item item) throws AuraException, RemoteException {
-        System.out.printf(" %d %s\n", dataStore.getAttentionForTarget(item.getKey()).size(), item.getKey());
+        System.out.printf(" %d %s\n", dataStore.getAttentionForTarget(item.getKey()).
+                size(), item.getKey());
     }
 
     private void dumpFeed(Item feedItem) throws AuraException, RemoteException {
@@ -341,11 +416,12 @@ public class Shell {
     }
 
     private void dumpAttentionData(List<Attention> attentionData) throws AuraException, RemoteException {
-        for (Attention attention : attentionData) {
+        for(Attention attention : attentionData) {
             Item source = dataStore.getItem(attention.getSourceKey());
             Item target = dataStore.getItem(attention.getTargetKey());
             String type = attention.getType().toString();
-            System.out.printf("   %s(%s) -- %s -- %s(%s)\n", source.getKey(), source.getName(),
+            System.out.printf("   %s(%s) -- %s -- %s(%s)\n", source.getKey(),
+                    source.getName(),
                     type, target.getKey(), target.getName());
         }
 
@@ -353,7 +429,7 @@ public class Shell {
 
     public void initComponents(String configFile) throws IOException {
         URL cu = getClass().getResource(configFile);
-        if (cu == null) {
+        if(cu == null) {
             cu = (new File(configFile)).toURI().toURL();
         }
         ConfigurationManager cm = new ConfigurationManager(cu);
@@ -369,7 +445,7 @@ public class Shell {
         try {
             Shell shell = new Shell(args[0]);
             shell.go();
-        } catch (IOException ex) {
+        } catch(IOException ex) {
             System.err.println("Can't run shell " + ex);
         }
     }

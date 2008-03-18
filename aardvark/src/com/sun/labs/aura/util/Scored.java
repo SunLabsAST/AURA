@@ -5,11 +5,13 @@
 
 package com.sun.labs.aura.util;
 
+import java.io.Serializable;
+
 /**
  * Item that have a score associated with them
  * @param T the type of the scored item.
  */
-public class Scored<T> implements Comparable<Scored<T>> {
+public class Scored<T> implements Comparable<Scored<T>>, Serializable {
 
     private T item;
 
