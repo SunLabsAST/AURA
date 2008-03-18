@@ -21,6 +21,7 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.util.StatService;
+import com.sun.labs.aura.util.Tag;
 import com.sun.labs.util.command.CommandInterface;
 import com.sun.labs.util.command.CommandInterpreter;
 import com.sun.labs.util.props.ConfigComponent;
@@ -30,12 +31,18 @@ import com.sun.labs.util.props.PropertySheet;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Manages the set of feed crawling threads
@@ -47,6 +54,7 @@ public class AardvarkShell implements AuraService, Configurable {
     private CommandInterpreter shell;
     private Aardvark aardvark;
     private StatService statService;
+    private Logger logger;
 
     /**
      * Starts crawling all of the feeds
@@ -78,6 +86,28 @@ public class AardvarkShell implements AuraService, Configurable {
                         return "usage: user  name = shows info for a user";
                     }
                 });
+
+        shell.add("dumpTagFrequencies",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 1) {
+                                return getHelp();
+                            } else {
+                                dumpTagFrequencies();
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: dumpTagFrequencies - shows that tag frequencies for entries";
+                    }
+                });
+
 
         shell.add("attn",
                 new CommandInterface() {
@@ -407,6 +437,48 @@ public class AardvarkShell implements AuraService, Configurable {
 
     }
 
+    private void dumpTagFrequencies() {
+        int entries = 0;
+        int entriesWithTags = 0;
+        int totalTags = 0;
+        try {
+
+            TagAccumulator accumulator = new TagAccumulator();
+            DBIterator<Item> iter = dataStore.getItemsAddedSince(ItemType.BLOGENTRY, new Date(0));
+
+            try {
+                while (iter.hasNext()) {
+                    Item item = iter.next();
+                    BlogEntry entry = new BlogEntry(item);
+                    List<Tag> tags = entry.getTags();
+                    entries++;
+                    if (tags.size() > 0) {
+                        entriesWithTags++;
+                    }
+                    totalTags += tags.size();
+
+                    for (Tag tag : tags) {
+                       accumulator.add(tag); 
+                    }
+                    if (entries % 1000 == 0) {
+                        System.out.printf("%d %d %d  ", entries, entriesWithTags, totalTags);
+                        for (Tag tag : tags) {
+                            System.out.print(tag.getName() + ", ");
+                        }
+                        System.out.println();
+                    }
+                }
+            } finally {
+                iter.close();
+            }
+            accumulator.dump();
+        } catch (AuraException ex) {
+            logger.severe("dumpTagFrequencies " + ex);
+        } catch (RemoteException ex) {
+            logger.severe("dumpTagFrequencies " + ex);
+        }
+    }
+
     /**
      * Stops crawling the feeds
      */
@@ -425,6 +497,7 @@ public class AardvarkShell implements AuraService, Configurable {
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
         aardvark = (Aardvark) ps.getComponent(PROP_AARDVARK);
         statService = (StatService) ps.getComponent(PROP_STAT_SERVICE);
+        logger = ps.getLogger();
     }
     /**
      * the configurable property for the itemstore used by this manager
@@ -435,4 +508,38 @@ public class AardvarkShell implements AuraService, Configurable {
     public final static String PROP_AARDVARK = "aardvark";
     @ConfigComponent(type = StatService.class)
     public final static String PROP_STAT_SERVICE = "statService";
+}
+
+class TagAccumulator {
+
+    private Map<String, Tag> tags = new HashMap<String, Tag>();
+
+    void add(String stag) {
+        add(stag, 1);
+    }
+
+    void add(String stag, int count) {
+        stag = stag.toLowerCase();
+        Tag tag = tags.get(stag);
+        if (tag == null) {
+            tag = new Tag(stag, count);
+            tags.put(tag.getName(), tag);
+        } else {
+            tag.accum(count);
+        }
+    }
+
+    void add(Tag tag) {
+        add(tag.getName(), tag.getCount());
+    }
+
+    void dump() {
+        List<Tag> tagList = new ArrayList<Tag>(tags.values());
+        Collections.sort(tagList);
+        Collections.reverse(tagList);
+        int which = 0;
+        for (Tag tag : tagList) {
+            System.out.printf(" %d %d %s\n", ++which, tag.getCount(), tag.getName());
+        }
+    }
 }

@@ -108,7 +108,7 @@
             <item>replicant1</item>
             <item>recommenderManager</item>
             <item>feedScheduler</item>
-            <item>feedManager</item>
+            <item>feedManager</item> 
             <item>statService</item>
             <!--<item>aardvarkStatusReporter</item> -->
             <item>shell</item>
