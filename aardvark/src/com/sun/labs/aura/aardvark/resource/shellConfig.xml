@@ -30,7 +30,7 @@
     </component>
     
     <component name="shell" type="com.sun.labs.aura.aardvark.util.AardvarkShell">
-        <property name="dataStore" value="dataStoreHead"/>
+        <property name="dataStore" value="dataStore"/>
         <property name="aardvark" value="aardvark"/>
         <property name="statService" value="statService"/>
     </component>
