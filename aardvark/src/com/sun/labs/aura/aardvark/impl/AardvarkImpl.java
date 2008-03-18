@@ -12,7 +12,7 @@ import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.aardvark.impl.crawler.FeedManager;
 import com.sun.labs.aura.aardvark.impl.crawler.FeedUtils;
 import com.sun.labs.aura.aardvark.impl.crawler.OPMLProcessor;
-import com.sun.labs.aura.aardvark.recommender.RecommenderManager;
+import com.sun.labs.aura.recommender.RecommenderManager;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
 import com.sun.labs.aura.datastore.DataStore;
@@ -20,6 +20,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.recommender.Recommendation;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.StatService;
 import com.sun.labs.util.props.ConfigBoolean;
@@ -33,6 +34,7 @@ import com.sun.syndication.feed.synd.SyndFeedImpl;
 import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -221,9 +223,15 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
      */
     private List<BlogEntry> getRecommendedEntries(User user) {
         try {
-            List<BlogEntry> recommendations =
+            SortedSet<Recommendation> recommendations = 
                     recommenderManager.getRecommendations(user);
-            return recommendations;
+            List<BlogEntry> recommendedBlogEntries = new ArrayList<BlogEntry>();
+
+            for (Recommendation r : recommendations) {
+                recommendedBlogEntries.add(new BlogEntry(r.getItem()));
+            }
+
+            return recommendedBlogEntries;
         } catch (RemoteException rx) {
             logger.log(Level.SEVERE, "Error getting recommendations", rx);
             return Collections.emptyList();
@@ -265,7 +273,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
                         addLocalOpml("tech_blogs.opml");
                         addLocalOpml("politics_blogs.opml");
                         addLocalOpml("news_blogs.opml");
-                        addLocalOpml("mega.opml");
+                        // addLocalOpml("mega.opml");
                     }
                 } catch (Throwable t) {
                     logger.severe("bad thing happend " + t);
