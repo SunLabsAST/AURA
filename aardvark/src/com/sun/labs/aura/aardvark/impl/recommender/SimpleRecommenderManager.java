@@ -10,6 +10,7 @@ package com.sun.labs.aura.aardvark.impl.recommender;
 
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogEntry;
+import com.sun.labs.aura.aardvark.util.SimpleTimer;
 import com.sun.labs.aura.recommender.RecommenderManager;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DataStore;
@@ -48,25 +49,31 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
     private final static int MAX_SKIP = 1000;
 
     public SortedSet<Recommendation>  getRecommendations(User user) throws RemoteException {
+        SimpleTimer t = new SimpleTimer();
         SortedSet<Recommendation> resultSet = new TreeSet<Recommendation>(Recommendation.REVERSE);
         Set<String> titles = new HashSet<String>();
         try {
             // get a set of items that we've recently starred
+            t.mark("init");
             SortedSet<Attention> starredAttention = dataStore.getLastAttentionForSource(user.getKey(), Attention.Type.STARRED, RECENT_STARRED);
+            t.mark("getLastAttention starred");
 
             // gets the set of entry ids that we should skip because they've
             // been used recently
 
             Set<String> skipSet = getSkipSet(user);
+            t.mark("get skip set");
 
             // select a few documents from the starred set of items to serve
             // as the similarity seeds
             String[] itemKeys = selectRandomItemKeys(starredAttention, SEED_SIZE);
+            t.mark("select random item keys");
             SortedSet<Scored<Item>> results = new TreeSet<Scored<Item>>();
 
             // Get documents that are similar to the seeds
             for (String key : itemKeys) {
                 results.addAll(dataStore.findSimilar(key, NUM_RECS));
+                t.mark("findSimilar");
             }
 
             // filter the list to eliminate docs that have already been attended
@@ -87,13 +94,15 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                     }
                 }
             }
+            t.mark("results built");
         } catch (AuraException ex) {
             log.log(Level.SEVERE, "Error getting recommendations", ex);
             ex.printStackTrace();
-        } catch (Throwable t) {
-            System.out.println("catch throwable exception " +t );
+        } catch (Throwable thrown) {
+            System.out.println("catch throwable exception " + thrown );
         }
         finally {
+            t.mark("done");
             return resultSet;
         }
     }
@@ -147,3 +156,4 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
     @ConfigComponent(type = DataStore.class)
     public static final String PROP_DATA_STORE = "dataStore";
 }
+
