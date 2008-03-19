@@ -69,6 +69,10 @@ public class ItemImpl implements Item {
         return key;
     }
     
+    public long getTimeAdded() {
+        return typeAndTimeAdded.getTimeStamp();
+    }
+    
     @Override
     public int hashCode() {
         return key.hashCode();
