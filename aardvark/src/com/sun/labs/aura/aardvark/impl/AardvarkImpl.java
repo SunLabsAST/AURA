@@ -153,7 +153,17 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
                     openID);
         }
     }
+    
+    public User updateUser(User user) throws AuraException, RemoteException {
+        try {
+            return dataStore.putUser(user);
+        } catch (RemoteException rx) {
+            throw new AuraException("Error communicating with item store",
+                    rx);
+        }
+    }
 
+    
     /**
      * Adds a feed of a particular type for a user
      * @param user the user

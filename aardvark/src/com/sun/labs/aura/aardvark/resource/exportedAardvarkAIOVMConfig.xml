@@ -108,7 +108,7 @@
         <property name="dataStore" value="dataStoreHead"/>
     </component>
 
-    <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl">
+    <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl" export="true">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="recommenderManager" value="recommenderManager"/>
         <property name="autoEnrollTestFeeds" value="true"/>
