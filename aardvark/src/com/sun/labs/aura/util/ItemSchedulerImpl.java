@@ -6,6 +6,7 @@ package com.sun.labs.aura.util;
 
 import com.sun.labs.aura.aardvark.impl.*;
 import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.ItemEvent;
@@ -17,6 +18,7 @@ import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
+import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
@@ -153,6 +155,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
             itemType = newItemType;
 
             Thread t = new Thread() {
+
                 public void run() {
                     collectItems(ps.getInstanceName(), dataStore, itemType);
                 }
@@ -162,19 +165,20 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     }
 
     private void collectItems(String name, DataStore ds, Item.ItemType type) {
+        float initialDelay = 0;
+        float delayIncrement = .2f;
         try {
             // collect all of the items of our item type and add them to the
             // itemQueue.  Stagger the period over the default period
-
-            Set<Item> items = ds.getAll(type);
-            if (items.size() > 0) {
-                float initialDelay = 0;
-                float delayIncrement = ((float) defaultPeriod) / items.size();
-
-                for (Item item : items) {
+            DBIterator<Item> iter = ds.getItemsAddedSince(type, new Date(0));
+            try {
+                while (iter.hasNext()) {
+                    Item item = iter.next();
                     addItem(item.getKey(), (int) initialDelay);
                     initialDelay += delayIncrement;
                 }
+            } finally {
+                iter.close();
             }
         } catch (AuraException ex) {
             logger.severe("Can't get items from the store " + ex.getMessage());
