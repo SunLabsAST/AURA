@@ -29,8 +29,22 @@
         </propertylist>
     </component>
     
+    <component name="shell" type="com.sun.labs.aura.aardvark.util.AardvarkShell">
+        <property name="dataStore" value="dataStore"/>
+        <property name="aardvark" value="aardvark"/>
+        <property name="statService" value="statService"/>
+    </component>
+
     <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark"/>
     
     <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
     
+    <component name="statService" type="com.sun.labs.aura.util.StatService"/>
+    
+     <component name="shellStarter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>shell</item>
+        </propertylist>
+    </component>
+
 </config>

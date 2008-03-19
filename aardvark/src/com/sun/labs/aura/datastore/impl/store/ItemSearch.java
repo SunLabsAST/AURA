@@ -12,6 +12,7 @@ import java.util.SortedSet;
  * ItemSearch describes the search methods available for use in the data store.
  */
 public interface ItemSearch {
+    
     /**
      * Finds a the n most similar items to the given item.
      * @param key the item that we want to find similar items for
@@ -49,6 +50,25 @@ public interface ItemSearch {
      * smaller than the number of items requested!
      */
     public SortedSet<Scored<Item>> findSimilar(String key, WeightedField[] fields, int n)
+            throws AuraException, RemoteException;
+    
+    /**
+     * Runs a query against the map data and returns the top n results.
+     * @param query the query to run
+     * @param n the number of results to return
+     * @return the top results for the query, sorted by score
+     */
+    public SortedSet<Scored<Item>> query(String query, int n)
+            throws AuraException, RemoteException;
+
+    /**
+     * Runs a query against the map data and returns the top n results.
+     * @param query the query to run
+     * @param sort the sorting specification to use to sort the results
+     * @param n the number of results to return
+     * @return the top results for the query
+     */
+    public SortedSet<Scored<Item>> query(String query, String sort, int n)
             throws AuraException, RemoteException;
 
 }

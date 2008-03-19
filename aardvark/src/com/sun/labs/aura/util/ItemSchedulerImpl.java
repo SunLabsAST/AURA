@@ -6,6 +6,7 @@ package com.sun.labs.aura.util;
 
 import com.sun.labs.aura.aardvark.impl.*;
 import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.ItemEvent;
@@ -17,6 +18,7 @@ import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
+import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
@@ -42,9 +44,8 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         if (logger.isLoggable(Level.INFO)) {
             DelayedItem next = itemQueue.peek();
             if (next != null) {
-                logger.info("waiters: " + waiters.get() + " waiting " + next.getDelay(TimeUnit.SECONDS) 
-                        + " secs, items: " + itemQueue.size());
-            } 
+                logger.info("waiters: " + waiters.get() + " waiting " + next.getDelay(TimeUnit.SECONDS) + " secs, items: " + itemQueue.size());
+            }
         }
 
         DelayedItem delayedItem = itemQueue.take();
@@ -53,13 +54,12 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         long lateSeconds = -delayedItem.getDelay(TimeUnit.SECONDS);
         if (lateSeconds > 0) {
 
-        // if the delay time is negative, then, we are late at getting to this
-        // item to process it.  If we are later than lateTime, issue a warning
-        // so we will know to add more resources to the scheduling of these items
+            // if the delay time is negative, then, we are late at getting to this
+            // item to process it.  If we are later than lateTime, issue a warning
+            // so we will know to add more resources to the scheduling of these items
 
             if (lateSeconds > lateTime) {
-                logger.warning("schedule of " + delayedItem.getItemKey() + " was " 
-                            + lateSeconds + " seconds late.");
+                logger.warning("schedule of " + delayedItem.getItemKey() + " was " + lateSeconds + " seconds late.");
             }
             logger.info("getting " + delayedItem.getItemKey() + " was late by " +
                     -delayedItem.getDelay(TimeUnit.SECONDS) + " secs");
@@ -98,7 +98,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         itemQueue.remove(itemToDelete);
     }
 
-    synchronized public void newProperties(PropertySheet ps) throws PropertyException {
+    synchronized public void newProperties(final PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
 
         DataStore oldStore = dataStore;
@@ -151,33 +151,39 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
             }
 
 
-            try {
-                // collect all of the items of our item type and add them to the
-                // itemQueue.  Stagger the period over the default period
+            dataStore = newItemStore;
+            itemType = newItemType;
 
-                Set<Item> items = newItemStore.getAll(newItemType);
-                if (items.size() > 0) {
-                    float initialDelay = 0;
-                    float delayIncrement = ((float) defaultPeriod) / items.size();
+            Thread t = new Thread() {
 
-                    for (Item item : items) {
-                        addItem(item.getKey(), (int) initialDelay);
-                        initialDelay += delayIncrement;
-                    }
+                public void run() {
+                    collectItems(ps.getInstanceName(), dataStore, itemType);
                 }
+            };
+            t.start();
+        }
+    }
 
-                dataStore = newItemStore;
-                itemType = newItemType;
-
-            } catch (AuraException ex) {
-                throw new PropertyException(ps.getInstanceName(),
-                        PROP_DATA_STORE,
-                        "Can't get items from the store " + ex.getMessage());
-            } catch (RemoteException ex) {
-                throw new PropertyException(ps.getInstanceName(),
-                        PROP_DATA_STORE,
-                        "Can't get items from the store " + ex.getMessage());
+    private void collectItems(String name, DataStore ds, Item.ItemType type) {
+        float initialDelay = 0;
+        float delayIncrement = .2f;
+        try {
+            // collect all of the items of our item type and add them to the
+            // itemQueue.  Stagger the period over the default period
+            DBIterator<Item> iter = ds.getItemsAddedSince(type, new Date(0));
+            try {
+                while (iter.hasNext()) {
+                    Item item = iter.next();
+                    addItem(item.getKey(), (int) initialDelay);
+                    initialDelay += delayIncrement;
+                }
+            } finally {
+                iter.close();
             }
+        } catch (AuraException ex) {
+            logger.severe("Can't get items from the store " + ex.getMessage());
+        } catch (RemoteException ex) {
+            logger.severe("Can't get items from the store " + ex.getMessage());
         }
     }
 
@@ -198,7 +204,6 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
     private DataStore dataStore;
-
     /**
      * the confieurable property for type of item to be managed
      */
@@ -213,7 +218,6 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     @ConfigInteger(defaultValue = 60 * 60, range = {1, 60 * 60 * 24 * 365})
     public final static String PROP_DEFAULT_PERIOD = "defaultPeriod";
     private int defaultPeriod;
-
     /**
      * the configurable property for late processing notification tim (in seconds)
      */
@@ -231,6 +235,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         return itemQueue.size();
     }
 }
+
 /**
  * Represents an item and its delay time, suitable for use with a DelayQueue
  * @author plamere
