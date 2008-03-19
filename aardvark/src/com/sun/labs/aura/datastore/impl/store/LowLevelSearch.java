@@ -7,7 +7,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.SortedSet;
+import java.util.List;
 
 /**
  * An interface for the search methods avaiable for partitions and replicants.
@@ -23,7 +23,7 @@ public interface LowLevelSearch extends Remote {
      * @param n the number of results to return
      * @return the top results for the query, sorted by score
      */
-    public SortedSet<Scored<Item>> query(String query, int n)
+    public List<Scored<Item>> query(String query, int n)
             throws AuraException, RemoteException;
 
     /**
@@ -33,7 +33,7 @@ public interface LowLevelSearch extends Remote {
      * @param n the number of results to return
      * @return the top results for the query
      */
-    public SortedSet<Scored<Item>> query(String query, String sort, int n)
+    public List<Scored<Item>> query(String query, String sort, int n)
             throws AuraException, RemoteException;
 
     public DocumentVector getDocumentVector(String key)
@@ -53,6 +53,6 @@ public interface LowLevelSearch extends Remote {
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public SortedSet<Scored<Item>> findSimilar(DocumentVector dv, int n)
+    public List<Scored<Item>> findSimilar(DocumentVector dv, int n)
             throws AuraException, RemoteException;
 }
