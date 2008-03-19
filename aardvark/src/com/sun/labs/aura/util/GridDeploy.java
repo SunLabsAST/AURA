@@ -61,7 +61,7 @@ public class GridDeploy {
         "000", "001", "010", "011", "100", "101", "110", "111"
     };
 
-    private static String usage = "GridDeploy createCode | startAura | startAardvark";
+    private static String usage = "GridDeploy createCode | startAura | startAardvark | createWeb";
 
     public static void main(String argv[]) throws Exception {
         if (argv.length == 0) {
@@ -78,6 +78,10 @@ public class GridDeploy {
             gd.createAuraProcesses();
         } else if (argv[0].equals("startAardvark")) {
             gd.createAardvarkProcesses();
+        } else if (argv[0].equals("createWeb")) {
+            //
+            // create the resources for a glassfish install
+            gd.createWebInfrastructure();
         }
     }
     
@@ -134,6 +138,18 @@ public class GridDeploy {
         createAuraNetwork();
         
     }
+    
+    /**
+     * Creates the resources needed for running a web server... basically
+     * an external address
+     * 
+     * @throws java.lang.Exception
+     */
+    protected void createWebInfrastructure() throws Exception {
+        NetworkAddress addr = getExternalAddressFor("www");
+        System.out.println("Bound www to " + addr.getAddress());
+    }
+    
     
     /**
      * Assuming a fully built infrastructure, this uses the network and
@@ -644,27 +660,7 @@ public class GridDeploy {
         }
 
         addrCnt++;
-        HostNameBinding binding = null;
-        try {
-            HostNameBindingConfiguration hnbConf =
-                    new HostNameBindingConfiguration();
-            Collection<UUID> addrs = new ArrayList<UUID>();
-            addrs.add(internalAddress.getUUID());
-            hnbConf.setAddresses(addrs);
-            hnbConf.setHostName(hostName);
-            binding =
-                  hnZone.createBinding(hnbConf.getHostName(), hnbConf);
-        } catch (DuplicateNameException dne) {
-            binding = hnZone.getBinding(hostName);
-            System.out.println("Host name \"" + hostName +
-                "\" has already been defined as " +
-                binding.getConfiguration().getAddresses().toArray()[0]);
-        } catch (ConflictingHostNameException chne) {
-            binding = hnZone.getBinding(hostName);
-            System.out.println("Host name \"" + hostName +
-                "\" has already been defined as " +
-                binding.getConfiguration().getAddresses().toArray()[0]);
-        }
+        bindHostName(hnZone, internalAddress, hostName);
         return internalAddress;
     }
     
@@ -683,6 +679,7 @@ public class GridDeploy {
             System.err.println(e.getMessage());
             System.exit(2);
         }
+        bindHostName(grid.getExternalHostNameZone(), externalAddress, name);
         return externalAddress;
     }
     
@@ -699,6 +696,33 @@ public class GridDeploy {
 
         System.out.println("Registration " + reg.getName()
                 + " started");
+    }
+    
+    protected void bindHostName(HostNameZone hnZone,
+                                NetworkAddress addr,
+                                String hostName) throws Exception {
+        HostNameBinding binding = null;
+        try {
+            HostNameBindingConfiguration hnbConf =
+                    new HostNameBindingConfiguration();
+            Collection<UUID> addrs = new ArrayList<UUID>();
+            addrs.add(addr.getUUID());
+            hnbConf.setAddresses(addrs);
+            hnbConf.setHostName(hostName);
+            binding =
+                  hnZone.createBinding(hnbConf.getHostName(), hnbConf);
+        } catch (DuplicateNameException dne) {
+            binding = hnZone.getBinding(hostName);
+            System.out.println("Host name \"" + hostName +
+                "\" has already been defined as " +
+                binding.getConfiguration().getAddresses().toArray()[0]);
+        } catch (ConflictingHostNameException chne) {
+            binding = hnZone.getBinding(hostName);
+            System.out.println("Host name \"" + hostName +
+                "\" has already been defined as " +
+                binding.getConfiguration().getAddresses().toArray()[0]);
+        }
+
     }
     
     protected void completelyDestroyReg(String regName) {
