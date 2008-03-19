@@ -493,9 +493,13 @@
         <copy-ear-war file="${file.reference.xerces.jar}" propname="included.lib.file.reference.xerces.jar.X"/>
         <basename file="${file.reference.xmlsec-1.1.jar}" property="included.lib.file.reference.xmlsec-1.1.jar"/>
         <copy-ear-war file="${file.reference.xmlsec-1.1.jar}" propname="included.lib.file.reference.xmlsec-1.1.jar.X"/>
+        <basename file="${libs.jstl11.classpath.libfile.2}" property="included.lib.libs.jstl11.classpath.2"/>
+        <basename file="${libs.jstl11.classpath.libfile.1}" property="included.lib.libs.jstl11.classpath.1"/>
+        <copy-ear-war file="${libs.jstl11.classpath.libfile.2}" propname="included.lib.libs.jstl11.classpath.2.X"/>
+        <copy-ear-war file="${libs.jstl11.classpath.libfile.1}" propname="included.lib.libs.jstl11.classpath.1.X"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${included.lib.reference.aardvark.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.jini-core.jar} ${included.lib.file.reference.jini-ext.jar} ${included.lib.file.reference.jsk-lib.jar} ${included.lib.file.reference.sun-util.jar} ${included.lib.file.reference.tools.jar} ${included.lib.file.reference.rome-0.9.jar} ${included.lib.file.reference.commons-codec-1.3.jar} ${included.lib.file.reference.commons-httpclient-3.0.1.jar} ${included.lib.file.reference.commons-logging-1.03.jar} ${included.lib.file.reference.htmlparser.jar} ${included.lib.file.reference.java-openid-sxip-0.9.4.jar} ${included.lib.file.reference.openxri-client.jar} ${included.lib.file.reference.openxri-syntax.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.xmlsec-1.1.jar} "/>
+            <attribute name="Class-Path" value="${included.lib.reference.aardvark.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.jini-core.jar} ${included.lib.file.reference.jini-ext.jar} ${included.lib.file.reference.jsk-lib.jar} ${included.lib.file.reference.sun-util.jar} ${included.lib.file.reference.tools.jar} ${included.lib.file.reference.rome-0.9.jar} ${included.lib.file.reference.commons-codec-1.3.jar} ${included.lib.file.reference.commons-httpclient-3.0.1.jar} ${included.lib.file.reference.commons-logging-1.03.jar} ${included.lib.file.reference.htmlparser.jar} ${included.lib.file.reference.java-openid-sxip-0.9.4.jar} ${included.lib.file.reference.openxri-client.jar} ${included.lib.file.reference.openxri-syntax.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.xmlsec-1.1.jar} ${included.lib.libs.jstl11.classpath.1.X} ${included.lib.libs.jstl11.classpath.2.X} "/>
         </manifest>
         <delete dir="${dist.ear.dir}/temp"/>
     </target>
@@ -518,6 +522,8 @@
         <copy file="${file.reference.xalan.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.xerces.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.xmlsec-1.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.jstl11.classpath.libfile.2}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.jstl11.classpath.libfile.1}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>
