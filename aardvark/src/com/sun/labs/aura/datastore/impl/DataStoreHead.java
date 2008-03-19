@@ -13,13 +13,13 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
-import com.sun.labs.aura.util.DecreasingScoredComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -498,14 +498,15 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     public SortedSet<Scored<Item>> findSimilar(String key, int n)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
-        DocumentVector dv = ((PartitionClusterImpl) pc).getDocumentVector(key);
+        DocumentVector dv = pc.getDocumentVector(key);
+        logger.info("dv: " + dv);
         return findSimilar(dv, n);
     }
 
     public SortedSet<Scored<Item>> findSimilar(String key, final String field, int n)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
-        DocumentVector dv = ((PartitionClusterImpl) pc).getDocumentVector(key, field);
+        DocumentVector dv = pc.getDocumentVector(key, field);
         return findSimilar(dv, n);
     }
 
@@ -514,15 +515,20 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                                        final int n)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
-        DocumentVector dv = ((PartitionClusterImpl) pc).getDocumentVector(key, fields);
+        DocumentVector dv = pc.getDocumentVector(key, fields);
         return findSimilar(dv, n);
     }
         
     private SortedSet<Scored<Item>> findSimilar(DocumentVector dv, final int n) throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
+        
+//        SortedSet<Scored<Item>> ret = new TreeSet<Scored<Item>>();
+//        for(PartitionCluster p : clusters) {
+//            ret.addAll(p.findSimilar(dv, n));
+//        }
 
-        Set<Callable<SortedSet<Scored<Item>>>> callers =
-                new HashSet<Callable<SortedSet<Scored<Item>>>>();
+        List<Callable<SortedSet<Scored<Item>>>> callers =
+                new ArrayList<Callable<SortedSet<Scored<Item>>>>();
         //
         // Here's our list of callers to find similar.
         for(PartitionCluster p : clusters) {
@@ -530,29 +536,24 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
                 public SortedSet<Scored<Item>> call()
                         throws AuraException, RemoteException {
-                    return ((PartitionClusterImpl) pc).findSimilar(dv, n);
+                    return pc.findSimilar(dv, n);
                 }
             });
         }
+        logger.info("callers: " + callers);
 
         //
         // Combine the results, then return only the top n
-        SortedSet<Scored<Item>> ret = null;
+        SortedSet<Scored<Item>> ret =  new TreeSet<Scored<Item>>();
         try {
             List<Future<SortedSet<Scored<Item>>>> results =
                     executor.invokeAll(callers);
             for(Future<SortedSet<Scored<Item>>> future : results) {
                 SortedSet<Scored<Item>> curr = future.get();
                 if(curr != null) {
-                    if(ret == null) {
-                        //
-                        // Make a new set with the contents and comparator from
-                        // curr
-                        ret = new TreeSet<Scored<Item>>(new DecreasingScoredComparator());
-                        ret.addAll(curr);
-                    } else {
-                        ret.addAll(curr);
-                    }
+                    ret.addAll(curr);
+                } else {
+                    logger.info("Null curr");
                 }
             }
         } catch(InterruptedException e) {
@@ -561,14 +562,9 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             checkAndThrow(e);
         }
 
-        if(ret == null) {
-            return new TreeSet<Scored<Item>>(new DecreasingScoredComparator());
-        }
-
         //
         // Make a set of the top n to return
-        SortedSet<Scored<Item>> retCnted =
-                new TreeSet<Scored<Item>>(ret.comparator());
+        SortedSet<Scored<Item>> retCnted = new TreeSet<Scored<Item>>();
         Iterator<Scored<Item>> it = ret.iterator();
         for(int i = 0; i < n; i++) {
             if(it.hasNext()) {
@@ -635,7 +631,10 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         
         public PCCaller(PartitionCluster pc, DocumentVector dv) {
             this.pc = pc;
-            this.dv = dv;
+            //
+            // Take a copy of the document vector, because we don't want the
+            // same one handed to multiple threads!
+            this.dv = dv.copy();
         }
         
         public abstract V call() throws AuraException, RemoteException;
@@ -695,21 +694,13 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         
         //
         // Combine the results, then return only the top n
-        SortedSet<Scored<Item>> ret = null;
+        SortedSet<Scored<Item>> ret = new TreeSet<Scored<Item>>();
         try {
             List<Future<SortedSet<Scored<Item>>>> results = executor.invokeAll(callers);
             for (Future<SortedSet<Scored<Item>>> future : results) {
                 SortedSet<Scored<Item>> curr = future.get();
                 if (curr != null) {
-                    if (ret == null) {
-                        //
-                        // Make a new set with the contents and comparator from
-                        // curr
-                        ret = new TreeSet<Scored<Item>>();
-                        ret.addAll(curr);
-                    } else {
-                        ret.addAll(curr);
-                    }
+                    ret.addAll(curr);
                 }
             }
         } catch (InterruptedException e) {
