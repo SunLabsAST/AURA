@@ -499,7 +499,6 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         DocumentVector dv = pc.getDocumentVector(key);
-        logger.info("dv: " + dv);
         return findSimilar(dv, n);
     }
 
@@ -522,11 +521,6 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     private SortedSet<Scored<Item>> findSimilar(DocumentVector dv, final int n) throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
         
-//        SortedSet<Scored<Item>> ret = new TreeSet<Scored<Item>>();
-//        for(PartitionCluster p : clusters) {
-//            ret.addAll(p.findSimilar(dv, n));
-//        }
-
         List<Callable<SortedSet<Scored<Item>>>> callers =
                 new ArrayList<Callable<SortedSet<Scored<Item>>>>();
         //
@@ -540,7 +534,6 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                 }
             });
         }
-        logger.info("callers: " + callers);
 
         //
         // Combine the results, then return only the top n
@@ -552,8 +545,6 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                 SortedSet<Scored<Item>> curr = future.get();
                 if(curr != null) {
                     ret.addAll(curr);
-                } else {
-                    logger.info("Null curr");
                 }
             }
         } catch(InterruptedException e) {
