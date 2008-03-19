@@ -69,7 +69,8 @@ public class Scored<T> implements Comparable<Scored<T>>, Serializable {
     }
     
     public String toString() {
-        return Util.arrayToString(sortVals);
+        return String.format("%.3f %s %s", score, item.toString(),
+                Util.arrayToString(sortVals));
     }
 
     /**

@@ -333,7 +333,11 @@ public class ItemSearchEngine implements Configurable {
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         try {
             for(Result r : sim.getResults(0, n)) {
-                ret.add(new Scored<String>(r.getKey(), r.getScore()));
+                ResultImpl ri = (ResultImpl) r;
+                ret.add(new Scored<String>(ri.getKey(), 
+                        ri.getScore(),
+                        ri.getSortVals(),
+                        ri.getDirections()));
             }
         } catch(SearchEngineException see) {
             throw new AuraException("Error getting similar items", see);

@@ -359,7 +359,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      */
     private SortedSet<Scored<Item>> keysToItems(List<Scored<String>> s)
             throws AuraException, RemoteException {
-        SortedSet<Scored<Item>> ret = new TreeSet<Scored<Item>>(new DecreasingScoredComparator());
+        SortedSet<Scored<Item>> ret = new TreeSet<Scored<Item>>();
         for(Scored<String> ss : s) {
             Item item = getItem(ss.getItem());
             if(item == null) {
@@ -369,7 +369,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
             ret.add(new Scored<Item>(item, ss));
         }
         return ret;
-
     }
 
     public void addItemListener(ItemType itemType, ItemListener listener)
