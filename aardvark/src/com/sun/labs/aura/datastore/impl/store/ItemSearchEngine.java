@@ -3,6 +3,7 @@ package com.sun.labs.aura.datastore.impl.store;
 import com.sun.kt.search.DocumentVector;
 import com.sun.kt.search.FieldInfo;
 import com.sun.kt.search.Log;
+import com.sun.kt.search.Posting;
 import com.sun.kt.search.Result;
 import com.sun.kt.search.ResultSet;
 import com.sun.kt.search.SearchEngine;
@@ -137,7 +138,7 @@ public class ItemSearchEngine implements Configurable {
             if(dm != null) {
                 for(Map.Entry<String, Serializable> e : dm.entrySet()) {
                     Serializable val = e.getValue();
-
+                    
                     //
                     // OK, first up, make sure that we have an appropriately defined
                     // field for this name.  We'll need to make sure that we're not
@@ -171,7 +172,9 @@ public class ItemSearchEngine implements Configurable {
                     //
                     // Now get a value to put in the index map.
                     Object indexVal = val;
-                    if(val instanceof Indexable) {
+                    if(indexVal instanceof Map) {
+                        indexVal = ((Map) indexVal).values();
+                    } else if(val instanceof Indexable) {
                         indexVal = indexVal.toString();
                     }
                     im.put(e.getKey(), indexVal);
@@ -193,7 +196,8 @@ public class ItemSearchEngine implements Configurable {
      * is no appropriate type.
      */
     private FieldInfo.Type getType(Object val) {
-        if(val instanceof Indexable || val instanceof Indexable[]) {
+        if(val instanceof Indexable || val instanceof Indexable[] ||
+                val instanceof Posting || val instanceof Posting[]) {
             return FieldInfo.Type.STRING;
         }
 
@@ -214,7 +218,13 @@ public class ItemSearchEngine implements Configurable {
                 val instanceof Double || val instanceof Double[]) {
             return FieldInfo.Type.FLOAT;
         }
-
+        
+        //
+        // The type of a map is the type of its values.  Arbitrary, but fun!
+        if(val instanceof Map) {
+            return getType(((Map) val).values());
+        }
+        
         //
         // Figure out an appropriate type for a collection.  We first want to 
         // make sure that all of the elements are of the same type.  This would
