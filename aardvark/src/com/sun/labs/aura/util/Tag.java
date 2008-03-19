@@ -19,6 +19,9 @@ import java.io.Serializable;
  */
 public class Tag extends Posting implements Serializable, Comparable {
 
+    public Tag() {
+    }
+    
     /**
      * Create a tag with an initial count
      * @param name the tag text
