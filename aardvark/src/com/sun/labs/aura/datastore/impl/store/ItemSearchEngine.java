@@ -139,7 +139,6 @@ public class ItemSearchEngine implements Configurable {
                 for(Map.Entry<String, Serializable> e : dm.entrySet()) {
                     Serializable val = e.getValue();
 
-                    
                     //
                     // OK, first up, make sure that we have an appropriately defined
                     // field for this name.  We'll need to make sure that we're not

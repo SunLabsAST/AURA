@@ -183,8 +183,10 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
     public void addFeed(String feedURL) throws AuraException, RemoteException {
-        Item item = StoreFactory.newItem(ItemType.FEED, feedURL, "");
-        dataStore.putItem(item);
+        if (dataStore.getItem(feedURL) == null) {
+            Item item = StoreFactory.newItem(ItemType.FEED, feedURL, "");
+            dataStore.putItem(item);
+        }
     }
 
 
@@ -300,3 +302,4 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
     public void stop() {
     }
 }
+

@@ -89,7 +89,7 @@ public class FeedUtils {
             // is particularly unsatisfying.
             key = Integer.toString(syndEntry.hashCode());
         }
-        return key;
+        return key.trim();
     }
 
     /**
@@ -199,6 +199,11 @@ public class FeedUtils {
     public static BlogEntry convertSyndEntryToFreshEntry(BlogFeed feed, SyndEntry syndEntry) throws AuraException, RemoteException {
         String key = getKey(syndEntry);
         String title = syndEntry.getTitle();
+
+        if (title != null) {
+            title = title.trim();
+        }
+        
         BlogEntry entry = new BlogEntry(key, title);
 
         List categories = syndEntry.getCategories();
