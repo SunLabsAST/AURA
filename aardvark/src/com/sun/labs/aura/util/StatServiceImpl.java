@@ -1,5 +1,6 @@
 package com.sun.labs.aura.util;
 
+import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.datastore.impl.DataStoreHead;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
@@ -14,7 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * An implementation of the 
  */
-public class StatServiceImpl implements StatService, Configurable {
+public class StatServiceImpl implements StatService, AuraService, Configurable {
 
     @ConfigComponent(type = com.sun.labs.aura.datastore.DataStore.class)
     public static final String PROP_DATA_STORE = "dataStore";

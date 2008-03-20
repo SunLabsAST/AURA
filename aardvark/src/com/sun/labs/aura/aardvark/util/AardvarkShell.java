@@ -20,6 +20,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.StatService;
 import com.sun.labs.aura.util.Tag;
 import com.sun.labs.util.command.CommandInterface;
@@ -365,6 +366,65 @@ public class AardvarkShell implements AuraService, Configurable {
                         return "shows the current stats";
                     }
                 });
+        shell.add("query",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String query = stuff(args, 1);
+                        SortedSet<Scored<Item>> items = dataStore.query(query, 10);
+                        for(Scored<Item> item : items) {
+                           System.out.printf("%.3f ", item.getScore());
+                           dumpItem(item.getItem());
+                        }
+                            
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Runs a query";
+                    }
+                });
+                
+        shell.add("fs",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String key = args[1];
+                        SortedSet<Scored<Item>> items = dataStore.findSimilar(key, 10);
+                        for(Scored<Item> item : items) {
+                           System.out.printf("%.3f ", item.getScore());
+                           dumpItem(item.getItem());
+                        }
+                            
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Runs a query";
+                    }
+                });
+        shell.add("ffs",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String field = args[1];
+                        String key = args[2];
+                        SortedSet<Scored<Item>> items = dataStore.findSimilar(key, field, 10);
+                        for(Scored<Item> item : items) {
+                           System.out.printf("%.3f ", item.getScore());
+                           dumpItem(item.getItem());
+                        }
+                            
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Runs a query";
+                    }
+                });
 
 
         Thread t = new Thread() {
@@ -515,6 +575,15 @@ public class AardvarkShell implements AuraService, Configurable {
         }
     }
 
+    private String stuff(String[] args, int p) {
+        StringBuilder sb = new StringBuilder();
+        for(int i = p; i < args.length; i++) {
+            sb.append(args[i]);
+            sb.append(' ');
+        }
+        return sb.toString();
+    }
+    
     /**
      * Stops crawling the feeds
      */

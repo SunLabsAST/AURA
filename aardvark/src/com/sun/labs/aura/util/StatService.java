@@ -1,6 +1,5 @@
 package com.sun.labs.aura.util;
 
-import com.sun.labs.aura.AuraService;
 import com.sun.labs.util.props.Component;
 import java.io.Serializable;
 import java.rmi.Remote;
@@ -9,7 +8,7 @@ import java.rmi.RemoteException;
 /**
  * An interface for a statistics collection and distribution service.
  */
-public interface StatService extends AuraService, Serializable, Remote, Component {
+public interface StatService extends Serializable, Remote, Component {
     
     /**
      * Creates a counter, initializes its value to zero and records the time
