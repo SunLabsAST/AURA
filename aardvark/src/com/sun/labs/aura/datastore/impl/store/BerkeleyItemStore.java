@@ -20,7 +20,6 @@ import com.sun.labs.aura.datastore.impl.PartitionCluster;
 import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
-import com.sun.labs.aura.util.DecreasingScoredComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
@@ -314,12 +313,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return bdb.getLastAttentionForUser(srcKey, type, count);
     }
 
-    public SortedSet<Scored<Item>> query(String query, int n)
+    public List<Scored<Item>> query(String query, int n)
             throws AuraException, RemoteException {
         return query(query, "-score", n);
     }
 
-    public SortedSet<Scored<Item>> query(String query, String sort, int n)
+    public List<Scored<Item>> query(String query, String sort, int n)
             throws AuraException, RemoteException {
         return keysToItems(searchEngine.query(query, sort, n));
     }
@@ -344,7 +343,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public SortedSet<Scored<Item>> findSimilar(DocumentVector dv, int n)
+    public List<Scored<Item>> findSimilar(DocumentVector dv, int n)
             throws AuraException, RemoteException {
         return keysToItems(searchEngine.findSimilar(dv, n));
     }
@@ -357,9 +356,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    private SortedSet<Scored<Item>> keysToItems(List<Scored<String>> s)
+    private List<Scored<Item>> keysToItems(List<Scored<String>> s)
             throws AuraException, RemoteException {
-        SortedSet<Scored<Item>> ret = new TreeSet<Scored<Item>>();
+        List<Scored<Item>> ret = new ArrayList<Scored<Item>>();
         for(Scored<String> ss : s) {
             Item item = getItem(ss.getItem());
             if(item == null) {

@@ -100,6 +100,7 @@ public class AardvarkShell implements AuraService, Configurable {
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
+                            ex.printStackTrace();
                         }
                         return "";
                     }
@@ -372,7 +373,7 @@ public class AardvarkShell implements AuraService, Configurable {
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
                         String query = stuff(args, 1);
-                        SortedSet<Scored<Item>> items = dataStore.query(query, 10);
+                        List<Scored<Item>> items = dataStore.query(query, 10);
                         for(Scored<Item> item : items) {
                            System.out.printf("%.3f ", item.getScore());
                            dumpItem(item.getItem());
@@ -392,7 +393,7 @@ public class AardvarkShell implements AuraService, Configurable {
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
                         String key = args[1];
-                        SortedSet<Scored<Item>> items = dataStore.findSimilar(key, 10);
+                        List<Scored<Item>> items = dataStore.findSimilar(key, 10);
                         for(Scored<Item> item : items) {
                            System.out.printf("%.3f ", item.getScore());
                            dumpItem(item.getItem());
@@ -412,7 +413,7 @@ public class AardvarkShell implements AuraService, Configurable {
                             throws Exception {
                         String field = args[1];
                         String key = args[2];
-                        SortedSet<Scored<Item>> items = dataStore.findSimilar(key, field, 10);
+                        List<Scored<Item>> items = dataStore.findSimilar(key, field, 10);
                         for(Scored<Item> item : items) {
                            System.out.printf("%.3f ", item.getScore());
                            dumpItem(item.getItem());

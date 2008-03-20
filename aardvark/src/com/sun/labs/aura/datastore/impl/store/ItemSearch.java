@@ -6,6 +6,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.rmi.RemoteException;
+import java.util.List;
 import java.util.SortedSet;
 
 /**
@@ -17,11 +18,11 @@ public interface ItemSearch {
      * Finds a the n most similar items to the given item.
      * @param key the item that we want to find similar items for
      * @param n the number of similar items to return
-     * @return the set of items most similar to the given item, ordered by 
-     * similarity to the given item.  The similarity of the items is based on 
+     * @return a list of items most similar to the given item, in order from most
+     * to least similar.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public SortedSet<Scored<Item>> findSimilar(String key, int n)
+    public List<Scored<Item>> findSimilar(String key, int n)
             throws AuraException, RemoteException;
 
     /**
@@ -31,11 +32,12 @@ public interface ItemSearch {
      * @param field the name of the field that should be used to find similar
      * items
      * @param n the number of similar items to return
-     * @return the set of items most similar to the given item, based on the 
+     * @return a list of the items most similar to the given item, in order from
+     * most to least similar, based on the 
      * data indexed into the given field.  Note that the returned set may be
      * smaller than the number of items requested!
      */
-    public SortedSet<Scored<Item>> findSimilar(String key, String field, int n)
+    public List<Scored<Item>> findSimilar(String key, String field, int n)
             throws AuraException, RemoteException;
     
     /**
@@ -45,20 +47,21 @@ public interface ItemSearch {
      * @param fields the fields (and associated weights) that we should use to 
      * compute the similarity between items.
      * @param n the number of similar items to return
-     * @return the set of items most similar to the given item, based on the data
+     * @return a list of the items most similar to the given item, in order from 
+     * most to least similar, based on the data
      * in the provided fields.   Note that the returned set may be
      * smaller than the number of items requested!
      */
-    public SortedSet<Scored<Item>> findSimilar(String key, WeightedField[] fields, int n)
+    public List<Scored<Item>> findSimilar(String key, WeightedField[] fields, int n)
             throws AuraException, RemoteException;
     
     /**
      * Runs a query against the map data and returns the top n results.
      * @param query the query to run
      * @param n the number of results to return
-     * @return the top results for the query, sorted by score
+     * @return the top results for the query, orderd by score
      */
-    public SortedSet<Scored<Item>> query(String query, int n)
+    public List<Scored<Item>> query(String query, int n)
             throws AuraException, RemoteException;
 
     /**
@@ -66,9 +69,10 @@ public interface ItemSearch {
      * @param query the query to run
      * @param sort the sorting specification to use to sort the results
      * @param n the number of results to return
-     * @return the top results for the query
+     * @return the top results for the query, orderd by the given sort
+     * criteria.
      */
-    public SortedSet<Scored<Item>> query(String query, String sort, int n)
+    public List<Scored<Item>> query(String query, String sort, int n)
             throws AuraException, RemoteException;
 
 }
