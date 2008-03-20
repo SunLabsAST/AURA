@@ -196,7 +196,7 @@ public class AardvarkShell implements AuraService, Configurable {
                         } else {
                             String key = args[1];
                             Item item = dataStore.getItem(key);
-                            if (item != null && item instanceof BlogFeed) {
+                            if (item != null && item.getType() == ItemType.FEED) {
                                 dumpFeed(item);
                             }
                         }
@@ -241,6 +241,23 @@ public class AardvarkShell implements AuraService, Configurable {
 
                     public String getHelp() {
                         return "dumps the entries added in the last 24 hours";
+                    }
+                });
+
+        shell.add("entryTitles",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] arg1) {
+                        try {
+                            dumpEntryTitles(10000);
+                        } catch (Exception e) {
+                            System.out.println("Error " + e);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "dumps 10,000 entries";
                     }
                 });
 
@@ -434,7 +451,26 @@ public class AardvarkShell implements AuraService, Configurable {
             System.out.printf("   %s(%s) -- %s -- %s(%s)\n", source.getKey(), source.getName(),
                     type, target.getKey(), target.getName());
         }
+    }
 
+    private void dumpEntryTitles(int count) {
+        try {
+            DBIterator<Item> iter = dataStore.getItemsAddedSince(ItemType.BLOGENTRY, new Date(0));
+
+            try {
+                while (count-- > 0 && iter.hasNext()) {
+                    Item item = iter.next();
+                    BlogEntry entry = new BlogEntry(item);
+                    System.out.println(entry.getName());
+                }
+            } finally {
+                iter.close();
+            }
+        } catch (AuraException ex) {
+            logger.severe("dumpTagFrequencies " + ex);
+        } catch (RemoteException ex) {
+            logger.severe("dumpTagFrequencies " + ex);
+        }
     }
 
     private void dumpTagFrequencies() {

@@ -37,18 +37,15 @@ public class FeedManager implements AuraService, Configurable {
 
     private Set<Thread> runningThreads =
             Collections.synchronizedSet(new HashSet<Thread>());
-
     private Logger logger;
-
     private int defaultCrawlingPeriod = 60 * 60;
-    
     private long lastPullCount = 0;
-    
+
     /**
      * Starts crawling all of the feeds
      */
     public void start() {
-        for(int i = 0; i < numThreads; i++) {
+        for (int i = 0; i < numThreads; i++) {
             Thread t = new Thread() {
 
                 @Override
@@ -87,7 +84,7 @@ public class FeedManager implements AuraService, Configurable {
             statService.create(COUNTER_ENTRY_PULL_COUNT);
             statService.create(COUNTER_FEED_ERROR_COUNT);
             statService.create(COUNTER_FEED_PULL_COUNT);
-        } catch(RemoteException rx) {
+        } catch (RemoteException rx) {
             throw new PropertyException(ps.getInstanceName(), PROP_STAT_SERVICE,
                     "Unable to create counters");
         }
@@ -101,7 +98,7 @@ public class FeedManager implements AuraService, Configurable {
 
     public void crawlAllFeeds() throws AuraException, RemoteException {
         Set<Item> feeds = dataStore.getAll(Item.ItemType.FEED);
-        for(Item ifeed : feeds) {
+        for (Item ifeed : feeds) {
             BlogFeed feed = new BlogFeed(ifeed);
             crawlFeed(feed);
         }
@@ -120,14 +117,14 @@ public class FeedManager implements AuraService, Configurable {
         DataStore myItemStore = dataStore;
         String key = null;
         try {
-            while(runningThreads.contains(Thread.currentThread())) {
+            while (runningThreads.contains(Thread.currentThread())) {
                 try {
                     key = myFeedScheduler.getNextItemKey();
                     int nextCrawl = defaultCrawlingPeriod;
                     try {
                         Item item = myItemStore.getItem(key);
-                        if(item != null) {
-                            if(item.getType() == ItemType.FEED) {
+                        if (item != null) {
+                            if (item.getType() == ItemType.FEED) {
                                 BlogFeed feed = new BlogFeed(item);
                                 crawlFeed(myItemStore, feed);
                                 nextCrawl += feed.getNumConsecutiveErrors() *
@@ -140,14 +137,14 @@ public class FeedManager implements AuraService, Configurable {
                     } finally {
                         feedScheduler.releaseItem(key, nextCrawl);
                     }
-                } catch(InterruptedException ex) {
+                } catch (InterruptedException ex) {
                     break;
-                } catch(RemoteException ex) {
+                } catch (RemoteException ex) {
                     break;
-                } catch(AuraException ex) {
+                } catch (AuraException ex) {
                     logger.warning("AuraException in crawler, still trying " +
                             ex.getMessage());
-                } catch(Throwable ex) {
+                } catch (Throwable ex) {
                     logger.warning("Unexpected exception when crawling feed " +
                             key + " exception: " + ex.getMessage());
                 }
@@ -176,27 +173,29 @@ public class FeedManager implements AuraService, Configurable {
             Set<Attention> attentions =
                     myItemStore.getAttentionForTarget(feed.getKey());
 
-            for(BlogEntry entry : entries) {
-                entry.flush(myItemStore);
-                for(Attention feedAttention : attentions) {
-                    Attention.Type userAttentionType =
-                            getUserAttentionFromFeedAttention(feedAttention.getType());
-                    if(userAttentionType != null) {
-                        Attention entryAttention = StoreFactory.newAttention(
-                                feedAttention.getSourceKey(), entry.getKey(),
-                                userAttentionType);
-                        dataStore.attend(entryAttention);
+            for (BlogEntry entry : entries) {
+                if (dataStore.getItem(entry.getKey()) == null) {
+                    entry.flush(myItemStore);
+                    for (Attention feedAttention : attentions) {
+                        Attention.Type userAttentionType =
+                                getUserAttentionFromFeedAttention(feedAttention.getType());
+                        if (userAttentionType != null) {
+                            Attention entryAttention = StoreFactory.newAttention(
+                                    feedAttention.getSourceKey(), entry.getKey(),
+                                    userAttentionType);
+                            dataStore.attend(entryAttention);
+                        }
                     }
                 }
             }
             statService.incr(COUNTER_ENTRY_PULL_COUNT, entries.size());
             logger.info(entries.size() + " entries from  " + feed.getURL());
             ok = true;
-        } catch(AuraException ex) {
+        } catch (AuraException ex) {
             logger.warning("trouble processing " + feed.getKey() + " " +
                     ex.getMessage());
             statService.incr(COUNTER_FEED_ERROR_COUNT, 1);
-        } catch(RemoteException rx) {
+        } catch (RemoteException rx) {
             logger.log(Level.SEVERE, "remote exception processing " +
                     feed.getKey(), rx);
             statService.incr(COUNTER_FEED_ERROR_COUNT, 1);
@@ -207,11 +206,11 @@ public class FeedManager implements AuraService, Configurable {
 
         //
         // Fetch stats from the stats server.
-        if(feedPullCount - lastPullCount > 100) {
+        if (feedPullCount - lastPullCount > 100) {
             logger.info(String.format("Feeds: %d pulls: %d errors: %d entries: %d ppm: %.3f epm: %.3f threads: %d",
                     feedScheduler.size(), statService.get(COUNTER_FEED_PULL_COUNT),
                     statService.get(COUNTER_FEED_ERROR_COUNT),
-                    statService.get(COUNTER_ENTRY_PULL_COUNT), 
+                    statService.get(COUNTER_ENTRY_PULL_COUNT),
                     statService.getAveragePerMinute(COUNTER_FEED_PULL_COUNT),
                     statService.getAveragePerMinute(COUNTER_ENTRY_PULL_COUNT),
                     runningThreads.size()));
@@ -226,11 +225,11 @@ public class FeedManager implements AuraService, Configurable {
      */
     private Attention.Type getUserAttentionFromFeedAttention(Attention.Type feedAttentionType) {
         Attention.Type userAttentionType = null;
-        if(feedAttentionType == Attention.Type.STARRED_FEED) {
+        if (feedAttentionType == Attention.Type.STARRED_FEED) {
             userAttentionType = Attention.Type.STARRED;
-        } else if(feedAttentionType == Attention.Type.SUBSCRIBED_FEED) {
+        } else if (feedAttentionType == Attention.Type.SUBSCRIBED_FEED) {
             userAttentionType = Attention.Type.SUBSCRIBED;
-        } else if(feedAttentionType == Attention.Type.DISLIKED_FEED) {
+        } else if (feedAttentionType == Attention.Type.DISLIKED_FEED) {
             userAttentionType = Attention.Type.DISLIKED;
         }
         return userAttentionType;
@@ -240,37 +239,26 @@ public class FeedManager implements AuraService, Configurable {
      */
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
-
     private DataStore dataStore;
-
     /**
      * The statistics service that we'll use to count things.
      */
     @ConfigComponent(type = com.sun.labs.aura.util.StatService.class)
     public static final String PROP_STAT_SERVICE = "statService";
-
     private StatService statService;
-    
     public static final String COUNTER_ENTRY_PULL_COUNT = "fm.entryPullCount";
-    
     public static final String COUNTER_FEED_ERROR_COUNT = "fm.feedErrorCount";
-    
     public static final String COUNTER_FEED_PULL_COUNT = "fm.feedPullCount";
-    
     /**
      * the configurable property for the feed itemScheuler used by this manager
      */
     @ConfigComponent(type = ItemScheduler.class)
     public final static String PROP_FEED_SCHEDULER = "feedScheduler";
-
     private ItemScheduler feedScheduler;
-
     /**
      * the configurable property for the number of threads used by this manager
      */
     @ConfigInteger(defaultValue = 10, range = {1, 1000})
     public final static String PROP_NUM_THREADS = "numThreads";
-
     private int numThreads;
-
 }
