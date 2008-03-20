@@ -20,6 +20,7 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.logging.Level;
@@ -150,19 +151,19 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getAttentionCount();
     }
 
-    public SortedSet<Scored<Item>> findSimilar(String key, int n)
+    public List<Scored<Item>> findSimilar(String key, int n)
             throws AuraException, RemoteException {
         DocumentVector dv = replicant.getDocumentVector(key);
         return replicant.findSimilar(dv, n);
     }
 
-    public SortedSet<Scored<Item>> findSimilar(String key, String field, int n)
+    public List<Scored<Item>> findSimilar(String key, String field, int n)
             throws AuraException, RemoteException {
         DocumentVector dv = replicant.getDocumentVector(key, field);
         return replicant.findSimilar(dv, n);
     }
 
-    public SortedSet<Scored<Item>> findSimilar(String key,
+    public List<Scored<Item>> findSimilar(String key,
                                        WeightedField[] fields,
                                        int n)
             throws AuraException, RemoteException {
@@ -170,13 +171,13 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.findSimilar(dv, n);
     }
     
-    public SortedSet<Scored<Item>> query(String query, int n) 
+    public List<Scored<Item>> query(String query, int n) 
             throws AuraException, RemoteException {
         return replicant.query(query, n);
     }
 
 
-    public SortedSet<Scored<Item>> query(String query, String sort, int n) 
+    public List<Scored<Item>> query(String query, String sort, int n) 
             throws AuraException, RemoteException {
         return replicant.query(query, sort, n);
     }
@@ -233,7 +234,7 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getDocumentVector(key, fields);
     }
 
-    public SortedSet<Scored<Item>> findSimilar(DocumentVector dv, int n) throws AuraException, RemoteException {
+    public List<Scored<Item>> findSimilar(DocumentVector dv, int n) throws AuraException, RemoteException {
         return replicant.findSimilar(dv, n);
     }
 }

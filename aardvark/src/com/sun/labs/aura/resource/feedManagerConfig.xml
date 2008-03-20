@@ -41,10 +41,14 @@
     
     <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager">
         <property name="dataStore" value="dataStoreHead"/>
+        <property name="statService" value="statService"/>
         <property name="feedScheduler" value="feedScheduler"/>
         <property name="numThreads" value="10"/>
+        <property name="logLevel" value="INFO"/>
     </component>
     
+    <component name="statService" type="com.sun.labs.aura.util.StatService"/>
+
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
 
     <component name="feedScheduler" type="com.sun.labs.aura.util.ItemScheduler"/>

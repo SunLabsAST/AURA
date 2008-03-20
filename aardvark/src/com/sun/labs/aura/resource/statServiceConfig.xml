@@ -9,8 +9,20 @@
 -->
 
 <config>
+
+    <!-- Where the aura data lives -->
+    <property name="auraHome" value="/aura"/>
     
+    <!-- Where the aura distribution jar was unpacked. -->
+    <property name="auraDistDir" value="${auraHome}/dist"/>
+
     <property name="csPort" value="5500"/>
+
+    <component name="prefixEntries" type="com.sun.labs.util.props.ConfigurationEntries">
+        <propertylist name="entries">
+            <item>${prefix}</item>
+        </propertylist>
+    </component>
     
     <!-- A component registry that will be used to lookup and register components. -->
     <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
@@ -27,7 +39,7 @@
         <property name="securityPolicy" value="${auraDistDir}/jsk-all.policy"/>
     </component>
     
-    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl">
+    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl" export="true">
         <property name="dataStore" value="dataStoreHead"/>
     </component>
 

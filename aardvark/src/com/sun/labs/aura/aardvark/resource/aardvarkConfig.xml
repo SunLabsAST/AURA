@@ -37,6 +37,7 @@
     <!-- An aardvark system -->
     <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl" export="true">
         <property name="dataStore" value="dataStoreHead"/>
+        <property name="statService" value="statService"/>
         <property name="recommenderManager" value="recommenderManager"/>
         <property name="autoEnrollTestFeeds" value="true"/>
         <property name="autoEnrollMegaTestFeeds" value="true"/>
@@ -44,7 +45,9 @@
     
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
 
-    <component name="recommenderManager" type="com.sun.labs.aura.aardvark.recommender.RecommenderManager"/>
+    <component name="statService" type="com.sun.labs.aura.util.StatService"/>
+
+    <component name="recommenderManager" type="com.sun.labs.aura.recommender.RecommenderManager"/>
     
     <!-- A service starter for this feed scheduler -->
     <component name="aardvarkStarter" type="com.sun.labs.aura.AuraServiceStarter">

@@ -93,8 +93,8 @@
         <property name="dataStore" value="dataStoreHead"/>
         <property name="recommenderManager" value="recommenderManager"/>
         <property name="statService" value="statService"/>
-        <property name="autoEnrollTestFeeds" value="true"/>
-        <property name="autoEnrollMegaTestFeeds" value="true"/>
+        <property name="autoEnrollTestFeeds" value="false"/>
+        <property name="autoEnrollMegaTestFeeds" value="false"/>
     </component>
 
 

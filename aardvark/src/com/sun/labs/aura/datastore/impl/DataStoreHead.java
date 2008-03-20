@@ -13,6 +13,8 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
+import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -20,10 +22,13 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -176,7 +181,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         // iterate over all of them.  Since no particular ordering is
         // promised by this method, we'll use a simple composite iterator.
         MultiDBIterator<Item> mdbi = new MultiDBIterator<Item>(iterators);
-        return (MultiDBIterator<Item>) cm.getRemote(mdbi, this);
+        return (DBIterator<Item>) cm.getRemote(mdbi);
     }
 
     public Set<Item> getItems(final User user,
@@ -303,7 +308,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         // iterate over all of them.  Since no particular ordering is
         // promised by this method, we'll use a simple composite iterator.
         MultiDBIterator<Attention> mdbi = new MultiDBIterator<Attention>(ret);
-        return (MultiDBIterator<Attention>) cm.getRemote(mdbi, this);
+        return (DBIterator<Attention>) cm.getRemote(mdbi);
 
     }
 
@@ -495,40 +500,40 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
      *  Search methods
      *
      */
-    public SortedSet<Scored<Item>> findSimilar(String key, int n)
+    public List<Scored<Item>> findSimilar(String key, int n)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         DocumentVector dv = pc.getDocumentVector(key);
         return findSimilar(dv, n);
     }
 
-    public SortedSet<Scored<Item>> findSimilar(String key, final String field, int n)
+    public List<Scored<Item>> findSimilar(String key, final String field,
+            int n)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         DocumentVector dv = pc.getDocumentVector(key, field);
         return findSimilar(dv, n);
     }
 
-    public SortedSet<Scored<Item>> findSimilar(final String key,
-                                       final WeightedField[] fields,
-                                       final int n)
+    public List<Scored<Item>> findSimilar(final String key,
+            final WeightedField[] fields,
+            final int n)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         DocumentVector dv = pc.getDocumentVector(key, fields);
         return findSimilar(dv, n);
     }
-        
-    private SortedSet<Scored<Item>> findSimilar(DocumentVector dv, final int n) throws AuraException, RemoteException {
+    private List<Scored<Item>> findSimilar(DocumentVector dv, final int n)
+            throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
-        
-        List<Callable<SortedSet<Scored<Item>>>> callers =
-                new ArrayList<Callable<SortedSet<Scored<Item>>>>();
+        List<Callable<List<Scored<Item>>>> callers =
+                new ArrayList<Callable<List<Scored<Item>>>>();
         //
         // Here's our list of callers to find similar.
         for(PartitionCluster p : clusters) {
             callers.add(new PCCaller(p, dv) {
 
-                public SortedSet<Scored<Item>> call()
+                public List<Scored<Item>> call()
                         throws AuraException, RemoteException {
                     return pc.findSimilar(dv, n);
                 }
@@ -536,35 +541,16 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
 
         //
-        // Combine the results, then return only the top n
-        SortedSet<Scored<Item>> ret =  new TreeSet<Scored<Item>>();
+        // Run the computation, sort the results and return.
         try {
-            List<Future<SortedSet<Scored<Item>>>> results =
-                    executor.invokeAll(callers);
-            for(Future<SortedSet<Scored<Item>>> future : results) {
-                SortedSet<Scored<Item>> curr = future.get();
-                if(curr != null) {
-                    ret.addAll(curr);
-                }
-            }
-        } catch(InterruptedException e) {
-            throw new AuraException("Execution was interrupted", e);
-        } catch(ExecutionException e) {
-            checkAndThrow(e);
+            return sortScored(executor.invokeAll(callers), n);
+        } catch(ExecutionException ex) {
+            checkAndThrow(ex);
+            return new ArrayList<Scored<Item>>();
+        } catch(InterruptedException ie) {
+            throw new AuraException("findSimilar interrupted", ie);
         }
 
-        //
-        // Make a set of the top n to return
-        SortedSet<Scored<Item>> retCnted = new TreeSet<Scored<Item>>();
-        Iterator<Scored<Item>> it = ret.iterator();
-        for(int i = 0; i < n; i++) {
-            if(it.hasNext()) {
-                retCnted.add(it.next());
-            } else {
-                break;
-            }
-        }
-        return retCnted;
     }
  
 
@@ -602,7 +588,35 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
      *  Utility and configuration methods
      * 
      */
-    
+    private List<Scored<Item>> sortScored(List<Future<List<Scored<Item>>>> results,
+            int n) throws InterruptedException, ExecutionException {
+        PriorityQueue<Scored<Item>> sorter = new PriorityQueue<Scored<Item>>(n);
+        for(Future<List<Scored<Item>>> future : results) {
+            List<Scored<Item>> curr = future.get();
+            if(curr != null) {
+                for(Scored<Item> item : curr) {
+                    if(sorter.size() < n) {
+                        sorter.offer(item);
+                    } else {
+                        if(item.compareTo(sorter.peek()) > 0) {
+                            sorter.poll();
+                            sorter.offer(item);
+                        }
+                    }
+                }
+            }
+        }
+
+        //
+        // Get the top n.
+        List<Scored<Item>> ret = new ArrayList<Scored<Item>>(sorter.size());
+        while(sorter.size() > 0) {
+            ret.add(sorter.poll());
+        }
+        Collections.reverse(ret);
+        return ret;
+    }
+
     public void newProperties(PropertySheet ps) throws PropertyException {
         cm = ps.getConfigurationManager();
     }
@@ -664,58 +678,34 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
     }
 
-    public SortedSet<Scored<Item>> query(String query, int n) 
+    public List<Scored<Item>> query(String query, int n)
             throws AuraException, RemoteException {
         return query(query, "-score", n);
     }
 
-    public SortedSet<Scored<Item>> query(final String query, final String sort, final int n) 
+    public List<Scored<Item>> query(final String query, final String sort,
+            final int n)
             throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<SortedSet<Scored<Item>>>> callers =
-                new HashSet<Callable<SortedSet<Scored<Item>>>>();
-        for (PartitionCluster p : clusters) {
+        Set<Callable<List<Scored<Item>>>> callers =
+                new HashSet<Callable<List<Scored<Item>>>>();
+        for(PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
-                public SortedSet<Scored<Item>> call()
+                public List<Scored<Item>> call()
                         throws AuraException, RemoteException {
                     return pc.query(query, sort, n);
                 }
             });
         }
-        
-        //
-        // Combine the results, then return only the top n
-        SortedSet<Scored<Item>> ret = new TreeSet<Scored<Item>>();
         try {
-            List<Future<SortedSet<Scored<Item>>>> results = executor.invokeAll(callers);
-            for (Future<SortedSet<Scored<Item>>> future : results) {
-                SortedSet<Scored<Item>> curr = future.get();
-                if (curr != null) {
-                    ret.addAll(curr);
-                }
-            }
+        return sortScored(executor.invokeAll(callers), n);
+        } catch(ExecutionException ex) {
+            checkAndThrow(ex);
+            return new ArrayList<Scored<Item>>();
         } catch (InterruptedException e) {
-            throw new AuraException("Execution was interrupted", e);
-        } catch (ExecutionException e) {
-            checkAndThrow(e);
+            throw new AuraException("Query interrupted", e);
         }
-        
-        if (ret == null) {
-            return new TreeSet<Scored<Item>>();
-        }
-        
-        //
-        // Make a set of the top n to return
-        SortedSet<Scored<Item>> retCnted = new TreeSet<Scored<Item>>();
-        Iterator<Scored<Item>> it = ret.iterator();
-        for (int i = 0; i < n; i++) {
-            if (it.hasNext()) {
-                retCnted.add(it.next());
-            } else {
-                break;
-            }
-        }
-        return retCnted;
+
     }
 
 }

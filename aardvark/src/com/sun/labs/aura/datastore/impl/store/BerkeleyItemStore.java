@@ -270,8 +270,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
             throws AuraException {
         DBIterator<Item> res =
                 bdb.getItemsAddedSince(type, timeStamp.getTime());
-
-        return (DBIterator<Item>) cm.getRemote(res, this);
+        res = (DBIterator<Item>)cm.getRemote(res);
+        return res;
     }
 
     public Set<Attention> getAttentionForSource(String srcKey)
@@ -298,7 +298,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         DBIterator<Attention> res =
                 bdb.getAttentionAddedSince(timeStamp.getTime());
 
-        return (DBIterator<Attention>) cm.getRemote(res, this);
+        return (DBIterator<Attention>) cm.getRemote(res);
     }
 
     public SortedSet<Attention> getLastAttentionForSource(String srcKey,
@@ -314,12 +314,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return bdb.getLastAttentionForUser(srcKey, type, count);
     }
 
-    public SortedSet<Scored<Item>> query(String query, int n)
+    public List<Scored<Item>> query(String query, int n)
             throws AuraException, RemoteException {
         return query(query, "-score", n);
     }
 
-    public SortedSet<Scored<Item>> query(String query, String sort, int n)
+    public List<Scored<Item>> query(String query, String sort, int n)
             throws AuraException, RemoteException {
         return keysToItems(searchEngine.query(query, sort, n));
     }
@@ -344,7 +344,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public SortedSet<Scored<Item>> findSimilar(DocumentVector dv, int n)
+    public List<Scored<Item>> findSimilar(DocumentVector dv, int n)
             throws AuraException, RemoteException {
         return keysToItems(searchEngine.findSimilar(dv, n));
     }
@@ -357,9 +357,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    private SortedSet<Scored<Item>> keysToItems(List<Scored<String>> s)
+    private List<Scored<Item>> keysToItems(List<Scored<String>> s)
             throws AuraException, RemoteException {
-        SortedSet<Scored<Item>> ret = new TreeSet<Scored<Item>>();
+        List<Scored<Item>> ret = new ArrayList<Scored<Item>>();
         for(Scored<String> ss : s) {
             Item item = getItem(ss.getItem());
             if(item == null) {
