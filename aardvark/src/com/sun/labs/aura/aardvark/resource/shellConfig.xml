@@ -22,11 +22,19 @@
      
 <config>
     
+    <property name="auraHome" value="/aura"/>
+
+    <property name="auraGroup" value="Aura"/>
+    
+    <!-- Where the aura distribution jar was unpacked. -->
+    <property name="auraDistDir" value="${auraHome}/dist"/>
+
     <!-- A component registry that we can use to get things. -->
     <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
         <propertylist name="groupList">
-            <item>Aura</item>
+            <item>${auraGroup}</item>
         </propertylist>
+        <property name="securityPolicy" value="${auraDistDir}/jsk-all.policy"/>
     </component>
     
     <component name="shell" type="com.sun.labs.aura.aardvark.util.AardvarkShell">

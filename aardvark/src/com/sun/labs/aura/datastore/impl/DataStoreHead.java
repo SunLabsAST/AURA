@@ -726,6 +726,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         } else if (e.getCause() instanceof RemoteException) {
             throw (RemoteException)e.getCause();
         } else {
+            logger.log(Level.INFO, "Error?", e);
             throw new AuraException("Execution failed", e);
         }
 
