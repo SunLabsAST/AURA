@@ -32,7 +32,6 @@ public class ServletListener implements ServletContextListener {
             //
             // Get the Aardvark interface
             Aardvark aardvark = getAardvark(config);
-            logger.info("Got aardvark at " + aardvark);
             context.setAttribute("aardvark", aardvark);
         } catch (MalformedURLException ex) {
             logger.severe("Bad URL to config file " + ex.getMessage());

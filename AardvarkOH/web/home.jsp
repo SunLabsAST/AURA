@@ -9,14 +9,25 @@
    "http://www.w3.org/TR/html4/loose.dtd">
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <jsp:useBean id="userBean" class="com.sun.labs.aura.aardvark.web.bean.UserBean" scope="request"/>
+<jsp:useBean id="statsBean" class="com.sun.labs.aura.aardvark.web.bean.StatsBean" scope="request"/>
 
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
+        <link rel="stylesheet" type="text/css" href="<c:url value="/style/aardvark.css"/>">
+        <title>Home</title>
     </head>
     <body>
-        <h2>Welcome <%= userBean.getRealName() %></h2>
-        <h2>There are <%= userBean.getNumFeeds() %> feeds</h2>
+        <%@include file="/WEB-INF/jspf/header.jspf"%>
+        <div class="main">
+        <div align="center">
+            <img src="<c:url value="/images/aardvark-still.gif" />" />
+        </div>
+        <div class="bigOrangeTxt">Welcome <%= userBean.getNickname() %></div>
+        Your starred item feed URL is: <a href="<%= userBean.getDefaultFeedURL() %>"><%= userBean.getDefaultFeedURL() %></a><br>
+        Your recommended feed URL is: <a href="<c:url value="${userBean.recommendedFeedURL}"/>"><c:url value="${userBean.recommendedFeedURL}"/></a><br>
+        User id is <%= userBean.getID() %><br>
+        Full name is <%= userBean.getFullname() %><br>
+        </div>
     </body>
 </html>

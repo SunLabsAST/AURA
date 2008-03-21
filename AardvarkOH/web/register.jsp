@@ -20,7 +20,7 @@
         act as your login for Aardvark.  OpenID is an open framework that allows
         you to log in with a site that you trust, then rely on that site to
         prove that you are who you say you are.  If you haven't already done
-        so, please <a href="http://openid.sun.com/">create</a> an OpenID for yourself.
+        so, please <a href="http://myopenid.com/">create</a> an OpenID for yourself.
         <p/>
         Now you are ready to register.  Please complete the registration form
         below and we'll ask you to authenticate your OpenID before creating your

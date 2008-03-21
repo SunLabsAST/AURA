@@ -20,13 +20,28 @@ body {
   color: black;
   font-family: Arial, sans-serif;
   font-size: small;
-  margin: 8px;
-  margin-top: 3px;
+  margin: 0px;
+}
+
+div.main {
+    margin: 10px;
 }
 
 explanation {
   margin-left: 30px;
 }
+
+div.topCling {
+  height: 16px;
+  font-size: 12px;
+  font-weight: bold;
+  color: black;
+  background: #E76F00;
+  margin-top: 0px;
+  margin-bottom: 5px;
+  padding: 2px 0px 0px 4px;
+}
+
 
 .openidField {
   background: #FFFFFF url('../images/openid-small.gif') no-repeat scroll 0pt 50%;

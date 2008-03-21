@@ -1,7 +1,7 @@
 <%@page contentType="text/html"%>
 <%@page pageEncoding="UTF-8"%>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-
+<jsp:useBean id="statsBean" class="com.sun.labs.aura.aardvark.web.bean.StatsBean" scope="request"/>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
    "http://www.w3.org/TR/html4/loose.dtd">
 
@@ -13,6 +13,7 @@
         <link rel="stylesheet" type="text/css" href="<c:url value="/style/aardvark.css"/>">
     </head>
     <body>
+        <%@include file="/WEB-INF/jspf/header.jspf"%>
         <f:view>
             <div align="center">
                 <img src="<c:url value="/images/aardvark-welcome.gif"/>">
@@ -24,7 +25,7 @@
                     <input type="submit" value="Login"/>
                 </form>
                 <span class="smallText">Don't have an ID?
-                <a href="http://openid.sun.com/">Create</a> one, then
+                <a href="http://myopenid.com/">Create</a> one, then
                 <a href="<c:url value="/Register" />">register</a> yourself!</span>
             </div>
         </f:view>
