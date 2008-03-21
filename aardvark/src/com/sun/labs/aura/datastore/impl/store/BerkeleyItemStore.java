@@ -221,6 +221,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return (User) bdb.getItem(key);
     }
 
+    public User getUserForRandomString(String randStr) throws AuraException {
+        return bdb.getUserForRandomString(randStr);
+    }
+    
     public Item putItem(Item item) throws AuraException {
         boolean existed = false;
         if(item instanceof ItemImpl) {
@@ -256,6 +260,20 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
 
     public User putUser(User user) throws AuraException {
         return (User) putItem(user);
+    }
+
+    /**
+     * Deletes just a user from the item store, not touching the attention.
+     */
+    public void deleteUser(String userKey) throws AuraException {
+        deleteItem(userKey);
+    }
+    
+    /**
+     * Deletes just an item from the item store, not touching the attention.
+     */
+    public void deleteItem(String itemKey) throws AuraException {
+        bdb.deleteItem(itemKey);
     }
 
     public Set<Item> getItems(User user, Type attnType,
@@ -296,6 +314,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         PersistentAttention pa = new PersistentAttention(att);
         bdb.putAttention(pa);
         return pa;
+    }
+
+    public void deleteAttention(String itemKey)
+            throws AuraException, RemoteException {
+        bdb.deleteAttention(itemKey);
     }
 
     public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)

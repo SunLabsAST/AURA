@@ -163,7 +163,19 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         }
     }
 
-    
+    /**
+     * Deletes a user from the data store
+     * 
+     * @param user the user to delete
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void deleteUser(User user) throws AuraException, RemoteException {
+        if (user != null) {
+            dataStore.deleteUser(user.getKey());
+        }
+    }
+
     /**
      * Adds a feed of a particular type for a user
      * @param user the user

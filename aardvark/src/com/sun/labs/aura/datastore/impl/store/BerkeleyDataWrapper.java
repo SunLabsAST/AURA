@@ -75,6 +75,11 @@ public class BerkeleyDataWrapper {
     protected SecondaryIndex<Boolean, String, UserImpl> allUsers;
 
     /**
+     * Only users, indexed by the random string associated with them
+     */
+    protected SecondaryIndex<String, String, UserImpl> usersByRandString;
+    
+    /**
      * The index of all Attention in the item store, accessible by ID
      */
     protected PrimaryIndex<Long, PersistentAttention> allAttn;
@@ -177,6 +182,9 @@ public class BerkeleyDataWrapper {
         allUsers = store.getSubclassIndex(itemByKey, UserImpl.class,
                 Boolean.class, "isUser");
 
+        usersByRandString = store.getSubclassIndex(itemByKey, UserImpl.class,
+                String.class, "randStr");
+        
         allAttn = store.getPrimaryIndex(Long.class,
                 PersistentAttention.class);
 
@@ -278,6 +286,53 @@ public class BerkeleyDataWrapper {
     }
 
     /**
+     * Deletes an item from the database.
+     * 
+     * @param itemKey the key of the item to delete
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public void deleteItem(String itemKey) throws AuraException {
+        int numRetries = 0;
+        while (numRetries < MAX_DEADLOCK_RETRIES) {
+            Transaction txn = null;
+            try {
+                txn = dbEnv.beginTransaction(null, null);
+                itemByKey.delete(itemKey);
+                txn.commit();
+                return;
+            } catch (DeadlockException e) {
+                try {
+                    txn.abort();
+                    numRetries++;
+                } catch (DatabaseException ex) {
+                    throw new AuraException("Txn abort failed", ex);
+                }
+            } catch (Exception e) {
+                try {
+                    if (txn != null) {
+                        txn.abort();
+                    }
+                } catch (DatabaseException ex) {
+                }
+                throw new AuraException("deleteItem transaction failed", e);
+            }
+        }
+        throw new AuraException("deleteItem failed for " +
+                itemKey + " after " + numRetries + " retries");
+    }
+    
+    public UserImpl getUserForRandomString(String randStr) throws AuraException {
+        UserImpl ret = null;
+        try {
+            ret = usersByRandString.get(null, randStr, LockMode.READ_UNCOMMITTED);
+        } catch(DatabaseException e) {
+            log.log(Level.WARNING, "getUserForRandomString() failed (randStr:" +
+                    randStr + ")", e);
+        }
+        return ret;
+    }
+    
+    /**
      * Puts an attention into the entry store.  Attentions should never be
      * overwritten.  Since Users and Items have links to their attentions by
      * ID, we need to update that table too.
@@ -302,7 +357,9 @@ public class BerkeleyDataWrapper {
                 }
             } catch(DatabaseException e) {
                 try {
-                    txn.abort();
+                    if (txn != null) {
+                        txn.abort();
+                    }
                 } catch(DatabaseException ex) {
                 }
                 throw new AuraException("Transaction failed", e);
@@ -312,6 +369,77 @@ public class BerkeleyDataWrapper {
                 numRetries + " retries");
     }
 
+    /**
+     * Delete all the attention that has as a source or target the given item.
+     * This should be used to clean up after an item was deleted.
+     * 
+     * @param itemKey the key of the item
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public void deleteAttention(String itemKey)
+            throws AuraException {
+        int numRetries = 0;
+        while(numRetries < MAX_DEADLOCK_RETRIES) {
+            //
+            // Get all the attentions for which this item was a source and delete
+            Transaction txn = null;
+            try {
+                //
+                // Get all the attentions for which this item was a source
+                // and delete them
+                EntityIndex<Long, PersistentAttention> attns =
+                        attnBySourceKey.subIndex(itemKey);
+                txn = dbEnv.beginTransaction(null, null);
+                EntityCursor<PersistentAttention> c = attns.entities(txn, new CursorConfig());
+                try {
+                    for(PersistentAttention a : c) {
+                        c.delete();
+                    }
+                } finally {
+                    if(c != null) {
+                        c.close();
+                    }
+                }
+
+                //
+                // Now do the same, but for attention where itemKey was the target
+                attns = attnByTargetKey.subIndex(itemKey);
+                c = attns.entities();
+                try {
+                    for(PersistentAttention a : c) {
+                        c.delete();
+                    }
+                } finally {
+                    if(c != null) {
+                        c.close();
+                    }
+                }
+                txn.commit();
+                return;
+            } catch (DeadlockException ex) {
+                try {
+                    txn.abort();
+                    numRetries++;
+                } catch(DatabaseException dex) {
+                    throw new AuraException("Txn abort failed", dex);
+                }
+
+            } catch(DatabaseException ex) {
+                log.log(Level.WARNING, "Failed to delete attention related to "
+                        + itemKey, ex);
+                try {
+                    if (txn != null) {
+                        txn.abort();
+                    }
+                } catch(DatabaseException dex) {
+                }
+                throw new AuraException("Transaction failed", ex);
+            }
+        }
+        throw new AuraException("deleteAttn failed for item " + itemKey
+                + " after " + numRetries + " retries");
+    }
+    
     /**
      * Gets all the items of a particular type that have been added since a
      * particular time.  Returns an iterator over those items that must be

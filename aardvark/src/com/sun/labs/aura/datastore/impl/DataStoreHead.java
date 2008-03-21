@@ -120,6 +120,28 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return pc.getUser(key);
     }
 
+    /**
+     * Gets a user based on the random string that is associated with that
+     * user.
+     * 
+     * @param randStr the random string
+     * @return the user associated with the string
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public User getUserForRandomString(String randStr)
+            throws AuraException, RemoteException {
+        //
+        // The first 8 characters of the random string are the hash code of
+        // the user.  To make things easy, the entire string is what we store.
+        String hashHex = randStr.substring(0, 8);
+        PartitionCluster pc =
+                trie.get(DSBitSet.parse(Integer.parseInt(hashHex, 16)));
+        
+        return pc.getUserForRandomString(randStr);
+    }
+
+    
     public Item putItem(Item item) throws AuraException, RemoteException {
         //
         // Which partition cluster does this item belong to?
@@ -139,6 +161,46 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         // Ask the partition cluster to store the user and return it.
         return pc.putUser(user);
 
+    }
+    
+    public void deleteItem(final String itemKey)
+            throws AuraException, RemoteException {
+        //
+        // Delete the item, then any attention that had the item as a target.
+        PartitionCluster pc = trie.get(DSBitSet.parse(itemKey.hashCode()));
+        pc.deleteItem(itemKey);
+        
+        //
+        // Now tell everybody to delete the attention associated with that
+        // key
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<Object>> callers = new HashSet<Callable<Object>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+                public Object call() throws AuraException, RemoteException {
+                    pc.deleteAttention(itemKey);
+                    return null;
+                }
+            });
+        }
+        
+        //
+        // Run all the deletes
+        try {
+            List<Future<Object>> results = executor.invokeAll(callers);
+            for (Future<Object> future: results) {
+                future.get();
+            }
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+    }
+    
+    public void deleteUser(String itemKey)
+            throws AuraException, RemoteException {
+        deleteItem(itemKey);
     }
 
     public DBIterator<Item> getItemsAddedSince(final ItemType type,
@@ -198,6 +260,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         Set<Attention> attns = getAttentionFor(user.getKey(), true, attnType);
         Set<String> targets = new HashSet<String>();
         for (Attention a : attns) {
+            logger.log(Level.SEVERE, "getting item for attn targ: " + a.getTargetKey());
             targets.add(a.getTargetKey());
         }
         

@@ -26,7 +26,6 @@ public class BlogUser extends ItemAdapter {
     private final static String FIELD_COUNTRY = "country";
     private final static String FIELD_LANGUAGE = "language";
     private final static String FIELD_TIMEZONE = "timezone";
-    private final static String FIELD_RAND_STR = "randomString";
     
     
     /**
@@ -46,6 +45,10 @@ public class BlogUser extends ItemAdapter {
      */
     public BlogUser(String key, String name) {
         this(StoreFactory.newUser(key, name));
+    }
+
+    public String getRandString() {
+        return ((User)item).getUserRandString();
     }
     
     /**
@@ -129,11 +132,4 @@ public class BlogUser extends ItemAdapter {
         setField(FIELD_TIMEZONE, timezone);
     }
     
-    public String getRandString() {
-        return getFieldAsString(FIELD_RAND_STR);
-    }
-    
-    public void setRandString(String randStr) {
-        setField(FIELD_RAND_STR, randStr);
-    }
 }
