@@ -2,6 +2,7 @@ package com.sun.labs.aura.datastore.impl.store;
 
 import com.sun.kt.search.DocumentVector;
 import com.sun.kt.search.FieldInfo;
+import com.sun.kt.search.IndexableString;
 import com.sun.kt.search.Log;
 import com.sun.kt.search.Posting;
 import com.sun.kt.search.Result;
@@ -90,7 +91,7 @@ public class ItemSearchEngine implements Configurable {
             // engine because we need to be able to handle fielded doc vectors
             // and postings.
             engine = SearchEngineFactory.getSearchEngine(indexDir,
-                    "search_engine",
+                    "aardvark_search_engine",
                     config);
         } catch(SearchEngineException see) {
             log.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
@@ -174,8 +175,12 @@ public class ItemSearchEngine implements Configurable {
                     Object indexVal = val;
                     if(indexVal instanceof Map) {
                         indexVal = ((Map) indexVal).values();
-                    } else if(val instanceof Indexable) {
-                        indexVal = indexVal.toString();
+                    } else if(val instanceof Indexable ||
+                            val instanceof String) {
+                        //
+                        // The content might contain XML or HTML, so let's get
+                        // rid of that stuff.
+                        indexVal = new IndexableString(indexVal.toString(), IndexableString.Type.HTML);
                     }
                     im.put(e.getKey(), indexVal);
                 }

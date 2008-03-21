@@ -19,6 +19,17 @@
     indexed, control will be returned immediately to the caller -->
     <property name="num_pipelines" value="2"/>
     
+    <!-- A search engine that can be used to do classification -->
+    <component name="aardvark_search_engine" inherit="search_engine">
+        <property name="inv_file_partition_manager" value="partition_manager"/>
+        <property name="pipeline_factory" value="pipeline_factory"/>
+        <property name="build_classifiers" value="true"/>
+        <property name="class_manager" value="class_manager"/>
+        <property name="class_memory_partition" value="class_memory_partition"/>
+        <property name="cluster_manager" value="cluster_manager"/>
+        <property name="cluster_memory_partition" value="cluster_memory_partition"/>
+    </component>
+    
     <!-- Our fields.  The things that we'll put in every item will be prefixed with
     aura- to avoid collisions with user-defined field names. -->
     <component name="index_config" type="com.sun.kt.search.IndexConfig">
@@ -29,6 +40,8 @@
             <item>aura-name</item>
             <item>aura-type</item>
         </propertylist>
+        <property name="kfold_splitter_numfolds" value="3"/>
+        <property name="store_classifier_scores" value="true"/>
     </component>
     
     <!-- The ID of the entry -->
@@ -56,5 +69,55 @@
         <property name="vectored" value="false"/>
         <property name="saved" value="true"/>
         <property name="type" value="string"/>
-    </component>    
+    </component>
+    
+    <!-- A manager for classifier partitions -->
+    <component name="class_manager" type="ngnova.classification.ClassifierManager">
+        <property name="lock_dir" value="${lock_directory}"/>
+        <property name="classes_field" value="class"/>
+        <property name="index_config" value="index_config"/>
+        <property name="partition_factory" value="classifier_partition_factory"/>
+        <property name="calculate_dvl" value="false"/>
+    </component>
+    
+    <!-- The factory for classifier partitions. -->
+    <component name="classifier_partition_factory" type="ngnova.classification.ClassifierPartitionFactory">
+        <property name="main_dict_factory" value="id_dict_factory"/>
+        <property name="document_dict_factory" value="feature_dict_factory"/>
+    </component>
+    
+    <!-- A memory partition for classifiers. -->
+    <component name="class_memory_partition" type="ngnova.classification.ClassifierMemoryPartition">
+        <property name="partition_manager" value="class_manager"/>
+        <property name="part_manager" value="partition_manager"/>
+        <property name="cluster_memory_partition" value="cluster_memory_partition"/>
+        <property name="main_dict_factory" value="id_dict_factory"/>
+        <property name="doc_dict_factory" value="feature_dict_factory"/>
+        <property name="index_config" value="index_config"/>
+    </component>
+    
+    <!-- A manager for feature cluster partitions. -->
+    <component name="cluster_manager" type="ngnova.classification.ClusterManager">
+        <property name="lock_dir" value="${lock_directory}"/>
+        <property name="class_manager" value="class_manager"/>
+        <property name="index_config" value="index_config"/>
+        <property name="partition_factory" value="cluster_partition_factory"/>
+        <property name="calculate_dvl" value="false"/>
+    </component>
+    
+    <!-- The factory for feature cluster partitions. -->
+    <component name="cluster_partition_factory" type="ngnova.classification.ClusterPartitionFactory">
+        <property name="main_dict_factory" value="idfreq_dict_factory"/>
+        <property name="document_dict_factory" value="cluster_dict_factory"/>
+    </component>
+
+    <!-- A memory partition for feature clusters -->
+    <component name="cluster_memory_partition" type="ngnova.classification.ClusterMemoryPartition">
+        <property name="partition_manager" value="cluster_manager"/>
+        <property name="part_manager" value="partition_manager"/>
+        <property name="main_dict_factory" value="id_dict_factory"/>
+        <property name="doc_dict_factory" value="cluster_dict_factory"/>
+        <property name="index_config" value="index_config"/>
+    </component>
+   
 </config>

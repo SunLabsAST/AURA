@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : fullConfig.xml
+    Created on : February 25, 2008, 3:12 PM
+    Author     : stgreen
+    Description:
+        An all-in-one-VM configuration for Aardvark.
+-->
+
+<config>
+    <!-- Where the aura data lives -->
+    <property name="auraHome" value="/aura"/>
+    <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
+
+    <property name="auraGroup" value="Aura"/>
+    
+    <!-- Where the aura distribution jar was unpacked. -->
+    <property name="auraDistDir" value="${auraHome}/dist"/>
+    
+    <!-- A place where we can stick all the data store stuff -->
+    <property name="sp" value="${auraHome}/store"/>
+
+    <property name="csPort" value="8995"/>
+    
+    <!-- A component registry that will be used to lookup and register components. -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>${auraGroup}</item>
+        </propertylist>
+        <property name="csDirs" value="${auraDistDir}/lib"/>
+        <property name="csPort" value="${csPort}"/>
+        <propertylist name="codebaseJars">
+            <item>aardvark.jar</item>
+            <item>ktsearch.jar</item>
+            <item>LabsUtil.jar</item>
+            <item>rome-0.9.jar</item>
+        </propertylist>
+        <property name="securityPolicy" value="${auraPolicy}"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true">
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster000" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+        <property name="prefix" value="000"/>
+        <property name="dataStoreHead" value="dataStoreHead"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster001" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+        <property name="prefix" value="001"/>
+        <property name="dataStoreHead" value="dataStoreHead"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster010" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+        <property name="prefix" value="010"/>
+        <property name="dataStoreHead" value="dataStoreHead"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster011" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+        <property name="prefix" value="011"/>
+        <property name="dataStoreHead" value="dataStoreHead"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster100" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+        <property name="prefix" value="100"/>
+        <property name="dataStoreHead" value="dataStoreHead"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster101" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+        <property name="prefix" value="101"/>
+        <property name="dataStoreHead" value="dataStoreHead"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster110" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+        <property name="prefix" value="110"/>
+        <property name="dataStoreHead" value="dataStoreHead"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster111" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+        <property name="prefix" value="111"/>
+        <property name="dataStoreHead" value="dataStoreHead"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant000" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+        <property name="prefix" value="000"/>
+        <property name="dbEnv" value="${sp}/000/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine000"/>
+        <property name="partitionCluster" value="partitionCluster000"/>
+    </component>
+    
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine000" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${sp}/000/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant001" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+        <property name="prefix" value="001"/>
+        <property name="dbEnv" value="${sp}/001/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine001"/>
+        <property name="partitionCluster" value="partitionCluster001"/>
+    </component>
+    
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine001" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${sp}/001/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant010" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+        <property name="prefix" value="010"/>
+        <property name="dbEnv" value="${sp}/010/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine010"/>
+        <property name="partitionCluster" value="partitionCluster010"/>
+    </component>
+    
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine010" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${sp}/010/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant011" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+        <property name="prefix" value="011"/>
+        <property name="dbEnv" value="${sp}/011/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine011"/>
+        <property name="partitionCluster" value="partitionCluster011"/>
+    </component>
+    
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine011" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${sp}/011/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant100" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+        <property name="prefix" value="100"/>
+        <property name="dbEnv" value="${sp}/100/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine100"/>
+        <property name="partitionCluster" value="partitionCluster100"/>
+    </component>
+    
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine100" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${sp}/100/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant101" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+        <property name="prefix" value="101"/>
+        <property name="dbEnv" value="${sp}/101/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine101"/>
+        <property name="partitionCluster" value="partitionCluster101"/>
+    </component>
+    
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine101" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${sp}/101/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant110" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+        <property name="prefix" value="110"/>
+        <property name="dbEnv" value="${sp}/110/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine110"/>
+        <property name="partitionCluster" value="partitionCluster110"/>
+    </component>
+    
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine110" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${sp}/110/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant111" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+        <property name="prefix" value="111"/>
+        <property name="dbEnv" value="${sp}/111/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine111"/>
+        <property name="partitionCluster" value="partitionCluster111"/>
+    </component>
+    
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine111" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${sp}/111/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+    </component>
+    
+    <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>dataStoreHead</item>
+            <item>partitionCluster000</item>
+            <item>partitionCluster001</item>
+            <item>partitionCluster010</item>
+            <item>partitionCluster011</item>
+            <item>partitionCluster100</item>
+            <item>partitionCluster101</item>
+            <item>partitionCluster110</item>
+            <item>partitionCluster111</item>
+            <item>replicant000</item>
+            <item>replicant001</item>
+            <item>replicant010</item>
+            <item>replicant011</item>
+            <item>replicant100</item>
+            <item>replicant101</item>
+            <item>replicant110</item>
+            <item>replicant111</item>
+        </propertylist>
+    </component>
+
+</config>
