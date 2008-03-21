@@ -191,35 +191,33 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         //
         // Make this call across all partitions, then combine the results
         // into a set.  The set has no particular ordering semantics at this
-        // time.
-        Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<Set<Item>>> callers = new HashSet<Callable<Set<Item>>>();
-        for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
-                public Set<Item> call() throws AuraException, RemoteException {
-                    return pc.getItems(user, attnType, itemType);
-                }
-            });
+        // time.  We need to do this in two steps since the targets of the
+        // attentions don't necessarily live in the same partition as the
+        // attentions themselves.  First get all the relevant attention, then
+        // get all the target items of the right type.
+        Set<Attention> attns = getAttentionFor(user.getKey(), true, attnType);
+        Set<String> targets = new HashSet<String>();
+        for (Attention a : attns) {
+            targets.add(a.getTargetKey());
         }
         
         //
-        // Run them all and collect up the results
+        // Get all the items, checking their types.  This could be optimized
+        // by sorting the item keys by partition, then asking each partition
+        // to return a subset of items that match the given type
         Set<Item> ret = new HashSet<Item>();
-        try {
-            List<Future<Set<Item>>> results = executor.invokeAll(callers);
-            for (Future<Set<Item>> future : results) {
-                ret.addAll(future.get());
+        for (String target : targets) {
+            Item i = getItem(target);
+            if (i.getType() == itemType) {
+                ret.add(i);
             }
-        } catch (InterruptedException e) {
-            throw new AuraException("Execution was interrupted", e);
-        } catch (ExecutionException e) {
-            checkAndThrow(e);
         }
         return ret;
     }
 
-    public Set<Attention> getAttentionFor(final String itemKey,
-                                          final boolean isSrc)
+    protected Set<Attention> getAttentionFor(final String itemKey,
+                                             final boolean isSrc,
+                                             final Attention.Type type)
             throws AuraException, RemoteException {
         //
         // Ask all the partitions to gather up their attention for this item.
@@ -232,7 +230,11 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                 public Set<Attention> call()
                         throws AuraException, RemoteException {
                     if (isSrc) {
-                        return pc.getAttentionForSource(itemKey);
+                        if (type == null) {
+                            return pc.getAttentionForSource(itemKey);
+                        } else {
+                            return pc.getAttentionForSource(itemKey, type);
+                        }
                     } else {
                         return pc.getAttentionForTarget(itemKey);
                     }
@@ -258,12 +260,12 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
     public Set<Attention> getAttentionForSource(String srcKey)
             throws AuraException, RemoteException {
-        return getAttentionFor(srcKey, true);
+        return getAttentionFor(srcKey, true, null);
     }
 
     public Set<Attention> getAttentionForTarget(String itemKey)
             throws AuraException, RemoteException {
-        return getAttentionFor(itemKey, false);
+        return getAttentionFor(itemKey, false, null);
     }
 
     public Attention attend(Attention att)

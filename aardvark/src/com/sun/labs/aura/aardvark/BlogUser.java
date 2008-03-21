@@ -15,7 +15,6 @@ import com.sun.labs.aura.datastore.User;
 
 /**
  *
- * @author plamere
  */
 public class BlogUser extends ItemAdapter {
     private final static String FIELD_EMAIL_ADDRESS = "email";
@@ -27,6 +26,7 @@ public class BlogUser extends ItemAdapter {
     private final static String FIELD_COUNTRY = "country";
     private final static String FIELD_LANGUAGE = "language";
     private final static String FIELD_TIMEZONE = "timezone";
+    private final static String FIELD_RAND_STR = "randomString";
     
     
     /**
@@ -129,4 +129,11 @@ public class BlogUser extends ItemAdapter {
         setField(FIELD_TIMEZONE, timezone);
     }
     
+    public String getRandString() {
+        return getFieldAsString(FIELD_RAND_STR);
+    }
+    
+    public void setRandString(String randStr) {
+        setField(FIELD_RAND_STR, randStr);
+    }
 }

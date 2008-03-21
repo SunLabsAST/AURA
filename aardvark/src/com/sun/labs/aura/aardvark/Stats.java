@@ -17,17 +17,17 @@ import java.io.Serializable;
 public class Stats implements Serializable {
     private String version;
     private long numUsers;
-    private long numItems;
+    private long numEntries;
     private long numAttentionData;
     private long numFeeds;
     private long feedPullCount;
     private long feedErrorCount;
 
-    public Stats(String version, long numUsers, long numItems, long numAttentionData, 
+    public Stats(String version, long numUsers, long numEntries, long numAttentionData, 
                 long numFeeds, long feedPullCount, long feedErrorCount) {
         this.version = version;
         this.numUsers = numUsers;
-        this.numItems = numItems;
+        this.numEntries = numEntries;
         this.numAttentionData = numAttentionData;
         this.numFeeds = numFeeds;
         this.feedPullCount = feedPullCount;
@@ -38,8 +38,8 @@ public class Stats implements Serializable {
         return numAttentionData;
     }
 
-    public long getNumItems() {
-        return numItems;
+    public long getNumEntries() {
+        return numEntries;
     }
 
     public long getNumUsers() {
@@ -65,7 +65,7 @@ public class Stats implements Serializable {
     @Override
     public String toString() {
         return "Users: " + getNumUsers() 
-                + "  Items: " + getNumItems()  
+                + "  Entries: " + getNumEntries()  
                 + "  Taste: " + getNumAttentionData() 
                 + "  Feeds: " + getNumFeeds()
                 + "  Pulls: " + getFeedPullCount()

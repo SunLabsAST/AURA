@@ -385,6 +385,7 @@ public class BerkeleyDataWrapper {
      * @param itemType the type of the item
      * @return the set of matching items
      */
+    @Deprecated
     public Set<Item> getItems(
             String userKey,
             Attention.Type attnType,
@@ -394,11 +395,11 @@ public class BerkeleyDataWrapper {
         //
         // First get all the attention of the particular type with the
         // particular user
-        Set<PersistentAttention> attns = getAttentionForUser(userKey, attnType);
+        Set<Attention> attns = getAttentionForSource(userKey, attnType);
 
         //
         // Now do the in-memory join, looking up each item as we go
-        for(PersistentAttention attn : attns) {
+        for(Attention attn : attns) {
             ItemImpl item = getItem(attn.getTargetKey());
             if(item.getType() == itemType) {
                 result.add(item);
@@ -492,13 +493,13 @@ public class BerkeleyDataWrapper {
         return res;
     }
 
-    public SortedSet<PersistentAttention> getAttentionForUser(String userKey,
+    public SortedSet<Attention> getAttentionForSource(String userKey,
             Attention.Type type) {
         EntityJoin<Long, PersistentAttention> join = new EntityJoin(allAttn);
         join.addCondition(attnBySourceKey, userKey);
         join.addCondition(attnByType, type.ordinal());
 
-        TreeSet<PersistentAttention> ret = new TreeSet<PersistentAttention>(
+        TreeSet<Attention> ret = new TreeSet<Attention>(
                 new RevAttnTimeComparator());
         try {
             ForwardCursor<PersistentAttention> cur = null;

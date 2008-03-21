@@ -100,6 +100,12 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getAttentionForSource(srcKey);
     }
     
+    public Set<Attention> getAttentionForSource(String srcKey,
+                                                Attention.Type type)
+            throws AuraException, RemoteException {
+        return replicant.getAttentionForSource(srcKey, type);
+    }
+    
     public Set<Attention> getAttentionForTarget(String itemKey)
             throws AuraException, RemoteException {
         return replicant.getAttentionForTarget(itemKey);

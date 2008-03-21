@@ -278,6 +278,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return bdb.getAttentionForSource(srcKey);
     }
 
+    public Set<Attention> getAttentionForSource(String srcKey,
+                                                Attention.Type type)
+            throws AuraException {
+        return bdb.getAttentionForSource(srcKey, type);
+    }
+
     public Set<Attention> getAttentionForTarget(String itemKey)
             throws AuraException {
         return bdb.getAttentionForTarget(itemKey);
