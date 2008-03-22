@@ -15,10 +15,19 @@ import com.sun.labs.aura.datastore.User;
 
 /**
  *
- * @author plamere
  */
 public class BlogUser extends ItemAdapter {
     private final static String FIELD_EMAIL_ADDRESS = "email";
+    private final static String FIELD_NICKNAME = "nickname";
+    private final static String FIELD_FULLNAME = "fullname";
+    private final static String FIELD_DOB = "dob";
+    private final static String FIELD_GENDER = "gender";
+    private final static String FIELD_POSTCODE = "postcode";
+    private final static String FIELD_COUNTRY = "country";
+    private final static String FIELD_LANGUAGE = "language";
+    private final static String FIELD_TIMEZONE = "timezone";
+    private final static String FIELD_RAND_STR = "randomString";
+    
     
     /**
      * Wraps a SimpleItem as blog user (someone who reads blogs)
@@ -53,5 +62,78 @@ public class BlogUser extends ItemAdapter {
      */
     public String getEmailAddress() {
         return getFieldAsString(FIELD_EMAIL_ADDRESS);
+    }
+
+
+    public String getNickname() {
+        return getFieldAsString(FIELD_NICKNAME);
+    }
+
+    public void setNickname(String nickname) {
+        setField(FIELD_NICKNAME, nickname);
+    }
+
+    public String getFullname() {
+        return getFieldAsString(FIELD_FULLNAME);
+    }
+
+    public void setFullname(String fullname) {
+        setField(FIELD_FULLNAME, fullname);
+    }
+
+    public String getDob() {
+        return getFieldAsString(FIELD_DOB);
+    }
+
+    public void setDob(String dob) {
+        setField(FIELD_DOB, dob);
+    }
+
+    public String getGender() {
+        return getFieldAsString(FIELD_GENDER);
+    }
+
+    public void setGender(String gender) {
+        setField(FIELD_GENDER, gender);
+    }
+
+    public String getPostcode() {
+        return getFieldAsString(FIELD_POSTCODE);
+    }
+
+    public void setPostcode(String postcode) {
+        setField(FIELD_POSTCODE, postcode);
+    }
+
+    public String getCountry() {
+        return getFieldAsString(FIELD_COUNTRY);
+    }
+
+    public void setCountry(String country) {
+        setField(FIELD_COUNTRY, country);
+    }
+
+    public String getLanguage() {
+        return getFieldAsString(FIELD_LANGUAGE);
+    }
+
+    public void setLanguage(String language) {
+        setField(FIELD_LANGUAGE, language);
+    }
+
+    public String getTimezone() {
+        return getFieldAsString(FIELD_TIMEZONE);
+    }
+
+    public void setTimezone(String timezone) {
+        setField(FIELD_TIMEZONE, timezone);
+    }
+    
+    public String getRandString() {
+        return getFieldAsString(FIELD_RAND_STR);
+    }
+    
+    public void setRandString(String randStr) {
+        setField(FIELD_RAND_STR, randStr);
     }
 }
