@@ -65,6 +65,10 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
     public final static String PROP_AUTO_ENROLL_MEGA_TEST_FEEDS =
             "autoEnrollMegaTestFeeds";
     private boolean autoEnrollMegaTestFeeds;
+    @ConfigBoolean(defaultValue = false)
+    public final static String PROP_AUTO_ENROLL_GIANT_TEST_FEEDS =
+            "autoEnrollGiantTestFeeds";
+    private boolean autoEnrollGiantTestFeeds;
     /**
      * the configurable property for the RecommenderManager used by this manager
      */
@@ -102,6 +106,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         statService = (StatService) ps.getComponent(PROP_STAT_SERVICE);
         autoEnrollTestFeeds = ps.getBoolean(PROP_AUTO_ENROLL_TEST_FEEDS);
         autoEnrollMegaTestFeeds = ps.getBoolean(PROP_AUTO_ENROLL_MEGA_TEST_FEEDS);
+        autoEnrollGiantTestFeeds = ps.getBoolean(PROP_AUTO_ENROLL_GIANT_TEST_FEEDS);
         logger = ps.getLogger();
     }
 
@@ -285,7 +290,9 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
                         addLocalOpml("tech_blogs.opml");
                         addLocalOpml("politics_blogs.opml");
                         addLocalOpml("news_blogs.opml");
-                        // addLocalOpml("mega.opml");
+                    }
+                    if(autoEnrollGiantTestFeeds) {
+                        addLocalOpml("mega.opml");
                     }
                 } catch (Throwable t) {
                     logger.severe("bad thing happend " + t);
