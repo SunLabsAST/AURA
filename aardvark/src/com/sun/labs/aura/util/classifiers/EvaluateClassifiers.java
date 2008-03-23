@@ -21,11 +21,10 @@ import java.util.Set;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
 import ngnova.classification.ClassifierModel;
-import ngnova.classification.ExplainableClassifierModel;
+import ngnova.classification.Rocchio;
 import ngnova.engine.SearchEngineImpl;
 import ngnova.indexer.partition.DiskPartition;
 import ngnova.indexer.partition.InvFileDiskPartition;
-import ngnova.retrieval.ResultSetImpl;
 import ngnova.util.Getopt;
 
 /**
@@ -162,18 +161,9 @@ public class EvaluateClassifiers {
         }
 
         //
-        // For each topic, we'll count the number of documents from the
-        // test set that were correctly and incorrectly classified.
-        String inTest = "split = " + testField;
-        String inTrain = testQuery == null ? "split = train" : testQuery;
-
-        //
         // Get the number of topics and test documents.
         int nTopics = classes.size();
-        ResultSetImpl testSet = (ResultSetImpl) classEngine.search(inTest, "-score");
-        ResultSetImpl trainSet =
-                (ResultSetImpl) classEngine.search(inTrain, "-score");
-        int nTestDocs = testSet.size();
+        int nTestDocs = testEngine.getNDocs();
 
         logger.info(nTopics + " topics, " + nTestDocs + " test docs");
 
@@ -189,6 +179,8 @@ public class EvaluateClassifiers {
         // We want to run the partitions directly.  It's an imperfect world,
         // eh?
         for(String className : classes) {
+            
+            className = className.toLowerCase();
 
             tables[p] = new ContingencyTable();
 
@@ -206,32 +198,42 @@ public class EvaluateClassifiers {
                 continue;
             }
 
-            logger.info(className + " " + 
-                    tables[p].train + " " +
-                    tables[p].test);
-
             ClassifierModel cm =
                     ((SearchEngineImpl) classEngine).getClassifierManager().
                     getClassifier(className);
             
+            logger.info(className + " " + 
+                    tables[p].train + " " +
+                    tables[p].test);
+
             if(cm == null) {
                 logger.info("No classifier for " + className);
                 continue;
             }
 
+            int check = 0;
             for(DiskPartition dp : ((SearchEngineImpl) testEngine).getPM().
                     getActivePartitions()) {
                 float[] f = cm.classify(dp, dp.getMaxDocumentID());
-                for(int i = 0; i < f.length; i++) {
-                    List<String> vals = ((InvFileDiskPartition) dp).getSavedFieldData(fieldName, i);
+                for(int i =1; i < f.length; i++) {
+                    if(dp.isDeleted(i)) {
+                        continue;
+                    }
+                    List<String> vals = new ArrayList<String>();
+                    for(String v : (List<String>) ((InvFileDiskPartition) dp).getSavedFieldData(fieldName, i)) {
+                        vals.add(v.toLowerCase());
+                    }
                     boolean inClass = vals.contains(className);
+                    if(inClass) {
+                        check++;
+                    }
                     if(f[i] > 0) {
                         if(inClass) {
                             tables[p].a++;
                         } else {
                             tables[p].b++;
                         }
-                    } else if(f[i] < 0) {
+                    } else if(f[i] <= 0) {
                         if(inClass) {
                             tables[p].c++;
                         }
@@ -256,19 +258,20 @@ public class EvaluateClassifiers {
 
         //
         // We may only want to print the top n...
-        printTables(trainSet.size(), testSet.size(), tables, p, top, wikiOutput);
+        printTables(tables, p, top, wikiOutput);
 
         classEngine.close();
         testEngine.close();
     }
 
     public static void printTables(
-            int nTrain, int nTest,
             ContingencyTable[] tables,
             int p, int top, boolean wikiOutput) {
 
         ContingencyTable micro = new ContingencyTable();
 
+        int nTrain = 0;
+        int nTest = 0;
         float tr = 0;
         float tp = 0;
         if(wikiOutput) {
@@ -306,6 +309,9 @@ public class EvaluateClassifiers {
             }
 
             float f1 = tables[j].f1();
+            
+            nTrain += tables[j].train;
+            nTest += tables[j].test;
 
             System.out.format(
                     wikiOutput ? "|%-35s|%7d|%7d|%7d|%7d|%7d|%7d|%7d|%10.1f|%10.1f|%10.1f|\n"

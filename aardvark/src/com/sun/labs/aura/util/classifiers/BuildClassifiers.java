@@ -5,7 +5,6 @@
  */
 package com.sun.labs.aura.util.classifiers;
 
-import com.sun.kt.search.FieldFrequency;
 import com.sun.kt.search.Log;
 import com.sun.kt.search.Progress;
 import com.sun.kt.search.ResultSet;
@@ -13,11 +12,7 @@ import com.sun.kt.search.SearchEngine;
 import com.sun.kt.search.SearchEngineFactory;
 import com.sun.labs.util.SimpleLabsLogFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
 import ngnova.util.Getopt;
