@@ -44,7 +44,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         if (logger.isLoggable(Level.INFO)) {
             DelayedItem next = itemQueue.peek();
             if (next != null) {
-                logger.info("waiters: " + waiters.get() + " waiting " + next.getDelay(TimeUnit.SECONDS) + " secs, items: " + itemQueue.size());
+                logger.fine("waiters: " + waiters.get() + " waiting " + next.getDelay(TimeUnit.SECONDS) + " secs, items: " + itemQueue.size());
             }
         }
 
@@ -61,7 +61,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
             if (lateSeconds > lateTime) {
                 logger.warning("schedule of " + delayedItem.getItemKey() + " was " + lateSeconds + " seconds late.");
             }
-            logger.info("getting " + delayedItem.getItemKey() + " was late by " +
+            logger.fine("getting " + delayedItem.getItemKey() + " was late by " +
                     -delayedItem.getDelay(TimeUnit.SECONDS) + " secs");
         }
 
@@ -74,7 +74,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
             secondsUntilNextScheduledProcessing = defaultPeriod;
         }
         addItem(itemKey, secondsUntilNextScheduledProcessing);
-        logger.info("released item " + itemKey + " next time is " + secondsUntilNextScheduledProcessing + " secs");
+        logger.fine("released item " + itemKey + " next time is " + secondsUntilNextScheduledProcessing + " secs");
     }
 
     public void itemCreated(ItemEvent e) throws RemoteException {
