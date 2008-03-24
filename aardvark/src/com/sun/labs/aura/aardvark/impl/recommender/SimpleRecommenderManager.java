@@ -66,15 +66,11 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
 
             // select a few documents from the starred set of items to serve
             // as the similarity seeds
-            String[] itemKeys = selectRandomItemKeys(starredAttention, SEED_SIZE);
+            List<String> itemKeys = selectRandomItemKeys(starredAttention, SEED_SIZE);
             t.mark("select random item keys");
-            SortedSet<Scored<Item>> results = new TreeSet<Scored<Item>>();
-
-            // Get documents that are similar to the seeds
-            for (String key : itemKeys) {
-                results.addAll(dataStore.findSimilar(key, NUM_RECS));
-                t.mark("findSimilar");
-            }
+            
+            List<Scored<Item>> results = dataStore.findSimilar(itemKeys, NUM_RECS, null);
+            t.mark("findSimilar");
 
             // filter the list to eliminate docs that have already been attended
             // to, also don't include docs with the same title in the result set
@@ -128,17 +124,17 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
      * @param num the number of item IDs to return
      * @return an array of num item ids
      */
-    private String[] selectRandomItemKeys(SortedSet<Attention> attentionSet, int num) {
+    private List<String> selectRandomItemKeys(SortedSet<Attention> attentionSet, int num) {
         List<Attention> list = new ArrayList<Attention>(attentionSet);
         Collections.shuffle(list);
         if (num > list.size()) {
             num = list.size();
         }
 
-        String[] results = new String[num];
+        List<String> results = new ArrayList<String>();
 
         for (int i = 0; i < num; i++) {
-            results[i] = list.get(i).getTargetKey();
+            results.add(list.get(i).getTargetKey());
         }
         return results;
     }
