@@ -398,7 +398,7 @@ public class AardvarkShell implements AuraService, Configurable {
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
                         String query = stuff(args, 1);
-                        List<Scored<Item>> items = dataStore.query(query, 10);
+                        List<Scored<Item>> items = dataStore.query(query, 10, null);
                         for(Scored<Item> item : items) {
                            System.out.printf("%.3f ", item.getScore());
                            dumpItem(item.getItem());
@@ -418,7 +418,7 @@ public class AardvarkShell implements AuraService, Configurable {
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
                         String key = args[1];
-                        List<Scored<Item>> items = dataStore.findSimilar(key, 10);
+                        List<Scored<Item>> items = dataStore.findSimilar(key, 10, null);
                         for(Scored<Item> item : items) {
                            System.out.printf("%.3f ", item.getScore());
                            dumpItem(item.getItem());
@@ -438,7 +438,7 @@ public class AardvarkShell implements AuraService, Configurable {
                             throws Exception {
                         String field = args[1];
                         String key = args[2];
-                        List<Scored<Item>> items = dataStore.findSimilar(key, field, 10);
+                        List<Scored<Item>> items = dataStore.findSimilar(key, field, 10, null);
                         for(Scored<Item> item : items) {
                            System.out.printf("%.3f ", item.getScore());
                            dumpItem(item.getItem());

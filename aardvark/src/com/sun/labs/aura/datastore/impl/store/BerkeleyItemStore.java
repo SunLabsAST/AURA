@@ -4,6 +4,7 @@ import com.sun.labs.aura.datastore.DBIterator;
 import com.sleepycat.je.DatabaseException;
 import com.sun.kt.search.DocumentVector;
 import com.sun.kt.search.IndexListener;
+import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.SearchEngine;
 import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
@@ -38,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -319,12 +319,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return bdb.getLastAttentionForUser(srcKey, type, count);
     }
 
-    public List<Scored<Item>> query(String query, int n)
+    public List<Scored<Item>> query(String query, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        return query(query, "-score", n);
+        return query(query, "-score", n, rf);
     }
 
-    public List<Scored<Item>> query(String query, String sort, int n)
+    public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         return keysToItems(searchEngine.query(query, sort, n));
     }
@@ -349,9 +349,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(DocumentVector dv, int n)
+    public List<Scored<Item>> findSimilar(DocumentVector dv, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        return keysToItems(searchEngine.findSimilar(dv, n));
+        return keysToItems(searchEngine.findSimilar(dv, n, rf));
     }
 
     /**

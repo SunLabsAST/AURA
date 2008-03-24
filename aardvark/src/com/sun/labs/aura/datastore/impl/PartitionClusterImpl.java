@@ -1,6 +1,7 @@
 package com.sun.labs.aura.datastore.impl;
 
 import com.sun.kt.search.DocumentVector;
+import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
@@ -157,35 +158,35 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getAttentionCount();
     }
 
-    public List<Scored<Item>> findSimilar(String key, int n)
+    public List<Scored<Item>> findSimilar(String key, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         DocumentVector dv = replicant.getDocumentVector(key);
-        return replicant.findSimilar(dv, n);
+        return replicant.findSimilar(dv, n, rf);
     }
 
-    public List<Scored<Item>> findSimilar(String key, String field, int n)
+    public List<Scored<Item>> findSimilar(String key, String field, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         DocumentVector dv = replicant.getDocumentVector(key, field);
-        return replicant.findSimilar(dv, n);
+        return replicant.findSimilar(dv, n, rf);
     }
 
     public List<Scored<Item>> findSimilar(String key,
                                        WeightedField[] fields,
-                                       int n)
+                                       int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         DocumentVector dv = replicant.getDocumentVector(key, fields);
-        return replicant.findSimilar(dv, n);
+        return replicant.findSimilar(dv, n, rf);
     }
     
-    public List<Scored<Item>> query(String query, int n) 
+    public List<Scored<Item>> query(String query, int n, ResultsFilter rf) 
             throws AuraException, RemoteException {
-        return replicant.query(query, n);
+        return replicant.query(query, n, rf);
     }
 
 
-    public List<Scored<Item>> query(String query, String sort, int n) 
+    public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf) 
             throws AuraException, RemoteException {
-        return replicant.query(query, sort, n);
+        return replicant.query(query, sort, n, rf);
     }
 
 
@@ -243,7 +244,7 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getDocumentVector(key, fields);
     }
 
-    public List<Scored<Item>> findSimilar(DocumentVector dv, int n) throws AuraException, RemoteException {
-        return replicant.findSimilar(dv, n);
+    public List<Scored<Item>> findSimilar(DocumentVector dv, int n, ResultsFilter rf) throws AuraException, RemoteException {
+        return replicant.findSimilar(dv, n, rf);
     }
 }
