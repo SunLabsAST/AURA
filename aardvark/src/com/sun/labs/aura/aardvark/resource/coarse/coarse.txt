@@ -13,7 +13,7 @@ sleep 5
 
 #
 # Get the data store going.  Give it lots of memory.
-nohup java -d64 -Xmx4g \
+nohup java -d64 -Xmx8g \
       -DauraHome=${AURAHOME} -DauraGroup=${AURAGROUP} -DauraPolicy=${AURAPOLICY} \
       -jar dist/aardvark.jar \
       /com/sun/labs/aura/aardvark/resource/coarse/dataStoreConfig.xml \
@@ -65,7 +65,7 @@ nohup java \
 nohup java \
       -DauraHome=${AURAHOME} -DauraGroup=${AURAGROUP} -DauraPolicy=${AURAPOLICY} \
       -jar dist/aardvark.jar \
-      /com/sun/labs/aura/aardvark/resource/coarse/aardvarkConfig.xml \
+      dist/com/sun/labs/aura/aardvark/resource/coarse/aardvarkConfig.xml \
       aardvarkStarter &> logs/aardvark.out &
 
 #
