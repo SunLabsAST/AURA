@@ -258,7 +258,7 @@ public class FeedManager implements AuraService, Configurable {
     /**
      * the configurable property for the number of threads used by this manager
      */
-    @ConfigInteger(defaultValue = 10, range = {1, 1000})
+    @ConfigInteger(defaultValue = 10, range = {0, 1000})
     public final static String PROP_NUM_THREADS = "numThreads";
     private int numThreads;
 }
