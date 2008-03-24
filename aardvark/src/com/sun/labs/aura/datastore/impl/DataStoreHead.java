@@ -39,6 +39,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import ngnova.retrieval.MultiDocumentVectorImpl;
 
 /**
  * A instance of an access point into the Data Store.  Data Store Heads
@@ -260,7 +261,6 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         Set<Attention> attns = getAttentionFor(user.getKey(), true, attnType);
         Set<String> targets = new HashSet<String>();
         for (Attention a : attns) {
-            logger.log(Level.SEVERE, "getting item for attn targ: " + a.getTargetKey());
             targets.add(a.getTargetKey());
         }
         
@@ -580,6 +580,30 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return findSimilar(dv, n);
     }
 
+    public List<Scored<Item>> findSimilar(List<String> keys, int n)
+            throws AuraException, RemoteException {
+        List<DocumentVector> dvs = new ArrayList<DocumentVector>();
+        for(String key : keys) {
+            PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
+            dvs.add(pc.getDocumentVector(key));
+        }
+        MultiDocumentVectorImpl mdvi = new MultiDocumentVectorImpl(dvs);
+        return findSimilar(mdvi, n);
+    }
+
+    public List<Scored<Item>> findSimilar(List<String> keys,
+            final String field,
+            int n)
+            throws AuraException, RemoteException {
+        List<DocumentVector> dvs = new ArrayList<DocumentVector>();
+        for(String key : keys) {
+            PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
+            dvs.add(pc.getDocumentVector(key, field));
+        }
+        MultiDocumentVectorImpl mdvi = new MultiDocumentVectorImpl(dvs);
+        return findSimilar(mdvi, n);
+    }
+
     public List<Scored<Item>> findSimilar(final String key,
             final WeightedField[] fields,
             final int n)
@@ -588,6 +612,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         DocumentVector dv = pc.getDocumentVector(key, fields);
         return findSimilar(dv, n);
     }
+
     private List<Scored<Item>> findSimilar(DocumentVector dv, final int n)
             throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();

@@ -23,7 +23,6 @@ import java.util.List;
  */
 public class BlogEntry extends ItemAdapter {
     private final static String FIELD_FEED_KEY = "fieldKey";
-    private final static String FIELD_TITLE = "title";
     private final static String FIELD_CONTENT = "content";
     private final static String FIELD_SYND_ENTRY = "syndEntry";
     private final static String FIELD_TAG = "tag";
@@ -136,17 +135,9 @@ public class BlogEntry extends ItemAdapter {
      * @return the title of the entry
      */
     public String getTitle() {
-        return getFieldAsString(FIELD_TITLE);
+        return getName();
     }
 
-
-    /**
-     * Sets the title of the entry
-     * @param title the title of the entry
-     */
-    public void setTitle(String title) {
-        setField(FIELD_TITLE, title);
-    }
 
 
     /**
