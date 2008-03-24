@@ -120,7 +120,7 @@ public class Scored<T> implements Comparable<Scored<T>>, Serializable {
                 // If this field is increasing, we can just use the comparison
                 // that we just got.
                 int pre = cmp;
-                cmp =  directions[i] ? cmp : -cmp;
+                cmp =  directions[i] ? -cmp : cmp;
                 return cmp;
             }
             return 0;
