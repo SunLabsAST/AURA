@@ -79,16 +79,15 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             for(Scored<Item> scoredItem : results) {
                 if(scoredItem.getItem().getType() == ItemType.BLOGENTRY) {
                     BlogEntry blogEntry = new BlogEntry(scoredItem.getItem());
-                    if (!skipSet.contains(blogEntry.getKey())) {
-                        String explanation = "Similar to items you like";
-                        resultSet.add(new Recommendation(scoredItem.getItem(), scoredItem.getScore(), explanation));
-                        titles.add(blogEntry.getTitle());
-                        Attention attention = StoreFactory.newAttention(user, 
-                                    scoredItem.getItem(), Attention.Type.VIEWED);
-                        dataStore.attend(attention);
-                        if (resultSet.size() >= NUM_RECS) {
-                            break;
-                        }
+                    String explanation = "Similar to items you like";
+                    resultSet.add(new Recommendation(scoredItem.getItem(),
+                            scoredItem.getScore(), explanation));
+                    titles.add(blogEntry.getTitle());
+                    Attention attention = StoreFactory.newAttention(user,
+                            scoredItem.getItem(), Attention.Type.VIEWED);
+                    dataStore.attend(attention);
+                    if(resultSet.size() >= NUM_RECS) {
+                        break;
                     }
                 }
             }
