@@ -126,9 +126,11 @@ public class FeedManager implements AuraService, Configurable {
                         if (item != null) {
                             if (item.getType() == ItemType.FEED) {
                                 BlogFeed feed = new BlogFeed(item);
-                                crawlFeed(myItemStore, feed);
-                                nextCrawl += feed.getNumConsecutiveErrors() *
-                                        defaultCrawlingPeriod;
+                                if (needsCrawl(feed)) {
+                                    crawlFeed(myItemStore, feed);
+                                    nextCrawl += feed.getNumConsecutiveErrors() *
+                                            defaultCrawlingPeriod;
+                                }
                             } else {
                                 logger.warning("Expected FEED type, found " +
                                         item.getType() + " for " + item.getKey());
@@ -216,6 +218,16 @@ public class FeedManager implements AuraService, Configurable {
                     runningThreads.size()));
             lastPullCount = feedPullCount;
         }
+    }
+
+    /**
+     * Determines if a feed needs to be crawled
+     * @param feed the feed to check
+     * @return if the feed hasn't been crawled 
+     */
+    private boolean needsCrawl(BlogFeed feed) {
+        long now = System.currentTimeMillis();
+        return ((now - feed.getLastPullTime()) >  defaultCrawlingPeriod * 1000);
     }
 
     /**
