@@ -38,7 +38,6 @@ public class FeedManager implements AuraService, Configurable {
     private Set<Thread> runningThreads =
             Collections.synchronizedSet(new HashSet<Thread>());
     private Logger logger;
-    private int defaultCrawlingPeriod = 60 * 60;
     private long lastPullCount = 0;
 
     /**
@@ -78,6 +77,8 @@ public class FeedManager implements AuraService, Configurable {
         statService = (StatService) ps.getComponent(PROP_STAT_SERVICE);
         numThreads = ps.getInt(PROP_NUM_THREADS);
         logger = ps.getLogger();
+        defaultCrawlingPeriod = ps.getInt(PROP_CRAWLING_PERIOD);
+
         try {
             //
             // Create our counters.
@@ -126,9 +127,11 @@ public class FeedManager implements AuraService, Configurable {
                         if (item != null) {
                             if (item.getType() == ItemType.FEED) {
                                 BlogFeed feed = new BlogFeed(item);
-                                crawlFeed(myItemStore, feed);
-                                nextCrawl += feed.getNumConsecutiveErrors() *
-                                        defaultCrawlingPeriod;
+                                if (needsCrawl(feed)) {
+                                    crawlFeed(myItemStore, feed);
+                                    nextCrawl += feed.getNumConsecutiveErrors() *
+                                            defaultCrawlingPeriod;
+                                }
                             } else {
                                 logger.warning("Expected FEED type, found " +
                                         item.getType() + " for " + item.getKey());
@@ -173,8 +176,10 @@ public class FeedManager implements AuraService, Configurable {
             Set<Attention> attentions =
                     myItemStore.getAttentionForTarget(feed.getKey());
 
+            int newEntries = 0;
             for (BlogEntry entry : entries) {
                 if (dataStore.getItem(entry.getKey()) == null) {
+                    newEntries++;
                     entry.flush(myItemStore);
                     for (Attention feedAttention : attentions) {
                         Attention.Type userAttentionType =
@@ -188,8 +193,8 @@ public class FeedManager implements AuraService, Configurable {
                     }
                 }
             }
-            statService.incr(COUNTER_ENTRY_PULL_COUNT, entries.size());
-            logger.info(entries.size() + " entries from  " + feed.getURL());
+            logger.info(newEntries + " new entries from  " + feed.getURL());
+            statService.incr(COUNTER_ENTRY_PULL_COUNT, newEntries);
             ok = true;
         } catch (AuraException ex) {
             logger.warning("trouble processing " + feed.getKey() + " " +
@@ -216,6 +221,16 @@ public class FeedManager implements AuraService, Configurable {
                     runningThreads.size()));
             lastPullCount = feedPullCount;
         }
+    }
+
+    /**
+     * Determines if a feed needs to be crawled
+     * @param feed the feed to check
+     * @return if the feed hasn't been crawled 
+     */
+    private boolean needsCrawl(BlogFeed feed) {
+        long now = System.currentTimeMillis();
+        return ((now - feed.getLastPullTime()) >  defaultCrawlingPeriod * 1000);
     }
 
     /**
@@ -261,4 +276,8 @@ public class FeedManager implements AuraService, Configurable {
     @ConfigInteger(defaultValue = 10, range = {0, 1000})
     public final static String PROP_NUM_THREADS = "numThreads";
     private int numThreads;
+
+    @ConfigInteger(defaultValue = 3600, range = {10, 36000})
+    public final static String PROP_CRAWLING_PERIOD = "crawlingPeriod";
+    private int defaultCrawlingPeriod;
 }
