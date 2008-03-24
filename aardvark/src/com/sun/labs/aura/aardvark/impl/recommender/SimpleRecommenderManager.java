@@ -51,7 +51,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
     private final static int MAX_SKIP = 1000;
 
     public SortedSet<Recommendation>  getRecommendations(User user) throws RemoteException {
-        SimpleTimer t = new SimpleTimer();
+        SimpleTimer t = new SimpleTimer(false);
         SortedSet<Recommendation> resultSet = new TreeSet<Recommendation>(Recommendation.REVERSE);
         Set<String> titles = new HashSet<String>();
         try {
@@ -79,7 +79,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             for(Scored<Item> scoredItem : results) {
                 if(scoredItem.getItem().getType() == ItemType.BLOGENTRY) {
                     BlogEntry blogEntry = new BlogEntry(scoredItem.getItem());
-                    String explanation = "";
+                    String explanation = "Similar to items you like";
                     resultSet.add(new Recommendation(scoredItem.getItem(),
                             scoredItem.getScore(), explanation));
                     titles.add(blogEntry.getTitle());

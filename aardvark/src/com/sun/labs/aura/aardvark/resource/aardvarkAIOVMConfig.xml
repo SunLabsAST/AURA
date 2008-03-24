@@ -64,7 +64,8 @@
     <component name="feedScheduler" type="com.sun.labs.aura.util.ItemSchedulerImpl">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="itemType" value="FEED"/>
-        <property name="logLevel" value="SEVERE"/>
+        <property name="lateTime" value="3600"/>
+        <property name="logLevel" value="WARNING"/>
     </component>
     
     <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager">

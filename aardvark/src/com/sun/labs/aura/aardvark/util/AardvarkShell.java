@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -107,6 +106,32 @@ public class AardvarkShell implements AuraService, Configurable {
 
                     public String getHelp() {
                         return "usage: dumpTagFrequencies - shows that tag frequencies for entries";
+                    }
+                });
+
+        shell.add("dumpStories",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 1 && args.length != 2) {
+                                return getHelp();
+                            } else {
+                                int count = 500;
+                                if (args.length >= 2) {
+                                    count = Integer.parseInt(args[1]);
+                                }
+                                dumpStories(count);
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                            ex.printStackTrace();
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: dumpStories [count]- dump xml description of stories, suitable for the dashboard similator";
                     }
                 });
 
@@ -532,6 +557,98 @@ public class AardvarkShell implements AuraService, Configurable {
         } catch (RemoteException ex) {
             logger.severe("dumpTagFrequencies " + ex);
         }
+    }
+
+    private void dumpStories(int count) {
+        try {
+            DBIterator<Item> iter = dataStore.getItemsAddedSince(ItemType.BLOGENTRY, new Date(0));
+
+            try {
+                System.out.println("<stories>");
+                while (count-- > 0 && iter.hasNext()) {
+                    Item item = iter.next();
+                    BlogEntry entry = new BlogEntry(item);
+                    dumpStory(entry); 
+                }
+                System.out.println("</stories>");
+            } finally {
+                iter.close();
+            }
+        } catch (AuraException ex) {
+            logger.severe("dumpStories " + ex);
+        } catch (RemoteException ex) {
+            logger.severe("dumpStories " + ex);
+        }
+    }
+
+    void dumpStory(BlogEntry entry) throws AuraException, RemoteException {
+        Item ifeed = dataStore.getItem(entry.getFeedKey());
+        BlogFeed feed = new BlogFeed(ifeed);
+        System.out.println("    <story score =\"1.0\">");
+
+        dumpTag("        ", "source", feed.getName());
+        dumpTag("        ", "imageUrl", feed.getImage());
+        dumpTag("        ", "url", entry.getKey());
+        dumpTag("        ", "title", entry.getTitle());
+        if (entry.getContent() != null) {
+            System.out.println("        <description>" +  excerpt(filterHTML(entry.getContent()), 100) + "</description>");
+        }
+
+        List<Tag> tags = entry.getTags();
+        if (tags.size() == 0) {
+            tags = feed.getTags();
+        }
+        for (Tag tag : tags) {
+            System.out.println("        <class score=\"1.0\">" + filterTag(tag.getName()) + "</class>");
+        }
+        System.out.println("    </story>");
+    }
+
+    private void dumpTag(String indent, String tag, String value) {
+        if (value != null) {
+            value = filterTag(value);
+            System.out.println(indent + "<" + tag + ">" + value + "</" + tag + ">");
+        }
+    }
+
+    private String filterTag(String s) {
+        s =  s.replaceAll("[^\\p{ASCII}]", "");
+        s = s.replaceAll("\\&", "&amp;");
+        s = s.replaceAll("\\<", "&lt;");
+        s = s.replaceAll("\\>", "&gt;");
+
+        return s;
+    }
+
+    private String filterHTML(String s) {
+        s = detag(s);
+        s = deentity(s);
+        s =  s.replaceAll("[^\\p{ASCII}]", "");
+        s =  s.replaceAll("\\s+", " ");
+        s =  s.replaceAll("[\\<\\>\\&]", " ");
+        return s;
+    }
+
+    private String detag(String s) {
+        return s.replaceAll("\\<.*?\\>", "");
+    }
+
+    private String deentity(String s) {
+        return s.replaceAll("\\&[a-zA-Z]+;", " ");
+    }
+
+
+    private String excerpt(String s, int maxWords) {
+        StringBuilder sb = new StringBuilder();
+        String[] words = s.split("\\s+");
+        for (int i = 0; i < maxWords && i < words.length; i++) {
+            sb.append(words[i] + " ");
+        }
+
+        if (maxWords < words.length) {
+            sb.append("...");
+        }
+        return sb.toString().trim();
     }
 
     private void dumpTagFrequencies() {
