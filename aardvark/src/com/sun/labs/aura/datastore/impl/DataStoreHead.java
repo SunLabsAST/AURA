@@ -2,6 +2,7 @@
 package com.sun.labs.aura.datastore.impl;
 
 import com.sun.kt.search.DocumentVector;
+import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
@@ -565,22 +566,22 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
      *  Search methods
      *
      */
-    public List<Scored<Item>> findSimilar(String key, int n)
+    public List<Scored<Item>> findSimilar(String key, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         DocumentVector dv = pc.getDocumentVector(key);
-        return findSimilar(dv, n);
+        return findSimilar(dv, n, rf);
     }
 
     public List<Scored<Item>> findSimilar(String key, final String field,
-            int n)
+            int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         DocumentVector dv = pc.getDocumentVector(key, field);
-        return findSimilar(dv, n);
+        return findSimilar(dv, n, rf);
     }
 
-    public List<Scored<Item>> findSimilar(List<String> keys, int n)
+    public List<Scored<Item>> findSimilar(List<String> keys, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         List<DocumentVector> dvs = new ArrayList<DocumentVector>();
         for(String key : keys) {
@@ -588,12 +589,12 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             dvs.add(pc.getDocumentVector(key));
         }
         MultiDocumentVectorImpl mdvi = new MultiDocumentVectorImpl(dvs);
-        return findSimilar(mdvi, n);
+        return findSimilar(mdvi, n, rf);
     }
 
     public List<Scored<Item>> findSimilar(List<String> keys,
             final String field,
-            int n)
+            int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         List<DocumentVector> dvs = new ArrayList<DocumentVector>();
         for(String key : keys) {
@@ -601,19 +602,19 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             dvs.add(pc.getDocumentVector(key, field));
         }
         MultiDocumentVectorImpl mdvi = new MultiDocumentVectorImpl(dvs);
-        return findSimilar(mdvi, n);
+        return findSimilar(mdvi, n, rf);
     }
 
     public List<Scored<Item>> findSimilar(final String key,
             final WeightedField[] fields,
-            final int n)
+            final int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         DocumentVector dv = pc.getDocumentVector(key, fields);
-        return findSimilar(dv, n);
+        return findSimilar(dv, n, rf);
     }
 
-    private List<Scored<Item>> findSimilar(DocumentVector dv, final int n)
+    private List<Scored<Item>> findSimilar(DocumentVector dv, final int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
         List<Callable<List<Scored<Item>>>> callers =
@@ -621,11 +622,11 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         //
         // Here's our list of callers to find similar.
         for(PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p, dv) {
+            callers.add(new PCCaller(p, dv, rf) {
 
                 public List<Scored<Item>> call()
                         throws AuraException, RemoteException {
-                    return pc.findSimilar(dv, n);
+                    return pc.findSimilar(dv, n, rf);
                 }
             });
         }
@@ -720,12 +721,16 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         protected PartitionCluster pc;
         
         protected DocumentVector dv;
+        
+        protected ResultsFilter rf;
+
         public PCCaller(PartitionCluster pc) {
             this.pc = pc;
         }
-        
-        public PCCaller(PartitionCluster pc, DocumentVector dv) {
+
+        public PCCaller(PartitionCluster pc, DocumentVector dv, ResultsFilter rf) {
             this.pc = pc;
+            this.rf = rf;
             //
             // Take a copy of the document vector, because we don't want the
             // same one handed to multiple threads!
@@ -769,13 +774,13 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
     }
 
-    public List<Scored<Item>> query(String query, int n)
+    public List<Scored<Item>> query(String query, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        return query(query, "-score", n);
+        return query(query, "-score", n, rf);
     }
 
     public List<Scored<Item>> query(final String query, final String sort,
-            final int n)
+            final int n, final ResultsFilter rf)
             throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
         Set<Callable<List<Scored<Item>>>> callers =
@@ -784,7 +789,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             callers.add(new PCCaller(p) {
                 public List<Scored<Item>> call()
                         throws AuraException, RemoteException {
-                    return pc.query(query, sort, n);
+                    return pc.query(query, sort, n, rf);
                 }
             });
         }

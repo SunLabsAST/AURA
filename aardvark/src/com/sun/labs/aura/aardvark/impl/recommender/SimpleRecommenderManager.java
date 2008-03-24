@@ -8,6 +8,9 @@
  */
 package com.sun.labs.aura.aardvark.impl.recommender;
 
+import com.sun.kt.search.CompositeResultsFilter;
+import com.sun.kt.search.ResultAccessor;
+import com.sun.kt.search.ResultsFilter;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.util.SimpleTimer;
@@ -49,7 +52,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
     private final static int MAX_SKIP = 1000;
 
     public SortedSet<Recommendation>  getRecommendations(User user) throws RemoteException {
-        SimpleTimer t = new SimpleTimer(false);
+        SimpleTimer t = new SimpleTimer(true);
         SortedSet<Recommendation> resultSet = new TreeSet<Recommendation>(Recommendation.REVERSE);
         Set<String> titles = new HashSet<String>();
         try {
@@ -58,40 +61,36 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             SortedSet<Attention> starredAttention = dataStore.getLastAttentionForSource(user.getKey(), Attention.Type.STARRED, RECENT_STARRED);
             t.mark("getLastAttention starred");
 
-            // gets the set of entry ids that we should skip because they've
-            // been used recently
-
-            Set<String> skipSet = getSkipSet(user);
+            // 
+            // A filter that will only pass documents that have not been seen
+            // recently and that are of the blog entry type.  This saves us 
+            // having to post-filter things.
+            ResultsFilter rf = new CompositeResultsFilter(getSkipSet(user), 
+                    new TypeFilter(ItemType.BLOGENTRY));
+            
             t.mark("get skip set");
 
             // select a few documents from the starred set of items to serve
             // as the similarity seeds
-            String[] itemKeys = selectRandomItemKeys(starredAttention, SEED_SIZE);
+            List<String> itemKeys = selectRandomItemKeys(starredAttention, SEED_SIZE);
             t.mark("select random item keys");
-            SortedSet<Scored<Item>> results = new TreeSet<Scored<Item>>();
+            
+            List<Scored<Item>> results = dataStore.findSimilar(itemKeys, "content", NUM_RECS, rf);
+            t.mark("findSimilar");
 
-            // Get documents that are similar to the seeds
-            for (String key : itemKeys) {
-                results.addAll(dataStore.findSimilar(key, NUM_RECS));
-                t.mark("findSimilar");
-            }
-
-            // filter the list to eliminate docs that have already been attended
-            // to, also don't include docs with the same title in the result set
-            for (Scored<Item> scoredItem : results) {
-                if (scoredItem.getItem().getType() == ItemType.BLOGENTRY) {
-                    BlogEntry blogEntry = new BlogEntry(scoredItem.getItem());
-                    if (!skipSet.contains(blogEntry.getKey())) {
-                        String explanation = "Similar to items you like";
-                        resultSet.add(new Recommendation(scoredItem.getItem(), scoredItem.getScore(), explanation));
-                        titles.add(blogEntry.getTitle());
-                        Attention attention = StoreFactory.newAttention(user, 
-                                    scoredItem.getItem(), Attention.Type.VIEWED);
-                        dataStore.attend(attention);
-                        if (resultSet.size() >= NUM_RECS) {
-                            break;
-                        }
-                    }
+            //
+            // Get the blog entries and return the set.  This is a change.
+            for(Scored<Item> scoredItem : results) {
+                BlogEntry blogEntry = new BlogEntry(scoredItem.getItem());
+                String explanation = "Similar to items you like";
+                resultSet.add(new Recommendation(scoredItem.getItem(),
+                        scoredItem.getScore(), explanation));
+                titles.add(blogEntry.getTitle());
+                Attention attention = StoreFactory.newAttention(user,
+                        scoredItem.getItem(), Attention.Type.VIEWED);
+                dataStore.attend(attention);
+                if(resultSet.size() >= NUM_RECS) {
+                    break;
                 }
             }
             t.mark("results built");
@@ -100,6 +99,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             ex.printStackTrace();
         } catch (Throwable thrown) {
             System.out.println("catch throwable exception " + thrown );
+            thrown.printStackTrace();
         }
         finally {
             t.mark("done");
@@ -112,13 +112,14 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
      * @param attentions the set of recent attentions
      * @return set of item ids to skip
      */
-    private Set<String> getSkipSet(User user) throws AuraException, RemoteException {
+    private ResultsFilter getSkipSet(User user) throws AuraException, RemoteException {
         SortedSet<Attention> attentions = dataStore.getLastAttentionForSource(user.getKey(), null, MAX_SKIP);
+        
         Set<String> retSet = new HashSet<String>();
         for (Attention att : attentions) {
             retSet.add(att.getTargetKey());
         }
-        return retSet;
+        return new KeyExclusionFilter(retSet);
     }
 
     /**
@@ -128,17 +129,17 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
      * @param num the number of item IDs to return
      * @return an array of num item ids
      */
-    private String[] selectRandomItemKeys(SortedSet<Attention> attentionSet, int num) {
+    private List<String> selectRandomItemKeys(SortedSet<Attention> attentionSet, int num) {
         List<Attention> list = new ArrayList<Attention>(attentionSet);
         Collections.shuffle(list);
         if (num > list.size()) {
             num = list.size();
         }
 
-        String[] results = new String[num];
+        List<String> results = new ArrayList<String>();
 
         for (int i = 0; i < num; i++) {
-            results[i] = list.get(i).getTargetKey();
+            results.add(list.get(i).getTargetKey());
         }
         return results;
     }
@@ -155,5 +156,6 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
     }
     @ConfigComponent(type = DataStore.class)
     public static final String PROP_DATA_STORE = "dataStore";
+    
 }
 

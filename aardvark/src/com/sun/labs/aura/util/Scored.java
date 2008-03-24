@@ -4,11 +4,9 @@
  */
 package com.sun.labs.aura.util;
 
-import com.sun.labs.aura.datastore.Item;
 import java.io.Serializable;
 
 import java.io.Serializable;
-import java.util.logging.Logger;
 import ngnova.util.Util;
 
 /**
@@ -120,7 +118,7 @@ public class Scored<T> implements Comparable<Scored<T>>, Serializable {
                 // If this field is increasing, we can just use the comparison
                 // that we just got.
                 int pre = cmp;
-                cmp =  directions[i] ? cmp : -cmp;
+                cmp =  directions[i] ? -cmp : cmp;
                 return cmp;
             }
             return 0;

@@ -19,7 +19,6 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
 import java.util.Date;
-import java.util.Set;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +36,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     private DelayQueue<DelayedItem> itemQueue;
     private ItemListener exportedItemListener;
     private AtomicInteger waiters = new AtomicInteger();
+    private int newItemTime = 0;
 
     public String getNextItemKey() throws InterruptedException {
         waiters.incrementAndGet();
@@ -79,8 +79,12 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
 
     public void itemCreated(ItemEvent e) throws RemoteException {
         for (Item item : e.getItems()) {
-            addItem(item.getKey(), 0);
+            addItem(item.getKey(), newItemTime);
         }
+        // we want new items to get to cut to the head of the queue, so
+        // we use newItemTime to schedule newly created items earlier then 
+        // anyone else.
+        newItemTime--;
         logger.info("Added " + e.getItems().length + " items " + " total size is " + size());
     }
 

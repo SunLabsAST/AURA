@@ -137,6 +137,10 @@ public class BlogFeed extends ItemAdapter implements Serializable {
         return getFieldAsInt(FIELD_NUM_PULLS);
     }
 
+    public long getLastPullTime() {
+        return getFieldAsLong(FIELD_LAST_PULL_TIME);
+    }
+
     /**
      * Gets the number of consecutive pull errors
      * @return the number of consecutive pull errors

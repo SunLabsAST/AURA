@@ -1,6 +1,7 @@
 package com.sun.labs.aura.datastore.impl.store;
 
 import com.sun.kt.search.DocumentVector;
+import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.util.AuraException;
@@ -23,7 +24,7 @@ public interface LowLevelSearch extends Remote {
      * @param n the number of results to return
      * @return the top results for the query, sorted by score
      */
-    public List<Scored<Item>> query(String query, int n)
+    public List<Scored<Item>> query(String query, int n, ResultsFilter rf)
             throws AuraException, RemoteException;
 
     /**
@@ -33,7 +34,7 @@ public interface LowLevelSearch extends Remote {
      * @param n the number of results to return
      * @return the top results for the query
      */
-    public List<Scored<Item>> query(String query, String sort, int n)
+    public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf)
             throws AuraException, RemoteException;
 
     public DocumentVector getDocumentVector(String key)
@@ -53,6 +54,6 @@ public interface LowLevelSearch extends Remote {
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(DocumentVector dv, int n)
+    public List<Scored<Item>> findSimilar(DocumentVector dv, int n, ResultsFilter rf)
             throws AuraException, RemoteException;
 }

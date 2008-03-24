@@ -7,6 +7,7 @@ import com.sun.kt.search.Log;
 import com.sun.kt.search.Posting;
 import com.sun.kt.search.Result;
 import com.sun.kt.search.ResultSet;
+import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.SearchEngine;
 import com.sun.kt.search.SearchEngineException;
 import com.sun.kt.search.SearchEngineFactory;
@@ -339,7 +340,7 @@ public class ItemSearchEngine implements Configurable {
      * smaller than the number of items requested!
      * @see #getDocumentVector
      */
-    public List<Scored<String>> findSimilar(DocumentVector dv, int n)
+    public List<Scored<String>> findSimilar(DocumentVector dv, int n, ResultsFilter rf)
             throws AuraException {
 
         //
@@ -348,7 +349,7 @@ public class ItemSearchEngine implements Configurable {
         ResultSet sim = dv.findSimilar("-score");
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         try {
-            for(Result r : sim.getResults(0, n)) {
+            for(Result r : sim.getResults(0, n, rf)) {
                 ResultImpl ri = (ResultImpl) r;
                 ret.add(new Scored<String>(ri.getKey(), 
                         ri.getScore(),
