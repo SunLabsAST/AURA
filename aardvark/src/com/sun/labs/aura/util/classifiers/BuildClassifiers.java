@@ -7,13 +7,16 @@ package com.sun.labs.aura.util.classifiers;
 
 import com.sun.kt.search.Log;
 import com.sun.kt.search.Progress;
+import com.sun.kt.search.ResultAccessor;
 import com.sun.kt.search.ResultSet;
+import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.SearchEngine;
 import com.sun.kt.search.SearchEngineFactory;
 import com.sun.labs.util.SimpleLabsLogFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import ngnova.util.Getopt;
 import ngnova.util.StopWatch;
@@ -99,6 +102,17 @@ public class BuildClassifiers {
             assignedField = "assigned-" + fieldName;
         }
 
+        final String fooField = vectoredField;
+        
+        //
+        // A results filter for content longer than 200 chars.
+        ResultsFilter lengthFilter = new ResultsFilter() {
+            public boolean filter(ResultAccessor ra) {
+                String v = (String) ra.getSingleFieldValue(fooField);
+                return v != null && v.toString().length() > 200;
+            }
+        };
+
         //
         // Now, build a class for each topic.
         logger.info("Training " + classes.size() + " classifiers");
@@ -111,6 +125,7 @@ public class BuildClassifiers {
                         String.format("aura-type = blogentry <and> %s = \"%s\"",
                         fieldName, className);
                 ResultSet r = engine.search(query, "-score");
+                r.setResultsFilter(lengthFilter);
                 if(r.size() > 0) {
                     logger.info(" Training " + className + ", " + r.size() +
                             " examples");
@@ -135,8 +150,11 @@ public class BuildClassifiers {
                     logger.info(" Trained " + className + ", " +
                             r.size() + " examples, " +
                             sw.getTime() + "ms");
+                } else {
+                    logger.info("No training examples for " + className);
                 }
             } catch(Exception e) {
+                logger.log(Level.SEVERE, "Exception", e);
 
             }
         }
