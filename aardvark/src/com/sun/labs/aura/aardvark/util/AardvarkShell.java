@@ -204,6 +204,7 @@ public class AardvarkShell implements AuraService, Configurable {
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
+                            ex.printStackTrace();
                         }
                         return "";
                     }

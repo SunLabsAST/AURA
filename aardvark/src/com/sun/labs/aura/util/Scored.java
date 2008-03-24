@@ -4,11 +4,9 @@
  */
 package com.sun.labs.aura.util;
 
-import com.sun.labs.aura.datastore.Item;
 import java.io.Serializable;
 
 import java.io.Serializable;
-import java.util.logging.Logger;
 import ngnova.util.Util;
 
 /**
