@@ -8,6 +8,8 @@
  */
 package com.sun.labs.aura.aardvark.impl.recommender;
 
+import com.sun.kt.search.ResultAccessor;
+import com.sun.kt.search.ResultsFilter;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.util.SimpleTimer;
@@ -59,9 +61,9 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             t.mark("getLastAttention starred");
 
             // gets the set of entry ids that we should skip because they've
-            // been used recently
-
-            Set<String> skipSet = getSkipSet(user);
+            // been used recently.  This is a filter that we can pass down 
+            // into the engine.
+            ResultsFilter rf = getSkipSet(user);
             t.mark("get skip set");
 
             // select a few documents from the starred set of items to serve
@@ -69,24 +71,23 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             List<String> itemKeys = selectRandomItemKeys(starredAttention, SEED_SIZE);
             t.mark("select random item keys");
             
-            List<Scored<Item>> results = dataStore.findSimilar(itemKeys, NUM_RECS, null);
+            List<Scored<Item>> results = dataStore.findSimilar(itemKeys, NUM_RECS, rf);
             t.mark("findSimilar");
 
-            // filter the list to eliminate docs that have already been attended
-            // to, also don't include docs with the same title in the result set
-            for (Scored<Item> scoredItem : results) {
-                if (scoredItem.getItem().getType() == ItemType.BLOGENTRY) {
+            //
+            // Get the blog entries and return the set.
+            for(Scored<Item> scoredItem : results) {
+                if(scoredItem.getItem().getType() == ItemType.BLOGENTRY) {
                     BlogEntry blogEntry = new BlogEntry(scoredItem.getItem());
-                    if (!skipSet.contains(blogEntry.getKey())) {
-                        String explanation = "";
-                        resultSet.add(new Recommendation(scoredItem.getItem(), scoredItem.getScore(), explanation));
-                        titles.add(blogEntry.getTitle());
-                        Attention attention = StoreFactory.newAttention(user, 
-                                    scoredItem.getItem(), Attention.Type.VIEWED);
-                        dataStore.attend(attention);
-                        if (resultSet.size() >= NUM_RECS) {
-                            break;
-                        }
+                    String explanation = "";
+                    resultSet.add(new Recommendation(scoredItem.getItem(),
+                            scoredItem.getScore(), explanation));
+                    titles.add(blogEntry.getTitle());
+                    Attention attention = StoreFactory.newAttention(user,
+                            scoredItem.getItem(), Attention.Type.VIEWED);
+                    dataStore.attend(attention);
+                    if(resultSet.size() >= NUM_RECS) {
+                        break;
                     }
                 }
             }
@@ -108,13 +109,14 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
      * @param attentions the set of recent attentions
      * @return set of item ids to skip
      */
-    private Set<String> getSkipSet(User user) throws AuraException, RemoteException {
+    private ResultsFilter getSkipSet(User user) throws AuraException, RemoteException {
         SortedSet<Attention> attentions = dataStore.getLastAttentionForSource(user.getKey(), null, MAX_SKIP);
+        
         Set<String> retSet = new HashSet<String>();
         for (Attention att : attentions) {
             retSet.add(att.getTargetKey());
         }
-        return retSet;
+        return new KeyExclusionFilter(retSet);
     }
 
     /**
@@ -151,5 +153,6 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
     }
     @ConfigComponent(type = DataStore.class)
     public static final String PROP_DATA_STORE = "dataStore";
+    
 }
 
