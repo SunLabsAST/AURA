@@ -135,10 +135,11 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         //
         // The first 8 characters of the random string are the hash code of
         // the user.  To make things easy, the entire string is what we store.
-        String hashHex = randStr.substring(0, 8);
+        // We use 9 characters because the hash code may have a - (or be padded
+        // with zero if it isn't)
+        String hashHex = randStr.substring(0, 9);
         PartitionCluster pc =
-                trie.get(DSBitSet.parse(Integer.parseInt(hashHex, 16)));
-        
+                trie.get(DSBitSet.parse(Util.hexToInt(hashHex)));
         return pc.getUserForRandomString(randStr);
     }
 
@@ -157,11 +158,10 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         //
         // Which partition cluster does this item belong to?
         PartitionCluster pc = trie.get(DSBitSet.parse(user.hashCode()));
-        
+        logger.warning("putting user in pc " + pc.getPrefix());
         //
         // Ask the partition cluster to store the user and return it.
         return pc.putUser(user);
-
     }
     
     public void deleteItem(final String itemKey)

@@ -2,11 +2,13 @@
 package com.sun.labs.aura.datastore;
 
 import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.datastore.impl.Util;
 import com.sun.labs.aura.datastore.impl.store.persist.UserImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.util.AuraException;
 import java.util.Random;
+import java.util.logging.Logger;
 
 
 /**
@@ -45,8 +47,8 @@ public class StoreFactory {
     public static User newUser(String key, String name) {
         UserImpl ui = new UserImpl(key, name);
         long rand = random.nextLong();
-        String keyHex = Integer.toHexString(key.hashCode());
-        keyHex = keyHex.format("%8s", keyHex).replace(' ','0');
+        String keyHex = Util.toHexString(key.hashCode());
+        keyHex = keyHex.format("%9s", keyHex).replace(' ','0');
         String randHex = Long.toHexString(rand);
         randHex = randHex.format("%16s", randHex).replace(' ','0');
         ui.setUserRandString(keyHex + randHex);
