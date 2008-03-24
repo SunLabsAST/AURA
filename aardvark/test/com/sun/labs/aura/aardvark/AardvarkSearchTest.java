@@ -171,8 +171,8 @@ public class AardvarkSearchTest {
         crawler.crawlAllFeeds();
 
         assertTrue("full aardvark users", aardvark.getStats().getNumUsers() == 8);
-        assertTrue("full aardvark items " + aardvark.getStats().getNumItems(),
-                aardvark.getStats().getNumItems() == 142);
+        assertTrue("full aardvark items " + aardvark.getStats().getNumEntries(),
+                aardvark.getStats().getNumEntries() == 142);
 
     }
 

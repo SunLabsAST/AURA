@@ -100,6 +100,12 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getAttentionForSource(srcKey);
     }
     
+    public Set<Attention> getAttentionForSource(String srcKey,
+                                                Attention.Type type)
+            throws AuraException, RemoteException {
+        return replicant.getAttentionForSource(srcKey, type);
+    }
+    
     public Set<Attention> getAttentionForTarget(String itemKey)
             throws AuraException, RemoteException {
         return replicant.getAttentionForTarget(itemKey);
@@ -207,6 +213,9 @@ public class PartitionClusterImpl implements PartitionCluster,
     public void addReplicant(Replicant replicant) throws RemoteException {
         if (replicant.getPrefix().equals(prefixCode)) {
             this.replicant = replicant;
+        } else {
+            logger.log(Level.SEVERE, "Adding replicant with wrong prefix our prefix: " +
+                    prefixCode + " prefix added: " + replicant.getPrefix());
         }
     }
 

@@ -143,7 +143,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
                         getRemote(this, newItemStore);
                 newItemStore.addItemListener(newItemType, exportedItemListener);
             } catch (AuraException ex) {
-                throw new PropertyException(ps.getInstanceName(),
+                throw new PropertyException(ex, ps.getInstanceName(),
                         PROP_DATA_STORE, "aura exception " + ex.getMessage());
             } catch (RemoteException ex) {
                 throw new PropertyException(ps.getInstanceName(),

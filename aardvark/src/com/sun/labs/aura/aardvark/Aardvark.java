@@ -49,7 +49,15 @@ public interface Aardvark extends Component, Remote {
      */
     User enrollUser(String openID) throws AuraException, RemoteException;
 
-
+    /**
+     * Update the version of the user stored in the datastore
+     * 
+     * @param user the user to update
+     * @return
+     * @throws AuraException if there was an error
+     */
+    public User updateUser(User user) throws AuraException, RemoteException;
+    
     /**
      * Gets the attention data for a user
      * @param user the user of interest

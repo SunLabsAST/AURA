@@ -269,13 +269,19 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
             throws AuraException {
         DBIterator<Item> res =
                 bdb.getItemsAddedSince(type, timeStamp.getTime());
-
-        return (DBIterator<Item>) cm.getRemote(res, this);
+        res = (DBIterator<Item>)cm.getRemote(res);
+        return res;
     }
 
     public Set<Attention> getAttentionForSource(String srcKey)
             throws AuraException {
         return bdb.getAttentionForSource(srcKey);
+    }
+
+    public Set<Attention> getAttentionForSource(String srcKey,
+                                                Attention.Type type)
+            throws AuraException {
+        return bdb.getAttentionForSource(srcKey, type);
     }
 
     public Set<Attention> getAttentionForTarget(String itemKey)
@@ -297,7 +303,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         DBIterator<Attention> res =
                 bdb.getAttentionAddedSince(timeStamp.getTime());
 
-        return (DBIterator<Attention>) cm.getRemote(res, this);
+        return (DBIterator<Attention>) cm.getRemote(res);
     }
 
     public SortedSet<Attention> getLastAttentionForSource(String srcKey,
