@@ -27,7 +27,6 @@ import com.sun.labs.aura.datastore.impl.store.persist.UserImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.StringAndTimeKey;
 import java.io.File;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
@@ -628,7 +627,7 @@ public class BerkeleyDataWrapper {
         join.addCondition(attnByType, type.ordinal());
 
         TreeSet<Attention> ret = new TreeSet<Attention>(
-                new RevAttnTimeComparator());
+                new ReverseAttentionTimeComparator());
         try {
             ForwardCursor<PersistentAttention> cur = null;
             try {
@@ -666,7 +665,7 @@ public class BerkeleyDataWrapper {
         // Start querying for attention for this user based on time, expanding
         // the time range until we have enough attention.
         TreeSet<Attention> results = new TreeSet<Attention>(
-                new RevAttnTimeComparator());
+                new ReverseAttentionTimeComparator());
         long recent = System.currentTimeMillis();
 
         // Try one hour first
@@ -732,7 +731,7 @@ public class BerkeleyDataWrapper {
             long interval,
             int count) {
         TreeSet<Attention> result = new TreeSet<Attention>(
-                new RevAttnTimeComparator());
+                new ReverseAttentionTimeComparator());
         //
         // Set the begin and end times chronologically
         StringAndTimeKey begin = new StringAndTimeKey(srcKey, recentTime -
@@ -835,22 +834,6 @@ public class BerkeleyDataWrapper {
 
     }
 
-    /**
-     * Compares attention objects to sort in reverse chronological order
-     */
-    class RevAttnTimeComparator implements Comparator<Attention> {
-
-        public int compare(Attention o1, Attention o2) {
-            if(o1.getTimeStamp() - o2.getTimeStamp() < 0) {
-                return 1;
-            } else if(o1.getTimeStamp() == o2.getTimeStamp()) {
-                return 0;
-            } else {
-                return -1;
-            }
-
-        }
-    }
     /**
      * Compares item objects to sort in reverse chronological order
      */
