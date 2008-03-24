@@ -134,7 +134,11 @@ public class FeedUtils {
 
             feed.setName(syndFeed.getTitle());
             feed.setLink(syndFeed.getLink());
-            
+
+            if (syndFeed.getImage() != null) {
+                feed.setImage(syndFeed.getImage().getUrl());
+            }
+
             List<BlogEntry> entries = new ArrayList<BlogEntry>();
             List entryList = syndFeed.getEntries();
             for (Object o : entryList) {
@@ -203,7 +207,7 @@ public class FeedUtils {
         if (title != null) {
             title = title.trim();
         }
-        
+
         BlogEntry entry = new BlogEntry(key, title);
 
         List categories = syndEntry.getCategories();
