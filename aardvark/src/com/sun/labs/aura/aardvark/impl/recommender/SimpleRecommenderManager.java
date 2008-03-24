@@ -75,7 +75,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             t.mark("findSimilar");
 
             //
-            // Get the blog entries and return the set.
+            // Get the blog entries and return the set.  This is a change.
             for(Scored<Item> scoredItem : results) {
                 if(scoredItem.getItem().getType() == ItemType.BLOGENTRY) {
                     BlogEntry blogEntry = new BlogEntry(scoredItem.getItem());
