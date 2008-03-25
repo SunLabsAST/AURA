@@ -1,6 +1,7 @@
 
 package com.sun.labs.aura.datastore.impl.store;
 
+import com.sun.kt.search.FieldFrequency;
 import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.datastore.Item;
@@ -13,6 +14,19 @@ import java.util.List;
  * ItemSearch describes the search methods available for use in the data store.
  */
 public interface ItemSearch {
+
+    /**
+     * Gets the most frequent values for the named field.
+     * @param field the field for which we want the most frequent values
+     * @param n the number of most-frequent values to return
+     * @param ignoreCase if <code>true</code>, ignore the case of string values
+     * when computing the frequencies
+     * @return a list of the most frequent values and their associated frequencies.
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<FieldFrequency> getTopValues(String field, int n,
+            boolean ignoreCase) throws AuraException, RemoteException;
     
     /**
      * Finds a the n most similar items to the given item.
