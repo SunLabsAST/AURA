@@ -5,6 +5,7 @@ import com.sun.caroline.platform.BaseFileSystemConfiguration;
 import com.sun.caroline.platform.ConflictingHostNameException;
 import com.sun.caroline.platform.CustomerNetworkConfiguration;
 import com.sun.caroline.platform.DuplicateNameException;
+import com.sun.caroline.platform.DynamicNatConfiguration;
 import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.Grid;
@@ -16,6 +17,8 @@ import com.sun.caroline.platform.Network;
 import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.NetworkAddressAllocationException;
 import com.sun.caroline.platform.NetworkAllocationException;
+import com.sun.caroline.platform.NetworkConfiguration;
+import com.sun.caroline.platform.NetworkSetting;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.ProcessRegistration;
@@ -65,6 +68,7 @@ public class GridDeploy {
 
     private static String usage = "GridDeploy createCode | startAura | startAardvark | createWeb";
 
+    private NetworkAddress mostRecentAddrHack = null;
     public static void main(String argv[]) throws Exception {
         if (argv.length == 0) {
             System.out.println("Usage: " + usage);
@@ -285,6 +289,7 @@ public class GridDeploy {
         //
         // Start a few feed crawlers
         ProcessRegistration lastReg = null;
+        NetworkAddress crawlerNat = getExternalAddressFor("feedMgrNat");
         for (int i = 0; i < 6; i++) {
             ProcessConfiguration feedMgrConfig = getFeedManagerConfig(i);
             ProcessRegistration feedMgrReg = null;
@@ -296,6 +301,22 @@ public class GridDeploy {
                                    " reusing");
                 feedMgrReg = grid.getProcessRegistration(
                         instance + "-feedMgr-" + i);
+            }
+            
+            //
+            // Make a dynamic NAT for this process config
+            ProcessConfiguration pc = feedMgrConfig;
+            UUID internal = pc.getNetworkAddresses().iterator().next();
+            NetworkConfiguration netConf =
+                    new DynamicNatConfiguration(crawlerNat.getUUID(),
+                                                internal);
+            try {
+                grid.createNetworkSetting(instance + "-feedMgr-" + i + "-nat",
+                                          netConf);
+            } catch (DuplicateNameException dne) {
+                NetworkSetting ns =grid.getNetworkSetting(instance +
+                        "-feedMgr-" + i + "-nat");
+                ns.changeConfiguration(netConf);
             }
             startRegistration(feedMgrReg, false);
             lastReg = feedMgrReg;
@@ -359,7 +380,7 @@ public class GridDeploy {
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
         addresses.add(getAddressFor(instance + "-reggie").getUUID());
-        addresses.add(getExternalAddressFor(instance + "-reggie").getUUID());
+        //addresses.add(getExternalAddressFor(instance + "-reggie").getUUID());
         
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.DESTROY);
@@ -394,7 +415,7 @@ public class GridDeploy {
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
         addresses.add(getAddressFor(instance + "-dsHead").getUUID());
-        addresses.add(getExternalAddressFor(instance + "-dsHead").getUUID());
+        //addresses.add(getExternalAddressFor(instance + "-dsHead").getUUID());
         
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.DESTROY);
@@ -550,7 +571,7 @@ public class GridDeploy {
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
         addresses.add(getAddressFor(instance + "-feedMgr-" + n).getUUID());
-        addresses.add(getExternalAddressFor(instance + "-feedMgr-" + n).getUUID());
+        //addresses.add(getExternalAddressFor(instance + "-feedMgr-" + n).getUUID());
         
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.DESTROY);
