@@ -1,6 +1,7 @@
 package com.sun.labs.aura.datastore.impl;
 
 import com.sun.kt.search.DocumentVector;
+import com.sun.kt.search.FieldFrequency;
 import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
@@ -180,6 +181,10 @@ public class PartitionClusterImpl implements PartitionCluster,
 
     public long getAttentionCount() throws AuraException, RemoteException {
         return replicant.getAttentionCount();
+    }
+    
+    public List<FieldFrequency> getTopValues(String field, int n, boolean ignoreCase) throws AuraException, RemoteException {
+        return replicant.getTopValues(field, n, ignoreCase);
     }
 
     public List<Scored<Item>> findSimilar(String key, int n, ResultsFilter rf)

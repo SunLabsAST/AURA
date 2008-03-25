@@ -8,6 +8,7 @@ package com.sun.labs.aura.aardvark.util;
  *
  * @author plamere
  */
+import com.sun.kt.search.FieldFrequency;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.BlogEntry;
@@ -92,12 +93,12 @@ public class AardvarkShell implements AuraService, Configurable {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length != 1) {
-                                return getHelp();
-                            } else {
-                                dumpTagFrequencies();
+                            int n = 50;
+                            if(args.length > 1) {
+                                n = Integer.parseInt(args[1]);
                             }
-                        } catch (Exception ex) {
+                            dumpTagFrequencies(n);
+                        } catch(Exception ex) {
                             System.out.println("Error " + ex);
                             ex.printStackTrace();
                         }
@@ -105,7 +106,7 @@ public class AardvarkShell implements AuraService, Configurable {
                     }
 
                     public String getHelp() {
-                        return "usage: dumpTagFrequencies - shows that tag frequencies for entries";
+                        return "usage: dumpTagFrequencies <n> - shows top n (default 50) tag frequencies for entries";
                     }
                 });
 
@@ -652,44 +653,17 @@ public class AardvarkShell implements AuraService, Configurable {
         return sb.toString().trim();
     }
 
-    private void dumpTagFrequencies() {
-        int entries = 0;
-        int entriesWithTags = 0;
-        int totalTags = 0;
+    private void dumpTagFrequencies(int n) {
+
         try {
-
-            TagAccumulator accumulator = new TagAccumulator();
-            DBIterator<Item> iter = dataStore.getItemsAddedSince(ItemType.BLOGENTRY, new Date(0));
-
-            try {
-                while (iter.hasNext()) {
-                    Item item = iter.next();
-                    BlogEntry entry = new BlogEntry(item);
-                    List<Tag> tags = entry.getTags();
-                    entries++;
-                    if (tags.size() > 0) {
-                        entriesWithTags++;
-                    }
-                    totalTags += tags.size();
-
-                    for (Tag tag : tags) {
-                       accumulator.add(tag); 
-                    }
-                    if (entries % 1000 == 0) {
-                        System.out.printf("%d %d %d  ", entries, entriesWithTags, totalTags);
-                        for (Tag tag : tags) {
-                            System.out.print(tag.getName() + ", ");
-                        }
-                        System.out.println();
-                    }
-                }
-            } finally {
-                iter.close();
+            List<FieldFrequency> tagFreqs = dataStore.getTopValues("tag", n,
+                    true);
+            for(FieldFrequency ff : tagFreqs) {
+                System.out.printf("%d %s\n", ff.getFreq(), ff.getVal().toString().trim());
             }
-            accumulator.dump();
-        } catch (AuraException ex) {
+        } catch(AuraException ex) {
             logger.severe("dumpTagFrequencies " + ex);
-        } catch (RemoteException ex) {
+        } catch(RemoteException ex) {
             logger.severe("dumpTagFrequencies " + ex);
         }
     }

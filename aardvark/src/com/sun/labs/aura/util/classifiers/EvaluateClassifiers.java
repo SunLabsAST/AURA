@@ -42,28 +42,6 @@ public class EvaluateClassifiers {
 
     protected static String logTag = "EC";
 
-    public static Set<String> getKeySet(ResultSet r) throws Exception {
-        Set<String> ret = new HashSet<String>();
-        List l = r.getAllResults(false);
-        for(Iterator i = l.iterator(); i.hasNext();) {
-            ret.add(((Result) i.next()).getKey());
-        }
-        return ret;
-    }
-
-    /**
-     * Computes the intersection of two sets.
-     */
-    public static Set<String> and(Set<String> s1, Set<String> s2) {
-        Set<String> ret = new HashSet<String>();
-        for(String s : s1) {
-            if(s2.contains(s)) {
-                ret.add(s);
-            }
-        }
-        return ret;
-    }
-
     public static void main(String[] args) throws Exception {
 
         String flags = "a:c:d:e:f:n:o:twh:q:";

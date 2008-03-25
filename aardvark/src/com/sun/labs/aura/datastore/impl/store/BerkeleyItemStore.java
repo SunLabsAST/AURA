@@ -3,6 +3,7 @@ package com.sun.labs.aura.datastore.impl.store;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sleepycat.je.DatabaseException;
 import com.sun.kt.search.DocumentVector;
+import com.sun.kt.search.FieldFrequency;
 import com.sun.kt.search.IndexListener;
 import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.SearchEngine;
@@ -363,6 +364,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     
     public DocumentVector getDocumentVector(String key, WeightedField[] fields) {
         return searchEngine.getDocumentVector(key, fields);
+    }
+    
+    public List<FieldFrequency> getTopValues(String field, int n,
+            boolean ignoreCase) throws AuraException, RemoteException {
+        return searchEngine.getSearchEngine().getTopFieldValues(field, n, ignoreCase);
     }
     
     /**
