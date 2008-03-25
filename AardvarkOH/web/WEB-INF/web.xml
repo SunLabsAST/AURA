@@ -17,11 +17,6 @@
         <listener-class>com.sun.labs.aura.aardvark.web.ServletListener</listener-class>
     </listener>
     <servlet>
-        <servlet-name>Faces Servlet</servlet-name>
-        <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
-    <servlet>
         <servlet-name>Home</servlet-name>
         <servlet-class>com.sun.labs.aura.aardvark.web.Home</servlet-class>
     </servlet>
@@ -29,10 +24,18 @@
         <servlet-name>Login</servlet-name>
         <servlet-class>com.sun.labs.aura.aardvark.web.Login</servlet-class>
     </servlet>
-    <servlet-mapping>
-        <servlet-name>Faces Servlet</servlet-name>
-        <url-pattern>/faces/*</url-pattern>
-    </servlet-mapping>
+    <servlet>
+        <servlet-name>Delete</servlet-name>
+        <servlet-class>com.sun.labs.aura.aardvark.web.Delete</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>Welcome</servlet-name>
+        <servlet-class>com.sun.labs.aura.aardvark.web.Welcome</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>Feed</servlet-name>
+        <servlet-class>com.sun.labs.aura.aardvark.web.Feed</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>Home</servlet-name>
         <url-pattern>/Home</url-pattern>
@@ -49,12 +52,24 @@
         <servlet-name>Login</servlet-name>
         <url-pattern>/Register</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Delete</servlet-name>
+        <url-pattern>/Delete</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Welcome</servlet-name>
+        <url-pattern>/Welcome</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Feed</servlet-name>
+        <url-pattern>/feed/*</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>
             30
         </session-timeout>
     </session-config>
     <welcome-file-list>
-        <welcome-file>welcome.jsp</welcome-file>
+        <welcome-file>Welcome</welcome-file>
         </welcome-file-list>
     </web-app>

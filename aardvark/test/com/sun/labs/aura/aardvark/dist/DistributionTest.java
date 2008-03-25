@@ -118,7 +118,7 @@ public class DistributionTest {
         Stats stats = aardvark.getStats();
         assertTrue(stats.getNumUsers() == 1);
         assertTrue(stats.getNumFeeds() == 1);
-        assertTrue(stats.getNumItems() == 13);
+        assertTrue(stats.getNumEntries() == 13);
 
         //
         // Clean up.

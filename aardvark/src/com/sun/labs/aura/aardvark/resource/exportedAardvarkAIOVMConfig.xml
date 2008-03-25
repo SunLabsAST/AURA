@@ -120,6 +120,7 @@
         <property name="statService" value="statService"/>
         <property name="autoEnrollTestFeeds" value="true"/>
         <property name="autoEnrollMegaTestFeeds" value="true"/>
+        <property name="autoEnrollGiantTestFeeds" value="false"/>
     </component>
     
     <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">

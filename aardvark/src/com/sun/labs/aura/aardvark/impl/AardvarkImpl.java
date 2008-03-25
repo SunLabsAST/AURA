@@ -122,6 +122,19 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
             throw new AuraException("Error communicating with item store", rx);
         }
     }
+    
+    /**
+     * Get a user based on the previously-generated random string for that
+     * user.
+     * 
+     * @param randStr the complete random string for a user
+     * @return the matching user
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public User getUserByRandomString(String randStr) throws AuraException, RemoteException {
+        return dataStore.getUserForRandomString(randStr);
+    }
 
     public SortedSet<Attention> getLastAttentionData(User user, Type type, int count) throws AuraException, RemoteException {
         return dataStore.getLastAttentionForSource(user.getKey(), type, count);
@@ -168,7 +181,19 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         }
     }
 
-    
+    /**
+     * Deletes a user from the data store
+     * 
+     * @param user the user to delete
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void deleteUser(User user) throws AuraException, RemoteException {
+        if (user != null) {
+            dataStore.deleteUser(user.getKey());
+        }
+    }
+
     /**
      * Adds a feed of a particular type for a user
      * @param user the user
@@ -206,7 +231,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         SyndFeed feed = new SyndFeedImpl();
         feed.setFeedType("atom");  // BUG - what are the possible feed types
         feed.setTitle("Aardvark recommendations for " + freshUser.getKey());
-        feed.setDescription("Recommendations created for " + freshUser);
+        feed.setDescription("Recommendations created for " + freshUser.getKey());
         feed.setPublishedDate(new Date());
         feed.setEntries(FeedUtils.getSyndEntries(getRecommendedEntries(freshUser)));
         return feed;

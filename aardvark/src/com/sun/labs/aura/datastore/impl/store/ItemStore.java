@@ -51,6 +51,41 @@ public interface ItemStore {
             throws AuraException, RemoteException;
 
     /**
+     * Gets a user based on the random string provided.  This call must be
+     * directed to the correct partition for it to succeed.
+     * 
+     * @param randStr the random string associated with a user
+     * @return the user
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public User getUserForRandomString(String randStr)
+            throws AuraException, RemoteException;
+    
+    /**
+     * Delete a user from the date store.  This will remove the user item and
+     * any attention that the user has created.
+     * 
+     * @param key the string identifier of the user to delete
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void deleteUser(String key)
+            throws AuraException, RemoteException;
+
+    /**
+     * Delete an item from the date store.  This will remove the item and any
+     * attention that was paid to it.
+     * 
+     * @param key the string identifier of the item to delete
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void deleteItem(String key)
+            throws AuraException, RemoteException;
+
+    
+    /**
      * Puts an item into the ItemStore.  The Item may be either a new Item
      * or a modification of an existing Item that was retrieved using one of
      * the get methods.  If the Item has the same aura ID and key as an

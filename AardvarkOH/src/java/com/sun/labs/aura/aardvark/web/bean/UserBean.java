@@ -18,6 +18,8 @@ public class UserBean {
     
     private Long numFeeds;
     
+    private String recommendedFeedURL;
+    
     public UserBean() {
         
     }
@@ -37,11 +39,11 @@ public class UserBean {
         this.ID = ID;
     }
 
-    public String getRealName() {
+    public String getNickname() {
         return nickname;
     }
 
-    public void setRealName(String realName) {
+    public void setNickname(String realName) {
         this.nickname = realName;
     }
 
@@ -53,19 +55,19 @@ public class UserBean {
         this.defaultFeedURL = defaultFeedURL;
     }
 
-    public Long getNumFeeds() {
-        return numFeeds;
-    }
-
-    public void setNumFeeds(Long numFeeds) {
-        this.numFeeds = numFeeds;
-    }
-
     public String getFullname() {
         return fullname;
     }
 
     public void setFullname(String fullname) {
         this.fullname = fullname;
+    }
+
+    public String getRecommendedFeedURL() {
+        return recommendedFeedURL;
+    }
+
+    public void setRecommendedFeedURL(String recommendedFeedURL) {
+        this.recommendedFeedURL = recommendedFeedURL;
     }
 }

@@ -44,6 +44,7 @@
         <property name="recommenderManager" value="recommenderManager"/>
         <property name="autoEnrollTestFeeds" value="true"/>
         <property name="autoEnrollMegaTestFeeds" value="true"/>
+        <property name="autoEnrollGiantTestFeeds" value="false"/>
     </component>
     
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>

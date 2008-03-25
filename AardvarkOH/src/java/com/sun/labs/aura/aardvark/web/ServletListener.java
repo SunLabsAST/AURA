@@ -6,7 +6,6 @@
 package com.sun.labs.aura.aardvark.web;
 
 import com.sun.labs.aura.aardvark.Aardvark;
-import com.sun.labs.aura.aardvark.impl.AardvarkImpl;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -28,11 +27,11 @@ public class ServletListener implements ServletContextListener {
         try {
             ServletContext context = sce.getServletContext();
             URL config = context.getResource("/aardvarkWebConfig.xml");
-            logger.info("URL is " + config);
+            logger.info("Config URL is " + config);
+
             //
             // Get the Aardvark interface
             Aardvark aardvark = getAardvark(config);
-            logger.info("Got aardvark at " + aardvark);
             context.setAttribute("aardvark", aardvark);
         } catch (MalformedURLException ex) {
             logger.severe("Bad URL to config file " + ex.getMessage());

@@ -78,6 +78,11 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getUser(key);
     }
 
+    public User getUserForRandomString(String randStr)
+            throws AuraException, RemoteException {
+        return replicant.getUserForRandomString(randStr);
+    }
+    
     public Item putItem(Item item) throws AuraException, RemoteException {
         return replicant.putItem(item);
     }
@@ -86,6 +91,20 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.putUser(user);
     }
 
+    /**
+     * Deletes just an item from the item store, not touching the attention.
+     */
+    public void deleteItem(String itemKey) throws AuraException, RemoteException {
+        replicant.deleteItem(itemKey);
+    }
+    
+    /**
+     * Deletes just a user from the item store, not touching the attention.
+     */
+    public void deleteUser(String userKey) throws AuraException, RemoteException {
+        deleteItem(userKey);
+    }
+    
     public DBIterator<Item> getItemsAddedSince(ItemType type, Date timeStamp)
             throws AuraException, RemoteException {
         return replicant.getItemsAddedSince(type, timeStamp);
@@ -117,6 +136,11 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.attend(att);
     }
 
+    public void deleteAttention(String itemKey)
+            throws AuraException, RemoteException {
+        replicant.deleteAttention(itemKey);
+    }
+    
     public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)
             throws AuraException, RemoteException {
         return replicant.getAttentionAddedSince(timeStamp);
