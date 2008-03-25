@@ -243,6 +243,7 @@ public class FeedUtils {
             SyndFeedInput syndFeedInput = new SyndFeedInput();
             connection = url.openConnection();
             connection.setConnectTimeout(30000);
+            connection.setReadTimeout(30000);
             connection.setRequestProperty("User-agent", "aardvark");
             return syndFeedInput.build(new XmlReader(connection));
         } catch (IOException ex) {
