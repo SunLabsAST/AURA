@@ -115,8 +115,6 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         logger = ps.getLogger();
         logger.info("new properties for " + ps.getInstanceName());
 
-        System.out.println("new prop loglevel is " + logger.getLevel());
-
         DataStore oldStore = dataStore;
         Item.ItemType oldItemType = itemType;
 

@@ -127,15 +127,19 @@ public class FeedManager implements AuraService, Configurable {
         try {
             while (runningThreads.contains(Thread.currentThread())) {
                 try {
+                    logger.info(Thread.currentThread().getName() + " gnik");
                     key = myFeedScheduler.getNextItemKey();
                     int nextCrawl = defaultCrawlingPeriod;
                     try {
+                    logger.info(Thread.currentThread().getName() + " gi");
                         Item item = myItemStore.getItem(key);
                         if (item != null) {
                             if (item.getType() == ItemType.FEED) {
                                 BlogFeed feed = new BlogFeed(item);
                                 if (needsCrawl(feed)) {
+                    logger.info(Thread.currentThread().getName() + " crawl-start");
                                     crawlFeed(myItemStore, feed);
+                    logger.info(Thread.currentThread().getName() + " crawl-end");
                                     nextCrawl += feed.getNumConsecutiveErrors() *
                                             defaultCrawlingPeriod;
                                 }
@@ -145,6 +149,7 @@ public class FeedManager implements AuraService, Configurable {
                             }
                         }
                     } finally {
+                        logger.info(Thread.currentThread().getName() + " ri");
                         feedScheduler.releaseItem(key, nextCrawl);
                     }
                 } catch (InterruptedException ex) {
@@ -187,7 +192,9 @@ public class FeedManager implements AuraService, Configurable {
             for (BlogEntry entry : entries) {
                 if (dataStore.getItem(entry.getKey()) == null) {
                     newEntries++;
+                    logger.info(Thread.currentThread().getName() + " entry-flush");
                     entry.flush(myItemStore);
+                    logger.info(Thread.currentThread().getName() + " attn-push");
                     for (Attention feedAttention : attentions) {
                         Attention.Type userAttentionType =
                                 getUserAttentionFromFeedAttention(feedAttention.getType());
@@ -212,7 +219,9 @@ public class FeedManager implements AuraService, Configurable {
                     feed.getKey(), rx);
             statService.incr(COUNTER_FEED_ERROR_COUNT, 1);
         }
+        logger.info(Thread.currentThread().getName() + " stats-flush");
         long feedPullCount = statService.incr(COUNTER_FEED_PULL_COUNT);
+        logger.info(Thread.currentThread().getName() + " feed-flush");
         feed.pulled(ok);
         feed.flush(myItemStore);
 
