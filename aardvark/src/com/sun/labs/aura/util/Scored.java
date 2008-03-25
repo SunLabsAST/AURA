@@ -21,7 +21,7 @@ public class Scored<T> implements Comparable<Scored<T>>, Serializable {
 
     private double score;
 
-    private Object[] sortVals;
+    private Serializable[] sortVals;
 
     private boolean[] directions;
 
@@ -42,7 +42,10 @@ public class Scored<T> implements Comparable<Scored<T>>, Serializable {
     public Scored(T item, double score, Object[] sortVals, boolean[] directions) {
         this.item = item;
         this.score = score;
-        this.sortVals = sortVals;
+        this.sortVals = new Serializable[sortVals.length];
+        for(int i = 0; i < sortVals.length; i++) {
+            this.sortVals[i] = (Serializable) sortVals[i];
+        }
         this.directions = directions;
     }
     
