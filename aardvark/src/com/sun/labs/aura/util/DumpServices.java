@@ -5,12 +5,11 @@
 
 package com.sun.labs.aura.util;
 
-import com.sun.labs.util.SimpleLabsLogFormatter;
 import com.sun.labs.util.props.ComponentRegistry;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.io.File;
-import java.util.logging.Handler;
-import java.util.logging.Logger;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -22,23 +21,22 @@ public class DumpServices {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws Exception {
-        //
-        // Use the labs format logging.
-        Logger logger = Logger.getLogger("");
-        for(Handler h : logger.getHandlers()) {
-            h.setFormatter(new SimpleLabsLogFormatter());
-        }
 
         ConfigurationManager cm = new ConfigurationManager((new File(args[0])).toURI().toURL());
         ComponentRegistry cr = cm.getComponentRegistry();
         
-        logger.info("Sleeping");
-        Thread.sleep(20000);
+        Thread.sleep(10000);
         if(cr == null) {
-            logger.info("No component registry");
+            System.out.println("No component registry");
             return;
         }
-        cr.dumpJiniServices();
+        Map<String,List<String>> dump = cr.dumpJiniServices();
+        for(Map.Entry<String,List<String>> e : dump.entrySet()) {
+            System.out.println("Registrar: " + e.getKey());
+            for(String s : e.getValue()) {
+                System.out.println("  Service: " + s);
+            }
+        }
         // TODO code application logic here
     }
 
