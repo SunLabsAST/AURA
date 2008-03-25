@@ -28,7 +28,7 @@ public class BuildClassifiers {
 
     public static void main(String[] args) throws Exception {
 
-        String flags = "a:c:d:e:f:t:v:";
+        String flags = "a:c:d:e:k:f:t:v:";
         Getopt gopt = new Getopt(args, flags);
 
         //
@@ -52,6 +52,7 @@ public class BuildClassifiers {
         String assignedField = null;
         String vectoredField = null;
         String engineName = "aardvark_search_engine";
+        int numChars = 200;
 
         //
         // The number of top classes to build.
@@ -72,6 +73,9 @@ public class BuildClassifiers {
                     break;
                 case 'f':
                     fieldName = gopt.optArg;
+                    break;
+                case 'k':
+                    numChars = Integer.parseInt(gopt.optArg);
                     break;
                 case 't':
                     top = Integer.parseInt(gopt.optArg);
@@ -102,14 +106,14 @@ public class BuildClassifiers {
             assignedField = "assigned-" + fieldName;
         }
 
-        final String fooField = vectoredField;
-        
         //
         // A results filter for content longer than 200 chars.
+        final String fooField = vectoredField;
+        final int fooChars = numChars;
         ResultsFilter lengthFilter = new ResultsFilter() {
             public boolean filter(ResultAccessor ra) {
                 String v = (String) ra.getSingleFieldValue(fooField);
-                return v != null && v.toString().length() > 200;
+                return v != null && v.toString().length() >= fooChars;
             }
         };
 
