@@ -28,8 +28,8 @@ import java.util.Set;
  * The ItemAdaptor provides a set of method that can be used by specific item
  * types to add and retrieve data from the item map in a type-friendly fashion.
  */
-public class ItemAdapter {
-    private Item item;
+public class ItemAdapter implements Serializable {
+    protected Item item;
     private boolean modified;
 
 

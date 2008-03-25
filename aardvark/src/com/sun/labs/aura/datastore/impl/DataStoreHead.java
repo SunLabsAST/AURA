@@ -1,3 +1,4 @@
+
 package com.sun.labs.aura.datastore.impl;
 
 import com.sun.kt.search.DocumentVector;
@@ -48,22 +49,22 @@ import ngnova.retrieval.MultiDocumentVectorImpl;
  * 
  */
 public class DataStoreHead implements DataStore, Configurable, AuraService {
-
+    
     protected BinaryTrie<PartitionCluster> trie = null;
 
     protected ExecutorService executor;
-
+    
     protected ConfigurationManager cm = null;
-
+    
     protected boolean closed = false;
-
+    
     protected static Logger logger = Logger.getLogger("");
-
+    
     public DataStoreHead() {
         trie = new BinaryTrie<PartitionCluster>();
         executor = Executors.newCachedThreadPool();
     }
-
+    
     public Set<Item> getAll(final ItemType itemType)
             throws AuraException, RemoteException {
         //
@@ -72,40 +73,40 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         // simple.  First, set up the infrastructure to call all the clusters:
         Set<PartitionCluster> clusters = trie.getAll();
         Set<Callable<Set<Item>>> callers = new HashSet<Callable<Set<Item>>>();
-        for(PartitionCluster p : clusters) {
+        for (PartitionCluster p : clusters) {
             callers.add(new PCCaller<Set<Item>>(p) {
-
                 public Set<Item> call() throws AuraException, RemoteException {
                     return pc.getAll(itemType);
                 }
             });
         }
-
+        
         Set<Item> ret = new HashSet<Item>();
-
+        
         //
         // Now issue the call and get the answers
         try {
             List<Future<Set<Item>>> results = executor.invokeAll(callers);
-            for(Future<Set<Item>> future : results) {
+            for (Future<Set<Item>> future : results) {
                 ret.addAll(future.get());
             }
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             //
             // Threads got interrupted... what gives??
             throw new AuraException("Execution was interrupted", e);
-        } catch(ExecutionException e) {
+        } catch (ExecutionException e) {
             checkAndThrow(e);
         }
-
+        
         return ret;
     }
+
 
     public Item getItem(String key) throws AuraException, RemoteException {
         //
         // Which partition cluster does this key belong to?
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
-
+        
         //
         // Ask the partition cluster for the item and return it.
         return pc.getItem(key);
@@ -115,17 +116,40 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         //
         // Which partition cluster does this key belong to?
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
-
+        
         //
         // Ask the partition cluster for the user and return it.
         return pc.getUser(key);
     }
 
+    /**
+     * Gets a user based on the random string that is associated with that
+     * user.
+     * 
+     * @param randStr the random string
+     * @return the user associated with the string
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public User getUserForRandomString(String randStr)
+            throws AuraException, RemoteException {
+        //
+        // The first 8 characters of the random string are the hash code of
+        // the user.  To make things easy, the entire string is what we store.
+        // We use 9 characters because the hash code may have a - (or be padded
+        // with zero if it isn't)
+        String hashHex = randStr.substring(0, 9);
+        PartitionCluster pc =
+                trie.get(DSBitSet.parse(Util.hexToInt(hashHex)));
+        return pc.getUserForRandomString(randStr);
+    }
+
+    
     public Item putItem(Item item) throws AuraException, RemoteException {
         //
         // Which partition cluster does this item belong to?
         PartitionCluster pc = trie.get(DSBitSet.parse(item.hashCode()));
-
+        
         //
         // Ask the partition cluster to store the item and return it.
         return pc.putItem(item);
@@ -135,15 +159,54 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         //
         // Which partition cluster does this item belong to?
         PartitionCluster pc = trie.get(DSBitSet.parse(user.hashCode()));
-
+        logger.warning("putting user in pc " + pc.getPrefix());
         //
         // Ask the partition cluster to store the user and return it.
         return pc.putUser(user);
-
+    }
+    
+    public void deleteItem(final String itemKey)
+            throws AuraException, RemoteException {
+        //
+        // Delete the item, then any attention that had the item as a target.
+        PartitionCluster pc = trie.get(DSBitSet.parse(itemKey.hashCode()));
+        pc.deleteItem(itemKey);
+        
+        //
+        // Now tell everybody to delete the attention associated with that
+        // key
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<Object>> callers = new HashSet<Callable<Object>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+                public Object call() throws AuraException, RemoteException {
+                    pc.deleteAttention(itemKey);
+                    return null;
+                }
+            });
+        }
+        
+        //
+        // Run all the deletes
+        try {
+            List<Future<Object>> results = executor.invokeAll(callers);
+            for (Future<Object> future: results) {
+                future.get();
+            }
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+    }
+    
+    public void deleteUser(String itemKey)
+            throws AuraException, RemoteException {
+        deleteItem(itemKey);
     }
 
     public DBIterator<Item> getItemsAddedSince(final ItemType type,
-            final Date timeStamp)
+                                               final Date timeStamp)
             throws AuraException, RemoteException {
         //
         // We need to ask all the partition clusters to perform this query,
@@ -153,31 +216,30 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         Set<PartitionCluster> clusters = trie.getAll();
         Set<Callable<DBIterator<Item>>> callers =
                 new HashSet<Callable<DBIterator<Item>>>();
-        for(PartitionCluster p : clusters) {
+        for (PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
-
                 public DBIterator<Item> call()
                         throws AuraException, RemoteException {
                     return pc.getItemsAddedSince(type, timeStamp);
                 }
             });
         }
-
+        
         //
         // Try to run the whole thing and get a set of DBIterators out
         Set<DBIterator<Item>> iterators = new HashSet<DBIterator<Item>>();
         try {
             List<Future<DBIterator<Item>>> results =
                     executor.invokeAll(callers);
-            for(Future<DBIterator<Item>> future : results) {
+            for (Future<DBIterator<Item>> future : results) {
                 iterators.add(future.get());
             }
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             throw new AuraException("Execution was interrupted", e);
-        } catch(ExecutionException e) {
+        } catch (ExecutionException e) {
             checkAndThrow(e);
         }
-
+        
         //
         // Now throw all the DBIterators together into a list so we can
         // iterate over all of them.  Since no particular ordering is
@@ -187,8 +249,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     }
 
     public Set<Item> getItems(final User user,
-            final Attention.Type attnType,
-            final ItemType itemType)
+                              final Attention.Type attnType,
+                              final ItemType itemType)
             throws AuraException, RemoteException {
         //
         // Make this call across all partitions, then combine the results
@@ -199,18 +261,18 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         // get all the target items of the right type.
         Set<Attention> attns = getAttentionFor(user.getKey(), true, attnType);
         Set<String> targets = new HashSet<String>();
-        for(Attention a : attns) {
+        for (Attention a : attns) {
             targets.add(a.getTargetKey());
         }
-
+        
         //
         // Get all the items, checking their types.  This could be optimized
         // by sorting the item keys by partition, then asking each partition
         // to return a subset of items that match the given type
         Set<Item> ret = new HashSet<Item>();
-        for(String target : targets) {
+        for (String target : targets) {
             Item i = getItem(target);
-            if(i.getType() == itemType) {
+            if (i.getType() == itemType) {
                 ret.add(i);
             }
         }
@@ -218,8 +280,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     }
 
     protected Set<Attention> getAttentionFor(final String itemKey,
-            final boolean isSrc,
-            final Attention.Type type)
+                                             final boolean isSrc,
+                                             final Attention.Type type)
             throws AuraException, RemoteException {
         //
         // Ask all the partitions to gather up their attention for this item.
@@ -227,13 +289,12 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         Set<PartitionCluster> clusters = trie.getAll();
         Set<Callable<Set<Attention>>> callers =
                 new HashSet<Callable<Set<Attention>>>();
-        for(PartitionCluster p : clusters) {
+        for (PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
-
                 public Set<Attention> call()
                         throws AuraException, RemoteException {
-                    if(isSrc) {
-                        if(type == null) {
+                    if (isSrc) {
+                        if (type == null) {
                             return pc.getAttentionForSource(itemKey);
                         } else {
                             return pc.getAttentionForSource(itemKey, type);
@@ -244,18 +305,18 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                 }
             });
         }
-
+        
         //
         // Run all the callables and collect up the results
         Set<Attention> ret = new HashSet<Attention>();
         try {
             List<Future<Set<Attention>>> results = executor.invokeAll(callers);
-            for(Future<Set<Attention>> future : results) {
+            for (Future<Set<Attention>> future : results) {
                 ret.addAll(future.get());
             }
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             throw new AuraException("Execution was interrupted", e);
-        } catch(ExecutionException e) {
+        } catch (ExecutionException e) {
             checkAndThrow(e);
         }
         return ret;
@@ -277,7 +338,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         // Store the attention -- first figure out where it is supposed to go,
         // then store it in the right place.
         PartitionCluster pc = trie.get(DSBitSet.parse(att.hashCode()));
-
+        
         return pc.attend(att);
     }
 
@@ -286,29 +347,28 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         Set<PartitionCluster> cluster = trie.getAll();
         Set<Callable<DBIterator<Attention>>> callers =
                 new HashSet<Callable<DBIterator<Attention>>>();
-        for(PartitionCluster p : cluster) {
+        for (PartitionCluster p : cluster) {
             callers.add(new PCCaller(p) {
-
-                public DBIterator<Attention> call()
-                        throws AuraException, RemoteException {
-                    return pc.getAttentionAddedSince(timeStamp);
-                }
+               public DBIterator<Attention> call()
+                       throws AuraException, RemoteException {
+                   return pc.getAttentionAddedSince(timeStamp);
+               } 
             });
         }
-
+        
         Set<DBIterator<Attention>> ret = new HashSet<DBIterator<Attention>>();
         try {
             List<Future<DBIterator<Attention>>> results =
                     executor.invokeAll(callers);
-            for(Future<DBIterator<Attention>> future : results) {
+            for (Future<DBIterator<Attention>> future : results) {
                 ret.add(future.get());
             }
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             throw new AuraException("Execution was interrupted", e);
-        } catch(ExecutionException e) {
+        } catch (ExecutionException e) {
             checkAndThrow(e);
         }
-
+        
         //
         // Now throw all the DBIterators together into a list so we can
         // iterate over all of them.  Since no particular ordering is
@@ -319,14 +379,14 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     }
 
     public SortedSet<Attention> getLastAttentionForSource(String srcKey,
-            int count)
+                                                         int count)
             throws AuraException, RemoteException {
         return getLastAttentionForSource(srcKey, null, count);
     }
 
     public SortedSet<Attention> getLastAttentionForSource(final String srcKey,
-            final Type type,
-            final int count)
+                                                          final Type type,
+                                                          final int count)
             throws AuraException, RemoteException {
         //
         // Call out to all the clusters to search for attention for this user,
@@ -335,24 +395,23 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         Set<PartitionCluster> clusters = trie.getAll();
         Set<Callable<SortedSet<Attention>>> callers =
                 new HashSet<Callable<SortedSet<Attention>>>();
-        for(PartitionCluster p : clusters) {
+        for (PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
-
-                public SortedSet<Attention> call()
-                        throws AuraException, RemoteException {
-                    return pc.getLastAttentionForSource(srcKey, type, count);
-                }
+               public SortedSet<Attention> call()
+                       throws AuraException, RemoteException {
+                   return pc.getLastAttentionForSource(srcKey, type, count);
+               }
             });
         }
-
+        
         SortedSet<Attention> ret = null;
         try {
             List<Future<SortedSet<Attention>>> results =
                     executor.invokeAll(callers);
-            for(Future<SortedSet<Attention>> future : results) {
+            for (Future<SortedSet<Attention>> future : results) {
                 SortedSet<Attention> curr = future.get();
-                if(curr != null) {
-                    if(ret == null) {
+                if (curr != null) {
+                    if (ret == null) {
                         //
                         // Make a new set based on the existing one, including
                         // the comparator
@@ -362,87 +421,86 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                     }
                 }
             }
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             throw new AuraException("Execution was interrupted", e);
-        } catch(ExecutionException e) {
+        } catch (ExecutionException e) {
             checkAndThrow(e);
         }
-
+        
         //
         // Now put together a set with the right count of attentions in it
         SortedSet<Attention> retCnted = new TreeSet(ret.comparator());
         Iterator<Attention> it = ret.iterator();
-        for(int i = 0; i < count; i++) {
-            if(it.hasNext()) {
+        for (int i = 0; i < count; i++) {
+            if (it.hasNext()) {
                 retCnted.add(it.next());
             } else {
                 break;
             }
         }
-
+        
         return retCnted;
     }
 
+
     public void addItemListener(final ItemType itemType,
-            final ItemListener listener)
+                                final ItemListener listener)
             throws AuraException, RemoteException {
         //
         // There isn't anything to return here, but we do want to make sure
         // that we didn't throw an exception, so we'll still use the Futures.
         Set<PartitionCluster> clusters = trie.getAll();
         Set<Callable<Object>> callers = new HashSet<Callable<Object>>();
-        for(PartitionCluster p : clusters) {
+        for (PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
-
                 public Object call() throws AuraException, RemoteException {
                     pc.addItemListener(itemType, listener);
                     return null;
                 }
             });
         }
-
+        
         try {
             List<Future<Object>> results = executor.invokeAll(callers);
-            for(Future<Object> future : results) {
+            for (Future<Object> future : results) {
                 //
                 // We call get, because that gives the executor a chance to
                 // throw an exception if there was one.
                 future.get();
             }
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             throw new AuraException("Execution was interrupted", e);
-        } catch(ExecutionException e) {
+        } catch (ExecutionException e) {
             checkAndThrow(e);
         }
     }
 
     public void removeItemListener(final ItemType itemType,
-            final ItemListener listener)
+                                   final ItemListener listener)
             throws AuraException, RemoteException {
         //
         // Instruct all partition clusters to remove this listener
         Set<PartitionCluster> clusters = trie.getAll();
         Set<Callable<Object>> callers = new HashSet<Callable<Object>>();
-        for(PartitionCluster p : clusters) {
+        for (PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
-
                 public Object call() throws AuraException, RemoteException {
                     pc.removeItemListener(itemType, listener);
                     return null;
                 }
             });
         }
-
+        
         try {
             List<Future<Object>> results = executor.invokeAll(callers);
-            for(Future<Object> future : results) {
+            for (Future<Object> future : results) {
                 //
                 // Call get to see if there were any exceptions thrown
                 future.get();
             }
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             throw new AuraException("Execution was interrupted", e);
-        } catch(ExecutionException e) {
+        } catch (ExecutionException e) {
             checkAndThrow(e);
         }
     }
@@ -451,26 +509,25 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
         Set<Callable<Long>> callers = new HashSet<Callable<Long>>();
-        for(PartitionCluster p : clusters) {
+        for (PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
-
                 public Long call() throws AuraException, RemoteException {
                     return pc.getItemCount(itemType);
                 }
             });
         }
-
+        
         //
         // Tally up the counts and return
         long count = 0;
         try {
             List<Future<Long>> results = executor.invokeAll(callers);
-            for(Future<Long> future : results) {
+            for (Future<Long> future : results) {
                 count += future.get();
             }
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             throw new AuraException("Execution was interrupted", e);
-        } catch(ExecutionException e) {
+        } catch (ExecutionException e) {
             checkAndThrow(e);
         }
         return count;
@@ -479,26 +536,25 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     public long getAttentionCount() throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
         Set<Callable<Long>> callers = new HashSet<Callable<Long>>();
-        for(PartitionCluster p : clusters) {
+        for (PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
-
                 public Long call() throws AuraException, RemoteException {
                     return pc.getAttentionCount();
                 }
             });
         }
-
+        
         //
         // Tally up the counts and return
         long count = 0;
         try {
             List<Future<Long>> results = executor.invokeAll(callers);
-            for(Future<Long> future : results) {
+            for (Future<Long> future : results) {
                 count += future.get();
             }
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             throw new AuraException("Execution was interrupted", e);
-        } catch(ExecutionException e) {
+        } catch (ExecutionException e) {
             checkAndThrow(e);
         }
         return count;
@@ -587,16 +643,16 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
 
     }
+ 
 
     public synchronized void close() throws AuraException, RemoteException {
-        if(!closed) {
+        if (!closed) {
             //
             // Inform all partition clusters that they should close down
             Set<PartitionCluster> clusters = trie.getAll();
             Set<Callable<Object>> callers = new HashSet<Callable<Object>>();
-            for(PartitionCluster p : clusters) {
+            for (PartitionCluster p : clusters) {
                 callers.add(new PCCaller(p) {
-
                     public Object call() throws AuraException, RemoteException {
                         pc.close();
                         return null;
@@ -606,12 +662,12 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
             try {
                 List<Future<Object>> results = executor.invokeAll(callers);
-                for(Future<Object> future : results) {
+                for (Future<Object> future : results) {
                     future.get();
                 }
-            } catch(InterruptedException e) {
+            } catch (InterruptedException e) {
                 throw new AuraException("Execution was interrupted", e);
-            } catch(ExecutionException e) {
+            } catch (ExecutionException e) {
                 checkAndThrow(e);
             }
             closed = true;
@@ -655,16 +711,15 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     public void newProperties(PropertySheet ps) throws PropertyException {
         cm = ps.getConfigurationManager();
     }
-
+    
     public void registerPartitionCluster(PartitionCluster pc)
             throws RemoteException {
         trie.add(pc, pc.getPrefix());
     }
 
     protected abstract class PCCaller<V> implements Callable {
-
         protected PartitionCluster pc;
-
+        
         protected DocumentVector dv;
         
         protected ResultsFilter rf;
@@ -681,10 +736,10 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             // same one handed to multiple threads!
             this.dv = dv.copy();
         }
-
+        
         public abstract V call() throws AuraException, RemoteException;
     }
-
+    
     /**
      * Handles an ExecutionException by throwing something more descriptive.
      * If the execution failed due to a known type of ecxeption (aura, remote)
@@ -696,10 +751,10 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     protected void checkAndThrow(ExecutionException e)
             throws AuraException, RemoteException {
 
-        if(e.getCause() instanceof AuraException) {
-            throw (AuraException) e.getCause();
-        } else if(e.getCause() instanceof RemoteException) {
-            throw (RemoteException) e.getCause();
+        if (e.getCause() instanceof AuraException) {
+            throw (AuraException)e.getCause();
+        } else if (e.getCause() instanceof RemoteException) {
+            throw (RemoteException)e.getCause();
         } else {
             logger.log(Level.INFO, "Error?", e);
             throw new AuraException("Execution failed", e);
@@ -714,7 +769,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         try {
             cm.shutdown();
             close();
-        } catch(Exception e) {
+        } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to close DataStoreHead cleanly", e);
         }
     }
@@ -732,7 +787,6 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                 new HashSet<Callable<List<Scored<Item>>>>();
         for(PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
-
                 public List<Scored<Item>> call()
                         throws AuraException, RemoteException {
                     return pc.query(query, sort, n, rf);
@@ -740,13 +794,14 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             });
         }
         try {
-            return sortScored(executor.invokeAll(callers), n);
+        return sortScored(executor.invokeAll(callers), n);
         } catch(ExecutionException ex) {
             checkAndThrow(ex);
             return new ArrayList<Scored<Item>>();
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             throw new AuraException("Query interrupted", e);
         }
 
     }
+
 }

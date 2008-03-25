@@ -1,31 +1,22 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package com.sun.labs.aura.aardvark.web;
 
 import com.sun.labs.aura.aardvark.Aardvark;
-import com.sun.labs.aura.aardvark.BlogFeed;
-import com.sun.labs.aura.aardvark.BlogUser;
-import com.sun.labs.aura.aardvark.web.bean.UserBean;
-import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.syndication.feed.synd.SyndFeed;
+import com.sun.syndication.io.FeedException;
+import com.sun.syndication.io.SyndFeedOutput;
 import java.io.*;
 import java.net.*;
 
-import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
 /**
- *
- * @author ja151348
+ * Generates a feed for a user
  */
-public class Home extends HttpServlet {
+public class Feed extends HttpServlet {
     protected Logger logger = Logger.getLogger("");
     
     /** 
@@ -36,35 +27,31 @@ public class Home extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         ServletContext context = getServletContext();
-        HttpSession session = request.getSession();
         Aardvark aardvark = (Aardvark)context.getAttribute("aardvark");
-        User user = (User)session.getAttribute("loggedInUser");
-        if (user == null) {
-            response.sendRedirect(response.encodeRedirectURL("/Welcome"));
-        }
-        logger.log(Level.INFO, "Getting home for user " + user);
+
+        //
+        // Get the feed based on the URL string that was provided.  This should
+        // in theory be after the "/feed" and start with a /
+        String pathInfo = request.getPathInfo();
+        String[] pathParts = pathInfo.split("/");
+        String randStr = pathParts[1];
         
         try {
-            Shared.fillPageHeader(request, aardvark);
-            //
-            // Figure out who the user is, get their feed, and make a bean
-            Set<BlogFeed> feeds = aardvark.getFeeds(user, Attention.Type.STARRED_FEED);
-            String defaultFeed = "some feed here...";
-            if (!feeds.isEmpty()) {
-                defaultFeed = feeds.iterator().next().getKey();
-            }
-            UserBean ub = new UserBean(new BlogUser(user),
-                                       defaultFeed);
-            ub.setRecommendedFeedURL("/feed/" + user.getUserRandString() + "/default");
-            request.setAttribute("userBean", ub);
+            User u = aardvark.getUserByRandomString(randStr);
+            logger.warning("got user " + u);
+            SyndFeed feed = aardvark.getRecommendedFeed(u);
+            SyndFeedOutput output = new SyndFeedOutput();
+            feed.setFeedType("atom_1.0");
+            String feedXML = output.outputString(feed);
+            response.setContentType("application/atom+xml");
+            PrintWriter out = response.getWriter();
+            out.println(feedXML);
+            out.close();
         } catch (AuraException e) {
-            logger.log(Level.WARNING, "Failed to use aardvark", e);
+            Shared.forwardToError(context, request, response, e);
+        } catch (FeedException fe) {
+            Shared.forwardToError(context, request, response, fe);
         }
-
-
-        RequestDispatcher dispatcher =
-                context.getRequestDispatcher("/home.jsp");
-        dispatcher.forward(request, response);
     } 
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

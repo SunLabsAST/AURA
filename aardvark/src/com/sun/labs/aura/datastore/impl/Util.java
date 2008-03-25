@@ -41,6 +41,32 @@ public class Util {
         return res;
     }
     
+    /**
+     * hashCode may return a negative number, but Integer.toHexString treats
+     * the value as unsigned.  If you feed the negative (greater than MAX_VAL)
+     * value back into parseInt, it throws a number format exception.  So we'll
+     * do the encode and decode with a little custom stuff.
+     * 
+     * @param hashCode
+     * @return
+     */
+    public static String toHexString(int hashCode) {
+        String val = Integer.toString(hashCode, 16);
+        val = val.replace('-', 'n');
+        return val;
+    }
+    
+    /**
+     * Convert a string that was converted by toHexString back to an int
+     * @param hexVal
+     * @return
+     */
+    public static int hexToInt(String hexVal) {
+        String convert = hexVal.replace('n', '-');
+        int val = Integer.parseInt(convert, 16);
+        return val;
+    }
+    
     public static void main(String args[]) {
         for(int i = 0; i < args.length; i++ ) {
             int x = parseBits(args[i]);

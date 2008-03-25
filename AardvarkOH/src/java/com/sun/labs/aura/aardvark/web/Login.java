@@ -37,9 +37,11 @@ import org.openid4java.message.ax.FetchResponse;
  * the response.
  */
 public class Login extends HttpServlet {
-   protected Logger logger = Logger.getLogger("");
+    protected Logger logger = Logger.getLogger("");
 
     protected ConsumerManager consumer;
+    
+    protected boolean bypassAuth = true;
     
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -76,10 +78,17 @@ public class Login extends HttpServlet {
                 // do error page?
             }
             if (u != null) {
-                //
-                // Do authentication redirect
-                authRequest(openid_url, request, response, false);
-                return;
+                if (bypassAuth) {
+                    request.getSession().setAttribute("loggedInUser", u);
+                    //UserBean ub = new UserBean(new BlogUser(u), intendedFeed);
+                    response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/Home"));
+                    return;
+                } else {
+                    //
+                    // Do authentication redirect
+                    authRequest(openid_url, request, response, false);
+                    return;
+                }
             } else {
                 //
                 // Forward to registration page
@@ -191,10 +200,28 @@ public class Login extends HttpServlet {
             session.setAttribute("intendedID", openid_url);
             session.setAttribute("intendedFeed", defaultFeed);
             
-            //
-            // Now send them in to get authed
-            authRequest(openid_url, request, response, true);
-            return;
+            if (bypassAuth) {
+                try {
+                    u = aardvark.enrollUser(openid_url);
+                    fillRegistration(u, request);
+                    u = aardvark.updateUser(u);
+                    aardvark.addUserFeed(u, defaultFeed, Attention.Type.STARRED_FEED);
+                    //
+                    // direct them home!
+                    session.setAttribute("loggedInUser", u);
+                } catch (AuraException e) {
+                    logger.log(Level.SEVERE, "Error enrolling", e);
+                }
+                //UserBean ub = new UserBean(new BlogUser(u), intendedFeed);
+                response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/Home"));
+                return;
+
+            } else {
+                //
+                // Now send them in to get authed
+                authRequest(openid_url, request, response, true);
+                return;
+            }
         }
     } 
 
@@ -219,7 +246,6 @@ public class Login extends HttpServlet {
             String fullURL = httpReq.getRequestURL().toString();
             String returnToUrl = fullURL.substring(0, fullURL.lastIndexOf('/'))
                     + "/LoginReturn";
-            // (use getContextPath() + "/LoginReturn"?)
             
             // perform discovery on the user-supplied identifier
             List discoveries = consumer.discover(userSuppliedString);

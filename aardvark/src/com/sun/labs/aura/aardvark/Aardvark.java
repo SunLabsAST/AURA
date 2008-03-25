@@ -59,6 +59,15 @@ public interface Aardvark extends Component, Remote {
     public User updateUser(User user) throws AuraException, RemoteException;
     
     /**
+     * Deletes a user from the data store
+     * 
+     * @param user the user to delete
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void deleteUser(User user) throws AuraException, RemoteException;
+    
+    /**
      * Gets the attention data for a user
      * @param user the user of interest
      * @param type the type of attention data of interest (null indicates all)
@@ -96,4 +105,15 @@ public interface Aardvark extends Component, Remote {
      * @return the user or null if the user doesn't exist
      */
     User getUser(String openID) throws AuraException, RemoteException;
+
+    /**
+     * Get a user based on the previously-generated random string for that
+     * user.
+     * 
+     * @param randStr the complete random string for a user
+     * @return the matching user
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public User getUserByRandomString(String randStr) throws AuraException, RemoteException;
 }
