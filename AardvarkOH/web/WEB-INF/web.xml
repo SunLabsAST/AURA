@@ -36,6 +36,10 @@
         <servlet-name>Feed</servlet-name>
         <servlet-class>com.sun.labs.aura.aardvark.web.Feed</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>DumpServices</servlet-name>
+        <servlet-class>com.sun.labs.aura.aardvark.web.DumpServices</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>Home</servlet-name>
         <url-pattern>/Home</url-pattern>
@@ -63,6 +67,10 @@
     <servlet-mapping>
         <servlet-name>Feed</servlet-name>
         <url-pattern>/feed/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>DumpServices</servlet-name>
+        <url-pattern>/DumpServices</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

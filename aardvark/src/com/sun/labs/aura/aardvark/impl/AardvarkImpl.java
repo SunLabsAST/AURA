@@ -101,6 +101,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
+        logger.info("AardvarkImpl newProperties called");
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
         recommenderManager = (RecommenderManager) ps.getComponent(PROP_RECOMMENDER_MANAGER);
         statService = (StatService) ps.getComponent(PROP_STAT_SERVICE);

@@ -31,8 +31,16 @@ public class ServletListener implements ServletContextListener {
 
             //
             // Get the Aardvark interface
-            Aardvark aardvark = getAardvark(config);
-            context.setAttribute("aardvark", aardvark);
+            try {
+                ConfigurationManager cm = new ConfigurationManager();
+                cm.addProperties(config);
+                context.setAttribute("configManager", cm);
+                
+                Aardvark aardvark = (Aardvark)cm.lookup("aardvark");
+                context.setAttribute("aardvark", aardvark);
+            } catch (IOException ioe) {
+                logger.log(Level.SEVERE, "Failed to get Aardvark handle", ioe);
+            }
         } catch (MalformedURLException ex) {
             logger.severe("Bad URL to config file " + ex.getMessage());
         }
@@ -40,18 +48,5 @@ public class ServletListener implements ServletContextListener {
 
     public void contextDestroyed(ServletContextEvent arg0) {
         
-    }
-
-    protected Aardvark getAardvark(URL config) {
-        try {
-            ConfigurationManager cm = new ConfigurationManager();
-            //URL configFile = new File("aardvarkWebConfig.xml").toURI().toURL();
-                    //AardvarkImpl.class.getResource("aardvarkWebConfig.xml");
-            cm.addProperties(config);
-            return (Aardvark)cm.lookup("aardvark");
-        } catch (IOException ioe) {
-            logger.log(Level.SEVERE, "Failed to get Aardvark handle", ioe);
-            return null;
-        }
     }
 }
