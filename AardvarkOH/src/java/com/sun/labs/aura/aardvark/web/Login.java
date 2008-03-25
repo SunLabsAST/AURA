@@ -341,6 +341,7 @@ public class Login extends HttpServlet {
      */
     public Identifier verifyResponse(HttpServletRequest httpReq) {
         try {
+            logger.warning("verify enter");
             // extract the parameters from the authentication response
             // (which comes in as a HTTP request from the OpenID provider)
             ParameterList response = new ParameterList(httpReq.getParameterMap());
@@ -364,8 +365,9 @@ public class Login extends HttpServlet {
             Identifier verified = verification.getVerifiedId();
             if (verified != null) {
                 AuthSuccess authSuccess = (AuthSuccess) verification.getAuthResponse();
-
+                logger.warning("got success, checking extensions");
                 if (authSuccess.hasExtension(AxMessage.OPENID_NS_AX)) {
+                    logger.warning("authSuccess has extention NS_AX");
                     FetchResponse fetchResp = (FetchResponse) authSuccess.getExtension(AxMessage.OPENID_NS_AX);
 
                     // List emails = fetchResp.getAttributeValues("email");
@@ -374,9 +376,11 @@ public class Login extends HttpServlet {
                     List aliases = fetchResp.getAttributeAliases();
                     for (Iterator iter = aliases.iterator(); iter.hasNext();) {
                         String alias = (String) iter.next();
-                        List values = fetchResp.getAttributeValues(alias);
-                        if (values.size() > 0) {
-                            httpReq.setAttribute(alias, values.get(0));
+                        logger.warning("trying alias " + alias);
+                        String value = fetchResp.getAttributeValue(alias);
+                        if (value != null) {
+                            logger.warning("attr: " + alias + "  value: " + value);
+                            httpReq.setAttribute(alias, value);
                         }
                     }
                 }
