@@ -14,6 +14,13 @@
     
     <!-- The configuration for a partition cluster. -->
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true">
+        <property name="stopwords" value="stopwords"/>
+    </component>
+    
+    <component name="stopwords" type="ngnova.pipeline.StopWords">
+        <propertylist name="stopwords_files">
+            <item>/com/sun/labs/aura/aardvark/resource/stopwords</item>
+        </propertylist>
     </component>
     
     <!-- The configuration for a partition cluster. -->
@@ -21,13 +28,13 @@
         <property name="prefix" value="0"/>
         <property name="dataStoreHead" value="dataStoreHead"/>
     </component>
-
+    
     <!-- The configuration for a partition cluster. -->
     <component name="partitionCluster1" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true">
         <property name="prefix" value="1"/>
         <property name="dataStoreHead" value="dataStoreHead"/>
     </component>
-
+    
     <!-- The configuration for a partition cluster. -->
     <component name="replicant0" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" export="true">
         <property name="prefix" value="0"/>
@@ -78,7 +85,7 @@
     <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl">
         <property name="dataStore" value="dataStoreHead"/>
     </component>
-
+    
     <component name="aardvarkStatusReporter" type="com.sun.labs.aura.aardvark.util.AardvarkStatusReporter">
         <property name="dataStore" value="dataStoreHead"/>
     </component>
@@ -88,7 +95,7 @@
         <property name="aardvark" value="aardvark"/>
         <property name="statService" value="statService"/>
     </component>
-
+    
     <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="recommenderManager" value="recommenderManager"/>
@@ -96,8 +103,8 @@
         <property name="autoEnrollTestFeeds" value="false"/>
         <property name="autoEnrollMegaTestFeeds" value="false"/>
     </component>
-
-
+    
+    
     
     <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
@@ -107,13 +114,13 @@
             <item>replicant0</item>
             <item>replicant1</item>
             <item>recommenderManager</item>
-<!--            <item>feedScheduler</item> -->
-<!--             <item>feedManager</item>  -->
+            <!--            <item>feedScheduler</item> -->
+            <!--             <item>feedManager</item>  -->
             <item>statService</item>
             <!--<item>aardvarkStatusReporter</item> -->
             <item>shell</item>
             <item>aardvark</item>
         </propertylist>
     </component>
-
+    
 </config>
