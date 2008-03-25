@@ -4,6 +4,7 @@ package com.sun.labs.aura.datastore.impl.store;
 import com.sun.kt.search.FieldFrequency;
 import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.WeightedField;
+import com.sun.labs.aura.cluster.Cluster;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -14,6 +15,18 @@ import java.util.List;
  * ItemSearch describes the search methods available for use in the data store.
  */
 public interface ItemSearch {
+    
+    /**
+     * Clusters a set of items into k clusters based on the data in the given
+     * field.
+     * @param keys the keys of the items to cluster
+     * @param field the field holding the data that we'll cluster on
+     * @param k the number of clusters to return
+     * @return a list of <code>k</code> or fewer clusters
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<Cluster> cluster(List<String> keys, String field, int k) throws AuraException, RemoteException;
 
     /**
      * Gets the most frequent values for the named field.
@@ -128,5 +141,5 @@ public interface ItemSearch {
      */
     public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf)
             throws AuraException, RemoteException;
-
+    
 }

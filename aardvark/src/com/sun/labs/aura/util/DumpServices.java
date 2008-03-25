@@ -8,6 +8,7 @@ package com.sun.labs.aura.util;
 import com.sun.labs.util.props.ComponentRegistry;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.io.File;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +23,11 @@ public class DumpServices {
      */
     public static void main(String[] args) throws Exception {
 
-        ConfigurationManager cm = new ConfigurationManager((new File(args[0])).toURI().toURL());
+        URL cu = DumpServices.class.getResource(args[0]);
+        if(cu == null) {
+            cu = (new File(args[0])).toURI().toURL();
+        }
+        ConfigurationManager cm = new ConfigurationManager(cu);
         ComponentRegistry cr = cm.getComponentRegistry();
         
         Thread.sleep(10000);

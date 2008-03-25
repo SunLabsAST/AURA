@@ -155,6 +155,7 @@ public class FeedManager implements AuraService, Configurable {
                 } catch (InterruptedException ex) {
                     break;
                 } catch (RemoteException ex) {
+                    logger.warning("RemoteException " + ex.getMessage());
                     break;
                 } catch (AuraException ex) {
                     logger.warning("AuraException in crawler, still trying " +
@@ -166,7 +167,7 @@ public class FeedManager implements AuraService, Configurable {
             }
         } finally {
             runningThreads.remove(Thread.currentThread());
-            logger.info("Crawling thread shutdown " + runningThreads.size() +
+            logger.warning("Crawling thread shutdown " + runningThreads.size() +
                     " remaining");
         }
     }
