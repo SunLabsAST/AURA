@@ -27,7 +27,7 @@
                 </form>
                 <span class="smallText">Don't have an ID?
                 <a href="http://myopenid.com/">Create</a> one, then
-                <a href="<c:url value="/Register" />">register</a> yourself!</span>
+                <a href="<c:url value="/register.jsp" />">register</a> yourself!</span>
             </div>
         </f:view>
     </body>

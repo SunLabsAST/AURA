@@ -21,14 +21,18 @@
     <body>
         <%@include file="/WEB-INF/jspf/header.jspf"%>
         <div class="main">
+            <div align="right" style="padding: 5px">
+                <a href="<c:url value="/Logout"/>" title="Logout">Logout</a>
+            </div>
         <div align="center">
             <img src="<c:url value="/images/aardvark-still.gif" />" />
         </div>
         <div class="bigOrangeTxt">Welcome <%= userBean.getNickname() %></div>
-        Your starred item feed URL is: <a href="<%= userBean.getDefaultFeedURL() %>"><%= userBean.getDefaultFeedURL() %></a><br>
-        Your recommended feed URL is: <a href="<c:url value="${userBean.recommendedFeedURL}"/>"><c:url value="${userBean.recommendedFeedURL}"/></a><br>
-        User id is <%= userBean.getID() %><br>
-        Full name is <%= userBean.getFullname() %><br>
+        <div class="regularTxt">
+            You are currently logged in with the ID <a href="<%= userBean.getID() %>"><%= userBean.getID() %></a><br>
+            You can add your <a href="<c:url value="${userBean.recommendedFeedURL}"/>">recommendation feed</a> to your blog reader for personalized recommendations.<br>
+            We are using this feed to describe your interests: <a href="<%= userBean.getDefaultFeedURL() %>"><%= userBean.getDefaultFeedURL() %></a><br>
+        </div>
         </div>
     </body>
 </html>

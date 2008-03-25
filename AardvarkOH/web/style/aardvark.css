@@ -27,8 +27,9 @@ div.main {
     margin: 10px;
 }
 
-explanation {
+div.regularTxt {
   margin-left: 30px;
+  font-size: medium;
 }
 
 div.topCling {

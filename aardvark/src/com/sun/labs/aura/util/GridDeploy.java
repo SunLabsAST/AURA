@@ -68,7 +68,6 @@ public class GridDeploy {
 
     private static String usage = "GridDeploy createCode | startAura | startAardvark | createWeb";
 
-    private NetworkAddress mostRecentAddrHack = null;
     public static void main(String argv[]) throws Exception {
         if (argv.length == 0) {
             System.out.println("Usage: " + usage);
@@ -357,6 +356,7 @@ public class GridDeploy {
     protected ProcessConfiguration getReggieConfig() throws Exception {
         String cmdLine =
                 "-Djava.security.policy=" + auraDistMntPnt + "/jini/jsk-all.policy" +
+                " -Djava.util.logging.config.file=" + auraDistMntPnt + "/jini/logging.properties" +
                 " -jar " + auraDistMntPnt + "/jini/lib/start.jar" +
                 " " + auraDistMntPnt + "/jini/nobrowse.config";
         

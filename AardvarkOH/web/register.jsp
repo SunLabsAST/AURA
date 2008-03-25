@@ -1,6 +1,7 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<jsp:useBean id="statsBean" class="com.sun.labs.aura.aardvark.web.bean.StatsBean" scope="request"/>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
    "http://www.w3.org/TR/html4/loose.dtd">
 
@@ -13,11 +14,12 @@
     </head>
     <body>
         <%@include file="/WEB-INF/jspf/header.jspf"%>
+        <div class="main">
         <div align="center">
             <img src="<c:url value="/images/aardvark-still.gif" />" />
         </div>
         <div class="bigOrangeTxt">Welcome</div>
-        <div class="explanation">
+        <div class="regularTxt">
         Before you register with Aardvark, you need to have an OpenID that will
         act as your login for Aardvark.  OpenID is an open framework that allows
         you to log in with a site that you trust, then rely on that site to
@@ -29,7 +31,7 @@
         account.
         </div>
         <div class="bigOrangeTxt">Registration</div>
-        <div class="explanation">
+        <div class="regularTxt">
             <c:if test='${alreadyRegistered == "true"}'>
             <span class="smallGreenTxt">Sorry, that ID is already registered!</span>
             </c:if>
@@ -42,6 +44,7 @@
             </table>
             <input type="submit" value="Register"/>
         </form>
+        </div>
         </div>
     </body>
 </html>

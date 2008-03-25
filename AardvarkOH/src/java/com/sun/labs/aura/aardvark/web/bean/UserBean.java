@@ -16,8 +16,6 @@ public class UserBean {
     
     private String fullname;
     
-    private Long numFeeds;
-    
     private String recommendedFeedURL;
     
     public UserBean() {
@@ -27,6 +25,7 @@ public class UserBean {
     public UserBean(BlogUser buser, String url) {
         ID = buser.getKey();
         nickname = buser.getNickname();
+        fullname = buser.getFullname();
         defaultFeedURL = url;
     }
 

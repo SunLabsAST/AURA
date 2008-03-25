@@ -72,6 +72,10 @@
         <servlet-name>DumpServices</servlet-name>
         <url-pattern>/DumpServices</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Login</servlet-name>
+        <url-pattern>/Logout</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>
             30
