@@ -39,11 +39,13 @@ public class FeedManager implements AuraService, Configurable {
             Collections.synchronizedSet(new HashSet<Thread>());
     private Logger logger;
     private long lastPullCount = 0;
+    private boolean started = false;
 
     /**
      * Starts crawling all of the feeds
      */
     public void start() {
+        started = true;
         for (int i = 0; i < numThreads; i++) {
             Thread t = new Thread() {
 
@@ -63,6 +65,7 @@ public class FeedManager implements AuraService, Configurable {
      * Stops crawling the feeds
      */
     public void stop() {
+        started = false;
         runningThreads.clear();
     }
 
@@ -88,6 +91,10 @@ public class FeedManager implements AuraService, Configurable {
         } catch (RemoteException rx) {
             throw new PropertyException(ps.getInstanceName(), PROP_STAT_SERVICE,
                     "Unable to create counters");
+        }
+
+        if (started) {
+            start();
         }
     }
 

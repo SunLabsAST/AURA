@@ -39,12 +39,15 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     private int newItemTime = 0;
 
     public String getNextItemKey() throws InterruptedException {
+        long start = System.currentTimeMillis();
         waiters.incrementAndGet();
 
         if (logger.isLoggable(Level.INFO)) {
             DelayedItem next = itemQueue.peek();
             if (next != null) {
-                logger.fine("waiters: " + waiters.get() + " waiting " + next.getDelay(TimeUnit.SECONDS) + " secs, items: " + itemQueue.size());
+                logger.info("in waiters: " + waiters.get() + ", waiting " + next.getDelay(TimeUnit.SECONDS) + " secs, items: " + size());
+            } else {
+                logger.info("in waiters: " + waiters.get() + ", waiting, items: " +  size());
             }
         }
 
@@ -66,6 +69,11 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         }
 
         waiters.decrementAndGet();
+
+        long wait = System.currentTimeMillis() - start;
+        logger.info("out waiters: " + waiters.get() + ", waited " + wait + " msecs, items: " + size()
+                + " who: " + Thread.currentThread().getName());
+
         return delayedItem.getItemKey();
     }
 
@@ -74,7 +82,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
             secondsUntilNextScheduledProcessing = defaultPeriod;
         }
         addItem(itemKey, secondsUntilNextScheduledProcessing);
-        logger.fine("released item " + itemKey + " next time is " + secondsUntilNextScheduledProcessing + " secs");
+        logger.fine("released item " + itemKey + " next time is " + secondsUntilNextScheduledProcessing + " secs, cur size " + size());
     }
 
     public void itemCreated(ItemEvent e) throws RemoteException {
@@ -95,6 +103,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         for (Item item : e.getItems()) {
             deleteItemByKeyFromQueues(item.getKey());
         }
+        logger.info("removed " + e.getItems().length + " items " + " total size is " + size());
     }
 
     private void deleteItemByKeyFromQueues(String itemKey) {
@@ -104,6 +113,9 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
 
     synchronized public void newProperties(final PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
+        logger.info("new properties for " + ps.getInstanceName());
+
+        System.out.println("new prop loglevel is " + logger.getLevel());
 
         DataStore oldStore = dataStore;
         Item.ItemType oldItemType = itemType;
@@ -189,6 +201,8 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         } catch (RemoteException ex) {
             logger.severe("Can't get items from the store " + ex.getMessage());
         }
+        logger.info(name + "Collected " + size() + " items ");
+        
     }
 
     /**
@@ -201,6 +215,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
      */
     private void addItem(String itemKey, int delay) {
         itemQueue.add(new DelayedItem(itemKey, delay));
+        logger.fine("Added item " + itemKey + " delay " + delay);
     }
     /**
      * the configurable property for the itemstore used by this manager
