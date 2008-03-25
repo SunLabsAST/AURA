@@ -13,6 +13,8 @@ import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
+import com.sun.labs.aura.cluster.Cluster;
+import com.sun.labs.aura.cluster.ClusterElement;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DBIterator;
@@ -404,6 +406,34 @@ public class AardvarkShell implements AuraService, Configurable {
                         for(Scored<Item> item : items) {
                            System.out.printf("%.3f ", item.getScore());
                            dumpItem(item.getItem());
+                        }
+                            
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Runs a query";
+                    }
+                });
+                
+        shell.add("cluster",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String query = stuff(args, 1);
+                        List<Scored<Item>> items = dataStore.query(query, 100, null);
+                        List<String> keys = new ArrayList<String>();
+                        for(Scored<Item> item : items) {
+                            keys.add(item.getItem().getKey());
+                        }
+                        
+                        List<Cluster> clusters = dataStore.cluster(keys, "content", 7);
+                        for(Cluster c : clusters) {
+                            System.out.println("Cluster: " + c.getDescription(4));
+                            for(ClusterElement el : c.getMembers()) {
+                                System.out.printf(" %.3f %s\n", el.getDistance(), el.getItem().getKey());
+                            }
                         }
                             
                         return "";

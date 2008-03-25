@@ -72,4 +72,4 @@ nohup java \
 # Shell!
 java -DauraHome=${AURAHOME} -DauraGroup=${AURAGROUP} -DauraPolicy=${AURAPOLICY} \
      -jar dist/aardvark.jar \
-      /com/sun/labs/aura/aardvark/resource/shellConfig.xml shell
+      /com/sun/labs/aura/aardvark/resource/shellConfig.xml shellStarter

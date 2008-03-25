@@ -16,6 +16,7 @@ import com.sun.labs.aura.datastore.Indexable;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.util.props.ConfigDouble;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
@@ -70,6 +71,8 @@ public class ItemSearchEngine implements Configurable {
     private boolean shuttingDown;
 
     private long flushCheckInterval;
+    
+    private double skimPercentage;
 
     private Timer flushTimer;
 
@@ -104,6 +107,9 @@ public class ItemSearchEngine implements Configurable {
         flushTimer = new Timer("ItemSearchEngineFlushTimer");
         flushTimer.scheduleAtFixedRate(new FlushTimerTask(), flushCheckInterval,
                 flushCheckInterval);
+        
+        skimPercentage = ps.getDouble(PROP_SKIM_PERCENTAGE);
+        
     }
 
     public SearchEngine getSearchEngine() {
@@ -335,7 +341,9 @@ public class ItemSearchEngine implements Configurable {
      * provided field.
      * @param dv the document vector for the item of interest
      * @param n the number of similar items to return
-     * @return the set of items most similar to the given item, based on the 
+     * @param rf a (possibly <code>null</code>) filter to apply when getting 
+     * the top results from the findSimilar
+     * @return the set of items most similar to the given item, based on the
      * data indexed into the given field.  Note that the returned set may be
      * smaller than the number of items requested!
      * @see #getDocumentVector
@@ -346,7 +354,7 @@ public class ItemSearchEngine implements Configurable {
         //
         // Recover from having been serialized.
         dv.setEngine(engine);
-        ResultSet sim = dv.findSimilar("-score");
+        ResultSet sim = dv.findSimilar("-score", skimPercentage);
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         try {
             for(Result r : sim.getResults(0, n, rf)) {
@@ -468,5 +476,11 @@ public class ItemSearchEngine implements Configurable {
      */
     @ConfigInteger(defaultValue = 3000, range = {1, 300000})
     public static final String PROP_FLUSH_INTERVAL = "flushInterval";
+    
+    /**
+     * The skim percentage to use for findSimilar.
+     */
+    @ConfigDouble(defaultValue=0.25)
+    public static final String PROP_SKIM_PERCENTAGE = "skimPercentage";
 
 }
