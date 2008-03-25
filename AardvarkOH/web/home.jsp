@@ -15,6 +15,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" type="text/css" href="<c:url value="/style/aardvark.css"/>">
+        <link rel="Shortcut Icon" href="<c:url value="/favicon.ico"/>">
         <title>Home</title>
     </head>
     <body>

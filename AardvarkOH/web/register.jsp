@@ -9,8 +9,10 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Registration</title>
         <link rel="stylesheet" type="text/css" href="<c:url value="/style/aardvark.css"/>">
+        <link rel="Shortcut Icon" href="<c:url value="/favicon.ico"/>">
     </head>
     <body>
+        <%@include file="/WEB-INF/jspf/header.jspf"%>
         <div align="center">
             <img src="<c:url value="/images/aardvark-still.gif" />" />
         </div>

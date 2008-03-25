@@ -6,6 +6,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Error</title>
+        <link rel="Shortcut Icon" href="<c:url value="/favicon.ico"/>">
     </head>
     <body>
 Oops.  An error occurred: ${errorMsg}
