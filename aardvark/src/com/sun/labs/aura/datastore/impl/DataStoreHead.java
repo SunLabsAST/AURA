@@ -1,6 +1,7 @@
 package com.sun.labs.aura.datastore.impl;
 
 import com.sun.kt.search.DocumentVector;
+import com.sun.kt.search.FieldFrequency;
 import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
@@ -24,10 +25,12 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.SortedSet;
@@ -510,6 +513,60 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
      *  Search methods
      *
      */
+    
+    public List<FieldFrequency> getTopValues(
+            final String field, 
+            final int n, 
+            final boolean ignoreCase) throws RemoteException, AuraException {
+        Set<PartitionCluster> clusters = trie.getAll();
+        List<Callable<List<FieldFrequency>>> callers =
+                new ArrayList<Callable<List<FieldFrequency>>>();
+        //
+        // Here's our list of callers to find similar.
+        for(PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+
+                public List<FieldFrequency> call()
+                        throws AuraException, RemoteException {
+                    return pc.getTopValues(field, n, ignoreCase);
+                }
+            });
+        }
+
+        //
+        // Run the computation, sort the results and return.
+        try {
+            Map<Object,FieldFrequency> m = new HashMap<Object,FieldFrequency>();
+            for(Future<List<FieldFrequency>> f : executor.invokeAll(callers)) {
+                for(FieldFrequency ff : f.get()) {
+                    FieldFrequency c = m.get(ff.getVal());
+                    if(c == null) {
+                        c = new FieldFrequency(ff.getVal(), 0);
+                        m.put(ff.getVal(), c);
+                    }
+                    c.setFreq(c.getFreq() + ff.getFreq());
+                }
+            }
+            
+            List<FieldFrequency> ret = new ArrayList<FieldFrequency>(m.values());
+            Collections.sort(ret);
+            Collections.reverse(ret);
+            return ret.subList(0, n);
+        } catch(ExecutionException ex) {
+            checkAndThrow(ex);
+            return new ArrayList<FieldFrequency>();
+        } catch(InterruptedException ie) {
+            throw new AuraException("getTopValues interrupted", ie);
+        }
+
+        
+    }
+    
+    public DocumentVector getDocumentVector(String key, String field) throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
+        return pc.getDocumentVector(key);
+    }
+    
     public List<Scored<Item>> findSimilar(String key, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
