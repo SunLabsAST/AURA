@@ -36,7 +36,6 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     private DelayQueue<DelayedItem> itemQueue;
     private ItemListener exportedItemListener;
     private AtomicInteger waiters = new AtomicInteger();
-    private int newItemTime = 0;
 
     public String getNextItemKey() throws InterruptedException {
         long start = System.currentTimeMillis();
@@ -86,13 +85,18 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     }
 
     public void itemCreated(ItemEvent e) throws RemoteException {
+
+        // add new items to the head of the queue, so peek at the current head
+        //  and add the new items with a lower delay than the head of the queue
+        DelayedItem head = itemQueue.peek();
+        int headTime = (int) head.getDelay(TimeUnit.SECONDS);
+        
         for (Item item : e.getItems()) {
-            addItem(item.getKey(), newItemTime);
+            addItem(item.getKey(), headTime--);
         }
         // we want new items to get to cut to the head of the queue, so
         // we use newItemTime to schedule newly created items earlier then 
         // anyone else.
-        newItemTime--;
         logger.info("Added " + e.getItems().length + " items " + " total size is " + size());
     }
 
