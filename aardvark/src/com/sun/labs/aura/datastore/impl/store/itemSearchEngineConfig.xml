@@ -107,7 +107,7 @@
     
     <!-- The factory for feature cluster partitions. -->
     <component name="cluster_partition_factory" type="ngnova.classification.ClusterPartitionFactory">
-        <property name="main_dict_factory" value="idfreq_dict_factory"/>
+        <property name="main_dict_factory" value="id_dict_factory"/>
         <property name="document_dict_factory" value="cluster_dict_factory"/>
     </component>
 

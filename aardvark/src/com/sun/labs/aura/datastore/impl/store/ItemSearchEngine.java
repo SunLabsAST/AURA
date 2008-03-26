@@ -75,6 +75,33 @@ public class ItemSearchEngine implements Configurable {
     private double skimPercentage;
 
     private Timer flushTimer;
+    
+    public ItemSearchEngine() {
+        
+    }
+    
+    /**
+     * Creates an item search engine pointed at a particular index directory.
+     * @param indexDir
+     * @param config
+     */
+    public ItemSearchEngine(String indexDir, String config) {
+        log = Logger.getLogger(getClass().getName());
+        try {
+            URL cu = getClass().getResource(config);
+
+            //
+            // Creates the search engine.  We'll use a full blown fields-and-all
+            // engine because we need to be able to handle fielded doc vectors
+            // and postings.
+            engine = SearchEngineFactory.getSearchEngine(indexDir,
+                    "aardvark_search_engine",
+                    cu);
+        } catch(SearchEngineException see) {
+            log.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
+        }
+        
+    }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
 
