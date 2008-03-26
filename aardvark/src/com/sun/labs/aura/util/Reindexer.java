@@ -51,6 +51,7 @@ public class Reindexer {
                                 count, total, type, args[i]));
                     }
                 }
+                iter.close();
                 if(count % 5000 != 0) {
                     logger.info(String.format("Indexed %d/%d %s from %s", count,
                             total, type, args[i]));
