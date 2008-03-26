@@ -13,8 +13,8 @@
         <propertylist name="groupList">
             <item>Aura</item>
         </propertylist>
-        <!-- <property name="securityPolicy" value="/files/working/jsk-all.policy"/> -->
-        <property name="securityPolicy" value="/aura/dist/jsk-all.policy"/>
+        <property name="securityPolicy" value="/files/working/jsk-all.policy"/>
+        <!-- <property name="securityPolicy" value="/aura/dist/jsk-all.policy"/> -->
     </component>
     
     <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark"/>

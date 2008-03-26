@@ -11,6 +11,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Aardvark: An Open Recommender</title>
         <link rel="stylesheet" type="text/css" href="<c:url value="/style/aardvark.css"/>">
+        <link rel="Shortcut Icon" href="<c:url value="/favicon.ico"/>">
     </head>
     <body>
         <%@include file="/WEB-INF/jspf/header.jspf"%>
@@ -26,7 +27,7 @@
                 </form>
                 <span class="smallText">Don't have an ID?
                 <a href="http://myopenid.com/">Create</a> one, then
-                <a href="<c:url value="/Register" />">register</a> yourself!</span>
+                <a href="<c:url value="/register.jsp" />">register</a> yourself!</span>
             </div>
         </f:view>
     </body>

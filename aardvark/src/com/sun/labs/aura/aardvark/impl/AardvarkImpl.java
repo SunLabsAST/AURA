@@ -101,13 +101,14 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
+        logger = ps.getLogger();
+        logger.info("AardvarkImpl newProperties called");
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
         recommenderManager = (RecommenderManager) ps.getComponent(PROP_RECOMMENDER_MANAGER);
         statService = (StatService) ps.getComponent(PROP_STAT_SERVICE);
         autoEnrollTestFeeds = ps.getBoolean(PROP_AUTO_ENROLL_TEST_FEEDS);
         autoEnrollMegaTestFeeds = ps.getBoolean(PROP_AUTO_ENROLL_MEGA_TEST_FEEDS);
         autoEnrollGiantTestFeeds = ps.getBoolean(PROP_AUTO_ENROLL_GIANT_TEST_FEEDS);
-        logger = ps.getLogger();
     }
 
     /**

@@ -68,6 +68,10 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     
     protected static Logger logger = Logger.getLogger("");
     
+    @ConfigComponent(type=ngnova.pipeline.StopWords.class,mandatory=false)
+    public static final String PROP_STOPWORDS = "stopwords";
+    protected StopWords stop;
+
     public DataStoreHead() {
         trie = new BinaryTrie<PartitionCluster>();
         executor = Executors.newCachedThreadPool();
@@ -869,6 +873,16 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             throw new AuraException("Query interrupted", e);
         }
 
+    }
+
+    public StopWords getStopWords() {
+        return stop;
+    }
+    
+    public List<Cluster> cluster(List<String> keys, String field, int k) throws AuraException, RemoteException {
+        KMeans km = new KMeans(keys, this, field, k, 200);
+        km.cluster();
+        return km.getClusters();
     }
 
 }

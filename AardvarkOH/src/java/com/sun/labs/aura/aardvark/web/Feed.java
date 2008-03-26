@@ -38,7 +38,6 @@ public class Feed extends HttpServlet {
         
         try {
             User u = aardvark.getUserByRandomString(randStr);
-            logger.warning("got user " + u);
             SyndFeed feed = aardvark.getRecommendedFeed(u);
             SyndFeedOutput output = new SyndFeedOutput();
             feed.setFeedType("atom_1.0");

@@ -11,8 +11,14 @@ public class ItemDesc implements Serializable {
     protected String key;
     protected String type;
     
+    protected long timeInMS;
+    
     public ItemDesc() {
         
+    }
+    
+    public ItemDesc(long time) {
+        timeInMS = time;
     }
     
     public ItemDesc(String name, String key, String type) {
@@ -20,6 +26,7 @@ public class ItemDesc implements Serializable {
         this.key = key;
         this.type = type;
     }
+    
     
     public String getName() {
         return name;
@@ -31,5 +38,9 @@ public class ItemDesc implements Serializable {
     
     public String getType() {
         return type;
+    }
+    
+    public long getQueryTime() {
+        return timeInMS;
     }
 }

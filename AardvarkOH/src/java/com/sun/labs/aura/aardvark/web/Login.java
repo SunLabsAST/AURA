@@ -28,9 +28,9 @@ import org.openid4java.discovery.Identifier;
 import org.openid4java.message.AuthRequest;
 import org.openid4java.message.AuthSuccess;
 import org.openid4java.message.ParameterList;
-import org.openid4java.message.ax.AxMessage;
-import org.openid4java.message.ax.FetchRequest;
-import org.openid4java.message.ax.FetchResponse;
+import org.openid4java.message.sreg.SRegMessage;
+import org.openid4java.message.sreg.SRegRequest;
+import org.openid4java.message.sreg.SRegResponse;
 
 /**
  * This servlet handles both the sending of open id auth and the receiving of
@@ -41,7 +41,7 @@ public class Login extends HttpServlet {
 
     protected ConsumerManager consumer;
     
-    protected boolean bypassAuth = true;
+    protected boolean bypassAuth = false;
     
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -64,6 +64,11 @@ public class Login extends HttpServlet {
         ServletContext context = getServletContext();
         String servletPath = request.getServletPath();
         Aardvark aardvark = (Aardvark)context.getAttribute("aardvark");
+        try {
+            Shared.fillPageHeader(request, aardvark);
+        } catch (AuraException e) {
+            logger.log(Level.SEVERE, "Failed to talk to aura", e);
+        }
         //
         // Are we getting a login request, or an auth response?
         if (servletPath.equals("/Login")) {
@@ -99,6 +104,7 @@ public class Login extends HttpServlet {
                 return;
             }
         } else if (servletPath.equals("/LoginReturn")) {
+            HttpSession session = request.getSession();
             //
             // verify that they are who they say they are, then put their
             // user in a session and direct them to their home page
@@ -106,6 +112,8 @@ public class Login extends HttpServlet {
             if (identifier == null) {
                 //
                 // login failed, send them back to the welcome
+                logger.log(Level.WARNING, "Login failed (intendedID was " +
+                        (String)session.getAttribute("intendedID") + ")");
                 context.getRequestDispatcher("/welcome.jsp")
                         .forward(request, response);
                 return;
@@ -113,7 +121,6 @@ public class Login extends HttpServlet {
             
             //
             // Is this a registration?
-            HttpSession session = request.getSession();
             String intendedID = (String)session.getAttribute("intendedID");
             String intendedFeed = (String)session.getAttribute("intendedFeed");
             
@@ -121,6 +128,9 @@ public class Login extends HttpServlet {
                 if (!intendedID.equals(identifier.getIdentifier())) {
                     //
                     // identities didn't match!  that can't be good
+                    logger.log(Level.WARNING, "Identity confirmed, but " +
+                            "returned " + identifier.getIdentifier() +
+                            " and intended " + intendedID + " don't match!");
                     context.getRequestDispatcher("/welcome.jsp")
                             .forward(request, response);
                     return;
@@ -170,6 +180,12 @@ public class Login extends HttpServlet {
                     // do error page?
                 }
             }
+        } else if (servletPath.equals("/Logout")) {
+            HttpSession session = request.getSession();
+            session.removeAttribute("loggedInUser");
+            session.invalidate();
+            response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/Welcome"));
+            return;
         } else if (servletPath.equals("/Register")) {
             //
             // We're trying to register a user.  1) Make sure they don't already
@@ -238,7 +254,7 @@ public class Login extends HttpServlet {
                             HttpServletRequest httpReq,
                             HttpServletResponse httpResp,
                             boolean isRegistration)
-            throws IOException {
+            throws ServletException, IOException {
         try {
             //
             // We'll have the open ID provider return here with the auth
@@ -261,71 +277,37 @@ public class Login extends HttpServlet {
             AuthRequest authReq = consumer.authenticate(discovered, returnToUrl);
             
             // Attribute Exchange example: fetching the 'email' attribute
-            FetchRequest fetch = FetchRequest.createFetchRequest();
+            //FetchRequest fetch = FetchRequest.createFetchRequest();
+            SRegRequest sreg = SRegRequest.createFetchRequest();
 
             if (isRegistration) {
-                fetch.addAttribute("nickname",
-                        // attribute alias
-                        "http://schema.openid.net/contact/nickname", // type
-                        // URI
-                        true); // required
-                fetch.addAttribute("email",
-                        // attribute alias
-                        "http://schema.openid.net/contact/email", // type URI
-                        true); // required
-                fetch.addAttribute("fullname",
-                        // attribute alias
-                        "http://schema.openid.net/contact/fullname", // type
-                        // URI
-                        true); // required
-                fetch.addAttribute("dob",
-                        // attribute alias
-                        "http://schema.openid.net/contact/dob", // type URI
-                        false); // required
-                fetch.addAttribute("gender",
-                        // attribute alias
-                        "http://schema.openid.net/contact/gender", // type URI
-                        false); // required
-                fetch.addAttribute("postcode",
-                        // attribute alias
-                        "http://schema.openid.net/contact/postcode", // type
-                        // URI
-                        false); // required
-                fetch.addAttribute("country",
-                        // attribute alias
-                        "http://schema.openid.net/contact/country", // type URI
-                        false); // required
-                fetch.addAttribute("language",
-                        // attribute alias
-                        "http://schema.openid.net/contact/language", // type
-                        // URI
-                        false); // required
-                fetch.addAttribute("timezone",
-                        // attribute alias
-                        "http://schema.openid.net/contact/timezone", // type
-                        // URI
-                        false); // required
+                sreg.addAttribute("nickname", true);
+                sreg.addAttribute("email", true);
+                sreg.addAttribute("fullname", true);
+                sreg.addAttribute("dob", false);
+                sreg.addAttribute("gender", false);
+                sreg.addAttribute("postcode", false);
+                sreg.addAttribute("country", false);
+                sreg.addAttribute("language", false);
+                sreg.addAttribute("timezone", false);
             }
             // attach the extension to the authentication request
-            authReq.addExtension(fetch);
+            authReq.addExtension(sreg);
 
             //if (!discovered.isVersion2()) {
                 // Option 1: GET HTTP-redirect to the OpenID Provider endpoint
                 // The only method supported in OpenID 1.x
                 // redirect-URL usually limited ~2048 bytes
-            logger.info("Sending redirect to " + authReq.getDestinationUrl(true));
+                logger.info("Sending redirect to " + authReq.getDestinationUrl(true));
                 httpResp.sendRedirect(authReq.getDestinationUrl(true));
                 return;
             //} else {
             // Option 2: HTML FORM Redirection (Allows payloads >2048 bytes)
-
-            // RequestDispatcher dispatcher =
-            // getServletContext().getRequestDispatcher("formredirection.jsp");
-            // httpReq.setAttribute("prameterMap",
-            // response.getParameterMap());
-            // httpReq.setAttribute("destinationUrl",
-            // response.getDestinationUrl(false));
-            // dispatcher.forward(request, response);
+                //RequestDispatcher dispatcher = getServletContext()
+                //                .getRequestDispatcher("/formredirection.jsp");
+                //httpReq.setAttribute("prameterMap", httpReq.getParameterMap());
+                //httpReq.setAttribute("message", authReq);
+                //dispatcher.forward(httpReq, httpResp);
             //}
         } catch (OpenIDException e) {
             // go to error page
@@ -364,19 +346,19 @@ public class Login extends HttpServlet {
             Identifier verified = verification.getVerifiedId();
             if (verified != null) {
                 AuthSuccess authSuccess = (AuthSuccess) verification.getAuthResponse();
-
-                if (authSuccess.hasExtension(AxMessage.OPENID_NS_AX)) {
-                    FetchResponse fetchResp = (FetchResponse) authSuccess.getExtension(AxMessage.OPENID_NS_AX);
+                //if (authSuccess.hasExtension(AxMessage.OPENID_NS_AX)) {
+                if (authSuccess.hasExtension(SRegMessage.OPENID_NS_SREG)) {
+                    SRegResponse fetchResp = (SRegResponse) authSuccess.getExtension(SRegMessage.OPENID_NS_SREG);
 
                     // List emails = fetchResp.getAttributeValues("email");
                     // String email = (String) emails.get(0);
 
-                    List aliases = fetchResp.getAttributeAliases();
+                    List aliases = fetchResp.getAttributeNames();
                     for (Iterator iter = aliases.iterator(); iter.hasNext();) {
                         String alias = (String) iter.next();
-                        List values = fetchResp.getAttributeValues(alias);
-                        if (values.size() > 0) {
-                            httpReq.setAttribute(alias, values.get(0));
+                        String value = fetchResp.getAttributeValue(alias);
+                        if (value != null) {
+                            httpReq.setAttribute(alias, value);
                         }
                     }
                 }
@@ -384,9 +366,8 @@ public class Login extends HttpServlet {
                 return verified; // success
             }
         } catch (OpenIDException e) {
-        // present error to the user
+            logger.log(Level.WARNING, "verify failed with exception", e);
         }
-
         return null;
     }
     
