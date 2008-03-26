@@ -457,12 +457,6 @@
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,-do-dist-with-manifest,-do-dist-without-manifest" name="do-dist"/>
     <target depends="init" if="dist.ear.dir" name="library-inclusion-in-manifest">
-        <basename file="${libs.GWT1.4.61.classpath}" property="included.lib.libs.GWT1.4.61.classpath"/>
-        <copy-ear-war file="${libs.GWT1.4.61.classpath}" propname="included.lib.libs.GWT1.4.61.classpath.X"/>
-        <basename file="${file.reference.gwt-dev-linux.jar}" property="included.lib.file.reference.gwt-dev-linux.jar"/>
-        <copy-ear-war file="${file.reference.gwt-dev-linux.jar}" propname="included.lib.file.reference.gwt-dev-linux.jar.X"/>
-        <basename file="${file.reference.gwt-servlet.jar}" property="included.lib.file.reference.gwt-servlet.jar"/>
-        <copy-ear-war file="${file.reference.gwt-servlet.jar}" propname="included.lib.file.reference.gwt-servlet.jar.X"/>
         <basename file="${reference.aardvark.jar}" property="included.lib.reference.aardvark.jar"/>
         <copy-ear-war file="${reference.aardvark.jar}" propname="included.lib.reference.aardvark.jar.X"/>
         <basename file="${file.reference.jdom.jar}" property="included.lib.file.reference.jdom.jar"/>
@@ -487,16 +481,19 @@
         <copy-ear-war file="${file.reference.xalan.jar}" propname="included.lib.file.reference.xalan.jar.X"/>
         <basename file="${file.reference.xerces.jar}" property="included.lib.file.reference.xerces.jar"/>
         <copy-ear-war file="${file.reference.xerces.jar}" propname="included.lib.file.reference.xerces.jar.X"/>
+        <basename file="${file.reference.gwt-dev-linux.jar-1}" property="included.lib.file.reference.gwt-dev-linux.jar-1"/>
+        <copy-ear-war file="${file.reference.gwt-dev-linux.jar-1}" propname="included.lib.file.reference.gwt-dev-linux.jar-1.X"/>
+        <basename file="${file.reference.gwt-servlet.jar-1}" property="included.lib.file.reference.gwt-servlet.jar-1"/>
+        <copy-ear-war file="${file.reference.gwt-servlet.jar-1}" propname="included.lib.file.reference.gwt-servlet.jar-1.X"/>
+        <basename file="${file.reference.gwt-user.jar}" property="included.lib.file.reference.gwt-user.jar"/>
+        <copy-ear-war file="${file.reference.gwt-user.jar}" propname="included.lib.file.reference.gwt-user.jar.X"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${included.lib.libs.GWT1.4.61.classpath} ${included.lib.file.reference.gwt-dev-linux.jar} ${included.lib.file.reference.gwt-servlet.jar} ${included.lib.reference.aardvark.jar} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.jini-core.jar} ${included.lib.file.reference.jini-ext.jar} ${included.lib.file.reference.jsk-lib.jar} ${included.lib.file.reference.ktsearch.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.rome-0.9.jar} ${included.lib.file.reference.sun-util.jar} ${included.lib.file.reference.tools.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} "/>
+            <attribute name="Class-Path" value="${included.lib.reference.aardvark.jar} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.jini-core.jar} ${included.lib.file.reference.jini-ext.jar} ${included.lib.file.reference.jsk-lib.jar} ${included.lib.file.reference.ktsearch.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.rome-0.9.jar} ${included.lib.file.reference.sun-util.jar} ${included.lib.file.reference.tools.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.gwt-dev-linux.jar-1} ${included.lib.file.reference.gwt-servlet.jar-1} ${included.lib.file.reference.gwt-user.jar} "/>
         </manifest>
         <delete dir="${dist.ear.dir}/temp"/>
     </target>
     <target depends="init" name="library-inclusion-in-archive" unless="dist.ear.dir">
-        <copy file="${libs.GWT1.4.61.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.gwt-dev-linux.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.gwt-servlet.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${reference.aardvark.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.jdom.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.jini-core.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
@@ -509,6 +506,9 @@
         <copy file="${file.reference.tools.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.xalan.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.xerces.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gwt-dev-linux.jar-1}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gwt-servlet.jar-1}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gwt-user.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>
