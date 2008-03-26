@@ -86,6 +86,7 @@ public class ItemSearchEngine implements Configurable {
      * @param config
      */
     public ItemSearchEngine(String indexDir, String config) {
+        log = Logger.getLogger(getClass().getName());
         try {
             URL cu = getClass().getResource(config);
 

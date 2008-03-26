@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import ngnova.pipeline.StopWords;
 import ngnova.util.Getopt;
 import ngnova.util.StopWatch;
 
@@ -40,18 +41,22 @@ public class BuildClassifiers implements Runnable {
     
     private ResultsFilter lengthFilter;
     
+    private StopWords stop;
+    
     public BuildClassifiers(List<String> classes, 
             String vectoredField,
             String assignedField,
             String fieldName,
             SearchEngine e,
-            ResultsFilter lengthFilter) {
+            ResultsFilter lengthFilter,
+            StopWords stop) {
         this.classes = classes;
         this.engine = e;
         this.vectoredField = vectoredField;
         this.assignedField = assignedField;
         this.fieldName = fieldName;
         this.lengthFilter = lengthFilter;
+        this.stop = stop;
     }
     
     public void run() {
@@ -60,6 +65,10 @@ public class BuildClassifiers implements Runnable {
         logger.info(Thread.currentThread().getName() + " training " + classes.size() + " classifiers");
         StopWatch sw = new StopWatch();
         for(String className : classes) {
+            if(stop.isStop(className)) {
+                logger.info("Ignoring class: " + className);
+                continue;
+            }
             sw.reset();
             sw.start();
             try {
@@ -107,7 +116,7 @@ public class BuildClassifiers implements Runnable {
 
     public static void main(String[] args) throws Exception {
 
-        String flags = "a:c:d:e:k:f:r:t:v:";
+        String flags = "a:c:d:e:k:f:r:s:t:v:";
         Getopt gopt = new Getopt(args, flags);
 
         //
@@ -133,6 +142,7 @@ public class BuildClassifiers implements Runnable {
         String engineName = "aardvark_search_engine";
         int numChars = 200;
         int numThreads = 1;
+        StopWords sw = new StopWords();
 
         //
         // The number of top classes to build.
@@ -159,6 +169,9 @@ public class BuildClassifiers implements Runnable {
                     break;
                 case 'r':
                     numThreads = Integer.parseInt(gopt.optArg);
+                    break;
+                case 's':
+                    sw.addFile(gopt.optArg);
                     break;
                 case 't':
                     top = Integer.parseInt(gopt.optArg);
@@ -207,7 +220,7 @@ public class BuildClassifiers implements Runnable {
         }
         for(int i = 0, start = 0; i < numThreads; i++, start += size) {
             BuildClassifiers bc = new BuildClassifiers(classes.subList(start, Math.min(start+size, classes.size())), 
-                    vectoredField, assignedField, fieldName, engine, lengthFilter);
+                    vectoredField, assignedField, fieldName, engine, lengthFilter, sw);
             Thread t = new Thread(bc);
             t.setName("BC-" + i);
             t.start();

@@ -33,7 +33,7 @@ public class Reindexer {
         Log.setLevel(3);
         
         ItemSearchEngine engine = new ItemSearchEngine(args[0], 
-                "/com/sun/labs/aura/datastore/impl/store/itemSearchEngineConfig.xml");
+                "/com/sun/labs/aura/util/resource/reindexConfig.xml");
         
         for(int i = 1; i < args.length; i++) {
             BerkeleyDataWrapper bdw = new BerkeleyDataWrapper(args[i], logger);
