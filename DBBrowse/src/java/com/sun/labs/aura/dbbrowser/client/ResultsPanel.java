@@ -7,9 +7,9 @@ import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HTMLTable.RowFormatter;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.dbbrowser.client.ItemDesc;
 
 /**
  *
@@ -46,6 +46,8 @@ public class ResultsPanel extends DockPanel {
         fillItems();
         center.add(results);
         add(center, CENTER);
+        ItemDesc time = items[0];
+        add(new Label("Query took: " + time.getQueryTime() + "ms"), SOUTH);
         Button close = new Button("Close");
         close.addClickListener(new ClickListener() {
             public void onClick(Widget arg0) {
@@ -61,10 +63,10 @@ public class ResultsPanel extends DockPanel {
         int row = 1;
         boolean lightRow = true;
         RowFormatter rf = results.getRowFormatter();
-        for (int i = 0; i < items.length; i++) {
+        for (int i = 1; i < items.length; i++) {
             results.setText(row, TYPE_COL, items[i].getType());
             results.setText(row, NAME_COL, items[i].getName());
-            results.setText(row, KEY_COL, items[i].getKey());
+            results.setHTML(row, KEY_COL, TabbedGUI.getLinkText(items[i].getKey()));
             AttnButton srcBtn = new AttnButton(items[i].getKey());
             srcBtn.addClickListener(new ClickListener() {
                 public void onClick(Widget arg0) {
@@ -80,7 +82,11 @@ public class ResultsPanel extends DockPanel {
                             //
                             // insert code to show attn dialog or panel here
                             // and also made that dialog or panel
-                            parent.showAttention((AttnDesc[])result);
+                            if (result != null) {
+                                parent.showAttention((AttnDesc[])result);
+                            } else {
+                                parent.showError("Remote error!");
+                            }
                         }
                         
                     });
@@ -101,7 +107,11 @@ public class ResultsPanel extends DockPanel {
                             //
                             // insert code to show attn dialog or panel here
                             // and also made that dialog or panel
-                            parent.showAttention((AttnDesc[])result);
+                            if (result != null) {
+                                parent.showAttention((AttnDesc[])result);
+                            } else {
+                                parent.showError("Remote error!");
+                            }
                         }
                         
                     });
