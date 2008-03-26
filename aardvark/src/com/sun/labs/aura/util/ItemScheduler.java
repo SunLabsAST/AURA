@@ -46,4 +46,10 @@ public interface ItemScheduler extends Component, Remote {
      * period will be used to schedule the item.
      */
     public void releaseItem(String itemKey, int secondsUntilNextProcessing) throws RemoteException;
+
+    /**
+     * Gets the total number of items that are currently being scheduled
+     * @return the number of items being scheduled.
+     */
+    public int size() throws RemoteException;
 }

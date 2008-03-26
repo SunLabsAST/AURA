@@ -7,6 +7,7 @@ package com.sun.labs.aura.aardvark.impl.crawler;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
+import com.sun.syndication.feed.WireFeed;
 import com.sun.syndication.feed.synd.SyndCategory;
 import com.sun.syndication.feed.synd.SyndContent;
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -33,6 +34,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -86,7 +89,7 @@ public class FeedUtils {
             // is particularly unsatisfying.
             key = Integer.toString(syndEntry.hashCode());
         }
-        return key;
+        return key.trim();
     }
 
     /**
@@ -130,7 +133,12 @@ public class FeedUtils {
             SyndFeed syndFeed = readFeed(feedUrl);
 
             feed.setName(syndFeed.getTitle());
-            
+            feed.setLink(syndFeed.getLink());
+
+            if (syndFeed.getImage() != null) {
+                feed.setImage(syndFeed.getImage().getUrl());
+            }
+
             List<BlogEntry> entries = new ArrayList<BlogEntry>();
             List entryList = syndFeed.getEntries();
             for (Object o : entryList) {
@@ -195,6 +203,11 @@ public class FeedUtils {
     public static BlogEntry convertSyndEntryToFreshEntry(BlogFeed feed, SyndEntry syndEntry) throws AuraException, RemoteException {
         String key = getKey(syndEntry);
         String title = syndEntry.getTitle();
+
+        if (title != null) {
+            title = title.trim();
+        }
+
         BlogEntry entry = new BlogEntry(key, title);
 
         List categories = syndEntry.getCategories();
@@ -230,6 +243,7 @@ public class FeedUtils {
             SyndFeedInput syndFeedInput = new SyndFeedInput();
             connection = url.openConnection();
             connection.setConnectTimeout(30000);
+            connection.setReadTimeout(30000);
             connection.setRequestProperty("User-agent", "aardvark");
             return syndFeedInput.build(new XmlReader(connection));
         } catch (IOException ex) {

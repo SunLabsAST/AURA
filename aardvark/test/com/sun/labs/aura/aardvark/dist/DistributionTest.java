@@ -8,7 +8,7 @@ import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.aardvark.crawler.FeedCrawler;
-import com.sun.labs.aura.aardvark.recommender.RecommenderManager;
+import com.sun.labs.aura.recommender.RecommenderManager;
 import com.sun.labs.aura.aardvark.store.ItemStore;
 import com.sun.labs.aura.aardvark.store.item.Feed;
 import com.sun.labs.aura.aardvark.store.item.User;
@@ -118,7 +118,7 @@ public class DistributionTest {
         Stats stats = aardvark.getStats();
         assertTrue(stats.getNumUsers() == 1);
         assertTrue(stats.getNumFeeds() == 1);
-        assertTrue(stats.getNumItems() == 13);
+        assertTrue(stats.getNumEntries() == 13);
 
         //
         // Clean up.

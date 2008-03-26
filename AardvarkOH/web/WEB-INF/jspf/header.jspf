@@ -1,0 +1,9 @@
+<div class="topCling">
+    Users: <%= statsBean.getNumUsers() %>
+    &nbsp;&nbsp;&nbsp;
+    Feeds: <%= statsBean.getNumFeeds() %>
+    &nbsp;&nbsp;&nbsp;
+    Entries: <%= statsBean.getNumEntries() %>
+    &nbsp;&nbsp;&nbsp;
+    Taste Datapoints: <%= statsBean.getNumTaste() %>
+</div>

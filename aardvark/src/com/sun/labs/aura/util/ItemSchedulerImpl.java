@@ -6,6 +6,7 @@ package com.sun.labs.aura.util;
 
 import com.sun.labs.aura.aardvark.impl.*;
 import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.ItemEvent;
@@ -17,10 +18,12 @@ import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
-import java.util.Set;
+import java.util.Date;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -31,66 +34,93 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         ItemListener, AuraService {
 
     private DelayQueue<DelayedItem> itemQueue;
-    private DelayQueue<DelayedItem> outstandingQueue;
     private ItemListener exportedItemListener;
-    private Thread leaseReclaimer = null;
+    private AtomicInteger waiters = new AtomicInteger();
+    private int newItemTime = 0;
 
     public String getNextItemKey() throws InterruptedException {
-        synchronized (itemQueue) {
-            DelayedItem delayedItem = itemQueue.take();
-            DelayedItem leasedItem = new DelayedItem(delayedItem.getItemKey(),
-                    itemLeaseTime);
-            outstandingQueue.add(leasedItem);
-            return delayedItem.getItemKey();
+        long start = System.currentTimeMillis();
+        waiters.incrementAndGet();
+
+        if (logger.isLoggable(Level.INFO)) {
+            DelayedItem next = itemQueue.peek();
+            if (next != null) {
+                logger.info("in waiters: " + waiters.get() + ", waiting " + next.getDelay(TimeUnit.SECONDS) + " secs, items: " + size());
+            } else {
+                logger.info("in waiters: " + waiters.get() + ", waiting, items: " +  size());
+            }
         }
+
+        DelayedItem delayedItem = itemQueue.take();
+
+
+        long lateSeconds = -delayedItem.getDelay(TimeUnit.SECONDS);
+        if (lateSeconds > 0) {
+
+            // if the delay time is negative, then, we are late at getting to this
+            // item to process it.  If we are later than lateTime, issue a warning
+            // so we will know to add more resources to the scheduling of these items
+
+            if (lateSeconds > lateTime) {
+                logger.warning("schedule of " + delayedItem.getItemKey() + " was " + lateSeconds + " seconds late.");
+            }
+            logger.fine("getting " + delayedItem.getItemKey() + " was late by " +
+                    -delayedItem.getDelay(TimeUnit.SECONDS) + " secs");
+        }
+
+        waiters.decrementAndGet();
+
+        long wait = System.currentTimeMillis() - start;
+        logger.info("out waiters: " + waiters.get() + ", waited " + wait + " msecs, items: " + size()
+                + " who: " + Thread.currentThread().getName());
+
+        return delayedItem.getItemKey();
     }
 
     public void releaseItem(String itemKey, int secondsUntilNextScheduledProcessing) {
         if (secondsUntilNextScheduledProcessing <= 0) {
             secondsUntilNextScheduledProcessing = defaultPeriod;
         }
-        addItem(itemKey, secondsUntilNextScheduledProcessing * 1000);
+        addItem(itemKey, secondsUntilNextScheduledProcessing);
+        logger.fine("released item " + itemKey + " next time is " + secondsUntilNextScheduledProcessing + " secs, cur size " + size());
     }
 
     public void itemCreated(ItemEvent e) throws RemoteException {
         for (Item item : e.getItems()) {
-            addItem(item.getKey(), 0);
+            addItem(item.getKey(), newItemTime);
         }
+        // we want new items to get to cut to the head of the queue, so
+        // we use newItemTime to schedule newly created items earlier then 
+        // anyone else.
+        newItemTime--;
+        logger.info("Added " + e.getItems().length + " items " + " total size is " + size());
     }
 
     public void itemChanged(ItemEvent e) throws RemoteException {
     }
 
     public void itemDeleted(ItemEvent e) throws RemoteException {
-        synchronized (itemQueue) {
-            for (Item item : e.getItems()) {
-                removeFromQueue(item.getKey(), outstandingQueue);
-                removeFromQueue(item.getKey(), itemQueue);
-            }
+        for (Item item : e.getItems()) {
+            deleteItemByKeyFromQueues(item.getKey());
         }
+        logger.info("removed " + e.getItems().length + " items " + " total size is " + size());
     }
 
-    private void processExpiredLeases() {
-        logger.info("lease processing started");
-        try {
-            DelayedItem item = null;
-            while ((item = outstandingQueue.take()) != null) {
-                logger.warning("reclaimed item after lease expired");
-                addItem(item.getItemKey(), 0);
-            }
-        } catch (InterruptedException ex) {
-        }
-        logger.info("lease processing finished");
+    private void deleteItemByKeyFromQueues(String itemKey) {
+        DelayedItem itemToDelete = new DelayedItem(itemKey);
+        itemQueue.remove(itemToDelete);
     }
 
-    synchronized public void newProperties(PropertySheet ps) throws PropertyException {
+    synchronized public void newProperties(final PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
+        logger.info("new properties for " + ps.getInstanceName());
 
         DataStore oldStore = dataStore;
         Item.ItemType oldItemType = itemType;
 
         DataStore newItemStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
         Item.ItemType newItemType = (Item.ItemType) ps.getEnum(PROP_ITEM_TYPE);
+
 
         // everything is connected OK, so lets create our item queues
         // but don't create it if it already exists, since we may already
@@ -99,31 +129,11 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
             itemQueue = new DelayQueue<DelayedItem>();
         }
 
-        if (outstandingQueue == null) {
-            outstandingQueue = new DelayQueue<DelayedItem>();
-        }
 
         itemQueue.clear();
-        outstandingQueue.clear();
 
-
-        if (leaseReclaimer == null) {
-            leaseReclaimer = new Thread() {
-
-                @Override
-                public void run() {
-                    try {
-                        processExpiredLeases();
-                    } finally {
-                        leaseReclaimer = null;
-                    }
-                }
-            };
-            leaseReclaimer.start();
-        }
-
-
-        itemLeaseTime = ps.getInt(PROP_ITEM_LEASE_TIME) * 1000;
+        defaultPeriod = ps.getInt(PROP_DEFAULT_PERIOD);
+        lateTime = ps.getInt(PROP_LATE_TIME);
 
         // if we have a new item store, or a new item type, disconnect from 
         // the old item store, and connect up to the new store.
@@ -147,7 +157,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
                         getRemote(this, newItemStore);
                 newItemStore.addItemListener(newItemType, exportedItemListener);
             } catch (AuraException ex) {
-                throw new PropertyException(ps.getInstanceName(),
+                throw new PropertyException(ex, ps.getInstanceName(),
                         PROP_DATA_STORE, "aura exception " + ex.getMessage());
             } catch (RemoteException ex) {
                 throw new PropertyException(ps.getInstanceName(),
@@ -155,36 +165,42 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
             }
 
 
-            try {
+            dataStore = newItemStore;
+            itemType = newItemType;
 
+            Thread t = new Thread() {
 
-                // collect all of the items of our item type and add them to the
-                // itemQueue.  Stagger the period over the default period
-
-                Set<Item> items = newItemStore.getAll(newItemType);
-                if (items.size() > 0) {
-                    long initialDelay = 0L;
-                    long delayIncrement = defaultPeriod * 1000 / items.size();
-
-                    for (Item item : items) {
-                        addItem(item.getKey(), initialDelay);
-                        initialDelay += delayIncrement;
-                    }
+                public void run() {
+                    collectItems(ps.getInstanceName(), dataStore, itemType);
                 }
-
-                dataStore = newItemStore;
-                itemType = newItemType;
-
-            } catch (AuraException ex) {
-                throw new PropertyException(ps.getInstanceName(),
-                        PROP_DATA_STORE,
-                        "Can't get items from the store " + ex.getMessage());
-            } catch (RemoteException ex) {
-                throw new PropertyException(ps.getInstanceName(),
-                        PROP_DATA_STORE,
-                        "Can't get items from the store " + ex.getMessage());
-            }
+            };
+            t.start();
         }
+    }
+
+    private void collectItems(String name, DataStore ds, Item.ItemType type) {
+        float initialDelay = 0;
+        float delayIncrement = .2f;
+        try {
+            // collect all of the items of our item type and add them to the
+            // itemQueue.  Stagger the period over the default period
+            DBIterator<Item> iter = ds.getItemsAddedSince(type, new Date(0));
+            try {
+                while (iter.hasNext()) {
+                    Item item = iter.next();
+                    addItem(item.getKey(), (int) initialDelay);
+                    initialDelay += delayIncrement;
+                }
+            } finally {
+                iter.close();
+            }
+        } catch (AuraException ex) {
+            logger.severe("Can't get items from the store " + ex.getMessage());
+        } catch (RemoteException ex) {
+            logger.severe("Can't get items from the store " + ex.getMessage());
+        }
+        logger.info(name + "Collected " + size() + " items ");
+        
     }
 
     /**
@@ -192,50 +208,12 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
      * outstanding queue, make sure that no duplicates of the item are on the item queue
      * 
      * @param itemID the item to add
-     * @param delay the delay, in milliseconds, until the item should be made
+     * @param delay the delay, in seconds, until the item should be made
      * available for processing
      */
-    private void addItem(String itemKey, long delay) {
-        synchronized (itemQueue) {
-            boolean inQueue = false;
-
-            // first remove it from the outstanding queue
-
-            removeFromQueue(itemKey, outstandingQueue);
-
-            // check to make sure the item isn't already in the queue
-
-            for (DelayedItem item : itemQueue) {
-                if (itemKey.equals(item.getItemKey())) {
-                    inQueue = true;
-                    break;
-                }
-            }
-
-            // it's not in the queue, so add it
-            if (!inQueue) {
-                itemQueue.add(new DelayedItem(itemKey, delay));
-            }
-        }
-    }
-
-    /**
-     * Removed the given item from the given queue
-     * @param id the id of the item to remove
-     * @param queue the queue from which to remove the item
-     */
-    private void removeFromQueue(String key, DelayQueue<DelayedItem> queue) {
-        DelayedItem queuedItem = null;
-        for (DelayedItem item : queue) {
-            if (key.equals(item.getItemKey())) {
-                queuedItem = item;
-                break;
-            }
-        }
-
-        if (queuedItem != null) {
-            queue.remove(queuedItem);
-        }
+    private void addItem(String itemKey, int delay) {
+        itemQueue.add(new DelayedItem(itemKey, delay));
+        logger.fine("Added item " + itemKey + " delay " + delay);
     }
     /**
      * the configurable property for the itemstore used by this manager
@@ -244,13 +222,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     public final static String PROP_DATA_STORE = "dataStore";
     private DataStore dataStore;
     /**
-     * the configurable property for maximum item lease time in seconds
-     */
-    @ConfigInteger(defaultValue = 60, range = {1, 60 * 60})
-    public final static String PROP_ITEM_LEASE_TIME = "itemLeaseTime";
-    private int itemLeaseTime;
-    /**
-     * the configurable property for type of item to be managed
+     * the confieurable property for type of item to be managed
      */
     @ConfigEnum(type = com.sun.labs.aura.datastore.Item.ItemType.class, defaultValue =
     "")
@@ -262,12 +234,22 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
      */
     @ConfigInteger(defaultValue = 60 * 60, range = {1, 60 * 60 * 24 * 365})
     public final static String PROP_DEFAULT_PERIOD = "defaultPeriod";
-   private int defaultPeriod;
+    private int defaultPeriod;
+    /**
+     * the configurable property for late processing notification tim (in seconds)
+     */
+    @ConfigInteger(defaultValue = 60, range = {1, 60 * 60 * 24 * 365})
+    public final static String PROP_LATE_TIME = "lateTime";
+    private int lateTime;
 
     public void start() {
     }
 
     public void stop() {
+    }
+
+    public int size() {
+        return itemQueue.size();
     }
 }
 
@@ -280,14 +262,17 @@ class DelayedItem implements Delayed {
     private String itemKey;
     private long nextProcessingTime;
 
-    public DelayedItem(String itemKey, long deltaTimeInMilliseconds) {
-        if (deltaTimeInMilliseconds < 0) {
-            deltaTimeInMilliseconds = 0;
+    public DelayedItem(String itemKey, int seconds) {
+        if (seconds < 0) {
+            seconds = 0;
         }
 
         this.itemKey = itemKey;
-        nextProcessingTime = System.currentTimeMillis() +
-                deltaTimeInMilliseconds;
+        nextProcessingTime = System.currentTimeMillis() + seconds * 1000;
+    }
+
+    public DelayedItem(String itemKey) {
+        this(itemKey, 0);
     }
 
     /**
@@ -304,10 +289,31 @@ class DelayedItem implements Delayed {
                 TimeUnit.MILLISECONDS);
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final DelayedItem other = (DelayedItem) obj;
+        if (this.itemKey != other.itemKey && (this.itemKey == null || !this.itemKey.equals(other.itemKey))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 47 * hash + (this.itemKey != null ? this.itemKey.hashCode() : 0);
+        return hash;
+    }
+
     public int compareTo(Delayed o) {
         long result = getDelay(TimeUnit.MILLISECONDS) -
                 o.getDelay(TimeUnit.MILLISECONDS);
         return result < 0 ? -1 : result > 0 ? 1 : 0;
     }
 }
-    

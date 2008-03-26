@@ -2,7 +2,10 @@ package com.sun.labs.aura.datastore.impl.store;
 
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sleepycat.je.DatabaseException;
+import com.sun.kt.search.DocumentVector;
+import com.sun.kt.search.FieldFrequency;
 import com.sun.kt.search.IndexListener;
+import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.SearchEngine;
 import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
@@ -19,6 +22,7 @@ import com.sun.labs.aura.datastore.impl.PartitionCluster;
 import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
+import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigString;
@@ -32,11 +36,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,7 +49,8 @@ import java.util.logging.Logger;
  * An implementation of the item store using the berkeley database as a back
  * end.
  */
-public class BerkeleyItemStore implements Replicant, Configurable, AuraService, IndexListener {
+public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
+        IndexListener {
 
     /**
      * The location of the BDB/JE Database Environment
@@ -218,6 +223,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
         return (User) bdb.getItem(key);
     }
 
+    public User getUserForRandomString(String randStr) throws AuraException {
+        return bdb.getUserForRandomString(randStr);
+    }
+    
     public Item putItem(Item item) throws AuraException {
         boolean existed = false;
         if(item instanceof ItemImpl) {
@@ -255,6 +264,20 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
         return (User) putItem(user);
     }
 
+    /**
+     * Deletes just a user from the item store, not touching the attention.
+     */
+    public void deleteUser(String userKey) throws AuraException {
+        deleteItem(userKey);
+    }
+    
+    /**
+     * Deletes just an item from the item store, not touching the attention.
+     */
+    public void deleteItem(String itemKey) throws AuraException {
+        bdb.deleteItem(itemKey);
+    }
+
     public Set<Item> getItems(User user, Type attnType,
             ItemType itemType)
             throws AuraException {
@@ -266,8 +289,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
             throws AuraException {
         DBIterator<Item> res =
                 bdb.getItemsAddedSince(type, timeStamp.getTime());
-
-        return (DBIterator<Item>) cm.getRemote(res, this);
+        res = (DBIterator<Item>)cm.getRemote(res);
+        return res;
     }
 
     public Set<Attention> getAttentionForSource(String srcKey)
@@ -275,7 +298,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
         return bdb.getAttentionForSource(srcKey);
     }
 
-    
+    public Set<Attention> getAttentionForSource(String srcKey,
+                                                Attention.Type type)
+            throws AuraException {
+        return bdb.getAttentionForSource(srcKey, type);
+    }
+
     public Set<Attention> getAttentionForTarget(String itemKey)
             throws AuraException {
         return bdb.getAttentionForTarget(itemKey);
@@ -290,12 +318,17 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
         return pa;
     }
 
+    public void deleteAttention(String itemKey)
+            throws AuraException, RemoteException {
+        bdb.deleteAttention(itemKey);
+    }
+
     public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)
             throws AuraException {
         DBIterator<Attention> res =
                 bdb.getAttentionAddedSince(timeStamp.getTime());
 
-        return (DBIterator<Attention>) cm.getRemote(res, this);
+        return (DBIterator<Attention>) cm.getRemote(res);
     }
 
     public SortedSet<Attention> getLastAttentionForSource(String srcKey,
@@ -310,6 +343,33 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
             throws AuraException, RemoteException {
         return bdb.getLastAttentionForUser(srcKey, type, count);
     }
+
+    public List<Scored<Item>> query(String query, int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        return query(query, "-score", n, rf);
+    }
+
+    public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        return keysToItems(searchEngine.query(query, sort, n));
+    }
+
+    public DocumentVector getDocumentVector(String key) {
+        return searchEngine.getDocumentVector(key);
+    }
+    
+    public DocumentVector getDocumentVector(String key, String field) {
+        return searchEngine.getDocumentVector(key, field);
+    }
+    
+    public DocumentVector getDocumentVector(String key, WeightedField[] fields) {
+        return searchEngine.getDocumentVector(key, fields);
+    }
+    
+    public List<FieldFrequency> getTopValues(String field, int n,
+            boolean ignoreCase) throws AuraException, RemoteException {
+        return searchEngine.getSearchEngine().getTopFieldValues(field, n, ignoreCase);
+    }
     
     /**
      * Finds a the n most similar items to the given item.
@@ -319,41 +379,31 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public SortedSet<Item> findSimilar(String key, int n)
+    public List<Scored<Item>> findSimilar(DocumentVector dv, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        return null;
+        return keysToItems(searchEngine.findSimilar(dv, n, rf));
     }
 
     /**
-     * Finds the n most-similar items to the given item, based on the data in the 
-     * provided field.
-     * @param key the item for which we want similar items
-     * @param field the name of the field that should be used to find similar
-     * items
-     * @param n the number of similar items to return
-     * @return the set of items most similar to the given item, based on the 
-     * data indexed into the given field.  Note that the returned set may be
-     * smaller than the number of items requested!
+     * Transforms a list of scored keys (as from the search engine) to a list of scored
+     * items. 
+     * @param s the list of keys to transform
+     * @return a set of items, organized by score
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
      */
-    public SortedSet<Item> findSimilar(String key, String field, int n)
+    private List<Scored<Item>> keysToItems(List<Scored<String>> s)
             throws AuraException, RemoteException {
-        return null;
-    }
-    
-    /**
-     * Finds the n most-similar items to the given items, based on a combination
-     * of the data held in the provided fields.
-     * @param key the item for which we want similar items
-     * @param fields the fields (and associated weights) that we should use to 
-     * compute the similarity between items.
-     * @param n the number of similar items to return
-     * @return the set of items most similar to the given item, based on the data
-     * in the provided fields.   Note that the returned set may be
-     * smaller than the number of items requested!
-     */
-    public SortedSet<Item> findSimilar(String key, WeightedField[] fields, int n)
-            throws AuraException, RemoteException {
-        return null;
+        List<Scored<Item>> ret = new ArrayList<Scored<Item>>();
+        for(Scored<String> ss : s) {
+            Item item = getItem(ss.getItem());
+            if(item == null) {
+                logger.info("null item for key: " + ss.getItem());
+                continue;
+            }
+            ret.add(new Scored<Item>(item, ss));
+        }
+        return ret;
     }
 
     public void addItemListener(ItemType itemType, ItemListener listener)
@@ -404,22 +454,23 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
         // Queue the event for later delivery
         changeEvents.offer(new ChangeEvent(item, ctype));
     }
-    
+
     /**
      * Adds an item to a itemType->changeType->item map of maps.
      */
-    private void addItem(ChangeEvent ce, 
-            Map<ItemType, Map<ItemEvent.ChangeType,List<ItemImpl>>> eventsByType, 
+    private void addItem(ChangeEvent ce,
+            Map<ItemType, Map<ItemEvent.ChangeType, List<ItemImpl>>> eventsByType,
             ItemType type) {
-        
+
         //
         // Our per-item type map.
-        Map<ItemEvent.ChangeType, List<ItemImpl>> eventMap = eventsByType.get(type);
+        Map<ItemEvent.ChangeType, List<ItemImpl>> eventMap =
+                eventsByType.get(type);
         if(eventMap == null) {
             eventMap = new HashMap<ItemEvent.ChangeType, List<ItemImpl>>();
             eventsByType.put(type, eventMap);
         }
-        
+
         //
         // Our per-change type map and list of items.
         List<ItemImpl> l = eventMap.get(ce.type);
@@ -437,34 +488,33 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
      * dumped to disk.  These are really strings.
      */
     private synchronized void sendChangedEvents(Set<Object> keys) {
-        
+
         //
         // OK, this is a bit tricky:  we want to send events by item type and
         // then by change type, so we need a map to a map.  We also want to send
         // events of all types, so we'll have a separate map from change type
         // to item for that.
-        Map<ItemType, Map<ItemEvent.ChangeType,List<ItemImpl>>> eventsByType =
-                new HashMap<ItemType, Map<ItemEvent.ChangeType,List<ItemImpl>>>();
+        Map<ItemType, Map<ItemEvent.ChangeType, List<ItemImpl>>> eventsByType =
+                new HashMap<ItemType, Map<ItemEvent.ChangeType, List<ItemImpl>>>();
 
         //
         // Process our stored change events against the keys we were given.
         // We'll try to process however many elements are in the queue at 
         // this point.
         int n = changeEvents.size();
-        logger.info(n + " change events");
         for(int i = 0; i < n; i++) {
             ChangeEvent ce = changeEvents.poll();
-            
+
             //
             // We probably shouldn't get null, but just in case.
             if(ce == null) {
                 break;
             }
-            
+
             //
             // If this item is in our set, then process it.
             if(keys.contains(ce.item.getKey())) {
-         
+
                 //
                 // Add this item to the all events type map and the per-events
                 // type map.
@@ -480,21 +530,23 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
         //
         // For each type for which there is at least one listener:
         for(ItemType itemType : listenerMap.keySet()) {
-            
-            Map<ItemEvent.ChangeType,List<ItemImpl>> te = eventsByType.get(itemType);
+
+            Map<ItemEvent.ChangeType, List<ItemImpl>> te =
+                    eventsByType.get(itemType);
             if(te == null) {
                 continue;
             }
-            
+
             //
             // Send the events of each change type to each of the listeners.
-            for(Map.Entry<ItemEvent.ChangeType,List<ItemImpl>> e : te.entrySet()) {
+            for(Map.Entry<ItemEvent.ChangeType, List<ItemImpl>> e : te.entrySet()) {
                 for(ItemListener il : listenerMap.get(itemType)) {
                     try {
                         il.itemChanged(new ItemEvent(e.getValue().
-                        toArray(new ItemImpl[0]), e.getKey()));
+                                toArray(new ItemImpl[0]), e.getKey()));
                     } catch(RemoteException ex) {
-                        logger.log(Level.SEVERE, "Error sending change events", ex);
+                        logger.log(Level.SEVERE, "Error sending change events",
+                                ex);
                     }
                 }
             }
@@ -509,8 +561,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
         // Queue up this item to be sent out
         createEvents.offer(item);
     }
-    
-    private void addItem(ItemImpl item, Map<ItemType, List<ItemImpl>> m, ItemType type) {
+
+    private void addItem(ItemImpl item, Map<ItemType, List<ItemImpl>> m,
+            ItemType type) {
         List<ItemImpl> l = m.get(type);
         if(l == null) {
             l = new ArrayList<ItemImpl>();
@@ -523,9 +576,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
      * Sends any queued up create events
      */
     private synchronized void sendCreatedEvents(Set<Object> keys) {
-        
-        Map<ItemType, List<ItemImpl>> newItems = new HashMap<ItemType, List<ItemImpl>>();
-        
+
+        Map<ItemType, List<ItemImpl>> newItems =
+                new HashMap<ItemType, List<ItemImpl>>();
+
         //
         // Process the new items we've accumulated, sending events for those
         // that are in our set of keys.  We'll process however much stuff is 
@@ -548,12 +602,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
         // For each type of item for which there is a listener, batch up
         // the items of that type and send them off together.
         for(ItemType itemType : listenerMap.keySet()) {
-            
+
             List<ItemImpl> l = newItems.get(itemType);
             if(l == null) {
                 continue;
             }
-            
+
             for(ItemListener il : listenerMap.get(itemType)) {
                 try {
                     il.itemCreated(new ItemEvent(l.toArray(new ItemImpl[0])));
@@ -575,7 +629,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService, 
             logger.log(Level.WARNING, "Error closing item store", ae);
         }
     }
-    
+
     public void partitionAdded(SearchEngine e, Set<Object> keys) {
         sendCreatedEvents(keys);
         sendChangedEvents(keys);

@@ -1,8 +1,13 @@
 
 package com.sun.labs.aura.datastore.impl;
 
+import com.sun.kt.search.DocumentVector;
+import com.sun.kt.search.FieldFrequency;
+import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.cluster.Cluster;
+import com.sun.labs.aura.cluster.KMeans;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
@@ -12,15 +17,26 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
+import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.Scored;
+import com.sun.labs.util.props.ConfigComponent;
+import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -31,6 +47,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import ngnova.pipeline.StopWords;
+import ngnova.retrieval.MultiDocumentVectorImpl;
 
 /**
  * A instance of an access point into the Data Store.  Data Store Heads
@@ -50,6 +68,10 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     
     protected static Logger logger = Logger.getLogger("");
     
+    @ConfigComponent(type=ngnova.pipeline.StopWords.class,mandatory=false)
+    public static final String PROP_STOPWORDS = "stopwords";
+    protected StopWords stop;
+
     public DataStoreHead() {
         trie = new BinaryTrie<PartitionCluster>();
         executor = Executors.newCachedThreadPool();
@@ -112,6 +134,29 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return pc.getUser(key);
     }
 
+    /**
+     * Gets a user based on the random string that is associated with that
+     * user.
+     * 
+     * @param randStr the random string
+     * @return the user associated with the string
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public User getUserForRandomString(String randStr)
+            throws AuraException, RemoteException {
+        //
+        // The first 8 characters of the random string are the hash code of
+        // the user.  To make things easy, the entire string is what we store.
+        // We use 9 characters because the hash code may have a - (or be padded
+        // with zero if it isn't)
+        String hashHex = randStr.substring(0, 9);
+        PartitionCluster pc =
+                trie.get(DSBitSet.parse(Util.hexToInt(hashHex)));
+        return pc.getUserForRandomString(randStr);
+    }
+
+    
     public Item putItem(Item item) throws AuraException, RemoteException {
         //
         // Which partition cluster does this item belong to?
@@ -126,11 +171,50 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         //
         // Which partition cluster does this item belong to?
         PartitionCluster pc = trie.get(DSBitSet.parse(user.hashCode()));
-        
+        logger.warning("putting user in pc " + pc.getPrefix());
         //
         // Ask the partition cluster to store the user and return it.
         return pc.putUser(user);
-
+    }
+    
+    public void deleteItem(final String itemKey)
+            throws AuraException, RemoteException {
+        //
+        // Delete the item, then any attention that had the item as a target.
+        PartitionCluster pc = trie.get(DSBitSet.parse(itemKey.hashCode()));
+        pc.deleteItem(itemKey);
+        
+        //
+        // Now tell everybody to delete the attention associated with that
+        // key
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<Object>> callers = new HashSet<Callable<Object>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+                public Object call() throws AuraException, RemoteException {
+                    pc.deleteAttention(itemKey);
+                    return null;
+                }
+            });
+        }
+        
+        //
+        // Run all the deletes
+        try {
+            List<Future<Object>> results = executor.invokeAll(callers);
+            for (Future<Object> future: results) {
+                future.get();
+            }
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+    }
+    
+    public void deleteUser(String itemKey)
+            throws AuraException, RemoteException {
+        deleteItem(itemKey);
     }
 
     public DBIterator<Item> getItemsAddedSince(final ItemType type,
@@ -173,7 +257,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         // iterate over all of them.  Since no particular ordering is
         // promised by this method, we'll use a simple composite iterator.
         MultiDBIterator<Item> mdbi = new MultiDBIterator<Item>(iterators);
-        return (MultiDBIterator<Item>) cm.getRemote(mdbi, this);
+        return (DBIterator<Item>) cm.getRemote(mdbi);
     }
 
     public Set<Item> getItems(final User user,
@@ -183,35 +267,33 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         //
         // Make this call across all partitions, then combine the results
         // into a set.  The set has no particular ordering semantics at this
-        // time.
-        Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<Set<Item>>> callers = new HashSet<Callable<Set<Item>>>();
-        for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
-                public Set<Item> call() throws AuraException, RemoteException {
-                    return pc.getItems(user, attnType, itemType);
-                }
-            });
+        // time.  We need to do this in two steps since the targets of the
+        // attentions don't necessarily live in the same partition as the
+        // attentions themselves.  First get all the relevant attention, then
+        // get all the target items of the right type.
+        Set<Attention> attns = getAttentionFor(user.getKey(), true, attnType);
+        Set<String> targets = new HashSet<String>();
+        for (Attention a : attns) {
+            targets.add(a.getTargetKey());
         }
         
         //
-        // Run them all and collect up the results
+        // Get all the items, checking their types.  This could be optimized
+        // by sorting the item keys by partition, then asking each partition
+        // to return a subset of items that match the given type
         Set<Item> ret = new HashSet<Item>();
-        try {
-            List<Future<Set<Item>>> results = executor.invokeAll(callers);
-            for (Future<Set<Item>> future : results) {
-                ret.addAll(future.get());
+        for (String target : targets) {
+            Item i = getItem(target);
+            if (i.getType() == itemType) {
+                ret.add(i);
             }
-        } catch (InterruptedException e) {
-            throw new AuraException("Execution was interrupted", e);
-        } catch (ExecutionException e) {
-            checkAndThrow(e);
         }
         return ret;
     }
 
-    public Set<Attention> getAttentionFor(final String itemKey,
-                                          final boolean isSrc)
+    protected Set<Attention> getAttentionFor(final String itemKey,
+                                             final boolean isSrc,
+                                             final Attention.Type type)
             throws AuraException, RemoteException {
         //
         // Ask all the partitions to gather up their attention for this item.
@@ -224,7 +306,11 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                 public Set<Attention> call()
                         throws AuraException, RemoteException {
                     if (isSrc) {
-                        return pc.getAttentionForSource(itemKey);
+                        if (type == null) {
+                            return pc.getAttentionForSource(itemKey);
+                        } else {
+                            return pc.getAttentionForSource(itemKey, type);
+                        }
                     } else {
                         return pc.getAttentionForTarget(itemKey);
                     }
@@ -250,12 +336,12 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
     public Set<Attention> getAttentionForSource(String srcKey)
             throws AuraException, RemoteException {
-        return getAttentionFor(srcKey, true);
+        return getAttentionFor(srcKey, true, null);
     }
 
     public Set<Attention> getAttentionForTarget(String itemKey)
             throws AuraException, RemoteException {
-        return getAttentionFor(itemKey, false);
+        return getAttentionFor(itemKey, false, null);
     }
 
     public Attention attend(Attention att)
@@ -300,7 +386,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         // iterate over all of them.  Since no particular ordering is
         // promised by this method, we'll use a simple composite iterator.
         MultiDBIterator<Attention> mdbi = new MultiDBIterator<Attention>(ret);
-        return (MultiDBIterator<Attention>) cm.getRemote(mdbi, this);
+        return (DBIterator<Attention>) cm.getRemote(mdbi);
 
     }
 
@@ -492,81 +578,142 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
      *  Search methods
      *
      */
-    public SortedSet<Item> findSimilar(String key, int n)
-            throws AuraException, RemoteException {
-        return findSimilar(key, (String)null, n);
-    }
-
-    public SortedSet<Item> findSimilar(String key, final String field, int n)
-            throws AuraException, RemoteException {
-        WeightedField wf = new WeightedField(field, 1);
-        return findSimilar(key, new WeightedField[]{wf}, n);
-    }
-
-    public SortedSet<Item> findSimilar(final String key,
-                                       final WeightedField[] fields,
-                                       final int n)
-            throws AuraException, RemoteException {
+    
+    public List<FieldFrequency> getTopValues(
+            final String field, 
+            final int n, 
+            final boolean ignoreCase) throws RemoteException, AuraException {
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<SortedSet<Item>>> callers =
-                new HashSet<Callable<SortedSet<Item>>>();
-        for (PartitionCluster p : clusters) {
+        List<Callable<List<FieldFrequency>>> callers =
+                new ArrayList<Callable<List<FieldFrequency>>>();
+        //
+        // Here's our list of callers to find similar.
+        for(PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
-                public SortedSet<Item> call()
+
+                public List<FieldFrequency> call()
                         throws AuraException, RemoteException {
-                    if (fields == null) {
-                        return pc.findSimilar(key, n);
-                    } else if (fields.length == 1) {
-                        return pc.findSimilar(key, fields[0].getFieldName(), n);
-                    } else {
-                        return pc.findSimilar(key, fields, n);
-                    }
+                    return pc.getTopValues(field, n, ignoreCase);
                 }
             });
         }
-        
+
         //
-        // Combine the results, then return only the top n
-        SortedSet<Item> ret = null;
+        // Run the computation, sort the results and return.
         try {
-            List<Future<SortedSet<Item>>> results = executor.invokeAll(callers);
-            for (Future<SortedSet<Item>> future : results) {
-                SortedSet<Item> curr = future.get();
-                if (curr != null) {
-                    if (ret == null) {
-                        //
-                        // Make a new set with the contents and comparator from
-                        // curr
-                        ret = new TreeSet<Item>(curr);
-                    } else {
-                        ret.addAll(curr);
+            Map<Object,FieldFrequency> m = new HashMap<Object,FieldFrequency>();
+            for(Future<List<FieldFrequency>> f : executor.invokeAll(callers)) {
+                for(FieldFrequency ff : f.get()) {
+                    FieldFrequency c = m.get(ff.getVal());
+                    if(c == null) {
+                        c = new FieldFrequency(ff.getVal(), 0);
+                        m.put(ff.getVal(), c);
                     }
+                    c.setFreq(c.getFreq() + ff.getFreq());
                 }
             }
-        } catch (InterruptedException e) {
-            throw new AuraException("Execution was interrupted", e);
-        } catch (ExecutionException e) {
-            checkAndThrow(e);
-        }
-        
-        if (ret == null) {
-            return new TreeSet<Item>();
-        }
-        
-        //
-        // Make a set of the top n to return
-        SortedSet<Item> retCnted = new TreeSet<Item>(ret.comparator());
-        Iterator<Item> it = ret.iterator();
-        for (int i = 0; i < n; i++) {
-            if (it.hasNext()) {
-                retCnted.add(it.next());
-            } else {
-                break;
+            
+            List<FieldFrequency> all = new ArrayList<FieldFrequency>(m.values());
+            Collections.sort(all);
+            Collections.reverse(all);
+            List<FieldFrequency> ret = new ArrayList<FieldFrequency>();
+            for(int i = 0; i < n && i < all.size(); i++) {
+                ret.add(all.get(i));
             }
+            return ret;
+        } catch(ExecutionException ex) {
+            checkAndThrow(ex);
+            return new ArrayList<FieldFrequency>();
+        } catch(InterruptedException ie) {
+            throw new AuraException("getTopValues interrupted", ie);
         }
-        return retCnted;
+
+        
+    }
+    
+    public DocumentVector getDocumentVector(String key, String field) throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
+        return pc.getDocumentVector(key);
+    }
+    
+    public List<Scored<Item>> findSimilar(String key, int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
+        DocumentVector dv = pc.getDocumentVector(key);
+        return findSimilar(dv, n, rf);
     }
 
+    public List<Scored<Item>> findSimilar(String key, final String field,
+            int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
+        DocumentVector dv = pc.getDocumentVector(key, field);
+        return findSimilar(dv, n, rf);
+    }
+
+    public List<Scored<Item>> findSimilar(List<String> keys, int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        List<DocumentVector> dvs = new ArrayList<DocumentVector>();
+        for(String key : keys) {
+            PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
+            dvs.add(pc.getDocumentVector(key));
+        }
+        MultiDocumentVectorImpl mdvi = new MultiDocumentVectorImpl(dvs);
+        return findSimilar(mdvi, n, rf);
+    }
+
+    public List<Scored<Item>> findSimilar(List<String> keys,
+            final String field,
+            int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        List<DocumentVector> dvs = new ArrayList<DocumentVector>();
+        for(String key : keys) {
+            PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
+            dvs.add(pc.getDocumentVector(key, field));
+        }
+        MultiDocumentVectorImpl mdvi = new MultiDocumentVectorImpl(dvs);
+        return findSimilar(mdvi, n, rf);
+    }
+
+    public List<Scored<Item>> findSimilar(final String key,
+            final WeightedField[] fields,
+            final int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
+        DocumentVector dv = pc.getDocumentVector(key, fields);
+        return findSimilar(dv, n, rf);
+    }
+
+    private List<Scored<Item>> findSimilar(DocumentVector dv, final int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        Set<PartitionCluster> clusters = trie.getAll();
+        List<Callable<List<Scored<Item>>>> callers =
+                new ArrayList<Callable<List<Scored<Item>>>>();
+        //
+        // Here's our list of callers to find similar.
+        for(PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p, dv, rf) {
+
+                public List<Scored<Item>> call()
+                        throws AuraException, RemoteException {
+                    return pc.findSimilar(dv, n, rf);
+                }
+            });
+        }
+
+        //
+        // Run the computation, sort the results and return.
+        try {
+            return sortScored(executor.invokeAll(callers), n);
+        } catch(ExecutionException ex) {
+            checkAndThrow(ex);
+            return new ArrayList<Scored<Item>>();
+        } catch(InterruptedException ie) {
+            throw new AuraException("findSimilar interrupted", ie);
+        }
+
+    }
+ 
 
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
@@ -602,9 +749,38 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
      *  Utility and configuration methods
      * 
      */
-    
+    private List<Scored<Item>> sortScored(List<Future<List<Scored<Item>>>> results,
+            int n) throws InterruptedException, ExecutionException {
+        PriorityQueue<Scored<Item>> sorter = new PriorityQueue<Scored<Item>>(n);
+        for(Future<List<Scored<Item>>> future : results) {
+            List<Scored<Item>> curr = future.get();
+            if(curr != null) {
+                for(Scored<Item> item : curr) {
+                    if(sorter.size() < n) {
+                        sorter.offer(item);
+                    } else {
+                        if(item.compareTo(sorter.peek()) > 0) {
+                            sorter.poll();
+                            sorter.offer(item);
+                        }
+                    }
+                }
+            }
+        }
+
+        //
+        // Get the top n.
+        List<Scored<Item>> ret = new ArrayList<Scored<Item>>(sorter.size());
+        while(sorter.size() > 0) {
+            ret.add(sorter.poll());
+        }
+        Collections.reverse(ret);
+        return ret;
+    }
+
     public void newProperties(PropertySheet ps) throws PropertyException {
         cm = ps.getConfigurationManager();
+        stop = (StopWords) ps.getComponent(PROP_STOPWORDS);
     }
     
     public void registerPartitionCluster(PartitionCluster pc)
@@ -614,8 +790,22 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
     protected abstract class PCCaller<V> implements Callable {
         protected PartitionCluster pc;
+        
+        protected DocumentVector dv;
+        
+        protected ResultsFilter rf;
+
         public PCCaller(PartitionCluster pc) {
             this.pc = pc;
+        }
+
+        public PCCaller(PartitionCluster pc, DocumentVector dv, ResultsFilter rf) {
+            this.pc = pc;
+            this.rf = rf;
+            //
+            // Take a copy of the document vector, because we don't want the
+            // same one handed to multiple threads!
+            this.dv = dv.copy();
         }
         
         public abstract V call() throws AuraException, RemoteException;
@@ -637,6 +827,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         } else if (e.getCause() instanceof RemoteException) {
             throw (RemoteException)e.getCause();
         } else {
+            logger.log(Level.INFO, "Error?", e);
             throw new AuraException("Execution failed", e);
         }
 
@@ -652,6 +843,46 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to close DataStoreHead cleanly", e);
         }
+    }
+
+    public List<Scored<Item>> query(String query, int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        return query(query, "-score", n, rf);
+    }
+
+    public List<Scored<Item>> query(final String query, final String sort,
+            final int n, final ResultsFilter rf)
+            throws AuraException, RemoteException {
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<List<Scored<Item>>>> callers =
+                new HashSet<Callable<List<Scored<Item>>>>();
+        for(PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+                public List<Scored<Item>> call()
+                        throws AuraException, RemoteException {
+                    return pc.query(query, sort, n, rf);
+                }
+            });
+        }
+        try {
+        return sortScored(executor.invokeAll(callers), n);
+        } catch(ExecutionException ex) {
+            checkAndThrow(ex);
+            return new ArrayList<Scored<Item>>();
+        } catch (InterruptedException e) {
+            throw new AuraException("Query interrupted", e);
+        }
+
+    }
+
+    public StopWords getStopWords() {
+        return stop;
+    }
+    
+    public List<Cluster> cluster(List<String> keys, String field, int k) throws AuraException, RemoteException {
+        KMeans km = new KMeans(keys, this, field, k, 200);
+        km.cluster();
+        return km.getClusters();
     }
 
 }

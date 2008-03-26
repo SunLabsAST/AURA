@@ -14,6 +14,7 @@ import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -21,13 +22,14 @@ import java.util.Set;
  * An aardvark feed item
  * @author plamere
  */
-public class BlogFeed extends ItemAdapter {
+public class BlogFeed extends ItemAdapter implements Serializable {
 
     // field names
     private final static String FIELD_DESCRIPTION = "description";
     private final static String FIELD_IMAGE = "image";
     private final static String FIELD_AUTHOR = "author";
     private final static String FIELD_TAG = "tag";
+    private final static String FIELD_LINK = "link";
     private final static String FIELD_AUTHORITY = "authority";
     private final static String FIELD_LAST_PULL_TIME = "lastPullTime";
     private final static String FIELD_NUM_PULLS = "numPulls";
@@ -68,6 +70,14 @@ public class BlogFeed extends ItemAdapter {
      */
     public void setImage(String imageLink) {
         setField(FIELD_IMAGE, imageLink);
+    }
+
+    /**
+     * Sets the link for a feed. 
+     * @param link the link ot the image
+     */
+    public void setLink(String link) {
+        setField(FIELD_LINK, link);
     }
 
     /**
@@ -127,6 +137,10 @@ public class BlogFeed extends ItemAdapter {
         return getFieldAsInt(FIELD_NUM_PULLS);
     }
 
+    public long getLastPullTime() {
+        return getFieldAsLong(FIELD_LAST_PULL_TIME);
+    }
+
     /**
      * Gets the number of consecutive pull errors
      * @return the number of consecutive pull errors
@@ -158,6 +172,14 @@ public class BlogFeed extends ItemAdapter {
      */
     public String getImage() {
         return getFieldAsString(FIELD_IMAGE);
+    }
+
+    /**
+     * Gets a link to the feed
+     * @return the link to the image
+     */
+    public String getLink() {
+        return getFieldAsString(FIELD_LINK);
     }
 
     /**
