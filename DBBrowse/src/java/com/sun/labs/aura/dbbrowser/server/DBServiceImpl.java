@@ -19,6 +19,11 @@ import com.sun.labs.aura.dbbrowser.client.DBService;
 public class DBServiceImpl extends RemoteServiceServlet implements
         DBService {
     
+    protected static Aardvark aardvark;
+    
+    public DBServiceImpl() {
+        
+    }
 
     public ItemDesc[] searchItemByKey(String key) {
         ItemDesc[] results = new ItemDesc[3];
