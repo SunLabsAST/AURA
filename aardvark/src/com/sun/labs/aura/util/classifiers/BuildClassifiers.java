@@ -14,7 +14,10 @@ import com.sun.kt.search.SearchEngine;
 import com.sun.kt.search.SearchEngineFactory;
 import com.sun.labs.util.SimpleLabsLogFormatter;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,22 +44,18 @@ public class BuildClassifiers implements Runnable {
     
     private ResultsFilter lengthFilter;
     
-    private StopWords stop;
-    
     public BuildClassifiers(List<String> classes, 
             String vectoredField,
             String assignedField,
             String fieldName,
             SearchEngine e,
-            ResultsFilter lengthFilter,
-            StopWords stop) {
+            ResultsFilter lengthFilter) {
         this.classes = classes;
         this.engine = e;
         this.vectoredField = vectoredField;
         this.assignedField = assignedField;
         this.fieldName = fieldName;
         this.lengthFilter = lengthFilter;
-        this.stop = stop;
     }
     
     public void run() {
@@ -65,10 +64,6 @@ public class BuildClassifiers implements Runnable {
         logger.info(Thread.currentThread().getName() + " training " + classes.size() + " classifiers");
         StopWatch sw = new StopWatch();
         for(String className : classes) {
-            if(stop.isStop(className)) {
-                logger.info("Ignoring class: " + className);
-                continue;
-            }
             sw.reset();
             sw.start();
             try {
@@ -134,19 +129,16 @@ public class BuildClassifiers implements Runnable {
         //
         // Handle the options.
         int c;
-        List<String> classes = new ArrayList<String>();
+        Set<String> classes = new LinkedHashSet<String>();
         String indexDir = null;
-        String fieldName = null;
-        String assignedField = null;
-        String vectoredField = null;
+        String fieldName = "tag";
+        String assignedField = "autotag";
+        String vectoredField = "content";
         String engineName = "aardvark_search_engine";
         int numChars = 200;
         int numThreads = 1;
         StopWords sw = new StopWords();
-
-        //
-        // The number of top classes to build.
-        int top = 100;
+        int top = 500;
         while((c = gopt.getopt()) != -1) {
             switch(c) {
                 case 'a':
@@ -192,14 +184,18 @@ public class BuildClassifiers implements Runnable {
 
         //
         // If there are no specific classes to build, we'll build the most frequent.
-        if(classes.size() == 0) {
-            classes = Util.getTopClasses(engine, fieldName, top);
+        if(top > 0) {
+            classes.addAll(Util.getTopClasses(engine, fieldName, top));
         }
-
+        
         //
-        // Check for the field name to which we'll assign classification results.
-        if(assignedField == null) {
-            assignedField = "assigned-" + fieldName;
+        // Throw out the weird ones.
+        for(Iterator<String> i = classes.iterator(); i.hasNext(); ) {
+            String cn = i.next();
+            if(sw.isStop(cn)) {
+                logger.info("Ignoring class named: " + cn);
+                i.remove();
+            }
         }
 
         //
@@ -218,9 +214,10 @@ public class BuildClassifiers implements Runnable {
         if(classes.size() % numThreads != 0) {
             size++;
         }
+        List<String> cl = new ArrayList<String>(classes);
         for(int i = 0, start = 0; i < numThreads; i++, start += size) {
-            BuildClassifiers bc = new BuildClassifiers(classes.subList(start, Math.min(start+size, classes.size())), 
-                    vectoredField, assignedField, fieldName, engine, lengthFilter, sw);
+            BuildClassifiers bc = new BuildClassifiers(cl.subList(start, Math.min(start+size, cl.size())), 
+                    vectoredField, assignedField, fieldName, engine, lengthFilter);
             Thread t = new Thread(bc);
             t.setName("BC-" + i);
             t.start();
