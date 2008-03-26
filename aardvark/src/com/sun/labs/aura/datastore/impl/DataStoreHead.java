@@ -6,6 +6,8 @@ import com.sun.kt.search.FieldFrequency;
 import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.cluster.Cluster;
+import com.sun.labs.aura.cluster.KMeans;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
@@ -18,6 +20,8 @@ import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.util.props.ConfigComponent;
+import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
@@ -43,6 +47,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import ngnova.pipeline.StopWords;
 import ngnova.retrieval.MultiDocumentVectorImpl;
 
 /**
@@ -604,10 +609,14 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                 }
             }
             
-            List<FieldFrequency> ret = new ArrayList<FieldFrequency>(m.values());
-            Collections.sort(ret);
-            Collections.reverse(ret);
-            return ret.subList(0, n);
+            List<FieldFrequency> all = new ArrayList<FieldFrequency>(m.values());
+            Collections.sort(all);
+            Collections.reverse(all);
+            List<FieldFrequency> ret = new ArrayList<FieldFrequency>();
+            for(int i = 0; i < n && i < all.size(); i++) {
+                ret.add(all.get(i));
+            }
+            return ret;
         } catch(ExecutionException ex) {
             checkAndThrow(ex);
             return new ArrayList<FieldFrequency>();
@@ -767,6 +776,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         cm = ps.getConfigurationManager();
+        stop = (StopWords) ps.getComponent(PROP_STOPWORDS);
     }
     
     public void registerPartitionCluster(PartitionCluster pc)

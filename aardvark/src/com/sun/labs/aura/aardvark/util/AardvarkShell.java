@@ -13,6 +13,8 @@ import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
+import com.sun.labs.aura.cluster.Cluster;
+import com.sun.labs.aura.cluster.ClusterElement;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DBIterator;
