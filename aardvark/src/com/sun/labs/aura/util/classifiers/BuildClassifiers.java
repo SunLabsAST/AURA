@@ -24,16 +24,95 @@ import ngnova.util.StopWatch;
 /**
  * A class to build search engine classifiers for the aardvark data.
  */
-public class BuildClassifiers {
+public class BuildClassifiers implements Runnable {
+    
+    private static Logger logger;
+    
+    private List<String> classes;
+    
+    private SearchEngine engine;
+    
+    private String vectoredField;
+    
+    private String assignedField;
+    
+    private String fieldName;
+    
+    private ResultsFilter lengthFilter;
+    
+    public BuildClassifiers(List<String> classes, 
+            String vectoredField,
+            String assignedField,
+            String fieldName,
+            SearchEngine e,
+            ResultsFilter lengthFilter) {
+        this.classes = classes;
+        this.engine = e;
+        this.vectoredField = vectoredField;
+        this.assignedField = assignedField;
+        this.fieldName = fieldName;
+        this.lengthFilter = lengthFilter;
+    }
+    
+    public void run() {
+        //
+        // Now, build a class for each topic.
+        logger.info(Thread.currentThread().getName() + " training " + classes.size() + " classifiers");
+        StopWatch sw = new StopWatch();
+        for(String className : classes) {
+            sw.reset();
+            sw.start();
+            try {
+                String query =
+                        String.format("aura-type = blogentry <and> %s = \"%s\"",
+                        fieldName, className);
+                ResultSet r = engine.search(query, "-score");
+                r.setResultsFilter(lengthFilter);
+                if(r.size() > 0) {
+                    logger.info(Thread.currentThread().getName() + 
+                            " training " + className + ", " + r.size() +
+                            " examples");
+                    Progress p = new Progress() {
+
+                        public void start(int steps) {
+                        }
+
+                        public void next(String s) {
+                            logger.fine("Progress: " + s);
+                        }
+
+                        public void next() {
+                        }
+
+                        public void done() {
+                        }
+                    };
+                    engine.trainClass(r, className, assignedField, vectoredField,
+                            p);
+                    sw.stop();
+                    logger.info(Thread.currentThread().getName() + 
+                            " trained " + className + ", " +
+                            r.size() + " examples, " +
+                            sw.getTime() + "ms");
+                } else {
+                    logger.info("No training examples for " + className);
+                }
+            } catch(Exception e) {
+                logger.log(Level.SEVERE, "Exception", e);
+
+            }
+        }
+        
+    }
 
     public static void main(String[] args) throws Exception {
 
-        String flags = "a:c:d:e:k:f:t:v:";
+        String flags = "a:c:d:e:k:f:r:t:v:";
         Getopt gopt = new Getopt(args, flags);
 
         //
         // Use the labs format logging.
-        final Logger logger = Logger.getLogger("");
+        logger = Logger.getLogger("");
         for(Handler h : logger.getHandlers()) {
             h.setFormatter(new SimpleLabsLogFormatter());
         }
@@ -53,6 +132,7 @@ public class BuildClassifiers {
         String vectoredField = null;
         String engineName = "aardvark_search_engine";
         int numChars = 200;
+        int numThreads = 1;
 
         //
         // The number of top classes to build.
@@ -76,6 +156,9 @@ public class BuildClassifiers {
                     break;
                 case 'k':
                     numChars = Integer.parseInt(gopt.optArg);
+                    break;
+                case 'r':
+                    numThreads = Integer.parseInt(gopt.optArg);
                     break;
                 case 't':
                     top = Integer.parseInt(gopt.optArg);
@@ -116,56 +199,31 @@ public class BuildClassifiers {
                 return v != null && v.toString().length() >= fooChars;
             }
         };
-
-        //
-        // Now, build a class for each topic.
-        logger.info("Training " + classes.size() + " classifiers");
-        StopWatch sw = new StopWatch();
-        for(String className : classes) {
-            sw.reset();
-            sw.start();
+        
+        List<Thread> lt = new ArrayList<Thread>();
+        int size = classes.size() / numThreads;
+        if(classes.size() % numThreads != 0) {
+            size++;
+        }
+        for(int i = 0, start = 0; i < numThreads; i++, start += size) {
+            BuildClassifiers bc = new BuildClassifiers(classes.subList(start, Math.min(start+size, classes.size())), 
+                    vectoredField, assignedField, fieldName, engine, lengthFilter);
+            Thread t = new Thread(bc);
+            t.setName("BC-" + i);
+            t.start();
+            lt.add(t);
+        }
+        
+        for(Thread t : lt) {
             try {
-                String query =
-                        String.format("aura-type = blogentry <and> %s = \"%s\"",
-                        fieldName, className);
-                ResultSet r = engine.search(query, "-score");
-                r.setResultsFilter(lengthFilter);
-                if(r.size() > 0) {
-                    logger.info(" Training " + className + ", " + r.size() +
-                            " examples");
-                    Progress p = new Progress() {
-
-                        public void start(int steps) {
-                        }
-
-                        public void next(String s) {
-                            logger.fine("Progress: " + s);
-                        }
-
-                        public void next() {
-                        }
-
-                        public void done() {
-                        }
-                    };
-                    engine.trainClass(r, className, assignedField, vectoredField,
-                            p);
-                    sw.stop();
-                    logger.info(" Trained " + className + ", " +
-                            r.size() + " examples, " +
-                            sw.getTime() + "ms");
-                } else {
-                    logger.info("No training examples for " + className);
-                }
-            } catch(Exception e) {
-                logger.log(Level.SEVERE, "Exception", e);
-
+                t.join();
+            } catch (InterruptedException ie) {
+                
             }
         }
 
         //
         // Make sure our classifiers are flushed out.
-        // engine.dumpClassifiers();
         engine.close();
     }
 
