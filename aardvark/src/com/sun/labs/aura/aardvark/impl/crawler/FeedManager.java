@@ -105,7 +105,7 @@ public class FeedManager implements AuraService, Configurable {
     }
 
     public void crawlAllFeeds() throws AuraException, RemoteException {
-        Set<Item> feeds = dataStore.getAll(Item.ItemType.FEED);
+        List<Item> feeds = dataStore.getAll(Item.ItemType.FEED);
         for (Item ifeed : feeds) {
             BlogFeed feed = new BlogFeed(ifeed);
             crawlFeed(feed);
@@ -186,7 +186,7 @@ public class FeedManager implements AuraService, Configurable {
             // for each entry
 
             List<BlogEntry> entries = FeedUtils.processFeed(feed);
-            Set<Attention> attentions =
+            List<Attention> attentions =
                     myItemStore.getAttentionForTarget(feed.getKey());
 
             int newEntries = 0;

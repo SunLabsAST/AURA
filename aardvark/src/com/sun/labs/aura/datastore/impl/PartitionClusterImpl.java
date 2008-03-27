@@ -24,7 +24,6 @@ import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -66,7 +65,7 @@ public class PartitionClusterImpl implements PartitionCluster,
         return prefixCode;
     }
 
-    public Set<Item> getAll(ItemType itemType)
+    public List<Item> getAll(ItemType itemType)
             throws AuraException, RemoteException {
         return replicant.getAll(itemType);
     }
@@ -111,23 +110,23 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getItemsAddedSince(type, timeStamp);
     }
 
-    public Set<Item> getItems(User user, Type attnType, ItemType itemType)
+    public List<Item> getItems(User user, Type attnType, ItemType itemType)
             throws AuraException, RemoteException {
         return replicant.getItems(user, attnType, itemType);
     }
 
-    public Set<Attention> getAttentionForSource(String srcKey)
+    public List<Attention> getAttentionForSource(String srcKey)
             throws AuraException, RemoteException {
         return replicant.getAttentionForSource(srcKey);
     }
     
-    public Set<Attention> getAttentionForSource(String srcKey,
+    public List<Attention> getAttentionForSource(String srcKey,
                                                 Attention.Type type)
             throws AuraException, RemoteException {
         return replicant.getAttentionForSource(srcKey, type);
     }
     
-    public Set<Attention> getAttentionForTarget(String itemKey)
+    public List<Attention> getAttentionForTarget(String itemKey)
             throws AuraException, RemoteException {
         return replicant.getAttentionForTarget(itemKey);
     }
@@ -147,13 +146,13 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getAttentionAddedSince(timeStamp);
     }
 
-    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+    public List<Attention> getLastAttentionForSource(String srcKey,
                                                           int count)
             throws AuraException, RemoteException {
         return getLastAttentionForSource(srcKey, null, count);
     }
 
-    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+    public List<Attention> getLastAttentionForSource(String srcKey,
                                                           Type type,
                                                           int count)
             throws AuraException, RemoteException {

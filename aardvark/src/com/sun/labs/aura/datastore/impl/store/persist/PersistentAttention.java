@@ -141,5 +141,9 @@ public class PersistentAttention implements Attention {
                              id, sourceKey, targetKey, type,
                              Integer.toBinaryString(hashCode()));
     }
+    
+    public int compareTo(Attention attn) {
+        return (int) (timeStamp - attn.getTimeStamp());
+    }
 
 }

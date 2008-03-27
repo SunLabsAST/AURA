@@ -527,7 +527,7 @@ public class AardvarkShell implements AuraService, Configurable {
     }
 
     private void dumpAllFeeds() throws AuraException, RemoteException {
-        Set<Item> feedItems = dataStore.getAll(ItemType.FEED);
+        List<Item> feedItems = dataStore.getAll(ItemType.FEED);
         long numFeeds = 0;
         for (Item feedItem : feedItems) {
             dumpItem(feedItem);

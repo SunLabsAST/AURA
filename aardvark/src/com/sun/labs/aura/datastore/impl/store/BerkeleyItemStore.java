@@ -39,8 +39,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -211,7 +209,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      * @param itemType the type of item to fetch
      * @return all of those items
      */
-    public Set<Item> getAll(ItemType itemType) throws AuraException {
+    public List<Item> getAll(ItemType itemType) throws AuraException {
         return bdb.getAll(itemType);
     }
 
@@ -278,7 +276,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         bdb.deleteItem(itemKey);
     }
 
-    public Set<Item> getItems(User user, Type attnType,
+    public List<Item> getItems(User user, Type attnType,
             ItemType itemType)
             throws AuraException {
         return bdb.getItems(user.getKey(), attnType, itemType);
@@ -293,18 +291,18 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return res;
     }
 
-    public Set<Attention> getAttentionForSource(String srcKey)
+    public List<Attention> getAttentionForSource(String srcKey)
             throws AuraException {
         return bdb.getAttentionForSource(srcKey);
     }
 
-    public Set<Attention> getAttentionForSource(String srcKey,
+    public List<Attention> getAttentionForSource(String srcKey,
                                                 Attention.Type type)
             throws AuraException {
         return bdb.getAttentionForSource(srcKey, type);
     }
 
-    public Set<Attention> getAttentionForTarget(String itemKey)
+    public List<Attention> getAttentionForTarget(String itemKey)
             throws AuraException {
         return bdb.getAttentionForTarget(itemKey);
     }
@@ -331,13 +329,13 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return (DBIterator<Attention>) cm.getRemote(res);
     }
 
-    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+    public List<Attention> getLastAttentionForSource(String srcKey,
             int count)
             throws AuraException, RemoteException {
         return getLastAttentionForSource(srcKey, null, count);
     }
 
-    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+    public List<Attention> getLastAttentionForSource(String srcKey,
             Type type,
             int count)
             throws AuraException, RemoteException {

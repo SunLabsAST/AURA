@@ -142,7 +142,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
 
     public Set<BlogFeed> getFeeds(User user, Attention.Type type) throws AuraException, RemoteException {
 
-        Set<Item> items = dataStore.getItems(user, type, ItemType.FEED);
+        List<Item> items = dataStore.getItems(user, type, ItemType.FEED);
         Set<BlogFeed> feeds = new HashSet<BlogFeed>();
         for (Item item : items) {
             feeds.add(new BlogFeed(item));

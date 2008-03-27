@@ -13,6 +13,9 @@ import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.SearchEngine;
 import com.sun.kt.search.SearchEngineFactory;
 import com.sun.labs.util.SimpleLabsLogFormatter;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -82,7 +85,7 @@ public class BuildClassifiers implements Runnable {
                         }
 
                         public void next(String s) {
-                            logger.fine("Progress: " + s);
+                            logger.info("Progress: " + s);
                         }
 
                         public void next() {
@@ -111,7 +114,7 @@ public class BuildClassifiers implements Runnable {
 
     public static void main(String[] args) throws Exception {
 
-        String flags = "a:c:d:e:k:f:r:s:t:v:";
+        String flags = "a:c:d:e:k:f:g:r:s:t:v:";
         Getopt gopt = new Getopt(args, flags);
 
         //
@@ -139,6 +142,7 @@ public class BuildClassifiers implements Runnable {
         int numThreads = 1;
         StopWords sw = new StopWords();
         int top = 500;
+        String tagFile = null;
         while((c = gopt.getopt()) != -1) {
             switch(c) {
                 case 'a':
@@ -155,6 +159,9 @@ public class BuildClassifiers implements Runnable {
                     break;
                 case 'f':
                     fieldName = gopt.optArg;
+                    break;
+                case 'g':
+                    tagFile = gopt.optArg;
                     break;
                 case 'k':
                     numChars = Integer.parseInt(gopt.optArg);
@@ -183,7 +190,19 @@ public class BuildClassifiers implements Runnable {
                 engineName);
 
         //
-        // If there are no specific classes to build, we'll build the most frequent.
+        // Are there tags in a file?
+        if(tagFile != null) {
+            BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(tagFile), "utf-8"));
+            String l;
+            while((l = r.readLine()) != null) {
+                int p = l.indexOf(' ');
+                classes.add(l.substring(p+1));
+            }
+            r.close();
+        }
+        
+        //
+        // Do we want the most frequent?
         if(top > 0) {
             classes.addAll(Util.getTopClasses(engine, fieldName, top));
         }
@@ -210,13 +229,21 @@ public class BuildClassifiers implements Runnable {
         };
         
         List<Thread> lt = new ArrayList<Thread>();
-        int size = classes.size() / numThreads;
-        if(classes.size() % numThreads != 0) {
-            size++;
+        
+        //
+        // Round robin the list so that the first thread doesn't get stuck 
+        // with all the big ones.
+        List[] tcl = new List[numThreads];
+        for(int i = 0; i < numThreads; i++) {
+            tcl[i] = new ArrayList<String>();
         }
         List<String> cl = new ArrayList<String>(classes);
-        for(int i = 0, start = 0; i < numThreads; i++, start += size) {
-            BuildClassifiers bc = new BuildClassifiers(cl.subList(start, Math.min(start+size, cl.size())), 
+        for(int i = 0; i < classes.size(); i++) {
+            tcl[i % numThreads].add(cl.get(i));
+        }
+        for(int i = 0; i < numThreads; i++) {
+            BuildClassifiers bc = 
+                    new BuildClassifiers((List<String>) tcl[i], 
                     vectoredField, assignedField, fieldName, engine, lengthFilter);
             Thread t = new Thread(bc);
             t.setName("BC-" + i);
