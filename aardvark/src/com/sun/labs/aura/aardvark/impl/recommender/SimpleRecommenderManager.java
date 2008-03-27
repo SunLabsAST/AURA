@@ -101,7 +101,6 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             // items.
             if (resultList.size() == 0) {
                 for (Item item : getSomeRecentItems(num)) {
-                    System.out.println("Items size is " + resultList.size() + " added " + item.getKey());
                     resultList.add(new Recommendation(item, 1.0f, "latest entries"));
                 }
                 t.mark("fallback - size: " + resultList.size());
