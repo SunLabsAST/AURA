@@ -40,7 +40,8 @@ public class Home extends HttpServlet {
         Aardvark aardvark = (Aardvark)context.getAttribute("aardvark");
         User user = (User)session.getAttribute("loggedInUser");
         if (user == null) {
-            response.sendRedirect(response.encodeRedirectURL("/Welcome"));
+            response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/Welcome"));
+            return;
         }
         logger.log(Level.INFO, "Getting home for user " + user);
         

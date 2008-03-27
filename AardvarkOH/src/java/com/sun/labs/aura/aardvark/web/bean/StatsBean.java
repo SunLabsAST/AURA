@@ -13,6 +13,7 @@ public class StatsBean {
     protected long numEntries;
     protected long numUsers;
     protected long numTaste;
+    protected long entriesPerMin;
     
     public StatsBean() {
         
@@ -55,5 +56,13 @@ public class StatsBean {
 
     public void setNumTaste(long numTaste) {
         this.numTaste = numTaste;
+    }
+
+    public long getEntriesPerMin() {
+        return entriesPerMin;
+    }
+
+    public void setEntriesPerMin(long entriesPerMin) {
+        this.entriesPerMin = entriesPerMin;
     }
 }

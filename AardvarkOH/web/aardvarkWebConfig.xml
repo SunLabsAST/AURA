@@ -18,5 +18,4 @@
     </component>
     
     <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark"/>
-
 </config>

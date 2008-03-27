@@ -30,6 +30,7 @@ div.main {
 div.regularTxt {
   margin-left: 30px;
   font-size: medium;
+  line-height: 150%;
 }
 
 div.topCling {

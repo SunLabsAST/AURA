@@ -22,6 +22,8 @@ import javax.servlet.http.*;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerException;
 import org.openid4java.consumer.ConsumerManager;
+import org.openid4java.consumer.InMemoryConsumerAssociationStore;
+import org.openid4java.consumer.InMemoryNonceVerifier;
 import org.openid4java.consumer.VerificationResult;
 import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.discovery.Identifier;
@@ -48,6 +50,8 @@ public class Login extends HttpServlet {
         super.init(config);
         try {
             this.consumer = new ConsumerManager();
+            consumer.setAssociations(new InMemoryConsumerAssociationStore());
+            consumer.setNonceVerifier(new InMemoryNonceVerifier(5000));
         } catch (ConsumerException e) {
             throw new ServletException(e);
         }
@@ -76,9 +80,21 @@ public class Login extends HttpServlet {
             // This is an initial login request.  See if we have this user,
             // then redirect them to log in if we do.  If not, register them.
             String openid_url = request.getParameter("openid_url");
+            openid_url = openid_url.toLowerCase();
             User u = null;
             try {
                 u = aardvark.getUser(openid_url);
+                if (u == null) {
+                    //
+                    // Add or remove a trailing slash to see if we can get
+                    // the user
+                    if (openid_url.endsWith("/")) {
+                        openid_url = openid_url.substring(0, openid_url.length());
+                    } else {
+                        openid_url = openid_url + "/";
+                    }
+                    u = aardvark.getUser(openid_url);
+                }
             } catch (AuraException e) {
                 // do error page?
             }
@@ -120,9 +136,11 @@ public class Login extends HttpServlet {
             }
             
             //
-            // Is this a registration?
+            // Is this a registration?  It is if it has an intendedID
             String intendedID = (String)session.getAttribute("intendedID");
             String intendedFeed = (String)session.getAttribute("intendedFeed");
+            session.removeAttribute("intendedID");
+            session.removeAttribute("intendedFeed");
             
             if (intendedID != null) {
                 if (!intendedID.equals(identifier.getIdentifier())) {
@@ -131,17 +149,17 @@ public class Login extends HttpServlet {
                     logger.log(Level.WARNING, "Identity confirmed, but " +
                             "returned " + identifier.getIdentifier() +
                             " and intended " + intendedID + " don't match!");
-                    context.getRequestDispatcher("/welcome.jsp")
-                            .forward(request, response);
-                    return;
+                    //context.getRequestDispatcher("/welcome.jsp")
+                    //        .forward(request, response);
+                    //return;
                 }
                 //
                 // Make double sure we don't already have this user
                 User u = null;
                 try {
-                    u = aardvark.getUser(intendedID);
+                    u = aardvark.getUser(identifier.getIdentifier());
                 } catch (AuraException e) {
-                    // do error page?
+                    Shared.forwardToError(context, request, response, e);
                 }
                 
                 if (u != null) {
@@ -156,7 +174,7 @@ public class Login extends HttpServlet {
                 //
                 // Now it is safe to make the user
                 try {
-                    u = aardvark.enrollUser(intendedID);
+                    u = aardvark.enrollUser(identifier.getIdentifier());
                     fillRegistration(u, request);
                     u = aardvark.updateUser(u);
                     aardvark.addUserFeed(u, intendedFeed, Attention.Type.STARRED_FEED);
@@ -167,17 +185,19 @@ public class Login extends HttpServlet {
                     response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/Home"));
                     return;
                 } catch (AuraException e) {
-                    // do error page?
+                    Shared.forwardToError(context, request, response, e);
                 }
                 
             } else {
+                //
+                // This is a simple login, redirect to home
                 try {
                     User u = aardvark.getUser(identifier.getIdentifier());
                     session.setAttribute("loggedInUser", u);
                     response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/Home"));
                     return;
                 } catch (AuraException e) {
-                    // do error page?
+                    Shared.forwardToError(context, request, response, e);
                 }
             }
         } else if (servletPath.equals("/Logout")) {
@@ -192,6 +212,7 @@ public class Login extends HttpServlet {
             // exist.  2) Store away their registration info in their session
             // and 3) auth them.
             String openid_url = request.getParameter("openid_url");
+            openid_url = openid_url.toLowerCase();
             String defaultFeed = request.getParameter("default_feed");
             User u = null;
             try {

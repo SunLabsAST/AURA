@@ -33,6 +33,13 @@
             You can add your <a href="<c:url value="${userBean.recommendedFeedURL}"/>">recommendation feed</a> to your blog reader for personalized recommendations.<br>
             We are using this feed to describe your interests: <a href="<%= userBean.getDefaultFeedURL() %>"><%= userBean.getDefaultFeedURL() %></a><br>
         </div>
+        <div style="padding: 20px;"></div>
+        <div class="bigOrangeTxt">Options</div>
+        <div class="regularTxt">
+            Change your <a href="">Settings</a><br>
+            <a href="">View</a> the taste data we've collected on your behalf<br>
+            <a href="">Download</a> the taste data we've collected on your behalf<br>
+            Your taste data is your own.  If you don't like what we're doing, you can <a href="">delete</a> your account and all your taste data.<br>
         </div>
     </body>
 </html>
