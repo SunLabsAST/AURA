@@ -241,6 +241,7 @@ public class PartitionClusterImpl implements PartitionCluster,
     }
     
     public void addReplicant(Replicant replicant) throws RemoteException {
+        logger.log(Level.INFO, "Adding replicant with prefix " + replicant.getPrefix());
         if (replicant.getPrefix().equals(prefixCode)) {
             this.replicant = replicant;
         } else {

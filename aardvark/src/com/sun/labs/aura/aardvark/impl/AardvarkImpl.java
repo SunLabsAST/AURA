@@ -250,10 +250,11 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
             long numAttentions = dataStore.getAttentionCount();
             long feedPullCount = statService.get(FeedManager.COUNTER_FEED_PULL_COUNT);
             long feedErrorCount = statService.get(FeedManager.COUNTER_FEED_ERROR_COUNT);
+            double entriesPerMin = statService.getAveragePerMinute(FeedManager.COUNTER_ENTRY_PULL_COUNT);
 
             return new Stats(VERSION, numUsers,
                     numEntries, numAttentions, numFeeds,
-                    feedPullCount, feedErrorCount);
+                    feedPullCount, feedErrorCount, entriesPerMin);
         } catch (RemoteException rx) {
             throw new AuraException("Error communicating with item store", rx);
         }
