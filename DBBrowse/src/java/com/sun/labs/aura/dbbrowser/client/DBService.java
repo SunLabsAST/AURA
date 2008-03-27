@@ -11,6 +11,8 @@ public interface DBService extends RemoteService {
 
     public ItemDesc[] searchItemByName(String key);
     
+    public ItemDesc[] searchItemByGen(String query);
+    
     public AttnDesc[] getAttentionForSource(String key);
     
     public AttnDesc[] getAttentionForTarget(String key);

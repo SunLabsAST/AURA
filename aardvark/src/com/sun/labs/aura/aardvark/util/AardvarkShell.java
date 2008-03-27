@@ -34,6 +34,8 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
+import com.sun.syndication.io.SyndFeedOutput;
+import java.io.PrintWriter;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,11 +98,11 @@ public class AardvarkShell implements AuraService, Configurable {
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
                             int n = 50;
-                            if(args.length > 1) {
+                            if (args.length > 1) {
                                 n = Integer.parseInt(args[1]);
                             }
                             dumpTagFrequencies(n);
-                        } catch(Exception ex) {
+                        } catch (Exception ex) {
                             System.out.println("Error " + ex);
                             ex.printStackTrace();
                         }
@@ -203,6 +205,38 @@ public class AardvarkShell implements AuraService, Configurable {
                                 User user = aardvark.getUser(args[1]);
                                 if (user != null) {
                                     recommend(user);
+                                }
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                            ex.printStackTrace();
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: recommend  name = recommendations for a user";
+                    }
+                });
+
+        shell.add("recommendFeed",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 2) {
+                                getHelp();
+                            } else {
+                                User user = aardvark.getUser(args[1]);
+                                if (user != null) {
+                                    SyndFeed feed = aardvark.getRecommendedFeed(user);
+                                    if (feed != null) {
+                                        SyndFeedOutput output = new SyndFeedOutput();
+                                        feed.setFeedType("atom_1.0");
+                                        // feed.setLink();
+                                        String feedXML = output.outputString(feed);
+                                        System.out.println(feedXML);
+                                    }
                                 }
                             }
                         } catch (Exception ex) {
@@ -403,11 +437,11 @@ public class AardvarkShell implements AuraService, Configurable {
                             throws Exception {
                         String query = stuff(args, 1);
                         List<Scored<Item>> items = dataStore.query(query, 10, null);
-                        for(Scored<Item> item : items) {
-                           System.out.printf("%.3f ", item.getScore());
-                           dumpItem(item.getItem());
+                        for (Scored<Item> item : items) {
+                            System.out.printf("%.3f ", item.getScore());
+                            dumpItem(item.getItem());
                         }
-                            
+
                         return "";
                     }
 
@@ -415,35 +449,7 @@ public class AardvarkShell implements AuraService, Configurable {
                         return "Runs a query";
                     }
                 });
-                
-        shell.add("cluster",
-                new CommandInterface() {
 
-                    public String execute(CommandInterpreter ci, String[] args)
-                            throws Exception {
-                        String query = stuff(args, 1);
-                        List<Scored<Item>> items = dataStore.query(query, 100, null);
-                        List<String> keys = new ArrayList<String>();
-                        for(Scored<Item> item : items) {
-                            keys.add(item.getItem().getKey());
-                        }
-                        
-                        List<Cluster> clusters = dataStore.cluster(keys, "content", 7);
-                        for(Cluster c : clusters) {
-                            System.out.println("Cluster: " + c.getDescription(4));
-                            for(ClusterElement el : c.getMembers()) {
-                                System.out.printf(" %.3f %s\n", el.getDistance(), el.getItem().getKey());
-                            }
-                        }
-                            
-                        return "";
-                    }
-
-                    public String getHelp() {
-                        return "Runs a query";
-                    }
-                });
-                
         shell.add("fs",
                 new CommandInterface() {
 
@@ -451,11 +457,11 @@ public class AardvarkShell implements AuraService, Configurable {
                             throws Exception {
                         String key = args[1];
                         List<Scored<Item>> items = dataStore.findSimilar(key, 10, null);
-                        for(Scored<Item> item : items) {
-                           System.out.printf("%.3f ", item.getScore());
-                           dumpItem(item.getItem());
+                        for (Scored<Item> item : items) {
+                            System.out.printf("%.3f ", item.getScore());
+                            dumpItem(item.getItem());
                         }
-                            
+
                         return "";
                     }
 
@@ -471,11 +477,11 @@ public class AardvarkShell implements AuraService, Configurable {
                         String field = args[1];
                         String key = args[2];
                         List<Scored<Item>> items = dataStore.findSimilar(key, field, 10, null);
-                        for(Scored<Item> item : items) {
-                           System.out.printf("%.3f ", item.getScore());
-                           dumpItem(item.getItem());
+                        for (Scored<Item> item : items) {
+                            System.out.printf("%.3f ", item.getScore());
+                            dumpItem(item.getItem());
                         }
-                            
+
                         return "";
                     }
 
@@ -600,7 +606,7 @@ public class AardvarkShell implements AuraService, Configurable {
                 while (count-- > 0 && iter.hasNext()) {
                     Item item = iter.next();
                     BlogEntry entry = new BlogEntry(item);
-                    dumpStory(entry); 
+                    dumpStory(entry);
                 }
                 System.out.println("</stories>");
             } finally {
@@ -623,7 +629,7 @@ public class AardvarkShell implements AuraService, Configurable {
         dumpTag("        ", "url", entry.getKey());
         dumpTag("        ", "title", entry.getTitle());
         if (entry.getContent() != null) {
-            System.out.println("        <description>" +  excerpt(filterHTML(entry.getContent()), 100) + "</description>");
+            System.out.println("        <description>" + excerpt(filterHTML(entry.getContent()), 100) + "</description>");
         }
 
         List<Tag> tags = entry.getTags();
@@ -644,7 +650,7 @@ public class AardvarkShell implements AuraService, Configurable {
     }
 
     private String filterTag(String s) {
-        s =  s.replaceAll("[^\\p{ASCII}]", "");
+        s = s.replaceAll("[^\\p{ASCII}]", "");
         s = s.replaceAll("\\&", "&amp;");
         s = s.replaceAll("\\<", "&lt;");
         s = s.replaceAll("\\>", "&gt;");
@@ -655,9 +661,9 @@ public class AardvarkShell implements AuraService, Configurable {
     private String filterHTML(String s) {
         s = detag(s);
         s = deentity(s);
-        s =  s.replaceAll("[^\\p{ASCII}]", "");
-        s =  s.replaceAll("\\s+", " ");
-        s =  s.replaceAll("[\\<\\>\\&]", " ");
+        s = s.replaceAll("[^\\p{ASCII}]", "");
+        s = s.replaceAll("\\s+", " ");
+        s = s.replaceAll("[\\<\\>\\&]", " ");
         return s;
     }
 
@@ -668,7 +674,6 @@ public class AardvarkShell implements AuraService, Configurable {
     private String deentity(String s) {
         return s.replaceAll("\\&[a-zA-Z]+;", " ");
     }
-
 
     private String excerpt(String s, int maxWords) {
         StringBuilder sb = new StringBuilder();
@@ -688,25 +693,25 @@ public class AardvarkShell implements AuraService, Configurable {
         try {
             List<FieldFrequency> tagFreqs = dataStore.getTopValues("tag", n,
                     true);
-            for(FieldFrequency ff : tagFreqs) {
+            for (FieldFrequency ff : tagFreqs) {
                 System.out.printf("%d %s\n", ff.getFreq(), ff.getVal().toString().trim());
             }
-        } catch(AuraException ex) {
+        } catch (AuraException ex) {
             logger.severe("dumpTagFrequencies " + ex);
-        } catch(RemoteException ex) {
+        } catch (RemoteException ex) {
             logger.severe("dumpTagFrequencies " + ex);
         }
     }
 
     private String stuff(String[] args, int p) {
         StringBuilder sb = new StringBuilder();
-        for(int i = p; i < args.length; i++) {
+        for (int i = p; i < args.length; i++) {
             sb.append(args[i]);
             sb.append(' ');
         }
         return sb.toString();
     }
-    
+
     /**
      * Stops crawling the feeds
      */

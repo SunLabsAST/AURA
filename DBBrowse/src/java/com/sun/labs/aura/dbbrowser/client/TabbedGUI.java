@@ -6,7 +6,6 @@ import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.TabPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.dbbrowser.client.ItemDesc;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,12 +16,19 @@ public class TabbedGUI extends TabPanel {
     private SearchPanel searchPanel;
     private AttnPanel attnPanel;
     private Set resultsPanels = new HashSet();
+    private int prevTab = 0;
     
     public TabbedGUI() {
         searchPanel = new SearchPanel(this);
         add(searchPanel, "Search");
         selectTab(0);
         setHeight("400px");
+    }
+    
+    public void selectTab(int index) {
+        prevTab = getTabBar().getSelectedTab();
+        super.selectTab(index);
+        
     }
     
     public void addResults(String name, ItemDesc[] items) {
@@ -66,5 +72,19 @@ public class TabbedGUI extends TabPanel {
         if (tab.equals(attnPanel)) {
             attnPanel = null;
         }
+    }
+    
+    public void removeAttnTab(Widget tab) {
+        remove(tab);
+        selectTab(prevTab);
+        attnPanel = null;
+    }
+    
+    public static String getLinkText(String url) {
+        String name = url;
+        if (name.length() > 40) {
+            name = name.substring(0, 40) + "...";
+        }
+        return "<a href=\"" + url + "\">" + name + "</a>";
     }
 }
