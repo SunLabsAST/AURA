@@ -229,6 +229,12 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         return getRecommendedFeed(user, 20);
     }
 
+    /**
+     * Gets the feed for the particular user
+     * @param user the user
+     * @param num the number of entries
+     * @return the feed
+     */
     public SyndFeed getRecommendedFeed(User user, int num) throws AuraException, RemoteException {
         // freshen the user:
         User freshUser = getUser(user.getKey());
