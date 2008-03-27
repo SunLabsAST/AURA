@@ -33,6 +33,7 @@ import com.sun.labs.util.props.PropertySheet;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.SyndFeedOutput;
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +43,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -87,8 +87,33 @@ public class AardvarkShell implements AuraService, Configurable {
                         return "usage: user  name = shows info for a user";
                     }
                 });
+                
+        shell.add("getItem",
+                new CommandInterface() {
 
-        shell.add("dumpTagFrequencies",
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if(args.length == 1) {
+                                return getHelp();
+                            }
+                            
+                            Item item = dataStore.getItem(args[1]);
+                            for(Map.Entry<String,Serializable> e : item.getMap().entrySet()) {
+                                System.out.printf("%-15s %s\n", e.getKey(), e.getValue());
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                            ex.printStackTrace();
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: getItem <key> gets an item and prints the data map";
+                    }
+                });
+
+       shell.add("dumpTagFrequencies",
                 new CommandInterface() {
 
                     public String execute(CommandInterpreter ci, String[] args) {
