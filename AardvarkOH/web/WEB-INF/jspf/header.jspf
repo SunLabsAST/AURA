@@ -4,6 +4,8 @@
     Feeds: <%= statsBean.getNumFeeds() %>
     &nbsp;&nbsp;&nbsp;
     Entries: <%= statsBean.getNumEntries() %>
+    &nbsp;
+    (<%= statsBean.getEntriesPerMin() %> per minute)
     &nbsp;&nbsp;&nbsp;
     Taste Datapoints: <%= statsBean.getNumTaste() %>
 </div>
