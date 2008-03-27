@@ -40,7 +40,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -137,7 +136,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         return dataStore.getUserForRandomString(randStr);
     }
 
-    public SortedSet<Attention> getLastAttentionData(User user, Type type, int count) throws AuraException, RemoteException {
+    public List<Attention> getLastAttentionData(User user, Type type, int count) throws AuraException, RemoteException {
         return dataStore.getLastAttentionForSource(user.getKey(), type, count);
     }
 
@@ -227,6 +226,10 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
      * @return the feed
      */
     public SyndFeed getRecommendedFeed(User user) throws AuraException, RemoteException {
+        return getRecommendedFeed(user, 20);
+    }
+
+    public SyndFeed getRecommendedFeed(User user, int num) throws AuraException, RemoteException {
         // freshen the user:
         User freshUser = getUser(user.getKey());
         SyndFeed feed = new SyndFeedImpl();
@@ -234,7 +237,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         feed.setTitle("Aardvark recommendations for " + freshUser.getKey());
         feed.setDescription("Recommendations created for " + freshUser.getKey());
         feed.setPublishedDate(new Date());
-        feed.setEntries(FeedUtils.getSyndEntries(getRecommendedEntries(freshUser)));
+        feed.setEntries(FeedUtils.getSyndEntries(getRecommendedEntries(freshUser, num)));
         return feed;
     }
 
@@ -263,12 +266,13 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
     /**
      * Given a user ID return the set of recommended entries for the user
      * @param user the user id
+     * @param num the number of entries to generate
      * @return an array of recommended entries
      */
-    private List<BlogEntry> getRecommendedEntries(User user) {
+    private List<BlogEntry> getRecommendedEntries(User user, int num) {
         try {
-            SortedSet<Recommendation> recommendations = 
-                    recommenderManager.getRecommendations(user);
+            List<Recommendation> recommendations = 
+                    recommenderManager.getRecommendations(user, num);
             List<BlogEntry> recommendedBlogEntries = new ArrayList<BlogEntry>();
 
             for (Recommendation r : recommendations) {

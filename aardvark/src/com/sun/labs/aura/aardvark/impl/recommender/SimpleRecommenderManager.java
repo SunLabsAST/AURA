@@ -13,6 +13,7 @@ import com.sun.kt.search.ResultsFilter;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.util.SimpleTimer;
+import com.sun.labs.aura.aardvark.util.Times;
 import com.sun.labs.aura.recommender.RecommenderManager;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DBIterator;
@@ -31,12 +32,9 @@ import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,30 +42,33 @@ import java.util.logging.Logger;
  * A recommender manager that returns the starred items for a user.
  */
 public class SimpleRecommenderManager implements RecommenderManager, Configurable, AuraService {
+    private final static int RECENT_STARRED = 20;
+    private final static int SEED_SIZE = 2;
+    private final static int MAX_SKIP = 1000;
+    private final static int VALID_RECOMMENDATION_DAYS = 7;
 
     private DataStore dataStore;
     private Logger log;
-    private final static int RECENT_STARRED = 20;
-    private final static int SEED_SIZE = 2;
-    private final static int NUM_RECS = 20;
-    private final static int MAX_SKIP = 1000;
 
-    public SortedSet<Recommendation> getRecommendations(User user) throws RemoteException {
+    public List<Recommendation> getRecommendations(User user, int num) throws RemoteException {
         SimpleTimer t = new SimpleTimer(true);
-        SortedSet<Recommendation> resultSet = new TreeSet<Recommendation>(Recommendation.REVERSE);
+        List<Recommendation> resultList = new ArrayList<Recommendation>();
         Set<String> titles = new HashSet<String>();
         try {
             // get a set of items that we've recently starred
             t.mark("init");
-            SortedSet<Attention> starredAttention = dataStore.getLastAttentionForSource(user.getKey(), Attention.Type.STARRED, RECENT_STARRED);
+            List<Attention> starredAttention = dataStore.getLastAttentionForSource(
+                     user.getKey(), Attention.Type.STARRED, RECENT_STARRED);
             t.mark("getLastAttention starred");
 
             // 
             // A filter that will only pass documents that have not been seen
             // recently and that are of the blog entry type.  This saves us 
             // having to post-filter things.
-            ResultsFilter rf = new CompositeResultsFilter(getSkipSet(user),
+
+            CompositeResultsFilter rf = new CompositeResultsFilter(getSkipSet(user),
                     new TypeFilter(ItemType.BLOGENTRY));
+            rf.addFilter(getDateFilter(VALID_RECOMMENDATION_DAYS));
 
             t.mark("get skip set");
 
@@ -76,7 +77,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             List<String> itemKeys = selectRandomItemKeys(starredAttention, SEED_SIZE);
             t.mark("select random item keys");
 
-            List<Scored<Item>> results = dataStore.findSimilar(itemKeys, "content", NUM_RECS, rf);
+            List<Scored<Item>> results = dataStore.findSimilar(itemKeys, "content", num, rf);
             t.mark("findSimilar");
 
             //
@@ -84,25 +85,26 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             for (Scored<Item> scoredItem : results) {
                 BlogEntry blogEntry = new BlogEntry(scoredItem.getItem());
                 String explanation = "Similar to items you like";
-                resultSet.add(new Recommendation(scoredItem.getItem(),
+                resultList.add(new Recommendation(scoredItem.getItem(),
                         scoredItem.getScore(), explanation));
                 titles.add(blogEntry.getTitle());
                 Attention attention = StoreFactory.newAttention(user,
                         scoredItem.getItem(), Attention.Type.VIEWED);
                 dataStore.attend(attention);
-                if (resultSet.size() >= NUM_RECS) {
+                if (resultList.size() >= num) {
                     break;
                 }
             }
-            t.mark("results built - size: " + resultSet.size());
+            t.mark("results built - size: " + resultList.size());
 
             // we didn't find anything, so lets at least give some recent
             // items.
-            if (resultSet.size() == 0) {
-                for (Item item : getSomeItems(NUM_RECS)) {
-                    resultSet.add(new Recommendation(item, 1.0f, "latest entries"));
+            if (resultList.size() == 0) {
+                for (Item item : getSomeRecentItems(num)) {
+                    System.out.println("Items size is " + resultList.size() + " added " + item.getKey());
+                    resultList.add(new Recommendation(item, 1.0f, "latest entries"));
                 }
-                t.mark("fallback - size: " + resultSet.size());
+                t.mark("fallback - size: " + resultList.size());
             }
         } catch (AuraException ex) {
             log.log(Level.SEVERE, "Error getting recommendations", ex);
@@ -112,7 +114,9 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             thrown.printStackTrace();
         } finally {
             t.mark("done");
-            return resultSet;
+            Collections.sort(resultList);
+            Collections.reverse(resultList);
+            return resultList;
         }
     }
 
@@ -123,9 +127,9 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    private List<Item> getSomeItems(int num) throws AuraException, RemoteException {
+    private List<Item> getSomeRecentItems(int num) throws AuraException, RemoteException {
         List<Item> items = new ArrayList<Item>();
-        DBIterator<Item> iter = dataStore.getItemsAddedSince(ItemType.BLOGENTRY, new Date(0));
+        DBIterator<Item> iter = dataStore.getItemsAddedSince(ItemType.BLOGENTRY, Times.getDaysAgo(VALID_RECOMMENDATION_DAYS));
         try {
             while (items.size() < num && iter.hasNext()) {
                 items.add(iter.next());
@@ -142,13 +146,23 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
      * @return set of item ids to skip
      */
     private ResultsFilter getSkipSet(User user) throws AuraException, RemoteException {
-        SortedSet<Attention> attentions = dataStore.getLastAttentionForSource(user.getKey(), null, MAX_SKIP);
+        List<Attention> attentions = dataStore.getLastAttentionForSource(user.getKey(), null, MAX_SKIP);
 
         Set<String> retSet = new HashSet<String>();
         for (Attention att : attentions) {
             retSet.add(att.getTargetKey());
         }
         return new KeyExclusionFilter(retSet);
+    }
+
+
+    /**
+     * Return a result filter that includes only recent entries
+     * @param days the number of days to include in the filter
+     * @return the filter
+     */
+    private ResultsFilter getDateFilter(int days) {
+        return new DateExclusionFilter(Times.getDaysAgo(days));
     }
 
     /**
@@ -158,7 +172,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
      * @param num the number of item IDs to return
      * @return an array of num item ids
      */
-    private List<String> selectRandomItemKeys(SortedSet<Attention> attentionSet, int num) {
+    private List<String> selectRandomItemKeys(List<Attention> attentionSet, int num) {
         List<Attention> list = new ArrayList<Attention>(attentionSet);
         Collections.shuffle(list);
         if (num > list.size()) {

@@ -13,8 +13,6 @@ import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
-import com.sun.labs.aura.cluster.Cluster;
-import com.sun.labs.aura.cluster.ClusterElement;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DBIterator;
@@ -35,7 +33,6 @@ import com.sun.labs.util.props.PropertySheet;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.SyndFeedOutput;
-import java.io.PrintWriter;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +43,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.logging.Logger;
 
 /**
@@ -150,7 +146,7 @@ public class AardvarkShell implements AuraService, Configurable {
                                 return "Usage: attn user";
                             } else {
                                 User user = aardvark.getUser(args[1]);
-                                SortedSet<Attention> attns = aardvark.getLastAttentionData(user, null, 100);
+                                List<Attention> attns = aardvark.getLastAttentionData(user, null, 100);
                                 for (Attention attn : attns) {
                                     System.out.printf("%8s %s at %s\n", attn.getType(), attn.getTargetKey(), new Date(attn.getTimeStamp()));
                                 }
@@ -199,12 +195,13 @@ public class AardvarkShell implements AuraService, Configurable {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length != 2) {
+                            if (args.length != 2 && args.length != 3) {
                                 getHelp();
                             } else {
                                 User user = aardvark.getUser(args[1]);
+                                int count = args.length >= 3 ? Integer.parseInt(args[2]) : 20;
                                 if (user != null) {
-                                    recommend(user);
+                                    recommend(user, count);
                                 }
                             }
                         } catch (Exception ex) {
@@ -224,12 +221,13 @@ public class AardvarkShell implements AuraService, Configurable {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length != 2) {
+                            if (args.length != 2 && args.length != 3) {
                                 getHelp();
                             } else {
                                 User user = aardvark.getUser(args[1]);
+                                int count = args.length >= 3 ? Integer.parseInt(args[2]) : 20;
                                 if (user != null) {
-                                    SyndFeed feed = aardvark.getRecommendedFeed(user);
+                                    SyndFeed feed = aardvark.getRecommendedFeed(user, count);
                                     if (feed != null) {
                                         SyndFeedOutput output = new SyndFeedOutput();
                                         feed.setFeedType("atom_1.0");
@@ -511,8 +509,8 @@ public class AardvarkShell implements AuraService, Configurable {
         dumpItem(user);
     }
 
-    private void recommend(User user) throws AuraException, RemoteException {
-        SyndFeed feed = aardvark.getRecommendedFeed(user);
+    private void recommend(User user, int count) throws AuraException, RemoteException {
+        SyndFeed feed = aardvark.getRecommendedFeed(user, count);
         System.out.println("Feed " + feed.getTitle());
         for (Object syndEntryObject : feed.getEntries()) {
             SyndEntry syndEntry = (SyndEntry) syndEntryObject;
