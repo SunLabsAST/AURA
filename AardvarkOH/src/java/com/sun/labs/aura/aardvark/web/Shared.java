@@ -20,7 +20,6 @@ public class Shared {
                                       Aardvark aardvark)
             throws AuraException, RemoteException {
         StatsBean sb = new StatsBean(aardvark.getStats());
-        sb.setNumFeeds(aardvark.getStats().getNumFeeds());
         req.setAttribute("statsBean", sb);
     }
     
