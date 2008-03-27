@@ -171,7 +171,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         //
         // Which partition cluster does this item belong to?
         PartitionCluster pc = trie.get(DSBitSet.parse(user.hashCode()));
-        logger.warning("putting user in pc " + pc.getPrefix());
+
         //
         // Ask the partition cluster to store the user and return it.
         return pc.putUser(user);
