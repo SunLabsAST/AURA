@@ -5,6 +5,7 @@ import com.sun.caroline.platform.BaseFileSystemConfiguration;
 import com.sun.caroline.platform.ConflictingHostNameException;
 import com.sun.caroline.platform.CustomerNetworkConfiguration;
 import com.sun.caroline.platform.DuplicateNameException;
+import com.sun.caroline.platform.DynamicNatConfiguration;
 import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.Grid;
@@ -16,6 +17,8 @@ import com.sun.caroline.platform.Network;
 import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.NetworkAddressAllocationException;
 import com.sun.caroline.platform.NetworkAllocationException;
+import com.sun.caroline.platform.NetworkConfiguration;
+import com.sun.caroline.platform.NetworkSetting;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.ProcessRegistration;
@@ -23,6 +26,7 @@ import com.sun.caroline.platform.ProcessRegistrationFilter;
 import com.sun.caroline.platform.RunState;
 import com.sun.caroline.platform.StorageManagementException;
 import java.io.File;
+import java.io.FileInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -30,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,9 +47,9 @@ import java.util.regex.Pattern;
 public class GridDeploy {
     protected Grid grid = null;
 
-    private static final String GRID_URL = "https://dev.caroline.east.sun.com";
-    private static final String CUST_ID  = "aura";
-    private static final String CUST_PW  = "corona";
+    public static String GRID_URL = "https://dev.caroline.east.sun.com/";
+    public static String CUST_ID  = "aura";
+    public static String CUST_PW  = "corona";
     
     private HashMap<String,FileSystem> repFSMap;
     private FileSystem auraDist;
@@ -61,12 +66,22 @@ public class GridDeploy {
         "000", "001", "010", "011", "100", "101", "110", "111"
     };
 
-    private static String usage = "GridDeploy createCode | startAura | startAardvark";
+    private static String usage = "GridDeploy createCode | startAura | startAardvark | createWeb";
 
     public static void main(String argv[]) throws Exception {
         if (argv.length == 0) {
             System.out.println("Usage: " + usage);
             return;
+        }
+        
+        String homeDir = System.getProperty("user.home");
+        File dotCaroline = new File(homeDir + "/.caroline");
+        if (dotCaroline.exists()) {
+            Properties props = new Properties();
+            props.load(new FileInputStream(dotCaroline));
+            GRID_URL = props.getProperty("gridURL");
+            CUST_ID = props.getProperty("customerID");
+            CUST_PW = props.getProperty("password");
         }
         
         GridDeploy gd = new GridDeploy();
@@ -78,6 +93,10 @@ public class GridDeploy {
             gd.createAuraProcesses();
         } else if (argv[0].equals("startAardvark")) {
             gd.createAardvarkProcesses();
+        } else if (argv[0].equals("createWeb")) {
+            //
+            // create the resources for a glassfish install
+            gd.createWebInfrastructure();
         }
     }
     
@@ -136,6 +155,18 @@ public class GridDeploy {
     }
     
     /**
+     * Creates the resources needed for running a web server... basically
+     * an external address
+     * 
+     * @throws java.lang.Exception
+     */
+    protected void createWebInfrastructure() throws Exception {
+        NetworkAddress addr = getExternalAddressFor("www");
+        System.out.println("Bound www to " + addr.getAddress());
+    }
+    
+    
+    /**
      * Assuming a fully built infrastructure, this uses the network and
      * file systems already there to start up the aura processes
      * 
@@ -164,12 +195,13 @@ public class GridDeploy {
                     instance + "-dsHead", dsHeadConfig);
         } catch (DuplicateNameException dne) {
             System.out.println("DataStoreHead already exists, reusing");
-            regReg = grid.getProcessRegistration(instance + "-dsHead");
+            dsHeadReg = grid.getProcessRegistration(instance + "-dsHead");
         }
         startRegistration(dsHeadReg);
         
         //
         // Now, start partition clusters for each prefix
+        ProcessRegistration lastReg = null;
         for (int i = 0; i < prefixCodeList.length; i++) {
             ProcessConfiguration pcConfig =
                     getPartitionClusterConfig(prefixCodeList[i]);
@@ -183,7 +215,12 @@ public class GridDeploy {
                 pcReg = grid.getProcessRegistration(instance + "-part-" +
                         prefixCodeList[i]);
             }
-            startRegistration(pcReg);
+            startRegistration(pcReg, false);
+            lastReg = pcReg;
+        }
+        
+        while (lastReg.getRunState() != RunState.RUNNING) {
+            lastReg.waitForStateChange(1000000L);
         }
         
         //
@@ -201,8 +238,27 @@ public class GridDeploy {
                 repReg = grid.getProcessRegistration(instance + "-rep-" +
                         prefixCodeList[i]);
             }
-            startRegistration(repReg);
+            startRegistration(repReg, false);
+            lastReg = repReg;
         }
+        
+        while (lastReg.getRunState() != RunState.RUNNING) {
+            lastReg.waitForStateChange(1000000L);
+        }
+        
+        //
+        // And finally start a stat service
+        ProcessConfiguration statSrvConfig = getStatServiceConfig();
+        ProcessRegistration statSrvReg = null;
+        try {
+            statSrvReg = grid.createProcessRegistration(
+                    instance + "-statSrv", statSrvConfig);
+        } catch (DuplicateNameException dne) {
+            System.out.println("StatService already exists, reusing");
+            statSrvReg = grid.getProcessRegistration(instance + "-statSrv");
+        }
+        startRegistration(statSrvReg);
+
     }
 
     public void createAardvarkProcesses() throws Exception {
@@ -231,6 +287,8 @@ public class GridDeploy {
 
         //
         // Start a few feed crawlers
+        ProcessRegistration lastReg = null;
+        NetworkAddress crawlerNat = getExternalAddressFor("feedMgrNat");
         for (int i = 0; i < 6; i++) {
             ProcessConfiguration feedMgrConfig = getFeedManagerConfig(i);
             ProcessRegistration feedMgrReg = null;
@@ -243,7 +301,28 @@ public class GridDeploy {
                 feedMgrReg = grid.getProcessRegistration(
                         instance + "-feedMgr-" + i);
             }
-            startRegistration(feedMgrReg);
+            
+            //
+            // Make a dynamic NAT for this process config
+            ProcessConfiguration pc = feedMgrConfig;
+            UUID internal = pc.getNetworkAddresses().iterator().next();
+            NetworkConfiguration netConf =
+                    new DynamicNatConfiguration(crawlerNat.getUUID(),
+                                                internal);
+            try {
+                grid.createNetworkSetting(instance + "-feedMgr-" + i + "-nat",
+                                          netConf);
+            } catch (DuplicateNameException dne) {
+                NetworkSetting ns =grid.getNetworkSetting(instance +
+                        "-feedMgr-" + i + "-nat");
+                ns.changeConfiguration(netConf);
+            }
+            startRegistration(feedMgrReg, false);
+            lastReg = feedMgrReg;
+        }
+        
+        while (lastReg.getRunState() != RunState.RUNNING) {
+            lastReg.waitForStateChange(1000000L);
         }
         
         //
@@ -277,13 +356,14 @@ public class GridDeploy {
     protected ProcessConfiguration getReggieConfig() throws Exception {
         String cmdLine =
                 "-Djava.security.policy=" + auraDistMntPnt + "/jini/jsk-all.policy" +
+                " -Djava.util.logging.config.file=" + auraDistMntPnt + "/jini/logging.properties" +
                 " -jar " + auraDistMntPnt + "/jini/lib/start.jar" +
                 " " + auraDistMntPnt + "/jini/nobrowse.config";
         
         // create a configuration and set relevant properties
         ProcessConfiguration pc = new ProcessConfiguration();
         pc.setCommandLine(cmdLine.trim().split(" "));
-        pc.setSystemSinks(logsFSMntPnt + "/reggie.out", true);
+        pc.setSystemSinks(logsFSMntPnt + "/reggie.out", false);
         
         Collection<FileSystemMountParameters> mountParams = 
             new ArrayList<FileSystemMountParameters>();
@@ -300,7 +380,7 @@ public class GridDeploy {
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
         addresses.add(getAddressFor(instance + "-reggie").getUUID());
-        addresses.add(getExternalAddressFor(instance + "-reggie").getUUID());
+        //addresses.add(getExternalAddressFor(instance + "-reggie").getUUID());
         
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.DESTROY);
@@ -318,7 +398,7 @@ public class GridDeploy {
         // create a configuration and set relevant properties
         ProcessConfiguration pc = new ProcessConfiguration();
         pc.setCommandLine(cmdLine.trim().split(" "));
-        pc.setSystemSinks(logsFSMntPnt + "/dsHead.out", true);
+        pc.setSystemSinks(logsFSMntPnt + "/dsHead.out", false);
         
         Collection<FileSystemMountParameters> mountParams = 
             new ArrayList<FileSystemMountParameters>();
@@ -335,7 +415,7 @@ public class GridDeploy {
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
         addresses.add(getAddressFor(instance + "-dsHead").getUUID());
-        addresses.add(getExternalAddressFor(instance + "-dsHead").getUUID());
+        //addresses.add(getExternalAddressFor(instance + "-dsHead").getUUID());
         
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.DESTROY);
@@ -356,7 +436,7 @@ public class GridDeploy {
         ProcessConfiguration pc = new ProcessConfiguration();
         pc.setCommandLine(cmdLine.trim().split(" "));
         pc.setSystemSinks(
-                logsFSMntPnt + "/pc-" + prefix + ".out", true);
+                logsFSMntPnt + "/pc-" + prefix + ".out", false);
         
         Collection<FileSystemMountParameters> mountParams = 
             new ArrayList<FileSystemMountParameters>();
@@ -394,7 +474,7 @@ public class GridDeploy {
         ProcessConfiguration pc = new ProcessConfiguration();
         pc.setCommandLine(cmdLine.trim().split(" "));
         pc.setSystemSinks(
-                logsFSMntPnt + "/rep-" + prefix + ".out", true);
+                logsFSMntPnt + "/rep-" + prefix + ".out", false);
         
         Collection<FileSystemMountParameters> mountParams = 
             new ArrayList<FileSystemMountParameters>();
@@ -438,7 +518,7 @@ public class GridDeploy {
         // create a configuration and set relevant properties
         ProcessConfiguration pc = new ProcessConfiguration();
         pc.setCommandLine(cmdLine.trim().split(" "));
-        pc.setSystemSinks(logsFSMntPnt + "/feedSched.out", true);
+        pc.setSystemSinks(logsFSMntPnt + "/feedSched.out", false);
         
         Collection<FileSystemMountParameters> mountParams = 
             new ArrayList<FileSystemMountParameters>();
@@ -474,7 +554,7 @@ public class GridDeploy {
         ProcessConfiguration pc = new ProcessConfiguration();
         pc.setCommandLine(cmdLine.trim().split(" "));
         pc.setSystemSinks(
-                logsFSMntPnt + "/feedMgr-" + n + ".out", true);
+                logsFSMntPnt + "/feedMgr-" + n + ".out", false);
         
         Collection<FileSystemMountParameters> mountParams = 
             new ArrayList<FileSystemMountParameters>();
@@ -491,7 +571,7 @@ public class GridDeploy {
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
         addresses.add(getAddressFor(instance + "-feedMgr-" + n).getUUID());
-        addresses.add(getExternalAddressFor(instance + "-feedMgr-" + n).getUUID());
+        //addresses.add(getExternalAddressFor(instance + "-feedMgr-" + n).getUUID());
         
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.DESTROY);
@@ -504,6 +584,40 @@ public class GridDeploy {
         return pc;
     }
     
+    protected ProcessConfiguration getStatServiceConfig() throws Exception {
+        String cmdLine =
+                "-DauraHome=" + auraDistMntPnt +
+                " -jar " + auraDistMntPnt + "/dist/aardvark.jar" + 
+                " /com/sun/labs/aura/resource/statServiceConfig.xml" +
+                " statServiceStarter";
+        
+        // create a configuration and set relevant properties
+        ProcessConfiguration pc = new ProcessConfiguration();
+        pc.setCommandLine(cmdLine.trim().split(" "));
+        pc.setSystemSinks(logsFSMntPnt + "/statService.out", false);
+        
+        Collection<FileSystemMountParameters> mountParams = 
+            new ArrayList<FileSystemMountParameters>();
+
+        mountParams.add(
+                new FileSystemMountParameters(auraDist.getUUID(), 
+                                              new File(auraDistMntPnt).getName()));
+        mountParams.add(
+                new FileSystemMountParameters(logsFS.getUUID(),
+                                           new File(logsFSMntPnt).getName()));
+        pc.setFileSystems(mountParams);
+        pc.setWorkingDirectory(logsFSMntPnt);
+        
+        // Set the addresses for the process
+        List<UUID> addresses = new ArrayList<UUID>();
+        addresses.add(getAddressFor(instance + "-statSrv").getUUID());
+        
+        pc.setNetworkAddresses(addresses);
+        pc.setProcessExitAction(ProcessExitAction.DESTROY);
+        
+        return pc;
+    }
+
     protected ProcessConfiguration getAardvarkConfig() throws Exception {
         String cmdLine = "-DauraHome=" + auraDistMntPnt +
                 " -jar " + auraDistMntPnt + "/dist/aardvark.jar" + 
@@ -513,7 +627,7 @@ public class GridDeploy {
         // create a configuration and set relevant properties
         ProcessConfiguration pc = new ProcessConfiguration();
         pc.setCommandLine(cmdLine.trim().split(" "));
-        pc.setSystemSinks(logsFSMntPnt + "/aardvark.out", true);
+        pc.setSystemSinks(logsFSMntPnt + "/aardvark.out", false);
         
         Collection<FileSystemMountParameters> mountParams = 
             new ArrayList<FileSystemMountParameters>();
@@ -547,7 +661,7 @@ public class GridDeploy {
         // create a configuration and set relevant properties
         ProcessConfiguration pc = new ProcessConfiguration();
         pc.setCommandLine(cmdLine.trim().split(" "));
-        pc.setSystemSinks(logsFSMntPnt + "/recommender.out", true);
+        pc.setSystemSinks(logsFSMntPnt + "/recommender.out", false);
         
         Collection<FileSystemMountParameters> mountParams = 
             new ArrayList<FileSystemMountParameters>();
@@ -644,27 +758,7 @@ public class GridDeploy {
         }
 
         addrCnt++;
-        HostNameBinding binding = null;
-        try {
-            HostNameBindingConfiguration hnbConf =
-                    new HostNameBindingConfiguration();
-            Collection<UUID> addrs = new ArrayList<UUID>();
-            addrs.add(internalAddress.getUUID());
-            hnbConf.setAddresses(addrs);
-            hnbConf.setHostName(hostName);
-            binding =
-                  hnZone.createBinding(hnbConf.getHostName(), hnbConf);
-        } catch (DuplicateNameException dne) {
-            binding = hnZone.getBinding(hostName);
-            System.out.println("Host name \"" + hostName +
-                "\" has already been defined as " +
-                binding.getConfiguration().getAddresses().toArray()[0]);
-        } catch (ConflictingHostNameException chne) {
-            binding = hnZone.getBinding(hostName);
-            System.out.println("Host name \"" + hostName +
-                "\" has already been defined as " +
-                binding.getConfiguration().getAddresses().toArray()[0]);
-        }
+        bindHostName(hnZone, internalAddress, hostName);
         return internalAddress;
     }
     
@@ -683,22 +777,60 @@ public class GridDeploy {
             System.err.println(e.getMessage());
             System.exit(2);
         }
+        bindHostName(grid.getExternalHostNameZone(), externalAddress, name);
         return externalAddress;
     }
     
-    protected void startRegistration(ProcessRegistration reg) throws Exception {
+    protected void startRegistration(ProcessRegistration reg)  throws Exception {
+        startRegistration(reg, true);
+    }
+    
+    protected void startRegistration(final ProcessRegistration reg, boolean wait) throws Exception {
+        Thread starter = new Thread() {
+            public void run() {
+                try {
+                    reg.start(true);
+                } catch (Exception e) {
+                    System.out.println("Registration start failed " + e.getMessage());
+                }
+
+                System.out.println("Registration " + reg.getName()
+                        + " started");
+            }
+        };
+        starter.start();
+        if (wait) {
+            while (reg.getRunState() != RunState.RUNNING) {
+                reg.waitForStateChange(1000000L);
+            }
+        }
+    }
+    
+    protected void bindHostName(HostNameZone hnZone,
+                                NetworkAddress addr,
+                                String hostName) throws Exception {
+        HostNameBinding binding = null;
         try {
-            reg.start(true);
-        } catch (Exception e) {
-            System.out.println("Registration start failed " + e.getMessage());
+            HostNameBindingConfiguration hnbConf =
+                    new HostNameBindingConfiguration();
+            Collection<UUID> addrs = new ArrayList<UUID>();
+            addrs.add(addr.getUUID());
+            hnbConf.setAddresses(addrs);
+            hnbConf.setHostName(hostName);
+            binding =
+                  hnZone.createBinding(hnbConf.getHostName(), hnbConf);
+        } catch (DuplicateNameException dne) {
+            binding = hnZone.getBinding(hostName);
+            System.out.println("Host name \"" + hostName +
+                "\" has already been defined as " +
+                binding.getConfiguration().getAddresses().toArray()[0]);
+        } catch (ConflictingHostNameException chne) {
+            binding = hnZone.getBinding(hostName);
+            System.out.println("Host name \"" + hostName +
+                "\" has already been defined as " +
+                binding.getConfiguration().getAddresses().toArray()[0]);
         }
 
-        while (reg.getRunState() != RunState.RUNNING) {
-            reg.waitForStateChange(1000000L);
-        }
-
-        System.out.println("Registration " + reg.getName()
-                + " started");
     }
     
     protected void completelyDestroyReg(String regName) {

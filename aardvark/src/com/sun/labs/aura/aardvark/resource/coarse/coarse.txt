@@ -1,0 +1,75 @@
+#
+# These config files are for doing an eight-node coarse distribution as a backup.
+
+export AURAHOME=/reflect/aura
+export AURAGROUP=searchAura
+export AURAPOLICY=/reflect/aura/jini/jsk-all.policy
+
+#
+# Start reggie
+nohup jini/startReggieNB.sh &> logs/reggie.out &
+
+sleep 5
+
+#
+# Get the data store going.  Give it lots of memory.
+nohup java -d64 -Xmx8g \
+      -DauraHome=${AURAHOME} -DauraGroup=${AURAGROUP} -DauraPolicy=${AURAPOLICY} \
+      -jar dist/aardvark.jar \
+      /com/sun/labs/aura/aardvark/resource/coarse/dataStoreConfig.xml \
+      starter &> logs/store.out &
+
+sleep 10
+
+#
+# Stat service
+nohup java \
+      -DauraHome=${AURAHOME} -DauraGroup=${AURAGROUP} -DauraPolicy=${AURAPOLICY} \
+      -jar dist/aardvark.jar \
+      /com/sun/labs/aura/aardvark/resource/coarse/statServiceConfig.xml \
+      statServiceStarter &> logs/stats.out &
+
+#
+# Feed scheduler.
+nohup java -Xmx2g \
+      -DauraHome=${AURAHOME} -DauraGroup=${AURAGROUP} -DauraPolicy=${AURAPOLICY} \
+      -jar dist/aardvark.jar \
+      /com/sun/labs/aura/aardvark/resource/coarse/feedSchedulerConfig.xml \
+      feedSchedulerStarter &> logs/feedSched.out &
+
+#
+# Feed manager times two!
+nohup java -DauraHome=${AURAHOME} \
+      -DauraHome=${AURAHOME} -DauraGroup=${AURAGROUP} -DauraPolicy=${AURAPOLICY} \
+      -jar dist/aardvark.jar \
+      /com/sun/labs/aura/aardvark/resource/coarse/feedManagerConfig.xml \
+      feedManagerStarter &> logs/feedMan1.out &
+
+nohup java -DcsPort=7790 \
+      -DauraHome=${AURAHOME} -DauraGroup=${AURAGROUP} -DauraPolicy=${AURAPOLICY} \
+      -jar dist/aardvark.jar \
+      /com/sun/labs/aura/aardvark/resource/coarse/feedManagerConfig.xml \
+      feedManagerStarter &> logs/feedMan2.out &
+
+#
+# Recommendations.
+nohup java \
+      -DauraHome=${AURAHOME} -DauraGroup=${AURAGROUP} -DauraPolicy=${AURAPOLICY} \
+      -jar dist/aardvark.jar \
+      /com/sun/labs/aura/aardvark/resource/coarse/recommenderManagerConfig.xml \
+      recommenderManagerStarter &> logs/reccm.out &
+
+
+#
+# Aardvark
+nohup java \
+      -DauraHome=${AURAHOME} -DauraGroup=${AURAGROUP} -DauraPolicy=${AURAPOLICY} \
+      -jar dist/aardvark.jar \
+      dist/com/sun/labs/aura/aardvark/resource/coarse/aardvarkConfig.xml \
+      aardvarkStarter &> logs/aardvark.out &
+
+#
+# Shell!
+java -DauraHome=${AURAHOME} -DauraGroup=${AURAGROUP} -DauraPolicy=${AURAPOLICY} \
+     -jar dist/aardvark.jar \
+      /com/sun/labs/aura/aardvark/resource/shellConfig.xml shellStarter

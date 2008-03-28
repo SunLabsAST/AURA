@@ -14,6 +14,7 @@ import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -21,7 +22,7 @@ import java.util.Set;
  * An aardvark feed item
  * @author plamere
  */
-public class BlogFeed extends ItemAdapter {
+public class BlogFeed extends ItemAdapter implements Serializable {
 
     // field names
     private final static String FIELD_DESCRIPTION = "description";
@@ -134,6 +135,10 @@ public class BlogFeed extends ItemAdapter {
      */
     public int getNumPulls() {
         return getFieldAsInt(FIELD_NUM_PULLS);
+    }
+
+    public long getLastPullTime() {
+        return getFieldAsLong(FIELD_LAST_PULL_TIME);
     }
 
     /**

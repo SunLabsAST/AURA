@@ -16,8 +16,8 @@ import com.sun.labs.util.props.Component;
 import com.sun.syndication.feed.synd.SyndFeed;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
 
 /**
  *
@@ -29,7 +29,7 @@ public interface Aardvark extends Component, Remote {
      * @param feedURL the feed to add
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    void addFeed(String feedURL) throws AuraException, RemoteException;
+    public void addFeed(String feedURL) throws AuraException, RemoteException;
 
 
     /**
@@ -39,7 +39,7 @@ public interface Aardvark extends Component, Remote {
      * @param type the type of attention the user pays to the URL
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    void addUserFeed(User user, String feedURL, Attention.Type type) throws AuraException, RemoteException;
+    public void addUserFeed(User user, String feedURL, Attention.Type type) throws AuraException, RemoteException;
 
     /**
      * Enrolls a user in the recommender
@@ -47,18 +47,35 @@ public interface Aardvark extends Component, Remote {
      * @return the user
      * @throws AuraException if the user is already enrolled or a problem occurs while enrolling the user
      */
-    User enrollUser(String openID) throws AuraException, RemoteException;
+    public User enrollUser(String openID) throws AuraException, RemoteException;
 
-
+    /**
+     * Update the version of the user stored in the datastore
+     * 
+     * @param user the user to update
+     * @return
+     * @throws AuraException if there was an error
+     */
+    public User updateUser(User user) throws AuraException, RemoteException;
+    
+    /**
+     * Deletes a user from the data store
+     * 
+     * @param user the user to delete
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void deleteUser(User user) throws AuraException, RemoteException;
+    
     /**
      * Gets the attention data for a user
      * @param user the user of interest
      * @param type the type of attention data of interest (null indicates all)
-     * @return the set of attention data (sorted by timestamp)
+     * @return the list of attention data (sorted by timestamp)
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    SortedSet<Attention> getLastAttentionData(User user, Attention.Type type, 
+    public List<Attention> getLastAttentionData(User user, Attention.Type type, 
                 int count) throws AuraException, RemoteException;
     
     /**
@@ -67,25 +84,44 @@ public interface Aardvark extends Component, Remote {
      * @param type the type of attention that we want the feeds to have
      * @return a list of the feeds of the given type for the given user.
      */
-    Set<BlogFeed> getFeeds(User user, Attention.Type type) throws AuraException, RemoteException;
+    public Set<BlogFeed> getFeeds(User user, Attention.Type type) throws AuraException, RemoteException;
 
     /**
      * Gets the feed for the particular user
      * @param user the user
      * @return the feed
      */
-    SyndFeed getRecommendedFeed(User user) throws AuraException, RemoteException;
+    public SyndFeed getRecommendedFeed(User user) throws AuraException, RemoteException;
+
+    /**
+     * Gets the feed for the particular user
+     * @param user the user
+     * @param num the number of entries
+     * @return the feed
+     */
+    public SyndFeed getRecommendedFeed(User user, int num) throws AuraException, RemoteException;
 
     /**
      * Returns interesting stats about aardvark
      * @return the stats
      */
-    Stats getStats() throws AuraException, RemoteException;
+    public Stats getStats() throws AuraException, RemoteException;
 
     /**
      * Gets the user from the openID
      * @param openID the openID for the user
      * @return the user or null if the user doesn't exist
      */
-    User getUser(String openID) throws AuraException, RemoteException;
+    public User getUser(String openID) throws AuraException, RemoteException;
+
+    /**
+     * Get a user based on the previously-generated random string for that
+     * user.
+     * 
+     * @param randStr the complete random string for a user
+     * @return the matching user
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public User getUserByRandomString(String randStr) throws AuraException, RemoteException;
 }

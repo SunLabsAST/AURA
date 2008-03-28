@@ -12,6 +12,8 @@ public class AttnDesc implements Serializable {
     protected String type;
     protected String time;
     
+    protected long queryTime;
+    
     public AttnDesc() {
         
     }
@@ -21,6 +23,10 @@ public class AttnDesc implements Serializable {
         this.targetKey = targ;
         this.type = type;
         this.time = time;
+    }
+    
+    public AttnDesc(long queryTime) {
+        this.queryTime = queryTime;
     }
     
     public String getType() {
@@ -37,5 +43,9 @@ public class AttnDesc implements Serializable {
 
     public String getTime() {
         return time;
+    }
+    
+    public long getQueryTime() {
+        return queryTime;
     }
 }

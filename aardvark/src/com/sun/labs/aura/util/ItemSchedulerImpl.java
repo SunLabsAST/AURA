@@ -6,6 +6,7 @@ package com.sun.labs.aura.util;
 
 import com.sun.labs.aura.aardvark.impl.*;
 import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.ItemEvent;
@@ -17,7 +18,7 @@ import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
-import java.util.Set;
+import java.util.Date;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -37,12 +38,15 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     private AtomicInteger waiters = new AtomicInteger();
 
     public String getNextItemKey() throws InterruptedException {
+        long start = System.currentTimeMillis();
         waiters.incrementAndGet();
 
         if (logger.isLoggable(Level.INFO)) {
             DelayedItem next = itemQueue.peek();
             if (next != null) {
-                logger.info("waiters: " + waiters.get() + " waiting " + next.getDelay(TimeUnit.SECONDS) + " secs, items: " + itemQueue.size());
+                logger.info("in waiters: " + waiters.get() + ", waiting " + next.getDelay(TimeUnit.SECONDS) + " secs, items: " + size());
+            } else {
+                logger.info("in waiters: " + waiters.get() + ", waiting, items: " +  size());
             }
         }
 
@@ -59,11 +63,16 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
             if (lateSeconds > lateTime) {
                 logger.warning("schedule of " + delayedItem.getItemKey() + " was " + lateSeconds + " seconds late.");
             }
-            logger.info("getting " + delayedItem.getItemKey() + " was late by " +
+            logger.fine("getting " + delayedItem.getItemKey() + " was late by " +
                     -delayedItem.getDelay(TimeUnit.SECONDS) + " secs");
         }
 
         waiters.decrementAndGet();
+
+        long wait = System.currentTimeMillis() - start;
+        logger.info("out waiters: " + waiters.get() + ", waited " + wait + " msecs, items: " + size()
+                + " who: " + Thread.currentThread().getName());
+
         return delayedItem.getItemKey();
     }
 
@@ -72,13 +81,30 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
             secondsUntilNextScheduledProcessing = defaultPeriod;
         }
         addItem(itemKey, secondsUntilNextScheduledProcessing);
-        logger.info("released item " + itemKey + " next time is " + secondsUntilNextScheduledProcessing + " secs");
+        logger.fine("released item " + itemKey + " next time is " + secondsUntilNextScheduledProcessing + " secs, cur size " + size());
     }
 
     public void itemCreated(ItemEvent e) throws RemoteException {
+
+        int pullTime = 0;
+        int headTime = 0;
+
+        // add new items to the head of the queue, so peek at the current head
+        //  and add the new items with a lower delay than the head of the queue
+        DelayedItem head = itemQueue.peek();
+        if (head != null) {
+            headTime  = (int) head.getDelay(TimeUnit.SECONDS);
+            if (headTime <= 0) {
+                pullTime = headTime;
+            }
+         }
+        
         for (Item item : e.getItems()) {
-            addItem(item.getKey(), 0);
+            addItem(item.getKey(), --pullTime);
         }
+        // we want new items to get to cut to the head of the queue, so
+        // we use newItemTime to schedule newly created items earlier then 
+        // anyone else.
         logger.info("Added " + e.getItems().length + " items " + " total size is " + size());
     }
 
@@ -89,6 +115,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         for (Item item : e.getItems()) {
             deleteItemByKeyFromQueues(item.getKey());
         }
+        logger.info("removed " + e.getItems().length + " items " + " total size is " + size());
     }
 
     private void deleteItemByKeyFromQueues(String itemKey) {
@@ -98,6 +125,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
 
     synchronized public void newProperties(final PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
+        logger.info("new properties for " + ps.getInstanceName());
 
         DataStore oldStore = dataStore;
         Item.ItemType oldItemType = itemType;
@@ -141,7 +169,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
                         getRemote(this, newItemStore);
                 newItemStore.addItemListener(newItemType, exportedItemListener);
             } catch (AuraException ex) {
-                throw new PropertyException(ps.getInstanceName(),
+                throw new PropertyException(ex, ps.getInstanceName(),
                         PROP_DATA_STORE, "aura exception " + ex.getMessage());
             } catch (RemoteException ex) {
                 throw new PropertyException(ps.getInstanceName(),
@@ -153,6 +181,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
             itemType = newItemType;
 
             Thread t = new Thread() {
+
                 public void run() {
                     collectItems(ps.getInstanceName(), dataStore, itemType);
                 }
@@ -162,25 +191,28 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     }
 
     private void collectItems(String name, DataStore ds, Item.ItemType type) {
+        float initialDelay = 0;
+        float delayIncrement = .2f;
         try {
             // collect all of the items of our item type and add them to the
             // itemQueue.  Stagger the period over the default period
-
-            Set<Item> items = ds.getAll(type);
-            if (items.size() > 0) {
-                float initialDelay = 0;
-                float delayIncrement = ((float) defaultPeriod) / items.size();
-
-                for (Item item : items) {
+            DBIterator<Item> iter = ds.getItemsAddedSince(type, new Date(0));
+            try {
+                while (iter.hasNext()) {
+                    Item item = iter.next();
                     addItem(item.getKey(), (int) initialDelay);
                     initialDelay += delayIncrement;
                 }
+            } finally {
+                iter.close();
             }
         } catch (AuraException ex) {
             logger.severe("Can't get items from the store " + ex.getMessage());
         } catch (RemoteException ex) {
             logger.severe("Can't get items from the store " + ex.getMessage());
         }
+        logger.info(name + "Collected " + size() + " items ");
+        
     }
 
     /**
@@ -193,6 +225,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
      */
     private void addItem(String itemKey, int delay) {
         itemQueue.add(new DelayedItem(itemKey, delay));
+        logger.fine("Added item " + itemKey + " delay " + delay);
     }
     /**
      * the configurable property for the itemstore used by this manager
@@ -242,10 +275,6 @@ class DelayedItem implements Delayed {
     private long nextProcessingTime;
 
     public DelayedItem(String itemKey, int seconds) {
-        if (seconds < 0) {
-            seconds = 0;
-        }
-
         this.itemKey = itemKey;
         nextProcessingTime = System.currentTimeMillis() + seconds * 1000;
     }

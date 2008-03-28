@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : fullConfig.xml
+    Created on : February 25, 2008, 3:12 PM
+    Author     : stgreen
+    Description:
+        An all-in-one-VM configuration for Aardvark.
+-->
+
+<config>
+    <!-- Where the aura data lives -->
+    <property name="auraHome" value="/aura"/>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true">
+        <property name="stopwords" value="stopwords"/>
+    </component>
+    
+    <component name="stopwords" type="ngnova.pipeline.StopWords">
+        <propertylist name="stopwords_files">
+            <item>/com/sun/labs/aura/aardvark/resource/stopwords</item>
+        </propertylist>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster0" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true">
+        <property name="prefix" value="0"/>
+        <property name="dataStoreHead" value="dataStoreHead"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster1" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true">
+        <property name="prefix" value="1"/>
+        <property name="dataStoreHead" value="dataStoreHead"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant0" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" export="true">
+        <property name="prefix" value="0"/>
+        <property name="dbEnv" value="${auraHome}/0/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine0"/>
+        <property name="partitionCluster" value="partitionCluster0"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant1" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" export="true">
+        <property name="prefix" value="1"/>
+        <property name="dbEnv" value="${auraHome}/1/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine1"/>
+        <property name="partitionCluster" value="partitionCluster1"/>
+    </component>
+    
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine0" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${auraHome}/0/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+    </component>
+    
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine1" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${auraHome}/1/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+    </component>
+    
+    <!-- A simple recommender -->
+    <component name="recommenderManager" type="com.sun.labs.aura.aardvark.impl.recommender.SimpleRecommenderManager">
+        <property name="dataStore" value="dataStoreHead"/>
+    </component>
+    
+    <component name="feedScheduler" type="com.sun.labs.aura.util.ItemSchedulerImpl">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="itemType" value="FEED"/>
+        <property name="logLevel" value="SEVERE"/>
+    </component>
+    
+    <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="statService" value="statService"/>
+        <property name="feedScheduler" value="feedScheduler"/>
+        <property name="numThreads" value="5"/>
+        <property name="logLevel" value="SEVERE"/>
+    </component>
+    
+    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl">
+        <property name="dataStore" value="dataStoreHead"/>
+    </component>
+    
+    <component name="aardvarkStatusReporter" type="com.sun.labs.aura.aardvark.util.AardvarkStatusReporter">
+        <property name="dataStore" value="dataStoreHead"/>
+    </component>
+    
+    <component name="shell" type="com.sun.labs.aura.aardvark.util.AardvarkShell">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="aardvark" value="aardvark"/>
+        <property name="statService" value="statService"/>
+    </component>
+    
+    <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="recommenderManager" value="recommenderManager"/>
+        <property name="statService" value="statService"/>
+        <property name="autoEnrollTestFeeds" value="false"/>
+        <property name="autoEnrollMegaTestFeeds" value="false"/>
+    </component>
+    
+    
+    
+    <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>dataStoreHead</item>
+            <item>partitionCluster0</item>
+            <item>partitionCluster1</item>
+            <item>replicant0</item>
+            <item>replicant1</item>
+            <item>recommenderManager</item>
+            <!--            <item>feedScheduler</item> -->
+            <!--             <item>feedManager</item>  -->
+            <item>statService</item>
+            <!--<item>aardvarkStatusReporter</item> -->
+            <item>shell</item>
+            <item>aardvark</item>
+        </propertylist>
+    </component>
+    
+</config>

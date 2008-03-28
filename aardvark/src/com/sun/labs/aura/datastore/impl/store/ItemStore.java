@@ -10,8 +10,8 @@ import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import java.rmi.RemoteException;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
 
 /**
  * The interface for a simple item store that allow the storage of users, items,
@@ -26,7 +26,7 @@ public interface ItemStore {
      * @param itemType the type of items that are of interest
      * @return a list containing all items of the given type
      */
-    public Set<Item> getAll(ItemType itemType)
+    public List<Item> getAll(ItemType itemType)
             throws AuraException, RemoteException;
 
     /**
@@ -50,6 +50,41 @@ public interface ItemStore {
     public User getUser(String key)
             throws AuraException, RemoteException;
 
+    /**
+     * Gets a user based on the random string provided.  This call must be
+     * directed to the correct partition for it to succeed.
+     * 
+     * @param randStr the random string associated with a user
+     * @return the user
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public User getUserForRandomString(String randStr)
+            throws AuraException, RemoteException;
+    
+    /**
+     * Delete a user from the date store.  This will remove the user item and
+     * any attention that the user has created.
+     * 
+     * @param key the string identifier of the user to delete
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void deleteUser(String key)
+            throws AuraException, RemoteException;
+
+    /**
+     * Delete an item from the date store.  This will remove the item and any
+     * attention that was paid to it.
+     * 
+     * @param key the string identifier of the item to delete
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void deleteItem(String key)
+            throws AuraException, RemoteException;
+
+    
     /**
      * Puts an item into the ItemStore.  The Item may be either a new Item
      * or a modification of an existing Item that was retrieved using one of
@@ -105,7 +140,7 @@ public interface ItemStore {
      * @return the set of matching items
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    public Set<Item> getItems(
+    public List<Item> getItems(
             User user,
             Attention.Type attnType,
             ItemType itemType) throws AuraException, RemoteException;
@@ -118,7 +153,7 @@ public interface ItemStore {
      * @return the set of all attention
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    public Set<Attention> getAttentionForSource(String srcKey)
+    public List<Attention> getAttentionForSource(String srcKey)
             throws AuraException, RemoteException;
 
     /**
@@ -128,7 +163,7 @@ public interface ItemStore {
      * @return the set of all attention
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    public Set<Attention> getAttentionForTarget(String itemKey)
+    public List<Attention> getAttentionForTarget(String itemKey)
             throws AuraException, RemoteException;
     
     /**
@@ -165,7 +200,7 @@ public interface ItemStore {
      * @param count the number of attentions to fetch
      * @return the most recent attentions, sorted by date
      */
-    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+    public List<Attention> getLastAttentionForSource(String srcKey,
                                                           int count)
             throws AuraException, RemoteException;
 
@@ -178,7 +213,7 @@ public interface ItemStore {
      * @param count the number of attentions to fetch
      * @return the most recent attentions, sorted by date
      */
-    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+    public List<Attention> getLastAttentionForSource(String srcKey,
                                                           Attention.Type type,
                                                           int count)
             throws AuraException, RemoteException;

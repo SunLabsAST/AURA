@@ -1,11 +1,13 @@
 package com.sun.labs.aura.datastore.impl.store;
 
-import com.sun.labs.aura.aardvark.impl.recommender.*;
 import com.sun.kt.search.DocumentVector;
 import com.sun.kt.search.FieldInfo;
+import com.sun.kt.search.IndexableString;
 import com.sun.kt.search.Log;
+import com.sun.kt.search.Posting;
 import com.sun.kt.search.Result;
 import com.sun.kt.search.ResultSet;
+import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.SearchEngine;
 import com.sun.kt.search.SearchEngineException;
 import com.sun.kt.search.SearchEngineFactory;
@@ -14,6 +16,7 @@ import com.sun.labs.aura.datastore.Indexable;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.util.props.ConfigDouble;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
@@ -34,6 +37,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import ngnova.retrieval.FieldEvaluator;
+import ngnova.retrieval.FieldTerm;
+import ngnova.retrieval.ResultImpl;
 
 /**
  * A search engine for the data associated with items in the item store.
@@ -65,8 +71,37 @@ public class ItemSearchEngine implements Configurable {
     private boolean shuttingDown;
 
     private long flushCheckInterval;
+    
+    private double skimPercentage;
 
     private Timer flushTimer;
+    
+    public ItemSearchEngine() {
+        
+    }
+    
+    /**
+     * Creates an item search engine pointed at a particular index directory.
+     * @param indexDir
+     * @param config
+     */
+    public ItemSearchEngine(String indexDir, String config) {
+        log = Logger.getLogger(getClass().getName());
+        try {
+            URL cu = getClass().getResource(config);
+
+            //
+            // Creates the search engine.  We'll use a full blown fields-and-all
+            // engine because we need to be able to handle fielded doc vectors
+            // and postings.
+            engine = SearchEngineFactory.getSearchEngine(indexDir,
+                    "aardvark_search_engine",
+                    cu);
+        } catch(SearchEngineException see) {
+            log.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
+        }
+        
+    }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
 
@@ -87,7 +122,7 @@ public class ItemSearchEngine implements Configurable {
             // engine because we need to be able to handle fielded doc vectors
             // and postings.
             engine = SearchEngineFactory.getSearchEngine(indexDir,
-                    "search_engine",
+                    "aardvark_search_engine",
                     config);
         } catch(SearchEngineException see) {
             log.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
@@ -99,6 +134,9 @@ public class ItemSearchEngine implements Configurable {
         flushTimer = new Timer("ItemSearchEngineFlushTimer");
         flushTimer.scheduleAtFixedRate(new FlushTimerTask(), flushCheckInterval,
                 flushCheckInterval);
+        
+        skimPercentage = ps.getDouble(PROP_SKIM_PERCENTAGE);
+        
     }
 
     public SearchEngine getSearchEngine() {
@@ -169,8 +207,14 @@ public class ItemSearchEngine implements Configurable {
                     //
                     // Now get a value to put in the index map.
                     Object indexVal = val;
-                    if(val instanceof Indexable) {
-                        indexVal = indexVal.toString();
+                    if(indexVal instanceof Map) {
+                        indexVal = ((Map) indexVal).values();
+                    } else if(val instanceof Indexable ||
+                            val instanceof String) {
+                        //
+                        // The content might contain XML or HTML, so let's get
+                        // rid of that stuff.
+                        indexVal = new IndexableString(indexVal.toString(), IndexableString.Type.HTML);
                     }
                     im.put(e.getKey(), indexVal);
                 }
@@ -191,7 +235,8 @@ public class ItemSearchEngine implements Configurable {
      * is no appropriate type.
      */
     private FieldInfo.Type getType(Object val) {
-        if(val instanceof Indexable || val instanceof Indexable[]) {
+        if(val instanceof Indexable || val instanceof Indexable[] ||
+                val instanceof Posting || val instanceof Posting[]) {
             return FieldInfo.Type.STRING;
         }
 
@@ -203,14 +248,21 @@ public class ItemSearchEngine implements Configurable {
             return FieldInfo.Type.DATE;
         }
 
-        if(val instanceof Integer || val instanceof Integer[] || 
+        if(val instanceof Integer || val instanceof Integer[] ||
                 val instanceof Long || val instanceof Long[]) {
             return FieldInfo.Type.INTEGER;
         }
 
-        if(val instanceof Float || val instanceof Float[] || 
+        if(val instanceof Float || val instanceof Float[] ||
                 val instanceof Double || val instanceof Double[]) {
             return FieldInfo.Type.FLOAT;
+        }
+
+        
+        //
+        // The type of a map is the type of its values.  Arbitrary, but fun!
+        if(val instanceof Map) {
+            return getType(((Map) val).values());
         }
         
         //
@@ -294,7 +346,7 @@ public class ItemSearchEngine implements Configurable {
      * key has not been indexed or if an error occurs while fetching the docuemnt,
      * then <code>null</code> will be returned.
      */
-    public DocumentVector getDocument(String key) {
+    public DocumentVector getDocumentVector(String key) {
         try {
             return engine.getDocumentVector(key);
         } catch(SearchEngineException ex) {
@@ -303,75 +355,93 @@ public class ItemSearchEngine implements Configurable {
         }
     }
 
-    /**
-     * Finds the n most-similar items to the given item, based on the item
-     * data
-     * @param key the item for which we want similar items
-     * @param n the number of similar items to return
-     * @return the set of items most similar to the given item, based on the 
-     * data indexed.  Note that the returned set may be
-     * smaller than the number of items requested!
-     */
-    public List<Scored<String>> findSimilar(String key, int n)
-            throws AuraException, RemoteException {
-        try {
-            DocumentVector dv = engine.getDocumentVector(key);
-            if (dv == null) {
-                return new ArrayList<Scored<String>>(); // FIXME
-            }
-            return findSimilar(dv, n);
-        } catch (SearchEngineException ex) {
-            log.log(Level.SEVERE, "Error in findSimilar for key " + key, ex);
-            return null;
-        }
+    public DocumentVector getDocumentVector(String key, String field) {
+        return engine.getDocumentVector(key, field);
     }
-    
+
+    public DocumentVector getDocumentVector(String key, WeightedField[] fields) {
+        return engine.getDocumentVector(key, fields);
+    }
+
     /**
      * Finds the n most-similar items to the given item, based on the data in the 
      * provided field.
-     * @param key the item for which we want similar items
-     * @param field the name of the field that should be used to find similar
-     * items
+     * @param dv the document vector for the item of interest
      * @param n the number of similar items to return
-     * @return the set of items most similar to the given item, based on the 
+     * @param rf a (possibly <code>null</code>) filter to apply when getting 
+     * the top results from the findSimilar
+     * @return the set of items most similar to the given item, based on the
      * data indexed into the given field.  Note that the returned set may be
      * smaller than the number of items requested!
+     * @see #getDocumentVector
      */
-    public List<Scored<String>> findSimilar(String key, String field,
-            int n)
-            throws AuraException, RemoteException {
-        DocumentVector dv = engine.getDocumentVector(key, field);
-        return findSimilar(dv, n);
-    }
-
-    /**
-     * Finds the n most-similar items to the given items, based on a combination
-     * of the data held in the provided fields.
-     * @param key the item for which we want similar items
-     * @param fields the fields (and associated weights) that we should use to 
-     * compute the similarity between items.
-     * @param n the number of similar items to return
-     * @return the set of items most similar to the given item, based on the data
-     * in the provided fields.   Note that the returned set may be
-     * smaller than the number of items requested!
-     */
-    public List<Scored<String>> findSimilar(String key,
-            WeightedField[] fields, int n)
-            throws AuraException, RemoteException {
-        DocumentVector dv = engine.getDocumentVector(key, fields);
-        return findSimilar(dv, n);
-    }
-
-    private List<Scored<String>> findSimilar(DocumentVector dv, int n)
+    public List<Scored<String>> findSimilar(DocumentVector dv, int n, ResultsFilter rf)
             throws AuraException {
-        ResultSet sim = dv.findSimilar("-score");
+
+        //
+        // Recover from having been serialized.
+        dv.setEngine(engine);
+        ResultSet sim = dv.findSimilar("-score", skimPercentage);
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         try {
-            for(Result r : sim.getResults(0, n)) {
-                ret.add(new Scored<String>(r.getKey(), r.getScore()));
+            for(Result r : sim.getResults(0, n, rf)) {
+                ResultImpl ri = (ResultImpl) r;
+                ret.add(new Scored<String>(ri.getKey(), 
+                        ri.getScore(),
+                        ri.getSortVals(),
+                        ri.getDirections()));
             }
         } catch(SearchEngineException see) {
             throw new AuraException("Error getting similar items", see);
+        }
+        return ret;
+    }
+
+    /**
+     * Gets a list of the keys for the items that have a field with a given value.
+     * @param name the name of the field
+     * @param val the value
+     * @param n the number of keys to return
+     * @return a list of the keys of the items whose fields have the given value
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<Scored<String>> find(String name, String val, int n) throws AuraException, RemoteException {
+        FieldEvaluator fe = new FieldEvaluator(name, FieldTerm.EQUAL, val);
+        ResultSet rs = fe.eval(engine);
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        try {
+            for(Result r : rs.getResults(0, n)) {
+                ret.add(new Scored<String>(r.getKey(), r.getScore()));
+            }
+        } catch(SearchEngineException see) {
+            throw new AuraException("Error finding items", see);
+        }
+        return ret;
+    }
+
+    public List<Scored<String>> query(String query, String sort, int n) throws AuraException, RemoteException {
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        try {
+            for(Result r : engine.search(query, sort).getResults(0, n)) {
+                ResultImpl ri = (ResultImpl) r;
+                ret.add(new Scored<String>(ri.getKey(), 
+                        ri.getScore(),
+                        ri.getSortVals(), 
+                        ri.getDirections()));
+            }
+        } catch(SearchEngineException see) {
+            //
+            // The search engine exception may be wrapping an exception that
+            // we don't want to send across the wire, so we should see what if
+            // there's one of these in there.
+            Throwable ex = see.getCause();
+            if(ex instanceof ngnova.retrieval.parser.ParseException ||
+                    ex instanceof java.text.ParseException) {
+                throw new AuraException("Error parsing query: " +
+                        ex.getMessage());
+            }
+            throw new AuraException("Error finding items", see);
         }
         return ret;
     }
@@ -433,5 +503,11 @@ public class ItemSearchEngine implements Configurable {
      */
     @ConfigInteger(defaultValue = 3000, range = {1, 300000})
     public static final String PROP_FLUSH_INTERVAL = "flushInterval";
+    
+    /**
+     * The skim percentage to use for findSimilar.
+     */
+    @ConfigDouble(defaultValue=0.25)
+    public static final String PROP_SKIM_PERCENTAGE = "skimPercentage";
 
 }

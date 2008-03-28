@@ -6,4 +6,10 @@ package com.sun.labs.aura.datastore;
  */
 public interface User extends Item {
 
+    /**
+     * Gets the random string that is used in URLs to this user's data
+     *
+     * @return the random string
+     */
+    public String getUserRandString();
 }

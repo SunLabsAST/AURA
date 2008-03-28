@@ -133,7 +133,7 @@ public class BerkeleyItemStoreTest {
         // Get entries from the first feed
         Feed f = (Feed) store.get(startID + 1);
         long t = currentTime;
-        SortedSet<Entry> ents = store.getEntries(f);
+        List<Entry> ents = store.getEntries(f);
         assertTrue(ents.size() == 2);
     }
 

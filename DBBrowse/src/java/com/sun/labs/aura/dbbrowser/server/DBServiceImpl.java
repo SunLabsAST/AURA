@@ -11,7 +11,22 @@ package com.sun.labs.aura.dbbrowser.server;
 import com.sun.labs.aura.dbbrowser.client.AttnDesc;
 import com.sun.labs.aura.dbbrowser.client.ItemDesc;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.sun.labs.aura.aardvark.Aardvark;
+import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.dbbrowser.client.DBService;
+import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Scored;
+import java.rmi.RemoteException;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import ngnova.util.StopWatch;
 
 /**
  *
@@ -19,39 +34,126 @@ import com.sun.labs.aura.dbbrowser.client.DBService;
 public class DBServiceImpl extends RemoteServiceServlet implements
         DBService {
     
+    protected static Aardvark aardvark;
+    protected static DataStore store;
+    protected static Logger logger = Logger.getLogger("");
+    
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        ServletContext context = getServletContext();
+        aardvark = (Aardvark) context.getAttribute("aardvark");
+        store = (DataStore)context.getAttribute("dataStore");
+    }
 
     public ItemDesc[] searchItemByKey(String key) {
-        ItemDesc[] results = new ItemDesc[3];
-        results[0] = new ItemDesc("Jeff", "jalex", "User");
-        results[1] = new ItemDesc("Steve", "stgreen", "User");
-        results[2] = new ItemDesc("Search Guy", "http://steves.blog/feed.xml", "Blog Feed");
-        return results;
+        try {
+            String q = "aura-key <matches> " + key;
+            StopWatch sw = new StopWatch();
+            sw.start();
+            List<Scored<Item>> res = store.query(q, 10, null);
+            sw.stop();
+            ItemDesc[] results = new ItemDesc[res.size() + 1];
+            results[0] = new ItemDesc(sw.getTime());
+            int i = 1;
+            for (Scored<Item> si : res) {
+                results[i++] = Factory.itemDesc(si.getItem());
+            }
+            logger.info("search for: " + q + " took " + sw.getTime() + "ms and returned " + res.size() + " results");
+            return results;
+        } catch (AuraException ex) {
+            logger.log(Level.SEVERE, null, ex);
+        } catch (RemoteException ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
     public ItemDesc[] searchItemByName(String key) {
-        ItemDesc[] results = new ItemDesc[3];
-        results[0] = new ItemDesc("Jeff", "jalex", "User");
-        results[1] = new ItemDesc("Steve", "stgreen", "User");
-        results[2] = new ItemDesc("Search Guy", "http://steves.blog/feed.xml", "Blog Feed");
-        return results;
+        try {
+            String q = "aura-name <matches> " + key;
+            StopWatch sw = new StopWatch();
+            sw.start();
+            List<Scored<Item>> res = store.query(q, 10, null);
+            sw.stop();
+            ItemDesc[] results = new ItemDesc[res.size() + 1];
+            results[0] = new ItemDesc(sw.getTime());
+            int i = 1;
+            for (Scored<Item> si : res) {
+                results[i++] = Factory.itemDesc(si.getItem());
+            }
+            logger.info("search for: " + q + " took " + sw.getTime() + "ms and returned " + res.size() + " results");
+            return results;
+        } catch (AuraException ex) {
+            Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (RemoteException ex) {
+            Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
+    public ItemDesc[] searchItemByGen(String query) {
+        try {
+            StopWatch sw = new StopWatch();
+            sw.start();
+            List<Scored<Item>> res = store.query(query, 10, null);
+            sw.stop();
+            ItemDesc[] results = new ItemDesc[res.size() + 1];
+            results[0] = new ItemDesc(sw.getTime());
+            int i = 1;
+            for (Scored<Item> si : res) {
+                results[i++] = Factory.itemDesc(si.getItem());
+            }
+            logger.info("search for: " + query + " took " + sw.getTime() + "ms and returned " + res.size() + " results");
+            return results;
+        } catch (AuraException ex) {
+            Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (RemoteException ex) {
+            Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    
     public AttnDesc[] getAttentionForSource(String key) {
-        AttnDesc[] results = new AttnDesc[4];
-        results[0] = new AttnDesc("key1", "key2", "STARRED", "Jan 1");
-        results[1] = new AttnDesc("key1", "key3", "STARRED", "Jan 2");
-        results[2] = new AttnDesc("key1", "key4", "VIEWED", "Jan 3");
-        results[3] = new AttnDesc("key1", "key5", "SUBSCRIBED_FEED", "Jan 4");
-        return results;
+        try {
+            StopWatch sw = new StopWatch();
+            sw.start();
+            Set<Attention> attn = store.getAttentionForSource(key);
+            sw.stop();
+            AttnDesc[] results = new AttnDesc[attn.size() + 1];
+            results[0] = new AttnDesc(sw.getTime());
+            int i = 1;
+            for (Attention a : attn) {
+                results[i++] = Factory.attnDesc(a);
+            }
+            return results;
+        } catch (AuraException ex) {
+            Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (RemoteException ex) {
+            Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
     public AttnDesc[] getAttentionForTarget(String key) {
-        AttnDesc[] results = new AttnDesc[4];
-        results[0] = new AttnDesc("key1", "key2", "STARRED", "Jan 1");
-        results[1] = new AttnDesc("key3", "key2", "VIEWED", "Jan 2");
-        results[2] = new AttnDesc("key4", "key2", "STARRED", "Jan 3");
-        results[3] = new AttnDesc("key5", "key2", "SUBSCRIBED_FEED", "Jan 4");
-        return results;
+        try {
+            StopWatch sw = new StopWatch();
+            sw.start();
+            Set<Attention> attn = store.getAttentionForTarget(key);
+            sw.stop();
+            AttnDesc[] results = new AttnDesc[attn.size() + 1];
+            results[0] = new AttnDesc(sw.getTime());
+            int i = 1;
+            for (Attention a : attn) {
+                results[i++] = Factory.attnDesc(a);
+            }
+            return results;
+        } catch (AuraException ex) {
+            Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (RemoteException ex) {
+            Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
 }

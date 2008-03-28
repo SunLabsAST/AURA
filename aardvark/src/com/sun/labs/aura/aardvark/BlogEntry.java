@@ -15,6 +15,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.syndication.feed.synd.SyndEntry;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -22,13 +23,13 @@ import java.util.List;
  * @author plamere
  */
 public class BlogEntry extends ItemAdapter {
-    private final static String FIELD_FEED_KEY = "fieldKey";
-    private final static String FIELD_TITLE = "title";
-    private final static String FIELD_CONTENT = "content";
-    private final static String FIELD_SYND_ENTRY = "syndEntry";
-    private final static String FIELD_TAG = "tag";
-    private final static String FIELD_AUTHOR = "author";
-    private final static String FIELD_AUTHORITY = "authority";
+    public final static String FIELD_FEED_KEY = "fieldKey";
+    public final static String FIELD_CONTENT = "content";
+    public final static String FIELD_SYND_ENTRY = "syndEntry";
+    public final static String FIELD_TAG = "tag";
+    public final static String FIELD_AUTHOR = "author";
+    public final static String FIELD_AUTHORITY = "authority";
+    public final static String FIELD_PUBLISH_DATE = "publish-date";
 
     /**
      * Wraps a Item as blog entry
@@ -71,6 +72,22 @@ public class BlogEntry extends ItemAdapter {
      */
     public float getAuthority() {
         return getFieldAsFloat(FIELD_AUTHORITY);
+    }
+
+    /**
+     * Sets the published date of the entry
+     * @param date the published date of the entry
+     */
+    public void setPublishDate(Date date) {
+        setFieldAsObject(FIELD_PUBLISH_DATE, date);
+    }
+
+    /**
+     * Gets the publish date of the entry
+     * @return the publish date of the entry
+     */
+    public Date getPublishDate() {
+        return (Date) getFieldAsObject(FIELD_PUBLISH_DATE);
     }
 
 
@@ -136,17 +153,9 @@ public class BlogEntry extends ItemAdapter {
      * @return the title of the entry
      */
     public String getTitle() {
-        return getFieldAsString(FIELD_TITLE);
+        return getName();
     }
 
-
-    /**
-     * Sets the title of the entry
-     * @param title the title of the entry
-     */
-    public void setTitle(String title) {
-        setField(FIELD_TITLE, title);
-    }
 
 
     /**

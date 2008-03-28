@@ -1,6 +1,7 @@
 package com.sun.labs.aura.util;
 
-import com.sun.labs.aura.datastore.impl.DataStoreHead;
+import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
@@ -14,11 +15,11 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * An implementation of the 
  */
-public class StatServiceImpl implements StatService, Configurable {
+public class StatServiceImpl implements StatService, AuraService, Configurable {
 
     @ConfigComponent(type = com.sun.labs.aura.datastore.DataStore.class)
     public static final String PROP_DATA_STORE = "dataStore";
-    private DataStoreHead dataStore;
+    private DataStore dataStore;
     private Map<String, Counter> counters;
 
     public StatServiceImpl() {
@@ -92,7 +93,7 @@ public class StatServiceImpl implements StatService, Configurable {
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
-        dataStore = (DataStoreHead) ps.getComponent(PROP_DATA_STORE);
+        dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
     }
 
     public class Counter implements Serializable {

@@ -1,5 +1,8 @@
 package com.sun.labs.aura.datastore.impl;
 
+import com.sun.kt.search.DocumentVector;
+import com.sun.kt.search.FieldFrequency;
+import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
@@ -19,8 +22,8 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -62,7 +65,7 @@ public class PartitionClusterImpl implements PartitionCluster,
         return prefixCode;
     }
 
-    public Set<Item> getAll(ItemType itemType)
+    public List<Item> getAll(ItemType itemType)
             throws AuraException, RemoteException {
         return replicant.getAll(itemType);
     }
@@ -75,6 +78,11 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getUser(key);
     }
 
+    public User getUserForRandomString(String randStr)
+            throws AuraException, RemoteException {
+        return replicant.getUserForRandomString(randStr);
+    }
+    
     public Item putItem(Item item) throws AuraException, RemoteException {
         return replicant.putItem(item);
     }
@@ -83,22 +91,42 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.putUser(user);
     }
 
+    /**
+     * Deletes just an item from the item store, not touching the attention.
+     */
+    public void deleteItem(String itemKey) throws AuraException, RemoteException {
+        replicant.deleteItem(itemKey);
+    }
+    
+    /**
+     * Deletes just a user from the item store, not touching the attention.
+     */
+    public void deleteUser(String userKey) throws AuraException, RemoteException {
+        deleteItem(userKey);
+    }
+    
     public DBIterator<Item> getItemsAddedSince(ItemType type, Date timeStamp)
             throws AuraException, RemoteException {
         return replicant.getItemsAddedSince(type, timeStamp);
     }
 
-    public Set<Item> getItems(User user, Type attnType, ItemType itemType)
+    public List<Item> getItems(User user, Type attnType, ItemType itemType)
             throws AuraException, RemoteException {
         return replicant.getItems(user, attnType, itemType);
     }
 
-    public Set<Attention> getAttentionForSource(String srcKey)
+    public List<Attention> getAttentionForSource(String srcKey)
             throws AuraException, RemoteException {
         return replicant.getAttentionForSource(srcKey);
     }
     
-    public Set<Attention> getAttentionForTarget(String itemKey)
+    public List<Attention> getAttentionForSource(String srcKey,
+                                                Attention.Type type)
+            throws AuraException, RemoteException {
+        return replicant.getAttentionForSource(srcKey, type);
+    }
+    
+    public List<Attention> getAttentionForTarget(String itemKey)
             throws AuraException, RemoteException {
         return replicant.getAttentionForTarget(itemKey);
     }
@@ -108,18 +136,23 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.attend(att);
     }
 
+    public void deleteAttention(String itemKey)
+            throws AuraException, RemoteException {
+        replicant.deleteAttention(itemKey);
+    }
+    
     public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)
             throws AuraException, RemoteException {
         return replicant.getAttentionAddedSince(timeStamp);
     }
 
-    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+    public List<Attention> getLastAttentionForSource(String srcKey,
                                                           int count)
             throws AuraException, RemoteException {
         return getLastAttentionForSource(srcKey, null, count);
     }
 
-    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+    public List<Attention> getLastAttentionForSource(String srcKey,
                                                           Type type,
                                                           int count)
             throws AuraException, RemoteException {
@@ -148,22 +181,40 @@ public class PartitionClusterImpl implements PartitionCluster,
     public long getAttentionCount() throws AuraException, RemoteException {
         return replicant.getAttentionCount();
     }
-
-    public SortedSet<Scored<Item>> findSimilar(String key, int n)
-            throws AuraException, RemoteException {
-        return replicant.findSimilar(key, n);
+    
+    public List<FieldFrequency> getTopValues(String field, int n, boolean ignoreCase) throws AuraException, RemoteException {
+        return replicant.getTopValues(field, n, ignoreCase);
     }
 
-    public SortedSet<Scored<Item>> findSimilar(String key, String field, int n)
+    public List<Scored<Item>> findSimilar(String key, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        return replicant.findSimilar(key, field, n);
+        DocumentVector dv = replicant.getDocumentVector(key);
+        return replicant.findSimilar(dv, n, rf);
     }
 
-    public SortedSet<Scored<Item>> findSimilar(String key,
+    public List<Scored<Item>> findSimilar(String key, String field, int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        DocumentVector dv = replicant.getDocumentVector(key, field);
+        return replicant.findSimilar(dv, n, rf);
+    }
+
+    public List<Scored<Item>> findSimilar(String key,
                                        WeightedField[] fields,
-                                       int n)
+                                       int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        return replicant.findSimilar(key, fields, n);
+        DocumentVector dv = replicant.getDocumentVector(key, fields);
+        return replicant.findSimilar(dv, n, rf);
+    }
+    
+    public List<Scored<Item>> query(String query, int n, ResultsFilter rf) 
+            throws AuraException, RemoteException {
+        return replicant.query(query, n, rf);
+    }
+
+
+    public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf) 
+            throws AuraException, RemoteException {
+        return replicant.query(query, sort, n, rf);
     }
 
 
@@ -189,8 +240,12 @@ public class PartitionClusterImpl implements PartitionCluster,
     }
     
     public void addReplicant(Replicant replicant) throws RemoteException {
+        logger.log(Level.INFO, "Adding replicant with prefix " + replicant.getPrefix());
         if (replicant.getPrefix().equals(prefixCode)) {
             this.replicant = replicant;
+        } else {
+            logger.log(Level.SEVERE, "Adding replicant with wrong prefix our prefix: " +
+                    prefixCode + " prefix added: " + replicant.getPrefix());
         }
     }
 
@@ -205,4 +260,20 @@ public class PartitionClusterImpl implements PartitionCluster,
         }
     }
 
+    public DocumentVector getDocumentVector(String key) throws RemoteException, AuraException {
+        return replicant.getDocumentVector(key);
+    }
+
+    public DocumentVector getDocumentVector(String key, String field) throws RemoteException, AuraException {
+        return replicant.getDocumentVector(key, field);
+    }
+
+    public DocumentVector getDocumentVector(String key, WeightedField[] fields)
+            throws RemoteException, AuraException {
+        return replicant.getDocumentVector(key, fields);
+    }
+
+    public List<Scored<Item>> findSimilar(DocumentVector dv, int n, ResultsFilter rf) throws AuraException, RemoteException {
+        return replicant.findSimilar(dv, n, rf);
+    }
 }

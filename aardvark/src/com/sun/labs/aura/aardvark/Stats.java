@@ -17,29 +17,32 @@ import java.io.Serializable;
 public class Stats implements Serializable {
     private String version;
     private long numUsers;
-    private long numItems;
+    private long numEntries;
     private long numAttentionData;
     private long numFeeds;
     private long feedPullCount;
     private long feedErrorCount;
+    private double entriesPerMin;
 
-    public Stats(String version, long numUsers, long numItems, long numAttentionData, 
-                long numFeeds, long feedPullCount, long feedErrorCount) {
+    public Stats(String version, long numUsers, long numEntries, long numAttentionData, 
+                long numFeeds, long feedPullCount, long feedErrorCount,
+                double entriesPerMin) {
         this.version = version;
         this.numUsers = numUsers;
-        this.numItems = numItems;
+        this.numEntries = numEntries;
         this.numAttentionData = numAttentionData;
         this.numFeeds = numFeeds;
         this.feedPullCount = feedPullCount;
         this.feedErrorCount = feedErrorCount;
+        this.entriesPerMin = entriesPerMin;
     }
 
     public long getNumAttentionData() {
         return numAttentionData;
     }
 
-    public long getNumItems() {
-        return numItems;
+    public long getNumEntries() {
+        return numEntries;
     }
 
     public long getNumUsers() {
@@ -65,10 +68,18 @@ public class Stats implements Serializable {
     @Override
     public String toString() {
         return "Users: " + getNumUsers() 
-                + "  Items: " + getNumItems()  
+                + "  Entries: " + getNumEntries()  
                 + "  Taste: " + getNumAttentionData() 
                 + "  Feeds: " + getNumFeeds()
                 + "  Pulls: " + getFeedPullCount()
                 + "  Feed Errors: " + getFeedErrorCount();
+    }
+
+    public double getEntriesPerMin() {
+        return entriesPerMin;
+    }
+
+    public void setEntriesPerMin(double entriesPerMin) {
+        this.entriesPerMin = entriesPerMin;
     }
 }

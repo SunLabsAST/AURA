@@ -35,6 +35,13 @@ public interface Item extends Serializable {
     public ItemType getType();
     
     /**
+     * Gets the time that this item was added.
+     * 
+     * @return the added time in milliseconds since the Java epoch
+     */
+    public long getTimeAdded();
+    
+    /**
      * Gets the name of this item.  The name should be an end-user readable
      * name for this item.
      * 

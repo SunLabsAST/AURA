@@ -5,21 +5,24 @@ package com.sun.labs.aura.recommender;
 
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.util.Scored;
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
  * Represents a single recommendatin
  */
-public class Recommendation extends Scored<Item> {
+public class Recommendation extends Scored<Item> implements Serializable {
+    static class ReverseComparator<T extends Comparable> implements Comparator<T>, Serializable {
+        public int compare(T o1, T o2) {
+            return o2.compareTo(o1);
+        }        
+    }
+
     /**
      * A Comparator that will sort recommendations from highest to lowest scores
      */
-    public static Comparator<Recommendation> REVERSE = new Comparator<Recommendation>() {
-        public int compare(Recommendation o1, Recommendation o2) {
-            return o2.compareTo(o1);
-        }
-    };
-
+    public static Comparator<Recommendation> REVERSE = new ReverseComparator<Recommendation>();
+    
     private String explanation;
 
     /**

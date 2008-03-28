@@ -102,4 +102,16 @@ public class DSBitSet extends BitSet {
         }
         return res;
     }
+    
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = prefixLength() - 1; i >= 0 ; i--) {
+            if (get(i) == true) {
+                sb.append('1');
+            } else {
+                sb.append('0');
+            }
+        }
+        return sb.toString();
+    }
 }

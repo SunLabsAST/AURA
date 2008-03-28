@@ -9,13 +9,29 @@
 -->
 
 <config>
+
+    <!-- Where the aura data lives -->
+    <property name="auraHome" value="/aura"/>
+
+    <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
+
+    <property name="auraGroup" value="Aura"/>
     
+    <!-- Where the aura distribution jar was unpacked. -->
+    <property name="auraDistDir" value="${auraHome}/dist"/>
+
     <property name="csPort" value="5500"/>
+
+    <component name="prefixEntries" type="com.sun.labs.util.props.ConfigurationEntries">
+        <propertylist name="entries">
+            <item>${prefix}</item>
+        </propertylist>
+    </component>
     
     <!-- A component registry that will be used to lookup and register components. -->
     <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
         <propertylist name="groupList">
-            <item>Aura</item>
+            <item>${auraGroup}</item>
         </propertylist>
         <property name="csDirs" value="${auraDistDir}/lib"/>
         <property name="csPort" value="${csPort}"/>
@@ -24,10 +40,10 @@
             <item>ktsearch.jar</item>
             <item>LabsUtil.jar</item>
         </propertylist>
-        <property name="securityPolicy" value="${auraDistDir}/jsk-all.policy"/>
+        <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
     
-    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl">
+    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl" export="true">
         <property name="dataStore" value="dataStoreHead"/>
     </component>
 

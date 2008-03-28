@@ -27,11 +27,11 @@ import com.sun.labs.aura.datastore.impl.store.persist.UserImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.StringAndTimeKey;
 import java.io.File;
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -73,6 +73,11 @@ public class BerkeleyDataWrapper {
      * A subset of the item index that only indexes users
      */
     protected SecondaryIndex<Boolean, String, UserImpl> allUsers;
+
+    /**
+     * Only users, indexed by the random string associated with them
+     */
+    protected SecondaryIndex<String, String, UserImpl> usersByRandString;
 
     /**
      * The index of all Attention in the item store, accessible by ID
@@ -177,6 +182,9 @@ public class BerkeleyDataWrapper {
         allUsers = store.getSubclassIndex(itemByKey, UserImpl.class,
                 Boolean.class, "isUser");
 
+        usersByRandString = store.getSubclassIndex(itemByKey, UserImpl.class,
+                String.class, "randStr");
+
         allAttn = store.getPrimaryIndex(Long.class,
                 PersistentAttention.class);
 
@@ -205,8 +213,8 @@ public class BerkeleyDataWrapper {
      * 
      * @return all users in the item store
      */
-    public Set<Item> getAll(Item.ItemType type) {
-        Set<Item> items = new HashSet<Item>();
+    public List<Item> getAll(Item.ItemType type) {
+        List<Item> items = new ArrayList<Item>();
         try {
             EntityIndex index = itemByType.subIndex(type.ordinal());
             EntityCursor<ItemImpl> cur = index.entities();
@@ -278,6 +286,55 @@ public class BerkeleyDataWrapper {
     }
 
     /**
+     * Deletes an item from the database.
+     * 
+     * @param itemKey the key of the item to delete
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public void deleteItem(String itemKey) throws AuraException {
+        int numRetries = 0;
+        while(numRetries < MAX_DEADLOCK_RETRIES) {
+            Transaction txn = null;
+            try {
+                txn = dbEnv.beginTransaction(null, null);
+                itemByKey.delete(itemKey);
+                txn.commit();
+                return;
+            } catch(DeadlockException e) {
+                try {
+                    txn.abort();
+                    numRetries++;
+                } catch(DatabaseException ex) {
+                    throw new AuraException("Txn abort failed", ex);
+                }
+            } catch(Exception e) {
+                try {
+                    if(txn != null) {
+                        txn.abort();
+                    }
+                } catch(DatabaseException ex) {
+                }
+                throw new AuraException("deleteItem transaction failed", e);
+            }
+        }
+        throw new AuraException("deleteItem failed for " +
+                itemKey + " after " + numRetries + " retries");
+    }
+
+    public UserImpl getUserForRandomString(String randStr) throws AuraException {
+        UserImpl ret = null;
+        try {
+            ret =
+                    usersByRandString.get(null, randStr,
+                    LockMode.READ_UNCOMMITTED);
+        } catch(DatabaseException e) {
+            log.log(Level.WARNING, "getUserForRandomString() failed (randStr:" +
+                    randStr + ")", e);
+        }
+        return ret;
+    }
+
+    /**
      * Puts an attention into the entry store.  Attentions should never be
      * overwritten.  Since Users and Items have links to their attentions by
      * ID, we need to update that table too.
@@ -302,7 +359,9 @@ public class BerkeleyDataWrapper {
                 }
             } catch(DatabaseException e) {
                 try {
-                    txn.abort();
+                    if(txn != null) {
+                        txn.abort();
+                    }
                 } catch(DatabaseException ex) {
                 }
                 throw new AuraException("Transaction failed", e);
@@ -310,6 +369,78 @@ public class BerkeleyDataWrapper {
         }
         throw new AuraException("putAttn failed for " + pa + " after " +
                 numRetries + " retries");
+    }
+
+    /**
+     * Delete all the attention that has as a source or target the given item.
+     * This should be used to clean up after an item was deleted.
+     * 
+     * @param itemKey the key of the item
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public void deleteAttention(String itemKey)
+            throws AuraException {
+        int numRetries = 0;
+        while(numRetries < MAX_DEADLOCK_RETRIES) {
+            //
+            // Get all the attentions for which this item was a source and delete
+            Transaction txn = null;
+            try {
+                //
+                // Get all the attentions for which this item was a source
+                // and delete them
+                EntityIndex<Long, PersistentAttention> attns =
+                        attnBySourceKey.subIndex(itemKey);
+                txn = dbEnv.beginTransaction(null, null);
+                EntityCursor<PersistentAttention> c = attns.entities(txn,
+                        new CursorConfig());
+                try {
+                    for(PersistentAttention a : c) {
+                        c.delete();
+                    }
+                } finally {
+                    if(c != null) {
+                        c.close();
+                    }
+                }
+
+                //
+                // Now do the same, but for attention where itemKey was the target
+                attns = attnByTargetKey.subIndex(itemKey);
+                c = attns.entities();
+                try {
+                    for(PersistentAttention a : c) {
+                        c.delete();
+                    }
+                } finally {
+                    if(c != null) {
+                        c.close();
+                    }
+                }
+                txn.commit();
+                return;
+            } catch(DeadlockException ex) {
+                try {
+                    txn.abort();
+                    numRetries++;
+                } catch(DatabaseException dex) {
+                    throw new AuraException("Txn abort failed", dex);
+                }
+
+            } catch(DatabaseException ex) {
+                log.log(Level.WARNING,
+                        "Failed to delete attention related to " + itemKey, ex);
+                try {
+                    if(txn != null) {
+                        txn.abort();
+                    }
+                } catch(DatabaseException dex) {
+                }
+                throw new AuraException("Transaction failed", ex);
+            }
+        }
+        throw new AuraException("deleteAttn failed for item " + itemKey +
+                " after " + numRetries + " retries");
     }
 
     /**
@@ -385,20 +516,21 @@ public class BerkeleyDataWrapper {
      * @param itemType the type of the item
      * @return the set of matching items
      */
-    public Set<Item> getItems(
+    @Deprecated
+    public List<Item> getItems(
             String userKey,
             Attention.Type attnType,
             ItemType itemType) {
 
-        Set<Item> result = new HashSet<Item>();
+        List<Item> result = new ArrayList<Item>();
         //
         // First get all the attention of the particular type with the
         // particular user
-        Set<PersistentAttention> attns = getAttentionForUser(userKey, attnType);
+        List<Attention> attns = getAttentionForSource(userKey, attnType);
 
         //
         // Now do the in-memory join, looking up each item as we go
-        for(PersistentAttention attn : attns) {
+        for(Attention attn : attns) {
             ItemImpl item = getItem(attn.getTargetKey());
             if(item.getType() == itemType) {
                 result.add(item);
@@ -457,17 +589,17 @@ public class BerkeleyDataWrapper {
         return dbIt;
     }
 
-    public Set<Attention> getAttentionForSource(String key) {
+    public List<Attention> getAttentionForSource(String key) {
         return getAttentionFor(key, true);
     }
 
-    public Set<Attention> getAttentionForTarget(String key) {
+    public List<Attention> getAttentionForTarget(String key) {
         return getAttentionFor(key, false);
     }
 
-    protected Set<Attention> getAttentionFor(String key,
+    protected List<Attention> getAttentionFor(String key,
             boolean isSrc) {
-        HashSet<Attention> res = new HashSet<Attention>();
+        List<Attention> res = new ArrayList<Attention>();
 
         try {
             EntityIndex<Long, PersistentAttention> attns = null;
@@ -492,14 +624,14 @@ public class BerkeleyDataWrapper {
         return res;
     }
 
-    public SortedSet<PersistentAttention> getAttentionForUser(String userKey,
+    public List<Attention> getAttentionForSource(String userKey,
             Attention.Type type) {
         EntityJoin<Long, PersistentAttention> join = new EntityJoin(allAttn);
         join.addCondition(attnBySourceKey, userKey);
         join.addCondition(attnByType, type.ordinal());
 
-        TreeSet<PersistentAttention> ret = new TreeSet<PersistentAttention>(
-                new RevAttnTimeComparator());
+        List<Attention> ret = new ArrayList<Attention>();
+
         try {
             ForwardCursor<PersistentAttention> cur = null;
             try {
@@ -531,17 +663,16 @@ public class BerkeleyDataWrapper {
      * @param count the desired number of attentions to return
      * @return a set of attentions, sorted by date
      */
-    public SortedSet<Attention> getLastAttentionForUser(String srcKey,
+    public List<Attention> getLastAttentionForUser(String srcKey,
             Attention.Type type, int count) {
         //
         // Start querying for attention for this user based on time, expanding
         // the time range until we have enough attention.
-        TreeSet<Attention> results = new TreeSet<Attention>(
-                new RevAttnTimeComparator());
+        Set<Attention> results = new HashSet<Attention>();
         long recent = System.currentTimeMillis();
 
         // Try one hour first
-        SortedSet<Attention> curr =
+        List<Attention> curr =
                 getUserAttnForTimePeriod(srcKey, type, recent,
                 Times.ONE_HOUR, count);
 
@@ -549,7 +680,9 @@ public class BerkeleyDataWrapper {
         recent -= Times.ONE_HOUR;
         results.addAll(curr);
         if(count <= 0) {
-            return results;
+            List<Attention> temp = new ArrayList<Attention>(results);
+            Collections.sort(temp, new ReverseAttentionTimeComparator());
+            return temp;
         }
 
         //
@@ -560,7 +693,9 @@ public class BerkeleyDataWrapper {
         recent -= Times.ONE_DAY;
         results.addAll(curr);
         if(count <= 0) {
-            return results;
+            List<Attention> temp = new ArrayList<Attention>(results);
+            Collections.sort(temp, new ReverseAttentionTimeComparator());
+            return temp;
         }
 
         //
@@ -571,7 +706,9 @@ public class BerkeleyDataWrapper {
         recent -= Times.ONE_WEEK;
         results.addAll(curr);
         if(count <= 0) {
-            return results;
+            List<Attention> temp = new ArrayList<Attention>(results);
+            Collections.sort(temp, new ReverseAttentionTimeComparator());
+            return temp;
         }
 
         //
@@ -582,7 +719,9 @@ public class BerkeleyDataWrapper {
         recent -= Times.ONE_MONTH;
         results.addAll(curr);
         if(count <= 0) {
-            return results;
+            List<Attention> temp = new ArrayList<Attention>(results);
+            Collections.sort(temp, new ReverseAttentionTimeComparator());
+            return temp;
         }
 
         //
@@ -593,17 +732,18 @@ public class BerkeleyDataWrapper {
         // Take whatever we got and return it.  We won't search back more than
         // one year.
         results.addAll(curr);
-        return results;
+        List<Attention> temp = new ArrayList<Attention>(results);
+        Collections.sort(temp, new ReverseAttentionTimeComparator());
+        return temp;
     }
 
-    private SortedSet<Attention> getUserAttnForTimePeriod(
+    private List<Attention> getUserAttnForTimePeriod(
             String srcKey,
             Attention.Type type,
             long recentTime,
             long interval,
             int count) {
-        TreeSet<Attention> result = new TreeSet<Attention>(
-                new RevAttnTimeComparator());
+        List<Attention> result = new ArrayList<Attention>();
         //
         // Set the begin and end times chronologically
         StringAndTimeKey begin = new StringAndTimeKey(srcKey, recentTime -
@@ -704,23 +844,6 @@ public class BerkeleyDataWrapper {
             }
         }
 
-    }
-
-    /**
-     * Compares attention objects to sort in reverse chronological order
-     */
-    class RevAttnTimeComparator implements Comparator<Attention> {
-
-        public int compare(Attention o1, Attention o2) {
-            if(o1.getTimeStamp() - o2.getTimeStamp() < 0) {
-                return 1;
-            } else if(o1.getTimeStamp() == o2.getTimeStamp()) {
-                return 0;
-            } else {
-                return -1;
-            }
-
-        }
     }
     /**
      * Compares item objects to sort in reverse chronological order

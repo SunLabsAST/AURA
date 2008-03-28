@@ -9,23 +9,26 @@
 
 package com.sun.labs.aura.util;
 
+import com.sun.kt.search.Posting;
 import java.io.Serializable;
 
 /**
- * Represents a tag - some free text with a frequency count
+ * Represents a tag - some free text with a frequency count.  This class extends
+ * the <code>Posting</code> interface because we want to be able to treat tags
+ * as words with associated frequencies while indexing.
  */
-public class Tag implements Serializable, Comparable {
-    private String name;
-    private int count;
+public class Tag extends Posting implements Serializable, Comparable {
 
+    public Tag() {
+    }
+    
     /**
      * Create a tag with an initial count
      * @param name the tag text
      * @param count the frequency of the tag occurence
      */
     public Tag(String name, int count) {
-        this.name = name;
-        this.count = count;
+        super(name, count);
     }
 
     /**
@@ -33,23 +36,23 @@ public class Tag implements Serializable, Comparable {
      * @return the tag text
      */
     public String getName() {
-        return name;
+        return term;
     }
-
+    
     /**
      * Gets the tag frequency count
      * @return the tag frequency count
      */
     public int getCount() {
-        return count;
+        return freq;
     }
-
+    
     /**
      * Accumulate more tag counts
      * @param count the count to accumulate
      */
     public void accum(int count) {
-        this.count += count;
+        this.freq += count;
     }
 
     public int compareTo(Object o) {

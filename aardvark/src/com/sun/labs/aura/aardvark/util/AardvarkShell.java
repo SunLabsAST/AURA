@@ -8,6 +8,7 @@ package com.sun.labs.aura.aardvark.util;
  *
  * @author plamere
  */
+import com.sun.kt.search.FieldFrequency;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.BlogEntry;
@@ -20,6 +21,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.StatService;
 import com.sun.labs.aura.util.Tag;
 import com.sun.labs.util.command.CommandInterface;
@@ -30,6 +32,8 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
+import com.sun.syndication.io.SyndFeedOutput;
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,9 +43,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -86,25 +87,77 @@ public class AardvarkShell implements AuraService, Configurable {
                         return "usage: user  name = shows info for a user";
                     }
                 });
-
-        shell.add("dumpTagFrequencies",
+                
+        shell.add("getItem",
                 new CommandInterface() {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length != 1) {
+                            if(args.length == 1) {
                                 return getHelp();
-                            } else {
-                                dumpTagFrequencies();
+                            }
+                            
+                            Item item = dataStore.getItem(args[1]);
+                            for(Map.Entry<String,Serializable> e : item.getMap().entrySet()) {
+                                System.out.printf("%-15s %s\n", e.getKey(), e.getValue());
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
+                            ex.printStackTrace();
                         }
                         return "";
                     }
 
                     public String getHelp() {
-                        return "usage: dumpTagFrequencies - shows that tag frequencies for entries";
+                        return "usage: getItem <key> gets an item and prints the data map";
+                    }
+                });
+
+       shell.add("dumpTagFrequencies",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            int n = 50;
+                            if (args.length > 1) {
+                                n = Integer.parseInt(args[1]);
+                            }
+                            dumpTagFrequencies(n);
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                            ex.printStackTrace();
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: dumpTagFrequencies <n> - shows top n (default 50) tag frequencies for entries";
+                    }
+                });
+
+        shell.add("dumpStories",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 1 && args.length != 2) {
+                                return getHelp();
+                            } else {
+                                int count = 500;
+                                if (args.length >= 2) {
+                                    count = Integer.parseInt(args[1]);
+                                }
+                                dumpStories(count);
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                            ex.printStackTrace();
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: dumpStories [count]- dump xml description of stories, suitable for the dashboard similator";
                     }
                 });
 
@@ -118,7 +171,7 @@ public class AardvarkShell implements AuraService, Configurable {
                                 return "Usage: attn user";
                             } else {
                                 User user = aardvark.getUser(args[1]);
-                                SortedSet<Attention> attns = aardvark.getLastAttentionData(user, null, 100);
+                                List<Attention> attns = aardvark.getLastAttentionData(user, null, 100);
                                 for (Attention attn : attns) {
                                     System.out.printf("%8s %s at %s\n", attn.getType(), attn.getTargetKey(), new Date(attn.getTimeStamp()));
                                 }
@@ -167,16 +220,53 @@ public class AardvarkShell implements AuraService, Configurable {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length != 2) {
+                            if (args.length != 2 && args.length != 3) {
                                 getHelp();
                             } else {
                                 User user = aardvark.getUser(args[1]);
+                                int count = args.length >= 3 ? Integer.parseInt(args[2]) : 20;
                                 if (user != null) {
-                                    recommend(user);
+                                    recommend(user, count);
                                 }
                             }
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
+                            ex.printStackTrace();
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: recommend  name = recommendations for a user";
+                    }
+                });
+
+        shell.add("recommendFeed",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 2 && args.length != 3) {
+                                getHelp();
+                            } else {
+                                User user = aardvark.getUser(args[1]);
+                                int count = args.length >= 3 ? Integer.parseInt(args[2]) : 20;
+                                if (user != null) {
+                                    SyndFeed feed = aardvark.getRecommendedFeed(user, count);
+                                    if (feed != null) {
+                                        feed.setLink("http://tastekeeper.com/feed");
+                                        SyndFeedOutput output = new SyndFeedOutput();
+                                        //feed.setFeedType("atom_1.0");
+                                        feed.setFeedType("rss_2.0");
+                                        // feed.setLink();
+                                        String feedXML = output.outputString(feed);
+                                        System.out.println(feedXML);
+                                    }
+                                }
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                            ex.printStackTrace();
                         }
                         return "";
                     }
@@ -196,7 +286,7 @@ public class AardvarkShell implements AuraService, Configurable {
                         } else {
                             String key = args[1];
                             Item item = dataStore.getItem(key);
-                            if (item != null && item instanceof BlogFeed) {
+                            if (item != null && item.getType() == ItemType.FEED) {
                                 dumpFeed(item);
                             }
                         }
@@ -241,6 +331,23 @@ public class AardvarkShell implements AuraService, Configurable {
 
                     public String getHelp() {
                         return "dumps the entries added in the last 24 hours";
+                    }
+                });
+
+        shell.add("entryTitles",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] arg1) {
+                        try {
+                            dumpEntryTitles(10000);
+                        } catch (Exception e) {
+                            System.out.println("Error " + e);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "dumps 10,000 entries";
                     }
                 });
 
@@ -348,6 +455,65 @@ public class AardvarkShell implements AuraService, Configurable {
                         return "shows the current stats";
                     }
                 });
+        shell.add("query",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String query = stuff(args, 1);
+                        List<Scored<Item>> items = dataStore.query(query, 10, null);
+                        for (Scored<Item> item : items) {
+                            System.out.printf("%.3f ", item.getScore());
+                            dumpItem(item.getItem());
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Runs a query";
+                    }
+                });
+
+        shell.add("fs",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String key = args[1];
+                        List<Scored<Item>> items = dataStore.findSimilar(key, 10, null);
+                        for (Scored<Item> item : items) {
+                            System.out.printf("%.3f ", item.getScore());
+                            dumpItem(item.getItem());
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Runs a query";
+                    }
+                });
+        shell.add("ffs",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String field = args[1];
+                        String key = args[2];
+                        List<Scored<Item>> items = dataStore.findSimilar(key, field, 10, null);
+                        for (Scored<Item> item : items) {
+                            System.out.printf("%.3f ", item.getScore());
+                            dumpItem(item.getItem());
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Runs a query";
+                    }
+                });
 
 
         Thread t = new Thread() {
@@ -370,8 +536,8 @@ public class AardvarkShell implements AuraService, Configurable {
         dumpItem(user);
     }
 
-    private void recommend(User user) throws AuraException, RemoteException {
-        SyndFeed feed = aardvark.getRecommendedFeed(user);
+    private void recommend(User user, int count) throws AuraException, RemoteException {
+        SyndFeed feed = aardvark.getRecommendedFeed(user, count);
         System.out.println("Feed " + feed.getTitle());
         for (Object syndEntryObject : feed.getEntries()) {
             SyndEntry syndEntry = (SyndEntry) syndEntryObject;
@@ -388,7 +554,7 @@ public class AardvarkShell implements AuraService, Configurable {
     }
 
     private void dumpAllFeeds() throws AuraException, RemoteException {
-        Set<Item> feedItems = dataStore.getAll(ItemType.FEED);
+        List<Item> feedItems = dataStore.getAll(ItemType.FEED);
         long numFeeds = 0;
         for (Item feedItem : feedItems) {
             dumpItem(feedItem);
@@ -434,49 +600,141 @@ public class AardvarkShell implements AuraService, Configurable {
             System.out.printf("   %s(%s) -- %s -- %s(%s)\n", source.getKey(), source.getName(),
                     type, target.getKey(), target.getName());
         }
-
     }
 
-    private void dumpTagFrequencies() {
-        int entries = 0;
-        int entriesWithTags = 0;
-        int totalTags = 0;
+    private void dumpEntryTitles(int count) {
         try {
-
-            TagAccumulator accumulator = new TagAccumulator();
             DBIterator<Item> iter = dataStore.getItemsAddedSince(ItemType.BLOGENTRY, new Date(0));
 
             try {
-                while (iter.hasNext()) {
+                while (count-- > 0 && iter.hasNext()) {
                     Item item = iter.next();
                     BlogEntry entry = new BlogEntry(item);
-                    List<Tag> tags = entry.getTags();
-                    entries++;
-                    if (tags.size() > 0) {
-                        entriesWithTags++;
-                    }
-                    totalTags += tags.size();
-
-                    for (Tag tag : tags) {
-                       accumulator.add(tag); 
-                    }
-                    if (entries % 1000 == 0) {
-                        System.out.printf("%d %d %d  ", entries, entriesWithTags, totalTags);
-                        for (Tag tag : tags) {
-                            System.out.print(tag.getName() + ", ");
-                        }
-                        System.out.println();
-                    }
+                    System.out.println(entry.getName());
                 }
             } finally {
                 iter.close();
             }
-            accumulator.dump();
         } catch (AuraException ex) {
             logger.severe("dumpTagFrequencies " + ex);
         } catch (RemoteException ex) {
             logger.severe("dumpTagFrequencies " + ex);
         }
+    }
+
+    private void dumpStories(int count) {
+        try {
+            DBIterator<Item> iter = dataStore.getItemsAddedSince(ItemType.BLOGENTRY, new Date(0));
+
+            try {
+                System.out.println("<stories>");
+                while (count-- > 0 && iter.hasNext()) {
+                    Item item = iter.next();
+                    BlogEntry entry = new BlogEntry(item);
+                    dumpStory(entry);
+                }
+                System.out.println("</stories>");
+            } finally {
+                iter.close();
+            }
+        } catch (AuraException ex) {
+            logger.severe("dumpStories " + ex);
+        } catch (RemoteException ex) {
+            logger.severe("dumpStories " + ex);
+        }
+    }
+
+    void dumpStory(BlogEntry entry) throws AuraException, RemoteException {
+        Item ifeed = dataStore.getItem(entry.getFeedKey());
+        BlogFeed feed = new BlogFeed(ifeed);
+        System.out.println("    <story score =\"1.0\">");
+
+        dumpTag("        ", "source", feed.getName());
+        dumpTag("        ", "imageUrl", feed.getImage());
+        dumpTag("        ", "url", entry.getKey());
+        dumpTag("        ", "title", entry.getTitle());
+        if (entry.getContent() != null) {
+            System.out.println("        <description>" + excerpt(filterHTML(entry.getContent()), 100) + "</description>");
+        }
+
+        List<Tag> tags = entry.getTags();
+        if (tags.size() == 0) {
+            tags = feed.getTags();
+        }
+        for (Tag tag : tags) {
+            System.out.println("        <class score=\"1.0\">" + filterTag(tag.getName()) + "</class>");
+        }
+        System.out.println("    </story>");
+    }
+
+    private void dumpTag(String indent, String tag, String value) {
+        if (value != null) {
+            value = filterTag(value);
+            System.out.println(indent + "<" + tag + ">" + value + "</" + tag + ">");
+        }
+    }
+
+    private String filterTag(String s) {
+        s = s.replaceAll("[^\\p{ASCII}]", "");
+        s = s.replaceAll("\\&", "&amp;");
+        s = s.replaceAll("\\<", "&lt;");
+        s = s.replaceAll("\\>", "&gt;");
+
+        return s;
+    }
+
+    private String filterHTML(String s) {
+        s = detag(s);
+        s = deentity(s);
+        s = s.replaceAll("[^\\p{ASCII}]", "");
+        s = s.replaceAll("\\s+", " ");
+        s = s.replaceAll("[\\<\\>\\&]", " ");
+        return s;
+    }
+
+    private String detag(String s) {
+        return s.replaceAll("\\<.*?\\>", "");
+    }
+
+    private String deentity(String s) {
+        return s.replaceAll("\\&[a-zA-Z]+;", " ");
+    }
+
+    private String excerpt(String s, int maxWords) {
+        StringBuilder sb = new StringBuilder();
+        String[] words = s.split("\\s+");
+        for (int i = 0; i < maxWords && i < words.length; i++) {
+            sb.append(words[i] + " ");
+        }
+
+        if (maxWords < words.length) {
+            sb.append("...");
+        }
+        return sb.toString().trim();
+    }
+
+    private void dumpTagFrequencies(int n) {
+
+        try {
+            List<FieldFrequency> tagFreqs = dataStore.getTopValues("tag", n,
+                    true);
+            for (FieldFrequency ff : tagFreqs) {
+                System.out.printf("%d %s\n", ff.getFreq(), ff.getVal().toString().trim());
+            }
+        } catch (AuraException ex) {
+            logger.severe("dumpTagFrequencies " + ex);
+        } catch (RemoteException ex) {
+            logger.severe("dumpTagFrequencies " + ex);
+        }
+    }
+
+    private String stuff(String[] args, int p) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = p; i < args.length; i++) {
+            sb.append(args[i]);
+            sb.append(' ');
+        }
+        return sb.toString();
     }
 
     /**
