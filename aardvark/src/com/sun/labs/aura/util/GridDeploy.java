@@ -465,6 +465,7 @@ public class GridDeploy {
             throws Exception {
         String cmdLine =
                 "-DauraHome=" + auraDistMntPnt +
+                " -DstartingDataDir=" + auraDistMntPnt + "/classifier/starting.idx" +
                 " -Dprefix=" + prefix +
                 " -DdataFS=/files/data/" + prefix +
                 " -jar " + auraDistMntPnt + "/dist/aardvark.jar" + 
