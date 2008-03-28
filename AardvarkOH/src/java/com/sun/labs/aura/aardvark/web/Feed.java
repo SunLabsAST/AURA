@@ -35,12 +35,13 @@ public class Feed extends HttpServlet {
         String pathInfo = request.getPathInfo();
         String[] pathParts = pathInfo.split("/");
         String randStr = pathParts[1];
-        
+       
         try {
             User u = aardvark.getUserByRandomString(randStr);
             SyndFeed feed = aardvark.getRecommendedFeed(u);
             SyndFeedOutput output = new SyndFeedOutput();
-            feed.setFeedType("atom_1.0");
+            feed.setFeedType("rss_2.0");
+            feed.setLink(request.getRequestURL().toString());
             String feedXML = output.outputString(feed);
             response.setContentType("application/atom+xml");
             PrintWriter out = response.getWriter();
