@@ -44,6 +44,12 @@ div.topCling {
   padding: 2px 0px 0px 4px;
 }
 
+div.statusMsg {
+  border: 1px solid;
+  padding: 5px;
+  margin-top: 15px;
+  display: table;
+}
 
 .openidField {
   background: #FFFFFF url('../images/openid-small.gif') no-repeat scroll 0pt 50%;
