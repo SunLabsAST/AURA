@@ -73,7 +73,7 @@
         <property name="statService" value="statService"/>
         <property name="feedScheduler" value="feedScheduler"/>
         <property name="crawlingPeriod" value="3600"/>
-        <property name="numThreads" value="5"/>
+        <property name="numThreads" value="0"/>
         <property name="logLevel" value="SEVERE"/>
     </component>
     

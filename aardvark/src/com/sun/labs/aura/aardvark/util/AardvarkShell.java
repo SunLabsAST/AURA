@@ -254,8 +254,10 @@ public class AardvarkShell implements AuraService, Configurable {
                                 if (user != null) {
                                     SyndFeed feed = aardvark.getRecommendedFeed(user, count);
                                     if (feed != null) {
+                                        feed.setLink("http://tastekeeper.com/feed");
                                         SyndFeedOutput output = new SyndFeedOutput();
-                                        feed.setFeedType("atom_1.0");
+                                        //feed.setFeedType("atom_1.0");
+                                        feed.setFeedType("rss_2.0");
                                         // feed.setLink();
                                         String feedXML = output.outputString(feed);
                                         System.out.println(feedXML);
