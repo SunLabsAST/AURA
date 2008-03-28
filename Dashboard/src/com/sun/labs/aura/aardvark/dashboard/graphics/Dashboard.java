@@ -20,13 +20,11 @@ import com.jme.light.SpotLight;
 import com.jme.math.Vector3f;
 import com.jme.renderer.ColorRGBA;
 import com.jme.renderer.Renderer;
-import com.jme.scene.Node;
 import com.jme.scene.SceneElement;
 import com.jme.scene.Text;
 import com.jme.scene.state.TextureState;
 import com.jmex.font3d.Font3D;
 import com.jmex.font3d.effects.Font3DGradient;
-import com.jmex.physics.PhysicsNode;
 import com.jmex.physics.StaticPhysicsNode;
 import com.jmex.physics.material.Material;
 import com.jmex.physics.util.SimplePhysicsGame;
@@ -35,6 +33,7 @@ import com.sun.labs.aura.aardvark.dashboard.story.Story;
 import com.sun.labs.aura.aardvark.dashboard.story.StoryManager;
 import java.awt.Font;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.logging.Level;
@@ -55,6 +54,7 @@ public class Dashboard extends SimplePhysicsGame {
     private ArrayBlockingQueue<CPoint> storyQueue;
     private float timeSinceLastCheck = 0;
     private float newStoryTime = 1f;
+    private boolean fixedFrameRate = false;
 
     public static void main(String[] args) {
         try {
@@ -130,8 +130,8 @@ public class Dashboard extends SimplePhysicsGame {
     }
 
     private void initLogger() {
-        Logger.getLogger(Node.class.getName()).setLevel(Level.WARNING);
-        Logger.getLogger(PhysicsNode.class.getName()).setLevel(Level.WARNING);
+        Logger.getLogger("com.jme").setLevel(Level.WARNING);
+        Logger.getLogger("com.jmex").setLevel(Level.WARNING);
 
     }
 
@@ -230,7 +230,6 @@ public class Dashboard extends SimplePhysicsGame {
         checkForNewStories();
         syncFrames();
     }
-    boolean fixedFrameRate = true;
     long last;
     int frameRate = 60;
     int milliPerFrame = 1000 / 60;
@@ -269,8 +268,13 @@ public class Dashboard extends SimplePhysicsGame {
         try {
             while (true) {
                 List<Story> stories = storyManager.getNextStories(10);
+                List<CPoint> points = new ArrayList<CPoint>();
                 for (Story story : stories) {
                     CPoint cp = storyPointFactory.createStoryPoint(story);
+                    points.add(cp);
+                }
+
+                for (CPoint cp : points) {
                     storyQueue.put(cp);
                 }
             }

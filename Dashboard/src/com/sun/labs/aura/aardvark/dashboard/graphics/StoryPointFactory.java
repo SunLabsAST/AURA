@@ -7,6 +7,7 @@ package com.sun.labs.aura.aardvark.dashboard.graphics;
 
 import com.jme.bounding.BoundingBox;
 import com.jme.image.Texture;
+import com.jme.math.FastMath;
 import com.jme.math.Vector3f;
 import com.jme.renderer.Renderer;
 import com.jme.scene.Geometry;
@@ -129,6 +130,7 @@ public class StoryPointFactory {
                 new CmdWait(.2f),
                 new CmdMove(-20, row, 0 + zOffset),
                 new CmdWait(.2f),
+                new CmdRotate(FastMath.PI / 2, FastMath.PI / 4, 0),
                 new CmdVel(1, 0, 0),
                 new CmdWait(10f),
                 new CmdGravity(true),

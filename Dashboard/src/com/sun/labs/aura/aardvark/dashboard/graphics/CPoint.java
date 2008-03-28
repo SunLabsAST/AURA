@@ -37,6 +37,7 @@ public class CPoint extends Controller implements InputActionInterface {
     private float scaleSet = 1.0f;
     private float scaleCur = 1.0f;
     private float minScaleDelta = .01f;
+    private float rotateSteps = .01f;
 
     public CPoint(DynamicPhysicsNode dnp, Geometry geometry) {
         this.dnp = dnp;
@@ -114,12 +115,43 @@ public class CPoint extends Controller implements InputActionInterface {
         }
     }
 
-    public void setAngle(float rotx, float roty, float rotz) {
-        Quaternion q = new Quaternion();
-        q.fromAngles(rotx, roty, rotz);
+    private float curRotTime = 0;
+    private float rotTimeDelta = .001f;
+
+    private Quaternion setRotation = new Quaternion();
+    private Quaternion curRotation = new Quaternion();
+    private Quaternion lastRotation = new Quaternion();
+    private float rotateTime = 1;
+
+    public void setAngle(float rotx, float roty, float rotz, float rotTime) {
+
+        lastRotation.set(setRotation);
+        setRotation.fromAngles(rotx, roty, rotz);
         dnp.clearTorque();
         dnp.setAngularVelocity(Vector3f.ZERO);
-        dnp.setLocalRotation(q);
+
+        if (rotTime <= 0) {
+            rotTime = 1;
+        }
+        this.rotateTime = rotTime;
+        curRotTime = 0; 
+    }
+
+    public void setAngle(float rotx, float roty, float rotz) {
+        setAngle(rotx, roty, rotz, 1);
+    }
+
+    private void manageRotation(float time) {
+        if (curRotTime < rotateTime) {
+            curRotation.slerp(lastRotation, setRotation, curRotTime / rotateTime);
+            dnp.setLocalRotation(curRotation);
+
+            curRotTime += time;
+            if (curRotTime >= rotateTime) {
+                curRotTime = rotateTime;
+                dnp.setLocalRotation(setRotation);
+            }
+        }
     }
 
     public void addSet(String name, Command[] cmds) {
@@ -150,6 +182,7 @@ public class CPoint extends Controller implements InputActionInterface {
         }
 
         manageScale();
+        manageRotation(time);
     }
 
     private void manageScale() {
