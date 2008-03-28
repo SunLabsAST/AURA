@@ -1,0 +1,7 @@
+
+export gc='-XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode  -XX:+CMSIncrementalPacing  -XX:CMSIncrementalDutyCycleMin=0'
+
+export gcdebug='-XX:+PrintGCTimeStamps -XX:-TraceClassUnloading -XX:+PrintGCDetails'
+
+#echo java -mx1000m $gc -Djava.library.path=/Users/plamere/tools/jme/lib -jar dist/dashboard.jar --simulate
+java -mx1000m $gc -Djava.library.path=/Users/plamere/tools/jme/lib -jar dist/dashboard.jar --simulate
