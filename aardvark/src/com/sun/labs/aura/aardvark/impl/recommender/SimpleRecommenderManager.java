@@ -42,11 +42,11 @@ import java.util.logging.Logger;
  * A recommender manager that returns the starred items for a user.
  */
 public class SimpleRecommenderManager implements RecommenderManager, Configurable, AuraService {
+
     private final static int RECENT_STARRED = 20;
     private final static int SEED_SIZE = 2;
     private final static int MAX_SKIP = 1000;
     private final static int VALID_RECOMMENDATION_DAYS = 7;
-
     private DataStore dataStore;
     private Logger log;
 
@@ -54,11 +54,12 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
         SimpleTimer t = new SimpleTimer(true);
         List<Recommendation> resultList = new ArrayList<Recommendation>();
         Set<String> titles = new HashSet<String>();
+
         try {
             // get a set of items that we've recently starred
             t.mark("init");
             List<Attention> starredAttention = dataStore.getLastAttentionForSource(
-                     user.getKey(), Attention.Type.STARRED, RECENT_STARRED);
+                    user.getKey(), Attention.Type.STARRED, RECENT_STARRED);
             t.mark("getLastAttention starred");
 
             // 
@@ -66,33 +67,32 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             // recently and that are of the blog entry type.  This saves us 
             // having to post-filter things.
 
-            CompositeResultsFilter rf = new CompositeResultsFilter(getSkipSet(user),
-                    new TypeFilter(ItemType.BLOGENTRY));
+            CompositeResultsFilter rf = new CompositeResultsFilter(
+                    getRecentItemFilter(user), new TypeFilter(ItemType.BLOGENTRY));
             rf.addFilter(getDateFilter(VALID_RECOMMENDATION_DAYS));
 
-            t.mark("get skip set");
+            t.mark("created filter");
 
             // select a few documents from the starred set of items to serve
             // as the similarity seeds
             List<String> itemKeys = selectRandomItemKeys(starredAttention, SEED_SIZE);
             t.mark("select random item keys");
 
-            List<Scored<Item>> results = dataStore.findSimilar(itemKeys, "content", num, rf);
+            List<Scored<Item>> results = dataStore.findSimilar(itemKeys, "content", num * 2, rf);
             t.mark("findSimilar");
 
             //
             // Get the blog entries and return the set.  This is a change.
             for (Scored<Item> scoredItem : results) {
                 BlogEntry blogEntry = new BlogEntry(scoredItem.getItem());
-                String explanation = "Similar to items you like";
-                resultList.add(new Recommendation(scoredItem.getItem(),
-                        scoredItem.getScore(), explanation));
-                titles.add(blogEntry.getTitle());
-                Attention attention = StoreFactory.newAttention(user,
-                        scoredItem.getItem(), Attention.Type.VIEWED);
-                dataStore.attend(attention);
-                if (resultList.size() >= num) {
-                    break;
+                if (!titles.contains(blogEntry.getTitle())) {
+                    String explanation = "Similar to items you like";
+                    resultList.add(new Recommendation(scoredItem.getItem(),
+                            scoredItem.getScore(), explanation));
+                    titles.add(blogEntry.getTitle());
+                    if (resultList.size() >= num) {
+                        break;
+                    }
                 }
             }
             t.mark("results built - size: " + resultList.size());
@@ -100,11 +100,27 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             // we didn't find anything, so lets at least give some recent
             // items.
             if (resultList.size() == 0) {
-                for (Item item : getSomeRecentItems(num)) {
-                    resultList.add(new Recommendation(item, 1.0f, "latest entries"));
+                for (Item item : getSomeRecentItems(num * 2)) {
+                    if (!titles.contains(item.getName())) {
+                        resultList.add(new Recommendation(item, 1.0f, "latest entries"));
+                        titles.add(item.getName());
+                    }
+                    if (resultList.size() >= num) {
+                        break;
+                    }
                 }
                 t.mark("fallback - size: " + resultList.size());
             }
+
+            // add attention data for the user
+
+            for (Recommendation recommendation : resultList) {
+                Attention attention = StoreFactory.newAttention(user,
+                        recommendation.getItem(), Attention.Type.VIEWED);
+                dataStore.attend(attention);
+            }
+            t.mark("added attention");
+
         } catch (AuraException ex) {
             log.log(Level.SEVERE, "Error getting recommendations", ex);
             ex.printStackTrace();
@@ -140,20 +156,29 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
     }
 
     /**
-     * Gets the set of keys for things we've paid attention to
-     * @param attentions the set of recent attentions
-     * @return set of item ids to skip
+     * Gets a result filter that will skip items that should not
+     * be recommended
+     * @param user the user of interest
+     * @return the result filter
      */
-    private ResultsFilter getSkipSet(User user) throws AuraException, RemoteException {
+    private ResultsFilter getRecentItemFilter(User user) throws AuraException, RemoteException {
         List<Attention> attentions = dataStore.getLastAttentionForSource(user.getKey(), null, MAX_SKIP);
 
-        Set<String> retSet = new HashSet<String>();
-        for (Attention att : attentions) {
-            retSet.add(att.getTargetKey());
-        }
-        return new KeyExclusionFilter(retSet);
-    }
+        Set<String> keySkipSet = new HashSet<String>();
+        Set<String> titleSkipSet = new HashSet<String>();
 
+        for (Attention att : attentions) {
+            keySkipSet.add(att.getTargetKey());
+            Item item = dataStore.getItem(att.getTargetKey());
+            if (item != null) {
+                titleSkipSet.add(item.getName());
+            }
+        }
+
+        ResultsFilter keyFilter = new FieldExclusionFilter("aura-key", keySkipSet);
+        ResultsFilter titleFilter = new FieldExclusionFilter("aura-name", titleSkipSet);
+        return new CompositeResultsFilter(keyFilter, titleFilter);
+    }
 
     /**
      * Return a result filter that includes only recent entries
