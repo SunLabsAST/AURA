@@ -85,7 +85,7 @@ public class BuildClassifiers implements Runnable {
                         }
 
                         public void next(String s) {
-                            logger.info("Progress: " + s);
+                            logger.fine("Progress: " + s);
                         }
 
                         public void next() {
