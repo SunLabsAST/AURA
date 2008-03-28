@@ -104,7 +104,6 @@ public class ItemSearchEngine implements Configurable {
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
-
         //
         // Load up the search engine.
         engineLogLevel = ps.getInt(PROP_ENGINE_LOG_LEVEL);

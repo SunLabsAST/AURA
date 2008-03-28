@@ -722,6 +722,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     private List<Scored<Item>> sortScored(List<Future<List<Scored<Item>>>> results,
             int n) throws InterruptedException, ExecutionException {
         PriorityQueue<Scored<Item>> sorter = new PriorityQueue<Scored<Item>>(n);
+        try {
         for(Future<List<Scored<Item>>> future : results) {
             List<Scored<Item>> curr = future.get();
             if(curr != null) {
@@ -746,6 +747,10 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
         Collections.reverse(ret);
         return ret;
+        } catch (RuntimeException t) {
+            logger.log(Level.SEVERE, "Sort error:", t);
+            throw t;
+        }
     }
     
     private List<Attention> sortAttention(List<Future<List<Attention>>> results, int n) 

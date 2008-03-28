@@ -42,6 +42,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import ngnova.util.StopWatch;
 
 /**
  * An implementation of the item store using the berkeley database as a back
@@ -199,8 +200,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      */
     public void close() throws AuraException {
         closed = true;
+        System.out.println(new Date() + ": Closing BDB...");
         bdb.close();
+        System.out.println(new Date() + ": Shuting down search engine...");
         searchEngine.shutdown();
+        System.out.println(new Date() + ": Done closing search engine");
     }
 
     /**
@@ -349,7 +353,13 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
 
     public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        return keysToItems(searchEngine.query(query, sort, n));
+        StopWatch sw = new StopWatch();
+        sw.start();
+        List<Scored<Item>> res =
+                keysToItems(searchEngine.query(query, sort, n));
+        sw.stop();
+        logger.info("Got results for query: " + query + " [" + sw.getTime() + "ms]");
+        return res;
     }
 
     public DocumentVector getDocumentVector(String key) {
@@ -622,9 +632,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     public void stop() {
         try {
             cm.shutdown();
+            System.out.println(new Date() + ": Closing Berkeley Item Store...");
             close();
+            System.out.println(new Date() + ": Stopped");
         } catch(AuraException ae) {
-            logger.log(Level.WARNING, "Error closing item store", ae);
+            System.out.println("Error closing item store" + ae);
+            ae.printStackTrace();
         }
     }
 
