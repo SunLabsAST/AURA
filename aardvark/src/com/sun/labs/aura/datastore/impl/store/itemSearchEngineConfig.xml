@@ -19,6 +19,8 @@
     indexed, control will be returned immediately to the caller -->
     <property name="num_pipelines" value="2"/>
     
+    <property name="startingDataDir" value="${auraHome}/starting.idx"/>
+    
     <!-- A search engine that can be used to do classification -->
     <component name="aardvark_search_engine" inherit="search_engine">
         <property name="inv_file_partition_manager" value="partition_manager"/>
@@ -78,6 +80,7 @@
         <property name="index_config" value="index_config"/>
         <property name="partition_factory" value="classifier_partition_factory"/>
         <property name="calculate_dvl" value="false"/>
+        <property name="starting_data" value="${startingDataDir}/class"/>
     </component>
     
     <!-- The factory for classifier partitions. -->
@@ -103,6 +106,7 @@
         <property name="index_config" value="index_config"/>
         <property name="partition_factory" value="cluster_partition_factory"/>
         <property name="calculate_dvl" value="false"/>
+        <property name="starting_data" value="${startingDataDir}/cluster"/>
     </component>
     
     <!-- The factory for feature cluster partitions. -->

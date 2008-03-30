@@ -218,6 +218,17 @@ public class PartitionClusterImpl implements PartitionCluster,
     }
 
 
+    public List<Scored<String>> getTopTerms(String key, String field, int n)
+            throws AuraException, RemoteException {
+        return replicant.getTopTerms(key, field, n);
+    }
+
+    public List<Scored<String>> getExplanation(String key, String autoTag,
+            int n)
+            throws AuraException, RemoteException {
+        return replicant.getExplanation(key, autoTag, n);
+    }
+
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
             //
