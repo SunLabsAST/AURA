@@ -685,6 +685,19 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     }
  
 
+    public List<Scored<String>> getTopTerms(String key,
+            String field, int n) 
+            throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
+        return pc.getTopTerms(key, field, n);
+    }
+
+    public List<Scored<String>> getExplanation(String key, String autoTag, int n) 
+            throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
+        return pc.getExplanation(key, autoTag, n);
+    }
+
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
             //
