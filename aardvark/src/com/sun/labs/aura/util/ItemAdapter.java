@@ -71,6 +71,14 @@ public class ItemAdapter implements Serializable {
     public String getKey() {
         return item.getKey();
     }
+
+    /**
+     * Gets the time  when this item was added
+     * @return milliseconds fro the epoch
+     */
+    public long getTimeAdded() {
+        return item.getTimeAdded();
+    }
     
     /**
      * Push the item to the datastore if necessary

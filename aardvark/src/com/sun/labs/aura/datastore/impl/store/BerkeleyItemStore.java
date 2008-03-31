@@ -392,6 +392,17 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return keysToItems(searchEngine.findSimilar(dv, n, rf));
     }
 
+    public List<Scored<String>> getTopTerms(String key, String field, int n)
+            throws AuraException, RemoteException {
+        return searchEngine.getTopTerms(key, field, n);
+    }
+
+    public List<Scored<String>> getExplanation(String key, String autoTag,
+            int n)
+            throws AuraException, RemoteException {
+        return searchEngine.getExplanation(key, autoTag, n);
+    }
+
     /**
      * Transforms a list of scored keys (as from the search engine) to a list of scored
      * items. 

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+    <listener>
+        <description>When the context is initialized, get an aardvark handle</description>
+        <listener-class>com.sun.labs.aura.aardvark.dashboard.web.ServletListener</listener-class>
+    </listener>
+    <servlet>
+        <servlet-name>GetStories</servlet-name>
+        <servlet-class>com.sun.labs.aura.aardvark.dashboard.web.GetStories</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>GetStatus</servlet-name>
+        <servlet-class>com.sun.labs.aura.aardvark.dashboard.web.GetStatus</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>FindSimilar</servlet-name>
+        <servlet-class>com.sun.labs.aura.aardvark.dashboard.web.FindSimilar</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>GetStories</servlet-name>
+        <url-pattern>/GetStories</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetStatus</servlet-name>
+        <url-pattern>/GetStatus</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>FindSimilar</servlet-name>
+        <url-pattern>/FindSimilar</url-pattern>
+    </servlet-mapping>
+    <session-config>
+        <session-timeout>
+            30
+        </session-timeout>
+    </session-config>
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+        <welcome-file>Welcome</welcome-file>
+        </welcome-file-list>
+    </web-app>
