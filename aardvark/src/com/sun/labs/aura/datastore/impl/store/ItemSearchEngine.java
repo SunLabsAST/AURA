@@ -41,6 +41,8 @@ import ngnova.classification.ClassifierModel;
 import ngnova.classification.ExplainableClassifierModel;
 import ngnova.classification.WeightedFeature;
 import ngnova.engine.SearchEngineImpl;
+import ngnova.indexer.entry.DocKeyEntry;
+import ngnova.indexer.partition.InvFileDiskPartition;
 import ngnova.retrieval.DocumentVectorImpl;
 import ngnova.retrieval.FieldEvaluator;
 import ngnova.retrieval.FieldTerm;
@@ -322,30 +324,6 @@ public class ItemSearchEngine implements Configurable {
     }
 
     /**
-     * Gets the document vector associated with the entry with a given ID.
-     * @param id the ID of the entry that we want the document vector for
-     * @return the document vector associated with the given ID.  If no entry in
-     * the index has that ID or if an error occurs during the search for the ID,
-     * then <code>null<code> is returned.
-     */
-    public DocumentVector getDocument(long id) {
-        try {
-            ResultSet rs = engine.search(String.format("id = %d", id));
-            if(rs.size() == 0) {
-                return null;
-            }
-            if(rs.size() > 1) {
-                log.warning("Multiple entries for ID: " + id);
-            }
-            Result r = rs.getResults(0, 1).get(0);
-            return r.getDocumentVector();
-        } catch(SearchEngineException ex) {
-            log.log(Level.SEVERE, "Error searching for ID " + id, ex);
-            return null;
-        }
-    }
-
-    /**
      * Gets the document associated with a given key.
      * @param key the key of the entry that we want the document vector for
      * @return the document vector associated with the key.  If the entry with this
@@ -368,7 +346,7 @@ public class ItemSearchEngine implements Configurable {
     public DocumentVector getDocumentVector(String key, WeightedField[] fields) {
         return engine.getDocumentVector(key, fields);
     }
-
+    
     /**
      * Finds the n most-similar items to the given item, based on the data in the 
      * provided field.
@@ -488,6 +466,51 @@ public class ItemSearchEngine implements Configurable {
                         ex.getMessage());
             }
             throw new AuraException("Error finding items", see);
+        }
+        return ret;
+    }
+    
+    /**
+     * Gets a list of scored strings consisting of the autotags assigned to
+     * an item and their associated classifier scores.  This requires rather
+     * deeper knowledge of the field store than I am comfortable with, but using
+     * the document abstraction would require fetching all of the field values.
+     * 
+     * <p>
+     * 
+     * We should probably fix the document abstraction so that it fetches on
+     * demand, but not before the open house, eh?
+     * 
+     * <p>
+     * 
+     * autotagfix
+     * 
+     * @param key the key for the document whose autotags we want
+     * @return a list of scored strings where the item is the autotag and the score
+     * is the classifier score associated with the autotag.
+     */
+    public List<Scored<String>> getAutoTags(String key) {
+        DocKeyEntry dke = ((SearchEngineImpl) engine).getDocumentTerm(key);
+        if(dke == null) {
+            //
+            // No document by that name here...
+            return null;
+        }
+        List<String> autotags = (List<String>) ((InvFileDiskPartition) dke.getPartition()).getFieldStore().getSavedFieldData("autotag", dke.getID(), true);
+        if(autotags.size() == 0) {
+            
+            //
+            // No tags.
+            return null;
+        }
+        List<Double> autotagScores = (List<Double>) ((InvFileDiskPartition) dke.getPartition()).getFieldStore().getSavedFieldData("autotag-score", dke.getID(), true);
+        if(autotags.size() != autotagScores.size()) {
+            log.warning("Mismatched autotags and scores: " + autotags + " " + autotagScores);
+        }
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        int lim = Math.min(autotags.size(), autotagScores.size());
+        for(int i = 0; i < lim; i++) {
+            ret.add(new Scored<String>(autotags.get(i), autotagScores.get(i)));
         }
         return ret;
     }
