@@ -50,13 +50,13 @@ public class Home extends HttpServlet {
             //
             // Figure out who the user is, get their feed, and make a bean
             Set<BlogFeed> feeds = aardvark.getFeeds(user, Attention.Type.STARRED_FEED);
-            String defaultFeed = "some feed here...";
+            String tasteFeed = "no feed found!";
             if (!feeds.isEmpty()) {
-                defaultFeed = feeds.iterator().next().getKey();
+                tasteFeed = feeds.iterator().next().getKey();
             }
             UserBean ub = new UserBean(new BlogUser(user),
-                                       defaultFeed);
-            ub.setRecommendedFeedURL("/feed/" + user.getUserRandString() + "/default");
+                                       tasteFeed);
+            ub.setRecommendedFeedURL("/feed/" + user.getUserRandString());
             request.setAttribute("userBean", ub);
         } catch (AuraException e) {
             logger.log(Level.WARNING, "Failed to use aardvark", e);
