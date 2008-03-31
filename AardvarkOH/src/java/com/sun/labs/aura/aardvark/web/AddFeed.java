@@ -12,6 +12,10 @@ import java.net.*;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.mail.BodyPart;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
@@ -40,8 +44,14 @@ public class AddFeed extends HttpServlet {
         ServletContext context = getServletContext();
         String op = request.getParameter("op");
         if (op == null) {
-            op = "";
+            if (request.getContentType() != null &&
+                    request.getContentType().startsWith("multipart/form-data")) {
+                op = "Upload";
+            } else {
+                op = "";
+            }
         }
+        
         try {
             Shared.fillPageHeader(request, aardvark);
         } catch (AuraException e) {
@@ -57,7 +67,25 @@ public class AddFeed extends HttpServlet {
                 request.setAttribute("msg", "Failed to add feed: " + e.getMessage());
             }
         } else if (op.equals("Upload")) {
-            request.setAttribute("msg", "Sorry, upload isn't supported yet.");
+            //String opml = request.getParameter("opml");
+            //System.out.println("OPML:\n" + opml);
+            try {
+                ByteArrayDataSource bads =
+                        new ByteArrayDataSource(request.getInputStream(), "text/xml");
+                MimeMultipart multiPart = new MimeMultipart(bads);
+                BodyPart bp = multiPart.getBodyPart(0);
+                InputStream is = bp.getInputStream();
+                byte[] content = new byte[bp.getSize()];
+                is.read(content, 0, bp.getSize());
+                aardvark.addOPML(content);
+                request.setAttribute("msg", "Done");
+            } catch (MessagingException e) {
+                request.setAttribute("msg", "Error reading uploaded file: "
+                        + e.getMessage());
+            } catch (AuraException e) {
+                request.setAttribute("msg", "Error parsing file: "
+                        + e.getMessage());
+            }
         }
         RequestDispatcher rd = context.getRequestDispatcher("/addFeed.jsp");
         rd.forward(request, response);

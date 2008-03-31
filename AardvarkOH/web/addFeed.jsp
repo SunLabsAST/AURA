@@ -24,7 +24,7 @@
             <input type="text" size="60" name="feed"/>
             <input type="submit" value="Add" name="op"/><p>
             </form>
-            <form method="get" action="<c:url value="/AddFeed"/>">
+            <form method="post" action="<c:url value="/AddFeed"/>" enctype="multipart/form-data" >
             To upload an OPML file of feeds, use the following uploader:<br>
             <input type="file" accept="text/*" name="opml"/>
             <input type="submit" value="Upload" name="op"/>
