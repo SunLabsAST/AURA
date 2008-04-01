@@ -31,6 +31,7 @@ import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -218,7 +219,23 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     }
 
     public Item getItem(String key) throws AuraException {
-        return bdb.getItem(key);
+        ItemImpl item = bdb.getItem(key);
+        if(item == null) {
+            return item;
+        }
+        //
+        // autotagfix:  get the autotag fields from the search index and
+        // add them to the item's map.
+        List<Scored<String>> autotags = searchEngine.getAutoTags(key);
+        if(autotags != null) {
+            HashMap<String,Serializable> im = item.getMap();
+            if(im == null) {
+                im = new HashMap<String, Serializable>();
+                item.setMap(im);
+            }
+            im.put("autotag", (Serializable) autotags);
+        }
+        return item;
     }
 
     public User getUser(String key) throws AuraException {
@@ -233,6 +250,16 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         boolean existed = false;
         if(item instanceof ItemImpl) {
             ItemImpl itemImpl = (ItemImpl) item;
+            //
+            // autotagfix:  if this item has an autotag field in the map, 
+            // delete it before we put it in the index.  This will keep the 
+            // search engine from adding multiple identical autotag fields 
+            // to the item.  We need to do this here, ra
+            Map<String,Serializable> im = itemImpl.getMap();
+            if(im != null) {
+                im.remove("autotag");
+            }
+            
             //
             // If this was a remote object, its transient map will be null
             // and storeMap will be a no-op.  If it was a local object then
