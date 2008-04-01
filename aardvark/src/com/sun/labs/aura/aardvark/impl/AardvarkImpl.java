@@ -268,9 +268,9 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         User freshUser = getUser(user.getKey());
         SyndFeed feed = new SyndFeedImpl();
         feed.setFeedType("atom");  // BUG - what are the possible feed types
-        feed.setTitle("Aardvark recommendations for " + freshUser.getKey());
-        feed.setDescription("Recommendations created for " + freshUser.getKey());
-        feed.setPublishedDate(new Date());
+        feed.setTitle("Aardvark recommendations for " + freshUser.getName());
+        feed.setDescription("Recommendations created for " + freshUser.getName());
+        //feed.setPublishedDate(new Date());
         feed.setEntries(FeedUtils.getSyndEntries(getRecommendedEntries(freshUser, num)));
         return feed;
     }
