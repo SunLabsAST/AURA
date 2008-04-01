@@ -1,16 +1,19 @@
 package com.sun.labs.aura.aardvark.dashboard.web;
 
-import com.sun.labs.aura.aardvark.BlogEntry;
-import com.sun.labs.aura.aardvark.BlogFeed;
+import com.sun.kt.search.WeightedField;
+import com.sun.labs.aura.aardvark.impl.recommender.TypeFilter;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.util.AuraException;
 
 import com.sun.labs.aura.util.Scored;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.servlet.*;
 import javax.servlet.http.*;
@@ -29,6 +32,12 @@ public class FindSimilar extends HttpServlet {
      */
 
 //  findSimilar?max=10&key=http://asdsdasd/f
+
+    private final static WeightedField[] simFields  = {
+        new WeightedField("content", 1f),
+        new WeightedField("aura-name", 1f),
+    };
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         ServletContext context = getServletContext();
@@ -37,7 +46,7 @@ public class FindSimilar extends HttpServlet {
 
         String key = request.getParameter("key");
 
-        int maxCount = 100;
+        int maxCount = 10;
         String maxCountString = request.getParameter("max");
         if (maxCountString != null) {
             maxCount = Integer.parseInt(maxCountString);
@@ -45,11 +54,24 @@ public class FindSimilar extends HttpServlet {
 
         if (key != null) {
             try {
-                List<Scored<Item>> scoredItems = dataStore.findSimilar(key, maxCount, null);
+                Set<String> titleSet = new HashSet<String>();
+                List<Scored<Item>> scoredItems = dataStore.findSimilar(key, "content", maxCount * 4, new TypeFilter(ItemType.BLOGENTRY));
+                List<Scored<Item>> filteredItems = new ArrayList<Scored<Item>>();
+                
+                for (Scored<Item> si : scoredItems) {
+                    if (!titleSet.contains(si.getItem().getName())) {
+                        titleSet.add(si.getItem().getName());
+                        filteredItems.add(si);
+
+                        if (filteredItems.size() >= maxCount) {
+                            break;
+                        }
+                    }
+                }
 
                 response.setContentType("text/xml;charset=UTF-8");
                 PrintWriter out = response.getWriter();
-                StoryUtil.dumpScoredStories(out, dataStore, scoredItems);
+                StoryUtil.dumpScoredStories(out, dataStore, filteredItems);
                 out.close();
 
             } catch (AuraException ex) {

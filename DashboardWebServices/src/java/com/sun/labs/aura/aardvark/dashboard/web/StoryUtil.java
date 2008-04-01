@@ -54,9 +54,13 @@ public class StoryUtil {
             out.println("        <description>" + excerpt(filterHTML(entry.getContent()), 100) + "</description>");
         }
 
+
+        out.println("    <tags>");
         for (Tag tag : entry.getTags()) {
-            out.printf("%s<tag score=\"%d\">%s</topic>\n", padding, tag.getCount(), filterTag(tag.getName()));
+            out.printf("%s<tag score=\"%d\">%s</tag>\n", padding, tag.getCount(), filterTag(tag.getName()));
         }
+        out.println("    </tags>");
+
         // TBD - add autotag outputs here
         out.println("    </story>");
     }

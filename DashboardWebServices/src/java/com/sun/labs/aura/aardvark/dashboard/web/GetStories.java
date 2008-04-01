@@ -91,9 +91,13 @@ public class GetStories extends HttpServlet {
         long start;
         long end;
 
-        if (delta > 0) {
+        if (delta >= 0) {
             start = time;
-            end = start + delta;
+            if (delta > 0) {
+                end = start + delta;
+            } else {
+                end = System.currentTimeMillis();
+            }
         } else {
             end = time;
             start = end + delta;
