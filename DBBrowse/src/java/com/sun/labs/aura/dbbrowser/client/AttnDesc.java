@@ -13,6 +13,7 @@ public class AttnDesc implements Serializable {
     protected String time;
     
     protected long queryTime;
+    protected int numTotal;
     
     public AttnDesc() {
         
@@ -25,8 +26,9 @@ public class AttnDesc implements Serializable {
         this.time = time;
     }
     
-    public AttnDesc(long queryTime) {
+    public AttnDesc(long queryTime, int numTotal) {
         this.queryTime = queryTime;
+        this.numTotal = numTotal;
     }
     
     public String getType() {
@@ -47,5 +49,9 @@ public class AttnDesc implements Serializable {
     
     public long getQueryTime() {
         return queryTime;
+    }
+    
+    public int getNumTotal() {
+        return numTotal;
     }
 }

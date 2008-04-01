@@ -57,15 +57,16 @@ public class AttnPanel extends DockPanel {
         });
         timeStamp = new Label();
         add(timeStamp, SOUTH);
-        AttnDesc time = attns[0];
-        setTime(time.getQueryTime());
+        AttnDesc info = attns[0];
+        setQueryInfo(info.getQueryTime(), attns.length - 1, info.getNumTotal());
         add(close, SOUTH);
         
         service = GWTMainEntryPoint.getService();
     }
     
-    protected void setTime(long time) {
-        timeStamp.setText("Query took: " + time + "ms");
+    protected void setQueryInfo(long time, int resultsShown, int totalResults) {
+        timeStamp.setText("Query took: " + time + "ms" + "   Showing " 
+                + resultsShown + " of " + totalResults);
     }
     
     protected void fillAttns() {
