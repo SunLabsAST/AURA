@@ -18,6 +18,7 @@ import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.ConfigComponent;
@@ -327,6 +328,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         } catch (ExecutionException e) {
             checkAndThrow(e);
         }
+        Collections.sort(ret, new ReverseAttentionTimeComparator());
         return ret;
     }
 
