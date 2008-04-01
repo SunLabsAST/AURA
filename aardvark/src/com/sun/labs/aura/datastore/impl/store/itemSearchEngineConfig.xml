@@ -97,6 +97,13 @@
         <property name="main_dict_factory" value="id_dict_factory"/>
         <property name="doc_dict_factory" value="feature_dict_factory"/>
         <property name="index_config" value="index_config"/>
+        <property name="stopwords" value="stopwords"/>
+    </component>
+    
+    <component name="stopwords" type="ngnova.pipeline.StopWords">
+        <propertylist name="stopwords_files">
+            <item>/com/sun/labs/aura/aardvark/resource/stopwords</item>
+        </propertylist>
     </component>
     
     <!-- A manager for feature cluster partitions. -->
