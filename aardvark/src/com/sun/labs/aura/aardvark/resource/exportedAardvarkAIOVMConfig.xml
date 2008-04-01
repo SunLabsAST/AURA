@@ -96,7 +96,7 @@
         <property name="dataStore" value="dataStoreHead"/>
         <property name="statService" value="statService"/>
         <property name="feedScheduler" value="feedScheduler"/>
-        <property name="numThreads" value="1"/>
+        <property name="numThreads" value="5"/>
         <property name="logLevel" value="WARNING"/>
     </component>
     
