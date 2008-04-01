@@ -421,6 +421,7 @@ public class Login extends HttpServlet {
         bu.setCountry(country);
         bu.setLanguage(language);
         bu.setTimezone(timezone);
+        u.setName(nickname);
     }
     
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
