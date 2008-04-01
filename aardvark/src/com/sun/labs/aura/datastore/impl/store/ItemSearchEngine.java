@@ -182,8 +182,9 @@ public class ItemSearchEngine implements Configurable {
                     Serializable val = e.getValue();
                     
                     //
-                    // autotagfix:  An autotag might have made it here during
-                    // indexing.  We'll ignore them for now.
+                    // We need to make sure that if an item changes, it doesn't
+                    // get an ever-growing set of autotags, so we won't add any
+                    // autotags when indexing.
                     if(e.getKey().equals("autotag")) {
                         continue;
                     }
