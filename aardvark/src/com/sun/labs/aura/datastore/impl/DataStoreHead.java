@@ -46,6 +46,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import ngnova.pipeline.StopWords;
 import ngnova.retrieval.MultiDocumentVectorImpl;
+import ngnova.util.StopWatch;
 
 /**
  * A instance of an access point into the Data Store.  Data Store Heads
@@ -676,7 +677,12 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         //
         // Run the computation, sort the results and return.
         try {
-            return sortScored(executor.invokeAll(callers), n);
+            StopWatch sw = new StopWatch();
+            sw.start();
+            List<Scored<Item>> res = sortScored(executor.invokeAll(callers), n);
+            sw.stop();
+            logger.info("findSimilar for " + dv.getKey() + " executed in " + sw.getTime() + "ms");
+            return res;
         } catch(ExecutionException ex) {
             checkAndThrow(ex);
             return new ArrayList<Scored<Item>>();
@@ -880,7 +886,12 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             });
         }
         try {
-        return sortScored(executor.invokeAll(callers), n);
+            StopWatch sw = new StopWatch();
+            sw.start();
+            List<Scored<Item>> res = sortScored(executor.invokeAll(callers), n);
+            sw.stop();
+            logger.info("Query for " + query + " took " + sw.getTime() + "ms");
+            return res;
         } catch(ExecutionException ex) {
             checkAndThrow(ex);
             return new ArrayList<Scored<Item>>();

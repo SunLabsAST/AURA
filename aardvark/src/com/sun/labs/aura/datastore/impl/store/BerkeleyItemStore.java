@@ -416,7 +416,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      */
     public List<Scored<Item>> findSimilar(DocumentVector dv, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        return keysToItems(searchEngine.findSimilar(dv, n, rf));
+        StopWatch sw = new StopWatch();
+        sw.start();
+        List<Scored<Item>> res = keysToItems(searchEngine.findSimilar(dv, n, rf));
+        sw.stop();
+        logger.info("Got find similar results for " + dv.getKey() + " in " + sw.getTime() + "ms");
+        return res;
     }
 
     public List<Scored<String>> getTopTerms(String key, String field, int n)
