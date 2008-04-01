@@ -67,7 +67,7 @@ public class GridDeploy {
         "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111",
     };
 
-    private static String usage = "GridDeploy createCode | startAura | startAardvark | createWeb";
+    private static String usage = "GridDeploy createCode | startAura | startAardvark | createWeb | reindexData";
 
     public static void main(String argv[]) throws Exception {
         if (argv.length == 0) {
@@ -98,6 +98,9 @@ public class GridDeploy {
             //
             // create the resources for a glassfish install
             gd.createWebInfrastructure();
+        } else if (argv[0].equals("reindexData")) {
+            gd.createAuraInfrastructure();
+            gd.createReindexerProcesses();
         }
     }
     
@@ -165,7 +168,6 @@ public class GridDeploy {
         NetworkAddress addr = getExternalAddressFor("www");
         System.out.println("Bound www to " + addr.getAddress());
     }
-    
     
     /**
      * Assuming a fully built infrastructure, this uses the network and
@@ -260,6 +262,26 @@ public class GridDeploy {
         }
         startRegistration(statSrvReg);
 
+    }
+    
+    public void createReindexerProcesses() throws Exception {
+        //
+        // Start the replicants for each prefix
+        for(int i = 0; i < prefixCodeList.length; i++) {
+            ProcessConfiguration reindexConfig =
+                    getReindexerConfig(prefixCodeList[i]);
+            ProcessRegistration reindexReg = null;
+            try {
+                reindexReg = grid.createProcessRegistration(
+                        instance + "-reindex-" + prefixCodeList[i], reindexConfig);
+            } catch(DuplicateNameException dne) {
+                System.out.println("Reindexer-" + prefixCodeList[i] +
+                        " already exists, reusing");
+                reindexReg = grid.getProcessRegistration(instance + "-reindex-" +
+                        prefixCodeList[i]);
+            }
+            startRegistration(reindexReg, false);
+        }
     }
 
     public void createAardvarkProcesses() throws Exception {
@@ -464,7 +486,8 @@ public class GridDeploy {
     protected ProcessConfiguration getReplicantConfig(String prefix) 
             throws Exception {
         String cmdLine =
-                "-DauraHome=" + auraDistMntPnt +
+                "-Xmx3g"+
+                " -DauraHome=" + auraDistMntPnt +
                 " -DstartingDataDir=" + auraDistMntPnt + "/classifier/starting.idx" +
                 " -Dprefix=" + prefix +
                 " -DdataFS=/files/data/" + prefix +
@@ -505,14 +528,64 @@ public class GridDeploy {
         // don't overlap with other replicants
         pc.setLocationConstraint(
                 new ProcessRegistrationFilter.NameMatch(
-                        Pattern.compile(instance + "-rep-*")));
+                        Pattern.compile(instance + ".*-rep-.*")));
         
         return pc;
     }
     
+    protected ProcessConfiguration getReindexerConfig(String prefix)
+            throws Exception {
+        String cmdLine =
+                "-Xmx2g" + 
+                " -DauraHome=" + auraDistMntPnt +
+                " -DstartingDataDir=" + auraDistMntPnt +
+                "/classifier/starting.idx" +
+                " -Dprefix=" + prefix +
+                " -DdataFS=/files/data/" + prefix +
+                " -cp " + auraDistMntPnt + "/dist/aardvark.jar" +
+                ":" + auraDistMntPnt + "/dist/lib/ktsearch.jar" +
+                ":" + auraDistMntPnt + "/dist/lib/LabsUtil.jar" +
+                " com.sun.labs.aura.util.Reindexer" +
+                " /files/data/" + prefix + "/reindex.idx" +
+                " /files/data/" + prefix + "/db";
+
+        // create a configuration and set relevant properties
+        ProcessConfiguration pc = new ProcessConfiguration();
+        pc.setCommandLine(cmdLine.trim().split(" "));
+        pc.setSystemSinks(
+                logsFSMntPnt + "/reindex-" + prefix + ".out", false);
+
+        Collection<FileSystemMountParameters> mountParams =
+                new ArrayList<FileSystemMountParameters>();
+
+        mountParams.add(
+                new FileSystemMountParameters(auraDist.getUUID(),
+                new File(auraDistMntPnt).getName()));
+        mountParams.add(
+                new FileSystemMountParameters(logsFS.getUUID(),
+                new File(logsFSMntPnt).getName()));
+        mountParams.add(
+                new FileSystemMountParameters(
+                repFSMap.get(instance + "-" + prefix).getUUID(),
+                "data"));
+
+        pc.setFileSystems(mountParams);
+        pc.setWorkingDirectory(logsFSMntPnt);
+
+        pc.setProcessExitAction(ProcessExitAction.DESTROY);
+
+        // don't overlap with other replicants
+        pc.setLocationConstraint(
+                new ProcessRegistrationFilter.NameMatch(
+                Pattern.compile(instance + ".*-reindex-.*")));
+
+        return pc;
+    }
+
     protected ProcessConfiguration getFeedSchedulerConfig() throws Exception {
         String cmdLine =
-                "-DauraHome=" + auraDistMntPnt +
+                "-Xmx2g" +
+                " -DauraHome=" + auraDistMntPnt +
                 " -jar " + auraDistMntPnt + "/dist/aardvark.jar" + 
                 " /com/sun/labs/aura/resource/feedSchedulerConfig.xml" +
                 " feedSchedulerStarter";
@@ -581,7 +654,7 @@ public class GridDeploy {
         // don't overlap with other replicants
         pc.setLocationConstraint(
                 new ProcessRegistrationFilter.NameMatch(
-                        Pattern.compile(instance + "-feedMgr-*")));
+                        Pattern.compile(instance + ".*-feedMgr-.*")));
 
         return pc;
     }
