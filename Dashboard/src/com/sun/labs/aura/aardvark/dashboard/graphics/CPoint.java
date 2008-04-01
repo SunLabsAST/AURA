@@ -9,10 +9,11 @@ import com.jme.input.action.InputActionEvent;
 import com.jme.input.action.InputActionInterface;
 import com.jme.math.Quaternion;
 import com.jme.math.Vector3f;
+import com.jme.renderer.Renderer;
 import com.jme.scene.Controller;
 import com.jme.scene.Geometry;
+import com.jme.scene.Node;
 import com.jme.scene.Spatial;
-import com.jmex.physics.DynamicPhysicsNode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,8 +27,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class CPoint extends Controller implements InputActionInterface {
 
-    private DynamicPhysicsNode dnp;
-    private ControlledPhysicsNode cpn;
+    private Node masterNode;
+    private MotionController motionController;
     private final static float defaultTick = .1f;
     private float curTick;
     private float curTime;
@@ -37,47 +38,43 @@ public class CPoint extends Controller implements InputActionInterface {
     private float scaleSet = 1.0f;
     private float scaleCur = 1.0f;
     private float minScaleDelta = .01f;
-    private float rotateSteps = .01f;
+    private boolean traceCommands = false;
 
-    public CPoint(DynamicPhysicsNode dnp, Geometry geometry) {
-        this.dnp = dnp;
-        this.cpn = new ControlledPhysicsNode(dnp);
-        dnp.addController(this);
-        addGeometry(geometry);
+    public CPoint(float initX, float initY, float initZ) {
+        this.masterNode = new Node();
+        this.motionController = new MotionController(masterNode, initX, initY, initZ);
+        masterNode.addController(this);
+        masterNode.addController(motionController);
+        masterNode.setRenderQueueMode(Renderer.QUEUE_OPAQUE);
     }
 
-    public CPoint(DynamicPhysicsNode dnp) {
-        this.dnp = dnp;
-        this.cpn = new ControlledPhysicsNode(dnp);
-        dnp.addController(this);
-    }
 
     public void addGeometry(Geometry geometry) {
-        dnp.attachChild(geometry);
+        masterNode.attachChild(geometry);
         geometry.setModelBound(new BoundingBox());
         geometry.updateModelBound();
         geometry.setUserData("cpoint", this);
-        dnp.generatePhysicsGeometry();
     }
 
-    public DynamicPhysicsNode getDNP() {
-        return dnp;
+    public MotionController getMotionController() {
+        return motionController;
+    }
+
+    public Node getNode() {
+        return masterNode;
     }
 
     public void remove() {
-        dnp.removeFromParent();
+        masterNode.removeFromParent();
     }
 
-    public ControlledPhysicsNode getCPN() {
-        return cpn;
-    }
 
     public void poke() {
-        cpn.setJiggle(true);
+        motionController.setJiggle(true);
     }
 
     public void unpoke() {
-        cpn.setJiggle(false);
+        motionController.setJiggle(false);
     }
 
     public void add(Command[] cmds) {
@@ -116,19 +113,27 @@ public class CPoint extends Controller implements InputActionInterface {
     }
 
     private float curRotTime = 0;
-    private float rotTimeDelta = .001f;
-
     private Quaternion setRotation = new Quaternion();
     private Quaternion curRotation = new Quaternion();
     private Quaternion lastRotation = new Quaternion();
     private float rotateTime = 1;
 
     public void setAngle(float rotx, float roty, float rotz, float rotTime) {
-
         lastRotation.set(setRotation);
         setRotation.fromAngles(rotx, roty, rotz);
-        dnp.clearTorque();
-        dnp.setAngularVelocity(Vector3f.ZERO);
+
+        if (rotTime <= 0) {
+            rotTime = 1;
+        }
+        this.rotateTime = rotTime;
+        curRotTime = 0; 
+    }
+
+    public void setRelativeAngle(float rotx, float roty, float rotz, float rotTime) {
+        float[] angles = new float[3];
+        curRotation.toAngles(angles);
+        lastRotation.set(curRotation);
+        setRotation.fromAngles(angles[0] + rotx, angles[1] + roty, angles[2] + rotz);
 
         if (rotTime <= 0) {
             rotTime = 1;
@@ -144,12 +149,12 @@ public class CPoint extends Controller implements InputActionInterface {
     private void manageRotation(float time) {
         if (curRotTime < rotateTime) {
             curRotation.slerp(lastRotation, setRotation, curRotTime / rotateTime);
-            dnp.setLocalRotation(curRotation);
+            masterNode.setLocalRotation(curRotation);
 
             curRotTime += time;
             if (curRotTime >= rotateTime) {
                 curRotTime = rotateTime;
-                dnp.setLocalRotation(setRotation);
+                masterNode.setLocalRotation(setRotation);
             }
         }
     }
@@ -166,6 +171,9 @@ public class CPoint extends Controller implements InputActionInterface {
         Command command = commandQueue.peek();
         if (command != null) {
             if (command.update(this)) {
+                if (traceCommands) {
+                    System.out.println("CMD " + command);
+                }
                 commandQueue.remove();
                 curTime = 0f;
             }
@@ -202,7 +210,7 @@ public class CPoint extends Controller implements InputActionInterface {
                     scaleCur -= minScaleDelta;
                 }
             }
-            for (Spatial spatial : dnp.getChildren()) {
+            for (Spatial spatial : masterNode.getChildren()) {
                 if (spatial instanceof Geometry) {
                     Geometry geometry = (Geometry) spatial;
                     geometry.setLocalScale(scaleCur);
@@ -217,11 +225,11 @@ public class CPoint extends Controller implements InputActionInterface {
         }
     }
 
-    public synchronized void addActionHandler(ActionHandler ah) {
+    synchronized void addActionHandler(ActionHandler ah) {
         actionHandlers.add(ah);
     }
 
-    public synchronized void removeActionHandler(ActionHandler ah) {
+    synchronized void removeActionHandler(ActionHandler ah) {
         actionHandlers.remove(ah);
     }
 }
@@ -236,6 +244,45 @@ class CmdWait implements Command {
 
     public boolean update(CPoint cp) {
         return (cp.getCurTime() > delay);
+    }
+    
+    public String toString() {
+        return "waiting for " + delay + " secs";
+    }
+}
+
+class CmdWaitBounds implements Command {
+
+    private Vector3f bounds;
+
+    CmdWaitBounds(Vector3f bounds) {
+        this.bounds = bounds;
+    }
+
+    CmdWaitBounds(float x, float y, float z) {
+        this(new Vector3f(x, y, z));
+    }
+
+    public boolean update(CPoint cp) {
+        Vector3f cur = cp.getNode().getWorldTranslation();
+
+        if (cur.x > bounds.x || cur.x < -bounds.x) {
+            return true;
+        }
+
+        if (cur.y > bounds.y || cur.y < -bounds.y) {
+            return true;
+        }
+
+        if (cur.z > bounds.z || cur.z < -bounds.z) {
+            return true;
+        }
+
+        return false;
+    }
+    
+    public String toString() {
+        return "waitbounds for " + bounds;
     }
 }
 
@@ -252,8 +299,12 @@ class CmdMove implements Command {
     }
 
     public boolean update(CPoint cp) {
-        cp.getCPN().setSetPoint(v);
+        cp.getMotionController().setSetPoint(v);
         return true;
+    }
+
+    public String toString() {
+        return "moving to " + v;
     }
 }
 
@@ -270,9 +321,13 @@ class CmdVel implements Command {
     }
 
     public boolean update(CPoint cp) {
-        cp.getCPN().setEnable(false);
-        cp.getDNP().setLinearVelocity(v);
+        cp.getMotionController().setEnable(false);
+        cp.getMotionController().setLinearVelocity(v);
         return true;
+    }
+
+    public String toString() {
+        return "setting vel to " + v;
     }
 }
 
@@ -281,16 +336,54 @@ class CmdRotate implements Command {
     private float rotx;
     private float roty;
     private float rotz;
+    private float time;
 
     CmdRotate(float rotx, float roty, float rotz) {
+        this(rotx, roty, rotz, 1);
+    }
+
+    CmdRotate(float rotx, float roty, float rotz, float time) {
         this.rotx = rotx;
         this.roty = roty;
         this.rotz = rotz;
+        this.time = time;
     }
 
     public boolean update(CPoint cp) {
-        cp.setAngle(rotx, roty, rotz);
+        cp.setAngle(rotx, roty, rotz, time);
         return true;
+    }
+
+    public String toString() {
+        return "Rotating to " + rotx + ", " + roty + ", " + rotz;
+    }
+}
+
+class CmdRotateRelative implements Command {
+
+    private float rotx;
+    private float roty;
+    private float rotz;
+    private float time;
+
+    CmdRotateRelative(float rotx, float roty, float rotz) {
+        this(rotx, roty, rotz, 1);
+    }
+
+    CmdRotateRelative(float rotx, float roty, float rotz, float time) {
+        this.rotx = rotx;
+        this.roty = roty;
+        this.rotz = rotz;
+        this.time = time;
+    }
+
+    public boolean update(CPoint cp) {
+        cp.setRelativeAngle(rotx, roty, rotz, time);
+        return true;
+    }
+
+    public String toString() {
+        return "Rotating (rel) to " + rotx + ", " + roty + ", " + rotz;
     }
 }
 
@@ -306,12 +399,19 @@ class CmdScale implements Command {
         cp.setScale(scale);
         return true;
     }
+    public String toString() {
+        return "Scaling to " + scale;
+    }
 }
 
 class CmdWaitSettled implements Command {
 
     public boolean update(CPoint cp) {
-        return cp.getCPN().isSettled();
+        return cp.getMotionController().isSettled();
+    }
+
+    public String toString() {
+        return "wating for settled";
     }
 }
 
@@ -324,8 +424,12 @@ class CmdGravity implements Command {
     }
 
     public boolean update(CPoint cp) {
-        cp.getDNP().setAffectedByGravity(gravityOn);
+        cp.getMotionController().setAffectedByGravity(gravityOn);
         return true;
+    }
+
+    public String toString() {
+        return "gravitiy is " + gravityOn;
     }
 }
 
@@ -338,8 +442,12 @@ class CmdControl implements Command {
     }
 
     public boolean update(CPoint cp) {
-        cp.getCPN().setEnable(cmdControl);
+        cp.getMotionController().setEnable(cmdControl);
         return true;
+    }
+
+    public String toString() {
+        return "control is " + cmdControl;
     }
 }
 
@@ -361,6 +469,10 @@ class CmdAddSet implements Command {
         cp.add(setName, repeat);
         return true;
     }
+
+    public String toString() {
+        return "Add set" + setName;
+    }
 }
 
 class CmdRemove implements Command {
@@ -369,28 +481,44 @@ class CmdRemove implements Command {
         cp.remove();
         return true;
     }
+
+    public String toString() {
+        return "removed";
+    }
 }
 
 class CmdSloppy implements Command {
 
     public boolean update(CPoint cp) {
-        cp.getCPN().setCoeffs(500f, 100f);
+        cp.getMotionController().setCoeffs(10f, 1f);
         return true;
+    }
+
+    public String toString() {
+        return "sloppy";
     }
 }
 
 class CmdStiff implements Command {
 
     public boolean update(CPoint cp) {
-        cp.getCPN().setCoeffs(500f, 300f);
+        cp.getMotionController().setCoeffs(10, 3f);
         return true;
+    }
+
+    public String toString() {
+        return "stiff";
     }
 }
 
 class CmdVeryStiff implements Command {
 
     public boolean update(CPoint cp) {
-        cp.getCPN().setCoeffs(700f, 500f);
+        cp.getMotionController().setCoeffs(20, 12);
         return true;
+    }
+
+    public String toString() {
+        return "very stiff";
     }
 }

@@ -10,6 +10,7 @@ package com.sun.labs.aura.aardvark.dashboard.story;
  * @author plamere
  */
 public class Classification {
+
     public String name;
     public float  score;
 
@@ -26,5 +27,12 @@ public class Classification {
         return score;
     }
     
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setScore(float score) {
+        this.score = score;
+    }
 
 }

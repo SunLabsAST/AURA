@@ -37,6 +37,7 @@ import com.jme.input.action.InputActionEvent;
 import com.jme.input.action.MouseInputAction;
 import com.jme.intersection.BoundingPickResults;
 import com.jme.intersection.PickResults;
+import com.jme.intersection.TrianglePickResults;
 import com.jme.math.Ray;
 import com.jme.renderer.Camera;
 import com.jme.scene.Node;
@@ -61,15 +62,18 @@ public class MousePick extends MouseInputAction {
      */
     public void performAction(InputActionEvent evt) {
         shotTime += evt.getTime();
-        if( MouseInput.get().isButtonDown(0) && shotTime > 0.1f) {
+        if(shotTime > .2f && (MouseInput.get().isButtonDown(0) ||
+                MouseInput.get().isButtonDown(1))) {
             shotTime = 0;
             Ray ray = new Ray(camera.getLocation(), camera.getDirection()); // camera direction is already normalized
-            PickResults results = new BoundingPickResults();
+            //PickResults results = new BoundingPickResults();
+            PickResults results = new TrianglePickResults();
             results.setCheckDistance(true);
             scene.findPick(ray,results);
 
             if(results.getNumber() > 0) {
                 Spatial spatial = results.getPickData(0).getTargetMesh().getParentGeom();
+                System.out.println("spatial click " + spatial);
                 CPoint cpoint = (CPoint) spatial.getUserData("cpoint");
                 if (cpoint != null) {
                     cpoint.performAction(evt);

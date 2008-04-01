@@ -10,8 +10,8 @@ package com.sun.labs.aura.aardvark.dashboard.graphics;
  */
 import com.sun.labs.aura.aardvark.dashboard.*;
 import com.jme.app.AbstractGame;
+import com.jme.app.SimpleGame;
 import com.jme.input.FirstPersonHandler;
-import com.jme.input.KeyBindingManager;
 import com.jme.input.KeyInput;
 import com.jme.light.DirectionalLight;
 import com.jme.light.PointLight;
@@ -22,20 +22,12 @@ import com.jme.renderer.ColorRGBA;
 import com.jme.renderer.Renderer;
 import com.jme.scene.SceneElement;
 import com.jme.scene.Text;
+import com.jme.scene.state.FogState;
 import com.jme.scene.state.TextureState;
 import com.jmex.font3d.Font3D;
 import com.jmex.font3d.effects.Font3DGradient;
-import com.jmex.physics.StaticPhysicsNode;
-import com.jmex.physics.material.Material;
-import com.jmex.physics.util.SimplePhysicsGame;
-import com.sun.labs.aura.aardvark.dashboard.story.SimulatedStoryManager;
-import com.sun.labs.aura.aardvark.dashboard.story.Story;
-import com.sun.labs.aura.aardvark.dashboard.story.StoryManager;
 import java.awt.Font;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,16 +37,16 @@ import java.util.logging.Logger;
  *
  * @author Irrisor
  */
-public class Dashboard extends SimplePhysicsGame {
+public class Dashboard extends SimpleGame {
 
     private final static String VERSION = "Aardavark Dashboard V0.1";
     private StoryManager storyManager;
     private StoryPointFactory storyPointFactory;
     private Font3D font;
-    private ArrayBlockingQueue<CPoint> storyQueue;
-    private float timeSinceLastCheck = 0;
-    private float newStoryTime = 1f;
-    private boolean fixedFrameRate = false;
+    private KeyboardHandler keyboardHandler;
+    private boolean fixedFrameRate = true;
+    private boolean simulate = false;
+    private String baseUrl = "http://localhost:8080/DashboardWebServices/";
 
     public static void main(String[] args) {
         try {
@@ -82,25 +74,19 @@ public class Dashboard extends SimplePhysicsGame {
     }
 
     public Dashboard(boolean simulate, boolean promptForResolution) throws IOException {
+        this.simulate = simulate;
         if (promptForResolution) {
             setDialogBehaviour(AbstractGame.ALWAYS_SHOW_PROPS_DIALOG);
         } else {
             setDialogBehaviour(AbstractGame.FIRSTRUN_OR_NOCONFIGFILE_SHOW_PROPS_DIALOG);
         }
-
-        if (simulate) {
-            storyManager = new SimulatedStoryManager("stories.xml");
-        } else {
-            throw new UnsupportedOperationException("live story manager");
-        }
     }
 
     protected void simpleInitGame() {
-        showPhysics = false;
         initLogger();
-        initPhysics();
         initStaticNodes();
         initLighting();
+        initFog();
         initInput();
         initCamera();
         initFonts();
@@ -113,19 +99,28 @@ public class Dashboard extends SimplePhysicsGame {
         fph.getMouseLookHandler().getMouseLook().setSpeed(.2f);
         input = fph;
 
-        KeyBindingManager.getKeyBindingManager().add("fire", KeyInput.KEY_F);
-        KeyBindingManager.getKeyBindingManager().add("tfire", KeyInput.KEY_G);
+        keyboardHandler = new KeyboardHandler();
+
+        keyboardHandler.addKeyHandler(KeyInput.KEY_F, "findSimilar", new KeyActionHandler() {
+            public void onKey(String opName) {
+                if (storyPointFactory.hasAllSimStories()) {
+                    storyPointFactory.clearSimStories();
+                } else {
+                    StoryPoint sp = storyPointFactory.getCurrentStoryPoint();
+                    if (sp != null) {
+                        storyManager.findSimilar(sp.getStory(), storyPointFactory.getNumSimStories());
+                    }
+                }
+            }
+        });
+
         input.addAction(new MousePick(cam, rootNode));
         addCrossHairs();
     }
 
-    private void initPhysics() {
-        getPhysicsSpace().setDefaultMaterial(Material.GHOST);
-    }
-
     private void initCamera() {
         Vector3f loc = cam.getLocation();
-        loc = loc.add(new Vector3f(0, 0, 5));
+        loc = loc.add(new Vector3f(0, 0, 25));
         cam.setLocation(loc);
     }
 
@@ -144,13 +139,6 @@ public class Dashboard extends SimplePhysicsGame {
 
     private void initStaticNodes() {
         rootNode.setRenderQueueMode(Renderer.QUEUE_OPAQUE);
-
-        // first we will create the floor
-        // as the floor can't move we create a _static_ physics node
-        StaticPhysicsNode staticNode = getPhysicsSpace().createStaticNode();
-        rootNode.attachChild(staticNode);
-        staticNode.setMaterial(Material.CONCRETE);
-        staticNode.generatePhysicsGeometry();
     }
 
     private void initLighting() {
@@ -199,37 +187,33 @@ public class Dashboard extends SimplePhysicsGame {
     }
 
     private void initStoryQueue() {
-        storyPointFactory = new StoryPointFactory(display, getPhysicsSpace(), lightState);
-        storyQueue = new ArrayBlockingQueue(10);
-        Thread t = new Thread() {
-
-            public void run() {
-                collectStoryPoints();
-            }
-        };
-        t.setPriority(Thread.MIN_PRIORITY);
-        t.start();
+        storyPointFactory = new StoryPointFactory(display, lightState, rootNode);
+        storyManager = new StoryManager(storyPointFactory, baseUrl, simulate);
+        storyManager.setAsyncMode(true);
+        //storyManager.setLiveMode(true);
+        storyManager.setMaxStoriesPerMinute(300);
+        storyManager.start();
     }
-    private boolean oldFiring = false;
+
+    private void initFog() {
+        FogState fogState = display.getRenderer().createFogState();
+        fogState.setDensity(1f);
+        fogState.setEnabled(true);
+        fogState.setColor(new ColorRGBA(0.5f, 0.5f, 0.5f, .5f));
+        fogState.setEnd(10);
+        fogState.setStart(5);
+        fogState.setDensityFunction(FogState.DF_LINEAR);
+        fogState.setApplyFunction(FogState.AF_PER_VERTEX);
+        rootNode.setRenderState(fogState);
+    }
 
     @Override
     protected void simpleUpdate() {
-        boolean firing = (KeyBindingManager.getKeyBindingManager().isValidCommand("fire", true));
-
-        if (firing && !oldFiring) {
-        //fire3();
-        }
-
-        boolean tfiring = (KeyBindingManager.getKeyBindingManager().isValidCommand("tfire", true));
-        if (tfiring & !oldFiring) {
-        //rootNode.attachChild(textController.addNewText(titles.remove(0)));
-        //makeGrid(20, 20);
-        }
-
-        oldFiring = firing || tfiring;
+        keyboardHandler.update();
         checkForNewStories();
         syncFrames();
     }
+
     long last;
     int frameRate = 60;
     int milliPerFrame = 1000 / 60;
@@ -240,7 +224,7 @@ public class Dashboard extends SimplePhysicsGame {
             long delta = now - last;
             long delay = milliPerFrame - delta;
             if (delay < 0) {
-                if (delay < -5) {
+                if (delay < -10) {
                     System.out.println("late by " + (-delay) + " ms");
                 }
             } else {
@@ -251,34 +235,16 @@ public class Dashboard extends SimplePhysicsGame {
             }
             last = now;
         }
+
     }
+    int max = Integer.MAX_VALUE;
+    int cur = 0;
 
     private void checkForNewStories() {
-        timeSinceLastCheck += tpf;
-        if (timeSinceLastCheck > newStoryTime) {
-            CPoint cp = storyQueue.poll();
-            if (cp != null) {
-                rootNode.attachChild(cp.getDNP());
-                timeSinceLastCheck = 0f;
-            }
-        }
-    }
-
-    private void collectStoryPoints() {
-        try {
-            while (true) {
-                List<Story> stories = storyManager.getNextStories(10);
-                List<CPoint> points = new ArrayList<CPoint>();
-                for (Story story : stories) {
-                    CPoint cp = storyPointFactory.createStoryPoint(story);
-                    points.add(cp);
-                }
-
-                for (CPoint cp : points) {
-                    storyQueue.put(cp);
-                }
-            }
-        } catch (InterruptedException ie) {
+        CPoint cp = storyManager.getNext();
+        if (cp != null) {
+            cur++;
+            rootNode.attachChild(cp.getNode());
         }
     }
 }

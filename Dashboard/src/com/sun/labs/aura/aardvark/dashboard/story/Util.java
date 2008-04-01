@@ -32,7 +32,7 @@ import org.xml.sax.SAXException;
  */
 public class Util {
 
-    static List<Story> loadStories(InputStream stream) throws IOException {
+    public static List<Story> loadStories(InputStream stream) throws IOException {
         List<Story> stories = new ArrayList<Story>();
         try {
             DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -52,8 +52,11 @@ public class Util {
                 String source = getElementContents(storyElement, "source");
                 String description = getElementContents(storyElement, "description");
                 String url = getElementContents(storyElement, "url");
+                String pulltime = getElementContents(storyElement, "pulltime");
+                String length = getElementContents(storyElement, "length");
                 String imageUrl = getElementContents(storyElement, "imageUrl");
-                NodeList classList = storyElement.getElementsByTagName("class");
+                Element tagRoot = getFirstElement(storyElement, "tags");
+
 
                 story.setTitle(title);
                 story.setDescription(description);
@@ -61,15 +64,63 @@ public class Util {
                 story.setSource(source);
                 story.setImageUrl(imageUrl);
                 story.setScore(score);
+                story.setPulltime(Long.parseLong(pulltime));
+                story.setLength(Integer.parseInt(length));
 
+                NodeList tags = tagRoot.getElementsByTagName("tag");
+                for (int j = 0; j < tags.getLength(); j++) {
+                    Element tagNode = (Element) tags.item(j);
+                    String tagName = tagNode.getTextContent();
+                    float tagScore = Float.parseFloat(tagNode.getAttribute("score"));
+                    story.addClassification(new Classification(tagName, tagScore));
+                }
+
+                /*
+                NodeList classList = storyElement.getElementsByTagName("class");
                 for (int j = 0; j < classList.getLength(); j++) {
                     Element classNode = (Element) classList.item(j);
                     String className = classNode.getTextContent();
                     float classScore = Float.parseFloat(classNode.getAttribute("score"));
                     story.addClassification(new Classification(className, classScore));
                 }
+                 */
+
                 stories.add(story);
             }
+        } catch (SAXException e) {
+            System.out.println("parse problem " + e);
+        } catch (ParserConfigurationException e) {
+            System.out.println("parse problem " + e);
+        }
+        return stories;
+    }
+
+    /*
+     <entries>115577</entries>
+     <feeds>8338</feeds>
+     <users>1</users>
+     <taste>81</taste>
+     <entriesPerMinute>0.0</entriesPerMinute>
+     */
+    public static Stats loadStats(InputStream stream) throws IOException {
+        Stats stats = null;;
+        try {
+            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            Document doc = builder.parse(stream);
+            Element statusElement = doc.getDocumentElement();
+
+            String entries = getElementContents(statusElement, "entries");
+            String feeds = getElementContents(statusElement, "feeds");
+            String users = getElementContents(statusElement, "users");
+            String taste = getElementContents(statusElement, "taste");
+            String entriesPerMinute = getElementContents(statusElement, "entriesPerMinute");
+
+            stats = new Stats(
+                    Long.parseLong(entries),
+                    Long.parseLong(feeds),
+                    Long.parseLong(users),
+                    Long.parseLong(taste),
+                    Float.parseFloat(entriesPerMinute));
         } catch (SAXException e) {
             System.out.println("parse problem " + e);
             throw new IOException("Parsing problem " + e);
@@ -77,8 +128,7 @@ public class Util {
             System.out.println("parse problem " + e);
             throw new IOException("Can't load parser " + e);
         }
-        Collections.shuffle(stories);
-        return stories;
+        return stats;
     }
 
     public static String getElementContents(Element element, String elementName) throws IOException {

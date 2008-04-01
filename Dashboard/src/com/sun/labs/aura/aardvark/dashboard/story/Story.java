@@ -20,6 +20,8 @@ public class Story {
     private String description;
     private String url;
     private String imageUrl;
+    private int length;
+    private long pulltime;
     private List<Classification> classifications;
 
 
@@ -82,6 +84,22 @@ public class Story {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public int getLength() {
+        return length;
+    }
+
+    public void setLength(int length) {
+        this.length = length;
+    }
+
+    public long getPulltime() {
+        return pulltime;
+    }
+
+    public void setPulltime(long pulltime) {
+        this.pulltime = pulltime;
     }
 
     public String toXML() {
