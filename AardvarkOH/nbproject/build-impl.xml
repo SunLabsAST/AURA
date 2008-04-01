@@ -501,9 +501,11 @@
         <copy-ear-war file="${file.reference.jdom.jar}" propname="included.lib.file.reference.jdom.jar.X"/>
         <basename file="${file.reference.ktsearch.jar}" property="included.lib.file.reference.ktsearch.jar"/>
         <copy-ear-war file="${file.reference.ktsearch.jar}" propname="included.lib.file.reference.ktsearch.jar.X"/>
+        <basename file="${file.reference.mail.jar}" property="included.lib.file.reference.mail.jar"/>
+        <copy-ear-war file="${file.reference.mail.jar}" propname="included.lib.file.reference.mail.jar.X"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${included.lib.reference.aardvark.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.jini-core.jar} ${included.lib.file.reference.jini-ext.jar} ${included.lib.file.reference.jsk-lib.jar} ${included.lib.file.reference.sun-util.jar} ${included.lib.file.reference.tools.jar} ${included.lib.file.reference.rome-0.9.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.xmlsec-1.1.jar} ${included.lib.libs.jstl11.classpath.1.X} ${included.lib.libs.jstl11.classpath.2.X} ${included.lib.file.reference.commons-codec-1.3.jar} ${included.lib.file.reference.commons-httpclient-3.0.1.jar} ${included.lib.file.reference.commons-logging-1.03.jar} ${included.lib.file.reference.htmlparser-1.6.jar} ${included.lib.file.reference.java-openid-sxip-0.9.5-SNAPSHOT.jar} ${included.lib.file.reference.openxri-client-1.0.1.jar} ${included.lib.file.reference.openxri-syntax-1.0.1.jar} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.ktsearch.jar} "/>
+            <attribute name="Class-Path" value="${included.lib.reference.aardvark.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.jini-core.jar} ${included.lib.file.reference.jini-ext.jar} ${included.lib.file.reference.jsk-lib.jar} ${included.lib.file.reference.sun-util.jar} ${included.lib.file.reference.tools.jar} ${included.lib.file.reference.rome-0.9.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.xmlsec-1.1.jar} ${included.lib.libs.jstl11.classpath.1.X} ${included.lib.libs.jstl11.classpath.2.X} ${included.lib.file.reference.commons-codec-1.3.jar} ${included.lib.file.reference.commons-httpclient-3.0.1.jar} ${included.lib.file.reference.commons-logging-1.03.jar} ${included.lib.file.reference.htmlparser-1.6.jar} ${included.lib.file.reference.java-openid-sxip-0.9.5-SNAPSHOT.jar} ${included.lib.file.reference.openxri-client-1.0.1.jar} ${included.lib.file.reference.openxri-syntax-1.0.1.jar} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.ktsearch.jar} ${included.lib.file.reference.mail.jar} "/>
         </manifest>
         <delete dir="${dist.ear.dir}/temp"/>
     </target>
@@ -530,6 +532,7 @@
         <copy file="${file.reference.openxri-syntax-1.0.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.jdom.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.ktsearch.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.mail.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>

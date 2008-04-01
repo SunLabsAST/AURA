@@ -38,6 +38,7 @@ public class ServletListener implements ServletContextListener {
                 
                 Aardvark aardvark = (Aardvark)cm.lookup("aardvark");
                 context.setAttribute("aardvark", aardvark);
+                logger.info("Context is initialized");
             } catch (IOException ioe) {
                 logger.log(Level.SEVERE, "Failed to get Aardvark handle", ioe);
             }

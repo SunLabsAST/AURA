@@ -50,7 +50,7 @@
     <!-- The configuration for a partition cluster. -->
     <component name="replicant" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" export="true" entries="prefixEntries">
         <property name="prefix" value="${prefix}"/>
-        <property name="dbEnv" value="${dataFS}"/>
+        <property name="dbEnv" value="${dataFS}/db"/>
         <property name="itemSearchEngine" value="itemSearchEngine"/>
         <property name="partitionCluster" value="partitionCluster"/>
     </component>

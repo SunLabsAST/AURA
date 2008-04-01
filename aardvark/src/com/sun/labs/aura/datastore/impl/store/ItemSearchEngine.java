@@ -37,9 +37,15 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import ngnova.classification.ClassifierModel;
+import ngnova.classification.ExplainableClassifierModel;
+import ngnova.classification.WeightedFeature;
+import ngnova.engine.SearchEngineImpl;
+import ngnova.retrieval.DocumentVectorImpl;
 import ngnova.retrieval.FieldEvaluator;
 import ngnova.retrieval.FieldTerm;
 import ngnova.retrieval.ResultImpl;
+import ngnova.util.Util;
 
 /**
  * A search engine for the data associated with items in the item store.
@@ -104,7 +110,6 @@ public class ItemSearchEngine implements Configurable {
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
-
         //
         // Load up the search engine.
         engineLogLevel = ps.getInt(PROP_ENGINE_LOG_LEVEL);
@@ -397,6 +402,46 @@ public class ItemSearchEngine implements Configurable {
         return ret;
     }
 
+    public List<Scored<String>> getTopTerms(String key, String field, int n)
+            throws AuraException, RemoteException {
+        WeightedFeature[] wf = ((DocumentVectorImpl) getDocumentVector(key, field)).getFeatures();
+        Util.sort(wf, WeightedFeature.getInverseWeightComparator());
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        for(int i = 0; i < wf.length && i < n; i++) {
+            ret.add(new Scored<String>(wf[i].getName(), wf[i].getWeight()));
+        }
+        return ret;
+    }
+
+    /**
+     * Gets an explanation as to why a given autotag would be applied to 
+     * a given document.
+     * 
+     * @param key the key of th item for which we want an explanation
+     * @param autoTag the autotag that we want to explain
+     * @param n the number of terms to return
+     * @return a list of the terms that contribute the most towards the
+     * autotagging.  The score associated with a term is the proportion of 
+     * contribution towards the autotagging.
+     */
+    public List<Scored<String>> getExplanation(String key, String autoTag,
+            int n) 
+            throws AuraException, RemoteException {
+        ClassifierModel cm = ((SearchEngineImpl) engine).getClassifierManager().getClassifier(autoTag);
+        if(cm == null || !(cm instanceof ExplainableClassifierModel)) {
+            log.warning("Not an explainable classifier: " + autoTag);
+            return new ArrayList<Scored<String>>();
+        }
+        
+        List<WeightedFeature> wf = ((ExplainableClassifierModel) cm).explain(key);
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        for(Iterator<WeightedFeature> i = wf.iterator(); i.hasNext() && ret.size() < n;) {
+            WeightedFeature f = i.next();
+            ret.add(new Scored<String>(f.getName(), f.getWeight()));
+        }
+        return ret;
+    }
+    
     /**
      * Gets a list of the keys for the items that have a field with a given value.
      * @param name the name of the field

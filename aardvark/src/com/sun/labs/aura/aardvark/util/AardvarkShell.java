@@ -515,6 +515,46 @@ public class AardvarkShell implements AuraService, Configurable {
                     }
                 });
 
+        shell.add("topTerms",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String key = args[1];
+                        String field = args.length > 2 ? args[2] : "content";
+                        List<Scored<String>> terms = dataStore.getTopTerms(key,
+                                field, 10);
+                        for(Scored<String> term : terms) {
+                            System.out.printf("%.3f %s\n", term.getScore(), term.getItem());
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "<key> [<field>] gets the top terms from the given field (default: content) in the given document.";
+                    }
+                });
+                
+        shell.add("explain",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String autotag = args[1];
+                        String key = args[2];
+                        List<Scored<String>> terms = dataStore.getExplanation(key, autotag, 10);
+                        for(Scored<String> term : terms) {
+                            System.out.printf("%.3f %s\n", term.getScore(), term.getItem());
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "<autotag> <key> explain the classification of key into autotag";
+                    }
+                });
 
         Thread t = new Thread() {
 

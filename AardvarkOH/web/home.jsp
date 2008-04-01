@@ -30,7 +30,8 @@
         <div class="bigOrangeTxt">Welcome <%= userBean.getNickname() %></div>
         <div class="regularTxt">
             You are currently logged in with the ID <a href="<%= userBean.getID() %>"><%= userBean.getID() %></a><br>
-            You can add your <a href="<c:url value="${userBean.recommendedFeedURL}"/>">recommendation feed</a> to your blog reader for personalized recommendations.<br>
+            You can add your <a href="<c:url value="${userBean.recommendedFeedURL}"/>/default">recommendation feed</a> to your blog reader for personalized recommendations.<br>
+            Alternatively, you can use your <a href="<c:url value="${userBean.recommendedFeedURL}"/>/flood">flood feed</a> to see ten new recommendations every time you load it.<br>
             We are using this feed to describe your interests: <a href="<%= userBean.getDefaultFeedURL() %>"><%= userBean.getDefaultFeedURL() %></a><br>
         </div>
         <div style="padding: 20px;"></div>

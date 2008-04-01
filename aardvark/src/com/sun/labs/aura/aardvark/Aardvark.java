@@ -14,6 +14,7 @@ import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.util.props.Component;
 import com.sun.syndication.feed.synd.SyndFeed;
+import java.io.InputStream;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
@@ -31,7 +32,16 @@ public interface Aardvark extends Component, Remote {
      */
     public void addFeed(String feedURL) throws AuraException, RemoteException;
 
-
+    /**
+     * Add an OPML file from an input stream.  This will enroll each of the
+     * feeds in the opml file.
+     * 
+     * @param opmlBytes a byte array that contains opml
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void addOPML(byte[] opmlBytes) throws AuraException, RemoteException;
+    
     /**
      * Adds a feed of a particular type for a user
      * @param user the user
