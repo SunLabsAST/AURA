@@ -105,7 +105,7 @@ public class DSBitSet extends BitSet {
     
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (int i = prefixLength(); i >= 0 ; i--) {
+        for (int i = prefixLength() - 1; i >= 0 ; i--) {
             if (get(i) == true) {
                 sb.append('1');
             } else {

@@ -31,6 +31,7 @@ import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,11 +40,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import ngnova.util.StopWatch;
 
 /**
  * An implementation of the item store using the berkeley database as a back
@@ -201,8 +201,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      */
     public void close() throws AuraException {
         closed = true;
+        System.out.println(new Date() + ": Closing BDB...");
         bdb.close();
+        System.out.println(new Date() + ": Shuting down search engine...");
         searchEngine.shutdown();
+        System.out.println(new Date() + ": Done closing search engine");
     }
 
     /**
@@ -211,12 +214,28 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      * @param itemType the type of item to fetch
      * @return all of those items
      */
-    public Set<Item> getAll(ItemType itemType) throws AuraException {
+    public List<Item> getAll(ItemType itemType) throws AuraException {
         return bdb.getAll(itemType);
     }
 
     public Item getItem(String key) throws AuraException {
-        return bdb.getItem(key);
+        ItemImpl item = bdb.getItem(key);
+        if(item == null) {
+            return item;
+        }
+        //
+        // autotagfix:  get the autotag fields from the search index and
+        // add them to the item's map.
+        List<Scored<String>> autotags = searchEngine.getAutoTags(key);
+        if(autotags != null) {
+            HashMap<String,Serializable> im = item.getMap();
+            if(im == null) {
+                im = new HashMap<String, Serializable>();
+                item.setMap(im);
+            }
+            im.put("autotag", (Serializable) autotags);
+        }
+        return item;
     }
 
     public User getUser(String key) throws AuraException {
@@ -231,6 +250,16 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         boolean existed = false;
         if(item instanceof ItemImpl) {
             ItemImpl itemImpl = (ItemImpl) item;
+            //
+            // autotagfix:  if this item has an autotag field in the map, 
+            // delete it before we put it in the index.  This will keep the 
+            // search engine from adding multiple identical autotag fields 
+            // to the item.  We need to do this here, ra
+            Map<String,Serializable> im = itemImpl.getMap();
+            if(im != null) {
+                im.remove("autotag");
+            }
+            
             //
             // If this was a remote object, its transient map will be null
             // and storeMap will be a no-op.  If it was a local object then
@@ -278,7 +307,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         bdb.deleteItem(itemKey);
     }
 
-    public Set<Item> getItems(User user, Type attnType,
+    public List<Item> getItems(User user, Type attnType,
             ItemType itemType)
             throws AuraException {
         return bdb.getItems(user.getKey(), attnType, itemType);
@@ -293,18 +322,18 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return res;
     }
 
-    public Set<Attention> getAttentionForSource(String srcKey)
+    public List<Attention> getAttentionForSource(String srcKey)
             throws AuraException {
         return bdb.getAttentionForSource(srcKey);
     }
 
-    public Set<Attention> getAttentionForSource(String srcKey,
+    public List<Attention> getAttentionForSource(String srcKey,
                                                 Attention.Type type)
             throws AuraException {
         return bdb.getAttentionForSource(srcKey, type);
     }
 
-    public Set<Attention> getAttentionForTarget(String itemKey)
+    public List<Attention> getAttentionForTarget(String itemKey)
             throws AuraException {
         return bdb.getAttentionForTarget(itemKey);
     }
@@ -331,13 +360,13 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return (DBIterator<Attention>) cm.getRemote(res);
     }
 
-    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+    public List<Attention> getLastAttentionForSource(String srcKey,
             int count)
             throws AuraException, RemoteException {
         return getLastAttentionForSource(srcKey, null, count);
     }
 
-    public SortedSet<Attention> getLastAttentionForSource(String srcKey,
+    public List<Attention> getLastAttentionForSource(String srcKey,
             Type type,
             int count)
             throws AuraException, RemoteException {
@@ -351,7 +380,13 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
 
     public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        return keysToItems(searchEngine.query(query, sort, n));
+        StopWatch sw = new StopWatch();
+        sw.start();
+        List<Scored<Item>> res =
+                keysToItems(searchEngine.query(query, sort, n));
+        sw.stop();
+        logger.info("Got results for query: " + query + " [" + sw.getTime() + "ms]");
+        return res;
     }
 
     public DocumentVector getDocumentVector(String key) {
@@ -382,6 +417,17 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     public List<Scored<Item>> findSimilar(DocumentVector dv, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         return keysToItems(searchEngine.findSimilar(dv, n, rf));
+    }
+
+    public List<Scored<String>> getTopTerms(String key, String field, int n)
+            throws AuraException, RemoteException {
+        return searchEngine.getTopTerms(key, field, n);
+    }
+
+    public List<Scored<String>> getExplanation(String key, String autoTag,
+            int n)
+            throws AuraException, RemoteException {
+        return searchEngine.getExplanation(key, autoTag, n);
     }
 
     /**
@@ -624,9 +670,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     public void stop() {
         try {
             cm.shutdown();
+            System.out.println(new Date() + ": Closing Berkeley Item Store...");
             close();
+            System.out.println(new Date() + ": Stopped");
         } catch(AuraException ae) {
-            logger.log(Level.WARNING, "Error closing item store", ae);
+            System.out.println("Error closing item store" + ae);
+            ae.printStackTrace();
         }
     }
 

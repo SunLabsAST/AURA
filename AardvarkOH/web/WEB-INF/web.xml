@@ -40,6 +40,10 @@
         <servlet-name>DumpServices</servlet-name>
         <servlet-class>com.sun.labs.aura.aardvark.web.DumpServices</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>AddFeed</servlet-name>
+        <servlet-class>com.sun.labs.aura.aardvark.web.AddFeed</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>Home</servlet-name>
         <url-pattern>/Home</url-pattern>
@@ -75,6 +79,10 @@
     <servlet-mapping>
         <servlet-name>Login</servlet-name>
         <url-pattern>/Logout</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AddFeed</servlet-name>
+        <url-pattern>/AddFeed</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

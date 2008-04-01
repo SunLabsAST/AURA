@@ -7,12 +7,15 @@ import java.text.DecimalFormat;
  * Aardvark stats container
  */
 public class StatsBean {
-    public static DecimalFormat df = new DecimalFormat("###,###,###,###");
+    public static DecimalFormat longForm = new DecimalFormat("###,###,###,###");
+    public static DecimalFormat doubForm = new DecimalFormat("###,###,###,###.#");
+    
     
     protected long numFeeds;
     protected long numEntries;
     protected long numUsers;
     protected long numTaste;
+    protected double entriesPerMin;
     
     public StatsBean() {
         
@@ -23,10 +26,11 @@ public class StatsBean {
         numEntries = stats.getNumEntries();
         numUsers = stats.getNumUsers();
         numTaste = stats.getNumAttentionData();
+        entriesPerMin = stats.getEntriesPerMin();
     }
 
     public String getNumFeeds() {
-        return df.format(numFeeds);
+        return longForm.format(numFeeds);
     }
 
     public void setNumFeeds(long numFeeds) {
@@ -34,26 +38,19 @@ public class StatsBean {
     }
 
     public String getNumEntries() {
-        return df.format(numEntries);
-    }
-
-    public void setNumEntries(long numEntries) {
-        this.numEntries = numEntries;
+        return longForm.format(numEntries);
     }
 
     public long getNumUsers() {
         return numUsers;
     }
 
-    public void setNumUsers(long numUsers) {
-        this.numUsers = numUsers;
-    }
-
     public String getNumTaste() {
-        return df.format(numTaste);
+        return longForm.format(numTaste);
     }
 
-    public void setNumTaste(long numTaste) {
-        this.numTaste = numTaste;
+    public String getEntriesPerMin() {
+        return doubForm.format(entriesPerMin);
     }
+
 }

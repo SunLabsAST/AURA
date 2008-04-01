@@ -31,6 +31,7 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.feed.synd.SyndFeedImpl;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -40,7 +41,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -137,13 +137,13 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         return dataStore.getUserForRandomString(randStr);
     }
 
-    public SortedSet<Attention> getLastAttentionData(User user, Type type, int count) throws AuraException, RemoteException {
+    public List<Attention> getLastAttentionData(User user, Type type, int count) throws AuraException, RemoteException {
         return dataStore.getLastAttentionForSource(user.getKey(), type, count);
     }
 
     public Set<BlogFeed> getFeeds(User user, Attention.Type type) throws AuraException, RemoteException {
 
-        Set<Item> items = dataStore.getItems(user, type, ItemType.FEED);
+        List<Item> items = dataStore.getItems(user, type, ItemType.FEED);
         Set<BlogFeed> feeds = new HashSet<BlogFeed>();
         for (Item item : items) {
             feeds.add(new BlogFeed(item));
@@ -220,6 +220,33 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         }
     }
 
+    /**
+     * Add an OPML file from an input stream.  This will enroll each of the
+     * feeds in the opml file.
+     * 
+     * @param opmlBytes a byte array that contains opml
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void addOPML(byte[] opmlBytes) throws AuraException, RemoteException {
+        try {
+            logger.info("Enrolling uploaded opml...");
+            OPMLProcessor op = new OPMLProcessor();
+            List<URL> urls = op.getFeedURLs(new ByteArrayInputStream(opmlBytes));
+            for (URL url : urls) {
+                try {
+                    addFeed(url.toExternalForm());
+                } catch (AuraException ex) {
+                    logger.log(Level.WARNING, "Problems enrolling " + url, ex);
+                }
+            }
+        } catch (IOException ex) {
+            logger.log(Level.WARNING, "Problems loading opml from stream", ex);
+        } finally {
+            logger.info("Finished enrolling uploaded opml ");
+        }
+
+    }
 
     /**
      * Gets the feed for the particular user
@@ -227,6 +254,16 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
      * @return the feed
      */
     public SyndFeed getRecommendedFeed(User user) throws AuraException, RemoteException {
+        return getRecommendedFeed(user, 20);
+    }
+
+    /**
+     * Gets the feed for the particular user
+     * @param user the user
+     * @param num the number of entries
+     * @return the feed
+     */
+    public SyndFeed getRecommendedFeed(User user, int num) throws AuraException, RemoteException {
         // freshen the user:
         User freshUser = getUser(user.getKey());
         SyndFeed feed = new SyndFeedImpl();
@@ -234,7 +271,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         feed.setTitle("Aardvark recommendations for " + freshUser.getKey());
         feed.setDescription("Recommendations created for " + freshUser.getKey());
         feed.setPublishedDate(new Date());
-        feed.setEntries(FeedUtils.getSyndEntries(getRecommendedEntries(freshUser)));
+        feed.setEntries(FeedUtils.getSyndEntries(getRecommendedEntries(freshUser, num)));
         return feed;
     }
 
@@ -250,10 +287,11 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
             long numAttentions = dataStore.getAttentionCount();
             long feedPullCount = statService.get(FeedManager.COUNTER_FEED_PULL_COUNT);
             long feedErrorCount = statService.get(FeedManager.COUNTER_FEED_ERROR_COUNT);
+            double entriesPerMin = statService.getAveragePerMinute(FeedManager.COUNTER_ENTRY_PULL_COUNT);
 
             return new Stats(VERSION, numUsers,
                     numEntries, numAttentions, numFeeds,
-                    feedPullCount, feedErrorCount);
+                    feedPullCount, feedErrorCount, entriesPerMin);
         } catch (RemoteException rx) {
             throw new AuraException("Error communicating with item store", rx);
         }
@@ -262,12 +300,13 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
     /**
      * Given a user ID return the set of recommended entries for the user
      * @param user the user id
+     * @param num the number of entries to generate
      * @return an array of recommended entries
      */
-    private List<BlogEntry> getRecommendedEntries(User user) {
+    private List<BlogEntry> getRecommendedEntries(User user, int num) {
         try {
-            SortedSet<Recommendation> recommendations = 
-                    recommenderManager.getRecommendations(user);
+            List<Recommendation> recommendations = 
+                    recommenderManager.getRecommendations(user, num);
             List<BlogEntry> recommendedBlogEntries = new ArrayList<BlogEntry>();
 
             for (Recommendation r : recommendations) {

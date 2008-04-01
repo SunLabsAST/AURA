@@ -13,8 +13,14 @@ import com.sun.kt.search.ResultsFilter;
 import com.sun.kt.search.SearchEngine;
 import com.sun.kt.search.SearchEngineFactory;
 import com.sun.labs.util.SimpleLabsLogFormatter;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,22 +47,18 @@ public class BuildClassifiers implements Runnable {
     
     private ResultsFilter lengthFilter;
     
-    private StopWords stop;
-    
     public BuildClassifiers(List<String> classes, 
             String vectoredField,
             String assignedField,
             String fieldName,
             SearchEngine e,
-            ResultsFilter lengthFilter,
-            StopWords stop) {
+            ResultsFilter lengthFilter) {
         this.classes = classes;
         this.engine = e;
         this.vectoredField = vectoredField;
         this.assignedField = assignedField;
         this.fieldName = fieldName;
         this.lengthFilter = lengthFilter;
-        this.stop = stop;
     }
     
     public void run() {
@@ -65,10 +67,6 @@ public class BuildClassifiers implements Runnable {
         logger.info(Thread.currentThread().getName() + " training " + classes.size() + " classifiers");
         StopWatch sw = new StopWatch();
         for(String className : classes) {
-            if(stop.isStop(className)) {
-                logger.info("Ignoring class: " + className);
-                continue;
-            }
             sw.reset();
             sw.start();
             try {
@@ -116,7 +114,7 @@ public class BuildClassifiers implements Runnable {
 
     public static void main(String[] args) throws Exception {
 
-        String flags = "a:c:d:e:k:f:r:s:t:v:";
+        String flags = "a:c:d:e:k:f:g:r:s:t:v:";
         Getopt gopt = new Getopt(args, flags);
 
         //
@@ -134,19 +132,17 @@ public class BuildClassifiers implements Runnable {
         //
         // Handle the options.
         int c;
-        List<String> classes = new ArrayList<String>();
+        Set<String> classes = new LinkedHashSet<String>();
         String indexDir = null;
-        String fieldName = null;
-        String assignedField = null;
-        String vectoredField = null;
+        String fieldName = "tag";
+        String assignedField = "autotag";
+        String vectoredField = "content";
         String engineName = "aardvark_search_engine";
         int numChars = 200;
         int numThreads = 1;
         StopWords sw = new StopWords();
-
-        //
-        // The number of top classes to build.
-        int top = 100;
+        int top = 500;
+        String tagFile = null;
         while((c = gopt.getopt()) != -1) {
             switch(c) {
                 case 'a':
@@ -163,6 +159,9 @@ public class BuildClassifiers implements Runnable {
                     break;
                 case 'f':
                     fieldName = gopt.optArg;
+                    break;
+                case 'g':
+                    tagFile = gopt.optArg;
                     break;
                 case 'k':
                     numChars = Integer.parseInt(gopt.optArg);
@@ -191,15 +190,31 @@ public class BuildClassifiers implements Runnable {
                 engineName);
 
         //
-        // If there are no specific classes to build, we'll build the most frequent.
-        if(classes.size() == 0) {
-            classes = Util.getTopClasses(engine, fieldName, top);
+        // Are there tags in a file?
+        if(tagFile != null) {
+            BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(tagFile), "utf-8"));
+            String l;
+            while((l = r.readLine()) != null) {
+                int p = l.indexOf(' ');
+                classes.add(l.substring(p+1));
+            }
+            r.close();
         }
-
+        
         //
-        // Check for the field name to which we'll assign classification results.
-        if(assignedField == null) {
-            assignedField = "assigned-" + fieldName;
+        // Do we want the most frequent?
+        if(top > 0) {
+            classes.addAll(Util.getTopClasses(engine, fieldName, top));
+        }
+        
+        //
+        // Throw out the weird ones.
+        for(Iterator<String> i = classes.iterator(); i.hasNext(); ) {
+            String cn = i.next();
+            if(sw.isStop(cn)) {
+                logger.info("Ignoring class named: " + cn);
+                i.remove();
+            }
         }
 
         //
@@ -214,13 +229,22 @@ public class BuildClassifiers implements Runnable {
         };
         
         List<Thread> lt = new ArrayList<Thread>();
-        int size = classes.size() / numThreads;
-        if(classes.size() % numThreads != 0) {
-            size++;
+        
+        //
+        // Round robin the list so that the first thread doesn't get stuck 
+        // with all the big ones.
+        List[] tcl = new List[numThreads];
+        for(int i = 0; i < numThreads; i++) {
+            tcl[i] = new ArrayList<String>();
         }
-        for(int i = 0, start = 0; i < numThreads; i++, start += size) {
-            BuildClassifiers bc = new BuildClassifiers(classes.subList(start, Math.min(start+size, classes.size())), 
-                    vectoredField, assignedField, fieldName, engine, lengthFilter, sw);
+        List<String> cl = new ArrayList<String>(classes);
+        for(int i = 0; i < classes.size(); i++) {
+            tcl[i % numThreads].add(cl.get(i));
+        }
+        for(int i = 0; i < numThreads; i++) {
+            BuildClassifiers bc = 
+                    new BuildClassifiers((List<String>) tcl[i], 
+                    vectoredField, assignedField, fieldName, engine, lengthFilter);
             Thread t = new Thread(bc);
             t.setName("BC-" + i);
             t.start();

@@ -7,7 +7,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.Component;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.Set;
+import java.util.List;
 
 /**
  * A replicant used for storing and retrieving data to/from disk in the
@@ -21,7 +21,7 @@ public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote 
      */
     public DSBitSet getPrefix() throws RemoteException;
 
-    public Set<Attention> getAttentionForSource(String srcKey,
+    public List<Attention> getAttentionForSource(String srcKey,
                                                 Attention.Type type)
             throws AuraException, RemoteException;
     

@@ -12,7 +12,7 @@ import com.sun.labs.aura.datastore.User;
 import com.sun.labs.util.props.Component;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.SortedSet;
+import java.util.List;
 
 /**
  * An interface for managing the recommenders used by Aardvark.
@@ -22,8 +22,9 @@ public interface RecommenderManager extends Component, Remote {
     /**
      * Gets a list of recommendations for a user.
      * @param user the user that we want recommendations for
+     * @param num the number of recommendations to generate
      * @return a list of the entries that we want to recommend to the user.
      */
-    public SortedSet<Recommendation> getRecommendations(User user) throws RemoteException;
+    public List<Recommendation> getRecommendations(User user, int num) throws RemoteException;
     
 }

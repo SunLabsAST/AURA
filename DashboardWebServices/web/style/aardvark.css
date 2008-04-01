@@ -1,0 +1,67 @@
+/* 
+    Document   : aardvark
+    Created on : Mar 17, 2008, 8:12:08 PM
+    Author     : ja151348
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+root { 
+    display: block;
+}
+
+body {
+  background: #fff;
+  color: black;
+  font-family: Arial, sans-serif;
+  font-size: small;
+  margin: 0px;
+}
+
+div.main {
+    margin: 10px;
+}
+
+div.regularTxt {
+  margin-left: 30px;
+  font-size: medium;
+  line-height: 150%;
+}
+
+div.topCling {
+  height: 16px;
+  font-size: 12px;
+  font-weight: bold;
+  color: black;
+  background: #E76F00;
+  margin-top: 0px;
+  margin-bottom: 5px;
+  padding: 2px 0px 0px 4px;
+}
+
+
+.openidField {
+  background: #FFFFFF url('../images/openid-small.gif') no-repeat scroll 0pt 50%;
+  padding-left: 18px;
+}
+
+.bigOrangeTxt {
+  color: #E76F00;
+  font-size: X-large;
+  font-weight: bold;
+}
+
+.blueTxt {
+  color: #5382A1;
+}
+
+.smallGreenTxt {
+  color: #B2BC00;
+  font-weight: bold;
+  font-size: small;
+}

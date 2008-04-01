@@ -224,6 +224,12 @@ public class FeedUtils {
             entry.setAuthor(author);
         }
 
+        Date publishedDate = syndEntry.getPublishedDate();
+        if (publishedDate == null) {
+            publishedDate = new Date();
+        } 
+
+        entry.setPublishDate(publishedDate);
         entry.setSyndEntry(syndEntry);
         entry.setContent(getContent(syndEntry));
         entry.setFeedKey(feed.getKey());

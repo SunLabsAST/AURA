@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Represents some form of attention that a User can attribute to an Item.
  */
-public interface Attention extends Serializable {
+public interface Attention extends Serializable, Comparable<Attention> {
     /**
      * The type of attention data that this Attention represents.
      */
