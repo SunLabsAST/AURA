@@ -31,6 +31,7 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.feed.synd.SyndFeedImpl;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -219,6 +220,33 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         }
     }
 
+    /**
+     * Add an OPML file from an input stream.  This will enroll each of the
+     * feeds in the opml file.
+     * 
+     * @param opmlBytes a byte array that contains opml
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void addOPML(byte[] opmlBytes) throws AuraException, RemoteException {
+        try {
+            logger.info("Enrolling uploaded opml...");
+            OPMLProcessor op = new OPMLProcessor();
+            List<URL> urls = op.getFeedURLs(new ByteArrayInputStream(opmlBytes));
+            for (URL url : urls) {
+                try {
+                    addFeed(url.toExternalForm());
+                } catch (AuraException ex) {
+                    logger.log(Level.WARNING, "Problems enrolling " + url, ex);
+                }
+            }
+        } catch (IOException ex) {
+            logger.log(Level.WARNING, "Problems loading opml from stream", ex);
+        } finally {
+            logger.info("Finished enrolling uploaded opml ");
+        }
+
+    }
 
     /**
      * Gets the feed for the particular user

@@ -32,6 +32,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -78,7 +80,7 @@ public class BerkeleyDataWrapper {
      * Only users, indexed by the random string associated with them
      */
     protected SecondaryIndex<String, String, UserImpl> usersByRandString;
-
+    
     /**
      * The index of all Attention in the item store, accessible by ID
      */
@@ -162,7 +164,9 @@ public class BerkeleyDataWrapper {
             dir.mkdir();
         }
 
+        log.info("BDB opening DB Env...");
         dbEnv = new Environment(dir, econf);
+        log.info("BDB opening Store...");
         store = new EntityStore(dbEnv, "Aura", sconf);
 
         //
@@ -184,7 +188,7 @@ public class BerkeleyDataWrapper {
 
         usersByRandString = store.getSubclassIndex(itemByKey, UserImpl.class,
                 String.class, "randStr");
-
+        
         allAttn = store.getPrimaryIndex(Long.class,
                 PersistentAttention.class);
 
@@ -205,6 +209,7 @@ public class BerkeleyDataWrapper {
         attnBySourceAndTime = store.getSecondaryIndex(allAttn,
                 StringAndTimeKey.class,
                 "sourceAndTime");
+        log.info("BDB done loading");
     }
 
     /**
@@ -293,26 +298,26 @@ public class BerkeleyDataWrapper {
      */
     public void deleteItem(String itemKey) throws AuraException {
         int numRetries = 0;
-        while(numRetries < MAX_DEADLOCK_RETRIES) {
+        while (numRetries < MAX_DEADLOCK_RETRIES) {
             Transaction txn = null;
             try {
                 txn = dbEnv.beginTransaction(null, null);
                 itemByKey.delete(itemKey);
                 txn.commit();
                 return;
-            } catch(DeadlockException e) {
+            } catch (DeadlockException e) {
                 try {
                     txn.abort();
                     numRetries++;
-                } catch(DatabaseException ex) {
+                } catch (DatabaseException ex) {
                     throw new AuraException("Txn abort failed", ex);
                 }
-            } catch(Exception e) {
+            } catch (Exception e) {
                 try {
-                    if(txn != null) {
+                    if (txn != null) {
                         txn.abort();
                     }
-                } catch(DatabaseException ex) {
+                } catch (DatabaseException ex) {
                 }
                 throw new AuraException("deleteItem transaction failed", e);
             }
@@ -320,20 +325,18 @@ public class BerkeleyDataWrapper {
         throw new AuraException("deleteItem failed for " +
                 itemKey + " after " + numRetries + " retries");
     }
-
+    
     public UserImpl getUserForRandomString(String randStr) throws AuraException {
         UserImpl ret = null;
         try {
-            ret =
-                    usersByRandString.get(null, randStr,
-                    LockMode.READ_UNCOMMITTED);
+            ret = usersByRandString.get(null, randStr, LockMode.READ_UNCOMMITTED);
         } catch(DatabaseException e) {
             log.log(Level.WARNING, "getUserForRandomString() failed (randStr:" +
                     randStr + ")", e);
         }
         return ret;
     }
-
+    
     /**
      * Puts an attention into the entry store.  Attentions should never be
      * overwritten.  Since Users and Items have links to their attentions by
@@ -359,7 +362,7 @@ public class BerkeleyDataWrapper {
                 }
             } catch(DatabaseException e) {
                 try {
-                    if(txn != null) {
+                    if (txn != null) {
                         txn.abort();
                     }
                 } catch(DatabaseException ex) {
@@ -392,8 +395,7 @@ public class BerkeleyDataWrapper {
                 EntityIndex<Long, PersistentAttention> attns =
                         attnBySourceKey.subIndex(itemKey);
                 txn = dbEnv.beginTransaction(null, null);
-                EntityCursor<PersistentAttention> c = attns.entities(txn,
-                        new CursorConfig());
+                EntityCursor<PersistentAttention> c = attns.entities(txn, new CursorConfig());
                 try {
                     for(PersistentAttention a : c) {
                         c.delete();
@@ -419,7 +421,7 @@ public class BerkeleyDataWrapper {
                 }
                 txn.commit();
                 return;
-            } catch(DeadlockException ex) {
+            } catch (DeadlockException ex) {
                 try {
                     txn.abort();
                     numRetries++;
@@ -428,10 +430,10 @@ public class BerkeleyDataWrapper {
                 }
 
             } catch(DatabaseException ex) {
-                log.log(Level.WARNING,
-                        "Failed to delete attention related to " + itemKey, ex);
+                log.log(Level.WARNING, "Failed to delete attention related to "
+                        + itemKey, ex);
                 try {
-                    if(txn != null) {
+                    if (txn != null) {
                         txn.abort();
                     }
                 } catch(DatabaseException dex) {
@@ -439,10 +441,10 @@ public class BerkeleyDataWrapper {
                 throw new AuraException("Transaction failed", ex);
             }
         }
-        throw new AuraException("deleteAttn failed for item " + itemKey +
-                " after " + numRetries + " retries");
+        throw new AuraException("deleteAttn failed for item " + itemKey
+                + " after " + numRetries + " retries");
     }
-
+    
     /**
      * Gets all the items of a particular type that have been added since a
      * particular time.  Returns an iterator over those items that must be
@@ -829,36 +831,24 @@ public class BerkeleyDataWrapper {
     public void close() {
         if(store != null) {
             try {
+                System.out.println("BDB closing store");
                 store.close();
             } catch(DatabaseException e) {
-                log.log(Level.SEVERE, "Failed to close entity store", e);
+                System.out.println("Failed to close entity store" + e);
+                e.printStackTrace();
             }
         }
 
         if(dbEnv != null) {
             try {
+                System.out.println("BDB closing dbEnv");
                 dbEnv.close();
             } catch(DatabaseException e) {
-                log.log(Level.SEVERE, "Failed to close database environment",
-                        e);
+                System.out.println("Failed to close database environment" + e);
+                e.printStackTrace();
             }
         }
 
     }
-    /**
-     * Compares item objects to sort in reverse chronological order
-     */
-    /*
-    class RevItemTimeComparator implements Comparator<Item> {
-    public int compare(Item o1, Item o2) {
-    if (o1.getTimeStamp() - o2.getTimeStamp() < 0) {
-    return 1;
-    } else if (o1.getTimeStamp() == o2.getTimeStamp()) {
-    return 0;
-    } else {
-    return -1;
-    }
-    }
-    }
-     */
+
 }

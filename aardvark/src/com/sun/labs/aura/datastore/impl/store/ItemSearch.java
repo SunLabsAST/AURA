@@ -142,4 +142,30 @@ public interface ItemSearch {
     public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf)
             throws AuraException, RemoteException;
     
+    /**
+     * Gets the highest weighted terms in a given item's aura
+     * @param key the key of the document for which we want the terms
+     * @param field the field from which the terms should be drawn.  A value
+     * of <code>null</code> will pull terms from all fields
+     * @param n the number of highest weighted terms to return
+     * @return a list of the top weighted terms in the aura of the document.  Note
+     * that there may be fewer than <code>n</code> terms returned.
+     */
+    public List<Scored<String>> getTopTerms(String key, String field, int n)
+            throws AuraException, RemoteException;
+    
+    /**
+     * Gets an explanation as to why a given autotag would be applied to 
+     * a given document.
+     * 
+     * @param key the key of th item for which we want an explanation
+     * @param autoTag the autotag that we want to explain
+     * @param n the number of terms to return
+     * @return a list of the terms that contribute the most towards the
+     * autotagging.  The score associated with a term is the proportion of 
+     * contribution towards the autotagging.
+     */
+    public List<Scored<String>> getExplanation(String key, String autoTag, int n)
+            throws AuraException, RemoteException;
+    
 }
