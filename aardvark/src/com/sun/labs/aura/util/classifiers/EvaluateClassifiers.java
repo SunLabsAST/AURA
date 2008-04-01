@@ -192,7 +192,7 @@ public class EvaluateClassifiers {
             int check = 0;
             for(DiskPartition dp : ((SearchEngineImpl) testEngine).getPM().
                     getActivePartitions()) {
-                float[] f = cm.classify(dp, dp.getMaxDocumentID());
+                float[] f = cm.classify(dp);
                 for(int i =1; i < f.length; i++) {
                     if(dp.isDeleted(i)) {
                         continue;
