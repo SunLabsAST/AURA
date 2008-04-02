@@ -656,6 +656,13 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
     private List<Scored<Item>> findSimilar(DocumentVector dv, final int n, ResultsFilter rf)
             throws AuraException, RemoteException {
+        
+        //
+        // What if the key didn't exist?
+        if(dv == null) {
+            return new ArrayList<Scored<Item>>();
+        }
+        
         Set<PartitionCluster> clusters = trie.getAll();
         List<Callable<List<Scored<Item>>>> callers =
                 new ArrayList<Callable<List<Scored<Item>>>>();
