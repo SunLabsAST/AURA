@@ -14,7 +14,9 @@ import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Scored;
 import com.sun.syndication.feed.synd.SyndEntry;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -30,6 +32,7 @@ public class BlogEntry extends ItemAdapter {
     public final static String FIELD_AUTHOR = "author";
     public final static String FIELD_AUTHORITY = "authority";
     public final static String FIELD_PUBLISH_DATE = "publish-date";
+    public final static String FIELD_AUTOTAG = "autotag";
 
     /**
      * Wraps a Item as blog entry
@@ -137,6 +140,18 @@ public class BlogEntry extends ItemAdapter {
      */
     public List<Tag> getTags() {
         return getTagsAsList(FIELD_TAG);
+    }
+
+    /**
+     * Gets the ordered list of tags applied to this entry
+     * @return the ordered list of tags
+     */
+    public List<Scored<String>> getAutoTags() {
+        List<Scored<String>> list =  (List<Scored<String>>) getFieldAsObject(FIELD_AUTOTAG);
+        if (list == null) {
+            list = new ArrayList<Scored<String>>(0);
+        }
+        return list;
     }
 
     /**

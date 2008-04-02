@@ -9,6 +9,7 @@ package com.sun.labs.aura.aardvark.util;
  * @author plamere
  */
 import com.sun.kt.search.FieldFrequency;
+import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.BlogEntry;
@@ -538,7 +539,7 @@ public class AardvarkShell implements AuraService, Configurable {
                     }
 
                     public String getHelp() {
-                        return "Runs a query";
+                        return "Find similar";
                     }
                 });
         shell.add("ffs",
@@ -558,7 +559,32 @@ public class AardvarkShell implements AuraService, Configurable {
                     }
 
                     public String getHelp() {
-                        return "Runs a query";
+                        return "Find similar with a field";
+                    }
+                });
+
+        shell.add("fwfs",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        WeightedField[] fields =  {
+                            new WeightedField("content", 1),
+                            new WeightedField("autotag", 1),
+                            new WeightedField("aura-name", 1),
+                        };
+                        String key = args[1];
+                        List<Scored<Item>> items = dataStore.findSimilar(key, fields, nHits, null);
+                        for (Scored<Item> item : items) {
+                            System.out.printf("%.3f ", item.getScore());
+                            dumpItem(item.getItem());
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Find similar with weighted fields";
                     }
                 });
 

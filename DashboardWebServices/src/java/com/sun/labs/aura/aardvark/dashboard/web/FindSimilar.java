@@ -36,6 +36,8 @@ public class FindSimilar extends HttpServlet {
     private final static WeightedField[] simFields  = {
         new WeightedField("content", 1f),
         new WeightedField("aura-name", 1f),
+        new WeightedField("tag", 1f),
+        new WeightedField("autotag", 1f),
     };
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -55,14 +57,27 @@ public class FindSimilar extends HttpServlet {
         if (key != null) {
             try {
                 Set<String> titleSet = new HashSet<String>();
-                List<Scored<Item>> scoredItems = dataStore.findSimilar(key, "content", maxCount * 4, new TypeFilter(ItemType.BLOGENTRY));
+                List<Scored<Item>> scoredItems = dataStore.findSimilar(key, simFields, maxCount * 4, new TypeFilter(ItemType.BLOGENTRY));
+                //List<Scored<Item>> scoredItems = dataStore.findSimilar(key,  maxCount * 4, new TypeFilter(ItemType.BLOGENTRY));
                 List<Scored<Item>> filteredItems = new ArrayList<Scored<Item>>();
                 
                 for (Scored<Item> si : scoredItems) {
-                    if (!titleSet.contains(si.getItem().getName())) {
-                        titleSet.add(si.getItem().getName());
-                        filteredItems.add(si);
 
+                    if (si.getItem().getKey().equals(key)) {
+                        continue;
+                    }
+
+                    String title = si.getItem().getName();
+
+                    if (title == null) {
+                        title = "";
+                    }
+
+                    String normTitle = normalizeTitle(si.getItem().getName());
+
+                    if (!titleSet.contains(normTitle)) {
+                        titleSet.add(normTitle);
+                        filteredItems.add(si);
                         if (filteredItems.size() >= maxCount) {
                             break;
                         }
@@ -73,13 +88,16 @@ public class FindSimilar extends HttpServlet {
                 PrintWriter out = response.getWriter();
                 StoryUtil.dumpScoredStories(out, dataStore, filteredItems);
                 out.close();
-
             } catch (AuraException ex) {
                 Shared.forwardToError(context, request, response, ex);
             }
         } else {
             Shared.forwardToError(context, request, response, "missing key");
         }
+    }
+
+    private String normalizeTitle(String title) {
+        return title.replaceAll("[^\\p{Alnum}]", "").toLowerCase();
     }
 
 
