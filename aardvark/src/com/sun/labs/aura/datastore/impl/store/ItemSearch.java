@@ -1,4 +1,3 @@
-
 package com.sun.labs.aura.datastore.impl.store;
 
 import com.sun.kt.search.FieldFrequency;
@@ -15,7 +14,7 @@ import java.util.List;
  * ItemSearch describes the search methods available for use in the data store.
  */
 public interface ItemSearch {
-    
+
     /**
      * Clusters a set of items into k clusters based on the data in the given
      * field.
@@ -40,7 +39,7 @@ public interface ItemSearch {
      */
     public List<FieldFrequency> getTopValues(String field, int n,
             boolean ignoreCase) throws AuraException, RemoteException;
-    
+
     /**
      * Finds a the n most similar items to the given item.
      * @param key the item that we want to find similar items for
@@ -68,9 +67,10 @@ public interface ItemSearch {
      * data indexed into the given field.  Note that the returned set may be
      * smaller than the number of items requested!
      */
-    public List<Scored<Item>> findSimilar(String key, String field, int n, ResultsFilter rf)
+    public List<Scored<Item>> findSimilar(String key, String field, int n,
+            ResultsFilter rf)
             throws AuraException, RemoteException;
-    
+
     /**
      * Finds a the n most similar items to the given items.
      * @param keys the items that we want to find similar items for
@@ -81,7 +81,8 @@ public interface ItemSearch {
      * to least similar.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(List<String> keys, int n, ResultsFilter rf)
+    public List<Scored<Item>> findSimilar(List<String> keys, int n,
+            ResultsFilter rf)
             throws AuraException, RemoteException;
 
     /**
@@ -98,9 +99,10 @@ public interface ItemSearch {
      * data indexed into the given field.  Note that the returned set may be
      * smaller than the number of items requested!
      */
-    public List<Scored<Item>> findSimilar(List<String> keys, String field, int n, ResultsFilter rf)
+    public List<Scored<Item>> findSimilar(List<String> keys, String field,
+            int n, ResultsFilter rf)
             throws AuraException, RemoteException;
-    
+
     /**
      * Finds the n most-similar items to the given items, based on a combination
      * of the data held in the provided fields.
@@ -115,9 +117,10 @@ public interface ItemSearch {
      * in the provided fields.   Note that the returned set may be
      * smaller than the number of items requested!
      */
-    public List<Scored<Item>> findSimilar(String key, WeightedField[] fields, int n, ResultsFilter rf)
+    public List<Scored<Item>> findSimilar(String key, WeightedField[] fields,
+            int n, ResultsFilter rf)
             throws AuraException, RemoteException;
-    
+
     /**
      * Runs a query against the map data and returns the top n results.
      * @param query the query to run
@@ -139,9 +142,10 @@ public interface ItemSearch {
      * @return the top results for the query, orderd by the given sort
      * criteria.
      */
-    public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf)
+    public List<Scored<Item>> query(String query, String sort, int n,
+            ResultsFilter rf)
             throws AuraException, RemoteException;
-    
+
     /**
      * Gets the highest weighted terms in a given item's aura
      * @param key the key of the document for which we want the terms
@@ -153,7 +157,7 @@ public interface ItemSearch {
      */
     public List<Scored<String>> getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException;
-    
+
     /**
      * Gets an explanation as to why a given autotag would be applied to 
      * a given document.
@@ -165,7 +169,54 @@ public interface ItemSearch {
      * autotagging.  The score associated with a term is the proportion of 
      * contribution towards the autotagging.
      */
-    public List<Scored<String>> getExplanation(String key, String autoTag, int n)
+    public List<Scored<String>> getExplanation(String key, String autoTag,
+            int n)
+            throws AuraException, RemoteException;
+
+    /**
+     * Explains the similarity between two items.  The explaination consists of
+     * the terms that the documents have in common, along with a score indicating
+     * the importance of terms to the similarity. 
+     * @param key1 the key of the first item
+     * @param key2 the key of the second item
+     * @param n the number of terms in common to return
+     * @return a list of scored strings.  The string is the term that the two
+     * items have in common and the score is the contributio of this term to the
+     * similarity between the two items.
+     */
+    public List<Scored<String>> explainSimilarity(String key1, String key2,
+            int n)
+            throws AuraException, RemoteException;
+
+    /**
+     * Explains the similarity between two items.  The explaination consists of
+     * the terms that the documents have in common, along with a score indicating
+     * the importance of terms to the similarity.
+     * @param key1 the key of the first item
+     * @param key2 the key of the second item
+     * @param field the field upon which the comparison should be based
+     * @param n the number of terms in common to return
+     * @return a list of scored strings.  The string is the term that the two
+     * items have in common and the score is the contributio of this term to the
+     * similarity between the two items.
+     */
+    public List<Scored<String>> explainSimilarity(String key1, String key2,
+            String field, int n)
             throws AuraException, RemoteException;
     
+    /**
+     * Explains the similarity between two items.  The explaination consists of
+     * the terms that the documents have in common, along with a score indicating
+     * the importance of terms to the similarity.
+     * @param key1 the key of the first item
+     * @param key2 the key of the second item
+     * @param fields the fields upon which the comparison should be based
+     * @param n the number of terms in common to return
+     * @return a list of scored strings.  The string is the term that the two
+     * items have in common and the score is the contributio of this term to the
+     * similarity between the two items.
+     */
+    public List<Scored<String>> explainSimilarity(String key1, String key2,
+            WeightedField[] fields, int n)
+            throws AuraException, RemoteException;
 }

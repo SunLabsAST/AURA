@@ -150,9 +150,12 @@ public class AardvarkShell implements AuraService, Configurable {
                             }
                             
                             Item item = dataStore.getItem(args[1]);
-                            for(Map.Entry<String,Serializable> e : item.getMap().entrySet()) {
-                                System.out.printf("%-15s %s\n", e.getKey(), e.getValue());
+                            dumpItem(item);
+                            if(item != null) {
+                                System.out.printf("%-15s %s\n", "autotags", item.getMap().
+                                        get("autotag"));
                             }
+                            
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
                             ex.printStackTrace();
@@ -562,6 +565,52 @@ public class AardvarkShell implements AuraService, Configurable {
                         return "Find similar with a field";
                     }
                 });
+        shell.add("efs",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        if(args.length < 3) {
+                            return getHelp();
+                        }
+                        String key1 = args[1];
+                        String key2 = args[2];
+                        List<Scored<String>> expn = dataStore.explainSimilarity(key1, key2, nHits);
+                        for (Scored<String> term : expn) {
+                            System.out.print(term + " ");
+                        }
+                        System.out.println("");
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Explain Find similar: efs <key1> <key2>";
+                    }
+                });
+        shell.add("effs",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        if(args.length < 4) {
+                            return getHelp();
+                        }
+                        String field = args[1];
+                        String key1 = args[2];
+                        String key2 = args[3];
+                        List<Scored<String>> expn = dataStore.explainSimilarity(key1, key2, field, nHits);
+                        for (Scored<String> term : expn) {
+                            System.out.print(term + " ");
+                        }
+                        System.out.println("");
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Explain Fielded Find similar: efs <field> <key1> <key2>";
+                    }
+                });
+                
 
         shell.add("fwfs",
                 new CommandInterface() {

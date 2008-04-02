@@ -712,7 +712,54 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         return pc.getExplanation(key, autoTag, n);
     }
-
+    
+    public List<Scored<String>> explainSimilarity(String key1, String key2, int n) 
+            throws AuraException, RemoteException {
+        return explainSimilarity(key1, key2, (String) null, n);
+    }
+    
+    public List<Scored<String>> explainSimilarity(String key1, String key2, String field, int n) 
+            throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(key1.hashCode()));
+        DocumentVector dv1 = pc.getDocumentVector(key1, field);
+        DocumentVector dv2 = pc.getDocumentVector(key2, field);
+        return explainSimilarity(dv1, dv2, n);
+    }
+    
+    public List<Scored<String>> explainSimilarity(String key1, String key2, WeightedField[] fields, int n) 
+            throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(key1.hashCode()));
+        DocumentVector dv1 = pc.getDocumentVector(key1, fields);
+        DocumentVector dv2 = pc.getDocumentVector(key2, fields);
+        return explainSimilarity(dv1, dv2, n);
+    }
+    
+    private List<Scored<String>> explainSimilarity(DocumentVector dv1, DocumentVector dv2, int n) 
+            throws AuraException, RemoteException {
+        if(dv1 == null || dv2 == null) {
+            return new ArrayList<Scored<String>>();
+        }
+        Map<String,Float> sm = dv1.getSimilarityTerms(dv2);
+        PriorityQueue<Scored<String>> h = new PriorityQueue<Scored<String>>();
+        for(Map.Entry<String,Float> e : sm.entrySet()) {
+            if(h.size() < n) {
+                h.offer(new Scored<String>(e.getKey(), e.getValue()));
+            } else {
+                Scored<String> top = h.peek();
+                if(e.getValue() > top.getScore()) {
+                    h.poll();
+                    h.offer(new Scored<String>(e.getKey(), e.getValue()));
+                }
+            }
+        }
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        while(h.size() > 0) {
+            ret.add(h.poll());
+        }
+        Collections.reverse(ret);
+        return ret;
+    }
+    
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
             //
