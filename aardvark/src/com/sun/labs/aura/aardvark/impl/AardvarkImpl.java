@@ -141,6 +141,17 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         return dataStore.getLastAttentionForSource(user.getKey(), type, count);
     }
 
+    /**
+     * Gets all the stored attention data for a user
+     * @param user the user of interest
+     * @return the list of all attention data
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<Attention> getAttention(User user) throws AuraException, RemoteException {
+        return dataStore.getAttentionForSource(user.getKey());
+    }
+    
     public Set<BlogFeed> getFeeds(User user, Attention.Type type) throws AuraException, RemoteException {
 
         List<Item> items = dataStore.getItems(user, type, ItemType.FEED);
