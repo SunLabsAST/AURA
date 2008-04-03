@@ -792,19 +792,23 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         Set<PartitionCluster> clusters = trie.getAll();
         Set<Callable<List<Scored<Item>>>> callers =
                 new HashSet<Callable<List<Scored<Item>>>>();
+        final PCLatch latch = new PCLatch(clusters.size());
         for(PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
 
                 public List<Scored<Item>> call()
                         throws AuraException, RemoteException {
-                    return pc.getAutotagged(autotag, n);
+                    List<Scored<Item>> ret = pc.getAutotagged(autotag, n);
+                    latch.countDown();
+                    return ret;
                 }
             });
         }
         try {
             StopWatch sw = new StopWatch();
             sw.start();
-            List<Scored<Item>> res = sortScored(executor.invokeAll(callers), n);
+            List<Scored<Item>> res = sortScored(executor.invokeAll(callers),
+                    n, latch);
             sw.stop();
             logger.info("Autotagged " + autotag + " took " + sw.getTime() + "ms");
             return res;
