@@ -116,10 +116,14 @@ public class DBServiceImpl extends RemoteServiceServlet implements
             sw.start();
             List<Attention> attn = store.getAttentionForSource(key);
             sw.stop();
-            AttnDesc[] results = new AttnDesc[attn.size() + 1];
-            results[0] = new AttnDesc(sw.getTime());
+            int numResults = Math.min(attn.size(), 100);
+            AttnDesc[] results = new AttnDesc[numResults + 1];
+            results[0] = new AttnDesc(sw.getTime(), attn.size());
             int i = 1;
             for (Attention a : attn) {
+                if (i > numResults) {
+                    break;
+                }
                 results[i++] = Factory.attnDesc(a);
             }
             return results;
@@ -137,10 +141,14 @@ public class DBServiceImpl extends RemoteServiceServlet implements
             sw.start();
             List<Attention> attn = store.getAttentionForTarget(key);
             sw.stop();
-            AttnDesc[] results = new AttnDesc[attn.size() + 1];
-            results[0] = new AttnDesc(sw.getTime());
+            int numResults = Math.min(attn.size(), 100);
+            AttnDesc[] results = new AttnDesc[numResults + 1];
+            results[0] = new AttnDesc(sw.getTime(), attn.size());
             int i = 1;
             for (Attention a : attn) {
+                if (i > numResults) {
+                    break;
+                }
                 results[i++] = Factory.attnDesc(a);
             }
             return results;
