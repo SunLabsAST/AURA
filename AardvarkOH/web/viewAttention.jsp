@@ -35,7 +35,7 @@
         <c:forEach var="attn" items="${attnBean}" varStatus="loop">
             <div class="${((loop.index % 2) == 0 ? "row" : "shadedRow") }">
             <div class="attnTypeCol"><c:out value="${attn.type}"/></div>
-            <div class="attnTargCol"><a href="<c:out value="${attn.targetKey}"/>"><c:out value="${attn.targetKey}"/></a></div>
+            <div class="attnTargCol"><a href="<c:out value="${attn.targetKey}"/>"><c:out value="${attn.targetKeyName}"/></a></div>
             <div class="attnTimeCol"><c:out value="${attn.time}"/></div>
             </div> <!-- row -->
         </c:forEach>

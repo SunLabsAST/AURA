@@ -32,6 +32,13 @@ public class AttentionBean {
     public String getTargetKey() {
         return targetKey;
     }
+    
+    public String getTargetKeyName() {
+        if (targetKey.length() > 73) {
+            return targetKey.substring(0, 70) + "...";
+        }
+        return targetKey;
+    }
 
     public String getTime() {
         return time;
