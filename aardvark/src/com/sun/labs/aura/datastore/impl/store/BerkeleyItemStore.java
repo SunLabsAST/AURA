@@ -202,8 +202,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     public void close() throws AuraException {
         closed = true;
         System.out.println(new Date() + ": Closing BDB...");
-        searchEngine.getSearchEngine().removeIndexListener(this);
         bdb.close();
+        searchEngine.getSearchEngine().removeIndexListener(this);
+        listenerMap = new HashMap<ItemType,Set<ItemListener>>();
         System.out.println(new Date() + ": Shuting down search engine...");
         searchEngine.shutdown();
         System.out.println(new Date() + ": Done closing search engine");
