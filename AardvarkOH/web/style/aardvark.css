@@ -49,6 +49,7 @@ div.statusMsg {
   padding: 5px;
   margin-top: 15px;
   display: table;
+  text-align: center;
 }
 
 div.table {
@@ -80,7 +81,7 @@ div.attnTypeCol {
 div.attnTargCol {
   display: table-cell;
   float: left;
-  width: 700px;
+  width: 600px;
 }
 
 div.attnTimeCol {
