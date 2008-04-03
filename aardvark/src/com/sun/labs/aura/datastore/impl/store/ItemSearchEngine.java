@@ -27,18 +27,21 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import ngnova.classification.ClassifierModel;
 import ngnova.classification.ExplainableClassifierModel;
+import ngnova.classification.FeatureCluster;
 import ngnova.classification.WeightedFeature;
 import ngnova.engine.SearchEngineImpl;
 import ngnova.indexer.entry.DocKeyEntry;
@@ -397,6 +400,31 @@ public class ItemSearchEngine implements Configurable {
         for(int i = 0; i < wf.length && i < n; i++) {
             ret.add(new Scored<String>(wf[i].getName(), wf[i].getWeight()));
         }
+        return ret;
+    }
+    
+    public List<Scored<String>> getTopFeatures(String autotag, int n) {
+        ClassifierModel cm = ((SearchEngineImpl) engine).getClassifier(autotag);
+        if(cm == null) {
+            return new ArrayList<Scored<String>>();
+        }
+        PriorityQueue<FeatureCluster> q = new PriorityQueue<FeatureCluster>(n, FeatureCluster.weightComparator);
+        for(FeatureCluster fc : cm.getFeatures()) {
+            if(q.size() < n) {
+                q.offer(fc);
+            }
+            FeatureCluster top = q.peek();
+            if(fc.getWeight() > top.getWeight()) {
+                q.poll();
+                q.offer(fc);
+            }
+        }
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        while(q.size() > 0) {
+            FeatureCluster fc = q.poll();
+            ret.add(new Scored<String>(fc.getHumanReadableName(), fc.getWeight()));
+        }
+        Collections.reverse(ret);
         return ret;
     }
 

@@ -231,4 +231,16 @@ public interface ItemSearch {
      */
     public List<Scored<Item>> getAutotagged(String autotag, int n)
             throws AuraException, RemoteException;
+    
+    /**
+     * Gets the top terms in the classifier that is used to assign a given 
+     * autotag.
+     * @param autotag the tag whose terms we want
+     * @param n the number of terms to return
+     * @return
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<Scored<String>> getTopAutotagTerms(String autotag, int n)
+            throws AuraException, RemoteException;
 }

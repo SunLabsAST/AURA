@@ -790,6 +790,15 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         
     }
     
+    public List<Scored<String>> getTopAutotagTerms(String autotag, int n)
+            throws AuraException, RemoteException {
+        Set<PartitionCluster> clusters = trie.getAll();
+        for(PartitionCluster pc : clusters) {
+            return pc.getTopAutotagTerms(autotag, n);
+        }
+        return new ArrayList<Scored<String>>();
+    }
+    
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
             //

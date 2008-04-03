@@ -545,6 +545,25 @@ public class AardvarkShell implements AuraService, Configurable {
                     }
                 });
 
+        shell.add("gtt",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String autotag = stuff(args, 1).trim();
+                        List<Scored<String>> terms = dataStore.getTopAutotagTerms(autotag, nHits);
+                        for (Scored<String> term : terms) {
+                            System.out.println(term);
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "get top autotag terms: gtt <autotag>";
+                    }
+                });
+
         shell.add("fs",
                 new CommandInterface() {
 

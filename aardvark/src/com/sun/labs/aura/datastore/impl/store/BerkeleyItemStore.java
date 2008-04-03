@@ -376,6 +376,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                 sw.getTime() + "ms");
         return res;
     }
+    
+    public List<Scored<String>> getTopAutotagTerms(String autotag, int n)
+            throws AuraException, RemoteException {
+        return searchEngine.getTopFeatures(autotag, n);
+    }
+    
 
     public DocumentVector getDocumentVector(String key) {
         return searchEngine.getDocumentVector(key);
