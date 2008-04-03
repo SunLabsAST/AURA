@@ -569,9 +569,10 @@ public class GridDeploy {
                 ":" + auraDistMntPnt + "/dist/lib/ktsearch.jar" +
                 ":" + auraDistMntPnt + "/dist/lib/LabsUtil.jar" +
                 " com.sun.labs.aura.util.Reindexer" +
-                " /files/data/" + prefix + "/reindex.idx" +
-                " /files/data/" + prefix + "/db";
-
+                " -d /files/data/" + prefix + "/reindex.idx" +
+                " -b /files/data/" + prefix + "/db" +
+                " -o /files/data/" + prefix + "itemIndex.idx";
+ 
         // create a configuration and set relevant properties
         ProcessConfiguration pc = new ProcessConfiguration();
         pc.setCommandLine(cmdLine.trim().split(" "));
