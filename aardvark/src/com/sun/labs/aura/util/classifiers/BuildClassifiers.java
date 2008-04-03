@@ -196,8 +196,7 @@ public class BuildClassifiers implements Runnable {
             BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(tagFile), "utf-8"));
             String l;
             while((l = r.readLine()) != null) {
-                int p = l.indexOf(' ');
-                classes.add(l.substring(p+1));
+                classes.add(l);
             }
             r.close();
         }
