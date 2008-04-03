@@ -53,7 +53,7 @@ public class StoryManager {
     public void findSimilar(final Story story, final int max) {
         Thread t = new Thread() {
             public void run() {
-                List<Story> stories = findSimilarStories(story, max);
+                List<Story> stories = fetchSimilarStories(story, max);
                 int which = 0;
                 System.out.println("FindSim " + story.getTitle());
                 for (Story similarStory : stories) {
@@ -66,6 +66,52 @@ public class StoryManager {
             }
         };
         t.setName("find-similar");
+        t.start();
+    }
+
+    public void getTagInfo(final Story story, final int max) {
+        Thread t = new Thread() {
+            public void run() {
+                List<TagInfo> tagInfos = fetchTagInfo(story, max);
+                int which = 0;
+                for (TagInfo ti : tagInfos) {
+                    StoryPoint cpoint = factory.createTagInfoTileStoryPoint(story, ti, which++);
+                    cpoint.add("home");
+                    DelayedStory ds = new DelayedStory(cpoint, -1);
+                    queue.add(ds);
+                }
+            }
+        };
+        t.setName("getTagInfo");
+        t.start();
+    }
+
+    public void getStoriesSimilarToTag(final String tag, final int max) {
+        Thread t = new Thread() {
+            public void run() {
+                List<Story> stories = fetchStoriesSimilarTag(tag, max);
+                int which = 0;
+                System.out.println("FindSimStoryForTag " + tag);
+                for (Story similarStory : stories) {
+                    StoryPoint cpoint = factory.createTileStoryPoint(similarStory, which++);
+                    System.out.println("  Sim " + similarStory.getTitle());
+                    cpoint.add("home");
+                    DelayedStory ds = new DelayedStory(cpoint, -1);
+                    queue.add(ds);
+                }
+            }
+        };
+        t.setName("getStoriesSimilarToTag-" + tag);
+        t.start();
+    }
+
+    public void getTagsSimilarToTag(final String tag, final int max) {
+        Thread t = new Thread() {
+            public void run() {
+                System.out.println("GTSTT not implemented");
+            }
+        };
+        t.setName("getTagInfo");
         t.start();
     }
 
@@ -118,7 +164,7 @@ public class StoryManager {
         curTime = time;
     }
 
-    void collector() {
+    private void collector() {
         int minutes = 0;
         int storyCount = 0;
         float avgStoriesPerMinute = 0;
@@ -150,6 +196,7 @@ public class StoryManager {
 
                 if (stories.size() > 0) {
                     int delta = (int) (pollPeriod / stories.size());
+                    System.out.print("autotags: ");
                     for (Story story : stories) {
                         //CPoint storyPoint = factory.createBoxStoryPoint(story);
                         //StoryPoint cpoint = factory.createTileStoryPoint(story);
@@ -158,7 +205,10 @@ public class StoryManager {
                         DelayedStory ds = new DelayedStory(cpoint, baseTime);
                         queue.add(ds);
                         lastStoryTime = story.getPulltime();
+                        System.out.print(fmtAutoTags(story.getAutotags()));
+                        //System.out.print(" " + story.getAutotags().size());
                     }
+                    System.out.println();
                 }
                 curTime += pollPeriod;
                 long elapsed = System.currentTimeMillis() - now;
@@ -175,6 +225,17 @@ public class StoryManager {
         } catch (InterruptedException ie) {
 
         }
+    }
+
+    private String fmtAutoTags(List<ScoredString> tags) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for (ScoredString c : tags) {
+            sb.append(c.getName());
+            sb.append(",");
+        }
+        sb.append("] ");
+        return sb.toString();
     }
 
     private List<Story> collectStories(long startTime, long delta, int max) {
@@ -215,7 +276,7 @@ public class StoryManager {
         }
     }
 
-    public List<Story> findSimilarStories(Story story, int max) {
+    private List<Story> fetchSimilarStories(Story story, int max) {
 
         try {
             URL url = null;
@@ -246,6 +307,74 @@ public class StoryManager {
         } catch (IOException ex) {
             Logger.getLogger(StatusManager.class.getName()).log(Level.SEVERE, null, ex);
             return new ArrayList<Story>();
+        }
+    }
+
+    private List<Story> fetchStoriesSimilarTag(String tag, int max) {
+
+        try {
+            URL url = null;
+
+            if (simulate) {
+                //tbd sim broken
+                url = StoryManager.class.getResource(simulatedDataPath);
+            } else {
+                tag = URLEncoder.encode(tag, "utf-8");
+                String surl = baseUrl + "/GetTaggedStories" +
+                        "?max=" + max + "&tag=" + tag ;
+                url = new URL(surl);
+            }
+
+
+            System.out.println("fsst: " + url);
+            URLConnection connection = url.openConnection();
+            connection.setConnectTimeout(30000);
+            connection.setReadTimeout(30000);
+
+            InputStream is = connection.getInputStream();
+            List<Story> stories = Util.loadStories(is);
+            is.close();
+            System.out.println("fsst collected " + stories.size() + " stories");
+            if (stories.size() > max) {
+                stories = stories.subList(0, max);
+            }
+            return stories;
+        } catch (IOException ex) {
+            Logger.getLogger(StatusManager.class.getName()).log(Level.SEVERE, null, ex);
+            return new ArrayList<Story>();
+        }
+    }
+
+    private List<TagInfo> fetchTagInfo(Story story, int max) {
+
+        try {
+            URL url = null;
+
+            if (simulate) {
+                // BUG - simulator doesn't work for this right now
+                url = StoryManager.class.getResource(simulatedDataPath);
+            } else {
+                String key = URLEncoder.encode(story.getUrl(), "utf-8");
+                String surl = baseUrl + "/GetTagInfo" +
+                        "?max=" + max + "&key=" + key;
+                url = new URL(surl);
+            }
+            System.out.println("GetTagInfo: " + url);
+            URLConnection connection = url.openConnection();
+            connection.setConnectTimeout(30000);
+            connection.setReadTimeout(30000);
+
+            InputStream is = connection.getInputStream();
+            List<TagInfo> tagInfos = Util.loadTagInfo(is);
+            is.close();
+            System.out.println("collected " + tagInfos.size() + " tagInfos");
+            if (tagInfos.size() > max) {
+                tagInfos = tagInfos.subList(0, max);
+            }
+            return tagInfos;
+        } catch (IOException ex) {
+            Logger.getLogger(StatusManager.class.getName()).log(Level.SEVERE, null, ex);
+            return new ArrayList<TagInfo>();
         }
     }
 

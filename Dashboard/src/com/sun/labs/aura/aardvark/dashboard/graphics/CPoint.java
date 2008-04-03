@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -39,6 +40,7 @@ public class CPoint extends Controller implements InputActionInterface {
     private float scaleCur = 1.0f;
     private float minScaleDelta = .01f;
     private boolean traceCommands = false;
+    static Random rng = new Random();
 
     public CPoint(float initX, float initY, float initZ) {
         this.masterNode = new Node();
@@ -48,12 +50,15 @@ public class CPoint extends Controller implements InputActionInterface {
         masterNode.setRenderQueueMode(Renderer.QUEUE_OPAQUE);
     }
 
-
     public void addGeometry(Geometry geometry) {
         masterNode.attachChild(geometry);
         geometry.setModelBound(new BoundingBox());
         geometry.updateModelBound();
         geometry.setUserData("cpoint", this);
+    }
+
+    public void attachChild(Node Node) {
+        masterNode.attachChild(Node);
     }
 
     public MotionController getMotionController() {
@@ -67,7 +72,6 @@ public class CPoint extends Controller implements InputActionInterface {
     public void remove() {
         masterNode.removeFromParent();
     }
-
 
     public void poke() {
         motionController.setJiggle(true);
@@ -111,7 +115,6 @@ public class CPoint extends Controller implements InputActionInterface {
             }
         }
     }
-
     private float curRotTime = 0;
     private Quaternion setRotation = new Quaternion();
     private Quaternion curRotation = new Quaternion();
@@ -126,7 +129,7 @@ public class CPoint extends Controller implements InputActionInterface {
             rotTime = 1;
         }
         this.rotateTime = rotTime;
-        curRotTime = 0; 
+        curRotTime = 0;
     }
 
     public void setRelativeAngle(float rotx, float roty, float rotz, float rotTime) {
@@ -139,7 +142,7 @@ public class CPoint extends Controller implements InputActionInterface {
             rotTime = 1;
         }
         this.rotateTime = rotTime;
-        curRotTime = 0; 
+        curRotTime = 0;
     }
 
     public void setAngle(float rotx, float roty, float rotz) {
@@ -242,10 +245,15 @@ class CmdWait implements Command {
         this.delay = delay;
     }
 
+    CmdWait(float min, float max) {
+        float range = max - min;
+        delay = range * CPoint.rng.nextFloat() + min;
+    }
+
     public boolean update(CPoint cp) {
         return (cp.getCurTime() > delay);
     }
-    
+
     public String toString() {
         return "waiting for " + delay + " secs";
     }
@@ -280,7 +288,7 @@ class CmdWaitBounds implements Command {
 
         return false;
     }
-    
+
     public String toString() {
         return "waitbounds for " + bounds;
     }
@@ -399,6 +407,7 @@ class CmdScale implements Command {
         cp.setScale(scale);
         return true;
     }
+
     public String toString() {
         return "Scaling to " + scale;
     }
@@ -448,6 +457,36 @@ class CmdControl implements Command {
 
     public String toString() {
         return "control is " + cmdControl;
+    }
+}
+
+class CmdStop implements Command {
+
+    public boolean update(CPoint cp) {
+        cp.getMotionController().stop();
+        return true;
+    }
+
+    public String toString() {
+        return "stopped";
+    }
+}
+
+class CmdJiggle implements Command {
+
+    private boolean state;
+
+    CmdJiggle(boolean on) {
+        this.state = on;
+    }
+
+    public boolean update(CPoint cp) {
+        cp.getMotionController().setJiggle(state);
+        return true;
+    }
+
+    public String toString() {
+        return "jiggle is " + state;
     }
 }
 

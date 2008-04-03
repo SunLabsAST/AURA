@@ -55,7 +55,6 @@ public class Util {
                 String pulltime = getElementContents(storyElement, "pulltime");
                 String length = getElementContents(storyElement, "length");
                 String imageUrl = getElementContents(storyElement, "imageUrl");
-                Element tagRoot = getFirstElement(storyElement, "tags");
 
 
                 story.setTitle(title);
@@ -67,21 +66,58 @@ public class Util {
                 story.setPulltime(Long.parseLong(pulltime));
                 story.setLength(Integer.parseInt(length));
 
-                NodeList tags = tagRoot.getElementsByTagName("tag");
-                for (int j = 0; j < tags.getLength(); j++) {
-                    Element tagNode = (Element) tags.item(j);
-                    String tagName = tagNode.getTextContent();
-                    float tagScore = Float.parseFloat(tagNode.getAttribute("score"));
-                    story.addClassification(new Classification(tagName, tagScore));
+                {
+                    Element tagRoot = getFirstElement(storyElement, "tags");
+                    if (tagRoot != null) {
+                        NodeList tags = tagRoot.getElementsByTagName("tag");
+                        if (tags != null) {
+                            for (int j = 0; j < tags.getLength(); j++) {
+                                Element tagNode = (Element) tags.item(j);
+                                String tagName = tagNode.getTextContent();
+                                float tagScore = Float.parseFloat(tagNode.getAttribute("score"));
+                                story.addTags(new ScoredString(tagName, tagScore));
+                            }
+                        }
+                    }
+                }
+
+                {
+                    Element tagRoot = getFirstElement(storyElement, "autotags");
+                    if (tagRoot != null) {
+                        NodeList autotags = tagRoot.getElementsByTagName("autotag");
+                        if (autotags != null) {
+                            for (int j = 0; j < autotags.getLength(); j++) {
+                                Element tagNode = (Element) autotags.item(j);
+                                String tagName = tagNode.getTextContent();
+                                float tagScore = Float.parseFloat(tagNode.getAttribute("score"));
+                                story.addAutotags(new ScoredString(tagName, tagScore));
+                            }
+                        }
+                    }
+                }
+
+                {
+                    Element tagRoot = getFirstElement(storyElement, "topterms");
+                    if (tagRoot != null) {
+                        NodeList topterms = tagRoot.getElementsByTagName("topterm");
+                        if (topterms != null) {
+                            for (int j = 0; j < topterms.getLength(); j++) {
+                                Element termNode = (Element) topterms.item(j);
+                                String termName = termNode.getTextContent();
+                                float termScore = Float.parseFloat(termNode.getAttribute("score"));
+                                story.addTopTerms(new ScoredString(termName, termScore));
+                            }
+                        }
+                    }
                 }
 
                 /*
                 NodeList classList = storyElement.getElementsByTagName("class");
                 for (int j = 0; j < classList.getLength(); j++) {
-                    Element classNode = (Element) classList.item(j);
-                    String className = classNode.getTextContent();
-                    float classScore = Float.parseFloat(classNode.getAttribute("score"));
-                    story.addClassification(new Classification(className, classScore));
+                Element classNode = (Element) classList.item(j);
+                String className = classNode.getTextContent();
+                float classScore = Float.parseFloat(classNode.getAttribute("score"));
+                story.addTags(new ScoredString(className, classScore));
                 }
                  */
 
@@ -95,15 +131,69 @@ public class Util {
         return stories;
     }
 
+    public static List<TagInfo> loadTagInfo(InputStream stream) throws IOException {
+        List<TagInfo> infos = new ArrayList<TagInfo>();
+        try {
+            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            Document doc = builder.parse(stream);
+            Element docElement = doc.getDocumentElement();
+            NodeList list = docElement.getElementsByTagName("TagInfo");
+
+            System.out.println("Found " + list.getLength());
+            for (int i = 0; i < list.getLength(); i++) {
+                Node node = list.item(i);
+                Element tagInfoElement = (Element) node;
+
+                TagInfo ti = new TagInfo();
+
+                String name = tagInfoElement.getAttribute("name");
+                float score = Float.parseFloat(tagInfoElement.getAttribute("score"));
+
+                List<ScoredString> docTerms = loadTerms(tagInfoElement, "DocTerms", "DocTerm");
+                List<ScoredString> topTerms = loadTerms(tagInfoElement, "TopTerms", "TopTerm");
+
+                ti.setTagName(name);
+                ti.setScore(score);
+                ti.setDocTerms(docTerms);
+                ti.setTopTerms(topTerms);
+
+                infos.add(ti);
+            }
+        } catch (SAXException e) {
+            System.out.println("parse problem " + e);
+        } catch (ParserConfigurationException e) {
+            System.out.println("parse problem " + e);
+        }
+        return infos;
+    }
+
+    private static List<ScoredString> loadTerms(Element root, String listName, String itemNodeName) throws IOException {
+        List<ScoredString> termList = new ArrayList<ScoredString>();
+        Element listRoot = getFirstElement(root, listName);
+        if (listRoot != null) {
+            NodeList items = listRoot.getElementsByTagName(itemNodeName);
+            if (items != null) {
+                for (int j = 0; j < items.getLength(); j++) {
+                    Element itemNode = (Element) items.item(j);
+                    String itemName = itemNode.getAttribute("name");
+                    float itemScore = Float.parseFloat(itemNode.getAttribute("score"));
+                    termList.add(new ScoredString(itemName, itemScore));
+                }
+            }
+        }
+        return termList;
+    }
+
     /*
-     <entries>115577</entries>
-     <feeds>8338</feeds>
-     <users>1</users>
-     <taste>81</taste>
-     <entriesPerMinute>0.0</entriesPerMinute>
+    <entries>115577</entries>
+    <feeds>8338</feeds>
+    <users>1</users>
+    <taste>81</taste>
+    <entriesPerMinute>0.0</entriesPerMinute>
      */
     public static Stats loadStats(InputStream stream) throws IOException {
-        Stats stats = null;;
+        Stats stats = null;
+        ;
         try {
             DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             Document doc = builder.parse(stream);
@@ -148,5 +238,24 @@ public class Util {
         } else {
             return null;
         }
+    }
+
+    public static void openInBrowser(final String url) {
+        // BUG get the browser path from the environment
+
+        Thread t = new Thread() {
+
+            @Override
+            public void run() {
+                String[] cmds = {"open", url};
+                try {
+                    Runtime.getRuntime().exec(cmds);
+                } catch (IOException ioe) {
+                    System.err.println("Couldn't open browser for " + url);
+                }
+            }
+        };
+        t.setName("run-browser");
+        t.start();
     }
 }

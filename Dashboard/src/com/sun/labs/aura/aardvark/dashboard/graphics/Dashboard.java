@@ -12,14 +12,15 @@ import com.sun.labs.aura.aardvark.dashboard.*;
 import com.jme.app.AbstractGame;
 import com.jme.app.SimpleGame;
 import com.jme.input.FirstPersonHandler;
+import com.jme.input.KeyBindingManager;
 import com.jme.input.KeyInput;
+import com.jme.input.NodeHandler;
 import com.jme.light.DirectionalLight;
 import com.jme.light.PointLight;
 import com.jme.light.SpotLight;
 
 import com.jme.math.Vector3f;
 import com.jme.renderer.ColorRGBA;
-import com.jme.renderer.Renderer;
 import com.jme.scene.SceneElement;
 import com.jme.scene.Text;
 import com.jme.scene.state.FogState;
@@ -44,9 +45,12 @@ public class Dashboard extends SimpleGame {
     private StoryPointFactory storyPointFactory;
     private Font3D font;
     private KeyboardHandler keyboardHandler;
-    private boolean fixedFrameRate = true;
+    private boolean fixedFrameRate = false;
     private boolean simulate = false;
-    private String baseUrl = "http://localhost:8080/DashboardWebServices/";
+    //private String baseUrl = "http://localhost:8080/DashboardWebServices/";
+    private String baseUrl = "http://www.aardvark.tastekeeper.com/DashboardWebServices/";
+    private ControlledCamera controlledCamera;
+
 
     public static void main(String[] args) {
         try {
@@ -92,36 +96,68 @@ public class Dashboard extends SimpleGame {
         initFonts();
         initStoryQueue();
     }
+   
 
     private void initInput() {
+
+        Vector3f loc = cam.getLocation();
+        loc = loc.add(new Vector3f(0, 0, 25));
+        cam.setLocation(loc);
+
+        // controlledCamera = new ControlledCamera(cam);
+        // input = controlledCamera.getInputHandler();
+        //input = new NodeHandler(controlledCamera.getCameraNode(), 10, .2f);
+        // rootNode.attachChild(controlledCamera.getNode());
+
+
         // adjust the speed of the input handler
         FirstPersonHandler fph = new FirstPersonHandler(cam, 10, 2);
         fph.getMouseLookHandler().getMouseLook().setSpeed(.2f);
         input = fph;
 
+        input.addAction(new MousePick(cam, rootNode));
+
+        // Remove some presets
+        KeyBindingManager.getKeyBindingManager().remove("toggle_wire");
+
         keyboardHandler = new KeyboardHandler();
 
         keyboardHandler.addKeyHandler(KeyInput.KEY_F, "findSimilar", new KeyActionHandler() {
             public void onKey(String opName) {
-                if (storyPointFactory.hasAllSimStories()) {
-                    storyPointFactory.clearSimStories();
-                } else {
-                    StoryPoint sp = storyPointFactory.getCurrentStoryPoint();
-                    if (sp != null) {
-                        storyManager.findSimilar(sp.getStory(), storyPointFactory.getNumSimStories());
-                    }
-                }
+                storyPointFactory.findStories();
             }
         });
 
-        input.addAction(new MousePick(cam, rootNode));
+        keyboardHandler.addKeyHandler(KeyInput.KEY_T, "findTags", new KeyActionHandler() {
+            public void onKey(String opName) {
+                storyPointFactory.findTags();
+            }
+        });
+
+        keyboardHandler.addKeyHandler(KeyInput.KEY_O, "open", new KeyActionHandler() {
+            public void onKey(String opName) {
+                storyPointFactory.open();
+            }
+        });
+
+        /*
+        keyboardHandler.addKeyHandler(KeyInput.KEY_HOME, "home", new KeyActionHandler() {
+            public void onKey(String opName) {
+                controlledCamera.add("home");
+            }
+        });
+
+        keyboardHandler.addKeyHandler(KeyInput.KEY_END, "pan", new KeyActionHandler() {
+            public void onKey(String opName) {
+                controlledCamera.add("pan");
+            }
+        });
+         * */
+
         addCrossHairs();
     }
 
     private void initCamera() {
-        Vector3f loc = cam.getLocation();
-        loc = loc.add(new Vector3f(0, 0, 25));
-        cam.setLocation(loc);
     }
 
     private void initLogger() {
@@ -138,7 +174,7 @@ public class Dashboard extends SimpleGame {
     }
 
     private void initStaticNodes() {
-        rootNode.setRenderQueueMode(Renderer.QUEUE_OPAQUE);
+        //rootNode.setRenderQueueMode(Renderer.QUEUE_OPAQUE);
     }
 
     private void initLighting() {
@@ -189,10 +225,15 @@ public class Dashboard extends SimpleGame {
     private void initStoryQueue() {
         storyPointFactory = new StoryPointFactory(display, lightState, rootNode);
         storyManager = new StoryManager(storyPointFactory, baseUrl, simulate);
-        storyManager.setAsyncMode(true);
-        //storyManager.setLiveMode(true);
-        storyManager.setMaxStoriesPerMinute(300);
+        //storyManager.setAsyncMode(true);
+        storyManager.setLiveMode(true);
+        storyManager.setMaxStoriesPerMinute(100);
         storyManager.start();
+
+        // BUG - this mutual dependency between the storyManager and the
+        // storypoint factory has got to go.
+
+        storyPointFactory.setStoryManager(storyManager);
     }
 
     private void initFog() {
@@ -212,6 +253,15 @@ public class Dashboard extends SimpleGame {
         keyboardHandler.update();
         checkForNewStories();
         syncFrames();
+        cameraUpdate();
+    }
+
+    private void cameraUpdate() {
+        StoryPoint sp = storyPointFactory.getCurrentStoryPoint();
+        if (sp != null) {
+            //cam.lookAt(sp.getNode().getWorldTranslation(), Vector3f.UNIT_Y);
+        } else {
+        }
     }
 
     long last;

@@ -9,12 +9,12 @@ package com.sun.labs.aura.aardvark.dashboard.story;
  *
  * @author plamere
  */
-public class Classification {
+public class ScoredString {
 
     public String name;
     public float  score;
 
-    public Classification(String name, float score) {
+    public ScoredString(String name, float score) {
         this.name = name;
         this.score = score;
     }

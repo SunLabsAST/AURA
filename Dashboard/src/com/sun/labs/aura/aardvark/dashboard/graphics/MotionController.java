@@ -36,7 +36,7 @@ public class MotionController extends Controller {
     private boolean gravityEnabled = false;
     private float gravityForce = -1.0f;
     private final static int JIGGLE_PERIOD = 20;
-    private Vector3f jiggleVector = new Vector3f(0, .25f, 0);
+    private Vector3f jiggleVector = new Vector3f(0, 0, .25f);
 
     public MotionController(Node node, float initX, float initY, float initZ) {
         this.controlledNode = node;
@@ -89,6 +89,11 @@ public class MotionController extends Controller {
         this.kd = kd;
     }
 
+    public void stop() {
+        force.zero();
+        vel.zero();
+    }
+
     public void setJiggle(boolean enable) {
         this.jiggleEnabled = enable;
     }
@@ -104,7 +109,7 @@ public class MotionController extends Controller {
                 error.set(setPoint);
 
                 if (jiggleEnabled) {
-                    boolean upPhase = (lastTick / JIGGLE_PERIOD) % 2 == 1;
+                    boolean upPhase = (lastTick++ / JIGGLE_PERIOD) % 2 == 1;
                     if (upPhase) {
                         error.addLocal(jiggleVector);
                     } else {
