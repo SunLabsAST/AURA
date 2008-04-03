@@ -54,34 +54,53 @@ public class StoryUtil {
             content = "";
         }
 
+
         dumpHtmlTaggedText(out, padding, "source", feed.getName());
         dumpHtmlTaggedText(out, padding, "imageUrl", feed.getImage());
         dumpHtmlTaggedText(out, padding, "url", entry.getKey());
-        dumpHtmlTaggedText(out, padding, "title", entry.getTitle());
+        dumpHtmlTaggedText(out, padding, "title", excerpt(filterHTML(entry.getTitle()), 20));
         dumpHtmlTaggedText(out, padding, "pulltime", Long.toString(entry.getTimeAdded()));
         dumpHtmlTaggedText(out, padding, "length", Integer.toString(content.length()));
+
         if (entry.getContent() != null) {
             out.println("        <description>" + excerpt(filterHTML(content), 100) + "</description>");
         }
 
 
-        if (entry.getTags().size() > 0) {
-            out.println("        <tags>");
-            for (Tag tag : entry.getTags()) {
-                out.printf("    %s<tag score=\"%d\">%s</tag>\n", padding, tag.getCount(), filterTag(tag.getName()));
+        {
+            if (entry.getTags().size() > 0) {
+                out.println("        <tags>");
+                for (Tag tag : entry.getTags()) {
+                    out.printf("    %s<tag score=\"%d\">%s</tag>\n", padding, tag.getCount(), filterTag(tag.getName()));
+                }
+                out.println("        </tags>");
             }
-            out.println("        </tags>");
         }
 
-        List<Scored<String>> autotags = entry.getAutoTags();
-        if (autotags.size() > 0) {
-            Collections.sort(autotags);
-            Collections.reverse(autotags);
-            out.println("        <autotags>");
-            for (Scored<String> tag : autotags) {
-                out.printf("    %s<autotag score=\"%f\">%s</autotag>\n", padding, tag.getScore(), tag.getItem());
+        {
+            List<Scored<String>> autotags = entry.getAutoTags();
+            if (autotags.size() > 0) {
+                Collections.sort(autotags);
+                Collections.reverse(autotags);
+                out.println("        <autotags>");
+                for (Scored<String> tag : autotags) {
+                    out.printf("    %s<autotag score=\"%f\">%s</autotag>\n", padding, tag.getScore(), tag.getItem());
+                }
+                out.println("        </autotags>");
             }
-            out.println("        </autotags>");
+        }
+
+
+        {
+            List<Scored<String>> topTerms = dataStore.getTopTerms(entry.getKey(), null, 10);
+            if (topTerms.size() > 0) {
+                out.println("        <topterms>");
+                for (Scored<String> term : topTerms) {
+                    out.printf("    %s<topterm score=\"%f\">%s</topterm>\n", padding, 
+                            term.getScore(), StoryUtil.filterTag(term.getItem()));
+                }
+                out.println("        </topterms>");
+            }
         }
 
         out.println("    </story>");
@@ -109,6 +128,10 @@ public class StoryUtil {
         s = s.replaceAll("[^\\p{ASCII}]", "");
         s = s.replaceAll("\\s+", " ");
         s = s.replaceAll("[\\<\\>\\&]", " ");
+        s = s.replaceAll("#8217;", "'");
+        s = s.replaceAll("#8220;", "'");
+        s = s.replaceAll("#8221;", "'");
+        s = s.replaceAll("#160;", "'");
         return s;
     }
 

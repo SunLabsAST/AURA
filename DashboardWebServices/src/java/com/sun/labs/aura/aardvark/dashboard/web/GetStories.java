@@ -1,7 +1,6 @@
 package com.sun.labs.aura.aardvark.dashboard.web;
 
 import com.sun.labs.aura.aardvark.BlogEntry;
-import com.sun.labs.aura.aardvark.BlogFeed;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
@@ -9,12 +8,13 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Tag;
-import com.sun.labs.util.props.ConfigurationManager;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -77,7 +77,7 @@ public class GetStories extends HttpServlet {
 
             response.setContentType("text/xml;charset=UTF-8");
             PrintWriter out = response.getWriter();
-            StoryUtil.dumpStories(out,  dataStore, entries);
+            StoryUtil.dumpStories(out, dataStore, entries);
             out.close();
 
         } catch (AuraException ex) {
@@ -88,6 +88,7 @@ public class GetStories extends HttpServlet {
     private List<BlogEntry> collectStories(DataStore dataStore,
             long time, long delta, int maxCount, Set<String> topicSet) throws AuraException, RemoteException {
         List<BlogEntry> results = new ArrayList<BlogEntry>();
+        int accumMaxSize = maxCount * 4;
         long start;
         long end;
 
@@ -114,7 +115,7 @@ public class GetStories extends HttpServlet {
 
         DBIterator<Item> iter = dataStore.getItemsAddedSince(ItemType.BLOGENTRY, new Date(start));
         try {
-            while (iter.hasNext() && results.size() < maxCount) {
+            while (iter.hasNext() && results.size() < accumMaxSize) {
                 Item item = iter.next();
                 BlogEntry entry = new BlogEntry(item);
                 if (entry.getTimeAdded() > end) {
@@ -127,15 +128,28 @@ public class GetStories extends HttpServlet {
         } finally {
             iter.close();
         }
+
+        // now trim the list down to the proper size, favoring 
+        // high authority entries. (for now we use length instead of authority
+        // since we don't have an authority model yet)
+
+        if (results.size() > maxCount) {
+            Collections.sort(results, new LengthSort());
+            Collections.reverse(results);
+            results = results.subList(0, maxCount);
+        }
+        Collections.sort(results, new TimeSort());
         return results;
     }
 
     private boolean inTopicSet(BlogEntry entry, Set<String> topicSet) {
         // here are the autotags
+        /**
         List<Scored<String>> autotags = entry.getAutoTags();
         for (Scored<String> autotag : autotags) {
             System.out.println("autotag " + autotag.getItem() + " score " + autotag.getScore());
         }
+         * **/
 
         // TBD: Adjust this to use autoclass
         if (topicSet.contains("all")) {
@@ -178,4 +192,19 @@ public class GetStories extends HttpServlet {
         return "Short description";
     }
     // </editor-fold>
+}
+
+class LengthSort implements Comparator<BlogEntry> {
+
+    public int compare(BlogEntry o1, BlogEntry o2) {
+        return o1.getContent().length() - o2.getContent().length();
+    }
+}
+
+class TimeSort implements Comparator<BlogEntry> {
+
+    public int compare(BlogEntry o1, BlogEntry o2) {
+        long delta =  (o1.getTimeAdded() - o2.getTimeAdded());
+        return delta > 0 ? 1 : delta < 0 ? -1 : 0;
+    }
 }

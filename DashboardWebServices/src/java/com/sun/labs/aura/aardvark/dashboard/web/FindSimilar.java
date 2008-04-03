@@ -24,7 +24,6 @@ import javax.servlet.http.*;
 public class FindSimilar extends HttpServlet {
 
     protected Logger logger = Logger.getLogger("");
-
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
@@ -32,8 +31,7 @@ public class FindSimilar extends HttpServlet {
      */
 
 //  findSimilar?max=10&key=http://asdsdasd/f
-
-    private final static WeightedField[] simFields  = {
+    private final static WeightedField[] simFields = {
         new WeightedField("content", 1f),
         new WeightedField("aura-name", 1f),
         new WeightedField("tag", 1f),
@@ -54,23 +52,20 @@ public class FindSimilar extends HttpServlet {
             maxCount = Integer.parseInt(maxCountString);
         }
 
-        if (key != null) {
-            try {
+        Item item = null;
+        try {
+            if (key != null && ((item = dataStore.getItem(key)) != null)) {
                 Set<String> titleSet = new HashSet<String>();
-                List<Scored<Item>> scoredItems = dataStore.findSimilar(key, simFields, maxCount * 4, new TypeFilter(ItemType.BLOGENTRY));
-                //List<Scored<Item>> scoredItems = dataStore.findSimilar(key,  maxCount * 4, new TypeFilter(ItemType.BLOGENTRY));
+                //List<Scored<Item>> scoredItems = dataStore.findSimilar(key, simFields, maxCount * 4, new TypeFilter(ItemType.BLOGENTRY));
+                List<Scored<Item>> scoredItems = dataStore.findSimilar(key, maxCount * 4, new TypeFilter(ItemType.BLOGENTRY));
                 List<Scored<Item>> filteredItems = new ArrayList<Scored<Item>>();
+
+                titleSet.add(item.getName());
                 
                 for (Scored<Item> si : scoredItems) {
 
                     if (si.getItem().getKey().equals(key)) {
                         continue;
-                    }
-
-                    String title = si.getItem().getName();
-
-                    if (title == null) {
-                        title = "";
                     }
 
                     String normTitle = normalizeTitle(si.getItem().getName());
@@ -83,21 +78,25 @@ public class FindSimilar extends HttpServlet {
                         }
                     }
                 }
-
                 response.setContentType("text/xml;charset=UTF-8");
                 PrintWriter out = response.getWriter();
                 StoryUtil.dumpScoredStories(out, dataStore, filteredItems);
                 out.close();
-            } catch (AuraException ex) {
-                Shared.forwardToError(context, request, response, ex);
+            } else {
+                Shared.forwardToError(context, request, response, "missing key");
             }
-        } else {
-            Shared.forwardToError(context, request, response, "missing key");
+        } catch (AuraException ex) {
+            Shared.forwardToError(context, request, response, ex);
         }
     }
 
+
     private String normalizeTitle(String title) {
-        return title.replaceAll("[^\\p{Alnum}]", "").toLowerCase();
+        if (title == null) {
+            return "";
+        } else {
+            return title.replaceAll("[^\\p{Alnum}]", "").toLowerCase();
+        }
     }
 
 
