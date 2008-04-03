@@ -10,6 +10,7 @@ import com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper;
 import com.sun.labs.aura.datastore.impl.store.ItemSearchEngine;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.util.SimpleLabsLogFormatter;
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ import ngnova.engine.SearchEngineImpl;
 import ngnova.indexer.entry.DocKeyEntry;
 import ngnova.indexer.partition.InvFileDiskPartition;
 import ngnova.util.Getopt;
+import ngnova.util.StopWatch;
 
 /**
  * Indexes the data in a number of BDBs into a single search index.
@@ -62,13 +64,13 @@ public class Reindexer implements IndexListener {
             }
 
         }
-        engine.getSearchEngine().flush();  
+        engine.getSearchEngine().flush();
         bdw.close();
     }
 
     public void partitionAdded(SearchEngine e,
             Set<Object> keys) {
-        
+
         int done = 0;
         for(Object o : keys) {
 
@@ -126,11 +128,30 @@ public class Reindexer implements IndexListener {
 
     public static void main(String[] args) throws Exception {
 
-        if(args.length < 2) {
-            System.err.println("Usage:  Reindexer <index dir> <bdb dir> [<bdb dir>]...");
-            return;
+        String flags = "d:b:o:";
+        Getopt gopt = new Getopt(args, flags);
+        List<String> dbs = new ArrayList<String>();
+        String indexDir = null;
+        String oldDir = null;
+        int c;
+        while((c = gopt.getopt()) != -1) {
+            switch(c) {
+                case 'd':
+                    indexDir = gopt.optArg;
+                    break;
+                case 'b':
+                    dbs.add(gopt.optArg);
+                    break;
+                case 'o':
+                    oldDir = gopt.optArg;
+                    break;
+            }
         }
 
+        if(indexDir == null || dbs.size() == 0) {
+            System.err.println("Usage:  Reindexer -d <index dir> -b <bdb dir> [-b <bdb dir>] [-o <old dir>]...");
+            return;
+        }
         //
         // Use the labs format logging.
         Logger logger = Logger.getLogger("");
@@ -140,15 +161,43 @@ public class Reindexer implements IndexListener {
 
         Log.setLogger(logger);
         Log.setLevel(3);
+        StopWatch sw = new StopWatch();
+        sw.start();
 
-        ItemSearchEngine engine = new ItemSearchEngine(args[0],
+        ItemSearchEngine engine = new ItemSearchEngine(indexDir,
                 "/com/sun/labs/aura/util/resource/reindexConfig.xml");
 
         Reindexer re = new Reindexer(engine);
-        for(int i = 1; i < args.length; i++) {
-            re.reindex(args[i]);
+        for(String db : dbs) {
+            re.reindex(db);
         }
 
         engine.shutdown();
+        
+        sw.stop();
+        logger.info(String.format("Reindex took: %.2fs", sw.getTime() / 1000.0));
+        if(oldDir == null) {
+            return;
+        }
+
+        if(oldDir.equals(indexDir)) {
+            System.err.println("Can't move new directory to old!");
+            return;
+        }
+        
+        File newf = new File(indexDir);
+        File oldf = new File(oldDir);
+        File savef = new File(oldf.getParentFile(), "save.idx");
+        if(oldf.exists() && oldf.isDirectory()) {
+            boolean ret = oldf.renameTo(savef);
+            if(!ret) {
+                System.err.println("Unable to move " + oldf + " to " + savef);
+                return;
+            }
+            ret = newf.renameTo(oldf);
+            if(!ret) {
+                System.err.println("Unable to move " + newf + " to " + oldf);
+            }
+        }
     }
 }
