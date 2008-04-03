@@ -62,12 +62,13 @@ public class GridDeploy {
     private String instance = "live";
     
     //private String[] prefixCodeList = new String[] { "00", "01", "10", "11" };
+//    private String[] prefixCodeList = new String[] { "0", "1"};
     private String[] prefixCodeList = new String[] {
         "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111",
         "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111",
     };
 
-    private static String usage = "GridDeploy createCode | startAura | startAardvark | createWeb";
+    private static String usage = "GridDeploy createCode | startAura | stopAura | startAardvark | stopAardvark | createWeb | reindexData";
 
     public static void main(String argv[]) throws Exception {
         if (argv.length == 0) {
@@ -98,7 +99,15 @@ public class GridDeploy {
             //
             // create the resources for a glassfish install
             gd.createWebInfrastructure();
+        } else if (argv[0].equals("reindexData")) {
+            gd.createAuraInfrastructure();
+            gd.createReindexerProcesses();
+        } else if(argv[0].equals("stopAura")) {
+            gd.stopAuraProcesses();
+        } else if(argv[0].equals("stopAardvark")) {
+            gd.stopAardvarkProcesses();
         }
+        
     }
     
     public GridDeploy() {
@@ -165,7 +174,37 @@ public class GridDeploy {
         NetworkAddress addr = getExternalAddressFor("www");
         System.out.println("Bound www to " + addr.getAddress());
     }
+
+    public String getRRName() {
+        return instance + "-reggie";
+    }
     
+    public String getDSHName() {
+        return instance + "-dsHead";
+    }
+    
+    public String getPartName(String prefix) {
+        return instance + "-part-" + prefix;
+    }
+    
+    public String getRepName(String prefix) {
+        return instance + "-rep-" + prefix;
+    }
+    
+    public String getSSName() {
+        return instance + "-statSrv";
+    }
+    
+    private ProcessRegistration createProcess(String name, ProcessConfiguration config) throws Exception {
+        ProcessRegistration reg = null;
+        try {
+            reg = grid.createProcessRegistration(name, config);
+        } catch(DuplicateNameException dne) {
+            System.out.println(name + " already exists, reusing");
+            reg = grid.getProcessRegistration(name);
+        }
+        return reg;
+    }
     
     /**
      * Assuming a fully built infrastructure, this uses the network and
@@ -176,46 +215,20 @@ public class GridDeploy {
     public void createAuraProcesses() throws Exception {
         //
         // Get a reggie started up first thing
-        ProcessConfiguration regConfig = getReggieConfig();
-        ProcessRegistration regReg = null;
-        try {
-            regReg = grid.createProcessRegistration(
-                    instance + "-reggie", regConfig);
-        } catch (DuplicateNameException dne) {
-            System.out.println("Reggie already exists, reusing");
-            regReg = grid.getProcessRegistration(instance + "-reggie");
-        }
+        ProcessRegistration regReg = createProcess(getRRName(), getReggieConfig());
         startRegistration(regReg);
         
         //
         // Next, get a data store head and start it
-        ProcessConfiguration dsHeadConfig = getDataStoreHeadConfig();
-        ProcessRegistration dsHeadReg = null;
-        try {
-            dsHeadReg = grid.createProcessRegistration(
-                    instance + "-dsHead", dsHeadConfig);
-        } catch (DuplicateNameException dne) {
-            System.out.println("DataStoreHead already exists, reusing");
-            dsHeadReg = grid.getProcessRegistration(instance + "-dsHead");
-        }
+        ProcessRegistration dsHeadReg = createProcess(getDSHName(), getDataStoreHeadConfig());
         startRegistration(dsHeadReg);
         
         //
         // Now, start partition clusters for each prefix
         ProcessRegistration lastReg = null;
         for (int i = 0; i < prefixCodeList.length; i++) {
-            ProcessConfiguration pcConfig =
-                    getPartitionClusterConfig(prefixCodeList[i]);
-            ProcessRegistration pcReg = null;
-            try {
-                pcReg = grid.createProcessRegistration(
-                        instance + "-part-" + prefixCodeList[i], pcConfig);
-            } catch (DuplicateNameException dne) {
-                System.out.println("PartitionCluster-" + prefixCodeList[i] +
-                        " already exists, reusing");
-                pcReg = grid.getProcessRegistration(instance + "-part-" +
-                        prefixCodeList[i]);
-            }
+            ProcessRegistration pcReg = createProcess(getPartName(prefixCodeList[i]),
+                    getPartitionClusterConfig(prefixCodeList[i]));
             startRegistration(pcReg, false);
             lastReg = pcReg;
         }
@@ -227,18 +240,7 @@ public class GridDeploy {
         //
         // Start the replicants for each prefix
         for (int i = 0; i < prefixCodeList.length; i++) {
-            ProcessConfiguration repConfig =
-                    getReplicantConfig(prefixCodeList[i]);
-            ProcessRegistration repReg = null;
-            try {
-                repReg = grid.createProcessRegistration(
-                        instance + "-rep-" + prefixCodeList[i], repConfig);
-            } catch (DuplicateNameException dne) {
-                System.out.println("Replicant-" + prefixCodeList[i] +
-                        " already exists, reusing");
-                repReg = grid.getProcessRegistration(instance + "-rep-" +
-                        prefixCodeList[i]);
-            }
+            ProcessRegistration repReg = createProcess(getRepName(prefixCodeList[i]), getReplicantConfig(prefixCodeList[i]));
             startRegistration(repReg, false);
             lastReg = repReg;
         }
@@ -249,19 +251,83 @@ public class GridDeploy {
         
         //
         // And finally start a stat service
-        ProcessConfiguration statSrvConfig = getStatServiceConfig();
-        ProcessRegistration statSrvReg = null;
-        try {
-            statSrvReg = grid.createProcessRegistration(
-                    instance + "-statSrv", statSrvConfig);
-        } catch (DuplicateNameException dne) {
-            System.out.println("StatService already exists, reusing");
-            statSrvReg = grid.getProcessRegistration(instance + "-statSrv");
-        }
+        ProcessRegistration statSrvReg = createProcess(getSSName(), getStatServiceConfig());
         startRegistration(statSrvReg);
 
     }
+    
+    private void stopProcess(String name) throws Exception {
+        stopProcess(name, 3000);
+    }
+    
+    /**
+     * Stops the named process.  Tries to gently shut it down, but if that fails
+     * it is foribly shutdown.
+     * @param name the name of the registration
+     * @param timeout the timeout to wait for gentle shutdown.
+     * @throws java.lang.Exception
+     */
+    public void stopProcess(String name, long timeout) throws Exception {
+        ProcessRegistration reg = grid.getProcessRegistration(name);
+        if(reg != null) {
+            System.out.println("Stopping: " + reg);
+            if(!reg.shutdownGently(true, timeout)) {
+                System.out.println("  Forcing: " + reg);
+                reg.shutdownForcefully(true);
+            }
+        } else {
+            System.out.println("No registration for " + name + " to stop");
+        }
+    }
+    
+    public void stopAuraProcesses() throws Exception {
 
+        stopProcess(getSSName());
+        
+        for(int i = 0; i < prefixCodeList.length; i++) {
+            stopProcess(getPartName(prefixCodeList[i]));
+        }
+
+        //
+        // Start the replicants for each prefix
+        for(int i = 0; i < prefixCodeList.length; i++) {
+            stopProcess(getRepName(prefixCodeList[i]), 100000);
+        }
+        
+        stopProcess(getDSHName());
+        stopProcess(getRRName());
+    }
+    
+    public String getRIName(String prefix) {
+        return instance + "-reindex-" + prefix;
+    }
+    
+    public void createReindexerProcesses() throws Exception {
+        //
+        // Start the replicants for each prefix
+        for(int i = 0; i < prefixCodeList.length; i++) {
+            ProcessRegistration reindexReg = createProcess(getRIName(prefixCodeList[i]), 
+                    getReindexerConfig(prefixCodeList[i]));
+            startRegistration(reindexReg, false);
+        }
+    }
+
+    public String getFMName(int n) {
+        return instance + "-feedMgr-" + n;
+    }
+    
+    public String getRecName() {
+        return instance + "-recommender";
+    }
+    
+    public String getSchedName() {
+        return instance + "-feedSched";
+    }
+    
+    public String getAAName() {
+        return instance + "-aardvark";
+    }
+    
     public void createAardvarkProcesses() throws Exception {
         //
         // Use createCodeInfra to get references to what should be existing
@@ -275,15 +341,8 @@ public class GridDeploy {
 
         //
         // Start the Feed Scheduler
-        ProcessConfiguration feedSchedConfig = getFeedSchedulerConfig();
-        ProcessRegistration feedSchedReg = null;
-        try {
-            feedSchedReg = grid.createProcessRegistration(
-                    instance + "-feedSched", feedSchedConfig);
-        } catch (DuplicateNameException dne) {
-            System.out.println("FeedScheduler already exists, reusing");
-            feedSchedReg = grid.getProcessRegistration(instance + "-feedSched");
-        }
+        ProcessRegistration feedSchedReg = 
+                createProcess(getSchedName(), getFeedSchedulerConfig());
         startRegistration(feedSchedReg);
 
         //
@@ -292,16 +351,7 @@ public class GridDeploy {
         NetworkAddress crawlerNat = getExternalAddressFor("feedMgrNat");
         for (int i = 0; i < 6; i++) {
             ProcessConfiguration feedMgrConfig = getFeedManagerConfig(i);
-            ProcessRegistration feedMgrReg = null;
-            try {
-                feedMgrReg = grid.createProcessRegistration(
-                        instance + "-feedMgr-" + i, feedMgrConfig);
-            } catch (DuplicateNameException dne) {
-                System.out.println("FeedManager " + i + " already exists" +
-                                   " reusing");
-                feedMgrReg = grid.getProcessRegistration(
-                        instance + "-feedMgr-" + i);
-            }
+            ProcessRegistration feedMgrReg = createProcess(getFMName(i), feedMgrConfig);
             
             //
             // Make a dynamic NAT for this process config
@@ -328,30 +378,25 @@ public class GridDeploy {
         
         //
         // Create a recommendation manager
-        ProcessConfiguration recConfig = getRecommenderConfig();
-        ProcessRegistration recReg = null;
-        try {
-            recReg = grid.createProcessRegistration(
-                    instance + "-recommender", recConfig);
-        } catch (DuplicateNameException dne) {
-            System.out.println("Recommender already exists, reusing");
-            recReg = grid.getProcessRegistration(instance + "-recommender");
-        }
+        ProcessRegistration recReg = createProcess(getRecName(), getRecommenderConfig());
         startRegistration(recReg);
 
         //
         // And now make an Aardvark
         ProcessConfiguration aardvarkConfig = getAardvarkConfig();
-        ProcessRegistration aardvarkReg = null;
-        try {
-            aardvarkReg = grid.createProcessRegistration(
-                    instance + "-aardvark", aardvarkConfig);
-        } catch (DuplicateNameException dne) {
-            System.out.println("Aardvark already exists, reusing");
-            aardvarkReg = grid.getProcessRegistration(instance + "-aardvark");
-        }
+        ProcessRegistration aardvarkReg = createProcess(getAAName(), getAardvarkConfig());
         startRegistration(aardvarkReg);
         
+    }
+    
+    public void stopAardvarkProcesses() throws Exception {
+        stopProcess(getAAName());
+        for(int i = 0; i < 6; i++) {
+            stopProcess(getFMName(i));
+        }
+
+        stopProcess(getSchedName());
+        stopProcess(getRecName());
     }
     
     protected ProcessConfiguration getReggieConfig() throws Exception {
@@ -464,7 +509,8 @@ public class GridDeploy {
     protected ProcessConfiguration getReplicantConfig(String prefix) 
             throws Exception {
         String cmdLine =
-                "-DauraHome=" + auraDistMntPnt +
+                "-Xmx3g"+
+                " -DauraHome=" + auraDistMntPnt +
                 " -DstartingDataDir=" + auraDistMntPnt + "/classifier/starting.idx" +
                 " -Dprefix=" + prefix +
                 " -DdataFS=/files/data/" + prefix +
@@ -505,14 +551,64 @@ public class GridDeploy {
         // don't overlap with other replicants
         pc.setLocationConstraint(
                 new ProcessRegistrationFilter.NameMatch(
-                        Pattern.compile(instance + "-rep-*")));
+                        Pattern.compile(instance + ".*-rep-.*")));
         
         return pc;
     }
     
+    protected ProcessConfiguration getReindexerConfig(String prefix)
+            throws Exception {
+        String cmdLine =
+                "-Xmx2g" + 
+                " -DauraHome=" + auraDistMntPnt +
+                " -DstartingDataDir=" + auraDistMntPnt +
+                "/classifier/starting.idx" +
+                " -Dprefix=" + prefix +
+                " -DdataFS=/files/data/" + prefix +
+                " -cp " + auraDistMntPnt + "/dist/aardvark.jar" +
+                ":" + auraDistMntPnt + "/dist/lib/ktsearch.jar" +
+                ":" + auraDistMntPnt + "/dist/lib/LabsUtil.jar" +
+                " com.sun.labs.aura.util.Reindexer" +
+                " /files/data/" + prefix + "/reindex.idx" +
+                " /files/data/" + prefix + "/db";
+
+        // create a configuration and set relevant properties
+        ProcessConfiguration pc = new ProcessConfiguration();
+        pc.setCommandLine(cmdLine.trim().split(" "));
+        pc.setSystemSinks(
+                logsFSMntPnt + "/reindex-" + prefix + ".out", false);
+
+        Collection<FileSystemMountParameters> mountParams =
+                new ArrayList<FileSystemMountParameters>();
+
+        mountParams.add(
+                new FileSystemMountParameters(auraDist.getUUID(),
+                new File(auraDistMntPnt).getName()));
+        mountParams.add(
+                new FileSystemMountParameters(logsFS.getUUID(),
+                new File(logsFSMntPnt).getName()));
+        mountParams.add(
+                new FileSystemMountParameters(
+                repFSMap.get(instance + "-" + prefix).getUUID(),
+                "data"));
+
+        pc.setFileSystems(mountParams);
+        pc.setWorkingDirectory(logsFSMntPnt);
+
+        pc.setProcessExitAction(ProcessExitAction.DESTROY);
+
+        // don't overlap with other replicants
+        pc.setLocationConstraint(
+                new ProcessRegistrationFilter.NameMatch(
+                Pattern.compile(instance + ".*-reindex-.*")));
+
+        return pc;
+    }
+
     protected ProcessConfiguration getFeedSchedulerConfig() throws Exception {
         String cmdLine =
-                "-DauraHome=" + auraDistMntPnt +
+                "-Xmx2g" +
+                " -DauraHome=" + auraDistMntPnt +
                 " -jar " + auraDistMntPnt + "/dist/aardvark.jar" + 
                 " /com/sun/labs/aura/resource/feedSchedulerConfig.xml" +
                 " feedSchedulerStarter";
@@ -581,7 +677,7 @@ public class GridDeploy {
         // don't overlap with other replicants
         pc.setLocationConstraint(
                 new ProcessRegistrationFilter.NameMatch(
-                        Pattern.compile(instance + "-feedMgr-*")));
+                        Pattern.compile(instance + ".*-feedMgr-.*")));
 
         return pc;
     }

@@ -18,6 +18,7 @@ import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.ConfigComponent;
@@ -45,6 +46,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import ngnova.pipeline.StopWords;
 import ngnova.retrieval.MultiDocumentVectorImpl;
+import ngnova.util.StopWatch;
 
 /**
  * A instance of an access point into the Data Store.  Data Store Heads
@@ -327,6 +329,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         } catch (ExecutionException e) {
             checkAndThrow(e);
         }
+        Collections.sort(ret, new ReverseAttentionTimeComparator());
         return ret;
     }
 
@@ -656,6 +659,13 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
     private List<Scored<Item>> findSimilar(DocumentVector dv, final int n, ResultsFilter rf)
             throws AuraException, RemoteException {
+        
+        //
+        // What if the key didn't exist?
+        if(dv == null) {
+            return new ArrayList<Scored<Item>>();
+        }
+        
         Set<PartitionCluster> clusters = trie.getAll();
         List<Callable<List<Scored<Item>>>> callers =
                 new ArrayList<Callable<List<Scored<Item>>>>();
@@ -674,7 +684,12 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         //
         // Run the computation, sort the results and return.
         try {
-            return sortScored(executor.invokeAll(callers), n);
+            StopWatch sw = new StopWatch();
+            sw.start();
+            List<Scored<Item>> res = sortScored(executor.invokeAll(callers), n);
+            sw.stop();
+            logger.info("findSimilar for " + dv.getKey() + " executed in " + sw.getTime() + "ms");
+            return res;
         } catch(ExecutionException ex) {
             checkAndThrow(ex);
             return new ArrayList<Scored<Item>>();
@@ -697,7 +712,54 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         return pc.getExplanation(key, autoTag, n);
     }
-
+    
+    public List<Scored<String>> explainSimilarity(String key1, String key2, int n) 
+            throws AuraException, RemoteException {
+        return explainSimilarity(key1, key2, (String) null, n);
+    }
+    
+    public List<Scored<String>> explainSimilarity(String key1, String key2, String field, int n) 
+            throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(key1.hashCode()));
+        DocumentVector dv1 = pc.getDocumentVector(key1, field);
+        DocumentVector dv2 = pc.getDocumentVector(key2, field);
+        return explainSimilarity(dv1, dv2, n);
+    }
+    
+    public List<Scored<String>> explainSimilarity(String key1, String key2, WeightedField[] fields, int n) 
+            throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(key1.hashCode()));
+        DocumentVector dv1 = pc.getDocumentVector(key1, fields);
+        DocumentVector dv2 = pc.getDocumentVector(key2, fields);
+        return explainSimilarity(dv1, dv2, n);
+    }
+    
+    private List<Scored<String>> explainSimilarity(DocumentVector dv1, DocumentVector dv2, int n) 
+            throws AuraException, RemoteException {
+        if(dv1 == null || dv2 == null) {
+            return new ArrayList<Scored<String>>();
+        }
+        Map<String,Float> sm = dv1.getSimilarityTerms(dv2);
+        PriorityQueue<Scored<String>> h = new PriorityQueue<Scored<String>>();
+        for(Map.Entry<String,Float> e : sm.entrySet()) {
+            if(h.size() < n) {
+                h.offer(new Scored<String>(e.getKey(), e.getValue()));
+            } else {
+                Scored<String> top = h.peek();
+                if(e.getValue() > top.getScore()) {
+                    h.poll();
+                    h.offer(new Scored<String>(e.getKey(), e.getValue()));
+                }
+            }
+        }
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        while(h.size() > 0) {
+            ret.add(h.poll());
+        }
+        Collections.reverse(ret);
+        return ret;
+    }
+    
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
             //
@@ -878,7 +940,12 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             });
         }
         try {
-        return sortScored(executor.invokeAll(callers), n);
+            StopWatch sw = new StopWatch();
+            sw.start();
+            List<Scored<Item>> res = sortScored(executor.invokeAll(callers), n);
+            sw.stop();
+            logger.info("Query for " + query + " took " + sw.getTime() + "ms");
+            return res;
         } catch(ExecutionException ex) {
             checkAndThrow(ex);
             return new ArrayList<Scored<Item>>();

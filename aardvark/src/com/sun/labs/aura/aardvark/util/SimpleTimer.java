@@ -4,8 +4,10 @@
  */
 package com.sun.labs.aura.aardvark.util;
 
-public class SimpleTimer {
+import java.util.logging.Logger;
 
+public class SimpleTimer {
+    protected Logger log = Logger.getLogger("");
     long last;
     boolean enabled;
 
@@ -19,7 +21,7 @@ public class SimpleTimer {
             long now = System.currentTimeMillis();
             long delta = now - last;
             last = now;
-            System.out.println(msg + ": " + delta + " ms");
+            log.info(msg + ": " + delta + " ms");
         }
     }
 }

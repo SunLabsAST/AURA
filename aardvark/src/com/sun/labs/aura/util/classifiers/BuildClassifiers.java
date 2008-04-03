@@ -141,6 +141,7 @@ public class BuildClassifiers implements Runnable {
         int numChars = 200;
         int numThreads = 1;
         StopWords sw = new StopWords();
+        sw.addFile("/com/sun/labs/aura/aardvark/resource/stopwords");
         int top = 500;
         String tagFile = null;
         while((c = gopt.getopt()) != -1) {

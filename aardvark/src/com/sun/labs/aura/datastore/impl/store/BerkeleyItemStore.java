@@ -202,6 +202,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     public void close() throws AuraException {
         closed = true;
         System.out.println(new Date() + ": Closing BDB...");
+        searchEngine.getSearchEngine().removeIndexListener(this);
         bdb.close();
         System.out.println(new Date() + ": Shuting down search engine...");
         searchEngine.shutdown();
@@ -219,23 +220,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     }
 
     public Item getItem(String key) throws AuraException {
-        ItemImpl item = bdb.getItem(key);
-        if(item == null) {
-            return item;
-        }
-        //
-        // autotagfix:  get the autotag fields from the search index and
-        // add them to the item's map.
-        List<Scored<String>> autotags = searchEngine.getAutoTags(key);
-        if(autotags != null) {
-            HashMap<String,Serializable> im = item.getMap();
-            if(im == null) {
-                im = new HashMap<String, Serializable>();
-                item.setMap(im);
-            }
-            im.put("autotag", (Serializable) autotags);
-        }
-        return item;
+        return bdb.getItem(key);
     }
 
     public User getUser(String key) throws AuraException {
@@ -250,15 +235,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         boolean existed = false;
         if(item instanceof ItemImpl) {
             ItemImpl itemImpl = (ItemImpl) item;
-            //
-            // autotagfix:  if this item has an autotag field in the map, 
-            // delete it before we put it in the index.  This will keep the 
-            // search engine from adding multiple identical autotag fields 
-            // to the item.  We need to do this here, ra
-            Map<String,Serializable> im = itemImpl.getMap();
-            if(im != null) {
-                im.remove("autotag");
-            }
             
             //
             // If this was a remote object, its transient map will be null
@@ -416,7 +392,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      */
     public List<Scored<Item>> findSimilar(DocumentVector dv, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        return keysToItems(searchEngine.findSimilar(dv, n, rf));
+        StopWatch sw = new StopWatch();
+        sw.start();
+        List<Scored<Item>> res = keysToItems(searchEngine.findSimilar(dv, n, rf));
+        sw.stop();
+        logger.info("Got find similar results for " + dv.getKey() + " in " + sw.getTime() + "ms");
+        return res;
     }
 
     public List<Scored<String>> getTopTerms(String key, String field, int n)
@@ -562,6 +543,20 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
             if(keys.contains(ce.item.getKey())) {
 
                 //
+                // Add the autotags.
+                List<Scored<String>> autotags =
+                        searchEngine.getAutoTags(ce.item.getKey());
+                if(autotags != null) {
+                    ce.item.getMap().put("autotag", (Serializable) autotags);
+                    try {
+                        ce.item.storeMap();
+                        bdb.putItem(ce.item);
+                    } catch(AuraException ae) {
+                        logger.log(Level.SEVERE, "Error adding autotags to " +
+                                ce.item.getKey(), ae);
+                    }
+                }
+                //
                 // Add this item to the all events type map and the per-events
                 // type map.
                 addItem(ce, eventsByType, null);
@@ -637,6 +632,19 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                 break;
             }
             if(keys.contains(ie.getKey())) {
+                //
+                // Add the autotags.
+                List<Scored<String>> autotags = searchEngine.getAutoTags(ie.getKey());
+                if(autotags != null) {
+                    ie.getMap().put("autotag", (Serializable) autotags);
+                    ie.storeMap();
+                    try {
+                        bdb.putItem(ie);
+                    } catch(AuraException ae) {
+                        logger.log(Level.SEVERE, "Error adding autotags to " +
+                                ie.getKey(), ae);
+                    }
+                }
                 addItem(ie, newItems, null);
                 addItem(ie, newItems, ie.getType());
             } else {

@@ -57,9 +57,9 @@
     
     <!-- The Name of the entry -->
     <component name="aura-name" type="com.sun.kt.search.FieldInfo">
-        <property name="indexed" value="false"/>
-        <property name="tokenized" value="false"/>
-        <property name="vectored" value="false"/>
+        <property name="indexed" value="true"/>
+        <property name="tokenized" value="true"/>
+        <property name="vectored" value="true"/>
         <property name="saved" value="true"/>
         <property name="type" value="string"/>
     </component>
@@ -97,6 +97,13 @@
         <property name="main_dict_factory" value="id_dict_factory"/>
         <property name="doc_dict_factory" value="feature_dict_factory"/>
         <property name="index_config" value="index_config"/>
+        <property name="stopwords" value="stopwords"/>
+    </component>
+    
+    <component name="stopwords" type="ngnova.pipeline.StopWords">
+        <propertylist name="stopwords_files">
+            <item>/com/sun/labs/aura/aardvark/resource/stopwords</item>
+        </propertylist>
     </component>
     
     <!-- A manager for feature cluster partitions. -->

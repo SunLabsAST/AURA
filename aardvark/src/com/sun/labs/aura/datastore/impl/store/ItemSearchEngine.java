@@ -180,6 +180,14 @@ public class ItemSearchEngine implements Configurable {
             if(dm != null) {
                 for(Map.Entry<String, Serializable> e : dm.entrySet()) {
                     Serializable val = e.getValue();
+                    
+                    //
+                    // We need to make sure that if an item changes, it doesn't
+                    // get an ever-growing set of autotags, so we won't add any
+                    // autotags when indexing.
+                    if(e.getKey().equals("autotag")) {
+                        continue;
+                    }
 
                     //
                     // OK, first up, make sure that we have an appropriately defined

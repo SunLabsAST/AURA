@@ -13,6 +13,7 @@ import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Tag;
 import java.io.PrintWriter;
 import java.rmi.RemoteException;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -42,26 +43,47 @@ public class StoryUtil {
         String padding = "        ";
 
         Item ifeed = dataStore.getItem(entry.getFeedKey());
+
+        //TBD - fix this
+        entry = new BlogEntry(dataStore.getItem(entry.getKey()));
+
         BlogFeed feed = new BlogFeed(ifeed);
         out.println("    <story score =\"" + score + "\">");
+        String content = entry.getContent();
+        if (content == null) {
+            content = "";
+        }
+
         dumpHtmlTaggedText(out, padding, "source", feed.getName());
         dumpHtmlTaggedText(out, padding, "imageUrl", feed.getImage());
         dumpHtmlTaggedText(out, padding, "url", entry.getKey());
         dumpHtmlTaggedText(out, padding, "title", entry.getTitle());
         dumpHtmlTaggedText(out, padding, "pulltime", Long.toString(entry.getTimeAdded()));
-        dumpHtmlTaggedText(out, padding, "length", Integer.toString(entry.getContent().length()));
+        dumpHtmlTaggedText(out, padding, "length", Integer.toString(content.length()));
         if (entry.getContent() != null) {
-            out.println("        <description>" + excerpt(filterHTML(entry.getContent()), 100) + "</description>");
+            out.println("        <description>" + excerpt(filterHTML(content), 100) + "</description>");
         }
 
 
-        out.println("    <tags>");
-        for (Tag tag : entry.getTags()) {
-            out.printf("%s<tag score=\"%d\">%s</tag>\n", padding, tag.getCount(), filterTag(tag.getName()));
+        if (entry.getTags().size() > 0) {
+            out.println("        <tags>");
+            for (Tag tag : entry.getTags()) {
+                out.printf("    %s<tag score=\"%d\">%s</tag>\n", padding, tag.getCount(), filterTag(tag.getName()));
+            }
+            out.println("        </tags>");
         }
-        out.println("    </tags>");
 
-        // TBD - add autotag outputs here
+        List<Scored<String>> autotags = entry.getAutoTags();
+        if (autotags.size() > 0) {
+            Collections.sort(autotags);
+            Collections.reverse(autotags);
+            out.println("        <autotags>");
+            for (Scored<String> tag : autotags) {
+                out.printf("    %s<autotag score=\"%f\">%s</autotag>\n", padding, tag.getScore(), tag.getItem());
+            }
+            out.println("        </autotags>");
+        }
+
         out.println("    </story>");
     }
 

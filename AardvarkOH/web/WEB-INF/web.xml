@@ -44,6 +44,10 @@
         <servlet-name>AddFeed</servlet-name>
         <servlet-class>com.sun.labs.aura.aardvark.web.AddFeed</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ViewAttention</servlet-name>
+        <servlet-class>com.sun.labs.aura.aardvark.web.ViewAttention</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>Home</servlet-name>
         <url-pattern>/Home</url-pattern>
@@ -83,6 +87,10 @@
     <servlet-mapping>
         <servlet-name>AddFeed</servlet-name>
         <url-pattern>/AddFeed</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ViewAttention</servlet-name>
+        <url-pattern>/ViewAttention</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

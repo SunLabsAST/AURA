@@ -131,6 +131,12 @@ public class GetStories extends HttpServlet {
     }
 
     private boolean inTopicSet(BlogEntry entry, Set<String> topicSet) {
+        // here are the autotags
+        List<Scored<String>> autotags = entry.getAutoTags();
+        for (Scored<String> autotag : autotags) {
+            System.out.println("autotag " + autotag.getItem() + " score " + autotag.getScore());
+        }
+
         // TBD: Adjust this to use autoclass
         if (topicSet.contains("all")) {
             return true;

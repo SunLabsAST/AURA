@@ -9,6 +9,7 @@ package com.sun.labs.aura.aardvark.util;
  * @author plamere
  */
 import com.sun.kt.search.FieldFrequency;
+import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.BlogEntry;
@@ -149,9 +150,12 @@ public class AardvarkShell implements AuraService, Configurable {
                             }
                             
                             Item item = dataStore.getItem(args[1]);
-                            for(Map.Entry<String,Serializable> e : item.getMap().entrySet()) {
-                                System.out.printf("%-15s %s\n", e.getKey(), e.getValue());
+                            dumpItem(item);
+                            if(item != null) {
+                                System.out.printf("%-15s %s\n", "autotags", item.getMap().
+                                        get("autotag"));
                             }
+                            
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
                             ex.printStackTrace();
@@ -538,7 +542,7 @@ public class AardvarkShell implements AuraService, Configurable {
                     }
 
                     public String getHelp() {
-                        return "Runs a query";
+                        return "Find similar";
                     }
                 });
         shell.add("ffs",
@@ -558,7 +562,78 @@ public class AardvarkShell implements AuraService, Configurable {
                     }
 
                     public String getHelp() {
-                        return "Runs a query";
+                        return "Find similar with a field";
+                    }
+                });
+        shell.add("efs",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        if(args.length < 3) {
+                            return getHelp();
+                        }
+                        String key1 = args[1];
+                        String key2 = args[2];
+                        List<Scored<String>> expn = dataStore.explainSimilarity(key1, key2, nHits);
+                        for (Scored<String> term : expn) {
+                            System.out.print(term + " ");
+                        }
+                        System.out.println("");
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Explain Find similar: efs <key1> <key2>";
+                    }
+                });
+        shell.add("effs",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        if(args.length < 4) {
+                            return getHelp();
+                        }
+                        String field = args[1];
+                        String key1 = args[2];
+                        String key2 = args[3];
+                        List<Scored<String>> expn = dataStore.explainSimilarity(key1, key2, field, nHits);
+                        for (Scored<String> term : expn) {
+                            System.out.print(term + " ");
+                        }
+                        System.out.println("");
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Explain Fielded Find similar: efs <field> <key1> <key2>";
+                    }
+                });
+                
+
+        shell.add("fwfs",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        WeightedField[] fields =  {
+                            new WeightedField("content", 1),
+                            new WeightedField("autotag", 1),
+                            new WeightedField("aura-name", 1),
+                        };
+                        String key = args[1];
+                        List<Scored<Item>> items = dataStore.findSimilar(key, fields, nHits, null);
+                        for (Scored<Item> item : items) {
+                            System.out.printf("%.3f ", item.getScore());
+                            dumpItem(item.getItem());
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Find similar with weighted fields";
                     }
                 });
 
