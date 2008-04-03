@@ -365,6 +365,23 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         logger.info("Got results for query: " + query + " [" + sw.getTime() + "ms]");
         return res;
     }
+    public List<Scored<Item>> getAutotagged(String autotag, int n)
+            throws AuraException, RemoteException {
+        StopWatch sw = new StopWatch();
+        sw.start();
+        List<Scored<Item>> res =
+                keysToItems(searchEngine.getAutotagged(autotag, n));
+        sw.stop();
+        logger.info("getAutotagged for " + autotag + " in " +
+                sw.getTime() + "ms");
+        return res;
+    }
+    
+    public List<Scored<String>> getTopAutotagTerms(String autotag, int n)
+            throws AuraException, RemoteException {
+        return searchEngine.getTopFeatures(autotag, n);
+    }
+    
 
     public DocumentVector getDocumentVector(String key) {
         return searchEngine.getDocumentVector(key);

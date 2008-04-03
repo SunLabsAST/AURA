@@ -787,6 +787,45 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return ret;
     }
     
+    public List<Scored<Item>> getAutotagged(final String autotag, final int n)
+            throws AuraException, RemoteException {
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<List<Scored<Item>>>> callers =
+                new HashSet<Callable<List<Scored<Item>>>>();
+        for(PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+
+                public List<Scored<Item>> call()
+                        throws AuraException, RemoteException {
+                    return pc.getAutotagged(autotag, n);
+                }
+            });
+        }
+        try {
+            StopWatch sw = new StopWatch();
+            sw.start();
+            List<Scored<Item>> res = sortScored(executor.invokeAll(callers), n);
+            sw.stop();
+            logger.info("Autotagged " + autotag + " took " + sw.getTime() + "ms");
+            return res;
+        } catch(ExecutionException ex) {
+            checkAndThrow(ex);
+            return new ArrayList<Scored<Item>>();
+        } catch(InterruptedException e) {
+            throw new AuraException("Query interrupted", e);
+        }
+        
+    }
+    
+    public List<Scored<String>> getTopAutotagTerms(String autotag, int n)
+            throws AuraException, RemoteException {
+        Set<PartitionCluster> clusters = trie.getAll();
+        for(PartitionCluster pc : clusters) {
+            return pc.getTopAutotagTerms(autotag, n);
+        }
+        return new ArrayList<Scored<String>>();
+    }
+    
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
             //

@@ -27,18 +27,21 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import ngnova.classification.ClassifierModel;
 import ngnova.classification.ExplainableClassifierModel;
+import ngnova.classification.FeatureCluster;
 import ngnova.classification.WeightedFeature;
 import ngnova.engine.SearchEngineImpl;
 import ngnova.indexer.entry.DocKeyEntry;
@@ -47,6 +50,7 @@ import ngnova.retrieval.DocumentVectorImpl;
 import ngnova.retrieval.FieldEvaluator;
 import ngnova.retrieval.FieldTerm;
 import ngnova.retrieval.ResultImpl;
+import ngnova.retrieval.ResultSetImpl;
 import ngnova.util.Util;
 
 /**
@@ -398,6 +402,31 @@ public class ItemSearchEngine implements Configurable {
         }
         return ret;
     }
+    
+    public List<Scored<String>> getTopFeatures(String autotag, int n) {
+        ClassifierModel cm = ((SearchEngineImpl) engine).getClassifier(autotag);
+        if(cm == null) {
+            return new ArrayList<Scored<String>>();
+        }
+        PriorityQueue<FeatureCluster> q = new PriorityQueue<FeatureCluster>(n, FeatureCluster.weightComparator);
+        for(FeatureCluster fc : cm.getFeatures()) {
+            if(q.size() < n) {
+                q.offer(fc);
+            }
+            FeatureCluster top = q.peek();
+            if(fc.getWeight() > top.getWeight()) {
+                q.poll();
+                q.offer(fc);
+            }
+        }
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        while(q.size() > 0) {
+            FeatureCluster fc = q.poll();
+            ret.add(new Scored<String>(fc.getHumanReadableName(), fc.getWeight()));
+        }
+        Collections.reverse(ret);
+        return ret;
+    }
 
     /**
      * Gets an explanation as to why a given autotag would be applied to 
@@ -476,6 +505,34 @@ public class ItemSearchEngine implements Configurable {
         }
         return ret;
     }
+    
+    /**
+     * Gets the items that have had a given autotag applied to them.
+     * @param autotag the tag that we want items to have been assigned
+     * @param n the number of items that we want
+     * @return a list of the item keys that have had a given autotag applied.  The
+     * list is ordered by the confidence of the tag assignment
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<Scored<String>> getAutotagged(String autotag, int n)
+            throws AuraException, RemoteException {
+        try {
+
+            List<Scored<String>> ret = new ArrayList<Scored<String>>();
+            
+            ResultSetImpl rs = (ResultSetImpl) engine.search(String.format("autotag = \"%s\"", autotag));
+            for(Result r : rs.getResultsForScoredField(0, n, "autotag", autotag, "autotag-score")) {
+                ret.add(new Scored<String>(r.getKey(), r.getScore()));
+            }
+            return ret;
+                    
+            
+        } catch(SearchEngineException ex) {
+            throw new AuraException("Error searching for autotag " + autotag, ex);
+        }
+    }
+   
     
     /**
      * Gets a list of scored strings consisting of the autotags assigned to
