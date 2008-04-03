@@ -33,8 +33,10 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -256,46 +258,80 @@ public class GridDeploy {
 
     }
     
-    private void stopProcess(String name) throws Exception {
-        stopProcess(name, 3000);
+    /**
+     * Issues a gentle shutdown for a process.  The resulting process registration
+     * should be added to a queue and waitForFinish should be called with that queue.
+     * This allows us to quickly start the termination of a number of registrations.
+     * @param name
+     * @return
+     * @throws java.lang.Exception
+     */
+    private ProcessRegistration stopProcess(String name) throws Exception {
+         ProcessRegistration reg = grid.getProcessRegistration(name);
+        if(reg != null) {
+            System.out.println("Stopping: " + reg);
+            reg.shutdownGently(true, 1000);
+//            if(!reg.shutdownGently(true, timeout)) {
+//                System.out.println("  Forcing: " + reg);
+//                reg.shutdownForcefully(true);
+//            }
+        } else {
+            System.out.println("No registration for " + name + " to stop");
+        }
+        return reg;
+    }
+    
+    private void waitForFinish(Queue<ProcessRegistration> q)
+            throws Exception {
+        waitForFinish(q, 600000);
     }
     
     /**
-     * Stops the named process.  Tries to gently shut it down, but if that fails
-     * it is foribly shutdown.
-     * @param name the name of the registration
-     * @param timeout the timeout to wait for gentle shutdown.
+     * Waits for the queue of processes to finish.
+     * @param q a queue of registrations that we're interested in.
+     * @param timeout how long we should wait before forcefully killing processes.
      * @throws java.lang.Exception
      */
-    public void stopProcess(String name, long timeout) throws Exception {
-        ProcessRegistration reg = grid.getProcessRegistration(name);
-        if(reg != null) {
-            System.out.println("Stopping: " + reg);
-            if(!reg.shutdownGently(true, timeout)) {
-                System.out.println("  Forcing: " + reg);
-                reg.shutdownForcefully(true);
+    private void waitForFinish(Queue<ProcessRegistration> q, long timeout) throws Exception {
+        long finish = timeout + System.currentTimeMillis();
+        int n = 0;
+        while(q.size() > 0) {
+            ProcessRegistration reg = q.poll();
+            
+            //
+            // If it's not done, then put it back on the queue.
+            if(reg.getRunState() != RunState.NONE) {
+                q.offer(reg);
             }
-        } else {
-            System.out.println("No registration for " + name + " to stop");
+            if(System.currentTimeMillis() > finish) {
+                break;
+            }
+        }
+        
+        while(q.size() > 0) {
+            ProcessRegistration reg = q.poll();
+            reg.shutdownForcefully(true);
         }
     }
     
     public void stopAuraProcesses() throws Exception {
-
-        stopProcess(getSSName());
+        Queue<ProcessRegistration> q = new LinkedList<ProcessRegistration>();
+        q.add(stopProcess(getSSName()));
         
         for(int i = 0; i < prefixCodeList.length; i++) {
-            stopProcess(getPartName(prefixCodeList[i]));
+            q.add(stopProcess(getPartName(prefixCodeList[i])));
         }
 
         //
         // Start the replicants for each prefix
         for(int i = 0; i < prefixCodeList.length; i++) {
-            stopProcess(getRepName(prefixCodeList[i]), 100000);
+            q.add(stopProcess(getRepName(prefixCodeList[i])));
         }
         
-        stopProcess(getDSHName());
-        stopProcess(getRRName());
+        q.add(stopProcess(getDSHName()));
+        q.add(stopProcess(getRRName()));
+        
+        waitForFinish(q);
     }
     
     public String getRIName(String prefix) {
@@ -383,20 +419,21 @@ public class GridDeploy {
 
         //
         // And now make an Aardvark
-        ProcessConfiguration aardvarkConfig = getAardvarkConfig();
         ProcessRegistration aardvarkReg = createProcess(getAAName(), getAardvarkConfig());
         startRegistration(aardvarkReg);
         
     }
     
     public void stopAardvarkProcesses() throws Exception {
-        stopProcess(getAAName());
+        Queue<ProcessRegistration> q = new LinkedList<ProcessRegistration>();
+        q.add(stopProcess(getAAName()));
         for(int i = 0; i < 6; i++) {
-            stopProcess(getFMName(i));
+            q.add(stopProcess(getFMName(i)));
         }
 
-        stopProcess(getSchedName());
-        stopProcess(getRecName());
+        q.add(stopProcess(getSchedName()));
+        q.add(stopProcess(getRecName()));
+        waitForFinish(q);
     }
     
     protected ProcessConfiguration getReggieConfig() throws Exception {
