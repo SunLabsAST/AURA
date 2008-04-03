@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -73,14 +74,28 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
 
             t.mark("created filter");
 
-            // select a few documents from the starred set of items to serve
-            // as the similarity seeds
-            List<String> itemKeys = selectRandomItemKeys(starredAttention, SEED_SIZE);
-            t.mark("select random item keys");
+            List<Scored<Item>> results = new ArrayList<Scored<Item>>();
+            if (!starredAttention.isEmpty()) {
+                if (num > 1) {
+                    // select a few documents from the starred set of items to serve
+                    // as the similarity seeds
+                    List<String> itemKeys = selectRandomItemKeys(starredAttention, SEED_SIZE);
+                    t.mark("select random item keys");
 
-            List<Scored<Item>> results = dataStore.findSimilar(itemKeys, "content", num * 2, rf);
-            t.mark("findSimilar");
-
+                    results = dataStore.findSimilar(itemKeys, "content", num * 2, rf);
+                    t.mark("findSimilar");
+                } else {
+                    Random r = new Random();
+                    int n = r.nextInt(starredAttention.size());
+                    t.mark("select random item key");
+                    results = dataStore.findSimilar(
+                            starredAttention.get(n).getTargetKey(),
+                            num,
+                            rf);
+                    t.mark("findSimilar");
+                }
+            }
+            
             //
             // Get the blog entries and return the set.  This is a change.
             for (Scored<Item> scoredItem : results) {

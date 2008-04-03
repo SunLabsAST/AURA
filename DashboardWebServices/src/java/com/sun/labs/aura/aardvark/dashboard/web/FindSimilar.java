@@ -24,7 +24,6 @@ import javax.servlet.http.*;
 public class FindSimilar extends HttpServlet {
 
     protected Logger logger = Logger.getLogger("");
-
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
@@ -32,10 +31,11 @@ public class FindSimilar extends HttpServlet {
      */
 
 //  findSimilar?max=10&key=http://asdsdasd/f
-
-    private final static WeightedField[] simFields  = {
+    private final static WeightedField[] simFields = {
         new WeightedField("content", 1f),
         new WeightedField("aura-name", 1f),
+        new WeightedField("tag", 1f),
+        new WeightedField("autotag", 1f),
     };
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -52,33 +52,50 @@ public class FindSimilar extends HttpServlet {
             maxCount = Integer.parseInt(maxCountString);
         }
 
-        if (key != null) {
-            try {
+        Item item = null;
+        try {
+            if (key != null && ((item = dataStore.getItem(key)) != null)) {
                 Set<String> titleSet = new HashSet<String>();
-                List<Scored<Item>> scoredItems = dataStore.findSimilar(key, "content", maxCount * 4, new TypeFilter(ItemType.BLOGENTRY));
+                //List<Scored<Item>> scoredItems = dataStore.findSimilar(key, simFields, maxCount * 4, new TypeFilter(ItemType.BLOGENTRY));
+                List<Scored<Item>> scoredItems = dataStore.findSimilar(key, maxCount * 4, new TypeFilter(ItemType.BLOGENTRY));
                 List<Scored<Item>> filteredItems = new ArrayList<Scored<Item>>();
+
+                titleSet.add(item.getName());
                 
                 for (Scored<Item> si : scoredItems) {
-                    if (!titleSet.contains(si.getItem().getName())) {
-                        titleSet.add(si.getItem().getName());
-                        filteredItems.add(si);
 
+                    if (si.getItem().getKey().equals(key)) {
+                        continue;
+                    }
+
+                    String normTitle = normalizeTitle(si.getItem().getName());
+
+                    if (!titleSet.contains(normTitle)) {
+                        titleSet.add(normTitle);
+                        filteredItems.add(si);
                         if (filteredItems.size() >= maxCount) {
                             break;
                         }
                     }
                 }
-
                 response.setContentType("text/xml;charset=UTF-8");
                 PrintWriter out = response.getWriter();
                 StoryUtil.dumpScoredStories(out, dataStore, filteredItems);
                 out.close();
-
-            } catch (AuraException ex) {
-                Shared.forwardToError(context, request, response, ex);
+            } else {
+                Shared.forwardToError(context, request, response, "missing key");
             }
+        } catch (AuraException ex) {
+            Shared.forwardToError(context, request, response, ex);
+        }
+    }
+
+
+    private String normalizeTitle(String title) {
+        if (title == null) {
+            return "";
         } else {
-            Shared.forwardToError(context, request, response, "missing key");
+            return title.replaceAll("[^\\p{Alnum}]", "").toLowerCase();
         }
     }
 

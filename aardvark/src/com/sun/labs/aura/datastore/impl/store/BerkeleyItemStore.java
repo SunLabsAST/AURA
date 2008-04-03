@@ -31,6 +31,7 @@ import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -202,6 +203,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         closed = true;
         System.out.println(new Date() + ": Closing BDB...");
         bdb.close();
+        searchEngine.getSearchEngine().removeIndexListener(this);
+        listenerMap = new HashMap<ItemType,Set<ItemListener>>();
         System.out.println(new Date() + ": Shuting down search engine...");
         searchEngine.shutdown();
         System.out.println(new Date() + ": Done closing search engine");
@@ -233,6 +236,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         boolean existed = false;
         if(item instanceof ItemImpl) {
             ItemImpl itemImpl = (ItemImpl) item;
+            
             //
             // If this was a remote object, its transient map will be null
             // and storeMap will be a no-op.  If it was a local object then
@@ -361,6 +365,23 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         logger.info("Got results for query: " + query + " [" + sw.getTime() + "ms]");
         return res;
     }
+    public List<Scored<Item>> getAutotagged(String autotag, int n)
+            throws AuraException, RemoteException {
+        StopWatch sw = new StopWatch();
+        sw.start();
+        List<Scored<Item>> res =
+                keysToItems(searchEngine.getAutotagged(autotag, n));
+        sw.stop();
+        logger.info("getAutotagged for " + autotag + " in " +
+                sw.getTime() + "ms");
+        return res;
+    }
+    
+    public List<Scored<String>> getTopAutotagTerms(String autotag, int n)
+            throws AuraException, RemoteException {
+        return searchEngine.getTopFeatures(autotag, n);
+    }
+    
 
     public DocumentVector getDocumentVector(String key) {
         return searchEngine.getDocumentVector(key);
@@ -389,7 +410,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      */
     public List<Scored<Item>> findSimilar(DocumentVector dv, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        return keysToItems(searchEngine.findSimilar(dv, n, rf));
+        StopWatch sw = new StopWatch();
+        sw.start();
+        List<Scored<Item>> res = keysToItems(searchEngine.findSimilar(dv, n, rf));
+        sw.stop();
+        logger.info("Got find similar results for " + dv.getKey() + " in " + sw.getTime() + "ms");
+        return res;
     }
 
     public List<Scored<String>> getTopTerms(String key, String field, int n)
@@ -535,6 +561,20 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
             if(keys.contains(ce.item.getKey())) {
 
                 //
+                // Add the autotags.
+                List<Scored<String>> autotags =
+                        searchEngine.getAutoTags(ce.item.getKey());
+                if(autotags != null) {
+                    ce.item.getMap().put("autotag", (Serializable) autotags);
+                    try {
+                        ce.item.storeMap();
+                        bdb.putItem(ce.item);
+                    } catch(AuraException ae) {
+                        logger.log(Level.SEVERE, "Error adding autotags to " +
+                                ce.item.getKey(), ae);
+                    }
+                }
+                //
                 // Add this item to the all events type map and the per-events
                 // type map.
                 addItem(ce, eventsByType, null);
@@ -610,6 +650,19 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                 break;
             }
             if(keys.contains(ie.getKey())) {
+                //
+                // Add the autotags.
+                List<Scored<String>> autotags = searchEngine.getAutoTags(ie.getKey());
+                if(autotags != null) {
+                    ie.getMap().put("autotag", (Serializable) autotags);
+                    ie.storeMap();
+                    try {
+                        bdb.putItem(ie);
+                    } catch(AuraException ae) {
+                        logger.log(Level.SEVERE, "Error adding autotags to " +
+                                ie.getKey(), ae);
+                    }
+                }
                 addItem(ie, newItems, null);
                 addItem(ie, newItems, ie.getType());
             } else {

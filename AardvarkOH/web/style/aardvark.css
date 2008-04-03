@@ -49,6 +49,45 @@ div.statusMsg {
   padding: 5px;
   margin-top: 15px;
   display: table;
+  text-align: center;
+}
+
+div.table {
+  display: table;
+  padding: 5px;
+}
+
+div.row {
+  display: table-row;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: black;
+}
+
+div.shadedRow {
+  display: table-row;
+  background: #BDBEC0;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: black;
+}
+
+div.attnTypeCol {
+  display: table-cell;
+  float: left;
+  width: 140px;
+}
+
+div.attnTargCol {
+  display: table-cell;
+  float: left;
+  width: 600px;
+}
+
+div.attnTimeCol {
+  display: table-cell;
+  float: left;
+  width: 250px;
 }
 
 .openidField {

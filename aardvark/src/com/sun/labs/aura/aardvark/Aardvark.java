@@ -89,6 +89,16 @@ public interface Aardvark extends Component, Remote {
                 int count) throws AuraException, RemoteException;
     
     /**
+     * Gets all the stored attention data for a user
+     * @param user the user of interest
+     * @return the list of all attention data
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<Attention> getAttention(User user)
+            throws AuraException, RemoteException;
+    
+    /**
      * Get the feeds of a particular type associated with a user.
      * @param user the user whose feeds we want
      * @param type the type of attention that we want the feeds to have

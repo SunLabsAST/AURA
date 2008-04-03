@@ -20,7 +20,6 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.rmi.RemoteException;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
@@ -47,7 +46,7 @@ public class DBServiceImpl extends RemoteServiceServlet implements
 
     public ItemDesc[] searchItemByKey(String key) {
         try {
-            String q = "aura-key <matches> " + key;
+            String q = "aura-key <substring> " + key;
             StopWatch sw = new StopWatch();
             sw.start();
             List<Scored<Item>> res = store.query(q, 10, null);
@@ -58,7 +57,6 @@ public class DBServiceImpl extends RemoteServiceServlet implements
             for (Scored<Item> si : res) {
                 results[i++] = Factory.itemDesc(si.getItem());
             }
-            logger.info("search for: " + q + " took " + sw.getTime() + "ms and returned " + res.size() + " results");
             return results;
         } catch (AuraException ex) {
             logger.log(Level.SEVERE, null, ex);
@@ -70,7 +68,7 @@ public class DBServiceImpl extends RemoteServiceServlet implements
 
     public ItemDesc[] searchItemByName(String key) {
         try {
-            String q = "aura-name <matches> " + key;
+            String q = "aura-name <substring> " + key;
             StopWatch sw = new StopWatch();
             sw.start();
             List<Scored<Item>> res = store.query(q, 10, null);
@@ -81,7 +79,6 @@ public class DBServiceImpl extends RemoteServiceServlet implements
             for (Scored<Item> si : res) {
                 results[i++] = Factory.itemDesc(si.getItem());
             }
-            logger.info("search for: " + q + " took " + sw.getTime() + "ms and returned " + res.size() + " results");
             return results;
         } catch (AuraException ex) {
             Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
@@ -103,7 +100,6 @@ public class DBServiceImpl extends RemoteServiceServlet implements
             for (Scored<Item> si : res) {
                 results[i++] = Factory.itemDesc(si.getItem());
             }
-            logger.info("search for: " + query + " took " + sw.getTime() + "ms and returned " + res.size() + " results");
             return results;
         } catch (AuraException ex) {
             Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
@@ -118,12 +114,16 @@ public class DBServiceImpl extends RemoteServiceServlet implements
         try {
             StopWatch sw = new StopWatch();
             sw.start();
-            Set<Attention> attn = store.getAttentionForSource(key);
+            List<Attention> attn = store.getAttentionForSource(key);
             sw.stop();
-            AttnDesc[] results = new AttnDesc[attn.size() + 1];
-            results[0] = new AttnDesc(sw.getTime());
+            int numResults = Math.min(attn.size(), 100);
+            AttnDesc[] results = new AttnDesc[numResults + 1];
+            results[0] = new AttnDesc(sw.getTime(), attn.size());
             int i = 1;
             for (Attention a : attn) {
+                if (i > numResults) {
+                    break;
+                }
                 results[i++] = Factory.attnDesc(a);
             }
             return results;
@@ -139,12 +139,16 @@ public class DBServiceImpl extends RemoteServiceServlet implements
         try {
             StopWatch sw = new StopWatch();
             sw.start();
-            Set<Attention> attn = store.getAttentionForTarget(key);
+            List<Attention> attn = store.getAttentionForTarget(key);
             sw.stop();
-            AttnDesc[] results = new AttnDesc[attn.size() + 1];
-            results[0] = new AttnDesc(sw.getTime());
+            int numResults = Math.min(attn.size(), 100);
+            AttnDesc[] results = new AttnDesc[numResults + 1];
+            results[0] = new AttnDesc(sw.getTime(), attn.size());
             int i = 1;
             for (Attention a : attn) {
+                if (i > numResults) {
+                    break;
+                }
                 results[i++] = Factory.attnDesc(a);
             }
             return results;

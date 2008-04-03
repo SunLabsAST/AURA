@@ -10,15 +10,20 @@ import com.sun.labs.aura.aardvark.BlogUser;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.util.AuraException;
-import java.io.*;
-import java.net.*;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.*;
-import javax.servlet.http.*;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerException;
 import org.openid4java.consumer.ConsumerManager;
@@ -416,6 +421,7 @@ public class Login extends HttpServlet {
         bu.setCountry(country);
         bu.setLanguage(language);
         bu.setTimezone(timezone);
+        u.setName(nickname);
     }
     
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

@@ -141,6 +141,7 @@ public class BuildClassifiers implements Runnable {
         int numChars = 200;
         int numThreads = 1;
         StopWords sw = new StopWords();
+        sw.addFile("/com/sun/labs/aura/aardvark/resource/stopwords");
         int top = 500;
         String tagFile = null;
         while((c = gopt.getopt()) != -1) {
@@ -195,8 +196,7 @@ public class BuildClassifiers implements Runnable {
             BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(tagFile), "utf-8"));
             String l;
             while((l = r.readLine()) != null) {
-                int p = l.indexOf(' ');
-                classes.add(l.substring(p+1));
+                classes.add(l);
             }
             r.close();
         }

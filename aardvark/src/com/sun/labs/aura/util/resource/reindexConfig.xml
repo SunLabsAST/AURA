@@ -12,13 +12,12 @@
     <!-- We're going to use a synchronous dumper so that when an entry is
     indexed, when control is returned to the caller the data is available for
     searching. -->
-    <property name="dumper" value="async_dumper"/>
+    <property name="dumper" value="sync_dumper"/>
     
-    <!-- We'll use 2 indexing pipelines, which means that indexing will be 
-    asynchronous:  unless the indexing queues are full, when something is
-    indexed, control will be returned immediately to the caller -->
     <property name="num_pipelines" value="1"/>
     
+    <property name="startingDataDir" value="${auraHome}/starting.idx"/>
+
     <!-- A search engine that can be used to do classification -->
     <component name="aardvark_search_engine" inherit="search_engine">
         <property name="inv_file_partition_manager" value="partition_manager"/>
@@ -55,9 +54,9 @@
     
     <!-- The Name of the entry -->
     <component name="aura-name" type="com.sun.kt.search.FieldInfo">
-        <property name="indexed" value="false"/>
-        <property name="tokenized" value="false"/>
-        <property name="vectored" value="false"/>
+        <property name="indexed" value="true"/>
+        <property name="tokenized" value="true"/>
+        <property name="vectored" value="true"/>
         <property name="saved" value="true"/>
         <property name="type" value="string"/>
     </component>
@@ -77,6 +76,7 @@
         <property name="classes_field" value="class"/>
         <property name="index_config" value="index_config"/>
         <property name="partition_factory" value="classifier_partition_factory"/>
+        <property name="starting_data" value="${startingDataDir}/class"/>
         <property name="calculate_dvl" value="false"/>
     </component>
     
@@ -102,6 +102,7 @@
         <property name="class_manager" value="class_manager"/>
         <property name="index_config" value="index_config"/>
         <property name="partition_factory" value="cluster_partition_factory"/>
+        <property name="starting_data" value="${startingDataDir}/cluster"/>
         <property name="calculate_dvl" value="false"/>
     </component>
     

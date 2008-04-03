@@ -9,17 +9,13 @@
 
 package com.sun.labs.aura.util.classifiers;
 
-import com.sun.kt.search.FieldFrequency;
 import com.sun.kt.search.Log;
 import com.sun.kt.search.Result;
 import com.sun.kt.search.SearchEngine;
 import com.sun.kt.search.SearchEngineFactory;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import ngnova.classification.ClassifierModel;
 import ngnova.classification.ExplainableClassifierModel;
 import ngnova.engine.SearchEngineImpl;

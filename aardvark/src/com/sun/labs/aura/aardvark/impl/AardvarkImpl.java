@@ -141,6 +141,17 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         return dataStore.getLastAttentionForSource(user.getKey(), type, count);
     }
 
+    /**
+     * Gets all the stored attention data for a user
+     * @param user the user of interest
+     * @return the list of all attention data
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<Attention> getAttention(User user) throws AuraException, RemoteException {
+        return dataStore.getAttentionForSource(user.getKey());
+    }
+    
     public Set<BlogFeed> getFeeds(User user, Attention.Type type) throws AuraException, RemoteException {
 
         List<Item> items = dataStore.getItems(user, type, ItemType.FEED);
@@ -268,9 +279,9 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         User freshUser = getUser(user.getKey());
         SyndFeed feed = new SyndFeedImpl();
         feed.setFeedType("atom");  // BUG - what are the possible feed types
-        feed.setTitle("Aardvark recommendations for " + freshUser.getKey());
-        feed.setDescription("Recommendations created for " + freshUser.getKey());
-        feed.setPublishedDate(new Date());
+        feed.setTitle("Aardvark recommendations for " + freshUser.getName());
+        feed.setDescription("Recommendations created for " + freshUser.getName());
+        //feed.setPublishedDate(new Date());
         feed.setEntries(FeedUtils.getSyndEntries(getRecommendedEntries(freshUser, num)));
         return feed;
     }

@@ -18,6 +18,7 @@ import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.ConfigComponent;
@@ -37,14 +38,17 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import ngnova.pipeline.StopWords;
 import ngnova.retrieval.MultiDocumentVectorImpl;
+import ngnova.util.StopWatch;
 
 /**
  * A instance of an access point into the Data Store.  Data Store Heads
@@ -327,6 +331,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         } catch (ExecutionException e) {
             checkAndThrow(e);
         }
+        Collections.sort(ret, new ReverseAttentionTimeComparator());
         return ret;
     }
 
@@ -610,7 +615,16 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         DocumentVector dv = pc.getDocumentVector(key);
-        return findSimilar(dv, n, rf);
+        int numClusters = trie.size();
+        PCLatch latch;
+        if (n == 1) {
+            // Special case:
+            // Return if we've heard from three quarters of our clusters
+            latch = new PCLatch((int)(numClusters * 0.75), 500);
+        } else {
+            latch = new PCLatch(numClusters);
+        }
+        return findSimilar(dv, n, rf, latch);
     }
 
     public List<Scored<Item>> findSimilar(String key, final String field,
@@ -618,7 +632,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         DocumentVector dv = pc.getDocumentVector(key, field);
-        return findSimilar(dv, n, rf);
+        PCLatch latch = new PCLatch(trie.size());
+        return findSimilar(dv, n, rf, latch);
     }
 
     public List<Scored<Item>> findSimilar(List<String> keys, int n, ResultsFilter rf)
@@ -629,7 +644,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             dvs.add(pc.getDocumentVector(key));
         }
         MultiDocumentVectorImpl mdvi = new MultiDocumentVectorImpl(dvs);
-        return findSimilar(mdvi, n, rf);
+        PCLatch latch = new PCLatch(trie.size());
+        return findSimilar(mdvi, n, rf, latch);
     }
 
     public List<Scored<Item>> findSimilar(List<String> keys,
@@ -642,7 +658,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             dvs.add(pc.getDocumentVector(key, field));
         }
         MultiDocumentVectorImpl mdvi = new MultiDocumentVectorImpl(dvs);
-        return findSimilar(mdvi, n, rf);
+        PCLatch latch = new PCLatch(trie.size());
+        return findSimilar(mdvi, n, rf, latch);
     }
 
     public List<Scored<Item>> findSimilar(final String key,
@@ -651,22 +668,37 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         DocumentVector dv = pc.getDocumentVector(key, fields);
-        return findSimilar(dv, n, rf);
+        PCLatch latch = new PCLatch(trie.size());
+        return findSimilar(dv, n, rf, latch);
     }
 
-    private List<Scored<Item>> findSimilar(DocumentVector dv, final int n, ResultsFilter rf)
+    private List<Scored<Item>> findSimilar(
+            DocumentVector dv,
+            final int n,
+            ResultsFilter rf,
+            final PCLatch latch)
             throws AuraException, RemoteException {
+        
+        //
+        // What if the key didn't exist?
+        if(dv == null) {
+            return new ArrayList<Scored<Item>>();
+        }
+        
         Set<PartitionCluster> clusters = trie.getAll();
         List<Callable<List<Scored<Item>>>> callers =
                 new ArrayList<Callable<List<Scored<Item>>>>();
         //
-        // Here's our list of callers to find similar.
+        // Here's our list of callers to find similar.  Each one will be given
+        // a handle to a countdown latch to watch when they finish.
         for(PartitionCluster p : clusters) {
             callers.add(new PCCaller(p, dv, rf) {
 
                 public List<Scored<Item>> call()
                         throws AuraException, RemoteException {
-                    return pc.findSimilar(dv, n, rf);
+                    List<Scored<Item>> ret = pc.findSimilar(dv, n, rf);
+                    latch.countDown();
+                    return ret;
                 }
             });
         }
@@ -674,7 +706,17 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         //
         // Run the computation, sort the results and return.
         try {
-            return sortScored(executor.invokeAll(callers), n);
+            StopWatch sw = new StopWatch();
+            sw.start();
+            List<Future<List<Scored<Item>>>> futures =
+                    new ArrayList<Future<List<Scored<Item>>>>();
+            for (Callable c : callers) {
+                futures.add(executor.submit(c));
+            }
+            List<Scored<Item>> res = sortScored(futures, n, latch);
+            sw.stop();
+            logger.info("findSimilar for " + dv.getKey() + " executed in " + sw.getTime() + "ms");
+            return res;
         } catch(ExecutionException ex) {
             checkAndThrow(ex);
             return new ArrayList<Scored<Item>>();
@@ -698,6 +740,96 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return pc.getExplanation(key, autoTag, n);
     }
 
+    public List<Scored<String>> explainSimilarity(String key1, String key2, int n) 
+            throws AuraException, RemoteException {
+        return explainSimilarity(key1, key2, (String) null, n);
+    }
+    
+    public List<Scored<String>> explainSimilarity(String key1, String key2, String field, int n) 
+            throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(key1.hashCode()));
+        DocumentVector dv1 = pc.getDocumentVector(key1, field);
+        DocumentVector dv2 = pc.getDocumentVector(key2, field);
+        return explainSimilarity(dv1, dv2, n);
+    }
+    
+    public List<Scored<String>> explainSimilarity(String key1, String key2, WeightedField[] fields, int n) 
+            throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(key1.hashCode()));
+        DocumentVector dv1 = pc.getDocumentVector(key1, fields);
+        DocumentVector dv2 = pc.getDocumentVector(key2, fields);
+        return explainSimilarity(dv1, dv2, n);
+    }
+    
+    private List<Scored<String>> explainSimilarity(DocumentVector dv1, DocumentVector dv2, int n) 
+            throws AuraException, RemoteException {
+        if(dv1 == null || dv2 == null) {
+            return new ArrayList<Scored<String>>();
+        }
+        Map<String,Float> sm = dv1.getSimilarityTerms(dv2);
+        PriorityQueue<Scored<String>> h = new PriorityQueue<Scored<String>>();
+        for(Map.Entry<String,Float> e : sm.entrySet()) {
+            if(h.size() < n) {
+                h.offer(new Scored<String>(e.getKey(), e.getValue()));
+            } else {
+                Scored<String> top = h.peek();
+                if(e.getValue() > top.getScore()) {
+                    h.poll();
+                    h.offer(new Scored<String>(e.getKey(), e.getValue()));
+                }
+            }
+        }
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        while(h.size() > 0) {
+            ret.add(h.poll());
+        }
+        Collections.reverse(ret);
+        return ret;
+    }
+    
+    public List<Scored<Item>> getAutotagged(final String autotag, final int n)
+            throws AuraException, RemoteException {
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<List<Scored<Item>>>> callers =
+                new HashSet<Callable<List<Scored<Item>>>>();
+        final PCLatch latch = new PCLatch(clusters.size());
+        for(PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+
+                public List<Scored<Item>> call()
+                        throws AuraException, RemoteException {
+                    List<Scored<Item>> ret = pc.getAutotagged(autotag, n);
+                    latch.countDown();
+                    return ret;
+                }
+            });
+        }
+        try {
+            StopWatch sw = new StopWatch();
+            sw.start();
+            List<Scored<Item>> res = sortScored(executor.invokeAll(callers),
+                    n, latch);
+            sw.stop();
+            logger.info("Autotagged " + autotag + " took " + sw.getTime() + "ms");
+            return res;
+        } catch(ExecutionException ex) {
+            checkAndThrow(ex);
+            return new ArrayList<Scored<Item>>();
+        } catch(InterruptedException e) {
+            throw new AuraException("Query interrupted", e);
+        }
+        
+    }
+    
+    public List<Scored<String>> getTopAutotagTerms(String autotag, int n)
+            throws AuraException, RemoteException {
+        Set<PartitionCluster> clusters = trie.getAll();
+        for(PartitionCluster pc : clusters) {
+            return pc.getTopAutotagTerms(autotag, n);
+        }
+        return new ArrayList<Scored<String>>();
+    }
+    
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
             //
@@ -732,19 +864,29 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
      *  Utility and configuration methods
      * 
      */
-    private List<Scored<Item>> sortScored(List<Future<List<Scored<Item>>>> results,
-            int n) throws InterruptedException, ExecutionException {
+    private List<Scored<Item>> sortScored(
+            List<Future<List<Scored<Item>>>> results,
+            int n,
+            PCLatch latch)
+                throws InterruptedException, ExecutionException {
+        
         PriorityQueue<Scored<Item>> sorter = new PriorityQueue<Scored<Item>>(n);
+        //
+        // Wait for some, or all, or some time limit for execution to
+        // finish.
+        latch.await();
         for(Future<List<Scored<Item>>> future : results) {
-            List<Scored<Item>> curr = future.get();
-            if(curr != null) {
-                for(Scored<Item> item : curr) {
-                    if(sorter.size() < n) {
-                        sorter.offer(item);
-                    } else {
-                        if(item.compareTo(sorter.peek()) > 0) {
-                            sorter.poll();
+            if (future.isDone()) {
+                List<Scored<Item>> curr = future.get();
+                if(curr != null) {
+                    for(Scored<Item> item : curr) {
+                        if(sorter.size() < n) {
                             sorter.offer(item);
+                        } else {
+                            if(item.compareTo(sorter.peek()) > 0) {
+                                sorter.poll();
+                                sorter.offer(item);
+                            }
                         }
                     }
                 }
@@ -824,6 +966,55 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         public abstract V call() throws AuraException, RemoteException;
     }
     
+    protected class PCLatch extends CountDownLatch {
+        protected int timeout;
+        protected int initialCount;
+        
+        /**
+         * Construct a standard latch that waits for count elements to finish
+         * before continuing.
+         * @param count
+         */
+        public PCLatch(int count) {
+            super(count);
+            initialCount = count;
+            timeout = 0;
+        }
+        
+        /**
+         * Construct a latch for a PC call that will wait for some number of
+         * partitions to return using a timeout period.
+         * 
+         * @param count the initial count of the latch
+         * @param timeout the initial time to wait in milliseconds
+         */
+        public PCLatch(int count, int timeout) {
+            super(count);
+            initialCount = count;
+            this.timeout = timeout;
+        }
+
+        public int getTimeout() {
+            return timeout;
+        }
+        
+        /**
+         * Waits for the given number of completions to complete.  If a
+         * timeout was specified in the constructor, await will return either
+         * when the count has been satisfied, or the time has elapsed,
+         * whichever comes first
+         * @throws java.lang.InterruptedException
+         */
+        public void await() throws InterruptedException {
+            if (getTimeout() > 0) {
+                super.await(getTimeout(), TimeUnit.MILLISECONDS);
+            } else {
+                super.await();
+            }
+        }
+        
+    }
+    
     /**
      * Handles an ExecutionException by throwing something more descriptive.
      * If the execution failed due to a known type of ecxeption (aura, remote)
@@ -869,16 +1060,24 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         Set<PartitionCluster> clusters = trie.getAll();
         Set<Callable<List<Scored<Item>>>> callers =
                 new HashSet<Callable<List<Scored<Item>>>>();
+        final PCLatch latch = new PCLatch(clusters.size());
         for(PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
                 public List<Scored<Item>> call()
                         throws AuraException, RemoteException {
-                    return pc.query(query, sort, n, rf);
+                    List<Scored<Item>> ret = pc.query(query, sort, n, rf);
+                    latch.countDown();
+                    return ret;
                 }
             });
         }
         try {
-        return sortScored(executor.invokeAll(callers), n);
+            StopWatch sw = new StopWatch();
+            sw.start();
+            List<Scored<Item>> res = sortScored(executor.invokeAll(callers), n, latch);
+            sw.stop();
+            logger.info("Query for " + query + " took " + sw.getTime() + "ms");
+            return res;
         } catch(ExecutionException ex) {
             checkAndThrow(ex);
             return new ArrayList<Scored<Item>>();

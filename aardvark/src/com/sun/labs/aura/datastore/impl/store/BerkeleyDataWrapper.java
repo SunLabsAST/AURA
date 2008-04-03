@@ -623,6 +623,7 @@ public class BerkeleyDataWrapper {
         } catch(DatabaseException ex) {
             log.log(Level.WARNING, "Failed to close cursor", ex);
         }
+        Collections.sort(res, new ReverseAttentionTimeComparator());
         return res;
     }
 

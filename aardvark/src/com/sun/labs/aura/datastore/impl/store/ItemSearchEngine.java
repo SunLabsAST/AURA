@@ -27,24 +27,30 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import ngnova.classification.ClassifierModel;
 import ngnova.classification.ExplainableClassifierModel;
+import ngnova.classification.FeatureCluster;
 import ngnova.classification.WeightedFeature;
 import ngnova.engine.SearchEngineImpl;
+import ngnova.indexer.entry.DocKeyEntry;
+import ngnova.indexer.partition.InvFileDiskPartition;
 import ngnova.retrieval.DocumentVectorImpl;
 import ngnova.retrieval.FieldEvaluator;
 import ngnova.retrieval.FieldTerm;
 import ngnova.retrieval.ResultImpl;
+import ngnova.retrieval.ResultSetImpl;
 import ngnova.util.Util;
 
 /**
@@ -178,6 +184,14 @@ public class ItemSearchEngine implements Configurable {
             if(dm != null) {
                 for(Map.Entry<String, Serializable> e : dm.entrySet()) {
                     Serializable val = e.getValue();
+                    
+                    //
+                    // We need to make sure that if an item changes, it doesn't
+                    // get an ever-growing set of autotags, so we won't add any
+                    // autotags when indexing.
+                    if(e.getKey().equals("autotag")) {
+                        continue;
+                    }
 
                     //
                     // OK, first up, make sure that we have an appropriately defined
@@ -321,30 +335,6 @@ public class ItemSearchEngine implements Configurable {
     }
 
     /**
-     * Gets the document vector associated with the entry with a given ID.
-     * @param id the ID of the entry that we want the document vector for
-     * @return the document vector associated with the given ID.  If no entry in
-     * the index has that ID or if an error occurs during the search for the ID,
-     * then <code>null<code> is returned.
-     */
-    public DocumentVector getDocument(long id) {
-        try {
-            ResultSet rs = engine.search(String.format("id = %d", id));
-            if(rs.size() == 0) {
-                return null;
-            }
-            if(rs.size() > 1) {
-                log.warning("Multiple entries for ID: " + id);
-            }
-            Result r = rs.getResults(0, 1).get(0);
-            return r.getDocumentVector();
-        } catch(SearchEngineException ex) {
-            log.log(Level.SEVERE, "Error searching for ID " + id, ex);
-            return null;
-        }
-    }
-
-    /**
      * Gets the document associated with a given key.
      * @param key the key of the entry that we want the document vector for
      * @return the document vector associated with the key.  If the entry with this
@@ -367,7 +357,7 @@ public class ItemSearchEngine implements Configurable {
     public DocumentVector getDocumentVector(String key, WeightedField[] fields) {
         return engine.getDocumentVector(key, fields);
     }
-
+    
     /**
      * Finds the n most-similar items to the given item, based on the data in the 
      * provided field.
@@ -410,6 +400,31 @@ public class ItemSearchEngine implements Configurable {
         for(int i = 0; i < wf.length && i < n; i++) {
             ret.add(new Scored<String>(wf[i].getName(), wf[i].getWeight()));
         }
+        return ret;
+    }
+    
+    public List<Scored<String>> getTopFeatures(String autotag, int n) {
+        ClassifierModel cm = ((SearchEngineImpl) engine).getClassifier(autotag);
+        if(cm == null) {
+            return new ArrayList<Scored<String>>();
+        }
+        PriorityQueue<FeatureCluster> q = new PriorityQueue<FeatureCluster>(n, FeatureCluster.weightComparator);
+        for(FeatureCluster fc : cm.getFeatures()) {
+            if(q.size() < n) {
+                q.offer(fc);
+            }
+            FeatureCluster top = q.peek();
+            if(fc.getWeight() > top.getWeight()) {
+                q.poll();
+                q.offer(fc);
+            }
+        }
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        while(q.size() > 0) {
+            FeatureCluster fc = q.poll();
+            ret.add(new Scored<String>(fc.getHumanReadableName(), fc.getWeight()));
+        }
+        Collections.reverse(ret);
         return ret;
     }
 
@@ -487,6 +502,79 @@ public class ItemSearchEngine implements Configurable {
                         ex.getMessage());
             }
             throw new AuraException("Error finding items", see);
+        }
+        return ret;
+    }
+    
+    /**
+     * Gets the items that have had a given autotag applied to them.
+     * @param autotag the tag that we want items to have been assigned
+     * @param n the number of items that we want
+     * @return a list of the item keys that have had a given autotag applied.  The
+     * list is ordered by the confidence of the tag assignment
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<Scored<String>> getAutotagged(String autotag, int n)
+            throws AuraException, RemoteException {
+        try {
+
+            List<Scored<String>> ret = new ArrayList<Scored<String>>();
+            
+            ResultSetImpl rs = (ResultSetImpl) engine.search(String.format("autotag = \"%s\"", autotag));
+            for(Result r : rs.getResultsForScoredField(0, n, "autotag", autotag, "autotag-score")) {
+                ret.add(new Scored<String>(r.getKey(), r.getScore()));
+            }
+            return ret;
+                    
+            
+        } catch(SearchEngineException ex) {
+            throw new AuraException("Error searching for autotag " + autotag, ex);
+        }
+    }
+   
+    
+    /**
+     * Gets a list of scored strings consisting of the autotags assigned to
+     * an item and their associated classifier scores.  This requires rather
+     * deeper knowledge of the field store than I am comfortable with, but using
+     * the document abstraction would require fetching all of the field values.
+     * 
+     * <p>
+     * 
+     * We should probably fix the document abstraction so that it fetches on
+     * demand, but not before the open house, eh?
+     * 
+     * <p>
+     * 
+     * autotagfix
+     * 
+     * @param key the key for the document whose autotags we want
+     * @return a list of scored strings where the item is the autotag and the score
+     * is the classifier score associated with the autotag.
+     */
+    public List<Scored<String>> getAutoTags(String key) {
+        DocKeyEntry dke = ((SearchEngineImpl) engine).getDocumentTerm(key);
+        if(dke == null) {
+            //
+            // No document by that name here...
+            return null;
+        }
+        List<String> autotags = (List<String>) ((InvFileDiskPartition) dke.getPartition()).getFieldStore().getSavedFieldData("autotag", dke.getID(), true);
+        if(autotags.size() == 0) {
+            
+            //
+            // No tags.
+            return null;
+        }
+        List<Double> autotagScores = (List<Double>) ((InvFileDiskPartition) dke.getPartition()).getFieldStore().getSavedFieldData("autotag-score", dke.getID(), true);
+        if(autotags.size() != autotagScores.size()) {
+            log.warning("Mismatched autotags and scores: " + autotags + " " + autotagScores);
+        }
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        int lim = Math.min(autotags.size(), autotagScores.size());
+        for(int i = 0; i < lim; i++) {
+            ret.add(new Scored<String>(autotags.get(i), autotagScores.get(i)));
         }
         return ret;
     }

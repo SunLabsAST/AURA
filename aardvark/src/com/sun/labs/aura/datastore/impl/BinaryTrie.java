@@ -133,10 +133,29 @@ public class BinaryTrie<E> implements Serializable {
         throw new IllegalStateException("Trie too deep!");
     }
     
+    /**
+     * Get a new set containing all the elements of the trie
+     * 
+     * @return a new set containing all the elements of the trie
+     */
     public Set<E> getAll() {
         lock.readLock().lock();
         try {
             return new HashSet<E>(contents);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+    
+    /**
+     * Returns the number of elements in the trie
+     * 
+     * @return the number of elements in the trie
+     */
+    public int size() {
+        lock.readLock().lock();
+        try {
+            return contents.size();
         } finally {
             lock.readLock().unlock();
         }
