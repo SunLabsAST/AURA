@@ -12,7 +12,7 @@
     <!-- We're going to use a synchronous dumper so that when an entry is
     indexed, when control is returned to the caller the data is available for
     searching. -->
-    <property name="dumper" value="async_dumper"/>
+    <property name="dumper" value="sync_dumper"/>
     
     <property name="num_pipelines" value="1"/>
     
@@ -54,9 +54,9 @@
     
     <!-- The Name of the entry -->
     <component name="aura-name" type="com.sun.kt.search.FieldInfo">
-        <property name="indexed" value="false"/>
-        <property name="tokenized" value="false"/>
-        <property name="vectored" value="false"/>
+        <property name="indexed" value="true"/>
+        <property name="tokenized" value="true"/>
+        <property name="vectored" value="true"/>
         <property name="saved" value="true"/>
         <property name="type" value="string"/>
     </component>
