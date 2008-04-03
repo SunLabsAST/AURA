@@ -216,7 +216,11 @@ public class PartitionClusterImpl implements PartitionCluster,
             throws AuraException, RemoteException {
         return replicant.query(query, sort, n, rf);
     }
-
+    
+    public List<Scored<Item>> getAutotagged(String autotag, int n)
+            throws AuraException, RemoteException {
+        return replicant.getAutotagged(autotag, n);
+    }
 
     public List<Scored<String>> getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException {

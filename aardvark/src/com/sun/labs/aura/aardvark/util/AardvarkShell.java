@@ -525,6 +525,25 @@ public class AardvarkShell implements AuraService, Configurable {
                         return "Runs a query";
                     }
                 });
+        shell.add("gat",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String autotag = stuff(args, 1).trim();
+                        List<Scored<Item>> items = dataStore.getAutotagged(autotag, nHits);
+                        for (Scored<Item> item : items) {
+                            System.out.printf("%.3f ", item.getScore());
+                            dumpItem(item.getItem());
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "get top auttagged items:   gat <autotag>";
+                    }
+                });
 
         shell.add("fs",
                 new CommandInterface() {

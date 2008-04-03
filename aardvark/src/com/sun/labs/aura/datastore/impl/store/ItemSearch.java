@@ -219,4 +219,16 @@ public interface ItemSearch {
     public List<Scored<String>> explainSimilarity(String key1, String key2,
             WeightedField[] fields, int n)
             throws AuraException, RemoteException;
+
+    /**
+     * Gets the items that have had a given autotag applied to them.
+     * @param autotag the tag that we want items to have been assigned
+     * @param n the number of items that we want
+     * @return a list of the items that have had a given autotag applied.  The
+     * list is ordered by the confidence of the tag assignment
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<Scored<Item>> getAutotagged(String autotag, int n)
+            throws AuraException, RemoteException;
 }
