@@ -176,6 +176,20 @@ public class ItemAdapter implements Serializable {
     }
 
     /**
+     * Gets a field value as a String or the default value if the string is null
+     * @param name the name of the field
+     * @param defaultVal the default value
+     * @return the value as a String
+     */
+    protected String getFieldAsString(String name, String defaultVal) {
+        String ret =  (String) item.getMap().get(name);
+        if (ret == null) {
+            ret = defaultVal;
+        }
+        return ret;
+    }
+
+    /**
      * Gets a field value as a set of Strings
      * @param name the name of the field
      * @return the value as a set of strings 
