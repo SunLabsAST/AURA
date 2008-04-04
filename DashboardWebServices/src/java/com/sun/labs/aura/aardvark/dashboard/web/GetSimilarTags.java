@@ -2,6 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package com.sun.labs.aura.aardvark.dashboard.web;
 
 import com.sun.labs.aura.aardvark.BlogEntry;
@@ -21,16 +22,16 @@ import javax.servlet.http.*;
  *
  * @author plamere
  */
-public class GetTagInfo extends HttpServlet {
-
+public class GetSimilarTags extends HttpServlet {
+   
     /** 
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
-     * @param request servlet request
-     * @param response servlet response
-     */
+    * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
+    * @param request servlet request
+    * @param response servlet response
+    */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        ServletContext context = getServletContext();
+    throws ServletException, IOException {
+         ServletContext context = getServletContext();
         DataStore dataStore = (DataStore) context.getAttribute("dataStore");
 
 
@@ -87,32 +88,32 @@ public class GetTagInfo extends HttpServlet {
         } catch (AuraException ex) {
             Shared.forwardToError(context, request, response, ex);
         }
-    }
+    } 
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /** 
-     * Handles the HTTP <code>GET</code> method.
-     * @param request servlet request
-     * @param response servlet response
-     */
+    * Handles the HTTP <code>GET</code> method.
+    * @param request servlet request
+    * @param response servlet response
+    */
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    throws ServletException, IOException {
         processRequest(request, response);
-    }
+    } 
 
     /** 
-     * Handles the HTTP <code>POST</code> method.
-     * @param request servlet request
-     * @param response servlet response
-     */
+    * Handles the HTTP <code>POST</code> method.
+    * @param request servlet request
+    * @param response servlet response
+    */
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    throws ServletException, IOException {
         processRequest(request, response);
     }
 
     /** 
-     * Returns a short description of the servlet.
-     */
+    * Returns a short description of the servlet.
+    */
     public String getServletInfo() {
         return "Short description";
     }

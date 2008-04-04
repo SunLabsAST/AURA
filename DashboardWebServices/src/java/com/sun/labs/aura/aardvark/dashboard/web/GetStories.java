@@ -88,7 +88,7 @@ public class GetStories extends HttpServlet {
     private List<BlogEntry> collectStories(DataStore dataStore,
             long time, long delta, int maxCount, Set<String> topicSet) throws AuraException, RemoteException {
         List<BlogEntry> results = new ArrayList<BlogEntry>();
-        int accumMaxSize = maxCount * 4;
+        int accumMaxSize = maxCount * 2;
         long start;
         long end;
 
@@ -97,6 +97,8 @@ public class GetStories extends HttpServlet {
             if (delta > 0) {
                 end = start + delta;
             } else {
+                //  replay mode,
+                accumMaxSize = maxCount;
                 end = System.currentTimeMillis();
             }
         } else {
