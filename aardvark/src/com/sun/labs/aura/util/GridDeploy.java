@@ -21,6 +21,7 @@ import com.sun.caroline.platform.NetworkConfiguration;
 import com.sun.caroline.platform.NetworkSetting;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessExitAction;
+import com.sun.caroline.platform.ProcessOutcome;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
 import com.sun.caroline.platform.RunState;
@@ -271,10 +272,6 @@ public class GridDeploy {
         if(reg != null) {
             System.out.println("Stopping: " + reg);
             reg.shutdownGently(true, 1000);
-//            if(!reg.shutdownGently(true, timeout)) {
-//                System.out.println("  Forcing: " + reg);
-//                reg.shutdownForcefully(true);
-//            }
         } else {
             System.out.println("No registration for " + name + " to stop");
         }
@@ -298,19 +295,29 @@ public class GridDeploy {
         while(q.size() > 0) {
             ProcessRegistration reg = q.poll();
             
+            if(reg == null) {
+                continue;
+            }
+            
+            System.out.println(reg + " ro: " + reg.getProcessOutcome());
             //
             // If it's not done, then put it back on the queue.
-            if(reg.getRunState() != RunState.NONE) {
+            if(reg.getProcessOutcome() == null) {
                 q.offer(reg);
+                Thread.sleep(500);
             }
+            
             if(System.currentTimeMillis() > finish) {
                 break;
             }
+            
         }
         
         while(q.size() > 0) {
             ProcessRegistration reg = q.poll();
-            reg.shutdownForcefully(true);
+            if(reg != null) {
+                reg.shutdownForcefully(true);
+            }
         }
     }
     
@@ -608,7 +615,7 @@ public class GridDeploy {
                 " com.sun.labs.aura.util.Reindexer" +
                 " -d /files/data/" + prefix + "/reindex.idx" +
                 " -b /files/data/" + prefix + "/db" +
-                " -o /files/data/" + prefix + "itemIndex.idx";
+                " -o /files/data/" + prefix + "/itemIndex.idx";
  
         // create a configuration and set relevant properties
         ProcessConfiguration pc = new ProcessConfiguration();
