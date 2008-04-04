@@ -243,4 +243,14 @@ public interface ItemSearch {
      */
     public List<Scored<String>> getTopAutotagTerms(String autotag, int n)
             throws AuraException, RemoteException;
+    /**
+     * Find the top n most similar autotags to the given autotag.
+     * @param autotag the tag we want similar tags for
+     * @param n the number of tags to return
+     * @return the n most similar autotags
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<Scored<String>> findSimilarAutotags(String autotag, int n)
+            throws AuraException, RemoteException;
 }

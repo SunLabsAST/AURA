@@ -2,6 +2,7 @@ package com.sun.labs.aura.datastore.impl.store;
 
 import com.sun.kt.search.DocumentVector;
 import com.sun.kt.search.FieldInfo;
+import com.sun.kt.search.FieldValue;
 import com.sun.kt.search.IndexableString;
 import com.sun.kt.search.Log;
 import com.sun.kt.search.Posting;
@@ -394,7 +395,11 @@ public class ItemSearchEngine implements Configurable {
 
     public List<Scored<String>> getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException {
-        WeightedFeature[] wf = ((DocumentVectorImpl) getDocumentVector(key, field)).getFeatures();
+        DocumentVectorImpl dv = (DocumentVectorImpl) getDocumentVector(key, field);
+        if(dv == null) {
+            return new ArrayList<Scored<String>>();
+        }
+        WeightedFeature[] wf = dv.getFeatures();
         Util.sort(wf, WeightedFeature.getInverseWeightComparator());
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         for(int i = 0; i < wf.length && i < n; i++) {
@@ -412,11 +417,12 @@ public class ItemSearchEngine implements Configurable {
         for(FeatureCluster fc : cm.getFeatures()) {
             if(q.size() < n) {
                 q.offer(fc);
-            }
-            FeatureCluster top = q.peek();
-            if(fc.getWeight() > top.getWeight()) {
-                q.poll();
-                q.offer(fc);
+            } else {
+                FeatureCluster top = q.peek();
+                if(fc.getWeight() > top.getWeight()) {
+                    q.poll();
+                    q.offer(fc);
+                }
             }
         }
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
@@ -425,6 +431,16 @@ public class ItemSearchEngine implements Configurable {
             ret.add(new Scored<String>(fc.getHumanReadableName(), fc.getWeight()));
         }
         Collections.reverse(ret);
+        return ret;
+    }
+
+    public List<Scored<String>> findSimilarAutotags(String autotag, int n)
+            throws AuraException, RemoteException {
+        List<FieldValue> l = ((SearchEngineImpl) engine).getSimilarClassifiers(autotag, n);
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        for(FieldValue fv : l) {
+            ret.add(new Scored<String>(fv.getValue(), fv.getScore()));
+        }
         return ret;
     }
 

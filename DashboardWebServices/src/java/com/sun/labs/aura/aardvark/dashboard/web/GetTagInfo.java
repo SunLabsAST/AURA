@@ -60,7 +60,7 @@ public class GetTagInfo extends HttpServlet {
 
                 try {
                     out.println("<TagInfos>");
-                    out.println("    <key>" + key + "</key>");
+                    //out.println("    <key>" + key + "</key>");
                     for (Scored<String> tag : autotags) {
                         out.printf("    <TagInfo name='%s' score='%f'>\n", tag.getItem(), tag.getScore());
                         out.println("        <DocTerms>");
@@ -71,19 +71,11 @@ public class GetTagInfo extends HttpServlet {
 
                         // TBD - change this from getExplanation to getTopTerms when it is written
                         out.println("        <TopTerms>");
-                        for (Scored<String> explanation : dataStore.getExplanation(key, tag.getItem(), 20)) {
-                            out.printf("            <TopTerm name=\'%s\' score=\'%f\'/>\n", explanation.getItem(), explanation.getScore());
+                        for (Scored<String> term : dataStore.getTopAutotagTerms(tag.getItem(), 20)) {
+                            out.printf("            <TopTerm name=\'%s\' score=\'%f\'/>\n", term.getItem(), term.getScore());
                         }
                         out.println("        </TopTerms>");
                         out.println("    </TagInfo>");
-
-                        /*
-                        out.printf("<topterms name=\'%s\'>");
-                        for (Scored<String> explanation : dataStore.get(key, tag.getItem(), 20)) {
-                            out.printf("<term name=\'%s\' score=\'%f\'/>\n", explanation.getItem(), explanation.getScore());
-                        }
-                        out.println("</topterms>");
-                         */
                     }
                     out.println("</TagInfos>");
                 } finally {

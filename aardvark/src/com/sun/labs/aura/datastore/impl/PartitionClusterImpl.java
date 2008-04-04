@@ -226,7 +226,12 @@ public class PartitionClusterImpl implements PartitionCluster,
             throws AuraException, RemoteException {
         return replicant.getTopAutotagTerms(autotag, n);
     }
-    
+
+    public List<Scored<String>> findSimilarAutotags(String autotag, int n)
+            throws AuraException, RemoteException {
+        return replicant.findSimilarAutotags(autotag, n);
+    }
+
     public List<Scored<String>> getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException {
         return replicant.getTopTerms(key, field, n);

@@ -818,7 +818,6 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         } catch(InterruptedException e) {
             throw new AuraException("Query interrupted", e);
         }
-        
     }
     
     public List<Scored<String>> getTopAutotagTerms(String autotag, int n)
@@ -829,7 +828,16 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
         return new ArrayList<Scored<String>>();
     }
-    
+
+    public List<Scored<String>> findSimilarAutotags(String autotag, int n)
+            throws AuraException, RemoteException {
+        Set<PartitionCluster> clusters = trie.getAll();
+        for(PartitionCluster pc : clusters) {
+            return pc.findSimilarAutotags(autotag, n);
+        }
+        return new ArrayList<Scored<String>>();
+    }
+
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
             //
