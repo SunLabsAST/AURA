@@ -71,7 +71,7 @@ public class GridDeploy {
         "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111",
     };
 
-    private static String usage = "GridDeploy createCode | startAura | stopAura | startAardvark | stopAardvark | createWeb | reindexData";
+    private static String usage = "GridDeploy createCode | startAura | stopAura | startAardvark | stopAardvark | createWeb | reindexData | reindexChunk prefix";
 
     public static void main(String argv[]) throws Exception {
         if (argv.length == 0) {
@@ -105,6 +105,9 @@ public class GridDeploy {
         } else if (argv[0].equals("reindexData")) {
             gd.createAuraInfrastructure();
             gd.createReindexerProcesses();
+        } else if(argv[0].equals("reindexChunk")) {
+            gd.createAuraInfrastructure();
+            gd.createReindexerProcess(argv[1]);
         } else if(argv[0].equals("stopAura")) {
             gd.stopAuraProcesses();
         } else if(argv[0].equals("stopAardvark")) {
@@ -299,10 +302,11 @@ public class GridDeploy {
                 continue;
             }
             
-            System.out.println(reg + " ro: " + reg.getProcessOutcome());
             //
             // If it's not done, then put it back on the queue.
-            if(reg.getProcessOutcome() == null) {
+            if(reg.getProcessOutcome() == null || reg.getRunState() != RunState.NONE) {
+                System.out.println(reg + " rs: " + reg.getRunState() + " ro: " +
+                        reg.getProcessOutcome());
                 q.offer(reg);
                 Thread.sleep(500);
             }
@@ -349,10 +353,16 @@ public class GridDeploy {
         //
         // Start the replicants for each prefix
         for(int i = 0; i < prefixCodeList.length; i++) {
-            ProcessRegistration reindexReg = createProcess(getRIName(prefixCodeList[i]), 
-                    getReindexerConfig(prefixCodeList[i]));
-            startRegistration(reindexReg, false);
+            createReindexerProcess(prefixCodeList[i]);
         }
+    }
+    
+    public void createReindexerProcess(String prefix) throws Exception {
+        //
+        // Start the replicants for each prefix
+        ProcessRegistration reindexReg = createProcess(getRIName(prefix),
+                getReindexerConfig(prefix));
+        startRegistration(reindexReg, false);
     }
 
     public String getFMName(int n) {
