@@ -417,11 +417,12 @@ public class ItemSearchEngine implements Configurable {
         for(FeatureCluster fc : cm.getFeatures()) {
             if(q.size() < n) {
                 q.offer(fc);
-            }
-            FeatureCluster top = q.peek();
-            if(fc.getWeight() > top.getWeight()) {
-                q.poll();
-                q.offer(fc);
+            } else {
+                FeatureCluster top = q.peek();
+                if(fc.getWeight() > top.getWeight()) {
+                    q.poll();
+                    q.offer(fc);
+                }
             }
         }
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
