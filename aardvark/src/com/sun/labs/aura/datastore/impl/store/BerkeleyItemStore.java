@@ -382,6 +382,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return searchEngine.getTopFeatures(autotag, n);
     }
     
+    public List<Scored<String>> findSimilarAutotags(String autotag, int n)
+            throws AuraException, RemoteException {
+        return searchEngine.findSimilarAutotags(autotag, n);
+    }
+ 
 
     public DocumentVector getDocumentVector(String key) {
         return searchEngine.getDocumentVector(key);
@@ -412,9 +417,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
             throws AuraException, RemoteException {
         StopWatch sw = new StopWatch();
         sw.start();
-        List<Scored<Item>> res = keysToItems(searchEngine.findSimilar(dv, n, rf));
+        List<Scored<String>> fsr = searchEngine.findSimilar(dv, n, rf);
         sw.stop();
-        logger.info("Got find similar results for " + dv.getKey() + " in " + sw.getTime() + "ms");
+//        logger.info("Got find similar results for " + dv.getKey() + " in " +
+//                sw.getTime() + "ms");
+        List<Scored<Item>> res = keysToItems(fsr);
         return res;
     }
 

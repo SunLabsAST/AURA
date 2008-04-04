@@ -34,7 +34,6 @@ import com.sun.labs.util.props.PropertySheet;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.SyndFeedOutput;
-import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -561,6 +560,26 @@ public class AardvarkShell implements AuraService, Configurable {
 
                     public String getHelp() {
                         return "get top autotag terms: gtt <autotag>";
+                    }
+                });
+
+        shell.add("tsim",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String autotag = stuff(args, 1).trim();
+                        List<Scored<String>> autotags = 
+                                dataStore.findSimilarAutotags(autotag, nHits);
+                        for(Scored<String> tag : autotags) {
+                            System.out.println(tag);
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "get top auttagged items:   gat <autotag>";
                     }
                 });
 
