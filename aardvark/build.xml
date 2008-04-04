@@ -136,7 +136,6 @@
         <mkdir dir="${dd}/lib"/>
         <copy file="lib/jini/jsk-all.policy" todir="${dd}"/>
         <copy file="${dist.jar}" todir="${dd}"/>
-        <copy file="${dist.jar}" todir="${dd}/lib"/>
         <copy todir="${dd}/lib">
             <fileset dir="${dist.dir}/lib"/>
         </copy>
