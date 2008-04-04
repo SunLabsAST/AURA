@@ -7,16 +7,25 @@ package com.sun.labs.aura.aardvark.dashboard.story;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
  *
@@ -34,13 +43,13 @@ public class Util {
 
     public static List<Story> loadStories(InputStream stream) throws IOException {
         List<Story> stories = new ArrayList<Story>();
+        Document doc = null;
         try {
             DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document doc = builder.parse(stream);
+            doc = builder.parse(stream);
             Element docElement = doc.getDocumentElement();
             NodeList list = docElement.getElementsByTagName("story");
 
-            System.out.println("Found " + list.getLength());
             for (int i = 0; i < list.getLength(); i++) {
                 Node node = list.item(i);
                 Element storyElement = (Element) node;
@@ -123,23 +132,31 @@ public class Util {
 
                 stories.add(story);
             }
+        } catch (SAXParseException e) {
+            System.out.println("loadStories: parse problem at line " + e.getLineNumber() + " col " + e.getColumnNumber());
+            if (doc != null) {
+                dumpDocument(doc);
+            }
         } catch (SAXException e) {
-            System.out.println("parse problem " + e);
+            System.out.println("loadStories: General Sax exception " + e);
+            if (doc != null) {
+                dumpDocument(doc);
+            }
         } catch (ParserConfigurationException e) {
-            System.out.println("parse problem " + e);
+            System.out.println("loadStories: parse problem " + e);
         }
         return stories;
     }
 
     public static List<TagInfo> loadTagInfo(InputStream stream) throws IOException {
         List<TagInfo> infos = new ArrayList<TagInfo>();
+        Document doc = null;
         try {
             DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document doc = builder.parse(stream);
+            doc = builder.parse(stream);
             Element docElement = doc.getDocumentElement();
             NodeList list = docElement.getElementsByTagName("TagInfo");
 
-            System.out.println("Found " + list.getLength());
             for (int i = 0; i < list.getLength(); i++) {
                 Node node = list.item(i);
                 Element tagInfoElement = (Element) node;
@@ -159,13 +176,22 @@ public class Util {
 
                 infos.add(ti);
             }
+        } catch (SAXParseException e) {
+            System.out.println("loadTagInfo: parse problem at line " + e.getLineNumber() + " col " + e.getColumnNumber());
+            if (doc != null) {
+                dumpDocument(doc);
+            }
         } catch (SAXException e) {
-            System.out.println("parse problem " + e);
+            System.out.println("loadTagInfo: General Sax exception " + e);
+            if (doc != null) {
+                dumpDocument(doc);
+            }
         } catch (ParserConfigurationException e) {
-            System.out.println("parse problem " + e);
+            System.out.println("loadTagInfo: parse problem " + e);
         }
         return infos;
     }
+
 
     private static List<ScoredString> loadTerms(Element root, String listName, String itemNodeName) throws IOException {
         List<ScoredString> termList = new ArrayList<ScoredString>();
@@ -194,9 +220,10 @@ public class Util {
     public static Stats loadStats(InputStream stream) throws IOException {
         Stats stats = null;
         ;
+        Document doc = null;
         try {
             DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document doc = builder.parse(stream);
+            doc = builder.parse(stream);
             Element statusElement = doc.getDocumentElement();
 
             String entries = getElementContents(statusElement, "entries");
@@ -211,12 +238,18 @@ public class Util {
                     Long.parseLong(users),
                     Long.parseLong(taste),
                     Float.parseFloat(entriesPerMinute));
+        } catch (SAXParseException e) {
+            System.out.println("loadStats: parse problem at line " + e.getLineNumber() + " col " + e.getColumnNumber());
+            if (doc != null) {
+                dumpDocument(doc);
+            }
         } catch (SAXException e) {
-            System.out.println("parse problem " + e);
-            throw new IOException("Parsing problem " + e);
+            System.out.println("loadStats: General Sax exception " + e);
+            if (doc != null) {
+                dumpDocument(doc);
+            }
         } catch (ParserConfigurationException e) {
-            System.out.println("parse problem " + e);
-            throw new IOException("Can't load parser " + e);
+            System.out.println("loadStats: parse problem " + e);
         }
         return stats;
     }
@@ -230,7 +263,32 @@ public class Util {
         }
     }
 
-    public static Element getFirstElement(Element element, String elementName) throws IOException {
+    static void dumpDocument(Document document) {
+        try {
+            // Prepare the DOM document for writing
+            Source source = new DOMSource(document);
+            Result result = new StreamResult(System.out);
+
+            // Write the DOM document to the file
+            // Get Transformer
+            Transformer xformer =
+                    TransformerFactory.newInstance().newTransformer();
+            // Write to a file
+
+            xformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            xformer.setOutputProperty(OutputKeys.METHOD, "xml");
+            xformer.setOutputProperty(
+                    "{http://xml.apache.org/xalan}indent-amount", "4");
+
+            xformer.transform(source, result);
+        } catch (TransformerConfigurationException e) {
+            System.out.println("TransformerConfigurationException: " + e);
+        } catch (TransformerException e) {
+            System.out.println("TransformerException: " + e);
+        }
+    }
+
+    static Element getFirstElement(Element element, String elementName) throws IOException {
         NodeList list = element.getElementsByTagName(elementName);
         if (list.getLength() >= 1) {
             Element subElement = (Element) list.item(0);

@@ -19,6 +19,7 @@ import com.jme.scene.SceneElement;
 import com.jme.scene.Spatial;
 import com.jme.scene.shape.Box;
 import com.jme.scene.state.LightState;
+import com.jme.scene.state.MaterialState;
 import com.jme.scene.state.TextureState;
 import com.jme.scene.state.ZBufferState;
 import com.jme.system.DisplaySystem;
@@ -55,9 +56,9 @@ public class StoryPointFactory {
     final static int MAX_DESCRIPTION_LEN = 700;
     private Font3D fonts[] = new Font3D[6];
     private Node rootNode;
-    private StoryPoint curStoryPoint = null;
     private final static int MAX_SIMS = 8;
-    private StoryPoint[] tileCloud = new StoryPoint[MAX_SIMS];
+    // tileCloud[0] is center - all the others are neighbors
+    private StoryPoint[] tileCloud = new StoryPoint[MAX_SIMS + 1];
     private StoryManager storyManager;
     int fontCount;
 
@@ -66,7 +67,7 @@ public class StoryPointFactory {
         this.lightState = lightState;
         this.rootNode = rootNode;
 
-        applyTexture(rootNode, "dirt.jpg");
+        // applyTexture(rootNode, "dirt.jpg");
 
         for (int i = 0; i < fonts.length; i++) {
             fonts[i] = new Font3D(new Font("Arial", Font.PLAIN, 1), 0.1, true, true, true);
@@ -88,8 +89,8 @@ public class StoryPointFactory {
 
     public StoryPoint createTileStoryPoint(Story story, int cloudSpot) {
         StoryPoint sp = new TileStoryPoint(story, cloudSpot);
-        tileCloud[cloudSpot] = sp;
         sp.init();
+        tileCloud[cloudSpot] = sp;
         return sp;
     }
 
@@ -113,11 +114,20 @@ public class StoryPointFactory {
     }
 
     public int getNumSimStories() {
-        return tileCloud.length;
+        return MAX_SIMS;
     }
 
     public void clearCloud() {
         for (int i = 0; i < tileCloud.length; i++) {
+            if (tileCloud[i] != null) {
+                tileCloud[i].add("dismiss");
+                tileCloud[i] = null;
+            }
+        }
+    }
+
+    public void clearNeighbors() {
+        for (int i = 1; i < tileCloud.length; i++) {
             if (tileCloud[i] != null) {
                 tileCloud[i].add("dismiss");
                 tileCloud[i] = null;
@@ -143,8 +153,17 @@ public class StoryPointFactory {
         return false;
     }
 
-    private boolean findAndClearFromCloud(StoryPoint sp) {
-        for (int i = 0; i < tileCloud.length; i++) {
+    public boolean isAnyNeighbors() {
+        for (int i = 1; i < tileCloud.length; i++) {
+            if (tileCloud[i] != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean findAndClearFromNeighbors(StoryPoint sp) {
+        for (int i = 1; i < tileCloud.length; i++) {
             if (tileCloud[i] == sp) {
                 tileCloud[i] = null;
                 return true;
@@ -154,8 +173,8 @@ public class StoryPointFactory {
     }
 
     public void findStories() {
-        if (isAnyCloud()) {
-            clearCloud();
+        if (isAnyNeighbors()) {
+            clearNeighbors();
         } else {
             StoryPoint sp = getCurrentStoryPoint();
             if (sp != null) {
@@ -166,8 +185,8 @@ public class StoryPointFactory {
     }
 
     public void findTags() {
-        if (isAnyCloud()) {
-            clearCloud();
+        if (isAnyNeighbors()) {
+            clearNeighbors();
         } else {
             StoryPoint sp = getCurrentStoryPoint();
             if (sp != null) {
@@ -186,20 +205,24 @@ public class StoryPointFactory {
     }
 
     public StoryPoint getCurrentStoryPoint() {
-        return curStoryPoint;
+        return tileCloud[0];
     }
 
     public void setCurrentStoryPoint(StoryPoint newCur) {
-        if (curStoryPoint != null) {
-            curStoryPoint.add("dismiss");
+        if (tileCloud[0] != null) {
             clearCloud();
         }
 
-        curStoryPoint = newCur;
+        tileCloud[0] = newCur;
 
-        if (curStoryPoint != null) {
-            curStoryPoint.add("home");
+        if (tileCloud[0] != null) {
+            tileCloud[0].add("home");
         }
+    }
+
+    public void clearAllStories() {
+        setCurrentStoryPoint(null);
+        clearCloud();
     }
 
     private float clamp(float val, float min, float max) {
@@ -312,14 +335,15 @@ public class StoryPointFactory {
             for (ScoredString c : story.getTags()) {
                 float size = .1f * scale;
                 attachChild(new Orbiter(
-                        new Vector3f(text.getWidth() * 3 / 4 - (offset++ * size * 8), .3f, 0), scale, size, true));
+                        new Vector3f((offset++ * size * 8), .3f, 0), scale * 2, size, true));
+                        //new Vector3f(text.getWidth() * 3 / 4 - (offset++ * size * 8), .3f, 0), scale, size, true));
             }
 
             offset = 0;
             for (ScoredString c : story.getAutotags()) {
                 float size = .1f * scale;
                 attachChild(new Orbiter(
-                        new Vector3f(text.getWidth() / 4 + (offset++ * size * 8), .3f, 0), scale, size, false));
+                        new Vector3f(text.getWidth() / 4 + (offset++ * size * 8), .3f, 0), scale * 2, size, false));
             }
 
             text.setLocalScale(new Vector3f(scale, scale, scale / 10));
@@ -327,7 +351,9 @@ public class StoryPointFactory {
 
             applyStandardAttributes(text);
             text.setCullMode(SceneElement.CULL_NEVER);
-            box.setDefaultColor(new ColorRGBA(0f, .0f, 0f, 1f));
+            box.setDefaultColor(new ColorRGBA(0f, .0f, 0f, 0f));
+            box.setRenderState(lightState);
+
             addGeometry(text);
             addGeometry(box);
 
@@ -365,12 +391,12 @@ public class StoryPointFactory {
                         // if this is a sim story, make it be the current
                         // story, otherwise dismiss it
 
-                        if (findAndClearFromCloud(TileStoryPoint.this)) {
+                        if (findAndClearFromNeighbors(TileStoryPoint.this)) {
                             addSet("home", home);
                             setCurrentStoryPoint(TileStoryPoint.this);
                         } else {
                             add("dismiss");
-                            if (curStoryPoint == TileStoryPoint.this) {
+                            if (getCurrentStoryPoint() == TileStoryPoint.this) {
                                 setCurrentStoryPoint(null);
                             }
                         }
@@ -383,10 +409,14 @@ public class StoryPointFactory {
         TileStoryPoint(Story story, int which) {
             this(story, 0, 0, 0);
 
+            Vector3f spot;
+
+            spot = spots[which % spots.length];
+
             Command[] spothome = {
                 new CmdControl(true),
                 new CmdVeryStiff(),
-                new CmdMove(spots[which % spots.length]),
+                new CmdMove(spot),
                 new CmdRotate(0, FastMath.PI, 0),
                 new CmdWait(.5f),
                 new CmdRotate(0, 0, 0),
@@ -395,10 +425,6 @@ public class StoryPointFactory {
 
             System.out.println("Adding set for " + which);
             addSet("home", spothome);
-        }
-
-        private void goSpot(int which) {
-            add(new CmdMove(spots[which % spots.length]));
         }
 
         Geometry getFrontImageTile() {
@@ -666,54 +692,75 @@ public class StoryPointFactory {
         new CmdRemove()
     };
     Vector3f[] spots = {
+        new Vector3f(0f, 0f, 45f),
+
+        new Vector3f(-2.1f, 0, 45),
+        new Vector3f(2.1f, 0, 45),
         new Vector3f(0, -2.1f, 45),
         new Vector3f(0, 2.1f, 45),
-        new Vector3f(2.1f, 0, 45),
-        new Vector3f(-2.1f, 0, 45),
         new Vector3f(-2.1f, -2.1f, 45),
         new Vector3f(-2.1f, 2.1f, 45),
         new Vector3f(2.1f, -2.1f, 45),
         new Vector3f(2.1f, 2.1f, 45)
     };
-}
 
-class Orbiter extends Node {
 
-    private Vector3f center;
-    private Vector3f rotationAxis = new Vector3f(
-            1, (float) (.5f - Math.random() * 1f), 0);
-    private float rps = FastMath.PI + (float) (Math.random() * FastMath.PI);
-    private float curAngle = 0;
+    class Orbiter extends Node {
 
-    Orbiter(Vector3f center, float radius, float size, boolean sphere) {
-        this.center = center;
-        setLocalTranslation(center);
+        private Vector3f center;
+        private Vector3f rotationAxis = new Vector3f(
+                1, (float) (.5f - Math.random() * 1f), 0);
+        private float rps = FastMath.PI + (float) (Math.random() * FastMath.PI);
+        private float curAngle = 0;
 
-        Geometry geometry;
-        if (sphere) {
-            //geometry = new Sphere("", new Vector3f(0, radius, 0), 20, 20, size);
-            geometry = new Box("", new Vector3f(0, radius, 0), size, size, size);
-            rps *= -1;
-        } else {
-            geometry = new Box("", new Vector3f(0, radius, 0), size, size, size);
-        }
-        //box.setDefaultColor(new ColorRGBA(.5f, .9f, .5f, 1.f));
-        geometry.setDefaultColor(new ColorRGBA(.5f, .9f, .5f, 1.f));
-        geometry.setSolidColor(ColorRGBA.randomColor());
-        attachChild(geometry);
-        geometry.setLightCombineMode(LightState.OFF);
-        addController(new Rotator());
-    }
+        Orbiter(Vector3f center, float radius, float size, boolean sphere) {
+            this.center = center;
+            setLocalTranslation(center);
 
-    class Rotator extends Controller {
-
-        @Override
-        public void update(float time) {
-            curAngle += time * rps;
-            if (curAngle >= FastMath.PI * 2) {
-                curAngle -= FastMath.PI * 2;
+            Geometry geometry;
+            if (sphere) {
+                //geometry = new Sphere("", new Vector3f(0, radius, 0), 20, 20, size);
+                geometry = new Box("", new Vector3f(0, radius, 0), size, size, size);
+                rps *= -.5f; // slow and backwards
+            } else {
+                radius *= 2;
+                geometry = new Box("", new Vector3f(0, radius, 0), size, size, size);
             }
-            getLocalRotation().fromAngleAxis(curAngle, rotationAxis);
+
+            MaterialState ms = display.getRenderer().createMaterialState();
+            ColorRGBA color = ColorRGBA.randomColor();
+            ms.setAmbient(color);
+            ms.setDiffuse(color);
+
+            /* has been depricated */
+            //ms.setAlpha(1f);
+
+            ms.setEnabled(true);
+            geometry.setRenderState(ms);
+            geometry.setRenderState(lightState);
+
+
+            /*
+            //box.setDefaultColor(new ColorRGBA(.5f, .9f, .5f, 1.f));
+            geometry.setDefaultColor(new ColorRGBA(.5f, .9f, .5f, 1.f));
+            geometry.setSolidColor(ColorRGBA.randomColor());
+            geometry.setLightCombineMode(LightState.OFF);
+             */
+
+            attachChild(geometry);
+            addController(new Rotator());
+        }
+
+        class Rotator extends Controller {
+
+            @Override
+            public void update(float time) {
+                curAngle += time * rps;
+                if (curAngle >= FastMath.PI * 2) {
+                    curAngle -= FastMath.PI * 2;
+                }
+                getLocalRotation().fromAngleAxis(curAngle, rotationAxis);
+            }
         }
     }
 }

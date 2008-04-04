@@ -30,7 +30,6 @@ public class TagInfo {
     }
 
     public void setTagName(String tagName) {
-        System.out.println("Set Tag Name " + tagName);
         this.tagName = tagName;
     }
 
