@@ -394,7 +394,11 @@ public class ItemSearchEngine implements Configurable {
 
     public List<Scored<String>> getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException {
-        WeightedFeature[] wf = ((DocumentVectorImpl) getDocumentVector(key, field)).getFeatures();
+        DocumentVectorImpl dv = (DocumentVectorImpl) getDocumentVector(key, field);
+        if(dv == null) {
+            return new ArrayList<Scored<String>>();
+        }
+        WeightedFeature[] wf = dv.getFeatures();
         Util.sort(wf, WeightedFeature.getInverseWeightComparator());
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         for(int i = 0; i < wf.length && i < n; i++) {
