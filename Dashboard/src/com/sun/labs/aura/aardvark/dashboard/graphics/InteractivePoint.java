@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.aardvark.dashboard.graphics;
 
+import com.jme.math.FastMath;
 import com.sun.labs.aura.aardvark.dashboard.story.Story;
 
 /**
@@ -18,10 +19,21 @@ public class InteractivePoint extends CPoint {
         new CmdJiggle(false),
     };
 
+    private Command[] center = {
+        new CmdControl(true),
+        new CmdVeryStiff(),
+        new CmdMove(0, 0, 45),
+        //new CmdRotate(0, FastMath.PI, 0, .5f),
+        new CmdWait(.5f),
+        new CmdRotate(0, 0, 0),
+        new CmdWait(.5f)
+    };
+
     InteractivePoint(Story story, float x, float y, float z) {
         super(x, y, z);
         this.story = story;
         addSet("poke", pokeSet);
+        addSet("center", center);
     }
 
     InteractivePoint(float x, float y, float z) {

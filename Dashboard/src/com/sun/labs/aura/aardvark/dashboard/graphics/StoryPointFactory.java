@@ -118,49 +118,18 @@ public class StoryPointFactory {
         return MAX_SIMS;
     }
 
-    public void clearCloud() {
+    public void clear() {
+        setCurrent(null);
+        clearCloud();
+    }
+
+    private void clearCloud() {
         for (int i = 0; i < tileCloud.length; i++) {
             if (tileCloud[i] != null) {
                 tileCloud[i].add("dismiss");
                 tileCloud[i] = null;
             }
         }
-    }
-
-    public void clearNeighbors() {
-        for (int i = 1; i < tileCloud.length; i++) {
-            if (tileCloud[i] != null) {
-                tileCloud[i].add("dismiss");
-                tileCloud[i] = null;
-            }
-        }
-    }
-
-    public boolean isFullCloud() {
-        for (int i = 0; i < tileCloud.length; i++) {
-            if (tileCloud[i] == null) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public boolean isAnyCloud() {
-        for (int i = 0; i < tileCloud.length; i++) {
-            if (tileCloud[i] != null) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean isAnyNeighbors() {
-        for (int i = 1; i < tileCloud.length; i++) {
-            if (tileCloud[i] != null) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private boolean findAndClearFromNeighbors(InteractivePoint sp) {
@@ -173,65 +142,80 @@ public class StoryPointFactory {
         return false;
     }
 
-    public void findStories() {
-        if (isAnyNeighbors()) {
-            clearNeighbors();
-        } else {
-            InteractivePoint sp = getCurrentStoryPoint();
-            if (sp != null) {
-                sp.add("poke");
-                sp.findStories();
+    private boolean isInCloud(InteractivePoint sp) {
+        for (int i = 0; i < tileCloud.length; i++) {
+            if (tileCloud[i] == sp) {
+                return true;
             }
+        }
+        return false;
+    }
+
+    private void clearCloudExceptFor(InteractivePoint sp) {
+        for (int i = 0; i < tileCloud.length; i++) {
+            if (tileCloud[i] != null && tileCloud[i] != sp) {
+                tileCloud[i].add("dismiss");
+                tileCloud[i] = null;
+            }
+        }
+    }
+
+    private void goCenter(InteractivePoint sp) {
+        if (tileCloud[0] != sp) {
+            if (tileCloud[0] != null) {
+                tileCloud[0].add("dismiss");
+            }
+            if (isInCloud(sp)) {
+                sp.add("center");
+            } else {
+                sp.add("home");
+            }
+            tileCloud[0] = sp;
+        }
+    }
+
+    public void findStories() {
+        InteractivePoint sp = getCurrent();
+        if (sp != null) {
+            clearCloudExceptFor(sp);
+            goCenter(sp);
+            sp.findStories();
         }
     }
 
     public void findTags() {
-        if (isAnyNeighbors()) {
-            clearNeighbors();
-        } else {
-            InteractivePoint sp = getCurrentStoryPoint();
-            if (sp != null) {
-                sp.add("poke");
-                sp.findTags();
-            }
+        InteractivePoint sp = getCurrent();
+        if (sp != null) {
+            clearCloudExceptFor(sp);
+            goCenter(sp);
+            sp.findTags();
         }
     }
 
     public void open() {
-        InteractivePoint sp = getCurrentStoryPoint();
+        InteractivePoint sp = getCurrent();
         if (sp != null) {
-            sp.add("poke");
             sp.open();
         }
+
     }
 
-    public InteractivePoint getCurrentStoryPoint() {
-        return tileCloud[0];
+    public InteractivePoint getCurrent() {
+        return currentSelection;
     }
 
     public void setCurrent(InteractivePoint newCur) {
-
-        if (tileCloud[0] != null) {
-            clearCloud();
+        if (currentSelection != null) {
+            currentSelection.unpoke();
         }
 
-        tileCloud[0] = newCur;
+        currentSelection = newCur;
 
-        if (tileCloud[0] != null) {
-            tileCloud[0].add("home");
-        }
-    }
-
-    public void setCurrentOld(InteractivePoint newCur) {
-
-        if (tileCloud[0] != null) {
-            clearCloud();
-        }
-
-        tileCloud[0] = newCur;
-
-        if (tileCloud[0] != null) {
-            tileCloud[0].add("home");
+        if (currentSelection != null) {
+            currentSelection.poke();
+            if (!isInCloud(currentSelection)) {
+                goCenter(currentSelection);
+            }
         }
     }
 
@@ -248,7 +232,8 @@ public class StoryPointFactory {
         URL url = StoryPointFactory.class.getResource("data/" + name);
         Texture texture = TextureManager.loadTexture(url, Texture.MM_LINEAR, Texture.FM_LINEAR);
         TextureState ts = display.getRenderer().createTextureState();
-        ts.setEnabled(true);
+        ts.setEnabled(
+                true);
         ts.setTexture(texture);
         spatial.setRenderState(ts);
     }
@@ -351,7 +336,7 @@ public class StoryPointFactory {
                 float size = .1f * scale;
                 attachChild(new Orbiter(
                         new Vector3f((offset++ * size * 8), .3f, 0), scale * 2, size, true));
-                        //new Vector3f(text.getWidth() * 3 / 4 - (offset++ * size * 8), .3f, 0), scale, size, true));
+            //new Vector3f(text.getWidth() * 3 / 4 - (offset++ * size * 8), .3f, 0), scale, size, true));
             }
 
             offset = 0;
@@ -401,20 +386,10 @@ public class StoryPointFactory {
 
                 public void performAction(CPoint cp, InputActionEvent evt) {
                     if (MouseInput.get().isButtonDown(0)) {
-                        add("clicked");
+                        setCurrent(TileStoryPoint.this);
                     } else if (MouseInput.get().isButtonDown(1)) {
-                        // if this is a sim story, make it be the current
-                        // story, otherwise dismiss it
-
-                        if (findAndClearFromNeighbors(TileStoryPoint.this)) {
-                            addSet("home", home);
-                            setCurrent(TileStoryPoint.this);
-                        } else {
-                            add("dismiss");
-                            if (getCurrentStoryPoint() == TileStoryPoint.this) {
-                                setCurrent(null);
-                            }
-                        }
+                        setCurrent(TileStoryPoint.this);
+                        add("clicked");
                     }
                 }
             });
@@ -658,7 +633,8 @@ public class StoryPointFactory {
         }
     }
 
-    private String getScoredStringForCloud(ScoredString c) {
+    private String getScoredStringForCloud(
+            ScoredString c) {
         int size = (int) (c.getScore() * 2 + 1);
         return htmlSize(c.getName(), size);
     }
@@ -689,11 +665,13 @@ public class StoryPointFactory {
         Border outerborder = BorderFactory.createEmptyBorder(10, 10, 10, 10);
         Border outborder = BorderFactory.createEmptyBorder(10, 10, 10, 10);
         Border inborder;
+
         if (title != null) {
             inborder = BorderFactory.createTitledBorder(title);
         } else {
             inborder = BorderFactory.createEtchedBorder();
         }
+
         Border tborder = BorderFactory.createCompoundBorder(inborder, outborder);
         Border border = BorderFactory.createCompoundBorder(outerborder, tborder);
         jc.setBorder(border);
@@ -715,10 +693,12 @@ public class StoryPointFactory {
         if (stars >= 3) {
             rating = htmlColor(rating, "green");
         }
+
         return ("<b>" + rating + "</b> ");
     }
 
-    public BufferedImage createImage(JComponent component, int imageType) {
+    public BufferedImage createImage(
+            JComponent component, int imageType) {
         Dimension componentSize = component.getPreferredSize();
         component.setSize(componentSize); //Make sure these 
         //are the same
@@ -763,7 +743,6 @@ public class StoryPointFactory {
     };
     Vector3f[] spots = {
         new Vector3f(0f, 0f, 45f),
-
         new Vector3f(-2.1f, 0, 45),
         new Vector3f(2.1f, 0, 45),
         new Vector3f(0, -2.1f, 45),
@@ -773,7 +752,6 @@ public class StoryPointFactory {
         new Vector3f(2.1f, -2.1f, 45),
         new Vector3f(2.1f, 2.1f, 45)
     };
-
 
     class Orbiter extends Node {
 

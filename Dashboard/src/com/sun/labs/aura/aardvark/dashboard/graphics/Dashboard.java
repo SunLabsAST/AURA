@@ -165,6 +165,12 @@ public class Dashboard extends SimpleGame {
             }
         });
 
+        keyboardHandler.addKeyHandler(KeyInput.KEY_BACK, "clear", new KeyActionHandler() {
+            public void onKey(String opName) {
+                storyPointFactory.clear();
+            }
+        });
+
         /*
         keyboardHandler.addKeyHandler(KeyInput.KEY_HOME, "home", new KeyActionHandler() {
             public void onKey(String opName) {
@@ -285,7 +291,7 @@ public class Dashboard extends SimpleGame {
     }
 
     private void cameraUpdate() {
-        InteractivePoint sp = storyPointFactory.getCurrentStoryPoint();
+        InteractivePoint sp = storyPointFactory.getCurrent();
         if (sp != null) {
             //cam.lookAt(sp.getNode().getWorldTranslation(), Vector3f.UNIT_Y);
         } else {
