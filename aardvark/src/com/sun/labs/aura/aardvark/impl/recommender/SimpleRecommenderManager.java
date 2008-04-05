@@ -90,6 +90,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                     t.mark("select random item key");
                     results = dataStore.findSimilar(
                             starredAttention.get(n).getTargetKey(),
+                            "content",
                             num,
                             rf);
                     t.mark("findSimilar");

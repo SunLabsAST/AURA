@@ -632,7 +632,15 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         DocumentVector dv = pc.getDocumentVector(key, field);
-        PCLatch latch = new PCLatch(trie.size());
+        int numClusters = trie.size();
+        PCLatch latch;
+        if(n == 1) {
+            // Special case:
+            // Return if we've heard from three quarters of our clusters
+            latch = new PCLatch((int) (numClusters * 0.75), 500);
+        } else {
+            latch = new PCLatch(numClusters);
+        }
         return findSimilar(dv, n, rf, latch);
     }
 
