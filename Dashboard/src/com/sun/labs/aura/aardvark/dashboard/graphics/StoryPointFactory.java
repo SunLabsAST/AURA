@@ -12,11 +12,14 @@ import com.jme.math.FastMath;
 import com.jme.math.Vector3f;
 import com.jme.renderer.ColorRGBA;
 import com.jme.renderer.Renderer;
+import com.jme.scene.Controller;
 import com.jme.scene.Geometry;
 import com.jme.scene.Node;
 import com.jme.scene.SceneElement;
+import com.jme.scene.Spatial;
 import com.jme.scene.shape.Box;
 import com.jme.scene.state.LightState;
+import com.jme.scene.state.MaterialState;
 import com.jme.scene.state.TextureState;
 import com.jme.scene.state.ZBufferState;
 import com.jme.system.DisplaySystem;
@@ -24,12 +27,16 @@ import com.jme.util.TextureManager;
 import com.jmex.font3d.Font3D;
 import com.jmex.font3d.Text3D;
 import com.jmex.font3d.effects.Font3DGradient;
-import com.sun.labs.aura.aardvark.dashboard.story.Classification;
+import com.sun.labs.aura.aardvark.dashboard.story.ScoredString;
 import com.sun.labs.aura.aardvark.dashboard.story.Story;
+import com.sun.labs.aura.aardvark.dashboard.story.TagInfo;
+import com.sun.labs.aura.aardvark.dashboard.story.Util;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.net.URL;
 import java.util.Random;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -49,14 +56,19 @@ public class StoryPointFactory {
     final static int MAX_DESCRIPTION_LEN = 700;
     private Font3D fonts[] = new Font3D[6];
     private Node rootNode;
-    private StoryPoint curStoryPoint = null;
     private final static int MAX_SIMS = 8;
-    private StoryPoint[] simStories = new StoryPoint[MAX_SIMS];
+    // tileCloud[0] is center - all the others are neighbors
+    private InteractivePoint[] tileCloud = new InteractivePoint[MAX_SIMS + 1];
+    private InteractivePoint currentSelection;
+    private StoryManager storyManager;
+    int fontCount;
 
     public StoryPointFactory(DisplaySystem display, LightState lightState, Node rootNode) {
         this.display = display;
         this.lightState = lightState;
         this.rootNode = rootNode;
+
+        // applyTexture(rootNode, "dirt.jpg");
 
         for (int i = 0; i < fonts.length; i++) {
             fonts[i] = new Font3D(new Font("Arial", Font.PLAIN, 1), 0.1, true, true, true);
@@ -66,63 +78,167 @@ public class StoryPointFactory {
         }
     }
 
-    public StoryPoint createTileStoryPoint(Story story, float x, float y, float z) {
-        return new TileStoryPoint(story, x, y, z);
+    public void setStoryManager(StoryManager sm) {
+        storyManager = sm;
     }
 
-    public StoryPoint createTileStoryPoint(Story story, int simSpot) {
-        StoryPoint sp = new TileStoryPoint(story, simSpot);
-        simStories[simSpot] = sp;
+    public InteractivePoint createTileStoryPoint(Story story, float x, float y, float z) {
+        InteractivePoint sp = new TileStoryPoint(story, x, y, z);
+        sp.init();
         return sp;
     }
 
-    public StoryPoint createBoxStoryPoint(Story story) {
-        return new BoxStoryPoint(story);
+    public InteractivePoint createTileStoryPoint(Story story, int cloudSpot) {
+        InteractivePoint sp = new TileStoryPoint(story, cloudSpot);
+        sp.init();
+        tileCloud[cloudSpot] = sp;
+        return sp;
     }
 
-    public StoryPoint createHeadlineStoryPoint(Story story) {
-        return new HeadlineStoryPoint(story);
+    public InteractivePoint createTagInfoTileStoryPoint(Story story, TagInfo ti, int cloudSpot) {
+        InteractivePoint sp = new TagInfoTileStoryPoint(story, ti, cloudSpot);
+        tileCloud[cloudSpot] = sp;
+        sp.init();
+        return sp;
     }
-    
+
+    public InteractivePoint createBoxStoryPoint(Story story) {
+        InteractivePoint sp = new BoxStoryPoint(story);
+        sp.init();
+        return sp;
+    }
+
+    public InteractivePoint createHeadlineStoryPoint(Story story) {
+        InteractivePoint sp = new HeadlineStoryPoint(story);
+        sp.init();
+        return sp;
+    }
+
     public int getNumSimStories() {
-        return simStories.length;
+        return MAX_SIMS;
     }
 
-    public void clearSimStories() {
-        for (int i = 0; i < simStories.length; i++) {
-            if (simStories[i] != null) {
-                simStories[i].add("dismiss");
-                simStories[i] = null;
+    public void clear() {
+        setCurrent(null);
+        clearCloud();
+    }
+
+    private void clearCloud() {
+        for (int i = 0; i < tileCloud.length; i++) {
+            if (tileCloud[i] != null) {
+                tileCloud[i].add("dismiss");
+                tileCloud[i] = null;
             }
         }
     }
-    
-    public boolean hasAllSimStories() {
-        for (int i = 0; i < simStories.length; i++) {
-            if (simStories[i] == null) {
-                return false;
+
+    private boolean findAndClearFromNeighbors(InteractivePoint sp) {
+        for (int i = 1; i < tileCloud.length; i++) {
+            if (tileCloud[i] == sp) {
+                tileCloud[i] = null;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
-
-    private void applyStandardAttributes(Geometry geo) {
-        geo.setRenderState(lightState);
-        ZBufferState zstate = display.getRenderer().createZBufferState();
-        zstate.setEnabled(true);
-        geo.setRenderState(zstate);
-        geo.updateRenderState();
-        geo.setModelBound(new BoundingBox());
-        geo.updateModelBound();
-        geo.updateWorldBound();
+    private boolean isInCloud(InteractivePoint sp) {
+        for (int i = 0; i < tileCloud.length; i++) {
+            if (tileCloud[i] == sp) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    public StoryPoint getCurrentStoryPoint() {
-        return curStoryPoint;
+    private void clearCloudExceptFor(InteractivePoint sp) {
+        for (int i = 0; i < tileCloud.length; i++) {
+            if (tileCloud[i] != null && tileCloud[i] != sp) {
+                tileCloud[i].add("dismiss");
+                tileCloud[i] = null;
+            }
+        }
     }
 
-    class BoxStoryPoint extends StoryPoint {
+    private void goCenter(InteractivePoint sp) {
+        if (tileCloud[0] != sp) {
+            if (tileCloud[0] != null) {
+                tileCloud[0].add("dismiss");
+            }
+            if (isInCloud(sp)) {
+                sp.add("center");
+            } else {
+                sp.add("home");
+            }
+            tileCloud[0] = sp;
+        }
+    }
+
+    public void findStories() {
+        InteractivePoint sp = getCurrent();
+        if (sp != null) {
+            clearCloudExceptFor(sp);
+            goCenter(sp);
+            sp.findStories();
+        }
+    }
+
+    public void findTags() {
+        InteractivePoint sp = getCurrent();
+        if (sp != null) {
+            clearCloudExceptFor(sp);
+            goCenter(sp);
+            sp.findTags();
+        }
+    }
+
+    public void open() {
+        InteractivePoint sp = getCurrent();
+        if (sp != null) {
+            sp.open();
+        }
+
+    }
+
+    public InteractivePoint getCurrent() {
+        return currentSelection;
+    }
+
+    public void setCurrent(InteractivePoint newCur) {
+        if (currentSelection != null) {
+            currentSelection.unpoke();
+        }
+
+        currentSelection = newCur;
+
+        if (currentSelection != null) {
+            currentSelection.poke();
+            if (!isInCloud(currentSelection)) {
+                goCenter(currentSelection);
+            }
+        }
+    }
+
+    public void clearAllStories() {
+        setCurrent(null);
+        clearCloud();
+    }
+
+    private float clamp(float val, float min, float max) {
+        return val > max ? max : val < min ? min : val;
+    }
+
+    private void applyTexture(Spatial spatial, String name) {
+        URL url = StoryPointFactory.class.getResource("data/" + name);
+        Texture texture = TextureManager.loadTexture(url, Texture.MM_LINEAR, Texture.FM_LINEAR);
+        TextureState ts = display.getRenderer().createTextureState();
+        ts.setEnabled(
+                true);
+        ts.setTexture(texture);
+        spatial.setRenderState(ts);
+    }
+
+    class BoxStoryPoint extends InteractivePoint {
 
         BoxStoryPoint(Story story) {
             super(story, -10, 10, -3);
@@ -153,12 +269,16 @@ public class StoryPointFactory {
         }
     }
 
-    class HeadlineStoryPoint extends StoryPoint {
+    class HeadlineStoryPoint extends InteractivePoint {
 
-        HeadlineStoryPoint(Story story) {
-            super(story, 160, 40, rng.nextFloat() * 5);
+        private float scale = 1.0f;
 
+        HeadlineStoryPoint(Story aStory) {
+            super(aStory, 160, 40, rng.nextFloat() * 5);
             pointCount++;
+
+            scale = story.getLength() / 1000.0f;
+            scale = clamp(scale, .6f, 2);
 
             createGeometries();
 
@@ -168,7 +288,7 @@ public class StoryPointFactory {
             float dropAngle = FastMath.PI / 2 * rng.nextFloat();
 
             float yspot = rng.nextFloat() * 40 - 20;
-            float zspot = rng.nextFloat() * 25;
+            float zspot = rng.nextFloat() * 10;
 
             Command[] cmds = {
                 new CmdControl(true),
@@ -179,7 +299,7 @@ public class StoryPointFactory {
                 new CmdWait(1.f),
                 new CmdControl(false),
                 new CmdVel(-5 + -5 * rng.nextFloat(), 0, 0),
-                new CmdWaitBounds(50, 50, 50),
+                new CmdWaitBounds(70, 50, 50),
                 new CmdRotate(dropAngle, dropAngle, dropAngle),
                 new CmdGravity(true),
                 new CmdWait(5f),
@@ -191,15 +311,11 @@ public class StoryPointFactory {
             addActionHandler(new ActionHandler() {
 
                 public void performAction(CPoint cp, InputActionEvent evt) {
-                    cp.setRelativeAngle(0f, FastMath.PI, 0f, .5f);
+                    cp.setRelativeAngle(FastMath.PI, 0f, 0f, .5f);
                     Vector3f cur = getNode().getWorldTranslation();
-                    StoryPoint sp = createTileStoryPoint(getStory(), cur.x, cur.y, cur.z - 10);
-                    if (curStoryPoint != null) {
-                        curStoryPoint.add("dismiss");
-                    }
+                    InteractivePoint sp = createTileStoryPoint(story, cur.x, cur.y, cur.z - 10);
+                    setCurrent(sp);
                     rootNode.attachChild(sp.getNode());
-                    sp.add("home");
-                    curStoryPoint = sp;
                 }
             });
         }
@@ -207,66 +323,59 @@ public class StoryPointFactory {
         private void createGeometries() {
             Font3D myfont = fonts[fontCount++ % fonts.length];
             Text3D text = myfont.createText(story.getTitle(), 1, 0);
-            text.alignCenter();
-            text.setLocalScale(new Vector3f(1, 1, 0.1f));
-            applyStandardAttributes(text);
-            //TBD culling is messed
-            text.setCullMode(SceneElement.CULL_NEVER);
-
-
-            addGeometry(text);
+            //text.alignCenter();
 
             // add a bounding box
 
             Box box = new Box("bbox " + story.getTitle(),
-                    new Vector3f(0, .3f, .05f), text.getWidth() / 2, 1f / 2, .05f);
-            box.setDefaultColor(new ColorRGBA(0f, .0f, 0f, 1f));
+                    new Vector3f(text.getWidth() / 2, .3f, .05f), text.getWidth() / 2, 1f / 2, .05f);
+
+            int offset = 0;
+
+            for (ScoredString c : story.getTags()) {
+                float size = .1f * scale;
+                attachChild(new Orbiter(
+                        new Vector3f((offset++ * size * 8), .3f, 0), scale * 2, size, true));
+            //new Vector3f(text.getWidth() * 3 / 4 - (offset++ * size * 8), .3f, 0), scale, size, true));
+            }
+
+            offset = 0;
+            for (ScoredString c : story.getAutotags()) {
+                float size = .1f * scale;
+                attachChild(new Orbiter(
+                        new Vector3f(text.getWidth() / 4 + (offset++ * size * 8), .3f, 0), scale * 2, size, false));
+            }
+
+            text.setLocalScale(new Vector3f(scale, scale, scale / 10));
+            box.setLocalScale(new Vector3f(scale, scale, scale / 10));
+
+            applyStandardAttributes(text);
+            text.setCullMode(SceneElement.CULL_NEVER);
+            box.setDefaultColor(new ColorRGBA(0f, .0f, 0f, 0f));
+            box.setRenderState(lightState);
+
+            addGeometry(text);
             addGeometry(box);
+
         }
     }
-    int fontCount;
 
-    class TileStoryPoint extends StoryPoint {
+    class TileStoryPoint extends InteractivePoint {
 
         private final int width = 350;
         private final int height = 350;
-        private Command[] clicked = {new CmdRotateRelative(0, FastMath.PI, 0, .5f)};
-
-        private Command[] home = {
-            new CmdControl(true),
-            new CmdVeryStiff(),
-            new CmdMove(0, 0, 45),
-            new CmdRotate(0, FastMath.PI, 0),
-            new CmdWait(.5f),
-            new CmdRotate(0, 0, 0),
-            new CmdWait(.5f)
-        };
-        private Command[] dismiss = {
-            new CmdControl(true),
-            new CmdSloppy(),
-            new CmdMove(0, 0, -245),
-            new CmdRotate(FastMath.PI, FastMath.PI / 2, FastMath.PI, .5f),
-            new CmdWait(.5f),
-            new CmdRotate(FastMath.PI / 2, FastMath.PI, FastMath.PI, 1.5f),
-            new CmdWait(1.5f),
-            new CmdWait(5f),
-            new CmdRemove()
-        };
-
-        Vector3f[] spots = {
-            new Vector3f(0,     -2.1f,  45),
-            new Vector3f(0,     2.1f,   45),
-            new Vector3f(2.1f,  0,      45),
-            new Vector3f(-2.1f, 0,      45),
-            new Vector3f(-2.1f, -2.1f,  45),
-            new Vector3f(-2.1f, 2.1f,   45),
-            new Vector3f(2.1f,  -2,     45),
-            new Vector3f(2.1f,  2.1f,   45) };
-
 
         TileStoryPoint(Story story, float x, float y, float z) {
             super(story, x, y, z);
             this.story = story;
+
+            addSet("home", home);
+            addSet("clicked", clicked);
+            addSet("dismiss", dismiss);
+        }
+
+        @Override
+        public void init() {
             addGeometry(getFrontImageTile());
             addGeometry(getBackImageTile());
             getNode().setRenderQueueMode(Renderer.QUEUE_OPAQUE);
@@ -277,27 +386,27 @@ public class StoryPointFactory {
 
                 public void performAction(CPoint cp, InputActionEvent evt) {
                     if (MouseInput.get().isButtonDown(0)) {
-                        add("clicked");
+                        setCurrent(TileStoryPoint.this);
                     } else if (MouseInput.get().isButtonDown(1)) {
-                        add("dismiss");
-                        curStoryPoint = null;
-                        clearSimStories();
+                        setCurrent(TileStoryPoint.this);
+                        add("clicked");
                     }
                 }
             });
 
-            addSet("home", home);
-            addSet("clicked", clicked);
-            addSet("dismiss", dismiss);
         }
 
         TileStoryPoint(Story story, int which) {
-            this(story, 0, 0, 44);
+            this(story, 0, 0, 0);
+
+            Vector3f spot;
+
+            spot = spots[which % spots.length];
 
             Command[] spothome = {
                 new CmdControl(true),
                 new CmdVeryStiff(),
-                new CmdMove(spots[which % spots.length]),
+                new CmdMove(spot),
                 new CmdRotate(0, FastMath.PI, 0),
                 new CmdWait(.5f),
                 new CmdRotate(0, 0, 0),
@@ -307,12 +416,53 @@ public class StoryPointFactory {
             addSet("home", spothome);
         }
 
-
-        private void goSpot(int which) {
-            add(new CmdMove(spots[which % spots.length]));
+        Geometry getFrontImageTile() {
+            return createImageTile(getFrontTitle(), getFrontHTML(), 0);
         }
 
-        Geometry getFrontImageTile() {
+        Geometry getBackImageTile() {
+            return createImageTile(getBackTitle(), getBackHTML(), -.011f);
+        }
+
+        @Override
+        public void findStories() {
+            storyManager.findSimilar(story, MAX_SIMS);
+        }
+
+        @Override
+        public void findTags() {
+            storyManager.getTagInfo(story, MAX_SIMS);
+        }
+
+        @Override
+        public void open() {
+            Util.openInBrowser(story.getUrl());
+        }
+
+        Geometry createImageTile(String title, String html, float offset) {
+            Box box = new Box("tilebox", new Vector3f(0, 0, offset), 1, 1f, .01f);
+            //Disk box = new Disk("",  10, 10,  1);
+            //box.getLocalTranslation().set(0,0,offset);
+
+            BufferedImage image = renderHTML(html, title, width, height, getBackgroundColor());
+            box.setRenderState(imageToTextureState(image));
+            applyStandardAttributes(box);
+            return box;
+        }
+
+        String getFrontTitle() {
+            return null;
+        }
+
+        String getBackTitle() {
+            return "Tag Info";
+        }
+
+        Color getBackgroundColor() {
+            return Color.WHITE;
+        }
+
+        String getFrontHTML() {
             String imgHtml = "";
 
             // image loading is async
@@ -325,39 +475,241 @@ public class StoryPointFactory {
                 description = description.substring(0, MAX_DESCRIPTION_LEN) + "...";
             }
             String html = "<html><body>" + "<h2>" + story.getTitle() + "</h2>" +
-                    imgHtml + getStarRatingHtml() + description + "<p> From <b>" + story.getSource() + "</b>" + "</body><html>";
+                    imgHtml + getStarRatingHtml(story) + description + "<p> From <b>" + story.getSource() + "</b>" + "</body><html>";
+            return html;
 
-            Box box = new Box(story.getTitle(), new Vector3f(), 1, 1f, .01f);
-            BufferedImage image = renderHTML(html, null);
-            box.setRenderState(imageToTextureState(image));
-            applyStandardAttributes(box);
-            return box;
         }
 
-        Geometry getBackImageTile() {
-            Box box = new Box("backside of " + story.getTitle(), new Vector3f(0, 0, -.011f), 1, 1f, .01f);
+        String getBackHTML() {
             StringBuilder sb = new StringBuilder();
             sb.append("<body>");
 
-            for (Classification c : story.getClassifications()) {
-                sb.append(getClassificationTextForCloud(c));
-                sb.append("  ");
+            if (story.getTopTerms().size() > 0) {
+                sb.append("<h2> Top Terms </h2>");
+                for (ScoredString c : story.getTopTerms()) {
+                    sb.append(getScoredStringForCloud(c));
+                    sb.append("  ");
+                }
+            }
+
+            if (story.getTags().size() > 0) {
+                sb.append("<h2> Manual Tags </h2>");
+                for (ScoredString c : story.getTags()) {
+                    sb.append(c.getName());
+                    sb.append("  ");
+                }
+            }
+
+            if (story.getAutotags().size() > 0) {
+                sb.append("<h2> Auto Tags </h2>");
+                for (ScoredString c : story.getAutotags()) {
+                    sb.append(getScoredStringForCloud(c));
+                    sb.append("  ");
+                }
             }
             sb.append("</body>");
-            String html = sb.toString();
-            BufferedImage image = renderHTML(html, "Tags");
-            box.setRenderState(imageToTextureState(image));
-            applyStandardAttributes(box);
-            return box;
+            return sb.toString();
+        }
+    }
+
+    class TagInfoTileStoryPoint extends TileStoryPoint {
+
+        private TagInfo tagInfo;
+
+        TagInfoTileStoryPoint(Story story, TagInfo ti, int which) {
+            super(story, which);
+            tagInfo = ti;
         }
 
-        private String getClassificationTextForCloud(Classification c) {
-            int size = (int) (c.getScore() * 3 + 1);
-            return htmlSize(c.getName(), size);
+        String getFrontTitle() {
+            return tagInfo.getTagName() + " Info";
         }
 
-        /*
-        private void applyStandardAttributes(Geometry geo) {
+        String getBackTitle() {
+            return tagInfo.getTagName() + " Details";
+        }
+
+        String getFrontHTML() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("<body>");
+
+            if (tagInfo.getDocTerms().size() > 0) {
+                sb.append("<h2> Story Terms </h2>");
+                for (ScoredString t : tagInfo.getDocTerms()) {
+                    sb.append(getScoredStringForCloud(t));
+                    sb.append("  ");
+                }
+            }
+
+            sb.append("</body>");
+            return sb.toString();
+        }
+
+        @Override
+        String getBackHTML() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("<body>");
+
+            if (tagInfo.getTopTerms().size() > 0) {
+                sb.append("<h2> Top Autotag Terms </h2>");
+                for ( ScoredString t : tagInfo.getTopTerms()) {
+                    sb.append(getScoredStringForCloud(t));
+                    sb.append("  ");
+                }
+            }
+            sb.append("</body>");
+            return sb.toString();
+        }
+
+        @Override
+        Color getBackgroundColor() {
+            return new Color(220, 220, 250);
+        }
+
+        @Override
+        public void findStories() {
+            storyManager.getStoriesSimilarToTag(tagInfo.getTagName(), MAX_SIMS);
+        }
+
+        @Override
+        public void findTags() {
+            storyManager.getTagsSimilarToTag(tagInfo, MAX_SIMS);
+        }
+    }
+
+    class Tag2InfoTileStoryPoint extends TileStoryPoint {
+
+        private TagInfo tagInfo;
+
+        Tag2InfoTileStoryPoint(TagInfo ti, int which) {
+            super(null, which);
+            tagInfo = ti;
+        }
+
+        String getFrontTitle() {
+            return tagInfo.getTagName() + " Info";
+        }
+
+        String getBackTitle() {
+            return tagInfo.getTagName() + " Details";
+        }
+
+        String getFrontHTML() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("<body>");
+            sb.append("<h1>" + tagInfo.getTagName() + "</h1>");
+            sb.append("</body>");
+            return sb.toString();
+        }
+
+        @Override
+        String getBackHTML() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("<body>");
+            if (tagInfo.getTopTerms().size() > 0) {
+                sb.append("<h2> Top Autotag Terms </h2>");
+                for ( ScoredString t : tagInfo.getTopTerms()) {
+                    sb.append(getScoredStringForCloud(t));
+                    sb.append("  ");
+                }
+            }
+            sb.append("</body>");
+            return sb.toString();
+        }
+
+        @Override
+        Color getBackgroundColor() {
+            return new Color(220, 220, 250);
+        }
+
+        @Override
+        public void findStories() {
+            storyManager.getStoriesSimilarToTag(tagInfo.getTagName(), MAX_SIMS);
+        }
+
+        @Override
+        public void findTags() {
+            storyManager.getTagsSimilarToTag(tagInfo, MAX_SIMS);
+        }
+    }
+
+    private String getScoredStringForCloud(
+            ScoredString c) {
+        int size = (int) (c.getScore() * 2 + 1);
+        return htmlSize(c.getName(), size);
+    }
+
+    private TextureState imageToTextureState(BufferedImage image) {
+        Texture texture = TextureManager.loadTexture(image, Texture.MM_LINEAR, Texture.FM_LINEAR, true);
+        TextureManager.deleteTextureFromCard(texture);
+        //TextureManager.clearCache(); // don't trust the cache
+        TextureState ts = display.getRenderer().createTextureState();
+        ts.setEnabled(true);
+        ts.setTexture(texture);
+        return ts;
+    }
+
+    private BufferedImage renderHTML(String html, String title, int width, int height, Color bgcolor) {
+        JEditorPane htmlDisplay = new JEditorPane();
+        htmlDisplay.setEditable(false);
+        htmlDisplay.setContentType("text/html");
+        attachBorder(htmlDisplay, title);
+        htmlDisplay.setText(html);
+        htmlDisplay.setPreferredSize(new Dimension(width, height));
+        htmlDisplay.setBounds(0, 0, width, height);
+        htmlDisplay.setBackground(bgcolor);
+        return createImage(htmlDisplay, BufferedImage.TYPE_INT_ARGB);
+    }
+
+    private void attachBorder(JComponent jc, String title) {
+        Border outerborder = BorderFactory.createEmptyBorder(10, 10, 10, 10);
+        Border outborder = BorderFactory.createEmptyBorder(10, 10, 10, 10);
+        Border inborder;
+
+        if (title != null) {
+            inborder = BorderFactory.createTitledBorder(title);
+        } else {
+            inborder = BorderFactory.createEtchedBorder();
+        }
+
+        Border tborder = BorderFactory.createCompoundBorder(inborder, outborder);
+        Border border = BorderFactory.createCompoundBorder(outerborder, tborder);
+        jc.setBorder(border);
+    }
+
+    private String htmlColor(String s, String color) {
+        return "<font color=\"" + color + "\">" + s + "</font>";
+    }
+
+    private String htmlSize(String s, int size) {
+        return "<font size=\"+" + size + "\">" + s + "</font>";
+    }
+
+    private String getStarRatingHtml(Story story) {
+        int stars = (int) (story.getScore() * 4 + 1);
+        String[] ratings = {"", "*", "**", "***", "****", "*****"};
+
+        String rating = ratings[stars];
+        if (stars >= 3) {
+            rating = htmlColor(rating, "green");
+        }
+
+        return ("<b>" + rating + "</b> ");
+    }
+
+    public BufferedImage createImage(
+            JComponent component, int imageType) {
+        Dimension componentSize = component.getPreferredSize();
+        component.setSize(componentSize); //Make sure these 
+        //are the same
+        BufferedImage img = new BufferedImage(componentSize.width, componentSize.height, imageType);
+        Graphics2D grap = img.createGraphics();
+        grap.fillRect(0, 0, img.getWidth(), img.getHeight());
+        component.paint(grap);
+        return img;
+    }
+
+    private void applyStandardAttributes(Geometry geo) {
         geo.setRenderState(lightState);
         ZBufferState zstate = display.getRenderer().createZBufferState();
         zstate.setEnabled(true);
@@ -365,70 +717,98 @@ public class StoryPointFactory {
         geo.updateRenderState();
         geo.setModelBound(new BoundingBox());
         geo.updateModelBound();
-        }
-         * */
-        private TextureState imageToTextureState(BufferedImage image) {
-            Texture texture = TextureManager.loadTexture(image, Texture.MM_LINEAR, Texture.FM_LINEAR, true);
-            TextureManager.clearCache(); // don't trust the cache
-            TextureState ts = display.getRenderer().createTextureState();
-            ts.setEnabled(true);
-            ts.setTexture(texture);
-            return ts;
-        }
+        geo.updateWorldBound();
+    }
+    private Command[] clicked = {new CmdRotateRelative(0, FastMath.PI, 0, .5f)};
+    private Command[] home = {
+        new CmdControl(true),
+        new CmdVeryStiff(),
+        new CmdMove(0, 0, 45),
+        new CmdRotate(0, FastMath.PI, 0, .5f),
+        new CmdWait(.5f),
+        new CmdRotate(0, 0, 0),
+        new CmdWait(.5f)
+    };
+    private Command[] dismiss = {
+        new CmdControl(true),
+        new CmdSloppy(),
+        new CmdWait(0, .3f),
+        new CmdMove(0, 0, -245),
+        new CmdRotate(FastMath.PI, FastMath.PI / 2, FastMath.PI, .5f),
+        new CmdWait(.5f),
+        new CmdRotate(FastMath.PI / 2, FastMath.PI, FastMath.PI, 1.5f),
+        new CmdWait(1.5f),
+        new CmdWait(5f),
+        new CmdRemove()
+    };
+    Vector3f[] spots = {
+        new Vector3f(0f, 0f, 45f),
+        new Vector3f(-2.1f, 0, 45),
+        new Vector3f(2.1f, 0, 45),
+        new Vector3f(0, -2.1f, 45),
+        new Vector3f(0, 2.1f, 45),
+        new Vector3f(-2.1f, -2.1f, 45),
+        new Vector3f(-2.1f, 2.1f, 45),
+        new Vector3f(2.1f, -2.1f, 45),
+        new Vector3f(2.1f, 2.1f, 45)
+    };
 
-        private BufferedImage renderHTML(String html, String title) {
-            JEditorPane htmlDisplay = new JEditorPane();
-            htmlDisplay.setEditable(false);
-            htmlDisplay.setContentType("text/html");
-            attachBorder(htmlDisplay, title);
-            htmlDisplay.setText(html);
-            htmlDisplay.setPreferredSize(new Dimension(width, height));
-            htmlDisplay.setBounds(0, 0, width, height);
-            return createImage(htmlDisplay, BufferedImage.TYPE_INT_ARGB);
-        }
+    class Orbiter extends Node {
 
-        private void attachBorder(JComponent jc, String title) {
-            Border outerborder = BorderFactory.createEmptyBorder(10, 10, 10, 10);
-            Border outborder = BorderFactory.createEmptyBorder(10, 10, 10, 10);
-            Border inborder;
-            if (title != null) {
-                inborder = BorderFactory.createTitledBorder(title);
+        private Vector3f center;
+        private Vector3f rotationAxis = new Vector3f(
+                1, (float) (.5f - Math.random() * 1f), 0);
+        private float rps = FastMath.PI + (float) (Math.random() * FastMath.PI);
+        private float curAngle = 0;
+
+        Orbiter(Vector3f center, float radius, float size, boolean sphere) {
+            this.center = center;
+            setLocalTranslation(center);
+
+            Geometry geometry;
+            if (sphere) {
+                //geometry = new Sphere("", new Vector3f(0, radius, 0), 20, 20, size);
+                geometry = new Box("", new Vector3f(0, radius, 0), size, size, size);
+                rps *= -.5f; // slow and backwards
             } else {
-                inborder = BorderFactory.createEtchedBorder();
+                radius *= 2;
+                geometry = new Box("", new Vector3f(0, radius, 0), size, size, size);
             }
-            Border tborder = BorderFactory.createCompoundBorder(inborder, outborder);
-            Border border = BorderFactory.createCompoundBorder(outerborder, tborder);
-            jc.setBorder(border);
+
+            MaterialState ms = display.getRenderer().createMaterialState();
+            ColorRGBA color = ColorRGBA.randomColor();
+            ms.setAmbient(color);
+            ms.setDiffuse(color);
+
+            /* has been depricated */
+            //ms.setAlpha(1f);
+
+            ms.setEnabled(true);
+            geometry.setRenderState(ms);
+            geometry.setRenderState(lightState);
+
+
+            /*
+            //box.setDefaultColor(new ColorRGBA(.5f, .9f, .5f, 1.f));
+            geometry.setDefaultColor(new ColorRGBA(.5f, .9f, .5f, 1.f));
+            geometry.setSolidColor(ColorRGBA.randomColor());
+            geometry.setLightCombineMode(LightState.OFF);
+             */
+
+            attachChild(geometry);
+            addController(new Rotator());
         }
 
-        private String htmlColor(String s, String color) {
-            return "<font color=\"" + color + "\">" + s + "</font>";
-        }
+        class Rotator extends Controller {
 
-        private String htmlSize(String s, int size) {
-            return "<font size=\"+" + size + "\">" + s + "</font>";
-        }
-
-        private String getStarRatingHtml() {
-            int stars = (int) (story.getScore() * 4 + 1);
-            String[] ratings = {"", "*", "**", "***", "****", "*****"};
-
-            String rating = ratings[stars];
-            if (stars >= 3) {
-                rating = htmlColor(rating, "green");
+            @Override
+            public void update(float time) {
+                curAngle += time * rps;
+                if (curAngle >= FastMath.PI * 2) {
+                    curAngle -= FastMath.PI * 2;
+                }
+                getLocalRotation().fromAngleAxis(curAngle, rotationAxis);
             }
-            return ("<b>" + rating + "</b> ");
-        }
-
-        public BufferedImage createImage(JComponent component, int imageType) {
-            Dimension componentSize = component.getPreferredSize();
-            component.setSize(componentSize); //Make sure these 
-            //are the same
-            BufferedImage img = new BufferedImage(componentSize.width, componentSize.height, imageType);
-            Graphics2D grap = img.createGraphics();
-            grap.fillRect(0, 0, img.getWidth(), img.getHeight());
-            component.paint(grap);
-            return img;
         }
     }
 }

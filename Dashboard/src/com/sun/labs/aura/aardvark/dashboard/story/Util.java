@@ -7,16 +7,25 @@ package com.sun.labs.aura.aardvark.dashboard.story;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
  *
@@ -34,13 +43,13 @@ public class Util {
 
     public static List<Story> loadStories(InputStream stream) throws IOException {
         List<Story> stories = new ArrayList<Story>();
+        Document doc = null;
         try {
             DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document doc = builder.parse(stream);
+            doc = builder.parse(stream);
             Element docElement = doc.getDocumentElement();
             NodeList list = docElement.getElementsByTagName("story");
 
-            System.out.println("Found " + list.getLength());
             for (int i = 0; i < list.getLength(); i++) {
                 Node node = list.item(i);
                 Element storyElement = (Element) node;
@@ -55,7 +64,6 @@ public class Util {
                 String pulltime = getElementContents(storyElement, "pulltime");
                 String length = getElementContents(storyElement, "length");
                 String imageUrl = getElementContents(storyElement, "imageUrl");
-                Element tagRoot = getFirstElement(storyElement, "tags");
 
 
                 story.setTitle(title);
@@ -67,46 +75,157 @@ public class Util {
                 story.setPulltime(Long.parseLong(pulltime));
                 story.setLength(Integer.parseInt(length));
 
-                NodeList tags = tagRoot.getElementsByTagName("tag");
-                for (int j = 0; j < tags.getLength(); j++) {
-                    Element tagNode = (Element) tags.item(j);
-                    String tagName = tagNode.getTextContent();
-                    float tagScore = Float.parseFloat(tagNode.getAttribute("score"));
-                    story.addClassification(new Classification(tagName, tagScore));
+                {
+                    Element tagRoot = getFirstElement(storyElement, "tags");
+                    if (tagRoot != null) {
+                        NodeList tags = tagRoot.getElementsByTagName("tag");
+                        if (tags != null) {
+                            for (int j = 0; j < tags.getLength(); j++) {
+                                Element tagNode = (Element) tags.item(j);
+                                String tagName = tagNode.getTextContent();
+                                float tagScore = Float.parseFloat(tagNode.getAttribute("score"));
+                                story.addTags(new ScoredString(tagName, tagScore));
+                            }
+                        }
+                    }
+                }
+
+                {
+                    Element tagRoot = getFirstElement(storyElement, "autotags");
+                    if (tagRoot != null) {
+                        NodeList autotags = tagRoot.getElementsByTagName("autotag");
+                        if (autotags != null) {
+                            for (int j = 0; j < autotags.getLength(); j++) {
+                                Element tagNode = (Element) autotags.item(j);
+                                String tagName = tagNode.getTextContent();
+                                float tagScore = Float.parseFloat(tagNode.getAttribute("score"));
+                                story.addAutotags(new ScoredString(tagName, tagScore));
+                            }
+                        }
+                    }
+                }
+
+                {
+                    Element tagRoot = getFirstElement(storyElement, "topterms");
+                    if (tagRoot != null) {
+                        NodeList topterms = tagRoot.getElementsByTagName("topterm");
+                        if (topterms != null) {
+                            for (int j = 0; j < topterms.getLength(); j++) {
+                                Element termNode = (Element) topterms.item(j);
+                                String termName = termNode.getTextContent();
+                                float termScore = Float.parseFloat(termNode.getAttribute("score"));
+                                story.addTopTerms(new ScoredString(termName, termScore));
+                            }
+                        }
+                    }
                 }
 
                 /*
                 NodeList classList = storyElement.getElementsByTagName("class");
                 for (int j = 0; j < classList.getLength(); j++) {
-                    Element classNode = (Element) classList.item(j);
-                    String className = classNode.getTextContent();
-                    float classScore = Float.parseFloat(classNode.getAttribute("score"));
-                    story.addClassification(new Classification(className, classScore));
+                Element classNode = (Element) classList.item(j);
+                String className = classNode.getTextContent();
+                float classScore = Float.parseFloat(classNode.getAttribute("score"));
+                story.addTags(new ScoredString(className, classScore));
                 }
                  */
 
                 stories.add(story);
             }
+        } catch (SAXParseException e) {
+            System.out.println("loadStories: parse problem at line " + e.getLineNumber() + " col " + e.getColumnNumber());
+            if (doc != null) {
+                dumpDocument(doc);
+            }
         } catch (SAXException e) {
-            System.out.println("parse problem " + e);
+            System.out.println("loadStories: General Sax exception " + e);
+            if (doc != null) {
+                dumpDocument(doc);
+            }
         } catch (ParserConfigurationException e) {
-            System.out.println("parse problem " + e);
+            System.out.println("loadStories: parse problem " + e);
         }
         return stories;
     }
 
-    /*
-     <entries>115577</entries>
-     <feeds>8338</feeds>
-     <users>1</users>
-     <taste>81</taste>
-     <entriesPerMinute>0.0</entriesPerMinute>
-     */
-    public static Stats loadStats(InputStream stream) throws IOException {
-        Stats stats = null;;
+    public static List<TagInfo> loadTagInfo(InputStream stream) throws IOException {
+        List<TagInfo> infos = new ArrayList<TagInfo>();
+        Document doc = null;
         try {
             DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document doc = builder.parse(stream);
+            doc = builder.parse(stream);
+            Element docElement = doc.getDocumentElement();
+            NodeList list = docElement.getElementsByTagName("TagInfo");
+
+            for (int i = 0; i < list.getLength(); i++) {
+                Node node = list.item(i);
+                Element tagInfoElement = (Element) node;
+
+                TagInfo ti = new TagInfo();
+
+                String name = tagInfoElement.getAttribute("name");
+                float score = Float.parseFloat(tagInfoElement.getAttribute("score"));
+
+                List<ScoredString> docTerms = loadTerms(tagInfoElement, "DocTerms", "DocTerm");
+                List<ScoredString> topTerms = loadTerms(tagInfoElement, "TopTerms", "TopTerm");
+                List<ScoredString> simTags = loadTerms(tagInfoElement, "SimTags", "SimTag");
+
+                ti.setTagName(name);
+                ti.setScore(score);
+                ti.setDocTerms(docTerms);
+                ti.setTopTerms(topTerms);
+                ti.setSimTags(simTags);
+
+                infos.add(ti);
+            }
+        } catch (SAXParseException e) {
+            System.out.println("loadTagInfo: parse problem at line " + e.getLineNumber() + " col " + e.getColumnNumber());
+            if (doc != null) {
+                dumpDocument(doc);
+            }
+        } catch (SAXException e) {
+            System.out.println("loadTagInfo: General Sax exception " + e);
+            if (doc != null) {
+                dumpDocument(doc);
+            }
+        } catch (ParserConfigurationException e) {
+            System.out.println("loadTagInfo: parse problem " + e);
+        }
+        return infos;
+    }
+
+
+    private static List<ScoredString> loadTerms(Element root, String listName, String itemNodeName) throws IOException {
+        List<ScoredString> termList = new ArrayList<ScoredString>();
+        Element listRoot = getFirstElement(root, listName);
+        if (listRoot != null) {
+            NodeList items = listRoot.getElementsByTagName(itemNodeName);
+            if (items != null) {
+                for (int j = 0; j < items.getLength(); j++) {
+                    Element itemNode = (Element) items.item(j);
+                    String itemName = itemNode.getAttribute("name");
+                    float itemScore = Float.parseFloat(itemNode.getAttribute("score"));
+                    termList.add(new ScoredString(itemName, itemScore));
+                }
+            }
+        }
+        return termList;
+    }
+
+    /*
+    <entries>115577</entries>
+    <feeds>8338</feeds>
+    <users>1</users>
+    <taste>81</taste>
+    <entriesPerMinute>0.0</entriesPerMinute>
+     */
+    public static Stats loadStats(InputStream stream) throws IOException {
+        Stats stats = null;
+        ;
+        Document doc = null;
+        try {
+            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            doc = builder.parse(stream);
             Element statusElement = doc.getDocumentElement();
 
             String entries = getElementContents(statusElement, "entries");
@@ -121,12 +240,18 @@ public class Util {
                     Long.parseLong(users),
                     Long.parseLong(taste),
                     Float.parseFloat(entriesPerMinute));
+        } catch (SAXParseException e) {
+            System.out.println("loadStats: parse problem at line " + e.getLineNumber() + " col " + e.getColumnNumber());
+            if (doc != null) {
+                dumpDocument(doc);
+            }
         } catch (SAXException e) {
-            System.out.println("parse problem " + e);
-            throw new IOException("Parsing problem " + e);
+            System.out.println("loadStats: General Sax exception " + e);
+            if (doc != null) {
+                dumpDocument(doc);
+            }
         } catch (ParserConfigurationException e) {
-            System.out.println("parse problem " + e);
-            throw new IOException("Can't load parser " + e);
+            System.out.println("loadStats: parse problem " + e);
         }
         return stats;
     }
@@ -140,7 +265,32 @@ public class Util {
         }
     }
 
-    public static Element getFirstElement(Element element, String elementName) throws IOException {
+    static void dumpDocument(Document document) {
+        try {
+            // Prepare the DOM document for writing
+            Source source = new DOMSource(document);
+            Result result = new StreamResult(System.out);
+
+            // Write the DOM document to the file
+            // Get Transformer
+            Transformer xformer =
+                    TransformerFactory.newInstance().newTransformer();
+            // Write to a file
+
+            xformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            xformer.setOutputProperty(OutputKeys.METHOD, "xml");
+            xformer.setOutputProperty(
+                    "{http://xml.apache.org/xalan}indent-amount", "4");
+
+            xformer.transform(source, result);
+        } catch (TransformerConfigurationException e) {
+            System.out.println("TransformerConfigurationException: " + e);
+        } catch (TransformerException e) {
+            System.out.println("TransformerException: " + e);
+        }
+    }
+
+    static Element getFirstElement(Element element, String elementName) throws IOException {
         NodeList list = element.getElementsByTagName(elementName);
         if (list.getLength() >= 1) {
             Element subElement = (Element) list.item(0);
@@ -148,5 +298,24 @@ public class Util {
         } else {
             return null;
         }
+    }
+
+    public static void openInBrowser(final String url) {
+        // BUG get the browser path from the environment
+
+        Thread t = new Thread() {
+
+            @Override
+            public void run() {
+                String[] cmds = {"open", url};
+                try {
+                    Runtime.getRuntime().exec(cmds);
+                } catch (IOException ioe) {
+                    System.err.println("Couldn't open browser for " + url);
+                }
+            }
+        };
+        t.setName("run-browser");
+        t.start();
     }
 }

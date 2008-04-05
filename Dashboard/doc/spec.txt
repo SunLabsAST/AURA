@@ -1,0 +1,131 @@
+Dashboard
+----------
+
+Goal:
+----
+A recommender can be a bit boring to show in a demo context. People don't
+carry their taste around with them on a USB stick, so it is hard to give
+people a demo directed at them. Also, there's quite a bit of
+under-the-hood technology that we'd like to show that you just wouldn't
+see if you only built a recommender feed for use with google reader.  The
+goal for the dashboard is to show some of the technology under the hood
+in a way that is engaging.
+
+
+What can we show
+----------------
+We want to show:
+
+    - the rate at which new entries are put into the system (this can be
+      hundreds of entries per second).
+
+    - we want to show how we classify stories (auto-tag them)
+      automatically
+
+    - We want to show how we can select stories based upon their topics
+      (their autotags).
+
+    - We want to show how we can find stories that are similar to stories
+      that we already like.
+
+    - recommendations - this will be done via the web interface
+
+
+The application
+----------------
+What we need from the user:
+  - Set of classes:
+        - we can have up to N (perhaps 4) - active classes at a time.
+        - this could be simple swing gui that lets us control which
+          classes to visualize
+
+  - the user ID (or none if we are not generating recommendations)
+    - recommendations - this will be done via the web interface
+
+
+The application
+----------------
+What we need from the user:
+  - Set of classes:
+        - we can have up to N (perhaps 4) - active classes at a time.
+        - this could be simple swing gui that lets us control which
+          classes to visualize
+
+  - the user ID (or none if we are not generating recommendations)
+
+  - The app script:
+
+    - startup -  graphics window opens - starts showing headlines for
+      pre-selected classes:
+
+        politics, technology, business, music, sports, latest,
+        recommended, status - system status: feeds crawled, entries
+        added, taste data
+
+      The headlines will scroll from right to left, colored based upon
+      their topic:
+
+          we also have position, size, speed to help us distinguish. Not
+          sure how we will use that yet.
+
+      Whe a user clicks on a story, they are zoomed to a different part
+      of the 3D area (you can still see the stories scrolling in the
+      background).  An index card view of the story is shown - with the
+      title, story description and source on the front. Clicking on the
+      card shows the back - which shows the tag cloud for the story (the
+      topics that we've assigned to it). Maybe we can also show the
+      distincitive terms for the item.
+
+      Ops on a card -
+          - click - it is the selected story - and flips the card
+          - browse - open the link in the web browser
+          - fs - find similar stories - all stories except the selected
+            ones go away and new similar stories arrive
+         - thumbsUp - mark this story as a favoritie
+         - thumbsDown - mark this story as bad match
+
+      Done - back to headline mode.
+
+
+The Web Service
+---------------
+
+dashboard/get?topics=music,business,technology,all,SYS-STATUS,SYS-RECS&user=http://
+paul.lamere.myopenid.com&start=epoch&end=epoch&max=count
+
+dashboard/getStories?topics=news,music,business,technology,all&start=epoch&end=epoch&max=count
+
+epochs are absolute times unless ommited (or 'now') then other is a delta
+from now:
+
+
+
+dashboard/getStatus
+
+i
+
+<status>
+    <feeds> count </feeds>
+    <entries> entries </entries>
+    <users> entries </users>
+    <taste> taste </taste>
+    <avgppm> average posts per minute </avgppm>
+</status>
+
+pseudocode -
+
+    sanity check - start/end
+
+    iterate through items added since epoch:
+        add story to bucket as appropriate - find best match, otherwise
+          it goes in the general bucket
+
+    sort the buckets so we use best scoring stories
+    trim buckets to satisfy count restraint
+    
+    build output in story format but with classes
+    with terms
+
+    Sys status
+
+

@@ -21,7 +21,6 @@ import com.sun.caroline.platform.NetworkConfiguration;
 import com.sun.caroline.platform.NetworkSetting;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessExitAction;
-import com.sun.caroline.platform.ProcessOutcome;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
 import com.sun.caroline.platform.RunState;
@@ -36,6 +35,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.UUID;
@@ -71,7 +71,9 @@ public class GridDeploy {
         "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111",
     };
 
-    private static String usage = "GridDeploy createCode | startAura | stopAura | startAardvark | stopAardvark | createWeb | reindexData | reindexChunk prefix";
+    private static String usage = "GridDeploy createCode | startAura | stopAura | startAardvark | \n" +
+            " stopAardvark | createWeb | reindexData | reindexChunk prefix |\n" +
+            " diskUsage";
 
     public static void main(String argv[]) throws Exception {
         if (argv.length == 0) {
@@ -112,6 +114,10 @@ public class GridDeploy {
             gd.stopAuraProcesses();
         } else if(argv[0].equals("stopAardvark")) {
             gd.stopAardvarkProcesses();
+        } else if(argv[0].equals("diskUsage")) {
+            gd.createCodeInfrastructure();
+            gd.createAuraFilesystems();
+            gd.getDiskUsage();
         }
         
     }
@@ -152,17 +158,7 @@ public class GridDeploy {
         // file systems
         createCodeInfrastructure();
         
-        //
-        // Set up the file systems for each replicant
-        for (int i = 0; i < prefixCodeList.length; i++) {
-            String currPrefix = prefixCodeList[i];
-            repFSMap.put(instance + "-" + currPrefix,
-                         getFS(instance + "-replicant-" + currPrefix));
-        }
-        
-        //
-        // Make a place to write all text output log files
-        logsFS = getFS(instance + "-aura.logs");
+        createAuraFilesystems();
         
         //
         // Set up the network that we'll use
@@ -170,6 +166,31 @@ public class GridDeploy {
         
     }
     
+    public void createAuraFilesystems() throws Exception {
+ 
+        //
+        // Make a place to write all text output log files
+        logsFS = getFS(instance + "-aura.logs");
+        
+        //
+        // Set up the file systems for each replicant
+        for(int i = 0; i < prefixCodeList.length; i++) {
+            String currPrefix = prefixCodeList[i];
+            repFSMap.put(instance + "-" + currPrefix,
+                    getFS(instance + "-replicant-" + currPrefix));
+        }
+    }
+    
+    public void getDiskUsage() throws Exception {
+        long total = logsFS.getMetrics().getSpaceUsed() +
+                auraDist.getMetrics().getSpaceUsed();
+        for(Map.Entry<String,FileSystem> e : repFSMap.entrySet()) {
+            total += e.getValue().getMetrics().getSpaceUsed();
+        }
+        
+        System.out.printf("Total usage: %.2fGB\n", (total / (1000 * 1000 * 1000.0)));
+    }
+
     /**
      * Creates the resources needed for running a web server... basically
      * an external address

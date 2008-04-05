@@ -1,43 +1,33 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package com.sun.labs.aura.aardvark.dashboard.web;
 
-import com.sun.kt.search.WeightedField;
-import com.sun.labs.aura.aardvark.impl.recommender.TypeFilter;
+import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
-import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.util.AuraException;
-
 import com.sun.labs.aura.util.Scored;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.io.*;
+import java.net.*;
+
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
 /**
- * Generates a feed for a user
+ *
+ * @author plamere
  */
-public class FindSimilar extends HttpServlet {
+public class GetTagInfo extends HttpServlet {
 
-    protected Logger logger = Logger.getLogger("");
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
      * @param response servlet response
      */
-
-//  findSimilar?max=10&key=http://asdsdasd/f
-    private final static WeightedField[] simFields = {
-        new WeightedField("content", 1f),
-        new WeightedField("aura-name", 1f),
-        new WeightedField("tag", 1f),
-        new WeightedField("autotag", 1f),
-    };
-
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         ServletContext context = getServletContext();
@@ -46,7 +36,7 @@ public class FindSimilar extends HttpServlet {
 
         String key = request.getParameter("key");
 
-        int maxCount = 10;
+        int maxCount = 8;
         String maxCountString = request.getParameter("max");
         if (maxCountString != null) {
             maxCount = Integer.parseInt(maxCountString);
@@ -55,33 +45,42 @@ public class FindSimilar extends HttpServlet {
         Item item = null;
         try {
             if (key != null && ((item = dataStore.getItem(key)) != null)) {
-                Set<String> titleSet = new HashSet<String>();
-                //List<Scored<Item>> scoredItems = dataStore.findSimilar(key, simFields, maxCount * 4, new TypeFilter(ItemType.BLOGENTRY));
-                List<Scored<Item>> scoredItems = dataStore.findSimilar(key, maxCount * 4, new TypeFilter(ItemType.BLOGENTRY));
-                List<Scored<Item>> filteredItems = new ArrayList<Scored<Item>>();
+                BlogEntry entry = new BlogEntry(item);
 
-                titleSet.add(item.getName());
+                List<Scored<String>> autotags = entry.getAutoTags();
+                Collections.sort(autotags);
+                Collections.reverse(autotags);
                 
-                for (Scored<Item> si : scoredItems) {
-
-                    if (si.getItem().getKey().equals(key)) {
-                        continue;
-                    }
-
-                    String normTitle = normalizeTitle(si.getItem().getName());
-
-                    if (!titleSet.contains(normTitle)) {
-                        titleSet.add(normTitle);
-                        filteredItems.add(si);
-                        if (filteredItems.size() >= maxCount) {
-                            break;
-                        }
-                    }
+                if (autotags.size() > maxCount) {
+                    autotags = autotags.subList(0, maxCount);
                 }
+
                 response.setContentType("text/xml;charset=UTF-8");
                 PrintWriter out = response.getWriter();
-                StoryUtil.dumpScoredStories(out, dataStore, filteredItems);
-                out.close();
+
+                try {
+                    out.println("<TagInfos>");
+                    //out.println("    <key>" + key + "</key>");
+                    for (Scored<String> tag : autotags) {
+                        out.printf("    <TagInfo name='%s' score='%f'>\n", tag.getItem(), tag.getScore());
+                        out.println("        <DocTerms>");
+                        for (Scored<String> explanation : dataStore.getExplanation(key, tag.getItem(), 20)) {
+                            out.printf("            <DocTerm name=\'%s\' score=\'%f\'/>\n", explanation.getItem(), explanation.getScore());
+                        }
+                        out.println("        </DocTerms>");
+
+                        // TBD - change this from getExplanation to getTopTerms when it is written
+                        out.println("        <TopTerms>");
+                        for (Scored<String> term : dataStore.getTopAutotagTerms(tag.getItem(), 20)) {
+                            out.printf("            <TopTerm name=\'%s\' score=\'%f\'/>\n", term.getItem(), term.getScore());
+                        }
+                        out.println("        </TopTerms>");
+                        out.println("    </TagInfo>");
+                    }
+                    out.println("</TagInfos>");
+                } finally {
+                    out.close();
+                }
             } else {
                 Shared.forwardToError(context, request, response, "missing key");
             }
@@ -89,16 +88,6 @@ public class FindSimilar extends HttpServlet {
             Shared.forwardToError(context, request, response, ex);
         }
     }
-
-
-    private String normalizeTitle(String title) {
-        if (title == null) {
-            return "";
-        } else {
-            return title.replaceAll("[^\\p{Alnum}]", "").toLowerCase();
-        }
-    }
-
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /** 

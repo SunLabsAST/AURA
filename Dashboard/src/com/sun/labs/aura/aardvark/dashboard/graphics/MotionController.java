@@ -26,17 +26,18 @@ public class MotionController extends Controller {
     private Vector3f force = new Vector3f();
     private Vector3f error = new Vector3f();
     private Vector3f deltaError = new Vector3f();
-    private int lastTick = 0;
     private float totTime = 0;
     private boolean isSettled = false;
     private float minPosError = .03f;
     private float minVel = .03f;
     private boolean enable = false;
-    private boolean jiggleEnabled;
     private boolean gravityEnabled = false;
     private float gravityForce = -1.0f;
-    private final static int JIGGLE_PERIOD = 20;
-    private Vector3f jiggleVector = new Vector3f(0, .25f, 0);
+    private final static float JIGGLE_PERIOD = .3f;
+    private final static float JIGGLE_RANGE = .1f;
+    private final static float JIGGLE_OFFSET = .2f;
+    private boolean jiggleEnabled;
+    private float jiggleTime = 0;
 
     public MotionController(Node node, float initX, float initY, float initZ) {
         this.controlledNode = node;
@@ -89,6 +90,11 @@ public class MotionController extends Controller {
         this.kd = kd;
     }
 
+    public void stop() {
+        force.zero();
+        vel.zero();
+    }
+
     public void setJiggle(boolean enable) {
         this.jiggleEnabled = enable;
     }
@@ -104,12 +110,16 @@ public class MotionController extends Controller {
                 error.set(setPoint);
 
                 if (jiggleEnabled) {
-                    boolean upPhase = (lastTick / JIGGLE_PERIOD) % 2 == 1;
-                    if (upPhase) {
-                        error.addLocal(jiggleVector);
-                    } else {
-                        error.subtractLocal(jiggleVector);
+                    jiggleTime += time;
+
+                    if (jiggleTime > JIGGLE_PERIOD * 2) {
+                        jiggleTime -= JIGGLE_PERIOD * 2;
                     }
+
+                    float t = jiggleTime <= JIGGLE_PERIOD ? jiggleTime : 
+                            JIGGLE_PERIOD - (jiggleTime - JIGGLE_PERIOD);
+                    float jigScale = 1 - (2 * t / JIGGLE_PERIOD);
+                    error.z += jigScale * JIGGLE_RANGE + JIGGLE_OFFSET;
                 }
                 error.subtractLocal(cur);
                 deltaError.subtractLocal(error);

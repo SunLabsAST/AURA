@@ -21,11 +21,15 @@ public class UserBean {
     public UserBean() {
         
     }
-
-    public UserBean(BlogUser buser, String url) {
+    
+    public UserBean(BlogUser buser) {
         ID = buser.getKey();
         nickname = buser.getNickname();
-        fullname = buser.getFullname();
+        fullname = buser.getFullname();        
+    }
+
+    public UserBean(BlogUser buser, String url) {
+        this(buser);
         defaultFeedURL = url;
     }
 

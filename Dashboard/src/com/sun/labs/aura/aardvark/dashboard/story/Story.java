@@ -22,20 +22,40 @@ public class Story {
     private String imageUrl;
     private int length;
     private long pulltime;
-    private List<Classification> classifications;
+    private List<ScoredString> tags;
+    private List<ScoredString> autotags;
+    private List<ScoredString> topTerms;
 
 
 
     public Story() {
-        classifications = new ArrayList<Classification>();
+        tags = new ArrayList<ScoredString>();
+        autotags = new ArrayList<ScoredString>();
+        topTerms = new ArrayList<ScoredString>();
     }
 
-    public List<Classification> getClassifications() {
-        return classifications;
+    public List<ScoredString> getTags() {
+        return tags;
     }
 
-    public void addClassification(Classification classification) {
-        classifications.add(classification);
+    public List<ScoredString> getAutotags() {
+        return autotags;
+    }
+
+    public List<ScoredString> getTopTerms() {
+        return topTerms;
+    }
+
+    public void addTags(ScoredString classification) {
+        tags.add(classification);
+    }
+
+    public void addAutotags(ScoredString classification) {
+        autotags.add(classification);
+    }
+
+    public void addTopTerms(ScoredString classification) {
+        topTerms.add(classification);
     }
 
     public String getDescription() {
@@ -125,8 +145,12 @@ public class Story {
             sb.append("    <imageUrl>" + imageUrl + "</imageUrl>\n");
         }
 
-        for (Classification classification : classifications) {
-            sb.append("    <class score=\"" + classification.getScore() + "\">" + classification.getName() + "</class>\n");
+        for (ScoredString tag : tags) {
+            sb.append("    <tags score=\"" + tag.getScore() + "\">" + tag.getName() + "</tags>\n");
+        }
+
+        for (ScoredString tag : autotags) {
+            sb.append("    <autotags score=\"" + tag.getScore() + "\">" + tag.getName() + "</autotags>\n");
         }
 
         sb.append("</story>\n");

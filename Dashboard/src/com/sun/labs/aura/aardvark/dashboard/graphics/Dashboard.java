@@ -12,6 +12,7 @@ import com.sun.labs.aura.aardvark.dashboard.*;
 import com.jme.app.AbstractGame;
 import com.jme.app.SimpleGame;
 import com.jme.input.FirstPersonHandler;
+import com.jme.input.KeyBindingManager;
 import com.jme.input.KeyInput;
 import com.jme.light.DirectionalLight;
 import com.jme.light.PointLight;
@@ -19,17 +20,18 @@ import com.jme.light.SpotLight;
 
 import com.jme.math.Vector3f;
 import com.jme.renderer.ColorRGBA;
-import com.jme.renderer.Renderer;
 import com.jme.scene.SceneElement;
 import com.jme.scene.Text;
 import com.jme.scene.state.FogState;
 import com.jme.scene.state.TextureState;
 import com.jmex.font3d.Font3D;
 import com.jmex.font3d.effects.Font3DGradient;
+import com.sun.labs.aura.aardvark.dashboard.gui.QueryFrame;
 import java.awt.Font;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 
 /**
  * This class shows the most simple physics with graphical representation: A dynamic geo falling onto a static floor
@@ -38,90 +40,155 @@ import java.util.logging.Logger;
  * @author Irrisor
  */
 public class Dashboard extends SimpleGame {
-
     private final static String VERSION = "Aardavark Dashboard V0.1";
+    private final static String LOCAL_URL = "http://localhost:8080/DashboardWebServices/";
+    private final static String GRID_URL = "http://www.aardvark.tastekeeper.com/DashboardWebServices/";
+
     private StoryManager storyManager;
     private StoryPointFactory storyPointFactory;
+
     private Font3D font;
     private KeyboardHandler keyboardHandler;
-    private boolean fixedFrameRate = true;
-    private boolean simulate = false;
-    private String baseUrl = "http://localhost:8080/DashboardWebServices/";
+    private JFrame queryFrame = null;
+
+    private String baseUrl;
+    private boolean liveMode;
+    private int storiesPerMinute;
+    private boolean fixedFrameRate = false;
 
     public static void main(String[] args) {
         try {
-            boolean simulate = false;
             boolean promptForResolution = false;
+            boolean live = true;
+            String url = GRID_URL;
+            int spm = 100;
 
             for (int i = 0; i < args.length; i++) {
                 String arg = args[i];
-                if (arg.equals("--simulate")) {
-                    simulate = true;
+                if (arg.equals("--grid")) {
+                    url = GRID_URL;
+                } else if (arg.equals("--local")) {
+                    url = LOCAL_URL;
                 } else if (arg.equals("--setres")) {
                     promptForResolution = true;
+                } else if (arg.equals("--live")) {
+                    live = true;
+                } else if (arg.equals("--replay")) {
+                    live = false;
+                } else if (arg.equals("--spm")) {
+                    if (i < args.length - 1) {
+                        spm = Integer.parseInt(args[++i]);
+                    }
                 } else {
                     System.out.println("Unknown param " + arg);
-                    System.out.println("Usage: dashboard [--simulate] [--setres]");
+                    System.out.println("Usage: dashboard [[ [--local] | [--grid (default)] ]] [--spm n] [--setres] [--live (default) ] [--replay]");
                     System.exit(1);
                 }
             }
 
-            Dashboard dashboard = new Dashboard(simulate, promptForResolution);
+            Dashboard dashboard = new Dashboard(url, promptForResolution, live, spm);
             dashboard.start();
         } catch (IOException ex) {
             System.err.println("Problem loading simulator " + ex);
         }
     }
 
-    public Dashboard(boolean simulate, boolean promptForResolution) throws IOException {
-        this.simulate = simulate;
+    public Dashboard(String url, boolean promptForResolution, boolean live, int spm) throws IOException {
         if (promptForResolution) {
             setDialogBehaviour(AbstractGame.ALWAYS_SHOW_PROPS_DIALOG);
         } else {
             setDialogBehaviour(AbstractGame.FIRSTRUN_OR_NOCONFIGFILE_SHOW_PROPS_DIALOG);
         }
+        baseUrl = url;
+        liveMode = live;
+        storiesPerMinute = spm;
     }
 
     protected void simpleInitGame() {
         initLogger();
-        initStaticNodes();
         initLighting();
-        initFog();
         initInput();
         initCamera();
         initFonts();
         initStoryQueue();
     }
+   
 
     private void initInput() {
+
+        Vector3f loc = cam.getLocation();
+        loc = loc.add(new Vector3f(0, 0, 25));
+        cam.setLocation(loc);
+
+        // controlledCamera = new ControlledCamera(cam);
+        // input = controlledCamera.getInputHandler();
+        //input = new NodeHandler(controlledCamera.getCameraNode(), 10, .2f);
+        // rootNode.attachChild(controlledCamera.getNode());
+
+
         // adjust the speed of the input handler
         FirstPersonHandler fph = new FirstPersonHandler(cam, 10, 2);
         fph.getMouseLookHandler().getMouseLook().setSpeed(.2f);
         input = fph;
 
+        input.addAction(new MousePick(cam, rootNode));
+
+        // Remove some presets
+        KeyBindingManager.getKeyBindingManager().remove("toggle_wire");
+
         keyboardHandler = new KeyboardHandler();
 
         keyboardHandler.addKeyHandler(KeyInput.KEY_F, "findSimilar", new KeyActionHandler() {
             public void onKey(String opName) {
-                if (storyPointFactory.hasAllSimStories()) {
-                    storyPointFactory.clearSimStories();
-                } else {
-                    StoryPoint sp = storyPointFactory.getCurrentStoryPoint();
-                    if (sp != null) {
-                        storyManager.findSimilar(sp.getStory(), storyPointFactory.getNumSimStories());
-                    }
-                }
+                storyPointFactory.findStories();
             }
         });
 
-        input.addAction(new MousePick(cam, rootNode));
+        keyboardHandler.addKeyHandler(KeyInput.KEY_T, "findTags", new KeyActionHandler() {
+            public void onKey(String opName) {
+                storyPointFactory.findTags();
+            }
+        });
+
+        keyboardHandler.addKeyHandler(KeyInput.KEY_O, "open", new KeyActionHandler() {
+            public void onKey(String opName) {
+                storyPointFactory.open();
+            }
+        });
+
+        keyboardHandler.addKeyHandler(KeyInput.KEY_HOME, "search", new KeyActionHandler() {
+            public void onKey(String opName) {
+                if (queryFrame == null) {
+                    queryFrame = new QueryFrame(storyManager);
+                }
+                queryFrame.setVisible(true);
+            }
+        });
+
+        keyboardHandler.addKeyHandler(KeyInput.KEY_BACK, "clear", new KeyActionHandler() {
+            public void onKey(String opName) {
+                storyPointFactory.clear();
+            }
+        });
+
+        /*
+        keyboardHandler.addKeyHandler(KeyInput.KEY_HOME, "home", new KeyActionHandler() {
+            public void onKey(String opName) {
+                controlledCamera.add("home");
+            }
+        });
+
+        keyboardHandler.addKeyHandler(KeyInput.KEY_END, "pan", new KeyActionHandler() {
+            public void onKey(String opName) {
+                controlledCamera.add("pan");
+            }
+        });
+         * */
+
         addCrossHairs();
     }
 
     private void initCamera() {
-        Vector3f loc = cam.getLocation();
-        loc = loc.add(new Vector3f(0, 0, 25));
-        cam.setLocation(loc);
     }
 
     private void initLogger() {
@@ -137,9 +204,6 @@ public class Dashboard extends SimpleGame {
         gradient.applyEffect(font);
     }
 
-    private void initStaticNodes() {
-        rootNode.setRenderQueueMode(Renderer.QUEUE_OPAQUE);
-    }
 
     private void initLighting() {
         SpotLight sp1 = new SpotLight();
@@ -166,11 +230,11 @@ public class Dashboard extends SimpleGame {
         dr.setDirection(new Vector3f(150, 0, 150));
         dr.setEnabled(true);
 
-    /*
     lightState.detachAll();
     lightState.attach(sp1);
     lightState.attach(dr);
     lightState.attach(sp2);
+    /*
      */
     }
 
@@ -188,11 +252,22 @@ public class Dashboard extends SimpleGame {
 
     private void initStoryQueue() {
         storyPointFactory = new StoryPointFactory(display, lightState, rootNode);
-        storyManager = new StoryManager(storyPointFactory, baseUrl, simulate);
-        storyManager.setAsyncMode(true);
-        //storyManager.setLiveMode(true);
-        storyManager.setMaxStoriesPerMinute(300);
+        storyManager = new StoryManager(storyPointFactory, baseUrl);
+
+        if (liveMode) {
+            storyManager.setLiveMode(true);
+            storyManager.setAsyncMode(false);
+        } else {
+            storyManager.setLiveMode(false);
+            storyManager.setAsyncMode(true);
+        }
+        storyManager.setMaxStoriesPerMinute(storiesPerMinute);
         storyManager.start();
+
+        // BUG - this mutual dependency between the storyManager and the
+        // storypoint factory has got to go.
+
+        storyPointFactory.setStoryManager(storyManager);
     }
 
     private void initFog() {
@@ -209,9 +284,18 @@ public class Dashboard extends SimpleGame {
 
     @Override
     protected void simpleUpdate() {
-        keyboardHandler.update();
+        keyboardHandler.update(tpf);
         checkForNewStories();
         syncFrames();
+        cameraUpdate();
+    }
+
+    private void cameraUpdate() {
+        InteractivePoint sp = storyPointFactory.getCurrent();
+        if (sp != null) {
+            //cam.lookAt(sp.getNode().getWorldTranslation(), Vector3f.UNIT_Y);
+        } else {
+        }
     }
 
     long last;

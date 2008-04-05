@@ -73,7 +73,6 @@ public class MousePick extends MouseInputAction {
 
             if(results.getNumber() > 0) {
                 Spatial spatial = results.getPickData(0).getTargetMesh().getParentGeom();
-                System.out.println("spatial click " + spatial);
                 CPoint cpoint = (CPoint) spatial.getUserData("cpoint");
                 if (cpoint != null) {
                     cpoint.performAction(evt);

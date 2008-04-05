@@ -21,11 +21,16 @@ public class KeyboardHandler {
         map.put(opName, new HandlerTracker(opName, handler));
     }
 
-    public void update() {
+    public void update(float time) {
         KeyBindingManager kbm = KeyBindingManager.getKeyBindingManager();
         for (HandlerTracker t : map.values()) {
-            if (kbm.isValidCommand(t.opName, false)) {
-                t.handler.onKey(t.opName);
+            if (kbm.isValidCommand(t.opName, true)) {
+                if (t.ticks == 0) {
+                    t.handler.onKey(t.opName);
+                }
+                t.ticks++;
+            } else {
+                t.ticks = 0;
             }
         }
     }

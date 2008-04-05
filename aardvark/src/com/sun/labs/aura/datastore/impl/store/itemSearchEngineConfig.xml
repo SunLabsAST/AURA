@@ -73,6 +73,12 @@
         <property name="type" value="string"/>
     </component>
     
+    <!-- A factory for our main dictionaries, with a bigger cache and buffers than standard -->
+    <component name="cased_dict_factory" type="ngnova.indexer.dictionary.DictionaryFactory">
+        <property name="entry_class_name" value="ngnova.indexer.entry.CasedDFOEntry"/>
+        <property name="cache_size" value="-1"/>
+    </component>
+    
     <!-- A manager for classifier partitions -->
     <component name="class_manager" type="ngnova.classification.ClassifierManager">
         <property name="lock_dir" value="${lock_directory}"/>

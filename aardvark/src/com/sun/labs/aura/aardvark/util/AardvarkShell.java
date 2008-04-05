@@ -676,10 +676,15 @@ public class AardvarkShell implements AuraService, Configurable {
                             throws Exception {
                         WeightedField[] fields =  {
                             new WeightedField("content", 1),
-                            new WeightedField("autotag", 1),
-                            new WeightedField("aura-name", 1),
+                        //    new WeightedField("autotag", 1),
+                         //   new WeightedField("aura-name", 1),
                         };
                         String key = args[1];
+                        
+                        System.out.println("Using fields:");
+                        for (WeightedField wf : fields) {
+                            System.out.printf("   %s: %f\n", wf.getFieldName(), wf.getWeight());
+                        }
                         List<Scored<Item>> items = dataStore.findSimilar(key, fields, nHits, null);
                         for (Scored<Item> item : items) {
                             System.out.printf("%.3f ", item.getScore());

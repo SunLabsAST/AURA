@@ -45,43 +45,71 @@ public class StoryUtil {
         Item ifeed = dataStore.getItem(entry.getFeedKey());
 
         //TBD - fix this
-        entry = new BlogEntry(dataStore.getItem(entry.getKey()));
+        // entry = new BlogEntry(dataStore.getItem(entry.getKey()));
 
+        String feedName = "";
+        String feedImage = "";
         BlogFeed feed = new BlogFeed(ifeed);
+        if (feed != null) {
+            feedName = feed.getName();
+            feedImage = feed.getImage();
+        }
         out.println("    <story score =\"" + score + "\">");
         String content = entry.getContent();
         if (content == null) {
             content = "";
         }
 
-        dumpHtmlTaggedText(out, padding, "source", feed.getName());
-        dumpHtmlTaggedText(out, padding, "imageUrl", feed.getImage());
+
+        dumpHtmlTaggedText(out, padding, "source", feedName);
+        dumpHtmlTaggedText(out, padding, "imageUrl", feedImage);
         dumpHtmlTaggedText(out, padding, "url", entry.getKey());
-        dumpHtmlTaggedText(out, padding, "title", entry.getTitle());
+        dumpHtmlTaggedText(out, padding, "title", excerpt(filterHTML(entry.getTitle()), 20));
         dumpHtmlTaggedText(out, padding, "pulltime", Long.toString(entry.getTimeAdded()));
         dumpHtmlTaggedText(out, padding, "length", Integer.toString(content.length()));
+
         if (entry.getContent() != null) {
             out.println("        <description>" + excerpt(filterHTML(content), 100) + "</description>");
         }
 
 
-        if (entry.getTags().size() > 0) {
-            out.println("        <tags>");
-            for (Tag tag : entry.getTags()) {
-                out.printf("    %s<tag score=\"%d\">%s</tag>\n", padding, tag.getCount(), filterTag(tag.getName()));
+        {
+            if (entry.getTags().size() > 0) {
+                out.println("        <tags>");
+                for (Tag tag : entry.getTags()) {
+                    out.printf("    %s<tag score=\"%d\">%s</tag>\n", padding, tag.getCount(), filterTag(tag.getName()));
+                }
+                out.println("        </tags>");
             }
-            out.println("        </tags>");
         }
 
-        List<Scored<String>> autotags = entry.getAutoTags();
-        if (autotags.size() > 0) {
-            Collections.sort(autotags);
-            Collections.reverse(autotags);
-            out.println("        <autotags>");
-            for (Scored<String> tag : autotags) {
-                out.printf("    %s<autotag score=\"%f\">%s</autotag>\n", padding, tag.getScore(), tag.getItem());
+        {
+            List<Scored<String>> autotags = entry.getAutoTags();
+            if (autotags.size() > 0) {
+                Collections.sort(autotags);
+                Collections.reverse(autotags);
+                out.println("        <autotags>");
+                for (Scored<String> tag : autotags) {
+                    out.printf("    %s<autotag score=\"%f\">%s</autotag>\n", padding, tag.getScore(), tag.getItem());
+                }
+                out.println("        </autotags>");
             }
-            out.println("        </autotags>");
+        }
+
+
+        {
+            List<Scored<String>> topTerms = dataStore.getTopTerms(entry.getKey(), null, 10);
+            if (topTerms.size() > 0) {
+                out.println("        <topterms>");
+                for (Scored<String> term : topTerms) {
+                    String filteredTerm = filterTag(term.getItem());
+                    if (filteredTerm.length() > 0) {
+                        out.printf("    %s<topterm score=\"%f\">%s</topterm>\n", padding,
+                                term.getScore(), filteredTerm);
+                    }
+                }
+                out.println("        </topterms>");
+            }
         }
 
         out.println("    </story>");
@@ -95,20 +123,30 @@ public class StoryUtil {
     }
 
     private static String filterTag(String s) {
-        s = s.replaceAll("[^\\p{ASCII}]", "");
-        s = s.replaceAll("\\&", "&amp;");
-        s = s.replaceAll("\\<", "&lt;");
-        s = s.replaceAll("\\>", "&gt;");
+        if (s != null) {
+            s = s.replaceAll("[^\\p{ASCII}]", "");
+            s = s.replaceAll("\\&", "&amp;");
+            s = s.replaceAll("\\<", "&lt;");
+            s = s.replaceAll("\\>", "&gt;");
+            s = s.replaceAll("[^\\p{Graph}\\p{Blank}]", "");
+        }
 
         return s;
     }
 
     private static String filterHTML(String s) {
-        s = detag(s);
-        s = deentity(s);
-        s = s.replaceAll("[^\\p{ASCII}]", "");
-        s = s.replaceAll("\\s+", " ");
-        s = s.replaceAll("[\\<\\>\\&]", " ");
+        if (s != null) {
+            s = detag(s);
+            s = deentity(s);
+            s = s.replaceAll("[^\\p{ASCII}]", "");
+            s = s.replaceAll("\\s+", " ");
+            s = s.replaceAll("[\\<\\>\\&]", " ");
+            s = s.replaceAll("#8217;", "'");
+            s = s.replaceAll("#8220;", "'");
+            s = s.replaceAll("#8221;", "'");
+            s = s.replaceAll("#160;", "'");
+            s = s.replaceAll("#(\\p{Digit}){3,4};", "'");
+        }
         return s;
     }
 
@@ -122,13 +160,15 @@ public class StoryUtil {
 
     private static String excerpt(String s, int maxWords) {
         StringBuilder sb = new StringBuilder();
-        String[] words = s.split("\\s+");
-        for (int i = 0; i < maxWords && i < words.length; i++) {
-            sb.append(words[i] + " ");
-        }
+        if (s != null) {
+            String[] words = s.split("\\s+");
+            for (int i = 0; i < maxWords && i < words.length; i++) {
+                sb.append(words[i] + " ");
+            }
 
-        if (maxWords < words.length) {
-            sb.append("...");
+            if (maxWords < words.length) {
+                sb.append("...");
+            }
         }
         return sb.toString().trim();
     }

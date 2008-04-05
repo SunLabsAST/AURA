@@ -58,7 +58,7 @@ public class BlogEntry extends ItemAdapter {
      * @return the author
      */
     public String getAuthor() {
-        return getFieldAsString(FIELD_AUTHOR);
+        return getFieldAsString(FIELD_AUTHOR, "");
     }
 
     /**
@@ -107,7 +107,7 @@ public class BlogEntry extends ItemAdapter {
      * @return the entry content
      */
     public String getContent() {
-        return getFieldAsString(FIELD_CONTENT);
+        return getFieldAsString(FIELD_CONTENT, "");
     }
 
     /**
