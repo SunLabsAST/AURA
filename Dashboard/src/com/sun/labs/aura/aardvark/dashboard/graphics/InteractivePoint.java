@@ -10,23 +10,22 @@ import com.sun.labs.aura.aardvark.dashboard.story.Story;
  *
  * @author plamere
  */
-public class StoryPoint extends CPoint {
-
-    protected Story story;
+public class InteractivePoint extends CPoint {
+    Story story;
     private Command[] pokeSet = {
         new CmdJiggle(true),
         new CmdWait(3),
         new CmdJiggle(false),
     };
 
-    StoryPoint(Story story, float x, float y, float z) {
+    InteractivePoint(Story story, float x, float y, float z) {
         super(x, y, z);
         this.story = story;
         addSet("poke", pokeSet);
     }
 
-    public Story getStory() {
-        return story;
+    InteractivePoint(float x, float y, float z) {
+        this(null, x, y, z);
     }
 
     public void init() {

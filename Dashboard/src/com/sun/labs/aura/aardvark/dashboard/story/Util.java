@@ -168,11 +168,13 @@ public class Util {
 
                 List<ScoredString> docTerms = loadTerms(tagInfoElement, "DocTerms", "DocTerm");
                 List<ScoredString> topTerms = loadTerms(tagInfoElement, "TopTerms", "TopTerm");
+                List<ScoredString> simTags = loadTerms(tagInfoElement, "SimTags", "SimTag");
 
                 ti.setTagName(name);
                 ti.setScore(score);
                 ti.setDocTerms(docTerms);
                 ti.setTopTerms(topTerms);
+                ti.setSimTags(simTags);
 
                 infos.add(ti);
             }

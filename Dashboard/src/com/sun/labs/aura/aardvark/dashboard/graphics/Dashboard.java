@@ -56,9 +56,6 @@ public class Dashboard extends SimpleGame {
     private int storiesPerMinute;
     private boolean fixedFrameRate = false;
 
-    private ControlledCamera controlledCamera;
-
-
     public static void main(String[] args) {
         try {
             boolean promptForResolution = false;
@@ -281,14 +278,14 @@ public class Dashboard extends SimpleGame {
 
     @Override
     protected void simpleUpdate() {
-        keyboardHandler.update();
+        keyboardHandler.update(tpf);
         checkForNewStories();
         syncFrames();
         cameraUpdate();
     }
 
     private void cameraUpdate() {
-        StoryPoint sp = storyPointFactory.getCurrentStoryPoint();
+        InteractivePoint sp = storyPointFactory.getCurrentStoryPoint();
         if (sp != null) {
             //cam.lookAt(sp.getNode().getWorldTranslation(), Vector3f.UNIT_Y);
         } else {

@@ -47,7 +47,7 @@ public class StoryManager {
         this.factory = factory;
     }
 
-    public StoryPoint getNext() {
+    public InteractivePoint getNext() {
         DelayedStory ds = queue.poll();
         if (ds != null) {
             return ds.getStory();
@@ -63,7 +63,7 @@ public class StoryManager {
                 int which = 1;
                 System.out.println("FindSim " + story.getTitle());
                 for (Story similarStory : stories) {
-                    StoryPoint cpoint = factory.createTileStoryPoint(similarStory, which++);
+                    InteractivePoint cpoint = factory.createTileStoryPoint(similarStory, which++);
                     System.out.println("  Sim " + similarStory.getTitle());
                     cpoint.add("home");
                     DelayedStory ds = new DelayedStory(cpoint, -1);
@@ -82,7 +82,7 @@ public class StoryManager {
                 List<TagInfo> tagInfos = fetchTagInfo(story, max);
                 int which = 1;
                 for (TagInfo ti : tagInfos) {
-                    StoryPoint cpoint = factory.createTagInfoTileStoryPoint(story, ti, which++);
+                    InteractivePoint cpoint = factory.createTagInfoTileStoryPoint(story, ti, which++);
                     cpoint.add("home");
                     DelayedStory ds = new DelayedStory(cpoint, -1);
                     queue.add(ds);
@@ -101,7 +101,7 @@ public class StoryManager {
                 List<Story> stories = queryForStories(query, max);
                 int which = 0;
                 for (Story similarStory : stories) {
-                    StoryPoint cpoint = factory.createTileStoryPoint(similarStory, which++);
+                    InteractivePoint cpoint = factory.createTileStoryPoint(similarStory, which++);
                     System.out.println("  Sim " + similarStory.getTitle());
                     cpoint.add("home");
                     DelayedStory ds = new DelayedStory(cpoint, -1);
@@ -121,7 +121,7 @@ public class StoryManager {
                 int which = 1;
                 System.out.println("FindSimStoryForTag " + tag);
                 for (Story similarStory : stories) {
-                    StoryPoint cpoint = factory.createTileStoryPoint(similarStory, which++);
+                    InteractivePoint cpoint = factory.createTileStoryPoint(similarStory, which++);
                     System.out.println("  Sim " + similarStory.getTitle());
                     cpoint.add("home");
                     DelayedStory ds = new DelayedStory(cpoint, -1);
@@ -133,11 +133,40 @@ public class StoryManager {
         t.start();
     }
 
-    public void getTagsSimilarToTag(final String tag, final int max) {
+    public void getTagsSimilarToTag(final TagInfo tagInfo, final int max) {
         Thread t = new Thread() {
 
             public void run() {
-                System.out.println("GTSTT not implemented");
+                List<TagInfo> tags = fetchTagsSimilarToTag(tagInfo, max);
+                if (tags != null) {
+                    int which = 1;
+                    for (TagInfo simTag : tags) {
+                        InteractivePoint cpoint = factory.createTagInfoTileStoryPoint(null, simTag, which++);
+                        cpoint.add("home");
+                        DelayedStory ds = new DelayedStory(cpoint, -1);
+                        queue.add(ds);
+                    }
+                }
+            }
+        };
+        t.setName("getTagInfo");
+        t.start();
+    }
+
+    public void getTagsSimilarToTagForGraph(final TagInfo tagInfo, final int max) {
+        Thread t = new Thread() {
+
+            public void run() {
+                List<TagInfo> tags = fetchTagsSimilarToTag(tagInfo, max);
+                if (tags != null) {
+                    int which = 1;
+                    for (TagInfo simTag : tags) {
+                        InteractivePoint cpoint = factory.createTagInfoTileStoryPoint(null, simTag, which++);
+                        cpoint.add("home");
+                        DelayedStory ds = new DelayedStory(cpoint, -1);
+                        queue.add(ds);
+                    }
+                }
             }
         };
         t.setName("getTagInfo");
@@ -227,7 +256,7 @@ public class StoryManager {
                 } else if (liveMode) {
                     // start from an hour ago
                     stories = collectStories(lastStoryTime, pollPeriod, maxStoriesPerMinute);
-                    //stories = collectStories(-1, -pollPeriod, maxStoriesPerMinute);
+                //stories = collectStories(-1, -pollPeriod, maxStoriesPerMinute);
                 } else {
                     stories = collectStories(curTime, pollPeriod, maxStoriesPerMinute);
                 }
@@ -241,9 +270,9 @@ public class StoryManager {
                     //System.out.print("autotags: ");
                     for (Story story : stories) {
                         //CPoint storyPoint = factory.createBoxStoryPoint(story);
-                        //StoryPoint cpoint = factory.createTileStoryPoint(story);
+                        //InteractivePoint cpoint = factory.createTileStoryPoint(story);
                         if (factory != null) {
-                            StoryPoint cpoint = factory.createHeadlineStoryPoint(story);
+                            InteractivePoint cpoint = factory.createHeadlineStoryPoint(story);
                             baseTime += delta;
                             DelayedStory ds = new DelayedStory(cpoint, baseTime);
                             queue.add(ds);
@@ -455,7 +484,7 @@ public class StoryManager {
             URL url = null;
 
             String key = URLEncoder.encode(story.getUrl(), "utf-8");
-            String surl = baseUrl + "/GetTagInfo" +
+            String surl = baseUrl + "/GetDocumentTags" +
                     "?max=" + max + "&key=" + key;
             url = new URL(surl);
             InputStream is = miscConnector.open(url);
@@ -466,6 +495,48 @@ public class StoryManager {
                 tagInfos = tagInfos.subList(0, max);
             }
             return tagInfos;
+        } catch (IOException ex) {
+            Logger.getLogger(StatusManager.class.getName()).log(Level.SEVERE, null, ex);
+            return new ArrayList<TagInfo>();
+        }
+    }
+
+    private List<TagInfo> fetchTagsSimilarToTag(TagInfo tag, int max) {
+
+        try {
+            URL url = null;
+            StringBuilder sb = new StringBuilder();
+
+            List<ScoredString> simTags = tag.getSimTags();
+
+            if (simTags.size() > max) {
+                simTags = simTags.subList(0, max);
+            }
+
+            for (int i = 0; i < simTags.size(); i++) {
+                sb.append(simTags.get(i).getName());
+                if (i < simTags.size() - 1) {
+                    sb.append(",");
+                }
+            }
+
+            String tags = sb.toString().trim();
+            tags = URLEncoder.encode(tags, "utf-8");
+
+            if (tags.length() > 0) {
+                String surl = baseUrl + "/GetTagInfo" +
+                        "?tag=" + tags;
+                url = new URL(surl);
+                InputStream is = miscConnector.open(url);
+                List<TagInfo> tagInfos = Util.loadTagInfo(is);
+                miscConnector.close(is);
+                // System.out.println("collected " + tagInfos.size() + " tagInfos");
+                if (tagInfos.size() > max) {
+                    tagInfos = tagInfos.subList(0, max);
+                }
+                return tagInfos;
+            }
+            return null;
         } catch (IOException ex) {
             Logger.getLogger(StatusManager.class.getName()).log(Level.SEVERE, null, ex);
             return new ArrayList<TagInfo>();
@@ -562,15 +633,15 @@ public class StoryManager {
 
 class DelayedStory implements Delayed {
 
-    private StoryPoint storyPoint;
+    private InteractivePoint storyPoint;
     private long processingTime;
 
-    DelayedStory(StoryPoint cpoint, long processingTime) {
+    DelayedStory(InteractivePoint cpoint, long processingTime) {
         this.storyPoint = cpoint;
         this.processingTime = processingTime;
     }
 
-    public StoryPoint getStory() {
+    public InteractivePoint getStory() {
         return storyPoint;
     }
 

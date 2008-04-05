@@ -58,7 +58,8 @@ public class StoryPointFactory {
     private Node rootNode;
     private final static int MAX_SIMS = 8;
     // tileCloud[0] is center - all the others are neighbors
-    private StoryPoint[] tileCloud = new StoryPoint[MAX_SIMS + 1];
+    private InteractivePoint[] tileCloud = new InteractivePoint[MAX_SIMS + 1];
+    private InteractivePoint currentSelection;
     private StoryManager storyManager;
     int fontCount;
 
@@ -81,34 +82,34 @@ public class StoryPointFactory {
         storyManager = sm;
     }
 
-    public StoryPoint createTileStoryPoint(Story story, float x, float y, float z) {
-        StoryPoint sp = new TileStoryPoint(story, x, y, z);
+    public InteractivePoint createTileStoryPoint(Story story, float x, float y, float z) {
+        InteractivePoint sp = new TileStoryPoint(story, x, y, z);
         sp.init();
         return sp;
     }
 
-    public StoryPoint createTileStoryPoint(Story story, int cloudSpot) {
-        StoryPoint sp = new TileStoryPoint(story, cloudSpot);
+    public InteractivePoint createTileStoryPoint(Story story, int cloudSpot) {
+        InteractivePoint sp = new TileStoryPoint(story, cloudSpot);
         sp.init();
         tileCloud[cloudSpot] = sp;
         return sp;
     }
 
-    public StoryPoint createTagInfoTileStoryPoint(Story story, TagInfo ti, int cloudSpot) {
-        StoryPoint sp = new TagInfoTileStoryPoint(story, ti, cloudSpot);
+    public InteractivePoint createTagInfoTileStoryPoint(Story story, TagInfo ti, int cloudSpot) {
+        InteractivePoint sp = new TagInfoTileStoryPoint(story, ti, cloudSpot);
         tileCloud[cloudSpot] = sp;
         sp.init();
         return sp;
     }
 
-    public StoryPoint createBoxStoryPoint(Story story) {
-        StoryPoint sp = new BoxStoryPoint(story);
+    public InteractivePoint createBoxStoryPoint(Story story) {
+        InteractivePoint sp = new BoxStoryPoint(story);
         sp.init();
         return sp;
     }
 
-    public StoryPoint createHeadlineStoryPoint(Story story) {
-        StoryPoint sp = new HeadlineStoryPoint(story);
+    public InteractivePoint createHeadlineStoryPoint(Story story) {
+        InteractivePoint sp = new HeadlineStoryPoint(story);
         sp.init();
         return sp;
     }
@@ -162,7 +163,7 @@ public class StoryPointFactory {
         return false;
     }
 
-    private boolean findAndClearFromNeighbors(StoryPoint sp) {
+    private boolean findAndClearFromNeighbors(InteractivePoint sp) {
         for (int i = 1; i < tileCloud.length; i++) {
             if (tileCloud[i] == sp) {
                 tileCloud[i] = null;
@@ -176,7 +177,7 @@ public class StoryPointFactory {
         if (isAnyNeighbors()) {
             clearNeighbors();
         } else {
-            StoryPoint sp = getCurrentStoryPoint();
+            InteractivePoint sp = getCurrentStoryPoint();
             if (sp != null) {
                 sp.add("poke");
                 sp.findStories();
@@ -188,7 +189,7 @@ public class StoryPointFactory {
         if (isAnyNeighbors()) {
             clearNeighbors();
         } else {
-            StoryPoint sp = getCurrentStoryPoint();
+            InteractivePoint sp = getCurrentStoryPoint();
             if (sp != null) {
                 sp.add("poke");
                 sp.findTags();
@@ -197,18 +198,32 @@ public class StoryPointFactory {
     }
 
     public void open() {
-        StoryPoint sp = getCurrentStoryPoint();
+        InteractivePoint sp = getCurrentStoryPoint();
         if (sp != null) {
             sp.add("poke");
             sp.open();
         }
     }
 
-    public StoryPoint getCurrentStoryPoint() {
+    public InteractivePoint getCurrentStoryPoint() {
         return tileCloud[0];
     }
 
-    public void setCurrentStoryPoint(StoryPoint newCur) {
+    public void setCurrent(InteractivePoint newCur) {
+
+        if (tileCloud[0] != null) {
+            clearCloud();
+        }
+
+        tileCloud[0] = newCur;
+
+        if (tileCloud[0] != null) {
+            tileCloud[0].add("home");
+        }
+    }
+
+    public void setCurrentOld(InteractivePoint newCur) {
+
         if (tileCloud[0] != null) {
             clearCloud();
         }
@@ -221,7 +236,7 @@ public class StoryPointFactory {
     }
 
     public void clearAllStories() {
-        setCurrentStoryPoint(null);
+        setCurrent(null);
         clearCloud();
     }
 
@@ -238,7 +253,7 @@ public class StoryPointFactory {
         spatial.setRenderState(ts);
     }
 
-    class BoxStoryPoint extends StoryPoint {
+    class BoxStoryPoint extends InteractivePoint {
 
         BoxStoryPoint(Story story) {
             super(story, -10, 10, -3);
@@ -269,12 +284,12 @@ public class StoryPointFactory {
         }
     }
 
-    class HeadlineStoryPoint extends StoryPoint {
+    class HeadlineStoryPoint extends InteractivePoint {
 
         private float scale = 1.0f;
 
-        HeadlineStoryPoint(Story story) {
-            super(story, 160, 40, rng.nextFloat() * 5);
+        HeadlineStoryPoint(Story aStory) {
+            super(aStory, 160, 40, rng.nextFloat() * 5);
             pointCount++;
 
             scale = story.getLength() / 1000.0f;
@@ -313,8 +328,8 @@ public class StoryPointFactory {
                 public void performAction(CPoint cp, InputActionEvent evt) {
                     cp.setRelativeAngle(FastMath.PI, 0f, 0f, .5f);
                     Vector3f cur = getNode().getWorldTranslation();
-                    StoryPoint sp = createTileStoryPoint(getStory(), cur.x, cur.y, cur.z - 10);
-                    setCurrentStoryPoint(sp);
+                    InteractivePoint sp = createTileStoryPoint(story, cur.x, cur.y, cur.z - 10);
+                    setCurrent(sp);
                     rootNode.attachChild(sp.getNode());
                 }
             });
@@ -360,7 +375,7 @@ public class StoryPointFactory {
         }
     }
 
-    class TileStoryPoint extends StoryPoint {
+    class TileStoryPoint extends InteractivePoint {
 
         private final int width = 350;
         private final int height = 350;
@@ -393,11 +408,11 @@ public class StoryPointFactory {
 
                         if (findAndClearFromNeighbors(TileStoryPoint.this)) {
                             addSet("home", home);
-                            setCurrentStoryPoint(TileStoryPoint.this);
+                            setCurrent(TileStoryPoint.this);
                         } else {
                             add("dismiss");
                             if (getCurrentStoryPoint() == TileStoryPoint.this) {
-                                setCurrentStoryPoint(null);
+                                setCurrent(null);
                             }
                         }
                     }
@@ -423,7 +438,6 @@ public class StoryPointFactory {
                 new CmdWait(.5f)
             };
 
-            System.out.println("Adding set for " + which);
             addSet("home", spothome);
         }
 
@@ -437,12 +451,12 @@ public class StoryPointFactory {
 
         @Override
         public void findStories() {
-            storyManager.findSimilar(story, tileCloud.length);
+            storyManager.findSimilar(story, MAX_SIMS);
         }
 
         @Override
         public void findTags() {
-            storyManager.getTagInfo(story, tileCloud.length);
+            storyManager.getTagInfo(story, MAX_SIMS);
         }
 
         @Override
@@ -579,12 +593,68 @@ public class StoryPointFactory {
 
         @Override
         public void findStories() {
-            storyManager.getStoriesSimilarToTag(tagInfo.getTagName(), tileCloud.length);
+            storyManager.getStoriesSimilarToTag(tagInfo.getTagName(), MAX_SIMS);
         }
 
         @Override
         public void findTags() {
-            storyManager.getTagsSimilarToTag(tagInfo.getTagName(), tileCloud.length);
+            storyManager.getTagsSimilarToTag(tagInfo, MAX_SIMS);
+        }
+    }
+
+    class Tag2InfoTileStoryPoint extends TileStoryPoint {
+
+        private TagInfo tagInfo;
+
+        Tag2InfoTileStoryPoint(TagInfo ti, int which) {
+            super(null, which);
+            tagInfo = ti;
+        }
+
+        String getFrontTitle() {
+            return tagInfo.getTagName() + " Info";
+        }
+
+        String getBackTitle() {
+            return tagInfo.getTagName() + " Details";
+        }
+
+        String getFrontHTML() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("<body>");
+            sb.append("<h1>" + tagInfo.getTagName() + "</h1>");
+            sb.append("</body>");
+            return sb.toString();
+        }
+
+        @Override
+        String getBackHTML() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("<body>");
+            if (tagInfo.getTopTerms().size() > 0) {
+                sb.append("<h2> Top Autotag Terms </h2>");
+                for ( ScoredString t : tagInfo.getTopTerms()) {
+                    sb.append(getScoredStringForCloud(t));
+                    sb.append("  ");
+                }
+            }
+            sb.append("</body>");
+            return sb.toString();
+        }
+
+        @Override
+        Color getBackgroundColor() {
+            return new Color(220, 220, 250);
+        }
+
+        @Override
+        public void findStories() {
+            storyManager.getStoriesSimilarToTag(tagInfo.getTagName(), MAX_SIMS);
+        }
+
+        @Override
+        public void findTags() {
+            storyManager.getTagsSimilarToTag(tagInfo, MAX_SIMS);
         }
     }
 
