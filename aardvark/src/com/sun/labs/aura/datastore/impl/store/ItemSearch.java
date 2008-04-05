@@ -253,4 +253,19 @@ public interface ItemSearch {
      */
     public List<Scored<String>> findSimilarAutotags(String autotag, int n)
             throws AuraException, RemoteException;
+
+    /**
+     * Explains the similarity between two autotags as a set of weighted
+     * terms that have the highest contribution to the similarity.
+     * @param a1 the first autotag
+     * @param a2 the second autotag
+     * @param n the number of most important terms to return
+     * @return a list of the most important terms contributing to the similarity
+     * between the autotags.
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<Scored<String>> explainSimilarAutotags(String a1, String a2,
+            int n)
+            throws AuraException, RemoteException;
 }

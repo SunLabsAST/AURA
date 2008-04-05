@@ -387,7 +387,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return searchEngine.findSimilarAutotags(autotag, n);
     }
  
-
+    public List<Scored<String>> explainSimilarAutotags(String a1, String a2,
+            int n)
+            throws AuraException, RemoteException {
+        return searchEngine.explainSimilarAutotags(a1, a2, n);
+    }
+    
     public DocumentVector getDocumentVector(String key) {
         return searchEngine.getDocumentVector(key);
     }

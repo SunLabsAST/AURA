@@ -838,6 +838,15 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return new ArrayList<Scored<String>>();
     }
 
+    public List<Scored<String>> explainSimilarAutotags(String a1, String a2, int n)
+            throws AuraException, RemoteException {
+        Set<PartitionCluster> clusters = trie.getAll();
+        for(PartitionCluster pc : clusters) {
+            return pc.explainSimilarAutotags(a1, a2, n);
+        }
+        return new ArrayList<Scored<String>>();
+    }
+
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
             //

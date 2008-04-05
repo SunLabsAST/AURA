@@ -443,6 +443,16 @@ public class ItemSearchEngine implements Configurable {
         }
         return ret;
     }
+    
+    public List<Scored<String>> explainSimilarAutotags(String a1, String a2, int n)
+            throws AuraException, RemoteException {
+        List<WeightedFeature> l = ((SearchEngineImpl) engine).getSimilarClassifierTerms(a1, a2, n);
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        for(WeightedFeature wf : l) {
+            ret.add(new Scored<String>(wf.getName(), wf.getWeight()));
+        }
+        return ret;
+    }
 
     /**
      * Gets an explanation as to why a given autotag would be applied to 

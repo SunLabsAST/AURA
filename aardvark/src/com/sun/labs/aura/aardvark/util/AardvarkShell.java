@@ -579,7 +579,29 @@ public class AardvarkShell implements AuraService, Configurable {
                     }
 
                     public String getHelp() {
-                        return "get top auttagged items:   gat <autotag>";
+                        return "Get autotags most similar to the given tag: tsim <autotag>";
+                    }
+                });
+
+        shell.add("etsim",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                            if(args.length < 3) {
+                                return getHelp();
+                            }
+                        List<Scored<String>> terms = 
+                                dataStore.explainSimilarAutotags(args[1], args[2], nHits);
+                        for(Scored<String> term : terms) {
+                            System.out.println(term);
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Explain autotag similarity: etsim <autotag> <autotag>";
                     }
                 });
 
