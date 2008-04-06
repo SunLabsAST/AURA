@@ -78,7 +78,7 @@ public class MotionController extends Controller {
 
     public void setSetPoint(Vector3f setPoint) {
         isSettled = false;
-        this.setPoint = setPoint;
+        this.setPoint.set(setPoint);
     }
 
     public void setLinearVelocity(Vector3f v) {

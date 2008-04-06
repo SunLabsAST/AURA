@@ -50,6 +50,17 @@ public class CPoint extends Controller implements InputActionInterface {
         masterNode.setRenderQueueMode(Renderer.QUEUE_OPAQUE);
     }
 
+    public CPoint(Node node) {
+        this.masterNode = node;
+        this.motionController = new MotionController(masterNode, 
+                node.getLocalTranslation().x, 
+                node.getLocalTranslation().y, 
+                node.getLocalTranslation().z);
+        masterNode.addController(this);
+        masterNode.addController(motionController);
+        masterNode.setRenderQueueMode(Renderer.QUEUE_OPAQUE);
+    }
+
     public void addGeometry(Geometry geometry) {
         masterNode.attachChild(geometry);
         geometry.setModelBound(new BoundingBox());
@@ -71,6 +82,10 @@ public class CPoint extends Controller implements InputActionInterface {
 
     public void remove() {
         masterNode.removeFromParent();
+    }
+
+    public void setTrace(boolean trace) {
+        traceCommands = trace;
     }
 
     public void poke() {

@@ -25,6 +25,7 @@ public class Story {
     private List<ScoredString> tags;
     private List<ScoredString> autotags;
     private List<ScoredString> topTerms;
+    private List<Story> similarStories;
 
 
 
@@ -121,6 +122,15 @@ public class Story {
     public void setPulltime(long pulltime) {
         this.pulltime = pulltime;
     }
+
+    public List<Story> getSimilarStories() {
+        return similarStories;
+    }
+
+    public void setSimilarStories(List<Story> similarStories) {
+        this.similarStories = similarStories;
+    }
+
 
     public String toXML() {
         StringBuilder sb = new StringBuilder();

@@ -19,13 +19,14 @@ import java.util.logging.Logger;
 public class StatusManager {
 
     private long period;
+    private String baseUrl;
     private URL url;
     private Thread t;
     private Stats curStats;
 
-    StatusManager(String surl, long period) {
+    public StatusManager(String baseURL, long period) {
         try {
-            url = new URL(surl);
+            url = new URL(baseURL + "/GetStatus");
             this.period = period;
         } catch (MalformedURLException ex) {
             Logger.getLogger(StatusManager.class.getName()).log(Level.SEVERE, null, ex);
@@ -35,6 +36,7 @@ public class StatusManager {
 
     public void start() {
         t = new Thread() {
+
             public void run() {
                 collector();
             }
@@ -54,21 +56,22 @@ public class StatusManager {
     public void collector() {
         while (t != null) {
             try {
-                URLConnection connection = url.openConnection();
-                connection.setConnectTimeout(30000);
-                connection.setReadTimeout(30000);
+                try {
+                    URLConnection connection = url.openConnection();
+                    connection.setConnectTimeout(30000);
+                    connection.setReadTimeout(30000);
 
-                InputStream is = connection.getInputStream();
-                Stats stats = Util.loadStats(is);
-                System.out.println("stats " + stats);
-                is.close();
-                curStats = stats;
+                    InputStream is = connection.getInputStream();
+                    Stats stats = Util.loadStats(is);
+                    is.close();
+                    curStats = stats;
+                } catch (IOException ex) {
+                    Logger.getLogger(StatusManager.class.getName()).log(Level.SEVERE, null, ex);
+                    curStats = null;
+                }
                 Thread.sleep(period);
             } catch (InterruptedException ex) {
                 Logger.getLogger(StatusManager.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(StatusManager.class.getName()).log(Level.SEVERE, null, ex);
-                curStats = null;
             }
         }
     }

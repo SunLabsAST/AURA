@@ -75,6 +75,38 @@ public class StoryManager {
         t.start();
     }
 
+    // a prefetching versin - lets us get the data ahead of time
+    public void findSimilar(final Story story, final int max, final boolean prefetchOnly) {
+        Thread t = new Thread() {
+
+            public void run() {
+
+                synchronized (story) {
+                    List<Story> similarStories = story.getSimilarStories();
+                    if (similarStories == null) {
+                        long now = System.currentTimeMillis();
+                        similarStories = fetchSimilarStories(story,max);
+                        story.setSimilarStories(similarStories);
+                        System.out.println("FindSim " + (System.currentTimeMillis() - now) + " ms");
+                    }
+
+                    if (!prefetchOnly) {
+                        int which = 1;
+                        System.out.println("FindSim " + story.getTitle());
+                        for (Story similarStory : similarStories) {
+                            InteractivePoint cpoint = factory.createTileStoryPoint(similarStory, which++);
+                            cpoint.add("home");
+                            DelayedStory ds = new DelayedStory(cpoint, -1);
+                            queue.add(ds);
+                        }
+                    }
+                }
+            }
+        };
+        t.setName("find-similar");
+        t.start();
+    }
+
     public void getTagInfo(final Story story, final int max) {
         Thread t = new Thread() {
 
@@ -110,6 +142,35 @@ public class StoryManager {
             }
         };
         t.setName("getTagInfo");
+        t.start();
+    }
+
+    public void getStoriesSimilarToTag(final TagInfo tagInfo, final int max, final boolean prefetchOnly) {
+        Thread t = new Thread() {
+
+            public void run() {
+                synchronized (tagInfo) {
+                    List<Story> similarStories = tagInfo.getSimilarStories();
+                    if (similarStories == null) {
+                        long now = System.currentTimeMillis();
+                        similarStories = fetchStoriesSimilarTag(tagInfo.getTagName(),max);
+                        tagInfo.setSimilarStories(similarStories);
+                        System.out.println("FindSimToTag " + (System.currentTimeMillis() - now) + " ms");
+                    }
+
+                    if (!prefetchOnly) {
+                        int which = 1;
+                        for (Story similarStory : similarStories) {
+                            InteractivePoint cpoint = factory.createTileStoryPoint(similarStory, which++);
+                            cpoint.add("home");
+                            DelayedStory ds = new DelayedStory(cpoint, -1);
+                            queue.add(ds);
+                        }
+                    }
+                }
+            }
+        };
+        t.setName("getStoriesSimilarToTag-" + tagInfo.getTagName());
         t.start();
     }
 
@@ -233,7 +294,7 @@ public class StoryManager {
         int minutes = 0;
         int storyCount = 0;
         float avgStoriesPerMinute = 0;
-        long baseTime = System.currentTimeMillis();
+        long baseTime = 0;
 
         long timeMax = 0;
         long timeMin = Long.MAX_VALUE;
@@ -261,11 +322,17 @@ public class StoryManager {
                     stories = collectStories(curTime, pollPeriod, maxStoriesPerMinute);
                 }
 
+
                 storyCount += stories.size();
                 minutes++;
                 avgStoriesPerMinute = storyCount / (float) minutes;
 
                 if (stories.size() > 0) {
+                    // start a base time after our first collection
+                    if (baseTime == 0) {
+                        baseTime = System.currentTimeMillis();
+                    }
+
                     int delta = (int) (pollPeriod / stories.size());
                     //System.out.print("autotags: ");
                     for (Story story : stories) {

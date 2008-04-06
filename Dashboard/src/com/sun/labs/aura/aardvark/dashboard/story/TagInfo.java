@@ -22,6 +22,9 @@ public class TagInfo {
     private List<ScoredString> topTerms = EMPTY;
     private List<ScoredString> simTags = EMPTY;
 
+    private List<Story> similarStories;
+    private List<Story> similarTagInfos;
+
     public float getScore() {
         return score;
     }
@@ -60,6 +63,22 @@ public class TagInfo {
 
     public void setSimTags(List<ScoredString> simTags) {
         this.simTags = simTags;
+    }
+
+    public List<Story> getSimilarStories() {
+        return similarStories;
+    }
+
+    public void setSimilarStories(List<Story> similarStories) {
+        this.similarStories = similarStories;
+    }
+
+    public List<Story> getSimilarTagInfos() {
+        return similarTagInfos;
+    }
+
+    public void setSimilarTagInfos(List<Story> similarTagInfos) {
+        this.similarTagInfos = similarTagInfos;
     }
 
     public void dump() {

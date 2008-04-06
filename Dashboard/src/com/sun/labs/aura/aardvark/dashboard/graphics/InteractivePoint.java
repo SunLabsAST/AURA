@@ -52,4 +52,8 @@ public class InteractivePoint extends CPoint {
 
     public void open() {
     }
+    
+    public void makeCurrent(boolean isCur) {
+
+    }
 }

@@ -232,11 +232,13 @@ public class Util {
             String feeds = getElementContents(statusElement, "feeds");
             String users = getElementContents(statusElement, "users");
             String taste = getElementContents(statusElement, "taste");
+            String pulls = getElementContents(statusElement, "pulls");
             String entriesPerMinute = getElementContents(statusElement, "entriesPerMinute");
 
             stats = new Stats(
                     Long.parseLong(entries),
                     Long.parseLong(feeds),
+                    Long.parseLong(pulls),
                     Long.parseLong(users),
                     Long.parseLong(taste),
                     Float.parseFloat(entriesPerMinute));

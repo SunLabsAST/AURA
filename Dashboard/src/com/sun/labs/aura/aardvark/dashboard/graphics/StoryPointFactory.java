@@ -37,6 +37,8 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.net.URL;
+import java.util.Date;
+import java.util.List;
 import java.util.Random;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -91,6 +93,7 @@ public class StoryPointFactory {
     public InteractivePoint createTileStoryPoint(Story story, int cloudSpot) {
         InteractivePoint sp = new TileStoryPoint(story, cloudSpot);
         sp.init();
+
         tileCloud[cloudSpot] = sp;
         return sp;
     }
@@ -120,7 +123,24 @@ public class StoryPointFactory {
 
     public void clear() {
         setCurrent(null);
-        clearCloud();
+        //clearCloud();
+        clearAllTiles(rootNode);
+    }
+
+
+    private void clearAllTiles(Spatial spatial) {
+        CPoint cpoint = (CPoint) spatial.getUserData("cpoint");
+        if (cpoint != null) {
+            if (cpoint instanceof TileStoryPoint) {
+                cpoint.add("dismiss");
+            }
+        }
+        if (spatial instanceof Node) {
+            Node node = (Node) spatial;
+            for (Spatial s : node.getChildren()) {
+                clearAllTiles(s);
+            }
+        }
     }
 
     private void clearCloud() {
@@ -206,12 +226,14 @@ public class StoryPointFactory {
 
     public void setCurrent(InteractivePoint newCur) {
         if (currentSelection != null) {
+            currentSelection.makeCurrent(false);
             currentSelection.unpoke();
         }
 
         currentSelection = newCur;
 
         if (currentSelection != null) {
+            currentSelection.makeCurrent(true);
             currentSelection.poke();
             if (!isInCloud(currentSelection)) {
                 goCenter(currentSelection);
@@ -369,7 +391,21 @@ public class StoryPointFactory {
             super(story, x, y, z);
             this.story = story;
 
+            Command[] dismiss = {
+                new CmdControl(true),
+                new CmdSloppy(),
+                new CmdMove((.5f - rng.nextFloat()) * 30, (.5f - rng.nextFloat()) * 30, -245),
+                new CmdWait(0, 1.3f),
+                new CmdRotate(FastMath.PI, FastMath.PI / 2, FastMath.PI, .5f),
+                new CmdWait(.5f),
+                new CmdRotate(FastMath.PI / 2, FastMath.PI, FastMath.PI, 1.5f),
+                new CmdWait(1.5f),
+                new CmdWait(5f),
+                new CmdRemove()
+            };
+
             addSet("home", home);
+            addSet("gostart", home);
             addSet("clicked", clicked);
             addSet("dismiss", dismiss);
         }
@@ -386,10 +422,17 @@ public class StoryPointFactory {
 
                 public void performAction(CPoint cp, InputActionEvent evt) {
                     if (MouseInput.get().isButtonDown(0)) {
-                        setCurrent(TileStoryPoint.this);
+                        if (getCurrent() == TileStoryPoint.this) {
+                            add("clicked");
+                        } else {
+                            setCurrent(TileStoryPoint.this);
+                        }
                     } else if (MouseInput.get().isButtonDown(1)) {
-                        setCurrent(TileStoryPoint.this);
-                        add("clicked");
+                        if (getCurrent() == TileStoryPoint.this) {
+                            setCurrent(null);
+                        }  else {
+                            add("dismiss");
+                        }
                     }
                 }
             });
@@ -416,6 +459,7 @@ public class StoryPointFactory {
             addSet("home", spothome);
         }
 
+
         Geometry getFrontImageTile() {
             return createImageTile(getFrontTitle(), getFrontHTML(), 0);
         }
@@ -426,7 +470,7 @@ public class StoryPointFactory {
 
         @Override
         public void findStories() {
-            storyManager.findSimilar(story, MAX_SIMS);
+            storyManager.findSimilar(story, MAX_SIMS, false);
         }
 
         @Override
@@ -437,6 +481,13 @@ public class StoryPointFactory {
         @Override
         public void open() {
             Util.openInBrowser(story.getUrl());
+        }
+
+        public void makeCurrent(boolean isCur) {
+            // when we are current, prefetch the similar stories
+            if (isCur) {
+                storyManager.findSimilar(story, MAX_SIMS, true);
+            }
         }
 
         Geometry createImageTile(String title, String html, float offset) {
@@ -455,11 +506,23 @@ public class StoryPointFactory {
         }
 
         String getBackTitle() {
-            return "Tag Info";
+            return "Pulled at " + new Date(story.getPulltime());
         }
 
         Color getBackgroundColor() {
             return Color.WHITE;
+        }
+
+        protected void appendList(StringBuilder sb, String title, List<ScoredString> list) {
+            if (list.size() > 0) {
+                sb.append("<h2>" + title + "</h2>");
+                for (int i = 0; i < list.size(); i++) {
+                    sb.append(getScoredStringForCloud(list.get(i)));
+                    if (i < list.size() - 1) {
+                        sb.append(", ");
+                    }
+                }
+            }
         }
 
         String getFrontHTML() {
@@ -484,29 +547,10 @@ public class StoryPointFactory {
             StringBuilder sb = new StringBuilder();
             sb.append("<body>");
 
-            if (story.getTopTerms().size() > 0) {
-                sb.append("<h2> Top Terms </h2>");
-                for (ScoredString c : story.getTopTerms()) {
-                    sb.append(getScoredStringForCloud(c));
-                    sb.append("  ");
-                }
-            }
+            appendList(sb, "Top Terms", story.getTopTerms());
+            appendList(sb, "Manual Tags", story.getTags());
+            appendList(sb, "Auto Tags", story.getAutotags());
 
-            if (story.getTags().size() > 0) {
-                sb.append("<h2> Manual Tags </h2>");
-                for (ScoredString c : story.getTags()) {
-                    sb.append(c.getName());
-                    sb.append("  ");
-                }
-            }
-
-            if (story.getAutotags().size() > 0) {
-                sb.append("<h2> Auto Tags </h2>");
-                for (ScoredString c : story.getAutotags()) {
-                    sb.append(getScoredStringForCloud(c));
-                    sb.append("  ");
-                }
-            }
             sb.append("</body>");
             return sb.toString();
         }
@@ -522,7 +566,8 @@ public class StoryPointFactory {
         }
 
         String getFrontTitle() {
-            return tagInfo.getTagName() + " Info";
+            //return tagInfo.getTagName() + " Info";
+            return "Autotag";
         }
 
         String getBackTitle() {
@@ -533,13 +578,10 @@ public class StoryPointFactory {
             StringBuilder sb = new StringBuilder();
             sb.append("<body>");
 
-            if (tagInfo.getDocTerms().size() > 0) {
-                sb.append("<h2> Story Terms </h2>");
-                for (ScoredString t : tagInfo.getDocTerms()) {
-                    sb.append(getScoredStringForCloud(t));
-                    sb.append("  ");
-                }
-            }
+            //sb.append("<h1>" + tagInfo.getTagName() + "</h1>");
+            sb.append(htmlSize(tagInfo.getTagName(), 5) + "<p>");
+
+            appendList(sb, "Top Autotag Terms", tagInfo.getTopTerms());
 
             sb.append("</body>");
             return sb.toString();
@@ -550,13 +592,9 @@ public class StoryPointFactory {
             StringBuilder sb = new StringBuilder();
             sb.append("<body>");
 
-            if (tagInfo.getTopTerms().size() > 0) {
-                sb.append("<h2> Top Autotag Terms </h2>");
-                for ( ScoredString t : tagInfo.getTopTerms()) {
-                    sb.append(getScoredStringForCloud(t));
-                    sb.append("  ");
-                }
-            }
+            appendList(sb, "Similar Tags", tagInfo.getSimTags());
+            appendList(sb, "Story Terms", tagInfo.getDocTerms());
+
             sb.append("</body>");
             return sb.toString();
         }
@@ -568,74 +606,25 @@ public class StoryPointFactory {
 
         @Override
         public void findStories() {
-            storyManager.getStoriesSimilarToTag(tagInfo.getTagName(), MAX_SIMS);
+            storyManager.getStoriesSimilarToTag(tagInfo, MAX_SIMS, false);
         }
 
         @Override
         public void findTags() {
             storyManager.getTagsSimilarToTag(tagInfo, MAX_SIMS);
         }
-    }
-
-    class Tag2InfoTileStoryPoint extends TileStoryPoint {
-
-        private TagInfo tagInfo;
-
-        Tag2InfoTileStoryPoint(TagInfo ti, int which) {
-            super(null, which);
-            tagInfo = ti;
-        }
-
-        String getFrontTitle() {
-            return tagInfo.getTagName() + " Info";
-        }
-
-        String getBackTitle() {
-            return tagInfo.getTagName() + " Details";
-        }
-
-        String getFrontHTML() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("<body>");
-            sb.append("<h1>" + tagInfo.getTagName() + "</h1>");
-            sb.append("</body>");
-            return sb.toString();
-        }
 
         @Override
-        String getBackHTML() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("<body>");
-            if (tagInfo.getTopTerms().size() > 0) {
-                sb.append("<h2> Top Autotag Terms </h2>");
-                for ( ScoredString t : tagInfo.getTopTerms()) {
-                    sb.append(getScoredStringForCloud(t));
-                    sb.append("  ");
-                }
+        public void makeCurrent(boolean isCur) {
+            if (isCur) {
+                storyManager.getStoriesSimilarToTag(tagInfo, MAX_SIMS, true);
             }
-            sb.append("</body>");
-            return sb.toString();
-        }
-
-        @Override
-        Color getBackgroundColor() {
-            return new Color(220, 220, 250);
-        }
-
-        @Override
-        public void findStories() {
-            storyManager.getStoriesSimilarToTag(tagInfo.getTagName(), MAX_SIMS);
-        }
-
-        @Override
-        public void findTags() {
-            storyManager.getTagsSimilarToTag(tagInfo, MAX_SIMS);
         }
     }
 
     private String getScoredStringForCloud(
             ScoredString c) {
-        int size = (int) (c.getScore() * 2 + 1);
+        int size = (int) (c.getScore() * 1 + 1);
         return htmlSize(c.getName(), size);
     }
 
@@ -656,6 +645,7 @@ public class StoryPointFactory {
         attachBorder(htmlDisplay, title);
         htmlDisplay.setText(html);
         htmlDisplay.setPreferredSize(new Dimension(width, height));
+        htmlDisplay.setMaximumSize(new Dimension(width, height));
         htmlDisplay.setBounds(0, 0, width, height);
         htmlDisplay.setBackground(bgcolor);
         return createImage(htmlDisplay, BufferedImage.TYPE_INT_ARGB);
@@ -728,18 +718,6 @@ public class StoryPointFactory {
         new CmdWait(.5f),
         new CmdRotate(0, 0, 0),
         new CmdWait(.5f)
-    };
-    private Command[] dismiss = {
-        new CmdControl(true),
-        new CmdSloppy(),
-        new CmdWait(0, .3f),
-        new CmdMove(0, 0, -245),
-        new CmdRotate(FastMath.PI, FastMath.PI / 2, FastMath.PI, .5f),
-        new CmdWait(.5f),
-        new CmdRotate(FastMath.PI / 2, FastMath.PI, FastMath.PI, 1.5f),
-        new CmdWait(1.5f),
-        new CmdWait(5f),
-        new CmdRemove()
     };
     Vector3f[] spots = {
         new Vector3f(0f, 0f, 45f),
