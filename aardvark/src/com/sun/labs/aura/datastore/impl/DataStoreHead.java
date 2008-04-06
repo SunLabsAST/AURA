@@ -979,6 +979,11 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             this.pc = pc;
         }
 
+        public PCCaller(PartitionCluster pc, ResultsFilter rf) {
+            this.pc = pc;
+            this.rf = rf;
+        }
+
         public PCCaller(PartitionCluster pc, DocumentVector dv, ResultsFilter rf) {
             this.pc = pc;
             this.rf = rf;
@@ -1087,7 +1092,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                 new HashSet<Callable<List<Scored<Item>>>>();
         final PCLatch latch = new PCLatch(clusters.size());
         for(PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            callers.add(new PCCaller(p, rf) {
                 public List<Scored<Item>> call()
                         throws AuraException, RemoteException {
                     List<Scored<Item>> ret = pc.query(query, sort, n, rf);

@@ -14,6 +14,7 @@ import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
+import com.sun.labs.aura.aardvark.impl.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DBIterator;
@@ -512,6 +513,25 @@ public class AardvarkShell implements AuraService, Configurable {
                             throws Exception {
                         String query = stuff(args, 1);
                         List<Scored<Item>> items = dataStore.query(query, nHits, null);
+                        for (Scored<Item> item : items) {
+                            System.out.printf("%.3f ", item.getScore());
+                            dumpItem(item.getItem());
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Runs a query";
+                    }
+                });
+        shell.add("qe",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String query = stuff(args, 1);
+                        List<Scored<Item>> items = dataStore.query(query, nHits, new TypeFilter(Item.ItemType.BLOGENTRY));
                         for (Scored<Item> item : items) {
                             System.out.printf("%.3f ", item.getScore());
                             dumpItem(item.getItem());
