@@ -632,7 +632,15 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         DocumentVector dv = pc.getDocumentVector(key, field);
-        PCLatch latch = new PCLatch(trie.size());
+        int numClusters = trie.size();
+        PCLatch latch;
+        if(n == 1) {
+            // Special case:
+            // Return if we've heard from three quarters of our clusters
+            latch = new PCLatch((int) (numClusters * 0.75), 500);
+        } else {
+            latch = new PCLatch(numClusters);
+        }
         return findSimilar(dv, n, rf, latch);
     }
 
@@ -838,6 +846,15 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return new ArrayList<Scored<String>>();
     }
 
+    public List<Scored<String>> explainSimilarAutotags(String a1, String a2, int n)
+            throws AuraException, RemoteException {
+        Set<PartitionCluster> clusters = trie.getAll();
+        for(PartitionCluster pc : clusters) {
+            return pc.explainSimilarAutotags(a1, a2, n);
+        }
+        return new ArrayList<Scored<String>>();
+    }
+
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
             //
@@ -962,6 +979,11 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             this.pc = pc;
         }
 
+        public PCCaller(PartitionCluster pc, ResultsFilter rf) {
+            this.pc = pc;
+            this.rf = rf;
+        }
+
         public PCCaller(PartitionCluster pc, DocumentVector dv, ResultsFilter rf) {
             this.pc = pc;
             this.rf = rf;
@@ -1070,7 +1092,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                 new HashSet<Callable<List<Scored<Item>>>>();
         final PCLatch latch = new PCLatch(clusters.size());
         for(PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            callers.add(new PCCaller(p, rf) {
                 public List<Scored<Item>> call()
                         throws AuraException, RemoteException {
                     List<Scored<Item>> ret = pc.query(query, sort, n, rf);

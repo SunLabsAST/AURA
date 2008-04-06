@@ -43,7 +43,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import ngnova.util.StopWatch;
+import ngnova.util.NanoWatch;
+import ngnova.util.NanoWatch;
 
 /**
  * An implementation of the item store using the berkeley database as a back
@@ -202,9 +203,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     public void close() throws AuraException {
         closed = true;
         System.out.println(new Date() + ": Closing BDB...");
-        bdb.close();
         searchEngine.getSearchEngine().removeIndexListener(this);
-        listenerMap = new HashMap<ItemType,Set<ItemListener>>();
+        bdb.close();
         System.out.println(new Date() + ": Shuting down search engine...");
         searchEngine.shutdown();
         System.out.println(new Date() + ": Done closing search engine");
@@ -357,23 +357,23 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
 
     public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        StopWatch sw = new StopWatch();
+        NanoWatch sw = new NanoWatch();
         sw.start();
         List<Scored<Item>> res =
-                keysToItems(searchEngine.query(query, sort, n));
+                keysToItems(searchEngine.query(query, sort, n, rf));
         sw.stop();
-        logger.info("Got results for query: " + query + " [" + sw.getTime() + "ms]");
+        logger.info("q " + query + " " + sw.getTimeMillis());
         return res;
     }
+
     public List<Scored<Item>> getAutotagged(String autotag, int n)
             throws AuraException, RemoteException {
-        StopWatch sw = new StopWatch();
+        NanoWatch sw = new NanoWatch();
         sw.start();
         List<Scored<Item>> res =
                 keysToItems(searchEngine.getAutotagged(autotag, n));
         sw.stop();
-        logger.info("getAutotagged for " + autotag + " in " +
-                sw.getTime() + "ms");
+        logger.info("gat " + autotag + " " + sw.getTimeMillis());
         return res;
     }
     
@@ -387,7 +387,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return searchEngine.findSimilarAutotags(autotag, n);
     }
  
-
+    public List<Scored<String>> explainSimilarAutotags(String a1, String a2,
+            int n)
+            throws AuraException, RemoteException {
+        return searchEngine.explainSimilarAutotags(a1, a2, n);
+    }
+    
     public DocumentVector getDocumentVector(String key) {
         return searchEngine.getDocumentVector(key);
     }
@@ -415,12 +420,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      */
     public List<Scored<Item>> findSimilar(DocumentVector dv, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        StopWatch sw = new StopWatch();
+        NanoWatch sw = new NanoWatch();
         sw.start();
         List<Scored<String>> fsr = searchEngine.findSimilar(dv, n, rf);
         sw.stop();
-//        logger.info("Got find similar results for " + dv.getKey() + " in " +
-//                sw.getTime() + "ms");
+        logger.info("fs " + dv.getKey() + " " + sw.getTimeMillis());
         List<Scored<Item>> res = keysToItems(fsr);
         return res;
     }

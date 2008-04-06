@@ -14,6 +14,7 @@ import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
+import com.sun.labs.aura.aardvark.impl.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DBIterator;
@@ -524,6 +525,25 @@ public class AardvarkShell implements AuraService, Configurable {
                         return "Runs a query";
                     }
                 });
+        shell.add("qe",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String query = stuff(args, 1);
+                        List<Scored<Item>> items = dataStore.query(query, nHits, new TypeFilter(Item.ItemType.BLOGENTRY));
+                        for (Scored<Item> item : items) {
+                            System.out.printf("%.3f ", item.getScore());
+                            dumpItem(item.getItem());
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Runs a query";
+                    }
+                });
         shell.add("gat",
                 new CommandInterface() {
 
@@ -579,7 +599,29 @@ public class AardvarkShell implements AuraService, Configurable {
                     }
 
                     public String getHelp() {
-                        return "get top auttagged items:   gat <autotag>";
+                        return "Get autotags most similar to the given tag: tsim <autotag>";
+                    }
+                });
+
+        shell.add("etsim",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                            if(args.length < 3) {
+                                return getHelp();
+                            }
+                        List<Scored<String>> terms = 
+                                dataStore.explainSimilarAutotags(args[1], args[2], nHits);
+                        for(Scored<String> term : terms) {
+                            System.out.println(term);
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "Explain autotag similarity: etsim <autotag> <autotag>";
                     }
                 });
 

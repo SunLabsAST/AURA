@@ -20,6 +20,8 @@ public interface DBServiceAsync {
 
     public void searchItemByName(String key, AsyncCallback asyncCallback);
     
+    public void findSimilar(String key, AsyncCallback asyncCallback);
+
     public void searchItemByGen(String query, AsyncCallback asyncCallback);
     
     public void getAttentionForSource(String key, AsyncCallback asyncCallback);

@@ -52,6 +52,7 @@ import ngnova.retrieval.FieldEvaluator;
 import ngnova.retrieval.FieldTerm;
 import ngnova.retrieval.ResultImpl;
 import ngnova.retrieval.ResultSetImpl;
+import ngnova.util.NanoWatch;
 import ngnova.util.Util;
 
 /**
@@ -443,6 +444,16 @@ public class ItemSearchEngine implements Configurable {
         }
         return ret;
     }
+    
+    public List<Scored<String>> explainSimilarAutotags(String a1, String a2, int n)
+            throws AuraException, RemoteException {
+        List<WeightedFeature> l = ((SearchEngineImpl) engine).getSimilarClassifierTerms(a1, a2, n);
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        for(WeightedFeature wf : l) {
+            ret.add(new Scored<String>(wf.getName(), wf.getWeight()));
+        }
+        return ret;
+    }
 
     /**
      * Gets an explanation as to why a given autotag would be applied to 
@@ -496,10 +507,10 @@ public class ItemSearchEngine implements Configurable {
         return ret;
     }
 
-    public List<Scored<String>> query(String query, String sort, int n) throws AuraException, RemoteException {
+    public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf) throws AuraException, RemoteException {
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         try {
-            for(Result r : engine.search(query, sort).getResults(0, n)) {
+            for(Result r : engine.search(query, sort).getResults(0, n, rf)) {
                 ResultImpl ri = (ResultImpl) r;
                 ret.add(new Scored<String>(ri.getKey(), 
                         ri.getScore(),
