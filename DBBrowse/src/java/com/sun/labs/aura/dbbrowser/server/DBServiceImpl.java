@@ -109,6 +109,27 @@ public class DBServiceImpl extends RemoteServiceServlet implements
         return null;
     }
 
+    public ItemDesc[] findSimilar(String key) {
+        try {
+            StopWatch sw = new StopWatch();
+            sw.start();
+            List<Scored<Item>> res = store.findSimilar(key, "content", 10, null);
+            sw.stop();
+            ItemDesc[] results = new ItemDesc[res.size() + 1];
+            results[0] = new ItemDesc(sw.getTime());
+            int i = 1;
+            for (Scored<Item> si : res) {
+                results[i++] = Factory.itemDesc(si.getItem());
+            }
+            return results;
+        } catch (AuraException ex) {
+            Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (RemoteException ex) {
+            Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
     
     public AttnDesc[] getAttentionForSource(String key) {
         try {

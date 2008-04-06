@@ -13,7 +13,10 @@ public interface DBService extends RemoteService {
     
     public ItemDesc[] searchItemByGen(String query);
     
+    public ItemDesc[] findSimilar(String key);
+    
     public AttnDesc[] getAttentionForSource(String key);
     
     public AttnDesc[] getAttentionForTarget(String key);
+    
 }
