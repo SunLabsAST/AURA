@@ -360,7 +360,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         NanoWatch sw = new NanoWatch();
         sw.start();
         List<Scored<Item>> res =
-                keysToItems(searchEngine.query(query, sort, n));
+                keysToItems(searchEngine.query(query, sort, n, rf));
         sw.stop();
         logger.info("q " + query + " " + sw.getTimeMillis());
         return res;

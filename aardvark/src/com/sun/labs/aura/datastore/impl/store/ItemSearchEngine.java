@@ -52,6 +52,7 @@ import ngnova.retrieval.FieldEvaluator;
 import ngnova.retrieval.FieldTerm;
 import ngnova.retrieval.ResultImpl;
 import ngnova.retrieval.ResultSetImpl;
+import ngnova.util.NanoWatch;
 import ngnova.util.Util;
 
 /**
@@ -506,10 +507,10 @@ public class ItemSearchEngine implements Configurable {
         return ret;
     }
 
-    public List<Scored<String>> query(String query, String sort, int n) throws AuraException, RemoteException {
+    public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf) throws AuraException, RemoteException {
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         try {
-            for(Result r : engine.search(query, sort).getResults(0, n)) {
+            for(Result r : engine.search(query, sort).getResults(0, n, rf)) {
                 ResultImpl ri = (ResultImpl) r;
                 ret.add(new Scored<String>(ri.getKey(), 
                         ri.getScore(),
