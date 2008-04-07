@@ -1,5 +1,6 @@
 package com.sun.labs.aura.datastore.impl.store;
 
+import com.sun.kt.search.CompositeResultsFilter;
 import com.sun.kt.search.DocumentVector;
 import com.sun.kt.search.FieldInfo;
 import com.sun.kt.search.FieldValue;
@@ -380,6 +381,8 @@ public class ItemSearchEngine implements Configurable {
         dv.setEngine(engine);
         ResultSet sim = dv.findSimilar("-score", skimPercentage);
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        NanoWatch nw = new NanoWatch();
+        nw.start();
         try {
             for(Result r : sim.getResults(0, n, rf)) {
                 ResultImpl ri = (ResultImpl) r;
@@ -391,6 +394,18 @@ public class ItemSearchEngine implements Configurable {
         } catch(SearchEngineException see) {
             throw new AuraException("Error getting similar items", see);
         }
+        nw.stop();
+        int nt = 0;
+        int np = 0;
+        if(rf instanceof CompositeResultsFilter) {
+            nt = ((CompositeResultsFilter) rf).getTested();
+            np = ((CompositeResultsFilter) rf).getPassed();
+        }
+        log.info(String.format("fsgr %s docs: %d test: %d pass: %d gr: %.2f", 
+                dv.getKey(), 
+                sim.size(),
+                nt, np, 
+                nw.getTimeMillis()));
         return ret;
     }
 
