@@ -18,6 +18,7 @@ import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Scored;
@@ -355,6 +356,14 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return pc.attend(att);
     }
 
+    public void removeAttention(String srcKey, String targetKey,
+                                Attention.Type type)
+            throws AuraException, RemoteException {
+        Attention a = StoreFactory.newAttention(srcKey, targetKey, type);
+        PartitionCluster pc = trie.get(DSBitSet.parse(a.hashCode()));
+        pc.removeAttention(srcKey, targetKey, type);
+    }
+    
     public DBIterator<Attention> getAttentionAddedSince(final Date timeStamp)
             throws AuraException, RemoteException {
         Set<PartitionCluster> cluster = trie.getAll();

@@ -52,6 +52,20 @@ public interface Aardvark extends Component, Remote {
     public void addUserFeed(User user, String feedURL, Attention.Type type) throws AuraException, RemoteException;
 
     /**
+     * Remove a feed so that it is no longer crawled.  Future entries will not
+     * be used for recommendation (and current ones will eventually fall out
+     * of the time filter).
+     * 
+     * @param user the user to delete the attention for
+     * @param feedURL the url of the feed
+     * @param type the type of the feed
+     * 
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void removeUserFeed(User user, String feedURL, Attention.Type type)
+            throws AuraException, RemoteException;
+    /**
      * Enrolls a user in the recommender
      * @param openID the openID of the user
      * @return the user

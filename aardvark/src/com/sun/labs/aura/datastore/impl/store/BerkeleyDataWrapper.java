@@ -445,6 +445,68 @@ public class BerkeleyDataWrapper {
                 + " after " + numRetries + " retries");
     }
     
+    public void removeAttention(String srcKey, String targetKey,
+                                Attention.Type type)
+                throws AuraException {
+        //
+        // Get all matching attention and remove it
+        EntityJoin<Long, PersistentAttention> join = new EntityJoin(allAttn);
+        join.addCondition(attnBySourceKey, srcKey);
+        join.addCondition(attnByTargetKey, targetKey);
+        join.addCondition(attnByType, type.ordinal());
+
+        int numRetries = 0;
+        while(numRetries < MAX_DEADLOCK_RETRIES) {
+            Transaction txn = null;
+            try {
+                //
+                // Get all the attention IDs that match the criteria
+                List<Long> attnIDs = new ArrayList();
+                ForwardCursor<PersistentAttention> cur = null;
+                try {
+                    cur = join.entities();
+                    for(PersistentAttention attn : cur) {
+                        attnIDs.add(attn.getID());
+                    }
+                } finally {
+                    if(cur != null) {
+                        cur.close();
+                    }
+                }
+
+                //
+                // And delete them
+                try {
+                    txn = dbEnv.beginTransaction(null, null);
+                    for (Long id : attnIDs) {
+                        allAttn.delete(txn, id);
+                    }
+                    txn.commit();
+                    return;
+                } catch (DeadlockException e) {
+                    try {
+                        numRetries++;
+                        txn.abort();
+                    } catch (DatabaseException ex) {
+                        throw new AuraException("Txn abort failed", ex);
+                    }
+                }
+                
+            } catch (DatabaseException e) {
+                log.log(Level.WARNING, "Failed to remove Attention", e);
+                try {
+                    if (txn != null) {
+                        txn.abort();
+                    }
+                } catch (DatabaseException ex) {
+                }
+                throw new AuraException("Remove attention failed", e);
+            }
+        }
+        throw new AuraException("removeAttn failed for src " + srcKey +
+                " and tgt " + targetKey + " after " + numRetries + " retries");
+    }
+    
     /**
      * Gets all the items of a particular type that have been added since a
      * particular time.  Returns an iterator over those items that must be
