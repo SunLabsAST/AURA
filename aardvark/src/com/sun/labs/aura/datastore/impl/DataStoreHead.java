@@ -620,7 +620,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         if (n == 1) {
             // Special case:
             // Return if we've heard from three quarters of our clusters
-            latch = new PCLatch((int)(numClusters * 0.75), 500);
+            latch = new PCLatch(numClusters, 20000);
         } else {
             latch = new PCLatch(numClusters);
         }
@@ -637,7 +637,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         if(n == 1) {
             // Special case:
             // Return if we've heard from three quarters of our clusters
-            latch = new PCLatch((int) (numClusters * 0.75), 500);
+            latch = new PCLatch(numClusters, 20000);
         } else {
             latch = new PCLatch(numClusters);
         }
