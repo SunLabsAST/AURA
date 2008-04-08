@@ -4,13 +4,15 @@
  */
 package com.sun.labs.aura.aardvark.dashboard.web;
 
+import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.io.*;
 import java.net.*;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.servlet.*;
 import javax.servlet.http.*;
@@ -19,7 +21,7 @@ import javax.servlet.http.*;
  *
  * @author plamere
  */
-public class GetTagInfo extends HttpServlet {
+public class GetDocumentTags extends HttpServlet {
 
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -32,30 +34,34 @@ public class GetTagInfo extends HttpServlet {
         DataStore dataStore = (DataStore) context.getAttribute("dataStore");
 
 
-        String tag = request.getParameter("tag");
-        if (tag != null) {
-            String[] tags = tag.split(",");
-            List<Scored<String>> tagList = new ArrayList<Scored<String>>();
+        String key = request.getParameter("key");
 
-            for (String t : tags) {
-                tagList.add(new Scored<String>(t, 1f));
-            }
+        int maxCount = 8;
+        String maxCountString = request.getParameter("max");
+        if (maxCountString != null) {
+            maxCount = Integer.parseInt(maxCountString);
+        }
 
-            try {
+        Item item = null;
+        try {
+            if (key != null && ((item = dataStore.getItem(key)) != null)) {
+                BlogEntry entry = new BlogEntry(item);
+                List<Scored<String>> autotags = entry.getAutoTags();
+                Collections.sort(autotags);
+                Collections.reverse(autotags);
+                if (autotags.size() > maxCount) {
+                    autotags = autotags.subList(0, maxCount);
+                }
 
                 response.setContentType("text/xml;charset=UTF-8");
                 PrintWriter out = response.getWriter();
-
-                try {
-                    StoryUtil.dumpTagInfo(out, dataStore, tagList, null);
-                } finally {
-                    out.close();
-                }
-            } catch (AuraException ex) {
-                Shared.forwardToError(context, request, response, ex);
+                StoryUtil.dumpTagInfo(out, dataStore, autotags, key);
+                out.close();
+            } else {
+                Shared.forwardToError(context, request, response, "missing key");
             }
-        } else {
-            Shared.forwardToError(context, request, response, "missing tag parameter");
+        } catch (AuraException ex) {
+            Shared.forwardToError(context, request, response, ex);
         }
     }
 
