@@ -40,6 +40,7 @@
     <!-- A simple recommender -->
     <component name="recommenderManager" type="com.sun.labs.aura.aardvark.impl.recommender.SimpleRecommenderManager" export="true">
         <property name="dataStore" value="dataStoreHead"/>
+        <property name="addAttentionData" value="false"/>
     </component>
     
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
