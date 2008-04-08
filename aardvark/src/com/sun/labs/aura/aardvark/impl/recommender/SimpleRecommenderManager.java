@@ -144,9 +144,6 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
         } catch (AuraException ex) {
             log.log(Level.SEVERE, "Error getting recommendations", ex);
             ex.printStackTrace();
-        } catch (Throwable thrown) {
-            System.out.println("catch throwable exception " + thrown);
-            thrown.printStackTrace();
         } finally {
             t.mark("done");
             Collections.sort(resultList);
