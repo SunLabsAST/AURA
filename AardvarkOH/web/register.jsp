@@ -29,6 +29,10 @@
         Now you are ready to register.  Please complete the registration form
         below and we'll ask you to authenticate your OpenID before creating your
         account.
+        <p/>
+        In the Initial Feed field, supply a URL to a blog feed that best describes
+        your interests.  This may be, for example, a URL for the feed of your
+        own blog, or your "Starred Items" feed from Google Reader.
         </div>
         <div class="bigOrangeTxt">Registration</div>
         <div class="regularTxt">
@@ -36,12 +40,14 @@
             <span class="smallGreenTxt">Sorry, that ID is already registered!</span>
             </c:if>
         <form method="post" action="<c:url value="/Register"/>">
+        <div class="promptTxt">
             <table>
                 <tr><td align="right">OpenID:</td>
                 <td align="left"><input type="text" size="30" name="openid_url" maxlength="512" class="openidField" value="${openid_url}"/></td></tr>
-                <tr><td align="right">Default Feed:</td>
-                <td align="left"><input type="text" size="40" name="default_feed" maxlength="1024"/></td></tr>                
+                <tr><td align="right">Initial Feed:</td>
+                <td align="left"><input type="text" size="50" name="default_feed" maxlength="1024"/></td></tr>                
             </table>
+        </div>
             <input type="submit" value="Register"/>
         </form>
         </div>

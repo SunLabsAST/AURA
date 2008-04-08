@@ -8,7 +8,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
    "http://www.w3.org/TR/html4/loose.dtd">
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-<jsp:useBean id="userBean" class="com.sun.labs.aura.aardvark.web.bean.UserBean" scope="request"/>
+<jsp:useBean id="userBean" class="com.sun.labs.aura.aardvark.web.bean.UserBean" scope="session"/>
 <jsp:useBean id="statsBean" class="com.sun.labs.aura.aardvark.web.bean.StatsBean" scope="request"/>
 
 <html>
@@ -32,12 +32,12 @@
             You are currently logged in with the ID <a href="<%= userBean.getID() %>"><%= userBean.getID() %></a><br>
             You can add your <a href="<c:url value="${userBean.recommendedFeedURL}"/>/default">recommendation feed</a> to your blog reader for personalized recommendations.<br>
             Alternatively, you can use your <a href="<c:url value="${userBean.recommendedFeedURL}"/>/flood">flood feed</a> to see ten new recommendations every time you load it.<br>
-            We are using this feed to describe your interests: <a href="<%= userBean.getDefaultFeedURL() %>"><%= userBean.getDefaultFeedURL() %></a><br>
+            <!-- We are using this feed to describe your interests: <a href="<%= userBean.getDefaultFeedURL() %>"><%= userBean.getDefaultFeedURL() %></a><br> -->
         </div>
         <div style="padding: 20px;"></div>
         <div class="bigOrangeTxt">Options</div>
         <div class="regularTxt">
-            Change your <a href="">Settings</a><br>
+            Change your <a href="<c:url value="/Settings"/>">Settings</a><br>
             <a href="<c:url value="/ViewAttention"/>">View</a> the taste data we've collected on your behalf<br>
             <a href="">Download</a> the taste data we've collected on your behalf<br>
             Your taste data is your own.  If you don't like what we're doing, you can <a href="">delete</a> your account and all your taste data.<br>

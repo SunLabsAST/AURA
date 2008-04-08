@@ -56,7 +56,7 @@ public class ViewAttention extends HttpServlet {
                         a.getType().toString(),
                         new Date(a.getTimeStamp()).toString());
             }
-            request.setAttribute("userBean", new UserBean(new BlogUser(user)));
+            //request.setAttribute("userBean", new UserBean(new BlogUser(user)));
             request.setAttribute("attnBean", beans);
             RequestDispatcher dispatcher = context.getRequestDispatcher("/viewAttention.jsp");
             dispatcher.forward(request, response);

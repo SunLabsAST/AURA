@@ -208,6 +208,7 @@ public class Login extends HttpServlet {
         } else if (servletPath.equals("/Logout")) {
             HttpSession session = request.getSession();
             session.removeAttribute("loggedInUser");
+            session.removeAttribute("userBean");
             session.invalidate();
             response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/Welcome"));
             return;

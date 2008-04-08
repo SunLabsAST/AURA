@@ -48,6 +48,10 @@
         <servlet-name>ViewAttention</servlet-name>
         <servlet-class>com.sun.labs.aura.aardvark.web.ViewAttention</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>Settings</servlet-name>
+        <servlet-class>com.sun.labs.aura.aardvark.web.Settings</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>Home</servlet-name>
         <url-pattern>/Home</url-pattern>
@@ -91,6 +95,10 @@
     <servlet-mapping>
         <servlet-name>ViewAttention</servlet-name>
         <url-pattern>/ViewAttention</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Settings</servlet-name>
+        <url-pattern>/Settings</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

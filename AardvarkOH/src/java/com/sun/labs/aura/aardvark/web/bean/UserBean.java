@@ -16,7 +16,11 @@ public class UserBean {
     
     private String fullname;
     
+    protected String emailAddress;
+    
     private String recommendedFeedURL;
+    
+    protected String[] basisFeeds;
     
     public UserBean() {
         
@@ -25,7 +29,8 @@ public class UserBean {
     public UserBean(BlogUser buser) {
         ID = buser.getKey();
         nickname = buser.getNickname();
-        fullname = buser.getFullname();        
+        fullname = buser.getFullname();
+        emailAddress = buser.getEmailAddress();
     }
 
     public UserBean(BlogUser buser, String url) {
@@ -72,5 +77,21 @@ public class UserBean {
 
     public void setRecommendedFeedURL(String recommendedFeedURL) {
         this.recommendedFeedURL = recommendedFeedURL;
+    }
+
+    public String[] getBasisFeeds() {
+        return basisFeeds;
+    }
+
+    public void setBasisFeeds(String[] basisFeeds) {
+        this.basisFeeds = basisFeeds;
+    }
+
+    public String getEmailAddress() {
+        return emailAddress;
+    }
+
+    public void setEmailAddress(String emailAddress) {
+        this.emailAddress = emailAddress;
     }
 }
