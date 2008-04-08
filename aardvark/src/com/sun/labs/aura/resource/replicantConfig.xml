@@ -53,12 +53,13 @@
         <property name="dbEnv" value="${dataFS}/db"/>
         <property name="itemSearchEngine" value="itemSearchEngine"/>
         <property name="partitionCluster" value="partitionCluster"/>
+        <property name="logLevel" value="SEVERE"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
     <component name="itemSearchEngine" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
         <property name="indexDir" value="${dataFS}/itemIndex.idx"/>
-        <property name="engineLogLevel" value="3"/>
+        <property name="engineLogLevel" value="1"/>
     </component>
     
     <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" entries="prefixEntries"/>
