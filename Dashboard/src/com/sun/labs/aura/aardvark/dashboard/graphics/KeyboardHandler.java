@@ -26,6 +26,7 @@ public class KeyboardHandler {
         for (HandlerTracker t : map.values()) {
             if (kbm.isValidCommand(t.opName, true)) {
                 if (t.ticks == 0) {
+                    System.out.println("key " + t.opName);
                     t.handler.onKey(t.opName);
                 }
                 t.ticks++;

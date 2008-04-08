@@ -35,8 +35,8 @@ public class StoryManager {
     private StoryPointFactory factory;
     private boolean asyncMode = false;
     private boolean liveMode = true;
-    private boolean showTimes = false;
-    private boolean showConnections = false;
+    private boolean showTimes = true;
+    private boolean showConnections = true;
     private InstrumentedConnector storyConnector = new InstrumentedConnector("GetStories");
     private InstrumentedConnector findSimConnector = new InstrumentedConnector("FindSim");
     private InstrumentedConnector miscConnector = new InstrumentedConnector("misc");

@@ -11,16 +11,19 @@ package com.sun.labs.aura.aardvark.dashboard.graphics;
 import com.sun.labs.aura.aardvark.dashboard.*;
 import com.jme.app.AbstractGame;
 import com.jme.app.SimpleGame;
+import com.jme.curve.BezierCurve;
+import com.jme.curve.CurveController;
 import com.jme.input.FirstPersonHandler;
 import com.jme.input.KeyBindingManager;
 import com.jme.input.KeyInput;
-import com.jme.input.NodeHandler;
 import com.jme.light.DirectionalLight;
 import com.jme.light.PointLight;
 import com.jme.light.SpotLight;
 
 import com.jme.math.Vector3f;
 import com.jme.renderer.ColorRGBA;
+import com.jme.scene.CameraNode;
+import com.jme.scene.Controller;
 import com.jme.scene.SceneElement;
 import com.jme.scene.Text;
 import com.jme.scene.state.FogState;
@@ -56,6 +59,7 @@ public class Dashboard extends SimpleGame {
     private boolean showStats = true;
     private int storiesSeen = 0;
     private CPoint rootControl;
+    private CameraNode cameraNode;
 
     public static void main(String[] args) {
         try {
@@ -111,6 +115,8 @@ public class Dashboard extends SimpleGame {
         initLighting();
         initInput();
         initStoryQueue();
+
+        display.setTitle("Aardvark Dashboard");
     }
 
     private void initRoot() {
@@ -167,6 +173,13 @@ public class Dashboard extends SimpleGame {
             }
         });
 
+        keyboardHandler.addKeyHandler(KeyInput.KEY_U, "toggleKiosk", new KeyActionHandler() {
+
+            public void onKey(String opName) {
+                toggleKioskMode();
+            }
+        });
+
         keyboardHandler.addKeyHandler(KeyInput.KEY_HOME, "search", new KeyActionHandler() {
 
             public void onKey(String opName) {
@@ -176,6 +189,7 @@ public class Dashboard extends SimpleGame {
                 queryFrame.setVisible(true);
             }
         });
+
 
         keyboardHandler.addKeyHandler(KeyInput.KEY_BACK, "clear", new KeyActionHandler() {
 
@@ -198,6 +212,48 @@ public class Dashboard extends SimpleGame {
          * */
 
         addCrossHairs();
+        
+
+    }
+    
+    private void toggleKioskMode() {
+        if (cameraNode == null) {
+        // The path the camera will take.
+        Vector3f[]cameraPoints=new Vector3f[]{
+            new Vector3f(-20,5,20),
+            new Vector3f(0,0,50),
+            new Vector3f(20,0,20),
+            new Vector3f(-5,-5,50),
+        };
+
+        // Create a path for the camera.
+        BezierCurve bc=new BezierCurve("camera path",cameraPoints);
+
+        // Create a camera node to move along that path.
+        cameraNode=new CameraNode("camera node",cam);
+
+        // Create a curve controller to move the CameraNode along the path
+        CurveController cc=new CurveController(bc,cameraNode);
+
+        // Cycle the animation.
+        cc.setRepeatType(Controller.RT_CYCLE);
+
+        // Slow down the curve controller a bit
+        cc.setSpeed(.25f);
+        cc.setActive(true);
+
+        // Add the controller to the node.
+        cameraNode.addController(cc);
+        cameraNode.getLocalTranslation().set(cam.getLocation());
+
+        // Attach the node to rootNode
+        rootNode.attachChild(cameraNode);
+        cam.lookAt(new Vector3f(0,0,0), Vector3f.UNIT_Y);
+
+        } else {
+            cameraNode.removeFromParent();
+            cameraNode = null;
+        }
     }
 
     private void initLogger() {
@@ -224,6 +280,12 @@ public class Dashboard extends SimpleGame {
         sp2.setLocation(new Vector3f(-25, 10, 0));
         sp2.setEnabled(true);
 
+        PointLight pl2 = new PointLight();
+        sp2.setDiffuse(new ColorRGBA(7.0f, 7.0f, 7.0f, 1.0f));
+        sp2.setAmbient(new ColorRGBA(0.5f, 0.5f, 0.5f, 1.0f));
+        sp2.setLocation(new Vector3f(0, 10, 50));
+        sp2.setEnabled(true);
+
         DirectionalLight dr = new DirectionalLight();
         dr.setDiffuse(new ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f));
         dr.setAmbient(new ColorRGBA(0.5f, 0.5f, 0.5f, 1.0f));
@@ -235,6 +297,7 @@ public class Dashboard extends SimpleGame {
         lightState.attach(sp1);
         lightState.attach(dr);
         lightState.attach(sp2);
+        lightState.attach(pl2);
     /*
      */
     }

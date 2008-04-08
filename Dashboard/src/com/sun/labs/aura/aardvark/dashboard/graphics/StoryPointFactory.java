@@ -63,12 +63,14 @@ public class StoryPointFactory {
     private InteractivePoint[] tileCloud = new InteractivePoint[MAX_SIMS + 1];
     private InteractivePoint currentSelection;
     private StoryManager storyManager;
+    private ColorManager colorManager;
     int fontCount;
 
     public StoryPointFactory(DisplaySystem display, LightState lightState, Node rootNode) {
         this.display = display;
         this.lightState = lightState;
         this.rootNode = rootNode;
+        this.colorManager = new ColorManager();
 
         // applyTexture(rootNode, "dirt.jpg");
 
@@ -126,7 +128,6 @@ public class StoryPointFactory {
         //clearCloud();
         clearAllTiles(rootNode);
     }
-
 
     private void clearAllTiles(Spatial spatial) {
         CPoint cpoint = (CPoint) spatial.getUserData("cpoint");
@@ -352,20 +353,22 @@ public class StoryPointFactory {
             Box box = new Box("bbox " + story.getTitle(),
                     new Vector3f(text.getWidth() / 2, .3f, .05f), text.getWidth() / 2, 1f / 2, .05f);
 
-            int offset = 0;
+            float offset = .125f * text.getWidth() * scale;
+            float incr = (.75f * text.getWidth() * scale) / (story.getTags().size() + story.getAutotags().size());
 
             for (ScoredString c : story.getTags()) {
                 float size = .1f * scale;
-                attachChild(new Orbiter(
-                        new Vector3f((offset++ * size * 8), .3f, 0), scale * 2, size, true));
+                attachChild(new TagOrbiter(c.getName(), new Vector3f(offset, .3f, 0), scale * 1.1f, size, true));
+                offset += incr;
             //new Vector3f(text.getWidth() * 3 / 4 - (offset++ * size * 8), .3f, 0), scale, size, true));
             }
 
-            offset = 0;
+            offset = text.getWidth() - (.125f * text.getWidth() * scale);
             for (ScoredString c : story.getAutotags()) {
                 float size = .1f * scale;
-                attachChild(new Orbiter(
-                        new Vector3f(text.getWidth() / 4 + (offset++ * size * 8), .3f, 0), scale * 2, size, false));
+                attachChild(new TagOrbiter(c.getName(),
+                        new Vector3f(offset, .3f, 0), scale * 1.1f, size, false));
+                offset -= incr;
             }
 
             text.setLocalScale(new Vector3f(scale, scale, scale / 10));
@@ -430,8 +433,9 @@ public class StoryPointFactory {
                     } else if (MouseInput.get().isButtonDown(1)) {
                         if (getCurrent() == TileStoryPoint.this) {
                             setCurrent(null);
-                        }  else {
-                            add("dismiss");
+                        } else {
+                            clear();
+                            //add("dismiss");
                         }
                     }
                 }
@@ -458,7 +462,6 @@ public class StoryPointFactory {
 
             addSet("home", spothome);
         }
-
 
         Geometry getFrontImageTile() {
             return createImageTile(getFrontTitle(), getFrontHTML(), 0);
@@ -517,7 +520,8 @@ public class StoryPointFactory {
             if (list.size() > 0) {
                 sb.append("<h2>" + title + "</h2>");
                 for (int i = 0; i < list.size(); i++) {
-                    sb.append(getScoredStringForCloud(list.get(i)));
+                    //sb.append(getScoredStringForCloud(list.get(i)));
+                    sb.append(list.get(i).getName());
                     if (i < list.size() - 1) {
                         sb.append(", ");
                     }
@@ -731,17 +735,20 @@ public class StoryPointFactory {
         new Vector3f(2.1f, 2.1f, 45)
     };
 
-    class Orbiter extends Node {
+    class TagOrbiter extends Node {
 
         private Vector3f center;
         private Vector3f rotationAxis = new Vector3f(
                 1, (float) (.5f - Math.random() * 1f), 0);
         private float rps = FastMath.PI + (float) (Math.random() * FastMath.PI);
         private float curAngle = 0;
+        private boolean spin = true;
 
-        Orbiter(Vector3f center, float radius, float size, boolean sphere) {
+        TagOrbiter(String tag, Vector3f center, float radius, float size, boolean sphere) {
             this.center = center;
             setLocalTranslation(center);
+
+            ColorRGBA color = colorManager.getColorRGBA(tag);
 
             Geometry geometry;
             if (sphere) {
@@ -749,20 +756,26 @@ public class StoryPointFactory {
                 geometry = new Box("", new Vector3f(0, radius, 0), size, size, size);
                 rps *= -.5f; // slow and backwards
             } else {
-                radius *= 2;
+                radius *= 1.5;
                 geometry = new Box("", new Vector3f(0, radius, 0), size, size, size);
             }
 
-            MaterialState ms = display.getRenderer().createMaterialState();
-            ColorRGBA color = ColorRGBA.randomColor();
-            ms.setAmbient(color);
-            ms.setDiffuse(color);
+            geometry.setDefaultColor(color);
+            geometry.setSolidColor(color);
+
+            if (false) {
+                MaterialState ms = display.getRenderer().createMaterialState();
+                ms.setAmbient(color);
+                ms.setDiffuse(color);
+                ms.setColorMaterial(MaterialState.CM_AMBIENT_AND_DIFFUSE);
+                ms.setEnabled(true);
+                geometry.setRenderState(ms);
+            }
 
             /* has been depricated */
             //ms.setAlpha(1f);
 
-            ms.setEnabled(true);
-            geometry.setRenderState(ms);
+
             geometry.setRenderState(lightState);
 
 
@@ -781,11 +794,13 @@ public class StoryPointFactory {
 
             @Override
             public void update(float time) {
-                curAngle += time * rps;
-                if (curAngle >= FastMath.PI * 2) {
-                    curAngle -= FastMath.PI * 2;
+                if (spin) {
+                    curAngle += time * rps;
+                    if (curAngle >= FastMath.PI * 2) {
+                        curAngle -= FastMath.PI * 2;
+                    }
+                    getLocalRotation().fromAngleAxis(curAngle, rotationAxis);
                 }
-                getLocalRotation().fromAngleAxis(curAngle, rotationAxis);
             }
         }
     }
