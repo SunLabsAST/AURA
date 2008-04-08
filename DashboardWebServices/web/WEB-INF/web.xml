@@ -25,12 +25,16 @@
         <servlet-class>com.sun.labs.aura.aardvark.dashboard.web.GetTaggedStories</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>GetSimilarTags</servlet-name>
-        <servlet-class>com.sun.labs.aura.aardvark.dashboard.web.GetSimilarTags</servlet-class>
+        <servlet-name>GetDocumentTags</servlet-name>
+        <servlet-class>com.sun.labs.aura.aardvark.dashboard.web.GetDocumentTags</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>QueryEntries</servlet-name>
         <servlet-class>com.sun.labs.aura.aardvark.dashboard.web.QueryEntries</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>FindSimilarAutotag</servlet-name>
+        <servlet-class>com.sun.labs.aura.aardvark.dashboard.web.FindSimilarAutotag</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>GetStories</servlet-name>
@@ -53,12 +57,16 @@
         <url-pattern>/GetTaggedStories</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>GetSimilarTags</servlet-name>
-        <url-pattern>/GetSimilarTags</url-pattern>
+        <servlet-name>GetDocumentTags</servlet-name>
+        <url-pattern>/GetDocumentTags</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>QueryEntries</servlet-name>
         <url-pattern>/QueryEntries</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>FindSimilarAutotag</servlet-name>
+        <url-pattern>/FindSimilarAutotag</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

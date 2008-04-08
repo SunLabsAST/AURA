@@ -8,11 +8,13 @@ import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Tag;
 import java.io.PrintWriter;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,10 +35,62 @@ public class StoryUtil {
     public static void dumpScoredStories(PrintWriter out, DataStore dataStore, List<Scored<Item>> items) throws AuraException, RemoteException {
         out.println("<stories>");
         for (Scored<Item> item : items) {
-            BlogEntry entry = new BlogEntry(item.getItem());
-            dumpStory(out, dataStore, entry, item.getScore());
+            if (item.getItem().getType() == ItemType.BLOGENTRY) {
+                BlogEntry entry = new BlogEntry(item.getItem());
+                dumpStory(out, dataStore, entry, item.getScore());
+            } else {
+                System.out.println("StoryUtil.dumpScoredStories -  unexpected item type");
+            }
         }
         out.println("</stories>");
+    }
+
+    public static void dumpTagInfo(PrintWriter out, DataStore dataStore, List<Scored<String>> autotags, String key)
+            throws AuraException, RemoteException {
+        out.println("<TagInfos>");
+        //out.println("    <key>" + key + "</key>");
+        for (Scored<String> tag : autotags) {
+            out.printf("    <TagInfo name='%s' score='%f'>\n", tag.getItem(), tag.getScore());
+
+            {
+                if (key != null) {
+                    out.println("        <DocTerms>");
+                    for (Scored<String> explanation : dataStore.getExplanation(key, tag.getItem(), 20)) {
+                        out.printf("            <DocTerm name=\'%s\' score=\'%f\'/>\n", explanation.getItem(), explanation.getScore());
+                    }
+                    out.println("        </DocTerms>");
+                }
+            }
+
+            {
+                out.println("        <TopTerms>");
+                for (Scored<String> term : dataStore.getTopAutotagTerms(tag.getItem(), 20)) {
+                    out.printf("            <TopTerm name=\'%s\' score=\'%f\'/>\n", term.getItem(), term.getScore());
+                }
+                out.println("        </TopTerms>");
+            }
+
+            {
+                out.println("        <SimTags>");
+                for (Scored<String> term : dataStore.findSimilarAutotags(tag.getItem(), 20)) {
+                    if (!tag.getItem().equals(term.getItem())) {
+                        out.printf("            <SimTag name=\'%s\' score=\'%f\'/>\n", term.getItem(), term.getScore());
+                    }
+                }
+                out.println("        </SimTags>");
+            }
+
+            out.println("    </TagInfo>");
+        }
+        out.println("</TagInfos>");
+    }
+
+
+    public static void dumpTagInfo(PrintWriter out, DataStore dataStore, String tag) throws AuraException, RemoteException {
+        Scored<String> stag = new Scored<String>(tag, 1f);
+        List<Scored<String>> tagList = new ArrayList<Scored<String>>();
+        tagList.add(stag);
+        dumpTagInfo(out, dataStore, tagList, null);
     }
 
     public static void dumpStory(PrintWriter out, DataStore dataStore, BlogEntry entry, double score) throws AuraException, RemoteException {
@@ -130,7 +184,6 @@ public class StoryUtil {
             s = s.replaceAll("\\>", "&gt;");
             s = s.replaceAll("[^\\p{Graph}\\p{Blank}]", "");
         }
-
         return s;
     }
 

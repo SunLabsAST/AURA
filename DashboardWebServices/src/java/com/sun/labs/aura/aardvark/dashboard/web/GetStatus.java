@@ -36,6 +36,7 @@ public class GetStatus extends HttpServlet {
             out.println("<status>");
             out.println("     <entries>" + stats.getNumEntries() + "</entries>");
             out.println("     <feeds>" + stats.getNumFeeds() + "</feeds>");
+            out.println("     <pulls>" + stats.getFeedPullCount() + "</pulls>");
             out.println("     <users>" + stats.getNumUsers() + "</users>");
             out.println("     <taste>" + stats.getNumAttentionData() + "</taste>");
             out.println("     <entriesPerMinute>" + stats.getEntriesPerMin() + "</entriesPerMinute>");
