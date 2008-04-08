@@ -25,6 +25,7 @@ import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.recommender.Recommendation;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
@@ -82,7 +83,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                     // as the similarity seeds
                     List<String> itemKeys = selectRandomItemKeys(starredAttention, SEED_SIZE);
                     t.mark("select random item keys");
-                    
+
                     log.info("multidoc " + itemKeys);
 
                     results = dataStore.findSimilar(itemKeys, "content", num * 2, rf);
@@ -100,7 +101,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                     t.mark("findSimilar");
                 }
             }
-            
+
             //
             // Get the blog entries and return the set.  This is a change.
             for (Scored<Item> scoredItem : results) {
@@ -134,12 +135,14 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
 
             // add attention data for the user
 
-            for (Recommendation recommendation : resultList) {
-                Attention attention = StoreFactory.newAttention(user,
-                        recommendation.getItem(), Attention.Type.VIEWED);
-                dataStore.attend(attention);
+            if (addAttentionData) {
+                for (Recommendation recommendation : resultList) {
+                    Attention attention = StoreFactory.newAttention(user,
+                            recommendation.getItem(), Attention.Type.VIEWED);
+                    dataStore.attend(attention);
+                }
+                t.mark("added attention");
             }
-            t.mark("added attention");
 
         } catch (AuraException ex) {
             log.log(Level.SEVERE, "Error getting recommendations", ex);
@@ -233,6 +236,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
+        addAttentionData = ps.getBoolean(PROP_ADD_ATTENTION_DATA);
         log = ps.getLogger();
     }
 
@@ -241,7 +245,10 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
 
     public void stop() {
     }
+
     @ConfigComponent(type = DataStore.class)
     public static final String PROP_DATA_STORE = "dataStore";
+    @ConfigBoolean(defaultValue = true)
+    public final static String PROP_ADD_ATTENTION_DATA = "addAttentionData";
+    private boolean addAttentionData;
 }
-
