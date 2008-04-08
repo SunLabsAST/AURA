@@ -7,12 +7,12 @@ package com.sun.labs.aura.aardvark.impl.recommender;
 
 import com.sun.kt.search.ResultAccessor;
 import com.sun.kt.search.ResultsFilter;
-import java.util.logging.Logger;
+import java.io.Serializable;
 
 /**
  *
  */
-public class LengthFilter implements ResultsFilter {
+public class LengthFilter implements ResultsFilter, Serializable {
 
     private String field;
     
