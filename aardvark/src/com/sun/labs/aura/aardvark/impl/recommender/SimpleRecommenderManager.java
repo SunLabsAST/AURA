@@ -71,6 +71,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             CompositeResultsFilter rf = new CompositeResultsFilter(
                     getRecentItemFilter(user), new TypeFilter(ItemType.BLOGENTRY));
             rf.addFilter(getDateFilter(VALID_RECOMMENDATION_DAYS));
+            rf.addFilter(new LengthFilter("content", 200));
 
             t.mark("created filter");
 

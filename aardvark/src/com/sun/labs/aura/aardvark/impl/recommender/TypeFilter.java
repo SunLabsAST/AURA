@@ -19,16 +19,11 @@ public class TypeFilter implements ResultsFilter, Serializable {
     
     public TypeFilter(Item.ItemType type) {
         this.type = type.toString();
-        System.out.println("type filter " + type);
     }
 
     public boolean filter(ResultAccessor ra) {
         String rt = (String) ra.getSingleFieldValue("aura-type");
-        boolean result =  rt != null && rt.equals(type);
-        if (true) {
-            System.out.println(result + " tf " + rt + " type " + type);
-        } 
-        return result;
+        return rt != null && rt.equals(type);
     }
 
 }
