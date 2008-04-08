@@ -219,6 +219,11 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         dataStore.attend(userAttention);
     }
 
+    public void removeUserFeed(User user, String feedURL, Attention.Type type)
+            throws AuraException, RemoteException {
+        dataStore.removeAttention(user.getKey(), feedURL, type);
+    }
+    
     /**
      * Adds a new feed to the system
      * @param feedURL the feed to add

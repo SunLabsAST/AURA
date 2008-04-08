@@ -56,8 +56,14 @@ public class Home extends HttpServlet {
             }
             UserBean ub = new UserBean(new BlogUser(user),
                                        tasteFeed);
+            String[] basisFeeds = new String[feeds.size()];
+            int i = 0;
+            for (BlogFeed f : feeds) {
+                basisFeeds[i++] = f.getKey();
+            }
+            ub.setBasisFeeds(basisFeeds);
             ub.setRecommendedFeedURL("/feed/" + user.getUserRandString());
-            request.setAttribute("userBean", ub);
+            session.setAttribute("userBean", ub);
         } catch (AuraException e) {
             logger.log(Level.WARNING, "Failed to use aardvark", e);
         }

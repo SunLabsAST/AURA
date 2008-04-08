@@ -81,6 +81,8 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                     // as the similarity seeds
                     List<String> itemKeys = selectRandomItemKeys(starredAttention, SEED_SIZE);
                     t.mark("select random item keys");
+                    
+                    log.info("multidoc " + itemKeys);
 
                     results = dataStore.findSimilar(itemKeys, "content", num * 2, rf);
                     t.mark("findSimilar");
@@ -88,6 +90,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                     Random r = new Random();
                     int n = r.nextInt(starredAttention.size());
                     t.mark("select random item key");
+                    log.info("unidoc " + starredAttention.get(n).getTargetKey());
                     results = dataStore.findSimilar(
                             starredAttention.get(n).getTargetKey(),
                             "content",

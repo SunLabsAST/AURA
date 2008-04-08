@@ -323,6 +323,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         bdb.putAttention(pa);
         return pa;
     }
+    
+    public void removeAttention(String srcKey, String targetKey,
+                                Attention.Type type)
+            throws AuraException {
+        bdb.removeAttention(srcKey, targetKey, type);
+    }
 
     public void deleteAttention(String itemKey)
             throws AuraException, RemoteException {

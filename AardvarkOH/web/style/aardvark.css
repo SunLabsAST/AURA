@@ -23,6 +23,16 @@ body {
   margin: 0px;
 }
 
+a:link {
+  color: #5382A1;
+  text-decoration: none;
+}
+
+a:visited {
+  color: #5382A1;
+  text-decoration: none;
+}
+
 div.main {
     margin: 10px;
 }
@@ -109,4 +119,8 @@ div.attnTimeCol {
   color: #B2BC00;
   font-weight: bold;
   font-size: small;
+}
+
+.promptTxt {
+  color: #B2BC00;
 }

@@ -179,6 +179,20 @@ public interface ItemStore {
     public Attention attend(Attention att)
             throws AuraException, RemoteException;
     
+    /**
+     * Remove attention of a particular type between a source object and a 
+     * target object.  If more than one such attention exists, all matching
+     * attentions will be removed.
+     * 
+     * @param srcKey the source item key
+     * @param targetKey the target item key
+     * @param type the type of the attention
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void removeAttention(String srcKey, String targetKey, 
+                                Attention.Type type)
+            throws AuraException, RemoteException;
     
     /**
      * Gets all the attention that has been added to the store since a

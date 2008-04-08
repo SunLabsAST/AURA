@@ -457,10 +457,26 @@
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,-do-dist-with-manifest,-do-dist-without-manifest" name="do-dist"/>
     <target depends="init" if="dist.ear.dir" name="library-inclusion-in-manifest">
-        <basename file="${file.reference.mail.jar}" property="included.lib.file.reference.mail.jar"/>
-        <copy-ear-war file="${file.reference.mail.jar}" propname="included.lib.file.reference.mail.jar.X"/>
-        <basename file="${reference.aardvark.jar}" property="included.lib.reference.aardvark.jar"/>
-        <copy-ear-war file="${reference.aardvark.jar}" propname="included.lib.reference.aardvark.jar.X"/>
+        <basename file="${file.reference.LabsUtil.jar}" property="included.lib.file.reference.LabsUtil.jar"/>
+        <copy-ear-war file="${file.reference.LabsUtil.jar}" propname="included.lib.file.reference.LabsUtil.jar.X"/>
+        <basename file="${file.reference.jini-core.jar}" property="included.lib.file.reference.jini-core.jar"/>
+        <copy-ear-war file="${file.reference.jini-core.jar}" propname="included.lib.file.reference.jini-core.jar.X"/>
+        <basename file="${file.reference.jini-ext.jar}" property="included.lib.file.reference.jini-ext.jar"/>
+        <copy-ear-war file="${file.reference.jini-ext.jar}" propname="included.lib.file.reference.jini-ext.jar.X"/>
+        <basename file="${file.reference.jsk-lib.jar}" property="included.lib.file.reference.jsk-lib.jar"/>
+        <copy-ear-war file="${file.reference.jsk-lib.jar}" propname="included.lib.file.reference.jsk-lib.jar.X"/>
+        <basename file="${file.reference.sun-util.jar}" property="included.lib.file.reference.sun-util.jar"/>
+        <copy-ear-war file="${file.reference.sun-util.jar}" propname="included.lib.file.reference.sun-util.jar.X"/>
+        <basename file="${file.reference.tools.jar}" property="included.lib.file.reference.tools.jar"/>
+        <copy-ear-war file="${file.reference.tools.jar}" propname="included.lib.file.reference.tools.jar.X"/>
+        <basename file="${file.reference.rome-0.9.jar}" property="included.lib.file.reference.rome-0.9.jar"/>
+        <copy-ear-war file="${file.reference.rome-0.9.jar}" propname="included.lib.file.reference.rome-0.9.jar.X"/>
+        <basename file="${file.reference.xalan.jar}" property="included.lib.file.reference.xalan.jar"/>
+        <copy-ear-war file="${file.reference.xalan.jar}" propname="included.lib.file.reference.xalan.jar.X"/>
+        <basename file="${file.reference.xerces.jar}" property="included.lib.file.reference.xerces.jar"/>
+        <copy-ear-war file="${file.reference.xerces.jar}" propname="included.lib.file.reference.xerces.jar.X"/>
+        <basename file="${file.reference.xmlsec-1.1.jar}" property="included.lib.file.reference.xmlsec-1.1.jar"/>
+        <copy-ear-war file="${file.reference.xmlsec-1.1.jar}" propname="included.lib.file.reference.xmlsec-1.1.jar.X"/>
         <basename file="${libs.jstl11.classpath.libfile.2}" property="included.lib.libs.jstl11.classpath.2"/>
         <basename file="${libs.jstl11.classpath.libfile.1}" property="included.lib.libs.jstl11.classpath.1"/>
         <copy-ear-war file="${libs.jstl11.classpath.libfile.2}" propname="included.lib.libs.jstl11.classpath.2.X"/>
@@ -475,45 +491,35 @@
         <copy-ear-war file="${file.reference.htmlparser-1.6.jar}" propname="included.lib.file.reference.htmlparser-1.6.jar.X"/>
         <basename file="${file.reference.java-openid-sxip-0.9.5-SNAPSHOT.jar}" property="included.lib.file.reference.java-openid-sxip-0.9.5-SNAPSHOT.jar"/>
         <copy-ear-war file="${file.reference.java-openid-sxip-0.9.5-SNAPSHOT.jar}" propname="included.lib.file.reference.java-openid-sxip-0.9.5-SNAPSHOT.jar.X"/>
-        <basename file="${file.reference.jdom.jar}" property="included.lib.file.reference.jdom.jar"/>
-        <copy-ear-war file="${file.reference.jdom.jar}" propname="included.lib.file.reference.jdom.jar.X"/>
-        <basename file="${file.reference.jini-core.jar}" property="included.lib.file.reference.jini-core.jar"/>
-        <copy-ear-war file="${file.reference.jini-core.jar}" propname="included.lib.file.reference.jini-core.jar.X"/>
-        <basename file="${file.reference.jini-ext.jar}" property="included.lib.file.reference.jini-ext.jar"/>
-        <copy-ear-war file="${file.reference.jini-ext.jar}" propname="included.lib.file.reference.jini-ext.jar.X"/>
-        <basename file="${file.reference.jsk-lib.jar}" property="included.lib.file.reference.jsk-lib.jar"/>
-        <copy-ear-war file="${file.reference.jsk-lib.jar}" propname="included.lib.file.reference.jsk-lib.jar.X"/>
-        <basename file="${file.reference.ktsearch.jar}" property="included.lib.file.reference.ktsearch.jar"/>
-        <copy-ear-war file="${file.reference.ktsearch.jar}" propname="included.lib.file.reference.ktsearch.jar.X"/>
-        <basename file="${file.reference.LabsUtil.jar}" property="included.lib.file.reference.LabsUtil.jar"/>
-        <copy-ear-war file="${file.reference.LabsUtil.jar}" propname="included.lib.file.reference.LabsUtil.jar.X"/>
         <basename file="${file.reference.openxri-client-1.0.1.jar}" property="included.lib.file.reference.openxri-client-1.0.1.jar"/>
         <copy-ear-war file="${file.reference.openxri-client-1.0.1.jar}" propname="included.lib.file.reference.openxri-client-1.0.1.jar.X"/>
         <basename file="${file.reference.openxri-syntax-1.0.1.jar}" property="included.lib.file.reference.openxri-syntax-1.0.1.jar"/>
         <copy-ear-war file="${file.reference.openxri-syntax-1.0.1.jar}" propname="included.lib.file.reference.openxri-syntax-1.0.1.jar.X"/>
-        <basename file="${file.reference.rome-0.9.jar}" property="included.lib.file.reference.rome-0.9.jar"/>
-        <copy-ear-war file="${file.reference.rome-0.9.jar}" propname="included.lib.file.reference.rome-0.9.jar.X"/>
-        <basename file="${file.reference.sun-util.jar}" property="included.lib.file.reference.sun-util.jar"/>
-        <copy-ear-war file="${file.reference.sun-util.jar}" propname="included.lib.file.reference.sun-util.jar.X"/>
-        <basename file="${file.reference.tools.jar}" property="included.lib.file.reference.tools.jar"/>
-        <copy-ear-war file="${file.reference.tools.jar}" propname="included.lib.file.reference.tools.jar.X"/>
-        <basename file="${file.reference.xalan.jar}" property="included.lib.file.reference.xalan.jar"/>
-        <copy-ear-war file="${file.reference.xalan.jar}" propname="included.lib.file.reference.xalan.jar.X"/>
-        <basename file="${file.reference.xerces.jar}" property="included.lib.file.reference.xerces.jar"/>
-        <copy-ear-war file="${file.reference.xerces.jar}" propname="included.lib.file.reference.xerces.jar.X"/>
-        <basename file="${file.reference.xmlsec-1.1.jar}" property="included.lib.file.reference.xmlsec-1.1.jar"/>
-        <copy-ear-war file="${file.reference.xmlsec-1.1.jar}" propname="included.lib.file.reference.xmlsec-1.1.jar.X"/>
-        <basename file="${file.reference.activation.jar}" property="included.lib.file.reference.activation.jar"/>
-        <copy-ear-war file="${file.reference.activation.jar}" propname="included.lib.file.reference.activation.jar.X"/>
+        <basename file="${file.reference.jdom.jar}" property="included.lib.file.reference.jdom.jar"/>
+        <copy-ear-war file="${file.reference.jdom.jar}" propname="included.lib.file.reference.jdom.jar.X"/>
+        <basename file="${file.reference.ktsearch.jar}" property="included.lib.file.reference.ktsearch.jar"/>
+        <copy-ear-war file="${file.reference.ktsearch.jar}" propname="included.lib.file.reference.ktsearch.jar.X"/>
+        <basename file="${file.reference.mail.jar}" property="included.lib.file.reference.mail.jar"/>
+        <copy-ear-war file="${file.reference.mail.jar}" propname="included.lib.file.reference.mail.jar.X"/>
+        <basename file="${reference.aardvark.jar}" property="included.lib.reference.aardvark.jar"/>
+        <copy-ear-war file="${reference.aardvark.jar}" propname="included.lib.reference.aardvark.jar.X"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${included.lib.file.reference.mail.jar} ${included.lib.reference.aardvark.jar} ${included.lib.libs.jstl11.classpath.1.X} ${included.lib.libs.jstl11.classpath.2.X} ${included.lib.file.reference.commons-codec-1.3.jar} ${included.lib.file.reference.commons-httpclient-3.0.1.jar} ${included.lib.file.reference.commons-logging-1.03.jar} ${included.lib.file.reference.htmlparser-1.6.jar} ${included.lib.file.reference.java-openid-sxip-0.9.5-SNAPSHOT.jar} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.jini-core.jar} ${included.lib.file.reference.jini-ext.jar} ${included.lib.file.reference.jsk-lib.jar} ${included.lib.file.reference.ktsearch.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.openxri-client-1.0.1.jar} ${included.lib.file.reference.openxri-syntax-1.0.1.jar} ${included.lib.file.reference.rome-0.9.jar} ${included.lib.file.reference.sun-util.jar} ${included.lib.file.reference.tools.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.xmlsec-1.1.jar} ${included.lib.file.reference.activation.jar} "/>
+            <attribute name="Class-Path" value="${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.jini-core.jar} ${included.lib.file.reference.jini-ext.jar} ${included.lib.file.reference.jsk-lib.jar} ${included.lib.file.reference.sun-util.jar} ${included.lib.file.reference.tools.jar} ${included.lib.file.reference.rome-0.9.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.xmlsec-1.1.jar} ${included.lib.libs.jstl11.classpath.1.X} ${included.lib.libs.jstl11.classpath.2.X} ${included.lib.file.reference.commons-codec-1.3.jar} ${included.lib.file.reference.commons-httpclient-3.0.1.jar} ${included.lib.file.reference.commons-logging-1.03.jar} ${included.lib.file.reference.htmlparser-1.6.jar} ${included.lib.file.reference.java-openid-sxip-0.9.5-SNAPSHOT.jar} ${included.lib.file.reference.openxri-client-1.0.1.jar} ${included.lib.file.reference.openxri-syntax-1.0.1.jar} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.ktsearch.jar} ${included.lib.file.reference.mail.jar} ${included.lib.reference.aardvark.jar} "/>
         </manifest>
         <delete dir="${dist.ear.dir}/temp"/>
     </target>
     <target depends="init" name="library-inclusion-in-archive" unless="dist.ear.dir">
-        <copy file="${file.reference.mail.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${reference.aardvark.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.LabsUtil.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jini-core.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jini-ext.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jsk-lib.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.sun-util.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.tools.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.rome-0.9.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.xalan.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.xerces.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.xmlsec-1.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${libs.jstl11.classpath.libfile.2}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${libs.jstl11.classpath.libfile.1}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.commons-codec-1.3.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
@@ -521,21 +527,12 @@
         <copy file="${file.reference.commons-logging-1.03.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.htmlparser-1.6.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.java-openid-sxip-0.9.5-SNAPSHOT.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.jdom.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.jini-core.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.jini-ext.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.jsk-lib.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.ktsearch.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.LabsUtil.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.openxri-client-1.0.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.openxri-syntax-1.0.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.rome-0.9.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.sun-util.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.tools.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.xalan.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.xerces.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.xmlsec-1.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.activation.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jdom.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.ktsearch.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.mail.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${reference.aardvark.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>
