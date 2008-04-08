@@ -11,10 +11,10 @@ package com.sun.labs.aura.aardvark;
 
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.util.props.Component;
 import com.sun.syndication.feed.synd.SyndFeed;
-import java.io.InputStream;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
@@ -148,6 +148,16 @@ public interface Aardvark extends Component, Remote {
      */
     public User getUser(String openID) throws AuraException, RemoteException;
 
+    /**
+     * Gets the item from the datastore with the matching key.
+     * 
+     * @param itemKey the key of the item
+     * @return the item, or null if there is no item with the given key
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public Item getItem(String itemKey) throws AuraException, RemoteException;
+    
     /**
      * Get a user based on the previously-generated random string for that
      * user.

@@ -124,6 +124,20 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         }
     }
     
+    
+    /**
+     * Gets the item from the datastore with the matching key.
+     * 
+     * @param itemKey the key of the item
+     * @return the item, or null if there is no item with the given key
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public Item getItem(String itemKey) throws AuraException, RemoteException {
+        return dataStore.getItem(itemKey);
+    }
+    
+    
     /**
      * Get a user based on the previously-generated random string for that
      * user.
