@@ -643,13 +643,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         DocumentVector dv = pc.getDocumentVector(key, field);
         int numClusters = trie.size();
         PCLatch latch;
-        if(n == 1) {
-            // Special case:
-            // Return if we've heard from three quarters of our clusters
-            latch = new PCLatch(numClusters, 20000);
-        } else {
-            latch = new PCLatch(numClusters);
-        }
+        latch = new PCLatch((int)(numClusters * 0.75));
         return findSimilar(dv, n, rf, latch);
     }
 
@@ -695,7 +689,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             ResultsFilter rf,
             final PCLatch latch)
             throws AuraException, RemoteException {
-        
+
         //
         // What if the key didn't exist?
         if(dv == null) {

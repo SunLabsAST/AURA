@@ -174,38 +174,50 @@ public class BerkeleyDataWrapper {
         //itemByID = store.getPrimaryIndex(Long.class, ItemImpl.class);
 
         //itemByKey = store.getSecondaryIndex(itemByID, String.class, "key");
+        logger.fine("Opening itemByKey");
         itemByKey = store.getPrimaryIndex(String.class, ItemImpl.class);
 
+        logger.fine("Opening itemByType");
         itemByType = store.getSecondaryIndex(itemByKey,
                 Integer.class,
                 "itemType");
+
+        logger.fine("Opening itemByTypeAndTime");
         itemByTypeAndTime = store.getSecondaryIndex(itemByKey,
                 IntAndTimeKey.class,
                 "typeAndTimeAdded");
 
+        logger.fine("Opening allUsers");
         allUsers = store.getSubclassIndex(itemByKey, UserImpl.class,
                 Boolean.class, "isUser");
 
+        logger.fine("Opening usersByRandString");
         usersByRandString = store.getSubclassIndex(itemByKey, UserImpl.class,
                 String.class, "randStr");
         
+        logger.fine("Opening allAttn");
         allAttn = store.getPrimaryIndex(Long.class,
                 PersistentAttention.class);
 
+        logger.fine("Opening attnByTargetKey");
         attnByTargetKey = store.getSecondaryIndex(allAttn,
                 String.class,
                 "targetKey");
 
+        logger.fine("Opening attnBySourceKey");
         attnBySourceKey = store.getSecondaryIndex(allAttn,
                 String.class,
                 "sourceKey");
 
+        logger.fine("Opening attnByType");
         attnByType = store.getSecondaryIndex(allAttn,
                 Integer.class,
                 "type");
 
+        logger.fine("Opening attnByTime");
         attnByTime = store.getSecondaryIndex(allAttn, Long.class, "timeStamp");
 
+        logger.fine("Opening attnBySourceAndTime");
         attnBySourceAndTime = store.getSecondaryIndex(allAttn,
                 StringAndTimeKey.class,
                 "sourceAndTime");

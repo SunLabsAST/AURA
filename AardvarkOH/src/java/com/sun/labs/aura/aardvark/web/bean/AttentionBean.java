@@ -9,6 +9,7 @@ public class AttentionBean {
     protected String targetKey;
     protected String type;
     protected String time;
+    protected String realName;
     
     public AttentionBean() {
         
@@ -19,6 +20,10 @@ public class AttentionBean {
         this.targetKey = target;
         this.type = type;
         this.time = time;
+    }
+    
+    public void setRealName(String realName) {
+        this.realName = realName;
     }
     
     public String getType() {
@@ -34,6 +39,12 @@ public class AttentionBean {
     }
     
     public String getTargetKeyName() {
+        if (realName != null) {
+            if (realName.length() > 73) {
+                return realName.substring(0, 70) + "...";
+            }
+            return realName;
+        }
         if (targetKey.length() > 73) {
             return targetKey.substring(0, 70) + "...";
         }

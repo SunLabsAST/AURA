@@ -73,7 +73,7 @@ public class GridDeploy {
 
     private static String usage = "GridDeploy createCode | startAura | stopAura | startAardvark | \n" +
             " stopAardvark | createWeb | reindexData | reindexChunk prefix |\n" +
-            " diskUsage";
+            " diskUsage | startAardvarkNC";
 
     public static void main(String argv[]) throws Exception {
         if (argv.length == 0) {
@@ -118,6 +118,8 @@ public class GridDeploy {
             gd.createCodeInfrastructure();
             gd.createAuraFilesystems();
             gd.getDiskUsage();
+        } else if(argv[0].equals("startAardvarkNC")) {
+            gd.createAardvarkNCProcesses();
         }
         
     }
@@ -461,6 +463,31 @@ public class GridDeploy {
         startRegistration(aardvarkReg);
         
     }
+
+    public void createAardvarkNCProcesses() throws Exception {
+        //
+        // Use createCodeInfra to get references to what should be existing
+        // file systems and networks
+        createCodeInfrastructure();
+        createAuraNetwork();
+        
+        //
+        // Make a place to write all text output log files
+        logsFS = getFS(instance + "-aura.logs");
+
+
+        //
+        // Create a recommendation manager
+        ProcessRegistration recReg = createProcess(getRecName(), getRecommenderConfig());
+        startRegistration(recReg);
+
+        //
+        // And now make an Aardvark
+        ProcessRegistration aardvarkReg = createProcess(getAAName(), getAardvarkConfig());
+        startRegistration(aardvarkReg);
+        
+    }
+
     
     public void stopAardvarkProcesses() throws Exception {
         Queue<ProcessRegistration> q = new LinkedList<ProcessRegistration>();

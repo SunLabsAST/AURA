@@ -6,10 +6,9 @@
 package com.sun.labs.aura.aardvark.web;
 
 import com.sun.labs.aura.aardvark.Aardvark;
-import com.sun.labs.aura.aardvark.BlogUser;
 import com.sun.labs.aura.aardvark.web.bean.AttentionBean;
-import com.sun.labs.aura.aardvark.web.bean.UserBean;
 import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.util.AuraException;
 import java.io.*;
@@ -50,11 +49,13 @@ public class ViewAttention extends HttpServlet {
             AttentionBean[] beans = new AttentionBean[attention.size()];
             int i = 0;
             for (Attention a : attention) {
-                beans[i++] = new AttentionBean(
+                beans[i] = new AttentionBean(
                         a.getSourceKey(),
                         a.getTargetKey(),
                         a.getType().toString(),
                         new Date(a.getTimeStamp()).toString());
+                Item targ = aardvark.getItem(a.getTargetKey());
+                beans[i++].setRealName(targ.getName());
             }
             //request.setAttribute("userBean", new UserBean(new BlogUser(user)));
             request.setAttribute("attnBean", beans);
