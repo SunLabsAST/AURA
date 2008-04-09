@@ -27,6 +27,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
+import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -34,6 +35,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -72,12 +74,13 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             CompositeResultsFilter rf = new CompositeResultsFilter(
                     getRecentItemFilter(user), new TypeFilter(ItemType.BLOGENTRY));
             rf.addFilter(getDateFilter(VALID_RECOMMENDATION_DAYS));
-            rf.addFilter(new LengthFilter("content", 200));
+//            rf.addFilter(new LengthFilter("content", 200));
 
             t.mark("created filter");
 
             List<Scored<Item>> results = new ArrayList<Scored<Item>>();
             if (!starredAttention.isEmpty()) {
+                int retSize = Math.max(num * 3, 20);
                 if (num > 1) {
                     // select a few documents from the starred set of items to serve
                     // as the similarity seeds
@@ -86,7 +89,10 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
 
                     log.info("multidoc " + itemKeys);
 
-                    results = dataStore.findSimilar(itemKeys, "content", num * 2, rf);
+                    // 
+                    // sjgRollback
+//                    results = dataStore.findSimilar(itemKeys, "content", num * 2, rf);
+                    results = dataStore.findSimilar(itemKeys, "content", retSize, rf);
                     t.mark("findSimilar");
                 } else {
                     Random r = new Random();
@@ -96,7 +102,9 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                     results = dataStore.findSimilar(
                             starredAttention.get(n).getTargetKey(),
                             "content",
-                            num,
+                            // sjgRollback
+//                            num,
+                            retSize,
                             rf);
                     t.mark("findSimilar");
                 }
@@ -106,7 +114,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             // Get the blog entries and return the set.  This is a change.
             for (Scored<Item> scoredItem : results) {
                 BlogEntry blogEntry = new BlogEntry(scoredItem.getItem());
-                if (!titles.contains(blogEntry.getTitle())) {
+                if (!titles.contains(blogEntry.getTitle()) && blogEntry.getContent().length() >= minContentSize) {
                     String explanation = "Similar to items you like";
                     resultList.add(new Recommendation(scoredItem.getItem(),
                             scoredItem.getScore(), explanation));
@@ -117,7 +125,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                 }
             }
             t.mark("results built - size: " + resultList.size());
-
+            
             // we didn't find anything, so lets at least give some recent
             // items.
             if (resultList.size() == 0) {
@@ -233,6 +241,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
+        minContentSize = ps.getInt(PROP_MIN_CONTENT_SIZE);
         addAttentionData = ps.getBoolean(PROP_ADD_ATTENTION_DATA);
         log = ps.getLogger();
     }
@@ -245,6 +254,12 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
 
     @ConfigComponent(type = DataStore.class)
     public static final String PROP_DATA_STORE = "dataStore";
+    
+    @ConfigInteger(defaultValue=256)
+    public static final String PROP_MIN_CONTENT_SIZE = "minContentSize";
+    private int minContentSize;
+            
+            
     @ConfigBoolean(defaultValue = true)
     public final static String PROP_ADD_ATTENTION_DATA = "addAttentionData";
     private boolean addAttentionData;
