@@ -86,12 +86,49 @@ public class StoryUtil {
     }
 
 
-    public static void dumpTagInfo(PrintWriter out, DataStore dataStore, String tag) throws AuraException, RemoteException {
-        Scored<String> stag = new Scored<String>(tag, 1f);
-        List<Scored<String>> tagList = new ArrayList<Scored<String>>();
-        tagList.add(stag);
-        dumpTagInfo(out, dataStore, tagList, null);
+    public static void dumpTagInfo(PrintWriter out, DataStore dataStore, String tag, int max) throws AuraException, RemoteException {
+        out.println("<TagInfos>");
+        out.println("    <tag>" + tag + "</tag>");
+        for (Scored<String> simtags : dataStore.findSimilarAutotags(tag, max + 1)) {
+
+            // skip self similarity
+            if (tag.equals(simtags.getItem())) {
+                continue;
+            }
+
+            out.printf("    <TagInfo name='%s' score='%f'>\n", simtags.getItem(), simtags.getScore());
+
+            {
+                    out.println("        <DocTerms>");
+                    for (Scored<String> explanation : dataStore.explainSimilarAutotags(tag, simtags.getItem(), 20)) {
+                        out.printf("            <DocTerm name=\'%s\' score=\'%f\'/>\n", explanation.getItem(), explanation.getScore());
+                    }
+                    out.println("        </DocTerms>");
+            }
+
+            {
+                out.println("        <TopTerms>");
+                for (Scored<String> term : dataStore.getTopAutotagTerms(simtags.getItem(), 20)) {
+                    out.printf("            <TopTerm name=\'%s\' score=\'%f\'/>\n", term.getItem(), term.getScore());
+                }
+                out.println("        </TopTerms>");
+            }
+
+            {
+                out.println("        <SimTags>");
+                for (Scored<String> term : dataStore.findSimilarAutotags(simtags.getItem(), 20)) {
+                    if (!simtags.getItem().equals(term.getItem())) {
+                        out.printf("            <SimTag name=\'%s\' score=\'%f\'/>\n", term.getItem(), term.getScore());
+                    }
+                }
+                out.println("        </SimTags>");
+            }
+
+            out.println("    </TagInfo>");
+        }
+        out.println("</TagInfos>");
     }
+
 
     public static void dumpStory(PrintWriter out, DataStore dataStore, BlogEntry entry, double score) throws AuraException, RemoteException {
         String padding = "        ";
