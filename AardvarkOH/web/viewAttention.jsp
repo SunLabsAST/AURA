@@ -23,6 +23,8 @@
         <%@include file="/WEB-INF/jspf/header.jspf"%>
         <div class="main">
             <div align="right" style="padding: 5px">
+                <a href="<c:url value="/Home"/>" title="Home">Home</a>
+                &nbsp;&nbsp;
                 <a href="<c:url value="/Logout"/>" title="Logout">Logout</a>
             </div>
         <div align="center">
