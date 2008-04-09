@@ -39,7 +39,7 @@ public class AttentionBean {
     }
     
     public String getTargetKeyName() {
-        if (realName != null) {
+        if (realName != null && realName.length() > 0) {
             if (realName.length() > 73) {
                 return realName.substring(0, 70) + "...";
             }
