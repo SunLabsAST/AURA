@@ -63,6 +63,7 @@ div.statusMsg {
 }
 
 div.table {
+  table-layout: fixed;
   display: table;
   padding: 5px;
 }
