@@ -676,7 +676,7 @@ public class ItemSearchEngine implements Configurable {
     /**
      * The interval (in milliseconds) between index flushes.
      */
-    @ConfigInteger(defaultValue = 3000, range = {1, 300000})
+    @ConfigInteger(defaultValue = 3000, range = {1, 3000000})
     public static final String PROP_FLUSH_INTERVAL = "flushInterval";
     
     /**

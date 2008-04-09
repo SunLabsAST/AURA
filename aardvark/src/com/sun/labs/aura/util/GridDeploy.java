@@ -71,7 +71,8 @@ public class GridDeploy {
         "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111",
     };
 
-    private static String usage = "GridDeploy createCode | startAura | stopAura | startAardvark | \n" +
+    private static String usage = "GridDeploy createCode | startAura | startSlowAura |" +
+            " stopAura | startAardvark | \n" +
             " stopAardvark | createWeb | reindexData | reindexChunk prefix |\n" +
             " diskUsage | startAardvarkNC";
 
@@ -98,6 +99,9 @@ public class GridDeploy {
         } else if (argv[0].equals("startAura")) {
             gd.createAuraInfrastructure();
             gd.createAuraProcesses();
+        } else if (argv[0].equals("startSlowAura")) {
+            gd.createAuraInfrastructure();
+            gd.createSlowAuraProcesses();
         } else if (argv[0].equals("startAardvark")) {
             gd.createAardvarkProcesses();
         } else if (argv[0].equals("createWeb")) {
@@ -270,6 +274,56 @@ public class GridDeploy {
         // Start the replicants for each prefix
         for (int i = 0; i < prefixCodeList.length; i++) {
             ProcessRegistration repReg = createProcess(getRepName(prefixCodeList[i]), getReplicantConfig(prefixCodeList[i]));
+            startRegistration(repReg, false);
+            lastReg = repReg;
+        }
+        
+        while (lastReg.getRunState() != RunState.RUNNING) {
+            lastReg.waitForStateChange(1000000L);
+        }
+        
+        //
+        // And finally start a stat service
+        ProcessRegistration statSrvReg = createProcess(getSSName(), getStatServiceConfig());
+        startRegistration(statSrvReg);
+
+    }
+    
+    /**
+     * Assuming a fully built infrastructure, this uses the network and
+     * file systems already there to start up the aura processes
+     * 
+     * @throws java.lang.Exception
+     */
+    public void createSlowAuraProcesses() throws Exception {
+        //
+        // Get a reggie started up first thing
+        ProcessRegistration regReg = createProcess(getRRName(), getReggieConfig());
+        startRegistration(regReg);
+        
+        //
+        // Next, get a data store head and start it
+        ProcessRegistration dsHeadReg = createProcess(getDSHName(), getDataStoreHeadConfig());
+        startRegistration(dsHeadReg);
+        
+        //
+        // Now, start partition clusters for each prefix
+        ProcessRegistration lastReg = null;
+        for (int i = 0; i < prefixCodeList.length; i++) {
+            ProcessRegistration pcReg = createProcess(getPartName(prefixCodeList[i]),
+                    getPartitionClusterConfig(prefixCodeList[i]));
+            startRegistration(pcReg, false);
+            lastReg = pcReg;
+        }
+        
+        while (lastReg.getRunState() != RunState.RUNNING) {
+            lastReg.waitForStateChange(1000000L);
+        }
+        
+        //
+        // Start the replicants for each prefix
+        for (int i = 0; i < prefixCodeList.length; i++) {
+            ProcessRegistration repReg = createProcess(getRepName(prefixCodeList[i]), getSlowDumpReplicantConfig(prefixCodeList[i]));
             startRegistration(repReg, false);
             lastReg = repReg;
         }
@@ -658,6 +712,56 @@ public class GridDeploy {
         return pc;
     }
     
+    protected ProcessConfiguration getSlowDumpReplicantConfig(String prefix) 
+            throws Exception {
+        String cmdLine =
+                "-Xmx3g"+
+                " -DauraHome=" + auraDistMntPnt +
+                " -DstartingDataDir=" + auraDistMntPnt + "/classifier/starting.idx" +
+                " -Dprefix=" + prefix +
+                " -DdataFS=/files/data/" + prefix +
+                " -jar " + auraDistMntPnt + "/dist/aardvark.jar" + 
+                " /com/sun/labs/aura/resource/replicantSlowDumpConfig.xml" +
+                " replicantStarter";
+        
+        // create a configuration and set relevant properties
+        ProcessConfiguration pc = new ProcessConfiguration();
+        pc.setCommandLine(cmdLine.trim().split(" "));
+        pc.setSystemSinks(
+                logsFSMntPnt + "/rep-" + prefix + ".out", false);
+        
+        Collection<FileSystemMountParameters> mountParams = 
+            new ArrayList<FileSystemMountParameters>();
+
+        mountParams.add(
+                new FileSystemMountParameters(auraDist.getUUID(), 
+                                              new File(auraDistMntPnt).getName()));
+        mountParams.add(
+                new FileSystemMountParameters(logsFS.getUUID(),
+                                           new File(logsFSMntPnt).getName()));
+        mountParams.add(
+                new FileSystemMountParameters(
+                        repFSMap.get(instance + "-" + prefix).getUUID(),
+                        "data"));
+        
+        pc.setFileSystems(mountParams);
+        pc.setWorkingDirectory(logsFSMntPnt);
+        
+        // Set the addresses for the process
+        List<UUID> addresses = new ArrayList<UUID>();
+        addresses.add(getAddressFor(instance + "-rep-" + prefix).getUUID());
+        
+        pc.setNetworkAddresses(addresses);
+        pc.setProcessExitAction(ProcessExitAction.DESTROY);
+        
+        // don't overlap with other replicants
+        pc.setLocationConstraint(
+                new ProcessRegistrationFilter.NameMatch(
+                        Pattern.compile(instance + ".*-rep-.*")));
+        
+        return pc;
+    }
+
     protected ProcessConfiguration getReindexerConfig(String prefix)
             throws Exception {
         String cmdLine =
