@@ -18,13 +18,30 @@ public class FieldExclusionFilter implements ResultsFilter, Serializable {
     private String fieldName;
     private Set<String> excludedValues;
     
+    private int nTested;
+    
+    private int nPassed;
+    
     public FieldExclusionFilter(String fieldName, Set<String> excludedValues) { 
         this.fieldName = fieldName;
         this.excludedValues = excludedValues;
     }
     public boolean filter(ResultAccessor ra) {
+        nTested++;
         String v = (String) ra.getSingleFieldValue(fieldName);
-        return v != null && !excludedValues.contains(v);
+        boolean ret = v != null && !excludedValues.contains(v);
+        if(ret) {
+            nPassed++;
+        }
+        return ret;
+    }
+    
+    public int getTested() {
+        return nTested;
+    }
+
+    public int getPassed() {
+        return nPassed;
     }
 
 }
