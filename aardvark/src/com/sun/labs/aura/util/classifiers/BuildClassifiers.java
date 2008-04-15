@@ -222,9 +222,24 @@ public class BuildClassifiers implements Runnable {
         final String fooField = vectoredField;
         final int fooChars = numChars;
         ResultsFilter lengthFilter = new ResultsFilter() {
+            private int nt;
+            private int np;
             public boolean filter(ResultAccessor ra) {
+                nt++;
                 String v = (String) ra.getSingleFieldValue(fooField);
-                return v != null && v.toString().length() >= fooChars;
+                boolean ret = v != null && v.toString().length() >= fooChars;
+                if(ret) {
+                    np++;
+                }
+                return ret;
+            }
+
+            public int getTested() {
+                return nt;
+            }
+
+            public int getPassed() {
+                return np;
             }
         };
         

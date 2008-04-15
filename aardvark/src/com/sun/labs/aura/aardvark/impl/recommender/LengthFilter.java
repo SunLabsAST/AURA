@@ -18,13 +18,31 @@ public class LengthFilter implements ResultsFilter {
     
     private int len;
     
+    private int nt;
+    
+    private int np;
+    
     public LengthFilter(String field, int len) {
         this.field = field;
         this.len = len;
     }
     
     public boolean filter(ResultAccessor ra) {
+        nt++;
         String v = (String) ra.getSingleFieldValue(field);
-        return v != null && v.toString().length() >= len;
+        
+        boolean ret = v != null && v.toString().length() >= len;
+        if(ret) {
+            np++;
+        }
+        return ret;
+    }
+
+    public int getTested() {
+        return nt;
+    }
+
+    public int getPassed() {
+        return np;
     }
 }
