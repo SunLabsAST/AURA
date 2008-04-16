@@ -338,6 +338,25 @@ public class BerkeleyDataWrapper {
                 itemKey + " after " + numRetries + " retries");
     }
     
+    public DBIterator<ItemImpl> getItemIterator() throws AuraException {
+        EntityCursor c = null;
+        DBIterator<ItemImpl> i = null;
+        try {
+            c = itemByKey.entities();
+            i = new EntityIterator<ItemImpl>(c);
+        } catch (DatabaseException e) {
+            if (c != null) {
+                try {
+                    c.close();
+                } catch (DatabaseException ex) {
+                    log.severe("Failed to close cursor for item iterator");
+                }
+            }
+            throw new AuraException("Failed to get item iterator", e);
+        }
+        return i;
+    }
+    
     public UserImpl getUserForRandomString(String randStr) throws AuraException {
         UserImpl ret = null;
         try {
@@ -862,8 +881,12 @@ public class BerkeleyDataWrapper {
      */
     public long getItemCount(ItemType type) {
         try {
-            EntityIndex idx = itemByType.subIndex(type.ordinal());
-            return idx.count();
+            if (type == null) {
+                return itemByKey.count();
+            } else {
+                EntityIndex idx = itemByType.subIndex(type.ordinal());
+                return idx.count();
+            }
         } catch(DatabaseException e) {
             log.log(Level.WARNING, "Failed to get count for items of type " +
                     type);
