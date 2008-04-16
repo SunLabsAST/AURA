@@ -17,13 +17,29 @@ public class TypeFilter implements ResultsFilter, Serializable {
     
     private String type;
     
+    private int nt;
+    
+    private int np;
+    
     public TypeFilter(Item.ItemType type) {
         this.type = type.toString();
     }
 
     public boolean filter(ResultAccessor ra) {
+        nt++;
         String rt = (String) ra.getSingleFieldValue("aura-type");
-        return rt != null && rt.equals(type);
+        boolean ret =  rt != null && rt.equals(type);
+        if(ret) {
+            np++;
+        }
+        return ret;
     }
 
+    public int getTested() {
+        return nt;
+    }
+
+    public int getPassed() {
+        return np;
+    }
 }

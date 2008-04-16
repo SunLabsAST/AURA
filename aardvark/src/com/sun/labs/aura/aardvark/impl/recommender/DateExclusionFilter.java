@@ -44,6 +44,14 @@ public class DateExclusionFilter implements ResultsFilter, Serializable {
         return result;
     }
     
+    public int getTested() {
+        return in + out;
+    }
+    
+    public int getPassed() {
+        return in;
+    }
+    
     public String toString() {
         return "in " + in + " out " + out;
     }
