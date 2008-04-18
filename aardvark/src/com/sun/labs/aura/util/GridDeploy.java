@@ -25,6 +25,8 @@ import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
 import com.sun.caroline.platform.RunState;
 import com.sun.caroline.platform.StorageManagementException;
+import com.sun.labs.aura.datastore.impl.DSBitSet;
+import com.sun.org.apache.xalan.internal.xsltc.cmdline.getopt.GetOpt;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.MalformedURLException;
@@ -66,12 +68,12 @@ public class GridDeploy {
     
     //private String[] prefixCodeList = new String[] { "00", "01", "10", "11" };
 //    private String[] prefixCodeList = new String[] { "0", "1"};
-    private String[] prefixCodeList = new String[] {
+    private static String[] prefixCodeList = new String[] {
         "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111",
         "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111",
     };
 
-    private static String usage = "GridDeploy createCode | startAura | startSlowAura |" +
+    private static String usage = "GridDeploy [-n numParts] createCode | startAura | startSlowAura |" +
             " stopAura | startAardvark | \n" +
             " stopAardvark | createWeb | reindexData | reindexChunk prefix |\n" +
             " diskUsage | startAardvarkNC";
@@ -82,6 +84,45 @@ public class GridDeploy {
             return;
         }
         
+        String globalParams = "n:";
+        GetOpt gopt = new GetOpt(argv, globalParams);
+        int numParts = 0;
+        int c;
+        while((c = gopt.getNextOption()) != -1) {
+            switch(c) {
+                case 'n':
+                    numParts = Integer.parseInt(gopt.getOptionArg());
+                    break;
+            }
+        }
+        
+        if (numParts != 0) {
+            if (Integer.highestOneBit(numParts) != Integer.lowestOneBit(numParts)) {
+                System.out.println("n must be a power of two");
+            }
+            int numBits = Integer.toString(numParts, 2).length() - 1;
+            prefixCodeList = new String[numParts];
+            for (int i = 0; i < numParts; i++) {
+                DSBitSet prefixBits = DSBitSet.parse(i);
+                prefixBits.setPrefixLength(numBits);
+                prefixCodeList[i] = prefixBits.toString();
+            }
+        }
+        
+        //
+        // Set up cmdArgs to be an argv array of args after the command name
+        String cmdArgs[] = gopt.getCmdArgs();
+        if (cmdArgs.length == 0) {
+            System.out.println("Usage: " + usage);
+            return;
+        }
+        String cmd = cmdArgs[0];
+        String[] tmp = new String[cmdArgs.length - 1];
+        for (int i = 1; i < cmdArgs.length; i++) {
+            tmp[i - 1] = cmdArgs[i];
+        }
+        cmdArgs = tmp;
+
         String homeDir = System.getProperty("user.home");
         File dotCaroline = new File(homeDir + "/.caroline");
         if (dotCaroline.exists()) {
@@ -94,35 +135,55 @@ public class GridDeploy {
         
         GridDeploy gd = new GridDeploy();
         
-        if (argv[0].equals("createCode")) {
+        if (cmd.equals("createCode")) {
             gd.createCodeInfrastructure();
-        } else if (argv[0].equals("startAura")) {
+        } else if (cmd.equals("startAura")) {
             gd.createAuraInfrastructure();
             gd.createAuraProcesses();
-        } else if (argv[0].equals("startSlowAura")) {
+        } else if (cmd.equals("startSlowAura")) {
             gd.createAuraInfrastructure();
             gd.createSlowAuraProcesses();
-        } else if (argv[0].equals("startAardvark")) {
+        } else if (cmd.equals("startAardvark")) {
             gd.createAardvarkProcesses();
-        } else if (argv[0].equals("createWeb")) {
+        } else if (cmd.equals("createWeb")) {
             //
             // create the resources for a glassfish install
             gd.createWebInfrastructure();
-        } else if (argv[0].equals("reindexData")) {
+        } else if (cmd.equals("reindexData")) {
             gd.createAuraInfrastructure();
             gd.createReindexerProcesses();
-        } else if(argv[0].equals("reindexChunk")) {
+        } else if(cmd.equals("reindexChunk")) {
             gd.createAuraInfrastructure();
-            gd.createReindexerProcess(argv[1]);
-        } else if(argv[0].equals("stopAura")) {
+            gd.createReindexerProcess(cmdArgs[0]);
+        } else if (cmd.equals("splitDB")) {
+            GetOpt opt = new GetOpt(cmdArgs, "h:s:");
+            int numSplits = 0;
+            String target = null;
+            while((c = opt.getNextOption()) != -1) {
+                switch(c) {
+                    case 's':
+                        numSplits = Integer.parseInt(opt.getOptionArg());
+                        break;
+                    case 'h':
+                        target = opt.getOptionArg();
+                        break;
+                }
+            }
+            if (numSplits == 0) {
+                System.out.println("Usage: splitDB -s numSplits [-h justOneHash]");
+                return;
+            }
+            gd.createSplitDBProcesses(numSplits, target);
+
+        } else if(cmd.equals("stopAura")) {
             gd.stopAuraProcesses();
-        } else if(argv[0].equals("stopAardvark")) {
+        } else if(cmd.equals("stopAardvark")) {
             gd.stopAardvarkProcesses();
-        } else if(argv[0].equals("diskUsage")) {
+        } else if(cmd.equals("diskUsage")) {
             gd.createCodeInfrastructure();
             gd.createAuraFilesystems();
             gd.getDiskUsage();
-        } else if(argv[0].equals("startAardvarkNC")) {
+        } else if(cmd.equals("startAardvarkNC")) {
             gd.createAardvarkNCProcesses();
         }
         
@@ -183,7 +244,7 @@ public class GridDeploy {
         for(int i = 0; i < prefixCodeList.length; i++) {
             String currPrefix = prefixCodeList[i];
             repFSMap.put(instance + "-" + currPrefix,
-                    getFS(instance + "-replicant-" + currPrefix));
+                    getFS(getReplicantName(currPrefix)));
         }
     }
     
@@ -208,23 +269,23 @@ public class GridDeploy {
         System.out.println("Bound www to " + addr.getAddress());
     }
 
-    public String getRRName() {
+    public String getReggieName() {
         return instance + "-reggie";
     }
     
-    public String getDSHName() {
+    public String getDataStoreHeadName() {
         return instance + "-dsHead";
     }
     
-    public String getPartName(String prefix) {
+    public String getPartitionName(String prefix) {
         return instance + "-part-" + prefix;
     }
     
-    public String getRepName(String prefix) {
-        return instance + "-rep-" + prefix;
+    public String getReplicantName(String prefix) {
+        return instance + "-replicant-" + prefix;
     }
     
-    public String getSSName() {
+    public String getStatServiceName() {
         return instance + "-statSrv";
     }
     
@@ -248,19 +309,19 @@ public class GridDeploy {
     public void createAuraProcesses() throws Exception {
         //
         // Get a reggie started up first thing
-        ProcessRegistration regReg = createProcess(getRRName(), getReggieConfig());
+        ProcessRegistration regReg = createProcess(getReggieName(), getReggieConfig());
         startRegistration(regReg);
         
         //
         // Next, get a data store head and start it
-        ProcessRegistration dsHeadReg = createProcess(getDSHName(), getDataStoreHeadConfig());
+        ProcessRegistration dsHeadReg = createProcess(getDataStoreHeadName(), getDataStoreHeadConfig());
         startRegistration(dsHeadReg);
         
         //
         // Now, start partition clusters for each prefix
         ProcessRegistration lastReg = null;
         for (int i = 0; i < prefixCodeList.length; i++) {
-            ProcessRegistration pcReg = createProcess(getPartName(prefixCodeList[i]),
+            ProcessRegistration pcReg = createProcess(getPartitionName(prefixCodeList[i]),
                     getPartitionClusterConfig(prefixCodeList[i]));
             startRegistration(pcReg, false);
             lastReg = pcReg;
@@ -273,7 +334,7 @@ public class GridDeploy {
         //
         // Start the replicants for each prefix
         for (int i = 0; i < prefixCodeList.length; i++) {
-            ProcessRegistration repReg = createProcess(getRepName(prefixCodeList[i]), getReplicantConfig(prefixCodeList[i]));
+            ProcessRegistration repReg = createProcess(getReplicantName(prefixCodeList[i]), getReplicantConfig(prefixCodeList[i]));
             startRegistration(repReg, false);
             lastReg = repReg;
         }
@@ -284,7 +345,7 @@ public class GridDeploy {
         
         //
         // And finally start a stat service
-        ProcessRegistration statSrvReg = createProcess(getSSName(), getStatServiceConfig());
+        ProcessRegistration statSrvReg = createProcess(getStatServiceName(), getStatServiceConfig());
         startRegistration(statSrvReg);
 
     }
@@ -298,19 +359,19 @@ public class GridDeploy {
     public void createSlowAuraProcesses() throws Exception {
         //
         // Get a reggie started up first thing
-        ProcessRegistration regReg = createProcess(getRRName(), getReggieConfig());
+        ProcessRegistration regReg = createProcess(getReggieName(), getReggieConfig());
         startRegistration(regReg);
         
         //
         // Next, get a data store head and start it
-        ProcessRegistration dsHeadReg = createProcess(getDSHName(), getDataStoreHeadConfig());
+        ProcessRegistration dsHeadReg = createProcess(getDataStoreHeadName(), getDataStoreHeadConfig());
         startRegistration(dsHeadReg);
         
         //
         // Now, start partition clusters for each prefix
         ProcessRegistration lastReg = null;
         for (int i = 0; i < prefixCodeList.length; i++) {
-            ProcessRegistration pcReg = createProcess(getPartName(prefixCodeList[i]),
+            ProcessRegistration pcReg = createProcess(getPartitionName(prefixCodeList[i]),
                     getPartitionClusterConfig(prefixCodeList[i]));
             startRegistration(pcReg, false);
             lastReg = pcReg;
@@ -323,7 +384,7 @@ public class GridDeploy {
         //
         // Start the replicants for each prefix
         for (int i = 0; i < prefixCodeList.length; i++) {
-            ProcessRegistration repReg = createProcess(getRepName(prefixCodeList[i]), getSlowDumpReplicantConfig(prefixCodeList[i]));
+            ProcessRegistration repReg = createProcess(getReplicantName(prefixCodeList[i]), getSlowDumpReplicantConfig(prefixCodeList[i]));
             startRegistration(repReg, false);
             lastReg = repReg;
         }
@@ -334,7 +395,7 @@ public class GridDeploy {
         
         //
         // And finally start a stat service
-        ProcessRegistration statSrvReg = createProcess(getSSName(), getStatServiceConfig());
+        ProcessRegistration statSrvReg = createProcess(getStatServiceName(), getStatServiceConfig());
         startRegistration(statSrvReg);
 
     }
@@ -404,20 +465,20 @@ public class GridDeploy {
     
     public void stopAuraProcesses() throws Exception {
         Queue<ProcessRegistration> q = new LinkedList<ProcessRegistration>();
-        q.add(stopProcess(getSSName()));
+        q.add(stopProcess(getStatServiceName()));
         
         for(int i = 0; i < prefixCodeList.length; i++) {
-            q.add(stopProcess(getPartName(prefixCodeList[i])));
+            q.add(stopProcess(getPartitionName(prefixCodeList[i])));
         }
 
         //
         // Start the replicants for each prefix
         for(int i = 0; i < prefixCodeList.length; i++) {
-            q.add(stopProcess(getRepName(prefixCodeList[i])));
+            q.add(stopProcess(getReplicantName(prefixCodeList[i])));
         }
         
-        q.add(stopProcess(getDSHName()));
-        q.add(stopProcess(getRRName()));
+        q.add(stopProcess(getDataStoreHeadName()));
+        q.add(stopProcess(getReggieName()));
         
         waitForFinish(q);
     }
@@ -442,6 +503,18 @@ public class GridDeploy {
         startRegistration(reindexReg, false);
     }
 
+    public void createSplitDBProcesses(int numSplits, String targetPart)
+            throws Exception {
+        if (targetPart != null) {
+            prefixCodeList = new String[] {targetPart};
+        }
+        for (String prefix : prefixCodeList) {
+            ProcessRegistration splitReg = createProcess("live-split-" + prefix,
+                    getSplitDBConfig(numSplits, prefix));
+            startRegistration(splitReg, false);
+        }
+    }
+    
     public String getFMName(int n) {
         return instance + "-feedMgr-" + n;
     }
@@ -812,6 +885,60 @@ public class GridDeploy {
         return pc;
     }
 
+    protected ProcessConfiguration getSplitDBConfig(int numSplits,
+            String srcPrefix) throws Exception {
+        String cmdLine = "-Xmx2G" +
+                " -cp " + auraDistMntPnt + "/dist/aardvark.jar" +
+                ":" + auraDistMntPnt + "/dist/lib/ktsearch.jar" +
+                " com.sun.labs.aura.util.DBSplitter" +
+                " -n " + numSplits +
+                " -h " + srcPrefix +
+                " -p " + instance + "-replicant-";
+        // create a configuration and set relevant properties
+        ProcessConfiguration pc = new ProcessConfiguration();
+        pc.setCommandLine(cmdLine.trim().split(" "));
+        pc.setSystemSinks(
+                logsFSMntPnt + "/split-" + srcPrefix + ".out", false);
+
+        Collection<FileSystemMountParameters> mountParams =
+                new ArrayList<FileSystemMountParameters>();
+
+        auraDist = getFS(instance + "-aura.dist");
+        mountParams.add(
+                new FileSystemMountParameters(auraDist.getUUID(),
+                new File(auraDistMntPnt).getName()));
+        logsFS = getFS(instance + "-aura.logs");
+        mountParams.add(
+                new FileSystemMountParameters(logsFS.getUUID(),
+                new File(logsFSMntPnt).getName()));
+        FileSystem srcFS = getFS(getReplicantName(srcPrefix));
+        mountParams.add(
+                new FileSystemMountParameters(
+                srcFS.getUUID(),
+                getReplicantName(srcPrefix)));
+        // mount all the split file systems
+        String[] newPrefixes = DBSplitter.getNewPrefixes(numSplits, srcPrefix);
+        for (String prefix : newPrefixes) {
+            FileSystem fs = getFS(getReplicantName(prefix));
+            mountParams.add(
+                    new FileSystemMountParameters(
+                    fs.getUUID(),
+                    getReplicantName(prefix)));
+        }
+
+        pc.setFileSystems(mountParams);
+        pc.setWorkingDirectory("/files");
+
+        pc.setProcessExitAction(ProcessExitAction.DESTROY);
+
+        // don't overlap with other replicants
+        pc.setLocationConstraint(
+                new ProcessRegistrationFilter.NameMatch(
+                Pattern.compile(instance + ".*-splitter-.*")));
+
+        return pc;
+    }
+    
     protected ProcessConfiguration getFeedSchedulerConfig() throws Exception {
         String cmdLine =
                 "-Xmx2g" +
@@ -1019,7 +1146,7 @@ public class GridDeploy {
         BaseFileSystemConfiguration fsConfiguration = 
             new BaseFileSystemConfiguration();
         
-        System.out.println("Looking for filesystem " + fsName);
+        //System.out.println("Looking for filesystem " + fsName);
         FileSystem fileSystem = grid.getFileSystem(fsName);
         
         if (fileSystem == null) {
@@ -1027,8 +1154,8 @@ public class GridDeploy {
             fileSystem = grid.createBaseFileSystem(fsName, fsConfiguration);
         } else {
             System.out.println("Found existing filesystem " +
-                    fileSystem.getName() + " with uuid: "
-                    + fileSystem.getUUID());
+                    fileSystem.getName() /* + " with uuid: "
+                    + fileSystem.getUUID()*/);
         }
         return fileSystem;
     }

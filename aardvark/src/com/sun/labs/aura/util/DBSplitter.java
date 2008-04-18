@@ -18,7 +18,6 @@ import ngnova.util.StopWatch;
  */
 public class DBSplitter {
     private int numSegments;
-    private int numNewBits;
     private String initialHashBits;
     private int initialHashValue;
     private String fsNamePrefix;
@@ -26,11 +25,35 @@ public class DBSplitter {
     
     public DBSplitter(int numSegments, String initialHashBits,
             String fsNamePrefix) {
-        this.numSegments = numSegments;
+        //
+        // verify that numSegments is a power of two
+        if (Integer.highestOneBit(numSegments)
+                != Integer.lowestOneBit(numSegments)) {
+            throw new RuntimeException("numSegments must be a power of two");
+        }
+                this.numSegments = numSegments;
         this.initialHashBits = initialHashBits;
         initialHashValue = Integer.parseInt(initialHashBits, 2);
         this.fsNamePrefix = fsNamePrefix;
-        numNewBits = Integer.toString(numSegments, 2).length() - 1;
+
+    }
+    
+    public static String[] getNewPrefixes(int numSplits, String srcPrefix) {
+        String[] results = new String[numSplits];
+        int numNewBits = Integer.toString(numSplits, 2).length() - 1;
+        for (int i = 0; i < numSplits; i++) {
+            //
+            // Get a string representation of the new (leftmost) bits of the
+            // hash
+            DSBitSet front = DSBitSet.parse(i);
+            front.setPrefixLength(numNewBits);
+            
+            //
+            // Construct a full length hash string (based on the new total
+            // length) including the old rightmost bits
+            results[i] = front.toString() + srcPrefix;
+        }
+        return results;
     }
     
     /**
@@ -48,24 +71,14 @@ public class DBSplitter {
         // trie by hash code value
         BinaryTrie<BerkeleyDataWrapper> trie =
                 new BinaryTrie<BerkeleyDataWrapper>();
-        for (int i = 0; i < numSegments; i++) {
-            //
-            // Get a string representation of the new (leftmost) bits of the
-            // hash
-            DSBitSet front = DSBitSet.parse(i);
-            front.setPrefixLength(numNewBits);
-            
-            //
-            // Construct a full length hash string (based on the new total
-            // length) including the old rightmost bits
-            String newHash = front.toString() + initialHashBits;
-            
+        String[] prefixes = getNewPrefixes(numSegments, initialHashBits);
+        for (String prefix : prefixes) {            
             //
             // Open a db and put it in the trie
             BerkeleyDataWrapper curr = new BerkeleyDataWrapper(
-                    fsNamePrefix + newHash + "/" +
-                    newHash + "/db", logger);
-            DSBitSet currPrefix = DSBitSet.parse(newHash);
+                    fsNamePrefix + prefix + "/" +
+                    prefix + "/db", logger);
+            DSBitSet currPrefix = DSBitSet.parse(prefix);
             trie.add(curr, currPrefix);
         }
         
@@ -135,14 +148,6 @@ public class DBSplitter {
 
         if (numSplits == 0 || srcHash == null || namePrefix == null) {
             System.out.println("DBSplitter -n <numSplits> -h <existingHash> -p <dirPrefix>");
-            return;
-        }
-        
-        //
-        // verify that numSegments is a power of two
-        if (Integer.highestOneBit(numSplits) 
-                != Integer.lowestOneBit(numSplits)) {
-            System.out.println("n must be a power of two");
             return;
         }
         
