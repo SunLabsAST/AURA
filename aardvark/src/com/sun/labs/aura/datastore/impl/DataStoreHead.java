@@ -364,7 +364,26 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         pc.removeAttention(srcKey, targetKey, type);
     }
     
-    public DBIterator<Attention> getAttentionAddedSince(final Date timeStamp)
+    public DBIterator<Attention> getAttentionSince(Date timeStamp)
+            throws AuraException, RemoteException {
+        return getAttentionForKeySince(null, false, timeStamp);
+    }
+    
+    public DBIterator<Attention> getAttentionForSourceSince(String sourceKey,
+                                                            Date timeStamp)
+            throws AuraException, RemoteException {
+        return getAttentionForKeySince(sourceKey, true, timeStamp);
+    }
+
+    public DBIterator<Attention> getAttentionForTargetSince(String targetKey,
+                                                            Date timeStamp)
+            throws AuraException, RemoteException {
+        return getAttentionForKeySince(targetKey, false, timeStamp);
+    }
+    
+    public DBIterator<Attention> getAttentionForKeySince(final String key,
+                                                         final boolean isSrc,
+                                                         final Date timeStamp)
             throws AuraException, RemoteException {
         Set<PartitionCluster> cluster = trie.getAll();
         Set<Callable<DBIterator<Attention>>> callers =
@@ -373,7 +392,15 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             callers.add(new PCCaller(p) {
                public DBIterator<Attention> call()
                        throws AuraException, RemoteException {
-                   return pc.getAttentionAddedSince(timeStamp);
+                   if (key == null) {
+                       return pc.getAttentionSince(timeStamp);
+                   } else {
+                       if (isSrc) {
+                           return pc.getAttentionForSourceSince(key, timeStamp);
+                       } else {
+                           return pc.getAttentionForTargetSince(key, timeStamp);
+                       }
+                   }
                } 
             });
         }

@@ -49,10 +49,16 @@ public class PersistentAttention implements Attention {
     private long timeStamp;
 
     /**
-     * The user and ID and the time stamp in a composite key
+     * The source ID and the time stamp in a composite key
      */
     @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     private StringAndTimeKey sourceAndTime;
+    
+    /**
+     * The target ID and the time stamp in a composite key
+     */
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
+    private StringAndTimeKey targetAndTime;
     
     /*
      * Maybe add an item type to speed up some queries?
@@ -75,6 +81,7 @@ public class PersistentAttention implements Attention {
         this.timeStamp = attn.getTimeStamp();
         this.type = attn.getType().ordinal();
         this.sourceAndTime = new StringAndTimeKey(sourceKey, timeStamp);
+        this.targetAndTime = new StringAndTimeKey(targetKey, timeStamp);
     }
     
     public PersistentAttention(String sourceKey, String targetKey,

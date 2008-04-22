@@ -203,9 +203,35 @@ public interface ItemStore {
      * @return the Attentions added since that time
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)
+    public DBIterator<Attention> getAttentionSince(Date timeStamp)
             throws AuraException, RemoteException;
     
+    /**
+     * Get all the attention for a source since a particular time.  Returns
+     * an iterator over the attention that must be closed when reading is
+     * done.
+     * 
+     * @param sourceKey the key of the source to limit the search to
+     * @param timeStamp the time to search back to
+     * @return the Attentions added for the source since the time
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public DBIterator<Attention> getAttentionForSourceSince(String sourceKey,
+            Date timeStamp) throws AuraException, RemoteException;
+    
+    /**
+     * Get all the attention for a target since a particular time.  Returns
+     * an iterator over the attention that must be closed when reading is
+     * done.
+     * 
+     * @param targetKey the key of the target to limit the search to
+     * @param timeStamp the time to search back to
+     * @return the Attentions added for the target since the time
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public DBIterator<Attention> getAttentionForTargetSince(String targetKey,
+            Date timeStamp) throws AuraException, RemoteException;
+
     /**
      * Gets the N most recent attention objects that an attention source
      * has recorded.

@@ -147,9 +147,18 @@ public class PartitionClusterImpl implements PartitionCluster,
         replicant.deleteAttention(itemKey);
     }
     
-    public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)
+    public DBIterator<Attention> getAttentionSince(Date timeStamp)
             throws AuraException, RemoteException {
-        return replicant.getAttentionAddedSince(timeStamp);
+        return replicant.getAttentionSince(timeStamp);
+    }
+    public DBIterator<Attention> getAttentionForSourceSince(String sourceKey,
+            Date timeStamp) throws AuraException, RemoteException {
+        return replicant.getAttentionForSourceSince(sourceKey, timeStamp);
+    }
+    
+    public DBIterator<Attention> getAttentionForTargetSince(String targetKey,
+            Date timeStamp) throws AuraException, RemoteException {
+        return replicant.getAttentionForTargetSince(targetKey, timeStamp);
     }
 
     public List<Attention> getLastAttentionForSource(String srcKey,

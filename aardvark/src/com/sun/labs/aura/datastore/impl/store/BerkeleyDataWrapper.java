@@ -111,9 +111,15 @@ public class BerkeleyDataWrapper {
 
     /**
      * The index of all Attention in the item store, accessible by
-     * the composite key of user ID and timestamp.
+     * the composite key of source ID and timestamp.
      */
     protected SecondaryIndex<StringAndTimeKey, Long, PersistentAttention> attnBySourceAndTime;
+    
+    /**
+     * The index of all Attention in the item store, accessible by
+     * the composite key of target ID and timestamp
+     */
+    protected SecondaryIndex<StringAndTimeKey, Long, PersistentAttention> attnByTargetAndTime;
 
     protected Logger log;
 
@@ -221,6 +227,12 @@ public class BerkeleyDataWrapper {
         attnBySourceAndTime = store.getSecondaryIndex(allAttn,
                 StringAndTimeKey.class,
                 "sourceAndTime");
+        
+        logger.fine("Opening attnByTargetAndTime");
+        attnByTargetAndTime = store.getSecondaryIndex(allAttn,
+                StringAndTimeKey.class,
+                "targetAndTime");
+        
         log.info("BDB done loading");
     }
 
@@ -745,6 +757,67 @@ public class BerkeleyDataWrapper {
                     " for user " + userKey, e);
         }
         return ret;
+    }
+    
+    public DBIterator<Attention> getAttentionForSourceSince(String key,
+            long timeStamp) throws AuraException {
+        return getAttentionForKeySince(key, true, timeStamp);
+    }
+    
+    public DBIterator<Attention> getAttentionForTargetSince(String key,
+            long timeStamp) throws AuraException {
+        return getAttentionForKeySince(key, false, timeStamp);
+    }
+    
+    protected DBIterator<Attention> getAttentionForKeySince(String key,
+            boolean isSrc, long timeStamp) throws AuraException {
+        //
+        // Set the begin and end times chronologically
+        StringAndTimeKey begin = new StringAndTimeKey(key, timeStamp);
+        StringAndTimeKey end = new StringAndTimeKey(key + '\0',
+                System.currentTimeMillis());
+        EntityCursor c = null;
+        Transaction txn = null;
+        try {
+            txn = dbEnv.beginTransaction(null, null);
+            //
+            // This transaction is read-only and it is up to the developer
+            // to release it.  Don't time out the transaction.
+            txn.setTxnTimeout(0);
+
+            //
+            // Set Read Committed behavior - this ensures the stability of
+            // the current item being read (puts a read lock on it) but allows
+            // previously read items to change (releases the read lock after
+            // reading).
+            CursorConfig cc = new CursorConfig();
+            cc.setReadCommitted(true);
+            if (isSrc) {
+                c = attnBySourceAndTime.entities(
+                        txn, begin, true, end, false, cc);
+            } else {
+                c = attnByTargetAndTime.entities(
+                        txn, begin, true, end, false, cc);
+            }
+        } catch(DatabaseException e) {
+            try {
+                if(c != null) {
+                    c.close();
+                }
+            } catch(DatabaseException ex) {
+                log.log(Level.WARNING, "Failed to close cursor", ex);
+            }
+            try {
+                if(txn != null) {
+                    txn.abort();
+                }
+            } catch(DatabaseException ex) {
+                log.log(Level.WARNING, "Failed to abort cursor txn", ex);
+            }
+            throw new AuraException("getAttentionForKeySince failed", e);
+        }
+        DBIterator<Attention> dbIt = new EntityIterator<Attention>(c, txn);
+        return dbIt;
     }
 
     /**

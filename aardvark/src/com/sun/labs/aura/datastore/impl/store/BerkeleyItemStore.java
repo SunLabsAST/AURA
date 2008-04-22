@@ -335,11 +335,25 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         bdb.deleteAttention(itemKey);
     }
 
-    public DBIterator<Attention> getAttentionAddedSince(Date timeStamp)
+    public DBIterator<Attention> getAttentionSince(Date timeStamp)
             throws AuraException {
         DBIterator<Attention> res =
                 bdb.getAttentionAddedSince(timeStamp.getTime());
 
+        return (DBIterator<Attention>) cm.getRemote(res);
+    }
+
+    public DBIterator<Attention> getAttentionForSourceSince(String key,
+            Date timeStamp) throws AuraException {
+        DBIterator<Attention> res =
+                bdb.getAttentionForSourceSince(key, timeStamp.getTime());
+        return (DBIterator<Attention>) cm.getRemote(res);
+    }
+    
+    public DBIterator<Attention> getAttentionForTargetSince(String key,
+            Date timeStamp) throws AuraException {
+        DBIterator<Attention> res =
+                bdb.getAttentionForTargetSince(key, timeStamp.getTime());
         return (DBIterator<Attention>) cm.getRemote(res);
     }
 
