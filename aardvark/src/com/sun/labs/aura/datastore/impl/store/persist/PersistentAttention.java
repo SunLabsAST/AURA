@@ -145,7 +145,7 @@ public class PersistentAttention implements Attention {
     @Override
     public String toString() {
         return String.format("Attn %d (Src[%s] Tar[%s] Type[%s] Hash[%s]",
-                             id, sourceKey, targetKey, type,
+                             id, sourceKey, targetKey, getType(),
                              Integer.toBinaryString(hashCode()));
     }
     
