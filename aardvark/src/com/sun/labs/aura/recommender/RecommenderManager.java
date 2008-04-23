@@ -26,5 +26,15 @@ public interface RecommenderManager extends Component, Remote {
      * @return a list of the entries that we want to recommend to the user.
      */
     public List<Recommendation> getRecommendations(User user, int num) throws RemoteException;
+
+    /**
+     * Gets a list of recommendations for a user.
+     * @param user the user that we want recommendations for
+     * @param recommenderProfile controls how recommendations are generated
+     * @param num the number of recommendations to generate
+     * @return a list of the entries that we want to recommend to the user.
+     */
+    public List<Recommendation> getRecommendations(User user, 
+                RecommenderProfile recommenderProfile, int m) throws RemoteException;
     
 }
