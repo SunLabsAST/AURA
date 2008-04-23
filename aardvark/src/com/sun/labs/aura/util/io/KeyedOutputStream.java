@@ -1,13 +1,10 @@
 package com.sun.labs.aura.util.io;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
 
 /**
  * An output file format that includes an initial key that can be used for
@@ -81,5 +78,10 @@ public class KeyedOutputStream<K, V> extends KeyedStream {
                 raf.write(bos.toByteArray());
                 break;
         }
+    }
+    
+    public void close() throws java.io.IOException {
+        raf.setLength(raf.getFilePointer());
+        super.close();
     }
 }

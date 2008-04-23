@@ -1,5 +1,6 @@
 package com.sun.labs.aura.util.io;
 
+import com.sun.labs.util.SimpleLabsLogFormatter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -7,6 +8,8 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.Logger;
 import ngnova.util.ChannelUtil;
 
 /**
@@ -22,6 +25,9 @@ public class Sorter<K, V> {
 
     private int buffSize;
     
+    /**
+     * The default buffer size for the blocks to sort.
+     */
     public static final int DEFAULT_BUFFER_SIZE = 8 * 1024;
 
     /**
@@ -57,13 +63,12 @@ public class Sorter<K, V> {
     public void sort() throws IOException {
 
         KeyedInputStream<K, V> input = new KeyedInputStream<K, V>(in);
-        FileChannel inputChan = input.getChannel();
         
         //
         // If it's already sorted, we're done!
         if(input.getSorted()) {
             KeyedOutputStream<K,V> output = new KeyedOutputStream<K, V>(sf, true);
-            ChannelUtil.transferFully(inputChan, output.getChannel());
+            ChannelUtil.transferFully(input.getChannel(), output.getChannel());
             input.close();
             output.close();
             return;
@@ -77,7 +82,7 @@ public class Sorter<K, V> {
 
         List<SortedRegion> regions = new ArrayList<SortedRegion>();
 
-        SortedRegion cr = new SortedRegion(inputChan.position());
+        SortedRegion cr = new SortedRegion(input.position());
 
         //
         // Read to the end of file, building up a list of records until we
@@ -85,17 +90,16 @@ public class Sorter<K, V> {
         // blocked file.
         while((rec = input.read()) != null) {
             recs.add(rec);
-            long len = inputChan.position() - cr.start;
+            long len = input.position() - cr.start;
             if(len >= buffSize) {
-                cr = writeSortedRecords(inputChan, cr, regions, recs, output);
+                cr = writeSortedRecords(input, cr, regions, recs, output);
             }
         }
         
         //
         // Deal with the last region.
-        long len = inputChan.position() - cr.start;
-        if(len > 0) {
-            cr = writeSortedRecords(inputChan, cr, regions, recs, output);
+        if(recs.size() > 0) {
+            cr = writeSortedRecords(input, cr, regions, recs, output);
         }
         
         input.close();
@@ -115,7 +119,7 @@ public class Sorter<K, V> {
         // files and use the merger.
         List<KeyedInputStream<K,V>> inputs = new ArrayList<KeyedInputStream<K, V>>();
         for(SortedRegion sr : regions) {
-            inputs.add(new KeyedInputStream<K, V>(in, sr));
+            inputs.add(new KeyedInputStream<K, V>(bf, sr));
         }
         Merger m = new Merger();
         output = new KeyedOutputStream<K, V>(sf, true);
@@ -124,10 +128,10 @@ public class Sorter<K, V> {
             kis.close();
         }
         output.close();
-//        bf.delete();
+        bf.delete();
     }
     
-    private SortedRegion writeSortedRecords(FileChannel chan, 
+    private SortedRegion writeSortedRecords(KeyedInputStream<K,V> input, 
             SortedRegion cr, 
             List<SortedRegion> regions, 
             List<Record<K,V>> recs, 
@@ -135,7 +139,9 @@ public class Sorter<K, V> {
         //
         // We've exceeded the buffer size, so sort this block and write
         // it to the output file.
-        cr.setLen(chan.position() - cr.start);
+        long obp = output.position();
+        long pos = input.position();
+        cr.setLen(pos - cr.start);
         cr.setSize(recs.size());
         Collections.sort(recs);
         for(Record<K, V> r : recs) {
@@ -146,7 +152,7 @@ public class Sorter<K, V> {
         //
         // Save this region.
         regions.add(cr);
-        cr = new SortedRegion(chan.position());
+        cr = new SortedRegion(pos);
         return cr;
     }
 
@@ -169,5 +175,22 @@ public class Sorter<K, V> {
         public void setSize(int size) {
             this.size = size;
         }
+        
+        public String toString() {
+            return String.format("size: %d start: %d len: %d", size, start, len);
+        }
+    }
+    
+    public static void main(String[] args) throws Exception {
+        //
+        // Use the labs format logging.
+        Logger rl = Logger.getLogger("");
+        for(Handler h : rl.getHandlers()) {
+            h.setFormatter(new SimpleLabsLogFormatter());
+        }
+
+        Sorter s = new Sorter(new File(args[0]), 
+                new File(args[1]), new File(args[2]));
+        s.sort();
     }
 }

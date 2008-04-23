@@ -125,10 +125,8 @@ public class KeyedInputStream<K, V> extends KeyedStream {
 
         KeyedInputStream<String,Integer> kis = new KeyedInputStream<String, Integer>(args[0]);
         Record<String,Integer> rec;
-        rl.info("pos: " + kis.position());
         while((rec = kis.read()) != null) {
-            rl.info(rec.getKey() + " " + rec.getValue());
-            rl.info("pos: " + kis.position());
+            System.out.println(rec);
         }
         kis.close();
     }

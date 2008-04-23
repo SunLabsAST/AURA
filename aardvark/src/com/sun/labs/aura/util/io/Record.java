@@ -32,5 +32,9 @@ public class Record<K,V> implements Comparable<Record<K,V>> {
     public int compareTo(Record<K, V> o) {
         return ((Comparable) key).compareTo(o.key);
     }
+    
+    public String toString() {
+        return String.format("key: %s value: %s", key.toString(), value.toString()); 
+    }
 
 }
