@@ -73,12 +73,15 @@
     <component name="itemSearchEngine0" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
         <property name="indexDir" value="${auraHome}/0/itemIndex.idx"/>
         <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+        <property name="flushInterval" value="300000"/>
+        
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
     <component name="itemSearchEngine1" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
         <property name="indexDir" value="${auraHome}/1/itemIndex.idx"/>
         <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+        <property name="flushInterval" value="300000"/>
     </component>
     
     <!-- A simple recommender -->
@@ -86,10 +89,11 @@
         <property name="dataStore" value="dataStoreHead"/>
     </component>
     
-    <component name="feedScheduler" type="com.sun.labs.aura.util.ItemSchedulerImpl">
+    <component name="feedScheduler" type="com.sun.labs.aura.aardvark.impl.crawler.FeedSchedulerImpl">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="itemType" value="FEED"/>
         <property name="logLevel" value="WARNING"/>
+        <property name="stateFile" value="${auraHome}/feed/feedScheduler.state"/>
     </component>
     
     <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager">
@@ -97,6 +101,7 @@
         <property name="statService" value="statService"/>
         <property name="feedScheduler" value="feedScheduler"/>
         <property name="numThreads" value="5"/>
+        <property name="numDiscoveryThreads" value="5"/>
         <property name="logLevel" value="WARNING"/>
     </component>
     
@@ -117,6 +122,7 @@
     <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl" export="true">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="recommenderManager" value="recommenderManager"/>
+        <property name="feedScheduler" value="feedScheduler"/>
         <property name="statService" value="statService"/>
         <property name="autoEnrollTestFeeds" value="true"/>
         <property name="autoEnrollMegaTestFeeds" value="true"/>
