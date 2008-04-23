@@ -59,6 +59,7 @@ public class GridDeploy {
     private HashMap<String,FileSystem> repFSMap;
     private FileSystem auraDist;
     private FileSystem logsFS;
+    private FileSystem schedFS;
     private String auraDistMntPnt = "/files/auraDist";
     private String logsFSMntPnt = "/files/auraLogs";
     private Network network;
@@ -238,6 +239,10 @@ public class GridDeploy {
         //
         // Make a place to write all text output log files
         logsFS = getFS(instance + "-aura.logs");
+        
+        //
+        // Make a place for the scheduler to cache stuff
+        schedFS = getFS(instance + "-sched");
         
         //
         // Set up the file systems for each replicant
@@ -943,6 +948,7 @@ public class GridDeploy {
         String cmdLine =
                 "-Xmx2g" +
                 " -DauraHome=" + auraDistMntPnt +
+                " -DcacheDir=/files/cache" +
                 " -jar " + auraDistMntPnt + "/dist/aardvark.jar" + 
                 " /com/sun/labs/aura/resource/feedSchedulerConfig.xml" +
                 " feedSchedulerStarter";
@@ -961,6 +967,9 @@ public class GridDeploy {
         mountParams.add(
                 new FileSystemMountParameters(logsFS.getUUID(),
                                            new File(logsFSMntPnt).getName()));
+        mountParams.add(
+                new FileSystemMountParameters(schedFS.getUUID(), "cache"));
+        
         pc.setFileSystems(mountParams);
         pc.setWorkingDirectory(logsFSMntPnt);
         
@@ -1120,7 +1129,7 @@ public class GridDeploy {
     protected void createAuraNetwork() throws Exception {
         try {
             // Try to create a customer network for the test
-            network = grid.createNetwork(instance + "-auraNet", 64,
+            network = grid.createNetwork(instance + "-auraNet", 512,
                                          new CustomerNetworkConfiguration());
             System.out.println("Created network " + network.getName());
         } catch (DuplicateNameException e) {
