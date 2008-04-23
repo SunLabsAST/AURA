@@ -124,7 +124,7 @@ public class Sorter<K, V> {
             kis.close();
         }
         output.close();
-        bf.delete();
+//        bf.delete();
     }
     
     private SortedRegion writeSortedRecords(FileChannel chan, 

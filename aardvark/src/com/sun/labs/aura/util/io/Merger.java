@@ -89,7 +89,8 @@ public class Merger<K,V> {
         
         public boolean next() throws IOException {
             curr = input.read();
-            return curr == null;
+            return curr != null;
+            
         }
         
     }

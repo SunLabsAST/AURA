@@ -21,8 +21,6 @@ public class TestDataGenerator {
     
     public static void main(String[] args) throws Exception {
         SearchEngineImpl e = (SearchEngineImpl) SearchEngineFactory.getSearchEngine(args[0]);
-        KeyedOutputStream<String,Integer> foo = new KeyedOutputStream<String, Integer>("foo", true);
-        foo.close();
         int fn = 1;
         for(DiskPartition dp : e.getPM().getActivePartitions()) {
             System.out.println("Processing " + dp);
