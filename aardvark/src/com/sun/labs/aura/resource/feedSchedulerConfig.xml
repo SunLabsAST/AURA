@@ -38,7 +38,7 @@
         <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
     
-    <component name="feedScheduler" type="com.sun.labs.aura.aardvark.impl.crawler.FeedSchedulerImpl">
+    <component name="feedScheduler" type="com.sun.labs.aura.aardvark.impl.crawler.FeedSchedulerImpl" export="true">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="itemType" value="FEED"/>
         <property name="lateTime" value="3600"/>
