@@ -1,7 +1,6 @@
 
 package com.sun.labs.aura.datastore.impl.store.persist;
 
-import com.sleepycat.persist.model.DeleteAction;
 import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 import com.sleepycat.persist.model.Relationship;
@@ -13,7 +12,7 @@ import com.sun.labs.aura.datastore.Attention.Type;
  * An attention implementation that is persisted in the Berkeley DB Java
  * Edition.
  */
-@Entity(version=1)
+@Entity(version=2)
 public class PersistentAttention implements Attention {
 
     /** The unique ID */
