@@ -546,6 +546,7 @@ public class GridDeploy {
         //
         // Make a place to write all text output log files
         logsFS = getFS(instance + "-aura.logs");
+        schedFS = getFS(instance + "-sched");
 
         //
         // Start the Feed Scheduler
