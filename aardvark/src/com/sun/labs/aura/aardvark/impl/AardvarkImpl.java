@@ -235,10 +235,12 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
     public void addUserFeed(User user, String feedURL, Attention.Type type) throws AuraException, RemoteException {
+        Attention userAttention = StoreFactory.newAttention(user.getKey(), feedURL, type);
         if (dataStore.getItem(feedURL) == null) {
-            Attention userAttention = StoreFactory.newAttention(user.getKey(), feedURL, type);
             feedScheduler.addUrlForDiscovery(
                     new URLForDiscovery(feedURL, URLForDiscovery.HIGH_PRIORITY, userAttention));
+        } else {
+            dataStore.attend(userAttention);
         }
     }
 

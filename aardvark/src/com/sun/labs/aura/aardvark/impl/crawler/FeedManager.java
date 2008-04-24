@@ -232,33 +232,27 @@ public class FeedManager implements AuraService, Configurable {
 
     public boolean discoverFeed(URLForDiscovery urlForDiscovery) throws IOException, RemoteException {
         logger.info("discovery: checking " + urlForDiscovery);
+        Attention dbgattn = urlForDiscovery.getAttention();
+        if (dbgattn != null && dbgattn.getType() == Attention.Type.STARRED_FEED) {
+            System.out.println(" ufd " + urlForDiscovery);
+        }
         URL feedUrl = FeedUtils.findBestFeed(urlForDiscovery.getUrl());
         if (feedUrl != null) {
             try {
-
-                // if we've discovered a new feed url, we better check to make
-                // sure that it is crawlable (must respect robots.txt)
-                if (!feedUrl.equals(urlForDiscovery.getUrl())) {
-                    if (!feedScheduler.isCrawlable(feedUrl.toExternalForm())) {
-                        return false;
-                    }
-                }
-
                 SyndFeed syndFeed = FeedUtils.readFeed(feedUrl);
                 String canonicalLink = syndFeed.getLink();
                 if (canonicalLink == null) {
                     canonicalLink = urlForDiscovery.getUrl();
                 }
 
+                BlogFeed feed = null;
                 Item item = dataStore.getItem(canonicalLink);
                 if (item == null) {
                     item = StoreFactory.newItem(ItemType.FEED, canonicalLink, syndFeed.getTitle());
-                    BlogFeed feed = new BlogFeed(item);
+                    feed = new BlogFeed(item);
                     feed.setPullLink(feedUrl.toExternalForm());
-                    crawlFeed(dataStore, feed, syndFeed);
                     logger.info("discovery: added new feed " + feed.getPullLink() + " for " + urlForDiscovery);
                 }
-
 
                 Attention attn = urlForDiscovery.getAttention();
 
@@ -272,6 +266,10 @@ public class FeedManager implements AuraService, Configurable {
                             addAttention(src, item, attn.getType());
                         }
                     }
+                }
+
+                if (feed != null) {
+                    crawlFeed(dataStore, feed, syndFeed);
                 }
             } catch (IOException e) {
             //System.out.println("          Trouble crawling feed " + feedUrl + " : " + e);
@@ -381,41 +379,39 @@ public class FeedManager implements AuraService, Configurable {
         // if the attention is a LINKS_TO type, we do a bit of extra work:
         //   - no self links
         //   - add links from entries to entries and from feeds to feeds
-        if (type == Attention.Type.LINKS_TO) {
-            if (src.getType() == ItemType.BLOGENTRY) {
+        if (type == Attention.Type.LINKS_TO && src.getType() == ItemType.BLOGENTRY) {
 
-                BlogEntry srcEntry = new BlogEntry(src);
+            BlogEntry srcEntry = new BlogEntry(src);
 
-                if (target.getType() == ItemType.BLOGENTRY) {
-                    // don't create self links
-                    BlogEntry targetEntry = new BlogEntry(target);
-                    if (srcEntry.getFeedKey() != null && !srcEntry.getFeedKey().equals(targetEntry.getFeedKey())) {
-                        Attention entryAttention = StoreFactory.newAttention(
-                                srcEntry.getKey(), targetEntry.getKey(), Attention.Type.LINKS_TO);
-                        dataStore.attend(entryAttention);
+            if (target.getType() == ItemType.BLOGENTRY) {
+                // don't create self links
+                BlogEntry targetEntry = new BlogEntry(target);
+                if (srcEntry.getFeedKey() != null && !srcEntry.getFeedKey().equals(targetEntry.getFeedKey())) {
+                    Attention entryAttention = StoreFactory.newAttention(
+                            srcEntry.getKey(), targetEntry.getKey(), Attention.Type.LINKS_TO);
+                    dataStore.attend(entryAttention);
 
-                        if (!isAlreadyLinked(srcEntry.getFeedKey(), targetEntry.getFeedKey())) {
-                            Attention feedAttention = StoreFactory.newAttention(
-                                    srcEntry.getFeedKey(), targetEntry.getFeedKey(), Attention.Type.LINKS_TO);
-                            dataStore.attend(feedAttention);
-                        }
-                    }
-                } else if (srcEntry.getFeedKey() != null && target.getType() == ItemType.FEED) {
-                    if (!target.getKey().equals(srcEntry.getFeedKey())) {
-                        if (!isAlreadyLinked(srcEntry.getFeedKey(), target.getKey())) {
-                            Attention feedAttention = StoreFactory.newAttention(
-                                    srcEntry.getFeedKey(), target.getKey(), Attention.Type.LINKS_TO);
-                            dataStore.attend(feedAttention);
-                        }
+                    if (!isAlreadyLinked(srcEntry.getFeedKey(), targetEntry.getFeedKey())) {
+                        Attention feedAttention = StoreFactory.newAttention(
+                                srcEntry.getFeedKey(), targetEntry.getFeedKey(), Attention.Type.LINKS_TO);
+                        dataStore.attend(feedAttention);
                     }
                 }
-            } else {
-                // not a LINKS_TO attention so just add it
-                if (!src.getKey().equals(target.getKey())) {
-                    Attention feedAttention = StoreFactory.newAttention(
-                            src.getKey(), target.getKey(), type);
-                    dataStore.attend(feedAttention);
+            } else if (srcEntry.getFeedKey() != null && target.getType() == ItemType.FEED) {
+                if (!target.getKey().equals(srcEntry.getFeedKey())) {
+                    if (!isAlreadyLinked(srcEntry.getFeedKey(), target.getKey())) {
+                        Attention feedAttention = StoreFactory.newAttention(
+                                srcEntry.getFeedKey(), target.getKey(), Attention.Type.LINKS_TO);
+                        dataStore.attend(feedAttention);
+                    }
                 }
+            }
+        } else {
+            // not a LINKS_TO from a blogentry attention so just add it
+            if (!src.getKey().equals(target.getKey())) {
+                Attention feedAttention = StoreFactory.newAttention(
+                        src.getKey(), target.getKey(), type);
+                dataStore.attend(feedAttention);
             }
         }
     }
@@ -434,6 +430,7 @@ public class FeedManager implements AuraService, Configurable {
                 if (srcKey.equals(attn.getSourceKey())) {
                     return true;
                 }
+
             }
         }
         return false;
@@ -456,14 +453,17 @@ public class FeedManager implements AuraService, Configurable {
                 if ((attn.getType() == Attention.Type.LINKS_TO)) {
                     incoming++;
                 }
+
             }
         } finally {
             iter.close();
         }
+
         if (incoming > 0) {
             feed.setNumIncomingLinks(feed.getNumIncomingLinks() + incoming);
             logger.info("Incoming links for " + feed.getName() + ": " + feed.getNumIncomingLinks());
         }
+
     }
 
     /**
@@ -490,6 +490,7 @@ public class FeedManager implements AuraService, Configurable {
         } else if (feedAttentionType == Attention.Type.DISLIKED_FEED) {
             userAttentionType = Attention.Type.DISLIKED;
         }
+
         return userAttentionType;
     }
     /**

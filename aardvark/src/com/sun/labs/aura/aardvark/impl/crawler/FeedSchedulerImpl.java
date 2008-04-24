@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.aardvark.impl.crawler;
 
+import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.util.ItemSchedulerImpl;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
@@ -20,6 +21,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,7 +40,7 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
     private final static String VISITED_STATE = "visited.state";
 
     public FeedSchedulerImpl() {
-        fss.feedDiscoveryQueue = new LinkedBlockingQueue();
+        fss.feedDiscoveryQueue = new PriorityBlockingQueue();
     }
 
     @Override
@@ -62,8 +64,9 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
 
 
     public void addUrlForDiscovery(URLForDiscovery ufd) throws RemoteException {
-        if (isGoodToVisit(ufd.getUrl()) && !visitedSet.contains(ufd.getUrl())) {
+        if (isGoodToVisit(ufd) && !visitedSet.contains(ufd.getUrl())) {
             visitedSet.add(ufd.getUrl());
+            // System.out.println("Queued " + ufd);
             fss.feedDiscoveryQueue.add(ufd);
 
             synchronized (this) {
@@ -82,6 +85,7 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
      */
     public URLForDiscovery getUrlForDiscovery() throws InterruptedException, RemoteException {
         URLForDiscovery ufd = fss.feedDiscoveryQueue.take();
+        // System.out.println("UFD pulled " + ufd);
         if (fss.pulled++ % 1000 == 0) {
             System.out.println("URLS checked " + fss.pulled + " remaining " + fss.feedDiscoveryQueue.size());
         }
@@ -159,7 +163,11 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
      * @param surl the url to check
      * @return true if the url should be crawled
      */
-    private boolean isGoodToVisit(String surl) {
+    private boolean isGoodToVisit(URLForDiscovery ufd) {
+        
+
+        String surl = ufd.getUrl();
+
         String[] filteredExtensions = {".mp3", ".mp4", "jpg", "gif", ".png", "avi", "qt"};
 
         if (surl == null) {
@@ -185,7 +193,22 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
         } catch (MalformedURLException ex) {
             return false;
         }
-        return isCrawlable(surl);
+
+        // if the attention data is 'STARRED_FEED' then this is likely to
+        // be a feed such as a google starred item feed, which means that
+        // we can ignore the robots.txt
+        
+        if (ufd.getAttention() != null && isFeedOriented(ufd.getAttention().getType())) {
+            return true;
+        } else {
+            return isCrawlable(surl);
+        }
+    }
+    
+    private boolean isFeedOriented(Attention.Type type) {
+        return type == Attention.Type.STARRED_FEED ||
+                type == Attention.Type.SUBSCRIBED_FEED ||
+                type == Attention.Type.DISLIKED_FEED;
     }
 
     public boolean isCrawlable(String surl) {
@@ -210,7 +233,7 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
 
 }
 class FeedSchedulerState implements Serializable {
-    LinkedBlockingQueue<URLForDiscovery> feedDiscoveryQueue;
+    PriorityBlockingQueue<URLForDiscovery> feedDiscoveryQueue;
     int pulled;
     int postCount = 0;
 

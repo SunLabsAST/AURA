@@ -11,6 +11,7 @@
 <config>
     <!-- Where the aura data lives -->
     <property name="auraHome" value="/aura"/>
+    <property name="cacheDir" value="/aura"/>
     
     <!-- The configuration for a partition cluster. -->
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true">
@@ -68,7 +69,7 @@
         <property name="itemType" value="FEED"/>
         <property name="lateTime" value="3600"/>
         <property name="logLevel" value="SEVERE"/>
-        <property name="stateDir" value="${auraHome}/feed"/>
+        <property name="stateDir" value="${cacheDir}/feed"/>
     </component>
     
     <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager">
@@ -77,7 +78,7 @@
         <property name="feedScheduler" value="feedScheduler"/>
         <property name="crawlingPeriod" value="3600"/>
         <property name="numThreads" value="1"/>
-        <property name="numDiscoveryThreads" value="10"/>
+        <property name="numDiscoveryThreads" value="2"/>
         <property name="logLevel" value="WARNING"/>
     </component>
     
@@ -100,8 +101,6 @@
         <property name="feedScheduler" value="feedScheduler"/>
         <property name="recommenderManager" value="recommenderManager"/>
         <property name="statService" value="statService"/>
-        <property name="autoEnrollTestFeeds" value="true"/>
-        <property name="autoEnrollMegaTestFeeds" value="true"/>
     </component>
     
     <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">

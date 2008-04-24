@@ -4,7 +4,6 @@
  * Copyright (c) 2008,  Sun Microsystems Inc
  * See license.txt for licensing info.
  */
-
 package com.sun.labs.aura.aardvark.impl.crawler;
 
 import com.sun.labs.aura.datastore.Attention;
@@ -15,11 +14,11 @@ import java.io.Serializable;
  * @author plamere
  */
 public class URLForDiscovery implements Serializable, Comparable<URLForDiscovery> {
+
     public final static float LOW_PRIORITY = 0F;
     public final static float HIGH_PRIORITY = 1000F;
     public final static float ULTRA_HIGH_PRIORITY = 10000F;
     public final static float DEFAULT_PRIORITY = LOW_PRIORITY;
-
     private String surl = null;
     private float priority = DEFAULT_PRIORITY;
     private Attention attention = null;
@@ -60,12 +59,10 @@ public class URLForDiscovery implements Serializable, Comparable<URLForDiscovery
      * @return
      */
     public int compareTo(URLForDiscovery o) {
-        if (getPriority() > o.getPriority()) {
-            return -1;
-        } else if (getPriority() < o.getPriority()) {
-            return 1;
-        } else {
-            return 0;
-        }
+        return (int) -Math.signum(getPriority() - o.getPriority());
+    }
+
+    public String toString() {
+        return "ufd " + surl + " pri " + priority + " " + attention;
     }
 }
