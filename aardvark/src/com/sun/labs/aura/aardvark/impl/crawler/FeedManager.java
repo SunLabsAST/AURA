@@ -7,9 +7,9 @@ package com.sun.labs.aura.aardvark.impl.crawler;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
-import com.sun.labs.aura.util.ItemScheduler;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
@@ -20,9 +20,13 @@ import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import com.sun.syndication.feed.synd.SyndFeed;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,12 +44,22 @@ public class FeedManager implements AuraService, Configurable {
     private Logger logger;
     private long lastPullCount = 0;
     private boolean started = false;
+    private int links;
+    private int matchingLinks;
 
     /**
      * Starts crawling all of the feeds
      */
     public void start() {
         started = true;
+        startFeedCrawlingThreads();
+        startFeedDiscoveryThreads();
+    }
+
+    /**
+     * Starts the feed crawling threads
+     */
+    private void startFeedCrawlingThreads() {
         for (int i = 0; i < numThreads; i++) {
             Thread t = new Thread() {
 
@@ -56,6 +70,25 @@ public class FeedManager implements AuraService, Configurable {
             };
             t.setDaemon(true);
             t.setName("crawlerThread-" + i);
+            runningThreads.add(t);
+            t.start();
+        }
+    }
+
+    /**
+     * Starts the feed discovery threads
+     */
+    private void startFeedDiscoveryThreads() {
+        for (int i = 0; i < numDiscoveryThreads; i++) {
+            Thread t = new Thread() {
+
+                @Override
+                public void run() {
+                    discoverNewFeeds();
+                }
+            };
+            t.setDaemon(true);
+            t.setName("discoveryThread-" + i);
             runningThreads.add(t);
             t.start();
         }
@@ -76,9 +109,10 @@ public class FeedManager implements AuraService, Configurable {
      */
     public void newProperties(PropertySheet ps) throws PropertyException {
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
-        feedScheduler = (ItemScheduler) ps.getComponent(PROP_FEED_SCHEDULER);
+        feedScheduler = (FeedScheduler) ps.getComponent(PROP_FEED_SCHEDULER);
         statService = (StatService) ps.getComponent(PROP_STAT_SERVICE);
         numThreads = ps.getInt(PROP_NUM_THREADS);
+        numDiscoveryThreads = ps.getInt(PROP_NUM_DISCOVERY_THREADS);
         logger = ps.getLogger();
         defaultCrawlingPeriod = ps.getInt(PROP_CRAWLING_PERIOD);
 
@@ -98,12 +132,6 @@ public class FeedManager implements AuraService, Configurable {
         }
     }
 
-    public BlogFeed createFeed(URL feedUrl) throws RemoteException, AuraException {
-        BlogFeed feed = new BlogFeed(feedUrl.toExternalForm(), "");
-        feed.flush(dataStore);
-        return feed;
-    }
-
     public void crawlAllFeeds() throws AuraException, RemoteException {
         List<Item> feeds = dataStore.getAll(Item.ItemType.FEED);
         for (Item ifeed : feeds) {
@@ -113,33 +141,33 @@ public class FeedManager implements AuraService, Configurable {
     }
 
     public void crawlFeed(BlogFeed feed) throws AuraException, RemoteException {
-        crawlFeed(dataStore, feed);
+        crawlFeed(dataStore, feed, null);
     }
 
     /**
      * Gets a feed id from the feed scheduler, and pulls it, adding
-     * any new feed entries to the item store
+     * any new feed entries to the item store. This method is typcally run
+     * in its own thread and will run continuously.  It is aggresive about
+     * catching exceptions since we never want this thread to stop during normal 
+     * crawling.
      */
     private void crawlFeeds() {
-        ItemScheduler myFeedScheduler = feedScheduler;
+        FeedScheduler myFeedScheduler = feedScheduler;
         DataStore myItemStore = dataStore;
         String key = null;
         try {
             while (runningThreads.contains(Thread.currentThread())) {
                 try {
-                    logger.info(Thread.currentThread().getName() + " gnik");
                     key = myFeedScheduler.getNextItemKey();
                     int nextCrawl = defaultCrawlingPeriod;
                     try {
-                    logger.info(Thread.currentThread().getName() + " gi");
                         Item item = myItemStore.getItem(key);
                         if (item != null) {
                             if (item.getType() == ItemType.FEED) {
                                 BlogFeed feed = new BlogFeed(item);
                                 if (needsCrawl(feed)) {
-                    logger.info(Thread.currentThread().getName() + " crawl-start");
-                                    crawlFeed(myItemStore, feed);
-                    logger.info(Thread.currentThread().getName() + " crawl-end");
+                                    processIncomingLinkAttentionData(myItemStore, feed);
+                                    crawlFeed(myItemStore, feed, null);
                                     nextCrawl += feed.getNumConsecutiveErrors() *
                                             defaultCrawlingPeriod;
                                 }
@@ -149,7 +177,6 @@ public class FeedManager implements AuraService, Configurable {
                             }
                         }
                     } finally {
-                        logger.info(Thread.currentThread().getName() + " ri");
                         feedScheduler.releaseItem(key, nextCrawl);
                     }
                 } catch (InterruptedException ex) {
@@ -173,19 +200,102 @@ public class FeedManager implements AuraService, Configurable {
     }
 
     /**
+     * Discovers new feeds. This method (typically run in its own thread), will
+     * take a url for discovery from the feedScheduler url queue and (if possible)
+     * finds the best feed asociated with the URL.  If the feed is not already
+     * enrolled, it is added to the datastore
+     * 
+     */
+    private void discoverNewFeeds() {
+        FeedScheduler myFeedScheduler = feedScheduler;
+        String key = null;
+        try {
+            while (runningThreads.contains(Thread.currentThread())) {
+                try {
+                    URLForDiscovery urlForDiscovery = myFeedScheduler.getUrlForDiscovery();
+                    discoverFeed(urlForDiscovery);
+                } catch (InterruptedException ex) {
+                    break;
+                } catch (RemoteException ex) {
+                    logger.warning("RemoteException " + ex.getMessage());
+                    break;
+                } catch (Throwable ex) {
+                    logger.warning("Unexpected exception when crawling feed " +
+                            key + " exception: " + ex.getMessage());
+                }
+            }
+        } finally {
+            runningThreads.remove(Thread.currentThread());
+            logger.warning("Crawling thread shutdown " + runningThreads.size() +
+                    " remaining");
+        }
+    }
+
+    public boolean discoverFeed(URLForDiscovery urlForDiscovery) throws IOException, RemoteException {
+        logger.info("discovery: checking " + urlForDiscovery);
+        Attention dbgattn = urlForDiscovery.getAttention();
+        URL feedUrl = FeedUtils.findBestFeed(urlForDiscovery.getUrl());
+        if (feedUrl != null) {
+            try {
+                SyndFeed syndFeed = FeedUtils.readFeed(feedUrl);
+                String canonicalLink = syndFeed.getLink();
+                if (canonicalLink == null) {
+                    canonicalLink = urlForDiscovery.getUrl();
+                }
+
+                BlogFeed feed = null;
+                Item item = dataStore.getItem(canonicalLink);
+                if (item == null) {
+                    item = StoreFactory.newItem(ItemType.FEED, canonicalLink, syndFeed.getTitle());
+                    feed = new BlogFeed(item);
+                    feed.setPullLink(feedUrl.toExternalForm());
+                    logger.info("discovery: added new feed " + feed.getPullLink() + " for " + urlForDiscovery);
+                }
+
+                Attention attn = urlForDiscovery.getAttention();
+
+                if (attn != null) {
+                    Item src = dataStore.getItem(attn.getSourceKey());
+                    if (src != null) {
+                        Item discoveredItem = dataStore.getItem(urlForDiscovery.getUrl());
+                        if (discoveredItem != null) {
+                            addAttention(src, discoveredItem, attn.getType());
+                        } else {
+                            addAttention(src, item, attn.getType());
+                        }
+                    }
+                }
+
+                if (feed != null) {
+                    crawlFeed(dataStore, feed, syndFeed);
+                }
+            } catch (IOException e) {
+            //System.out.println("          Trouble crawling feed " + feedUrl + " : " + e);
+            } catch (AuraException e) {
+                System.out.println("          Trouble accessing database while processing  feed " + feedUrl + " : " + e);
+            }
+        }
+        return false;
+    }
+
+    /**
      * Crawls a single feed
      * @param myItemStore the item store where new entries should be desposited
      * @param feed the feed to crawl
+     * @param syndFeed the previously pulled feed data (or null if the feed needs to be pulled)
      * @throws java.rmi.RemoteException
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
-    private void crawlFeed(DataStore myItemStore, BlogFeed feed) throws RemoteException, AuraException {
+    private void crawlFeed(DataStore myItemStore, BlogFeed feed, SyndFeed syndFeed) throws RemoteException, AuraException {
         boolean ok = false;
         try {
-            // pull the feeds, and add the appropriate attention data 
-            // for each entry
+            // collect up all of the link attention to this feed and count them up
 
-            List<BlogEntry> entries = FeedUtils.processFeed(feed);
+            // pull the feeds, and add the appropriate attention data 
+            // for each discoveredEntry
+
+            logger.info("Crawling feed " + feed.getKey() + ((syndFeed == null ? " (full)" : "")));
+            List<BlogEntry> entries = FeedUtils.processFeed(feed, syndFeed);
             List<Attention> attentions =
                     myItemStore.getAttentionForTarget(feed.getKey());
 
@@ -193,9 +303,9 @@ public class FeedManager implements AuraService, Configurable {
             for (BlogEntry entry : entries) {
                 if (dataStore.getItem(entry.getKey()) == null) {
                     newEntries++;
-                    logger.info(Thread.currentThread().getName() + " entry-flush");
+                    // the discoveredEntry gets the authority of the feed
+                    entry.setAuthority(feed.getAuthority());
                     entry.flush(myItemStore);
-                    logger.info(Thread.currentThread().getName() + " attn-push");
                     for (Attention feedAttention : attentions) {
                         Attention.Type userAttentionType =
                                 getUserAttentionFromFeedAttention(feedAttention.getType());
@@ -206,9 +316,22 @@ public class FeedManager implements AuraService, Configurable {
                             dataStore.attend(entryAttention);
                         }
                     }
+
+                    // extract the anchors and add attention for those
+                    List<Anchor> anchors = FeedUtils.extractAnchors(entry.getContent());
+                    for (Anchor anchor : anchors) {
+                        links++;
+                        Item target = dataStore.getItem(anchor.getDestURL());
+                        if (target != null) {
+                            addAttention(entry.getItem(), target, Attention.Type.LINKS_TO);
+                        } else {
+                            queueAttention(entry.getItem(), anchor.getDestURL(), Attention.Type.LINKS_TO);
+                        }
+                    }
                 }
             }
-            logger.info(newEntries + " new entries from  " + feed.getURL());
+            logger.info("Links found " + links + " matching " + matchingLinks);
+            logger.info(newEntries + " new entries from  " + feed.getCannonicalURL());
             statService.incr(COUNTER_ENTRY_PULL_COUNT, newEntries);
             ok = true;
         } catch (AuraException ex) {
@@ -219,10 +342,13 @@ public class FeedManager implements AuraService, Configurable {
             logger.log(Level.SEVERE, "remote exception processing " +
                     feed.getKey(), rx);
             statService.incr(COUNTER_FEED_ERROR_COUNT, 1);
+        } catch (IOException ex) {
+            logger.info("I/O trouble  " + feed.getKey() + " " + ex.getMessage());
+            statService.incr(COUNTER_FEED_ERROR_COUNT, 1);
         }
-        logger.info(Thread.currentThread().getName() + " stats-flush");
+        logger.fine(Thread.currentThread().getName() + " stats-flush");
         long feedPullCount = statService.incr(COUNTER_FEED_PULL_COUNT);
-        logger.info(Thread.currentThread().getName() + " feed-flush");
+        logger.fine(Thread.currentThread().getName() + " feed-flush");
         feed.pulled(ok);
         feed.flush(myItemStore);
 
@@ -240,6 +366,118 @@ public class FeedManager implements AuraService, Configurable {
         }
     }
 
+    private void queueAttention(Item src, String targetURL, Attention.Type type) throws RemoteException {
+        Attention feedAttention = StoreFactory.newAttention(src.getKey(), null, type);
+        feedScheduler.addUrlForDiscovery(
+                new URLForDiscovery(targetURL, URLForDiscovery.DEFAULT_PRIORITY, feedAttention));
+    }
+
+    private void addAttention(Item src, Item target, Attention.Type type) throws AuraException, RemoteException {
+
+        // if the attention is a LINKS_TO type, we do a bit of extra work:
+        //   - no self links
+        //   - add links from entries to entries and from feeds to feeds
+        if (type == Attention.Type.LINKS_TO && src.getType() == ItemType.BLOGENTRY) {
+
+            BlogEntry srcEntry = new BlogEntry(src);
+
+            if (target.getType() == ItemType.BLOGENTRY) {
+                // don't create self links
+                BlogEntry targetEntry = new BlogEntry(target);
+                if (isOkToLink(srcEntry.getFeedKey(), targetEntry.getFeedKey())) {
+                    Attention entryAttention = StoreFactory.newAttention(
+                            srcEntry.getKey(), targetEntry.getKey(), Attention.Type.LINKS_TO);
+                    dataStore.attend(entryAttention);
+
+                    if (!isAlreadyLinked(srcEntry.getFeedKey(), targetEntry.getFeedKey())) {
+                        Attention feedAttention = StoreFactory.newAttention(
+                                srcEntry.getFeedKey(), targetEntry.getFeedKey(), Attention.Type.LINKS_TO);
+                        dataStore.attend(feedAttention);
+                    }
+                }
+            } else if (srcEntry.getFeedKey() != null && target.getType() == ItemType.FEED) {
+                if (!target.getKey().equals(srcEntry.getFeedKey())) {
+                    if (!isAlreadyLinked(srcEntry.getFeedKey(), target.getKey())) {
+                        Attention feedAttention = StoreFactory.newAttention(
+                                srcEntry.getFeedKey(), target.getKey(), Attention.Type.LINKS_TO);
+                        dataStore.attend(feedAttention);
+                    }
+                }
+            }
+        } else {
+            // not a LINKS_TO from a blogentry attention so just add it
+            if (!src.getKey().equals(target.getKey())) {
+                Attention feedAttention = StoreFactory.newAttention(
+                        src.getKey(), target.getKey(), type);
+                dataStore.attend(feedAttention);
+            }
+        }
+    }
+
+    private boolean isOkToLink(String surl1, String surl2) {
+        if (surl1 == null || surl2 == null) {
+            return false;
+        } else {
+            try {
+                URL url1 = new URL(surl1);
+                URL url2 = new URL(surl1);
+                return !url1.getHost().equals(url2.getHost());
+            } catch (MalformedURLException ex) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Determines if the two items are already linked
+     * @param srcKey the source of the potential link
+     * @param targetKey the target of the potential link
+     * @return true if the items are linked
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    boolean isAlreadyLinked(String srcKey, String targetKey) throws AuraException, RemoteException {
+        for (Attention attn : dataStore.getAttentionForTarget(targetKey)) {
+            if (attn.getType() == Attention.Type.LINKS_TO) {
+                if (srcKey.equals(attn.getSourceKey())) {
+                    return true;
+                }
+
+            }
+        }
+        return false;
+    }
+
+    /**
+     * For the given feed, update the incoming links field for the feed
+     * by counting the new links pointing to this feed since the last pull
+     * @param myDataStore the datastore 
+     * @param feed the feed to be update
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    private void processIncomingLinkAttentionData(DataStore myDataStore, BlogFeed feed) throws AuraException, RemoteException {
+        DBIterator<Attention> iter = myDataStore.getAttentionForTargetSince(feed.getKey(), new Date(feed.getLastPullTime() + 1));
+        int incoming = 0;
+        try {
+            while (iter.hasNext()) {
+                Attention attn = iter.next();
+                if ((attn.getType() == Attention.Type.LINKS_TO)) {
+                    incoming++;
+                }
+
+            }
+        } finally {
+            iter.close();
+        }
+
+        if (incoming > 0) {
+            feed.setNumIncomingLinks(feed.getNumIncomingLinks() + incoming);
+            logger.info("Incoming links for " + feed.getName() + ": " + feed.getNumIncomingLinks());
+        }
+
+    }
+
     /**
      * Determines if a feed needs to be crawled
      * @param feed the feed to check
@@ -247,7 +485,7 @@ public class FeedManager implements AuraService, Configurable {
      */
     private boolean needsCrawl(BlogFeed feed) {
         long now = System.currentTimeMillis();
-        return ((now - feed.getLastPullTime()) >  defaultCrawlingPeriod * 1000);
+        return ((now - feed.getLastPullTime()) > defaultCrawlingPeriod * 1000);
     }
 
     /**
@@ -264,6 +502,7 @@ public class FeedManager implements AuraService, Configurable {
         } else if (feedAttentionType == Attention.Type.DISLIKED_FEED) {
             userAttentionType = Attention.Type.DISLIKED;
         }
+
         return userAttentionType;
     }
     /**
@@ -284,17 +523,25 @@ public class FeedManager implements AuraService, Configurable {
     /**
      * the configurable property for the feed itemScheuler used by this manager
      */
-    @ConfigComponent(type = ItemScheduler.class)
+    @ConfigComponent(type = FeedScheduler.class)
     public final static String PROP_FEED_SCHEDULER = "feedScheduler";
-    private ItemScheduler feedScheduler;
+    private FeedScheduler feedScheduler;
     /**
      * the configurable property for the number of threads used by this manager
      */
     @ConfigInteger(defaultValue = 10, range = {0, 1000})
     public final static String PROP_NUM_THREADS = "numThreads";
     private int numThreads;
-
+    /**
+     * the configurable property for the default carwling period (in seconds)
+     */
     @ConfigInteger(defaultValue = 3600, range = {10, 36000})
     public final static String PROP_CRAWLING_PERIOD = "crawlingPeriod";
     private int defaultCrawlingPeriod;
+    /**
+     * the configurable property for the number of feed discovery threads
+     */
+    @ConfigInteger(defaultValue = 3, range = {0, 1000})
+    public final static String PROP_NUM_DISCOVERY_THREADS = "numDiscoveryThreads";
+    private int numDiscoveryThreads;
 }

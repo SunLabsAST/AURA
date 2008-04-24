@@ -12,6 +12,7 @@
 
     <!-- Where the aura data lives -->
     <property name="auraHome" value="/aura"/>
+    <property name="cacheDir" value="/aura"/>
     <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
 
     <property name="auraGroup" value="Aura"/>
@@ -47,12 +48,13 @@
         <property name="statService" value="statService"/>
         <property name="feedScheduler" value="feedScheduler"/>
         <property name="numThreads" value="10"/>
+        <property name="numDiscoveryThreads" value="10"/>
         <property name="logLevel" value="SEVERE"/>
     </component>
     
     <component name="statService" type="com.sun.labs.aura.util.StatService"/>
 
-    <component name="feedScheduler" type="com.sun.labs.aura.util.ItemScheduler"/>
+    <component name="feedScheduler" type="com.sun.labs.aura.aardvark.impl.crawler.FeedScheduler"/>
     
     <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
 

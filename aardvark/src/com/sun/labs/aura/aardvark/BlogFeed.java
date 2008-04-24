@@ -30,11 +30,12 @@ public class BlogFeed extends ItemAdapter implements Serializable {
     private final static String FIELD_AUTHOR = "author";
     private final static String FIELD_TAG = "tag";
     private final static String FIELD_LINK = "link";
-    private final static String FIELD_AUTHORITY = "authority";
     private final static String FIELD_LAST_PULL_TIME = "lastPullTime";
     private final static String FIELD_NUM_PULLS = "numPulls";
     private final static String FIELD_NUM_ERRORS = "numErrors";
+    private final static String FIELD_NUM_INCOMING_LINKS = "numIncomingLinks";
     private final static String FIELD_NUM_CONSECUTIVE_ERRORS = "numConsecutiveErrors";
+    private final static String FIELD_NUM_STARRED_ENTRIES = "numStarredEntries";
     
     /**
      * Wraps a Item as a feed
@@ -76,7 +77,7 @@ public class BlogFeed extends ItemAdapter implements Serializable {
      * Sets the link for a feed. 
      * @param link the link ot the image
      */
-    public void setLink(String link) {
+    public void setPullLink(String link) {
         setField(FIELD_LINK, link);
     }
 
@@ -92,7 +93,7 @@ public class BlogFeed extends ItemAdapter implements Serializable {
      * Gets the URL for this feed
      * @return the URL for the feed
      */
-    public String getURL() {
+    public String getCannonicalURL() {
         return getKey();
     }
 
@@ -106,13 +107,6 @@ public class BlogFeed extends ItemAdapter implements Serializable {
     }
     
     
-    /**
-     * Sets the authority fo rthe blog
-     * @param authority the authority (1 is 'most', 0 is 'least')
-     */
-    public void setAuthority(float authority) {
-        setField(FIELD_AUTHORITY, authority);
-    }
 
     /**
      * Used to indicates that the feed has been pulled
@@ -137,6 +131,22 @@ public class BlogFeed extends ItemAdapter implements Serializable {
         return getFieldAsInt(FIELD_NUM_PULLS);
     }
 
+    /**
+     * Gets the number of incoming links for this feed
+     * @return the number of incoming links
+     */
+    public int getNumIncomingLinks() {
+        return getFieldAsInt(FIELD_NUM_INCOMING_LINKS);
+    }
+
+    /**
+     * Sets the number of incoming links for this feed
+     * @param links the number of incoming links
+     */
+    public void setNumIncomingLinks(int links) {
+        setField(FIELD_NUM_INCOMING_LINKS, links);
+    }
+
     public long getLastPullTime() {
         return getFieldAsLong(FIELD_LAST_PULL_TIME);
     }
@@ -154,8 +164,35 @@ public class BlogFeed extends ItemAdapter implements Serializable {
      * 
      * @return the number of errors
      */
+    public float getAuthority() {
+        return getNumIncomingLinks() + getNumStarredEntries();
+    }
+
+    /**
+     * Get the number of errors
+     * 
+     * @return the number of errors
+     */
     public int getNumErrors() {
         return getFieldAsInt(FIELD_NUM_ERRORS);
+    }
+
+    /**
+     * Get the number of starred entries on this feed
+     * 
+     * @return the number of starred entries
+     */
+    public int getNumStarredEntries() {
+        return getFieldAsInt(FIELD_NUM_STARRED_ENTRIES);
+    }
+
+    /**
+     * Sets the number of starred entries on this feed
+     * 
+     * @return the number of starred entries
+     */
+    public void setNumStarredEntries(int num) {
+        setField(FIELD_NUM_STARRED_ENTRIES, num);
     }
 
     /**
@@ -178,7 +215,7 @@ public class BlogFeed extends ItemAdapter implements Serializable {
      * Gets a link to the feed
      * @return the link to the image
      */
-    public String getLink() {
+    public String getPullLink() {
         return getFieldAsString(FIELD_LINK);
     }
 

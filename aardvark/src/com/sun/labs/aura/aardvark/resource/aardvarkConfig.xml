@@ -42,15 +42,12 @@
         <property name="dataStore" value="dataStoreHead"/>
         <property name="statService" value="statService"/>
         <property name="recommenderManager" value="recommenderManager"/>
-        <property name="autoEnrollTestFeeds" value="true"/>
-        <property name="autoEnrollMegaTestFeeds" value="true"/>
-        <property name="autoEnrollGiantTestFeeds" value="true"/>
+        <property name="feedScheduler" value="feedScheduler"/>
     </component>
     
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
-
     <component name="statService" type="com.sun.labs.aura.util.StatService"/>
-
+    <component name="feedScheduler" type="com.sun.labs.aura.aardvark.impl.crawler.FeedScheduler"/>
     <component name="recommenderManager" type="com.sun.labs.aura.recommender.RecommenderManager"/>
     
     <!-- A service starter for this feed scheduler -->
@@ -59,5 +56,4 @@
             <item>aardvark</item>
         </propertylist>
     </component>
-    
 </config>

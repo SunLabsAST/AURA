@@ -12,7 +12,6 @@ import com.sun.kt.search.CompositeResultsFilter;
 import com.sun.kt.search.ResultsFilter;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogEntry;
-import com.sun.labs.aura.aardvark.util.SimpleTimer;
 import com.sun.labs.aura.aardvark.util.Times;
 import com.sun.labs.aura.recommender.RecommenderManager;
 import com.sun.labs.aura.datastore.Attention;
@@ -23,6 +22,7 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.recommender.Recommendation;
+import com.sun.labs.aura.recommender.RecommenderProfile;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.ConfigBoolean;
@@ -35,7 +35,6 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -55,16 +54,13 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
     private Logger log;
 
     public List<Recommendation> getRecommendations(User user, int num) throws RemoteException {
-        SimpleTimer t = new SimpleTimer(true);
         List<Recommendation> resultList = new ArrayList<Recommendation>();
         Set<String> titles = new HashSet<String>();
 
         try {
             // get a set of items that we've recently starred
-            t.mark("init");
             List<Attention> starredAttention = dataStore.getLastAttentionForSource(
                     user.getKey(), Attention.Type.STARRED, RECENT_STARRED);
-            t.mark("getLastAttention starred");
 
             // 
             // A filter that will only pass documents that have not been seen
@@ -74,9 +70,8 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             CompositeResultsFilter rf = new CompositeResultsFilter(
                     getRecentItemFilter(user), new TypeFilter(ItemType.BLOGENTRY));
             rf.addFilter(getDateFilter(VALID_RECOMMENDATION_DAYS));
-//            rf.addFilter(new LengthFilter("content", 200));
+            rf.addFilter(new LengthFilter("content", 200));
 
-            t.mark("created filter");
 
             List<Scored<Item>> results = new ArrayList<Scored<Item>>();
             if (!starredAttention.isEmpty()) {
@@ -85,7 +80,6 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                     // select a few documents from the starred set of items to serve
                     // as the similarity seeds
                     List<String> itemKeys = selectRandomItemKeys(starredAttention, SEED_SIZE);
-                    t.mark("select random item keys");
 
                     log.info("multidoc " + itemKeys);
 
@@ -93,20 +87,17 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                     // sjgRollback
 //                    results = dataStore.findSimilar(itemKeys, "content", num * 2, rf);
                     results = dataStore.findSimilar(itemKeys, "content", retSize, rf);
-                    t.mark("findSimilar");
                 } else {
                     Random r = new Random();
                     int n = r.nextInt(starredAttention.size());
-                    t.mark("select random item key");
                     log.info("unidoc " + starredAttention.get(n).getTargetKey());
                     results = dataStore.findSimilar(
                             starredAttention.get(n).getTargetKey(),
                             "content",
                             // sjgRollback
-//                            num,
+                            //                            num,
                             retSize,
                             rf);
-                    t.mark("findSimilar");
                 }
             }
 
@@ -124,8 +115,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                     }
                 }
             }
-            t.mark("results built - size: " + resultList.size());
-            
+
             // we didn't find anything, so lets at least give some recent
             // items.
             if (resultList.size() == 0) {
@@ -138,7 +128,6 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                         break;
                     }
                 }
-                t.mark("fallback - size: " + resultList.size());
             }
 
             // add attention data for the user
@@ -149,19 +138,18 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                             recommendation.getItem(), Attention.Type.VIEWED);
                     dataStore.attend(attention);
                 }
-                t.mark("added attention");
             }
 
         } catch (AuraException ex) {
             log.log(Level.SEVERE, "Error getting recommendations", ex);
             ex.printStackTrace();
         } finally {
-            t.mark("done");
             Collections.sort(resultList);
             Collections.reverse(resultList);
             return resultList;
         }
     }
+
 
     /**
      * Gets some blog entries from the database. Don't really care which ones
@@ -251,16 +239,17 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
 
     public void stop() {
     }
-
     @ConfigComponent(type = DataStore.class)
     public static final String PROP_DATA_STORE = "dataStore";
-    
-    @ConfigInteger(defaultValue=256)
+    @ConfigInteger(defaultValue = 256)
     public static final String PROP_MIN_CONTENT_SIZE = "minContentSize";
     private int minContentSize;
-            
-            
     @ConfigBoolean(defaultValue = true)
     public final static String PROP_ADD_ATTENTION_DATA = "addAttentionData";
     private boolean addAttentionData;
+
+    public List<Recommendation> getRecommendations(User user, RecommenderProfile recommenderProfile, int m) throws RemoteException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }
+

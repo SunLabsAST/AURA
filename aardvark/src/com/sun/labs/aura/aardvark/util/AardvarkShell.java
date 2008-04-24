@@ -35,6 +35,8 @@ import com.sun.labs.util.props.PropertySheet;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.SyndFeedOutput;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,8 +44,10 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import ngnova.util.NanoWatch;
 
@@ -58,7 +62,6 @@ public class AardvarkShell implements AuraService, Configurable {
     private Aardvark aardvark;
     private StatService statService;
     private Logger logger;
-    
     private int nHits = 10;
 
     /**
@@ -67,7 +70,7 @@ public class AardvarkShell implements AuraService, Configurable {
     public void start() {
         shell = new CommandInterpreter();
         shell.setPrompt("aardv% ");
-        
+
         shell.add("setN",
                 new CommandInterface() {
 
@@ -111,7 +114,7 @@ public class AardvarkShell implements AuraService, Configurable {
                         return "usage: user  name = shows info for a user";
                     }
                 });
-                
+
         shell.add("timeGetItem",
                 new CommandInterface() {
 
@@ -119,7 +122,7 @@ public class AardvarkShell implements AuraService, Configurable {
                         try {
                             NanoWatch nw = new NanoWatch();
                             System.out.println("args: " + args.length);
-                            for(int i = 1; i < args.length; i++) {
+                            for (int i = 1; i < args.length; i++) {
                                 nw.start();
                                 Item item = dataStore.getItem(args[i]);
                                 nw.stop();
@@ -128,7 +131,7 @@ public class AardvarkShell implements AuraService, Configurable {
                                     args.length - 1,
                                     nw.getTimeMillis(),
                                     nw.getTimeMillis() / (args.length - 1));
-                        } catch(Exception ex) {
+                        } catch (Exception ex) {
                             System.out.println("Error " + ex);
                             ex.printStackTrace();
                         }
@@ -145,17 +148,17 @@ public class AardvarkShell implements AuraService, Configurable {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if(args.length == 1) {
+                            if (args.length == 1) {
                                 return getHelp();
                             }
-                            
+
                             Item item = dataStore.getItem(args[1]);
                             dumpItem(item);
-                            if(item != null) {
+                            if (item != null) {
                                 System.out.printf("%-15s %s\n", "autotags", item.getMap().
                                         get("autotag"));
                             }
-                            
+
                         } catch (Exception ex) {
                             System.out.println("Error " + ex);
                             ex.printStackTrace();
@@ -168,7 +171,7 @@ public class AardvarkShell implements AuraService, Configurable {
                     }
                 });
 
-       shell.add("dumpTagFrequencies",
+        shell.add("dumpTagFrequencies",
                 new CommandInterface() {
 
                     public String execute(CommandInterpreter ci, String[] args) {
@@ -183,6 +186,32 @@ public class AardvarkShell implements AuraService, Configurable {
 
                     public String getHelp() {
                         return "usage: dumpTagFrequencies shows top nHits tag frequencies for entries";
+                    }
+                });
+
+        shell.add("dumpFeedLinkGraph",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            int count = 500;
+                            if (args.length >= 2) {
+                                count = Integer.parseInt(args[1]);
+                            }
+                            String regexp = null;
+                            if (args.length >= 3) {
+                                regexp = args[2];
+                            }
+                            dumpFeedLinkGraph(count, regexp);
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                            ex.printStackTrace();
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: dumpFeedLinkGraph [count] -  dumps the feed link graph";
                     }
                 });
 
@@ -348,7 +377,6 @@ public class AardvarkShell implements AuraService, Configurable {
                         return "usage: feed  id = shows info for a feed";
                     }
                 });
-
 
 
         shell.add("feeds",
@@ -589,9 +617,9 @@ public class AardvarkShell implements AuraService, Configurable {
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
                         String autotag = stuff(args, 1).trim();
-                        List<Scored<String>> autotags = 
+                        List<Scored<String>> autotags =
                                 dataStore.findSimilarAutotags(autotag, nHits);
-                        for(Scored<String> tag : autotags) {
+                        for (Scored<String> tag : autotags) {
                             System.out.println(tag);
                         }
 
@@ -608,12 +636,12 @@ public class AardvarkShell implements AuraService, Configurable {
 
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
-                            if(args.length < 3) {
-                                return getHelp();
-                            }
-                        List<Scored<String>> terms = 
+                        if (args.length < 3) {
+                            return getHelp();
+                        }
+                        List<Scored<String>> terms =
                                 dataStore.explainSimilarAutotags(args[1], args[2], nHits);
-                        for(Scored<String> term : terms) {
+                        for (Scored<String> term : terms) {
                             System.out.println(term);
                         }
 
@@ -669,7 +697,7 @@ public class AardvarkShell implements AuraService, Configurable {
 
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
-                        if(args.length < 3) {
+                        if (args.length < 3) {
                             return getHelp();
                         }
                         String key1 = args[1];
@@ -691,7 +719,7 @@ public class AardvarkShell implements AuraService, Configurable {
 
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
-                        if(args.length < 4) {
+                        if (args.length < 4) {
                             return getHelp();
                         }
                         String field = args[1];
@@ -709,20 +737,20 @@ public class AardvarkShell implements AuraService, Configurable {
                         return "Explain Fielded Find similar: efs <field> <key1> <key2>";
                     }
                 });
-                
+
 
         shell.add("fwfs",
                 new CommandInterface() {
 
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
-                        WeightedField[] fields =  {
+                        WeightedField[] fields = {
                             new WeightedField("content", 1),
                         //    new WeightedField("autotag", 1),
-                         //   new WeightedField("aura-name", 1),
+                        //   new WeightedField("aura-name", 1),
                         };
                         String key = args[1];
-                        
+
                         System.out.println("Using fields:");
                         for (WeightedField wf : fields) {
                             System.out.printf("   %s: %f\n", wf.getFieldName(), wf.getWeight());
@@ -750,7 +778,7 @@ public class AardvarkShell implements AuraService, Configurable {
                         String field = args.length > 2 ? args[2] : "content";
                         List<Scored<String>> terms = dataStore.getTopTerms(key,
                                 field, nHits);
-                        for(Scored<String> term : terms) {
+                        for (Scored<String> term : terms) {
                             System.out.printf("%.3f %s\n", term.getScore(), term.getItem());
                         }
 
@@ -761,7 +789,7 @@ public class AardvarkShell implements AuraService, Configurable {
                         return "<key> [<field>] gets the top terms from the given field (default: content) in the given document.";
                     }
                 });
-                
+
         shell.add("explain",
                 new CommandInterface() {
 
@@ -770,7 +798,7 @@ public class AardvarkShell implements AuraService, Configurable {
                         String autotag = args[1];
                         String key = args[2];
                         List<Scored<String>> terms = dataStore.getExplanation(key, autotag, nHits);
-                        for(Scored<String> term : terms) {
+                        for (Scored<String> term : terms) {
                             System.out.printf("%.3f %s\n", term.getScore(), term.getItem());
                         }
 
@@ -821,12 +849,101 @@ public class AardvarkShell implements AuraService, Configurable {
 
     private void dumpAllFeeds() throws AuraException, RemoteException {
         List<Item> feedItems = dataStore.getAll(ItemType.FEED);
+        List<Scored<Item>> scoredItems = new ArrayList();
+
+        for (Item feed : feedItems) {
+            scoredItems.add(new Scored<Item>(feed, dataStore.getAttentionForTarget(feed.getKey()).size()));
+        }
+
         long numFeeds = 0;
-        for (Item feedItem : feedItems) {
-            dumpItem(feedItem);
+
+        Collections.sort(scoredItems);
+
+        for (Scored<Item> scoredItem : scoredItems) {
+            dumpScoredItem(scoredItem);
             numFeeds++;
         }
         System.out.println("Dumped " + numFeeds + " feeds");
+    }
+
+    private void dumpFeedLinkGraph(int topN, String regexp) throws AuraException, RemoteException, IOException {
+        double MIN_WIDTH = .5;
+        double MIN_HEIGHT = .3;
+        double RANGE_WIDTH = 3;
+        double RANGE_HEIGHT = 2;
+        PrintWriter out = new PrintWriter("feedGraph.dot");
+        out.println("digraph Feeds {");
+        List<Item> feedItems = dataStore.getAll(ItemType.FEED);
+
+        List<Scored<Item>> scoredItems = new ArrayList();
+        for (Item feed : feedItems) {
+            if (regexp == null || feed.getKey().matches(regexp)) {
+                scoredItems.add(new Scored<Item>(feed, dataStore.getAttentionForTarget(feed.getKey()).size()));
+            }
+        }
+
+        if (scoredItems.size() == 0) {
+            return;
+        }
+
+        Collections.sort(scoredItems);
+        Collections.reverse(scoredItems);
+        if (scoredItems.size() > topN) {
+            scoredItems = scoredItems.subList(0, topN);
+        }
+
+        Set<String> validKeys = new HashSet();
+        for (Scored<Item> item : scoredItems) {
+            validKeys.add(item.getItem().getKey());
+        }
+
+        // recalculate the scores with only the valid keys
+        List<Scored<Item>> prunedScoredItems = new ArrayList();
+        for (Scored<Item> item : scoredItems) {
+            Item tgt = item.getItem();
+            int actualInputLinks = 0;
+            for (Attention attn : dataStore.getAttentionForTarget(tgt.getKey())) {
+                if (attn.getType() == Attention.Type.LINKS_TO) {
+                    Item src = dataStore.getItem(attn.getSourceKey());
+                    if (src != null && validKeys.contains(src.getKey())) {
+                        actualInputLinks++;
+                    }
+                }
+            }
+            if (actualInputLinks > 0) {
+                prunedScoredItems.add(new Scored(tgt, actualInputLinks));
+            }
+        }
+
+        Collections.sort(prunedScoredItems);
+        Collections.reverse(prunedScoredItems);
+        double maxScore = prunedScoredItems.get(0).getScore();
+        double minScore = prunedScoredItems.get(prunedScoredItems.size() - 1).getScore();
+        double rangeScore = maxScore - minScore;
+
+        for (Scored<Item> item : prunedScoredItems) {
+            Item tgt = item.getItem();
+            for (Attention attn : dataStore.getAttentionForTarget(tgt.getKey())) {
+                if (attn.getType() == Attention.Type.LINKS_TO) {
+                    Item src = dataStore.getItem(attn.getSourceKey());
+                    if (src != null && validKeys.contains(src.getKey())) {
+                        out.println("   " + formatNameForGraphviz(src.getName()) + " -> " + formatNameForGraphviz(tgt.getName()));
+                    }
+                }
+            }
+            double width = MIN_WIDTH + ((item.getScore() - minScore) / rangeScore) * RANGE_WIDTH;
+            double height = MIN_HEIGHT + ((item.getScore() - minScore) / rangeScore) * RANGE_HEIGHT;
+            out.printf("%s [width=%f height=%f]\n",
+                    formatNameForGraphviz(tgt.getName()), width, height);
+        }
+        out.println("}");
+        out.close();
+    }
+
+    private String formatNameForGraphviz(String name) {
+        name = name.replaceAll("\"", "");
+        name = name.replaceAll("\\s+", " ");
+        return "\"" + name + "\"";
     }
 
     private void dumpLastEntries() throws AuraException, RemoteException {
@@ -848,11 +965,20 @@ public class AardvarkShell implements AuraService, Configurable {
     }
 
     private void dumpItem(Item item) throws AuraException, RemoteException {
-        if(item == null) {
+        if (item == null) {
             System.out.println("null");
         } else {
             System.out.printf(" %d %s\n", dataStore.getAttentionForTarget(item.getKey()).
                     size(), item.getKey());
+        }
+    }
+
+    private void dumpScoredItem(Scored<Item> scoredItem) throws AuraException, RemoteException {
+        if (scoredItem == null) {
+            System.out.println("null");
+        } else {
+            System.out.printf(" %.0f %s\n", scoredItem.getScore(),
+                    scoredItem.getItem().getKey());
         }
     }
 
@@ -861,6 +987,10 @@ public class AardvarkShell implements AuraService, Configurable {
         BlogFeed feed = new BlogFeed(feedItem);
         System.out.println("   Pulls  : " + feed.getNumPulls());
         System.out.println("   Errors : " + feed.getNumErrors());
+        System.out.println("   Authority: " + feed.getAuthority());
+        for (Attention attn : dataStore.getAttentionForTarget(feedItem.getKey())) {
+            System.out.println("   " + attn);
+        }
     }
 
     private void dumpAttentionData(List<Attention> attentionData) throws AuraException, RemoteException {

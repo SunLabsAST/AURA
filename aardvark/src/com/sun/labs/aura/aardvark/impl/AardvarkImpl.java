@@ -10,8 +10,10 @@ import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
 import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.aardvark.impl.crawler.FeedManager;
+import com.sun.labs.aura.aardvark.impl.crawler.FeedScheduler;
 import com.sun.labs.aura.aardvark.impl.crawler.FeedUtils;
 import com.sun.labs.aura.aardvark.impl.crawler.OPMLProcessor;
+import com.sun.labs.aura.aardvark.impl.crawler.URLForDiscovery;
 import com.sun.labs.aura.recommender.RecommenderManager;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
@@ -37,7 +39,6 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -51,12 +52,17 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
 
     private final static String VERSION = "aardvark version 0.30";
     private final static String RESOURCE_PATH = "/com/sun/labs/aura/aardvark/resource/";
+
+
     /**
      * the configurable property for the itemstore used by this manager
      */
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
     private DataStore dataStore;
+    @ConfigComponent(type = FeedScheduler.class)
+    public final static String PROP_FEED_SCHEDULER = "feedScheduler";
+    private FeedScheduler feedScheduler;
     @ConfigBoolean(defaultValue = false)
     public final static String PROP_AUTO_ENROLL_TEST_FEEDS =
             "autoEnrollTestFeeds";
@@ -104,6 +110,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         logger = ps.getLogger();
         logger.info("AardvarkImpl newProperties called");
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
+        feedScheduler = (FeedScheduler) ps.getComponent(PROP_FEED_SCHEDULER);
         recommenderManager = (RecommenderManager) ps.getComponent(PROP_RECOMMENDER_MANAGER);
         statService = (StatService) ps.getComponent(PROP_STAT_SERVICE);
         autoEnrollTestFeeds = ps.getBoolean(PROP_AUTO_ENROLL_TEST_FEEDS);
@@ -228,9 +235,13 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
     public void addUserFeed(User user, String feedURL, Attention.Type type) throws AuraException, RemoteException {
-        addFeed(feedURL);
         Attention userAttention = StoreFactory.newAttention(user.getKey(), feedURL, type);
-        dataStore.attend(userAttention);
+        if (dataStore.getItem(feedURL) == null) {
+            feedScheduler.addUrlForDiscovery(
+                    new URLForDiscovery(feedURL, URLForDiscovery.HIGH_PRIORITY, userAttention));
+        } else {
+            dataStore.attend(userAttention);
+        }
     }
 
     public void removeUserFeed(User user, String feedURL, Attention.Type type)
@@ -245,8 +256,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
      */
     public void addFeed(String feedURL) throws AuraException, RemoteException {
         if (dataStore.getItem(feedURL) == null) {
-            Item item = StoreFactory.newItem(ItemType.FEED, feedURL, "");
-            dataStore.putItem(item);
+            feedScheduler.addUrlForDiscovery(new URLForDiscovery(feedURL));
         }
     }
 
@@ -372,6 +382,16 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
     }
 
     private void autoEnroll() {
+        try {
+            addFeed("http://blogs.sun.com/plamere");
+        } catch (AuraException ex) {
+            logger.warning("Problem adding feed " + ex);
+        } catch (RemoteException ex) {
+            logger.warning("Can't talk to the feedscheduler " + ex);
+        }
+    }
+
+    private void autoEnrollOld() {
         Thread t = new Thread() {
 
             @Override

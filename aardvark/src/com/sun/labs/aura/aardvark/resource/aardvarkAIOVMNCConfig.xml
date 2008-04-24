@@ -11,6 +11,7 @@
 <config>
     <!-- Where the aura data lives -->
     <property name="auraHome" value="/aura"/>
+    <property name="cacheDir" value="/aura"/>
     
     <!-- The configuration for a partition cluster. -->
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true">
@@ -68,17 +69,21 @@
         <property name="dataStore" value="dataStoreHead"/>
     </component>
     
-    <component name="feedScheduler" type="com.sun.labs.aura.util.ItemSchedulerImpl">
+    <component name="feedScheduler" type="com.sun.labs.aura.aardvark.impl.crawler.FeedSchedulerImpl">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="itemType" value="FEED"/>
+        <property name="lateTime" value="3600"/>
         <property name="logLevel" value="SEVERE"/>
+        <property name="stateDir" value="${cacheDir}/feed"/>
     </component>
+    
     
     <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="statService" value="statService"/>
         <property name="feedScheduler" value="feedScheduler"/>
         <property name="numThreads" value="5"/>
+        <property name="numDiscoveryThreads" value="10"/>
         <property name="logLevel" value="SEVERE"/>
     </component>
     
@@ -99,9 +104,8 @@
     <component name="aardvark" type="com.sun.labs.aura.aardvark.impl.AardvarkImpl">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="recommenderManager" value="recommenderManager"/>
+        <property name="feedScheduler" value="feedScheduler"/>
         <property name="statService" value="statService"/>
-        <property name="autoEnrollTestFeeds" value="false"/>
-        <property name="autoEnrollMegaTestFeeds" value="false"/>
     </component>
     
     
@@ -114,7 +118,7 @@
             <item>replicant0</item>
             <item>replicant1</item>
             <item>recommenderManager</item>
-            <!--            <item>feedScheduler</item> -->
+            <item>feedScheduler</item>
             <!--             <item>feedManager</item>  -->
             <item>statService</item>
             <!--<item>aardvarkStatusReporter</item> -->
