@@ -22,6 +22,7 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import com.sun.syndication.feed.synd.SyndFeed;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.Collections;
@@ -233,9 +234,6 @@ public class FeedManager implements AuraService, Configurable {
     public boolean discoverFeed(URLForDiscovery urlForDiscovery) throws IOException, RemoteException {
         logger.info("discovery: checking " + urlForDiscovery);
         Attention dbgattn = urlForDiscovery.getAttention();
-        if (dbgattn != null && dbgattn.getType() == Attention.Type.STARRED_FEED) {
-            System.out.println(" ufd " + urlForDiscovery);
-        }
         URL feedUrl = FeedUtils.findBestFeed(urlForDiscovery.getUrl());
         if (feedUrl != null) {
             try {
@@ -386,7 +384,7 @@ public class FeedManager implements AuraService, Configurable {
             if (target.getType() == ItemType.BLOGENTRY) {
                 // don't create self links
                 BlogEntry targetEntry = new BlogEntry(target);
-                if (srcEntry.getFeedKey() != null && !srcEntry.getFeedKey().equals(targetEntry.getFeedKey())) {
+                if (isOkToLink(srcEntry.getFeedKey(), targetEntry.getFeedKey())) {
                     Attention entryAttention = StoreFactory.newAttention(
                             srcEntry.getKey(), targetEntry.getKey(), Attention.Type.LINKS_TO);
                     dataStore.attend(entryAttention);
@@ -412,6 +410,20 @@ public class FeedManager implements AuraService, Configurable {
                 Attention feedAttention = StoreFactory.newAttention(
                         src.getKey(), target.getKey(), type);
                 dataStore.attend(feedAttention);
+            }
+        }
+    }
+
+    private boolean isOkToLink(String surl1, String surl2) {
+        if (surl1 == null || surl2 == null) {
+            return false;
+        } else {
+            try {
+                URL url1 = new URL(surl1);
+                URL url2 = new URL(surl1);
+                return !url1.getHost().equals(url2.getHost());
+            } catch (MalformedURLException ex) {
+                return false;
             }
         }
     }
