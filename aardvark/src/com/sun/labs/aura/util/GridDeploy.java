@@ -550,14 +550,19 @@ public class GridDeploy {
 
         //
         // Start the Feed Scheduler
+        NetworkAddress crawlerNat = getExternalAddressFor("feedMgrNat");
         ProcessRegistration feedSchedReg = 
                 createProcess(getSchedName(), getFeedSchedulerConfig());
+        
+        UUID internal = feedSchedReg.getRegistrationConfiguration()
+                .getNetworkAddresses().iterator().next();
+        createNAT(crawlerNat.getUUID(), internal, "feedSched");
         startRegistration(feedSchedReg);
 
         //
         // Start a few feed crawlers
         ProcessRegistration lastReg = null;
-        NetworkAddress crawlerNat = getExternalAddressFor("feedMgrNat");
+
         for (int i = 0; i < 6; i++) {
             ProcessConfiguration feedMgrConfig = getFeedManagerConfig(i);
             ProcessRegistration feedMgrReg = createProcess(getFMName(i), feedMgrConfig);
@@ -565,18 +570,8 @@ public class GridDeploy {
             //
             // Make a dynamic NAT for this process config
             ProcessConfiguration pc = feedMgrConfig;
-            UUID internal = pc.getNetworkAddresses().iterator().next();
-            NetworkConfiguration netConf =
-                    new DynamicNatConfiguration(crawlerNat.getUUID(),
-                                                internal);
-            try {
-                grid.createNetworkSetting(instance + "-feedMgr-" + i + "-nat",
-                                          netConf);
-            } catch (DuplicateNameException dne) {
-                NetworkSetting ns =grid.getNetworkSetting(instance +
-                        "-feedMgr-" + i + "-nat");
-                ns.changeConfiguration(netConf);
-            }
+            internal = pc.getNetworkAddresses().iterator().next();
+            createNAT(crawlerNat.getUUID(), internal, "feedMgr-" + i);
             startRegistration(feedMgrReg, false);
             lastReg = feedMgrReg;
         }
@@ -1273,6 +1268,21 @@ public class GridDeploy {
                 binding.getConfiguration().getAddresses().toArray()[0]);
         }
 
+    }
+    
+    protected void createNAT(UUID external, UUID internal, String name)
+            throws Exception {
+        NetworkConfiguration netConf =
+                new DynamicNatConfiguration(external,
+                                            internal);
+        try {
+            grid.createNetworkSetting(instance + "-" + name + "-nat",
+                                      netConf);
+        } catch (DuplicateNameException dne) {
+            NetworkSetting ns = grid.getNetworkSetting(instance +
+                    "-" + name + "-nat");
+            ns.changeConfiguration(netConf);
+        }
     }
     
     protected void completelyDestroyReg(String regName) {
