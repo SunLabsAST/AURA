@@ -285,7 +285,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         List<Item> ret = new ArrayList<Item>();
         for (String target : targets) {
             Item i = getItem(target);
-            if (i.getType() == itemType) {
+            if ((i != null) && (i.getType() == itemType)) {
                 ret.add(i);
             }
         }
