@@ -20,11 +20,12 @@ import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 
 /**
  *
@@ -51,7 +52,7 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
             robotsCacheSize = ps.getInt(PROP_ROBOTS_CACHE_SIZE);
             userAgent = ps.getString(PROP_USER_AGENT);
             stateDir = ps.getString(PROP_STATE_DIR);
-            robotsManager = new RobotsManager(userAgent, robotsCacheSize);
+            robotsManager = new RobotsManager(userAgent, robotsCacheSize, logger);
 
             File visitedStateDir = new File(stateDir, VISITED_STATE);
             visitedSet = new PersistentStringSet(visitedStateDir.getPath());
@@ -61,7 +62,6 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
             throw new PropertyException(ex, ps.getInstanceName(), stateDir, "Can't create the visitedSet " + ex);
         }
     }
-
 
     public void addUrlForDiscovery(URLForDiscovery ufd) throws RemoteException {
         if (isGoodToVisit(ufd) && !visitedSet.contains(ufd.getUrl())) {
@@ -76,7 +76,7 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
             }
         }
     }
-    
+
     /**
      * Blocks waiting for the next url that needs to be crawled
      * @return the url to be crawled
@@ -85,11 +85,21 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
      */
     public URLForDiscovery getUrlForDiscovery() throws InterruptedException, RemoteException {
         URLForDiscovery ufd = fss.feedDiscoveryQueue.take();
-        // System.out.println("UFD pulled " + ufd);
-        if (fss.pulled++ % 1000 == 0) {
-            System.out.println("URLS checked " + fss.pulled + " remaining " + fss.feedDiscoveryQueue.size());
-        }
+
+        logger.info("Discover: (" + (fss.pulled++) + "/" + fss.feedDiscoveryQueue.size() + ") " + ufd.getUrl());
         return ufd;
+    }
+
+    private void reportPosition(String msg, String s) {
+        List<URLForDiscovery> list = new ArrayList(fss.feedDiscoveryQueue);
+        Collections.sort(list);
+        for (int i = 0; i < list.size(); i++) {
+            URLForDiscovery u = list.get(i);
+            //System.out.println(i + " " + u.getPriority() + " " + u);
+            if (u.getUrl().indexOf(s) >= 0) {
+                System.out.println(msg + " hit at pos " + i + " " + u);
+            }
+        }
     }
 
     /**
@@ -133,7 +143,7 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
                 fss.feedDiscoveryQueue.addAll(newFss.feedDiscoveryQueue);
             }
         } catch (IOException ex) {
-            // no worries if there was no file
+        // no worries if there was no file
         } catch (ClassNotFoundException ex) {
             logger.warning("Bad format in feedscheduler statefile " + ex);
         } finally {
@@ -164,7 +174,7 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
      * @return true if the url should be crawled
      */
     private boolean isGoodToVisit(URLForDiscovery ufd) {
-        
+
 
         String surl = ufd.getUrl();
 
@@ -197,14 +207,14 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
         // if the attention data is 'STARRED_FEED' then this is likely to
         // be a feed such as a google starred item feed, which means that
         // we can ignore the robots.txt
-        
+
         if (ufd.getAttention() != null && isFeedOriented(ufd.getAttention().getType())) {
             return true;
         } else {
             return isCrawlable(surl);
         }
     }
-    
+
     private boolean isFeedOriented(Attention.Type type) {
         return type == Attention.Type.STARRED_FEED ||
                 type == Attention.Type.SUBSCRIBED_FEED ||
@@ -214,25 +224,22 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
     public boolean isCrawlable(String surl) {
         return robotsManager.isCrawlable(surl);
     }
-
-
     /** the maximum size of the robots.txt cache */
     @ConfigInteger(defaultValue = 100000, range = {0, Integer.MAX_VALUE})
     public final static String PROP_ROBOTS_CACHE_SIZE = "robotsCacheSize";
     private int robotsCacheSize;
-
     /** the user agent name to use when crawling */
     @ConfigString(defaultValue = "aardvark-crawler")
     public final static String PROP_USER_AGENT = "userAgent";
     private String userAgent;
-
     /** the directory for the feedscheduler.state */
     @ConfigString(defaultValue = "feedScheduler")
     public final static String PROP_STATE_DIR = "stateDir";
     private String stateDir;
-
 }
+
 class FeedSchedulerState implements Serializable {
+
     PriorityBlockingQueue<URLForDiscovery> feedDiscoveryQueue;
     int pulled;
     int postCount = 0;
