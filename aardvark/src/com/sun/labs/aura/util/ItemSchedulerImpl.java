@@ -41,12 +41,12 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         long start = System.currentTimeMillis();
         waiters.incrementAndGet();
 
-        if (logger.isLoggable(Level.INFO)) {
+        if (logger.isLoggable(Level.FINE)) {
             DelayedItem next = itemQueue.peek();
             if (next != null) {
-                logger.info("in waiters: " + waiters.get() + ", waiting " + next.getDelay(TimeUnit.SECONDS) + " secs, items: " + size());
+                logger.fine("in waiters: " + waiters.get() + ", waiting " + next.getDelay(TimeUnit.SECONDS) + " secs, items: " + size());
             } else {
-                logger.info("in waiters: " + waiters.get() + ", waiting, items: " +  size());
+                logger.fine("in waiters: " + waiters.get() + ", waiting, items: " +  size());
             }
         }
 
@@ -70,9 +70,10 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         waiters.decrementAndGet();
 
         long wait = System.currentTimeMillis() - start;
-        logger.info("out waiters: " + waiters.get() + ", waited " + wait + " msecs, items: " + size()
+        logger.fine("out waiters: " + waiters.get() + ", waited " + wait + " msecs, items: " + size()
                 + " who: " + Thread.currentThread().getName());
 
+        logger.info(" Scheduled " + delayedItem.getItemKey());
         return delayedItem.getItemKey();
     }
 
@@ -105,7 +106,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         // we want new items to get to cut to the head of the queue, so
         // we use newItemTime to schedule newly created items earlier then 
         // anyone else.
-        logger.info("Added " + e.getItems().length + " items " + " total size is " + size());
+        logger.fine("Added " + e.getItems().length + " items " + " total size is " + size());
     }
 
     public void itemChanged(ItemEvent e) throws RemoteException {
@@ -125,7 +126,6 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
 
     synchronized public void newProperties(final PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
-        logger.info("new properties for " + ps.getInstanceName());
 
         DataStore oldStore = dataStore;
         Item.ItemType oldItemType = itemType;
@@ -211,7 +211,6 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         } catch (RemoteException ex) {
             logger.severe("Can't get items from the store " + ex.getMessage());
         }
-        logger.info(name + "Collected " + size() + " items ");
         
     }
 

@@ -23,6 +23,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.StatService;
 import com.sun.labs.aura.util.Tag;
@@ -143,7 +144,7 @@ public class AardvarkShell implements AuraService, Configurable {
                     }
                 });
 
-        shell.add("getItem",
+        shell.add("item",
                 new CommandInterface() {
 
                     public String execute(CommandInterpreter ci, String[] args) {
@@ -153,7 +154,7 @@ public class AardvarkShell implements AuraService, Configurable {
                             }
 
                             Item item = dataStore.getItem(args[1]);
-                            dumpItem(item);
+                            dumpItemFull(item);
                             if (item != null) {
                                 System.out.printf("%-15s %s\n", "autotags", item.getMap().
                                         get("autotag"));
@@ -167,7 +168,38 @@ public class AardvarkShell implements AuraService, Configurable {
                     }
 
                     public String getHelp() {
-                        return "usage: getItem <key> gets an item and prints the data map";
+                        return "usage: item <key> gets an item and prints the data map";
+                    }
+                });
+
+        shell.add("tstattn",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 3) {
+                                return getHelp();
+                            }
+
+                            Item item1 = dataStore.getItem(args[1]);
+                            Item item2 = dataStore.getItem(args[2]);
+                            if (item1 != null && item2 != null) {
+                                dataStore.attend(StoreFactory.newAttention(args[1], args[2], Attention.Type.LINKS_TO));
+                            }
+
+                            Item item1A = dataStore.getItem(args[1]);
+                            Item item2A = dataStore.getItem(args[2]);
+                            dumpItemFull(item1A);
+                            dumpItemFull(item2A);
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                            ex.printStackTrace();
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: tstattn <key1 key2> tests adding and getting attention";
                     }
                 });
 
@@ -242,18 +274,17 @@ public class AardvarkShell implements AuraService, Configurable {
                 });
 
 
-        shell.add("attn",
+        shell.add("attnTgt",
                 new CommandInterface() {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
                             if (args.length != 2) {
-                                return "Usage: attn user";
+                                return "Usage: attnTgt id";
                             } else {
-                                User user = aardvark.getUser(args[1]);
-                                List<Attention> attns = aardvark.getLastAttentionData(user, null, 100);
+                                List<Attention> attns = dataStore.getAttentionForTarget(args[1]);
                                 for (Attention attn : attns) {
-                                    System.out.printf("%8s %s at %s\n", attn.getType(), attn.getTargetKey(), new Date(attn.getTimeStamp()));
+                                    System.out.println(attn);
                                 }
                             }
                         } catch (Exception ex) {
@@ -263,7 +294,30 @@ public class AardvarkShell implements AuraService, Configurable {
                     }
 
                     public String getHelp() {
-                        return "usage: attn user - show attention data for a user";
+                        return "usage: tgtattn key - shows target attention data for an item";
+                    }
+                });
+        shell.add("attnSrc",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length != 2) {
+                                return "Usage: attnSrc id";
+                            } else {
+                                List<Attention> attns = dataStore.getAttentionForSource(args[1]);
+                                for (Attention attn : attns) {
+                                    System.out.println(attn);
+                                }
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: attnSrc key - show source arget attention data for an item";
                     }
                 });
 
@@ -377,6 +431,7 @@ public class AardvarkShell implements AuraService, Configurable {
                         return "usage: feed  id = shows info for a feed";
                     }
                 });
+
 
 
         shell.add("feeds",
@@ -955,8 +1010,8 @@ public class AardvarkShell implements AuraService, Configurable {
             while (iter.hasNext()) {
                 Item item = iter.next();
                 BlogEntry entry = new BlogEntry(item);
-                System.out.println("Entry " + entry.getName());
-                System.out.println("   " + entry.getSyndEntry().getPublishedDate());
+                System.out.println(entry.getKey());
+                System.out.println(" " + entry.getName());
             }
 
         } finally {
@@ -970,6 +1025,15 @@ public class AardvarkShell implements AuraService, Configurable {
         } else {
             System.out.printf(" %d %s\n", dataStore.getAttentionForTarget(item.getKey()).
                     size(), item.getKey());
+        }
+    }
+    private void dumpItemFull(Item item) throws AuraException, RemoteException {
+        if (item == null) {
+            System.out.println("null");
+        } else {
+            System.out.println(ItemAdapter.toString(item));
+            dumpAttentionData("src", dataStore.getAttentionForSource(item.getKey()));
+            dumpAttentionData("tgt", dataStore.getAttentionForTarget(item.getKey()));
         }
     }
 
@@ -993,13 +1057,22 @@ public class AardvarkShell implements AuraService, Configurable {
         }
     }
 
-    private void dumpAttentionData(List<Attention> attentionData) throws AuraException, RemoteException {
+    private void dumpAttentionData(String msg, List<Attention> attentionData) throws AuraException, RemoteException {
+        System.out.println("Attention " + msg);
         for (Attention attention : attentionData) {
             Item source = dataStore.getItem(attention.getSourceKey());
             Item target = dataStore.getItem(attention.getTargetKey());
             String type = attention.getType().toString();
-            System.out.printf("   %s(%s) -- %s -- %s(%s)\n", source.getKey(), source.getName(),
-                    type, target.getKey(), target.getName());
+
+            System.out.printf("   %s -- %s -- %s\n", fmtItem(source), type, fmtItem(target));
+        }
+    }
+    
+    private String fmtItem(Item item) {
+        if (item == null) {
+            return "(null)";
+        } else {
+            return item.getKey() + "(" + item.getName() + ")";
         }
     }
 

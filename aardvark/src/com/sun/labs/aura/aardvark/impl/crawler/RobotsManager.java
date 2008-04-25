@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,16 +32,18 @@ public class RobotsManager {
     private static Pattern agentPattern = Pattern.compile("User-agent:\\s*(\\S+)\\s*", Pattern.CASE_INSENSITIVE);
     private static Pattern disallowPattern = Pattern.compile("Disallow:\\s*(\\S+)\\s*", Pattern.CASE_INSENSITIVE);
     private boolean monitor = false;
+    private Logger logger;
 
     /**
      * Creates a robots manager
      * @param userAgent the user agent
      */
-    public RobotsManager(String userAgent, int maxCacheSize) {
+    public RobotsManager(String userAgent, int maxCacheSize, Logger logger) {
         this.userAgent = userAgent;
         LRUMap cache = new LRUMap();
         cache.setMaxSize(maxCacheSize);
         robotCache = Collections.synchronizedMap(cache);
+        this.logger = logger;
     }
 
     /**
@@ -96,8 +99,8 @@ public class RobotsManager {
         try {
             URL url = new URL("http://" + host + "/robots.txt");
             URLConnection connection = url.openConnection();
-            connection.setConnectTimeout(30000);
-            connection.setReadTimeout(30000);
+            connection.setConnectTimeout(6000);
+            connection.setReadTimeout(10000);
 
             InputStream is = connection.getInputStream();
             BufferedReader in = new BufferedReader(new InputStreamReader(is));
@@ -124,7 +127,7 @@ public class RobotsManager {
                         }
                     }
                 }
-
+                logger.info("Robots.txt (" + robotCache.size() + "): " + url);
             } finally {
                 in.close();
             }
@@ -171,8 +174,7 @@ public class RobotsManager {
     }
 
     public static void main(String[] args) {
-        RobotsManager rm = new RobotsManager("foo", 100000);
-
+        RobotsManager rm = new RobotsManager("foo", 100000, Logger.getAnonymousLogger());
         test(rm, "http://en.wikipedia.org/w/index.php?title=Special:RecentChanges&amp;feed=rss", false);
     }
 }
