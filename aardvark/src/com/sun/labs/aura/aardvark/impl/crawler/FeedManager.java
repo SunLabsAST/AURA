@@ -46,12 +46,14 @@ public class FeedManager implements AuraService, Configurable {
     private boolean started = false;
     private int links;
     private int matchingLinks;
+    private long startTime;
 
     /**
      * Starts crawling all of the feeds
      */
     public void start() {
         started = true;
+        startTime = System.currentTimeMillis();
         startFeedCrawlingThreads();
         startFeedDiscoveryThreads();
     }
@@ -231,12 +233,25 @@ public class FeedManager implements AuraService, Configurable {
         }
     }
 
-    public boolean discoverFeed(URLForDiscovery urlForDiscovery) throws IOException, RemoteException {
-        logger.info("discovery: checking " + urlForDiscovery);
-        Attention dbgattn = urlForDiscovery.getAttention();
-        URL feedUrl = FeedUtils.findBestFeed(urlForDiscovery.getUrl());
-        if (feedUrl != null) {
-            try {
+    private void discoverFeed(URLForDiscovery urlForDiscovery) throws IOException, RemoteException {
+        // if the url has already been discovered, then we can apply the attention and leave
+
+        try {
+            Attention attn = urlForDiscovery.getAttention();
+            if (attn != null) {
+                Item destItem = dataStore.getItem(urlForDiscovery.getUrl());
+                if (destItem != null) {
+                    Item src = dataStore.getItem(attn.getSourceKey());
+                    if (src != null) {
+                        addAttention(src, destItem, attn.getType());
+                    }
+                    logger.info("short circuit discovery for " + destItem.getKey());
+                    return;
+                }
+            }
+
+            URL feedUrl = FeedUtils.findBestFeed(urlForDiscovery.getUrl());
+            if (feedUrl != null) {
                 SyndFeed syndFeed = FeedUtils.readFeed(feedUrl);
                 String canonicalLink = syndFeed.getLink();
                 if (canonicalLink == null) {
@@ -252,7 +267,6 @@ public class FeedManager implements AuraService, Configurable {
                     logger.info("discovery: added new feed " + feed.getPullLink() + " for " + urlForDiscovery);
                 }
 
-                Attention attn = urlForDiscovery.getAttention();
 
                 if (attn != null) {
                     Item src = dataStore.getItem(attn.getSourceKey());
@@ -269,13 +283,13 @@ public class FeedManager implements AuraService, Configurable {
                 if (feed != null) {
                     crawlFeed(dataStore, feed, syndFeed);
                 }
-            } catch (IOException e) {
-            //System.out.println("          Trouble crawling feed " + feedUrl + " : " + e);
-            } catch (AuraException e) {
-                System.out.println("          Trouble accessing database while processing  feed " + feedUrl + " : " + e);
             }
+        } catch (IOException e) {
+        //System.out.println("          Trouble crawling feed " + feedUrl + " : " + e);
+        } catch (AuraException e) {
+            System.out.println("          Trouble accessing database while processing  feed " +
+                    urlForDiscovery.getUrl() + " : " + e);
         }
-        return false;
     }
 
     /**
@@ -289,7 +303,6 @@ public class FeedManager implements AuraService, Configurable {
     private void crawlFeed(DataStore myItemStore, BlogFeed feed, SyndFeed syndFeed) throws RemoteException, AuraException {
         boolean ok = false;
         try {
-            // collect up all of the link attention to this feed and count them up
 
             // pull the feeds, and add the appropriate attention data 
             // for each discoveredEntry
@@ -315,6 +328,7 @@ public class FeedManager implements AuraService, Configurable {
                                     userAttentionType);
                             dataStore.attend(entryAttention);
                         }
+
                     }
 
                     // extract the anchors and add attention for those
@@ -325,15 +339,17 @@ public class FeedManager implements AuraService, Configurable {
                         if (target != null) {
                             addAttention(entry.getItem(), target, Attention.Type.LINKS_TO);
                         } else {
-                            queueAttention(entry.getItem(), anchor.getDestURL(), Attention.Type.LINKS_TO);
+                            queueAttention(entry.getItem(), anchor.getDestURL(), Attention.Type.LINKS_TO, feed.getAuthority());
                         }
+
                     }
                 }
             }
             logger.info("Links found " + links + " matching " + matchingLinks);
             logger.info(newEntries + " new entries from  " + feed.getCannonicalURL());
             statService.incr(COUNTER_ENTRY_PULL_COUNT, newEntries);
-            ok = true;
+            ok =
+                    true;
         } catch (AuraException ex) {
             logger.warning("trouble processing " + feed.getKey() + " " +
                     ex.getMessage());
@@ -346,6 +362,7 @@ public class FeedManager implements AuraService, Configurable {
             logger.info("I/O trouble  " + feed.getKey() + " " + ex.getMessage());
             statService.incr(COUNTER_FEED_ERROR_COUNT, 1);
         }
+
         logger.fine(Thread.currentThread().getName() + " stats-flush");
         long feedPullCount = statService.incr(COUNTER_FEED_PULL_COUNT);
         logger.fine(Thread.currentThread().getName() + " feed-flush");
@@ -362,14 +379,20 @@ public class FeedManager implements AuraService, Configurable {
                     statService.getAveragePerMinute(COUNTER_FEED_PULL_COUNT),
                     statService.getAveragePerMinute(COUNTER_ENTRY_PULL_COUNT),
                     runningThreads.size()));
-            lastPullCount = feedPullCount;
+            lastPullCount =
+                    feedPullCount;
         }
+
     }
 
-    private void queueAttention(Item src, String targetURL, Attention.Type type) throws RemoteException {
+    private void queueAttention(Item src, String targetURL, Attention.Type type, float priority) throws RemoteException {
         Attention feedAttention = StoreFactory.newAttention(src.getKey(), null, type);
         feedScheduler.addUrlForDiscovery(
-                new URLForDiscovery(targetURL, URLForDiscovery.DEFAULT_PRIORITY, feedAttention));
+                new URLForDiscovery(targetURL, URLForDiscovery.DEFAULT_PRIORITY + priority - getSeconds(), feedAttention));
+    }
+
+    private float getSeconds() {
+        return (System.currentTimeMillis() - startTime) / 1000f;
     }
 
     private void addAttention(Item src, Item target, Attention.Type type) throws AuraException, RemoteException {
@@ -394,6 +417,7 @@ public class FeedManager implements AuraService, Configurable {
                                 srcEntry.getFeedKey(), targetEntry.getFeedKey(), Attention.Type.LINKS_TO);
                         dataStore.attend(feedAttention);
                     }
+
                 }
             } else if (srcEntry.getFeedKey() != null && target.getType() == ItemType.FEED) {
                 if (!target.getKey().equals(srcEntry.getFeedKey())) {
@@ -402,6 +426,7 @@ public class FeedManager implements AuraService, Configurable {
                                 srcEntry.getFeedKey(), target.getKey(), Attention.Type.LINKS_TO);
                         dataStore.attend(feedAttention);
                     }
+
                 }
             }
         } else {
@@ -411,6 +436,7 @@ public class FeedManager implements AuraService, Configurable {
                         src.getKey(), target.getKey(), type);
                 dataStore.attend(feedAttention);
             }
+
         }
     }
 
@@ -425,6 +451,7 @@ public class FeedManager implements AuraService, Configurable {
             } catch (MalformedURLException ex) {
                 return false;
             }
+
         }
     }
 
@@ -458,6 +485,8 @@ public class FeedManager implements AuraService, Configurable {
      */
     private void processIncomingLinkAttentionData(DataStore myDataStore, BlogFeed feed) throws AuraException, RemoteException {
         DBIterator<Attention> iter = myDataStore.getAttentionForTargetSince(feed.getKey(), new Date(feed.getLastPullTime() + 1));
+
+        // collect up all of the link attention to this feed and count them up
         int incoming = 0;
         try {
             while (iter.hasNext()) {
