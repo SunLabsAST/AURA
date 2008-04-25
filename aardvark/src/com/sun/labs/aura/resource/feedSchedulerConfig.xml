@@ -42,7 +42,7 @@
         <property name="dataStore" value="dataStoreHead"/>
         <property name="itemType" value="FEED"/>
         <property name="lateTime" value="3600"/>
-        <property name="logLevel" value="SEVERE"/>
+        <property name="logLevel" value="INFO"/>
         <property name="stateDir" value="${cacheDir}/feed"/>
     </component>
     
