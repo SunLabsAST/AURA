@@ -715,8 +715,13 @@ public class BerkeleyDataWrapper {
             } else {
                 attns = attnByTargetKey.subIndex(key);
             }
-            EntityCursor<PersistentAttention> c = attns.entities();
+            EntityCursor<PersistentAttention> c = null;
+            Transaction txn = null;
             try {
+                txn = dbEnv.beginTransaction(null, null);
+                CursorConfig cc = new CursorConfig();
+                cc.setReadCommitted(true);
+                c = attns.entities(txn, cc);
                 for(PersistentAttention a : c) {
                     res.add(a);
                 }
@@ -724,9 +729,12 @@ public class BerkeleyDataWrapper {
                 if(c != null) {
                     c.close();
                 }
+                if (txn != null) {
+                    txn.commitNoSync();
+                }
             }
         } catch(DatabaseException ex) {
-            log.log(Level.WARNING, "Failed to close cursor", ex);
+            log.log(Level.WARNING, "Failed to read attention", ex);
         }
         Collections.sort(res, new ReverseAttentionTimeComparator());
         return res;

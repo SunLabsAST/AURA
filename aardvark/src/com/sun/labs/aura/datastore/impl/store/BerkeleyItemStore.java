@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -106,7 +107,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      * A map to store listeners for each type of item
      */
     protected Map<ItemType, Set<ItemListener>> listenerMap;
-
+    
     /**
      * A queue of change events that need to be sent
      */
@@ -711,11 +712,15 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                 continue;
             }
 
-            for(ItemListener il : listenerMap.get(itemType)) {
+            for(Iterator it = listenerMap.get(itemType).iterator(); it.hasNext(); ) {
+                ItemListener il = (ItemListener)it.next();
                 try {
                     il.itemCreated(new ItemEvent(l.toArray(new ItemImpl[0])));
                 } catch(RemoteException ex) {
-                    logger.log(Level.SEVERE, "Error sending new item events", ex);
+                    logger.log(Level.SEVERE,"Error sending new item events " +
+                            "from BIS. Removing listener.\n(" +
+                            ex.getMessage() + ")");
+                    it.remove();
                 }
             }
         }
