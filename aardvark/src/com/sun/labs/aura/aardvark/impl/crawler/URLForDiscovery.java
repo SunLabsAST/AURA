@@ -16,8 +16,8 @@ import java.io.Serializable;
 public class URLForDiscovery implements Serializable, Comparable<URLForDiscovery> {
 
     public final static float LOW_PRIORITY = 0F;
-    public final static float HIGH_PRIORITY = 1000F;
-    public final static float ULTRA_HIGH_PRIORITY = 10000F;
+    public final static float HIGH_PRIORITY = 1E10F;
+    public final static float ULTRA_HIGH_PRIORITY = 1E15F;
     public final static float DEFAULT_PRIORITY = LOW_PRIORITY;
     private String surl = null;
     private float priority = DEFAULT_PRIORITY;

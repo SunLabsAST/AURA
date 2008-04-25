@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -693,7 +694,8 @@ public class FeedUtils {
         }
         return robots.isCrawlable(surl);
     }
-    static RobotsManager robots = new RobotsManager("aardvark-crawler", 100000);
+
+    static RobotsManager robots = new RobotsManager("aardvark-crawler", 100000, Logger.getAnonymousLogger());
     // this is some experimental code - not for general use
     public static void simpleCrawler(String html) {
         try {
