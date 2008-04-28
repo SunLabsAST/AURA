@@ -77,7 +77,7 @@ public class GridDeploy {
     private static String usage = "GridDeploy [-n numParts] createCode | startAura | startSlowAura |" +
             " stopAura | startAardvark | \n" +
             " stopAardvark | createWeb | reindexData | reindexChunk prefix |\n" +
-            " diskUsage | startAardvarkNC";
+            " diskUsage | startAardvarkNC | deleteAuraFS";
 
     public static void main(String argv[]) throws Exception {
         if (argv.length == 0) {
@@ -186,6 +186,8 @@ public class GridDeploy {
             gd.getDiskUsage();
         } else if(cmd.equals("startAardvarkNC")) {
             gd.createAardvarkNCProcesses();
+        } else if (cmd.equals("deleteAuraFS")) {
+            gd.deleteAuraFilesystems();
         }
         
     }
@@ -250,6 +252,26 @@ public class GridDeploy {
             String currPrefix = prefixCodeList[i];
             repFSMap.put(instance + "-" + currPrefix,
                     getFS(getReplicantName(currPrefix)));
+        }
+    }
+    
+    public void deleteAuraFilesystems() throws Exception {
+        logsFS = getFS(instance + "-aura.logs", false);
+        if (logsFS != null) {
+            logsFS.destroy();
+        }
+        
+        schedFS = getFS(instance + "-sched", false);
+        if (schedFS != null) {
+            schedFS.destroy();
+        }
+        
+        for (int i = 0; i < prefixCodeList.length; i++) {
+            String currPrefix = prefixCodeList[i];
+            FileSystem currFS = getFS(getReplicantName(currPrefix), false);
+            if (currFS != null) {
+                currFS.destroy();
+            }
         }
     }
     
@@ -666,7 +688,8 @@ public class GridDeploy {
     
     protected ProcessConfiguration getDataStoreHeadConfig() throws Exception {
         String cmdLine =
-                "-DauraHome=" + auraDistMntPnt +
+                "-Xmx2G" +
+                " -DauraHome=" + auraDistMntPnt +
                 " -jar " + auraDistMntPnt + "/dist/aardvark.jar" + 
                 " /com/sun/labs/aura/resource/dataStoreHeadConfig.xml" +
                 " dataStoreHeadStarter";
@@ -1147,6 +1170,17 @@ public class GridDeploy {
             RemoteException,
             DuplicateNameException,
             StorageManagementException {
+        return getFS(fsName, true);
+    }
+    
+    /**
+     * Create a file system, or accept an existing one with the same name
+     * @param fsName
+     */
+    protected FileSystem getFS(String fsName, boolean allowCreate) throws
+            RemoteException,
+            DuplicateNameException,
+            StorageManagementException {
         
         BaseFileSystemConfiguration fsConfiguration = 
             new BaseFileSystemConfiguration();
@@ -1155,8 +1189,12 @@ public class GridDeploy {
         FileSystem fileSystem = grid.getFileSystem(fsName);
         
         if (fileSystem == null) {
-            System.out.println("Creating filesystem " + fsName);
-            fileSystem = grid.createBaseFileSystem(fsName, fsConfiguration);
+            if (allowCreate) {
+                System.out.println("Creating filesystem " + fsName);
+                fileSystem = grid.createBaseFileSystem(fsName, fsConfiguration);
+            } else {
+                System.out.println("Filesystem " + fsName + " not found");
+            }
         } else {
             System.out.println("Found existing filesystem " +
                     fileSystem.getName() /* + " with uuid: "
