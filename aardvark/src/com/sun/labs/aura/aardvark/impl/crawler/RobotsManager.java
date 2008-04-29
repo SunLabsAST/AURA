@@ -13,9 +13,12 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,6 +36,8 @@ public class RobotsManager {
     private static Pattern disallowPattern = Pattern.compile("Disallow:\\s*(\\S+)\\s*", Pattern.CASE_INSENSITIVE);
     private boolean monitor = false;
     private Logger logger;
+    private Set<String> skipHosts;
+    private HostCounter hostCounter = new HostCounter();
 
     /**
      * Creates a robots manager
@@ -40,6 +45,7 @@ public class RobotsManager {
      */
     public RobotsManager(String userAgent, int maxCacheSize, Logger logger) {
         this.userAgent = userAgent;
+        this.skipHosts = new HashSet();
         LRUMap cache = new LRUMap();
         cache.setMaxSize(maxCacheSize);
         robotCache = Collections.synchronizedMap(cache);
@@ -60,6 +66,16 @@ public class RobotsManager {
         try {
             URL url = new URL(surl);
             String path = url.getFile();
+            String host = url.getHost();
+            
+            if (skipHosts.contains(host)) {
+                return false;
+            }
+
+            if (!hostCounter.checkHost(host)) {
+                return false;
+            }
+
             List<String> disallowed = getDisallowedPaths(url);
             for (String prefix : disallowed) {
                 if (path.startsWith(prefix)) {
@@ -73,6 +89,10 @@ public class RobotsManager {
         } catch (MalformedURLException ex) {
             return false;
         }
+    }
+
+    public void addSkipHost(URL url) {
+        skipHosts.add(url.getHost());
     }
 
     /**
@@ -194,5 +214,32 @@ class LRUMap<K, V> extends LinkedHashMap<K, V> {
     @Override
     protected boolean removeEldestEntry(Map.Entry eldest) {
         return size() > maxSize;
+    }
+}
+
+
+class HostCounter {
+    private final static int MAX_HOST_VISITS = 3000;
+    private LRUMap<String, Integer> hostMap = new LRUMap();
+    private int calls = 0;
+
+    HostCounter() {
+        hostMap.setMaxSize(50000);
+    }
+
+    synchronized boolean checkHost(String host) {
+        Integer c = hostMap.get(host);
+        if (c == null) {
+            c = new Integer(0);
+        }
+        c = c + 1;
+        hostMap.put(host, c);
+        return c < MAX_HOST_VISITS;
+    }
+
+    private void dump() {
+        for (String host : hostMap.keySet()) {
+            System.out.println("host counter " + host + " " + hostMap.get(host));
+        }
     }
 }

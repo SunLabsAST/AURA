@@ -67,8 +67,9 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             // recently and that are of the blog entry type.  This saves us 
             // having to post-filter things.
 
+            ResultsFilter recentItemFilter = getRecentItemFilter(user);
             CompositeResultsFilter rf = new CompositeResultsFilter(
-                    getRecentItemFilter(user), new TypeFilter(ItemType.BLOGENTRY));
+                    recentItemFilter, new TypeFilter(ItemType.BLOGENTRY));
             rf.addFilter(getDateFilter(VALID_RECOMMENDATION_DAYS));
             rf.addFilter(new LengthFilter("content", 200));
 
@@ -101,14 +102,21 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                 }
             }
 
-            //
-            // Get the blog entries and return the set.  This is a change.
+            // sort the items by authority
+
+            List<Scored<BlogEntry>> authorityList = new ArrayList();
             for (Scored<Item> scoredItem : results) {
                 BlogEntry blogEntry = new BlogEntry(scoredItem.getItem());
+                authorityList.add(new Scored<BlogEntry>(blogEntry, blogEntry.getAuthority() + scoredItem.getScore()));
+            }
+
+            // Get the blog entries and return the set.  This is a change.
+            for (Scored<BlogEntry> scoredEntry : authorityList) {
+                BlogEntry blogEntry = scoredEntry.getItem();
                 if (!titles.contains(blogEntry.getTitle()) && blogEntry.getContent().length() >= minContentSize) {
                     String explanation = "Similar to items you like";
-                    resultList.add(new Recommendation(scoredItem.getItem(),
-                            scoredItem.getScore(), explanation));
+                    resultList.add(new Recommendation(blogEntry.getItem(),
+                            scoredEntry.getScore(), explanation));
                     titles.add(blogEntry.getTitle());
                     if (resultList.size() >= num) {
                         break;
@@ -140,6 +148,8 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                 }
             }
 
+            System.out.println("Recent if " + recentItemFilter.getTested() + " " + recentItemFilter.getPassed());
+
         } catch (AuraException ex) {
             log.log(Level.SEVERE, "Error getting recommendations", ex);
             ex.printStackTrace();
@@ -149,7 +159,6 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             return resultList;
         }
     }
-
 
     /**
      * Gets some blog entries from the database. Don't really care which ones
@@ -185,10 +194,12 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
 
         for (Attention att : attentions) {
             keySkipSet.add(att.getTargetKey());
-            Item item = dataStore.getItem(att.getTargetKey());
-            if (item != null) {
-                titleSkipSet.add(item.getName());
-            }
+        /** I suspect this is too expensive, so skip for now
+        Item item = dataStore.getItem(att.getTargetKey());
+        if (item != null) {
+        titleSkipSet.add(item.getName());
+        }
+         **/
         }
 
         ResultsFilter keyFilter = new FieldExclusionFilter("aura-key", keySkipSet);

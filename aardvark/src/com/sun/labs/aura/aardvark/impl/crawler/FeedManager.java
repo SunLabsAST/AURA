@@ -264,6 +264,8 @@ public class FeedManager implements AuraService, Configurable {
                     item = StoreFactory.newItem(ItemType.FEED, canonicalLink, syndFeed.getTitle());
                     feed = new BlogFeed(item);
                     feed.setPullLink(feedUrl.toExternalForm());
+                    feed.setNumIncomingLinks(1);
+                    feed.setNumStarredEntries(0);
                     logger.info("discovery: added new feed " + feed.getPullLink() + " for " + urlForDiscovery);
                 }
 
@@ -484,27 +486,10 @@ public class FeedManager implements AuraService, Configurable {
      * @throws java.rmi.RemoteException
      */
     private void processIncomingLinkAttentionData(DataStore myDataStore, BlogFeed feed) throws AuraException, RemoteException {
-        DBIterator<Attention> iter = myDataStore.getAttentionForTargetSince(feed.getKey(), new Date(feed.getLastPullTime() + 1));
-
-        // collect up all of the link attention to this feed and count them up
-        int incoming = 0;
-        try {
-            while (iter.hasNext()) {
-                Attention attn = iter.next();
-                if ((attn.getType() == Attention.Type.LINKS_TO)) {
-                    incoming++;
-                }
-
-            }
-        } finally {
-            iter.close();
+        List<Attention> incoming = myDataStore.getAttentionForTarget(feed.getKey());
+        if (incoming != null) {
+            feed.setNumIncomingLinks(incoming.size());
         }
-
-        if (incoming > 0) {
-            feed.setNumIncomingLinks(feed.getNumIncomingLinks() + incoming);
-            logger.info("Incoming links for " + feed.getName() + ": " + feed.getNumIncomingLinks());
-        }
-
     }
 
     /**

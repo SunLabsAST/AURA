@@ -53,6 +53,9 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
             userAgent = ps.getString(PROP_USER_AGENT);
             stateDir = ps.getString(PROP_STATE_DIR);
             robotsManager = new RobotsManager(userAgent, robotsCacheSize, logger);
+            // add hosts to skip
+            // BUG this should be configurable, and probably it is best to do
+            // this another way.
 
             File visitedStateDir = new File(stateDir, VISITED_STATE);
             visitedSet = new PersistentStringSet(visitedStateDir.getPath());

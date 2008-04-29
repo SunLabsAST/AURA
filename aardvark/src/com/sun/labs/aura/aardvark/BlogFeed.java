@@ -165,7 +165,7 @@ public class BlogFeed extends ItemAdapter implements Serializable {
      * @return the number of errors
      */
     public float getAuthority() {
-        return getNumIncomingLinks() + getNumStarredEntries();
+        return getNumIncomingLinks() + getNumStarredEntries() + 1;
     }
 
     /**

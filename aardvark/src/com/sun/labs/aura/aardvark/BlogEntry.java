@@ -25,7 +25,7 @@ import java.util.List;
  * @author plamere
  */
 public class BlogEntry extends ItemAdapter {
-    public final static String FIELD_FEED_KEY = "fieldKey";
+    public final static String FIELD_FEED_KEY = "feedKey";
     public final static String FIELD_CONTENT = "content";
     public final static String FIELD_SYND_ENTRY = "syndEntry";
     public final static String FIELD_TAG = "tag";

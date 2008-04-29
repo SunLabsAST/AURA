@@ -10,8 +10,8 @@
 
 <config>
     <!-- Where the aura data lives -->
-    <property name="auraHome" value="/aura"/>
-    <property name="cacheDir" value="/aura"/>
+    <property name="auraHome" value="/aura/db"/>
+    <property name="cacheDir" value="/aura/db"/>
 
     <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
 
