@@ -6,6 +6,7 @@ package com.sun.labs.aura.aardvark.dashboard.web;
 
 import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.aura.util.StatService;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -39,8 +40,17 @@ public class ServletListener implements ServletContextListener {
 
                 Aardvark aardvark = (Aardvark) cm.lookup("aardvark");
                 context.setAttribute("aardvark", aardvark);
-                DataStore dataStore = (DataStore)cm.lookup("dataStore");
+                DataStore dataStore = (DataStore) cm.lookup("dataStore");
                 context.setAttribute("dataStore", dataStore);
+
+                // not sure why this lookup is failing
+                //StatService statService = (StatService) cm.lookup("statService");
+                StatService statService = null;
+                if (statService == null) {
+                    logger.severe("Failed to get statsevice handle");
+                } else {
+                    context.setAttribute("statService", statService);
+                }
 
             } catch (IOException ioe) {
                 logger.log(Level.SEVERE, "Failed to get Aardvark handle", ioe);

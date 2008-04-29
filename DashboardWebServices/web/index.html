@@ -16,12 +16,27 @@
 
     <div align="center">
         <img src="images/aardvark-welcome.gif">
+    <div class="tryit">
+    <b>Item Query:</b>
+        <input type="text" size="60" onChange="window.location = 'Show?op=query&query=' + this.value;" /> 
+    </div>
     </div>
 
+    <p>
     <div align="left">
-      Welcome to the Aardvark Dashboard web services. Some day there will
-      be a lucid and insightful description of the webservices. Today however,
-      there's just this.
-    </div>
-  </body>
+      Welcome to the Aardvark Dashboard web services. There are a few web
+      services that assist the developers in exploring the database.
+      <ul>
+          <li> <a href="Show?op=authority&num=1000">Feed Authority</a> 
+            - show high authority feeds
+          <li> <a href="Show?op=users&num=1000">Users</a> 
+            - show users
+          <li> <a href="Show?op=status">Status</a> 
+            - show system status
+      </ul>
+                  <p>
+    <p>
+
+</div>
+</body>
 </html>

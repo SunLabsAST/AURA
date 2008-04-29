@@ -20,7 +20,7 @@ body {
   color: black;
   font-family: Arial, sans-serif;
   font-size: small;
-  margin: 0px;
+  margin: 5px;
 }
 
 div.main {
@@ -64,4 +64,9 @@ div.topCling {
   color: #B2BC00;
   font-weight: bold;
   font-size: small;
+}
+
+
+a img{
+border:0;
 }

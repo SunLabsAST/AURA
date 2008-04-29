@@ -213,7 +213,7 @@ public class StoryUtil {
         }
     }
 
-    private static String filterTag(String s) {
+    static String filterTag(String s) {
         if (s != null) {
             s = s.replaceAll("[^\\p{ASCII}]", "");
             s = s.replaceAll("\\&", "&amp;");

@@ -36,6 +36,10 @@
         <servlet-name>FindSimilarAutotag</servlet-name>
         <servlet-class>com.sun.labs.aura.aardvark.dashboard.web.FindSimilarAutotag</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>Show</servlet-name>
+        <servlet-class>com.sun.labs.aura.aardvark.dashboard.web.Show</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>GetStories</servlet-name>
         <url-pattern>/GetStories</url-pattern>
@@ -67,6 +71,10 @@
     <servlet-mapping>
         <servlet-name>FindSimilarAutotag</servlet-name>
         <url-pattern>/FindSimilarAutotag</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Show</servlet-name>
+        <url-pattern>/Show</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
