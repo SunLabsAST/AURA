@@ -448,7 +448,7 @@ public class FeedManager implements AuraService, Configurable {
         } else {
             try {
                 URL url1 = new URL(surl1);
-                URL url2 = new URL(surl1);
+                URL url2 = new URL(surl2);
                 return !url1.getHost().equals(url2.getHost());
             } catch (MalformedURLException ex) {
                 return false;
