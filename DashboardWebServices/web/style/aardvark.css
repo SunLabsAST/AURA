@@ -66,6 +66,8 @@ div.topCling {
   font-size: small;
 }
 
+tr.odd td {background-color:#edf3fe;}
+tr.even td {background-color:#fff;}
 
 a img{
 border:0;

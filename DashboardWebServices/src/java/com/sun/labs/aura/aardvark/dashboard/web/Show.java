@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
@@ -58,8 +60,10 @@ public class Show extends HttpServlet {
             showRecommendation(request, response);
         } else if (op.equals("user")) {
             showUser(request, response);
-        } else if (op.equals("authority")) {
+        } else if (op.equals("feedAuthority")) {
             showFeedAuthority(request, response);
+        } else if (op.equals("entryAuthority")) {
+            showEntryAuthority(request, response);
         } else if (op.equals("item")) {
             showItem(request, response);
         } else if (op.equals("users")) {
@@ -96,12 +100,11 @@ public class Show extends HttpServlet {
             disableCaching(response);
             response.setContentType("text/html;charset=UTF-8");
 
-            out.println(getHeader("Recommendations for " + user.getName()));
             long start = System.currentTimeMillis();
             SyndFeed syndFeed = aardvark.getRecommendedFeed(user, num);
             long total = System.currentTimeMillis() - start;
 
-            out.println("<h2>" + syndFeed.getTitle() + "</h2>");
+            out.println(getHeader(syndFeed.getTitle()));
             List entries = syndFeed.getEntries();
             for (Object o : entries) {
                 SyndEntry syndEntry = (SyndEntry) o;
@@ -162,6 +165,14 @@ public class Show extends HttpServlet {
                     String sval = val.toString();
                     if (sval.startsWith("http://")) {
                         sval = fmtItemLink(sval);
+                    }
+                    // special case, see if any fields that end with 'time'
+                    // are long values, of so convert them to dates
+                    if (key.toLowerCase().endsWith("time")) {
+                        if (val instanceof Long) {
+                            Long lval = (Long) val;
+                            sval = new Date(lval.longValue()).toString();
+                        }
                     }
                     fmtOut(out, key, sval);
                 }
@@ -282,15 +293,67 @@ public class Show extends HttpServlet {
             out.printf("<p>Showing %d of %d feeds<p>\n", scoredItems.size(), total);
 
             out.println("<table>");
-            out.printf("<tr><td><b>%s</b><td><b>%s</b><td><b>%s</b><td><b>%s</b><td><b>%s</b>\n",
-                    "Name", " Authority", "In", "Out", "Key");
+            out.printf(getHeadTR() + "<td><b>%s</b><td><b>%s</b><td><b>%s</b><td><b>%s</b><td><b>%s</b><td><b>%s</b>\n",
+                    "Name", " Authority", "In*", "In", "Out", "Key");
             for (Scored<Item> scoredItem : scoredItems) {
                 BlogFeed feed = new BlogFeed(scoredItem.getItem());
+                int storedIncomingLinks = feed.getNumIncomingLinks();
                 List<Attention> inAttn = dataStore.getAttentionForTarget(feed.getKey());
                 List<Attention> outAttn = dataStore.getAttentionForSource(feed.getKey());
-                out.printf("<tr><td>%s<td>%.2f<td>%d<td>%d<td>%s\n",
-                        feed.getName(), feed.getAuthority(), inAttn.size(),
+                out.printf(getTR() + "<td>%s<td>%.2f<td>%d<td>%d<td>%d<td>%s\n",
+                        feed.getName(), feed.getAuthority(), storedIncomingLinks, inAttn.size(),
                         outAttn.size(), fmtItemLink(feed.getKey()));
+            }
+            out.println("</table>");
+
+            out.println(getFooter(System.currentTimeMillis() - entryTime));
+        } catch (AuraException ex) {
+            Shared.forwardToError(context, request, response, ex);
+        } catch (RemoteException ex) {
+            Shared.forwardToError(context, request, response, ex);
+        } finally {
+            if (out != null) {
+                out.close();
+            }
+        }
+    }
+
+    protected void showEntryAuthority(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        long entryTime = System.currentTimeMillis();
+        PrintWriter out = response.getWriter();
+        ServletContext context = getServletContext();
+
+        String snum = request.getParameter("num");
+        int num = 100;
+        if (snum != null) {
+            num = Integer.parseInt(snum);
+        }
+
+        try {
+            DataStore dataStore = (DataStore) context.getAttribute("dataStore");
+
+            disableCaching(response);
+            response.setContentType("text/html;charset=UTF-8");
+            out.println(getHeader("Entry Authority"));
+
+            // this way takes too long
+
+            long total = dataStore.getItemCount(ItemType.BLOGENTRY);
+            List<Scored<Item>> scoredItems = dataStore.query("aura-type=BLOGENTRY", "-authority", num, null);
+
+            out.printf("<p>Showing %d of %d entries<p>\n", scoredItems.size(), total);
+
+            out.println("<table>");
+            out.printf(getHeadTR() + "<td><b>%s</b><td><b>%s</b><td><b>%s</b><td><b>%s</b><td><b>%s</b>\n",
+                    "Name", " Authority", "In", "Out", "Key");
+            for (Scored<Item> scoredItem : scoredItems) {
+                BlogEntry entry = new BlogEntry(scoredItem.getItem());
+                List<Attention> inAttn = dataStore.getAttentionForTarget(entry.getKey());
+                List<Attention> outAttn = dataStore.getAttentionForSource(entry.getKey());
+                out.printf(getTR() + "<td>%s<td>%.2f<td>%d<td>%d<td>%s\n",
+                        entry.getName(), entry.getAuthority(), inAttn.size(),
+                        outAttn.size(), fmtItemLink(entry.getKey()));
             }
             out.println("</table>");
 
@@ -341,11 +404,11 @@ public class Show extends HttpServlet {
             out.printf("<p>Showing %d of %d users<p>\n", scoredUsers.size(), items.size());
 
             out.println("<table>");
-            out.printf("<tr><td><b>%s</b><td><b>%s</b><td><b>%s</b><td><b>%s</b>\n",
+            out.printf(getHeadTR() + "<td><b>%s</b><td><b>%s</b><td><b>%s</b><td><b>%s</b>\n",
                     "Name", " Attention", "Key", "Recommend");
             for (Scored<BlogUser> scoredUser : scoredUsers) {
                 BlogUser user = scoredUser.getItem();
-                out.printf("<tr><td>%s<td>%.0f<td>%s<td>%s\n",
+                out.printf(getTR() +"<td>%s<td>%.0f<td>%s<td>%s\n",
                         user.getName(), scoredUser.getScore(), fmtItemLink(user.getKey()),
                         "<a href=Show?op=recommendation&user=" + user.getKey() + "> Recommend </a>");
             }
@@ -392,14 +455,14 @@ public class Show extends HttpServlet {
             response.setContentType("text/html;charset=UTF-8");
             out.println(getHeader("Query '" + query + "'"));
             out.println("<table>");
-            out.printf("<tr><td><b>%s</b><td><b>%s</b><td><b>%s</b><td><b>%s</b>",
-                    "Key", "Name", "Type", "Score");
+            out.printf(getHeadTR() + "<td><b>%s</b><td><b>%s</b><td><b>%s</b><td><b>%s</b>",
+                    "Name", "Type", "Score", "Key");
             List<Scored<Item>> items = dataStore.query(query, sortSpec, num, null);
             for (Scored<Item> scoredItem : items) {
                 Item item = scoredItem.getItem();
                 double score = scoredItem.getScore();
-                out.printf("<tr><td>%s<td>%s<td>%s<td>%.2f", fmtItemLink(item.getKey()), item.getName(),
-                        item.getType().toString(), score);
+                out.printf(getTR() + "<td>%s<td>%s<td>%.2f<td>%s", item.getName(),
+                        item.getType().toString(), score, fmtItemLink(item.getKey()));
             }
             out.println("</table>");
             out.println(getFooter(System.currentTimeMillis() - entryTime));
@@ -428,7 +491,7 @@ public class Show extends HttpServlet {
             out.println(getHeader("Status"));
 
             out.println("<table>");
-            out.printf("<tr><td>Field<td>Count\n");
+            out.printf(getHeadTR() + "<td>Field<td>Count\n");
             fmtOut(out, "Users", Long.toString(dataStore.getItemCount(ItemType.USER)));
             fmtOut(out, "Feeds", Long.toString(dataStore.getItemCount(ItemType.FEED)));
             fmtOut(out, "Entries", Long.toString(dataStore.getItemCount(ItemType.BLOGENTRY)));
@@ -454,19 +517,21 @@ public class Show extends HttpServlet {
     }
 
     private void disableCaching(HttpServletResponse response) {
-        response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
-        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-        response.addHeader("Cache-Control", "post-check=0, pre-check=0");
-        response.setHeader("Pragma", "no-cache");
+        if (false) {
+            response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
+            response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+            response.addHeader("Cache-Control", "post-check=0, pre-check=0");
+            response.setHeader("Pragma", "no-cache");
+        }
     }
 
     private void dumpAttention(PrintWriter out, String title, List<Attention> attnList) {
         if (attnList.size() > 0) {
             out.printf("<h3>" + title + "</h3>");
             out.printf("<table>");
-            out.println("<tr><td>Source<td>Type<td>Target<td>Date");
+            out.println(getHeadTR() + "<td>Source<td>Type<td>Target<td>Date");
             for (Attention attn : attnList) {
-                out.printf("<tr><td>%s<td>%s<td>%s<td>%s<td>\n",
+                out.printf(getTR() + "<td>%s<td>%s<td>%s<td>%s<td>\n",
                         fmtItemLink(attn.getSourceKey()), attn.getType().toString(),
                         fmtItemLink(attn.getTargetKey()), new Date(attn.getTimeStamp()).toString());
             }
@@ -475,7 +540,20 @@ public class Show extends HttpServlet {
     }
 
     private String fmtItemLink(String link) {
-        return "<a href=/DashboardWebServices/Show?op=item&item=" + link + ">" + link + "</a>";
+        return fmtItemLink(link, link);
+    }
+
+    private String fmtItemLink(String link, String text) {
+        int MAX_LEN = 40;
+        if (text.length() > MAX_LEN) {
+            text = link.substring(0, MAX_LEN) + "...";
+        }
+        String encodedLink = link;
+        try {
+            encodedLink = URLEncoder.encode(link, "utf-8");
+        } catch (UnsupportedEncodingException ex) {
+        }
+        return "<a href=/DashboardWebServices/Show?op=item&item=" + encodedLink + ">" + text + "</a>";
     }
 
     private String fmtExternalLink(String link) {
@@ -488,9 +566,7 @@ public class Show extends HttpServlet {
 
     private void dumpEntry(PrintWriter out, BlogEntry entry, BlogFeed feed) {
         out.printf("<h2><a target=\"other\" href=\"%s\">%s</a></h2>", entry.getKey(), entry.getTitle());
-        String q = "Show?op=item&item=" + entry.getKey();
-        out.println("<p><a href=\"" + q + "\">Show details for this entry.</a><p>");
-
+        out.println("<p>" + fmtItemLink(entry.getKey(), "Show details for this entry.") + "</p>");
         out.println("<table>");
         fmtOut(out, "Author", entry.getAuthor());
         fmtOut(out, "Authority", Float.toString(entry.getAuthority()));
@@ -501,13 +577,6 @@ public class Show extends HttpServlet {
         fmtOut(out, "Feed Incoming Links", Integer.toString(feed.getNumIncomingLinks()));
         fmtOut(out, "Feed Last Pull ", new Date(feed.getLastPullTime()).toString());
         fmtOut(out, "Feed URL", fmtItemLink(feed.getCannonicalURL()));
-        fmtOut(out, "Feed Description", feed.getDescription());
-        fmtOut(out, "Feed Image", feed.getImage());
-        fmtOut(out, "Feed Errors", Integer.toString(feed.getNumErrors()));
-        fmtOut(out, "Feed Cons.Errs", Integer.toString(feed.getNumConsecutiveErrors()));
-        fmtOut(out, "Feed Pulls", Integer.toString(feed.getNumPulls()));
-        fmtOut(out, "Feed Pull Link", feed.getPullLink());
-        fmtOut(out, "Feed Stars", Integer.toString(feed.getNumStarredEntries()));
 
         {
             List<Scored<String>> tags = entry.getAutoTags();
@@ -533,12 +602,12 @@ public class Show extends HttpServlet {
 
     private void fmtOut(PrintWriter out, String s, String v) {
         if (v != null) {
-            out.printf("<tr><td> %s<td> %s </tr>\n", s, v);
+            out.printf(getTR() + "<td> %s<td> %s </tr>\n", s, v);
         }
     }
 
     private void fmtTitle(PrintWriter out, String s) {
-        out.printf("<tr><td colspan=\"2\"><b> %s </b></tr>\n", s);
+        out.printf(getTR() + "<td colspan=\"2\"><b> %s </b></tr>\n", s);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -588,6 +657,18 @@ public class Show extends HttpServlet {
         String s = "<center><em><p>Page loaded on " + new Date() + " in " + ms + " ms.</em></center>";
         s += "</body></html>";
         return s;
+    }
+
+    private boolean even = false;
+    private String getTR() {
+        String tr = "<tr class=" + (even ? "\"even\"" : "\"odd\"") + ">";
+        even = !even;
+        return tr;
+    }
+
+    private String getHeadTR() {
+        even = false;
+        return getTR();
     }
 
     /** 
