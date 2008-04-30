@@ -72,6 +72,8 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                     recentItemFilter, new TypeFilter(ItemType.BLOGENTRY));
             rf.addFilter(getDateFilter(VALID_RECOMMENDATION_DAYS));
             rf.addFilter(new LengthFilter("content", 200));
+            ResultsFilter rangeFilter = new FieldRangeFilter(BlogEntry.FIELD_AUTHORITY, 3, Double.MAX_VALUE);
+            rf.addFilter(rangeFilter);
 
 
             List<Scored<Item>> results = new ArrayList<Scored<Item>>();
@@ -109,6 +111,9 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                 BlogEntry blogEntry = new BlogEntry(scoredItem.getItem());
                 authorityList.add(new Scored<BlogEntry>(blogEntry, blogEntry.getAuthority() + scoredItem.getScore()));
             }
+
+            Collections.sort(authorityList);
+            Collections.reverse(authorityList);
 
             // Get the blog entries and return the set.  This is a change.
             for (Scored<BlogEntry> scoredEntry : authorityList) {
@@ -149,6 +154,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             }
 
             System.out.println("Recent if " + recentItemFilter.getTested() + " " + recentItemFilter.getPassed());
+            System.out.println("RangeFilter  " + rangeFilter.getTested() + " " + rangeFilter.getPassed());
 
         } catch (AuraException ex) {
             log.log(Level.SEVERE, "Error getting recommendations", ex);
