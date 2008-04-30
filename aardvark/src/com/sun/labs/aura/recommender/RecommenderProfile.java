@@ -6,7 +6,7 @@ package com.sun.labs.aura.recommender;
 
 import com.sun.kt.search.ResultAccessor;
 import com.sun.kt.search.ResultsFilter;
-import com.sun.labs.aura.aardvark.impl.crawler.ResultsFilterAdapter;
+import com.sun.labs.aura.aardvark.impl.recommender.ResultsFilterAdapter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;

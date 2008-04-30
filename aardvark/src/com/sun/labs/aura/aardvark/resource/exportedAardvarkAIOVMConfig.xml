@@ -103,6 +103,7 @@
         <property name="dataStore" value="dataStoreHead"/>
         <property name="statService" value="statService"/>
         <property name="feedScheduler" value="feedScheduler"/>
+        <property name="crawlingPeriod" value="300"/>
         <property name="numThreads" value="2"/>
         <property name="numDiscoveryThreads" value="2"/>
         <property name="logLevel" value="WARNING"/>
