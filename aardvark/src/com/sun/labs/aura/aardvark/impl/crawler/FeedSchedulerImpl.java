@@ -57,6 +57,11 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
             // BUG this should be configurable, and probably it is best to do
             // this another way.
 
+            robotsManager.addSkipHost(new URL("http://dailymotion.com"));
+            robotsManager.addSkipHost(new URL("http://www.dailymotion.com"));
+            robotsManager.addSkipHost(new URL("http://www.metacafe.com"));
+            robotsManager.addSkipHost(new URL("http://metacafe.com"));
+
             File visitedStateDir = new File(stateDir, VISITED_STATE);
             visitedSet = new PersistentStringSet(visitedStateDir.getPath());
             createStateFileDirectory();
