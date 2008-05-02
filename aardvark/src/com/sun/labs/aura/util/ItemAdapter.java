@@ -134,7 +134,7 @@ public class ItemAdapter implements Serializable {
      */
     protected float getFieldAsFloat(String name) {
         Float f = (Float) item.getMap().get(name);
-        return f == null ? 0 : 1;
+        return f == null ? 0 : f;
     }
 
     /**

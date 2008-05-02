@@ -7,12 +7,13 @@ package com.sun.labs.aura.aardvark.impl.recommender;
 
 import com.sun.kt.search.ResultAccessor;
 import com.sun.kt.search.ResultsFilter;
+import java.io.Serializable;
 
 /**
  *
  * @author plamere
  */
-public abstract class ResultsFilterAdapter implements ResultsFilter {
+public abstract class ResultsFilterAdapter implements ResultsFilter, Serializable {
     private int numTested;
     private int numPassed;
 

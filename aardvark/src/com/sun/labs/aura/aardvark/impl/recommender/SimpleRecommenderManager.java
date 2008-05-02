@@ -153,8 +153,8 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                 }
             }
 
-            System.out.println("Recent if " + recentItemFilter.getTested() + " " + recentItemFilter.getPassed());
-            System.out.println("RangeFilter  " + rangeFilter.getTested() + " " + rangeFilter.getPassed());
+            log.info("Recent if " + recentItemFilter.getTested() + " " + recentItemFilter.getPassed());
+            log.info("RangeFilter  " + rangeFilter.getTested() + " " + rangeFilter.getPassed());
 
         } catch (AuraException ex) {
             log.log(Level.SEVERE, "Error getting recommendations", ex);

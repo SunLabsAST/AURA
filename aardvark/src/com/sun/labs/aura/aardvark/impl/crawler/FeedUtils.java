@@ -51,22 +51,18 @@ import java.util.regex.Pattern;
 public class FeedUtils {
 
     private final static boolean debug = false;
+    private static Logger logger =  Logger.getLogger("com.sun.labs.aura.aardvark.impl.crawler.FeedUtils");
 
     enum DocType {
-
         HTML, XML, OTHER
     }
 
-    
-    
-
-       ; /**
-             * Gets the contents of an entry
-             * @param entry the RSS entry
-             * @return the contents as a string (which may have embedded html)
-             */
-             
-           public static String getContent(SyndEntry entry) {
+    /**
+     * Gets the contents of an entry
+     * @param entry the RSS entry
+     * @return the contents as a string (which may have embedded html)
+     */
+    public static String getContent(SyndEntry entry) {
         String content = "(empty)";
         if (entry.getContents().size() > 0) {
             StringBuilder sb = new StringBuilder();
@@ -272,7 +268,7 @@ public class FeedUtils {
         URLConnection connection = null;
         try {
             SyndFeedInput syndFeedInput = new SyndFeedInput();
-            connection = openConnection(url);
+            connection = openConnection(url, "read-feed");
             return syndFeedInput.build(new XmlReader(connection));
         } catch (FeedException ex) {
             throw new IOException("feed error while reading " + url);
@@ -291,7 +287,7 @@ public class FeedUtils {
         URLConnection connection = null;
         try {
             WireFeedInput wireFeedInput = new WireFeedInput();
-            connection = openConnection(url);
+            connection = openConnection(url, "read-wire-feed");
             return wireFeedInput.build(new XmlReader(connection));
         } catch (IOException ex) {
             throw new AuraException("I/O error while reading " + url, ex);
@@ -384,7 +380,7 @@ public class FeedUtils {
      */
     private static DocType getDocType(URL url) throws IOException {
         DocType docType = DocType.OTHER;
-        URLConnection connection = openConnection(url);
+        URLConnection connection = openConnection(url, false, "getDocType");
         String type = connection.getContentType();
         if (type != null) {
             type = type.toLowerCase();
@@ -405,7 +401,11 @@ public class FeedUtils {
         return docType;
     }
 
-    private static URLConnection openConnection(URL url) throws IOException {
+    static URLConnection openConnection(URL url, String reason) throws IOException {
+        return openConnection(url, true, reason);
+    }
+
+    static URLConnection openConnection(URL url, boolean fullPull, String reason) throws IOException {
         URLConnection connection = url.openConnection();
         connection.setRequestProperty("User-agent", "aardvark-crawler");
         connection.setReadTimeout(30000);
@@ -413,6 +413,9 @@ public class FeedUtils {
         if (connection instanceof HttpURLConnection) {
             HttpURLConnection httpConnection = (HttpURLConnection) connection;
             httpConnection.setInstanceFollowRedirects(true);
+        }
+        if (fullPull) {
+            logger.info("connection: " + reason + " " + url.toString());
         }
         return connection;
     }
@@ -426,7 +429,7 @@ public class FeedUtils {
         InputStream is = null;
         List<String> elements = new ArrayList<String>();
         try {
-            URLConnection connection = openConnection(url);
+            URLConnection connection = openConnection(url, "get-link-elemens");
 
             //System.out.println("   loading " + surl.toExternalForm());
             // System.out.println("con type is " + connection.getContentType() + " for " + surl);
@@ -538,7 +541,7 @@ public class FeedUtils {
         SyndFeedInput syndFeedInput = new SyndFeedInput();
         try {
             URL url = new URL(surl);
-            URLConnection connection = openConnection(url);
+            URLConnection connection = openConnection(url, "dump-feed");
             SyndFeed feed = syndFeedInput.build(new XmlReader(connection));
 
             System.out.println("---" + feed.getTitle() + "---");
@@ -694,7 +697,6 @@ public class FeedUtils {
         }
         return robots.isCrawlable(surl);
     }
-
     static RobotsManager robots = new RobotsManager("aardvark-crawler", 100000, Logger.getAnonymousLogger());
     // this is some experimental code - not for general use
     public static void simpleCrawler(String html) {

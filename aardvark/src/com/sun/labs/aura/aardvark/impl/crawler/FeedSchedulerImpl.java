@@ -21,9 +21,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.DelayQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,9 +38,10 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
     private PersistentStringSet visitedSet;
     private final static String FEED_STATE = "feed.state";
     private final static String VISITED_STATE = "visited.state";
+    private DelayQueue<URLForDiscovery> feedDiscoveryQueue;
 
     public FeedSchedulerImpl() {
-        fss.feedDiscoveryQueue = new PriorityBlockingQueue();
+        feedDiscoveryQueue = new DelayQueue();
     }
 
     @Override
@@ -61,6 +61,17 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
             robotsManager.addSkipHost(new URL("http://www.dailymotion.com"));
             robotsManager.addSkipHost(new URL("http://www.metacafe.com"));
             robotsManager.addSkipHost(new URL("http://metacafe.com"));
+            robotsManager.addSkipHost(new URL("http://vmware.simplefeed.net"));
+            robotsManager.addSkipHost(new URL("http://twitter.com"));
+            robotsManager.addSkipHost(new URL("http://www.mahalo.com"));
+            robotsManager.addSkipHost(new URL("http://11870.com"));
+            robotsManager.addSkipHost(new URL("http://bitacoras.com"));
+            robotsManager.addSkipHost(new URL("http://jaanix.com"));
+            robotsManager.addSkipHost(new URL("http://viddler.com"));
+            robotsManager.addSkipHost(new URL("http://search.ebay.com"));
+            robotsManager.addSkipHost(new URL("http://brightkite.com"));
+            robotsManager.addSkipHost(new URL("http://vimeo.com"));
+            robotsManager.addSkipHost(new URL("http://d.hatena.ne.jp"));
 
             File visitedStateDir = new File(stateDir, VISITED_STATE);
             visitedSet = new PersistentStringSet(visitedStateDir.getPath());
@@ -74,13 +85,22 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
     public void addUrlForDiscovery(URLForDiscovery ufd) throws RemoteException {
         if (isGoodToVisit(ufd) && !visitedSet.contains(ufd.getUrl())) {
             visitedSet.add(ufd.getUrl());
-            // System.out.println("Queued " + ufd);
-            fss.feedDiscoveryQueue.add(ufd);
-
-            synchronized (this) {
-                if (++fss.postCount % 1000 == 0) {
-                    saveState();
+            try {
+                URL url = new URL(ufd.getUrl());
+                if (ufd.getPriority() == URLForDiscovery.Priority.NORMAL) {
+                    ufd.setNextProcessingTime(robotsManager.getEarliestPullTime(url));
+                } else {
+                    ufd.setNextProcessingTime(0L);
                 }
+                feedDiscoveryQueue.add(ufd);
+
+                synchronized (this) {
+                    if (++fss.postCount % 1000 == 0) {
+                        saveState();
+                    }
+                }
+            } catch (MalformedURLException ex) {
+                logger.info("dropping malfomed URL " + ufd.getUrl());
             }
         }
     }
@@ -92,15 +112,36 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
      * @throws java.rmi.RemoteException
      */
     public URLForDiscovery getUrlForDiscovery() throws InterruptedException, RemoteException {
-        URLForDiscovery ufd = fss.feedDiscoveryQueue.take();
+        URLForDiscovery ufd = null;
 
-        logger.info("Discover: (" + (fss.pulled++) + "/" + fss.feedDiscoveryQueue.size() + ") " + ufd.getUrl());
+        while (ufd == null) {
+            ufd = feedDiscoveryQueue.take();
+            try {
+                URL url = new URL(ufd.getUrl());
+                if (ufd.getPriority() == URLForDiscovery.Priority.NORMAL) {
+                    if (!robotsManager.testAndSetIsOkToPullNow(url)) {
+                        ufd.setNextProcessingTime(robotsManager.getEarliestPullTime(url));
+                        feedDiscoveryQueue.add(ufd);
+                        ufd = null;
+                        continue;
+                    }
+                } else {
+                    logger.info("Discover: high priority URL " + ufd.getUrl());
+                }
+            } catch (MalformedURLException e) {
+                //the URL has already been verified, so this should never happen
+                // so be noisy if it does.
+                logger.warning("Unexpected bad url " + ufd.getUrl());
+                ufd = null;
+                continue;
+            }
+        }
+        logger.info("Discover: (" + (fss.pulled++) + "/" + feedDiscoveryQueue.size() + ") " + ufd.getUrl());
         return ufd;
     }
 
     private void reportPosition(String msg, String s) {
-        List<URLForDiscovery> list = new ArrayList(fss.feedDiscoveryQueue);
-        Collections.sort(list);
+        List<URLForDiscovery> list = new ArrayList(feedDiscoveryQueue);
         for (int i = 0; i < list.size(); i++) {
             URLForDiscovery u = list.get(i);
             //System.out.println(i + " " + u.getPriority() + " " + u);
@@ -116,6 +157,7 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
     private void saveState() {
         FileOutputStream fos = null;
         try {
+            fss.discoveryQueue = new ArrayList(feedDiscoveryQueue);
             File stateFile = new File(stateDir, FEED_STATE);
             fos = new FileOutputStream(stateFile);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -147,8 +189,9 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
             if (newFss != null) {
                 fss.postCount = newFss.postCount;
                 fss.pulled = newFss.pulled;
-                fss.feedDiscoveryQueue.clear();
-                fss.feedDiscoveryQueue.addAll(newFss.feedDiscoveryQueue);
+                feedDiscoveryQueue.clear();
+                feedDiscoveryQueue.addAll(newFss.discoveryQueue);
+                logger.info("restored discovery queue with " + newFss.discoveryQueue.size() + " entries");
             }
         } catch (IOException ex) {
         // no worries if there was no file
@@ -248,10 +291,18 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
 
 class FeedSchedulerState implements Serializable {
 
-    PriorityBlockingQueue<URLForDiscovery> feedDiscoveryQueue;
+    List<URLForDiscovery> discoveryQueue;
     int pulled;
     int postCount = 0;
 
     FeedSchedulerState() {
+    }
+
+    void dump() {
+        int count = 0;
+        for (URLForDiscovery ufd : discoveryQueue) {
+            count++;
+            System.out.println(count + " " + ufd.toString());
+        }
     }
 }

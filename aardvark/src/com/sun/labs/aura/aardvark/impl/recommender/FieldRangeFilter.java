@@ -7,12 +7,13 @@
 package com.sun.labs.aura.aardvark.impl.recommender;
 
 import com.sun.kt.search.ResultAccessor;
+import java.io.Serializable;
 
 /**
  *
  * @author plamere
  */
-public class FieldRangeFilter extends ResultsFilterAdapter {
+public class FieldRangeFilter extends ResultsFilterAdapter implements Serializable {
 
     private String fieldName;
     private double minValue;

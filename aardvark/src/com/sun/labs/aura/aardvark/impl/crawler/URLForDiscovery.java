@@ -8,33 +8,35 @@ package com.sun.labs.aura.aardvark.impl.crawler;
 
 import com.sun.labs.aura.datastore.Attention;
 import java.io.Serializable;
+import java.util.Date;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
  * @author plamere
  */
-public class URLForDiscovery implements Serializable, Comparable<URLForDiscovery> {
+public class URLForDiscovery implements Serializable, Delayed {
 
-    public final static float LOW_PRIORITY = 0F;
-    public final static float HIGH_PRIORITY = 1E10F;
-    public final static float ULTRA_HIGH_PRIORITY = 1E15F;
-    public final static float DEFAULT_PRIORITY = LOW_PRIORITY;
+    public static enum Priority { NORMAL, HIGH }; 
     private String surl = null;
-    private float priority = DEFAULT_PRIORITY;
+    private Priority priority = Priority.NORMAL;
     private Attention attention = null;
+    private long nextProcessingTime = 0;
 
-    public URLForDiscovery(String url, float priority, Attention attention) {
+    public URLForDiscovery(String url, Priority priority, Attention attention) {
         this.surl = url;
         this.priority = priority;
         this.attention = attention;
     }
 
-    public URLForDiscovery(String url, float priority) {
+
+    public URLForDiscovery(String url, Priority priority) {
         this(url, priority, null);
     }
 
     public URLForDiscovery(String url) {
-        this(url, DEFAULT_PRIORITY);
+        this(url, Priority.NORMAL);
     }
 
     public URLForDiscovery() {
@@ -48,21 +50,31 @@ public class URLForDiscovery implements Serializable, Comparable<URLForDiscovery
         return surl;
     }
 
-    public float getPriority() {
+    public Priority getPriority() {
         return priority;
     }
 
-    /**
-     * The sense of this sort is reversed so that high priority items
-     * come first in the queue
-     * @param o
-     * @return
-     */
-    public int compareTo(URLForDiscovery o) {
-        return (int) -Math.signum(getPriority() - o.getPriority());
+
+    public long getDelay(TimeUnit unit) {
+        return unit.convert(nextProcessingTime - System.currentTimeMillis(),
+                TimeUnit.MILLISECONDS);
     }
 
     public String toString() {
-        return "ufd " + surl + " pri " + priority + " " + attention;
+        return "ufd " + new Date(nextProcessingTime) + " " + surl;
+    }
+
+    long getNextProcessingTime() {
+        return nextProcessingTime;
+    }
+
+    void setNextProcessingTime(long nextProcessingTime) {
+        this.nextProcessingTime = nextProcessingTime;
+    }
+
+    public int compareTo(Delayed o) {
+        long result = getDelay(TimeUnit.MILLISECONDS) -
+                o.getDelay(TimeUnit.MILLISECONDS);
+        return result < 0 ? -1 : result > 0 ? 1 : 0;
     }
 }

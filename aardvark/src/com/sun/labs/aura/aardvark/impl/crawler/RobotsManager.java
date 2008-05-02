@@ -13,7 +13,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,7 +36,8 @@ public class RobotsManager {
     private boolean monitor = false;
     private Logger logger;
     private Set<String> skipHosts;
-    private HostCounter hostCounter = new HostCounter();
+    private HostScheduler hostScheduler;
+    private HostCounter hostCounter;
 
     /**
      * Creates a robots manager
@@ -50,6 +50,8 @@ public class RobotsManager {
         cache.setMaxSize(maxCacheSize);
         robotCache = Collections.synchronizedMap(cache);
         this.logger = logger;
+        this.hostScheduler = new HostScheduler();
+        this.hostCounter = new HostCounter();
     }
 
     /**
@@ -95,6 +97,14 @@ public class RobotsManager {
         skipHosts.add(url.getHost());
     }
 
+    public long getEarliestPullTime(URL url) {
+        return hostScheduler.getEarliestPullTime(url.getHost());
+    }
+
+    public boolean testAndSetIsOkToPullNow(URL url) {
+        return hostScheduler.testAndSetIsOkToPullNow(url.getHost());
+    }
+
     /**
      * Gets the list of paths that are disallowed
      * @param url the url of interest
@@ -118,7 +128,7 @@ public class RobotsManager {
         //"<field>:<optionalspace><value><optionalspace>
         try {
             URL url = new URL("http://" + host + "/robots.txt");
-            URLConnection connection = url.openConnection();
+            URLConnection connection = FeedUtils.openConnection(url, "robots");
             connection.setConnectTimeout(6000);
             connection.setReadTimeout(10000);
 
@@ -219,12 +229,16 @@ class LRUMap<K, V> extends LinkedHashMap<K, V> {
 
 
 class HostCounter {
+    // BUG, make this configurable
     private final static int MAX_HOST_VISITS = 3000;
     private LRUMap<String, Integer> hostMap = new LRUMap();
-    private int calls = 0;
 
     HostCounter() {
         hostMap.setMaxSize(50000);
+    }
+
+    HostCounter(int maxSize) {
+        hostMap.setMaxSize(maxSize);
     }
 
     synchronized boolean checkHost(String host) {
@@ -241,5 +255,69 @@ class HostCounter {
         for (String host : hostMap.keySet()) {
             System.out.println("host counter " + host + " " + hostMap.get(host));
         }
+    }
+}
+
+class HostScheduler {
+    private final static long MIN_PERIOD_MS = 30000L;
+    private LRUMap<String, HostSchedule> hostMap = new LRUMap();
+
+    HostScheduler() {
+        setMaxSize(100000);
+    }
+
+    void setMaxSize(int maxSize) {
+        hostMap.setMaxSize(maxSize);
+    }
+
+
+    long getEarliestPullTime(String host) {
+        return getHostSchedule(host).getEarliestNextPull();
+    }
+
+    synchronized boolean testAndSetIsOkToPullNow(String host) {
+        HostSchedule hs = getHostSchedule(host); 
+        if (hs.getEarliestNextPull() <= System.currentTimeMillis()) {
+            hs.mostRecentPull = System.currentTimeMillis();
+            return true;
+        }
+        return false;
+    }
+
+    void setPeriod(String host, long period) {
+        getHostSchedule(host).period = period;
+    }
+
+    private synchronized HostSchedule getHostSchedule(String host) {
+        HostSchedule hostSchedule = hostMap.get(host);
+        if (hostSchedule == null) {
+            hostSchedule = new HostSchedule(MIN_PERIOD_MS, 0L);
+            hostMap.put(host, hostSchedule);
+        }
+        return hostSchedule;
+    }
+
+    private void dump() {
+        for (String host : hostMap.keySet()) {
+            System.out.println("host timer " + host + " " + hostMap.get(host));
+        }
+    }
+}
+
+class HostSchedule {
+    long period;
+    long mostRecentPull;
+
+    public HostSchedule(long period, long mostRecentPull) {
+        this.period = period;
+        this.mostRecentPull = mostRecentPull;
+    }
+
+    public String toString() {
+        return "period " + period + " sched " + mostRecentPull;
+    }
+
+    public long getEarliestNextPull() {
+        return period + mostRecentPull;
     }
 }

@@ -57,7 +57,7 @@ public class OPMLProcessor {
             throw new IOException("url is null");
         }
 
-        URLConnection connection = opml.openConnection();
+        URLConnection connection = FeedUtils.openConnection(opml, "opml-getFeedURLs");
         connection.setConnectTimeout(30000);
         InputStream is = connection.getInputStream();
 
@@ -98,7 +98,7 @@ public class OPMLProcessor {
 
         InputStream is = null;
         try {
-            URLConnection connection = opml.openConnection();
+            URLConnection connection = FeedUtils.openConnection(opml, "opml-getURLS");
             connection.setConnectTimeout(30000);
             is = connection.getInputStream();
             List<URL> urls = getURLs(is);

@@ -238,7 +238,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         Attention userAttention = StoreFactory.newAttention(user.getKey(), feedURL, type);
         if (dataStore.getItem(feedURL) == null) {
             feedScheduler.addUrlForDiscovery(
-                    new URLForDiscovery(feedURL, URLForDiscovery.HIGH_PRIORITY, userAttention));
+                    new URLForDiscovery(feedURL, URLForDiscovery.Priority.HIGH, userAttention));
         } else {
             dataStore.attend(userAttention);
         }
@@ -384,8 +384,8 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
     private void autoEnroll() {
         try {
             addFeed("http://blogs.sun.com/plamere");
-            //addFeed("http://techcrunch.com");
-            //addFeed("http://slashdot.org");
+            addFeed("http://techcrunch.com");
+            addFeed("http://slashdot.org");
         } catch (AuraException ex) {
             logger.warning("Problem adding feed " + ex);
         } catch (RemoteException ex) {

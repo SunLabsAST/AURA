@@ -341,7 +341,7 @@ public class FeedManager implements AuraService, Configurable {
                         if (target != null) {
                             addAttention(entry.getItem(), target, Attention.Type.LINKS_TO);
                         } else {
-                            queueAttention(entry.getItem(), anchor.getDestURL(), Attention.Type.LINKS_TO, feed.getAuthority());
+                            queueAttention(entry.getItem(), anchor.getDestURL(), Attention.Type.LINKS_TO);
                         }
 
                     }
@@ -387,14 +387,10 @@ public class FeedManager implements AuraService, Configurable {
 
     }
 
-    private void queueAttention(Item src, String targetURL, Attention.Type type, float priority) throws RemoteException {
+    private void queueAttention(Item src, String targetURL, Attention.Type type) throws RemoteException {
         Attention feedAttention = StoreFactory.newAttention(src.getKey(), null, type);
         feedScheduler.addUrlForDiscovery(
-                new URLForDiscovery(targetURL, URLForDiscovery.DEFAULT_PRIORITY + priority - getSeconds(), feedAttention));
-    }
-
-    private float getSeconds() {
-        return (System.currentTimeMillis() - startTime) / 1000f;
+                new URLForDiscovery(targetURL, URLForDiscovery.Priority.NORMAL, feedAttention));
     }
 
     private void addAttention(Item src, Item target, Attention.Type type) throws AuraException, RemoteException {
@@ -487,9 +483,15 @@ public class FeedManager implements AuraService, Configurable {
      */
     private void processIncomingLinkAttentionData(DataStore myDataStore, BlogFeed feed) throws AuraException, RemoteException {
         List<Attention> incoming = myDataStore.getAttentionForTarget(feed.getKey());
+        int count = 0;
         if (incoming != null) {
-            feed.setNumIncomingLinks(incoming.size());
+            for (Attention attn : incoming) {
+                if (attn.getType() == Attention.Type.LINKS_TO) {
+                    count++;
+                }
+            }
         }
+        feed.setNumIncomingLinks(count);
     }
 
     /**
