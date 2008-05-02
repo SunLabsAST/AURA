@@ -35,10 +35,6 @@
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library files="1">
-                    <file>${file.reference.ktsearch.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
                     <file>${file.reference.commons-logging-1.03.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
@@ -84,6 +80,10 @@
                 </library>
                 <library files="1">
                     <file>${file.reference.xmlsec-1.1.jar}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library files="1">
+                    <file>${file.reference.ktsearch.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
             </web-module-libraries>

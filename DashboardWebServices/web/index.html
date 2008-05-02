@@ -5,40 +5,51 @@
 -->
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
-  <head>
+    <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <link rel="stylesheet" type="text/css" href="/style/aardvark.css"/>
-        <link rel="Shortcut Icon" href="/favicon.ico"/>
+        <link rel="stylesheet" type="text/css" href="style/aardvark.css"/>
+        <link rel="Shortcut Icon" href="DashboardWebServices/favicon.ico"/>
         <title>Aardvark Dashboad WebServices</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  </head>
-  <body>
-
-    <div align="center">
-        <img src="images/aardvark-welcome.gif">
-    <div class="tryit">
-    <b>Item Query:</b>
-        <input type="text" size="60" onChange="window.location = 'Show?op=query&query=' + this.value;" /> 
-    </div>
-    </div>
-
-    <p>
-    <div align="left">
-      Welcome to the Aardvark Dashboard web services. There are a few web
-      services that assist the developers in exploring the database.
-      <ul>
-          <li> <a href="Show?op=feedAuthority&num=1000">Feed Authority</a> 
-            - show high authority feeds
-          <li> <a href="Show?op=entryAuthority&num=1000">Entry Authority</a> 
-            - show high authority entries
-          <li> <a href="Show?op=users&num=1000">Users</a> 
-            - show users
-          <li> <a href="Show?op=status">Status</a> 
-            - show system status
-      </ul>
-                  <p>
-    <p>
-
-</div>
-</body>
+    </head>
+    <body>
+        
+        <div align="center">
+            <img src="images/aardvark-welcome.gif">
+            <div class="tryit">
+                <b>Blog search:</b>
+                <input type="text" size="60" onChange="window.location = 'Show?op=query&query=' + this.value;" /> 
+            </div>
+        </div>
+        
+        <p>
+        <div class="bigMargin">
+            Welcome to the Aardvark Dashboard. The Dashboard can be used
+            to explore the Aardvark database.
+            <ul>
+                <li> <a href="Show?op=feedAuthority&num=1000">Feed Authority</a> 
+                - show high authority feeds
+                <li> <a href="Show?op=entryAuthority&num=1000">Entry Authority</a> 
+                - show high authority entries
+                <li> <a href="Show?op=users&num=1000">Users</a> 
+                - show users
+                <li> <a href="Show?op=status">Status</a> 
+                - show system status
+            </ul>
+        </div>
+        <p>
+        <p>
+        <div style="padding: 30px;"></div>
+        <div align="center">
+            <div style="width: 50%">
+                <div class="statusMsg">
+                    <span class="smallGreenTxt">
+                        WARNING: This is a restricted access server. If you do not have  
+                        explicit permission to be accessing this system, please leave  
+                        immediately. Unauthorized access to this system is illegal.
+                    </span>
+                </div>
+            </div>
+        </div>
+    </body>
 </html>

@@ -20,7 +20,7 @@ body {
   color: black;
   font-family: Arial, sans-serif;
   font-size: small;
-  margin: 5px;
+  margin: 10px;
 }
 
 div.main {
@@ -44,6 +44,20 @@ div.topCling {
   padding: 2px 0px 0px 4px;
 }
 
+div.indented-table {
+    padding-left: 20px;
+}
+
+
+div.indented-table td {
+    font-size: small;
+}
+
+div.title {
+  font-size: 16px;
+  font-weight: bold;
+}
+
 
 .openidField {
   background: #FFFFFF url('../images/openid-small.gif') no-repeat scroll 0pt 50%;
@@ -54,6 +68,21 @@ div.topCling {
   color: #E76F00;
   font-size: X-large;
   font-weight: bold;
+}
+
+div.statusMsg {
+  border: 1px solid;
+  padding: 5px;
+  margin-top: 15px;
+  display: table;
+  text-align: center;
+}
+
+
+.bigMargin {
+    margin-top: 30px;
+    margin-left: 25%;
+    margin-right: 20%;
 }
 
 .blueTxt {
@@ -72,3 +101,4 @@ tr.even td {background-color:#fff;}
 a img{
 border:0;
 }
+  TD         { padding-right: 10px; }
