@@ -17,17 +17,18 @@ import javax.servlet.http.*;
  * Generates a feed for a user
  */
 public class Feed extends HttpServlet {
+
     protected Logger logger = Logger.getLogger("");
-    
+
     /** 
-    * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
-    * @param request servlet request
-    * @param response servlet response
-    */
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
+     * @param request servlet request
+     * @param response servlet response
+     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         ServletContext context = getServletContext();
-        Aardvark aardvark = (Aardvark)context.getAttribute("aardvark");
+        Aardvark aardvark = (Aardvark) context.getAttribute("aardvark");
 
         //
         // Get the feed based on the URL string that was provided.  This should
@@ -36,54 +37,59 @@ public class Feed extends HttpServlet {
         String[] pathParts = pathInfo.split("/");
         String randStr = pathParts[1];
         String feedName = pathParts[2];
-       
+
         try {
             User u = aardvark.getUserByRandomString(randStr);
-            SyndFeed feed = null;
-            if (feedName.equals("default")) {
-                feed = aardvark.getRecommendedFeed(u, 1);
-            } else if (feedName.equals("flood")) {
-                feed = aardvark.getRecommendedFeed(u, 10);
+            if (u != null) {
+                SyndFeed feed = null;
+                if (feedName.equals("default")) {
+                    feed = aardvark.getRecommendedFeed(u, 1);
+                } else if (feedName.equals("flood")) {
+                    feed = aardvark.getRecommendedFeed(u, 10);
+                }
+                SyndFeedOutput output = new SyndFeedOutput();
+                feed.setFeedType("rss_2.0");
+                feed.setLink(request.getRequestURL().toString());
+                String feedXML = output.outputString(feed);
+                response.setContentType("application/atom+xml");
+                PrintWriter out = response.getWriter();
+                out.println(feedXML);
+                out.close();
+            } else {
+                // couldn't find user;
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown user");
             }
-            SyndFeedOutput output = new SyndFeedOutput();
-            feed.setFeedType("rss_2.0");
-            feed.setLink(request.getRequestURL().toString());
-            String feedXML = output.outputString(feed);
-            response.setContentType("application/atom+xml");
-            PrintWriter out = response.getWriter();
-            out.println(feedXML);
-            out.close();
         } catch (AuraException e) {
             Shared.forwardToError(context, request, response, e);
         } catch (FeedException fe) {
             Shared.forwardToError(context, request, response, fe);
         }
-    } 
+    }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /** 
-    * Handles the HTTP <code>GET</code> method.
-    * @param request servlet request
-    * @param response servlet response
-    */
+     * Handles the HTTP <code>GET</code> method.
+     * @param request servlet request
+     * @param response servlet response
+     */
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        processRequest(request, response);
-    } 
-
-    /** 
-    * Handles the HTTP <code>POST</code> method.
-    * @param request servlet request
-    * @param response servlet response
-    */
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         processRequest(request, response);
     }
 
     /** 
-    * Returns a short description of the servlet.
-    */
+     * Handles the HTTP <code>POST</code> method.
+     * @param request servlet request
+     * @param response servlet response
+     */
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /** 
+     * Returns a short description of the servlet.
+     */
     public String getServletInfo() {
         return "Short description";
     }
