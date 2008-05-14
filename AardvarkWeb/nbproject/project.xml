@@ -31,10 +31,6 @@
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library files="1">
-                    <file>${file.reference.ktsearch.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
                     <file>${file.reference.LabsUtil.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
