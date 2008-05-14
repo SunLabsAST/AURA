@@ -18,6 +18,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.dbbrowser.client.DBService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.minion.util.StopWatch;
 import java.rmi.RemoteException;
 import java.util.List;
 import java.util.logging.Level;
@@ -25,7 +26,6 @@ import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import ngnova.util.StopWatch;
 
 /**
  *
