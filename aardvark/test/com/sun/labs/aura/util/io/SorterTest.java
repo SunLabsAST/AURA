@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.util.io;
 
+import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.util.SimpleLabsLogFormatter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -13,7 +14,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
-import ngnova.util.NanoWatch;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

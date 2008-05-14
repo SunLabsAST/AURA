@@ -6,26 +6,22 @@
  */
 package com.sun.labs.aura.util.classifiers;
 
-import com.sun.kt.search.Log;
-import com.sun.kt.search.Result;
-import com.sun.kt.search.ResultSet;
-import com.sun.kt.search.SearchEngine;
-import com.sun.kt.search.SearchEngineFactory;
+import com.sun.labs.minion.Log;
+import com.sun.labs.minion.SearchEngine;
+import com.sun.labs.minion.SearchEngineFactory;
+import com.sun.labs.minion.classification.ClassifierModel;
+import com.sun.labs.minion.engine.SearchEngineImpl;
+import com.sun.labs.minion.indexer.partition.DiskPartition;
+import com.sun.labs.minion.indexer.partition.InvFileDiskPartition;
+import com.sun.labs.minion.util.Getopt;
 import com.sun.labs.util.SimpleLabsLogFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
-import ngnova.classification.ClassifierModel;
-import ngnova.classification.Rocchio;
-import ngnova.engine.SearchEngineImpl;
-import ngnova.indexer.partition.DiskPartition;
-import ngnova.indexer.partition.InvFileDiskPartition;
-import ngnova.util.Getopt;
 
 /**
  * Evaluates the performance of a set of classifiers on a set of test data.
@@ -228,7 +224,7 @@ public class EvaluateClassifiers {
         }
 
         logger.info("Evaluated " + p + " classes\n");
-        ngnova.util.Util.sort(tables, 0, p, new Comparator<ContingencyTable>() {
+        com.sun.labs.minion.util.Util.sort(tables, 0, p, new Comparator<ContingencyTable>() {
             public int compare(ContingencyTable o1, ContingencyTable o2) {
                 return (o1.test + o1.train) - (o2.test + o2.train);
             }

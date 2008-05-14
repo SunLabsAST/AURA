@@ -1,14 +1,19 @@
 package com.sun.labs.aura.util;
 
-import com.sun.kt.search.IndexListener;
-import com.sun.kt.search.Log;
-import com.sun.kt.search.SearchEngine;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper;
 import com.sun.labs.aura.datastore.impl.store.ItemSearchEngine;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
+import com.sun.labs.minion.IndexListener;
+import com.sun.labs.minion.Log;
+import com.sun.labs.minion.SearchEngine;
+import com.sun.labs.minion.engine.SearchEngineImpl;
+import com.sun.labs.minion.indexer.entry.DocKeyEntry;
+import com.sun.labs.minion.indexer.partition.InvFileDiskPartition;
+import com.sun.labs.minion.util.Getopt;
+import com.sun.labs.minion.util.StopWatch;
 import com.sun.labs.util.SimpleLabsLogFormatter;
 import java.io.File;
 import java.io.Serializable;
@@ -18,11 +23,6 @@ import java.util.Set;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import ngnova.engine.SearchEngineImpl;
-import ngnova.indexer.entry.DocKeyEntry;
-import ngnova.indexer.partition.InvFileDiskPartition;
-import ngnova.util.Getopt;
-import ngnova.util.StopWatch;
 
 /**
  * Indexes the data in a number of BDBs into a single search index.

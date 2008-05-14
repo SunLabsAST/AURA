@@ -4,10 +4,8 @@
  */
 package com.sun.labs.aura.util;
 
-import java.io.Serializable;
 
 import java.io.Serializable;
-import ngnova.util.Util;
 
 /**
  * Items that have a score associated with them, as well as additional sorting

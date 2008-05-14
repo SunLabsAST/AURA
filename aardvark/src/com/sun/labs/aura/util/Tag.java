@@ -9,7 +9,7 @@
 
 package com.sun.labs.aura.util;
 
-import com.sun.kt.search.Posting;
+import com.sun.labs.minion.Posting;
 import java.io.Serializable;
 
 /**

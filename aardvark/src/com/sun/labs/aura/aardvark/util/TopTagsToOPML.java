@@ -6,15 +6,11 @@ package com.sun.labs.aura.aardvark.util;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.URL;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import ngnova.document.tokenizer.UniversalTokenizer;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 

@@ -5,8 +5,8 @@
 
 package com.sun.labs.aura.util.classifiers;
 
-import com.sun.kt.search.FieldFrequency;
-import com.sun.kt.search.SearchEngine;
+import com.sun.labs.minion.FieldFrequency;
+import com.sun.labs.minion.SearchEngine;
 import java.util.ArrayList;
 import java.util.List;
 

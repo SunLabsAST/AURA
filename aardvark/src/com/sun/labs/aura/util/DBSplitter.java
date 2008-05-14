@@ -8,10 +8,10 @@ import com.sun.labs.aura.datastore.impl.DSBitSet;
 import com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
+import com.sun.labs.minion.util.Getopt;
+import com.sun.labs.minion.util.StopWatch;
 import java.io.File;
 import java.util.logging.Logger;
-import ngnova.util.Getopt;
-import ngnova.util.StopWatch;
 
 /**
  * Used to split a database node into N nodes (where N should be a power of 2).

@@ -5,9 +5,9 @@
 
 package com.sun.labs.aura.aardvark.impl.recommender;
 
-import com.sun.kt.search.ResultAccessor;
-import com.sun.kt.search.ResultsFilter;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.minion.ResultAccessor;
+import com.sun.labs.minion.ResultsFilter;
 import java.io.Serializable;
 
 /**

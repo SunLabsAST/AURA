@@ -6,7 +6,7 @@
  */
 package com.sun.labs.aura.aardvark.impl.recommender;
 
-import com.sun.kt.search.ResultAccessor;
+import com.sun.labs.minion.ResultAccessor;
 import java.io.Serializable;
 
 /**

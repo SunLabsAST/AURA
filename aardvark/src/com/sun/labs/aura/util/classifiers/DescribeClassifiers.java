@@ -9,17 +9,17 @@
 
 package com.sun.labs.aura.util.classifiers;
 
-import com.sun.kt.search.Log;
-import com.sun.kt.search.Result;
-import com.sun.kt.search.SearchEngine;
-import com.sun.kt.search.SearchEngineFactory;
+import com.sun.labs.minion.Log;
+import com.sun.labs.minion.Result;
+import com.sun.labs.minion.SearchEngine;
+import com.sun.labs.minion.SearchEngineFactory;
+import com.sun.labs.minion.classification.ClassifierModel;
+import com.sun.labs.minion.classification.ExplainableClassifierModel;
+import com.sun.labs.minion.engine.SearchEngineImpl;
+import com.sun.labs.minion.util.Getopt;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import ngnova.classification.ClassifierModel;
-import ngnova.classification.ExplainableClassifierModel;
-import ngnova.engine.SearchEngineImpl;
-import ngnova.util.Getopt;
 
 /**
  *
