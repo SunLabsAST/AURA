@@ -12,10 +12,10 @@
 
 package com.sun.labs.aura.cluster;
 
-import com.sun.kt.search.DocumentVector;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.minion.DocumentVector;
+import com.sun.labs.minion.clustering.ClusterUtil;
 import java.io.Serializable;
-import ngnova.clustering.ClusterUtil;
 
 /**
  * A single element in a results cluster.

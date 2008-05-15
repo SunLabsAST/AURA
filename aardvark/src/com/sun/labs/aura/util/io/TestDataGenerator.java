@@ -5,14 +5,14 @@
 
 package com.sun.labs.aura.util.io;
 
-import com.sun.kt.search.SearchEngineFactory;
+import com.sun.labs.minion.SearchEngineFactory;
+import com.sun.labs.minion.engine.SearchEngineImpl;
+import com.sun.labs.minion.indexer.dictionary.DictionaryIterator;
+import com.sun.labs.minion.indexer.entry.QueryEntry;
+import com.sun.labs.minion.indexer.partition.DiskPartition;
+import com.sun.labs.minion.indexer.partition.InvFileDiskPartition;
 import java.util.HashMap;
 import java.util.Map;
-import ngnova.engine.SearchEngineImpl;
-import ngnova.indexer.dictionary.DictionaryIterator;
-import ngnova.indexer.entry.QueryEntry;
-import ngnova.indexer.partition.DiskPartition;
-import ngnova.indexer.partition.InvFileDiskPartition;
 
 /**
  *

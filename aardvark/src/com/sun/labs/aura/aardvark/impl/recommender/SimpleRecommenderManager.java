@@ -8,8 +8,6 @@
  */
 package com.sun.labs.aura.aardvark.impl.recommender;
 
-import com.sun.kt.search.CompositeResultsFilter;
-import com.sun.kt.search.ResultsFilter;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.util.Times;
@@ -25,6 +23,8 @@ import com.sun.labs.aura.recommender.Recommendation;
 import com.sun.labs.aura.recommender.RecommenderProfile;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.minion.CompositeResultsFilter;
+import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;

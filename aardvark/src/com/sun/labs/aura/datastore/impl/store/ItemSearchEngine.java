@@ -1,23 +1,37 @@
 package com.sun.labs.aura.datastore.impl.store;
 
-import com.sun.kt.search.CompositeResultsFilter;
-import com.sun.kt.search.DocumentVector;
-import com.sun.kt.search.FieldInfo;
-import com.sun.kt.search.FieldValue;
-import com.sun.kt.search.IndexableString;
-import com.sun.kt.search.Log;
-import com.sun.kt.search.Posting;
-import com.sun.kt.search.Result;
-import com.sun.kt.search.ResultSet;
-import com.sun.kt.search.ResultsFilter;
-import com.sun.kt.search.SearchEngine;
-import com.sun.kt.search.SearchEngineException;
-import com.sun.kt.search.SearchEngineFactory;
-import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.datastore.Indexable;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.minion.CompositeResultsFilter;
+import com.sun.labs.minion.DocumentVector;
+import com.sun.labs.minion.FieldInfo;
+import com.sun.labs.minion.FieldValue;
+import com.sun.labs.minion.IndexableString;
+import com.sun.labs.minion.Log;
+import com.sun.labs.minion.Posting;
+import com.sun.labs.minion.Result;
+import com.sun.labs.minion.ResultSet;
+import com.sun.labs.minion.ResultsFilter;
+import com.sun.labs.minion.SearchEngine;
+import com.sun.labs.minion.SearchEngineException;
+import com.sun.labs.minion.SearchEngineFactory;
+import com.sun.labs.minion.WeightedField;
+import com.sun.labs.minion.classification.ClassifierModel;
+import com.sun.labs.minion.classification.ExplainableClassifierModel;
+import com.sun.labs.minion.classification.FeatureCluster;
+import com.sun.labs.minion.classification.WeightedFeature;
+import com.sun.labs.minion.engine.SearchEngineImpl;
+import com.sun.labs.minion.indexer.entry.DocKeyEntry;
+import com.sun.labs.minion.indexer.partition.InvFileDiskPartition;
+import com.sun.labs.minion.retrieval.DocumentVectorImpl;
+import com.sun.labs.minion.retrieval.FieldEvaluator;
+import com.sun.labs.minion.retrieval.FieldTerm;
+import com.sun.labs.minion.retrieval.ResultImpl;
+import com.sun.labs.minion.retrieval.ResultSetImpl;
+import com.sun.labs.minion.util.NanoWatch;
+import com.sun.labs.minion.util.Util;
 import com.sun.labs.util.props.ConfigDouble;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
@@ -41,20 +55,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import ngnova.classification.ClassifierModel;
-import ngnova.classification.ExplainableClassifierModel;
-import ngnova.classification.FeatureCluster;
-import ngnova.classification.WeightedFeature;
-import ngnova.engine.SearchEngineImpl;
-import ngnova.indexer.entry.DocKeyEntry;
-import ngnova.indexer.partition.InvFileDiskPartition;
-import ngnova.retrieval.DocumentVectorImpl;
-import ngnova.retrieval.FieldEvaluator;
-import ngnova.retrieval.FieldTerm;
-import ngnova.retrieval.ResultImpl;
-import ngnova.retrieval.ResultSetImpl;
-import ngnova.util.NanoWatch;
-import ngnova.util.Util;
 
 /**
  * A search engine for the data associated with items in the item store.
@@ -538,7 +538,7 @@ public class ItemSearchEngine implements Configurable {
             // we don't want to send across the wire, so we should see what if
             // there's one of these in there.
             Throwable ex = see.getCause();
-            if(ex instanceof ngnova.retrieval.parser.ParseException ||
+            if(ex instanceof com.sun.labs.minion.retrieval.parser.ParseException ||
                     ex instanceof java.text.ParseException) {
                 throw new AuraException("Error parsing query: " +
                         ex.getMessage());

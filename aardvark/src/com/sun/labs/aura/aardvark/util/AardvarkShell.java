@@ -8,8 +8,6 @@ package com.sun.labs.aura.aardvark.util;
  *
  * @author plamere
  */
-import com.sun.kt.search.FieldFrequency;
-import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.aardvark.BlogEntry;
@@ -27,6 +25,9 @@ import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.StatService;
 import com.sun.labs.aura.util.Tag;
+import com.sun.labs.minion.FieldFrequency;
+import com.sun.labs.minion.WeightedField;
+import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.util.command.CommandInterface;
 import com.sun.labs.util.command.CommandInterpreter;
 import com.sun.labs.util.props.ConfigComponent;
@@ -50,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
-import ngnova.util.NanoWatch;
 
 /**
  * Manages the set of feed crawling threads

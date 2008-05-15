@@ -1,12 +1,12 @@
 package com.sun.labs.aura.datastore.impl.store;
 
-import com.sun.kt.search.FieldFrequency;
-import com.sun.kt.search.ResultsFilter;
-import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.cluster.Cluster;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.minion.FieldFrequency;
+import com.sun.labs.minion.ResultsFilter;
+import com.sun.labs.minion.WeightedField;
 import java.rmi.RemoteException;
 import java.util.List;
 

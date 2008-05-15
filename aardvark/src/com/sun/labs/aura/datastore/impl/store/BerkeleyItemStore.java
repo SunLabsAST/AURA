@@ -2,12 +2,6 @@ package com.sun.labs.aura.datastore.impl.store;
 
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sleepycat.je.DatabaseException;
-import com.sun.kt.search.DocumentVector;
-import com.sun.kt.search.FieldFrequency;
-import com.sun.kt.search.IndexListener;
-import com.sun.kt.search.ResultsFilter;
-import com.sun.kt.search.SearchEngine;
-import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
@@ -23,6 +17,13 @@ import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.minion.DocumentVector;
+import com.sun.labs.minion.FieldFrequency;
+import com.sun.labs.minion.IndexListener;
+import com.sun.labs.minion.ResultsFilter;
+import com.sun.labs.minion.SearchEngine;
+import com.sun.labs.minion.WeightedField;
+import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigString;
@@ -44,8 +45,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import ngnova.util.NanoWatch;
-import ngnova.util.NanoWatch;
 
 /**
  * An implementation of the item store using the berkeley database as a back

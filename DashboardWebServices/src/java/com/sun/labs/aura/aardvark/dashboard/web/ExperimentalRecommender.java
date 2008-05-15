@@ -10,13 +10,10 @@ package com.sun.labs.aura.aardvark.dashboard.web;
  */
 
 
-import com.sun.kt.search.CompositeResultsFilter;
-import com.sun.kt.search.ResultsFilter;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.impl.recommender.DateExclusionFilter;
 import com.sun.labs.aura.aardvark.impl.recommender.FieldExclusionFilter;
 import com.sun.labs.aura.aardvark.impl.recommender.FieldRangeFilter;
-import com.sun.labs.aura.aardvark.impl.recommender.LengthFilter;
 import com.sun.labs.aura.aardvark.impl.recommender.TypeFilter;
 import com.sun.labs.aura.aardvark.util.Times;
 import com.sun.labs.aura.datastore.Attention;
@@ -30,6 +27,8 @@ import com.sun.labs.aura.recommender.Recommendation;
 import com.sun.labs.aura.recommender.RecommenderProfile;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.minion.CompositeResultsFilter;
+import com.sun.labs.minion.ResultsFilter;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;

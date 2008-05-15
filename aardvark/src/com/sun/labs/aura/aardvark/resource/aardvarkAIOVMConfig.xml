@@ -70,6 +70,7 @@
         <property name="lateTime" value="3600"/>
         <property name="logLevel" value="INFO"/>
         <property name="stateDir" value="${cacheDir}/feed"/>
+        <property name="maxFeeds" value="20000"/>
     </component>
     
     <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager">

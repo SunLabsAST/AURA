@@ -18,7 +18,7 @@
         <property name="stopwords" value="stopwords"/>
     </component>
     
-    <component name="stopwords" type="ngnova.pipeline.StopWords">
+    <component name="stopwords" type="com.sun.labs.minion.pipeline.StopWords">
         <propertylist name="stopwords_files">
             <item>/com/sun/labs/aura/aardvark/resource/stopwords</item>
         </propertylist>

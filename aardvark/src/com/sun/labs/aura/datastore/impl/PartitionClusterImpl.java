@@ -1,9 +1,5 @@
 package com.sun.labs.aura.datastore.impl;
 
-import com.sun.kt.search.DocumentVector;
-import com.sun.kt.search.FieldFrequency;
-import com.sun.kt.search.ResultsFilter;
-import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
@@ -15,6 +11,10 @@ import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.minion.DocumentVector;
+import com.sun.labs.minion.FieldFrequency;
+import com.sun.labs.minion.ResultsFilter;
+import com.sun.labs.minion.WeightedField;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
@@ -23,7 +23,6 @@ import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

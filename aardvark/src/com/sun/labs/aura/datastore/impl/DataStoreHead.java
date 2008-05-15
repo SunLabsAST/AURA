@@ -1,10 +1,6 @@
 
 package com.sun.labs.aura.datastore.impl;
 
-import com.sun.kt.search.DocumentVector;
-import com.sun.kt.search.FieldFrequency;
-import com.sun.kt.search.ResultsFilter;
-import com.sun.kt.search.WeightedField;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.cluster.Cluster;
 import com.sun.labs.aura.cluster.KMeans;
@@ -12,7 +8,6 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
 import com.sun.labs.aura.datastore.DataStore;
-import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
@@ -21,7 +16,13 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator;
 import com.sun.labs.aura.util.Scored;
-import com.sun.labs.aura.util.Scored;
+import com.sun.labs.minion.DocumentVector;
+import com.sun.labs.minion.FieldFrequency;
+import com.sun.labs.minion.ResultsFilter;
+import com.sun.labs.minion.WeightedField;
+import com.sun.labs.minion.pipeline.StopWords;
+import com.sun.labs.minion.retrieval.MultiDocumentVectorImpl;
+import com.sun.labs.minion.util.StopWatch;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -33,7 +34,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -47,9 +47,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import ngnova.pipeline.StopWords;
-import ngnova.retrieval.MultiDocumentVectorImpl;
-import ngnova.util.StopWatch;
 
 /**
  * A instance of an access point into the Data Store.  Data Store Heads
@@ -69,7 +66,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     
     protected static Logger logger = Logger.getLogger("");
     
-    @ConfigComponent(type=ngnova.pipeline.StopWords.class,mandatory=false)
+    @ConfigComponent(type=com.sun.labs.minion.pipeline.StopWords.class,mandatory=false)
     public static final String PROP_STOPWORDS = "stopwords";
     protected StopWords stop;
 

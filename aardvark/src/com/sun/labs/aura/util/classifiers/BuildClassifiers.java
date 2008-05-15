@@ -5,13 +5,16 @@
  */
 package com.sun.labs.aura.util.classifiers;
 
-import com.sun.kt.search.Log;
-import com.sun.kt.search.Progress;
-import com.sun.kt.search.ResultAccessor;
-import com.sun.kt.search.ResultSet;
-import com.sun.kt.search.ResultsFilter;
-import com.sun.kt.search.SearchEngine;
-import com.sun.kt.search.SearchEngineFactory;
+import com.sun.labs.minion.Log;
+import com.sun.labs.minion.Progress;
+import com.sun.labs.minion.ResultAccessor;
+import com.sun.labs.minion.ResultSet;
+import com.sun.labs.minion.ResultsFilter;
+import com.sun.labs.minion.SearchEngine;
+import com.sun.labs.minion.SearchEngineFactory;
+import com.sun.labs.minion.pipeline.StopWords;
+import com.sun.labs.minion.util.Getopt;
+import com.sun.labs.minion.util.StopWatch;
 import com.sun.labs.util.SimpleLabsLogFormatter;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -24,9 +27,6 @@ import java.util.Set;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import ngnova.pipeline.StopWords;
-import ngnova.util.Getopt;
-import ngnova.util.StopWatch;
 
 /**
  * A class to build search engine classifiers for the aardvark data.

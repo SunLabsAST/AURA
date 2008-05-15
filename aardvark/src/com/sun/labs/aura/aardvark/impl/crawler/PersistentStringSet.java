@@ -6,10 +6,10 @@
  */
 package com.sun.labs.aura.aardvark.impl.crawler;
 
-import com.sun.kt.search.SearchEngine;
-import com.sun.kt.search.SearchEngineException;
-import com.sun.kt.search.SearchEngineFactory;
-import com.sun.kt.search.SimpleIndexer;
+import com.sun.labs.minion.SearchEngine;
+import com.sun.labs.minion.SearchEngineException;
+import com.sun.labs.minion.SearchEngineFactory;
+import com.sun.labs.minion.SimpleIndexer;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashSet;

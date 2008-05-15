@@ -91,7 +91,7 @@ public class Cluster implements Comparable<Cluster>, Serializable {
             }
         }
         HE[] x = top.values().toArray(new HE[0]);
-        ngnova.util.Util.sort(x);
+        com.sun.labs.minion.util.Util.sort(x);
         List<String> ret = new ArrayList<String>();
         for(int i = 0; i < n && i < x.length;
                 i++) {

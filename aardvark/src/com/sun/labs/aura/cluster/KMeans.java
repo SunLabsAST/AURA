@@ -14,6 +14,15 @@ package com.sun.labs.aura.cluster;
 
 import com.sun.labs.aura.datastore.impl.DataStoreHead;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.minion.classification.Feature;
+import com.sun.labs.minion.classification.FeatureCluster;
+import com.sun.labs.minion.classification.FeatureClusterSet;
+import com.sun.labs.minion.classification.WeightedFeature;
+import com.sun.labs.minion.classification.WeightedFeatureClusterer;
+import com.sun.labs.minion.classification.WeightedFeatureSelector;
+import com.sun.labs.minion.clustering.ClusterUtil;
+import com.sun.labs.minion.retrieval.DocumentVectorImpl;
+import com.sun.labs.minion.util.StopWatch;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,16 +30,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
-import ngnova.classification.Feature;
-import ngnova.classification.FeatureCluster;
-import ngnova.classification.FeatureClusterSet;
-import ngnova.classification.WeightedFeature;
-import ngnova.classification.WeightedFeatureClusterer;
-import ngnova.classification.WeightedFeatureSelector;
-import ngnova.clustering.ClusterUtil;
-import ngnova.retrieval.DocumentVectorImpl;
-import ngnova.util.StopWatch;
 
 /**
  * A K means clustering algorithm for items from a data store.
