@@ -15,7 +15,12 @@ public interface Item extends Serializable {
         FEED,
         BLOGENTRY,
         ALBUM,
-        TRACK
+        TRACK,
+        ARTIST,
+        PHOTO,
+        VIDEO,
+        EVENT,
+        VENUE
     }
 
     /**

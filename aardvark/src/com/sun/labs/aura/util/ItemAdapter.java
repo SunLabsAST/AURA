@@ -73,8 +73,8 @@ public class ItemAdapter implements Serializable {
     }
 
     /**
-     * Gets the time  when this item was added
-     * @return milliseconds fro the epoch
+     * Gets the time when this item was added
+     * @return milliseconds from the epoch
      */
     public long getTimeAdded() {
         return item.getTimeAdded();
@@ -333,6 +333,30 @@ public class ItemAdapter implements Serializable {
             tag.accum(count);
         }
         modified = true;
+    }
+    
+    /**
+     * Adds an object to an artist
+     * @param <T>
+     * @param field the name of the field
+     * @param key the key to use (probably the ID of the object being added)
+     * @param o the object to add
+     */
+    protected <K,V> void addObjectToMap(String field, K key, V o) {
+        // If no map exists, create one
+        HashMap<K,V> objMap = (HashMap<K,V>) getFieldAsObject(field);
+        if (objMap == null) {
+            objMap = new HashMap<K,V>();
+            item.getMap().put(field, objMap);
+        }
+        
+        // If the key already exists, replace it with version being passed
+        if (objMap.containsKey(key)) {
+            objMap.remove(key);
+        }
+        objMap.put(key, o);
+        
+        modified=true;
     }
 
     @Override

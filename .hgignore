@@ -6,3 +6,8 @@ dist/
 build/
 private/
 *.orig
+\.orig\..*$
+\.orig$
+\.chg\..*$
+\.rej$
+\.conflict\~$
