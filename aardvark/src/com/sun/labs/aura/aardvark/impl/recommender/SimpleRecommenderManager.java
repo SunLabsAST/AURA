@@ -8,6 +8,7 @@
  */
 package com.sun.labs.aura.aardvark.impl.recommender;
 
+import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.util.Times;
@@ -19,6 +20,9 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.recommender.FieldExclusionFilter;
+import com.sun.labs.aura.recommender.FieldRangeFilter;
+import com.sun.labs.aura.recommender.LengthFilter;
 import com.sun.labs.aura.recommender.Recommendation;
 import com.sun.labs.aura.recommender.RecommenderProfile;
 import com.sun.labs.aura.util.AuraException;
