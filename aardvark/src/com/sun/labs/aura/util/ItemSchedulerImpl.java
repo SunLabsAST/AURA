@@ -211,7 +211,6 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
         } catch (RemoteException ex) {
             logger.severe("Can't get items from the store " + ex.getMessage());
         }
-        
     }
 
     /**
@@ -231,7 +230,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
      */
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
-    private DataStore dataStore;
+    protected DataStore dataStore;
     /**
      * the confieurable property for type of item to be managed
      */

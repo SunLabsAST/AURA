@@ -5,6 +5,8 @@
 package com.sun.labs.aura.aardvark.impl.crawler;
 
 import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemSchedulerImpl;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
@@ -39,6 +41,7 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
     private final static String FEED_STATE = "feed.state";
     private final static String VISITED_STATE = "visited.state";
     private DelayQueue<URLForDiscovery> feedDiscoveryQueue;
+    private boolean discoveryEnabled = true;
 
     public FeedSchedulerImpl() {
         feedDiscoveryQueue = new DelayQueue();
@@ -53,6 +56,8 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
             userAgent = ps.getString(PROP_USER_AGENT);
             stateDir = ps.getString(PROP_STATE_DIR);
             robotsManager = new RobotsManager(userAgent, robotsCacheSize, logger);
+            maxFeeds = ps.getInt(PROP_MAX_FEEDS);
+
             // add hosts to skip
             // BUG this should be configurable, and probably it is best to do
             // this another way.
@@ -119,6 +124,13 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
             try {
                 URL url = new URL(ufd.getUrl());
                 if (ufd.getPriority() == URLForDiscovery.Priority.NORMAL) {
+                    //System.out.println("size " + getNumFeeds() + " max " +maxFeeds);
+                    if (getNumFeeds() >= maxFeeds) {
+                        discoveryEnabled = false;
+                        logger.info("Discovery disabled: at max feeds, ignoring discovery for " + ufd.getUrl());
+                        ufd = null;
+                        continue;
+                    }
                     if (!robotsManager.testAndSetIsOkToPullNow(url)) {
                         ufd.setNextProcessingTime(robotsManager.getEarliestPullTime(url));
                         feedDiscoveryQueue.add(ufd);
@@ -139,6 +151,18 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
         logger.info("Discover: (" + (fss.pulled++) + "/" + feedDiscoveryQueue.size() + ") " + ufd.getUrl());
         return ufd;
     }
+    
+
+    private int getNumFeeds() {
+        try {
+            return (int) dataStore.getItemCount(ItemType.FEED);
+        } catch (AuraException ex) {
+            return size();
+        } catch (RemoteException ex) {
+            return size();
+        }
+    }
+
 
     private void reportPosition(String msg, String s) {
         List<URLForDiscovery> list = new ArrayList(feedDiscoveryQueue);
@@ -226,6 +250,9 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
      */
     private boolean isGoodToVisit(URLForDiscovery ufd) {
 
+        if (ufd.getPriority() != URLForDiscovery.Priority.HIGH && !discoveryEnabled) {
+            return false;
+        }
 
         String surl = ufd.getUrl();
 
@@ -287,6 +314,10 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
     @ConfigString(defaultValue = "feedScheduler")
     public final static String PROP_STATE_DIR = "stateDir";
     private String stateDir;
+
+    @ConfigInteger(defaultValue = 100000, range = { 10, Integer.MAX_VALUE})
+    public final static String PROP_MAX_FEEDS = "maxFeeds";
+    private int maxFeeds;
 }
 
 class FeedSchedulerState implements Serializable {
