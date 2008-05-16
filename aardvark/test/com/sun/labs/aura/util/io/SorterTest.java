@@ -5,14 +5,13 @@
 package com.sun.labs.aura.util.io;
 
 import com.sun.labs.minion.util.NanoWatch;
-import com.sun.labs.util.SimpleLabsLogFormatter;
+import com.sun.labs.aura.TestUtilities;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Handler;
 import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -26,16 +25,11 @@ import static org.junit.Assert.*;
  * @author stgreen
  */
 public class SorterTest extends TestSupport {
-
+    static Logger log;
+    
     @BeforeClass
     public static void setUpClass() throws Exception {
-        //
-        // Use the labs format logging.
-        Logger rl = Logger.getLogger("");
-        for(Handler h : rl.getHandlers()) {
-            h.setFormatter(new SimpleLabsLogFormatter());
-        }
-
+        log = TestUtilities.getLogger(SorterTest.class);
         copyData();
     }
     
@@ -58,7 +52,7 @@ public class SorterTest extends TestSupport {
     
     @Test
     public void testSimpleSort() throws Exception {
-        File f = getTF("input");
+        File f = getTempFile("input");
         KeyedOutputStream<String, Integer> kos =
                 new KeyedOutputStream<String, Integer>(f, false);
         for(int i = 5000; i >= 0; i--) {
@@ -66,10 +60,10 @@ public class SorterTest extends TestSupport {
         }
         kos.close();
 
-        Sorter s = new Sorter(f, getTF("blocked"), getTF("sorted"));
+        Sorter s = new Sorter(f, getTempFile("blocked"), getTempFile("sorted"));
         s.sort();
         
-        KeyedInputStream<String,Integer> kis = new KeyedInputStream<String,Integer>(getTF("sorted"));
+        KeyedInputStream<String,Integer> kis = new KeyedInputStream<String,Integer>(getTempFile("sorted"));
         Record<String,Integer> rec;
         int r = 0;
         while((rec = kis.read()) != null) {
@@ -83,14 +77,14 @@ public class SorterTest extends TestSupport {
     private void sort(int p) throws FileNotFoundException, IOException {
         List<Record<String, Integer>> recs = readRecs(p);
         Collections.sort(recs);
-        Sorter s = new Sorter(getTF(p), getTF("blocked"), getTF("sorted"));
+        Sorter s = new Sorter(getTestFile(p), getTempFile("blocked"), getTempFile("sorted"));
         NanoWatch nw = new NanoWatch();
         nw.start();
         s.sort();
         nw.stop();
         Logger.getLogger("").info(String.format("sorting %d took: %.3f",
                 p, nw.getTimeMillis()));
-        List<Record<String, Integer>> srecs = readRecs(getTF("sorted"));
+        List<Record<String, Integer>> srecs = readRecs(getTempFile("sorted"));
 
         //
         // Make sure the lists are the same size.
@@ -112,7 +106,7 @@ public class SorterTest extends TestSupport {
     
     @Test
     public void testDataSort() throws FileNotFoundException, IOException {
-        for(int i = 1; i <=9; i++) {
+        for(int i = 1; i <= NUM_RECS; i++) {
             sort(i);
         }
     }

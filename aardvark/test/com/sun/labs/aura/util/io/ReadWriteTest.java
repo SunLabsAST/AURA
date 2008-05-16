@@ -12,13 +12,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import com.sun.labs.aura.TestUtilities;
 
 /**
  * 
  */
 public class ReadWriteTest {
-
     File f;
+
     public ReadWriteTest() {
     }
 
@@ -32,8 +33,7 @@ public class ReadWriteTest {
 
     @Before
     public void setUp() {
-        f = new File(new File(System.getProperty("java.io.tmpdir")),
-                "tmp.keyed");
+        f = TestSupport.getTempFile("tmp.keyed");
     }
 
     @After
@@ -85,5 +85,4 @@ public class ReadWriteTest {
         }
         assertTrue("r: " + r, r == -1);
     }
-
 }
