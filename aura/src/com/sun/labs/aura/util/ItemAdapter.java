@@ -10,7 +10,6 @@
 
 package com.sun.labs.aura.util;
 
-import com.sun.labs.aura.aardvark.*;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import java.io.Serializable;
@@ -208,7 +207,7 @@ public class ItemAdapter implements Serializable {
      * @param field the name of the field
      * @return the value of the field as a tagmap
      */
-    protected HashMap<String, Tag> getTagMap(String field) {
+    protected Map<String, Tag> getTagMap(String field) {
         HashMap<String, Tag> tagMap = (HashMap<String, Tag>) item.getMap().get(field);
         if (tagMap == null) {
             tagMap = new HashMap<String, Tag>();
@@ -319,10 +318,11 @@ public class ItemAdapter implements Serializable {
      * @param count the tag count
      */
     protected void addTag(String field, String tagName, int count) {
-        HashMap<String,Tag> tagMap = getTagMap(field);
+        Map<String,Tag> tagMap = getTagMap(field);
         if (tagMap == null) {
-            tagMap = new HashMap<String, Tag>();
-            item.getMap().put(field, tagMap);
+            HashMap<String, Tag> newTagMap = new HashMap<String, Tag>();
+            item.getMap().put(field, newTagMap);
+            tagMap = newTagMap;
         }
 
         Tag tag = tagMap.get(tagName);
