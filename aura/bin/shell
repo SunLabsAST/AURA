@@ -1,0 +1,3 @@
+java -Xmx1g -DauraHome=/aura -DauraPolicy=/aura/dist/jsk-all.policy -jar dist/aardvark.jar  /com/sun/labs/aura/aardvark/resource/shellConfig.xml shellStarter
+
+#java -Xmx1g -DauraHome=/aura -DauraPolicy=/aura/dist/jsk-all.policy -jar dist/aardvark.jar /com/sun/labs/aura/aardvark/resource/exportedAardvarkAIOVMNCConfig.xml starter

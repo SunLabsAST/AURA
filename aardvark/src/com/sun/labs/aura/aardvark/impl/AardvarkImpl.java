@@ -386,6 +386,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
             addFeed("http://blogs.sun.com/plamere");
             addFeed("http://techcrunch.com");
             addFeed("http://slashdot.org");
+            addFeed("http://boingboing.net");
         } catch (AuraException ex) {
             logger.warning("Problem adding feed " + ex);
         } catch (RemoteException ex) {

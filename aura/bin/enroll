@@ -1,0 +1,4 @@
+enrollUser plamere
+addStarredFeed plamere http://www.google.com/reader/public/atom/user/07268145224739680674/state/com.google/starred
+enrollUser cory
+addStarredFeed cory http://feeds.boingboing.net/boingboing/iBag
