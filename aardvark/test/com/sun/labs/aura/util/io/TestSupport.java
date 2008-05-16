@@ -28,12 +28,12 @@ public class TestSupport {
         logger = TestUtilities.getLogger(getClass());
     }
 
-    public static String getFileName(int i) {
+    public static String getTestFileName(int i) {
         return String.format("st-%04d", i);
     }
 
     public static File getTestFile(int i) {
-        return getTempFile(getFileName(i));
+        return getTempFile(getTestFileName(i));
     }
 
     public static File getTempFile(String filename) {
@@ -49,7 +49,7 @@ public class TestSupport {
         byte[] buff = new byte[8196];
         for(int i = 1; i <= NUM_RECS; i++) {
             InputStream is =
-                    new BufferedInputStream(SorterTest.class.getResourceAsStream(getFileName(i)));
+                    new BufferedInputStream(SorterTest.class.getResourceAsStream(getTestFileName(i)));
             OutputStream os =
                     new BufferedOutputStream(new FileOutputStream(getTestFile(i)));
             int nb;
