@@ -17,21 +17,19 @@ import java.io.File;
 import java.io.IOException;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.util.logging.Logger;
-import java.rmi.RemoteException;
 
 import com.sun.labs.aura.TestUtilities;
 import com.sun.labs.aura.AuraServiceStarter;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.datastore.StoreFactory;
-import com.sun.labs.aura.util.AuraException;
 
 /**
  * Creates a simple DataStore adds a user to it and then removes that user.
  * 
  * @author Will Holcomb <will.holcomb@sun.com>
  */
-public class CreateDataStoreTest {
+public class DataStoreTestBase {
     static final String CONFIG_FILE = "SinglePathStoreConfig.xml";
     static final String DATASTORE_KEY ="dataStoreHead";
     static final String STARTER_KEY ="starter";
@@ -41,16 +39,8 @@ public class CreateDataStoreTest {
     File testDirectory;
     AuraServiceStarter starter;
     
-    public CreateDataStoreTest() {
+    public DataStoreTestBase() {
         log = TestUtilities.getLogger(getClass());
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
     }
 
     /**
@@ -77,19 +67,6 @@ public class CreateDataStoreTest {
         // In order to start each of the services, they need to be loaded by the
         // AuraServiceStarter through the ConfigurationManager
         starter = (AuraServiceStarter)configMgr.lookup("starter");
-    }
-
-    @Test
-    public void addUser() throws AuraException, RemoteException {
-        DataStore dataStore = (DataStore)configMgr.lookup(DATASTORE_KEY);
-        String userKey = "Test Key";
-        
-        User user = StoreFactory.newUser(userKey, "Test User");
-        dataStore.putUser(user);
-        log.info("Added User: " + user.getName() + " (" + user.getKey() + ")");
-        
-        User retreivedUser = dataStore.getUser(userKey);
-        assertEquals(user, retreivedUser);
     }
 
     @After
