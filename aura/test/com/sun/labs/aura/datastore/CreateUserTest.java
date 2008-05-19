@@ -14,7 +14,7 @@ import java.rmi.RemoteException;
 
 /**
  *
- * @author wh224365
+ * @author Will Holcomb
  */
 public class CreateUserTest extends DataStoreTestBase {
 
