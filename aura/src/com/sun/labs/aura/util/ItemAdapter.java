@@ -249,7 +249,7 @@ public class ItemAdapter implements Serializable {
      * @param value the new value.
      */
     protected void setFieldAsObject(String name, Object value) {
-        Object curValue = getFieldAsString(name);
+        Object curValue = getFieldAsObject(name);
         if (curValue == null || !curValue.equals(value)) {
             item.getMap().put(name, (Serializable) value);
             modified = true;
