@@ -1,0 +1,827 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<BugCollection version="1.3.4" sequence="0" timestamp="1211276682000" analysisTimestamp="1211278924273" release="">
+  <Project filename="&lt;&lt;unnamed project&gt;&gt;" projectName="aura">
+    <Jar>aura/dist/aura.jar</Jar>
+    <AuxClasspathEntry>Libraries/ant.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/caroline.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/carolineunzip.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/carolineutil.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jaxen-core.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jaxen-jdom.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jdom.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/je-3.2.44.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/LabsUtil.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/minion.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/rome-0.9.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/rome-fetcher-0.9.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/saxpath.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/xalan.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/xerces.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/xml-apis.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib-dl/browser-dl.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib-dl/fiddler-dl.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib-dl/group-dl.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib-dl/jsk-dl.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib-dl/mahalo-dl.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib-dl/mercury-dl.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib-dl/norm-dl.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib-dl/outrigger-dl.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib-dl/phoenix-dl.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib-dl/reggie-dl.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib-dl/sdm-dl.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/browser.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/checkconfigurationfile.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/checkser.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/classdep.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/classserver.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/computedigest.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/computehttpmdcodebase.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/destroy.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/envcheck.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/fiddler.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/group.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/jarwrapper.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/jini-core.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/jini-ext.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/jsk-debug-policy.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/jsk-lib.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/jsk-platform.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/jsk-resources.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/mahalo.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/mercury.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/norm.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/outrigger-logstore.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/outrigger-snaplogstore.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/outrigger.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/phoenix-group.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/phoenix-init.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/phoenix.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/prebuilt-outrigger-logstore.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/preferredlistgen.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/reggie.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/sharedvm.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/start.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/sun-util.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/tools.jar</AuxClasspathEntry>
+    <SrcDir>aura/src</SrcDir>
+    <SuppressionFilter>
+      <LastVersion value="-1" relOp="NEQ"/>
+    </SuppressionFilter>
+  </Project>
+  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.cluster.Cluster">
+      <SourceLine classname="com.sun.labs.aura.cluster.Cluster" sourcefile="Cluster.java" sourcepath="com/sun/labs/aura/cluster/Cluster.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.cluster.Cluster" name="&lt;init&gt;" signature="(Ljava/util/Map;[D)V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.cluster.Cluster" start="52" end="57" startBytecode="0" endBytecode="132" sourcefile="Cluster.java" sourcepath="com/sun/labs/aura/cluster/Cluster.java"/>
+    </Method>
+    <Field classname="com.sun.labs.aura.cluster.Cluster" name="centroid" signature="[D" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.cluster.Cluster" sourcefile="Cluster.java" sourcepath="com/sun/labs/aura/cluster/Cluster.java"/>
+    </Field>
+    <LocalVariable name="centroid" register="2" pc="11" role="LOCAL_VARIABLE_NAMED"/>
+    <SourceLine classname="com.sun.labs.aura.cluster.Cluster" start="54" end="54" startBytecode="11" endBytecode="11" sourcefile="Cluster.java" sourcepath="com/sun/labs/aura/cluster/Cluster.java"/>
+  </BugInstance>
+  <BugInstance type="EQ_COMPARETO_USE_OBJECT_EQUALS" priority="2" abbrev="Eq" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.cluster.Cluster">
+      <SourceLine classname="com.sun.labs.aura.cluster.Cluster" sourcefile="Cluster.java" sourcepath="com/sun/labs/aura/cluster/Cluster.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.cluster.Cluster" name="compareTo" signature="(Lcom/sun/labs/aura/cluster/Cluster;)I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.cluster.Cluster" start="121" end="121" startBytecode="0" endBytecode="71" sourcefile="Cluster.java" sourcepath="com/sun/labs/aura/cluster/Cluster.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="EQ_COMPARETO_USE_OBJECT_EQUALS" priority="2" abbrev="Eq" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.cluster.Cluster$HE">
+      <SourceLine classname="com.sun.labs.aura.cluster.Cluster$HE" sourcefile="Cluster.java" sourcepath="com/sun/labs/aura/cluster/Cluster.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.cluster.Cluster$HE" name="compareTo" signature="(Lcom/sun/labs/aura/cluster/Cluster$HE;)I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.cluster.Cluster$HE" start="145" end="153" startBytecode="0" endBytecode="97" sourcefile="Cluster.java" sourcepath="com/sun/labs/aura/cluster/Cluster.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="SIC_INNER_SHOULD_BE_STATIC" priority="2" abbrev="SIC" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.cluster.Cluster$HE">
+      <SourceLine classname="com.sun.labs.aura.cluster.Cluster$HE" sourcefile="Cluster.java" sourcepath="com/sun/labs/aura/cluster/Cluster.java"/>
+    </Class>
+  </BugInstance>
+  <BugInstance type="UUF_UNUSED_FIELD" priority="2" abbrev="UuF" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.cluster.Cluster$HE">
+      <SourceLine classname="com.sun.labs.aura.cluster.Cluster$HE" sourcefile="Cluster.java" sourcepath="com/sun/labs/aura/cluster/Cluster.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.cluster.Cluster$HE" name="p" signature="I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.cluster.Cluster$HE" sourcefile="Cluster.java" sourcepath="com/sun/labs/aura/cluster/Cluster.java"/>
+    </Field>
+  </BugInstance>
+  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.cluster.ClusterElement">
+      <SourceLine classname="com.sun.labs.aura.cluster.ClusterElement" sourcefile="ClusterElement.java" sourcepath="com/sun/labs/aura/cluster/ClusterElement.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.cluster.ClusterElement" name="getPoint" signature="()[D" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.cluster.ClusterElement" start="60" end="60" startBytecode="0" endBytecode="46" sourcefile="ClusterElement.java" sourcepath="com/sun/labs/aura/cluster/ClusterElement.java"/>
+    </Method>
+    <Field classname="com.sun.labs.aura.cluster.ClusterElement" name="point" signature="[D" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.cluster.ClusterElement" sourcefile="ClusterElement.java" sourcepath="com/sun/labs/aura/cluster/ClusterElement.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.cluster.ClusterElement" start="60" end="60" startBytecode="4" endBytecode="4" sourcefile="ClusterElement.java" sourcepath="com/sun/labs/aura/cluster/ClusterElement.java"/>
+  </BugInstance>
+  <BugInstance type="EQ_COMPARETO_USE_OBJECT_EQUALS" priority="2" abbrev="Eq" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.cluster.ClusterElement">
+      <SourceLine classname="com.sun.labs.aura.cluster.ClusterElement" sourcefile="ClusterElement.java" sourcepath="com/sun/labs/aura/cluster/ClusterElement.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.cluster.ClusterElement" name="compareTo" signature="(Lcom/sun/labs/aura/cluster/ClusterElement;)I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.cluster.ClusterElement" start="85" end="91" startBytecode="0" endBytecode="97" sourcefile="ClusterElement.java" sourcepath="com/sun/labs/aura/cluster/ClusterElement.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="SE_NO_SERIALVERSIONID" priority="2" abbrev="SnVI" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.cluster.ClusterElement">
+      <SourceLine classname="com.sun.labs.aura.cluster.ClusterElement" sourcefile="ClusterElement.java" sourcepath="com/sun/labs/aura/cluster/ClusterElement.java"/>
+    </Class>
+  </BugInstance>
+  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.datastore.ItemEvent">
+      <SourceLine classname="com.sun.labs.aura.datastore.ItemEvent" sourcefile="ItemEvent.java" sourcepath="com/sun/labs/aura/datastore/ItemEvent.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.datastore.ItemEvent" name="getItems" signature="()[Lcom/sun/labs/aura/datastore/Item;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.ItemEvent" start="47" end="47" startBytecode="0" endBytecode="46" sourcefile="ItemEvent.java" sourcepath="com/sun/labs/aura/datastore/ItemEvent.java"/>
+    </Method>
+    <Field classname="com.sun.labs.aura.datastore.ItemEvent" name="items" signature="[Lcom/sun/labs/aura/datastore/Item;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.ItemEvent" sourcefile="ItemEvent.java" sourcepath="com/sun/labs/aura/datastore/ItemEvent.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.datastore.ItemEvent" start="47" end="47" startBytecode="4" endBytecode="4" sourcefile="ItemEvent.java" sourcepath="com/sun/labs/aura/datastore/ItemEvent.java"/>
+  </BugInstance>
+  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.datastore.ItemEvent">
+      <SourceLine classname="com.sun.labs.aura.datastore.ItemEvent" sourcefile="ItemEvent.java" sourcepath="com/sun/labs/aura/datastore/ItemEvent.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.datastore.ItemEvent" name="&lt;init&gt;" signature="([Lcom/sun/labs/aura/datastore/Item;)V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.ItemEvent" start="25" end="28" startBytecode="0" endBytecode="78" sourcefile="ItemEvent.java" sourcepath="com/sun/labs/aura/datastore/ItemEvent.java"/>
+    </Method>
+    <Field classname="com.sun.labs.aura.datastore.ItemEvent" name="items" signature="[Lcom/sun/labs/aura/datastore/Item;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.ItemEvent" sourcefile="ItemEvent.java" sourcepath="com/sun/labs/aura/datastore/ItemEvent.java"/>
+    </Field>
+    <LocalVariable name="items" register="1" pc="6" role="LOCAL_VARIABLE_NAMED"/>
+    <SourceLine classname="com.sun.labs.aura.datastore.ItemEvent" start="26" end="26" startBytecode="6" endBytecode="6" sourcefile="ItemEvent.java" sourcepath="com/sun/labs/aura/datastore/ItemEvent.java"/>
+  </BugInstance>
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.datastore.StoreFactory">
+      <SourceLine classname="com.sun.labs.aura.datastore.StoreFactory" sourcefile="StoreFactory.java" sourcepath="com/sun/labs/aura/datastore/StoreFactory.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.datastore.StoreFactory" name="random" signature="Ljava/util/Random;" isStatic="true">
+      <SourceLine classname="com.sun.labs.aura.datastore.StoreFactory" sourcefile="StoreFactory.java" sourcepath="com/sun/labs/aura/datastore/StoreFactory.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.datastore.StoreFactory" start="19" end="19" startBytecode="7" endBytecode="7" sourcefile="StoreFactory.java" sourcepath="com/sun/labs/aura/datastore/StoreFactory.java"/>
+  </BugInstance>
+  <BugInstance type="SE_BAD_FIELD" priority="1" abbrev="Se" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.datastore.impl.BinaryTrie">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.BinaryTrie" sourcefile="BinaryTrie.java" sourcepath="com/sun/labs/aura/datastore/impl/BinaryTrie.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.datastore.impl.BinaryTrie" name="root" signature="Lcom/sun/labs/aura/datastore/impl/BinaryTrie$TrieNode;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.BinaryTrie" sourcefile="BinaryTrie.java" sourcepath="com/sun/labs/aura/datastore/impl/BinaryTrie.java"/>
+    </Field>
+  </BugInstance>
+  <BugInstance type="HE_EQUALS_NO_HASHCODE" priority="2" abbrev="HE" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.datastore.impl.DSBitSet">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.DSBitSet" sourcefile="DSBitSet.java" sourcepath="com/sun/labs/aura/datastore/impl/DSBitSet.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.datastore.impl.DSBitSet" name="equals" signature="(Ljava/lang/Object;)Z" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.DSBitSet" start="36" end="44" startBytecode="0" endBytecode="116" sourcefile="DSBitSet.java" sourcepath="com/sun/labs/aura/datastore/impl/DSBitSet.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.datastore.impl.DataStoreHead">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.DataStoreHead" sourcefile="DataStoreHead.java" sourcepath="com/sun/labs/aura/datastore/impl/DataStoreHead.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.datastore.impl.DataStoreHead" name="logger" signature="Ljava/util/logging/Logger;" isStatic="true">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.DataStoreHead" sourcefile="DataStoreHead.java" sourcepath="com/sun/labs/aura/datastore/impl/DataStoreHead.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.datastore.impl.DataStoreHead" start="67" end="67" startBytecode="5" endBytecode="5" sourcefile="DataStoreHead.java" sourcepath="com/sun/labs/aura/datastore/impl/DataStoreHead.java"/>
+  </BugInstance>
+  <BugInstance type="SIC_INNER_SHOULD_BE_STATIC" priority="2" abbrev="SIC" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.datastore.impl.DataStoreHead$PCLatch">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.DataStoreHead$PCLatch" sourcefile="DataStoreHead.java" sourcepath="com/sun/labs/aura/datastore/impl/DataStoreHead.java"/>
+    </Class>
+  </BugInstance>
+  <BugInstance type="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE" priority="2" abbrev="RCN" category="STYLE">
+    <Class classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" name="getAttentionAddedSince" signature="(J)Lcom/sun/labs/aura/datastore/DBIterator;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" start="658" end="694" startBytecode="0" endBytecode="398" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+    </Method>
+    <LocalVariable name="c" register="3" pc="66" role="LOCAL_VARIABLE_NAMED"/>
+    <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" start="678" end="678" startBytecode="67" endBytecode="67" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java" role="SOURCE_REDUNDANT_NULL_CHECK"/>
+  </BugInstance>
+  <BugInstance type="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE" priority="2" abbrev="RCN" category="STYLE">
+    <Class classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" name="getAttentionForKeySince" signature="(Ljava/lang/String;ZJ)Lcom/sun/labs/aura/datastore/DBIterator;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" start="782" end="826" startBytecode="0" endBytecode="520" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+    </Method>
+    <LocalVariable name="c" register="7" pc="129" role="LOCAL_VARIABLE_NAMED"/>
+    <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" start="810" end="810" startBytecode="131" endBytecode="131" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java" role="SOURCE_REDUNDANT_NULL_CHECK"/>
+  </BugInstance>
+  <BugInstance type="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE" priority="2" abbrev="RCN" category="STYLE">
+    <Class classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" name="getItemIterator" signature="()Lcom/sun/labs/aura/datastore/DBIterator;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" start="352" end="367" startBytecode="0" endBytecode="225" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+    </Method>
+    <LocalVariable name="c" register="1" pc="25" role="LOCAL_VARIABLE_NAMED"/>
+    <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" start="358" end="358" startBytecode="26" endBytecode="26" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java" role="SOURCE_REDUNDANT_NULL_CHECK"/>
+  </BugInstance>
+  <BugInstance type="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE" priority="2" abbrev="RCN" category="STYLE">
+    <Class classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" name="getItemsAddedSince" signature="(Lcom/sun/labs/aura/datastore/Item$ItemType;J)Lcom/sun/labs/aura/datastore/DBIterator;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" start="568" end="611" startBytecode="0" endBytecode="465" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+    </Method>
+    <LocalVariable name="cursor" register="6" pc="92" role="LOCAL_VARIABLE_NAMED"/>
+    <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" start="594" end="594" startBytecode="94" endBytecode="94" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java" role="SOURCE_REDUNDANT_NULL_CHECK"/>
+  </BugInstance>
+  <BugInstance type="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE" priority="2" abbrev="RV" category="BAD_PRACTICE">
+    <UserAnnotation/>
+    <Class classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" name="&lt;init&gt;" signature="(Ljava/lang/String;Ljava/util/logging/Logger;Z)V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" start="147" end="235" startBytecode="0" endBytecode="834" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+    </Method>
+    <Method classname="java.io.File" name="delete" signature="()Z" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="java.io.File" start="867" end="871" startBytecode="0" endBytecode="59" sourcefile="File.java" sourcepath="java/io/File.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" start="165" end="165" startBytecode="113" endBytecode="113" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+    <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" start="167" end="167" startBytecode="125" endBytecode="125" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java" role="SOURCE_LINE_ANOTHER_INSTANCE"/>
+  </BugInstance>
+  <BugInstance type="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE" priority="2" abbrev="RV" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" name="&lt;init&gt;" signature="(Ljava/lang/String;Ljava/util/logging/Logger;Z)V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" start="147" end="235" startBytecode="0" endBytecode="834" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+    </Method>
+    <Method classname="java.io.File" name="mkdir" signature="()Z" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="java.io.File" start="1117" end="1121" startBytecode="0" endBytecode="59" sourcefile="File.java" sourcepath="java/io/File.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" start="168" end="168" startBytecode="131" endBytecode="131" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+  </BugInstance>
+  <BugInstance type="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE" priority="2" abbrev="RV" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" name="&lt;init&gt;" signature="(Ljava/lang/String;Ljava/util/logging/Logger;Z)V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" start="147" end="235" startBytecode="0" endBytecode="834" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+    </Method>
+    <Method classname="java.io.File" name="mkdirs" signature="()Z" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="java.io.File" start="1145" end="1158" startBytecode="0" endBytecode="145" sourcefile="File.java" sourcepath="java/io/File.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" start="162" end="162" startBytecode="71" endBytecode="71" sourcefile="BerkeleyDataWrapper.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyDataWrapper.java"/>
+  </BugInstance>
+  <BugInstance type="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE" priority="2" abbrev="RV" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" sourcefile="BerkeleyItemStore.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyItemStore.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" name="newProperties" signature="(Lcom/sun/labs/util/props/PropertySheet;)V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" start="149" end="194" startBytecode="0" endBytecode="404" sourcefile="BerkeleyItemStore.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyItemStore.java"/>
+    </Method>
+    <Method classname="java.io.File" name="mkdirs" signature="()Z" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="java.io.File" start="1145" end="1158" startBytecode="0" endBytecode="145" sourcefile="File.java" sourcepath="java/io/File.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" start="157" end="157" startBytecode="44" endBytecode="44" sourcefile="BerkeleyItemStore.java" sourcepath="com/sun/labs/aura/datastore/impl/store/BerkeleyItemStore.java"/>
+  </BugInstance>
+  <BugInstance type="IS2_INCONSISTENT_SYNC" priority="2" abbrev="IS" category="MT_CORRECTNESS">
+    <Class classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine" sourcefile="ItemSearchEngine.java" sourcepath="com/sun/labs/aura/datastore/impl/store/ItemSearchEngine.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine" name="shuttingDown" signature="Z" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine" sourcefile="ItemSearchEngine.java" sourcepath="com/sun/labs/aura/datastore/impl/store/ItemSearchEngine.java"/>
+    </Field>
+    <Int value="50" role="INT_SYNC_PERCENT"/>
+    <SourceLine classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine" start="169" end="169" startBytecode="1" endBytecode="1" sourcefile="ItemSearchEngine.java" sourcepath="com/sun/labs/aura/datastore/impl/store/ItemSearchEngine.java" role="SOURCE_LINE_UNSYNC_ACCESS"/>
+    <SourceLine classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine" start="628" end="628" startBytecode="2" endBytecode="2" sourcefile="ItemSearchEngine.java" sourcepath="com/sun/labs/aura/datastore/impl/store/ItemSearchEngine.java" role="SOURCE_LINE_SYNC_ACCESS"/>
+  </BugInstance>
+  <BugInstance type="UI_INHERITANCE_UNSAFE_GETRESOURCE" priority="2" abbrev="UI" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine" sourcefile="ItemSearchEngine.java" sourcepath="com/sun/labs/aura/datastore/impl/store/ItemSearchEngine.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine" name="&lt;init&gt;" signature="(Ljava/lang/String;Ljava/lang/String;)V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine" start="103" end="119" startBytecode="0" endBytecode="190" sourcefile="ItemSearchEngine.java" sourcepath="com/sun/labs/aura/datastore/impl/store/ItemSearchEngine.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine" start="106" end="106" startBytecode="23" endBytecode="23" sourcefile="ItemSearchEngine.java" sourcepath="com/sun/labs/aura/datastore/impl/store/ItemSearchEngine.java"/>
+  </BugInstance>
+  <BugInstance type="URF_UNREAD_FIELD" priority="2" abbrev="UrF" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine$FlushTimerTask">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine$FlushTimerTask" sourcefile="ItemSearchEngine.java" sourcepath="com/sun/labs/aura/datastore/impl/store/ItemSearchEngine.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine$FlushTimerTask" name="last" signature="J" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine$FlushTimerTask" sourcefile="ItemSearchEngine.java" sourcepath="com/sun/labs/aura/datastore/impl/store/ItemSearchEngine.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine$FlushTimerTask" start="641" end="641" startBytecode="13" endBytecode="13" sourcefile="ItemSearchEngine.java" sourcepath="com/sun/labs/aura/datastore/impl/store/ItemSearchEngine.java"/>
+  </BugInstance>
+  <BugInstance type="MS_SHOULD_BE_FINAL" priority="1" abbrev="MS" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.datastore.impl.store.persist.ItemImpl">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.persist.ItemImpl" sourcefile="ItemImpl.java" sourcepath="com/sun/labs/aura/datastore/impl/store/persist/ItemImpl.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.datastore.impl.store.persist.ItemImpl" name="logger" signature="Ljava/util/logging/Logger;" isStatic="true">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.persist.ItemImpl" sourcefile="ItemImpl.java" sourcepath="com/sun/labs/aura/datastore/impl/store/persist/ItemImpl.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.datastore.impl.store.persist.ItemImpl" start="47" end="47" startBytecode="5" endBytecode="5" sourcefile="ItemImpl.java" sourcepath="com/sun/labs/aura/datastore/impl/store/persist/ItemImpl.java"/>
+  </BugInstance>
+  <BugInstance type="SE_NO_SERIALVERSIONID" priority="2" abbrev="SnVI" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.datastore.impl.store.persist.ItemImpl">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.persist.ItemImpl" sourcefile="ItemImpl.java" sourcepath="com/sun/labs/aura/datastore/impl/store/persist/ItemImpl.java"/>
+    </Class>
+  </BugInstance>
+  <BugInstance type="EQ_DOESNT_OVERRIDE_EQUALS" priority="2" abbrev="Eq" category="STYLE">
+    <Class classname="com.sun.labs.aura.datastore.impl.store.persist.UserImpl">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.persist.UserImpl" sourcefile="UserImpl.java" sourcepath="com/sun/labs/aura/datastore/impl/store/persist/UserImpl.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.datastore.impl.store.persist.ItemImpl" name="equals" signature="(Ljava/lang/Object;)Z" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.datastore.impl.store.persist.ItemImpl" start="83" end="93" startBytecode="0" endBytecode="138" sourcefile="ItemImpl.java" sourcepath="com/sun/labs/aura/datastore/impl/store/persist/ItemImpl.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="DM_STRING_TOSTRING" priority="2" abbrev="Dm" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.recommender.LengthFilter">
+      <SourceLine classname="com.sun.labs.aura.recommender.LengthFilter" sourcefile="LengthFilter.java" sourcepath="com/sun/labs/aura/recommender/LengthFilter.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.recommender.LengthFilter" name="filter" signature="(Lcom/sun/labs/minion/ResultAccessor;)Z" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.recommender.LengthFilter" start="31" end="38" startBytecode="0" endBytecode="155" sourcefile="LengthFilter.java" sourcepath="com/sun/labs/aura/recommender/LengthFilter.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.recommender.LengthFilter" start="34" end="34" startBytecode="29" endBytecode="29" sourcefile="LengthFilter.java" sourcepath="com/sun/labs/aura/recommender/LengthFilter.java"/>
+  </BugInstance>
+  <BugInstance type="DM_STRING_TOSTRING" priority="2" abbrev="Dm" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.recommender.RecommenderProfile$1">
+      <SourceLine classname="com.sun.labs.aura.recommender.RecommenderProfile$1" sourcefile="RecommenderProfile.java" sourcepath="com/sun/labs/aura/recommender/RecommenderProfile.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.recommender.RecommenderProfile$1" name="lowLevelFilter" signature="(Lcom/sun/labs/minion/ResultAccessor;)Z" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.recommender.RecommenderProfile$1" start="43" end="44" startBytecode="0" endBytecode="103" sourcefile="RecommenderProfile.java" sourcepath="com/sun/labs/aura/recommender/RecommenderProfile.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.recommender.RecommenderProfile$1" start="44" end="44" startBytecode="19" endBytecode="19" sourcefile="RecommenderProfile.java" sourcepath="com/sun/labs/aura/recommender/RecommenderProfile.java"/>
+  </BugInstance>
+  <BugInstance type="URF_UNREAD_FIELD" priority="2" abbrev="UrF" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.util.DBSplitter">
+      <SourceLine classname="com.sun.labs.aura.util.DBSplitter" sourcefile="DBSplitter.java" sourcepath="com/sun/labs/aura/util/DBSplitter.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.util.DBSplitter" name="initialHashValue" signature="I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.DBSplitter" sourcefile="DBSplitter.java" sourcepath="com/sun/labs/aura/util/DBSplitter.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.util.DBSplitter" start="36" end="36" startBytecode="50" endBytecode="50" sourcefile="DBSplitter.java" sourcepath="com/sun/labs/aura/util/DBSplitter.java"/>
+  </BugInstance>
+  <BugInstance type="DM_EXIT" priority="2" abbrev="Dm" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.util.GridDeploy">
+      <SourceLine classname="com.sun.labs.aura.util.GridDeploy" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.GridDeploy" name="&lt;init&gt;" signature="()V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.GridDeploy" start="195" end="208" startBytecode="0" endBytecode="268" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.util.GridDeploy" start="203" end="203" startBytecode="95" endBytecode="95" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    <SourceLine classname="com.sun.labs.aura.util.GridDeploy" start="206" end="206" startBytecode="119" endBytecode="119" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java" role="SOURCE_LINE_ANOTHER_INSTANCE"/>
+  </BugInstance>
+  <BugInstance type="DM_EXIT" priority="2" abbrev="Dm" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.util.GridDeploy">
+      <SourceLine classname="com.sun.labs.aura.util.GridDeploy" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.GridDeploy" name="createAuraNetwork" signature="()V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.GridDeploy" start="1151" end="1163" startBytecode="0" endBytecode="290" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.util.GridDeploy" start="1161" end="1161" startBytecode="169" endBytecode="169" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+  </BugInstance>
+  <BugInstance type="DM_EXIT" priority="2" abbrev="Dm" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.util.GridDeploy">
+      <SourceLine classname="com.sun.labs.aura.util.GridDeploy" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.GridDeploy" name="getExternalAddressFor" signature="(Ljava/lang/String;)Lcom/sun/caroline/platform/NetworkAddress;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.GridDeploy" start="1242" end="1256" startBytecode="0" endBytecode="286" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.util.GridDeploy" start="1253" end="1253" startBytecode="121" endBytecode="121" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+  </BugInstance>
+  <BugInstance type="MS_PKGPROTECT" priority="2" abbrev="MS" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.util.GridDeploy">
+      <SourceLine classname="com.sun.labs.aura.util.GridDeploy" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.util.GridDeploy" name="CUST_ID" signature="Ljava/lang/String;" isStatic="true">
+      <SourceLine classname="com.sun.labs.aura.util.GridDeploy" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.util.GridDeploy" start="56" end="56" startBytecode="9" endBytecode="9" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+  </BugInstance>
+  <BugInstance type="MS_PKGPROTECT" priority="2" abbrev="MS" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.util.GridDeploy">
+      <SourceLine classname="com.sun.labs.aura.util.GridDeploy" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.util.GridDeploy" name="CUST_PW" signature="Ljava/lang/String;" isStatic="true">
+      <SourceLine classname="com.sun.labs.aura.util.GridDeploy" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.util.GridDeploy" start="57" end="57" startBytecode="15" endBytecode="15" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+  </BugInstance>
+  <BugInstance type="MS_PKGPROTECT" priority="2" abbrev="MS" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.util.GridDeploy">
+      <SourceLine classname="com.sun.labs.aura.util.GridDeploy" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.util.GridDeploy" name="GRID_URL" signature="Ljava/lang/String;" isStatic="true">
+      <SourceLine classname="com.sun.labs.aura.util.GridDeploy" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.util.GridDeploy" start="55" end="55" startBytecode="3" endBytecode="3" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+  </BugInstance>
+  <BugInstance type="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" priority="1" abbrev="ST" category="STYLE">
+    <Class classname="com.sun.labs.aura.util.GridDeploy">
+      <SourceLine classname="com.sun.labs.aura.util.GridDeploy" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.GridDeploy" name="createSplitDBProcesses" signature="(ILjava/lang/String;)V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.GridDeploy" start="535" end="543" startBytecode="0" endBytecode="221" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    </Method>
+    <Field classname="com.sun.labs.aura.util.GridDeploy" name="prefixCodeList" signature="[Ljava/lang/String;" isStatic="true">
+      <SourceLine classname="com.sun.labs.aura.util.GridDeploy" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.util.GridDeploy" start="536" end="536" startBytecode="12" endBytecode="12" sourcefile="GridDeploy.java" sourcepath="com/sun/labs/aura/util/GridDeploy.java"/>
+  </BugInstance>
+  <BugInstance type="DM_NUMBER_CTOR" priority="2" abbrev="Bx" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.util.ItemAdapter">
+      <SourceLine classname="com.sun.labs.aura.util.ItemAdapter" sourcefile="ItemAdapter.java" sourcepath="com/sun/labs/aura/util/ItemAdapter.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.ItemAdapter" name="setField" signature="(Ljava/lang/String;I)V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.ItemAdapter" start="280" end="285" startBytecode="0" endBytecode="126" sourcefile="ItemAdapter.java" sourcepath="com/sun/labs/aura/util/ItemAdapter.java"/>
+    </Method>
+    <Method classname="java.lang.Integer" name="&lt;init&gt;" signature="(I)V" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="java.lang.Integer" start="602" end="604" startBytecode="0" endBytecode="41" sourcefile="Integer.java" sourcepath="java/lang/Integer.java"/>
+    </Method>
+    <Method classname="java.lang.Integer" name="valueOf" signature="(I)V" isStatic="false" role="SHOULD_CALL">
+      <SourceLine classname="java.lang.Integer" sourcefile="Integer.java" sourcepath="java/lang/Integer.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.util.ItemAdapter" start="282" end="282" startBytecode="26" endBytecode="26" sourcefile="ItemAdapter.java" sourcepath="com/sun/labs/aura/util/ItemAdapter.java"/>
+  </BugInstance>
+  <BugInstance type="DM_NUMBER_CTOR" priority="2" abbrev="Bx" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.util.ItemAdapter">
+      <SourceLine classname="com.sun.labs.aura.util.ItemAdapter" sourcefile="ItemAdapter.java" sourcepath="com/sun/labs/aura/util/ItemAdapter.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.ItemAdapter" name="setField" signature="(Ljava/lang/String;J)V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.ItemAdapter" start="294" end="299" startBytecode="0" endBytecode="129" sourcefile="ItemAdapter.java" sourcepath="com/sun/labs/aura/util/ItemAdapter.java"/>
+    </Method>
+    <Method classname="java.lang.Long" name="&lt;init&gt;" signature="(J)V" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="java.lang.Long" start="653" end="655" startBytecode="0" endBytecode="41" sourcefile="Long.java" sourcepath="java/lang/Long.java"/>
+    </Method>
+    <Method classname="java.lang.Long" name="valueOf" signature="(J)V" isStatic="false" role="SHOULD_CALL">
+      <SourceLine classname="java.lang.Long" sourcefile="Long.java" sourcepath="java/lang/Long.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.util.ItemAdapter" start="296" end="296" startBytecode="29" endBytecode="29" sourcefile="ItemAdapter.java" sourcepath="com/sun/labs/aura/util/ItemAdapter.java"/>
+  </BugInstance>
+  <BugInstance type="IS2_INCONSISTENT_SYNC" priority="2" abbrev="IS" category="MT_CORRECTNESS">
+    <Class classname="com.sun.labs.aura.util.ItemSchedulerImpl">
+      <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.util.ItemSchedulerImpl" name="dataStore" signature="Lcom/sun/labs/aura/datastore/DataStore;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java"/>
+    </Field>
+    <Int value="66" role="INT_SYNC_PERCENT"/>
+    <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl$1" start="185" end="185" startBytecode="15" endBytecode="15" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java" role="SOURCE_LINE_UNSYNC_ACCESS"/>
+    <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" start="129" end="129" startBytecode="9" endBytecode="9" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java" role="SOURCE_LINE_SYNC_ACCESS"/>
+    <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" start="179" end="179" startBytecode="305" endBytecode="305" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java" role="SOURCE_LINE_SYNC_ACCESS"/>
+  </BugInstance>
+  <BugInstance type="IS2_INCONSISTENT_SYNC" priority="2" abbrev="IS" category="MT_CORRECTNESS">
+    <Class classname="com.sun.labs.aura.util.ItemSchedulerImpl">
+      <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.util.ItemSchedulerImpl" name="defaultPeriod" signature="I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java"/>
+    </Field>
+    <Int value="50" role="INT_SYNC_PERCENT"/>
+    <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" start="81" end="81" startBytecode="5" endBytecode="5" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java" role="SOURCE_LINE_UNSYNC_ACCESS"/>
+    <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" start="146" end="146" startBytecode="72" endBytecode="72" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java" role="SOURCE_LINE_SYNC_ACCESS"/>
+  </BugInstance>
+  <BugInstance type="IS2_INCONSISTENT_SYNC" priority="2" abbrev="IS" category="MT_CORRECTNESS">
+    <Class classname="com.sun.labs.aura.util.ItemSchedulerImpl">
+      <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.util.ItemSchedulerImpl" name="itemType" signature="Lcom/sun/labs/aura/datastore/Item$ItemType;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java"/>
+    </Field>
+    <Int value="66" role="INT_SYNC_PERCENT"/>
+    <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl$1" start="185" end="185" startBytecode="22" endBytecode="22" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java" role="SOURCE_LINE_UNSYNC_ACCESS"/>
+    <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" start="130" end="130" startBytecode="14" endBytecode="14" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java" role="SOURCE_LINE_SYNC_ACCESS"/>
+    <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" start="180" end="180" startBytecode="311" endBytecode="311" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java" role="SOURCE_LINE_SYNC_ACCESS"/>
+  </BugInstance>
+  <BugInstance type="IS2_INCONSISTENT_SYNC" priority="2" abbrev="IS" category="MT_CORRECTNESS">
+    <Class classname="com.sun.labs.aura.util.ItemSchedulerImpl">
+      <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.util.ItemSchedulerImpl" name="lateTime" signature="I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java"/>
+    </Field>
+    <Int value="50" role="INT_SYNC_PERCENT"/>
+    <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" start="62" end="62" startBytecode="177" endBytecode="177" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java" role="SOURCE_LINE_UNSYNC_ACCESS"/>
+    <SourceLine classname="com.sun.labs.aura.util.ItemSchedulerImpl" start="147" end="147" startBytecode="82" endBytecode="82" sourcefile="ItemSchedulerImpl.java" sourcepath="com/sun/labs/aura/util/ItemSchedulerImpl.java" role="SOURCE_LINE_SYNC_ACCESS"/>
+  </BugInstance>
+  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.util.Scored">
+      <SourceLine classname="com.sun.labs.aura.util.Scored" sourcefile="Scored.java" sourcepath="com/sun/labs/aura/util/Scored.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.Scored" name="getDirections" signature="()[Z" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.Scored" start="87" end="87" startBytecode="0" endBytecode="64" sourcefile="Scored.java" sourcepath="com/sun/labs/aura/util/Scored.java"/>
+    </Method>
+    <Field classname="com.sun.labs.aura.util.Scored" name="directions" signature="[Z" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.Scored" sourcefile="Scored.java" sourcepath="com/sun/labs/aura/util/Scored.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.util.Scored" start="87" end="87" startBytecode="4" endBytecode="4" sourcefile="Scored.java" sourcepath="com/sun/labs/aura/util/Scored.java"/>
+  </BugInstance>
+  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.util.Scored">
+      <SourceLine classname="com.sun.labs.aura.util.Scored" sourcefile="Scored.java" sourcepath="com/sun/labs/aura/util/Scored.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.Scored" name="getSortVals" signature="()[Ljava/lang/Object;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.Scored" start="83" end="83" startBytecode="0" endBytecode="64" sourcefile="Scored.java" sourcepath="com/sun/labs/aura/util/Scored.java"/>
+    </Method>
+    <Field classname="com.sun.labs.aura.util.Scored" name="sortVals" signature="[Ljava/io/Serializable;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.Scored" sourcefile="Scored.java" sourcepath="com/sun/labs/aura/util/Scored.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.util.Scored" start="83" end="83" startBytecode="4" endBytecode="4" sourcefile="Scored.java" sourcepath="com/sun/labs/aura/util/Scored.java"/>
+  </BugInstance>
+  <BugInstance type="EQ_COMPARETO_USE_OBJECT_EQUALS" priority="2" abbrev="Eq" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.util.Scored">
+      <SourceLine classname="com.sun.labs.aura.util.Scored" sourcefile="Scored.java" sourcepath="com/sun/labs/aura/util/Scored.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.Scored" name="compareTo" signature="(Lcom/sun/labs/aura/util/Scored;)I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.Scored" start="91" end="124" startBytecode="0" endBytecode="282" sourcefile="Scored.java" sourcepath="com/sun/labs/aura/util/Scored.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="SE_INNER_CLASS" priority="2" abbrev="Se" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.util.StatServiceImpl$Counter">
+      <SourceLine classname="com.sun.labs.aura.util.StatServiceImpl$Counter" sourcefile="StatServiceImpl.java" sourcepath="com/sun/labs/aura/util/StatServiceImpl.java"/>
+    </Class>
+  </BugInstance>
+  <BugInstance type="SIC_INNER_SHOULD_BE_STATIC" priority="2" abbrev="SIC" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.util.StatServiceImpl$Counter">
+      <SourceLine classname="com.sun.labs.aura.util.StatServiceImpl$Counter" sourcefile="StatServiceImpl.java" sourcepath="com/sun/labs/aura/util/StatServiceImpl.java"/>
+    </Class>
+  </BugInstance>
+  <BugInstance type="EQ_COMPARETO_USE_OBJECT_EQUALS" priority="2" abbrev="Eq" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.util.Tag">
+      <SourceLine classname="com.sun.labs.aura.util.Tag" sourcefile="Tag.java" sourcepath="com/sun/labs/aura/util/Tag.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.Tag" name="compareTo" signature="(Ljava/lang/Object;)I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.Tag" start="59" end="60" startBytecode="0" endBytecode="80" sourcefile="Tag.java" sourcepath="com/sun/labs/aura/util/Tag.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="DM_STRING_TOSTRING" priority="2" abbrev="Dm" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.util.classifiers.BuildClassifiers$2">
+      <SourceLine classname="com.sun.labs.aura.util.classifiers.BuildClassifiers$2" sourcefile="BuildClassifiers.java" sourcepath="com/sun/labs/aura/util/classifiers/BuildClassifiers.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.classifiers.BuildClassifiers$2" name="filter" signature="(Lcom/sun/labs/minion/ResultAccessor;)Z" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.classifiers.BuildClassifiers$2" start="228" end="234" startBytecode="0" endBytecode="155" sourcefile="BuildClassifiers.java" sourcepath="com/sun/labs/aura/util/classifiers/BuildClassifiers.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.util.classifiers.BuildClassifiers$2" start="230" end="230" startBytecode="29" endBytecode="29" sourcefile="BuildClassifiers.java" sourcepath="com/sun/labs/aura/util/classifiers/BuildClassifiers.java"/>
+  </BugInstance>
+  <BugInstance type="EQ_COMPARETO_USE_OBJECT_EQUALS" priority="2" abbrev="Eq" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.util.classifiers.ContingencyTable">
+      <SourceLine classname="com.sun.labs.aura.util.classifiers.ContingencyTable" sourcefile="ContingencyTable.java" sourcepath="com/sun/labs/aura/util/classifiers/ContingencyTable.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.classifiers.ContingencyTable" name="compareTo" signature="(Lcom/sun/labs/aura/util/classifiers/ContingencyTable;)I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.classifiers.ContingencyTable" start="167" end="178" startBytecode="0" endBytecode="137" sourcefile="ContingencyTable.java" sourcepath="com/sun/labs/aura/util/classifiers/ContingencyTable.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="ICAST_IDIV_CAST_TO_DOUBLE" priority="2" abbrev="ICAST" category="STYLE">
+    <UserAnnotation/>
+    <Class classname="com.sun.labs.aura.util.classifiers.ContingencyTable">
+      <SourceLine classname="com.sun.labs.aura.util.classifiers.ContingencyTable" sourcefile="ContingencyTable.java" sourcepath="com/sun/labs/aura/util/classifiers/ContingencyTable.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.classifiers.ContingencyTable" name="chisq" signature="()F" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.classifiers.ContingencyTable" start="159" end="163" startBytecode="0" endBytecode="153" sourcefile="ContingencyTable.java" sourcepath="com/sun/labs/aura/util/classifiers/ContingencyTable.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.util.classifiers.ContingencyTable" start="160" end="160" startBytecode="95" endBytecode="95" sourcefile="ContingencyTable.java" sourcepath="com/sun/labs/aura/util/classifiers/ContingencyTable.java"/>
+  </BugInstance>
+  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="2" abbrev="DLS" category="STYLE">
+    <Class classname="com.sun.labs.aura.util.classifiers.EvaluateClassifiers">
+      <SourceLine classname="com.sun.labs.aura.util.classifiers.EvaluateClassifiers" sourcefile="EvaluateClassifiers.java" sourcepath="com/sun/labs/aura/util/classifiers/EvaluateClassifiers.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.classifiers.EvaluateClassifiers" name="main" signature="([Ljava/lang/String;)V" isStatic="true">
+      <SourceLine classname="com.sun.labs.aura.util.classifiers.EvaluateClassifiers" start="43" end="239" startBytecode="0" endBytecode="449" sourcefile="EvaluateClassifiers.java" sourcepath="com/sun/labs/aura/util/classifiers/EvaluateClassifiers.java"/>
+    </Method>
+    <LocalVariable name="autoClassField" register="12" pc="447" role="LOCAL_VARIABLE_NAMED"/>
+    <SourceLine classname="com.sun.labs.aura.util.classifiers.EvaluateClassifiers" start="134" end="134" startBytecode="445" endBytecode="445" sourcefile="EvaluateClassifiers.java" sourcepath="com/sun/labs/aura/util/classifiers/EvaluateClassifiers.java"/>
+  </BugInstance>
+  <BugInstance type="EQ_COMPARETO_USE_OBJECT_EQUALS" priority="2" abbrev="Eq" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.util.io.Merger$HE">
+      <SourceLine classname="com.sun.labs.aura.util.io.Merger$HE" sourcefile="Merger.java" sourcepath="com/sun/labs/aura/util/io/Merger.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.io.Merger$HE" name="compareTo" signature="(Lcom/sun/labs/aura/util/io/Merger$HE;)I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.io.Merger$HE" start="84" end="84" startBytecode="0" endBytecode="91" sourcefile="Merger.java" sourcepath="com/sun/labs/aura/util/io/Merger.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="EQ_COMPARETO_USE_OBJECT_EQUALS" priority="2" abbrev="Eq" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.util.io.Record">
+      <SourceLine classname="com.sun.labs.aura.util.io.Record" sourcefile="Record.java" sourcepath="com/sun/labs/aura/util/io/Record.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.io.Record" name="compareTo" signature="(Lcom/sun/labs/aura/util/io/Record;)I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.io.Record" start="33" end="33" startBytecode="0" endBytecode="96" sourcefile="Record.java" sourcepath="com/sun/labs/aura/util/io/Record.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="2" abbrev="DLS" category="STYLE">
+    <Class classname="com.sun.labs.aura.util.io.Sorter">
+      <SourceLine classname="com.sun.labs.aura.util.io.Sorter" sourcefile="Sorter.java" sourcepath="com/sun/labs/aura/util/io/Sorter.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.io.Sorter" name="sort" signature="()V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.io.Sorter" start="64" end="131" startBytecode="0" endBytecode="162" sourcefile="Sorter.java" sourcepath="com/sun/labs/aura/util/io/Sorter.java"/>
+    </Method>
+    <LocalVariable name="cr" register="6" pc="179" role="LOCAL_VARIABLE_NAMED"/>
+    <SourceLine classname="com.sun.labs.aura.util.io.Sorter" start="101" end="101" startBytecode="177" endBytecode="177" sourcefile="Sorter.java" sourcepath="com/sun/labs/aura/util/io/Sorter.java"/>
+  </BugInstance>
+  <BugInstance type="DLS_DEAD_LOCAL_STORE" priority="2" abbrev="DLS" category="STYLE">
+    <Class classname="com.sun.labs.aura.util.io.Sorter">
+      <SourceLine classname="com.sun.labs.aura.util.io.Sorter" sourcefile="Sorter.java" sourcepath="com/sun/labs/aura/util/io/Sorter.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.io.Sorter" name="writeSortedRecords" signature="(Lcom/sun/labs/aura/util/io/KeyedInputStream;Lcom/sun/labs/aura/util/io/Sorter$SortedRegion;Ljava/util/List;Ljava/util/List;Lcom/sun/labs/aura/util/io/KeyedOutputStream;)Lcom/sun/labs/aura/util/io/Sorter$SortedRegion;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.io.Sorter" start="141" end="155" startBytecode="0" endBytecode="45" sourcefile="Sorter.java" sourcepath="com/sun/labs/aura/util/io/Sorter.java"/>
+    </Method>
+    <LocalVariable name="obp" register="6" pc="7" role="LOCAL_VARIABLE_NAMED"/>
+    <SourceLine classname="com.sun.labs.aura.util.io.Sorter" start="141" end="141" startBytecode="5" endBytecode="5" sourcefile="Sorter.java" sourcepath="com/sun/labs/aura/util/io/Sorter.java"/>
+  </BugInstance>
+  <BugInstance type="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE" priority="2" abbrev="RV" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.util.io.Sorter">
+      <SourceLine classname="com.sun.labs.aura.util.io.Sorter" sourcefile="Sorter.java" sourcepath="com/sun/labs/aura/util/io/Sorter.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.io.Sorter" name="sort" signature="()V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.io.Sorter" start="64" end="131" startBytecode="0" endBytecode="792" sourcefile="Sorter.java" sourcepath="com/sun/labs/aura/util/io/Sorter.java"/>
+    </Method>
+    <Method classname="java.io.File" name="delete" signature="()Z" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="java.io.File" start="867" end="871" startBytecode="0" endBytecode="59" sourcefile="File.java" sourcepath="java/io/File.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.util.io.Sorter" start="130" end="130" startBytecode="352" endBytecode="352" sourcefile="Sorter.java" sourcepath="com/sun/labs/aura/util/io/Sorter.java"/>
+  </BugInstance>
+  <BugInstance type="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE" priority="2" abbrev="RV" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.util.io.Sorter">
+      <SourceLine classname="com.sun.labs.aura.util.io.Sorter" sourcefile="Sorter.java" sourcepath="com/sun/labs/aura/util/io/Sorter.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.util.io.Sorter" name="sort" signature="()V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.util.io.Sorter" start="64" end="131" startBytecode="0" endBytecode="792" sourcefile="Sorter.java" sourcepath="com/sun/labs/aura/util/io/Sorter.java"/>
+    </Method>
+    <Method classname="java.io.File" name="renameTo" signature="(Ljava/io/File;)Z" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="java.io.File" start="1187" end="1192" startBytecode="0" endBytecode="72" sourcefile="File.java" sourcepath="java/io/File.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.util.io.Sorter" start="111" end="111" startBytecode="205" endBytecode="205" sourcefile="Sorter.java" sourcepath="com/sun/labs/aura/util/io/Sorter.java"/>
+  </BugInstance>
+  <Errors>
+    <MissingClass>com.sun.jini.config.ConfigUtil</MissingClass>
+    <MissingClass>com.sun.jini.tool.ClassServer</MissingClass>
+    <MissingClass>com.sun.labs.aura.datastore.impl.BinaryTrie.TrieNode</MissingClass>
+    <MissingClass>net.jini.core.discovery.LookupLocator</MissingClass>
+    <MissingClass>net.jini.core.lease.Lease</MissingClass>
+    <MissingClass>net.jini.core.lookup.ServiceItem</MissingClass>
+    <MissingClass>net.jini.core.lookup.ServiceMatches</MissingClass>
+    <MissingClass>net.jini.core.lookup.ServiceRegistrar</MissingClass>
+    <MissingClass>net.jini.core.lookup.ServiceRegistration</MissingClass>
+    <MissingClass>net.jini.core.lookup.ServiceTemplate</MissingClass>
+    <MissingClass>net.jini.discovery.DiscoveryManagement</MissingClass>
+    <MissingClass>net.jini.discovery.LookupDiscovery</MissingClass>
+    <MissingClass>net.jini.discovery.LookupDiscoveryManager</MissingClass>
+    <MissingClass>net.jini.export.Exporter</MissingClass>
+    <MissingClass>net.jini.jrmp.JrmpExporter</MissingClass>
+    <MissingClass>net.jini.lease.LeaseRenewalManager</MissingClass>
+    <MissingClass>net.jini.lookup.LookupCache</MissingClass>
+    <MissingClass>net.jini.lookup.ServiceDiscoveryEvent</MissingClass>
+    <MissingClass>net.jini.lookup.ServiceDiscoveryManager</MissingClass>
+  </Errors>
+  <FindBugsSummary timestamp="Tue, 20 May 2008 05:44:42 -0400" total_classes="118" total_bugs="61" total_size="5239" num_packages="11" cpu_seconds="3.54" clock_seconds="72.28" peak_mbytes="22.58" alloc_mbytes="762.12" gc_seconds="0.10" priority_2="56" priority_1="5">
+    <PackageStats package="com.sun.labs.aura" total_bugs="0" total_types="3" total_size="62">
+      <ClassStats class="com.sun.labs.aura.AuraService" sourceFile="AuraService.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.AuraServiceStarter" sourceFile="AuraServiceStarter.java" interface="false" size="52" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.AuraServiceStarter$1" sourceFile="AuraServiceStarter.java" interface="false" size="7" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.cluster" total_bugs="8" total_types="4" total_size="241" priority_2="8">
+      <ClassStats class="com.sun.labs.aura.cluster.Cluster" sourceFile="Cluster.java" interface="false" size="60" bugs="2" priority_2="2"/>
+      <ClassStats class="com.sun.labs.aura.cluster.Cluster$HE" sourceFile="Cluster.java" interface="false" size="19" bugs="3" priority_2="3"/>
+      <ClassStats class="com.sun.labs.aura.cluster.ClusterElement" sourceFile="ClusterElement.java" interface="false" size="34" bugs="3" priority_2="3"/>
+      <ClassStats class="com.sun.labs.aura.cluster.KMeans" sourceFile="KMeans.java" interface="false" size="128" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.datastore" total_bugs="3" total_types="12" total_size="136" priority_2="2" priority_1="1">
+      <ClassStats class="com.sun.labs.aura.datastore.Attention" sourceFile="Attention.java" interface="true" size="5" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.Attention$Type" sourceFile="Attention.java" interface="false" size="23" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.DBIterator" sourceFile="DBIterator.java" interface="true" size="4" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.DataStore" sourceFile="DataStore.java" interface="true" size="2" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.Indexable" sourceFile="Indexable.java" interface="true" size="1" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.Item" sourceFile="Item.java" interface="true" size="8" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.Item$ItemType" sourceFile="Item.java" interface="false" size="27" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.ItemEvent" sourceFile="ItemEvent.java" interface="false" size="28" bugs="2" priority_2="2"/>
+      <ClassStats class="com.sun.labs.aura.datastore.ItemEvent$ChangeType" sourceFile="ItemEvent.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.ItemListener" sourceFile="ItemListener.java" interface="true" size="4" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.StoreFactory" sourceFile="StoreFactory.java" interface="false" size="23" bugs="1" priority_1="1"/>
+      <ClassStats class="com.sun.labs.aura.datastore.User" sourceFile="User.java" interface="true" size="2" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.datastore.impl" total_bugs="4" total_types="26" total_size="1025" priority_2="2" priority_1="2">
+      <ClassStats class="com.sun.labs.aura.datastore.impl.BinaryTrie" sourceFile="BinaryTrie.java" interface="false" size="70" bugs="1" priority_1="1"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.BinaryTrie$TrieNode" sourceFile="BinaryTrie.java" interface="false" size="37" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DSBitSet" sourceFile="DSBitSet.java" interface="false" size="48" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead" sourceFile="DataStoreHead.java" interface="false" size="473" bugs="1" priority_1="1"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$1" sourceFile="DataStoreHead.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$10" sourceFile="DataStoreHead.java" interface="false" size="7" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$11" sourceFile="DataStoreHead.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$12" sourceFile="DataStoreHead.java" interface="false" size="11" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$13" sourceFile="DataStoreHead.java" interface="false" size="12" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$14" sourceFile="DataStoreHead.java" interface="false" size="7" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$15" sourceFile="DataStoreHead.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$2" sourceFile="DataStoreHead.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$3" sourceFile="DataStoreHead.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$4" sourceFile="DataStoreHead.java" interface="false" size="14" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$5" sourceFile="DataStoreHead.java" interface="false" size="14" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$6" sourceFile="DataStoreHead.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$7" sourceFile="DataStoreHead.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$8" sourceFile="DataStoreHead.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$9" sourceFile="DataStoreHead.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$PCCaller" sourceFile="DataStoreHead.java" interface="false" size="21" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.DataStoreHead$PCLatch" sourceFile="DataStoreHead.java" interface="false" size="23" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.MultiDBIterator" sourceFile="MultiDBIterator.java" interface="false" size="32" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.PartitionCluster" sourceFile="PartitionCluster.java" interface="true" size="5" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" sourceFile="PartitionClusterImpl.java" interface="false" size="133" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.Replicant" sourceFile="Replicant.java" interface="true" size="4" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.Util" sourceFile="Util.java" interface="false" size="30" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.datastore.impl.store" total_bugs="11" total_types="11" total_size="1146" priority_2="11">
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper" sourceFile="BerkeleyDataWrapper.java" interface="false" size="472" bugs="7" priority_2="7"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" sourceFile="BerkeleyItemStore.java" interface="false" size="305" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.ChangeEvent" sourceFile="ChangeEvent.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.EntityIterator" sourceFile="EntityIterator.java" interface="false" size="24" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.Indexable" sourceFile="Indexable.java" interface="true" size="1" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.ItemSearch" sourceFile="ItemSearch.java" interface="true" size="19" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine" sourceFile="ItemSearchEngine.java" interface="false" size="253" bugs="2" priority_2="2"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine$FlushTimerTask" sourceFile="ItemSearchEngine.java" interface="false" size="14" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.ItemStore" sourceFile="ItemStore.java" interface="true" size="25" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.LowLevelSearch" sourceFile="LowLevelSearch.java" interface="true" size="14" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator" sourceFile="ReverseAttentionTimeComparator.java" interface="false" size="11" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.datastore.impl.store.persist" total_bugs="3" total_types="5" total_size="188" priority_2="2" priority_1="1">
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.persist.IntAndTimeKey" sourceFile="IntAndTimeKey.java" interface="false" size="15" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.persist.ItemImpl" sourceFile="ItemImpl.java" interface="false" size="80" bugs="2" priority_2="1" priority_1="1"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention" sourceFile="PersistentAttention.java" interface="false" size="58" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.persist.StringAndTimeKey" sourceFile="StringAndTimeKey.java" interface="false" size="15" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.datastore.impl.store.persist.UserImpl" sourceFile="UserImpl.java" interface="false" size="20" bugs="1" priority_2="1"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.mr" total_bugs="0" total_types="1" total_size="2">
+      <ClassStats class="com.sun.labs.aura.mr.ReplicantProcessor" sourceFile="ReplicantProcessor.java" interface="true" size="2" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.recommender" total_bugs="2" total_types="11" total_size="154" priority_2="2">
+      <ClassStats class="com.sun.labs.aura.recommender.FieldExclusionFilter" sourceFile="FieldExclusionFilter.java" interface="false" size="21" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.recommender.FieldRangeFilter" sourceFile="FieldRangeFilter.java" interface="false" size="22" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.recommender.LengthFilter" sourceFile="LengthFilter.java" interface="false" size="21" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.recommender.Recommendation" sourceFile="Recommendation.java" interface="false" size="11" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.recommender.Recommendation$ReverseComparator" sourceFile="Recommendation.java" interface="false" size="6" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.recommender.RecommenderManager" sourceFile="RecommenderManager.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.recommender.RecommenderProfile" sourceFile="RecommenderProfile.java" interface="false" size="18" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.recommender.RecommenderProfile$1" sourceFile="RecommenderProfile.java" interface="false" size="8" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.recommender.RecommenderProfile$2" sourceFile="RecommenderProfile.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.recommender.ResultsFilterAdapter" sourceFile="ResultsFilterAdapter.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.recommender.TypeFilter" sourceFile="TypeFilter.java" interface="false" size="19" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.util" total_bugs="20" total_types="21" total_size="1439" priority_2="19" priority_1="1">
+      <ClassStats class="com.sun.labs.aura.util.AuraException" sourceFile="AuraException.java" interface="false" size="7" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.DBCount" sourceFile="DBCount.java" interface="false" size="18" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.DBSplitter" sourceFile="DBSplitter.java" interface="false" size="87" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.util.DecreasingScoredComparator" sourceFile="DecreasingScoredComparator.java" interface="false" size="6" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.DelayedItem" sourceFile="ItemSchedulerImpl.java" interface="false" size="33" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.DumpServices" sourceFile="DumpServices.java" interface="false" size="19" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.GridDeploy" sourceFile="GridDeploy.java" interface="false" size="610" bugs="7" priority_2="6" priority_1="1"/>
+      <ClassStats class="com.sun.labs.aura.util.GridDeploy$1" sourceFile="GridDeploy.java" interface="false" size="12" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.ItemAdapter" sourceFile="ItemAdapter.java" interface="false" size="152" bugs="2" priority_2="2"/>
+      <ClassStats class="com.sun.labs.aura.util.ItemScheduler" sourceFile="ItemScheduler.java" interface="true" size="4" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.ItemSchedulerImpl" sourceFile="ItemSchedulerImpl.java" interface="false" size="124" bugs="4" priority_2="4"/>
+      <ClassStats class="com.sun.labs.aura.util.ItemSchedulerImpl$1" sourceFile="ItemSchedulerImpl.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.PersistentStringSet" sourceFile="PersistentStringSet.java" interface="false" size="67" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.PersistentStringSet$1" sourceFile="PersistentStringSet.java" interface="false" size="7" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.Reindexer" sourceFile="Reindexer.java" interface="false" size="113" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.Scored" sourceFile="Scored.java" interface="false" size="54" bugs="3" priority_2="3"/>
+      <ClassStats class="com.sun.labs.aura.util.StatService" sourceFile="StatService.java" interface="true" size="11" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.StatServiceImpl" sourceFile="StatServiceImpl.java" interface="false" size="54" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.StatServiceImpl$Counter" sourceFile="StatServiceImpl.java" interface="false" size="22" bugs="2" priority_2="2"/>
+      <ClassStats class="com.sun.labs.aura.util.Tag" sourceFile="Tag.java" interface="false" size="17" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.util.Times" sourceFile="Times.java" interface="false" size="14" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.util.classifiers" total_bugs="4" total_types="8" total_size="457" priority_2="4">
+      <ClassStats class="com.sun.labs.aura.util.classifiers.BuildClassifiers" sourceFile="BuildClassifiers.java" interface="false" size="127" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.classifiers.BuildClassifiers$1" sourceFile="BuildClassifiers.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.classifiers.BuildClassifiers$2" sourceFile="BuildClassifiers.java" interface="false" size="18" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.util.classifiers.ContingencyTable" sourceFile="ContingencyTable.java" interface="false" size="74" bugs="2" priority_2="2"/>
+      <ClassStats class="com.sun.labs.aura.util.classifiers.DescribeClassifiers" sourceFile="DescribeClassifiers.java" interface="false" size="58" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.classifiers.EvaluateClassifiers" sourceFile="EvaluateClassifiers.java" interface="false" size="153" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.util.classifiers.EvaluateClassifiers$1" sourceFile="EvaluateClassifiers.java" interface="false" size="6" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.classifiers.Util" sourceFile="Util.java" interface="false" size="8" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.util.io" total_bugs="6" total_types="16" total_size="389" priority_2="6">
+      <ClassStats class="com.sun.labs.aura.util.io.Combiner" sourceFile="Combiner.java" interface="true" size="2" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.io.FloatCombiner" sourceFile="FloatCombiner.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.io.IntegerCombiner" sourceFile="IntegerCombiner.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.io.KeyedInputStream" sourceFile="KeyedInputStream.java" interface="false" size="71" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.io.KeyedInputStream$1" sourceFile="KeyedInputStream.java" interface="false" size="4" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.io.KeyedOutputStream" sourceFile="KeyedOutputStream.java" interface="false" size="47" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.io.KeyedOutputStream$1" sourceFile="KeyedOutputStream.java" interface="false" size="4" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.io.KeyedStream" sourceFile="KeyedStream.java" interface="false" size="33" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.io.KeyedStream$Type" sourceFile="KeyedStream.java" interface="false" size="14" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.io.LongCombiner" sourceFile="LongCombiner.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.io.Merger" sourceFile="Merger.java" interface="false" size="36" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.io.Merger$HE" sourceFile="Merger.java" interface="false" size="18" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.util.io.Record" sourceFile="Record.java" interface="false" size="18" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.util.io.Sorter" sourceFile="Sorter.java" interface="false" size="71" bugs="4" priority_2="4"/>
+      <ClassStats class="com.sun.labs.aura.util.io.Sorter$SortedRegion" sourceFile="Sorter.java" interface="false" size="17" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.util.io.TestDataGenerator" sourceFile="TestDataGenerator.java" interface="false" size="24" bugs="0"/>
+    </PackageStats>
+  </FindBugsSummary>
+  <ClassFeatures></ClassFeatures>
+  <History></History>
+</BugCollection>
