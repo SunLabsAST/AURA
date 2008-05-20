@@ -273,7 +273,7 @@ class DelayedItem implements Delayed {
 
     public DelayedItem(String itemKey, int seconds) {
         this.itemKey = itemKey;
-        nextProcessingTime = System.currentTimeMillis() + seconds * 1000;
+        nextProcessingTime = System.currentTimeMillis() + seconds * 1000L;
     }
 
     public DelayedItem(String itemKey) {

@@ -31,7 +31,7 @@ public class LengthFilter implements ResultsFilter, Serializable {
         nt++;
         String v = (String) ra.getSingleFieldValue(field);
         
-        boolean ret = v != null && v.toString().length() >= len;
+        boolean ret = v != null && v.length() >= len;
         if(ret) {
             np++;
         }

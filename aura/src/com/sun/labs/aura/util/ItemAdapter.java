@@ -279,7 +279,7 @@ public class ItemAdapter implements Serializable {
     protected void setField(String fieldName, int value) {
         int curValue = getFieldAsInt(fieldName);
         if (value != curValue) {
-            item.getMap().put(fieldName, new Integer(value));
+            item.getMap().put(fieldName, Integer.valueOf(value));
             modified = true;
         }
     }
@@ -293,7 +293,7 @@ public class ItemAdapter implements Serializable {
     protected void setField(String fieldName, long value) {
         long curValue = getFieldAsLong(fieldName);
         if (value != curValue) {
-            item.getMap().put(fieldName, new Long(value));
+            item.getMap().put(fieldName, Long.valueOf(value));
             modified = true;
         }
     }

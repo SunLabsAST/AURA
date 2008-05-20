@@ -41,7 +41,7 @@ public class RecommenderProfile extends ResultsFilterAdapter implements Serializ
 
             public boolean lowLevelFilter(ResultAccessor ra) {
                 String v = (String) ra.getSingleFieldValue(field);
-                return v != null && v.toString().length() >= length;
+                return v != null && v.length() >= length;
             }
         };
     }
