@@ -4,7 +4,7 @@
  * Copyright (c) 2008,  Sun Microsystems Inc
  * See license.txt for licensing info.
  */
-package com.sun.labs.aura.aardvark.impl.crawler;
+package com.sun.labs.aura.util;
 
 import com.sun.labs.minion.SearchEngine;
 import com.sun.labs.minion.SearchEngineException;
@@ -29,7 +29,7 @@ public class PersistentStringSet {
     private final static int MAX_MEMORY_CACHE_SIZE = 10000;
     private final static String CONFIG_FILE = "persistentStringSetEngineConfig.xml";
 
-    PersistentStringSet(String index) throws IOException {
+    public PersistentStringSet(String index) throws IOException {
         inMemoryCache = new HashSet();
         try {
             URL engineConfig = PersistentStringSet.class.getResource(CONFIG_FILE);

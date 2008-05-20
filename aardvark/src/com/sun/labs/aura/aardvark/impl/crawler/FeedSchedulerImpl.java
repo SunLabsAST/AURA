@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.aardvark.impl.crawler;
 
+import com.sun.labs.aura.util.PersistentStringSet;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.util.AuraException;
