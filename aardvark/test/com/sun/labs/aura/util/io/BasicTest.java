@@ -44,11 +44,10 @@ public class BasicTest extends TestSupport {
 
     @Test
     public void testNumberOfRecords() throws FileNotFoundException, IOException {
-        for(int i = 1; i <= 9; i++) {
+        for(int i = 1; i <= NUM_RECS; i++) {
             List<Record<String,Integer>> recs = readRecs(i);
             assertTrue("Non equal record sizes for " + i, recs.size() ==
                     nrecs[i]);
         }
     }
-
 }
