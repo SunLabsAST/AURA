@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<BugCollection version="1.3.4" sequence="0" timestamp="1211276682000" analysisTimestamp="1211281683752" release="">
+  <Project filename="&lt;&lt;unnamed project&gt;&gt;" projectName="SITM">
+    <Jar>sitm/dist/sitm.jar</Jar>
+    <AuxClasspathEntry>sitm/libs/flickrapi-1.0b3.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>sitm/libs/JID3.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>sitm/libs/xpp3_min-1.1.3.4.O.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>sitm/libs/xstream-1.2.1.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/caroline.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/carolineunzip.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/carolineutil.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jaxen-core.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jaxen-jdom.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jdom.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/je-3.2.44.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/LabsUtil.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/minion.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/rome-0.9.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/rome-fetcher-0.9.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/saxpath.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/xalan.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/xerces.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/xml-apis.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/browser.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/checkconfigurationfile.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/checkser.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/classdep.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/classserver.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/computedigest.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/computehttpmdcodebase.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/destroy.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/envcheck.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/fiddler.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/group.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/jarwrapper.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/jini-core.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/jini-ext.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/jsk-debug-policy.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/jsk-lib.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/jsk-platform.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/jsk-resources.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/mahalo.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/mercury.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/norm.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/outrigger-logstore.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/outrigger-snaplogstore.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/outrigger.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/phoenix-group.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/phoenix-init.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/phoenix.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/prebuilt-outrigger-logstore.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/preferredlistgen.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/reggie.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/sharedvm.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/start.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/sun-util.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/jini/lib/tools.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>aura/dist/aura.jar</AuxClasspathEntry>
+    <SrcDir>sitm/src</SrcDir>
+    <SuppressionFilter>
+      <LastVersion value="-1" relOp="NEQ"/>
+    </SuppressionFilter>
+  </Project>
+  <BugInstance type="DM_NUMBER_CTOR" priority="2" abbrev="Bx" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.music.Album">
+      <SourceLine classname="com.sun.labs.aura.music.Album" sourcefile="Album.java" sourcepath="com/sun/labs/aura/music/Album.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.Album" name="addTrack" signature="(ILjava/lang/String;)V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.Album" start="107" end="108" startBytecode="0" endBytecode="81" sourcefile="Album.java" sourcepath="com/sun/labs/aura/music/Album.java"/>
+    </Method>
+    <Method classname="java.lang.Integer" name="&lt;init&gt;" signature="(I)V" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="java.lang.Integer" start="602" end="604" startBytecode="0" endBytecode="41" sourcefile="Integer.java" sourcepath="java/lang/Integer.java"/>
+    </Method>
+    <Method classname="java.lang.Integer" name="valueOf" signature="(I)V" isStatic="false" role="SHOULD_CALL">
+      <SourceLine classname="java.lang.Integer" sourcefile="Integer.java" sourcepath="java/lang/Integer.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.music.Album" start="107" end="107" startBytecode="8" endBytecode="8" sourcefile="Album.java" sourcepath="com/sun/labs/aura/music/Album.java"/>
+  </BugInstance>
+  <BugInstance type="NP_UNWRITTEN_FIELD" priority="2" abbrev="NP" category="CORRECTNESS">
+    <Class classname="com.sun.labs.aura.music.crawler.ArtistCrawler">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.crawler.ArtistCrawler" name="addMusicBrainzInfo" signature="(Lcom/sun/labs/aura/music/Artist;)V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" start="138" end="165" startBytecode="0" endBytecode="516" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Method>
+    <Field classname="com.sun.labs.aura.music.crawler.ArtistCrawler" name="dataStore" signature="Lcom/sun/labs/aura/datastore/DataStore;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" start="148" end="148" startBytecode="129" endBytecode="129" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+  </BugInstance>
+  <BugInstance type="NP_UNWRITTEN_FIELD" priority="2" abbrev="NP" category="CORRECTNESS">
+    <Class classname="com.sun.labs.aura.music.crawler.ArtistCrawler">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.crawler.ArtistCrawler" name="collectArtistInfo" signature="(Lcom/sun/labs/aura/music/crawler/QueuedArtist;)Lcom/sun/labs/aura/music/Artist;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" start="94" end="105" startBytecode="0" endBytecode="180" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Method>
+    <Field classname="com.sun.labs.aura.music.crawler.ArtistCrawler" name="dataStore" signature="Lcom/sun/labs/aura/datastore/DataStore;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" start="97" end="97" startBytecode="16" endBytecode="16" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+  </BugInstance>
+  <BugInstance type="UUF_UNUSED_FIELD" priority="2" abbrev="UuF" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.music.crawler.ArtistCrawler">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.music.crawler.ArtistCrawler" name="defaultCrawlingPeriod" signature="I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Field>
+  </BugInstance>
+  <BugInstance type="UUF_UNUSED_FIELD" priority="2" abbrev="UuF" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.music.crawler.ArtistCrawler">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.music.crawler.ArtistCrawler" name="numDiscoveryThreads" signature="I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Field>
+  </BugInstance>
+  <BugInstance type="UUF_UNUSED_FIELD" priority="2" abbrev="UuF" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.music.crawler.ArtistCrawler">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.music.crawler.ArtistCrawler" name="statService" signature="Lcom/sun/labs/aura/util/StatService;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Field>
+  </BugInstance>
+  <BugInstance type="UWF_UNWRITTEN_FIELD" priority="2" abbrev="UwF" category="CORRECTNESS">
+    <Class classname="com.sun.labs.aura.music.crawler.ArtistCrawler">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.music.crawler.ArtistCrawler" name="dataStore" signature="Lcom/sun/labs/aura/datastore/DataStore;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.music.crawler.ArtistCrawler" start="97" end="97" startBytecode="12" endBytecode="12" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+  </BugInstance>
+  <BugInstance type="EQ_COMPARETO_USE_OBJECT_EQUALS" priority="2" abbrev="Eq" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.music.crawler.QueuedArtist">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.QueuedArtist" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.crawler.QueuedArtist" name="compareTo" signature="(Lcom/sun/labs/aura/music/crawler/QueuedArtist;)I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.crawler.QueuedArtist" start="243" end="243" startBytecode="0" endBytecode="61" sourcefile="ArtistCrawler.java" sourcepath="com/sun/labs/aura/music/crawler/ArtistCrawler.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="ICAST_INTEGER_MULTIPLY_CAST_TO_LONG" priority="2" abbrev="ICAST" category="STYLE">
+    <Class classname="com.sun.labs.aura.music.web.Cache">
+      <SourceLine classname="com.sun.labs.aura.music.web.Cache" sourcefile="Cache.java" sourcepath="com/sun/labs/aura/music/web/Cache.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.web.Cache" name="expired" signature="(Ljava/io/File;)Z" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.Cache" start="92" end="97" startBytecode="0" endBytecode="138" sourcefile="Cache.java" sourcepath="com/sun/labs/aura/music/web/Cache.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.music.web.Cache" start="95" end="95" startBytecode="25" endBytecode="25" sourcefile="Cache.java" sourcepath="com/sun/labs/aura/music/web/Cache.java"/>
+  </BugInstance>
+  <BugInstance type="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE" priority="2" abbrev="RV" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.music.web.Cache">
+      <SourceLine classname="com.sun.labs.aura.music.web.Cache" sourcefile="Cache.java" sourcepath="com/sun/labs/aura/music/web/Cache.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.web.Cache" name="getXmlFile" signature="(Ljava/lang/String;)Ljava/io/File;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.Cache" start="78" end="85" startBytecode="0" endBytecode="187" sourcefile="Cache.java" sourcepath="com/sun/labs/aura/music/web/Cache.java"/>
+    </Method>
+    <Method classname="java.io.File" name="mkdirs" signature="()Z" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="java.io.File" start="1145" end="1158" startBytecode="0" endBytecode="145" sourcefile="File.java" sourcepath="java/io/File.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.music.web.Cache" start="83" end="83" startBytecode="60" endBytecode="60" sourcefile="Cache.java" sourcepath="com/sun/labs/aura/music/web/Cache.java"/>
+  </BugInstance>
+  <BugInstance type="UUF_UNUSED_FIELD" priority="2" abbrev="UuF" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.music.web.Commander">
+      <SourceLine classname="com.sun.labs.aura.music.web.Commander" sourcefile="Commander.java" sourcepath="com/sun/labs/aura/music/web/Commander.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.music.web.Commander" name="subscriptionId" signature="Ljava/lang/String;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.Commander" sourcefile="Commander.java" sourcepath="com/sun/labs/aura/music/web/Commander.java"/>
+    </Field>
+  </BugInstance>
+  <BugInstance type="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE" priority="2" abbrev="RV" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.music.web.Directory">
+      <SourceLine classname="com.sun.labs.aura.music.web.Directory" sourcefile="Directory.java" sourcepath="com/sun/labs/aura/music/web/Directory.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.web.Directory" name="&lt;init&gt;" signature="(Ljava/io/File;)V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.Directory" start="31" end="38" startBytecode="0" endBytecode="154" sourcefile="Directory.java" sourcepath="com/sun/labs/aura/music/web/Directory.java"/>
+    </Method>
+    <Method classname="java.io.File" name="mkdirs" signature="()Z" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="java.io.File" start="1145" end="1158" startBytecode="0" endBytecode="145" sourcefile="File.java" sourcepath="java/io/File.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.music.web.Directory" start="34" end="34" startBytecode="43" endBytecode="43" sourcefile="Directory.java" sourcepath="com/sun/labs/aura/music/web/Directory.java"/>
+  </BugInstance>
+  <BugInstance type="RE_CANT_USE_FILE_SEPARATOR_AS_REGULAR_EXPRESSION" priority="1" abbrev="RE" category="CORRECTNESS">
+    <Class classname="com.sun.labs.aura.music.web.TrackInfo">
+      <SourceLine classname="com.sun.labs.aura.music.web.TrackInfo" sourcefile="TrackInfo.java" sourcepath="com/sun/labs/aura/music/web/TrackInfo.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.web.TrackInfo" name="extractFromPath" signature="(Ljava/io/File;I)Ljava/lang/String;" isStatic="true">
+      <SourceLine classname="com.sun.labs.aura.music.web.TrackInfo" start="172" end="178" startBytecode="0" endBytecode="137" sourcefile="TrackInfo.java" sourcepath="com/sun/labs/aura/music/web/TrackInfo.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.music.web.TrackInfo" start="173" end="173" startBytecode="11" endBytecode="11" sourcefile="TrackInfo.java" sourcepath="com/sun/labs/aura/music/web/TrackInfo.java"/>
+  </BugInstance>
+  <BugInstance type="DM_STRING_TOSTRING" priority="2" abbrev="Dm" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.music.web.Utilities">
+      <SourceLine classname="com.sun.labs.aura.music.web.Utilities" sourcefile="Utilities.java" sourcepath="com/sun/labs/aura/music/web/Utilities.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.web.Utilities" name="normalizeFilename" signature="(Ljava/io/File;)Ljava/lang/String;" isStatic="true">
+      <SourceLine classname="com.sun.labs.aura.music.web.Utilities" start="260" end="260" startBytecode="0" endBytecode="55" sourcefile="Utilities.java" sourcepath="com/sun/labs/aura/music/web/Utilities.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.music.web.Utilities" start="260" end="260" startBytecode="10" endBytecode="10" sourcefile="Utilities.java" sourcepath="com/sun/labs/aura/music/web/Utilities.java"/>
+  </BugInstance>
+  <BugInstance type="LI_LAZY_INIT_UPDATE_STATIC" priority="1" abbrev="LI" category="MT_CORRECTNESS">
+    <Class classname="com.sun.labs.aura.music.web.Utilities">
+      <SourceLine classname="com.sun.labs.aura.music.web.Utilities" sourcefile="Utilities.java" sourcepath="com/sun/labs/aura/music/web/Utilities.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.web.Utilities" name="collapseGenre" signature="(Ljava/lang/String;)Ljava/lang/String;" isStatic="true">
+      <SourceLine classname="com.sun.labs.aura.music.web.Utilities" start="177" end="254" startBytecode="0" endBytecode="355" sourcefile="Utilities.java" sourcepath="com/sun/labs/aura/music/web/Utilities.java"/>
+    </Method>
+    <Field classname="com.sun.labs.aura.music.web.Utilities" name="genreMap" signature="Ljava/util/Map;" isStatic="true" role="FIELD_ON">
+      <SourceLine classname="com.sun.labs.aura.music.web.Utilities" sourcefile="Utilities.java" sourcepath="com/sun/labs/aura/music/web/Utilities.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.music.web.Utilities" start="177" end="178" startBytecode="0" endBytecode="13" sourcefile="Utilities.java" sourcepath="com/sun/labs/aura/music/web/Utilities.java"/>
+  </BugInstance>
+  <BugInstance type="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE" priority="2" abbrev="RV" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.music.web.Utilities">
+      <SourceLine classname="com.sun.labs.aura.music.web.Utilities" sourcefile="Utilities.java" sourcepath="com/sun/labs/aura/music/web/Utilities.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.web.Utilities" name="binaryCopy" signature="(Ljava/net/URL;Ljava/io/File;)J" isStatic="true">
+      <SourceLine classname="com.sun.labs.aura.music.web.Utilities" start="264" end="296" startBytecode="0" endBytecode="362" sourcefile="Utilities.java" sourcepath="com/sun/labs/aura/music/web/Utilities.java"/>
+    </Method>
+    <Method classname="java.io.File" name="createNewFile" signature="()Z" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="java.io.File" start="848" end="850" startBytecode="0" endBytecode="58" sourcefile="File.java" sourcepath="java/io/File.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.music.web.Utilities" start="269" end="269" startBytecode="19" endBytecode="19" sourcefile="Utilities.java" sourcepath="com/sun/labs/aura/music/web/Utilities.java"/>
+  </BugInstance>
+  <BugInstance type="EQ_COMPARETO_USE_OBJECT_EQUALS" priority="2" abbrev="Eq" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.music.web.apml.Concept">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.Concept" sourcefile="Concept.java" sourcepath="com/sun/labs/aura/music/web/apml/Concept.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.web.apml.Concept" name="compareTo" signature="(Lcom/sun/labs/aura/music/web/apml/Concept;)I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.Concept" start="89" end="94" startBytecode="0" endBytecode="97" sourcefile="Concept.java" sourcepath="com/sun/labs/aura/music/web/apml/Concept.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="WMI_WRONG_MAP_ITERATOR" priority="2" abbrev="WMI" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.music.web.apml.LastFMConceptRetriever">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.LastFMConceptRetriever" sourcefile="LastFMConceptRetriever.java" sourcepath="com/sun/labs/aura/music/web/apml/LastFMConceptRetriever.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.web.apml.LastFMConceptRetriever" name="getImplicitConceptsFromArtists" signature="([Lcom/sun/labs/aura/music/web/lastfm/Item;)[Lcom/sun/labs/aura/music/web/apml/Concept;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.LastFMConceptRetriever" start="102" end="130" startBytecode="0" endBytecode="635" sourcefile="LastFMConceptRetriever.java" sourcepath="com/sun/labs/aura/music/web/apml/LastFMConceptRetriever.java"/>
+    </Method>
+    <SourceLine classname="com.sun.labs.aura.music.web.apml.LastFMConceptRetriever" start="124" end="124" startBytecode="198" endBytecode="198" sourcefile="LastFMConceptRetriever.java" sourcepath="com/sun/labs/aura/music/web/apml/LastFMConceptRetriever.java"/>
+  </BugInstance>
+  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.music.web.apml.Profile">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.web.apml.Profile" name="getExplicitConcepts" signature="()[Lcom/sun/labs/aura/music/web/apml/Concept;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" start="24" end="24" startBytecode="0" endBytecode="46" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+    </Method>
+    <Field classname="com.sun.labs.aura.music.web.apml.Profile" name="explicitConcepts" signature="[Lcom/sun/labs/aura/music/web/apml/Concept;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" start="24" end="24" startBytecode="4" endBytecode="4" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+  </BugInstance>
+  <BugInstance type="EI_EXPOSE_REP" priority="2" abbrev="EI" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.music.web.apml.Profile">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.web.apml.Profile" name="getImplicitConcepts" signature="()[Lcom/sun/labs/aura/music/web/apml/Concept;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" start="28" end="28" startBytecode="0" endBytecode="46" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+    </Method>
+    <Field classname="com.sun.labs.aura.music.web.apml.Profile" name="implicitConcepts" signature="[Lcom/sun/labs/aura/music/web/apml/Concept;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" start="28" end="28" startBytecode="4" endBytecode="4" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+  </BugInstance>
+  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.music.web.apml.Profile">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.web.apml.Profile" name="&lt;init&gt;" signature="(Ljava/lang/String;[Lcom/sun/labs/aura/music/web/apml/Concept;[Lcom/sun/labs/aura/music/web/apml/Concept;)V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" start="17" end="21" startBytecode="0" endBytecode="107" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+    </Method>
+    <Field classname="com.sun.labs.aura.music.web.apml.Profile" name="explicitConcepts" signature="[Lcom/sun/labs/aura/music/web/apml/Concept;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+    </Field>
+    <LocalVariable name="explicitConcepts" register="3" pc="16" role="LOCAL_VARIABLE_NAMED"/>
+    <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" start="20" end="20" startBytecode="16" endBytecode="16" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+  </BugInstance>
+  <BugInstance type="EI_EXPOSE_REP2" priority="2" abbrev="EI2" category="MALICIOUS_CODE">
+    <Class classname="com.sun.labs.aura.music.web.apml.Profile">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.web.apml.Profile" name="&lt;init&gt;" signature="(Ljava/lang/String;[Lcom/sun/labs/aura/music/web/apml/Concept;[Lcom/sun/labs/aura/music/web/apml/Concept;)V" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" start="17" end="21" startBytecode="0" endBytecode="107" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+    </Method>
+    <Field classname="com.sun.labs.aura.music.web.apml.Profile" name="implicitConcepts" signature="[Lcom/sun/labs/aura/music/web/apml/Concept;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+    </Field>
+    <LocalVariable name="implicitConcepts" register="2" pc="11" role="LOCAL_VARIABLE_NAMED"/>
+    <SourceLine classname="com.sun.labs.aura.music.web.apml.Profile" start="19" end="19" startBytecode="11" endBytecode="11" sourcefile="Profile.java" sourcepath="com/sun/labs/aura/music/web/apml/Profile.java"/>
+  </BugInstance>
+  <BugInstance type="EQ_COMPARETO_USE_OBJECT_EQUALS" priority="2" abbrev="Eq" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.music.web.lastfm.Item">
+      <SourceLine classname="com.sun.labs.aura.music.web.lastfm.Item" sourcefile="Item.java" sourcepath="com/sun/labs/aura/music/web/lastfm/Item.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.web.lastfm.Item" name="compareTo" signature="(Lcom/sun/labs/aura/music/web/lastfm/Item;)I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.lastfm.Item" start="35" end="35" startBytecode="0" endBytecode="61" sourcefile="Item.java" sourcepath="com/sun/labs/aura/music/web/lastfm/Item.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="URF_UNREAD_FIELD" priority="2" abbrev="UrF" category="PERFORMANCE">
+    <Class classname="com.sun.labs.aura.music.web.musicbrainz.MusicBrainz">
+      <SourceLine classname="com.sun.labs.aura.music.web.musicbrainz.MusicBrainz" sourcefile="MusicBrainz.java" sourcepath="com/sun/labs/aura/music/web/musicbrainz/MusicBrainz.java"/>
+    </Class>
+    <Field classname="com.sun.labs.aura.music.web.musicbrainz.MusicBrainz" name="dateFormatter" signature="Ljava/text/SimpleDateFormat;" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.musicbrainz.MusicBrainz" sourcefile="MusicBrainz.java" sourcepath="com/sun/labs/aura/music/web/musicbrainz/MusicBrainz.java"/>
+    </Field>
+    <SourceLine classname="com.sun.labs.aura.music.web.musicbrainz.MusicBrainz" start="33" end="33" startBytecode="14" endBytecode="14" sourcefile="MusicBrainz.java" sourcepath="com/sun/labs/aura/music/web/musicbrainz/MusicBrainz.java"/>
+  </BugInstance>
+  <BugInstance type="EQ_COMPARETO_USE_OBJECT_EQUALS" priority="2" abbrev="Eq" category="BAD_PRACTICE">
+    <Class classname="com.sun.labs.aura.music.web.youtube.Video">
+      <SourceLine classname="com.sun.labs.aura.music.web.youtube.Video" sourcefile="Video.java" sourcepath="com/sun/labs/aura/music/web/youtube/Video.java"/>
+    </Class>
+    <Method classname="com.sun.labs.aura.music.web.youtube.Video" name="compareTo" signature="(Lcom/sun/labs/aura/music/web/youtube/Video;)I" isStatic="false">
+      <SourceLine classname="com.sun.labs.aura.music.web.youtube.Video" start="154" end="159" startBytecode="0" endBytecode="95" sourcefile="Video.java" sourcepath="com/sun/labs/aura/music/web/youtube/Video.java"/>
+    </Method>
+  </BugInstance>
+  <Errors></Errors>
+  <FindBugsSummary timestamp="Tue, 20 May 2008 05:44:42 -0400" total_classes="42" total_bugs="25" total_size="2618" num_packages="12" cpu_seconds="7.48" clock_seconds="41.31" peak_mbytes="86.45" alloc_mbytes="762.12" gc_seconds="0.82" priority_2="23" priority_1="2">
+    <PackageStats package="com.sun.labs.aura.music" total_bugs="1" total_types="7" total_size="281" priority_2="1">
+      <ClassStats class="com.sun.labs.aura.music.Album" sourceFile="Album.java" interface="false" size="30" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.music.Artist" sourceFile="Artist.java" interface="false" size="103" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.Event" sourceFile="Event.java" interface="false" size="19" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.Photo" sourceFile="Photo.java" interface="false" size="43" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.Track" sourceFile="Track.java" interface="false" size="31" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.Venue" sourceFile="Venue.java" interface="false" size="31" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.Video" sourceFile="Video.java" interface="false" size="24" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.music.crawler" total_bugs="7" total_types="2" total_size="133" priority_2="7">
+      <ClassStats class="com.sun.labs.aura.music.crawler.ArtistCrawler" sourceFile="ArtistCrawler.java" interface="false" size="111" bugs="6" priority_2="6"/>
+      <ClassStats class="com.sun.labs.aura.music.crawler.QueuedArtist" sourceFile="ArtistCrawler.java" interface="false" size="22" bugs="1" priority_2="1"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.music.web" total_bugs="8" total_types="8" total_size="702" priority_2="6" priority_1="2">
+      <ClassStats class="com.sun.labs.aura.music.web.Cache" sourceFile="Cache.java" interface="false" size="63" bugs="2" priority_2="2"/>
+      <ClassStats class="com.sun.labs.aura.music.web.Cache$ObjectMap" sourceFile="Cache.java" interface="false" size="6" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.web.Commander" sourceFile="Commander.java" interface="false" size="127" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.music.web.Directory" sourceFile="Directory.java" interface="false" size="57" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.music.web.TrackInfo" sourceFile="TrackInfo.java" interface="false" size="156" bugs="1" priority_1="1"/>
+      <ClassStats class="com.sun.labs.aura.music.web.URLUTF8Encoder" sourceFile="URLUTF8Encoder.java" interface="false" size="30" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.web.Utilities" sourceFile="Utilities.java" interface="false" size="221" bugs="3" priority_2="2" priority_1="1"/>
+      <ClassStats class="com.sun.labs.aura.music.web.XmlUtil" sourceFile="XmlUtil.java" interface="false" size="42" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.music.web.apml" total_bugs="6" total_types="6" total_size="370" priority_2="6">
+      <ClassStats class="com.sun.labs.aura.music.web.apml.APML" sourceFile="APML.java" interface="false" size="46" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.web.apml.APMLLoader" sourceFile="APMLLoader.java" interface="false" size="61" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.web.apml.Concept" sourceFile="Concept.java" interface="false" size="59" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.music.web.apml.LastFMConceptRetriever" sourceFile="LastFMConceptRetriever.java" interface="false" size="162" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.music.web.apml.LastFMConceptRetriever$1" sourceFile="LastFMConceptRetriever.java" interface="false" size="7" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.web.apml.Profile" sourceFile="Profile.java" interface="false" size="35" bugs="4" priority_2="4"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.music.web.flickr" total_bugs="0" total_types="2" total_size="154">
+      <ClassStats class="com.sun.labs.aura.music.web.flickr.FlickrManager" sourceFile="FlickrManager.java" interface="false" size="89" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.web.flickr.Image" sourceFile="Image.java" interface="false" size="65" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.music.web.lastfm" total_bugs="1" total_types="4" total_size="196" priority_2="1">
+      <ClassStats class="com.sun.labs.aura.music.web.lastfm.Item" sourceFile="Item.java" interface="false" size="18" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.music.web.lastfm.LastArtist" sourceFile="LastArtist.java" interface="false" size="12" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.web.lastfm.LastFM" sourceFile="LastFM.java" interface="false" size="162" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.web.lastfm.SocialTag" sourceFile="SocialTag.java" interface="false" size="4" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.music.web.musicbrainz" total_bugs="1" total_types="4" total_size="230" priority_2="1">
+      <ClassStats class="com.sun.labs.aura.music.web.musicbrainz.MusicBrainz" sourceFile="MusicBrainz.java" interface="false" size="116" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.music.web.musicbrainz.MusicBrainzAlbumInfo" sourceFile="MusicBrainzAlbumInfo.java" interface="false" size="22" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.web.musicbrainz.MusicBrainzArtistInfo" sourceFile="MusicBrainzArtistInfo.java" interface="false" size="85" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.web.musicbrainz.MusicBrainzTrackInfo" sourceFile="MusicBrainzTrackInfo.java" interface="true" size="7" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.music.web.spotify" total_bugs="0" total_types="1" total_size="43">
+      <ClassStats class="com.sun.labs.aura.music.web.spotify.Spotify" sourceFile="Spotify.java" interface="false" size="43" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.music.web.upcoming" total_bugs="0" total_types="2" total_size="93">
+      <ClassStats class="com.sun.labs.aura.music.web.upcoming.Event" sourceFile="Event.java" interface="false" size="47" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.web.upcoming.Upcoming" sourceFile="Upcoming.java" interface="false" size="46" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.music.web.wikipedia" total_bugs="0" total_types="2" total_size="191">
+      <ClassStats class="com.sun.labs.aura.music.web.wikipedia.WikiInfo" sourceFile="WikiInfo.java" interface="false" size="20" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.web.wikipedia.Wikipedia" sourceFile="Wikipedia.java" interface="false" size="171" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.music.web.yahoo" total_bugs="0" total_types="2" total_size="56">
+      <ClassStats class="com.sun.labs.aura.music.web.yahoo.SearchResult" sourceFile="SearchResult.java" interface="false" size="14" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.music.web.yahoo.Yahoo" sourceFile="Yahoo.java" interface="false" size="42" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.sun.labs.aura.music.web.youtube" total_bugs="1" total_types="2" total_size="169" priority_2="1">
+      <ClassStats class="com.sun.labs.aura.music.web.youtube.Video" sourceFile="Video.java" interface="false" size="100" bugs="1" priority_2="1"/>
+      <ClassStats class="com.sun.labs.aura.music.web.youtube.Youtube" sourceFile="Youtube.java" interface="false" size="69" bugs="0"/>
+    </PackageStats>
+  </FindBugsSummary>
+  <ClassFeatures></ClassFeatures>
+  <History></History>
+</BugCollection>
