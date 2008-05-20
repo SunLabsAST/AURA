@@ -183,15 +183,6 @@
     </Method>
     <SourceLine classname="com.sun.labs.aura.music.web.Directory" start="34" end="34" startBytecode="43" endBytecode="43" sourcefile="Directory.java" sourcepath="com/sun/labs/aura/music/web/Directory.java"/>
   </BugInstance>
-  <BugInstance type="RE_CANT_USE_FILE_SEPARATOR_AS_REGULAR_EXPRESSION" priority="1" abbrev="RE" category="CORRECTNESS">
-    <Class classname="com.sun.labs.aura.music.web.TrackInfo">
-      <SourceLine classname="com.sun.labs.aura.music.web.TrackInfo" sourcefile="TrackInfo.java" sourcepath="com/sun/labs/aura/music/web/TrackInfo.java"/>
-    </Class>
-    <Method classname="com.sun.labs.aura.music.web.TrackInfo" name="extractFromPath" signature="(Ljava/io/File;I)Ljava/lang/String;" isStatic="true">
-      <SourceLine classname="com.sun.labs.aura.music.web.TrackInfo" start="172" end="178" startBytecode="0" endBytecode="137" sourcefile="TrackInfo.java" sourcepath="com/sun/labs/aura/music/web/TrackInfo.java"/>
-    </Method>
-    <SourceLine classname="com.sun.labs.aura.music.web.TrackInfo" start="173" end="173" startBytecode="11" endBytecode="11" sourcefile="TrackInfo.java" sourcepath="com/sun/labs/aura/music/web/TrackInfo.java"/>
-  </BugInstance>
   <BugInstance type="DM_STRING_TOSTRING" priority="2" abbrev="Dm" category="PERFORMANCE">
     <Class classname="com.sun.labs.aura.music.web.Utilities">
       <SourceLine classname="com.sun.labs.aura.music.web.Utilities" sourcefile="Utilities.java" sourcepath="com/sun/labs/aura/music/web/Utilities.java"/>
@@ -337,7 +328,6 @@
       <ClassStats class="com.sun.labs.aura.music.web.Cache$ObjectMap" sourceFile="Cache.java" interface="false" size="6" bugs="0"/>
       <ClassStats class="com.sun.labs.aura.music.web.Commander" sourceFile="Commander.java" interface="false" size="127" bugs="1" priority_2="1"/>
       <ClassStats class="com.sun.labs.aura.music.web.Directory" sourceFile="Directory.java" interface="false" size="57" bugs="1" priority_2="1"/>
-      <ClassStats class="com.sun.labs.aura.music.web.TrackInfo" sourceFile="TrackInfo.java" interface="false" size="156" bugs="1" priority_1="1"/>
       <ClassStats class="com.sun.labs.aura.music.web.URLUTF8Encoder" sourceFile="URLUTF8Encoder.java" interface="false" size="30" bugs="0"/>
       <ClassStats class="com.sun.labs.aura.music.web.Utilities" sourceFile="Utilities.java" interface="false" size="221" bugs="3" priority_2="2" priority_1="1"/>
       <ClassStats class="com.sun.labs.aura.music.web.XmlUtil" sourceFile="XmlUtil.java" interface="false" size="42" bugs="0"/>
