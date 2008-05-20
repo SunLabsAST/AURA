@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.text.Utilities;
 
 public class Directory {
     private File dirFile;
@@ -31,7 +30,9 @@ public class Directory {
     Directory(File dirFile) throws IOException {
         File dir = dirFile.getParentFile();
         if (dir != null && !dir.exists()) {
-            dir.mkdirs();
+            if (!dir.mkdirs()) {
+                throw new IOException("Can't create dir " + dir);
+            }
         }
         this.dirFile = dirFile;
         load();

@@ -56,22 +56,22 @@ public class Cache<T> {
 
     private T readObjectFromFile(String id) {
         T object = null;
-        File file = getXmlFile(id);
-        if (file.exists() && !expired(file)) {
-            try {
+        try {
+            File file = getXmlFile(id);
+            if (file.exists() && !expired(file)) {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
-                object =  (T) xstream.fromXML(reader);
+                object = (T) xstream.fromXML(reader);
                 reader.close();
-            } catch (IOException ioe) {
-                System.err.println("trouble reading " + file);
-            } catch (BaseException e) {
-                System.err.println("trouble reading xml" + file);
             }
+        } catch (IOException ioe) {
+            System.err.println("trouble reading " + id);
+        } catch (BaseException e) {
+            System.err.println("trouble reading xml" + id);
         }
         return object;
     }
-   
-    private File getXmlFile(String id) {
+
+    private File getXmlFile(String id) throws IOException {
         // there will likely be tens of thousands of these
         // xml files, we don't want to overwhelm a diretory, so
         // lets spread them out over 256 directories.'
@@ -80,11 +80,14 @@ public class Cache<T> {
         String dir = id.substring(0, 2).toLowerCase();
         File fullPath = new File(cacheDir, dir);
         if (!fullPath.exists()) {
-            fullPath.mkdirs();
+            if (!fullPath.mkdirs()) {
+                throw new IOException("Can't create " + fullPath);
+            }
         }
         return new File(fullPath, id);
     }
-        /**
+
+    /**
      * Checks to see if a file is older than
      * the expired time
      */
@@ -93,20 +96,20 @@ public class Cache<T> {
             return false;
         } else {
             long staleTime = System.currentTimeMillis() -
-                    maxAgeInDays * 24 * 60 * 60 * 1000L;
+                    maxAgeInDays * 24L * 60L * 60L * 1000L;
             return (file.lastModified() < staleTime);
         }
     }
 
     private void writeObjectToFile(String name, T object) {
-        File file = getXmlFile(name);
         // System.out.println("Saving to " + file);
         try {
+            File file = getXmlFile(name);
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
             xstream.toXML(object, writer);
             writer.close();
         } catch (IOException ioe) {
-            System.err.println("can't save details to " + file);
+            System.err.println("can't save details to " + name);
         }
     }
 

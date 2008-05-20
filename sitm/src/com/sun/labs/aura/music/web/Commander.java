@@ -44,7 +44,6 @@ public class Commander {
     private long lastCommandTime = 0;
     private long minimumCommandPeriod = 0L;
     private DocumentBuilder builder;
-    private String subscriptionId;
     private PrintStream logFile;
     private int commandsSent = 0;
     private int timeout = -1;

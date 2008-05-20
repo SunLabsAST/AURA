@@ -104,7 +104,7 @@ public class Album extends ItemAdapter {
      * @param trackId the id of the track
      */
     public void addTrack(int trackNumber, String trackId) {
-        addObjectToMap(FIELD_TRACKS,new Integer(trackNumber),trackId);
+        addObjectToMap(FIELD_TRACKS, Integer.valueOf(trackNumber), trackId);
     }
 }
  

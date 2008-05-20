@@ -30,7 +30,6 @@ import org.w3c.dom.NodeList;
 public class MusicBrainz {
     private final static int SCORE_THRESHOLD = 95;
     private Commander  mbCommander;
-    private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy");
     
     /**
      * Creates a new instance of MusicBrainz

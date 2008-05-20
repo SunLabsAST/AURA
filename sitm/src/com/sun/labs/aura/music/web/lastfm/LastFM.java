@@ -149,7 +149,7 @@ public class LastFM {
             SocialTag tag = new SocialTag(tagName, freq);
             tags.add(tag);
         }
-        Collections.sort(tags);
+        Collections.sort(tags, Item.FREQ_ORDER);
         Collections.reverse(tags);
         return tags.toArray(new SocialTag[0]);
     }
