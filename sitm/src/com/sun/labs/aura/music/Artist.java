@@ -10,6 +10,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.Scored;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -166,7 +167,11 @@ public class Artist extends ItemAdapter {
      * @return associated urls
      */
     public Map<String, String> getUrls() {
-        return (Map<String, String>) getFieldAsObject(FIELD_URLS);
+        Map<String,String> map = (Map<String, String>) getFieldAsObject(FIELD_URLS);
+        if (map == null) {
+            map = new HashMap<String, String>();
+        }
+        return map;
     }
 
     /**
@@ -271,7 +276,7 @@ public class Artist extends ItemAdapter {
      * @param eventID id of the event
      */
     public void addEvent(String eventId) {
-        appendToField(FIELD_PHOTOS, eventId);
+        appendToField(FIELD_EVENTS, eventId);
     }
 
     /**
@@ -279,7 +284,7 @@ public class Artist extends ItemAdapter {
      * @return collaborations map
      */
     public Set<String> getCollaborations() {
-        return getFieldAsStringSet(FIELD_EVENTS);
+        return getFieldAsStringSet(FIELD_COLLABORATIONS);
     }
 
     /**

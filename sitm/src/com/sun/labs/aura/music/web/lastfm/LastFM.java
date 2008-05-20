@@ -34,8 +34,8 @@ public class LastFM {
         commander = new Commander("last.fm", "http://ws.audioscrobbler.com/1.0/", "");
         commander.setRetries(1);
         commander.setTimeout(10000);
-        commander.setTraceSends(false);
-        commander.setMinimumCommandPeriod(2000);
+        commander.setTraceSends(true);
+        commander.setMinimumCommandPeriod(1000);
     }
 
     public SocialTag[] getArtistTags(String artistName) throws IOException {

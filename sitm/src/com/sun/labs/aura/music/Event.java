@@ -17,7 +17,7 @@ import java.util.Date;
  */
 public class Event extends ItemAdapter {
 
-    public final static String FIELD_VENUE_ID = "venueId";
+    public final static String FIELD_VENUE_NAME = "venueName";
     public final static String FIELD_DATE = "date";
     
     /**
@@ -43,31 +43,31 @@ public class Event extends ItemAdapter {
      * Gets the id of the venue
      * @return the id
      */
-    public String getVenueID() {
-        return getFieldAsString(FIELD_VENUE_ID, "");
+    public String getVenueName() {
+        return getFieldAsString(FIELD_VENUE_NAME, "");
     }
 
     /**
      * Sets the id of the venue
      * @param id the venue
      */
-    public void setVenueID(String id) {
-        setField(FIELD_VENUE_ID, id);
+    public void setVenueName(String name) {
+        setField(FIELD_VENUE_NAME, name);
     }
     
     /**
      * Sets the event date
      * @param date the date of the event
      */
-    public void setDate(Date date) {
-        setFieldAsObject(FIELD_DATE, date);
+    public void setDate(String date) {
+        setField(FIELD_DATE, date);
     }
 
     /**
      * Gets the date of the event
      * @return the date of the event
      */
-    public Date getDate() {
-        return (Date) getFieldAsObject(FIELD_DATE);
+    public String getDate() {
+        return getFieldAsString((FIELD_DATE));
     }
 }        

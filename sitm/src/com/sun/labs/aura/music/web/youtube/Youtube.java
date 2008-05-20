@@ -45,8 +45,8 @@ public class Youtube {
     
     // http://www.youtube.com/api2_rest?method=youtube.videos.list_by_tag&dev_id=oONGHZSHcBU&tag=weezer&page=1
     
-    public List<Video> musicSearch(String query, int maxResults) throws IOException {
-        List<Video>  videos = new ArrayList<Video>(100);
+    public List<YoutubeVideo> musicSearch(String query, int maxResults) throws IOException {
+        List<YoutubeVideo>  videos = new ArrayList<YoutubeVideo>(100);
         String encodedQuery = URLEncoder.encode(query, "UTF-8");
         int perPage = 100;
         Document doc = commander.sendCommand("&method=youtube.videos.list_by_tag&page=1&per_page=" + perPage + "&tag=" + encodedQuery);
@@ -56,7 +56,7 @@ public class Youtube {
         for (int i = 0; i < list.getLength(); i++) {
             Node node = list.item(i);
             Element element = (Element) node;
-            Video video = new Video();
+            YoutubeVideo video = new YoutubeVideo();
             video.setAuthor(XmlUtil.getElementContents(element, "author"));
             video.setId(XmlUtil.getElementContents(element, "id"));
             video.setTitle(XmlUtil.getElementContents(element, "title"));
@@ -72,7 +72,7 @@ public class Youtube {
             video.setThumbnail(new URL(XmlUtil.getElementContents(element, "thumbnail_url")));
             videos.add(video);
         }
-        Collections.sort(videos, Video.PLAY_ORDER);
+        Collections.sort(videos, YoutubeVideo.PLAY_ORDER);
         Collections.reverse(videos);
         
         if (videos.size() > maxResults) {
@@ -81,7 +81,7 @@ public class Youtube {
         return videos;
     }
     
-    private void rotateVideos(List<Video> videos) {
+    private void rotateVideos(List<YoutubeVideo> videos) {
         if (videos.size() > 1) {
             Collections.rotate(videos, -1);
         }
@@ -117,8 +117,8 @@ public class Youtube {
     public static void main(String[] args) throws IOException {
         Youtube youtube = new Youtube();
         
-        List<Video> videos = youtube.musicSearch("yes", 20);
-        for (Video video :videos) {
+        List<YoutubeVideo> videos = youtube.musicSearch("yes", 20);
+        for (YoutubeVideo video :videos) {
             video.dump();
         }
     }

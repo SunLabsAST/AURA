@@ -39,21 +39,6 @@ public class Video extends ItemAdapter {
         this(StoreFactory.newItem(Item.ItemType.VIDEO, key, name));
     }
     
-    /**
-     * Gets the title of the video
-     * @return the title
-     */
-    public String getTitle() {
-        return getName();
-    }
-
-    /**
-     * Sets the title of the video
-     * @param title the title
-     */
-    public void setTitle(String title) {
-        setName(title);
-    }  
     
     /**
      * Gets the thumbnail url of the video

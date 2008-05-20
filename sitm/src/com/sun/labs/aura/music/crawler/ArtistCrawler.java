@@ -11,13 +11,23 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.music.Album;
 import com.sun.labs.aura.music.Artist;
+import com.sun.labs.aura.music.Event;
+import com.sun.labs.aura.music.Photo;
+import com.sun.labs.aura.music.Video;
+import com.sun.labs.aura.music.web.flickr.FlickrManager;
+import com.sun.labs.aura.music.web.flickr.Image;
 import com.sun.labs.aura.music.web.lastfm.LastArtist;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
+import com.sun.labs.aura.music.web.lastfm.SocialTag;
 import com.sun.labs.aura.music.web.musicbrainz.MusicBrainz;
 import com.sun.labs.aura.music.web.musicbrainz.MusicBrainzAlbumInfo;
 import com.sun.labs.aura.music.web.musicbrainz.MusicBrainzArtistInfo;
+import com.sun.labs.aura.music.web.upcoming.UpcomingEvent;
+import com.sun.labs.aura.music.web.upcoming.Upcoming;
 import com.sun.labs.aura.music.web.wikipedia.WikiInfo;
 import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
+import com.sun.labs.aura.music.web.youtube.Youtube;
+import com.sun.labs.aura.music.web.youtube.YoutubeVideo;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigString;
@@ -46,9 +56,13 @@ import java.util.logging.Logger;
  * @author plamere
  */
 public class ArtistCrawler implements AuraService, Configurable {
+
     private LastFM lastFM;
     private MusicBrainz musicBrainz;
     private Wikipedia wikipedia;
+    private Youtube youtube;
+    private FlickrManager flickr;
+    private Upcoming upcoming;
     private PriorityQueue<QueuedArtist> artistQueue;
     private Set<String> visitedArtists;
     private Logger logger;
@@ -63,6 +77,7 @@ public class ArtistCrawler implements AuraService, Configurable {
         if (!running) {
             running = true;
             Thread t = new Thread() {
+
                 @Override
                 public void run() {
                     discoverArtists();
@@ -85,7 +100,10 @@ public class ArtistCrawler implements AuraService, Configurable {
             lastFM = new LastFM();
             musicBrainz = new MusicBrainz();
             wikipedia = new Wikipedia();
-            artistQueue = new PriorityQueue();
+            youtube = new Youtube();
+            flickr = new FlickrManager();
+            upcoming = new Upcoming();
+            artistQueue = new PriorityQueue(1000, QueuedArtist.PRIORITY_ORDER);
             visitedArtists = new HashSet();
             dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
             stateDir = ps.getString(PROP_STATE_DIR);
@@ -110,11 +128,13 @@ public class ArtistCrawler implements AuraService, Configurable {
                 Artist artist = collectArtistInfo(queuedArtist);
                 if (artist != null) {
                     artist.flush(dataStore);
+                    System.out.println("Added: " + artist);
                     LastArtist[] simArtists = lastFM.getSimilarArtists(queuedArtist.getArtistName());
                     for (LastArtist simArtist : simArtists) {
                         if (!visitedArtists.contains(simArtist.getArtistName())) {
                             visitedArtists.add(simArtist.getArtistName());
-                            int popularity = lastFM.getPopularity(simArtist.getArtistName());
+                            //int popularity = lastFM.getPopularity(simArtist.getArtistName());
+                            int popularity = count;
                             enqueue(simArtist, popularity);
                         }
                     }
@@ -139,7 +159,7 @@ public class ArtistCrawler implements AuraService, Configurable {
      * @throws com.sun.labs.aura.util.AuraException if a problem with the datastore is encountered
      * @throws java.rmi.RemoteException if a communicatin error occurs
      */
-    Artist collectArtistInfo(QueuedArtist queuedArtist) throws AuraException, RemoteException {
+    Artist collectArtistInfo(QueuedArtist queuedArtist) throws AuraException, RemoteException, IOException {
         Artist artist = null;
         String mbaid = queuedArtist.getMBaid();
         if (mbaid != null) {
@@ -147,8 +167,12 @@ public class ArtistCrawler implements AuraService, Configurable {
             if (item == null) {
                 item = StoreFactory.newItem(ItemType.ARTIST, mbaid, queuedArtist.getArtistName());
                 artist = new Artist(item);
+                addLastFmTags(artist);
                 addMusicBrainzInfo(artist);
                 addWikipediaInfo(artist);
+                addYoutubeVideos(artist);
+                addFlickrPhotos(artist);
+                addUpcomingInfo(artist);
             }
         }
         return artist;
@@ -176,7 +200,8 @@ public class ArtistCrawler implements AuraService, Configurable {
             for (LastArtist simArtist : simArtists) {
                 if (!visitedArtists.contains(simArtist.getArtistName())) {
                     visitedArtists.add(simArtist.getArtistName());
-                    int popularity = lastFM.getPopularity(simArtist.getArtistName());
+                    // int popularity = lastFM.getPopularity(simArtist.getArtistName());
+                    int popularity = 100;
                     enqueue(simArtist, popularity);
                 }
             }
@@ -252,58 +277,100 @@ public class ArtistCrawler implements AuraService, Configurable {
         }
     }
 
-
     /**
      * Adds musicbrainz info to the aritst
      * @param artist the artist to be augmented
      * @throws com.sun.labs.aura.util.AuraException if a datastore error occurs
      */
-    private void addMusicBrainzInfo(Artist artist) throws AuraException {
-        try {
-            MusicBrainzArtistInfo mbai = musicBrainz.getArtistInfo(artist.getKey());
-            artist.setBeginYear(mbai.getBeginYear());
-            artist.setEndYear(mbai.getEndYear());
+    private void addMusicBrainzInfo(Artist artist) throws AuraException, RemoteException, IOException {
+        MusicBrainzArtistInfo mbai = musicBrainz.getArtistInfo(artist.getKey());
+        artist.setBeginYear(mbai.getBeginYear());
+        artist.setEndYear(mbai.getEndYear());
 
-            for (String name : mbai.getURLMap().keySet()) {
-                artist.addUrl(name, mbai.getURLMap().get(name));
-            }
-
-            for (MusicBrainzAlbumInfo mbalbum : mbai.getAlbums()) {
-                String mbrid = mbalbum.getId();
-                Item albumItem = dataStore.getItem(mbrid);
-                if (albumItem == null) {
-                    albumItem = StoreFactory.newItem(ItemType.ALBUM, mbrid, mbalbum.getTitle());
-                    Album album = new Album(albumItem);
-                    album.setAsin(mbalbum.getAsin());
-                    album.flush(dataStore);
-                }
-                artist.addAlbum(mbrid);
-            }
-
-            for (String id : mbai.getCollaborators()) {
-                artist.addRelatedArtist(id);
-            }
-
-        } catch (IOException ioe) {
-            System.out.println("Can't get artist info from musicbrainz for " + artist.getName());
+        for (String name : mbai.getURLMap().keySet()) {
+            artist.addUrl(name, mbai.getURLMap().get(name));
         }
+
+        for (MusicBrainzAlbumInfo mbalbum : mbai.getAlbums()) {
+            String mbrid = mbalbum.getId();
+            Item albumItem = dataStore.getItem(mbrid);
+            if (albumItem == null) {
+                albumItem = StoreFactory.newItem(ItemType.ALBUM, mbrid, mbalbum.getTitle());
+                Album album = new Album(albumItem);
+                album.setAsin(mbalbum.getAsin());
+                album.flush(dataStore);
+            }
+            artist.addAlbum(mbrid);
+        }
+
+        for (String id : mbai.getCollaborators()) {
+            artist.addRelatedArtist(id);
+        }
+
     }
 
     /**
      * Adds wikipedia info to the artist
      * @param artist the artist of interest
      */
-    private void addWikipediaInfo(Artist artist) {
+    private void addWikipediaInfo(Artist artist) throws IOException {
         String query = (String) artist.getUrls().get("Wikipedia");
         if (query == null) {
             query = artist.getName();
         }
+        WikiInfo wikiInfo = wikipedia.getWikiInfo(query);
+        artist.setBioSummary(wikiInfo.getSummary());
+    }
 
-        try {
-            WikiInfo wikiInfo = wikipedia.getWikiInfo(query);
-            artist.setBioSummary(wikiInfo.getSummary());
-        } catch (IOException ioe) {
-            System.out.println("Can't get artist info from wikipedia for " + artist.getName());
+    private void addYoutubeVideos(Artist artist) throws AuraException, RemoteException, IOException {
+        List<YoutubeVideo> videos = youtube.musicSearch(artist.getName(), 24);
+        for (YoutubeVideo video : videos) {
+            Item item = StoreFactory.newItem(ItemType.VIDEO, video.getURL().toExternalForm(), video.getTitle());
+            Video itemVideo = new Video(item);
+            itemVideo.setUrl(video.getURL().toExternalForm());
+            itemVideo.setThumbnailUrl(video.getThumbnail().toExternalForm());
+            itemVideo.flush(dataStore);
+            artist.addVideo(itemVideo.getKey());
+        }
+    }
+
+    private void addFlickrPhotos(Artist artist) throws AuraException, RemoteException, IOException {
+        Image[] images = flickr.getPhotosForArtist(artist.getName(), 24);
+        for (Image image : images) {
+            Item item = StoreFactory.newItem(ItemType.PHOTO, image.getImageURL(), image.getTitle());
+            Photo photo = new Photo(item);
+            photo.setCreatorRealName(image.getCreatorRealName());
+            photo.setCreatorUserName(image.getCreatorUserName());
+            photo.setImgUrl(image.getImageURL());
+            photo.setThumbnailUrl(image.getThumbNailImageUrl());
+            photo.setSmallImgUrl(image.getSmallImageUrl());
+            photo.flush(dataStore);
+            artist.addPhoto(photo.getKey());
+        }
+    }
+
+    private void addLastFmTags(Artist artist) throws AuraException, RemoteException, IOException {
+        SocialTag[] tags = lastFM.getArtistTags(artist.getName());
+        for (SocialTag tag : tags) {
+            artist.addSocialTag(tag.getName(), tag.getFreq() + 1);
+        }
+    }
+
+    private void addUpcomingInfo(Artist artist) throws AuraException, RemoteException, IOException {
+        int count = 0;
+        int MAX_EVENTS = 5;
+        List<UpcomingEvent> events = upcoming.searchEventsByArtist(artist.getName());
+        for (UpcomingEvent event : events) {
+            Item item = StoreFactory.newItem(ItemType.EVENT, event.getEventID(), event.getName());
+            Event itemEvent = new Event(item);
+            itemEvent.setName(event.getName());
+            itemEvent.setDate(event.getDate());
+            itemEvent.setVenueName(event.getVenue());
+            itemEvent.flush(dataStore);
+            artist.addEvent(itemEvent.getKey());
+            if (count++ >= MAX_EVENTS) {
+                break;
+            }
         }
     }
     /**
@@ -312,26 +379,24 @@ public class ArtistCrawler implements AuraService, Configurable {
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
     private DataStore dataStore;
-
     /** the directory for the crawler.state */
     @ConfigString(defaultValue = "artistCrawler")
     public final static String PROP_STATE_DIR = "crawlerStateDir";
     private String stateDir;
 }
 
-
 /**
  * Represents an artist in the queue. The queue is sorted by inverse popularity
  * (highly popular artists move to the head of the queue).
  */
 class QueuedArtist implements Serializable {
+
     public final static Comparator<QueuedArtist> PRIORITY_ORDER = new Comparator<QueuedArtist>() {
 
         public int compare(QueuedArtist o1, QueuedArtist o2) {
             return o1.getPriority() - o2.getPriority();
         }
     };
-
     private LastArtist lastArtist;
     private int popularity;
 
@@ -404,7 +469,6 @@ class ArtistCrawlerState implements Serializable {
         visitedArtists = visited;
         artistQueue = queue;
     }
-
 
     /**
      * Gets the set of visited artists

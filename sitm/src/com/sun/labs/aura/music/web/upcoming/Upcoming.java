@@ -32,7 +32,7 @@ public class Upcoming {
     }
     
     // http://upcoming.yahooapis.com/services/rest/?api_key=fdb4bbe79f&method=event.search&search_text=miles+davis&category_id=1
-    public List<Event> searchEventsByArtist(String artistName) throws IOException {
+    public List<UpcomingEvent> searchEventsByArtist(String artistName) throws IOException {
         String encodedName = normalizeName(artistName);
         Document doc = commander.sendCommand("&method=event.search&category_id=1&search_text=" + encodedName);
         return extractEvents(doc);
@@ -42,13 +42,13 @@ public class Upcoming {
         return URLEncoder.encode("\"" + name + "\"", "UTF-8");
     }
     
-    public List<Event> searchEventsByZipcode(String zipcode) throws IOException {
+    public List<UpcomingEvent> searchEventsByZipcode(String zipcode) throws IOException {
         Document doc = commander.sendCommand("&method=event.search&category_id=1&location=" + zipcode);
         return extractEvents(doc);
     }
     
-    private List<Event> extractEvents(Document doc) {
-        List<Event> list = new ArrayList<Event>();
+    private List<UpcomingEvent> extractEvents(Document doc) {
+        List<UpcomingEvent> list = new ArrayList<UpcomingEvent>();
         Element docElement = doc.getDocumentElement();
         NodeList events = docElement.getElementsByTagName("event");
         for (int i = 0; i < events.getLength(); i++) {
@@ -59,7 +59,7 @@ public class Upcoming {
             String venueName = event.getAttribute("venue_name");
             String venueID = event.getAttribute("venue_id");
             String venueAddress = event.getAttribute("venue_city");
-            Event newEvent = new Event();
+            UpcomingEvent newEvent = new UpcomingEvent();
             newEvent.setEventID(id);
             newEvent.setName(name);
             newEvent.setDate(date);
@@ -74,14 +74,14 @@ public class Upcoming {
     public static void main(String[] args) throws Exception {
         Upcoming upcoming = new Upcoming();
         {
-            List<Event> events = upcoming.searchEventsByArtist("the arcade fire");
-            for (Event event : events) {
+            List<UpcomingEvent> events = upcoming.searchEventsByArtist("the arcade fire");
+            for (UpcomingEvent event : events) {
                 event.dump();
             }
         }
         {
-            List<Event> events = upcoming.searchEventsByZipcode("03060");
-            for (Event event : events) {
+            List<UpcomingEvent> events = upcoming.searchEventsByZipcode("03060");
+            for (UpcomingEvent event : events) {
                 event.dump();
             }
         }
