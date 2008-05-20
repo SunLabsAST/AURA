@@ -31,7 +31,6 @@ public class Concept {
     };
 
     private static final String DEFAULT_SOURCE = "tastebroker.org";
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     private String key;
     private float value;
     private String from;
@@ -45,7 +44,8 @@ public class Concept {
     }
 
     public Concept(String key, float value) {
-        this(key, value, DEFAULT_SOURCE, sdf.format(new Date()));
+        this(key, value, DEFAULT_SOURCE, 
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(new Date()));
     }
 
     public String getFrom() {
