@@ -57,12 +57,13 @@ public class DataStoreTestBase {
         URL configURI = getClass().getResource(CONFIG_FILE);
         assertNotNull(configURI);
         
+        // Minion uses a separate ConfigurationManager, so it is necessary to
+        // set a global property in order to affect minion. This needs to be set
+        // before the configuration manager is loaded.
+        System.setProperty("auraHome", dirname);
+
         log.info("Loading configuration: " + configURI);
         configMgr = new ConfigurationManager(configURI);
-        
-        // Minion uses a separate ConfigurationManager, so it is necessary to
-        // set a global property in order to affect minion.
-        System.setProperty("auraHome", dirname);
         
         // In order to start each of the services, they need to be loaded by the
         // AuraServiceStarter through the ConfigurationManager
