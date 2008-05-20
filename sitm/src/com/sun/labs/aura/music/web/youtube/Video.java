@@ -10,12 +10,20 @@
 package com.sun.labs.aura.music.web.youtube;
 
 import java.net.URL;
+import java.util.Comparator;
 
 /**
  *
  * @author plamere
  */
-public class Video implements Comparable<Video> {
+public class Video  {
+    public final static Comparator<Video> PLAY_ORDER = new Comparator<Video>() {
+
+        public int compare(Video o1, Video o2) {
+            return o1.getViewCount() - o2.getViewCount();
+        }
+    };
+
     private String author;
     private String id;
     private String title;
@@ -29,7 +37,6 @@ public class Video implements Comparable<Video> {
     private URL url;
     private URL thumbnail;
             
-   
     
     /** Creates a new instance of Video */
     public Video() {
@@ -149,15 +156,4 @@ public class Video implements Comparable<Video> {
         System.out.println("URL         : " + url);
         System.out.println("thumbnail   : " + thumbnail);
     }
-
-    public int compareTo(Video o) {
-        if (viewCount < o.viewCount) {
-            return -1;
-        } else if (viewCount > o.viewCount) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
 }

@@ -16,16 +16,16 @@ public class Profile {
 
     public Profile(String name, Concept[] implicitConcepts, Concept[] explicitConcepts) {
         this.name = name;
-        this.implicitConcepts = implicitConcepts;
-        this.explicitConcepts = explicitConcepts;
+        this.implicitConcepts = implicitConcepts.clone();
+        this.explicitConcepts = explicitConcepts.clone();
     }
 
     public Concept[] getExplicitConcepts() {
-        return explicitConcepts;
+        return explicitConcepts.clone();
     }
 
     public Concept[] getImplicitConcepts() {
-        return implicitConcepts;
+        return implicitConcepts.clone();
     }
 
     public String getName() {

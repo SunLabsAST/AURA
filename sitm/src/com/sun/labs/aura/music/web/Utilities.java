@@ -267,7 +267,9 @@ public class Utilities {
         int byteCount = 0;
         if (!dest.exists()) {
             if (src == null) {
-                dest.createNewFile();
+                if (!dest.createNewFile()) {
+                    throw new IOException("Can't create " + dest);
+                }
             } else {
                 try {
                     os = new BufferedOutputStream(new FileOutputStream(dest));

@@ -161,7 +161,8 @@ public class LastFMConceptRetriever {
     }
 
     private Concept[] normalizeAndPrune(List<Concept> conceptList, float minValue) {
-        Collections.sort(conceptList);
+        List<Concept> returnList = new ArrayList();
+        Collections.sort(conceptList, Concept.VAL_ORDER);
         Collections.reverse(conceptList);
 
         float maxValue = 1.0f;
@@ -171,16 +172,16 @@ public class LastFMConceptRetriever {
 
         int lastIndex = 0;
         for (Concept c : conceptList) {
-            c.setValue(c.getValue() / maxValue);
-            if (c.getValue() < minValue) {
+            Concept normConcept = new Concept(c.getKey(), c.getValue() / maxValue, c.getFrom(), c.getUpdate());
+            if (normConcept.getValue() < minValue) {
                 break;
             }
-
+            returnList.add(normConcept);
             lastIndex++;
         }
 
-        conceptList = conceptList.subList(0, lastIndex);
-        return conceptList.toArray(new Concept[0]);
+        returnList = returnList.subList(0, lastIndex);
+        return returnList.toArray(new Concept[0]);
     }
 
     private void accum(Map<String, Float> conceptMap, String key, float val) {

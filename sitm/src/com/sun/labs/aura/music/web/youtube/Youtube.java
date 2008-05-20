@@ -72,7 +72,7 @@ public class Youtube {
             video.setThumbnail(new URL(XmlUtil.getElementContents(element, "thumbnail_url")));
             videos.add(video);
         }
-        Collections.sort(videos);
+        Collections.sort(videos, Video.PLAY_ORDER);
         Collections.reverse(videos);
         
         if (videos.size() > maxResults) {

@@ -6,17 +6,30 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.sun.labs.aura.music.web.apml;
 
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
 
 /**
  *
  * @author plamere
  */
-public class Concept implements Comparable<Concept> {
+public class Concept {
+
+    public final static Comparator<Concept> VAL_ORDER = new Comparator<Concept>() {
+        public int compare(Concept o1, Concept o2) {
+            if (o1.getValue() > o2.getValue()) {
+                return 1;
+            } else if (o1.getValue() < o2.getValue()) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
+    };
+
     private static final String DEFAULT_SOURCE = "tastebroker.org";
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     private String key;
@@ -30,7 +43,7 @@ public class Concept implements Comparable<Concept> {
         this.from = from;
         this.update = update;
     }
-    
+
     public Concept(String key, float value) {
         this(key, value, DEFAULT_SOURCE, sdf.format(new Date()));
     }
@@ -54,7 +67,7 @@ public class Concept implements Comparable<Concept> {
     private String normalize(String s) {
         return s.replaceAll("[^\\w\\s]", " ");
     }
-    
+
     //   <Concept key="media" value="0.73" from="GatheringTool.com" updated="2007-03-11T01:55:00Z" / >
     public String toXML() {
         StringBuilder sb = new StringBuilder();
@@ -66,32 +79,18 @@ public class Concept implements Comparable<Concept> {
         sb.append("/>");
         return sb.toString();
     }
-    
+
     @Override
     public String toString() {
         return toXML();
     }
 
-    private void append(StringBuilder sb, String key, String val) {
+    private static void append(StringBuilder sb, String key, String val) {
         sb.append(key);
         sb.append("=");
         sb.append("\"");
         sb.append(val);
         sb.append("\"");
         sb.append(" ");
-    }
-
-    public void setValue(float value) {
-        this.value = value;
-    }
-
-    public int compareTo(Concept o) {
-        if (getValue() > o.getValue()) {
-            return 1;
-        } else if (getValue() < o.getValue()) {
-            return -1;
-        } else {
-            return 0;
-        }
     }
 }

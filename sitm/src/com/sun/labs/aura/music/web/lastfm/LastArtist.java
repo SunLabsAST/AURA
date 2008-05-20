@@ -5,13 +5,18 @@
 
 package com.sun.labs.aura.music.web.lastfm;
 
+import java.io.Serializable;
+
 /**
  *
  * @author plamere
  */
-public class LastArtist {
+public class LastArtist implements Serializable {
     private String artistName;
     private String mbaid;
+
+    public LastArtist() {
+    }
 
     public LastArtist(String artistName, String mbaid) {
         this.artistName = artistName;
