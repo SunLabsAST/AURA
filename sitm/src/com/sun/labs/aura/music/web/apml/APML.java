@@ -16,7 +16,6 @@ import java.util.Set;
  */
 public class APML {
 
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     private String title;
     private String defaultProfile;
     private Map<String, Profile> profileMap;
@@ -56,6 +55,7 @@ public class APML {
     
     @Override
     public String toString() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
         StringBuilder sb = new StringBuilder();
         sb.append("<?xml version=\"1.0\"?>\n");
         sb.append("<APML xmlns=\"http://www.apml.org/apml-0.6\" version=\"0.6\" >\n");
