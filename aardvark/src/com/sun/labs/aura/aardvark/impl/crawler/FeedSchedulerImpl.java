@@ -156,7 +156,7 @@ public class FeedSchedulerImpl extends ItemSchedulerImpl implements FeedSchedule
 
     private int getNumFeeds() {
         try {
-            return (int) dataStore.getItemCount(ItemType.FEED);
+            return (int)dataStore.getItemCount(ItemType.FEED);
         } catch (AuraException ex) {
             return size();
         } catch (RemoteException ex) {

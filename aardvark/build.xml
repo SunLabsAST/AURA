@@ -6,8 +6,8 @@
     <description>Builds, tests, and runs the project aardvark.</description>
     <import file="nbproject/build-impl.xml"/>
 
-    <import file="nbproject/profiler-build-impl.xml"/>    
-    <import file="nbproject/profiler-build-impl.xml"/>    <!--
+    <import file="nbproject/profiler-build-impl.xml"/>
+    <!--
 
     There exist several targets which are by default empty and which can be 
     used for execution of your tasks. These targets are usually executed 
@@ -119,7 +119,7 @@
             </chainedmapper>
         </pathconvert>
         <taskdef classname="org.netbeans.modules.java.j2seproject.copylibstask.CopyLibs" classpath="${libs.CopyLibs.classpath}" name="copylibs"/>
-        <copylibs compress="${jar.compress}" jarfile="${dist.jar}" manifest="${manifest.file}" runtimeclasspath="${run.classpath.without.build.classes.dir}">
+        <copylibs compress="${jar.compress}" jarfile="${dist.jar}" runtimeclasspath="${run.classpath.without.build.classes.dir}">
             <fileset dir="${build.classes.dir}"/>
             <manifest>
                 <attribute name="Main-Class" value="com.sun.labs.aura.AuraServiceStarter"/>
@@ -132,10 +132,11 @@
          other things. -->
     <target name="dist-jar" description="Build a jar to distribute" depends="do-dist-jar-with-libraries">
         <property location="${dist.dir}/dist" name="dd"/>
+        <property location="../Libraries" name="lib.dir"/>
         <delete file="${dist.dir}/aardvark-dist.jar"/>
         <mkdir dir="${dd}"/>
         <mkdir dir="${dd}/lib"/>
-        <copy file="lib/jini/jsk-all.policy" todir="${dd}"/>
+        <copy file="${lib.dir}/jini/jsk-all.policy" todir="${dd}"/>
         <copy file="${dist.jar}" todir="${dd}"/>
         <copy file="${dist.jar}" todir="${dd}/lib"/>
         <copy todir="${dd}/lib">
