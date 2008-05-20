@@ -2,17 +2,17 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.sun.labs.aura.music;
 
-import com.sun.labs.aura.util.Tag;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
+import com.sun.labs.aura.util.Scored;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 
 /**
  *
@@ -32,7 +32,9 @@ public class Artist extends ItemAdapter {
     public final static String FIELD_PHOTOS = "photos";
     public final static String FIELD_ALBUM = "album";
     public final static String FIELD_EVENTS = "events";
-    
+    public final static String FIELD_RELATED_ARTISTS = "relatedArtists";
+    public final static String FIELD_INFLUENCERS = "influencers";
+    public final static String FIELD_FOLLOWERS = "followers";
 
     /**
      * Wraps an Item as an artist
@@ -52,7 +54,7 @@ public class Artist extends ItemAdapter {
     public Artist(String key, String name) throws AuraException {
         this(StoreFactory.newItem(Item.ItemType.ARTIST, key, name));
     }
-    
+
     /**
      * Gets the popularity of the artist
      * @return the popularity
@@ -68,7 +70,7 @@ public class Artist extends ItemAdapter {
     public void setPopularity(float popularity) {
         setField(FIELD_POPULARITY, popularity);
     }
-    
+
     /**
      * Gets the begin year of the artist
      * @return the begin year
@@ -84,7 +86,7 @@ public class Artist extends ItemAdapter {
     public void setBeginYear(int beginYear) {
         setField(FIELD_BEGIN_YEAR, beginYear);
     }
-    
+
     /**
      * Gets the end year of the artist
      * @return the end year
@@ -100,6 +102,7 @@ public class Artist extends ItemAdapter {
     public void setEndYear(int endYear) {
         setField(FIELD_END_YEAR, endYear);
     }
+
     /**
      * Gets the biography summary of the artist
      * @return the biography summary
@@ -115,58 +118,66 @@ public class Artist extends ItemAdapter {
     public void setBioSummary(String bio) {
         setField(FIELD_BIOGRAPHY_SUMMARY, bio);
     }
-    
+
     /**
      * Adds a frequent tag
      * @param tag name of the tag
      * @param count tag count
      */
     public void addAutoTag(String tag, int count) {
-       addTag(FIELD_AUTO_TAGS,tag,count);   
+        addTag(FIELD_AUTO_TAGS, tag, count);
     }
-   
+
     /**
      * Gets the artist's auto tags 
      * @return tag map
      */
-    public Map<String,Tag> getAutoTags() {
-        return getTagMap(FIELD_AUTO_TAGS);
+    public List<Scored<String>> getAutoTags() {
+        List<Scored<String>> list = (List<Scored<String>>) getFieldAsObject(FIELD_AUTO_TAGS);
+        if (list == null) {
+            list = new ArrayList<Scored<String>>(0);
+        }
+        return list;
     }
-    
+
     /**
      * Gets the artist's social tags 
      * @return tag map
      */
-    public Map<String,Tag> getSocialTags() {
-        return getTagMap(FIELD_SOCIAL_TAGS);
+    public List<Scored<String>> getSocialTags() {
+        List<Scored<String>> list = (List<Scored<String>>) getFieldAsObject(FIELD_SOCIAL_TAGS);
+        if (list == null) {
+            list = new ArrayList<Scored<String>>(0);
+        }
+        return list;
     }
-    
+
     /**
      * Adds a social tag to the artist
      * @param tag name of the tag
      * @param count tag count
      */
     public void addSocialTag(String tag, int count) {
-       addTag(FIELD_SOCIAL_TAGS,tag,count);   
+        addTag(FIELD_SOCIAL_TAGS, tag, count);
     }
-    
+
     /**
      * Gets the artist's associated URLs
      * @return associated urls
      */
-    public Map<String,String> getUrls() {
-        return (Map<String,String>) getFieldAsObject(FIELD_URLS);
+    public Map<String, String> getUrls() {
+        return (Map<String, String>) getFieldAsObject(FIELD_URLS);
     }
-    
+
     /**
      * Adds an associated URL to artist
      * @param siteName name of the site
      * @param newURL URL of the artist's page
      */
     public void addUrl(String siteName, String newURL) {
-        addObjectToMap(FIELD_URLS,newURL,siteName);
+        addObjectToMap(FIELD_URLS, siteName, newURL);
     }
-    
+
     /**
      * Adds a video to an artist
      * @param videoID id of the video
@@ -174,7 +185,7 @@ public class Artist extends ItemAdapter {
     public void addVideo(String videoId) {
         appendToField(FIELD_VIDEOS, videoId);
     }
-    
+
     /**
      * Get the videos associated with an artist
      * @return videos id set
@@ -182,7 +193,55 @@ public class Artist extends ItemAdapter {
     public Set<String> getVideos() {
         return getFieldAsStringSet(FIELD_VIDEOS);
     }
-    
+
+    /**
+     * Adds a related artist
+     * @param artist id of a related artist
+     */
+    public void addRelatedArtist(String artistID) {
+        appendToField(FIELD_RELATED_ARTISTS, artistID);
+    }
+
+    /**
+     * Get the videos associated with an artist
+     * @return videos id set
+     */
+    public Set<String> getRelatedArtists() {
+        return getFieldAsStringSet(FIELD_RELATED_ARTISTS);
+    }
+
+    /**
+     * Adds a follower (an artist influenced by this artist)
+     * @param artist id of a following artist
+     */
+    public void addFollower(String artistID) {
+        appendToField(FIELD_FOLLOWERS, artistID);
+    }
+
+    /**
+     * Get the followers associated with an artist
+     * @return videos id set
+     */
+    public Set<String> getFollowers() {
+        return getFieldAsStringSet(FIELD_FOLLOWERS);
+    }
+
+    /**
+     * Adds an influencer (an artist that influenced this artist)
+     * @param artist id of a following artist
+     */
+    public void addInfluencer(String artistID) {
+        appendToField(FIELD_INFLUENCERS, artistID);
+    }
+
+    /**
+     * Get the followers associated with an artist
+     * @return videos id set
+     */
+    public Set<String> getInfluencers() {
+        return getFieldAsStringSet(FIELD_INFLUENCERS);
+    }
+
     /**
      * Get the photos associated with an artist
      * @return photos map
@@ -190,7 +249,7 @@ public class Artist extends ItemAdapter {
     public Set<String> getPhotos() {
         return getFieldAsStringSet(FIELD_PHOTOS);
     }
-    
+
     /**
      * Adds a photo to an artist
      * @param photoID id of the photo
@@ -198,7 +257,7 @@ public class Artist extends ItemAdapter {
     public void addPhoto(String photoId) {
         appendToField(FIELD_PHOTOS, photoId);
     }
-    
+
     /**
      * Get the events associated with an artist
      * @return events id map
@@ -206,7 +265,7 @@ public class Artist extends ItemAdapter {
     public Set<String> getEvents() {
         return getFieldAsStringSet(FIELD_EVENTS);
     }
-    
+
     /**
      * Adds an event to an artist
      * @param eventID id of the event
@@ -222,7 +281,7 @@ public class Artist extends ItemAdapter {
     public Set<String> getCollaborations() {
         return getFieldAsStringSet(FIELD_EVENTS);
     }
-    
+
     /**
      * Adds a collaboration to an artist
      * @param artistId id of the artist the current artist has collaborated with
@@ -238,12 +297,12 @@ public class Artist extends ItemAdapter {
     public Set<String> getAlbums() {
         return getFieldAsStringSet(FIELD_ALBUM);
     }
-    
+
     /**
      * Adds an album to an artist
      * @param albumId the album's id
      */
     public void addAlbum(String albumId) {
-        appendToField(FIELD_ALBUM,albumId);
+        appendToField(FIELD_ALBUM, albumId);
     }
 }
