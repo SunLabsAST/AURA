@@ -64,7 +64,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     
     protected boolean closed = false;
     
-    protected static Logger logger = Logger.getLogger("");
+    protected Logger logger;
     
     @ConfigComponent(type=com.sun.labs.minion.pipeline.StopWords.class,mandatory=false)
     public static final String PROP_STOPWORDS = "stopwords";
@@ -987,6 +987,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         cm = ps.getConfigurationManager();
+        logger = ps.getLogger();
         stop = (StopWords) ps.getComponent(PROP_STOPWORDS);
     }
     
