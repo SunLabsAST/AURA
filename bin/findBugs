@@ -30,4 +30,4 @@ OUTDIR="$1/build/"
 [ ! -e "$OUTDIR" ] && mkdir -p $OUTDIR
 
 echo "Running: $FINDBUGS"
-$FINDBUGS -auxclasspath $AURALIBS -textui -xml $1 > "$OUTDIR/findbugs_output.xml"
+$FINDBUGS -auxclasspath $AURALIBS -textui -xml $1 | sed -e "s|sourcepath=\"|sourcepath=\"$1\/src\/|" > "$OUTDIR/findbugs_output.xml"
