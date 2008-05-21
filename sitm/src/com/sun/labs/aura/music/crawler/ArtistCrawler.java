@@ -14,6 +14,8 @@ import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.Event;
 import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.Video;
+import com.sun.labs.aura.music.util.CommandRunner;
+import com.sun.labs.aura.music.util.Commander;
 import com.sun.labs.aura.music.web.flickr.FlickrManager;
 import com.sun.labs.aura.music.web.flickr.Image;
 import com.sun.labs.aura.music.web.lastfm.LastArtist;
@@ -69,6 +71,7 @@ public class ArtistCrawler implements AuraService, Configurable {
     private final static String CRAWLER_STATE_FILE = "crawler.state";
     private final static int FLUSH_COUNT = 10;
     private boolean running = false;
+    private final static int MAX_FAN_OUT = 5;
 
     /**
      * Starts running the crawler
@@ -119,25 +122,19 @@ public class ArtistCrawler implements AuraService, Configurable {
      * added to the datastore
      */
     private void discoverArtists() {
+        long lastTime = 0L;
         int count = 0;
         primeArtistQueue();
         while (running && artistQueue.size() > 0) {
             try {
                 QueuedArtist queuedArtist = artistQueue.poll();
-                logger.info("Crawling " + queuedArtist + " remaining " + artistQueue.size());
+                long curTime = System.currentTimeMillis();
+                logger.info("Crawling " + queuedArtist + " remaining " + artistQueue.size() + " time " + (curTime - lastTime) + " ms");
+                lastTime = curTime;
+
                 Artist artist = collectArtistInfo(queuedArtist);
                 if (artist != null) {
                     artist.flush(dataStore);
-                    System.out.println("Added: " + artist);
-                    LastArtist[] simArtists = lastFM.getSimilarArtists(queuedArtist.getArtistName());
-                    for (LastArtist simArtist : simArtists) {
-                        if (!visitedArtists.contains(simArtist.getArtistName())) {
-                            visitedArtists.add(simArtist.getArtistName());
-                            //int popularity = lastFM.getPopularity(simArtist.getArtistName());
-                            int popularity = count;
-                            enqueue(simArtist, popularity);
-                        }
-                    }
                     if (count++ % FLUSH_COUNT == 0) {
                         saveState();
                     }
@@ -152,6 +149,21 @@ public class ArtistCrawler implements AuraService, Configurable {
         }
     }
 
+    private boolean worthVisiting(LastArtist lartist) throws AuraException, RemoteException {
+        if (lartist.getMbaid() == null || lartist.getMbaid().length() == 0) {
+            return false;
+        }
+
+        if (visitedArtists.contains(lartist.getArtistName())) {
+            return false;
+        }
+
+        if (dataStore.getItem(lartist.getMbaid()) != null) {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Collects the information for an artist
      * @param queuedArtist the artist of interest
@@ -160,22 +172,67 @@ public class ArtistCrawler implements AuraService, Configurable {
      * @throws java.rmi.RemoteException if a communicatin error occurs
      */
     Artist collectArtistInfo(QueuedArtist queuedArtist) throws AuraException, RemoteException, IOException {
-        Artist artist = null;
         String mbaid = queuedArtist.getMBaid();
-        if (mbaid != null) {
+        if (mbaid != null && mbaid.length() > 0) {
             Item item = dataStore.getItem(mbaid);
             if (item == null) {
+
                 item = StoreFactory.newItem(ItemType.ARTIST, mbaid, queuedArtist.getArtistName());
-                artist = new Artist(item);
-                addLastFmTags(artist);
-                addMusicBrainzInfo(artist);
-                addWikipediaInfo(artist);
-                addYoutubeVideos(artist);
-                addFlickrPhotos(artist);
-                addUpcomingInfo(artist);
+                final Artist artist = new Artist(item);
+                artist.setPopularity(queuedArtist.getPopularity());
+
+                CommandRunner runner = new CommandRunner(false, logger.isLoggable(Level.INFO));
+                runner.add(new Commander("last.fm") {
+
+                    @Override
+                    public void go() throws Exception {
+                        addLastFmTags(artist);
+                        addNewArtistsToQueue(artist);
+                    }
+                });
+
+                runner.add(new Commander("musicbrainz+wikipedia") {
+
+                    @Override
+                    public void go() throws Exception {
+                        addMusicBrainzInfo(artist);
+                        addWikipediaInfo(artist);
+                    }
+                });
+
+                runner.add(new Commander("flickr") {
+
+                    @Override
+                    public void go() throws Exception {
+                        addFlickrPhotos(artist);
+                    }
+                });
+
+                runner.add(new Commander("youtube") {
+
+                    @Override
+                    public void go() throws Exception {
+                        addYoutubeVideos(artist);
+                    }
+                });
+
+                runner.add(new Commander("upcoming") {
+
+                    @Override
+                    public void go() throws Exception {
+                        addUpcomingInfo(artist);
+                    }
+                });
+
+                try {
+                    runner.go();
+                } catch (Exception e) {
+                    throw new AuraException("Collecting info for artist " + artist.getName(), e);
+                }
+                return artist;
             }
         }
-        return artist;
+        return null;
     }
 
     /**
@@ -353,6 +410,21 @@ public class ArtistCrawler implements AuraService, Configurable {
         SocialTag[] tags = lastFM.getArtistTags(artist.getName());
         for (SocialTag tag : tags) {
             artist.addSocialTag(tag.getName(), tag.getFreq() + 1);
+        }
+    }
+
+    private void addNewArtistsToQueue(Artist artist) throws AuraException, RemoteException, IOException {
+        LastArtist[] simArtists = lastFM.getSimilarArtists(artist.getName());
+        int fanOut = 0;
+        for (LastArtist simArtist : simArtists) {
+            if (worthVisiting(simArtist)) {
+                visitedArtists.add(simArtist.getArtistName());
+                int popularity = lastFM.getPopularity(simArtist.getArtistName());
+                enqueue(simArtist, popularity);
+                if (fanOut++ > MAX_FAN_OUT) {
+                    break;
+                }
+            }
         }
     }
 
