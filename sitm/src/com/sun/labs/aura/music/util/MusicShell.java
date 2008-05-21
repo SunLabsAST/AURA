@@ -26,7 +26,6 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Manages the set of feed crawling threads
@@ -37,7 +36,6 @@ public class MusicShell implements AuraService, Configurable {
     private DataStore dataStore;
     private CommandInterpreter shell;
     private StatService statService;
-    private Logger logger;
     private ShellUtils sutils;
 
     /**
@@ -72,7 +70,7 @@ public class MusicShell implements AuraService, Configurable {
                 Artist artist = findArtist(qname);
                 if (artist != null) {
                     System.out.println("Finding similar for " + artist.getName());
-                    List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(), sutils.getHits(), 
+                    List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(), sutils.getHits(),
                             new TypeFilter(ItemType.ARTIST));
                     sutils.dumpScoredItems(simItems);
                     return "";
@@ -93,7 +91,7 @@ public class MusicShell implements AuraService, Configurable {
                 Artist artist = findArtist(qname);
                 if (artist != null) {
                     System.out.println("Finding similar for " + artist.getName());
-                    List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(), sutils.getHits(), 
+                    List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(), sutils.getHits(),
                             new TypeFilter(ItemType.ARTIST));
                     sutils.dumpScoredItems(simItems);
                     return "";
@@ -114,7 +112,7 @@ public class MusicShell implements AuraService, Configurable {
                 Artist artist = findArtist(qname);
                 if (artist != null) {
                     System.out.println("Finding similar for " + artist.getName());
-                    List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(), 
+                    List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(),
                             "socialTags", sutils.getHits(), new TypeFilter(ItemType.ARTIST));
                     sutils.dumpScoredItems(simItems);
                     return "";
@@ -157,8 +155,7 @@ public class MusicShell implements AuraService, Configurable {
 
             public void run() {
                 shell.run();
-                shell =
-                        null;
+                shell = null;
             }
         };
         t.start();
@@ -200,8 +197,6 @@ public class MusicShell implements AuraService, Configurable {
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
         statService =
                 (StatService) ps.getComponent(PROP_STAT_SERVICE);
-        logger =
-                ps.getLogger();
     }
     /**
      * the configurable property for the itemstore used by this manager
