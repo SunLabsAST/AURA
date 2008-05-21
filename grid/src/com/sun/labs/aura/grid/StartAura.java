@@ -13,7 +13,7 @@ import java.util.logging.Level;
 public class StartAura extends Aura {
 
     @ConfigString(defaultValue =
-    "/com/sun/labs/aura/resource/replicantConfig.xml")
+    "/com/sun/labs/aura/aardvark/resource/replicantSlowDumpConfig.xml")
     public static final String PROP_REPLICANT_CONFIG = "replicantConfig";
 
     private String replicantConfig;

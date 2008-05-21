@@ -173,7 +173,7 @@ public abstract class Aura implements Configurable, AuraService {
                 "-Xmx2G" +
                 " -DauraHome=" + GridUtil.auraDistMntPnt +
                 " -jar " + GridUtil.auraDistMntPnt + "/dist/aardvark.jar" +
-                " /com/sun/labs/aura/resource/dataStoreHeadConfig.xml" +
+                " /com/sun/labs/aura/aardvark/resource/dataStoreHeadConfig.xml" +
                 " dataStoreHeadStarter";
 
         // create a configuration and set relevant properties
@@ -199,7 +199,7 @@ public abstract class Aura implements Configurable, AuraService {
                 "-DauraHome=" + GridUtil.auraDistMntPnt +
                 " -Dprefix=" + prefix +
                 " -jar " + GridUtil.auraDistMntPnt + "/dist/aardvark.jar" +
-                " /com/sun/labs/aura/resource/partitionClusterConfig.xml" +
+                " /com/sun/labs/aura/aardvark/resource/partitionClusterConfig.xml" +
                 " partitionClusterStarter";
 
         // create a configuration and set relevant properties
@@ -256,7 +256,7 @@ public abstract class Aura implements Configurable, AuraService {
         String cmdLine =
                 "-DauraHome=" + GridUtil.auraDistMntPnt +
                 " -jar " + GridUtil.auraDistMntPnt + "/dist/aardvark.jar" +
-                " /com/sun/labs/aura/resource/statServiceConfig.xml" +
+                " /com/sun/labs/aura/aardvark/resource/statServiceConfig.xml" +
                 " statServiceStarter";
 
         // create a configuration and set relevant properties
