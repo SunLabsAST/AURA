@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Author: Will Holcomb <will.holcomb@sun.com>
+# Date: 05/2008
+#
+# Simple script to set up the environment for running findbugs on Aura projects.
+
+if [[ -z "$1" || ! -e "$1" ]]; then
+        cat << EOF
+Runs findbugs source analysis tool against an aura subproject.
+
+Usage: $0 [project directory]
+EOF
+        exit -1
+fi
+
+FINDBUGS=$(which findbugs)
+[ "${FINDBUGS/no findbugs/}" != "${FINDBUGS}" ] && FINDBUGS=/usr/local/findbugs/bin/findbugs
+
+if [ ! -e "$FINDBUGS" ]; then
+        echo "Error: Could not find findbugs program"
+        exit -1
+fi
+
+cd "$(dirname $0)/../"
+AURALIBS=aura/dist/aura.jar
+for file in $(find Libraries/ -name *jar); do AURALIBS=$AURALIBS:$file; done
+
+if [ -d "$1" ]; then
+    OUTDIR="$1/build/"
+    [ ! -e "$OUTDIR" ] && mkdir -p "$OUTDIR"
+    OUTFILE="$OUTDIR/findbugs_output.xml"
+else
+    OUTFILE="build/$(basename $1).findbugs_output.xml"
+fi
+
+echo "Running: $FINDBUGS on $1 to $OUTFILE"
+$FINDBUGS -auxclasspath $AURALIBS -textui -xml $1 | sed -e "s|sourcepath=\"|sourcepath=\"$1\/src\/|" > "$OUTFILE"

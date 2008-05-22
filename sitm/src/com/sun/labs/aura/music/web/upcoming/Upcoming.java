@@ -29,6 +29,9 @@ public class Upcoming {
     public Upcoming() throws IOException {
         commander = new Commander("upcoming", "http://upcoming.yahooapis.com/services/rest/?api_key=fdb4bbe79f", "");
         commander.setTraceSends(false);
+        commander.setRetries(1);
+        commander.setTimeout(10000);
+        commander.setMinimumCommandPeriod(1000);
     }
     
     // http://upcoming.yahooapis.com/services/rest/?api_key=fdb4bbe79f&method=event.search&search_text=miles+davis&category_id=1
@@ -39,7 +42,8 @@ public class Upcoming {
     }
     
     private String normalizeName(String name) throws IOException {
-        return URLEncoder.encode("\"" + name + "\"", "UTF-8");
+        //return URLEncoder.encode("\"" + name + "\"", "UTF-8");
+        return URLEncoder.encode( name, "UTF-8");
     }
     
     public List<UpcomingEvent> searchEventsByZipcode(String zipcode) throws IOException {

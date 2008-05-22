@@ -16,8 +16,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -113,9 +111,10 @@ public class Commander {
                 document = builder.parse(is);
             } catch (SAXException e) {
                 throw new IOException("SAX Parse Error " + e);
+            } finally {
+                is.close();
             }
         }
-        is.close();
 
         if (trace) {
             dumpDocument(document);

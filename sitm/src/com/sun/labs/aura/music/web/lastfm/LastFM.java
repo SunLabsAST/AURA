@@ -34,7 +34,7 @@ public class LastFM {
         commander = new Commander("last.fm", "http://ws.audioscrobbler.com/1.0/", "");
         commander.setRetries(1);
         commander.setTimeout(10000);
-        commander.setTraceSends(true);
+        commander.setTraceSends(false);
         commander.setMinimumCommandPeriod(1000);
     }
 
@@ -155,51 +155,46 @@ public class LastFM {
     }
 
     private String getArtistTagURL(String artistName, boolean raw) {
-        try {
-            String encodedArtistName = URLEncoder.encode(artistName, "UTF-8");
-            String url = "artist/" + encodedArtistName + "/toptags.xml";
-            if (raw) {
-                url += "?alt";
-            }
-            return url;
-        } catch (UnsupportedEncodingException e) {
-            return null;
+        String encodedArtistName = encodeName(artistName);
+        String url = "artist/" + encodedArtistName + "/toptags.xml";
+        if (raw) {
+            url += "?alt";
         }
+        return url;
     }
 
     private String getSimilarArtistURL(String artistName) {
-        try {
-            String encodedArtistName = URLEncoder.encode(artistName, "UTF-8");
-            String url = "artist/" + encodedArtistName + "/similar.xml";
-            return url;
-        } catch (UnsupportedEncodingException e) {
-            return null;
-        }
+        String encodedArtistName = encodeName(artistName);
+        String url = "artist/" + encodedArtistName + "/similar.xml";
+        return url;
     }
 
     private String getTopArtistAlbumsURL(String artistName) {
+        String encodedArtistName = encodeName(artistName);
+        String url = "artist/" + encodedArtistName + "/topalbums.xml";
+        return url;
+    }
+
+    private String encodeName(String artistName) {
         try {
-            String encodedArtistName = URLEncoder.encode(artistName, "UTF-8");
-            String url = "artist/" + encodedArtistName + "/topalbums.xml";
-            return url;
+            String encodedName = URLEncoder.encode(artistName, "UTF-8");
+            // lastfm double encodes things (Crazy!)
+            encodedName = URLEncoder.encode(encodedName, "UTF-8");
+            return encodedName;
         } catch (UnsupportedEncodingException e) {
-            return null;
+            return "";
         }
     }
 
     private String getTrackTagURL(String artistName, String trackName) {
-        try {
-            String encodedArtistName = URLEncoder.encode(artistName, "UTF-8");
-            String encodedSongName = URLEncoder.encode(trackName, "UTF-8");
+        String encodedArtistName = encodeName(artistName);
+        String encodedSongName = encodeName(trackName);
 
-            // http://ws.audioscrobbler.com/1.0/artist/My+Chemical+Romance/toptags.xml
-            // http://ws.audioscrobbler.com/1.0/track/Metallica/enter%20sandman/toptags.xml
+        // http://ws.audioscrobbler.com/1.0/artist/My+Chemical+Romance/toptags.xml
+        // http://ws.audioscrobbler.com/1.0/track/Metallica/enter%20sandman/toptags.xml
 
-            String url = "http://ws.audioscrobbler.com/1.0/track/" + encodedArtistName + "/" + encodedSongName + "/toptags.xml";
-            return url;
-        } catch (UnsupportedEncodingException e) {
-            return null;
-        }
+        String url = "http://ws.audioscrobbler.com/1.0/track/" + encodedArtistName + "/" + encodedSongName + "/toptags.xml";
+        return url;
     }
 
     private String getTopArtistsForUserURL(String user) {
@@ -222,7 +217,7 @@ public class LastFM {
             System.out.printf("    %d %s\n", item.getFreq(), item.getName());
         }
     }
-    
+
     static void showPopularity(LastFM lastFM, String artistName) throws IOException {
         System.out.println("Popularity for " + artistName + ": " + lastFM.getPopularity(artistName));
     }
@@ -230,14 +225,17 @@ public class LastFM {
     static void showSimilarArtists(LastFM lastFM, String artistName) throws IOException {
         LastArtist[] simArtists = lastFM.getSimilarArtists(artistName);
         System.out.println("Artists similar to " + artistName);
-        for (LastArtist a : simArtists){
+        for (LastArtist a : simArtists) {
             System.out.printf("%s %s\n", a.getMbaid(), a.getArtistName());
         }
     }
-    
+
     public static void main(String[] args) {
         try {
             LastFM lastfm = new com.sun.labs.aura.music.web.lastfm.LastFM();
+            showSimilarArtists(lastfm, "AC/DC");
+            showSimilarArtists(lastfm, "Belle & Sebastian");
+            showSimilarArtists(lastfm, "Pink Floyd");
 
             showPopularity(lastfm, "the beatles");
             showPopularity(lastfm, "elvis presley");
