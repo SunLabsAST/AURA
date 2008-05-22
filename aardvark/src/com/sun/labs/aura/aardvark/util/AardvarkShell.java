@@ -19,7 +19,9 @@ import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.aura.util.ShellUtils;
 import com.sun.labs.aura.util.StatService;
 import com.sun.labs.aura.util.Tag;
@@ -178,8 +180,9 @@ public class AardvarkShell implements AuraService, Configurable {
 
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
-                        String query = stuff(args, 1);
-                        List<Scored<Item>> items = dataStore.query(query, nHits, new TypeFilter(Item.ItemType.BLOGENTRY));
+                        String query = sutils.stuff(args, 1);
+                        List<Scored<Item>> items = dataStore.query(query, sutils.getHits(), 
+                                new TypeFilter(Item.ItemType.BLOGENTRY));
                         for (Scored<Item> item : items) {
                             System.out.printf("%.3f ", item.getScore());
                             dumpItem(item.getItem());
@@ -422,7 +425,7 @@ public class AardvarkShell implements AuraService, Configurable {
 
         long numFeeds = 0;
 
-        Collections.sort(scoredItems);
+        Collections.sort(scoredItems, ScoredComparator.COMPARATOR);
 
         for (Scored<Item> scoredItem : scoredItems) {
             dumpScoredItem(scoredItem);
@@ -451,7 +454,7 @@ public class AardvarkShell implements AuraService, Configurable {
             return;
         }
 
-        Collections.sort(scoredItems);
+        Collections.sort(scoredItems, ScoredComparator.COMPARATOR);
         Collections.reverse(scoredItems);
         if (scoredItems.size() > topN) {
             scoredItems = scoredItems.subList(0, topN);
@@ -480,7 +483,7 @@ public class AardvarkShell implements AuraService, Configurable {
             }
         }
 
-        Collections.sort(prunedScoredItems);
+        Collections.sort(prunedScoredItems, ScoredComparator.COMPARATOR);
         Collections.reverse(prunedScoredItems);
         double maxScore = prunedScoredItems.get(0).getScore();
         double minScore = prunedScoredItems.get(prunedScoredItems.size() - 1).getScore();

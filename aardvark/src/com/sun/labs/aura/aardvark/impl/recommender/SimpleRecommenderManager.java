@@ -27,6 +27,7 @@ import com.sun.labs.aura.recommender.Recommendation;
 import com.sun.labs.aura.recommender.RecommenderProfile;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.minion.CompositeResultsFilter;
 import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.util.props.ConfigBoolean;
@@ -116,7 +117,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
                 authorityList.add(new Scored<BlogEntry>(blogEntry, blogEntry.getAuthority() + scoredItem.getScore()));
             }
 
-            Collections.sort(authorityList);
+            Collections.sort(authorityList, ScoredComparator.COMPARATOR);
             Collections.reverse(authorityList);
 
             // Get the blog entries and return the set.  This is a change.
@@ -164,7 +165,7 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
             log.log(Level.SEVERE, "Error getting recommendations", ex);
             ex.printStackTrace();
         } finally {
-            Collections.sort(resultList);
+            Collections.sort(resultList, ScoredComparator.COMPARATOR);
             Collections.reverse(resultList);
             return resultList;
         }
