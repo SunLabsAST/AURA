@@ -10,7 +10,6 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
-import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.WeightedField;
 import com.sun.labs.minion.util.NanoWatch;
@@ -526,6 +525,18 @@ public class ShellUtils {
         for (Scored<Item> item : items) {
             System.out.printf("%.3f ", item.getScore());
             dumpItem(item.getItem());
+        }
+    }
+
+    public void dumpScored(List<Scored<String>> scoredStrings) {
+        for (Scored<String> scored : scoredStrings) {
+            System.out.printf("%.3f %s\n", scored.getScore(), scored.getItem());
+        }
+    }
+
+    public void dumpTags(List<Tag> tags) {
+        for (Tag tag : tags) {
+            System.out.printf("%d %s\n", tag.getCount(), tag.getName());
         }
     }
 

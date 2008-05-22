@@ -667,7 +667,9 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         DocumentVector dv = pc.getDocumentVector(key, field);
         int numClusters = trie.size();
         PCLatch latch;
-        latch = new PCLatch((int)(numClusters * 0.75));
+        //PBL changedrr
+        latch = new PCLatch((int)(numClusters ));
+        //latch = new PCLatch((int)(numClusters * 0.75));
         return findSimilar(dv, n, rf, latch);
     }
 
@@ -782,17 +784,19 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     
     public List<Scored<String>> explainSimilarity(String key1, String key2, String field, int n) 
             throws AuraException, RemoteException {
-        PartitionCluster pc = trie.get(DSBitSet.parse(key1.hashCode()));
-        DocumentVector dv1 = pc.getDocumentVector(key1, field);
-        DocumentVector dv2 = pc.getDocumentVector(key2, field);
+        PartitionCluster pc1 = trie.get(DSBitSet.parse(key1.hashCode()));
+        PartitionCluster pc2 = trie.get(DSBitSet.parse(key2.hashCode()));
+        DocumentVector dv1 = pc1.getDocumentVector(key1, field);
+        DocumentVector dv2 = pc2.getDocumentVector(key2, field);
         return explainSimilarity(dv1, dv2, n);
     }
     
     public List<Scored<String>> explainSimilarity(String key1, String key2, WeightedField[] fields, int n) 
             throws AuraException, RemoteException {
-        PartitionCluster pc = trie.get(DSBitSet.parse(key1.hashCode()));
-        DocumentVector dv1 = pc.getDocumentVector(key1, fields);
-        DocumentVector dv2 = pc.getDocumentVector(key2, fields);
+        PartitionCluster pc1 = trie.get(DSBitSet.parse(key1.hashCode()));
+        PartitionCluster pc2 = trie.get(DSBitSet.parse(key2.hashCode()));
+        DocumentVector dv1 = pc1.getDocumentVector(key1, fields);
+        DocumentVector dv2 = pc2.getDocumentVector(key2, fields);
         return explainSimilarity(dv1, dv2, n);
     }
     
