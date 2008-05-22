@@ -66,4 +66,82 @@
     nbproject/build-impl.xml file. 
 
     -->
+    <target name="-pre-init">
+        <property file="nbproject/standalone-build-properties.xml"/>
+    </target>
+
+    <target name="-init-macrodef-junit">
+        <macrodef name="junit" uri="http://www.netbeans.org/ns/j2se-project/3">
+            <attribute default="${includes}" name="includes"/>
+            <attribute default="${excludes}" name="excludes"/>
+            <attribute default="**" name="testincludes"/>
+            <sequential>
+                <junit dir="${work.dir}" errorproperty="tests.failed" failureproperty="tests.failed" fork="true" showoutput="true">
+                    <batchtest todir="${build.test.results.dir}">
+                        <fileset dir="${test.src.dir}" excludes="@{excludes},${excludes}" includes="@{includes}">
+                            <filename name="@{testincludes}"/>
+                        </fileset>
+                    </batchtest>
+                    <classpath>
+                        <path path="${run.test.classpath}"/>
+                    </classpath>
+                    <syspropertyset>
+                        <propertyref prefix="test-sys-prop."/>
+                        <mapper from="test-sys-prop.*" to="*" type="glob"/>
+                    </syspropertyset>
+                    <formatter type="brief" usefile="false"/>
+                    <formatter type="xml"/>
+                    <jvmarg line="${run.jvmargs}"/>
+                </junit>
+                <junitreport todir="${build.test.results.dir}">
+                    <fileset dir="${build.test.results.dir}">
+                        <include name="TEST-*.xml" />
+                    </fileset>
+                    <report todir="${build.test.results.dir}" />
+                </junitreport>
+            </sequential>
+        </macrodef>
+    </target>
+
+    <!-- Builds a copy of the jar with a specific main class -->
+    <target depends="init,compile,-pre-pre-jar,-pre-jar" name="do-dist-jar-with-libraries">
+        <property location="${build.classes.dir}" name="build.classes.dir.resolved"/>
+        <pathconvert property="run.classpath.without.build.classes.dir">
+            <path path="${run.classpath}"/>
+            <map from="${build.classes.dir.resolved}" to=""/>
+        </pathconvert>
+        <pathconvert pathsep=" " property="jar.classpath">
+            <path path="${run.classpath.without.build.classes.dir}"/>
+            <chainedmapper>
+                <flattenmapper/>
+                <globmapper from="*" to="lib/*"/>
+            </chainedmapper>
+        </pathconvert>
+        <taskdef classname="org.netbeans.modules.java.j2seproject.copylibstask.CopyLibs" classpath="${libs.CopyLibs.classpath}" name="copylibs"/>
+        <copylibs compress="${jar.compress}" jarfile="${dist.jar}" runtimeclasspath="${run.classpath.without.build.classes.dir}">
+            <fileset dir="${build.classes.dir}"/>
+            <manifest>
+                <attribute name="Main-Class" value="com.sun.labs.aura.AuraServiceStarter"/>
+                <attribute name="Class-Path" value="${jar.classpath}"/>
+            </manifest>
+        </copylibs>
+    </target>
+
+    <!-- Package up the jar with the service starter main class along with some
+         other things. -->
+    <target name="dist-jar" description="Build a jar to distribute" depends="do-dist-jar-with-libraries">
+        <property location="${dist.dir}/dist" name="dd"/>
+        <property location="../Libraries" name="lib.dir"/> 
+        <delete file="${dist.dir}/sitm-dist.jar"/>
+        <mkdir dir="${dd}"/>
+        <mkdir dir="${dd}/lib"/>
+        <copy file="${lib.dir}/jini/jsk-all.policy" todir="${dd}"/>
+        <copy file="${dist.jar}" todir="${dd}"/>
+        <copy file="${dist.jar}" todir="${dd}/lib"/>
+        <copy todir="${dd}/lib">
+            <fileset dir="${dist.dir}/lib"/>
+        </copy>
+        <jar jarfile="${dist.dir}/sitm-dist.jar" basedir="${dist.dir}" includes="dist/**"/>
+        <delete dir="${dd}"/>
+    </target>
 </project>

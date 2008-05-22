@@ -18,6 +18,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ShellUtils;
 import com.sun.labs.aura.util.StatService;
+import com.sun.labs.aura.util.Tag;
 import com.sun.labs.util.command.CommandInterface;
 import com.sun.labs.util.command.CommandInterpreter;
 import com.sun.labs.util.props.ConfigComponent;
@@ -113,7 +114,7 @@ public class MusicShell implements AuraService, Configurable {
                 if (artist != null) {
                     System.out.println("Finding similar for " + artist.getName());
                     List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(),
-                            "socialTags", sutils.getHits(), new TypeFilter(ItemType.ARTIST));
+                            Artist.FIELD_SOCIAL_TAGS, sutils.getHits(), new TypeFilter(ItemType.ARTIST));
                     sutils.dumpScoredItems(simItems);
                     return "";
                 } else {
@@ -123,6 +124,46 @@ public class MusicShell implements AuraService, Configurable {
 
             public String getHelp() {
                 return "find similar artist by name using just socia tags";
+            }
+        });
+
+        shell.add("distinctiveTags", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                String qname = sutils.stuff(args, 1);
+                Artist artist = findArtist(qname);
+                if (artist != null) {
+                    List<Scored<String>> tags = dataStore.getTopTerms(artist.getKey(), Artist.FIELD_SOCIAL_TAGS, sutils.getHits());
+                    System.out.println("Distinctive tags for " + artist.getName());
+                    sutils.dumpScored(tags);
+                    return "";
+                } else {
+                    return "Can't find artist " + qname;
+                }
+            }
+
+            public String getHelp() {
+                return "show distinctive tags for the artist";
+            }
+        });
+
+        shell.add("frequentTags", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                String qname = sutils.stuff(args, 1);
+                Artist artist = findArtist(qname);
+                if (artist != null) {
+                    List<Tag> tags = artist.getSocialTags();
+                    System.out.println("Frequent tags for " + artist.getName());
+                    sutils.dumpTags(tags);
+                    return "";
+                } else {
+                    return "Can't find artist " + qname;
+                }
+            }
+
+            public String getHelp() {
+                return "show distinctive tags for the artist";
             }
         });
 
