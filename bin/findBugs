@@ -24,10 +24,15 @@ fi
 
 cd "$(dirname $0)/../"
 AURALIBS=aura/dist/aura.jar
-for file in Libraries/*jar; do AURALIBS=$AURALIBS:$file; done
+for file in $(find Libraries/ -name *jar); do AURALIBS=$AURALIBS:$file; done
 
-OUTDIR="$1/build/"
-[ ! -e "$OUTDIR" ] && mkdir -p $OUTDIR
+if [ -d "$1" ]; then
+    OUTDIR="$1/build/"
+    [ ! -e "$OUTDIR" ] && mkdir -p "$OUTDIR"
+    OUTFILE="$OUTDIR/findbugs_output.xml"
+else
+    OUTFILE="build/$(basename $1).findbugs_output.xml"
+fi
 
-echo "Running: $FINDBUGS"
-$FINDBUGS -auxclasspath $AURALIBS -textui -xml $1 | sed -e "s|sourcepath=\"|sourcepath=\"$1\/src\/|" > "$OUTDIR/findbugs_output.xml"
+echo "Running: $FINDBUGS on $1 to $OUTFILE"
+$FINDBUGS -auxclasspath $AURALIBS -textui -xml $1 | sed -e "s|sourcepath=\"|sourcepath=\"$1\/src\/|" > "$OUTFILE"
