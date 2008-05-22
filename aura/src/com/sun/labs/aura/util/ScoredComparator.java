@@ -8,13 +8,12 @@ package com.sun.labs.aura.util;
 import java.util.Comparator;
 
 /**
- *
- * @author plamere
+ * A Comparator for <Scored<T>>s
  */
 
 public class ScoredComparator<T> implements Comparator<Scored<T>> {
 
-    public static ScoredComparator COMPARATOR = new ScoredComparator();
+    public final static ScoredComparator COMPARATOR = new ScoredComparator();
 
     public int compare(Scored<T> o1, Scored<T> o2) {
         return o1.compareTo(o2);
