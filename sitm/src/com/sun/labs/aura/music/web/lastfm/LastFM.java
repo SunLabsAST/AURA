@@ -178,9 +178,8 @@ public class LastFM {
     private String encodeName(String artistName) {
         try {
             String encodedName = URLEncoder.encode(artistName, "UTF-8");
-            // lastfm does something funky with & encodings so fix those
-            encodedName = encodedName.replaceAll("%26", "%2526");
-
+            // lastfm double encodes things (Crazy!)
+            encodedName = URLEncoder.encode(encodedName, "UTF-8");
             return encodedName;
         } catch (UnsupportedEncodingException e) {
             return "";
@@ -234,6 +233,9 @@ public class LastFM {
     public static void main(String[] args) {
         try {
             LastFM lastfm = new com.sun.labs.aura.music.web.lastfm.LastFM();
+            showSimilarArtists(lastfm, "AC/DC");
+            showSimilarArtists(lastfm, "Belle & Sebastian");
+            showSimilarArtists(lastfm, "Pink Floyd");
 
             showPopularity(lastfm, "the beatles");
             showPopularity(lastfm, "elvis presley");

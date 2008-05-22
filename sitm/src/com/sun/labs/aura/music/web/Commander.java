@@ -111,9 +111,10 @@ public class Commander {
                 document = builder.parse(is);
             } catch (SAXException e) {
                 throw new IOException("SAX Parse Error " + e);
+            } finally {
+                is.close();
             }
         }
-        is.close();
 
         if (trace) {
             dumpDocument(document);

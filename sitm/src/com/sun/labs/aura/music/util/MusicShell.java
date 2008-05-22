@@ -64,26 +64,6 @@ public class MusicShell implements AuraService, Configurable {
             }
         });
 
-        shell.add("fsa", new CommandInterface() {
-
-            public String execute(CommandInterpreter ci, String[] args) throws Exception {
-                String qname = sutils.stuff(args, 1);
-                Artist artist = findArtist(qname);
-                if (artist != null) {
-                    System.out.println("Finding similar for " + artist.getName());
-                    List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(), sutils.getHits(),
-                            new TypeFilter(ItemType.ARTIST));
-                    sutils.dumpScoredItems(simItems);
-                    return "";
-                } else {
-                    return "Can't find artist " + qname;
-                }
-            }
-
-            public String getHelp() {
-                return "find similar artist by name";
-            }
-        });
 
         shell.add("fsaa", new CommandInterface() {
 
@@ -164,6 +144,29 @@ public class MusicShell implements AuraService, Configurable {
 
             public String getHelp() {
                 return "show distinctive tags for the artist";
+            }
+        });
+
+        shell.add("explainArtistSimilarity", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                if (args.length == 3) {
+                    Artist artist1 = findArtist(args[1]);
+                    Artist artist2 = findArtist(args[2]);
+                    if (artist1 != null && artist2 != null) {
+                        List<Scored<String>> results = dataStore.explainSimilarity(artist1.getKey(), artist2.getKey(), sutils.getHits());
+                        sutils.dumpScored(results);
+                        return "";
+                    } else {
+                        return "Can't find artist";
+                    }
+                } else {
+                    return getHelp();
+                }
+            }
+
+            public String getHelp() {
+                return "explain why 2 artists are similar";
             }
         });
 
