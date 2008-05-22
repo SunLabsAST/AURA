@@ -16,6 +16,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
@@ -667,8 +668,12 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         DocumentVector dv = pc.getDocumentVector(key, field);
         int numClusters = trie.size();
         PCLatch latch;
-        //PBL changedrr
-        latch = new PCLatch((int)(numClusters ));
+
+        // TODO - some apps need predictable results, while others happily
+        // will trade predictabilty for speed.  We need to make this configurable
+        // for now, it is hardcoded to give predictable results.
+        //PBL changed this to give predictable results
+        latch = new PCLatch(numClusters);
         //latch = new PCLatch((int)(numClusters * 0.75));
         return findSimilar(dv, n, rf, latch);
     }
@@ -806,7 +811,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             return new ArrayList<Scored<String>>();
         }
         Map<String,Float> sm = dv1.getSimilarityTerms(dv2);
-        PriorityQueue<Scored<String>> h = new PriorityQueue<Scored<String>>();
+        PriorityQueue<Scored<String>> h = new PriorityQueue<Scored<String>>(n, ScoredComparator.COMPARATOR);
         for(Map.Entry<String,Float> e : sm.entrySet()) {
             if(h.size() < n) {
                 h.offer(new Scored<String>(e.getKey(), e.getValue()));
@@ -926,13 +931,13 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             PCLatch latch)
                 throws InterruptedException, ExecutionException {
         
-        PriorityQueue<Scored<Item>> sorter = new PriorityQueue<Scored<Item>>(n);
+        PriorityQueue<Scored<Item>> sorter = new PriorityQueue<Scored<Item>>(n, ScoredComparator.COMPARATOR);
         //
         // Wait for some, or all, or some time limit for execution to
         // finish.
         latch.await();
         for(Future<List<Scored<Item>>> future : results) {
-            if (future.isDone()) {
+            if (future.isDone() || (!latch.allowPartialResults())) {
                 List<Scored<Item>> curr = future.get();
                 if(curr != null) {
                     for(Scored<Item> item : curr) {
@@ -1031,17 +1036,30 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     protected class PCLatch extends CountDownLatch {
         protected int timeout;
         protected int initialCount;
+        protected boolean allowPartialResults;
         
+        /**
+         * Construct a standard latch that waits for count elements to finish
+         * before continuing.
+         * @param count
+         * @param partialResults true if partial results are allowed
+         */
+        public PCLatch(int count, boolean partialResults) {
+            super(count);
+            initialCount = count;
+            timeout = 0;
+            allowPartialResults = partialResults;
+        }
+
         /**
          * Construct a standard latch that waits for count elements to finish
          * before continuing.
          * @param count
          */
         public PCLatch(int count) {
-            super(count);
-            initialCount = count;
-            timeout = 0;
+            this(count, false);
         }
+
         
         /**
          * Construct a latch for a PC call that will wait for some number of
@@ -1054,6 +1072,16 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             super(count);
             initialCount = count;
             this.timeout = timeout;
+            allowPartialResults = true;
+        }
+
+        /**
+         * Determine if partial results are allowed by code controlled
+         * by this latch
+         * @return true if partial results are allowed
+         */
+        public boolean allowPartialResults() {
+            return allowPartialResults;
         }
 
         public int getTimeout() {
@@ -1160,3 +1188,4 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     }
 
 }
+

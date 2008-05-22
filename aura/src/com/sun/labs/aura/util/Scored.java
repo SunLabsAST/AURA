@@ -13,7 +13,8 @@ import java.io.Serializable;
  * 
  * @param T the type of the scored item.
  */
-public class Scored<T> implements Comparable<Scored<T>>, Serializable {
+//public class Scored<T> implements Comparable<Scored<T>>, Serializable {
+public class Scored<T> implements Serializable {
 
     private T item;
 
