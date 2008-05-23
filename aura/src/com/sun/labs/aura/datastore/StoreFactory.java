@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  */
 public class StoreFactory {
     
-    protected static Random random = new Random();
+    protected static final Random random = new Random();
     
     /**
      * Constructs an item with the given attributes.

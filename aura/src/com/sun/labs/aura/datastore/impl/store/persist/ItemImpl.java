@@ -44,7 +44,7 @@ public class ItemImpl implements Item {
     /** Instantiated hashmap from the mapBytes */
     private transient HashMap<String,Serializable> map = null;
     
-    protected static Logger logger = Logger.getLogger("");
+    protected static final Logger logger = Logger.getLogger("");
     
     /**
      * We need to provide a default constructor for BDB.

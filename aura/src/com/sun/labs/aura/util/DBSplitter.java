@@ -19,7 +19,6 @@ import java.util.logging.Logger;
 public class DBSplitter {
     private int numSegments;
     private String initialHashBits;
-    private int initialHashValue;
     private String fsNamePrefix;
     private Logger logger = Logger.getLogger("");
     
@@ -33,7 +32,6 @@ public class DBSplitter {
         }
                 this.numSegments = numSegments;
         this.initialHashBits = initialHashBits;
-        initialHashValue = Integer.parseInt(initialHashBits, 2);
         this.fsNamePrefix = fsNamePrefix;
 
     }
