@@ -75,8 +75,7 @@ public class Wikipedia {
             Matcher m = redirectPattern.matcher(description);
             if (m.matches()) {
                 String redirectedTo = m.group(1);
-                
-                System.out.println("Redirected to " + redirectedTo);
+                // System.out.println("Redirected to " + redirectedTo);
                 description = getArtistDescription(redirectCount + 1, redirectedTo);
             }
         }
