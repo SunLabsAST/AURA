@@ -1033,7 +1033,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         public abstract V call() throws AuraException, RemoteException;
     }
     
-    protected class PCLatch extends CountDownLatch {
+    protected static class PCLatch extends CountDownLatch {
         protected int timeout;
         protected int initialCount;
         protected boolean allowPartialResults;

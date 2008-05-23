@@ -43,6 +43,11 @@ public class DSBitSet extends BitSet {
         }
         return false;
     }
+    
+    @Override
+    public int hashCode() {
+        return new Integer(toInt()).hashCode();
+    }
 
     /**
      * Create a DSBitSet from an int, ignoring the sign bit

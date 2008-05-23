@@ -25,7 +25,7 @@ public class BinaryTrie<E> implements Serializable {
      */
     private Set<E> contents;
     
-    private ReadWriteLock lock;
+    private transient ReadWriteLock lock;
     
     public BinaryTrie() {
         root = new TrieNode();
@@ -189,7 +189,7 @@ public class BinaryTrie<E> implements Serializable {
     /**
      * A node in the Trie
      */
-    protected class TrieNode {
+    protected class TrieNode implements Serializable {
         /** If this is a leaf node, the object hanging at the leaf */
         private E leafObject = null;
         
