@@ -233,7 +233,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
-                Window.alert("in success");
                 // do some UI stuff to show success
                 SearchResults sr = (SearchResults) result;
                 if (sr != null && sr.isOK()) {
@@ -268,11 +267,16 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         };
 
         showMessage("Searching for " + searchText);
-        if (byTag) {
-            musicServer.artistSearchByTag(searchText, 100, callback);
-        } else {
-            musicServer.artistSearch(searchText, 100, callback);
+        try {
+            if (byTag) {
+                musicServer.artistSearchByTag(searchText, 100, callback);
+            } else {
+                musicServer.artistSearch(searchText, 100, callback);
+            }
+        } catch (Exception ex) {
+            callback.onFailure(ex);
         }
+
     }
 
     private void failureAction(Throwable caught) {

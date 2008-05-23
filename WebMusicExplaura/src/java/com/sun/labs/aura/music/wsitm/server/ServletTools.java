@@ -29,6 +29,7 @@ public class ServletTools {
     
     public static DataManager getDataManager(ServletConfig sc) {
         DataManager dm = (DataManager) sc.getServletContext().getAttribute("DataManager");
+        DataStore ds = (DataStore) sc.getServletContext().getAttribute("dataStore");
         String cacheSizeString = (String) sc.getServletContext().getAttribute("cacheSize");
         
         int cacheSize;
@@ -49,11 +50,11 @@ public class ServletTools {
                 dm.getLogger().log("_system_", "startup", "Created datamanager at " + path + " cache " + cacheSize);
                 */
                 
-                dm = DataManager.getDefault();
+                dm = new DataManager(ds,500);
                 sc.getServletContext().setAttribute("DataManager", dm);
                 //@todo fix this
                 //dm.getLogger().log("_system_", "startup", "Created datamanager with cache " + cacheSize);
-            } catch (AuraException ex) {
+            } catch (IOException ex) {
                 System.out.println("Can't create datamanager " + ex);
                 return null;
             }

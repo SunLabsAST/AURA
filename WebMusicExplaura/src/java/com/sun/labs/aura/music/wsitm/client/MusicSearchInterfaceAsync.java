@@ -16,8 +16,8 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
  * @author plamere
  */
 public interface MusicSearchInterfaceAsync {
-       public void artistSearch(String searchString, int maxResults, AsyncCallback callback); 
-       public void artistSearchByTag(String searchString, int maxResults, AsyncCallback callback); 
+       public void artistSearch(String searchString, int maxResults, AsyncCallback callback) throws Exception;
+       public void artistSearchByTag(String searchString, int maxResults, AsyncCallback callback) throws Exception; 
        public void tagSearch(String searchString, int maxResults, AsyncCallback callback); 
        public void getArtistDetails(String id, boolean refresh, AsyncCallback callback);
        public void getTagDetails(String id, boolean refresh, AsyncCallback callback);

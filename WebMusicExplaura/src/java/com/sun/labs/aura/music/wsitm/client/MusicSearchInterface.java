@@ -16,8 +16,8 @@ import com.google.gwt.user.client.rpc.RemoteService;
  * @author plamere
  */
 public interface MusicSearchInterface extends RemoteService {
-    public SearchResults artistSearch(String searchString, int maxResults);
-    public SearchResults artistSearchByTag(String searchString, int maxResults);
+    public SearchResults artistSearch(String searchString, int maxResults) throws Exception;
+    public SearchResults artistSearchByTag(String searchString, int maxResults) throws Exception;
     public SearchResults tagSearch(String searchString, int maxResults);
     public ArtistDetails getArtistDetails(String id, boolean refresh);
     public TagDetails getTagDetails(String id, boolean refresh);

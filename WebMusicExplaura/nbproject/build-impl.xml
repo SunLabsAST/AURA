@@ -552,9 +552,82 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy-ear-war file="${libs.GWT1.4.62.classpath}" propname="included.lib.libs.GWT1.4.62.classpath.X"/>
         <basename file="${file.reference.gwt-dev-linux.jar}" property="included.lib.file.reference.gwt-dev-linux.jar"/>
         <copy-ear-war file="${file.reference.gwt-dev-linux.jar}" propname="included.lib.file.reference.gwt-dev-linux.jar.X"/>
+        <copy todir="${build.web.dir}/WEB-INF/classes">
+            <fileset dir="${file.reference.jini-lib}" includes="**/*"/>
+        </copy>
+        <basename file="${file.reference.browser.jar}" property="included.lib.file.reference.browser.jar"/>
+        <copy-ear-war file="${file.reference.browser.jar}" propname="included.lib.file.reference.browser.jar.X"/>
+        <basename file="${file.reference.checkconfigurationfile.jar}" property="included.lib.file.reference.checkconfigurationfile.jar"/>
+        <copy-ear-war file="${file.reference.checkconfigurationfile.jar}" propname="included.lib.file.reference.checkconfigurationfile.jar.X"/>
+        <basename file="${file.reference.checkser.jar}" property="included.lib.file.reference.checkser.jar"/>
+        <copy-ear-war file="${file.reference.checkser.jar}" propname="included.lib.file.reference.checkser.jar.X"/>
+        <basename file="${file.reference.classdep.jar}" property="included.lib.file.reference.classdep.jar"/>
+        <copy-ear-war file="${file.reference.classdep.jar}" propname="included.lib.file.reference.classdep.jar.X"/>
+        <basename file="${file.reference.classserver.jar}" property="included.lib.file.reference.classserver.jar"/>
+        <copy-ear-war file="${file.reference.classserver.jar}" propname="included.lib.file.reference.classserver.jar.X"/>
+        <basename file="${file.reference.computedigest.jar}" property="included.lib.file.reference.computedigest.jar"/>
+        <copy-ear-war file="${file.reference.computedigest.jar}" propname="included.lib.file.reference.computedigest.jar.X"/>
+        <basename file="${file.reference.computehttpmdcodebase.jar}" property="included.lib.file.reference.computehttpmdcodebase.jar"/>
+        <copy-ear-war file="${file.reference.computehttpmdcodebase.jar}" propname="included.lib.file.reference.computehttpmdcodebase.jar.X"/>
+        <basename file="${file.reference.destroy.jar}" property="included.lib.file.reference.destroy.jar"/>
+        <copy-ear-war file="${file.reference.destroy.jar}" propname="included.lib.file.reference.destroy.jar.X"/>
+        <basename file="${file.reference.envcheck.jar}" property="included.lib.file.reference.envcheck.jar"/>
+        <copy-ear-war file="${file.reference.envcheck.jar}" propname="included.lib.file.reference.envcheck.jar.X"/>
+        <basename file="${file.reference.fiddler.jar}" property="included.lib.file.reference.fiddler.jar"/>
+        <copy-ear-war file="${file.reference.fiddler.jar}" propname="included.lib.file.reference.fiddler.jar.X"/>
+        <basename file="${file.reference.group.jar}" property="included.lib.file.reference.group.jar"/>
+        <copy-ear-war file="${file.reference.group.jar}" propname="included.lib.file.reference.group.jar.X"/>
+        <basename file="${file.reference.jarwrapper.jar}" property="included.lib.file.reference.jarwrapper.jar"/>
+        <copy-ear-war file="${file.reference.jarwrapper.jar}" propname="included.lib.file.reference.jarwrapper.jar.X"/>
+        <basename file="${file.reference.jini-core.jar}" property="included.lib.file.reference.jini-core.jar"/>
+        <copy-ear-war file="${file.reference.jini-core.jar}" propname="included.lib.file.reference.jini-core.jar.X"/>
+        <basename file="${file.reference.jini-ext.jar}" property="included.lib.file.reference.jini-ext.jar"/>
+        <copy-ear-war file="${file.reference.jini-ext.jar}" propname="included.lib.file.reference.jini-ext.jar.X"/>
+        <basename file="${file.reference.jsk-debug-policy.jar}" property="included.lib.file.reference.jsk-debug-policy.jar"/>
+        <copy-ear-war file="${file.reference.jsk-debug-policy.jar}" propname="included.lib.file.reference.jsk-debug-policy.jar.X"/>
+        <basename file="${file.reference.jsk-lib.jar}" property="included.lib.file.reference.jsk-lib.jar"/>
+        <copy-ear-war file="${file.reference.jsk-lib.jar}" propname="included.lib.file.reference.jsk-lib.jar.X"/>
+        <basename file="${file.reference.jsk-platform.jar}" property="included.lib.file.reference.jsk-platform.jar"/>
+        <copy-ear-war file="${file.reference.jsk-platform.jar}" propname="included.lib.file.reference.jsk-platform.jar.X"/>
+        <basename file="${file.reference.jsk-resources.jar}" property="included.lib.file.reference.jsk-resources.jar"/>
+        <copy-ear-war file="${file.reference.jsk-resources.jar}" propname="included.lib.file.reference.jsk-resources.jar.X"/>
+        <basename file="${file.reference.mahalo.jar}" property="included.lib.file.reference.mahalo.jar"/>
+        <copy-ear-war file="${file.reference.mahalo.jar}" propname="included.lib.file.reference.mahalo.jar.X"/>
+        <basename file="${file.reference.mercury.jar}" property="included.lib.file.reference.mercury.jar"/>
+        <copy-ear-war file="${file.reference.mercury.jar}" propname="included.lib.file.reference.mercury.jar.X"/>
+        <basename file="${file.reference.norm.jar}" property="included.lib.file.reference.norm.jar"/>
+        <copy-ear-war file="${file.reference.norm.jar}" propname="included.lib.file.reference.norm.jar.X"/>
+        <basename file="${file.reference.outrigger-logstore.jar}" property="included.lib.file.reference.outrigger-logstore.jar"/>
+        <copy-ear-war file="${file.reference.outrigger-logstore.jar}" propname="included.lib.file.reference.outrigger-logstore.jar.X"/>
+        <basename file="${file.reference.outrigger-snaplogstore.jar}" property="included.lib.file.reference.outrigger-snaplogstore.jar"/>
+        <copy-ear-war file="${file.reference.outrigger-snaplogstore.jar}" propname="included.lib.file.reference.outrigger-snaplogstore.jar.X"/>
+        <basename file="${file.reference.outrigger.jar}" property="included.lib.file.reference.outrigger.jar"/>
+        <copy-ear-war file="${file.reference.outrigger.jar}" propname="included.lib.file.reference.outrigger.jar.X"/>
+        <basename file="${file.reference.phoenix-group.jar}" property="included.lib.file.reference.phoenix-group.jar"/>
+        <copy-ear-war file="${file.reference.phoenix-group.jar}" propname="included.lib.file.reference.phoenix-group.jar.X"/>
+        <basename file="${file.reference.phoenix-init.jar}" property="included.lib.file.reference.phoenix-init.jar"/>
+        <copy-ear-war file="${file.reference.phoenix-init.jar}" propname="included.lib.file.reference.phoenix-init.jar.X"/>
+        <basename file="${file.reference.phoenix.jar}" property="included.lib.file.reference.phoenix.jar"/>
+        <copy-ear-war file="${file.reference.phoenix.jar}" propname="included.lib.file.reference.phoenix.jar.X"/>
+        <basename file="${file.reference.prebuilt-outrigger-logstore.jar}" property="included.lib.file.reference.prebuilt-outrigger-logstore.jar"/>
+        <copy-ear-war file="${file.reference.prebuilt-outrigger-logstore.jar}" propname="included.lib.file.reference.prebuilt-outrigger-logstore.jar.X"/>
+        <basename file="${file.reference.preferredlistgen.jar}" property="included.lib.file.reference.preferredlistgen.jar"/>
+        <copy-ear-war file="${file.reference.preferredlistgen.jar}" propname="included.lib.file.reference.preferredlistgen.jar.X"/>
+        <basename file="${file.reference.reggie.jar}" property="included.lib.file.reference.reggie.jar"/>
+        <copy-ear-war file="${file.reference.reggie.jar}" propname="included.lib.file.reference.reggie.jar.X"/>
+        <basename file="${file.reference.sharedvm.jar}" property="included.lib.file.reference.sharedvm.jar"/>
+        <copy-ear-war file="${file.reference.sharedvm.jar}" propname="included.lib.file.reference.sharedvm.jar.X"/>
+        <basename file="${file.reference.start.jar}" property="included.lib.file.reference.start.jar"/>
+        <copy-ear-war file="${file.reference.start.jar}" propname="included.lib.file.reference.start.jar.X"/>
+        <basename file="${file.reference.sun-util.jar}" property="included.lib.file.reference.sun-util.jar"/>
+        <copy-ear-war file="${file.reference.sun-util.jar}" propname="included.lib.file.reference.sun-util.jar.X"/>
+        <basename file="${file.reference.tools.jar}" property="included.lib.file.reference.tools.jar"/>
+        <copy-ear-war file="${file.reference.tools.jar}" propname="included.lib.file.reference.tools.jar.X"/>
+        <basename file="${file.reference.flickrapi-1.0b3.jar}" property="included.lib.file.reference.flickrapi-1.0b3.jar"/>
+        <copy-ear-war file="${file.reference.flickrapi-1.0b3.jar}" propname="included.lib.file.reference.flickrapi-1.0b3.jar.X"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${included.lib.reference.aura.jar} ${included.lib.reference.sitm.jar} ${included.lib.file.reference.minion.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.xstream-1.2.1.jar} ${included.lib.file.reference.gwt-servlet.jar} ${included.lib.file.reference.gwt-dev-mac.jar} ${included.lib.libs.GWT1.4.62.classpath} ${included.lib.file.reference.gwt-dev-linux.jar} "/>
+            <attribute name="Class-Path" value="${included.lib.reference.aura.jar} ${included.lib.reference.sitm.jar} ${included.lib.file.reference.minion.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.xstream-1.2.1.jar} ${included.lib.file.reference.gwt-servlet.jar} ${included.lib.file.reference.gwt-dev-mac.jar} ${included.lib.libs.GWT1.4.62.classpath} ${included.lib.file.reference.gwt-dev-linux.jar} ${included.lib.file.reference.browser.jar} ${included.lib.file.reference.checkconfigurationfile.jar} ${included.lib.file.reference.checkser.jar} ${included.lib.file.reference.classdep.jar} ${included.lib.file.reference.classserver.jar} ${included.lib.file.reference.computedigest.jar} ${included.lib.file.reference.computehttpmdcodebase.jar} ${included.lib.file.reference.destroy.jar} ${included.lib.file.reference.envcheck.jar} ${included.lib.file.reference.fiddler.jar} ${included.lib.file.reference.group.jar} ${included.lib.file.reference.jarwrapper.jar} ${included.lib.file.reference.jini-core.jar} ${included.lib.file.reference.jini-ext.jar} ${included.lib.file.reference.jsk-debug-policy.jar} ${included.lib.file.reference.jsk-lib.jar} ${included.lib.file.reference.jsk-platform.jar} ${included.lib.file.reference.jsk-resources.jar} ${included.lib.file.reference.mahalo.jar} ${included.lib.file.reference.mercury.jar} ${included.lib.file.reference.norm.jar} ${included.lib.file.reference.outrigger-logstore.jar} ${included.lib.file.reference.outrigger-snaplogstore.jar} ${included.lib.file.reference.outrigger.jar} ${included.lib.file.reference.phoenix-group.jar} ${included.lib.file.reference.phoenix-init.jar} ${included.lib.file.reference.phoenix.jar} ${included.lib.file.reference.prebuilt-outrigger-logstore.jar} ${included.lib.file.reference.preferredlistgen.jar} ${included.lib.file.reference.reggie.jar} ${included.lib.file.reference.sharedvm.jar} ${included.lib.file.reference.start.jar} ${included.lib.file.reference.sun-util.jar} ${included.lib.file.reference.tools.jar} ${included.lib.file.reference.flickrapi-1.0b3.jar} "/>
         </manifest>
         <delete dir="${dist.ear.dir}/temp"/>
     </target>
@@ -568,6 +641,44 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy file="${file.reference.gwt-dev-mac.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${libs.GWT1.4.62.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.gwt-dev-linux.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy todir="${build.web.dir}/WEB-INF/classes">
+            <fileset dir="${file.reference.jini-lib}" includes="**/*"/>
+        </copy>
+        <copy file="${file.reference.browser.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.checkconfigurationfile.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.checkser.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.classdep.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.classserver.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.computedigest.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.computehttpmdcodebase.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.destroy.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.envcheck.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.fiddler.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.group.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jarwrapper.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jini-core.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jini-ext.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jsk-debug-policy.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jsk-lib.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jsk-platform.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jsk-resources.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.mahalo.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.mercury.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.norm.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.outrigger-logstore.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.outrigger-snaplogstore.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.outrigger.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.phoenix-group.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.phoenix-init.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.phoenix.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.prebuilt-outrigger-logstore.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.preferredlistgen.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.reggie.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.sharedvm.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.start.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.sun-util.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.tools.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.flickrapi-1.0b3.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>

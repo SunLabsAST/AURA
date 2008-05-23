@@ -33,12 +33,11 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
 
     static int count;
     private DataManager dm;
-    private Logger logger;
+    private Logger logger = Logger.getLogger("");
 
     @Override
     public void init(ServletConfig sc) throws ServletException {
         super.init(sc);
-        System.out.println(sc.getInitParameter("cacheSize"));
         dm = ServletTools.getDataManager(sc);
         //logger = dm.getLogger();
         //logger.log("_system_", "startup", "");
@@ -49,14 +48,31 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         return dm.tagSearch(searchString, maxResults);
     }
 
-    public SearchResults artistSearch(String searchString, int maxResults) {
-        //logger.log("anon", "artistSearch", searchString);
-        return dm.artistSearch(searchString, maxResults);
+    public SearchResults artistSearch(String searchString, int maxResults) throws Exception {
+        logger.info("MusicSearchInterfaceImpl::artistSearch: "+searchString);
+        try {
+            return dm.artistSearch(searchString, maxResults);
+        } catch (Exception e) {
+            logger.severe("MusicSearchInterfaceImpl::artistSearch Exception: "+e.getMessage());
+            for (StackTraceElement s : e.getStackTrace())
+                logger.severe(s.toString());
+            //logger.severe(e.getStackTrace().toString());
+            throw e;
+        }
+           
     }
 
-    public SearchResults artistSearchByTag(String searchString, int maxResults) {
-        //logger.log("anon", "artistSearchByTag", searchString);
-        return dm.artistSearchByTag(searchString, maxResults);
+    @Override
+    public SearchResults artistSearchByTag(String searchString, int maxResults) 
+            throws Exception {
+        logger.info("MusicSearchInterfaceImpl::artistSearchByTag: "+searchString);
+        try {
+            return dm.artistSearchByTag(searchString, maxResults);
+        } catch (Exception e) {
+            logger.info("MusicSearchInterfaceImpl::artistSearchByTag Exception: "+e.getMessage());
+            throw e;
+        }
+                
     }
 
     public ArtistDetails getArtistDetails(String id, boolean refresh) {

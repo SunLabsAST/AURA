@@ -8,14 +8,7 @@
  */
 package com.sun.labs.aura.music.wsitm.server;
 
-/*
-import com.sun.labs.aura.music.minidatabase.Artist;
-import com.sun.labs.aura.music.minidatabase.MusicDatabase;
-import com.sun.labs.aura.music.minidatabase.Scored;
-import com.sun.labs.aura.music.minidatabase.Tag;
-*/
 import java.net.URL;
-import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
@@ -89,12 +82,14 @@ import java.util.logging.Logger;
  *
  * @author plamere
  */
-public class DataManager implements Configurable, AuraService {
+public class DataManager implements Configurable {
 
     private static final String DATASTORE_KEY ="dataStoreHead";
     private static final String CACHE_SIZE ="cacheSize";
     
     private static final int DEFAULT_CACHE_SIZE=250;
+    
+    private Logger logger = Logger.getLogger("");
     
     Logger log;
     ConfigurationManager configMgr;
@@ -112,81 +107,51 @@ public class DataManager implements Configurable, AuraService {
     private Spotify spotify;
     private FlickrManager flickr;
     private Upcoming upcoming;
-    private Logger logger;
     private Prefetcher prefetcher;
     private TagTree tree = null;
     private int expiredTimeInDays = 0;
     private boolean prefetch = true;
     private boolean singleThread = false;
 
+    
     /**
      * Creates a new instance of the datamanager
      * @param path  the path to the database
      * @param cacheSize  the size of the cache
      * @throws java.io.IOException  
      */
-    public DataManager(DataStore ds, int cacheSize) {
+    public DataManager(DataStore ds, int cacheSize) throws IOException {
         
-        //logger = new Logger(new File(path, "log.txt"));
-        //log = TestUtilities.getLogger(getClass());
+        logger.info("Instantiating new DataManager");
         
         //int cacheSize = (int)configMgr.lookup(CACHE_SIZE);
         cache = new LRUCache(cacheSize);
         //mdb = new MusicDatabase(path);
-        datastore = (DataStore)configMgr.lookup(DATASTORE_KEY);
+        datastore = ds;
         
-        
-    }
+        youtube = new Youtube();
+        musicBrainz = new MusicBrainz();
+        wikipedia = new Wikipedia();
+        flickr = new FlickrManager();
+        upcoming = new Upcoming();
+        yahoo = new Yahoo();
+        spotify = new Spotify();
 
-    /**
-     * A factory method that gets an instance of DataManager (WebMusicExplaura) 
-     * with the default configuration
-     * @return the default configuraiton of WebMusicExplaura
-     * @throws AuraException if an exception occurs while configuring 
-     * WebMusicExplaura
-     */
-    public static DataManager getDefault() throws AuraException {
-        try {
-            ConfigurationManager cm = new ConfigurationManager();
-            URL configFile =
-                    DataManager.class.getResource("webMusicExplauraConfig.xml");
-            cm.addProperties(configFile);
-            DataManager dm = (DataManager) cm.lookup("wsitm");
-            
-            dm.datastore = (DataStore)cm.lookup(DATASTORE_KEY);
-            //@todo change hardcoded cache size to variable
-            dm.cache = new LRUCache(DEFAULT_CACHE_SIZE);
-            
-            dm.youtube = new Youtube();
-            dm.musicBrainz = new MusicBrainz();
-            dm.wikipedia = new Wikipedia();
-            dm.flickr = new FlickrManager();
-            dm.upcoming = new Upcoming();
-            dm.yahoo = new Yahoo();
-            dm.spotify = new Spotify();
+        xstream = new XStream();
+        xstream.alias("ArtistDetails", ArtistDetails.class);
+        xstream.alias("ArtistVideo", ArtistVideo.class);
+        xstream.alias("ItemInfo", ItemInfo.class);
+        xstream.alias("Album", Album.class);
+        xstream.alias("ArtistPhoto", ArtistPhoto.class);
+        xstream.alias("ArtistEvent", ArtistEvent.class);
+        xstream.alias("TagTree", TagTree.class);
 
-            dm.xstream = new XStream();
-            dm.xstream.alias("ArtistDetails", ArtistDetails.class);
-            dm.xstream.alias("ArtistVideo", ArtistVideo.class);
-            dm.xstream.alias("ItemInfo", ItemInfo.class);
-            dm.xstream.alias("Album", Album.class);
-            dm.xstream.alias("ArtistPhoto", ArtistPhoto.class);
-            dm.xstream.alias("ArtistEvent", ArtistEvent.class);
-            dm.xstream.alias("TagTree", TagTree.class);
-
-            //@todo fix this
-            /**
-            if (dm.prefetch) {
-                dm.prefetcher = dm.(new Prefetcher());
-            }
-             * */
-            return dm;
-            
-        } catch (IOException ioe) {
-            throw new AuraException("Problem loading config", ioe);
+        if (prefetch) {
+            prefetcher = new Prefetcher();
         }
+        
     }
-    
+
     /**
      * Gets the details for the given artist (by id)
      *  
@@ -300,40 +265,18 @@ public class DataManager implements Configurable, AuraService {
      * @param maxResults maximum results to return
      * @return search results
      */
-    public SearchResults artistSearch(String searchString, int maxResults) {
-        //@todo fix this
-        //logger.log("anon", "artistSearch", searchString);
-        return null;
-        //@todo fix this
-        /*
-        List<Scored<Artist>> scoredArtists = mdb.artistSearch(searchString, maxResults);
-        sortByArtistPopularity(scoredArtists);
+    public SearchResults artistSearch(String searchString, int maxResults) throws AuraException, RemoteException {
+        logger.info("DataManager::artistSearch: "+searchString);
+
+        String query = "(aura-type = artist) <AND> (aura-name <matches> \"*" + searchString + "*\")";
+        List<Scored<Item>> scoredArtists = datastore.query(query, "-score", maxResults, null);
+        
+        //List<Scored<Artist>> scoredArtists = mdb.artistSearchByTag(searchString, maxResults);
+        //sortByArtistPopularity(scoredArtists);
         ItemInfo[] artistResults = new ItemInfo[scoredArtists.size()];
 
         for (int i = 0; i < artistResults.length; i++) {
-            Artist artist = scoredArtists.get(i).getItem();
-            double score = scoredArtists.get(i).getScore();
-            double popularity = artist.getPopularity();
-            artistResults[i] = new ItemInfo(artist.getKey(), artist.getName(), score, popularity);
-        }
-
-        SearchResults sr = new SearchResults(searchString, SearchResults.SEARCH_FOR_ARTIST_BY_ARTIST, artistResults);
-        return sr;
-        */
-    }
-
-    public SearchResults artistSearchByTag(String searchString, int maxResults) {
-        //@todo fix this
-        //logger.log("anon", "artistSearchByTag", searchString);
-        return null;
-        //@todo fix this
-        /*
-        List<Scored<Artist>> scoredArtists = mdb.artistSearchByTag(searchString, maxResults);
-        sortByArtistPopularity(scoredArtists);
-        ItemInfo[] artistResults = new ItemInfo[scoredArtists.size()];
-
-        for (int i = 0; i < artistResults.length; i++) {
-            Artist artist = scoredArtists.get(i).getItem();
+            Artist artist = (Artist) scoredArtists.get(i).getItem();
             double score = scoredArtists.get(i).getScore();
             double popularity = artist.getPopularity();
             artistResults[i] = new ItemInfo(artist.getKey(), artist.getName(), score, popularity);
@@ -341,7 +284,13 @@ public class DataManager implements Configurable, AuraService {
 
         SearchResults sr = new SearchResults(searchString, SearchResults.SEARCH_FOR_ARTIST_BY_TAG, artistResults);
         return sr;
-        */
+    }
+
+    public SearchResults artistSearchByTag(String searchString, int maxResults) 
+            throws AuraException, RemoteException {
+        logger.info("DataManager::artistSearchByTag TODOOO!: "+searchString);
+        return null;
+
     }
 
     public TagDetails getTagDetails(String id, boolean refresh) {
@@ -1024,7 +973,7 @@ public class DataManager implements Configurable, AuraService {
         System.out.printf("%d) %s %s %s %s '%s'\n", logCount++, new Date(), op, status, id, name);
         pw.flush();
     }
-
+/*
     public static void main(String[] args) throws IOException, AuraException {
         String path = "/lab/mir/db/mdb";
 
@@ -1049,7 +998,7 @@ public class DataManager implements Configurable, AuraService {
         
         
     }
-
+*/
     public int getExpiredTimeInDays() {
         return expiredTimeInDays;
     }
@@ -1065,7 +1014,7 @@ public class DataManager implements Configurable, AuraService {
         //int cacheSize = (Integer)ps.getComponent(CACHE_SIZE);
         
     }
-
+/*
     @Override
     public void start() {
         throw new UnsupportedOperationException("Not supported yet.");
@@ -1075,6 +1024,7 @@ public class DataManager implements Configurable, AuraService {
     public void stop() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+ * */
 }
 class LRUCache<String, Object> extends LinkedHashMap<String, Object> {
 

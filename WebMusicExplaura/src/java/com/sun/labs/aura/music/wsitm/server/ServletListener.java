@@ -28,15 +28,26 @@ public class ServletListener implements ServletContextListener {
             ServletContext context = sce.getServletContext();
             URL config = context.getResource("/webMusicExplauraWebConfig.xml");
             logger.info("Config URL is " + config);
-            System.out.println("Config URL is " + config);
+
             //
             // Get the Aardvark interface
             try {
+                logger.info("new ConfigManager");
                 ConfigurationManager cm = new ConfigurationManager();
+                logger.info("addProps");
+
                 cm.addProperties(config);
+                logger.info("addProps OK");
+
+                logger.info("setAttr");
                 context.setAttribute("configManager", cm);
                 
-                DataStore dataStore = (DataStore)cm.lookup("dataStore");
+                // Print out the available components
+                for (String name : cm.getComponentNames()) {
+                    logger.info("available: " + name);
+                }
+                
+                DataStore dataStore = (DataStore)cm.lookup("dataStoreHead");
                 context.setAttribute("dataStore", dataStore);
             } catch (IOException ioe) {
                 logger.log(Level.SEVERE, "Failed to get handle", ioe);
