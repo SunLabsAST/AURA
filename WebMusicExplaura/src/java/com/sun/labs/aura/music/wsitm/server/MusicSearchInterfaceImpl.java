@@ -38,6 +38,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     @Override
     public void init(ServletConfig sc) throws ServletException {
         super.init(sc);
+        System.out.println(sc.getInitParameter("cacheSize"));
         dm = ServletTools.getDataManager(sc);
         //logger = dm.getLogger();
         //logger.log("_system_", "startup", "");

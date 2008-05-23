@@ -94,6 +94,8 @@ public class DataManager implements Configurable, AuraService {
     private static final String DATASTORE_KEY ="dataStoreHead";
     private static final String CACHE_SIZE ="cacheSize";
     
+    private static final int DEFAULT_CACHE_SIZE=250;
+    
     Logger log;
     ConfigurationManager configMgr;
     
@@ -153,7 +155,7 @@ public class DataManager implements Configurable, AuraService {
             
             dm.datastore = (DataStore)cm.lookup(DATASTORE_KEY);
             //@todo change hardcoded cache size to variable
-            dm.cache = new LRUCache(200);
+            dm.cache = new LRUCache(DEFAULT_CACHE_SIZE);
             
             dm.youtube = new Youtube();
             dm.musicBrainz = new MusicBrainz();

@@ -30,7 +30,9 @@ public class ServletTools {
     public static DataManager getDataManager(ServletConfig sc) {
         DataManager dm = (DataManager) sc.getServletContext().getAttribute("DataManager");
         String cacheSizeString = (String) sc.getServletContext().getAttribute("cacheSize");
-        int cacheSize = 100;
+        
+        int cacheSize;
+        cacheSizeString = sc.getInitParameter("cacheSize");
         if (cacheSizeString != null) {
             cacheSize = Integer.parseInt(cacheSizeString);
         }

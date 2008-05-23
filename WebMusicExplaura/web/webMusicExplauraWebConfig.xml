@@ -2,6 +2,8 @@
 
 <config>
 
+<config>
+
     <!-- Where the aura data lives -->
     <property name="auraHome" value="/aura"/>
     
@@ -17,7 +19,7 @@
         <!-- <property name="securityPolicy" value="/aura/dist/jsk-all.policy"/> -->
     </component>
     
-    <component name="datastore" type="com.sun.labs.aura.datastore.DataStore"/>
-    <component name="WebMusicExplaura" type="com.sun.labs.aura.music.wsitm."/>
+    <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
+</config>
 </config>
 
