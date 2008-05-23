@@ -3,7 +3,7 @@
 <config>
 
     <!-- Where the aura data lives -->
-    <property name="auraHome" value="/aura"/>
+    <property name="auraHome" value="/aura/sitm"/>
     
     <!-- Where the aura distribution jar was unpacked. -->
     <property name="auraDistDir" value="${auraHome}/dist"/>
@@ -16,7 +16,5 @@
         <property name="securityPolicy" value="/files/working/jsk-all.policy"/>
         <!-- <property name="securityPolicy" value="/aura/dist/jsk-all.policy"/> -->
     </component>
-    
-    <component name="aardvark" type="com.sun.labs.aura.aardvark.Aardvark"/>
     <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
 </config>
