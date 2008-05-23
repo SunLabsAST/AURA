@@ -23,6 +23,8 @@ import java.util.logging.Logger;
  */
 @Entity(version = 1)
 public class ItemImpl implements Item {
+    private static final long serialVersionUID = 1;
+    
     /** Items also have String keys that for now we'll say are unique */
     @PrimaryKey
     protected String key;

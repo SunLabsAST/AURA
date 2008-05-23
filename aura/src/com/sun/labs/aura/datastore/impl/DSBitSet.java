@@ -46,7 +46,7 @@ public class DSBitSet extends BitSet {
     
     @Override
     public int hashCode() {
-        return new Integer(toInt()).hashCode();
+        return Integer.valueOf(toInt()).hashCode();
     }
 
     /**
