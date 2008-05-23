@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <config>
 
     <!-- Where the aura data lives -->
-    <property name="auraHome" value="/aura/sitm"/>
-    
-    <!-- Where the aura distribution jar was unpacked. -->
+    <property name="auraHome" value="/aura/sitm/db"/>
     <property name="auraDistDir" value="${auraHome}/dist"/>
     
     <!-- A component registry that will be used to lookup and register components. -->
     <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
         <propertylist name="groupList">
-            <item>Aura</item>
+            <item>AuraSitm</item>
         </propertylist>
-        <property name="securityPolicy" value="/files/working/jsk-all.policy"/>
-        <!-- <property name="securityPolicy" value="/aura/dist/jsk-all.policy"/> -->
+        <!-- <property name="securityPolicy" value="/files/working/jsk-all.policy"/> -->
+        <property name="securityPolicy" value="/aura/sitm/dist/jsk-all.policy"/> 
     </component>
-    <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
+    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
 </config>

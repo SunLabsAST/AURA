@@ -69,7 +69,6 @@
     <target name="-pre-init">
         <property file="nbproject/standalone-build-properties.xml"/>
     </target>
-
     <target name="-init-macrodef-junit">
         <macrodef name="junit" uri="http://www.netbeans.org/ns/j2se-project/3">
             <attribute default="${includes}" name="includes"/>
@@ -102,7 +101,7 @@
             </sequential>
         </macrodef>
     </target>
-
+    
     <!-- Builds a copy of the jar with a specific main class -->
     <target depends="init,compile,-pre-pre-jar,-pre-jar" name="do-dist-jar-with-libraries">
         <property location="${build.classes.dir}" name="build.classes.dir.resolved"/>
@@ -126,12 +125,12 @@
             </manifest>
         </copylibs>
     </target>
-
+    
     <!-- Package up the jar with the service starter main class along with some
          other things. -->
     <target name="dist-jar" description="Build a jar to distribute" depends="do-dist-jar-with-libraries">
         <property location="${dist.dir}/dist" name="dd"/>
-        <property location="../Libraries" name="lib.dir"/> 
+        <property location="../Libraries" name="lib.dir"/>
         <delete file="${dist.dir}/sitm-dist.jar"/>
         <mkdir dir="${dd}"/>
         <mkdir dir="${dd}/lib"/>
