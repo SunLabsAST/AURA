@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : fullConfig.xml
+    Created on : May 22, 2008, 3:12 PM
+    Author     : stgreen
+    Description:
+        An all-in-one-VM configuration for search inside the music.
+-->
+
+<config>
+    <!-- Where the aura data lives -->
+    <property name="auraHome" value="/aura/sitm/db"/>
+    <property name="cacheDir" value="/aura/sitm/db"/>
+    <property name="auraDistDir" value="/aura/sitm/dist"/>
+
+    <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
+
+    <property name="auraGroup" value="AuraSitm"/>
+    
+    <!-- Where the aura distribution jar was unpacked. -->
+    <property name="auraDistDir" value="${auraHome}/dist"/>
+
+    <property name="csPort" value="9995"/>
+    <property name="logLevel" value="WARNING"/>
+    
+    <!-- A component registry that will be used to lookup and register components. -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>${auraGroup}</item>
+        </propertylist>
+        <property name="csDirs" value="${auraDistDir}/lib"/>
+        <property name="csPort" value="${csPort}"/>
+        <propertylist name="codebaseJars">
+            <item>sitm.jar</item>
+            <item>aura.jar</item>
+            <item>minion.jar</item>
+            <item>LabsUtil.jar</item>
+        </propertylist>
+        <property name="securityPolicy" value="${auraPolicy}"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true">
+        <property name="logLevel" value="WARNING"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster0" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+        <property name="prefix" value="0"/>
+        <property name="dataStoreHead" value="dataStoreHead"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster1" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+        <property name="prefix" value="1"/>
+        <property name="dataStoreHead" value="dataStoreHead"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant0" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+        <property name="prefix" value="0"/>
+        <property name="dbEnv" value="${auraHome}/0/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine0"/>
+        <property name="partitionCluster" value="partitionCluster0"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant1" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+        <property name="prefix" value="1"/>
+        <property name="dbEnv" value="${auraHome}/1/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine1"/>
+        <property name="partitionCluster" value="partitionCluster1"/>
+    </component>
+    
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine0" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${auraHome}/0/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+        <property name="flushInterval" value="300000"/>
+        <property name="logLevel" value="WARNING"/>
+    </component>
+    
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine1" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${auraHome}/1/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+        <property name="flushInterval" value="300000"/>
+        <property name="logLevel" value="WARNING"/>
+    </component>
+    
+    
+    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl" export="true">
+        <property name="dataStore" value="dataStoreHead"/>
+    </component>
+
+
+    <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawler">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="crawlerStateDir" value="${auraHome}/crawler.state"/>
+        <property name="logLevel" value="INFO"/>
+    </component>
+    
+
+    <component name="musicShell" type="com.sun.labs.aura.music.util.MusicShell">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="statService" value="statService"/>
+    </component>
+
+    <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>dataStoreHead</item>
+            <item>partitionCluster0</item>
+            <item>partitionCluster1</item>
+            <item>replicant0</item>
+            <item>replicant1</item>
+            <item>statService</item>
+            <item>artistCrawler</item>
+            <item>musicShell</item>
+        </propertylist>
+    </component>
+    
+</config>
