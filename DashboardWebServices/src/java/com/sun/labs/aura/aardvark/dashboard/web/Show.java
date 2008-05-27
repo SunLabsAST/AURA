@@ -18,6 +18,7 @@ import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.recommender.Recommendation;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.aura.util.StatService;
 import com.sun.labs.aura.util.Tag;
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -563,7 +564,7 @@ public class Show extends HttpServlet {
                 int attn = dataStore.getAttentionForSource(user.getKey()).size();
                 scoredUsers.add(new Scored<BlogUser>(user, attn));
             }
-            Collections.sort(scoredUsers);
+            Collections.sort(scoredUsers, ScoredComparator.COMPARATOR);
             Collections.reverse(scoredUsers);
 
             if (scoredUsers.size() > num) {

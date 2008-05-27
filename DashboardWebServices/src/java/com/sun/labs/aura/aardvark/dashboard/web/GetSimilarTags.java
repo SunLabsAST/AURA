@@ -10,6 +10,7 @@ import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.ScoredComparator;
 import java.io.*;
 import java.net.*;
 
@@ -49,7 +50,7 @@ public class GetSimilarTags extends HttpServlet {
                 BlogEntry entry = new BlogEntry(item);
 
                 List<Scored<String>> autotags = entry.getAutoTags();
-                Collections.sort(autotags);
+                Collections.sort(autotags, ScoredComparator.COMPARATOR);
                 Collections.reverse(autotags);
                 
                 if (autotags.size() > maxCount) {

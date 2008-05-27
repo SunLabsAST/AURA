@@ -12,9 +12,6 @@ package com.sun.labs.aura.aardvark.dashboard.web;
 
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.impl.recommender.DateExclusionFilter;
-import com.sun.labs.aura.aardvark.impl.recommender.FieldExclusionFilter;
-import com.sun.labs.aura.aardvark.impl.recommender.FieldRangeFilter;
-import com.sun.labs.aura.aardvark.impl.recommender.TypeFilter;
 import com.sun.labs.aura.aardvark.util.Times;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DBIterator;
@@ -23,10 +20,14 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.recommender.FieldExclusionFilter;
+import com.sun.labs.aura.recommender.FieldRangeFilter;
 import com.sun.labs.aura.recommender.Recommendation;
 import com.sun.labs.aura.recommender.RecommenderProfile;
+import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.minion.CompositeResultsFilter;
 import com.sun.labs.minion.ResultsFilter;
 import java.rmi.RemoteException;
@@ -112,7 +113,7 @@ public class ExperimentalRecommender {
                 authorityList.add(new Scored<BlogEntry>(blogEntry, blogEntry.getAuthority() + scoredItem.getScore()));
             }
 
-            Collections.sort(authorityList);
+            Collections.sort(authorityList, ScoredComparator.COMPARATOR);
             Collections.reverse(authorityList);
 
             // Get the blog entries and return the set.  This is a change.
@@ -160,7 +161,7 @@ public class ExperimentalRecommender {
             log.log(Level.SEVERE, "woah Error getting recommendations", t);
             t.printStackTrace();
         } finally {
-            Collections.sort(resultList);
+            Collections.sort(resultList, ScoredComparator.COMPARATOR);
             Collections.reverse(resultList);
             return resultList;
         }
@@ -225,7 +226,7 @@ public class ExperimentalRecommender {
                 authorityList.add(new Scored<BlogEntry>(blogEntry, blogEntry.getAuthority() + scoredItem.getScore()));
             }
 
-            Collections.sort(authorityList);
+            Collections.sort(authorityList, ScoredComparator.COMPARATOR);
             Collections.reverse(authorityList);
 
             // Get the blog entries and return the set.  This is a change.
@@ -276,7 +277,7 @@ public class ExperimentalRecommender {
             log.log(Level.SEVERE, "woah Error getting recommendations", t);
             t.printStackTrace();
         } finally {
-            Collections.sort(resultList);
+            Collections.sort(resultList, ScoredComparator.COMPARATOR);
             Collections.reverse(resultList);
             return resultList;
         }
