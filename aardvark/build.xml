@@ -118,8 +118,9 @@
                 <globmapper from="*" to="lib/*"/>
             </chainedmapper>
         </pathconvert>
+	<echo message="cp: ${libs.CopyLibs.classpath}"/>
         <taskdef classname="org.netbeans.modules.java.j2seproject.copylibstask.CopyLibs" classpath="${libs.CopyLibs.classpath}" name="copylibs"/>
-        <copylibs compress="${jar.compress}" jarfile="${dist.jar}" runtimeclasspath="${run.classpath.without.build.classes.dir}">
+        <copylibs compress="${jar.compress}" jarfile="${dist.jar}" manifest="${manifest.file}" runtimeclasspath="${run.classpath.without.build.classes.dir}">
             <fileset dir="${build.classes.dir}"/>
             <manifest>
                 <attribute name="Main-Class" value="com.sun.labs.aura.AuraServiceStarter"/>
@@ -128,9 +129,7 @@
         </copylibs>
     </target>
     
-    <!-- Package up the jar with the service starter main class along with some
-         other things. -->
-    <target name="dist-jar" description="Build a jar to distribute" depends="do-dist-jar-with-libraries">
+    <target name="make-dist-jar-dir" description="Make the dist jar directory" depends="do-dist-jar-with-libraries">
         <property location="${dist.dir}/dist" name="dd"/>
         <property location="../Libraries" name="lib.dir"/>
         <delete file="${dist.dir}/aardvark-dist.jar"/>
@@ -142,7 +141,12 @@
         <copy todir="${dd}/lib">
             <fileset dir="${dist.dir}/lib"/>
         </copy>
+    </target>
+    
+    <!-- Package up the jar with the service starter main class along with some
+         other things. -->
+    <target name="dist-jar" description="Build a jar to distribute" depends="make-dist-jar-dir">
         <jar jarfile="${dist.dir}/aardvark-dist.jar" basedir="${dist.dir}" includes="dist/**"/>
-        <delete dir="${dd}"/>
+        <delete dir="${dist.dir}/dist"/>
     </target>
 </project>
