@@ -2,106 +2,100 @@
 <!-- You may freely edit this file. See commented blocks below for -->
 <!-- some examples of how to customize the build. -->
 <!-- (If you delete it and reopen the project it will be recreated.) -->
-<project name="grid" default="default" basedir=".">
-    <description>Builds, tests, and runs the project grid.</description>
+<project name="grid" default="default" basedir="."
+    xmlns:dav="antlib:org.apache.webdav.ant"
+    xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
+    <description>Builds and deploys grid projects.</description>
     <import file="nbproject/build-impl.xml"/>
-    <!--
-
-    There exist several targets which are by default empty and which can be 
-    used for execution of your tasks. These targets are usually executed 
-    before and after some main targets. They are: 
-
-      -pre-init:                 called before initialization of project properties
-      -post-init:                called after initialization of project properties
-      -pre-compile:              called before javac compilation
-      -post-compile:             called after javac compilation
-      -pre-compile-single:       called before javac compilation of single file
-      -post-compile-single:      called after javac compilation of single file
-      -pre-compile-test:         called before javac compilation of JUnit tests
-      -post-compile-test:        called after javac compilation of JUnit tests
-      -pre-compile-test-single:  called before javac compilation of single JUnit test
-      -post-compile-test-single: called after javac compilation of single JUunit test
-      -pre-jar:                  called before JAR building
-      -post-jar:                 called after JAR building
-      -post-clean:               called after cleaning build products
-
-    (Targets beginning with '-' are not intended to be called on their own.)
-
-    Example of inserting an obfuscator after compilation could look like this:
-
-        <target name="-post-compile">
-            <obfuscate>
-                <fileset dir="${build.classes.dir}"/>
-            </obfuscate>
-        </target>
-
-    For list of available properties check the imported 
-    nbproject/build-impl.xml file. 
-
-
-    Another way to customize the build is by overriding existing main targets.
-    The targets of interest are: 
-
-      -init-macrodef-javac:     defines macro for javac compilation
-      -init-macrodef-junit:     defines macro for junit execution
-      -init-macrodef-debug:     defines macro for class debugging
-      -init-macrodef-java:      defines macro for class execution
-      -do-jar-with-manifest:    JAR building (if you are using a manifest)
-      -do-jar-without-manifest: JAR building (if you are not using a manifest)
-      run:                      execution of project 
-      -javadoc-build:           Javadoc generation
-      test-report:              JUnit report generation
-
-    An example of overriding the target for project execution could look like this:
-
-        <target name="run" depends="grid-impl.jar">
-            <exec dir="bin" executable="launcher.exe">
-                <arg file="${dist.jar}"/>
-            </exec>
-        </target>
-
-    Notice that the overridden target depends on the jar target and not only on 
-    the compile target as the regular run target does. Again, for a list of available 
-    properties which you can use, check the target you are overriding in the
-    nbproject/build-impl.xml file. 
-
-    -->
     
     <!-- Load the grid properties if they're there -->
-    <loadproperties srcfile="${user.home}${file.separator}.caroline">
-        <filterchain>
-            <prefixlines prefix="grid."/>
-        </filterchain>
-    </loadproperties>
+    <loadproperties srcfile="${user.home}${file.separator}.caroline"/>
     
-    <!-- Declare the Jakarta Slide Ant tasks -->
-    <taskdef resource="org/apache/webdav/ant/taskdefs.properties">
+    <property name="tool.libraries" value="../ToolLibraries"/>
+    
+    <!-- A webdav URL for all our filesystems. -->
+    <property name="dav.url" value="${gridURL}/${customerID}/"/>
+    
+    <!-- A webdav URL for the dist filesystem. -->
+    <property name="dist.url" value="${dav.url}/${instance}-aura.dist"/>
+    
+    <!-- A webdav collection for the ant packages -->
+    <property name="ant.col" value="sys.packages/org/apache/tools/ant/1.7.0/lib/"/>
+    
+    <!-- Where the Ant libraries are -->
+    <property name="ant.lib" value="${tool.libraries}/ant-lib"/>
+   
+    <!-- The name of the system packages file system -->
+    <property name="packages.filesystem" value="sys.packages"/>   
+     
+    <!-- The name of the code filesystem on grid. -->
+    <property name="code.filesystem" value="${instance}-aura.dist"/>
+     
+    <!-- Declare the Caroline tasks -->
+    <taskdef resource="com/sun/caroline/tools/carolant/antlib.xml"
+            uri="antlib:com.sun.caroline.tools.carolant">
         <classpath>
-            <fileset dir="../ToolLibraries">
-                <include name="**/*.jar"/>
-            </fileset>
+            <pathelement location="${tool.libraries}/carolant.jar"/>
+            <pathelement location="${tool.libraries}/caroline.jar"/>
+        </classpath>
+    </taskdef>
+        
+   <!-- Declare the Caroline Ant tasks -->
+    <taskdef resource="org/apache/webdav/ant/antlib.xml" uri="antlib:org.apache.webdav.ant">
+        <classpath>
+            <pathelement location="${tool.libraries}/jakarta-slide-ant-webdav-2.2pre1.jar"/>
+            <pathelement location="${tool.libraries}/jakarta-slide-webdavlib-2.2pre1.jar"/>
+            <pathelement location="${tool.libraries}/commons-httpclient.jar"/>
+            <pathelement location="${tool.libraries}/commons-logging.jar"/>
         </classpath>
     </taskdef>
     
+    <!-- create a grid adapter instance to retrieve a reference the grid -->
+    <caroline:grid/>
+    
+    <!-- Creates the basic filesystems -->
+    <target name="create-filesystems" 
+        description="Creates necessary file systems">
+        <caroline:filesystem name="${packages.filesystem}" op="create"/>
+        <caroline:filesystem name="${code.filesystem}" op="create"/>
+    </target>
+    
+    <!-- create a WebDAV collection to upload Ant jars to-->
+    <target name="create-ant-collection" 
+        description="creates Ant package"
+        depends="create-filesystems">
+        <dav:mkcol url="${dav.url}/${ant.col}" 
+            userid="${customerID}" password="${password}"/>            
+    </target>
+    
+    <!-- create a target to copy Ant jars to Caroline -->
+    <target name="deploy-ant" description="copies Ant libraries" 
+        depends="create-ant-collection">
+        <dav:put url="${dav.url}/${ant.col}" 
+            userid="${customerID}" password="${password}" lock="false">
+            <fileset dir="${ant.lib}">
+                <include name="*.jar"/>
+            </fileset>        
+        </dav:put>
+    </target>  
+    
     <!-- Copy this project's distribution jar to the Grid -->
     <target depends="jar" name="grid-copy">
-        <davput url="${grid.URL}/${grid.user}/${grid.instance}-aura.dist"
-          userid="${grid.user}" password="${grid.password}" overwrite="true">
+        <dav:put url="${dist.url}"
+          userid="${customerID}" password="${password}" overwrite="true">
             <fileset dir=".">
                 <include name="dist/grid.jar"/>
             </fileset>
-        </davput>
+        </dav:put>
     </target>
     
     <!-- Copy the top level projects' distribution jars to the Grid -->
-    <target depends="jar" name="grid-all-copy">
-        <davput url="${grid.URL}/${grid.user}/${grid.instance}-aura.dist"
-          userid="${grid.user}" password="${grid.password}">
-            <fileset dir=".">
-                <include name="${dist.jar}"/>
-                <include name="../aardvark/dist/aardvark.jar"/>
-                <include name="../aura/dist/aura.jar"/>
+    <target name="grid-aardvark-copy">
+        <dav:put url="${dist.url}"
+          userid="${customerID}" password="${password}" overwrite="true">
+            <fileset dir="../aardvark/dist">
+                <filename name="aardvark-dist.jar"/>
             </fileset>
-        </davput>
+        </dav:put>
     </target>
 </project>

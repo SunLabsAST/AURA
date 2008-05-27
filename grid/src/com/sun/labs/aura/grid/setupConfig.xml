@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!--
+    Document   : setupConfig.xml
+    Created on : May 27, 2008, 11:07 AM
+    Author     : stgreen
+    Description:
+        Purpose of the document follows.
+-->
+<config>
+    <component name="setup" type="com.sun.labs.aura.grid.Setup"/>
+    <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>setup</item>
+        </propertylist>
+    </component>
+</config>
