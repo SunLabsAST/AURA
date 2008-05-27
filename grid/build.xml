@@ -8,8 +8,13 @@
     <description>Builds and deploys grid projects.</description>
     <import file="nbproject/build-impl.xml"/>
     
-    <!-- Load the grid properties if they're there -->
-    <loadproperties srcfile="${user.home}${file.separator}.caroline"/>
+    <!-- Load the grid properties if they're there, so that we can get the
+        instance name -->
+    <loadproperties srcfile="${user.home}${file.separator}.caroline">
+        <filterchain>
+            <prefixlines prefix="grid."/>
+        </filterchain>
+    </loadproperties>
     
     <property name="tool.libraries" value="../ToolLibraries"/>
     

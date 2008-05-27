@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="www" default="deploy-ant" basedir="."
+<project name="www" default="create-service" basedir="."
     xmlns:dav="antlib:org.apache.webdav.ant"
     xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
                           
@@ -26,6 +26,12 @@
         </classpath>
     </taskdef>
     
+    <loadproperties srcfile="${user.home}${file.separator}.caroline">
+        <filterchain>
+            <prefixlines prefix="grid."/>
+        </filterchain>
+    </loadproperties>
+
     <!-- create a grid adapter instance to retrieve a reference the grid -->
     <caroline:grid/>
 
@@ -43,6 +49,7 @@
     <property name="service.base" value="apache-tomcat-6.0.16"/>
     <property name="service.distribution" value="${service.base}.zip" />
     <property name="service.working" value="/files/working/${service.base}"/>
+    <property name="packages.filesystem" value="sys.packages"/>
     <property name="filesystem" value="${ant.project.name}.filesystem"/>
     <property name="service.conf" value="${filesystem}/${service.base}/conf/"/>
     <property name="service.lib" value="${filesystem}/${service.base}/lib/"/>
@@ -53,7 +60,7 @@
     <property name="extaddress" value="${ant.project.name}.extaddress"/>
     <property name="extbinding" value="${ant.project.name}.extbinding"/>
     <property name="intbinding" value="${ant.project.name}.intbinding"/>
-    <property name="network" value="${com.sun.caroline.instance}-auraNet"/>
+    <property name="network" value="${grid.instance}-auraNet"/>
     <property name="intaddress" value="${ant.project.name}.intaddress"/>
     <property name="dbaddress" value="${ant.project.name}.dbaddress"/>
     <property name="populateaddress" value="${ant.project.name}.paddress"/>
@@ -112,7 +119,7 @@
     <!-- unzip service distribution on-grid -->
     <target name="unzip-distribution"
         description="unzips the service distribution"
-        depends="upload-distribution">
+        depends="upload-distribution, create-packages-filesystem">
         
         <!-- Creates and starts a Caroline process to unzip service 
              distribution -->
@@ -156,7 +163,7 @@
     <!-- create network if it doesn't exist -->
     <target name="create-network" 
         description="creates a network if it doesn't exist">      
-        <caroline:network name="${network}" op="create"/>    
+        <caroline:network name="${network}" op="create" hosts="256"/>    
     </target>
     
     <!-- create internal addresses if not already present -->
@@ -192,7 +199,7 @@
     <!-- create process registration if it doesn't exist -->
     <target name="create-service" 
         description="creates a service process if one doesn't exist"
-        depends="unzip-distribution,update-config,create-staticnat,create-extbinding">
+        depends="deploy-ant,unzip-distribution,update-config,create-staticnat,create-extbinding">
         
         <caroline:process name="${service.process}"
             op="create" workingdir="/files/working/">                
@@ -261,7 +268,7 @@
     <!-- destroy network if it exists -->
     <target name="destroy-network" 
         description="destroys networkaddress if one exists"
-        depends="destroy-intaddress,destroy-database,destroy-populate-task">
+        depends="destroy-intaddress,destroy-populate-task">
         <caroline:network name="${network}" op="delete"/> 
     </target>
     
