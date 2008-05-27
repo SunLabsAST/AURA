@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * The path through the tree is described by the prefix.
  */
 public class BinaryTrie<E> implements Serializable {
+    private static final long serialVersionUID = 1L;
     
     /**
      * The root of the Trie
