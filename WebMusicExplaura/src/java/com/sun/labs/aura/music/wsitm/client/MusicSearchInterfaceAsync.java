@@ -19,7 +19,7 @@ public interface MusicSearchInterfaceAsync {
        public void artistSearch(String searchString, int maxResults, AsyncCallback callback) throws Exception;
        public void artistSearchByTag(String searchString, int maxResults, AsyncCallback callback) throws Exception; 
        public void tagSearch(String searchString, int maxResults, AsyncCallback callback); 
-       public void getArtistDetails(String id, boolean refresh, AsyncCallback callback);
+       public void getArtistDetails(String id, boolean refresh, AsyncCallback callback) throws Exception;
        public void getTagDetails(String id, boolean refresh, AsyncCallback callback);
        public void getTagTree(AsyncCallback callback);
        public void getCommonTags(String artistID1, String artistID2, int num, AsyncCallback callback) ;

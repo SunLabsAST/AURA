@@ -193,8 +193,10 @@ public class DataManager implements Configurable {
             boolean prefetchMode) throws AuraException, AuraException, 
             RemoteException {
         ArtistDetails details = null;
-
-        if (refresh) {
+        
+        //@todo fix this
+        if (false) {
+        //if (refresh) {
             details = fetchArtistDetails(id);
             if (details != null) {
                 synchronized (cache) {
@@ -206,7 +208,7 @@ public class DataManager implements Configurable {
             details = (ArtistDetails) cache.sget(id);
 
             if (details == null) {
-                details = (ArtistDetails) loadDetailsFromFile(id);
+                details = (ArtistDetails) loadDetailsFromStore(id);
                 if (details != null) {
                     cache.sput(id, details);
                 } else {
@@ -214,7 +216,8 @@ public class DataManager implements Configurable {
                     if (details != null) {
                         synchronized (cache) {
                             cache.sput(id, details);
-                            //saveDetailsToFile(details);
+                            //@todo do this
+                            // put artist details in DB
                         }
                     }
                 }
@@ -229,6 +232,17 @@ public class DataManager implements Configurable {
         return details;
     }
 
+    /**
+     * Fetches an artist's details from the datastores
+     * @param id the artist's id
+     * @return the artist's details or null if the details are not in the datastore
+     */
+    private Details loadDetailsFromStore(String id) {
+        //@todo do it!!
+        
+        return null;
+    }
+    
     /**
      * Search for social tags
      * @param searchString the search string
@@ -267,19 +281,22 @@ public class DataManager implements Configurable {
      */
     public SearchResults artistSearch(String searchString, int maxResults) throws AuraException, RemoteException {
         logger.info("DataManager::artistSearch: "+searchString);
-
+        
         String query = "(aura-type = artist) <AND> (aura-name <matches> \"*" + searchString + "*\")";
         List<Scored<Item>> scoredArtists = datastore.query(query, "-score", maxResults, null);
-        
+
         //List<Scored<Artist>> scoredArtists = mdb.artistSearchByTag(searchString, maxResults);
         //sortByArtistPopularity(scoredArtists);
         ItemInfo[] artistResults = new ItemInfo[scoredArtists.size()];
 
         for (int i = 0; i < artistResults.length; i++) {
-            Artist artist = (Artist) scoredArtists.get(i).getItem();
-            double score = scoredArtists.get(i).getScore();
-            double popularity = artist.getPopularity();
-            artistResults[i] = new ItemInfo(artist.getKey(), artist.getName(), score, popularity);
+            //datastore.getItem(scoredArtists.get(i))
+            //Artist artist = (Artist) scoredArtists.get(i).getItem();
+            Item artist = scoredArtists.get(i).getItem();
+            //double score = scoredArtists.get(i).getScore();
+            //double popularity = artist.getPopularity();
+            //artistResults[i] = new ItemInfo(artist.getKey(), artist.getName(), score, popularity);
+            artistResults[i] = new ItemInfo(artist.getKey(), artist.getName(), 1, 1);
         }
 
         SearchResults sr = new SearchResults(searchString, SearchResults.SEARCH_FOR_ARTIST_BY_TAG, artistResults);

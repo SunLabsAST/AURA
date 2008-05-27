@@ -54,15 +54,13 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             return dm.artistSearch(searchString, maxResults);
         } catch (Exception e) {
             logger.severe("MusicSearchInterfaceImpl::artistSearch Exception: "+e.getMessage());
-            for (StackTraceElement s : e.getStackTrace())
-                logger.severe(s.toString());
-            //logger.severe(e.getStackTrace().toString());
+            logger.severe(traceToString(e));
             throw e;
         }
            
     }
 
-    @Override
+    
     public SearchResults artistSearchByTag(String searchString, int maxResults) 
             throws Exception {
         logger.info("MusicSearchInterfaceImpl::artistSearchByTag: "+searchString);
@@ -70,22 +68,22 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             return dm.artistSearchByTag(searchString, maxResults);
         } catch (Exception e) {
             logger.info("MusicSearchInterfaceImpl::artistSearchByTag Exception: "+e.getMessage());
+            logger.severe(traceToString(e));
             throw e;
         }
                 
     }
 
-    public ArtistDetails getArtistDetails(String id, boolean refresh) {
+    public ArtistDetails getArtistDetails(String id, boolean refresh) throws Exception {      
+        logger.info("MusicSearchInterfaceImpl::getArtistDetails: "+id);
         try {
-            //logger.log("anon", "getArtistDetails", id);
-            return dm.getArtistDetails(id, refresh);
-        } catch (AuraException ex) {
-            Logger.getLogger(MusicSearchInterfaceImpl.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (RemoteException ex) {
-            Logger.getLogger(MusicSearchInterfaceImpl.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            //@todo fix this
-            return null;
+            return dm.getArtistDetails(id, false);
+        } catch (Exception e) {
+            logger.severe("MusicSearchInterfaceImpl::getArtistDetails Exception: "+e.getMessage());
+            for (StackTraceElement s : e.getStackTrace())
+                logger.severe(s.toString());
+            //logger.severe(e.getStackTrace().toString());
+            throw e;
         }
     }
 
@@ -113,5 +111,13 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         } catch (RemoteException ex) {
             Logger.getLogger(MusicSearchInterfaceImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    private String traceToString(Exception e) {
+        String trace = "";
+        for (StackTraceElement s : e.getStackTrace()) {
+            trace += "    **   " + s + "\n";
+        }
+        return trace;
     }
 }

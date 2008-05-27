@@ -19,7 +19,7 @@ public interface MusicSearchInterface extends RemoteService {
     public SearchResults artistSearch(String searchString, int maxResults) throws Exception;
     public SearchResults artistSearchByTag(String searchString, int maxResults) throws Exception;
     public SearchResults tagSearch(String searchString, int maxResults);
-    public ArtistDetails getArtistDetails(String id, boolean refresh);
+    public ArtistDetails getArtistDetails(String id, boolean refresh) throws Exception ;
     public TagDetails getTagDetails(String id, boolean refresh);
     public TagTree getTagTree();
     public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num) ;

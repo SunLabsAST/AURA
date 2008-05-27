@@ -206,7 +206,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                     }
                 } else {
                     if (sr == null) {
-                        showError("Search trouble. You'd better call Steve.");
+                        showError("Error. Resultset is null. (209)");
                         clearResults();
                     } else {
                         showError("Whoops " + sr.getStatus());
@@ -252,7 +252,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                     }
                 } else {
                     if (sr == null) {
-                        showError("Search trouble. You'd better call Steve.");
+                        showError("Error. Resultset is null. (256)");
                         clearResults();
                     } else {
                         showError("Very Whooops " + sr.getStatus());
@@ -274,7 +274,8 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                 musicServer.artistSearch(searchText, 100, callback);
             }
         } catch (Exception ex) {
-            callback.onFailure(ex);
+            Window.alert(ex.getMessage());
+            
         }
 
     }
@@ -305,6 +306,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                     clearMessage();
                 } else {
                     if (artistDetails == null) {
+                        Window.alert("i am 1");
                         showError("Search trouble. You'd better call Steve.");
                         clearResults();
                     } else {
@@ -325,7 +327,12 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         // 'callback' will be invoked when the RPC completes.
         //
         //  Provide your own name.
-        musicServer.getArtistDetails(artistID, refresh, callback);
+        try {
+            musicServer.getArtistDetails(artistID, refresh, callback);
+        } catch (Exception ex) {
+            Window.alert(ex.getMessage());
+            
+        }
     }
 
     private void invokeGetTagInfo(String tagID, boolean refresh) {
@@ -341,6 +348,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                     clearMessage();
                 } else {
                     if (tagDetails == null) {
+                        Window.alert("i am 2");
                         showError("Search trouble. You'd better call Steve.");
                         clearResults();
                     } else {
