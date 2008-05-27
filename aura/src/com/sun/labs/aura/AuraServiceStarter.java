@@ -5,7 +5,9 @@
 package com.sun.labs.aura;
 
 import com.sun.labs.util.SimpleLabsLogFormatter;
+import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponentList;
+import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
@@ -15,7 +17,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.logging.Handler;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -26,6 +27,8 @@ import java.util.logging.Logger;
 public class AuraServiceStarter implements Configurable {
 
     private List<AuraService> services;
+
+    private boolean blockForShutdown;
 
     private ConfigurationManager cm;
 
@@ -45,9 +48,18 @@ public class AuraServiceStarter implements Configurable {
     @ConfigComponentList(type = com.sun.labs.aura.AuraService.class)
     public static final String PROP_SERVICE_COMPONENTS = "serviceComponents";
 
+    /**
+     * A configuration property indicating whether we should wait to be killed
+     * to shutdown the services
+     */
+    @ConfigBoolean(defaultValue = true)
+    public static final String PROP_BLOCK_FOR_SHUTDOWN = "blockForShutdown";
+
     public void newProperties(PropertySheet ps) throws PropertyException {
 
         cm = ps.getConfigurationManager();
+
+        blockForShutdown = ps.getBoolean(PROP_BLOCK_FOR_SHUTDOWN);
 
         //
         // Get the names of the components we're to start, then start them.
@@ -56,6 +68,8 @@ public class AuraServiceStarter implements Configurable {
         for(AuraService service : services) {
             service.start();
         }
+
+
 
         //
         // Add a shutdown hook to stop the services.
@@ -69,10 +83,13 @@ public class AuraServiceStarter implements Configurable {
     }
 
     public static void usage() {
-        System.err.println("Usage: com.sun.labs.aura.AuraServiceStarter <config> <component name>");
-        System.err.println("  Some useful global properties are auraHome and auraDistDir");
+        System.err.println(
+                "Usage: com.sun.labs.aura.AuraServiceStarter <config> <component name>");
+        System.err.println(
+                "  Some useful global properties are auraHome and auraDistDir");
         System.err.println("  auraHome defaults to /aura.");
-        System.err.println("  auraDistDir defaults to the current working directory");
+        System.err.println(
+                "  auraDistDir defaults to the current working directory");
     }
 
     /**
@@ -103,12 +120,13 @@ public class AuraServiceStarter implements Configurable {
                 cu = (new File(args[0])).toURI().toURL();
             }
             ConfigurationManager cm = new ConfigurationManager(cu);
-            starter =
-                    (AuraServiceStarter) cm.lookup(args[1]);
+            starter = (AuraServiceStarter) cm.lookup(args[1]);
 
             //
-            // Sleep until we're killed.
-            Thread.sleep(Long.MAX_VALUE);
+            // Block until we're killed if we're supposed to.
+            if(starter.blockForShutdown) {
+                Thread.sleep(Long.MAX_VALUE);
+            }
         } catch(IOException ex) {
             System.err.println("Error parsing configuration file: " + ex);
             usage();
