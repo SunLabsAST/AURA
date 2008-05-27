@@ -7,39 +7,19 @@
             <minimum-ant-version>1.6</minimum-ant-version>
             <web-module-libraries>
                 <library files="1">
-                    <file>${reference.aardvark.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
                     <file>${file.reference.LabsUtil.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library files="1">
-                    <file>${file.reference.jini-core.jar}</file>
+                    <file>${file.reference.minion.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library files="1">
-                    <file>${file.reference.jini-ext.jar}</file>
+                    <file>${reference.aura.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library files="1">
-                    <file>${file.reference.jsk-lib.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
-                    <file>${file.reference.sun-util.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
-                    <file>${file.reference.tools.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
-                    <file>${file.reference.commons-logging-1.03.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
-                    <file>${file.reference.jdom.jar}</file>
+                    <file>${reference.aardvark.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library files="1">
@@ -47,7 +27,11 @@
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library files="1">
-                    <file>${file.reference.commons-codec-1.3.jar}</file>
+                    <file>${file.reference.rome-fetcher-0.9.jar}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library files="1">
+                    <file>${file.reference.saxpath.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library files="1">
@@ -59,31 +43,7 @@
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library files="1">
-                    <file>${file.reference.commons-httpclient-3.0.1.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
-                    <file>${file.reference.htmlparser-1.6.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
-                    <file>${file.reference.java-openid-sxip-0.9.5-SNAPSHOT.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
-                    <file>${file.reference.openxri-client-1.0.1.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
-                    <file>${file.reference.openxri-syntax-1.0.1.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
-                    <file>${file.reference.xmlsec-1.1.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
-                    <file>${file.reference.minion.jar}</file>
+                    <file>${file.reference.xml-apis.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
             </web-module-libraries>
@@ -98,6 +58,14 @@
         <references xmlns="http://www.netbeans.org/ns/ant-project-references/1">
             <reference>
                 <foreign-project>aardvark</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build.xml</script>
+                <target>jar</target>
+                <clean-target>clean</clean-target>
+                <id>jar</id>
+            </reference>
+            <reference>
+                <foreign-project>aura</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
                 <target>jar</target>

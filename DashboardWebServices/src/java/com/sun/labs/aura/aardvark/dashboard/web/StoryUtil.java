@@ -11,6 +11,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.aura.util.Tag;
 import java.io.PrintWriter;
 import java.rmi.RemoteException;
@@ -177,7 +178,7 @@ public class StoryUtil {
         {
             List<Scored<String>> autotags = entry.getAutoTags();
             if (autotags.size() > 0) {
-                Collections.sort(autotags);
+                Collections.sort(autotags, ScoredComparator.COMPARATOR);
                 Collections.reverse(autotags);
                 out.println("        <autotags>");
                 for (Scored<String> tag : autotags) {

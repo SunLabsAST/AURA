@@ -8,8 +8,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
-import com.sun.labs.aura.util.Scored;
-import java.util.ArrayList;
+import com.sun.labs.aura.util.Tag;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -133,24 +132,16 @@ public class Artist extends ItemAdapter {
      * Gets the artist's auto tags 
      * @return tag map
      */
-    public List<Scored<String>> getAutoTags() {
-        List<Scored<String>> list = (List<Scored<String>>) getFieldAsObject(FIELD_AUTO_TAGS);
-        if (list == null) {
-            list = new ArrayList<Scored<String>>(0);
-        }
-        return list;
+    public List<Tag> getAutoTags() {
+        return getTagsAsList(FIELD_AUTO_TAGS);
     }
 
     /**
      * Gets the artist's social tags 
      * @return tag map
      */
-    public List<Scored<String>> getSocialTags() {
-        List<Scored<String>> list = (List<Scored<String>>) getFieldAsObject(FIELD_SOCIAL_TAGS);
-        if (list == null) {
-            list = new ArrayList<Scored<String>>(0);
-        }
-        return list;
+    public List<Tag> getSocialTags() {
+        return getTagsAsList(FIELD_SOCIAL_TAGS);
     }
 
     /**

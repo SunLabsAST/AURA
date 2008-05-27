@@ -23,6 +23,8 @@ import java.util.logging.Logger;
  */
 @Entity(version = 1)
 public class ItemImpl implements Item {
+    private static final long serialVersionUID = 1;
+    
     /** Items also have String keys that for now we'll say are unique */
     @PrimaryKey
     protected String key;
@@ -44,7 +46,7 @@ public class ItemImpl implements Item {
     /** Instantiated hashmap from the mapBytes */
     private transient HashMap<String,Serializable> map = null;
     
-    protected static Logger logger = Logger.getLogger("");
+    protected static final Logger logger = Logger.getLogger("");
     
     /**
      * We need to provide a default constructor for BDB.

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : fullConfig.xml
+    Created on : February 25, 2008, 3:12 PM
+    Author     : stgreen
+    Description:
+        An all-in-one-VM configuration for Aardvark.
+-->
+
+<config>
+    <!-- Where the aura data lives -->
+    <property name="auraHome" value="/aura/sitm"/>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true">
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster0" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true">
+        <property name="prefix" value="0"/>
+        <property name="dataStoreHead" value="dataStoreHead"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster1" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true">
+        <property name="prefix" value="1"/>
+        <property name="dataStoreHead" value="dataStoreHead"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant0" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" export="true">
+        <property name="prefix" value="0"/>
+        <property name="dbEnv" value="${auraHome}/0/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine0"/>
+        <property name="partitionCluster" value="partitionCluster0"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant1" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" export="true">
+        <property name="prefix" value="1"/>
+        <property name="dbEnv" value="${auraHome}/1/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine1"/>
+        <property name="partitionCluster" value="partitionCluster1"/>
+    </component>
+    
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine0" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${auraHome}/0/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+        <property name="flushInterval" value="300000"/>
+    </component>
+    
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine1" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${auraHome}/1/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+        <property name="flushInterval" value="300000"/>
+    </component>
+
+    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl">
+        <property name="dataStore" value="dataStoreHead"/>
+    </component>
+    
+    <!-- SITM Components -->
+
+    <component name="wsitm" type="com.sun.labs.aura.music.wsitm.server.DataManager">
+        <property name="dataStore" value="dataStoreHead"/>
+    </component>
+    
+    <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>dataStoreHead</item>
+            <item>partitionCluster0</item>
+            <item>partitionCluster1</item>
+            <item>replicant0</item>
+            <item>replicant1</item>
+            <item>statService</item>
+            <item>wsitm</item>
+        </propertylist>
+    </component>
+
+</config>

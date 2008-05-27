@@ -5,14 +5,13 @@
 
 package com.sun.labs.aura.aardvark.dashboard.web;
 
-import com.sun.labs.aura.aardvark.impl.recommender.TypeFilter;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.io.*;
-import java.net.*;
 
 import java.util.List;
 import javax.servlet.*;
