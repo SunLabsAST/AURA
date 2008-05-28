@@ -22,5 +22,5 @@ public interface MusicSearchInterfaceAsync {
        public void getArtistDetails(String id, boolean refresh, AsyncCallback callback) throws Exception;
        public void getTagDetails(String id, boolean refresh, AsyncCallback callback);
        public void getTagTree(AsyncCallback callback);
-       public void getCommonTags(String artistID1, String artistID2, int num, AsyncCallback callback) ;
+       public void getCommonTags(String artistID1, String artistID2, int num, AsyncCallback callback) throws Exception;
 }
