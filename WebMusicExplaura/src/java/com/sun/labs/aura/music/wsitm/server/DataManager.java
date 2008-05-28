@@ -227,6 +227,7 @@ public class DataManager implements Configurable {
         details.setBiographySummary(a.getBioSummary());
         details.setId(id);
         details.setPopularity(a.getPopularity());
+        details.setUrls(a.getUrls());
         
         try {
             details.setEncodedName(URLEncoder.encode(a.getName(), "UTF-8"));
@@ -344,7 +345,7 @@ public class DataManager implements Configurable {
         details.setRecommendedArtists(recommendedArtists)
         details.setCollaborations(collaborations);
         */
-       
+        
         return details;
     }
     
@@ -354,7 +355,7 @@ public class DataManager implements Configurable {
      * @param maxResults  the maximum results to return
      * @return search results
      */
-    public SearchResults tagSearch(String searchString, int maxResults) {
+    public SearchResults tagSearch(String searchString, int maxResults) {        
         return null;
         //@todo fix this
         /*
@@ -397,6 +398,7 @@ public class DataManager implements Configurable {
     public SearchResults artistSearchByTag(String searchString, int maxResults) 
             throws AuraException, RemoteException {
         logger.info("DataManager::artistSearchByTag TODOOO!: "+searchString);
+        
         return null;
 
     }
@@ -404,6 +406,7 @@ public class DataManager implements Configurable {
     public TagDetails getTagDetails(String id, boolean refresh) {
         TagDetails details = null;
 
+         /*
         if (refresh) {
             details = fetchTagDetails(id);
             if (details != null) {
@@ -415,21 +418,17 @@ public class DataManager implements Configurable {
         } else {
             details = (TagDetails) cache.sget(id);
             if (details == null) {
-                details = (TagDetails) loadDetailsFromFile(id);
+                details = fetchTagDetails(id);
                 if (details != null) {
-                    cache.sput(id, details);
-                } else {
-                    details = fetchTagDetails(id);
-                    if (details != null) {
-                        synchronized (cache) {
-                            cache.sput(id, details);
-                            //saveDetailsToFile(details);
-                        }
+                    synchronized (cache) {
+                        cache.sput(id, details);
+                    //saveDetailsToFile(details);
                     }
                 }
             }
         }
-        return details;
+          * */
+          return null;
     }
 
 
@@ -491,76 +490,6 @@ public class DataManager implements Configurable {
         */
     }
 
-    /**
-     * @deprecated
-     * @param id
-     * @return
-     */
-    private Details loadDetailsFromFile(String id) {
-        return null;
-        /*
-        Details details = null;
-        File file = getXmlFile(id);
-        if (file.exists() && !expired(file)) {
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
-                details = (Details) xstream.fromXML(reader);
-                reader.close();
-                details.fixup();
-            } catch (IOException ioe) {
-                System.err.println("trouble reading " + file);
-            } catch (BaseException e) {
-                System.err.println("trouble reading xml" + file);
-            }
-        }
-        return details;
-        */
-    }
-
-    /**
-     * Checks to see if a file is older than
-     * the expired time
-     */
-/*
-    boolean expired(File file) {
-        if (getExpiredTimeInDays() == 0) {
-            return false;
-        } else {
-            long staleTime = System.currentTimeMillis() -
-                    getExpiredTimeInDays() * 24 * 60 * 60 * 1000L;
-            return (file.lastModified() < staleTime);
-        }
-    }
-
-    private void saveDetailsToFile(Details details) {
-        File file = getXmlFile(details.getId());
-        // System.out.println("Saving to " + file);
-        try {
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
-            xstream.toXML(details, writer);
-            writer.close();
-        } catch (IOException ioe) {
-            System.err.println("can't save details to " + file);
-        }
-    }
-
-    private File getXmlFile(String id) {
-        // there will likely be tens of thousands of these
-        // xml files, we don't want to overwhelm a diretory, so
-        // lets spread them out over 256 directories.'
-        id = id + ".xml";
-        String dir = id.substring(0, 2).toLowerCase();
-        File fullPath = new File(dbPath, dir);
-        if (!fullPath.exists()) {
-            fullPath.mkdirs();
-        }
-        return new File(fullPath, id);
-    }
-
-    private File getTreeFile() {
-        return new File(dbPath, "TreeData.xml");
-    }
-*/
     private TagDetails fetchTagDetails(final String id) {
         final TagDetails tagDetails = new TagDetails();
         final Tag tag = new Tag(); //@todo fix this mdb.getTag(id);
@@ -646,7 +575,7 @@ public class DataManager implements Configurable {
 
     private ArtistDetails fetchArtistDetails(String id) throws AuraException, RemoteException {
         final ArtistDetails artistDetails = new ArtistDetails();
-        Artist artist = (Artist)datastore.getItem(id);
+        Artist artist = new Artist(datastore.getItem(id));
         artistDetails.setId(id);
 
         if (artist == null) {

@@ -72,15 +72,17 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         icon = new Image();
         icon.setVisible(false);
-        icon.setStyleName("icon");
+        icon.setStyleName("img");
         
         HorizontalPanel msgPanel = new HorizontalPanel();
         msgPanel.setWidth("100%");
         msgPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
         msgPanel.add(icon);
         msgPanel.add(message);
-        msgPanel.setCellWidth(icon, "32px");
+        msgPanel.setCellWidth(icon, "50%");
         msgPanel.setCellHorizontalAlignment(icon, HorizontalPanel.ALIGN_RIGHT);
+        msgPanel.setCellWidth(message, "50%");
+        msgPanel.setCellHorizontalAlignment(message, HorizontalPanel.ALIGN_LEFT);
         
         VerticalPanel topPanel = new VerticalPanel();
         topPanel.setWidth("100%");
@@ -97,11 +99,27 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         return mainPanel;
     }
 
-    private void showMessage(String msg) {
+    /**
+     * Display a message with possibly an icon
+     * @param msg Message to display
+     * @param iconPath URL to icon. Set to null to not use and icon
+     */
+    private void showMessage(String msg, String iconPath) {
+        
+        if (iconPath!=null && !iconPath.equals("")) {
+            icon.setUrl(iconPath);
+            icon.setVisible(true);
+        }
+        else {
+            icon.setVisible(false);
+        }
+        
         message.setStyleName("messageNormal");
         message.setText(msg);
-        icon.setUrl(SimpleSearchWidget.ICON_WAIT);
-        icon.setVisible(true);
+    }
+    
+    private void showMessage(String msg) {
+        showMessage(msg,null);
     }
 
     private void showError(String msg) {
@@ -123,14 +141,13 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private String curToken = null;
 
     private void setResults(String historyName, Widget result) {
-        //Window.alert("setResults with history name "+historyName);
         if (curResult == result) {
             return;
         }
 
         if (!History.getToken().equals(historyName)) {
             History.newItem(historyName);
-            curToken = History.getToken();
+            curToken = historyName; //History.getToken();
         }
         if (curResult != null) {
             mainPanel.remove(curResult);
@@ -147,8 +164,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     }
 
     private void showResults(String resultName) {
-        //Window.alert("showResults '" + resultName +"'");
-        
+
         //  resultName = URL.decodeComponent(resultName);
         if (resultName.startsWith("artist:")) {
             invokeGetArtistInfo(resultName, false);
@@ -177,10 +193,9 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         historyToken = decodeHistoryToken(historyToken);
         //debug("history decoded token is '" + historyToken + "'");
         
-        //@todo fix this
-        //if (!historyToken.equals(curToken)) {
-            //showResults(historyToken);
-        //}
+        if (!historyToken.equals(curToken)) {
+            showResults(historyToken);
+        }
     }
 
     // On Firefox, the history tokens are already decoded, but this is not
@@ -241,7 +256,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         };
 
-        showMessage("Searching for " + searchText);
+        showMessage("Searching for " + searchText,ICON_WAIT);
 
         // (4) Make the call. Control flow will continue immediately and later
         // 'callback' will be invoked when the RPC completes.
@@ -254,7 +269,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
-                //Window.alert("entering on success");
                 // do some UI stuff to show success
                 SearchResults sr = (SearchResults) result;
                 if (sr != null && sr.isOK()) {
@@ -288,7 +302,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         };
 
-        showMessage("Searching for " + searchText);
+        showMessage("Searching for " + searchText,ICON_WAIT);
         try {
             if (byTag) {
                 musicServer.artistSearchByTag(searchText, 100, callback);

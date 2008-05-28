@@ -60,7 +60,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
            
     }
 
-    
     public SearchResults artistSearchByTag(String searchString, int maxResults) 
             throws Exception {
         logger.info("MusicSearchInterfaceImpl::artistSearchByTag: "+searchString);
