@@ -20,7 +20,8 @@ public interface Item extends Serializable {
         PHOTO,
         VIDEO,
         EVENT,
-        VENUE
+        VENUE,
+        ARTIST_TAG
     }
 
     /**
