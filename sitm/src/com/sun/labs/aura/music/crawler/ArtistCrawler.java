@@ -65,6 +65,7 @@ public class ArtistCrawler implements AuraService, Configurable {
     private Upcoming upcoming;
     private PriorityQueue<QueuedArtist> artistQueue;
     private Logger logger;
+    private Util util;
     private final static String CRAWLER_STATE_FILE = "crawler.state";
     private final static int FLUSH_COUNT = 10;
     private boolean running = false;
@@ -106,6 +107,7 @@ public class ArtistCrawler implements AuraService, Configurable {
             artistQueue = new PriorityQueue(1000, QueuedArtist.PRIORITY_ORDER);
             dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
             stateDir = ps.getString(PROP_STATE_DIR);
+            util = new Util(dataStore, flickr, youtube);
             createStateFileDirectory();
             loadState();
         } catch (IOException ioe) {
@@ -396,28 +398,15 @@ public class ArtistCrawler implements AuraService, Configurable {
     }
 
     private void addYoutubeVideos(Artist artist) throws AuraException, RemoteException, IOException {
-        List<YoutubeVideo> videos = youtube.musicSearch(artist.getName(), 24);
-        for (YoutubeVideo video : videos) {
-            Item item = StoreFactory.newItem(ItemType.VIDEO, video.getURL().toExternalForm(), video.getTitle());
-            Video itemVideo = new Video(item);
-            itemVideo.setUrl(video.getURL().toExternalForm());
-            itemVideo.setThumbnailUrl(video.getThumbnail().toExternalForm());
-            itemVideo.flush(dataStore);
-            artist.addVideo(itemVideo.getKey());
+        List<Video> videos = util.collectYoutubeVideos(artist.getName(), 24);
+        for (Video video : videos) {
+            artist.addVideo(video.getKey());
         }
     }
 
     private void addFlickrPhotos(Artist artist) throws AuraException, RemoteException, IOException {
-        Image[] images = flickr.getPhotosForArtist(artist.getName(), 24);
-        for (Image image : images) {
-            Item item = StoreFactory.newItem(ItemType.PHOTO, image.getImageURL(), image.getTitle());
-            Photo photo = new Photo(item);
-            photo.setCreatorRealName(image.getCreatorRealName());
-            photo.setCreatorUserName(image.getCreatorUserName());
-            photo.setImgUrl(image.getImageURL());
-            photo.setThumbnailUrl(image.getThumbNailImageUrl());
-            photo.setSmallImgUrl(image.getSmallImageUrl());
-            photo.flush(dataStore);
+        List<Photo> photos = util.collectFlickrPhotos(artist.getName(), 24);
+        for (Photo photo : photos) {
             artist.addPhoto(photo.getKey());
         }
     }

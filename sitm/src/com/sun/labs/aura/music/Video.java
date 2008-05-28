@@ -61,15 +61,6 @@ public class Video extends ItemAdapter {
      * @return the url
      */
     public String getUrl() {
-        return getFieldAsString(FIELD_URL, "");
+        return getKey();
     }
-
-    /**
-     * Sets the url of the video
-     * @param url of the video
-     */
-    public void setUrl(String url) {
-        setField(FIELD_URL, url);
-    }
-    
 }
