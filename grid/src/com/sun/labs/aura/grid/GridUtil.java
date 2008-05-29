@@ -74,11 +74,11 @@ public class GridUtil {
                 try {
                     reg.start(true);
                 } catch(Exception e) {
-                    System.out.println("Registration start failed " + e.
+                    log.severe("Registration start failed " + e.
                             getMessage());
                 }
 
-                System.out.println("Registration " + reg.getName() + " started");
+                log.fine("Registration " + reg.getName() + " started");
             }
         };
         starter.start();
@@ -100,10 +100,10 @@ public class GridUtil {
     public static ProcessRegistration stopProcess(Grid grid, String name) throws Exception {
         ProcessRegistration reg = grid.getProcessRegistration(name);
         if(reg != null) {
-            System.out.println("Stopping: " + reg);
+            log.fine("Stopping: " + reg);
             reg.shutdownGently(true, 1000);
         } else {
-            System.out.println("No registration for " + name + " to stop");
+            log.fine("No registration for " + name + " to stop");
         }
         return reg;
     }
@@ -267,13 +267,13 @@ public class GridUtil {
         try {
             internalAddress =
                     network.allocateAddress("addr-" + hostName);
-            System.out.println("Allocated internal address " + internalAddress.
+            log.fine("Allocated internal address " + internalAddress.
                     getAddress());
         } catch(DuplicateNameException e) {
             internalAddress = network.getAddress("addr-" + hostName);
-            System.out.println("Reusing address " + internalAddress.getAddress());
+            log.finer("Reusing address " + internalAddress.getAddress());
         } catch(NetworkAddressAllocationException e) {
-            System.err.println(e.getMessage());
+            log.severe("Error allocating address: " + e.getMessage());
             throw e;
         }
 
@@ -288,13 +288,13 @@ public class GridUtil {
         try {
             externalAddress =
                     grid.allocateExternalAddress(name + "-ext");
-            System.out.println("Allocated external address " +
+            log.fine("Allocated external address " +
                     externalAddress.getAddress());
         } catch(DuplicateNameException e) {
-            System.out.println("External address exists, reusing");
+            log.finer("External address exists, reusing");
             externalAddress = grid.getExternalAddress(name + "-ext");
         } catch(NetworkAddressAllocationException e) {
-            System.err.println(e.getMessage());
+            log.severe("Error allocating external address: " + e.getMessage());
             System.exit(2);
         }
         bindHostName(grid.getExternalHostNameZone(), externalAddress, name);
@@ -316,12 +316,12 @@ public class GridUtil {
                     hnZone.createBinding(hnbConf.getHostName(), hnbConf);
         } catch(DuplicateNameException dne) {
             binding = hnZone.getBinding(hostName);
-            System.out.println("Host name \"" + hostName +
+            log.finer("Host name \"" + hostName +
                     "\" has already been defined as " +
                     binding.getConfiguration().getAddresses().toArray()[0]);
         } catch(ConflictingHostNameException chne) {
             binding = hnZone.getBinding(hostName);
-            System.out.println("Host name \"" + hostName +
+            log.finer("Host name \"" + hostName +
                     "\" has already been defined as " +
                     binding.getConfiguration().getAddresses().toArray()[0]);
         }

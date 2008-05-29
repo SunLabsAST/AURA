@@ -15,5 +15,6 @@
         <propertylist name="serviceComponents">
             <item>startAura</item>
         </propertylist>
+        <property name="blockForShutdown" value="false"/>
     </component>
 </config>
