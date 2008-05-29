@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!--
+    Document   : startAura.xml
+    Created on : May 20, 2008, 10:25 AM
+    Author     : stgreen
+    Description:
+        Configuration for the AuraStart grid script.
+-->
+<config>
+    
+    <component name="startAura" type="com.sun.labs.aura.grid.StartAura"/>
+    
+    <component name="stopAura" type="com.sun.labs.aura.grid.StopAura"/>
+    
+    <component name="startAura" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>startAura</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+    
+    <component name="stopAura" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>stopAura</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+</config>
