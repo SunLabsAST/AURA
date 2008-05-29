@@ -22,6 +22,7 @@ import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
 import com.google.gwt.user.client.ui.Label;
@@ -48,7 +49,10 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private boolean debug;
     private SearchWidget search;
     private MusicSearchInterfaceAsync musicServer;
-
+    private Image icon;
+    
+    private static final String ICON_WAIT = "ajax-loader.gif";
+    
     public SimpleSearchWidget() {
         super("Simple Search");
         initRPC();
@@ -62,16 +66,30 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         search = new SearchWidget();
         message = new Label();
-        message.setWidth("100%");
+        //message.setWidth("100%");
         message.setHeight("20px");
         message.setStyleName("message");
 
+        icon = new Image();
+        icon.setVisible(false);
+        icon.setStyleName("img");
+        
+        HorizontalPanel msgPanel = new HorizontalPanel();
+        msgPanel.setWidth("100%");
+        msgPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
+        msgPanel.add(icon);
+        msgPanel.add(message);
+        msgPanel.setCellWidth(icon, "50%");
+        msgPanel.setCellHorizontalAlignment(icon, HorizontalPanel.ALIGN_RIGHT);
+        msgPanel.setCellWidth(message, "50%");
+        msgPanel.setCellHorizontalAlignment(message, HorizontalPanel.ALIGN_LEFT);
+        
         VerticalPanel topPanel = new VerticalPanel();
         topPanel.setWidth("100%");
         topPanel.setHorizontalAlignment(VerticalPanel.ALIGN_CENTER);
-
+        
         topPanel.add(search);
-        topPanel.add(message);
+        topPanel.add(msgPanel);
 
         mainPanel = new DockPanel();
         mainPanel.setWidth("100%");
@@ -81,9 +99,27 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         return mainPanel;
     }
 
-    private void showMessage(String msg) {
+    /**
+     * Display a message with possibly an icon
+     * @param msg Message to display
+     * @param iconPath URL to icon. Set to null to not use and icon
+     */
+    private void showMessage(String msg, String iconPath) {
+        
+        if (iconPath!=null && !iconPath.equals("")) {
+            icon.setUrl(iconPath);
+            icon.setVisible(true);
+        }
+        else {
+            icon.setVisible(false);
+        }
+        
         message.setStyleName("messageNormal");
         message.setText(msg);
+    }
+    
+    private void showMessage(String msg) {
+        showMessage(msg,null);
     }
 
     private void showError(String msg) {
@@ -94,6 +130,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private void clearMessage() {
         message.setStyleName("messageNormal");
         message.setText("");
+        icon.setVisible(false);
     }
 
     private void debugMessage(String msg) {
@@ -104,14 +141,13 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private String curToken = null;
 
     private void setResults(String historyName, Widget result) {
-
         if (curResult == result) {
             return;
         }
 
         if (!History.getToken().equals(historyName)) {
             History.newItem(historyName);
-            curToken = History.getToken();
+            curToken = historyName; //History.getToken();
         }
         if (curResult != null) {
             mainPanel.remove(curResult);
@@ -128,7 +164,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     }
 
     private void showResults(String resultName) {
-        //Window.alert("showResults '" + resultName +"'");
+
         //  resultName = URL.decodeComponent(resultName);
         if (resultName.startsWith("artist:")) {
             invokeGetArtistInfo(resultName, false);
@@ -156,7 +192,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         //debug("history changed token is '" + historyToken + "'");
         historyToken = decodeHistoryToken(historyToken);
         //debug("history decoded token is '" + historyToken + "'");
-
+        
         if (!historyToken.equals(curToken)) {
             showResults(historyToken);
         }
@@ -220,7 +256,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         };
 
-        showMessage("Searching for " + searchText);
+        showMessage("Searching for " + searchText,ICON_WAIT);
 
         // (4) Make the call. Control flow will continue immediately and later
         // 'callback' will be invoked when the RPC completes.
@@ -266,7 +302,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         };
 
-        showMessage("Searching for " + searchText);
+        showMessage("Searching for " + searchText,ICON_WAIT);
         try {
             if (byTag) {
                 musicServer.artistSearchByTag(searchText, 100, callback);
@@ -275,7 +311,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
-            
         }
 
     }
@@ -386,7 +421,12 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         };
 
         showMessage("Getting common tags");
-        musicServer.getCommonTags(artistID1, artistID2, 30, callback);
+        try {
+            musicServer.getCommonTags(artistID1, artistID2, 30, callback);
+        } catch (Exception ex) {
+            Window.alert(ex.getMessage());
+        }
+      
     }
 
     private Widget createArtistPanel(String title, ArtistDetails artistDetails) {
@@ -600,7 +640,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private Widget getAlbumsWidget(ArtistDetails artistDetails) {
         Panel panel = new FlowPanel();
         for (int i = 0; i < artistDetails.getAlbums().length; i++) {
-            Album album = artistDetails.getAlbums()[i];
+            AlbumDetails album = artistDetails.getAlbums()[i];
             Image image = new Image(album.getAlbumArt());
             image.addClickListener(new LinkClickListener(album.getAmazonLink()));
             image.setStyleName("albumArt");
@@ -670,9 +710,19 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         panel.add(widget);
         return panel;
     }
-
+    
+    /**
+     * Creates a link
+     * @param text link description
+     * @param url link url
+     * @return html formated link
+     */
     String createAnchor(String text, String url) {
-        return "<a href=\"" + url + "\" target=\"window1\">" + text + "</a>";
+//        if (url!=null && url.compareTo(null)!=0 && url.compareTo("null")!=0 && url.compareTo("http://upcoming.org/venue/null/")!=0) {
+            return "<a href=\"" + url + "\" target=\"window1\">" + text + "</a>";
+  //      } else {
+    //        return text;
+    //    }
     }
 
     String createAnchoredImage(String imageURL, String url, String style) {
@@ -689,7 +739,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         if (photos.length > 0) {
             imgHtml = photos[0].getHtmlWrapper();
         } else if (ad.getAlbums().length > 0) {
-            Album album = ad.getAlbums()[0];
+            AlbumDetails album = ad.getAlbums()[0];
             imgHtml = createAnchoredImage(album.getAlbumArt(), album.getAmazonLink(), "margin-right: 10px; margin-bottom: 10px");
         }
         return imgHtml;

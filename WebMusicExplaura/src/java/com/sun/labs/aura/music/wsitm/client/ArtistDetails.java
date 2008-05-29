@@ -21,7 +21,7 @@ public class ArtistDetails implements IsSerializable, Details {
     private final static ItemInfo[] EMPTY_ITEM_INFO = new ItemInfo[0];
     private final static ArtistVideo[] EMPTY_ARTIST_VIDEO = new ArtistVideo[0];
     private final static ArtistPhoto[] EMPTY_ARTIST_PHOTO = new ArtistPhoto[0];
-    private final static Album[] EMPTY_ALBUM = new Album[0];
+    private final static AlbumDetails[] EMPTY_ALBUM = new AlbumDetails[0];
     private final static ArtistEvent[] EMPTY_EVENT = new ArtistEvent[0];
     
     private String status;
@@ -45,7 +45,7 @@ public class ArtistDetails implements IsSerializable, Details {
     private ItemInfo[] collaborations = EMPTY_ITEM_INFO;
     private ArtistVideo[] videos = EMPTY_ARTIST_VIDEO;
     private ArtistPhoto[] photos  = EMPTY_ARTIST_PHOTO;
-    private Album[] albums = EMPTY_ALBUM;
+    private AlbumDetails[] albums = EMPTY_ALBUM;
     private ArtistEvent[] events = EMPTY_EVENT;
   
         
@@ -172,11 +172,11 @@ public class ArtistDetails implements IsSerializable, Details {
         this.setPhotos(photos);
     }
 
-    public Album[] getAlbums() {
+    public AlbumDetails[] getAlbums() {
         return albums;
     }
 
-    public void setAlbums(Album[] albums) {
+    public void setAlbums(AlbumDetails[] albums) {
         this.albums = albums;
     }
 

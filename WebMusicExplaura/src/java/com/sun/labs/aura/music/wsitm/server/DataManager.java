@@ -8,11 +8,15 @@
  */
 package com.sun.labs.aura.music.wsitm.server;
 
-import java.net.URL;
+import java.io.UnsupportedEncodingException;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.music.Album;
 import com.sun.labs.aura.music.Artist;
+import com.sun.labs.aura.music.Event;
+import com.sun.labs.aura.music.Photo;
+import com.sun.labs.aura.music.Video;
 import com.sun.labs.util.props.ConfigurationManager;
 
 import com.sun.labs.aura.music.web.flickr.FlickrManager;
@@ -21,9 +25,7 @@ import com.sun.labs.aura.music.web.musicbrainz.MusicBrainz;
 import com.sun.labs.aura.music.web.musicbrainz.MusicBrainzAlbumInfo;
 import com.sun.labs.aura.music.web.musicbrainz.MusicBrainzArtistInfo;
 import com.sun.labs.aura.music.web.spotify.Spotify;
-//import com.sun.labs.aura.music.web.upcoming.Event;
 import com.sun.labs.aura.music.web.upcoming.Upcoming;
-//import com.sun.labs.aura.music.web.youtube.Video;
 import com.sun.labs.aura.music.web.upcoming.UpcomingEvent;
 import com.sun.labs.aura.music.web.youtube.Youtube;
 import com.sun.labs.aura.music.web.wikipedia.WikiInfo;
@@ -31,7 +33,7 @@ import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
 import com.sun.labs.aura.music.web.yahoo.SearchResult;
 import com.sun.labs.aura.music.web.yahoo.Yahoo;
 import com.sun.labs.aura.music.web.youtube.YoutubeVideo;
-import com.sun.labs.aura.music.wsitm.client.Album;
+import com.sun.labs.aura.music.wsitm.client.AlbumDetails;
 import com.sun.labs.aura.music.wsitm.client.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.ArtistEvent;
 import com.sun.labs.aura.music.wsitm.client.ArtistPhoto;
@@ -49,17 +51,7 @@ import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.core.BaseException;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
@@ -88,6 +80,7 @@ public class DataManager implements Configurable {
     private static final String CACHE_SIZE ="cacheSize";
     
     private static final int DEFAULT_CACHE_SIZE=250;
+    private static final int NUMBER_TAGS_TO_SHOW=15;
     
     private Logger logger = Logger.getLogger("");
     
@@ -141,7 +134,7 @@ public class DataManager implements Configurable {
         xstream.alias("ArtistDetails", ArtistDetails.class);
         xstream.alias("ArtistVideo", ArtistVideo.class);
         xstream.alias("ItemInfo", ItemInfo.class);
-        xstream.alias("Album", Album.class);
+        xstream.alias("Album", AlbumDetails.class);
         xstream.alias("ArtistPhoto", ArtistPhoto.class);
         xstream.alias("ArtistEvent", ArtistEvent.class);
         xstream.alias("TagTree", TagTree.class);
@@ -164,29 +157,11 @@ public class DataManager implements Configurable {
         return getArtistDetails(id, refresh, true);
     }
 
-    public ItemInfo[] getCommonTags(String id1, String id2, int num) {
-        try {
-            Artist artist = (Artist) datastore.getItem(id1);
-        } catch (AuraException ex) {
-            Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (RemoteException ex) {
-            Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
-        //@todo fix this
-        /*
-        List<Scored<Tag>> tags = artist.getCommonTags(id2, num);
-
-        ItemInfo[] ii = new ItemInfo[tags.size()];
-        int which = 0;
-        for (Scored<Tag> s : tags) {
-            Tag tag = s.getItem();
-            //@todo getName instead of getID ok??
-            //@todo getCount instead of getPopularity ok??
-            ii[which++] = new ItemInfo(tag.getName(), tag.getName(), s.getScore(), tag.getFreq());
-        }
-        return ii;
-         * */
+    public ItemInfo[] getCommonTags(String id1, String id2, int num) 
+            throws AuraException, RemoteException {
+        List<Scored<String>> simList = datastore.explainSimilarity(id1, id2, 
+                Artist.FIELD_SOCIAL_TAGS, num);
+        return scroredStringToItemInfo(simList);
     }
 
     private ArtistDetails getArtistDetails(String id, boolean refresh, 
@@ -233,14 +208,145 @@ public class DataManager implements Configurable {
     }
 
     /**
-     * Fetches an artist's details from the datastores
+     * Fetches an artist's details from the datastore
      * @param id the artist's id
      * @return the artist's details or null if the details are not in the datastore
      */
-    private Details loadDetailsFromStore(String id) {
-        //@todo do it!!
+    private ArtistDetails loadDetailsFromStore(String id) throws AuraException, 
+            RemoteException {
         
-        return null;
+        ArtistDetails details = new ArtistDetails();
+        Artist a = new Artist(datastore.getItem(id));
+        if (a==null) {
+            return null;
+        }
+        
+        details.setName(a.getName());
+        details.setBeginYear(a.getBeginYear());
+        details.setEndYear(a.getEndYear());
+        details.setBiographySummary(a.getBioSummary());
+        details.setId(id);
+        details.setPopularity(a.getPopularity());
+        details.setUrls(a.getUrls());
+        
+        try {
+            details.setEncodedName(URLEncoder.encode(a.getName(), "UTF-8"));
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        // Fetch photos
+        Set<String> photoSet = a.getPhotos();
+        ArtistPhoto[] artistPhotoArray = new ArtistPhoto[photoSet.size()];
+        int index=0;
+        for (String p : photoSet) {
+            Photo dataStorePhoto = new Photo(datastore.getItem(p));
+            artistPhotoArray[index] = new ArtistPhoto();
+            artistPhotoArray[index].setCreatorRealName(dataStorePhoto.getCreatorRealName());
+            artistPhotoArray[index].setCreatorUserName(dataStorePhoto.getCreatorUserName());
+            artistPhotoArray[index].setId(p);
+            artistPhotoArray[index].setImageURL(dataStorePhoto.getImgUrl());
+            artistPhotoArray[index].setSmallImageUrl(dataStorePhoto.getSmallImgUrl());
+            artistPhotoArray[index].setThumbNailImageUrl(dataStorePhoto.getThumbnailUrl());
+            artistPhotoArray[index].setTitle(dataStorePhoto.getTitle());
+            index++;
+        }
+        details.setPhotos(artistPhotoArray);
+        
+        // Fetch videos
+        Set<String> videoSet = a.getVideos();
+        ArtistVideo[] artistVideoArray = new ArtistVideo[videoSet.size()];
+        index=0;
+        for (String v : videoSet) {
+            Video dataStoreVideo = new Video(datastore.getItem(v));
+            artistVideoArray[index] = new ArtistVideo();
+            artistVideoArray[index].setThumbnail(dataStoreVideo.getThumbnailUrl());
+            artistVideoArray[index].setTitle(dataStoreVideo.getName());
+            artistVideoArray[index].setUrl(dataStoreVideo.getUrl());
+            index++;
+        }
+        details.setVideos(artistVideoArray);
+        
+        // Fetch similar artists
+        ItemInfo[] simArtists = scoreArtistsToItemInfo(datastore.findSimilar(id, 
+                Artist.FIELD_SOCIAL_TAGS, 10, new TypeFilter(ItemType.ARTIST)));
+        details.setSimilarArtists(simArtists);
+        
+        // Fetch albums
+        Set<String> albumSet = a.getAlbums();
+        AlbumDetails[] albumDetailsArray = new AlbumDetails[albumSet.size()];
+        index=0;
+        for (String ad : albumSet) {
+            Album storeAlbum = new Album(datastore.getItem(ad));
+            albumDetailsArray[index] = new AlbumDetails();
+            albumDetailsArray[index].setAsin(storeAlbum.getAsin());
+            albumDetailsArray[index].setId(storeAlbum.getKey());
+            albumDetailsArray[index].setTitle(storeAlbum.getTitle());
+            index++;
+        }
+        details.setAlbums(albumDetailsArray);
+        
+        // Fetch upcoming events
+        Set<String> eventsSet = a.getEvents();
+        ArtistEvent[] eventsArray = new ArtistEvent[eventsSet.size()];
+        index=0;
+        for (String e : eventsSet) {
+            Event storeEvent = new Event(datastore.getItem(e));
+            eventsArray[index] = new ArtistEvent();
+            eventsArray[index].setDate(storeEvent.getDate());
+            eventsArray[index].setEventID(storeEvent.getKey());
+            eventsArray[index].setName(storeEvent.getName());
+            eventsArray[index].setVenue(storeEvent.getVenueName());
+            index++;
+        }
+        details.setEvents(eventsArray);
+        
+        // Fetch collaborations
+        Set<String> collSet = a.getCollaborations();
+        ItemInfo[] artistColl = new ItemInfo[collSet.size()];
+        Artist tempA;
+        index=0;
+        for (String aID : collSet) {
+            tempA = new Artist(datastore.getItem(aID));
+            artistColl[index] = new ItemInfo(aID, tempA.getName(), 
+                    tempA.getPopularity(), tempA.getPopularity());
+        }
+        details.setCollaborations(artistColl);
+        
+        // Fetch and sort frequent tags
+        List<Tag> tagList = a.getSocialTags();
+        List<Scored<Tag>> scoredTags = new ArrayList<Scored<Tag>>();
+        
+        for (Tag t : tagList) {
+            scoredTags.add(new Scored(t,t.getCount()));
+        }
+        sortByTagPopularity(scoredTags);
+        
+        ItemInfo[] freqTags = new ItemInfo[NUMBER_TAGS_TO_SHOW];
+        index=0;
+        for (Scored<Tag> sT : scoredTags.subList(0, NUMBER_TAGS_TO_SHOW)) {
+            freqTags[index] = new ItemInfo(sT.getItem().getName(),
+                    sT.getItem().getName(),sT.getItem().getCount(),
+                    sT.getItem().getCount());
+            index++;
+        }
+        details.setFrequentTags(freqTags);
+        
+        // Fetch list of distinctive tags
+        List<Scored<String>> topTags = datastore.getTopTerms(a.getKey(), 
+                Artist.FIELD_SOCIAL_TAGS, NUMBER_TAGS_TO_SHOW);
+        details.setDistinctiveTags(scroredStringToItemInfo(topTags));
+        
+        //details.setMusicURL(id);
+        //details.setImageURL((String) a.getPhotos().toArray()[0]);
+        
+        /*
+        details.setUrls(cache)
+        details.setRecommendedArtists(recommendedArtists)
+        details.setCollaborations(collaborations);
+        */
+        
+        return details;
     }
     
     /**
@@ -249,7 +355,7 @@ public class DataManager implements Configurable {
      * @param maxResults  the maximum results to return
      * @return search results
      */
-    public SearchResults tagSearch(String searchString, int maxResults) {
+    public SearchResults tagSearch(String searchString, int maxResults) {        
         return null;
         //@todo fix this
         /*
@@ -283,21 +389,7 @@ public class DataManager implements Configurable {
         logger.info("DataManager::artistSearch: "+searchString);
         
         String query = "(aura-type = artist) <AND> (aura-name <matches> \"*" + searchString + "*\")";
-        List<Scored<Item>> scoredArtists = datastore.query(query, "-score", maxResults, null);
-
-        //List<Scored<Artist>> scoredArtists = mdb.artistSearchByTag(searchString, maxResults);
-        //sortByArtistPopularity(scoredArtists);
-        ItemInfo[] artistResults = new ItemInfo[scoredArtists.size()];
-
-        for (int i = 0; i < artistResults.length; i++) {
-            //datastore.getItem(scoredArtists.get(i))
-            //Artist artist = (Artist) scoredArtists.get(i).getItem();
-            Item artist = scoredArtists.get(i).getItem();
-            //double score = scoredArtists.get(i).getScore();
-            //double popularity = artist.getPopularity();
-            //artistResults[i] = new ItemInfo(artist.getKey(), artist.getName(), score, popularity);
-            artistResults[i] = new ItemInfo(artist.getKey(), artist.getName(), 1, 1);
-        }
+        ItemInfo[] artistResults = scoreArtistsToItemInfo(datastore.query(query, "-score", maxResults, null));
 
         SearchResults sr = new SearchResults(searchString, SearchResults.SEARCH_FOR_ARTIST_BY_TAG, artistResults);
         return sr;
@@ -306,6 +398,7 @@ public class DataManager implements Configurable {
     public SearchResults artistSearchByTag(String searchString, int maxResults) 
             throws AuraException, RemoteException {
         logger.info("DataManager::artistSearchByTag TODOOO!: "+searchString);
+        
         return null;
 
     }
@@ -313,6 +406,7 @@ public class DataManager implements Configurable {
     public TagDetails getTagDetails(String id, boolean refresh) {
         TagDetails details = null;
 
+         /*
         if (refresh) {
             details = fetchTagDetails(id);
             if (details != null) {
@@ -324,21 +418,17 @@ public class DataManager implements Configurable {
         } else {
             details = (TagDetails) cache.sget(id);
             if (details == null) {
-                details = (TagDetails) loadDetailsFromFile(id);
+                details = fetchTagDetails(id);
                 if (details != null) {
-                    cache.sput(id, details);
-                } else {
-                    details = fetchTagDetails(id);
-                    if (details != null) {
-                        synchronized (cache) {
-                            cache.sput(id, details);
-                            //saveDetailsToFile(details);
-                        }
+                    synchronized (cache) {
+                        cache.sput(id, details);
+                    //saveDetailsToFile(details);
                     }
                 }
             }
         }
-        return details;
+          * */
+          return null;
     }
 
 
@@ -400,76 +490,6 @@ public class DataManager implements Configurable {
         */
     }
 
-    /**
-     * @deprecated
-     * @param id
-     * @return
-     */
-    private Details loadDetailsFromFile(String id) {
-        return null;
-        /*
-        Details details = null;
-        File file = getXmlFile(id);
-        if (file.exists() && !expired(file)) {
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
-                details = (Details) xstream.fromXML(reader);
-                reader.close();
-                details.fixup();
-            } catch (IOException ioe) {
-                System.err.println("trouble reading " + file);
-            } catch (BaseException e) {
-                System.err.println("trouble reading xml" + file);
-            }
-        }
-        return details;
-        */
-    }
-
-    /**
-     * Checks to see if a file is older than
-     * the expired time
-     */
-/*
-    boolean expired(File file) {
-        if (getExpiredTimeInDays() == 0) {
-            return false;
-        } else {
-            long staleTime = System.currentTimeMillis() -
-                    getExpiredTimeInDays() * 24 * 60 * 60 * 1000L;
-            return (file.lastModified() < staleTime);
-        }
-    }
-
-    private void saveDetailsToFile(Details details) {
-        File file = getXmlFile(details.getId());
-        // System.out.println("Saving to " + file);
-        try {
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
-            xstream.toXML(details, writer);
-            writer.close();
-        } catch (IOException ioe) {
-            System.err.println("can't save details to " + file);
-        }
-    }
-
-    private File getXmlFile(String id) {
-        // there will likely be tens of thousands of these
-        // xml files, we don't want to overwhelm a diretory, so
-        // lets spread them out over 256 directories.'
-        id = id + ".xml";
-        String dir = id.substring(0, 2).toLowerCase();
-        File fullPath = new File(dbPath, dir);
-        if (!fullPath.exists()) {
-            fullPath.mkdirs();
-        }
-        return new File(fullPath, id);
-    }
-
-    private File getTreeFile() {
-        return new File(dbPath, "TreeData.xml");
-    }
-*/
     private TagDetails fetchTagDetails(final String id) {
         final TagDetails tagDetails = new TagDetails();
         final Tag tag = new Tag(); //@todo fix this mdb.getTag(id);
@@ -555,7 +575,7 @@ public class DataManager implements Configurable {
 
     private ArtistDetails fetchArtistDetails(String id) throws AuraException, RemoteException {
         final ArtistDetails artistDetails = new ArtistDetails();
-        Artist artist = (Artist)datastore.getItem(id);
+        Artist artist = new Artist(datastore.getItem(id));
         artistDetails.setId(id);
 
         if (artist == null) {
@@ -757,10 +777,10 @@ public class DataManager implements Configurable {
             artistDetails.setBeginYear(mbai.getBeginYear());
             artistDetails.setEndYear(mbai.getEndYear());
             artistDetails.setUrls(mbai.getURLMap());
-            Album[] albums = new Album[mbai.getAlbums().size()];
+            AlbumDetails[] albums = new AlbumDetails[mbai.getAlbums().size()];
             int index = 0;
             for (MusicBrainzAlbumInfo mbAlbum : mbai.getAlbums()) {
-                Album album = new Album();
+                AlbumDetails album = new AlbumDetails();
                 album.setId(mbAlbum.getId());
                 album.setTitle(mbAlbum.getTitle());
                 album.setAsin(mbAlbum.getAsin());
@@ -856,6 +876,41 @@ public class DataManager implements Configurable {
 
     DataStore getDataStore() {
         return datastore;
+    }
+
+    /**
+     * Converts a list of scored artists and returns them in an iteminfo array 
+     * @param scoredArtists scored list of items (that will be cast as artists)
+     * @return
+     */
+    private ItemInfo[] scoreArtistsToItemInfo(List<Scored<Item>> scoredArtists) {
+
+        ItemInfo[] artistResults = new ItemInfo[scoredArtists.size()];
+
+        for (int i = 0; i < artistResults.length; i++) {
+            Artist artist = new Artist(scoredArtists.get(i).getItem());
+            double score = scoredArtists.get(i).getScore();
+            double popularity = artist.getPopularity();
+            artistResults[i] = new ItemInfo(artist.getKey(), artist.getName(), score, popularity);
+        }
+
+        return artistResults;
+    }
+
+    /**
+     * Converts a list of scored string to an itemInfo array
+     * @param strList
+     * @return item info array
+     */
+    private ItemInfo[] scroredStringToItemInfo(List<Scored<String>> strList) {
+        ItemInfo[] tagsArray = new ItemInfo[NUMBER_TAGS_TO_SHOW];
+        int index = 0;
+        for (Scored<String> sS : strList.subList(0, NUMBER_TAGS_TO_SHOW)) {
+            tagsArray[index] = new ItemInfo(sS.getItem(), sS.getItem(), 
+                    sS.getScore(), sS.getScore());
+            index++;
+        }
+        return tagsArray;
     }
 
     class Prefetcher implements Runnable {

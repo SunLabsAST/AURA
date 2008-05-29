@@ -60,7 +60,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
            
     }
 
-    
     public SearchResults artistSearchByTag(String searchString, int maxResults) 
             throws Exception {
         logger.info("MusicSearchInterfaceImpl::artistSearchByTag: "+searchString);
@@ -79,10 +78,8 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getArtistDetails(id, false);
         } catch (Exception e) {
-            logger.severe("MusicSearchInterfaceImpl::getArtistDetails Exception: "+e.getMessage());
-            for (StackTraceElement s : e.getStackTrace())
-                logger.severe(s.toString());
-            //logger.severe(e.getStackTrace().toString());
+            logger.severe("MusicSearchInterfaceImpl::getArtistDetails Exception: "+e.getMessage()+" / "+e.getCause());
+            logger.severe(traceToString(e));
             throw e;
         }
     }
@@ -96,9 +93,16 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         return dm.getTagTree();
     }
     
-    public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num) {
-        //logger.log("anon", "getCommonTags", artistID1);
-        return dm.getCommonTags(artistID1, artistID2, num);
+    public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num) 
+            throws Exception {
+        logger.info("MusicSearchInterfaceImpl::getCommonTags for "+artistID1+" and "+artistID2);
+        try {
+            return dm.getCommonTags(artistID1, artistID2, num);
+        } catch (Exception e) {
+            logger.severe("MusicSearchInterfaceImpl::getCommonTags Exception: "+e.getMessage()+" / "+e.getCause());
+            logger.severe(traceToString(e));
+            throw e;
+        }
     }
 
     public void destroy() {

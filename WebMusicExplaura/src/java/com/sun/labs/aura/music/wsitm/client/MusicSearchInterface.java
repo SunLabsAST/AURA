@@ -22,5 +22,5 @@ public interface MusicSearchInterface extends RemoteService {
     public ArtistDetails getArtistDetails(String id, boolean refresh) throws Exception ;
     public TagDetails getTagDetails(String id, boolean refresh);
     public TagTree getTagTree();
-    public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num) ;
+    public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num) throws Exception;
 }

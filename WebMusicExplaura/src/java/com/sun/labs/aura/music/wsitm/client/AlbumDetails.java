@@ -15,13 +15,13 @@ import com.google.gwt.user.client.rpc.IsSerializable;
  *
  * @author plamere
  */
-public class Album implements IsSerializable {
+public class AlbumDetails implements IsSerializable {
     private String id;
     private String title;
     private String asin;
     
     /** Creates a new instance of Album */
-    public Album() {
+    public AlbumDetails() {
     }
 
     public String getId() {

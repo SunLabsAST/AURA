@@ -13,6 +13,7 @@ import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Artist;
+import com.sun.labs.aura.music.crawler.TagCrawler;
 import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -35,6 +36,7 @@ import java.util.List;
 public class MusicShell implements AuraService, Configurable {
 
     private DataStore dataStore;
+    private TagCrawler tagCrawler;
     private CommandInterpreter shell;
     private StatService statService;
     private ShellUtils sutils;
@@ -194,6 +196,18 @@ public class MusicShell implements AuraService, Configurable {
             }
         });
 
+        shell.add("crawlTags", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                tagCrawler.updateAllArtistTags();
+                return "";
+            }
+
+            public String getHelp() {
+                return "crawls the artists for new tags and adds them to the database";
+            }
+        });
+
 
         Thread t = new Thread() {
 
@@ -239,14 +253,16 @@ public class MusicShell implements AuraService, Configurable {
      */
     public void newProperties(PropertySheet ps) throws PropertyException {
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
-        statService =
-                (StatService) ps.getComponent(PROP_STAT_SERVICE);
+        tagCrawler = (TagCrawler) ps.getComponent(PROP_TAG_CRAWLER);
+        statService = (StatService) ps.getComponent(PROP_STAT_SERVICE);
     }
     /**
      * the configurable property for the itemstore used by this manager
      */
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
+    @ConfigComponent(type = TagCrawler.class)
+    public final static String PROP_TAG_CRAWLER = "tagCrawler";
     @ConfigComponent(type = StatService.class)
     public final static String PROP_STAT_SERVICE = "statService";
 }
