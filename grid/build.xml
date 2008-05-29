@@ -10,6 +10,10 @@
         <ant dir="grid-deploy" antfile="tomcat.xml"/>
     </target>
     
+    <target name="upload-jar" depends="jar">
+        <ant dir="grid-deploy" antfile="create-dist.xml" target="upload-grid" inheritall="false"/>
+    </target>
+
     <target name="upload-dist" depends="jar">
         <ant dir="grid-deploy" antfile="create-dist.xml" inheritall="false"/>
     </target>

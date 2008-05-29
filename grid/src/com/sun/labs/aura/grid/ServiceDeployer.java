@@ -5,10 +5,10 @@ import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.Grid;
 import com.sun.caroline.platform.GridFactory;
 import com.sun.caroline.platform.ProcessConfiguration;
+import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.StorageManagementException;
 import com.sun.labs.minion.util.Getopt;
-import com.sun.labs.minion.util.Util;
 import com.sun.labs.util.SimpleLabsLogFormatter;
 import java.io.BufferedReader;
 import java.io.File;
@@ -87,6 +87,7 @@ public class ServiceDeployer {
                 new File(GridUtil.logFSMntPnt).getName()));
         pc.setFileSystems(mountParams);
         pc.setWorkingDirectory(GridUtil.logFSMntPnt);
+        pc.setProcessExitAction(ProcessExitAction.DESTROY);
 
         ProcessRegistration reg = GridUtil.createProcess(grid, starter, pc);
         GridUtil.startRegistration(reg);
@@ -117,8 +118,8 @@ public class ServiceDeployer {
             if(dotCaroline.exists()) {
                 Properties props = new Properties();
                 props.load(new FileInputStream(dotCaroline));
-                gridURL = new URL(props.getProperty("URL"));
-                user = props.getProperty("user");
+                gridURL = new URL(props.getProperty("gridURL"));
+                user = props.getProperty("customerID");
                 passwd = props.getProperty("password");
                 instance = props.getProperty("instance");
             }

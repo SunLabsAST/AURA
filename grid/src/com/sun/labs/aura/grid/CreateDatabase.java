@@ -78,22 +78,11 @@ public class CreateDatabase implements Configurable, AuraService {
             logger.severe("Error getting internal address for " + dbName + " " + ex);
             return;
         }
+        
         PostgreSQLConfiguration psqlConfig = new PostgreSQLConfiguration(
                 internal.getUUID(),
                 null);
         
-        NetworkAddress external;
-        try {
-
-            external =
-                    GridUtil.getExternalAddressFor(grid, network,
-                    dbName + "DBNat");
-        } catch(Exception ex) {
-            logger.severe("Error getting external address for " + dbName + " " + ex);
-            return;
-        }
-        
-        StaticNatConfiguration dbNat = new StaticNatConfiguration(internal.getUUID(), external.getUUID());
         try {
             grid.createPostgreSQLDatabase(instance + "-" + dbName, psqlConfig);
         } catch(RemoteException ex) {

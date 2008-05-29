@@ -72,6 +72,15 @@
         <dav:mkcol url="${dav.url}/${jini.col}" userid="${user}" password="${pw}"/>            
     </target>
     
+    <target name="upload-grid" description="Uploads grid jar file">
+        <dav:put url="${dav.url}/${dist.col}" userid="${user}" password="${pw}" lock="false">            
+            <!-- Distribution jar -->
+            <fileset dir="../dist">
+                <include name="grid.jar"/>
+            </fileset>
+        </dav:put>    
+    </target>
+    
     <!-- builds the aardvark distribution jar, then uploads the results.-->
     <target name="upload-dist" description="Uploads distribution files" depends="create-dist-collections">
         <ant dir="../../aardvark" antfile="build.xml" target="make-dist-jar-dir"/>

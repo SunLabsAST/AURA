@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!--
+    Document   : musicbrainzConfig.xml
+    Created on : May 27, 2008, 4:29 PM
+    Author     : stgreen
+    Description:
+        A config to create a database for musicbrainz data.
+-->
+<config>
+    
+    <component name="createDB" type="com.sun.labs.aura.grid.CreateDatabase">
+        <property name="dbName" value="musicbrainz"/>
+    </component>
+    
+    <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>createDB</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+</config>
