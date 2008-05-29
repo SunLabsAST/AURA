@@ -7,53 +7,31 @@ package com.sun.labs.aura.grid;
 
 import com.sun.caroline.platform.ConflictingNetworkSettingException;
 import com.sun.caroline.platform.DuplicateNameException;
-import com.sun.caroline.platform.Grid;
-import com.sun.caroline.platform.GridFactory;
 import com.sun.caroline.platform.Network;
 import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.PostgreSQLConfiguration;
-import com.sun.caroline.platform.ProcessContext;
-import com.sun.caroline.platform.StaticNatConfiguration;
-import com.sun.labs.aura.AuraService;
 import com.sun.labs.util.props.ConfigString;
-import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  */
-public class CreateDatabase implements Configurable, AuraService {
+public class CreateDatabase extends ServiceAdapter {
 
-    private Grid grid;
-    
-    private Logger logger; 
-    
-    @ConfigString(defaultValue = "live")
-    public static final String PROP_INSTANCE = "instance";
-
-    private String instance;
-    
     @ConfigString
     public static final String PROP_DB_NAME = "dbName";
     
     private String dbName;
 
+    public String serviceName() {
+        return "CreateDatabase";
+    }
+    
     public void newProperties(PropertySheet ps) throws PropertyException {
-        logger = ps.getLogger();
-        //
-        // Get our grid reference. If we're not on grid, then throw an exception.
-        ProcessContext context = GridFactory.getProcessContext();
-        if(context == null) {
-            throw new PropertyException(ps.getInstanceName(),
-                    PROP_INSTANCE, "Cannot run CreateDatabase off-grid");
-        }
-        grid = context.getGrid();
-        instance = ps.getString(PROP_INSTANCE);
-        dbName = ps.getString(PROP_DB_NAME);
+        super.newProperties(ps);
     }
 
     public void start() {

@@ -33,19 +33,12 @@ import java.util.regex.Pattern;
 /**
  * A base class for Aura setup and teardown.
  */
-public abstract class Aura implements Configurable, AuraService {
-
-    @ConfigString(defaultValue = "live")
-    public static final String PROP_INSTANCE = "instance";
-
-    private String instance;
+public abstract class Aura extends ServiceAdapter {
 
     @ConfigInteger(defaultValue = 4)
     public static final String PROP_N_NODES = "nNodes";
 
     private int nNodes;
-
-    protected Grid grid;
 
     protected String[] prefixCodeList;
 
@@ -57,8 +50,6 @@ public abstract class Aura implements Configurable, AuraService {
     
     private Network network;
 
-    protected Logger logger;
-    
     public void getAuraFilesystems() throws Exception {
 
         GridUtil.getFS(grid, "sys.packages");
@@ -274,20 +265,8 @@ public abstract class Aura implements Configurable, AuraService {
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
+        super.newProperties(ps);
         
-        logger = ps.getLogger();
-
-        //
-        // Get our grid reference. If we're not on grid, then throw an exception.
-        ProcessContext context = GridFactory.getProcessContext();
-        if(context == null) {
-            throw new PropertyException(ps.getInstanceName(),
-                    PROP_INSTANCE, "Cannot run AuraDeploy off-grid");
-        }
-        grid = context.getGrid();
-
-        instance = ps.getString(PROP_INSTANCE);
-
         //
         // Figure out how many nodes are in our data store and create the prefixes.
         nNodes = ps.getInt(PROP_N_NODES);

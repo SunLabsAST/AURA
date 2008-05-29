@@ -18,6 +18,10 @@ public class StartAura extends Aura {
 
     private String replicantConfig;
     
+    public String serviceName() {
+        return "StartAura";
+    }
+    
     /**
      * Assuming a fully built infrastructure, this uses the network and
      * file systems already there to start up the aura processes

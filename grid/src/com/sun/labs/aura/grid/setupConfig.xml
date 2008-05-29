@@ -13,5 +13,6 @@
         <propertylist name="serviceComponents">
             <item>setup</item>
         </propertylist>
+        <property name="blockForShutdown" value="false"/>
     </component>
 </config>

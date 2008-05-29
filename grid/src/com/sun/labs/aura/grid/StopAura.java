@@ -14,6 +14,10 @@ import java.util.logging.Level;
  */
 public class StopAura extends Aura {
 
+    public String serviceName() {
+        return "StopAura";
+    }
+    
     public void start() {
         Queue<ProcessRegistration> q = new LinkedList<ProcessRegistration>();
         try {
