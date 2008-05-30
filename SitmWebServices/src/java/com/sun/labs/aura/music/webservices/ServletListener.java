@@ -5,6 +5,7 @@
 package com.sun.labs.aura.music.webservices;
 
 import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -31,7 +32,7 @@ public class ServletListener implements ServletContextListener {
                 cm.addProperties(config);
                 context.setAttribute("configManager", cm);
                 DataStore dataStore = (DataStore) cm.lookup("dataStoreHead");
-                context.setAttribute("dataStore", dataStore);
+                context.setAttribute("MusicDatabase", new MusicDatabase(dataStore));
                 if (dataStore == null) {
                     logger.severe("Can't connect to datastore");
                 }
