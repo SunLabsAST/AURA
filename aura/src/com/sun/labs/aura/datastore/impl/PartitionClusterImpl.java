@@ -22,6 +22,7 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,6 +65,11 @@ public class PartitionClusterImpl implements PartitionCluster,
         return prefixCode;
     }
 
+    public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
+            Item.FieldType fieldType) throws AuraException, RemoteException {
+        replicant.defineField(itemType, field, caps, fieldType);
+    }
+    
     public List<Item> getAll(ItemType itemType)
             throws AuraException, RemoteException {
         return replicant.getAll(itemType);

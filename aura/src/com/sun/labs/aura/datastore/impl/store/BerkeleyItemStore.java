@@ -36,6 +36,7 @@ import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -210,6 +211,19 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         System.out.println(new Date() + ": Done closing search engine");
     }
 
+    public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
+            Item.FieldType fieldType) throws AuraException, RemoteException {
+        bdb.defineField(itemType, field, caps, fieldType);
+        
+        //
+        // If this field is going to be dealt with by the search engine, then
+        // send it there.
+        if(caps != null && caps.size() > 0) {
+            searchEngine.defineField(itemType, field, caps, fieldType);
+        }
+        
+    }
+    
     /**
      * Get all the instances of a particular type of item from the store
      * 

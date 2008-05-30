@@ -33,6 +33,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -74,6 +75,41 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     public DataStoreHead() {
         trie = new BinaryTrie<PartitionCluster>();
         executor = Executors.newCachedThreadPool();
+    }
+    
+    public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
+            Item.FieldType fieldType) throws AuraException, RemoteException {
+        //
+        // Sanity checks for field capabilities and types.
+        if(caps == null && fieldType != null) {
+            throw new AuraException("Field type provided for field " +
+                    field + " with no capabilities specified");
+        }
+
+        if(caps != null) {
+            if(fieldType != null) {
+                if(caps.size() == 1 && caps.contains(Item.FieldCapability.SIMILARITY)) {
+                    throw new AuraException(
+                            "Field type provided for field " +
+                            field +
+                            " with capabilities specified that do not require a type");
+                    
+                }
+            } else {
+                if(caps.contains(Item.FieldCapability.FILTER) ||
+                        caps.contains(Item.FieldCapability.SEARCH) ||
+                        caps.contains(Item.FieldCapability.SORT)) {
+                    throw new AuraException(
+                            "No field type provided for field " +
+                            field +
+                            " with capabilities specified that require a type");
+                }
+            }
+        }
+        Set<PartitionCluster> clusters = trie.getAll();
+        for(PartitionCluster pc : clusters) {
+            pc.defineField(itemType, field, caps, fieldType);
+        }
     }
     
     public List<Item> getAll(final ItemType itemType)

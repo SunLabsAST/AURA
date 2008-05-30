@@ -2,6 +2,7 @@ package com.sun.labs.aura.datastore.impl.store;
 
 import com.sun.labs.aura.datastore.Indexable;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.minion.CompositeResultsFilter;
@@ -157,6 +158,36 @@ public class ItemSearchEngine implements Configurable {
         return engine;
     }
 
+    public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
+            Item.FieldType fieldType) throws AuraException {
+        EnumSet<FieldInfo.Attribute> attr = EnumSet.noneOf(FieldInfo.Attribute.class);
+        for(Item.FieldCapability fc : caps) {
+            switch(fc) {
+                case FILTER:
+                    attr.add(FieldInfo.Attribute.SAVED);
+                    break;
+                case SEARCH:
+                    attr.add(FieldInfo.Attribute.SAVED);
+                    attr.add(FieldInfo.Attribute.INDEXED);
+                    attr.add(FieldInfo.Attribute.TOKENIZED);
+                    break;
+                case SIMILARITY:
+                    attr.add(FieldInfo.Attribute.VECTORED);
+                    break;
+                case SORT:
+                    attr.add(FieldInfo.Attribute.SAVED);
+                    break;
+            }
+        }
+        
+        FieldInfo.Type type = FieldInfo.Type.valueOf(fieldType.toString());
+        try {
+            engine.defineField(new FieldInfo(field, attr, type));
+        } catch(SearchEngineException ex) {
+            throw new AuraException("Error defining field " + field, ex);
+        }
+    }
+    
     /**
      * Indexes an item.  Note that the data indexed may not be available immediately
      * for searching, depending on the configuration of the indexer.

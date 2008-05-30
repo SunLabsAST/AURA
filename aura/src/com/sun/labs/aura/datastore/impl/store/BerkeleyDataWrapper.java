@@ -27,8 +27,10 @@ import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.StringAndTimeKey;
 import com.sun.labs.aura.util.Times;
 import java.io.File;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -56,6 +58,12 @@ public class BerkeleyDataWrapper {
      * The store inside the environment where all our indexes will live
      */
     protected EntityStore store;
+    
+    /**
+     * The index of all field descriptions in the store, accessible by field
+     * name.
+     */
+    protected PrimaryIndex<String, FieldDescription> fieldByName;
 
     /**
      * The index of all Items in the store, accessible by key
@@ -176,6 +184,9 @@ public class BerkeleyDataWrapper {
         //
         // Load the indexes that we'll use during regular operation
         //itemByID = store.getPrimaryIndex(Long.class, ItemImpl.class);
+        
+        logger.fine("Opening fieldByName");
+        fieldByName = store.getPrimaryIndex(String.class, FieldDescription.class);
 
         //itemByKey = store.getSecondaryIndex(itemByID, String.class, "key");
         logger.fine("Opening itemByKey");
@@ -234,6 +245,52 @@ public class BerkeleyDataWrapper {
         log.info("BDB done loading");
     }
 
+    public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
+            Item.FieldType fieldType) throws AuraException {
+        try {
+            FieldDescription fd =
+                    new FieldDescription(field, caps, fieldType);
+            FieldDescription prev = fieldByName.get(field);
+            if(prev != null) {
+                if(!prev.equals(fd)) {
+                    throw new AuraException("Attempt to redefined field " + field +
+                            " using different capabilities or type prev: " +
+                            prev.getCapabilities() + " " + prev.getType() +
+                            " new: " + fd.getCapabilities() + " " + fd.getType());
+                }
+            } else {
+                int numRetries = 0;
+                while(numRetries < MAX_DEADLOCK_RETRIES) {
+                    Transaction txn = null;
+                    try {
+                        txn = dbEnv.beginTransaction(null, null);
+                        fieldByName.put(txn, fd);
+                        txn.commit();
+                        return;
+                    } catch(DeadlockException e) {
+                        try {
+                            txn.abort();
+                            numRetries++;
+                        } catch(DatabaseException ex) {
+                            throw new AuraException("Txn abort failed", ex);
+                        }
+                    } catch(Exception e) {
+                        try {
+                            if(txn != null) {
+                                txn.abort();
+                            }
+                        } catch(DatabaseException ex) {
+                        }
+                        throw new AuraException("putItem transaction failed", e);
+                    }
+                }
+                throw new AuraException("defineField failed for " + field);
+            }
+        } catch(DatabaseException ex) {
+            throw new AuraException("defineField failed getting field description", ex);
+        }
+    }
+    
     /**
      * Gets the set of all items of a particular type.  This could be a large
      * set.

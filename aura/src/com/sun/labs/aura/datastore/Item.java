@@ -23,6 +23,47 @@ public interface Item extends Serializable {
         VENUE,
         ARTIST_TAG
     }
+    
+    /**
+     * An enumeration of the capabilities that we want the fields inside an
+     * item's map to have.  These describe how the application will want to use
+     * the particular field.
+     * 
+     * @see ItemStore#defineField
+     */
+    public enum FieldCapability {
+        /**
+         * The field will be used for textual similarity operations.
+         */
+        SIMILARITY,
+        
+        /**
+         * The field will be used to search for particular words or as part
+         * of a relational query.
+         */
+        SEARCH,
+        
+        /**
+         * The field will be used to filter results from queries in the data
+         * store.
+         */
+        FILTER,
+        
+        /**
+         * The field will be used to sort results from queries to the data store.
+         */
+        SORT
+    }
+    
+    /**
+     * An enumeration of the data types for field values in an item.
+     */
+    public enum FieldType {
+        STRING,
+        INTEGER,
+        FLOAT,
+        DATE
+    }
 
     /**
      * Gets the globally unique key that was assigned to this item when it was
