@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="www" default="create-service" basedir="."
+    xmlns:dav="antlib:org.apache.webdav.ant"
+    xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
+                          
+    <!-- Where the libraries are -->
+    <property name="tool.libraries" value="../../ToolLibraries"/>
+
+    <!-- Declare the Caroline tasks -->
+    <taskdef resource="com/sun/caroline/tools/carolant/antlib.xml"
+            uri="antlib:com.sun.caroline.tools.carolant">
+        <classpath>
+            <pathelement location="${tool.libraries}/carolant.jar"/>
+            <pathelement location="${tool.libraries}/caroline.jar"/>
+        </classpath>
+    </taskdef>
+        
+   <!-- Declare the Caroline Ant tasks -->
+    <taskdef resource="org/apache/webdav/ant/antlib.xml" uri="antlib:org.apache.webdav.ant">
+        <classpath>
+            <pathelement location="${tool.libraries}/jakarta-slide-ant-webdav-2.2pre1.jar"/>
+            <pathelement location="${tool.libraries}/jakarta-slide-webdavlib-2.2pre1.jar"/>
+            <pathelement location="${tool.libraries}/commons-httpclient.jar"/>
+            <pathelement location="${tool.libraries}/commons-logging.jar"/>
+            <pathelement location="${tool.libraries}/jdom-1.0.jar"/>
+        </classpath>
+    </taskdef>
+    
+    <loadproperties srcfile="${user.home}${file.separator}.caroline">
+        <filterchain>
+            <prefixlines prefix="grid."/>
+        </filterchain>
+    </loadproperties>
+
+    <!-- create a grid adapter instance to retrieve a reference the grid -->
+    <caroline:grid/>
+
+    <!-- use implicit properties set by the grid adapter above-->    
+    <property name="user" value="${com.sun.caroline.customerID}"/>
+    <property name="pw" value="${com.sun.caroline.password}"/>
+    <property name="dav.url" value="${com.sun.caroline.gridURL}/${user}"/>
+    <property name="grid.url" value="${com.sun.caroline.gridURL}"/>   
+    
+    <!-- Where the Ant libraries are -->
+    <property name="ant.lib" value="${tool.libraries}/ant-lib"/>
+    
+    <!-- properties to hold resource names -->
+    <property name="ant.col" value="sys.packages/org/apache/tools/ant/1.7.0/lib/"/>
+    <property name="service.base" value="apache-tomcat-6.0.16"/>
+    <property name="service.distribution" value="${service.base}.zip" />
+    <property name="service.working" value="/files/working/${service.base}"/>
+    <property name="packages.filesystem" value="sys.packages"/>
+    <property name="filesystem" value="${ant.project.name}.filesystem"/>
+    <property name="service.conf" value="${filesystem}/${service.base}/conf/"/>
+    <property name="service.lib" value="${filesystem}/${service.base}/lib/"/>
+    <property name="packages.filesystem" value="sys.packages"/>   
+    <property name="unzip.task" value="${ant.project.name}.unzip"/>
+    <property name="populate.task" value="${ant.project.name}.populate"/>
+    <property name="service.process" value="${ant.project.name}"/>
+    <property name="extaddress" value="${ant.project.name}.extaddress"/>
+    <property name="extbinding" value="${ant.project.name}.extbinding"/>
+    <property name="intbinding" value="${ant.project.name}.intbinding"/>
+    <property name="network" value="${grid.instance}-auraNet"/>
+    <property name="intaddress" value="${ant.project.name}.intaddress"/>
+    <property name="dbaddress" value="${ant.project.name}.dbaddress"/>
+    <property name="populateaddress" value="${ant.project.name}.paddress"/>
+    <property name="staticnat" value="${ant.project.name}.staticnat"/>
+    <property name="exthost" value="${ant.project.name}"/>    
+    
+    <!-- Upload Resources to Caroline filesystems -->
+    
+    <!-- create a WebDAV collection to upload Ant jars to-->
+    <target name="create-ant-collection" description="creates Ant package" depends="create-packages-filesystem">
+        <dav:mkcol url="${dav.url}/${ant.col}" 
+            userid="${user}" password="${pw}"/>            
+    </target>
+    
+    <!-- create a target to copy Ant jars to Caroline -->
+    <target name="deploy-ant" description="copies Ant libraries" 
+        depends="create-ant-collection">
+        <dav:put url="${dav.url}/${ant.col}" 
+            userid="${user}" password="${pw}" lock="false">
+            <fileset dir="${ant.lib}">
+                <include name="*.jar"/>
+            </fileset>        
+        </dav:put>
+    </target>  
+    
+    <!-- upload the service distribution -->
+    <target name="upload-distribution"
+        description="uploads service distribution to Caroline filesystem"
+        depends="create-filesystem">          
+        <dav:put url="${dav.url}/${filesystem}/" 
+            userid="${user}" password="${pw}" lock="false">            
+            <fileset dir="${tool.libraries}">
+                <include name="${service.distribution}"/>
+            </fileset>                
+            <!-- Upload build script to unzip service distribution -->
+            <fileset dir="${basedir}/on-grid-scripts">
+                <include name="build.xml"/>
+            </fileset>           
+        </dav:put>    
+    </target>
+    
+    <!-- Update service configuration files -->
+    <target name="update-config"
+        description="updates service configuration">
+        <!-- update the configuration files contained in the distribution -->
+        <dav:put url="${dav.url}/${service.conf}" 
+            userid="${user}" password="${pw}" lock="false">                
+            <!-- upload service configuration files -->
+            <fileset dir="${basedir}/on-grid-config">
+                <include name="*"/>
+            </fileset>            
+        </dav:put>        
+    </target>
+    
+    <!-- Tasks -->   
+    <!-- unzip service distribution on-grid -->
+    <target name="unzip-distribution"
+        description="unzips the service distribution"
+        depends="upload-distribution, create-packages-filesystem">
+        
+        <!-- Creates and starts a Caroline process to unzip service 
+             distribution -->
+        <caroline:process name="${unzip.task}" op="create" 
+            workingdir="/files/working"
+            duration="task">    
+            <!-- Filesystems to mount -->
+            <caroline:filesystem name="${filesystem}" mountpoint="working"/>
+            <caroline:filesystem name="${packages.filesystem}" 
+                mountpoint="sys.packages"/>                 
+            <!-- Set environment variables -->
+            <env key="ANT_HOME" value="/files/${ant.col}"/>
+            <env key="JAVA_HOME" value="/usr/java"/>            
+            <!-- Specify the command line -->
+            <arg value="-Dservice.distribution=${service.distribution}"/>
+            <arg value="-jar"/>
+            <arg value="/files/${ant.col}/ant-launcher.jar"/>          
+        </caroline:process>               
+    </target> 
+    
+    <!-- Create Caroline Resources -->
+    
+    <!-- create a caroline filesystem to upload the Ant jars to -->
+    <target name="create-packages-filesystem" 
+        description="creates packages filsystem if it doesn't exist">         
+        <caroline:filesystem name="${packages.filesystem}" op="create"/>             
+    </target>
+    
+    <!-- create a caroline filesystem to upload the service distribution to -->
+    <target name="create-filesystem" 
+        description="creates filesystem if it doesn't exist">      
+        <caroline:filesystem op="create" name="${filesystem}"/>    
+    </target>
+    
+    <!-- create external address if it doesn't exist -->
+    <target name="create-extaddress"
+        description="creates an external address if it doesn't exist">      
+        <caroline:extaddress name="${extaddress}" op="create"/>    
+    </target>
+    
+    <!-- create network if it doesn't exist -->
+    <target name="create-network" 
+        description="creates a network if it doesn't exist">      
+        <caroline:network name="${network}" op="create" hosts="256"/>    
+    </target>
+    
+    <!-- create internal addresses if not already present -->
+    <target name="create-intaddress" 
+        description="creates an internal addresses if not already present"
+        depends="create-network">      
+        <!-- create the service internal address-->
+        <caroline:intaddress name="${intaddress}" op="create" 
+            networkname="${network}"/>   
+    </target>
+    
+    <!-- create external binding if it doesn't exist -->
+    <target name="create-extbinding" depends="create-extaddress"
+        description="creates an external binding if it doesn't exist">      
+        <caroline:extbinding name="${extbinding}" op="create" 
+            hostname="${ant.project.name}">
+            <caroline:extaddress name="${extaddress}"/>    
+        </caroline:extbinding>
+    </target>
+    
+    <!-- create static nat if it doesn't exist -->
+    <target name="create-staticnat" 
+        description="creates a static nat if one doesn't exist"
+        depends="create-extaddress, create-intaddress">      
+        <caroline:staticnat name="${staticnat}" op="create">
+            <caroline:extaddress name="${extaddress}"/>
+            <caroline:intaddress 
+                name="${intaddress}" 
+                networkname="${network}"/>
+        </caroline:staticnat>    
+    </target>
+    
+    <!-- create process registration if it doesn't exist -->
+    <target name="create-service" 
+        description="creates a service process if one doesn't exist"
+        depends="deploy-ant,unzip-distribution,update-config,create-staticnat,create-extbinding">
+        
+        <caroline:process name="${service.process}"
+            op="create" workingdir="/files/working/">                
+            <!-- filesystem to mount -->    
+            <caroline:filesystem name="${filesystem}" mountpoint="working"/>            
+            <!-- assign an internal address -->
+            <caroline:intaddress name="${intaddress}" networkname="${network}"/>
+            <!-- specify command line arguments -->
+            <arg value="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"/>
+            <arg value="-Djava.util.logging.config.file=${service.working}/conf/logging.properties"/>
+            <arg value="-Djava.endorsed.dirs=${service.working}/endorsed"/>
+            <arg value="-classpath"/>
+            <arg value=":${service.working}/bin/bootstrap.jar:${service.working}/bin/commons-logging-api.jar"/>
+            <arg value="-Dcatalina.base=${service.working}"/>
+            <arg value="-Dcatalina.home=${service.working}"/>
+            <arg value="-Djava.io.tmpdir=${service.working}/temp"/>
+            <arg value="org.apache.catalina.startup.Bootstrap"/>
+            <arg value="start"/>             
+        </caroline:process>
+    </target>    
+    
+    <!-- Update resources -->
+     
+    <!-- update service process -->
+    <target name="update-service"
+        description="updates process registration"
+        depends="update-config">
+        <caroline:process name="${service.process}" op="update"/>        
+    </target>
+    
+    <!-- Destroy Resources -->
+    
+    <!-- destroy service process if it exists -->
+    <target name="destroy-service" 
+        description="destroys service process if one exist">
+        <caroline:process name="${service.process}" op="delete" />
+    </target>
+    
+    <!-- destroy static nat if it exists -->
+    <target name="destroy-staticnat"
+        description="destroys static nat if one exists">
+        <caroline:staticnat name="${staticnat}" op="delete"/>
+    </target>
+
+    <!-- destroy external binding if it exists -->
+    <target name="destroy-extbinding"
+        description="destroys external binding if one exists">
+        <caroline:extbinding name="${extbinding}" op="delete"/>
+    </target>
+    
+    <!-- destroy external address if it exists -->
+    <target name="destroy-extaddress" 
+        description="Destroys external address if one exists"
+        depends="destroy-staticnat,destroy-extbinding">
+        <caroline:extaddress name="${extaddress}" op="delete" /> 
+    </target>
+    
+    <!-- destroy internal addresses if they exists -->
+    <target name="destroy-intaddress" 
+        description="destroys internal addresses if they exists"
+        depends="destroy-staticnat,destroy-service">     
+        <caroline:intaddress name="${intaddress}" op="delete"
+            networkname="${network}"/>        
+    </target>
+    
+    <!-- destroy network if it exists -->
+    <target name="destroy-network" 
+        description="destroys networkaddress if one exists"
+        depends="destroy-intaddress,destroy-populate-task">
+        <caroline:network name="${network}" op="delete"/> 
+    </target>
+    
+    <!-- destroy filesystem if it exists -->
+    <target name="destroy-filesystem" 
+        description="destroys filesystem if one exists"
+        depends="destroy-service,destroy-unzip-task,destroy-populate-task">
+        <caroline:filesystem name="${filesystem}" op="delete"/> 
+    </target>    
+    
+    <!-- destroys packages filesystem -->
+    <target name="destroy-packages-filesystem" 
+        description="Removes packages filesystem"
+        depends="destroy-unzip-task, destroy-populate-task">        
+        <caroline:filesystem op="delete" name="${packages.filesystem}"/>  
+    </target>
+    
+    <!-- destroys unzip process -->
+    <target name="destroy-unzip-task" 
+        description="Removes unzip process if it exists">
+        <caroline:process name="${unzip.task}" op="delete"/>
+    </target>    
+    
+    <!-- destroys populate process -->
+    <target name="destroy-populate-task" 
+        description="Removes populate process if it exists">
+        <!-- Destroy the process -->
+        <caroline:process name="${populate.task}" op="delete"/>
+        <!-- Destroy the address -->
+        <caroline:intaddress name="${populateaddress}" op="delete" 
+            networkname="${network}"/>
+    </target>   
+    
+    <target name="destroy-all" 
+        description="Removes packages filesystem"
+        depends="destroy-filesystem,destroy-extaddress,destroy-network"/>
+        
+    <!-- Retrieve Output -->
+    <target name="retrieve-unzip-output">
+        <dav:get url="${dav.url}/${filesystem}/${unzip.task}.out"
+            toFile="${unzip.task}.out"
+            userid="${user}" password="${pw}">      
+        </dav:get>
+        <loadfile property="message" srcFile="${unzip.task}.out"/>
+        <echo message="${message}"/>
+    </target>
+    
+    <target name="retrieve-service-output">
+        <dav:get url="${dav.url}/${filesystem}/${service.process}.out"
+            toFile="${service.process}.out"
+            userid="${user}" password="${pw}">      
+        </dav:get>
+        <loadfile property="message" srcFile="${service.process}.out"/>
+        <echo message="${message}"/>
+    </target>
+
+</project>
