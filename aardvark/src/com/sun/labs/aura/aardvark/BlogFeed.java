@@ -9,12 +9,15 @@
 
 package com.sun.labs.aura.aardvark;
 
+import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.util.Tag;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
 import java.io.Serializable;
+import java.rmi.RemoteException;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -56,6 +59,32 @@ public class BlogFeed extends ItemAdapter implements Serializable {
         this(StoreFactory.newItem(Item.ItemType.FEED, key, name));
     }
 
+    public void defineFields(DataStore store) throws AuraException {
+        EnumSet<Item.FieldCapability> ss = EnumSet.of(
+                Item.FieldCapability.SIMILARITY,
+                Item.FieldCapability.SEARCH);
+        try {
+        store.defineField(Item.ItemType.FEED, FIELD_DESCRIPTION, 
+                ss, Item.FieldType.STRING);
+        store.defineField(Item.ItemType.FEED, FIELD_IMAGE);
+        store.defineField(Item.ItemType.FEED, FIELD_AUTHOR,
+                EnumSet.of(Item.FieldCapability.SEARCH), Item.FieldType.STRING);
+        store.defineField(Item.ItemType.FEED, FIELD_TAG, 
+                ss, Item.FieldType.STRING);
+        store.defineField(Item.ItemType.FEED, FIELD_LINK);
+        store.defineField(Item.ItemType.FEED, FIELD_LAST_PULL_TIME);
+        store.defineField(Item.ItemType.FEED, FIELD_NUM_PULLS);
+        store.defineField(Item.ItemType.FEED, FIELD_NUM_ERRORS);
+        store.defineField(Item.ItemType.FEED, FIELD_NUM_INCOMING_LINKS,
+                EnumSet.of(Item.FieldCapability.SORT), Item.FieldType.INTEGER);
+        store.defineField(Item.ItemType.FEED, FIELD_NUM_CONSECUTIVE_ERRORS);
+        store.defineField(Item.ItemType.FEED, FIELD_NUM_STARRED_ENTRIES, 
+                EnumSet.of(Item.FieldCapability.SORT), Item.FieldType.INTEGER);
+        } catch (RemoteException rx) {
+            throw new AuraException("Error defining fields for BlogFeed", rx);
+        }
+    }
+    
     /**
      * Sets the description of the feed
      * @param description the desription
