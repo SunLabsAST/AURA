@@ -124,9 +124,11 @@ public class ArtistCrawler implements AuraService, Configurable {
         int count = 0;
         try {
             primeArtistQueue("The Beatles");
+            /*
             primeArtistQueue("Radiohead");
             primeArtistQueue("Miles Davis");
             primeArtistQueue("Britney Spears");
+             */
         } catch (AuraException ae) {
             logger.severe("ArtistCrawler Can't talk to the datastore, abandoning crawl");
             return;

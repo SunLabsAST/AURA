@@ -8,9 +8,17 @@
         <servlet-name>FindSimilarArtist</servlet-name>
         <servlet-class>com.sun.labs.aura.music.webservices.FindSimilarArtist</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>AdminDashboard</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.AdminDashboard</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>FindSimilarArtist</servlet-name>
         <url-pattern>/FindSimilarArtist</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AdminDashboard</servlet-name>
+        <url-pattern>/AdminDashboard</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
