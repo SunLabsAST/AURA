@@ -82,6 +82,14 @@ public class MusicDatabase {
         return convertToScoredArtistTagList(simItems);
     }
 
+    public List<Scored<String>> artistGetDistinctiveTags(String id, int count) throws AuraException {
+        try {
+            return dataStore.getTopTerms(id, Artist.FIELD_SOCIAL_TAGS, count);
+        } catch (RemoteException ex) {
+            throw new AuraException("Can't talk to the datastore " + ex, ex);
+        }
+    }
+                
     public Album albumLookup(String albumID) throws AuraException {
         Item item = getItem(albumID);
         if (item != null) {

@@ -111,6 +111,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             icon.setVisible(true);
         }
         else {
+            icon.setUrl("");
             icon.setVisible(false);
         }
         
@@ -361,7 +362,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         };
 
-        showMessage("Getting info for artist");
+        showMessage("Getting info for artist",ICON_WAIT);
 
         // (4) Make the call. Control flow will continue immediately and later
         // 'callback' will be invoked when the RPC completes.
@@ -429,7 +430,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         };
 
-        showMessage("Getting common tags");
+        showMessage("Getting common tags",ICON_WAIT);
         try {
             musicServer.getCommonTags(artistID1, artistID2, 30, callback);
         } catch (Exception ex) {
