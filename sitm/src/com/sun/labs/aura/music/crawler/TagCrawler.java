@@ -26,6 +26,8 @@ import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -97,15 +99,19 @@ public class TagCrawler implements AuraService, Configurable {
      * Starts discovering artists. When a new artist is encountered it is 
      * added to the datastore
      */
-    public void updateAllArtistTags() throws AuraException, RemoteException {
+    public void discoverArtistTags() throws AuraException, RemoteException {
         List<Item> items = dataStore.getAll(ItemType.ARTIST);
         for (Item item : items) {
             Artist artist = new Artist(item);
-            if (artist.getPopularity() >= MIN_ARTIST_POPULARITY) {
+            float popularity = artist.getPopularity();
+            if (popularity >= MIN_ARTIST_POPULARITY) {
                 logger.info("Crawling tags from artist " + artist.getName());
                 List<Tag> tags = artist.getSocialTags();
+
                 for (Tag tag : tags) {
-                    accumulateTag(tag.getName(), artist.getKey(), tag.getCount());
+                    int normalizedCount =  (int) Math.rint(popularity * tag.getCount() / 100.);
+                    // System.out.printf("norm count for %s/%s is %d\n", artist.getName(), tag.getName(), normalizedCount);
+                    accumulateTag(tag.getName(), artist.getKey(), normalizedCount);
                 }
             }
         }
@@ -130,23 +136,42 @@ public class TagCrawler implements AuraService, Configurable {
         for (Map.Entry<String, Map<String, Tag>> entry : tagMap.entrySet()) {
             if (entry.getValue().size() > MIN_ARTISTS) {
                 ArtistTag artistTag = new ArtistTag(entry.getKey());
+                int sum = 0;
                 for (Tag tag : entry.getValue().values()) {
+                    sum += tag.getCount();
                     artistTag.addTaggedArtist(tag.getName(), tag.getCount());
                 }
                 logger.info("Adding tag " + artistTag.getName() + " artists " + artistTag.getTaggedArtist().size());
+                artistTag.setPopularity(sum);
                 artistTag.flush(dataStore);
             }
         }
     }
 
+    public void updateArtistTags(int max) throws AuraException, RemoteException {
+        List<Item> items = dataStore.getAll(ItemType.ARTIST_TAG);
+        List<ArtistTag> tags = new ArrayList(items.size());
 
-    private void updateTags() throws AuraException, RemoteException {
-        List<Item> items = dataStore.getAll(ItemType.ARTIST);
         for (Item item : items) {
-            ArtistTag artistTag = new ArtistTag(item);
-            collectTagInfo(artistTag);
-            artistTag.flush(dataStore);
+            tags.add(new ArtistTag(item));
         }
+
+        Collections.sort(tags, ArtistTag.POPULARITY);
+        Collections.reverse(tags);
+
+        int count = 0;
+        for (ArtistTag tag : tags) {
+            updateSingleTag(tag);
+            if (count++ > max) {
+                break;
+            }
+        }
+    }
+
+    public void updateSingleTag(ArtistTag artistTag) throws AuraException, RemoteException {
+        logger.info("Collecting info for tag " + artistTag.getName());
+        collectTagInfo(artistTag);
+        artistTag.flush(dataStore);
     }
 
     /**
