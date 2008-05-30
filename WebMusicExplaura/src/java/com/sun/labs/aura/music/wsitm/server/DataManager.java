@@ -18,11 +18,9 @@ import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.Event;
 import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.Video;
+import com.sun.labs.aura.music.hasPopularity;
 import com.sun.labs.util.props.ConfigurationManager;
 
-import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
-import com.sun.labs.aura.music.web.yahoo.SearchResult;
-import com.sun.labs.aura.music.web.yahoo.Yahoo;
 import com.sun.labs.aura.music.wsitm.client.AlbumDetails;
 import com.sun.labs.aura.music.wsitm.client.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.ArtistEvent;
@@ -40,20 +38,16 @@ import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -69,6 +63,7 @@ public class DataManager implements Configurable {
     
     private static final int DEFAULT_CACHE_SIZE=250;
     private static final int NUMBER_TAGS_TO_SHOW=15;
+    private static final int NUMBER_SIM_ARTISTS=15;
     
     private Logger logger = Logger.getLogger("");
     
@@ -164,9 +159,10 @@ public class DataManager implements Configurable {
         }
                 
         // Fetch similar artists
-        ItemInfo[] simArtists = scoreArtistsToItemInfo(datastore.findSimilar(id, 
-                Artist.FIELD_SOCIAL_TAGS, 10, new TypeFilter(ItemType.ARTIST)));
-        details.setSimilarArtists(simArtists);
+        List<Scored<Item>> scoredArtists = datastore.findSimilar(id, 
+                Artist.FIELD_SOCIAL_TAGS, NUMBER_SIM_ARTISTS, new TypeFilter(ItemType.ARTIST));
+        sortByArtistPopularity(scoredArtists);
+        details.setSimilarArtists(this.scoredArtistsToItemInfo(scoredArtists));
         
         // Fetch albums
         Set<String> albumSet = a.getAlbums();
@@ -206,6 +202,7 @@ public class DataManager implements Configurable {
             tempA = new Artist(datastore.getItem(aID));
             artistColl[index] = new ItemInfo(aID, tempA.getName(), 
                     tempA.getPopularity(), tempA.getPopularity());
+            index++;
         }
         details.setCollaborations(artistColl);
         
@@ -228,12 +225,13 @@ public class DataManager implements Configurable {
         }
         details.setFrequentTags(freqTags);
         */
-        details.setFrequentTags(convertTagsToInfo(scoredTags,true));
+        details.setFrequentTags(convertTagsToInfo(scoredTags.subList(0, getMax(scoredTags)),true));
         
         // Fetch list of distinctive tags
         List<Scored<String>> topTags = datastore.getTopTerms(a.getKey(), 
                 Artist.FIELD_SOCIAL_TAGS, NUMBER_TAGS_TO_SHOW);
         details.setDistinctiveTags(scroredStringToItemInfo(topTags));
+        
         
         //details.setMusicURL(id);
         //details.setImageURL((String) a.getPhotos().toArray()[0]);
@@ -258,7 +256,7 @@ public class DataManager implements Configurable {
         logger.info("DataManager::tagSearch: "+searchString);
         
         String query = "(aura-type = artist_tag) <AND> (aura-name <matches> \"*" + searchString + "*\")";
-        ItemInfo[] tagResults = scoreArtistTagToItemInfo(datastore.query(query, "-score", maxResults, null));
+        ItemInfo[] tagResults = scoredArtistTagToItemInfo(datastore.query(query, "-score", maxResults, null));
 
         SearchResults sr = new SearchResults(searchString, 
                 SearchResults.SEARCH_FOR_TAG_BY_TAG, tagResults);
@@ -274,7 +272,7 @@ public class DataManager implements Configurable {
         logger.info("DataManager::artistSearch: "+searchString);
         
         String query = "(aura-type = artist) <AND> (aura-name <matches> \"*" + searchString + "*\")";
-        ItemInfo[] artistResults = scoreArtistsToItemInfo(datastore.query(query, "-score", maxResults, null));
+        ItemInfo[] artistResults = scoredArtistsToItemInfo(datastore.query(query, "-score", maxResults, null));
 
         SearchResults sr = new SearchResults(searchString, 
                 SearchResults.SEARCH_FOR_ARTIST_BY_TAG, artistResults);
@@ -489,16 +487,6 @@ public class DataManager implements Configurable {
         skipSet.add("http://en.wikipedia.org/wiki/Musical_genre");
     }
 
-    private SearchResult findBestSearchResult(List<SearchResult> results) {
-        // there are some search results that we want to filter out
-        for (SearchResult sr : results) {
-            if (!skipSet.contains(sr.getUrl())) {
-                return sr;
-            }
-        }
-        return null;
-    }
-
     private ItemInfo[] getSimilarArtists(Artist artist, String field, int size) throws AuraException, RemoteException {
         double THRESHOLD = .0;
         System.out.println("Finding similar for " + artist.getName());
@@ -519,7 +507,7 @@ public class DataManager implements Configurable {
         }
         return null; //@todo fix this convertArtistsToInfo(scoredArtists);
     }
-
+/*
     private ItemInfo[] convertTagsToInfo(List<Scored<Tag>> tags, boolean sortByPopularity) {
         ItemInfo[] itemInfos = new ItemInfo[tags.size()];
         if (sortByPopularity) {
@@ -552,7 +540,7 @@ public class DataManager implements Configurable {
         }
         return itemInfos;
     }
-
+  */  
     private void sortByArtistPopularity(List<Scored<Artist>> scoredArtists) {
         Collections.sort(scoredArtists, new ArtistPopularitySorter());
         Collections.reverse(scoredArtists);
@@ -576,12 +564,16 @@ public class DataManager implements Configurable {
         return datastore;
     }
 
+    private <T> List<Scored<T>> scoredItemToScoredT(List<Scored<Item>> scoredItems, <? extends) {
+        
+    }
+    
     /**
      * Converts a list of scored artists and returns them in an iteminfo array 
      * @param scoredArtists scored list of items (that will be cast as artists)
      * @return
      */
-    private ItemInfo[] scoreArtistTagToItemInfo(List<Scored<Item>> scoredArtists) {
+    private ItemInfo[] scoredArtistTagToItemInfo(List<Scored<Item>> scoredArtists) {
 
         ItemInfo[] artistResults = new ItemInfo[scoredArtists.size()];
 
@@ -600,7 +592,7 @@ public class DataManager implements Configurable {
      * @param scoredArtists scored list of items (that will be cast as artists)
      * @return
      */
-    private ItemInfo[] scoreArtistsToItemInfo(List<Scored<Item>> scoredArtists) {
+    private ItemInfo[] scoredArtistsToItemInfo(List<Scored<Item>> scoredArtists) {
 
         ItemInfo[] artistResults = new ItemInfo[scoredArtists.size()];
 
