@@ -1,7 +1,7 @@
 
 package com.sun.labs.aura.datastore;
 
-import com.sun.labs.aura.datastore.impl.store.FieldDescription;
+import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.datastore.impl.store.ItemStore;
 import java.io.Serializable;
 import java.util.Map;

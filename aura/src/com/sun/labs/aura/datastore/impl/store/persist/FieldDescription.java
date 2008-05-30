@@ -1,21 +1,31 @@
-package com.sun.labs.aura.datastore.impl.store;
+package com.sun.labs.aura.datastore.impl.store.persist;
 
+import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 import com.sun.labs.aura.datastore.Item;
 import java.io.Serializable;
 import java.util.EnumSet;
+import java.util.HashSet;
 
 /**
  * An encapsulation of the description of a particular field.
  */
+@Entity(version = 1)
 public class FieldDescription implements Serializable {
+    private static final long serialVersionUID = 1;
 
     @PrimaryKey
     private String name;
+    
+    private transient EnumSet<Item.FieldCapability> caps;
 
-    private EnumSet<Item.FieldCapability> caps;
+    private HashSet<Integer> perCaps;
 
     private Item.FieldType type;
+    
+    public FieldDescription() {
+        
+    }
 
     public FieldDescription(String name, EnumSet<Item.FieldCapability> caps,
             Item.FieldType type) {
@@ -25,6 +35,9 @@ public class FieldDescription implements Serializable {
         } else {
             this.caps = EnumSet.copyOf(caps);
         }
+        for(Item.FieldCapability fc : this.caps) {
+            perCaps.add(fc.ordinal());
+        }
         this.type = type;
     }
 
@@ -33,6 +46,13 @@ public class FieldDescription implements Serializable {
     }
 
     public EnumSet<Item.FieldCapability> getCapabilities() {
+        if(caps == null) {
+            caps = EnumSet.noneOf(Item.FieldCapability.class);
+            Item.FieldCapability[] vals = Item.FieldCapability.values();
+            for(Integer fc : perCaps) {
+                caps.add(vals[fc]);
+            }
+        }
         return EnumSet.copyOf(caps);
     }
 
@@ -46,7 +66,7 @@ public class FieldDescription implements Serializable {
      * @return <code>true</code> if this field must be indexed.
      */
     public boolean mustIndex() {
-        return caps.size() > 0;
+        return perCaps.size() > 0;
     }
 
     public boolean equals(Object o) {
@@ -59,7 +79,7 @@ public class FieldDescription implements Serializable {
             return true;
         }
         return name.equals(fd.name) &&
-                caps.equals(fd.caps) &&
+                perCaps.equals(fd.perCaps) &&
                 type == fd.type;
     }
 

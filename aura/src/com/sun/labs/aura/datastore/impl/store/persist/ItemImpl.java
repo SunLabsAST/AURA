@@ -6,7 +6,7 @@ import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
-import com.sun.labs.aura.datastore.impl.store.FieldDescription;
+import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

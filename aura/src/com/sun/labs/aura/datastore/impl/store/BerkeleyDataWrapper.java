@@ -1,5 +1,6 @@
 package com.sun.labs.aura.datastore.impl.store;
 
+import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sleepycat.je.CursorConfig;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sleepycat.je.DatabaseException;
@@ -30,7 +31,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
