@@ -40,8 +40,12 @@ public interface Item extends Serializable, Iterable<Map.Entry<String,Serializab
         SIMILARITY,
         
         /**
-         * The field will be used to search for particular words or as part
-         * of a relational query.
+         * The field will be used for exact match or range queries.
+         */
+        MATCH,
+        
+        /**
+         * The field will be used to search for particular words.
          */
         SEARCH,
         

@@ -5,10 +5,13 @@
 
 package com.sun.labs.aura.music;
 
+import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
+import java.rmi.RemoteException;
+import java.util.EnumSet;
 
 /**
  *
@@ -38,6 +41,25 @@ public class Venue extends ItemAdapter {
      */
     public Venue(String key, String name) throws AuraException {
         this(StoreFactory.newItem(Item.ItemType.VENUE, key, name));
+    }
+
+  public void defineFields(DataStore ds) throws AuraException {
+        try {
+            ds.defineField(Item.ItemType.VENUE, FIELD_ADDRESS,
+                    EnumSet.of(Item.FieldCapability.SEARCH),
+                    null);
+            ds.defineField(Item.ItemType.VENUE, FIELD_CITY,
+                    EnumSet.of(Item.FieldCapability.SEARCH),
+                    null);
+            ds.defineField(Item.ItemType.VENUE, FIELD_COUNTRY,
+                    EnumSet.of(Item.FieldCapability.SEARCH),
+                    null);
+            ds.defineField(Item.ItemType.VENUE, FIELD_STATE,
+                    EnumSet.of(Item.FieldCapability.SEARCH),
+                    null);
+        } catch(RemoteException rx) {
+            throw new AuraException("Error defining fields for Venue", rx);
+        }
     }
 
     /**

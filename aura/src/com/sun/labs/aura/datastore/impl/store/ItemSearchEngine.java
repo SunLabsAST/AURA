@@ -167,12 +167,15 @@ public class ItemSearchEngine implements Configurable {
                 case FILTER:
                     attr.add(FieldInfo.Attribute.SAVED);
                     break;
-                case SEARCH:
+                case MATCH:
                     attr.add(FieldInfo.Attribute.SAVED);
+                    break;
+                case SEARCH:
                     attr.add(FieldInfo.Attribute.INDEXED);
                     attr.add(FieldInfo.Attribute.TOKENIZED);
                     break;
                 case SIMILARITY:
+                    attr.add(FieldInfo.Attribute.TOKENIZED);
                     attr.add(FieldInfo.Attribute.VECTORED);
                     break;
                 case SORT:

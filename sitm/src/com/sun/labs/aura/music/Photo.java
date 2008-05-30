@@ -5,10 +5,12 @@
 
 package com.sun.labs.aura.music;
 
+import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
+import java.rmi.RemoteException;
 
 /**
  *
@@ -42,6 +44,19 @@ public class Photo extends ItemAdapter {
         this(StoreFactory.newItem(Item.ItemType.PHOTO, key, name));
     }
     
+   public void defineFields(DataStore ds) throws AuraException {
+        try {
+            ds.defineField(Item.ItemType.PHOTO, FIELD_CREATOR_USER_NAME);
+            ds.defineField(Item.ItemType.PHOTO, FIELD_CREATOR_REAL_NAME);
+            ds.defineField(Item.ItemType.PHOTO, FIELD_IMG_URL);
+            ds.defineField(Item.ItemType.PHOTO, FIELD_SMALL_IMG_URL);
+            ds.defineField(Item.ItemType.PHOTO, FIELD_THUMBNAIL_URL);
+            ds.defineField(Item.ItemType.PHOTO, FIELD_PHOTO_PAGE_URL);
+        } catch(RemoteException rx) {
+            throw new AuraException("Error defining fields for Photo", rx);
+        }
+    }
+   
     /**
      * Gets the creator's username
      * @return the username

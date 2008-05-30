@@ -61,7 +61,8 @@ public class BlogEntry extends ItemAdapter {
                 Item.FieldCapability.SEARCH);
         try {
             store.defineField(Item.ItemType.BLOGENTRY, FIELD_FEED_KEY, 
-                    EnumSet.of(Item.FieldCapability.SEARCH), Item.FieldType.STRING);
+                    EnumSet.of(Item.FieldCapability.SEARCH), 
+                    Item.FieldType.STRING);
             store.defineField(Item.ItemType.BLOGENTRY, FIELD_TAG,
                     ss, Item.FieldType.STRING);
             store.defineField(Item.ItemType.BLOGENTRY, FIELD_CONTENT,

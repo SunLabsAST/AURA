@@ -4,12 +4,15 @@
  */
 package com.sun.labs.aura.music;
 
+import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.Tag;
+import java.rmi.RemoteException;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -57,6 +60,23 @@ public class ArtistTag extends ItemAdapter {
         this(StoreFactory.newItem(Item.ItemType.ARTIST_TAG, "artist-tag:" + name, name));
     }
 
+    public void defineFields(DataStore ds) throws AuraException {
+        try {
+            ds.defineField(Item.ItemType.ARTIST_TAG, FIELD_DESCRIPTION,
+                    EnumSet.of(Item.FieldCapability.SEARCH, Item.FieldCapability.SIMILARITY), 
+                    Item.FieldType.STRING);
+            ds.defineField(Item.ItemType.ARTIST_TAG, FIELD_PHOTOS);
+            ds.defineField(Item.ItemType.ARTIST_TAG, FIELD_POPULARITY, 
+                    EnumSet.of(Item.FieldCapability.SORT), Item.FieldType.FLOAT);
+            ds.defineField(Item.ItemType.ARTIST_TAG, FIELD_TAGGED_ARTISTS, 
+                    EnumSet.of(Item.FieldCapability.MATCH, Item.FieldCapability.SIMILARITY),
+                    Item.FieldType.STRING);
+            ds.defineField(Item.ItemType.ARTIST_TAG, FIELD_VIDEOS);
+        } catch(RemoteException rx) {
+            throw new AuraException("Error defining fields for ArtistTag", rx);
+        }
+    }
+    
     /**
      * Gets the popularity of the ArtistTag
      * @return the popularity
