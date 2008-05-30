@@ -35,6 +35,7 @@ public class FieldDescription implements Serializable {
         } else {
             this.caps = EnumSet.copyOf(caps);
         }
+        perCaps = new HashSet<Integer>();
         for(Item.FieldCapability fc : this.caps) {
             perCaps.add(fc.ordinal());
         }

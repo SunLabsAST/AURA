@@ -14,6 +14,7 @@ import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.DSBitSet;
 import com.sun.labs.aura.datastore.impl.PartitionCluster;
 import com.sun.labs.aura.datastore.impl.Replicant;
+import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.util.Scored;
@@ -211,6 +212,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         System.out.println(new Date() + ": Done closing search engine");
     }
 
+    public void defineField(ItemType itemType, String field)
+            throws AuraException, RemoteException {
+        defineField(itemType, field, null, null);
+    }
+
     public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
             Item.FieldType fieldType) throws AuraException, RemoteException {
         bdb.defineField(itemType, field, caps, fieldType);
@@ -252,6 +258,28 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
             ItemImpl itemImpl = (ItemImpl) item;
             
             //
+            // Walk the fields, make sure they're defined, and figure out whether
+            // we need to re-index this item.
+            boolean mustIndex = false;
+            Set<String> setFields = itemImpl.getSetFields();
+            for(Map.Entry<String,Serializable> e : itemImpl) {
+                FieldDescription fd;
+                try {
+                    fd = bdb.fieldByName.get(e.getKey());
+                } catch(DatabaseException ex) {
+                    throw new AuraException("Error getting field description ", ex);
+                }
+                if(fd == null) {
+                    throw new AuraException("Item " + item.getKey() + 
+                            " contains unknown field " + e.getKey());
+                }
+                if(fd.mustIndex() && setFields.contains(e.getKey())) {
+                    mustIndex = true;
+                }
+            }
+            
+            
+            //
             // If this was a remote object, its transient map will be null
             // and storeMap will be a no-op.  If it was a local object then
             // storeMap will serialize the map (if there is one).
@@ -261,7 +289,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                 existed = true;
             }
 
-            if(itemImpl.mustIndex()) {
+            if(mustIndex || itemImpl.isNew()) {
                 //
                 // The item was modified in a way that requires indexing.
                 searchEngine.index(itemImpl);

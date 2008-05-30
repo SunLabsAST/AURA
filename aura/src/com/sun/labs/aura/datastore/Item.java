@@ -110,7 +110,6 @@ public interface Item extends Serializable, Iterable<Map.Entry<String,Serializab
      * Sets the value of a field.
      * @param field the name of the field whose value we want to set
      * @param value the value that we want to set
-     * @throws IllegalArgumentException if the named field is not defined
      * @see DataStore#defineField
      */
     public void setField(String field, Serializable value);

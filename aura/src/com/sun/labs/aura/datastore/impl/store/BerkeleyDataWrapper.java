@@ -327,7 +327,6 @@ public class BerkeleyDataWrapper {
         ItemImpl ret = null;
         try {
             ret = itemByKey.get(null, key, LockMode.READ_UNCOMMITTED);
-            ret.setFields(fieldByName.map());
         } catch(DatabaseException e) {
             log.log(Level.WARNING, "getItem() failed to retrieve item (key:" +
                     key + ")", e);

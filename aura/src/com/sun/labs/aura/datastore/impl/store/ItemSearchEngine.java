@@ -181,7 +181,7 @@ public class ItemSearchEngine implements Configurable {
             }
         }
         
-        FieldInfo.Type type = FieldInfo.Type.valueOf(fieldType.toString());
+        FieldInfo.Type type = fieldType == null ? FieldInfo.Type.NONE : FieldInfo.Type.valueOf(fieldType.toString());
         try {
             engine.defineField(new FieldInfo(field, attr, type));
         } catch(SearchEngineException ex) {

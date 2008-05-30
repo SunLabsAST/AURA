@@ -14,8 +14,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -50,16 +52,12 @@ public class ItemImpl implements Item {
     private transient HashMap<String,Serializable> map = null;
     
     /**
-     * A map from names to field descriptions that we can use to test 
-     * field assignments.
-     */
-    private Map<String,FieldDescription> fieldDescr;
-    
-    /**
      * A flag indicating that a field that the search engine needs to index
      * has been set by someone.
      */
-    private transient boolean mustIndex;
+    private transient Set<String> sets;
+    
+    private transient boolean isNew;
     
     protected static final Logger logger = Logger.getLogger("");
     
@@ -67,6 +65,7 @@ public class ItemImpl implements Item {
      * We need to provide a default constructor for BDB.
      */
     protected ItemImpl() {
+        sets = new HashSet<String>();
     }
 
     /**
@@ -80,6 +79,12 @@ public class ItemImpl implements Item {
         this.name = name;
         this.typeAndTimeAdded = new IntAndTimeKey(this.itemType,
                                                   System.currentTimeMillis());
+        isNew = true;
+        sets = new HashSet<String>();
+    }
+    
+    public boolean isNew() {
+        return isNew;
     }
 
     public String getKey() {
@@ -128,33 +133,14 @@ public class ItemImpl implements Item {
         this.name = name;
     }
     
-    public void setFields(Map<String,FieldDescription> m) {
-        this.fieldDescr = new HashMap<String,FieldDescription>(m);
-    }
-
     public void setField(String field, Serializable value) {
         getMap();
-        FieldDescription d = fieldDescr.get(field);
-        if(d == null) {
-            throw new IllegalArgumentException("Attempting to set undefined field " + field);
-        }
         map.put(field, value);
-        
-        //
-        // If this is a field that the search engine will care about, then 
-        // we need to index it.
-        if(d.mustIndex()) {
-            mustIndex = true;
-        }
+        sets.add(field);
     }
-    
-    /**
-     * Indicates whether this item needs to be indexed by the search engine.
-     * @return <code>true</code> if the item was changed in such a way that it 
-     * must be indexed.
-     */
-    public boolean mustIndex() {
-        return mustIndex;
+
+    public Set<String> getSetFields() {
+        return sets;
     }
     
     public Serializable getField(String field) {

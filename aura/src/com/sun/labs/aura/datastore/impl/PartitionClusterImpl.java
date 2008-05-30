@@ -64,6 +64,11 @@ public class PartitionClusterImpl implements PartitionCluster,
     public DSBitSet getPrefix() {
         return prefixCode;
     }
+    
+    public void defineField(ItemType itemType, String field)
+            throws AuraException, RemoteException {
+        defineField(itemType, field, null, null);
+    }
 
     public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
             Item.FieldType fieldType) throws AuraException, RemoteException {

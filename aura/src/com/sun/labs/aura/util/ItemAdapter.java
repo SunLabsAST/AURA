@@ -29,7 +29,7 @@ import java.util.Set;
  * The ItemAdaptor provides a set of method that can be used by specific item
  * types to add and retrieve data from the item map in a type-friendly fashion.
  */
-public class ItemAdapter implements Serializable {
+public abstract class ItemAdapter implements Serializable {
     protected Item item;
     private boolean modified;
 
@@ -55,6 +55,14 @@ public class ItemAdapter implements Serializable {
         this.item = item;
         modified = false;
     }
+    
+    /**
+     * Defines the fields that the adapted item will be storing in the data
+     * store.
+     * @param ds the data store where the fields will be defined
+     * @see DataStore#defineField
+     */
+    public abstract void defineFields(DataStore ds) throws AuraException;
 
     /**
      * Gets the name of the item
