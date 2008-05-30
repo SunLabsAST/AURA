@@ -10,7 +10,7 @@
 
 <config>
     <!-- Where the aura data lives -->
-    <property name="auraHome" value="/aura/sitm"/>
+    <property name="auraHome" value="/aura/sitm/db"/>
     <property name="logLevel" value="WARNING"/>
     
     <!-- The configuration for a partition cluster. -->

@@ -13,6 +13,7 @@ import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Artist;
+import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.crawler.TagCrawler;
 import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
@@ -27,7 +28,12 @@ import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Manages the set of feed crawling threads
@@ -40,6 +46,12 @@ public class MusicShell implements AuraService, Configurable {
     private CommandInterpreter shell;
     private StatService statService;
     private ShellUtils sutils;
+
+    private static Comparator<Tag> FREQ_SORT = new Comparator<Tag>() {
+        public int compare(Tag o1, Tag o2) {
+            return o1.getCount() - o2.getCount();
+        }
+    };
 
     /**
      * Starts crawling all of the feeds
@@ -196,15 +208,144 @@ public class MusicShell implements AuraService, Configurable {
             }
         });
 
-        shell.add("crawlTags", new CommandInterface() {
+        shell.add("tagDiscover", new CommandInterface() {
 
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
-                tagCrawler.updateAllArtistTags();
+                tagCrawler.discoverArtistTags();
                 return "";
             }
 
             public String getHelp() {
                 return "crawls the artists for new tags and adds them to the database";
+            }
+        });
+
+
+        shell.add("tagUpdate", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                if (args.length == 1) {
+                    tagCrawler.updateArtistTags(1000);
+                } else {
+                    String qname = sutils.stuff(args, 1);
+                    ArtistTag artistTag = findArtistTag(qname);
+                    if (artistTag != null) {
+                        tagCrawler.updateSingleTag(artistTag);
+                    }
+                }
+                return "";
+            }
+
+            public String getHelp() {
+                return "updates the info for a tag or all tags";
+            }
+        });
+
+        shell.add("tagSpawnUpdater", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                int count = 100;
+                if (args.length > 1) {
+                    count = Integer.parseInt(args[1]);
+                } 
+                final int max = count;
+
+                Thread t = new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            tagCrawler.updateArtistTags(max);
+                            System.out.println("Done with artist tag update");
+                        } catch (Exception ex) {
+                            System.out.println("Trouble collecting tags");
+                        }
+                    }
+                };
+                t.start();
+                return "";
+            }
+
+            public String getHelp() {
+                return "updates the info for a tag or all tags";
+            }
+        });
+
+
+        shell.add("tagFindSimilar", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                if (args.length > 1) {
+                    String qname = sutils.stuff(args, 1);
+                    ArtistTag artistTag = findArtistTag(qname);
+                    if (artistTag != null) {
+                        List<Scored<Item>> simItems = dataStore.findSimilar(artistTag.getKey(),
+                                ArtistTag.FIELD_TAGGED_ARTISTS, sutils.getHits(),
+                                new TypeFilter(ItemType.ARTIST_TAG));
+                        sutils.dumpScoredItems(simItems);
+                    }
+                }
+                return "";
+            }
+
+            public String getHelp() {
+                return "finds similar tags";
+            }
+        });
+
+        shell.add("tagShow", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                if (args.length == 1) {
+                    List<Item> itemTags = dataStore.getAll(ItemType.ARTIST_TAG);
+                    List<ArtistTag> allTags = new ArrayList();
+
+                    for (Item item : itemTags) {
+                        allTags.add(new ArtistTag(item));
+                    }
+
+                    Collections.sort(allTags, ArtistTag.POPULARITY);
+                    Collections.reverse(allTags);
+
+                    int index = 0;
+                    for (ArtistTag artistTag : allTags) {
+                        System.out.printf("%d %f %s\n", ++index, artistTag.getPopularity(), artistTag.getName());
+                    }
+                } else {
+                    String qname = sutils.stuff(args, 1);
+                    ArtistTag artistTag = findArtistTag(qname);
+                    if (artistTag != null) {
+                        sutils.dumpItemFull(artistTag.getItem());
+                    }
+                }
+                return "";
+            }
+
+            public String getHelp() {
+                return "shows all tags, or dumps the content of a specific tag";
+            }
+        });
+
+        shell.add("tagShowArtists", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                if (args.length > 1) {
+                    String qname = sutils.stuff(args, 1);
+                    ArtistTag artistTag = findArtistTag(qname);
+                    if (artistTag != null) {
+                        List<Tag> artistsAsTags = artistTag.getTaggedArtist();
+                        Collections.sort(artistsAsTags, FREQ_SORT);
+                        Collections.reverse(artistsAsTags);
+                        for (Tag tag : artistsAsTags) {
+                            Item artist = dataStore.getItem(tag.getName());
+                            System.out.printf("%d %s %s\n", tag.getCount(), tag.getName(), artist.getName());
+                        }
+                    }
+                }
+                return "";
+            }
+
+            public String getHelp() {
+                return "for a given tag, show the artists that have been tagged with the tag";
             }
         });
 
@@ -234,6 +375,15 @@ public class MusicShell implements AuraService, Configurable {
         List<Scored<Item>> items = dataStore.query(query, "-score", sutils.getHits(), null);
         if (items.size() > 0) {
             return new Artist(items.get(0).getItem());
+        }
+        return null;
+    }
+
+    private ArtistTag findArtistTag(String qname) throws AuraException, RemoteException {
+        String query = "(aura-type = ARTIST_TAG) <AND> (aura-name <matches> \"*" + qname + "*\")";
+        List<Scored<Item>> items = dataStore.query(query, "-score", sutils.getHits(), null);
+        if (items.size() > 0) {
+            return new ArtistTag(items.get(0).getItem());
         }
         return null;
     }

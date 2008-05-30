@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.sun.labs.aura.music;
 
 import com.sun.labs.aura.datastore.Item;
@@ -10,6 +9,7 @@ import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.Tag;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -18,11 +18,25 @@ import java.util.Set;
  * Represents a social tag that has been applied to an artist
  */
 public class ArtistTag extends ItemAdapter {
+
     public final static String FIELD_POPULARITY = "popularity";
     public final static String FIELD_DESCRIPTION = "description";
     public final static String FIELD_TAGGED_ARTISTS = "taggedArtists";
     public final static String FIELD_VIDEOS = "videos";
     public final static String FIELD_PHOTOS = "photos";
+
+    public final static Comparator<ArtistTag> POPULARITY = new Comparator<ArtistTag>() {
+        public int compare(ArtistTag o1, ArtistTag o2) {
+            float delta = o1.getPopularity() - o2.getPopularity();
+            if (delta > 0) {
+                return 1;
+            } else if (delta < 0) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
+    };
 
     /**
      * Wraps an Item as an ArtistTag
@@ -75,12 +89,10 @@ public class ArtistTag extends ItemAdapter {
         setField(FIELD_DESCRIPTION, description);
     }
 
-
     /**
      * Gets the artists that have been tagged with the social tag
      * @return tag map
      */
-
     public List<Tag> getTaggedArtist() {
         return getTagsAsList(FIELD_TAGGED_ARTISTS);
     }
@@ -109,7 +121,6 @@ public class ArtistTag extends ItemAdapter {
     public Set<String> getVideos() {
         return getFieldAsStringSet(FIELD_VIDEOS);
     }
-
 
     /**
      * Get the photos associated with an ArtistTag
