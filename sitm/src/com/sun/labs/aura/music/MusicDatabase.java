@@ -82,6 +82,15 @@ public class MusicDatabase {
         return convertToScoredArtistTagList(simItems);
     }
 
+    public Album albumLookup(String albumID) throws AuraException {
+        Item item = getItem(albumID);
+        if (item != null) {
+            typeCheck(item, ItemType.ALBUM);
+            return new Album(item);
+        }
+        return null;
+    }
+    
     public Event eventLookup(String eventID) throws AuraException {
         Item item = getItem(eventID);
         if (item != null) {
