@@ -261,10 +261,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                 existed = true;
             }
 
-            //
-            // The item was modified and/or created, so tell the indexer
-            // about it
-            searchEngine.index(item);
+            if(itemImpl.mustIndex()) {
+                //
+                // The item was modified in a way that requires indexing.
+                searchEngine.index(itemImpl);
+            }
 
             //
             // Finally, send out relevant events.
@@ -610,7 +611,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                 List<Scored<String>> autotags =
                         searchEngine.getAutoTags(ce.item.getKey());
                 if(autotags != null) {
-                    ce.item.getMap().put("autotag", (Serializable) autotags);
+                    ce.item.setField("autotag", (Serializable) autotags);
                     try {
                         ce.item.storeMap();
                         bdb.putItem(ce.item);
@@ -699,7 +700,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                 // Add the autotags.
                 List<Scored<String>> autotags = searchEngine.getAutoTags(ie.getKey());
                 if(autotags != null) {
-                    ie.getMap().put("autotag", (Serializable) autotags);
+                    ie.setField("autotag", (Serializable) autotags);
                     ie.storeMap();
                     try {
                         bdb.putItem(ie);

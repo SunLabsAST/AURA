@@ -17,10 +17,12 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -132,7 +134,7 @@ public class ItemAdapter implements Serializable {
      * @return the value as a float
      */
     protected float getFieldAsFloat(String name) {
-        Float f = (Float) item.getMap().get(name);
+        Float f = (Float) item.getField(name);
         return f == null ? 0 : f;
     }
 
@@ -142,7 +144,7 @@ public class ItemAdapter implements Serializable {
      * @return the object
      */
     protected Object getFieldAsObject(String name) {
-        return item.getMap().get(name);
+        return item.getField(name);
     }
 
     /**
@@ -151,7 +153,7 @@ public class ItemAdapter implements Serializable {
      * @return the value as a int
      */
     protected int getFieldAsInt(String name) {
-        Integer i = (Integer) item.getMap().get(name);
+        Integer i = (Integer) item.getField(name);
         return i == null ? 0 : i;
     }
 
@@ -161,7 +163,7 @@ public class ItemAdapter implements Serializable {
      * @return the value as a long
      */
     protected long getFieldAsLong(String name) {
-        Long l = (Long) item.getMap().get(name);
+        Long l = (Long) item.getField(name);
         return l == null ? 0 : l;
     }
 
@@ -171,7 +173,7 @@ public class ItemAdapter implements Serializable {
      * @return the value as a String
      */
     protected String getFieldAsString(String name) {
-        return (String) item.getMap().get(name);
+        return (String) item.getField(name);
     }
 
     /**
@@ -181,7 +183,7 @@ public class ItemAdapter implements Serializable {
      * @return the value as a String
      */
     protected String getFieldAsString(String name, String defaultVal) {
-        String ret =  (String) item.getMap().get(name);
+        String ret =  (String) item.getField(name);
         if (ret == null) {
             ret = defaultVal;
         }
@@ -194,10 +196,10 @@ public class ItemAdapter implements Serializable {
      * @return the value as a set of strings 
      */
     protected Set<String> getFieldAsStringSet(String fieldName) {
-        HashSet<String> set = (HashSet<String>) item.getMap().get(fieldName);
+        HashSet<String> set = (HashSet<String>) item.getField(fieldName);
         if (set == null) {
             set = new HashSet<String>();
-            item.getMap().put(fieldName, set);
+            item.setField(fieldName, set);
         }
         return set;
     }
@@ -208,10 +210,10 @@ public class ItemAdapter implements Serializable {
      * @return the value of the field as a tagmap
      */
     protected Map<String, Tag> getTagMap(String field) {
-        HashMap<String, Tag> tagMap = (HashMap<String, Tag>) item.getMap().get(field);
+        HashMap<String, Tag> tagMap = (HashMap<String, Tag>) item.getField(field);
         if (tagMap == null) {
             tagMap = new HashMap<String, Tag>();
-            item.getMap().put(field, tagMap);
+            item.setField(field, tagMap);
         }
         return tagMap;
     }
@@ -238,7 +240,7 @@ public class ItemAdapter implements Serializable {
     protected void setField(String name, String value) {
         String curValue = getFieldAsString(name);
         if (curValue == null || !curValue.equals(value)) {
-            item.getMap().put(name, value);
+            item.setField(name, value);
             modified = true;
         }
     }
@@ -251,7 +253,7 @@ public class ItemAdapter implements Serializable {
     protected void setFieldAsObject(String name, Object value) {
         Object curValue = getFieldAsObject(name);
         if (curValue == null || !curValue.equals(value)) {
-            item.getMap().put(name, (Serializable) value);
+            item.setField(name, (Serializable) value);
             modified = true;
         }
     }
@@ -265,7 +267,7 @@ public class ItemAdapter implements Serializable {
     protected void setField(String name, float value) {
         float curValue = getFieldAsFloat(name);
         if (value != curValue) {
-            item.getMap().put(name, new Float(value));
+            item.setField(name, new Float(value));
             modified = true;
         }
     }
@@ -279,7 +281,7 @@ public class ItemAdapter implements Serializable {
     protected void setField(String fieldName, int value) {
         int curValue = getFieldAsInt(fieldName);
         if (value != curValue) {
-            item.getMap().put(fieldName, Integer.valueOf(value));
+            item.setField(fieldName, Integer.valueOf(value));
             modified = true;
         }
     }
@@ -293,7 +295,7 @@ public class ItemAdapter implements Serializable {
     protected void setField(String fieldName, long value) {
         long curValue = getFieldAsLong(fieldName);
         if (value != curValue) {
-            item.getMap().put(fieldName, Long.valueOf(value));
+            item.setField(fieldName, Long.valueOf(value));
             modified = true;
         }
     }
@@ -321,7 +323,7 @@ public class ItemAdapter implements Serializable {
         Map<String,Tag> tagMap = getTagMap(field);
         if (tagMap == null) {
             HashMap<String, Tag> newTagMap = new HashMap<String, Tag>();
-            item.getMap().put(field, newTagMap);
+            item.setField(field, newTagMap);
             tagMap = newTagMap;
         }
 
@@ -347,7 +349,7 @@ public class ItemAdapter implements Serializable {
         HashMap<K,V> objMap = (HashMap<K,V>) getFieldAsObject(field);
         if (objMap == null) {
             objMap = new HashMap<K,V>();
-            item.getMap().put(field, objMap);
+            item.setField(field, objMap);
         }
         
         // If the key already exists, replace it with version being passed
@@ -370,18 +372,30 @@ public class ItemAdapter implements Serializable {
         sb.append("name: " + item.getName() + "\n");
         sb.append("type: " + item.getType() + "\n");
 
-        List<String> keys = new ArrayList<String>(item.getMap().keySet());
-        Collections.sort(keys);
+        //
+        // Get the map entries sorted by key.
+        List<Map.Entry<String,Serializable>> sl = new ArrayList<Map.Entry<String, Serializable>>();
+        for(Map.Entry<String,Serializable> e : item) {
+            sl.add(e);
+        }
+        Collections.sort(sl, new Comparator<Map.Entry<String,Serializable>>() {
+            public int compare(Entry<String, Serializable> o1,
+                    Entry<String, Serializable> o2) {
+                return o1.getKey().compareTo(o2.getKey());
+            }
+            
+        });
 
-        for (String name : keys) {
-            Object o = item.getMap().get(name);
-            sb.append("    " + name + ": ");
-            if (o instanceof Collection) {
-                for (Object element : (Collection) o) {
+        //
+        // Put them in the string.
+        for(Map.Entry<String,Serializable> e : sl) {
+            sb.append("    " + e.getKey() + ": ");
+            if (e.getValue() instanceof Collection) {
+                for (Object element : (Collection) e.getValue()) {
                     sb.append(element + ",");
                 }
             } else {
-                sb.append(o);
+                sb.append(e.getValue().toString());
             }
             sb.append("\n");
         }

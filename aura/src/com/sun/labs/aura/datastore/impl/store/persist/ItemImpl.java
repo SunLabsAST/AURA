@@ -6,6 +6,7 @@ import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.datastore.impl.store.FieldDescription;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -13,6 +14,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,6 +48,18 @@ public class ItemImpl implements Item {
     
     /** Instantiated hashmap from the mapBytes */
     private transient HashMap<String,Serializable> map = null;
+    
+    /**
+     * A map from names to field descriptions that we can use to test 
+     * field assignments.
+     */
+    private Map<String,FieldDescription> fieldDescr;
+    
+    /**
+     * A flag indicating that a field that the search engine needs to index
+     * has been set by someone.
+     */
+    private transient boolean mustIndex;
     
     protected static final Logger logger = Logger.getLogger("");
     
@@ -112,12 +127,46 @@ public class ItemImpl implements Item {
     public void setName(String name) {
         this.name = name;
     }
+    
+    public void setFields(Map<String,FieldDescription> m) {
+        this.fieldDescr = new HashMap<String,FieldDescription>(m);
+    }
 
+    public void setField(String field, Serializable value) {
+        getMap();
+        FieldDescription d = fieldDescr.get(field);
+        if(d == null) {
+            throw new IllegalArgumentException("Attempting to set undefined field " + field);
+        }
+        map.put(field, value);
+        
+        //
+        // If this is a field that the search engine will care about, then 
+        // we need to index it.
+        if(d.mustIndex()) {
+            mustIndex = true;
+        }
+    }
+    
+    /**
+     * Indicates whether this item needs to be indexed by the search engine.
+     * @return <code>true</code> if the item was changed in such a way that it 
+     * must be indexed.
+     */
+    public boolean mustIndex() {
+        return mustIndex;
+    }
+    
+    public Serializable getField(String field) {
+        getMap();
+        return map.get(field);
+    }
+    
     /**
      * Gets the internal copy of the map used by this item.
      * @return the item's map
      */
-    public HashMap<String,Serializable> getMap() {
+    private void getMap() {
         if (map == null && mapBytes != null && mapBytes.length > 0) {
             // deserialize mapBytes into map object
             try {
@@ -134,17 +183,14 @@ public class ItemImpl implements Item {
         } else if (map == null) {
             map = new HashMap<String,Serializable>();
         }
-        return map;
     }
     
     /**
-     * Replaces the map that this item had.
+     * Returns an iterator for the entries in this item's map.
      */
-    public void setMap(HashMap<String,Serializable> map) {
-        this.map = map;
-        if ((map == null) || (map.isEmpty())) {
-            mapBytes = new byte[0];
-        }
+    public Iterator<Map.Entry<String,Serializable>> iterator() {
+        getMap();
+        return map.entrySet().iterator();
     }
     
     /**

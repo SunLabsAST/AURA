@@ -1,15 +1,17 @@
 
 package com.sun.labs.aura.datastore;
 
+import com.sun.labs.aura.datastore.impl.store.FieldDescription;
+import com.sun.labs.aura.datastore.impl.store.ItemStore;
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A simple item for storage in an item store.  Items have keys, types, and
  * names.  Items also store a map from string names to object values for
  * storage of arbitrary data.
  */
-public interface Item extends Serializable {
+public interface Item extends Serializable, Iterable<Map.Entry<String,Serializable>> {
     public enum ItemType {
         USER,
         FEED,
@@ -105,15 +107,20 @@ public interface Item extends Serializable {
     public void setName(String name);
     
     /**
-     * Gets the internal copy of the data storage map used by this item.
-     * 
-     * @return the item's map
+     * Sets the value of a field.
+     * @param field the name of the field whose value we want to set
+     * @param value the value that we want to set
+     * @throws IllegalArgumentException if the named field is not defined
+     * @see DataStore#defineField
      */
-    public HashMap<String,Serializable> getMap();
+    public void setField(String field, Serializable value);
     
     /**
-     * Replaces the internal copy of the data storage map with the provided map
+     * Gets the value of a field.
+     * @param field the field whose value we want
+     * @return the value for the field, or <code>null</code> if there is no such
+     * field in this item.
      */
-    public void setMap(HashMap<String,Serializable> map);
-
+    public Serializable getField(String field);
+    
 }

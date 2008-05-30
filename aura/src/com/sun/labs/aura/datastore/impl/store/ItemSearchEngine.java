@@ -3,6 +3,7 @@ package com.sun.labs.aura.datastore.impl.store;
 import com.sun.labs.aura.datastore.Indexable;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.minion.CompositeResultsFilter;
@@ -206,7 +207,6 @@ public class ItemSearchEngine implements Configurable {
             //
             // Get the item's map, and make a map for ourselves of just the 
             // stuff that we want to index.
-            Map<String, Serializable> dm = item.getMap();
             Map<String, Object> im = new HashMap<String, Object>();
 
             //
@@ -215,62 +215,55 @@ public class ItemSearchEngine implements Configurable {
             im.put("aura-key", item.getKey());
             im.put("aura-name", item.getName());
             im.put("aura-type", item.getType().toString());
-            if(dm != null) {
-                for(Map.Entry<String, Serializable> e : dm.entrySet()) {
-                    Serializable val = e.getValue();
-                    
-                    //
-                    // We need to make sure that if an item changes, it doesn't
-                    // get an ever-growing set of autotags, so we won't add any
-                    // autotags when indexing.
-                    if(e.getKey().equals("autotag")) {
-                        continue;
-                    }
+            
+            //
+            // Index the elements of the map that require indexing.
+            for(Map.Entry<String, Serializable> e : item) {
+                Serializable val = e.getValue();
 
-                    //
-                    // OK, first up, make sure that we have an appropriately defined
-                    // field for this name.  We'll need to make sure that we're not
-                    // clobbering field types as we go.
-                    FieldInfo fi = engine.getFieldInfo(e.getKey());
-                    FieldInfo.Type type = getType(val);
-
-                    //
-                    // Ignore stuff we don't know how to handle.
-                    if(type == FieldInfo.Type.NONE) {
-                        continue;
-                    }
-
-                    if(fi == null) {
-                        //
-                        // We haven't encountered this field name before, so define
-                        // the field.
-                        fi = new FieldInfo(e.getKey(), getAttributes(type),
-                                type);
-                        engine.defineField(fi);
-                    } else {
-                        //
-                        // Make sure we're not clobbering something here.
-                        if(fi.getType() != type) {
-                            log.severe(String.format("Attempting to redefine field %s from %s to %s!",
-                                    e.getKey(), fi.getType(), type));
-                            continue;
-                        }
-                    }
-
-                    //
-                    // Now get a value to put in the index map.
-                    Object indexVal = val;
-                    if(indexVal instanceof Map) {
-                        indexVal = ((Map) indexVal).values();
-                    } else if(val instanceof Indexable ||
-                            val instanceof String) {
-                        //
-                        // The content might contain XML or HTML, so let's get
-                        // rid of that stuff.
-                        indexVal = new IndexableString(indexVal.toString(), IndexableString.Type.HTML);
-                    }
-                    im.put(e.getKey(), indexVal);
+                //
+                // We need to make sure that if an item changes, it doesn't
+                // get an ever-growing set of autotags, so we won't add any
+                // autotags when indexing.
+                if(e.getKey().equalsIgnoreCase("autotag")) {
+                    continue;
                 }
+
+                //
+                // OK, first up, make sure that we have an appropriately defined
+                // field for this name.  We'll need to make sure that we're not
+                // clobbering field types as we go.
+                FieldInfo fi = engine.getFieldInfo(e.getKey());
+                
+                if(fi == null) {
+                    //
+                    // We should have had this field defined, so we can skip this
+                    // one.
+                    continue;
+                }
+                
+                FieldInfo.Type type = getType(val);
+
+                //
+                // Ignore stuff we don't know how to handle.
+                if(type == FieldInfo.Type.NONE) {
+                    continue;
+                }
+
+                //
+                // Now get a value to put in the index map.
+                Object indexVal = val;
+                if(indexVal instanceof Map) {
+                    indexVal = ((Map) indexVal).values();
+                } else if(val instanceof Indexable ||
+                        val instanceof String) {
+                    //
+                    // The content might contain XML or HTML, so let's get
+                    // rid of that stuff.
+                    indexVal = new IndexableString(indexVal.toString(),
+                            IndexableString.Type.HTML);
+                }
+                im.put(e.getKey(), indexVal);
             }
 
             engine.index(item.getKey(), im);

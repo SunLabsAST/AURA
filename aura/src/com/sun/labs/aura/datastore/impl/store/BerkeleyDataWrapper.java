@@ -27,12 +27,13 @@ import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.StringAndTimeKey;
 import com.sun.labs.aura.util.Times;
 import java.io.File;
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -126,6 +127,8 @@ public class BerkeleyDataWrapper {
      * the composite key of target ID and timestamp
      */
     protected SecondaryIndex<StringAndTimeKey, Long, PersistentAttention> attnByTargetAndTime;
+    
+    protected Map<String,FieldDescription> fields;
 
     protected Logger log;
 
@@ -324,6 +327,7 @@ public class BerkeleyDataWrapper {
         ItemImpl ret = null;
         try {
             ret = itemByKey.get(null, key, LockMode.READ_UNCOMMITTED);
+            ret.setFields(fieldByName.map());
         } catch(DatabaseException e) {
             log.log(Level.WARNING, "getItem() failed to retrieve item (key:" +
                     key + ")", e);
