@@ -542,12 +542,6 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy-ear-war file="${reference.aura.jar}" propname="included.lib.reference.aura.jar.X"/>
         <basename file="${reference.sitm.jar}" property="included.lib.reference.sitm.jar"/>
         <copy-ear-war file="${reference.sitm.jar}" propname="included.lib.reference.sitm.jar.X"/>
-        <basename file="${file.reference.gwt-servlet.jar}" property="included.lib.file.reference.gwt-servlet.jar"/>
-        <copy-ear-war file="${file.reference.gwt-servlet.jar}" propname="included.lib.file.reference.gwt-servlet.jar.X"/>
-        <basename file="${libs.GWT1.4.62.classpath}" property="included.lib.libs.GWT1.4.62.classpath"/>
-        <copy-ear-war file="${libs.GWT1.4.62.classpath}" propname="included.lib.libs.GWT1.4.62.classpath.X"/>
-        <basename file="${file.reference.gwt-dev-linux.jar}" property="included.lib.file.reference.gwt-dev-linux.jar"/>
-        <copy-ear-war file="${file.reference.gwt-dev-linux.jar}" propname="included.lib.file.reference.gwt-dev-linux.jar.X"/>
         <basename file="${file.reference.browser.jar}" property="included.lib.file.reference.browser.jar"/>
         <copy-ear-war file="${file.reference.browser.jar}" propname="included.lib.file.reference.browser.jar.X"/>
         <basename file="${file.reference.checkconfigurationfile.jar}" property="included.lib.file.reference.checkconfigurationfile.jar"/>
@@ -616,11 +610,15 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy-ear-war file="${file.reference.sun-util.jar}" propname="included.lib.file.reference.sun-util.jar.X"/>
         <basename file="${file.reference.tools.jar}" property="included.lib.file.reference.tools.jar"/>
         <copy-ear-war file="${file.reference.tools.jar}" propname="included.lib.file.reference.tools.jar.X"/>
-        <basename file="${file.reference.flickrapi-1.0b3.jar}" property="included.lib.file.reference.flickrapi-1.0b3.jar"/>
-        <copy-ear-war file="${file.reference.flickrapi-1.0b3.jar}" propname="included.lib.file.reference.flickrapi-1.0b3.jar.X"/>
+        <basename file="${file.reference.gwt-dev-mac.jar}" property="included.lib.file.reference.gwt-dev-mac.jar"/>
+        <copy-ear-war file="${file.reference.gwt-dev-mac.jar}" propname="included.lib.file.reference.gwt-dev-mac.jar.X"/>
+        <basename file="${file.reference.gwt-servlet.jar}" property="included.lib.file.reference.gwt-servlet.jar"/>
+        <copy-ear-war file="${file.reference.gwt-servlet.jar}" propname="included.lib.file.reference.gwt-servlet.jar.X"/>
+        <basename file="${file.reference.gwt-user.jar}" property="included.lib.file.reference.gwt-user.jar"/>
+        <copy-ear-war file="${file.reference.gwt-user.jar}" propname="included.lib.file.reference.gwt-user.jar.X"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${included.lib.file.reference.minion.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.reference.aura.jar} ${included.lib.reference.sitm.jar} ${included.lib.file.reference.gwt-servlet.jar} ${included.lib.libs.GWT1.4.62.classpath} ${included.lib.file.reference.gwt-dev-linux.jar} ${included.lib.file.reference.browser.jar} ${included.lib.file.reference.checkconfigurationfile.jar} ${included.lib.file.reference.checkser.jar} ${included.lib.file.reference.classdep.jar} ${included.lib.file.reference.classserver.jar} ${included.lib.file.reference.computedigest.jar} ${included.lib.file.reference.computehttpmdcodebase.jar} ${included.lib.file.reference.destroy.jar} ${included.lib.file.reference.envcheck.jar} ${included.lib.file.reference.fiddler.jar} ${included.lib.file.reference.group.jar} ${included.lib.file.reference.jarwrapper.jar} ${included.lib.file.reference.jini-core.jar} ${included.lib.file.reference.jini-ext.jar} ${included.lib.file.reference.jsk-debug-policy.jar} ${included.lib.file.reference.jsk-lib.jar} ${included.lib.file.reference.jsk-platform.jar} ${included.lib.file.reference.jsk-resources.jar} ${included.lib.file.reference.mahalo.jar} ${included.lib.file.reference.mercury.jar} ${included.lib.file.reference.norm.jar} ${included.lib.file.reference.outrigger-logstore.jar} ${included.lib.file.reference.outrigger-snaplogstore.jar} ${included.lib.file.reference.outrigger.jar} ${included.lib.file.reference.phoenix-group.jar} ${included.lib.file.reference.phoenix-init.jar} ${included.lib.file.reference.phoenix.jar} ${included.lib.file.reference.prebuilt-outrigger-logstore.jar} ${included.lib.file.reference.preferredlistgen.jar} ${included.lib.file.reference.reggie.jar} ${included.lib.file.reference.sharedvm.jar} ${included.lib.file.reference.start.jar} ${included.lib.file.reference.sun-util.jar} ${included.lib.file.reference.tools.jar} ${included.lib.file.reference.flickrapi-1.0b3.jar} "/>
+            <attribute name="Class-Path" value="${included.lib.file.reference.minion.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.reference.aura.jar} ${included.lib.reference.sitm.jar} ${included.lib.file.reference.browser.jar} ${included.lib.file.reference.checkconfigurationfile.jar} ${included.lib.file.reference.checkser.jar} ${included.lib.file.reference.classdep.jar} ${included.lib.file.reference.classserver.jar} ${included.lib.file.reference.computedigest.jar} ${included.lib.file.reference.computehttpmdcodebase.jar} ${included.lib.file.reference.destroy.jar} ${included.lib.file.reference.envcheck.jar} ${included.lib.file.reference.fiddler.jar} ${included.lib.file.reference.group.jar} ${included.lib.file.reference.jarwrapper.jar} ${included.lib.file.reference.jini-core.jar} ${included.lib.file.reference.jini-ext.jar} ${included.lib.file.reference.jsk-debug-policy.jar} ${included.lib.file.reference.jsk-lib.jar} ${included.lib.file.reference.jsk-platform.jar} ${included.lib.file.reference.jsk-resources.jar} ${included.lib.file.reference.mahalo.jar} ${included.lib.file.reference.mercury.jar} ${included.lib.file.reference.norm.jar} ${included.lib.file.reference.outrigger-logstore.jar} ${included.lib.file.reference.outrigger-snaplogstore.jar} ${included.lib.file.reference.outrigger.jar} ${included.lib.file.reference.phoenix-group.jar} ${included.lib.file.reference.phoenix-init.jar} ${included.lib.file.reference.phoenix.jar} ${included.lib.file.reference.prebuilt-outrigger-logstore.jar} ${included.lib.file.reference.preferredlistgen.jar} ${included.lib.file.reference.reggie.jar} ${included.lib.file.reference.sharedvm.jar} ${included.lib.file.reference.start.jar} ${included.lib.file.reference.sun-util.jar} ${included.lib.file.reference.tools.jar} ${included.lib.file.reference.gwt-dev-mac.jar} ${included.lib.file.reference.gwt-servlet.jar} ${included.lib.file.reference.gwt-user.jar} "/>
         </manifest>
         <delete dir="${dist.ear.dir}/temp"/>
     </target>
@@ -629,9 +627,6 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy file="${file.reference.LabsUtil.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${reference.aura.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${reference.sitm.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.gwt-servlet.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.GWT1.4.62.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.gwt-dev-linux.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.browser.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.checkconfigurationfile.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.checkser.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
@@ -666,7 +661,9 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy file="${file.reference.start.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.sun-util.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.tools.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.flickrapi-1.0b3.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gwt-dev-mac.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gwt-servlet.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gwt-user.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>
