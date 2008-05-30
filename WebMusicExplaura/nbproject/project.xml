@@ -26,10 +26,6 @@
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library files="1">
-                    <file>${file.reference.xstream-1.2.1.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
                     <file>${file.reference.gwt-servlet.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
@@ -183,7 +179,6 @@
                 </library>
             </web-module-libraries>
             <web-module-additional-libraries/>
-            <explicit-platform explicit-source-supported="true"/>
             <source-roots>
                 <root id="src.dir"/>
             </source-roots>

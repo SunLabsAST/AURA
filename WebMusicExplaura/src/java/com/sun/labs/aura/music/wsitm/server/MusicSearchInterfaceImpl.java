@@ -43,9 +43,16 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         //logger.log("_system_", "startup", "");
     }
 
-    public SearchResults tagSearch(String searchString, int maxResults) {
-        //logger.log("anon", "tagSearch", searchString);
-        return dm.tagSearch(searchString, maxResults);
+    public SearchResults tagSearch(String searchString, int maxResults) throws Exception {
+        logger.info("MusicSearchInterfaceImpl::tagSearch: "+searchString);
+        try {
+            return dm.tagSearch(searchString, maxResults);
+        } catch (Exception e) {
+            logger.severe("MusicSearchInterfaceImpl::artistSearch Exception: "+e.getMessage());
+            logger.severe(traceToString(e));
+            throw e;
+        }
+
     }
 
     public SearchResults artistSearch(String searchString, int maxResults) throws Exception {
@@ -60,7 +67,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
            
     }
 
-    
     public SearchResults artistSearchByTag(String searchString, int maxResults) 
             throws Exception {
         logger.info("MusicSearchInterfaceImpl::artistSearchByTag: "+searchString);
@@ -79,26 +85,41 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getArtistDetails(id, false);
         } catch (Exception e) {
-            logger.severe("MusicSearchInterfaceImpl::getArtistDetails Exception: "+e.getMessage());
-            for (StackTraceElement s : e.getStackTrace())
-                logger.severe(s.toString());
-            //logger.severe(e.getStackTrace().toString());
+            logger.severe("MusicSearchInterfaceImpl::getArtistDetails Exception: "+e.getMessage()+" / "+e.getCause());
+            logger.severe(traceToString(e));
             throw e;
         }
     }
 
-    public TagDetails getTagDetails(String id, boolean refresh) {
-        //logger.log("anon", "getTagDetails", id);
-        return dm.getTagDetails(id, refresh);
+    public TagDetails getTagDetails(String id, boolean refresh) throws Exception {
+        logger.info("MusicSearchInterfaceImpl::getTagDetails: "+id);
+        try {
+            // Make sure the tag is passed with the correct header
+            if (!id.startsWith("artist-tag:")) {
+                id="artist-tag:"+id;
+            }
+            return dm.getTagDetails(id, refresh);
+        } catch (Exception e) {
+            logger.severe("MusicSearchInterfaceImpl::getTagDetails Exception: "+e.getMessage()+" / "+e.getCause());
+            logger.severe(traceToString(e));
+            throw e;
+        }
     }
 
     public TagTree getTagTree() {
         return dm.getTagTree();
     }
     
-    public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num) {
-        //logger.log("anon", "getCommonTags", artistID1);
-        return dm.getCommonTags(artistID1, artistID2, num);
+    public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num) 
+            throws Exception {
+        logger.info("MusicSearchInterfaceImpl::getCommonTags for "+artistID1+" and "+artistID2);
+        try {
+            return dm.getCommonTags(artistID1, artistID2, num);
+        } catch (Exception e) {
+            logger.severe("MusicSearchInterfaceImpl::getCommonTags Exception: "+e.getMessage()+" / "+e.getCause());
+            logger.severe(traceToString(e));
+            throw e;
+        }
     }
 
     public void destroy() {
