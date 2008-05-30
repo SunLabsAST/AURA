@@ -4,16 +4,12 @@
  */
 package com.sun.labs.aura.music.webservices;
 
-import com.sun.labs.aura.datastore.DataStore;
-import com.sun.labs.aura.datastore.Item;
-import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Artist;
-import com.sun.labs.aura.recommender.TypeFilter;
+import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.io.*;
 
-import java.rmi.RemoteException;
 import java.util.List;
 import javax.servlet.*;
 import javax.servlet.http.*;
@@ -32,10 +28,10 @@ public class FindSimilarArtist extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         ServletContext context = getServletContext();
-        DataStore dataStore = (DataStore) context.getAttribute("dataStore");
+        MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
-        if (dataStore == null)  {
-            Shared.forwardToError(context, request, response, "Can't find the datastore");
+        if (mdb == null)  {
+            Shared.forwardToError(context, request, response, "Can't find the music ");
         }
 
         String key = request.getParameter("key");
@@ -49,32 +45,31 @@ public class FindSimilarArtist extends HttpServlet {
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
 
-        Item item = null;
+        Artist artist = null;
         try {
             if (key == null) {
                 String name = request.getParameter("name");
                 if (name != null) {
-                    Artist artist = findArtist(dataStore, name);
+                    artist = mdb.artistFindBestMatch(name);
                     if (artist != null) {
                         key = artist.getKey();
                     }
                 }
             }
-            if (key != null && ((item = dataStore.getItem(key)) != null)) {
-                List<Scored<Item>> scoredItems = dataStore.findSimilar(key, 
-                        Artist.FIELD_SOCIAL_TAGS, maxCount, new TypeFilter(ItemType.ARTIST));
+            if (key != null && ((artist = mdb.artistLookup(key)) != null)) {
+                List<Scored<Artist>> scoredArtists = mdb.artistFindSimilar(key, maxCount);
 
-                out.println("<FindSimilarArtist key=\"" + key + "\" name=\"" + filter(item.getName()) + "\">");
-                for (Scored<Item> si : scoredItems) {
+                out.println("<FindSimilarArtist key=\"" + key + "\" name=\"" + filter(artist.getName()) + "\">");
+                for (Scored<Artist> scoredArtist : scoredArtists) {
 
-                    if (si.getItem().getKey().equals(key)) {
+                    if (scoredArtist.getItem().getKey().equals(key)) {
                         continue;
                     }
 
-                    Artist simArtist = new Artist(si.getItem());
+                    Artist simArtist = scoredArtist.getItem();
                     out.println("    <artist key=\"" +
                             simArtist.getKey() + "\" " +
-                            "score=\"" + si.getScore() + "\" " +
+                            "score=\"" + scoredArtist.getScore() + "\" " +
                             "name=\"" + filter(simArtist.getName()) + "\"" +
                             "/>");
                 }
@@ -97,15 +92,6 @@ public class FindSimilarArtist extends HttpServlet {
             s = s.replaceAll("[^\\p{Graph}\\p{Blank}]", "");
         }
         return s;
-    }
-
-    private Artist findArtist(DataStore dataStore, String qname) throws AuraException, RemoteException {
-        String query = "(aura-type = artist) <AND> (aura-name <matches> \"*" + qname + "*\")";
-        List<Scored<Item>> items = dataStore.query(query, "-score", 1, null);
-        if (items.size() > 0) {
-            return new Artist(items.get(0).getItem());
-        }
-        return null;
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

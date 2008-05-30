@@ -262,7 +262,12 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         // 'callback' will be invoked when the RPC completes.
         //
         //  Provide your own name.
-        musicServer.tagSearch(searchText, 100, callback);
+        try {
+            musicServer.tagSearch(searchText, 100, callback);
+        } catch (Exception ex) {
+            Window.alert(ex.getMessage());
+            
+        }
     }
 
     private void invokeArtistSearchService(String searchText, boolean byTag, int page) {
@@ -398,13 +403,17 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         };
 
-        showMessage("Getting info for tag");
+        showMessage("Getting info for tag",ICON_WAIT);
 
         // (4) Make the call. Control flow will continue immediately and later
         // 'callback' will be invoked when the RPC completes.
         //
         //  Provide your own name.
-        musicServer.getTagDetails(tagID, refresh, callback);
+        try {
+            musicServer.getTagDetails(tagID, refresh, callback);
+        } catch (Exception ex) {
+            Window.alert(ex.getMessage());
+        }
     }
 
     private void invokeGetCommonTags(String artistID1, String artistID2) {
@@ -426,7 +435,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }
-      
     }
 
     private Widget createArtistPanel(String title, ArtistDetails artistDetails) {

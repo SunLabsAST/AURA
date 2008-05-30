@@ -17,7 +17,6 @@ import com.sun.labs.aura.music.Video;
 import com.sun.labs.aura.music.util.CommandRunner;
 import com.sun.labs.aura.music.util.Commander;
 import com.sun.labs.aura.music.web.flickr.FlickrManager;
-import com.sun.labs.aura.music.web.flickr.Image;
 import com.sun.labs.aura.music.web.lastfm.LastArtist;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
 import com.sun.labs.aura.music.web.lastfm.SocialTag;
@@ -29,7 +28,6 @@ import com.sun.labs.aura.music.web.upcoming.Upcoming;
 import com.sun.labs.aura.music.web.wikipedia.WikiInfo;
 import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
 import com.sun.labs.aura.music.web.youtube.Youtube;
-import com.sun.labs.aura.music.web.youtube.YoutubeVideo;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigString;
@@ -124,9 +122,11 @@ public class ArtistCrawler implements AuraService, Configurable {
         int count = 0;
         try {
             primeArtistQueue("The Beatles");
+            /*
             primeArtistQueue("Radiohead");
             primeArtistQueue("Miles Davis");
             primeArtistQueue("Britney Spears");
+             */
         } catch (AuraException ae) {
             logger.severe("ArtistCrawler Can't talk to the datastore, abandoning crawl");
             return;
