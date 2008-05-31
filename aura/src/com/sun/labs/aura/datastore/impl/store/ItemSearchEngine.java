@@ -175,7 +175,7 @@ public class ItemSearchEngine implements Configurable {
                     attr.add(FieldInfo.Attribute.TOKENIZED);
                     break;
                 case SIMILARITY:
-                    attr.add(FieldInfo.Attribute.TOKENIZED);
+                    attr.add(FieldInfo.Attribute.INDEXED);
                     attr.add(FieldInfo.Attribute.VECTORED);
                     break;
                 case SORT:
