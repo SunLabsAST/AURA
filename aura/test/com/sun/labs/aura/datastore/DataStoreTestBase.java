@@ -21,13 +21,15 @@ import java.util.logging.Logger;
 import com.sun.labs.aura.TestUtilities;
 import com.sun.labs.aura.AuraServiceStarter;
 import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.aura.datastore.util.DataStoreFactory;
 import com.sun.labs.aura.AuraService;
-import com.sun.labs.aura.datastore.StoreFactory;
 
 /**
- * Creates a simple DataStore adds a user to it and then removes that user.
+ * Creates a simple DataStore and initializes it. Because JUnit tests are
+ * designed to be atomic and the datastore should, at times, be shared across
+ * multiple tests, the initialization is done statically.
  * 
- * @author Will Holcomb <will.holcomb@sun.com>
+ * @author Will Holcomb <william.holcomb@sun.com>
  */
 public class DataStoreTestBase {
     static final String CONFIG_FILE = "SinglePathStoreConfig.xml";
@@ -35,45 +37,37 @@ public class DataStoreTestBase {
     static final String STARTER_KEY ="starter";
     
     Logger log;
-    ConfigurationManager configMgr;
+    private DataStore dataStore;
     File testDirectory;
     AuraServiceStarter starter;
     
     public DataStoreTestBase() {
-        log = TestUtilities.getLogger(getClass());
+        log = TestUtilities.getLogger(DataStoreTestBase.class);
     }
-
+    
     /**
      * DataStores are not loaded directly, rather they are instantiated using
      * a ConfigurationManager.
      */
     @Before
-    public void loadConfig() throws IOException {
+    public void loadConfig() throws IOException, InterruptedException {
         // Aura needs a location to put its temporary files
         testDirectory = TestUtilities.createTempDir("datastore_test");
         String dirname = testDirectory.getCanonicalPath();
         log.info("Test temp directory: " + dirname);
-        
-        URL configURI = getClass().getResource(CONFIG_FILE);
-        assertNotNull(configURI);
-        
-        // Minion uses a separate ConfigurationManager, so it is necessary to
-        // set a global property in order to affect minion. This needs to be set
-        // before the configuration manager is loaded.
-        System.setProperty("auraHome", dirname);
-
-        log.info("Loading configuration: " + configURI);
-        configMgr = new ConfigurationManager(configURI);
-        
-        // In order to start each of the services, they need to be loaded by the
-        // AuraServiceStarter through the ConfigurationManager
-        starter = (AuraServiceStarter)configMgr.lookup("starter");
+        dataStore = DataStoreFactory.getSimpleDataStore(dirname);
     }
 
+    public DataStore getDataStore() {
+        return dataStore;
+    }
+    
     @After
-    public void tearDown() {
-        log.info("Shutting down aura services");
-        starter.stopServices();
+    public void removeDataStore() {
+        // Aura will shut itself down. There is no way to tell it it do so
+        // without either keeping a reference to the service starter or closing
+        // the java vm.
+        DataStoreFactory.shutdownDataStore(dataStore);
         
         log.info("Removing test directory: " + testDirectory);
         TestUtilities.delTree(testDirectory);
