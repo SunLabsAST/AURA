@@ -8,6 +8,7 @@ import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
+import com.sun.labs.aura.aardvark.BlogUser;
 import com.sun.labs.aura.aardvark.Stats;
 import com.sun.labs.aura.aardvark.impl.crawler.FeedManager;
 import com.sun.labs.aura.aardvark.impl.crawler.FeedScheduler;
@@ -108,7 +109,6 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
-        logger.info("AardvarkImpl newProperties called");
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
         feedScheduler = (FeedScheduler) ps.getComponent(PROP_FEED_SCHEDULER);
         recommenderManager = (RecommenderManager) ps.getComponent(PROP_RECOMMENDER_MANAGER);
@@ -116,6 +116,15 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
         autoEnrollTestFeeds = ps.getBoolean(PROP_AUTO_ENROLL_TEST_FEEDS);
         autoEnrollMegaTestFeeds = ps.getBoolean(PROP_AUTO_ENROLL_MEGA_TEST_FEEDS);
         autoEnrollGiantTestFeeds = ps.getBoolean(PROP_AUTO_ENROLL_GIANT_TEST_FEEDS);
+        try {
+            (new BlogEntry(null, null)).defineFields(dataStore);
+            (new BlogFeed(null, null)).defineFields(dataStore);
+            (new BlogUser("foo", "bar")).defineFields(dataStore);
+        } catch(AuraException ax) {
+            throw new PropertyException(ax,
+                    "Error setting up fields in aardvark", ps.getInstanceName(),
+                    PROP_DATA_STORE);
+        }
     }
 
     /**

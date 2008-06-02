@@ -190,8 +190,8 @@ public class FeedManager implements AuraService, Configurable {
                     logger.warning("AuraException in crawler, still trying " +
                             ex.getMessage());
                 } catch (Throwable ex) {
-                    logger.warning("Unexpected exception when crawling feed " +
-                            key + " exception: " + ex.getMessage());
+                    logger.log(Level.WARNING, "Unexpected exception when crawling feed " +
+                            key, ex);
                 }
             }
         } finally {
@@ -222,8 +222,8 @@ public class FeedManager implements AuraService, Configurable {
                     logger.warning("RemoteException " + ex.getMessage());
                     break;
                 } catch (Throwable ex) {
-                    logger.warning("Unexpected exception when crawling feed " +
-                            key + " exception: " + ex.getMessage());
+                    logger.log(Level.WARNING, "Unexpected exception when crawling feed " +
+                            key, ex);
                 }
             }
         } finally {

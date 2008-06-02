@@ -14,6 +14,7 @@ import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.DSBitSet;
 import com.sun.labs.aura.datastore.impl.PartitionCluster;
 import com.sun.labs.aura.datastore.impl.Replicant;
+import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.util.Scored;
@@ -36,6 +37,7 @@ import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -210,6 +212,24 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         System.out.println(new Date() + ": Done closing search engine");
     }
 
+    public void defineField(ItemType itemType, String field)
+            throws AuraException, RemoteException {
+        defineField(itemType, field, null, null);
+    }
+
+    public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
+            Item.FieldType fieldType) throws AuraException, RemoteException {
+        bdb.defineField(itemType, field, caps, fieldType);
+        
+        //
+        // If this field is going to be dealt with by the search engine, then
+        // send it there.
+        if(caps != null && caps.size() > 0) {
+            searchEngine.defineField(itemType, field, caps, fieldType);
+        }
+        
+    }
+    
     /**
      * Get all the instances of a particular type of item from the store
      * 
@@ -238,6 +258,28 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
             ItemImpl itemImpl = (ItemImpl) item;
             
             //
+            // Walk the fields, make sure they're defined, and figure out whether
+            // we need to re-index this item.
+            boolean mustIndex = false;
+            Set<String> setFields = itemImpl.getSetFields();
+            for(Map.Entry<String,Serializable> e : itemImpl) {
+                FieldDescription fd;
+                try {
+                    fd = bdb.fieldByName.get(e.getKey());
+                } catch(DatabaseException ex) {
+                    throw new AuraException("Error getting field description ", ex);
+                }
+                if(fd == null) {
+                    throw new AuraException("Item " + item.getKey() + 
+                            " contains unknown field " + e.getKey());
+                }
+                if(fd.mustIndex() && setFields.contains(e.getKey())) {
+                    mustIndex = true;
+                }
+            }
+            
+            
+            //
             // If this was a remote object, its transient map will be null
             // and storeMap will be a no-op.  If it was a local object then
             // storeMap will serialize the map (if there is one).
@@ -247,10 +289,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                 existed = true;
             }
 
-            //
-            // The item was modified and/or created, so tell the indexer
-            // about it
-            searchEngine.index(item);
+            if(mustIndex || itemImpl.isNew()) {
+                //
+                // The item was modified in a way that requires indexing.
+                searchEngine.index(itemImpl);
+            }
 
             //
             // Finally, send out relevant events.
@@ -596,7 +639,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                 List<Scored<String>> autotags =
                         searchEngine.getAutoTags(ce.item.getKey());
                 if(autotags != null) {
-                    ce.item.getMap().put("autotag", (Serializable) autotags);
+                    ce.item.setField("autotag", (Serializable) autotags);
                     try {
                         ce.item.storeMap();
                         bdb.putItem(ce.item);
@@ -685,7 +728,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                 // Add the autotags.
                 List<Scored<String>> autotags = searchEngine.getAutoTags(ie.getKey());
                 if(autotags != null) {
-                    ie.getMap().put("autotag", (Serializable) autotags);
+                    ie.setField("autotag", (Serializable) autotags);
                     ie.storeMap();
                     try {
                         bdb.putItem(ie);

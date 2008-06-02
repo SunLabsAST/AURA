@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module>
-	<inherits name="com.google.gwt.user.User"/>
+        <!--  <inherits name="com.google.gwt.core.Core"/> -->
+	<inherits name='com.google.gwt.user.User'/>
+        <!-- <inherits name="com.google.gwt.user.theme.standard.Standard"/> -->
+    
 	<entry-point class="com.sun.labs.aura.music.wsitm.client.Main"/>
+        
+        <!-- Internationalization support. -->
+	<!-- <extend-property name="locale" values="en"/>
+        
+         -->
+        <stylesheet src="styles.css"/>
 	<!-- Do not define servlets here, use web.xml -->
 </module>

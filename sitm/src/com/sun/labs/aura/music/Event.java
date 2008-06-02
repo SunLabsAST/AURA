@@ -5,11 +5,13 @@
 
 package com.sun.labs.aura.music;
 
+import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
-import java.util.Date;
+import java.rmi.RemoteException;
+import java.util.EnumSet;
 
 /**
  *
@@ -39,7 +41,18 @@ public class Event extends ItemAdapter {
         this(StoreFactory.newItem(Item.ItemType.EVENT, key, name));
     }
 
-    /**
+   public void defineFields(DataStore ds) throws AuraException {
+        try {
+            ds.defineField(Item.ItemType.EVENT, FIELD_DATE,
+                    EnumSet.of(Item.FieldCapability.SORT, Item.FieldCapability.MATCH),
+                    Item.FieldType.DATE);
+            ds.defineField(Item.ItemType.EVENT, FIELD_VENUE_NAME);
+        } catch(RemoteException rx) {
+            throw new AuraException("Error defining fields for ArtistTag", rx);
+        }
+    }
+   
+   /**
      * Gets the id of the venue
      * @return the id
      */

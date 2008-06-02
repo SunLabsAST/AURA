@@ -119,8 +119,7 @@ public class ShellUtils {
                             Item item = dataStore.getItem(args[1]);
                             dumpItemFull(item);
                             if (item != null) {
-                                System.out.printf("%-15s %s\n", "autotags", item.getMap().
-                                        get("autotag"));
+                                System.out.printf("%-15s %s\n", "autotags", item.getField("autotag"));
                             }
 
                         } catch (Exception ex) {

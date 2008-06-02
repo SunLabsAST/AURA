@@ -71,6 +71,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             throws Exception {
         logger.info("MusicSearchInterfaceImpl::artistSearchByTag: "+searchString);
         try {
+            // Make sure the tag has the right header
+            if (!searchString.startsWith("artist-tag:")) {
+                searchString="artist-tag:"+searchString;
+            }
             return dm.artistSearchByTag(searchString, maxResults);
         } catch (Exception e) {
             logger.info("MusicSearchInterfaceImpl::artistSearchByTag Exception: "+e.getMessage());

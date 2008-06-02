@@ -1,15 +1,17 @@
 
 package com.sun.labs.aura.datastore;
 
+import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
+import com.sun.labs.aura.datastore.impl.store.ItemStore;
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A simple item for storage in an item store.  Items have keys, types, and
  * names.  Items also store a map from string names to object values for
  * storage of arbitrary data.
  */
-public interface Item extends Serializable {
+public interface Item extends Serializable, Iterable<Map.Entry<String,Serializable>> {
     public enum ItemType {
         USER,
         FEED,
@@ -22,6 +24,51 @@ public interface Item extends Serializable {
         EVENT,
         VENUE,
         ARTIST_TAG
+    }
+    
+    /**
+     * An enumeration of the capabilities that we want the fields inside an
+     * item's map to have.  These describe how the application will want to use
+     * the particular field.
+     * 
+     * @see ItemStore#defineField
+     */
+    public enum FieldCapability {
+        /**
+         * The field will be used for textual similarity operations.
+         */
+        SIMILARITY,
+        
+        /**
+         * The field will be used for exact match or range queries.
+         */
+        MATCH,
+        
+        /**
+         * The field will be used to search for particular words.
+         */
+        SEARCH,
+        
+        /**
+         * The field will be used to filter results from queries in the data
+         * store.
+         */
+        FILTER,
+        
+        /**
+         * The field will be used to sort results from queries to the data store.
+         */
+        SORT
+    }
+    
+    /**
+     * An enumeration of the data types for field values in an item.
+     */
+    public enum FieldType {
+        STRING,
+        INTEGER,
+        FLOAT,
+        DATE
     }
 
     /**
@@ -64,15 +111,19 @@ public interface Item extends Serializable {
     public void setName(String name);
     
     /**
-     * Gets the internal copy of the data storage map used by this item.
-     * 
-     * @return the item's map
+     * Sets the value of a field.
+     * @param field the name of the field whose value we want to set
+     * @param value the value that we want to set
+     * @see DataStore#defineField
      */
-    public HashMap<String,Serializable> getMap();
+    public void setField(String field, Serializable value);
     
     /**
-     * Replaces the internal copy of the data storage map with the provided map
+     * Gets the value of a field.
+     * @param field the field whose value we want
+     * @return the value for the field, or <code>null</code> if there is no such
+     * field in this item.
      */
-    public void setMap(HashMap<String,Serializable> map);
-
+    public Serializable getField(String field);
+    
 }

@@ -8,6 +8,7 @@ package com.sun.labs.aura.music.wsitm.server;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.music.Artist;
+import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Tag;
@@ -25,14 +26,14 @@ import javax.servlet.http.*;
 public class TagExplorer extends HttpServlet {
 
     private DataManager dm;
-    private DataStore datastore;
+    private MusicDatabase mdb;
     private Logger logger;
 
     @Override
     public void init(ServletConfig sc) throws ServletException {
         super.init(sc);
         dm = ServletTools.getDataManager(sc);
-        datastore = dm.getDataStore();
+        mdb = dm.getMusicDatabase();
         //@todo fix this
         //logger = dm.getLogger();
         //logger.log("_system_", "startup", "");

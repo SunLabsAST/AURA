@@ -9,9 +9,15 @@
 
 package com.sun.labs.aura.aardvark;
 
+import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.util.AuraException;
+import java.rmi.RemoteException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -47,6 +53,22 @@ public class BlogUser extends ItemAdapter {
         this(StoreFactory.newUser(key, name));
     }
 
+    public void defineFields(DataStore store) throws AuraException {
+        try {
+            store.defineField(Item.ItemType.USER, FIELD_DOB);
+            store.defineField(Item.ItemType.USER, FIELD_EMAIL_ADDRESS);
+            store.defineField(Item.ItemType.USER, FIELD_NICKNAME);
+            store.defineField(Item.ItemType.USER, FIELD_FULLNAME);
+            store.defineField(Item.ItemType.USER, FIELD_DOB);
+            store.defineField(Item.ItemType.USER, FIELD_GENDER);
+            store.defineField(Item.ItemType.USER, FIELD_POSTCODE);
+            store.defineField(Item.ItemType.USER, FIELD_COUNTRY);
+            store.defineField(Item.ItemType.USER, FIELD_LANGUAGE);
+            store.defineField(Item.ItemType.USER, FIELD_TIMEZONE);
+        } catch(RemoteException ex) {
+            throw new AuraException("Error defining fields for BlogUser", ex);
+        }
+    }
     public String getRandString() {
         return ((User)item).getUserRandString();
     }

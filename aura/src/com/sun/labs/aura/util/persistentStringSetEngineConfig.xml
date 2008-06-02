@@ -1,0 +1,3 @@
+<config>
+   <property name="dumper" value="sync_dumper"/>
+</config>

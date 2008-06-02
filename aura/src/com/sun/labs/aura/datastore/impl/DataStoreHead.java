@@ -33,6 +33,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -74,6 +75,20 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     public DataStoreHead() {
         trie = new BinaryTrie<PartitionCluster>();
         executor = Executors.newCachedThreadPool();
+    }
+    
+    public void defineField(ItemType itemType, String field)
+            throws AuraException, RemoteException {
+        defineField(itemType, field, null, null);
+    }
+    
+    public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
+            Item.FieldType fieldType) throws AuraException, RemoteException {
+
+        Set<PartitionCluster> clusters = trie.getAll();
+        for(PartitionCluster pc : clusters) {
+            pc.defineField(itemType, field, caps, fieldType);
+        }
     }
     
     public List<Item> getAll(final ItemType itemType)

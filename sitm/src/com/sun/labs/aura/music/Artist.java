@@ -4,11 +4,14 @@
  */
 package com.sun.labs.aura.music;
 
+import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.Tag;
+import java.rmi.RemoteException;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,21 +23,21 @@ import java.util.Set;
  */
 public class Artist extends ItemAdapter {
 
-    public final static String FIELD_POPULARITY = "popularity";
-    public final static String FIELD_BEGIN_YEAR = "beginYear";
-    public final static String FIELD_END_YEAR = "endYear";
-    public final static String FIELD_URLS = "urls";
-    public final static String FIELD_BIOGRAPHY_SUMMARY = "biographySummary";
-    public final static String FIELD_SOCIAL_TAGS = "socialTags";
-    public final static String FIELD_AUTO_TAGS = "autoTags";
-    public final static String FIELD_COLLABORATIONS = "collaborations";
-    public final static String FIELD_VIDEOS = "videos";
-    public final static String FIELD_PHOTOS = "photos";
     public final static String FIELD_ALBUM = "album";
+    public final static String FIELD_AUTO_TAGS = "autoTags";
+    public final static String FIELD_BEGIN_YEAR = "beginYear";
+    public final static String FIELD_BIOGRAPHY_SUMMARY = "biographySummary";
+    public final static String FIELD_COLLABORATIONS = "collaborations";
+    public final static String FIELD_END_YEAR = "endYear";
     public final static String FIELD_EVENTS = "events";
-    public final static String FIELD_RELATED_ARTISTS = "relatedArtists";
-    public final static String FIELD_INFLUENCERS = "influencers";
     public final static String FIELD_FOLLOWERS = "followers";
+    public final static String FIELD_INFLUENCERS = "influencers";
+    public final static String FIELD_PHOTOS = "photos";
+    public final static String FIELD_POPULARITY = "popularity";
+    public final static String FIELD_RELATED_ARTISTS = "relatedArtists";
+    public final static String FIELD_SOCIAL_TAGS = "socialTags";
+    public final static String FIELD_URLS = "urls";
+    public final static String FIELD_VIDEOS = "videos";
 
     /**
      * Wraps an Item as an artist
@@ -55,6 +58,50 @@ public class Artist extends ItemAdapter {
         this(StoreFactory.newItem(Item.ItemType.ARTIST, key, name));
     }
 
+    public void defineFields(DataStore ds) throws AuraException {
+        try {
+            EnumSet<Item.FieldCapability> ms = EnumSet.of(
+                    Item.FieldCapability.MATCH, Item.FieldCapability.SIMILARITY);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_ALBUM,
+                    EnumSet.of(Item.FieldCapability.MATCH),
+                    Item.FieldType.STRING);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_AUTO_TAGS,
+                    EnumSet.of(Item.FieldCapability.SEARCH,
+                    Item.FieldCapability.SIMILARITY), Item.FieldType.STRING);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_BEGIN_YEAR,
+                    EnumSet.of(Item.FieldCapability.MATCH,
+                    Item.FieldCapability.SORT),
+                    Item.FieldType.INTEGER);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_BIOGRAPHY_SUMMARY,
+                    EnumSet.of(Item.FieldCapability.SIMILARITY,
+                    Item.FieldCapability.SEARCH), Item.FieldType.STRING);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_COLLABORATIONS,
+                    ms, Item.FieldType.STRING);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_END_YEAR,
+                    EnumSet.of(Item.FieldCapability.MATCH,
+                    Item.FieldCapability.SORT),
+                    Item.FieldType.INTEGER);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_EVENTS, ms,
+                    Item.FieldType.STRING);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_FOLLOWERS, ms,
+                    Item.FieldType.STRING);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_INFLUENCERS, ms,
+                    Item.FieldType.STRING);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_PHOTOS);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_POPULARITY, EnumSet.of(
+                    Item.FieldCapability.SORT),
+                    Item.FieldType.FLOAT);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_RELATED_ARTISTS, ms,
+                    Item.FieldType.STRING);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_SOCIAL_TAGS, EnumSet.of(
+                    Item.FieldCapability.SEARCH,
+                    Item.FieldCapability.SIMILARITY), Item.FieldType.STRING);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_URLS);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_VIDEOS);
+        } catch(RemoteException ex) {
+            throw new AuraException("Error defining fields for Album", ex);
+        }
+    }
     /**
      * Gets the popularity of the artist
      * @return the popularity
