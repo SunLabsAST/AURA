@@ -93,7 +93,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
         if(caps != null) {
             if(fieldType != null) {
-                if(caps.size() == 1 && caps.contains(Item.FieldCapability.SIMILARITY)) {
+                if(caps.size() == 1 && (caps.contains(Item.FieldCapability.SIMILARITY) ||
+                        caps.contains(Item.FieldCapability.SEARCH))) {
                     throw new AuraException(
                             "Field type provided for field " +
                             field +
@@ -102,7 +103,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                 }
             } else {
                 if(caps.contains(Item.FieldCapability.FILTER) ||
-                        caps.contains(Item.FieldCapability.SEARCH) ||
+                        caps.contains(Item.FieldCapability.MATCH) ||
                         caps.contains(Item.FieldCapability.SORT)) {
                     throw new AuraException(
                             "No field type provided for field " +
