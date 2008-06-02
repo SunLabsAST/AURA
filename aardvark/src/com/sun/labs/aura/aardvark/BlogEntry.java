@@ -9,6 +9,7 @@
 
 package com.sun.labs.aura.aardvark;
 
+import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.util.Tag;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.datastore.Item;
@@ -16,8 +17,10 @@ import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.syndication.feed.synd.SyndEntry;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -51,6 +54,37 @@ public class BlogEntry extends ItemAdapter {
      */
     public BlogEntry(String key, String name) throws AuraException {
         this(StoreFactory.newItem(Item.ItemType.BLOGENTRY, key, name));
+    }
+    
+    public void defineFields(DataStore store) throws AuraException {
+        EnumSet<Item.FieldCapability> ss = EnumSet.of(Item.FieldCapability.SIMILARITY,
+                Item.FieldCapability.SEARCH);
+        try {
+            store.defineField(Item.ItemType.BLOGENTRY, FIELD_FEED_KEY, 
+                    EnumSet.of(Item.FieldCapability.SEARCH), 
+                    Item.FieldType.STRING);
+            store.defineField(Item.ItemType.BLOGENTRY, FIELD_TAG,
+                    ss, Item.FieldType.STRING);
+            store.defineField(Item.ItemType.BLOGENTRY, FIELD_CONTENT,
+                    ss, Item.FieldType.STRING);
+            store.defineField(Item.ItemType.BLOGENTRY, FIELD_SYND_ENTRY);
+            store.defineField(Item.ItemType.BLOGENTRY, FIELD_TAG,
+                    ss, Item.FieldType.STRING);
+            store.defineField(Item.ItemType.BLOGENTRY, FIELD_AUTHOR,
+                EnumSet.of(Item.FieldCapability.SEARCH), 
+                Item.FieldType.STRING);
+            store.defineField(Item.ItemType.BLOGENTRY, FIELD_AUTHORITY,
+                    EnumSet.of(Item.FieldCapability.SORT, 
+                    Item.FieldCapability.FILTER),
+                    Item.FieldType.INTEGER);
+            store.defineField(Item.ItemType.BLOGENTRY, FIELD_PUBLISH_DATE,
+                    EnumSet.of(Item.FieldCapability.SORT, 
+                    Item.FieldCapability.FILTER), Item.FieldType.DATE);
+            store.defineField(Item.ItemType.BLOGENTRY, FIELD_AUTOTAG,
+                    EnumSet.of(Item.FieldCapability.SIMILARITY), null);
+        } catch(RemoteException rx) {
+            throw new AuraException("Error defining fields for BlogEntry", rx);
+        }
     }
 
     /**

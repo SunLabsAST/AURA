@@ -51,7 +51,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private MusicSearchInterfaceAsync musicServer;
     private Image icon;
     
-    private static final String ICON_WAIT = "ajax-loader.gif";
+    private static final String ICON_WAIT = "ajax-bar.gif";
     
     public SimpleSearchWidget() {
         super("Simple Search");
@@ -74,15 +74,15 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         icon.setVisible(false);
         icon.setStyleName("img");
         
-        HorizontalPanel msgPanel = new HorizontalPanel();
+        VerticalPanel msgPanel = new VerticalPanel();
         msgPanel.setWidth("100%");
         msgPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
-        msgPanel.add(icon);
         msgPanel.add(message);
-        msgPanel.setCellWidth(icon, "50%");
-        msgPanel.setCellHorizontalAlignment(icon, HorizontalPanel.ALIGN_RIGHT);
+        msgPanel.add(icon);
+        msgPanel.setCellHeight(message, "35px");
+        msgPanel.setCellHorizontalAlignment(icon, VerticalPanel.ALIGN_CENTER);
         msgPanel.setCellWidth(message, "50%");
-        msgPanel.setCellHorizontalAlignment(message, HorizontalPanel.ALIGN_LEFT);
+        msgPanel.setCellHorizontalAlignment(message, VerticalPanel.ALIGN_CENTER);
         
         VerticalPanel topPanel = new VerticalPanel();
         topPanel.setWidth("100%");

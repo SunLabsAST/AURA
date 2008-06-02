@@ -10,8 +10,8 @@ import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import java.rmi.RemoteException;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The interface for a simple item store that allow the storage of users, items,
@@ -19,6 +19,46 @@ import java.util.Set;
  * error has occurred in the underlying database that backs the item store.
  */
 public interface ItemStore {
+
+    /**
+     * Defines a particular field for a given item type.  A field defined this 
+     * way will only be stored in the index and can be retrieved from the item, 
+     * but cannot be searched for.
+     * 
+     * @param itemType the type of the item with which this field is assoiciated.
+     * @param field the name of the field that we want to define
+     * @throws AuraException if the given field name has already been defined and the 
+     * provided capabilities and type for the field are not an exact match for those
+     * already provided.  This exception will also be thrown when a field type
+     * is supplied with a set of attributes that do not require a field type or
+     * when a field type is not supplied when one is required.
+     */
+    public void defineField(ItemType itemType, String field)
+            throws AuraException, RemoteException;
+    
+    /**
+     * Defines a particular field for a given item type.  It is acceptable to define
+     * a field multiple times if the same capabilities and type are provided each
+     * time that the field is defined.
+     * 
+     * @param itemType the type of the item with which this field is assoiciated.
+     * @param field the name of the field that we want to define
+     * @param caps a set of the capapbilities that the field should have.  If this
+     * set is empty (or null), then the value of the field will be stored and can be retrieved,
+     * but it cannot be used for similarity or query operations on items
+     * @param fieldType the type of the value in the field for this item type.
+     * The value should be non-<code>null</code> if the {@link Item.FieldCapabilities.SEARCH},
+     * {@link Item.FieldCapabilities.FILTER}, or {@link Item.FieldCapabilities.SORT}
+     * capabilities are provided.
+     * @throws AuraException if the given field name has already been defined and the 
+     * provided capabilities and type for the field are not an exact match for those
+     * already provided.  This exception will also be thrown when a field type
+     * is supplied with a set of attributes that do not require a field type or
+     * when a field type is not supplied when one is required.
+     */
+    public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
+            Item.FieldType fieldType) throws AuraException, RemoteException;
+    
     /**
      * Gets all of the items in the store that are of the given type.  This
      * could be a very large operation.

@@ -68,8 +68,7 @@ public class Reindexer implements IndexListener {
         bdw.close();
     }
 
-    public void partitionAdded(SearchEngine e,
-            Set<Object> keys) {
+    public void partitionAdded(SearchEngine e, Set<Object> keys) {
 
         int done = 0;
         for(Object o : keys) {
@@ -78,7 +77,7 @@ public class Reindexer implements IndexListener {
             List<Scored<String>> at = getAutoTags(key);
             if(at != null) {
                 ItemImpl item = bdw.getItem(key);
-                item.getMap().put("autotag", (Serializable) at);
+                item.setField("autotag", (Serializable) at);
                 item.storeMap();
                 try {
                     bdw.putItem(item);
@@ -98,13 +97,15 @@ public class Reindexer implements IndexListener {
 
     public List<Scored<String>> getAutoTags(String key) {
         DocKeyEntry dke =
-                ((SearchEngineImpl) engine.getSearchEngine()).getDocumentTerm(key);
+                ((SearchEngineImpl) engine.getSearchEngine()).getDocumentTerm(
+                key);
         if(dke == null) {
             //
             // No document by that name here...
             return null;
         }
-        List<String> autotags = (List<String>) ((InvFileDiskPartition) dke.getPartition()).getFieldStore().
+        List<String> autotags = (List<String>) ((InvFileDiskPartition) dke.
+                getPartition()).getFieldStore().
                 getSavedFieldData("autotag", dke.getID(), true);
         if(autotags.size() == 0) {
 
@@ -112,7 +113,8 @@ public class Reindexer implements IndexListener {
             // No tags.
             return null;
         }
-        List<Double> autotagScores = (List<Double>) ((InvFileDiskPartition) dke.getPartition()).getFieldStore().
+        List<Double> autotagScores = (List<Double>) ((InvFileDiskPartition) dke.
+                getPartition()).getFieldStore().
                 getSavedFieldData("autotag-score", dke.getID(), true);
         if(autotags.size() != autotagScores.size()) {
             logger.warning("Mismatched autotags and scores: " + autotags + " " +
@@ -149,7 +151,8 @@ public class Reindexer implements IndexListener {
         }
 
         if(indexDir == null || dbs.size() == 0) {
-            System.err.println("Usage:  Reindexer -d <index dir> -b <bdb dir> [-b <bdb dir>] [-o <old dir>]...");
+            System.err.println(
+                    "Usage:  Reindexer -d <index dir> -b <bdb dir> [-b <bdb dir>] [-o <old dir>]...");
             return;
         }
         //
@@ -173,7 +176,7 @@ public class Reindexer implements IndexListener {
         }
 
         engine.shutdown();
-        
+
         sw.stop();
         logger.info(String.format("Reindex took: %.2fs", sw.getTime() / 1000.0));
         if(oldDir == null) {
@@ -184,7 +187,7 @@ public class Reindexer implements IndexListener {
             System.err.println("Can't move new directory to old!");
             return;
         }
-        
+
         File newf = new File(indexDir);
         File oldf = new File(oldDir);
         File savef = new File(oldf.getParentFile(), "save.idx");

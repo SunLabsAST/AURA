@@ -6,6 +6,7 @@ import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -13,6 +14,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,12 +51,21 @@ public class ItemImpl implements Item {
     /** Instantiated hashmap from the mapBytes */
     private transient HashMap<String,Serializable> map = null;
     
+    /**
+     * A flag indicating that a field that the search engine needs to index
+     * has been set by someone.
+     */
+    private transient Set<String> sets;
+    
+    private transient boolean isNew;
+    
     protected static final Logger logger = Logger.getLogger("");
     
     /**
      * We need to provide a default constructor for BDB.
      */
     protected ItemImpl() {
+        sets = new HashSet<String>();
     }
 
     /**
@@ -65,6 +79,12 @@ public class ItemImpl implements Item {
         this.name = name;
         this.typeAndTimeAdded = new IntAndTimeKey(this.itemType,
                                                   System.currentTimeMillis());
+        isNew = true;
+        sets = new HashSet<String>();
+    }
+    
+    public boolean isNew() {
+        return isNew;
     }
 
     public String getKey() {
@@ -112,12 +132,27 @@ public class ItemImpl implements Item {
     public void setName(String name) {
         this.name = name;
     }
+    
+    public void setField(String field, Serializable value) {
+        getMap();
+        map.put(field, value);
+        sets.add(field);
+    }
 
+    public Set<String> getSetFields() {
+        return sets;
+    }
+    
+    public Serializable getField(String field) {
+        getMap();
+        return map.get(field);
+    }
+    
     /**
      * Gets the internal copy of the map used by this item.
      * @return the item's map
      */
-    public HashMap<String,Serializable> getMap() {
+    private void getMap() {
         if (map == null && mapBytes != null && mapBytes.length > 0) {
             // deserialize mapBytes into map object
             try {
@@ -134,17 +169,14 @@ public class ItemImpl implements Item {
         } else if (map == null) {
             map = new HashMap<String,Serializable>();
         }
-        return map;
     }
     
     /**
-     * Replaces the map that this item had.
+     * Returns an iterator for the entries in this item's map.
      */
-    public void setMap(HashMap<String,Serializable> map) {
-        this.map = map;
-        if ((map == null) || (map.isEmpty())) {
-            mapBytes = new byte[0];
-        }
+    public Iterator<Map.Entry<String,Serializable>> iterator() {
+        getMap();
+        return map.entrySet().iterator();
     }
     
     /**
