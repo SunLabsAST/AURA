@@ -184,9 +184,23 @@ public class ItemSearchEngine implements Configurable {
             }
         }
         
-        FieldInfo.Type type = fieldType == null ? FieldInfo.Type.NONE : FieldInfo.Type.valueOf(fieldType.toString());
+        if(attr.contains(FieldInfo.Attribute.SAVED) && fieldType == null) {
+            throw new IllegalArgumentException("Field " + field + 
+                    " with capabilities " + caps + 
+                    " requires field type to be specified.");
+        }
+        
+        //
+        // We may have been passed a type when it's not necessary, so we'll 
+        // just hide that from the engine.
+        FieldInfo.Type defineType = FieldInfo.Type.NONE;
+        if(fieldType != null) {
+            if(attr.contains(FieldInfo.Attribute.SAVED)) {
+                defineType = FieldInfo.Type.valueOf(fieldType.toString());
+            }
+        }
         try {
-            engine.defineField(new FieldInfo(field, attr, type));
+            engine.defineField(new FieldInfo(field, attr, defineType));
         } catch(SearchEngineException ex) {
             throw new AuraException("Error defining field " + field, ex);
         }
