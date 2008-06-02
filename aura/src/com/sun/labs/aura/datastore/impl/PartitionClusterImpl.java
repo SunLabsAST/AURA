@@ -283,11 +283,12 @@ public class PartitionClusterImpl implements PartitionCluster,
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
-        prefixCode = DSBitSet.parse(ps.getString(PROP_PREFIX));
         logger = ps.getLogger();
+        prefixCode = DSBitSet.parse(ps.getString(PROP_PREFIX));
         dataStoreHead = (DataStore) ps.getComponent(PROP_DATA_STORE_HEAD);
         PartitionCluster exported = (PartitionCluster) ps.getConfigurationManager().getRemote(this, dataStoreHead);
         try {
+            logger.info("Registering partition cluster: " + exported.getPrefix());
             dataStoreHead.registerPartitionCluster(exported);
         } catch (RemoteException rx) {
             throw new PropertyException(ps.getInstanceName(), PROP_DATA_STORE_HEAD, 
