@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Logger;
+
 
 /**
  * A binary tree whose leaf nodes point to particular partition clusters that
@@ -15,6 +17,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class BinaryTrie<E> implements Serializable {
     private static final long serialVersionUID = 1L;
+    Logger log;
     
     /**
      * The root of the Trie
@@ -32,6 +35,7 @@ public class BinaryTrie<E> implements Serializable {
         root = new TrieNode();
         contents = new HashSet<E>();
         lock = new ReentrantReadWriteLock();
+        log = Logger.getLogger(getClass().getName());
     }
     
     /**
@@ -61,15 +65,17 @@ public class BinaryTrie<E> implements Serializable {
             // We've traversed to where we want to insert.  Insert either to
             // the left or right depending on the value.  If this is a leaf
             // node, we lose the leaf object (?)
+            log.info("Setting child at: " + (prefix.get(offset) ? "1" : "0") +
+                     ": Offset: " + offset);
             if (prefix.get(offset)) {
                 if (curr.getOne() != null) {
-                    throw new IllegalStateException("A node already exists " +
+                    throw new IllegalStateException("A node already exists" +
                             " at the given prefix");
                 }
                 curr.setOne(new TrieNode(newElem));
             } else {
                 if (curr.getZero() != null) {
-                    throw new IllegalStateException("A node already exists " +
+                    throw new IllegalStateException("A node already exists" +
                             " at the given prefix");
                 }
                 curr.setZero(new TrieNode(newElem));
