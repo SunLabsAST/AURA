@@ -22,13 +22,21 @@ public class MusicDatabase {
 
     private DataStore dataStore;
 
-    public MusicDatabase(DataStore dataStore) {
+    public MusicDatabase(DataStore dataStore) throws AuraException {
         this.dataStore = dataStore;
+        new Album().defineFields(dataStore);
+        new Artist().defineFields(dataStore);
+        new ArtistTag().defineFields(dataStore);
+        new Event().defineFields(dataStore);
+        new Photo().defineFields(dataStore);
+        new Track().defineFields(dataStore);
+        new Venue().defineFields(dataStore);
+        new Video().defineFields(dataStore);
     }
 
     public List<Scored<Artist>> artistSearch(String artistName, int returnCount) throws AuraException {
-        String squery = "(aura-name <matches> \"*" + artistName + "*\")";
-        List<Scored<Item>> scoredItems = query(squery, returnCount, ItemType.ARTIST);
+        String squery = "(aura-type = artist) <AND> (aura-name <matches> \"*" + artistName + "*\")";
+        List<Scored<Item>> scoredItems = query(squery, returnCount);
         return convertToScoredArtistList(scoredItems);
     }
 
@@ -42,9 +50,9 @@ public class MusicDatabase {
     }
 
     public Artist artistFindBestMatch(String artistName) throws AuraException {
-        Item item = findBestItem(artistName, ItemType.ARTIST);
-        if (item != null) {
-            return new Artist(item);
+        List<Scored<Artist>> artists = artistSearch(artistName, 1);
+        if (artists.size() == 1) {
+            return artists.get(0).getItem();
         }
         return null;
     }
@@ -55,8 +63,8 @@ public class MusicDatabase {
     }
 
     public List<Scored<ArtistTag>> artistTagSearch(String artistTagName, int returnCount) throws AuraException {
-        String query = "(aura-name <matches> \"*" + artistTagName + "*\")";
-        List<Scored<Item>> scoredItems = query(query, returnCount, ItemType.ARTIST_TAG);
+        String query = "(aura-type = artistTag) <AND> (aura-name <matches> \"*" + artistTagName + "*\")";
+        List<Scored<Item>> scoredItems = query(query, returnCount);
         return convertToScoredArtistTagList(scoredItems);
     }
 
@@ -82,6 +90,23 @@ public class MusicDatabase {
         return convertToScoredArtistTagList(simItems);
     }
 
+    public List<Scored<String>> artistGetDistinctiveTags(String id, int count) throws AuraException {
+        try {
+            return dataStore.getTopTerms(id, Artist.FIELD_SOCIAL_TAGS, count);
+        } catch (RemoteException ex) {
+            throw new AuraException("Can't talk to the datastore " + ex, ex);
+        }
+    }
+                
+    public Album albumLookup(String albumID) throws AuraException {
+        Item item = getItem(albumID);
+        if (item != null) {
+            typeCheck(item, ItemType.ALBUM);
+            return new Album(item);
+        }
+        return null;
+    }
+    
     public Event eventLookup(String eventID) throws AuraException {
         Item item = getItem(eventID);
         if (item != null) {
@@ -126,9 +151,9 @@ public class MusicDatabase {
         }
     }
 
-    private List<Scored<Item>> query(String query, int count, ItemType type) throws AuraException {
+    private List<Scored<Item>> query(String query, int count) throws AuraException {
         try {
-            return dataStore.query(query, "-score", count, new TypeFilter(type));
+            return dataStore.query(query, "-score", count, null);
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -172,13 +197,5 @@ public class MusicDatabase {
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
-    }
-
-    private Item findBestItem(String name, ItemType type) throws AuraException {
-        List<Scored<Item>> simItems = query(name, 1, type);
-        if (simItems.size() > 0) {
-            return simItems.get(0).getItem();
-        }
-        return null;
     }
 }

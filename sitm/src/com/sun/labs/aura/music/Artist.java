@@ -48,6 +48,9 @@ public class Artist extends ItemAdapter {
         super(item, Item.ItemType.ARTIST);
     }
 
+    public Artist() {
+    }
+
     /**
      * Creates a new artist
      * @param key the key for the artist
@@ -63,11 +66,10 @@ public class Artist extends ItemAdapter {
             EnumSet<Item.FieldCapability> ms = EnumSet.of(
                     Item.FieldCapability.MATCH, Item.FieldCapability.SIMILARITY);
             ds.defineField(Item.ItemType.ARTIST, FIELD_ALBUM,
-                    EnumSet.of(Item.FieldCapability.MATCH),
-                    Item.FieldType.STRING);
+                    EnumSet.of(Item.FieldCapability.MATCH), Item.FieldType.STRING);
             ds.defineField(Item.ItemType.ARTIST, FIELD_AUTO_TAGS,
                     EnumSet.of(Item.FieldCapability.SEARCH,
-                    Item.FieldCapability.SIMILARITY), Item.FieldType.STRING);
+                    Item.FieldCapability.SIMILARITY),  Item.FieldType.STRING);
             ds.defineField(Item.ItemType.ARTIST, FIELD_BEGIN_YEAR,
                     EnumSet.of(Item.FieldCapability.MATCH,
                     Item.FieldCapability.SORT),
@@ -89,8 +91,7 @@ public class Artist extends ItemAdapter {
                     Item.FieldType.STRING);
             ds.defineField(Item.ItemType.ARTIST, FIELD_PHOTOS);
             ds.defineField(Item.ItemType.ARTIST, FIELD_POPULARITY, EnumSet.of(
-                    Item.FieldCapability.SORT),
-                    Item.FieldType.FLOAT);
+                    Item.FieldCapability.SORT), Item.FieldType.FLOAT);
             ds.defineField(Item.ItemType.ARTIST, FIELD_RELATED_ARTISTS, ms,
                     Item.FieldType.STRING);
             ds.defineField(Item.ItemType.ARTIST, FIELD_SOCIAL_TAGS, EnumSet.of(

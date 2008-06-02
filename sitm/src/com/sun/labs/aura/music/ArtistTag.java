@@ -50,6 +50,9 @@ public class ArtistTag extends ItemAdapter {
         super(item, Item.ItemType.ARTIST_TAG);
     }
 
+    public ArtistTag() {
+    }
+
     /**
      * Creates a new ArtistTag
      * @param key the key for the ArtistTag

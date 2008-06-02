@@ -14,6 +14,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.ArtistTag;
+import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.crawler.TagCrawler;
 import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
@@ -46,6 +47,7 @@ public class MusicShell implements AuraService, Configurable {
     private CommandInterpreter shell;
     private StatService statService;
     private ShellUtils sutils;
+    private MusicDatabase musicDatabase;
 
     private static Comparator<Tag> FREQ_SORT = new Comparator<Tag>() {
         public int compare(Tag o1, Tag o2) {
@@ -405,6 +407,11 @@ public class MusicShell implements AuraService, Configurable {
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
         tagCrawler = (TagCrawler) ps.getComponent(PROP_TAG_CRAWLER);
         statService = (StatService) ps.getComponent(PROP_STAT_SERVICE);
+        try {
+            musicDatabase = new MusicDatabase(dataStore);
+        } catch (AuraException ex) {
+            throw new PropertyException(ex, "MusicShell", ps.getInstanceName(), "Can't create music database");
+        }
     }
     /**
      * the configurable property for the itemstore used by this manager

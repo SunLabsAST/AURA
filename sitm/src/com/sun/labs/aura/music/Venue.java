@@ -33,6 +33,9 @@ public class Venue extends ItemAdapter {
         super(item, Item.ItemType.VENUE);
     }
 
+    public Venue() {
+    }
+
     /**
      * Creates a new photo
      * @param key the key for the photo
@@ -47,16 +50,16 @@ public class Venue extends ItemAdapter {
         try {
             ds.defineField(Item.ItemType.VENUE, FIELD_ADDRESS,
                     EnumSet.of(Item.FieldCapability.SEARCH),
-                    null);
+                    Item.FieldType.STRING);
             ds.defineField(Item.ItemType.VENUE, FIELD_CITY,
                     EnumSet.of(Item.FieldCapability.SEARCH),
-                    null);
+                    Item.FieldType.STRING);
             ds.defineField(Item.ItemType.VENUE, FIELD_COUNTRY,
                     EnumSet.of(Item.FieldCapability.SEARCH),
-                    null);
+                    Item.FieldType.STRING);
             ds.defineField(Item.ItemType.VENUE, FIELD_STATE,
                     EnumSet.of(Item.FieldCapability.SEARCH),
-                    null);
+                    Item.FieldType.STRING);
         } catch(RemoteException rx) {
             throw new AuraException("Error defining fields for Venue", rx);
         }

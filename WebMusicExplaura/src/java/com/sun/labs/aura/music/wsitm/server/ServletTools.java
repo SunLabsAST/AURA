@@ -9,12 +9,9 @@
 
 package com.sun.labs.aura.music.wsitm.server;
 
-import com.sun.labs.aura.datastore.DataStore;
-import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.music.MusicDatabase;
 import java.io.IOException;
 import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 
 /**
  *
@@ -29,7 +26,8 @@ public class ServletTools {
     
     public static DataManager getDataManager(ServletConfig sc) {
         DataManager dm = (DataManager) sc.getServletContext().getAttribute("DataManager");
-        DataStore ds = (DataStore) sc.getServletContext().getAttribute("dataStore");
+        //DataStore ds = (DataStore) sc.getServletContext().getAttribute("dataStore");
+        MusicDatabase mdb = (MusicDatabase) sc.getServletContext().getAttribute("MusicDatabase");
         String cacheSizeString = (String) sc.getServletContext().getAttribute("cacheSize");
         
         int cacheSize;
@@ -38,19 +36,8 @@ public class ServletTools {
             cacheSize = Integer.parseInt(cacheSizeString);
         }
         if (dm == null) {
-            try {
-                /*
-                String path =sc.getInitParameter("databasePath");
-                if (path == null) {
-                   path = "/home/fm223201/NetBeansProjects/MiniDatabase/minidatabase.db";
-                }
-                
-                dm = new DataManager(path, cacheSize);
-                sc.getServletContext().setAttribute("DataManager", dm);
-                dm.getLogger().log("_system_", "startup", "Created datamanager at " + path + " cache " + cacheSize);
-                */
-                
-                dm = new DataManager(ds,500);
+            try {                
+                dm = new DataManager(mdb,500);
                 sc.getServletContext().setAttribute("DataManager", dm);
                 //@todo fix this
                 //dm.getLogger().log("_system_", "startup", "Created datamanager with cache " + cacheSize);

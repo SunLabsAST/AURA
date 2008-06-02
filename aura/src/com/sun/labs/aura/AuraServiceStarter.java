@@ -128,10 +128,12 @@ public class AuraServiceStarter implements Configurable {
                 Thread.sleep(Long.MAX_VALUE);
             }
         } catch(IOException ex) {
-            System.err.println("Error parsing configuration file: " + ex);
+            System.err.println("Error parsing configuration file");
+            ex.printStackTrace();
             usage();
         } catch(PropertyException ex) {
-            System.err.println("Error parsing configuration file: " + ex);
+            System.err.println("Error parsing configuration file");
+            ex.printStackTrace();
             usage();
         } catch(InterruptedException ie) {
         } catch(Exception e) {

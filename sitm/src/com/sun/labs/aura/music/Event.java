@@ -40,6 +40,9 @@ public class Event extends ItemAdapter {
     public Event(String key, String name) throws AuraException {
         this(StoreFactory.newItem(Item.ItemType.EVENT, key, name));
     }
+    
+    public Event() {
+    }
 
    public void defineFields(DataStore ds) throws AuraException {
         try {

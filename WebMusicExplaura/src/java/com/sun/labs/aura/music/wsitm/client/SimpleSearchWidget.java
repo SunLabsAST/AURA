@@ -51,7 +51,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private MusicSearchInterfaceAsync musicServer;
     private Image icon;
     
-    private static final String ICON_WAIT = "ajax-loader.gif";
+    private static final String ICON_WAIT = "ajax-bar.gif";
     
     public SimpleSearchWidget() {
         super("Simple Search");
@@ -74,15 +74,15 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         icon.setVisible(false);
         icon.setStyleName("img");
         
-        HorizontalPanel msgPanel = new HorizontalPanel();
+        VerticalPanel msgPanel = new VerticalPanel();
         msgPanel.setWidth("100%");
         msgPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
-        msgPanel.add(icon);
         msgPanel.add(message);
-        msgPanel.setCellWidth(icon, "50%");
-        msgPanel.setCellHorizontalAlignment(icon, HorizontalPanel.ALIGN_RIGHT);
+        msgPanel.add(icon);
+        msgPanel.setCellHeight(message, "35px");
+        msgPanel.setCellHorizontalAlignment(icon, VerticalPanel.ALIGN_CENTER);
         msgPanel.setCellWidth(message, "50%");
-        msgPanel.setCellHorizontalAlignment(message, HorizontalPanel.ALIGN_LEFT);
+        msgPanel.setCellHorizontalAlignment(message, VerticalPanel.ALIGN_CENTER);
         
         VerticalPanel topPanel = new VerticalPanel();
         topPanel.setWidth("100%");
@@ -111,6 +111,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             icon.setVisible(true);
         }
         else {
+            icon.setUrl("");
             icon.setVisible(false);
         }
         
@@ -361,7 +362,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         };
 
-        showMessage("Getting info for artist");
+        showMessage("Getting info for artist",ICON_WAIT);
 
         // (4) Make the call. Control flow will continue immediately and later
         // 'callback' will be invoked when the RPC completes.
@@ -429,7 +430,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         };
 
-        showMessage("Getting common tags");
+        showMessage("Getting common tags",ICON_WAIT);
         try {
             musicServer.getCommonTags(artistID1, artistID2, 30, callback);
         } catch (Exception ex) {
