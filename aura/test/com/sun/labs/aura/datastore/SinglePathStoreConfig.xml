@@ -3,7 +3,7 @@
 <!--
     Document   : SinglePathStoreConfig.xml
     Created on : May 15, 2008, 1:02 PM
-    Author     : Will Holcomb <will.holcomb@sun.com>
+    Author     : Will Holcomb <william.holcomb@sun.com>
     Description:
         Sun Configuration Utils Toolkit configuration to create a single
         DataStore accessing a single PartitionCluster supporting a single
