@@ -34,6 +34,10 @@ public class Track extends ItemAdapter {
     public Track(Item item) {
         super(item, Item.ItemType.TRACK);
     }
+    
+    public Track() {
+
+    }
 
     /**
      * Creates a new track
@@ -53,7 +57,7 @@ public class Track extends ItemAdapter {
             ds.defineField(Item.ItemType.TRACK, FIELD_LYRICS,
                     EnumSet.of(Item.FieldCapability.SEARCH,
                     Item.FieldCapability.SIMILARITY),
-                    null);
+                    Item.FieldType.STRING);
             ds.defineField(Item.ItemType.TRACK, FIELD_MD5,
                     EnumSet.of(Item.FieldCapability.MATCH),
                     Item.FieldType.STRING);

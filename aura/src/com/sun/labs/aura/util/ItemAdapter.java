@@ -47,6 +47,9 @@ public abstract class ItemAdapter implements Serializable {
         modified = true;
     }
 
+    public ItemAdapter() {
+    }
+
     /**
      * Creates the ItemAdapter
      * @param item the Item that is being wrapped by this Item

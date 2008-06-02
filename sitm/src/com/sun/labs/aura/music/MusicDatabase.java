@@ -22,8 +22,16 @@ public class MusicDatabase {
 
     private DataStore dataStore;
 
-    public MusicDatabase(DataStore dataStore) {
+    public MusicDatabase(DataStore dataStore) throws AuraException {
         this.dataStore = dataStore;
+        new Album().defineFields(dataStore);
+        new Artist().defineFields(dataStore);
+        new ArtistTag().defineFields(dataStore);
+        new Event().defineFields(dataStore);
+        new Photo().defineFields(dataStore);
+        new Track().defineFields(dataStore);
+        new Venue().defineFields(dataStore);
+        new Video().defineFields(dataStore);
     }
 
     public List<Scored<Artist>> artistSearch(String artistName, int returnCount) throws AuraException {

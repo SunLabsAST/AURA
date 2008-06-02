@@ -31,6 +31,9 @@ public class Video extends ItemAdapter {
         super(item, Item.ItemType.VIDEO);
     }
 
+    public Video() {
+    }
+
     /**
      * Creates a new video
      * @param key the key for the video

@@ -34,6 +34,9 @@ public class Photo extends ItemAdapter {
         super(item, Item.ItemType.PHOTO);
     }
 
+    public Photo() {
+    }
+
     /**
      * Creates a new photo
      * @param key the key for the photo

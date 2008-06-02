@@ -35,6 +35,10 @@ public class Album extends ItemAdapter {
     public Album(Item item) {
         super(item, Item.ItemType.ALBUM);
     }
+    
+    public Album() {
+       
+    }
 
     /**
      * Creates a new album
