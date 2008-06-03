@@ -76,6 +76,32 @@ public class MusicDatabase {
         }
     }
 
+    public List<Artist> artistGetMostPopular(int count) throws AuraException {
+        try {
+            List<Item> items = dataStore.getAll(Item.ItemType.ARTIST);
+            List<Artist> artists = new ArrayList<Artist>();
+            for (Item i : items) {
+                artists.add(new Artist(i));
+            }
+            return artists;
+        } catch (RemoteException ex) {
+            throw new AuraException("Can't talk to the datastore " + ex, ex);
+        }
+    }
+    
+    public List<ArtistTag> artistTagGetMostPopular(int count) throws AuraException {
+        try {
+            List<Item> items = dataStore.getAll(Item.ItemType.ARTIST_TAG);
+            List<ArtistTag> aTag = new ArrayList<ArtistTag>();
+            for (Item i : items) {
+                aTag.add(new ArtistTag(i));
+            }
+            return aTag;
+        } catch (RemoteException ex) {
+            throw new AuraException("Can't talk to the datastore " + ex, ex);
+        }
+    }
+    
     public ArtistTag artistTagLookup(String artistTagID) throws AuraException {
         Item item = getItem(artistTagID);
         if (item != null) {
