@@ -18,11 +18,12 @@
         <ul>    
             <li> <a href="FindSimilarArtist?name=weezer"> Artists Similar to Weezer </a>
             <li> <a href="FindSimilarArtist?name=beatles"> Artists Similar to The Beatles </a>
+            <li> <a href="FindSimilarArtistTags?name=metal&max=100"> Similar metal tags </a>
             <li> <a href="FindSimilarArtist?key=aa7a2827-f74b-473c-bd79-03d065835cf7"> Artists Similar to Franz Ferdinand </a>
-            <li> <a href="ArtistSearch?name=beat"> artist search for 'beat' </a>
-            <li> <a href="ArtistTagSearch?name=alt"> tag search for 'alt' </a>
-            <li> <a href="ArtistSocialTags?name=weezer"> distinctive tags for weezer</a>
-            <li> <a href="ArtistSocialTags?name=weezer&type=frequent"> frequent tags for weezer</a>
+            <li> <a href="ArtistSearch?name=beat"> Artist search for 'beat' </a>
+            <li> <a href="ArtistTagSearch?name=alt"> Tag search for 'alt' </a>
+            <li> <a href="ArtistSocialTags?name=weezer"> Distinctive tags for weezer</a>
+            <li> <a href="ArtistSocialTags?name=weezer&type=frequent"> Frequent tags for weezer</a>
         </ul>
     </body>
 </html>

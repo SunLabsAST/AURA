@@ -24,6 +24,14 @@
         <servlet-name>ArtistTagSearch</servlet-name>
         <servlet-class>com.sun.labs.aura.music.webservices.ArtistTagSearch</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>GetTags</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.GetTags</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>FindSimilarArtistTags</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.FindSimilarArtistTags</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>FindSimilarArtist</servlet-name>
         <url-pattern>/FindSimilarArtist</url-pattern>
@@ -43,6 +51,14 @@
     <servlet-mapping>
         <servlet-name>ArtistTagSearch</servlet-name>
         <url-pattern>/ArtistTagSearch</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetTags</servlet-name>
+        <url-pattern>/GetTags</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>FindSimilarArtistTags</servlet-name>
+        <url-pattern>/FindSimilarArtistTags</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

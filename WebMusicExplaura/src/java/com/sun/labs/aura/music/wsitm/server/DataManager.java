@@ -8,7 +8,6 @@
  */
 package com.sun.labs.aura.music.wsitm.server;
 
-import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import java.io.UnsupportedEncodingException;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.music.Album;
