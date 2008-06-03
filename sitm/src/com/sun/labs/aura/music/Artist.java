@@ -11,6 +11,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.Tag;
 import java.rmi.RemoteException;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +39,19 @@ public class Artist extends ItemAdapter {
     public final static String FIELD_SOCIAL_TAGS = "socialTags";
     public final static String FIELD_URLS = "urls";
     public final static String FIELD_VIDEOS = "videos";
+
+    public final static Comparator<Artist> POPULARITY = new Comparator<Artist>() {
+        public int compare(Artist o1, Artist o2) {
+            float delta = o1.getPopularity() - o2.getPopularity();
+            if (delta > 0) {
+                return 1;
+            } else if (delta < 0) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
+    };
 
     /**
      * Wraps an Item as an artist

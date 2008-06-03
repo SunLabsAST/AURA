@@ -12,6 +12,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -57,6 +58,15 @@ public class MusicDatabase {
         return null;
     }
 
+    public ArtistTag artistTagFindBestMatch(String artistTagName) throws AuraException {
+        List<Scored<ArtistTag>> artistTags = artistTagSearch(artistTagName, 1);
+        if (artistTags.size() == 1) {
+            return artistTags.get(0).getItem();
+        }
+        return null;
+    }
+
+
     public List<Scored<Artist>> artistFindSimilar(String artistID, int count) throws AuraException {
         List<Scored<Item>> simItems = findSimilar(artistID, Artist.FIELD_SOCIAL_TAGS, count, ItemType.ARTIST);
         return convertToScoredArtistList(simItems);
@@ -76,27 +86,49 @@ public class MusicDatabase {
         }
     }
 
-    public List<Artist> artistGetMostPopular(int count) throws AuraException {
+    public List<String> artistGetMostPopularNames(int count) throws AuraException {
         try {
             List<Item> items = dataStore.getAll(Item.ItemType.ARTIST);
             List<Artist> artists = new ArrayList<Artist>();
             for (Item i : items) {
                 artists.add(new Artist(i));
             }
-            return artists;
+            Collections.sort(artists, Artist.POPULARITY);
+            Collections.reverse(artists);
+
+            if (artists.size() > count) {
+                artists = artists.subList(0, count);
+            }
+
+            List<String> artistNames = new ArrayList();
+            for (Artist artist : artists) {
+                artistNames.add(artist.getName());
+            }
+            return artistNames;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
     }
     
-    public List<ArtistTag> artistTagGetMostPopular(int count) throws AuraException {
+    public List<String> artistTagGetMostPopularNames(int count) throws AuraException {
         try {
             List<Item> items = dataStore.getAll(Item.ItemType.ARTIST_TAG);
-            List<ArtistTag> aTag = new ArrayList<ArtistTag>();
+            List<ArtistTag> artistTags = new ArrayList();
             for (Item i : items) {
-                aTag.add(new ArtistTag(i));
+                artistTags.add(new ArtistTag(i));
             }
-            return aTag;
+            Collections.sort(artistTags, ArtistTag.POPULARITY);
+            Collections.reverse(artistTags);
+
+            if (artistTags.size() > count) {
+                artistTags = artistTags.subList(0, count);
+            }
+
+            List<String> artistTagNames = new ArrayList();
+            for (ArtistTag artistTag : artistTags) {
+                artistTagNames.add(artistTag.getName());
+            }
+            return artistTagNames;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }

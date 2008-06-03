@@ -41,7 +41,6 @@ import java.util.logging.Logger;
  * @author plamere
  */
 public class TagCrawler implements AuraService, Configurable {
-
     private Wikipedia wikipedia;
     private Youtube youtube;
     private FlickrManager flickr;
@@ -51,9 +50,8 @@ public class TagCrawler implements AuraService, Configurable {
     private boolean running = false;
     private Map<String, Map<String, Tag>> tagMap = new HashMap();
     private final int MIN_ARTISTS = 10;   // make me configurable
-
     private final int MIN_ARTIST_POPULARITY = 10;   // make me configurable
-
+    private final long MIN_UPDATE_TIME = 1000L * 60L * 60L * 24L;
     static Set skipSet;
     
 
@@ -109,7 +107,7 @@ public class TagCrawler implements AuraService, Configurable {
                 List<Tag> tags = artist.getSocialTags();
 
                 for (Tag tag : tags) {
-                    int normalizedCount =  (int) Math.rint(popularity * tag.getCount() / 100.);
+                    int normalizedCount = (int) Math.rint(popularity * tag.getCount() / 100.);
                     // System.out.printf("norm count for %s/%s is %d\n", artist.getName(), tag.getName(), normalizedCount);
                     accumulateTag(tag.getName(), artist.getKey(), normalizedCount);
                 }
@@ -141,8 +139,7 @@ public class TagCrawler implements AuraService, Configurable {
                     sum += tag.getCount();
                     artistTag.addTaggedArtist(tag.getName(), tag.getCount());
                 }
-                logger.info("Adding tag " + artistTag.getName() + " key: " + artistTag.getKey() 
-                        + " artists " + artistTag.getTaggedArtist().size());
+                logger.info("Adding tag " + artistTag.getName() + " key: " + artistTag.getKey() + " artists " + artistTag.getTaggedArtist().size());
                 artistTag.setPopularity(sum);
                 artistTag.flush(dataStore);
             }
@@ -170,9 +167,17 @@ public class TagCrawler implements AuraService, Configurable {
     }
 
     public void updateSingleTag(ArtistTag artistTag) throws AuraException, RemoteException {
-        logger.info("Collecting info for tag " + artistTag.getName());
-        collectTagInfo(artistTag);
-        artistTag.flush(dataStore);
+        if (needsUpdate(artistTag)) {
+            logger.info("Collecting info for tag " + artistTag.getName());
+            collectTagInfo(artistTag);
+            artistTag.flush(dataStore);
+        } else {
+            logger.info("Skipping update for tag " + artistTag.getName());
+        }
+    }
+
+    private boolean needsUpdate(ArtistTag artistTag) {
+        return (System.currentTimeMillis() - artistTag.getTimeAdded() > MIN_UPDATE_TIME);
     }
 
     /**
