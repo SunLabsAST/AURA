@@ -9,9 +9,7 @@
 package com.sun.labs.aura.music.wsitm.server;
 
 import java.io.UnsupportedEncodingException;
-import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
-import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Album;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.ArtistTag;
@@ -33,7 +31,6 @@ import com.sun.labs.aura.music.wsitm.client.TagTree;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Tag;
-import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -62,12 +59,11 @@ public class DataManager implements Configurable {
     private static final String CACHE_SIZE ="cacheSize";
     
     private static final int DEFAULT_CACHE_SIZE=250;
-    private static final int NUMBER_TAGS_TO_SHOW=15;
-    private static final int NUMBER_SIM_ARTISTS=15;
+    private static final int NUMBER_TAGS_TO_SHOW=20;
+    private static final int NUMBER_SIM_ARTISTS=20;
     
     private Logger logger = Logger.getLogger("");
     
-    Logger log;
     ConfigurationManager configMgr;
     
     private LRUCache cache;
@@ -83,7 +79,7 @@ public class DataManager implements Configurable {
      */
     public DataManager(MusicDatabase mdb, int cacheSize) throws IOException {
         
-        logger.info("Instantiating new DataManager");
+        logger.info("Instantiating new DataManager with cache size of "+cacheSize);
         
         //int cacheSize = (int)configMgr.lookup(CACHE_SIZE);
         cache = new LRUCache(cacheSize);
@@ -179,9 +175,10 @@ public class DataManager implements Configurable {
         // Fetch upcoming events
         Set<String> eventsSet = a.getEvents();
         ArtistEvent[] eventsArray = new ArtistEvent[eventsSet.size()];
+        Event storeEvent;
         index=0;
         for (String e : eventsSet) {
-            Event storeEvent = mdb.eventLookup(e);
+            storeEvent = mdb.eventLookup(e);
             eventsArray[index] = new ArtistEvent();
             eventsArray[index].setDate(storeEvent.getDate());
             eventsArray[index].setEventID(storeEvent.getKey());
@@ -191,18 +188,24 @@ public class DataManager implements Configurable {
         }
         details.setEvents(eventsArray);
         
-        // Fetch collaborations
-        Set<String> collSet = a.getCollaborations();
-        ItemInfo[] artistColl = new ItemInfo[collSet.size()];
-        Artist tempA;
-        index=0;
-        for (String aID : collSet) {
-            tempA = mdb.artistLookup(aID);
-            artistColl[index] = new ItemInfo(aID, tempA.getName(), 
-                    tempA.getPopularity(), tempA.getPopularity());
-            index++;
+        // Fetch related artists
+        Set<String> collSet = a.getRelatedArtists();
+        if (collSet!=null && collSet.size()>0) {
+            List<ItemInfo> artistColl = new ArrayList<ItemInfo>();
+            Artist tempA;
+            for (String aID : collSet) {
+                tempA = mdb.artistLookup(aID);
+                // If the related artist is not in our database, skip it
+                if (tempA==null) {
+                    continue;
+                }
+                artistColl.add(new ItemInfo(aID, tempA.getName(),
+                        tempA.getPopularity(), tempA.getPopularity()));
+            }
+            if (artistColl.size()>0) {
+                details.setCollaborations(artistColl.toArray(new ItemInfo[0]));
+            }
         }
-        details.setCollaborations(artistColl);
         
         // Fetch and sort frequent tags
         List<Tag> tagList = a.getSocialTags();
@@ -211,14 +214,12 @@ public class DataManager implements Configurable {
         Scored<ArtistTag> aT;
         for (Tag t : tagList) {
             aT = new Scored(mdb.artistTagLookup("artist-tag:"+t.getName()),t.getCount());
+            // Tag might not be in our database. Only add it if it is
             if (aT != null && aT.getItem()!=null) {
                 scoredTags.add(aT);
             }
-            else {
-                logger.info("Null on tag lookup :"+t.getName());
-            }
         }
-        sortByArtistTagPopularity(scoredTags);
+        sortArtistTag(scoredTags, Sorter.sortFields.COUNTorSCORE);
         /*
         ItemInfo[] freqTags = new ItemInfo[NUMBER_TAGS_TO_SHOW];
         index=0;
@@ -230,11 +231,10 @@ public class DataManager implements Configurable {
         }
         details.setFrequentTags(freqTags);
         */
-        
         details.setFrequentTags(scoredArtistTagToItemInfo(scoredTags.subList(0, getMax(scoredTags))));
         
         // Fetch list of distinctive tags
-        List<Scored<String>> topTags = mdb.artistGetDistinctiveTags(a.getKey(),this.NUMBER_TAGS_TO_SHOW);
+        List<Scored<String>> topTags = mdb.artistGetDistinctiveTags(a.getKey(),NUMBER_TAGS_TO_SHOW);
         details.setDistinctiveTags(scoredStringToItemInfo(topTags));
         
         
@@ -381,8 +381,12 @@ public class DataManager implements Configurable {
     
     public TagDetails loadTagDetailsFromStore(String id) throws AuraException,
             RemoteException {
-
+        logger.info("searching for :"+id);
         ArtistTag tag = mdb.artistTagLookup(id);
+        if (tag==null) {
+            logger.info("null on "+id);
+            return null;
+        }
         TagDetails details = new TagDetails();
 
         details.setDescription(tag.getDescription());
@@ -399,9 +403,15 @@ public class DataManager implements Configurable {
             Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        List<Scored<Tag>> taggedArtists = sortByTagCount(tag.getTaggedArtist());
-        details.setRepresentativeArtists(tagToItemInfo(taggedArtists.subList(0, getMax(taggedArtists))));
+        // Fetch representative artists
+        List<Scored<Tag>> taggedArtists = sortTag(tag.getTaggedArtist(),TagSorter.sortFields.COUNTorSCORE);
+        details.setRepresentativeArtists(tagToItemInfo(taggedArtists.subList(0, getMax(taggedArtists)),true));
 
+        // Fetch similar tags
+        List<Scored<ArtistTag>> simTags = mdb.artistTagFindSimilar(id, NUMBER_TAGS_TO_SHOW);
+        sortArtistTag(simTags, Sorter.sortFields.POPULARITY);
+        details.setSimilarTags(scoredArtistTagToItemInfo(simTags));
+        
         return details;
     }
 
@@ -524,41 +534,62 @@ public class DataManager implements Configurable {
         Collections.reverse(scoredArtists);
     }
 
-    private List<Scored<Tag>> sortByTagCount(List<Tag> tags) {
+    private List<Scored<Tag>> sortTag(List<Tag> tags, Sorter.sortFields sortBy) {
         List<Scored<Tag>> scoredTags = new ArrayList<Scored<Tag>>();
         for (Tag t : tags) {
             scoredTags.add(new Scored(t,t.getCount()));
         }
-        Collections.sort(scoredTags, new TagCountSorter());
+        Collections.sort(scoredTags, new TagSorter(sortBy));
         Collections.reverse(scoredTags);
         return scoredTags;
     }
     
-    private void sortByArtistTagPopularity(List<Scored<ArtistTag>> scoredTags) {
-        Collections.sort(scoredTags, new ArtistTagPopularitySorter());
+    private void sortArtistTag(List<Scored<ArtistTag>> scoredTags, Sorter.sortFields sortBy) {
+        Collections.sort(scoredTags, new ArtistTagSorter(sortBy));
         Collections.reverse(scoredTags);
     }
 
-    private List<Scored<ArtistTag>> sortByTagPopularity(List<ArtistTag> tags) {
+    private List<Scored<ArtistTag>> sortArtistTag(List<ArtistTag> tags, Sorter.sortFields sortBy) {
         List<Scored<ArtistTag>> scoredTags = new ArrayList<Scored<ArtistTag>>();
         for (ArtistTag t : tags) {
             scoredTags.add(new Scored(t, t.getPopularity()));
         }
-        sortByArtistTagPopularity(scoredTags);
+        sortArtistTag(scoredTags,sortBy);
         return scoredTags;
     }
 
-    private ItemInfo[] tagToItemInfo(List<Scored<Tag>> tags) {
+    /**
+     * Converts a list of scored tags to an array of itemInfo
+     * @param tags List of scored tags
+     * @param isArtist set true if the tag object actually contains artist information
+     * @return
+     */
+    private ItemInfo[] tagToItemInfo(List<Scored<Tag>> tags, boolean isArtist) 
+            throws AuraException {
 
+        Artist a;
+        ArtistDetails aD;
+        String artistName;
         ItemInfo[] artistTagResults = new ItemInfo[tags.size()];
 
         for (int i = 0; i < artistTagResults.length; i++) {
             Tag t = tags.get(i).getItem();
             double score = tags.get(i).getScore();
             double popularity = t.getFreq();
-            artistTagResults[i] = new ItemInfo("artist-tag:"+t.getName(), t.getName(), score, popularity);
+            if (isArtist) {
+                // We need to fetch each artist's name. First look in the cache if we have the details
+                aD = (ArtistDetails) cache.sget(t.getName());
+                if (aD == null) {
+                    a = mdb.artistLookup(t.getName());
+                    artistName = a.getName();
+                } else {
+                    artistName = aD.getName();
+                }
+                artistTagResults[i] = new ItemInfo(t.getName(), artistName, score, popularity);
+            } else {
+                artistTagResults[i] = new ItemInfo("artist-tag:" + t.getName(), t.getName(), score, popularity);
+            }
         }
-
         return artistTagResults;
     }
     
@@ -677,6 +708,7 @@ class LRUCache<String, Object> extends LinkedHashMap<String, Object> {
         return put(s, o);
     }
 
+    @Override
     protected boolean removeEldestEntry(Map.Entry eldest) {
         boolean remove = size() > maxSize;
         return remove;
@@ -685,6 +717,7 @@ class LRUCache<String, Object> extends LinkedHashMap<String, Object> {
 
 class ArtistPopularitySorter implements Comparator<Scored<Artist>> {
 
+    @Override
     public int compare(Scored<Artist> o1, Scored<Artist> o2) {
         double s1 = o1.getItem().getPopularity();
         double s2 = o2.getItem().getPopularity();
@@ -698,12 +731,41 @@ class ArtistPopularitySorter implements Comparator<Scored<Artist>> {
     }
 }
 
-class TagCountSorter implements Comparator<Scored<Tag>> {
+abstract class Sorter {
 
+    protected sortFields sortBy;
+    
+    public static enum sortFields {
+        COUNTorSCORE,
+        POPULARITY
+    
+    }
+    
+    public Sorter(sortFields sortBy) {
+        this.sortBy=sortBy;
+    }
+    
+}
+
+class TagSorter extends Sorter implements Comparator<Scored<Tag>> {
+
+    public TagSorter(sortFields sortBy) {
+        super(sortBy);
+    }
+    
+    private final double getField(Scored<Tag> o) {
+        if (sortBy==sortFields.COUNTorSCORE) {
+            return o.getItem().getCount();
+        } else {
+            return o.getItem().getFreq();
+        }
+    }
+    
+    @Override
     public int compare(Scored<Tag> o1, Scored<Tag> o2) {
         //@todo freq instead of pop
-        double s1 = o1.getItem().getCount();
-        double s2 = o2.getItem().getCount();
+        double s1 = getField(o1);
+        double s2 = getField(o2);
         if (s1 > s2) {
             return 1;
         } else if (s1 < s2) {
@@ -714,12 +776,25 @@ class TagCountSorter implements Comparator<Scored<Tag>> {
     }
 }
 
-class ArtistTagPopularitySorter implements Comparator<Scored<ArtistTag>> {
+class ArtistTagSorter extends Sorter implements Comparator<Scored<ArtistTag>> {
 
+    public ArtistTagSorter(sortFields sortBy) {
+        super(sortBy);
+    }
+    
+    private final double getField(Scored<ArtistTag> o) {
+        if (sortBy==sortFields.COUNTorSCORE) {
+            return o.getScore();
+        } else {
+            return o.getItem().getPopularity();
+        }
+    }
+    
+    @Override
     public int compare(Scored<ArtistTag> o1, Scored<ArtistTag> o2) {
         //@todo freq instead of pop
-        double s1 = o1.getItem().getPopularity();
-        double s2 = o2.getItem().getPopularity();
+        double s1 = getField(o1);
+        double s2 = getField(o2);
         if (s1 > s2) {
             return 1;
         } else if (s1 < s2) {
@@ -778,6 +853,7 @@ abstract class Commander extends Thread {
         this.name = name;
     }
 
+    @Override
     public final void run() {
         long startTime = System.currentTimeMillis();
         go();
@@ -786,6 +862,7 @@ abstract class Commander extends Thread {
 
     abstract void go();
 
+    @Override
     public String toString() {
         return name + ":" + executeTime + " ms";
     }

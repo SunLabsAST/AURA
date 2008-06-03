@@ -49,7 +49,7 @@ img {
 .itemInfo:hover {text-decoration: underline; color: red;}
 .refresh {cursor: pointer; text-decoration: underline; margin-top: 20px;}
 
-.popup         { font-weight: bold; font-size: 120%; background-color: #73885D; color: #f0f8c6;  margin: 10px;}
+.popup { font-weight: bold; font-size: 120%; background-color: #73885D; color: #f0f8c6;  margin: 10px; }
 .outerpopup    { background-color: #73885D; color: #00f8c6;  margin: 2px;  border: medium solid #73885d; border-width: 12px;}
 .borderpopup   { background-color: #73885D; color: #00f8c6;  margin: 2px;  border: medium solid #73885d; border-width: 6px;}
 .searchResults { text-align: center; vertical-align: top; width: 80%; }
@@ -95,7 +95,14 @@ img {
   cursor: default;
 }
 
+.cw-DialogBox {
+  opacity: 0.92;
+  filter: alpha(opacity=92);
+}
 
-
+.cw-NoTransparent {
+  opacity: 1;
+  filter: alpha(opacity=100);
+}
 
 

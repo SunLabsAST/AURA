@@ -10,8 +10,6 @@ import static org.junit.Assert.*;
 import com.sun.labs.aura.util.AuraException;
 import java.rmi.RemoteException;
 
-
-
 /**
  *
  * @author Will Holcomb
@@ -35,7 +33,7 @@ public class CreateUserTest extends DataStoreTestBase {
     
     @Test
     public void addUser() throws AuraException, RemoteException {
-        DataStore dataStore = (DataStore)configMgr.lookup(DATASTORE_KEY);
+        DataStore dataStore = getDataStore();
         String userKey = "Test Key";
         
         User user = StoreFactory.newUser(userKey, "Test User");

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : dataStoreHeadConfig.xml
+    Created on : February 25, 2008, 10:24 AM
+    Author     : stgreen
+    Description:
+        Configuration for a data store head.
+-->
+
+<config>
+    <property name="auraPolicy" value="/big/aura-test/dist/jsk-all.policy"/>
+
+    <property name="auraGroup" value="Aura"/>
+
+    <!-- A component registry that will be used to lookup and register components. -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>${auraGroup}</item>
+        </propertylist>
+        <property name="securityPolicy" value="${auraPolicy}"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. We set import to false because there's no properties. -->
+    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore" import="true"/>
+    
+</config>

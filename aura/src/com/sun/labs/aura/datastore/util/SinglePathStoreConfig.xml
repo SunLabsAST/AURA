@@ -12,8 +12,8 @@
 
 <config>
     <!-- Where the aura data lives -->
-    <property name="auraHome" value="/home/wh224365/projects/aura-cf/aardvark/tempdir/"/>
-    <property name="cacheDir" value="/home/wh224365/projects/aura-cf/aardvark/tempdir/"/>
+    <property name="auraHome" value="aardvark/tempdir/"/>
+    <property name="cacheDir" value="aardvark/tempdir/"/>
     
     <!-- The default implmentation for DataStore. -->
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true">

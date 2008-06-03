@@ -7,6 +7,7 @@ package com.sun.labs.aura.music.wsitm.server;
 
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -50,7 +51,11 @@ public class ServletListener implements ServletContextListener {
                 
                 DataStore dataStore = (DataStore)cm.lookup("dataStoreHead");
                 context.setAttribute("dataStore", dataStore);
-                context.setAttribute("MusicDatabase", new MusicDatabase(dataStore));
+                try {
+                    context.setAttribute("MusicDatabase", new MusicDatabase(dataStore));
+                } catch (AuraException ex) {
+                    Logger.getLogger(ServletListener.class.getName()).log(Level.SEVERE, null, ex);
+                }
             } catch (IOException ioe) {
                 logger.log(Level.SEVERE, "Failed to get handle", ioe);
             }

@@ -79,9 +79,9 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         msgPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
         msgPanel.add(message);
         msgPanel.add(icon);
-        msgPanel.setCellHeight(message, "35px");
+        msgPanel.setCellHeight(message, "28px");
         msgPanel.setCellHorizontalAlignment(icon, VerticalPanel.ALIGN_CENTER);
-        msgPanel.setCellWidth(message, "50%");
+        msgPanel.setCellHeight(icon, "20px");
         msgPanel.setCellHorizontalAlignment(message, VerticalPanel.ALIGN_CENTER);
         
         VerticalPanel topPanel = new VerticalPanel();
@@ -111,7 +111,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             icon.setVisible(true);
         }
         else {
-            icon.setUrl("");
             icon.setVisible(false);
         }
         
@@ -126,6 +125,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private void showError(String msg) {
         message.setStyleName("messageError");
         message.setText(msg);
+        icon.setVisible(false);
     }
 
     private void clearMessage() {
@@ -347,8 +347,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                     clearMessage();
                 } else {
                     if (artistDetails == null) {
-                        Window.alert("i am 1");
-                        showError("Search trouble. You'd better call Steve.");
+                        showError("Sorry. The details for the artist don't seem to be in our database.");
                         clearResults();
                     } else {
                         showError("Whooops " + artistDetails.getStatus());
@@ -389,8 +388,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                     clearMessage();
                 } else {
                     if (tagDetails == null) {
-                        Window.alert("i am 2");
-                        showError("Search trouble. You'd better call Steve.");
+                        showError("Sorry. The details for the tag don't seem to be in our database.");
                         clearResults();
                     } else {
                         showError("Whooops " + tagDetails.getStatus());
@@ -679,8 +677,8 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                 ArtistEvent event = events[i];
                 grid.setWidget(i, 0, new Label(events[i].getDate()));
                 grid.setWidget(i, 1, new HTML(createAnchor(event.getName(), event.getEventURL())));
-                String venue = event.getVenue() + " " + event.getVenueAddress();
-                grid.setWidget(i, 2, new HTML(createAnchor(venue, event.getVenueURL())));
+                String venue = event.getVenue();
+                grid.setWidget(i, 2, new HTML(venue));
             }
             widget.add(grid);
         }
@@ -891,6 +889,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         DockPanel docPanel = new DockPanel();
 
         docPanel.setStyleName("borderpopup");
+        docPanel.addStyleName("cw-DialogBox");
         Label closeButton = new Label("Close");
         closeButton.setStyleName("clickableLabel");
         closeButton.addClickListener(new ClickListener() {

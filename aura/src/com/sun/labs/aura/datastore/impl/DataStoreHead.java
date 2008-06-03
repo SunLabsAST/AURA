@@ -1017,6 +1017,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     
     public void registerPartitionCluster(PartitionCluster pc)
             throws RemoteException {
+        logger.info("Adding partition cluster: " + pc.getPrefix());
         trie.add(pc, pc.getPrefix());
     }
 
