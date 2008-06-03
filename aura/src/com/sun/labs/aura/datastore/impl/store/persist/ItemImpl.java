@@ -134,9 +134,14 @@ public class ItemImpl implements Item {
     }
     
     public void setField(String field, Serializable value) {
-        getMap();
-        map.put(field, value);
-        sets.add(field);
+        if (value!=null && field!=null) {
+            getMap();
+            map.put(field, value);
+            if (sets==null) {
+                sets = new HashSet<String>();                
+            }
+            sets.add(field);
+        }
     }
 
     public Set<String> getSetFields() {
