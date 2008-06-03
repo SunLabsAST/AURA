@@ -90,10 +90,11 @@ public class DataManager implements Configurable {
         
         artistOracle = new ArrayList<String>();
         try {
-            for (Artist a : mdb.artistGetMostPopular(1000)) {
-                artistOracle.add(a.getName());
-            }
-        } catch (AuraException e) {}
+            artistOracle = mdb.artistGetMostPopularNames(1000);
+        } catch (AuraException ex) {
+            Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
     
     public List<String> getArtistOracle() {
@@ -226,7 +227,7 @@ public class DataManager implements Configurable {
         
         Scored<ArtistTag> aT;
         for (Tag t : tagList) {
-            aT = new Scored(mdb.artistTagLookup("artist-tag:"+t.getName()),t.getCount());
+            aT = new Scored(mdb.artistTagLookup(ArtistTag.nameToKey(t.getName())),t.getCount());
             // Tag might not be in our database. Only add it if it is
             if (aT != null && aT.getItem()!=null) {
                 scoredTags.add(aT);
@@ -403,7 +404,7 @@ public class DataManager implements Configurable {
         TagDetails details = new TagDetails();
 
         details.setDescription(tag.getDescription());
-        details.setId(id);
+        details.setId(ArtistTag.nameToKey(id));
         details.setName(tag.getName());
         details.setPhotos(getArtistPhotoFromIds(tag.getPhotos()));
         details.setVideos(getArtistVideoFromIds(tag.getVideos()));
@@ -600,7 +601,7 @@ public class DataManager implements Configurable {
                 }
                 artistTagResults[i] = new ItemInfo(t.getName(), artistName, score, popularity);
             } else {
-                artistTagResults[i] = new ItemInfo("artist-tag:" + t.getName(), t.getName(), score, popularity);
+                artistTagResults[i] = new ItemInfo(ArtistTag.nameToKey(t.getName()), t.getName(), score, popularity);
             }
         }
         return artistTagResults;

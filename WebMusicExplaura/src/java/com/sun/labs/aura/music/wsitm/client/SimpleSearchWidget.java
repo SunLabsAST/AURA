@@ -285,7 +285,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             public void onSuccess(Object result) {
                 // do some UI stuff to show success
                 List<String> artistList = (List<String>) result;
-                Window.alert("got "+artistList.size());
                 artistOracle = new MultiWordSuggestOracle();
                 artistOracle.addAll(artistList);
 
@@ -936,8 +935,9 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         //textBox.setVisibleLength(30);
         sbox.setStyleName("searchText");
         sbox.ensureDebugId ("cwSuggestBox");
+        sbox.setLimit(15);
+        
         sbox.addKeyboardListener(new KeyboardListenerAdapter() {
-
             public void onKeyPress(Widget sender, char keyCode, int modifiers) {
                 if (keyCode == KEY_ENTER) {
                     search.search();

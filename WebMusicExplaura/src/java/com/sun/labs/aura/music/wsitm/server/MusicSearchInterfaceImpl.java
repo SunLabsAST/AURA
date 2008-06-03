@@ -11,6 +11,7 @@ package com.sun.labs.aura.music.wsitm.server;
 
 import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.ItemInfo;
@@ -93,14 +94,12 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public TagDetails getTagDetails(String id, boolean refresh) throws Exception {
-        logger.info("MusicSearchInterfaceImpl::getTagDetails: "+id);
+    public TagDetails getTagDetails(String tagName, boolean refresh) throws Exception {
+        logger.info("MusicSearchInterfaceImpl::getTagDetails: "+tagName);
         try {
-            // Make sure the tag is passed with the correct header
-            if (!id.startsWith("artist-tag:")) {
-                id="artist-tag:"+id;
-            }
-            return dm.getTagDetails(id, refresh);
+            if (!tagName.startsWith("artist-tag:"))
+                tagName=ArtistTag.nameToKey(tagName);
+            return dm.getTagDetails(tagName, refresh);
         } catch (Exception e) { 
             logger.severe(traceToString(e));
             throw e;
