@@ -8,7 +8,7 @@ import java.io.PrintWriter;
  */
 public class Util {
 
-    enum ErrorCode { OK, MissingArgument, DataStore, Configuration};
+    enum ErrorCode { OK, MissingArgument, DataStore, Configuration, NotFound};
     
     static String filter(String s) {
         if (s != null) {

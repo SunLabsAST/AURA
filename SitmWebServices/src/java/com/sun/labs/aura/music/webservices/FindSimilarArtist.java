@@ -21,6 +21,7 @@ import javax.servlet.http.*;
  * @author plamere
  */
 public class FindSimilarArtist extends HttpServlet {
+
     private final static String SERVLET_NAME = "FindSimilarArtist";
 
     /** 
@@ -61,25 +62,29 @@ public class FindSimilarArtist extends HttpServlet {
                             }
                         }
                     }
-                    if (key != null && ((artist = mdb.artistLookup(key)) != null)) {
-                        List<Scored<Artist>> scoredArtists = mdb.artistFindSimilar(key, maxCount);
+                    if (key != null) {
+                        if ((artist = mdb.artistLookup(key)) != null) {
+                            List<Scored<Artist>> scoredArtists = mdb.artistFindSimilar(key, maxCount);
 
-                        out.println("<FindSimilarArtist key=\"" + key + "\" name=\"" + Util.filter(artist.getName()) + "\">");
-                        for (Scored<Artist> scoredArtist : scoredArtists) {
+                            out.println("<FindSimilarArtist key=\"" + key + "\" name=\"" + Util.filter(artist.getName()) + "\">");
+                            for (Scored<Artist> scoredArtist : scoredArtists) {
 
-                            if (scoredArtist.getItem().getKey().equals(key)) {
-                                continue;
+                                if (scoredArtist.getItem().getKey().equals(key)) {
+                                    continue;
+                                }
+
+                                Artist simArtist = scoredArtist.getItem();
+                                out.println("    <artist key=\"" +
+                                        simArtist.getKey() + "\" " +
+                                        "score=\"" + scoredArtist.getScore() + "\" " +
+                                        "name=\"" + Util.filter(simArtist.getName()) + "\"" +
+                                        "/>");
                             }
-
-                            Artist simArtist = scoredArtist.getItem();
-                            out.println("    <artist key=\"" +
-                                    simArtist.getKey() + "\" " +
-                                    "score=\"" + scoredArtist.getScore() + "\" " +
-                                    "name=\"" + Util.filter(simArtist.getName()) + "\"" +
-                                    "/>");
+                            Util.outputOKStatus(out);
+                            Util.tagClose(out, SERVLET_NAME);
+                        } else {
+                            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.NotFound, "can't find specified artist");
                         }
-                        Util.outputOKStatus(out);
-                        Util.tagClose(out, SERVLET_NAME);
                     } else {
                         Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "need a name or a key");
                     }

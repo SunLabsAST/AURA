@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
  * @author plamere
  */
 public class ArtistSocialTags extends HttpServlet {
+
     private final static String SERVLET_NAME = "ArtistSocialTags";
 
     /** 
@@ -69,33 +70,37 @@ public class ArtistSocialTags extends HttpServlet {
                             }
                         }
                     }
-                    if (key != null && ((artist = mdb.artistLookup(key)) != null)) {
-                        if (frequent) {
-                            List<Tag> tags = artist.getSocialTags();
-                            Util.tagOpen(out, SERVLET_NAME);
-                            for (Tag tag : tags) {
-                                String tagKey = tag.getName();
-                                out.println("    <ArtistTag key=\"" + tagKey + "\" " + "score=\"" + tag.getCount() + "\" " +
-                                        "/>");
+                    if (key != null) {
+                        if ((artist = mdb.artistLookup(key)) != null) {
+                            if (frequent) {
+                                List<Tag> tags = artist.getSocialTags();
+                                Util.tagOpen(out, SERVLET_NAME);
+                                for (Tag tag : tags) {
+                                    String tagKey = tag.getName();
+                                    out.println("    <ArtistTag key=\"" + tagKey + "\" " + "score=\"" + tag.getCount() + "\" " +
+                                            "/>");
+                                }
+                                Util.outputOKStatus(out);
+                                Util.tagClose(out, SERVLET_NAME);
+                            } else {
+
+                                List<Scored<String>> tags = mdb.artistGetDistinctiveTags(key, maxCount);
+
+                                out.println("<ArtistSocialTags>");
+                                for (Scored<String> scoredTag : tags) {
+                                    String tagKey = scoredTag.getItem();
+                                    out.println("    <ArtistTag key=\"" + tagKey + "\" " +
+                                            "score=\"" + scoredTag.getScore() + "\" " + "/>");
+                                }
+                                Util.outputOKStatus(out);
+                                Util.tagClose(out, SERVLET_NAME);
                             }
-                            Util.outputOKStatus(out);
-                            Util.tagClose(out, SERVLET_NAME);
                         } else {
-
-                            List<Scored<String>> tags = mdb.artistGetDistinctiveTags(key, maxCount);
-
-                            out.println("<ArtistSocialTags>");
-                            for (Scored<String> scoredTag : tags) {
-                                String tagKey = scoredTag.getItem();
-                                out.println("    <ArtistTag key=\"" + tagKey + "\" " +
-                                        "score=\"" + scoredTag.getScore() + "\" " +
-                                        "/>");
-                            }
-                            Util.outputOKStatus(out);
-                            Util.tagClose(out, SERVLET_NAME);
+                            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "Can't find specified artist");
                         }
                     } else {
                         Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "need an artist  name or a key");
+
                     }
                 } catch (AuraException ex) {
                     Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Problem accessing data");
