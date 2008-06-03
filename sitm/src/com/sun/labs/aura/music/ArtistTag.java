@@ -60,8 +60,9 @@ public class ArtistTag extends ItemAdapter {
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
     public ArtistTag(String name) throws AuraException {
-        this(StoreFactory.newItem(Item.ItemType.ARTIST_TAG, "artist-tag:" + name, name));
+        this(StoreFactory.newItem(Item.ItemType.ARTIST_TAG, nameToKey(name), name));
     }
+
 
     public void defineFields(DataStore ds) throws AuraException {
         try {
@@ -159,5 +160,14 @@ public class ArtistTag extends ItemAdapter {
      */
     public void addPhoto(String photoId) {
         appendToField(FIELD_PHOTOS, photoId);
+    }
+
+    public static String nameToKey(String name) {
+        return "artist-tag:" + normalizeKey(name);
+    }
+
+    private static String normalizeKey(String key) {
+        key = key.replaceAll("\\W", "").toLowerCase();
+        return key;
     }
 }

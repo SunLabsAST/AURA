@@ -1,6 +1,6 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (c) 2008, Sun Microsystems Inc.
+ *  See license.txt for license.
  */
 package com.sun.labs.aura.music.webservices;
 
@@ -8,21 +8,23 @@ import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
-import java.io.*;
-
+import com.sun.labs.aura.util.Tag;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.servlet.*;
-import javax.servlet.http.*;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
  * @author plamere
  */
-public class FindSimilarArtist extends HttpServlet {
+public class ArtistSocialTags extends HttpServlet {
 
-    private final static String SERVLET_NAME = "FindSimilarArtist";
+    private final static String SERVLET_NAME = "ArtistSocialTags";
 
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -51,6 +53,12 @@ public class FindSimilarArtist extends HttpServlet {
                     maxCount = Integer.parseInt(maxCountString);
                 }
 
+                boolean frequent = false;
+                String type = request.getParameter("type");
+                if (type != null) {
+                    frequent = type.equals("frequent");
+                }
+
                 try {
                     Artist artist = null;
                     if (key == null) {
@@ -64,29 +72,35 @@ public class FindSimilarArtist extends HttpServlet {
                     }
                     if (key != null) {
                         if ((artist = mdb.artistLookup(key)) != null) {
-                            List<Scored<Artist>> scoredArtists = mdb.artistFindSimilar(key, maxCount);
-
-                            out.println("<FindSimilarArtist key=\"" + key + "\" name=\"" + Util.filter(artist.getName()) + "\">");
-                            for (Scored<Artist> scoredArtist : scoredArtists) {
-
-                                if (scoredArtist.getItem().getKey().equals(key)) {
-                                    continue;
+                            if (frequent) {
+                                List<Tag> tags = artist.getSocialTags();
+                                Util.tagOpen(out, SERVLET_NAME);
+                                for (Tag tag : tags) {
+                                    String tagKey = tag.getName();
+                                    out.println("    <ArtistTag key=\"" + tagKey + "\" " + "score=\"" + tag.getCount() + "\" " +
+                                            "/>");
                                 }
+                                Util.outputOKStatus(out);
+                                Util.tagClose(out, SERVLET_NAME);
+                            } else {
 
-                                Artist simArtist = scoredArtist.getItem();
-                                out.println("    <artist key=\"" +
-                                        simArtist.getKey() + "\" " +
-                                        "score=\"" + scoredArtist.getScore() + "\" " +
-                                        "name=\"" + Util.filter(simArtist.getName()) + "\"" +
-                                        "/>");
+                                List<Scored<String>> tags = mdb.artistGetDistinctiveTags(key, maxCount);
+
+                                out.println("<ArtistSocialTags>");
+                                for (Scored<String> scoredTag : tags) {
+                                    String tagKey = scoredTag.getItem();
+                                    out.println("    <ArtistTag key=\"" + tagKey + "\" " +
+                                            "score=\"" + scoredTag.getScore() + "\" " + "/>");
+                                }
+                                Util.outputOKStatus(out);
+                                Util.tagClose(out, SERVLET_NAME);
                             }
-                            Util.outputOKStatus(out);
-                            Util.tagClose(out, SERVLET_NAME);
                         } else {
-                            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.NotFound, "can't find specified artist");
+                            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "Can't find specified artist");
                         }
                     } else {
-                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "need a name or a key");
+                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "need an artist  name or a key");
+
                     }
                 } catch (AuraException ex) {
                     Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Problem accessing data");
@@ -124,6 +138,5 @@ public class FindSimilarArtist extends HttpServlet {
      */
     public String getServletInfo() {
         return "Short description";
-    }
-    // </editor-fold>
+    }// </editor-fold>
 }

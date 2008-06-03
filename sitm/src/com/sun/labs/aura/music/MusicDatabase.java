@@ -63,7 +63,7 @@ public class MusicDatabase {
     }
 
     public List<Scored<ArtistTag>> artistTagSearch(String artistTagName, int returnCount) throws AuraException {
-        String query = "(aura-type = artistTag) <AND> (aura-name <matches> \"*" + artistTagName + "*\")";
+        String query = "(aura-type = ARTIST_TAG) <AND> (aura-name <matches> \"*" + artistTagName + "*\")";
         List<Scored<Item>> scoredItems = query(query, returnCount);
         return convertToScoredArtistTagList(scoredItems);
     }

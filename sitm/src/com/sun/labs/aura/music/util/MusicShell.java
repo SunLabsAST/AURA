@@ -210,6 +210,29 @@ public class MusicShell implements AuraService, Configurable {
             }
         });
 
+        shell.add("artistTags", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                if (args.length >= 1) {
+                    String qname = sutils.stuff(args, 1);
+                    Artist artist = findArtist(qname);
+                    if (artist != null) {
+                        List<Tag> tags = artist.getSocialTags();
+                        for (Tag tag : tags) {
+                            System.out.println(tag.getName());
+                        }
+                    } else {
+                        System.out.println("Can't find " + qname);
+                    }
+                }
+                return "";
+            }
+
+            public String getHelp() {
+                return "Shows the tags for an artist";
+            }
+        });
+
         shell.add("tagDiscover", new CommandInterface() {
 
             public String execute(CommandInterpreter ci, String[] args) throws Exception {

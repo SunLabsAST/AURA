@@ -141,7 +141,8 @@ public class TagCrawler implements AuraService, Configurable {
                     sum += tag.getCount();
                     artistTag.addTaggedArtist(tag.getName(), tag.getCount());
                 }
-                logger.info("Adding tag " + artistTag.getName() + " artists " + artistTag.getTaggedArtist().size());
+                logger.info("Adding tag " + artistTag.getName() + " key: " + artistTag.getKey() 
+                        + " artists " + artistTag.getTaggedArtist().size());
                 artistTag.setPopularity(sum);
                 artistTag.flush(dataStore);
             }
