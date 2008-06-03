@@ -9,6 +9,7 @@
 
 package com.sun.labs.aura.music.wsitm.server;
 
+import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.ArtistDetails;
@@ -19,6 +20,7 @@ import com.sun.labs.aura.music.wsitm.client.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.TagTree;
 import com.sun.labs.aura.util.AuraException;
 import java.rmi.RemoteException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
@@ -48,7 +50,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.tagSearch(searchString, maxResults);
         } catch (Exception e) {
-            logger.severe("MusicSearchInterfaceImpl::artistSearch Exception: "+e.getMessage());
             logger.severe(traceToString(e));
             throw e;
         }
@@ -60,7 +61,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.artistSearch(searchString, maxResults);
         } catch (Exception e) {
-            logger.severe("MusicSearchInterfaceImpl::artistSearch Exception: "+e.getMessage());
             logger.severe(traceToString(e));
             throw e;
         }
@@ -77,7 +77,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             }
             return dm.artistSearchByTag(searchString, maxResults);
         } catch (Exception e) {
-            logger.info("MusicSearchInterfaceImpl::artistSearchByTag Exception: "+e.getMessage());
             logger.severe(traceToString(e));
             throw e;
         }
@@ -89,7 +88,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getArtistDetails(id, false);
         } catch (Exception e) {
-            logger.severe("MusicSearchInterfaceImpl::getArtistDetails Exception: "+e.getMessage()+" / "+e.getCause());
             logger.severe(traceToString(e));
             throw e;
         }
@@ -103,8 +101,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
                 id="artist-tag:"+id;
             }
             return dm.getTagDetails(id, refresh);
-        } catch (Exception e) {
-            logger.severe("MusicSearchInterfaceImpl::getTagDetails Exception: "+e.getMessage()+" / "+e.getCause());
+        } catch (Exception e) { 
             logger.severe(traceToString(e));
             throw e;
         }
@@ -120,7 +117,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getCommonTags(artistID1, artistID2, num);
         } catch (Exception e) {
-            logger.severe("MusicSearchInterfaceImpl::getCommonTags Exception: "+e.getMessage()+" / "+e.getCause());
             logger.severe(traceToString(e));
             throw e;
         }
@@ -139,10 +135,19 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
     
     private String traceToString(Exception e) {
-        String trace = "";
+        String trace = "\n"+e.getClass()+"\n";
         for (StackTraceElement s : e.getStackTrace()) {
-            trace += "    **   " + s + "\n";
+            trace += "    at  " + s + "\n";
         }
         return trace;
+    }
+
+    public List<String> getArtistOracle() throws Exception {
+        try {
+            return dm.getArtistOracle();
+        } catch (Exception e) {
+            logger.severe(traceToString(e));
+            throw e;
+        }
     }
 }

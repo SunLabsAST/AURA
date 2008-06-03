@@ -8,6 +8,7 @@
  */
 package com.sun.labs.aura.music.wsitm.server;
 
+import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import java.io.UnsupportedEncodingException;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.music.Album;
@@ -71,6 +72,8 @@ public class DataManager implements Configurable {
     private int expiredTimeInDays = 0;
     private boolean singleThread = false;
     
+    private List<String> artistOracle;
+    
     /**
      * Creates a new instance of the datamanager
      * @param path  the path to the database
@@ -85,6 +88,17 @@ public class DataManager implements Configurable {
         cache = new LRUCache(cacheSize);
         //mdb = new MusicDatabase(path);
         this.mdb = mdb;
+        
+        artistOracle = new ArrayList<String>();
+        try {
+            for (Artist a : mdb.artistGetMostPopular(1000)) {
+                artistOracle.add(a.getName());
+            }
+        } catch (AuraException e) {}
+    }
+    
+    public List<String> getArtistOracle() {
+        return artistOracle;
     }
     
     /**
@@ -231,7 +245,7 @@ public class DataManager implements Configurable {
         }
         details.setFrequentTags(freqTags);
         */
-        details.setFrequentTags(scoredArtistTagToItemInfo(scoredTags.subList(0, getMax(scoredTags))));
+        details.setFrequentTags(scoredArtistTagToItemInfo(scoredTags.subList(0, getMax(scoredTags,NUMBER_TAGS_TO_SHOW))));
         
         // Fetch list of distinctive tags
         List<Scored<String>> topTags = mdb.artistGetDistinctiveTags(a.getKey(),NUMBER_TAGS_TO_SHOW);
@@ -405,7 +419,7 @@ public class DataManager implements Configurable {
 
         // Fetch representative artists
         List<Scored<Tag>> taggedArtists = sortTag(tag.getTaggedArtist(),TagSorter.sortFields.COUNTorSCORE);
-        details.setRepresentativeArtists(tagToItemInfo(taggedArtists.subList(0, getMax(taggedArtists)),true));
+        details.setRepresentativeArtists(tagToItemInfo(taggedArtists.subList(0, getMax(taggedArtists,NUMBER_TAGS_TO_SHOW)),true));
 
         // Fetch similar tags
         List<Scored<ArtistTag>> simTags = mdb.artistTagFindSimilar(id, NUMBER_TAGS_TO_SHOW);
@@ -421,12 +435,12 @@ public class DataManager implements Configurable {
      * @param l list to check
      * @return
      */
-    private int getMax(List l) {
+    private final int getMax(List l, final int maxNumber) {
         int listSize = l.size();
-        if (listSize<NUMBER_TAGS_TO_SHOW) {
+        if (listSize<maxNumber) {
             return listSize;
         } else {
-            return NUMBER_TAGS_TO_SHOW;
+            return maxNumber;
         }
     }
     
@@ -637,14 +651,12 @@ public class DataManager implements Configurable {
      * @return item info array
      */
     private ItemInfo[] scoredStringToItemInfo(List<Scored<String>> strList) {
-        ItemInfo[] tagsArray = new ItemInfo[NUMBER_TAGS_TO_SHOW];
-        int index = 0;
-        for (Scored<String> sS : strList.subList(0, getMax(strList))) {
-            tagsArray[index] = new ItemInfo(sS.getItem(), sS.getItem(), 
-                    sS.getScore(), sS.getScore());
-            index++;
+        List<ItemInfo> tagsArray = new ArrayList<ItemInfo>();
+        for (Scored<String> sS : strList.subList(0, getMax(strList,NUMBER_TAGS_TO_SHOW))) {
+            tagsArray.add(new ItemInfo(sS.getItem(), sS.getItem(), 
+                    sS.getScore(), sS.getScore()));
         }
-        return tagsArray;
+        return tagsArray.subList(0,this.getMax(tagsArray,NUMBER_TAGS_TO_SHOW)).toArray(new ItemInfo[0]);
     }
 
     /**
