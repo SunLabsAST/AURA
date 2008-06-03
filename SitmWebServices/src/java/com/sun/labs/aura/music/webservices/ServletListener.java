@@ -6,6 +6,7 @@ package com.sun.labs.aura.music.webservices;
 
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -38,6 +39,8 @@ public class ServletListener implements ServletContextListener {
                 }
             } catch (IOException ioe) {
                 logger.log(Level.SEVERE, "Failed to get datastore handle", ioe);
+            } catch (AuraException ex) {
+                logger.log(Level.SEVERE, "Failed to communicate with the datastore", ex);
             }
         } catch (MalformedURLException ex) {
             logger.severe("Bad URL to config file " + ex.getMessage());
