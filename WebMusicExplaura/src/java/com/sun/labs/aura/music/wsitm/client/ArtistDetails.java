@@ -29,6 +29,7 @@ public class ArtistDetails implements IsSerializable, Details {
     private String name;
     private String encodedName;
     private float popularity;
+    private float normPopularity;
     private int beginYear;
     private int endYear;
     /**
@@ -199,6 +200,14 @@ public class ArtistDetails implements IsSerializable, Details {
     public void setPopularity(float popularity) {
         this.popularity = popularity;
     }
+    
+    public float getNormPopularity() {
+        return normPopularity;
+    }
+
+    public void setNormPopularity(float normPopularity) {
+        this.normPopularity = normPopularity;
+    }    
 
     public ItemInfo[] getRecommendedArtists() {
         return recommendedArtists;

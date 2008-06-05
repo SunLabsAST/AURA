@@ -25,4 +25,5 @@ public interface MusicSearchInterface extends RemoteService {
     public TagTree getTagTree();
     public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num) throws Exception;
     public List<String> getArtistOracle() throws Exception;
+    public List<String> getTagOracle() throws Exception;
 }

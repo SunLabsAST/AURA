@@ -23,16 +23,15 @@ import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HTMLTable;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.Panel;
-import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.SuggestBox;
-import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import java.util.Arrays;
@@ -58,21 +57,34 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     
     private static MultiWordSuggestOracle artistOracle;
     private static MultiWordSuggestOracle tagOracle;
+    private Oracles currLoadedOracle;
+    private Oracles fetchOracle;    // Oracle we are currently fetching
+    
+    public static enum Oracles {
+        ARTIST,
+        TAG
+    }
     
     private static final String ICON_WAIT = "ajax-bar.gif";
     
     public SimpleSearchWidget() {
         super("Simple Search");
-        initRPC();
-        History.addHistoryListener(this);
-        initWidget(getWidget());
-        showResults(History.getToken());
+        try {
+            initRPC();
+            History.addHistoryListener(this);
+            initWidget(getWidget());
+            showResults(History.getToken());
+        } catch (Exception e) {
+            Window.alert("Server problem. Please try again later.");
+        }
     }
 
     /** Creates a new instance of SimpleSearchWidget */
     public Widget getWidget() {
 
         search = new SearchWidget();
+        updateSuggestBox(Oracles.ARTIST);
+        
         message = new Label();
         //message.setWidth("100%");
         message.setHeight("20px");
@@ -95,7 +107,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         VerticalPanel topPanel = new VerticalPanel();
         topPanel.setWidth("100%");
         topPanel.setHorizontalAlignment(VerticalPanel.ALIGN_CENTER);
-        
+
         topPanel.add(search);
         topPanel.add(msgPanel);
 
@@ -113,17 +125,18 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
      * @param iconPath URL to icon. Set to null to not use and icon
      */
     private void showMessage(String msg, String iconPath) {
-        
-        if (iconPath!=null && !iconPath.equals("")) {
-            icon.setUrl(iconPath);
-            icon.setVisible(true);
+        if (message!=null) {
+            if (iconPath!=null && !iconPath.equals("")) {
+                icon.setUrl(iconPath);
+                icon.setVisible(true);
+            }
+            else {
+                icon.setVisible(false);
+            }
+
+            message.setStyleName("messageNormal");
+            message.setText(msg);
         }
-        else {
-            icon.setVisible(false);
-        }
-        
-        message.setStyleName("messageNormal");
-        message.setText(msg);
     }
     
     private void showMessage(String msg) {
@@ -247,7 +260,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                         invokeGetTagInfo(ar.getId(), false);
                     } else {
                         showMessage("Found " + sr.getItemResults().length + " matches");
-                        setResults(sr.toString(), getItemInfoList("Pick one: ", sr.getItemResults(), null, false));
+                        setResults(sr.toString(), getItemInfoList("Pick one: ", sr.getItemResults(), null, false,tagOracle));
                     }
                 } else {
                     if (sr == null) {
@@ -278,20 +291,16 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         }
     }
     
-    private void invokeOracleFetchService(String type) {
+    private void invokeOracleFetchService(Oracles type) {
 
-        AsyncCallback callback = new AsyncCallback() {
+        AsyncCallbackWithType callback = new AsyncCallbackWithType(type) {
 
             public void onSuccess(Object result) {
                 // do some UI stuff to show success
-                List<String> artistList = (List<String>) result;
-                artistOracle = new MultiWordSuggestOracle();
-                artistOracle.addAll(artistList);
-
-                searchBoxContainerPanel.remove(0);
-                SuggestBox textBox = createSuggestBox(artistOracle);
-                search.setSearchBox(textBox);
-                searchBoxContainerPanel.add(search.getSearchBox());
+                List<String> callBackList = (List<String>) result;
+                MultiWordSuggestOracle newOracle = new MultiWordSuggestOracle();
+                newOracle.addAll(callBackList);
+                swapSuggestBox(newOracle,this.type);
             }
 
             public void onFailure(Throwable caught) {
@@ -299,10 +308,15 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         };
 
-        //showMessage("Searching for " + searchText,ICON_WAIT);
-
+        searchBoxContainerPanel.clear();
+        searchBoxContainerPanel.add(getLoadingBarWidget());
+        
         try {
-            musicServer.getArtistOracle(callback);
+            if (type==Oracles.ARTIST) {
+                musicServer.getArtistOracle(callback);
+            } else {
+                musicServer.getTagOracle(callback);
+            }
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }
@@ -324,7 +338,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                         invokeGetArtistInfo(ar.getId(), false);
                     } else {
                         showMessage("Found " + sr.getItemResults().length + " matches");
-                        Widget searchResults = getItemInfoList("Pick one: ", sr.getItemResults(), null, true);
+                        Widget searchResults = getItemInfoList("Pick one: ", sr.getItemResults(), null, true, artistOracle);
                         searchResults.setStyleName("searchResults");
                         searchResults.setWidth("300px");
                         setResults(sr.toString(), searchResults);
@@ -484,21 +498,20 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         VerticalPanel right = new VerticalPanel();
         String id = artistDetails.getId();
-        right.add(getItemInfoList("Distinctive Tags", artistDetails.getDistinctiveTags(), null, false));
-        right.add(getItemInfoList("Frequent Tags", artistDetails.getFrequentTags(), null, false));
-        right.add(getPopularityWidget(artistDetails));
-        right.add(getRefreshWidget(artistDetails));
+        right.add(getItemInfoList("Distinctive Tags", artistDetails.getDistinctiveTags(), null, false, tagOracle));
+        right.add(getItemInfoList("Frequent Tags", artistDetails.getFrequentTags(), null, false, tagOracle));
+        right.add(getPopularityPanel(artistDetails));
         right.setStyleName("right");
 
         VerticalPanel left = new VerticalPanel();
         if (artistDetails.getSimilarArtists().length > 0) {
-            left.add(getItemInfoList2("Tagomendations", artistDetails.getSimilarArtists(), id, true));
+            left.add(getItemInfoList2("Tagomendations", artistDetails.getSimilarArtists(), id, true, artistOracle));
         }
         if (artistDetails.getRecommendedArtists().length > 0) {
-            left.add(getItemInfoList("Recommendations", artistDetails.getRecommendedArtists(), id, true));
+            left.add(getItemInfoList("Recommendations", artistDetails.getRecommendedArtists(), id, true, artistOracle));
         }
         if (artistDetails.getCollaborations().length > 0) {
-            left.add(getItemInfoList("Related", artistDetails.getCollaborations(), id, true));
+            left.add(getItemInfoList("Related", artistDetails.getCollaborations(), id, true, artistOracle));
         }
         left.add(getMoreInfoWidget(artistDetails));
         left.setWidth("150px");
@@ -522,7 +535,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             VerticalPanel left = new VerticalPanel();
             left.setWidth("150px");
             left.setStyleName("left");
-            Widget w = getItemInfoList(tagDetails.getName() + " artists", tagDetails.getRepresentativeArtists(), null, true);
+            Widget w = getItemInfoList(tagDetails.getName() + " artists", tagDetails.getRepresentativeArtists(), null, true, tagOracle);
             left.add(w);
             main.add(left, DockPanel.WEST);
         }
@@ -538,10 +551,9 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         {
             VerticalPanel right = new VerticalPanel();
-            Widget w = getItemInfoList("Similar tags", tagDetails.getSimilarTags(), tagDetails.getId(), false);
+            Widget w = getItemInfoList("Similar tags", tagDetails.getSimilarTags(), tagDetails.getId(), false, tagOracle);
             w.setStyleName("right");
             right.add(w);
-            right.add(getRefreshWidget(tagDetails));
             main.add(right, DockPanel.EAST);
         }
 
@@ -635,34 +647,49 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         return createSection("Videos", videoPanel);
     }
 
-    Widget getPopularityWidget(ArtistDetails artistDetails) {
-        return createSection("Popularity", new Label("" + artistDetails.getPopularity()));
+    Widget getPopularityPanel(ArtistDetails artistDetails) {
+        
+        VerticalPanel vPanel = new VerticalPanel();
+        vPanel.add(getPopularityWidget("Radiohead",1));
+        vPanel.add(getPopularityWidget(artistDetails.getName(), 
+                artistDetails.getNormPopularity()));
+        
+        return createSection("Popularity", vPanel);
     }
-
-    Widget getRefreshWidget(final ArtistDetails artistDetails) {
-        Label l = new Label("Refresh");
-        l.setStyleName("refresh");
-        l.addClickListener(new ClickListener() {
-
-            public void onClick(Widget sender) {
-                invokeGetArtistInfo(artistDetails.getId(), true);
-            }
-        });
-        return l;
+    
+    Widget getPopularityWidget(String name, float normPopularity) {
+        
+        int leftWidth = (int)(normPopularity*100);
+        if (leftWidth<1) {
+            leftWidth=1;
+        }
+        int rightWidth = 100-leftWidth;
+        
+        HorizontalPanel table = new HorizontalPanel();
+        table.setWidth("100px");
+        table.setBorderWidth(0);
+        table.setSpacing(0);
+        
+        Widget left = new Label(".");
+        left.setStyleName("popLeft");
+        left.setWidth(leftWidth+"");
+        left.setHeight("15px");
+                
+        Widget right = new Label(".");
+        right.setStyleName("popRight");
+        right.setWidth(rightWidth+"");
+        left.setHeight("15px");
+        
+        table.add(left);
+        table.add(right);
+        
+        
+        VerticalPanel vPanel = new VerticalPanel();
+        vPanel.add(new Label(name));
+        vPanel.add(table);
+        return vPanel;
     }
-
-    Widget getRefreshWidget(final TagDetails tagDetails) {
-        Label l = new Label("Refresh");
-        l.setStyleName("refresh");
-        l.addClickListener(new ClickListener() {
-
-            public void onClick(Widget sender) {
-                invokeGetTagInfo(tagDetails.getId(), true);
-            }
-        });
-        return l;
-    }
-
+    
     Widget getPhotosWidget(ArtistPhoto[] photos) {
         Panel photoPanel = new FlowPanel();
         if (photos.length == 0) {
@@ -862,9 +889,14 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         Window.open(getTagRadioLink(tagDetails.getName()), "lastfm_popup", "width=400,height=170,menubar=no,toolbar=no,directories=no," + "location=no,resizable=no,scrollbars=no,status=no");
     }
 
-    private Widget getItemInfoList(final String title, final ItemInfo[] itemInfo, String highlightID, boolean getArtistOnClick) {
+    private Widget getItemInfoList(final String title, final ItemInfo[] itemInfo, String highlightID, boolean getArtistOnClick, MultiWordSuggestOracle oracle) {
         Grid artistGrid = new Grid(itemInfo.length, 1);
         for (int i = 0; i < itemInfo.length; i++) {
+
+             if (oracle!=null) {
+                oracle.add(itemInfo[i].getItemName());
+            }
+            
             Label label = new Label(itemInfo[i].getItemName());
             label.addClickListener(new ItemInfoClickListener(itemInfo[i], getArtistOnClick));
             label.setTitle("Score: " + itemInfo[i].getScore() + " Popularity:" + itemInfo[i].getPopularity());
@@ -897,9 +929,16 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         return w;
     }
 
-    private Widget getItemInfoList2(String title, ItemInfo[] itemInfo, String highlightID, boolean getArtistOnClick) {
+    private Widget getItemInfoList2(String title, ItemInfo[] itemInfo, 
+            String highlightID, boolean getArtistOnClick, MultiWordSuggestOracle oracle) {
         Grid artistGrid = new Grid(itemInfo.length, 2);
         for (int i = 0; i < itemInfo.length; i++) {
+            
+            // Add name to oracle as we only populated it with most popular
+            if (oracle!=null) {
+                oracle.add(itemInfo[i].getItemName());
+            }
+            
             Label label = new Label(itemInfo[i].getItemName());
             label.addClickListener(new ItemInfoClickListener(itemInfo[i], getArtistOnClick));
             label.setTitle("Score: " + itemInfo[i].getScore() + " Popularity:" + itemInfo[i].getPopularity());
@@ -935,7 +974,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         //textBox.setVisibleLength(30);
         sbox.setStyleName("searchText");
         sbox.ensureDebugId ("cwSuggestBox");
-        sbox.setLimit(15);
+        sbox.setLimit(25);
         
         sbox.addKeyboardListener(new KeyboardListenerAdapter() {
             public void onKeyPress(Widget sender, char keyCode, int modifiers) {
@@ -948,7 +987,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         return sbox;
     }
     
-    public void showPopup(Widget w) {
+    public void showPopup(Widget w, String title) {
         final DialogBox popup = new DialogBox(true);
         DockPanel docPanel = new DockPanel();
 
@@ -970,14 +1009,85 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         docPanel.add(container, DockPanel.CENTER);
         docPanel.add(closeButton, DockPanel.NORTH);
         docPanel.setCellHorizontalAlignment(closeButton, DockPanel.ALIGN_RIGHT);
-        docPanel.ensureDebugId("content");
         popup.add(docPanel);
-        popup.ensureDebugId("popup");
-        popup.setText("Tag cloud");
+        popup.setText(title);
         popup.setAnimationEnabled(true);
         popup.center();
     }
 
+    /**
+     * Update suggest box with new oracle if necessary. Will fetch oracle if it 
+     * is currently null
+     * @param type artist or tag
+     */
+    private void updateSuggestBox(Oracles type) {
+        if (currLoadedOracle!=null && currLoadedOracle == type) {
+            return;
+        } else {
+            if (type == Oracles.ARTIST) {
+                if (artistOracle == null) {
+                    invokeOracleFetchService(type);
+                } else {
+                    swapSuggestBox(artistOracle);
+                }
+            } else {
+                if (tagOracle == null) {
+                    invokeOracleFetchService(type);
+                } else {
+                    swapSuggestBox(tagOracle);
+                }
+            }
+        }
+    }
+
+    private void swapSuggestBox(MultiWordSuggestOracle newOracle, Oracles type) {
+        fetchOracle=type;
+        swapSuggestBox(newOracle);
+    }
+    
+    /**
+     * Does the actual swapping of the suggest box with the provided oracle
+     * @param newOracle
+     */
+    private void swapSuggestBox(MultiWordSuggestOracle newOracle) {
+
+        String oldTxt;
+        if (search.getSearchBox()!=null) {
+            oldTxt = search.getSearchBox().getText();
+        } else {
+            oldTxt="";
+        }
+        
+        searchBoxContainerPanel.clear();
+        SuggestBox textBox = createSuggestBox(newOracle);
+        textBox.setText(oldTxt);
+        search.setSearchBox(textBox);
+        searchBoxContainerPanel.add(search.getSearchBox());
+
+        if (fetchOracle==Oracles.ARTIST) {
+            artistOracle = newOracle;
+            currLoadedOracle = Oracles.ARTIST;
+        } else {
+            tagOracle = newOracle;
+            currLoadedOracle = Oracles.TAG;
+        }
+        fetchOracle=null;
+    }
+    
+    abstract class AsyncCallbackWithType implements AsyncCallback {
+        
+        public Oracles type;
+        
+        public AsyncCallbackWithType(Oracles type) {
+            super();
+            this.type=type;
+        }
+
+        public abstract void onFailure(Throwable arg0);
+        public abstract void onSuccess(Object arg0);
+
+    }
+    
     class ItemInfoClickListener implements ClickListener {
 
         private ItemInfo info;
@@ -1008,7 +1118,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         public void onClick(Widget sender) {
             HTML html = new HTML(getEmbeddedVideo(video, true));
             //html.setStyleName("popup");
-            showPopup(html);
+            showPopup(html,"WebMusicExplaura :: YouTube Video");
         }
     }
 
@@ -1023,7 +1133,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         public void onClick(Widget sender) {
             HTML html = new HTML(photo.getRichHtmlWrapper());
             //html.setStyleName("popup");
-            showPopup(html);
+            showPopup(html,"WebMusicExplaura :: Flick Photo");
         }
     }
 
@@ -1061,22 +1171,34 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         private RadioButton[] searchButtons;
 
         SearchWidget() {
-    
+
+            textBox = new SuggestBox();
+            
             searchBoxContainerPanel = new FlowPanel();
-            if (artistOracle==null) {
-                invokeOracleFetchService("artist");
-                textBox = new SuggestBox();
-                searchBoxContainerPanel.add(getLoadingBarWidget());
-            } else {
-                textBox = createSuggestBox(artistOracle);
-                searchBoxContainerPanel.add(textBox);
-            }
+            searchBoxContainerPanel.add(getLoadingBarWidget());
+
             Panel searchType = new FlowPanel();
             searchButtons = new RadioButton[3];
             searchButtons[0] = new RadioButton("searchType", "For Artist");
             searchButtons[1] = new RadioButton("searchType", "By Tag");
             searchButtons[2] = new RadioButton("searchType", "For Tag");
 
+            searchButtons[0].addClickListener(new ClickListener() {
+                public void onClick(Widget arg0) {
+                    updateSuggestBox(Oracles.ARTIST);
+                }
+            });
+            searchButtons[1].addClickListener(new ClickListener() {
+                public void onClick(Widget arg0) {
+                    updateSuggestBox(Oracles.TAG);
+                }
+            });
+            searchButtons[2].addClickListener(new ClickListener() {
+                public void onClick(Widget arg0) {
+                    updateSuggestBox(Oracles.TAG);
+                }
+            });
+            
             setText("", SearchResults.SEARCH_FOR_ARTIST_BY_ARTIST);
 
             for (int i = 0; i < searchButtons.length; i++) {
@@ -1090,7 +1212,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             searchPanel.setStyleName("searchPanel");
 
             Button searchButton = new Button("Search", new ClickListener() {
-
                 public void onClick(Widget sender) {
                     search();
                 }
@@ -1139,7 +1260,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private void showTagCloud(String title, ItemInfo[] tags) {
         Panel p = new FlowPanel();
 
-        HTML titleWidget = new HTML("<h2>" + title + "</h2>");
+        //HTML titleWidget = new HTML("<h2>" + title + "</h2>");
         p.setWidth("600px");
 
         if (tags.length > 0) {
@@ -1157,7 +1278,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
             HTML html = new HTML(sb.toString());
             p.add(html);
-            showPopup(p);
+            showPopup(p,"WebMusicExplaura :: "+title);
         }
     }
 

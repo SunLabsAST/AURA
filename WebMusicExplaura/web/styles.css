@@ -49,8 +49,9 @@ img {
 .itemInfo:hover {text-decoration: underline; color: red;}
 .refresh {cursor: pointer; text-decoration: underline; margin-top: 20px;}
 
-.popup .Caption {  background: #000000; }
-.popup .content { font-weight: bold; font-size: 120%; background-color: #B0BFA1; color: #f0f8c6;  margin: 10px; }
+.gwt-DialogBox {  background: #73885D; }
+.gwt-DialogBox .Caption {  color: #ffffff; font-size: 1.2em; }
+.gwt-DialogBox .content { font-weight: bold; font-size: 120%; background-color: #B0BFA1; color: #f0f8c6;  margin: 10px; }
 .outerpopup    { background-color: #73885D; color: #00f8c6;  margin: 2px;  border: medium solid #73885d; border-width: 12px;}
 .borderpopup   { background-color: #73885D; color: #00f8c6;  margin: 2px;  border: medium solid #73885d; border-width: 6px;}
 .searchResults { text-align: center; vertical-align: top; width: 80%; }
@@ -114,102 +115,32 @@ img {
 
 .gwt-SuggestBoxPopup {
   margin-left: 3px;
+  background: #73885D;
 }
 
 .gwt-SuggestBoxPopup .item {
   padding: 2px 6px;
-  color: #B0BFA1;
+  background: #73885D;
+  color: white;
   cursor: default;
-  opacity: 0.92;
-  filter: alpha(opacity=92);
+  opacity: 0.85;
+  filter: alpha(opacity=85);
 }
 
 .gwt-SuggestBoxPopup .item-selected {
   background: #b7d6f6;
+  color: black;
 }
 
-.gwt-SuggestBoxPopup .middleCenter {
-  background: white;
+.popLeft 
+{
+    border: #000000 solid;
+    color: #ADCC58;
+    background-color: #ADCC58;
+    border-width: 1px 1px 1px 1px;
 }
-
-.gwt-SuggestBoxPopup .topCenter {
-  background: url(images/hborder.png) repeat-x;
-}
-
-.gwt-SuggestBoxPopup .middleLeft {
-  background: url(images/vborder.png) repeat-y;
-}
-
-html>body .gwt-SuggestBoxPopup .bottomCenter {
-  background: url(images/hborder.png) repeat-x;
-}
-
-html>body .gwt-SuggestBoxPopup .middleRight {
-  background: url(images/vborder.png) repeat-y;
-}
-
-html>body .gwt-SuggestBoxPopup .topLeft {
-  width: 5px;
-  height: 5px;
-  background: url(images/corner.png) no-repeat 0px -23px;
-}
-
-html>body .gwt-SuggestBoxPopup .topRight {
-  width: 8px;
-  height: 5px;
-  background: url(images/corner.png) no-repeat -5px -23px;
-}
-
-html>body .gwt-SuggestBoxPopup .bottomLeft {
-  width: 5px;
-  height: 8px;
-  background: url(images/corner.png) no-repeat 0px -28px;
-}
-
-html>body .gwt-SuggestBoxPopup .bottomRight {
-  width: 8px;
-  height: 8px;
-  background: url(images/corner.png) no-repeat -5px -28px;
-}
-
-* html .gwt-SuggestBoxPopup .bottomCenter {
-  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/ie6/hborder_blue_shadow.png',sizingMethod='scale');
-}
-
-* html .gwt-SuggestBoxPopup .middleRight {
-  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/ie6/vborder_blue_shadow.png',sizingMethod='scale');
-}
-
-* html .gwt-SuggestBoxPopup .topLeftInner {
-  width: 5px;
-  height: 28px;
-  margin-top: -23px;
-  overflow: hidden;
-  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/corner.png',sizingMethod='crop');
-}
-
-* html .gwt-SuggestBoxPopup .topRightInner {
-  width: 13px;
-  height: 28px;
-  margin-left: -5px;
-  margin-top: -23px;
-  overflow: hidden;
-  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/corner.png',sizingMethod='crop');
-}
-
-* html .gwt-SuggestBoxPopup .bottomLeftInner {
-  width: 5px;
-  height: 36px;
-  margin-top: -28px;
-  overflow: hidden;
-  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/corner.png',sizingMethod='crop');
-}
-
-* html .gwt-SuggestBoxPopup .bottomRightInner {
-  width: 13px;
-  height: 36px;
-  margin-left: -5px;
-  margin-top: -28px;
-  overflow: hidden;
-  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/corner.png',sizingMethod='crop');
+.popRight 
+{
+    color: #DBE8B5;
+    background-color: #DBE8B5;
 }

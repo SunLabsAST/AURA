@@ -71,7 +71,11 @@ public class DataManager implements Configurable {
     private int expiredTimeInDays = 0;
     private boolean singleThread = false;
     
+    private static final String radioheadMDID="a74b1b7f-71a5-4011-9441-d0b5e4122711";
+    private float radioheadPopularity=-1;
+    
     private List<String> artistOracle;
+    private List<String> tagOracle;
     
     /**
      * Creates a new instance of the datamanager
@@ -79,7 +83,7 @@ public class DataManager implements Configurable {
      * @param cacheSize  the size of the cache
      * @throws java.io.IOException  
      */
-    public DataManager(MusicDatabase mdb, int cacheSize) throws IOException {
+    public DataManager(MusicDatabase mdb, int cacheSize) {
         
         logger.info("Instantiating new DataManager with cache size of "+cacheSize);
         
@@ -89,16 +93,29 @@ public class DataManager implements Configurable {
         this.mdb = mdb;
         
         artistOracle = new ArrayList<String>();
+        tagOracle = new ArrayList<String>();
+
         try {
+            logger.info("Fetching most popular artists...");
             artistOracle = mdb.artistGetMostPopularNames(1000);
+            logger.info("Fetching most popular tags...");
+            tagOracle = mdb.artistTagGetMostPopularNames(400);
+            logger.info("DONE");
+            
+            radioheadPopularity=mdb.artistLookup(radioheadMDID).getPopularity();
         } catch (AuraException ex) {
             Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+        logger.info("DataManager ready.");
     }
     
     public List<String> getArtistOracle() {
         return artistOracle;
+    }
+    
+    public List<String> getTagOracle() {
+        return tagOracle;
     }
     
     /**
@@ -155,10 +172,15 @@ public class DataManager implements Configurable {
         details.setEndYear(a.getEndYear());
         details.setBiographySummary(a.getBioSummary());
         details.setId(id);
-        details.setPopularity(a.getPopularity());
         details.setUrls(a.getUrls());
         details.setPhotos(getArtistPhotoFromIds(a.getPhotos()));
         details.setVideos(getArtistVideoFromIds(a.getVideos()));
+        details.setPopularity(a.getPopularity());
+        if (radioheadPopularity!=-1) {
+            details.setNormPopularity(a.getPopularity()/radioheadPopularity);
+        } else {
+            details.setNormPopularity(-1);
+        }
 
         try {
             details.setEncodedName(URLEncoder.encode(a.getName(), "UTF-8"));

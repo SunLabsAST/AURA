@@ -40,6 +40,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
 
     @Override
     public void init(ServletConfig sc) throws ServletException {
+        logger.info("Init");
         super.init(sc);
         dm = ServletTools.getDataManager(sc);
         //logger = dm.getLogger();
@@ -74,7 +75,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             // Make sure the tag has the right header
             if (!searchString.startsWith("artist-tag:")) {
-                searchString="artist-tag:"+searchString;
+                searchString=ArtistTag.nameToKey(searchString);
             }
             return dm.artistSearchByTag(searchString, maxResults);
         } catch (Exception e) {
@@ -144,6 +145,15 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     public List<String> getArtistOracle() throws Exception {
         try {
             return dm.getArtistOracle();
+        } catch (Exception e) {
+            logger.severe(traceToString(e));
+            throw e;
+        }
+    }
+    
+    public List<String> getTagOracle() throws Exception {
+        try {
+            return dm.getTagOracle();
         } catch (Exception e) {
             logger.severe(traceToString(e));
             throw e;

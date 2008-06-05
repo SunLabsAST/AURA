@@ -54,7 +54,7 @@ public class ServletListener implements ServletContextListener {
                 try {
                     context.setAttribute("MusicDatabase", new MusicDatabase(dataStore));
                 } catch (AuraException ex) {
-                    Logger.getLogger(ServletListener.class.getName()).log(Level.SEVERE, null, ex);
+                    logger.severe("AuraException : "+ex.getMessage());
                 }
             } catch (IOException ioe) {
                 logger.log(Level.SEVERE, "Failed to get handle", ioe);
