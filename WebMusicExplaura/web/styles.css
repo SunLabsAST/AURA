@@ -6,10 +6,20 @@ body {
 	font-size: 12px;
 	color: #73885D;
 	background: #f0f8c6;
-	margin: 0px;
+        margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	margin-left: 0px;
+        margin: 0px;
 	padding: 0px;
 	line-height: 17px;
 	font-weight: normal;
+}
+
+.pageHeader {
+    background: #73885D;
+    color: white;
+    padding: 3px;
 }
 
 h1 { font-size: 1.6em; margin-bottom: 4px; border-bottom: medium solid #73885d; border-width: thin;}

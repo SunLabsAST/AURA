@@ -11,6 +11,7 @@ package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.rpc.RemoteService;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -26,4 +27,5 @@ public interface MusicSearchInterface extends RemoteService {
     public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num) throws Exception;
     public List<String> getArtistOracle() throws Exception;
     public List<String> getTagOracle() throws Exception;
+    public logInDetails getUserTagCloud(String lastfmUser) throws Exception;
 }

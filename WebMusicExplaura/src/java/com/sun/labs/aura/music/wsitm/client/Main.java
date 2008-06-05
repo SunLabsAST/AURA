@@ -26,6 +26,8 @@ import com.google.gwt.user.client.ui.Widget;
  */
 public class Main implements EntryPoint {
     
+    private ClientDataManager cdm;
+    
     /** Creates a new instance of Main */
     public Main() {
     }
@@ -41,26 +43,19 @@ public class Main implements EntryPoint {
         
         Label title = new Label("Search Inside the Music - The Music Explaura");
         title.setStyleName("title");
+        
+        cdm = new ClientDataManager();
+        
+        Swidget artistSearch = new SimpleSearchWidget(cdm);
+        PageHeaderWidget uP = new PageHeaderWidget(cdm);
+        
+        cdm.setWidgets(uP, (SimpleSearchWidget)artistSearch);
+        
+        mainPanel.add(uP, DockPanel.NORTH);
         mainPanel.add(title, DockPanel.NORTH);
+        mainPanel.add(artistSearch, DockPanel.CENTER);
         
-        if (false) {
-            TabPanel tabs = new TabPanel();
-            
-            Swidget artistSearch = new SimpleSearchWidget();
-            Label nothing = new Label("Nothing here yet!");
-            
-            tabs.setWidth("100%");
-            tabs.add(artistSearch, "Search");
-            tabs.add(nothing, "Explore");
-            tabs.selectTab(0);
-            tabs.setHeight("100%");
-            mainPanel.add(tabs, DockPanel.CENTER);
-        } else {
-            Swidget artistSearch = new SimpleSearchWidget();
-            mainPanel.add(artistSearch, DockPanel.CENTER);
-        }
-        
-        
+
         Panel footer = new HorizontalPanel();
         footer.add(new HTML("<hr/> Powered by Sun Microsystems, Last.fm, Spotify, Wikipedia, Flickr, Youtube, Yahoo, Musicbrainz, Upcoming and Amazon"));
         footer.setStyleName("footer");

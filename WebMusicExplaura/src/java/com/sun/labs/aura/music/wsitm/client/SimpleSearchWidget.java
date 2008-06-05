@@ -23,7 +23,6 @@ import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
-import com.google.gwt.user.client.ui.HTMLTable;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
@@ -55,6 +54,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private MusicSearchInterfaceAsync musicServer;
     private Image icon;
     
+    private ClientDataManager cdm;
     private static MultiWordSuggestOracle artistOracle;
     private static MultiWordSuggestOracle tagOracle;
     private Oracles currLoadedOracle;
@@ -67,10 +67,11 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     
     private static final String ICON_WAIT = "ajax-bar.gif";
     
-    public SimpleSearchWidget() {
+    public SimpleSearchWidget(ClientDataManager cdm) {
         super("Simple Search");
         try {
             initRPC();
+            this.cdm=cdm;
             History.addHistoryListener(this);
             initWidget(getWidget());
             showResults(History.getToken());
@@ -501,6 +502,9 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         right.add(getItemInfoList("Distinctive Tags", artistDetails.getDistinctiveTags(), null, false, tagOracle));
         right.add(getItemInfoList("Frequent Tags", artistDetails.getFrequentTags(), null, false, tagOracle));
         right.add(getPopularityPanel(artistDetails));
+        if (cdm.isLoggedIn()) {
+            right.add(getTastAuraMeterPanel(artistDetails));
+        }
         right.setStyleName("right");
 
         VerticalPanel left = new VerticalPanel();
@@ -647,6 +651,25 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         return createSection("Videos", videoPanel);
     }
 
+    Widget getTastAuraMeterPanel(ArtistDetails aD) {
+        
+        Double score=0.0;
+        Map<String,Integer> tagMap = cdm.getTagMap();
+        for (ItemInfo i : aD.getFrequentTags()) {
+            if (tagMap.containsKey(i.getItemName())) {
+                score+=i.getScore()*tagMap.get(i.getItemName());
+            }
+        }
+        int normScore = (int)(score/cdm.getMaxScore()*100);
+        
+        VerticalPanel vPanel = new VerticalPanel();
+        vPanel.add(getPopularityWidget(cdm.getFavArtistName(),1));
+        vPanel.add(getPopularityWidget(aD.getName(), 
+                normScore));
+        
+        return createSection("Tast-aura-meter", vPanel);
+    }
+    
     Widget getPopularityPanel(ArtistDetails artistDetails) {
         
         VerticalPanel vPanel = new VerticalPanel();
@@ -1257,7 +1280,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         }
     }
 
-    private void showTagCloud(String title, ItemInfo[] tags) {
+    public void showTagCloud(String title, ItemInfo[] tags) {
         Panel p = new FlowPanel();
 
         //HTML titleWidget = new HTML("<h2>" + title + "</h2>");

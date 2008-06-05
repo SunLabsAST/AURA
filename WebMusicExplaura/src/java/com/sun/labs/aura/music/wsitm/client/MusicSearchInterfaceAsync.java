@@ -25,4 +25,5 @@ public interface MusicSearchInterfaceAsync {
        public void getCommonTags(String artistID1, String artistID2, int num, AsyncCallback callback) throws Exception;
        public void getArtistOracle(AsyncCallback callback) throws Exception;
        public void getTagOracle(AsyncCallback callback) throws Exception;
+       public void getUserTagCloud(String lastfmUser, AsyncCallback callback) throws Exception;
 }

@@ -17,8 +17,11 @@ import com.sun.labs.aura.music.Event;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.Video;
+import com.sun.labs.aura.music.web.apml.APML;
 import com.sun.labs.util.props.ConfigurationManager;
+import com.sun.labs.aura.music.web.apml.LastFMConceptRetriever;
 
+import com.sun.labs.aura.music.web.lastfm.LastFM;
 import com.sun.labs.aura.music.wsitm.client.AlbumDetails;
 import com.sun.labs.aura.music.wsitm.client.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.ArtistEvent;
@@ -28,6 +31,7 @@ import com.sun.labs.aura.music.wsitm.client.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.TagTree;
+import com.sun.labs.aura.music.wsitm.client.logInDetails;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Tag;
@@ -40,6 +44,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -302,6 +307,81 @@ public class DataManager implements Configurable {
         return sr;
     }
 
+    public logInDetails getUserTagCloud(String lastfmUser) {
+        logger.info("Fetching user tag cloud for user "+lastfmUser);
+        try {
+            LastFM lastfm = new LastFM();
+            com.sun.labs.aura.music.web.lastfm.Item[] items = lastfm.getTopArtistsForUser(lastfmUser);
+            Map<String,Double> userTagMap = new HashMap<String,Double>();
+            // For each of this user's top artists
+            List<Tag> favArtistTags=null;
+            String favArtistName="";
+            for (com.sun.labs.aura.music.web.lastfm.Item i : items) {
+                try {
+                    // Try to fetch artist using artist name
+                    List<Scored<Artist>> lsa = mdb.artistSearch(i.getName(), 1);
+                    if (lsa!=null && !lsa.isEmpty() && lsa.get(0).getScore()>=1) {
+                        List<Tag> tags = lsa.get(0).getItem().getSocialTags();
+                        // Keep the user's favorite artist's tags
+                        if (favArtistTags==null) {
+                            favArtistTags = tags;
+                            favArtistName = lsa.get(0).getItem().getName();
+                        }
+                        for (Tag t : tags) {
+                            String tagName = t.getName();
+                            Double tagValue = t.getCount() * lsa.get(0).getScore();
+                            Double currValue = 0.0;
+                            if (userTagMap.containsKey(tagName)) {
+                                currValue = userTagMap.get(tagName);
+                                userTagMap.remove(tagName);
+                            }
+                            userTagMap.put(tagName, tagValue+currValue);
+                        }
+                    }
+                } catch (AuraException ex) {
+                    Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
+                    return null;
+                }
+            }
+            /**
+            ItemInfo[] userTagCloud = new ItemInfo[userTagMap.size()];
+            int index=0;
+            for (String key : userTagMap.keySet()) {
+                userTagCloud[index] = new ItemInfo(ArtistTag.nameToKey(key), key, 
+                        userTagMap.get(key), userTagMap.get(key));
+                index++;
+            }
+             * 
+             **/
+             
+            List<Scored<Tag>> scoredTags = new ArrayList<Scored<Tag>>();
+            for (String key : userTagMap.keySet()) {
+                Tag t = new Tag(key,(int)(userTagMap.get(key)*100));
+                
+                scoredTags.add(new Scored(t, userTagMap.get(key)));
+            }
+            scoredTags=sortScoredTag(scoredTags, Sorter.sortFields.POPULARITY);
+            
+            // Compute the maximum score that will be possible for this user
+            Double score = 0.0;
+            for (Tag t : favArtistTags) {
+                score += userTagMap.get(t.getName())*100*t.getCount();
+            }
+            
+            
+            logger.info("Returning usertagcloud of size "+scoredTags.size());
+            
+            logInDetails lid = new logInDetails();
+            lid.tags=scoredTagToItemInfo(scoredTags);
+            lid.maxScore=score;
+            return lid;
+
+        } catch (IOException ioE) {
+            logger.severe("IO Exception while trying to fetch APML for user "+lastfmUser);
+            return null;
+        }
+    }
+    
     /**
      * Search for an artist
      * @param maxResults maximum results to return
@@ -575,6 +655,10 @@ public class DataManager implements Configurable {
         for (Tag t : tags) {
             scoredTags.add(new Scored(t,t.getCount()));
         }
+        return sortScoredTag(scoredTags,sortBy);
+    }
+    
+    private List<Scored<Tag>> sortScoredTag(List<Scored<Tag>> scoredTags, Sorter.sortFields sortBy) {
         Collections.sort(scoredTags, new TagSorter(sortBy));
         Collections.reverse(scoredTags);
         return scoredTags;
@@ -646,6 +730,25 @@ public class DataManager implements Configurable {
         }
 
         return artistTagResults;
+    }
+    
+    /**
+     * Converts a list of scored tags and returns them in an iteminfo array 
+     * @param scoredArtists scored list of items (that will be cast as artists)
+     * @return
+     */
+    private ItemInfo[] scoredTagToItemInfo(List<Scored<Tag>> scoredTags) {
+
+        ItemInfo[] tagResults = new ItemInfo[scoredTags.size()];
+
+        for (int i = 0; i < tagResults.length; i++) {
+            Tag t = scoredTags.get(i).getItem();
+            double score = scoredTags.get(i).getScore();
+            double popularity = t.getCount();
+            tagResults[i] = new ItemInfo(ArtistTag.nameToKey(t.getName()), t.getName(), score, popularity);
+        }
+
+        return tagResults;
     }
     
     /**

@@ -19,9 +19,11 @@ import com.sun.labs.aura.music.wsitm.client.MusicSearchInterface;
 import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.TagTree;
+import com.sun.labs.aura.music.wsitm.client.logInDetails;
 import com.sun.labs.aura.util.AuraException;
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
@@ -154,6 +156,15 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     public List<String> getTagOracle() throws Exception {
         try {
             return dm.getTagOracle();
+        } catch (Exception e) {
+            logger.severe(traceToString(e));
+            throw e;
+        }
+    }
+    
+    public logInDetails getUserTagCloud(String lastfmUser) throws Exception {
+        try {
+            return dm.getUserTagCloud(lastfmUser);
         } catch (Exception e) {
             logger.severe(traceToString(e));
             throw e;
