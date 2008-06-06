@@ -59,8 +59,12 @@ img {
 .itemInfo:hover {text-decoration: underline; color: red;}
 .refresh {cursor: pointer; text-decoration: underline; margin-top: 20px;}
 
-.gwt-DialogBox {  background: #73885D; }
-.gwt-DialogBox .Caption {  color: #ffffff; font-size: 1.2em; }
+.gwt-DialogBox {  background: #73885D; border-style:solid;
+   border-width:4;
+   border-color:black;
+   padding:0px;
+}
+.gwt-DialogBox .Caption {  color: #ffffff; font-size: 1.2em; background: #000000;}
 .gwt-DialogBox .content { font-weight: bold; font-size: 120%; background-color: #B0BFA1; color: #f0f8c6;  margin: 10px; }
 .outerpopup    { background-color: #73885D; color: #00f8c6;  margin: 2px;  border: medium solid #73885d; border-width: 12px;}
 .borderpopup   { background-color: #73885D; color: #00f8c6;  margin: 2px;  border: medium solid #73885d; border-width: 6px;}

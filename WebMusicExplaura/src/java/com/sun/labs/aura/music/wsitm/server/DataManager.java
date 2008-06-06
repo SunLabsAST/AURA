@@ -133,7 +133,7 @@ public class DataManager implements Configurable {
     public ItemInfo[] getCommonTags(String id1, String id2, int num) 
             throws AuraException, RemoteException {
         List<Scored<String>> simList = mdb.artistExplainSimilarity(id1, id2, num);
-        return scoredStringToItemInfo(simList);
+        return scoredTagStringToItemInfo(simList);
     }
     
     /**
@@ -276,7 +276,7 @@ public class DataManager implements Configurable {
         
         // Fetch list of distinctive tags
         List<Scored<String>> topTags = mdb.artistGetDistinctiveTags(a.getKey(),NUMBER_TAGS_TO_SHOW);
-        details.setDistinctiveTags(scoredStringToItemInfo(topTags));
+        details.setDistinctiveTags(scoredTagStringToItemInfo(topTags));
         
         
         //details.setMusicURL(id);
@@ -312,10 +312,16 @@ public class DataManager implements Configurable {
         try {
             LastFM lastfm = new LastFM();
             com.sun.labs.aura.music.web.lastfm.Item[] items = lastfm.getTopArtistsForUser(lastfmUser);
+            String s="";
+            for (com.sun.labs.aura.music.web.lastfm.Item i : items) {
+                s+="    "+i.getName()+"   "+i.getFreq()+"\n";
+            }
+            logger.info(s);
             Map<String,Double> userTagMap = new HashMap<String,Double>();
+            
             // For each of this user's top artists
-            List<Tag> favArtistTags=null;
-            String favArtistName="";
+            ArrayList<List<Scored<Tag>>> favArtistTags= new ArrayList<List<Scored<Tag>>>();
+            ArrayList<String> favArtistName = new ArrayList<String>();
             for (com.sun.labs.aura.music.web.lastfm.Item i : items) {
                 try {
                     // Try to fetch artist using artist name
@@ -323,19 +329,18 @@ public class DataManager implements Configurable {
                     if (lsa!=null && !lsa.isEmpty() && lsa.get(0).getScore()>=1) {
                         List<Tag> tags = lsa.get(0).getItem().getSocialTags();
                         // Keep the user's favorite artist's tags
-                        if (favArtistTags==null) {
-                            favArtistTags = tags;
-                            favArtistName = lsa.get(0).getItem().getName();
-                        }
+                        favArtistTags.add(sortTag(tags, Sorter.sortFields.COUNTorSCORE));
+                        favArtistName.add(lsa.get(0).getItem().getName());
+                        
                         for (Tag t : tags) {
                             String tagName = t.getName();
-                            Double tagValue = t.getCount() * lsa.get(0).getScore();
+                            Double tagValue = t.getCount() * (Math.log(i.getFreq())+1);
                             Double currValue = 0.0;
                             if (userTagMap.containsKey(tagName)) {
                                 currValue = userTagMap.get(tagName);
                                 userTagMap.remove(tagName);
                             }
-                            userTagMap.put(tagName, tagValue+currValue);
+                            userTagMap.put(ArtistTag.nameToKey(tagName), tagValue+currValue);
                         }
                     }
                 } catch (AuraException ex) {
@@ -363,17 +368,29 @@ public class DataManager implements Configurable {
             scoredTags=sortScoredTag(scoredTags, Sorter.sortFields.POPULARITY);
             
             // Compute the maximum score that will be possible for this user
-            Double score = 0.0;
-            for (Tag t : favArtistTags) {
-                score += userTagMap.get(t.getName())*100*t.getCount();
+            Double maxScore = 0.0;
+            int maxIndex = -1;
+            for (int i=0; i<favArtistTags.size(); i++) {
+                Double score = 0.0;
+                for (Scored<Tag> sT : favArtistTags.get(i).subList(0, getMax(favArtistTags.get(i), NUMBER_TAGS_TO_SHOW))) {
+                    Tag t = sT.getItem();
+                    //logger.info(t.getName()+" "+((int)(userTagMap.get(ArtistTag.nameToKey(t.getName()))*100))+" x "+t.getCount());
+                    score += ((int)(userTagMap.get(ArtistTag.nameToKey(t.getName()))*100)) * t.getCount();
+                }
+                logger.info("Getting max score :: "+favArtistName.get(i)+"  "+score);
+                if (score>maxScore) {
+                    maxScore=score;
+                    maxIndex=i;
+                }
             }
-            
+              //double score = scoredArtists.get(i).getScore();
             
             logger.info("Returning usertagcloud of size "+scoredTags.size());
             
             logInDetails lid = new logInDetails();
             lid.tags=scoredTagToItemInfo(scoredTags);
-            lid.maxScore=score;
+            lid.maxScore=maxScore;
+            lid.favArtistName=favArtistName.get(maxIndex);
             return lid;
 
         } catch (IOException ioE) {
@@ -611,40 +628,6 @@ public class DataManager implements Configurable {
         skipSet.add("http://en.wikipedia.org/wiki/Musical_genre");
     }
 
-/*
-    private ItemInfo[] convertTagsToInfo(List<Scored<Tag>> tags, boolean sortByPopularity) {
-        ItemInfo[] itemInfos = new ItemInfo[tags.size()];
-        if (sortByPopularity) {
-            sortByTagPopularity(tags);
-        }
-        for (int i = 0; i < tags.size(); i++) {
-            Scored<Tag> scoredTag = tags.get(i);
-            //@todo tags don't have ids. 1st param should be id
-            ItemInfo info = new ItemInfo(scoredTag.getItem().getTerm(),
-                    scoredTag.getItem().getName(), scoredTag.getScore(),
-                    //@todo freq instead of pop
-                    scoredTag.getItem().getFreq());
-            itemInfos[i] = info;
-        }
-        return itemInfos;
-    }
-
-    private ItemInfo[] convertArtistsToInfo(List<Scored<Artist>> artists) {
-        ItemInfo[] itemInfos = new ItemInfo[artists.size()];
-
-        sortByArtistPopularity(artists);
-
-        for (int i = 0; i < artists.size(); i++) {
-            Scored<Artist> scored = artists.get(i);
-            //@todo tags don't have ids. 1st param should be id
-            ItemInfo info = new ItemInfo(scored.getItem().getName(),
-                    scored.getItem().getName(),
-                    scored.getScore(), scored.getItem().getPopularity());
-            itemInfos[i] = info;
-        }
-        return itemInfos;
-    }
-  */  
     private void sortByArtistPopularity(List<Scored<Artist>> scoredArtists) {
         Collections.sort(scoredArtists, new ArtistPopularitySorter());
         Collections.reverse(scoredArtists);
@@ -771,15 +754,26 @@ public class DataManager implements Configurable {
     }
 
     /**
-     * Converts a list of scored string to an itemInfo array
+     * Converts a list of scored string representing tag ids to an itemInfo array
      * @param strList
      * @return item info array
      */
-    private ItemInfo[] scoredStringToItemInfo(List<Scored<String>> strList) {
+    private ItemInfo[] scoredTagStringToItemInfo(List<Scored<String>> strList) {
         List<ItemInfo> tagsArray = new ArrayList<ItemInfo>();
         for (Scored<String> sS : strList.subList(0, getMax(strList,NUMBER_TAGS_TO_SHOW))) {
-            tagsArray.add(new ItemInfo(sS.getItem(), sS.getItem(), 
-                    sS.getScore(), sS.getScore()));
+            try {
+                ArtistTag aT = mdb.artistTagLookup(ArtistTag.nameToKey(sS.getItem()));
+                Float popularity;
+                if (aT==null) {
+                    popularity = new Float(0.0);
+                } else {
+                    popularity = aT.getPopularity();
+                }
+                tagsArray.add(new ItemInfo(sS.getItem(), sS.getItem(), sS.getScore(), 
+                        popularity));
+            } catch (AuraException ex) {
+                Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         return tagsArray.subList(0,this.getMax(tagsArray,NUMBER_TAGS_TO_SHOW)).toArray(new ItemInfo[0]);
     }

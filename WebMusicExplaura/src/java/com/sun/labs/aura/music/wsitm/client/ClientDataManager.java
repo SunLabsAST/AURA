@@ -15,7 +15,7 @@ import java.util.Map;
 public class ClientDataManager {
 
     private ItemInfo[] tagCloud;
-    private Map<String,Integer> tagMap;
+    private Map<String,Integer> tagMap; // maps the tag name to the index at which it is in the tagCloud
     private String lastFmUser;
     private Double maxScore;
     private String favArtistName;
@@ -83,6 +83,15 @@ public class ClientDataManager {
     
     public boolean isLoggedIn() {
         return isLoggedIn;
+    }
+    
+   public static String nameToKey(String name) {
+        return "artist-tag:" + normalizeKey(name);
+    }
+
+    private static String normalizeKey(String key) {
+        key = key.replaceAll("\\W", "").toLowerCase();
+        return key;
     }
     
 }

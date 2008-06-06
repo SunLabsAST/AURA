@@ -163,6 +163,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     }
     private String curToken = null;
 
+    
     private void setResults(String historyName, Widget result) {
         if (curResult == result) {
             return;
@@ -634,6 +635,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     }
 
     Widget getVideosWidget(ArtistVideo[] videos) {
+        /*
         Panel videoPanel = new FlowPanel();
         if (videos.length == 0) {
             videoPanel.add(new Label("None available"));
@@ -648,24 +650,44 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         }
         videoPanel.setStyleName("videos");
-        return createSection("Videos", videoPanel);
+         */
+        
+        return createSection("Videos", new VideoScrollWidget(videos));
     }
 
     Widget getTastAuraMeterPanel(ArtistDetails aD) {
         
         Double score=0.0;
         Map<String,Integer> tagMap = cdm.getTagMap();
+        ItemInfo[] tagCloud = cdm.getTagCloud();
+        String s="";
         for (ItemInfo i : aD.getFrequentTags()) {
-            if (tagMap.containsKey(i.getItemName())) {
-                score+=i.getScore()*tagMap.get(i.getItemName());
+            String nameKey = ClientDataManager.nameToKey(i.getItemName());
+            if (tagMap.containsKey(nameKey)) {
+                s+=i.getItemName()+" "+((int)(tagCloud[tagMap.get(nameKey)].getScore()*100))+" x "+i.getScore()+"\n";
+                score+=i.getScore()*tagCloud[tagMap.get(nameKey)].getScore();
             }
         }
-        int normScore = (int)(score/cdm.getMaxScore()*100);
+        //int normScore = (int)((double)score/cdm.getMaxScore()*100.0);
+        //Window.alert(s);
+        //Window.alert("Score:"+score+"\nMax score:"+cdm.getMaxScore());
+        
+        double favWidth;
+        double artWidth;
+        if (score>cdm.getMaxScore()) {
+            favWidth=((double)cdm.getMaxScore())/score;
+            artWidth=1;
+            
+        } else {
+            favWidth=1;
+            artWidth=((double)score)/cdm.getMaxScore();
+            Window.alert("Fav:"+favWidth+"\nArt:"+artWidth);
+        }
         
         VerticalPanel vPanel = new VerticalPanel();
-        vPanel.add(getPopularityWidget(cdm.getFavArtistName(),1));
+        vPanel.add(getPopularityWidget(cdm.getFavArtistName(),favWidth));
         vPanel.add(getPopularityWidget(aD.getName(), 
-                normScore));
+                artWidth));
         
         return createSection("Tast-aura-meter", vPanel);
     }
@@ -680,11 +702,13 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         return createSection("Popularity", vPanel);
     }
     
-    Widget getPopularityWidget(String name, float normPopularity) {
+    Widget getPopularityWidget(String name, double normPopularity) {
         
         int leftWidth = (int)(normPopularity*100);
         if (leftWidth<1) {
             leftWidth=1;
+        } else if (leftWidth>100) {
+            leftWidth=100;
         }
         int rightWidth = 100-leftWidth;
         
@@ -731,6 +755,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         return createSection("Photos", photoPanel);
     }
 
+    
     private Widget getAlbumsWidget(ArtistDetails artistDetails) {
         Panel panel = new FlowPanel();
         for (int i = 0; i < artistDetails.getAlbums().length; i++) {
@@ -1188,6 +1213,136 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         }
     }
 
+    abstract class ScrollWidget extends Composite {
+        
+        private final int NBR_ITEM_ON_PREVIEW=4;
+        
+        protected Grid mainPanel = new Grid(2,1);
+        protected Grid topPanel = new Grid(1,3);
+        
+        protected HorizontalPanel currPreview;
+        protected HorizontalPanel nextPreview;
+        
+        protected int currIndex=0; // index of the first preview item we're showing
+        
+        abstract protected ScrollItem[] getNextElements(int n);
+        abstract protected Widget triggerAction(int index);
+        
+        protected Widget init() {
+            
+            topPanel.setWidth("100%");
+            topPanel.setCellPadding(4);
+
+            Label prev = new Label("Previous");
+            prev.addClickListener(new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    setPreviewPanel(getNextElements(-NBR_ITEM_ON_PREVIEW));
+                }
+            });
+            
+            Label next = new Label("Next");
+            next.addClickListener(new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    setPreviewPanel(getNextElements(NBR_ITEM_ON_PREVIEW));
+                }
+            });
+            
+            
+            
+            topPanel.setWidget(0, 0, prev);
+            topPanel.setWidget(0, 2, next);
+            setPreviewPanel(getNextElements(NBR_ITEM_ON_PREVIEW));
+            
+            mainPanel.setWidget(0,0,topPanel);
+            
+            return mainPanel;
+        }
+        
+        private void setPreviewPanel(ScrollItem[] sI) {
+            nextPreview = new HorizontalPanel();
+            nextPreview.setSpacing(8);
+            for (ScrollItem i : sI) {
+                Image img = new Image(i.thumb);
+                img.setTitle(i.title);
+                img.addClickListener(new IndexClickListener(i.index) {
+
+                    public void onClick(Widget arg0) {
+                        mainPanel.setWidget(1, 0, triggerAction(index));
+                    }
+                });
+                nextPreview.add(img);
+            }
+
+            topPanel.setWidget(0, 1, nextPreview);
+        }
+        
+        protected abstract class IndexClickListener implements ClickListener {
+            protected int index;
+            
+            public IndexClickListener(int index) {
+                super();
+                this.index=index;
+            }
+
+            public abstract void onClick(Widget arg0);
+        }
+        
+        protected class ScrollItem {
+            public String title;
+            public String thumb;
+            public int index;
+            
+            public ScrollItem(String title, String thumb, int index) {
+                this.title=title;
+                this.thumb=thumb;
+                this.index=index;
+            }
+        }
+        
+    }
+    
+    class VideoScrollWidget extends ScrollWidget {
+        
+        private ArtistVideo[] aV;
+        
+        public VideoScrollWidget(ArtistVideo[] aV) {
+            this.aV=aV;
+            initWidget(init());
+        }
+
+        protected ScrollItem[] getNextElements(int n) {
+            // If we want previous elements
+            if (n<0) {
+                currIndex+=(2*n); // which will be a substraction
+                if (currIndex<0) {
+                    currIndex=aV.length+currIndex;
+                }
+            }
+            
+            n=Math.abs(n);
+            ScrollItem[] sI = new ScrollItem[n];
+            for (int i=0; i<n; i++) {
+                sI[i] = new ScrollItem(aV[currIndex].getTitle(), 
+                        aV[currIndex].getThumbnail(), currIndex);
+                if (++currIndex>=aV.length) {
+                    currIndex=0;
+                }
+            }
+            return sI;
+        }
+
+        protected Widget triggerAction(int index) {
+            HTML html = new HTML(getEmbeddedVideo(aV[index], true));
+            //html.setStyleName("popup");
+            showPopup(html,"WebMusicExplaura :: YouTube Video");
+        
+            return new Label("");//new Label("now playing "+index);
+        }
+        
+    }
+    
     class SearchWidget extends Composite {
 
         private SuggestBox textBox;

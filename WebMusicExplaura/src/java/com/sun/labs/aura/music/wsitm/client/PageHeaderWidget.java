@@ -133,10 +133,11 @@ public class PageHeaderWidget extends Composite {
                     mainPanel.setWidget(0,0,new Label("Logged in: "+cdm.getLastFmUser()));
                     
                     Label viewCloudLbl = new Label("View tag cloud");
+                    viewCloudLbl.setHorizontalAlignment(Label.ALIGN_RIGHT);
                     viewCloudLbl.addClickListener(new ClickListener() {
 
                         public void onClick(Widget arg0) {
-                            cdm.getSimpleSearchWidget().showTagCloud("Your tag cloud", cdm.getTagCloud());
+                            cdm.getSimpleSearchWidget().showTagCloud("Your your tag cloud", cdm.getTagCloud());
                         }
                     });
                     
