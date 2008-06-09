@@ -88,16 +88,10 @@ public class MusicDatabase {
 
     public List<String> artistGetMostPopularNames(int count) throws AuraException {
         try {
-            List<Item> items = dataStore.getAll(Item.ItemType.ARTIST);
+            List<Scored<Item>> items = dataStore.query("aura-type=ARTIST", "-popularity", count, null);
             List<Artist> artists = new ArrayList<Artist>();
-            for (Item i : items) {
-                artists.add(new Artist(i));
-            }
-            Collections.sort(artists, Artist.POPULARITY);
-            Collections.reverse(artists);
-
-            if (artists.size() > count) {
-                artists = artists.subList(0, count);
+            for (Scored<Item> i : items) {
+                artists.add(new Artist(i.getItem()));
             }
 
             List<String> artistNames = new ArrayList();
@@ -105,6 +99,7 @@ public class MusicDatabase {
                 artistNames.add(artist.getName());
             }
             return artistNames;
+
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -112,16 +107,10 @@ public class MusicDatabase {
     
     public List<String> artistTagGetMostPopularNames(int count) throws AuraException {
         try {
-            List<Item> items = dataStore.getAll(Item.ItemType.ARTIST_TAG);
+            List<Scored<Item>> items = dataStore.query("aura-type=ARTIST_TAG", "-popularity", count, null);
             List<ArtistTag> artistTags = new ArrayList();
-            for (Item i : items) {
-                artistTags.add(new ArtistTag(i));
-            }
-            Collections.sort(artistTags, ArtistTag.POPULARITY);
-            Collections.reverse(artistTags);
-
-            if (artistTags.size() > count) {
-                artistTags = artistTags.subList(0, count);
+            for (Scored<Item> i : items) {
+                artistTags.add(new ArtistTag(i.getItem()));
             }
 
             List<String> artistTagNames = new ArrayList();
