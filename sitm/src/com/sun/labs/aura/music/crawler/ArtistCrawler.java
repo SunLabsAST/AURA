@@ -11,6 +11,7 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.music.Album;
 import com.sun.labs.aura.music.Artist;
+import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.Event;
 import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.Video;
@@ -23,29 +24,35 @@ import com.sun.labs.aura.music.web.lastfm.SocialTag;
 import com.sun.labs.aura.music.web.musicbrainz.MusicBrainz;
 import com.sun.labs.aura.music.web.musicbrainz.MusicBrainzAlbumInfo;
 import com.sun.labs.aura.music.web.musicbrainz.MusicBrainzArtistInfo;
+import com.sun.labs.aura.music.web.spotify.Spotify;
 import com.sun.labs.aura.music.web.upcoming.UpcomingEvent;
 import com.sun.labs.aura.music.web.upcoming.Upcoming;
 import com.sun.labs.aura.music.web.wikipedia.WikiInfo;
 import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
 import com.sun.labs.aura.music.web.youtube.Youtube;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -61,6 +68,7 @@ public class ArtistCrawler implements AuraService, Configurable {
     private Youtube youtube;
     private FlickrManager flickr;
     private Upcoming upcoming;
+    private Spotify spotify;
     private PriorityQueue<QueuedArtist> artistQueue;
     private Logger logger;
     private Util util;
@@ -68,6 +76,7 @@ public class ArtistCrawler implements AuraService, Configurable {
     private final static int FLUSH_COUNT = 10;
     private boolean running = false;
     private final static int MAX_FAN_OUT = 5;
+    private Set<String> validTags = new HashSet();
 
     /**
      * Starts running the crawler
@@ -102,12 +111,19 @@ public class ArtistCrawler implements AuraService, Configurable {
             youtube = new Youtube();
             flickr = new FlickrManager();
             upcoming = new Upcoming();
+            spotify = new Spotify();
             artistQueue = new PriorityQueue(1000, QueuedArtist.PRIORITY_ORDER);
             dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
             stateDir = ps.getString(PROP_STATE_DIR);
+            filterTags = ps.getBoolean(PROP_FILTER_TAGS);
             util = new Util(dataStore, flickr, youtube);
             createStateFileDirectory();
             loadState();
+
+            if (filterTags) {
+                loadTagFilter();
+            }
+            logger.info("tag filter: " + validTags.size() + " tags");
         } catch (IOException ioe) {
             throw new PropertyException(ioe, "ArtistCrawler", ps.getInstanceName(), "");
         }
@@ -122,11 +138,11 @@ public class ArtistCrawler implements AuraService, Configurable {
         int count = 0;
         try {
             primeArtistQueue("The Beatles");
-            /*
-            primeArtistQueue("Radiohead");
-            primeArtistQueue("Miles Davis");
-            primeArtistQueue("Britney Spears");
-             */
+        /*
+        primeArtistQueue("Radiohead");
+        primeArtistQueue("Miles Davis");
+        primeArtistQueue("Britney Spears");
+         */
         } catch (AuraException ae) {
             logger.severe("ArtistCrawler Can't talk to the datastore, abandoning crawl");
             return;
@@ -170,7 +186,7 @@ public class ArtistCrawler implements AuraService, Configurable {
         }
         return true;
     }
-    
+
     private boolean inArtistQueue(String mbaid) {
         for (QueuedArtist qartist : artistQueue) {
             if (qartist.getMBaid().equals(mbaid)) {
@@ -203,7 +219,7 @@ public class ArtistCrawler implements AuraService, Configurable {
                     @Override
                     public void go() throws Exception {
                         addLastFmTags(artist);
-                        addNewArtistsToQueue(artist);
+                        addSimilarArtistsToQueue(artist);
                     }
                 });
 
@@ -221,6 +237,14 @@ public class ArtistCrawler implements AuraService, Configurable {
                     @Override
                     public void go() throws Exception {
                         addFlickrPhotos(artist);
+                    }
+                });
+
+                runner.add(new Commander("spotify") {
+
+                    @Override
+                    public void go() throws Exception {
+                        addSpotifyInfo(artist);
                     }
                 });
 
@@ -384,6 +408,11 @@ public class ArtistCrawler implements AuraService, Configurable {
 
     }
 
+    private void addSpotifyInfo(Artist artist) throws IOException {
+        String id = spotify.getSpotifyIDforArtist(artist.getName());
+        artist.setSpotifyID(id);
+    }
+
     /**
      * Adds wikipedia info to the artist
      * @param artist the artist of interest
@@ -414,11 +443,22 @@ public class ArtistCrawler implements AuraService, Configurable {
     private void addLastFmTags(Artist artist) throws AuraException, RemoteException, IOException {
         SocialTag[] tags = lastFM.getArtistTags(artist.getName());
         for (SocialTag tag : tags) {
-            artist.addSocialTag(tag.getName(), tag.getFreq() + 1);
+            if (isValidTag(tag)) {
+                artist.addSocialTag(tag.getName(), tag.getFreq() + 1);
+            }
+        }
+    }
+    
+
+    private boolean isValidTag(SocialTag tag) {
+        if (filterTags) {
+            return validTags.contains(ArtistTag.normalizeName(tag.getName()));
+        } else {
+            return true;
         }
     }
 
-    private void addNewArtistsToQueue(Artist artist) throws AuraException, RemoteException, IOException {
+    private void addSimilarArtistsToQueue(Artist artist) throws AuraException, RemoteException, IOException {
         LastArtist[] simArtists = lastFM.getSimilarArtists(artist.getName());
         int fanOut = 0;
         for (LastArtist simArtist : simArtists) {
@@ -449,6 +489,27 @@ public class ArtistCrawler implements AuraService, Configurable {
             }
         }
     }
+
+    private void loadTagFilter() {
+        try {
+            BufferedReader in = new BufferedReader(new InputStreamReader(ArtistCrawler.class.getResourceAsStream("taglist.txt")));
+            String line;
+            try {
+                while ((line = in.readLine()) != null) {
+                    if (line.startsWith("#")) {
+                        continue;
+                    }
+                    String tag = ArtistTag.normalizeName(line);
+                    validTags.add(tag);
+                }
+            } finally {
+                in.close();
+            }
+        } catch (IOException ioe) {
+            logger.warning("Couldn't reaad the tagfilter list");
+        }
+    }
+
     /**
      * the configurable property for the itemstore used by this manager
      */
@@ -459,6 +520,9 @@ public class ArtistCrawler implements AuraService, Configurable {
     @ConfigString(defaultValue = "artistCrawler")
     public final static String PROP_STATE_DIR = "crawlerStateDir";
     private String stateDir;
+    @ConfigBoolean(defaultValue = true)
+    public final static String PROP_FILTER_TAGS = "filterTags";
+    private boolean filterTags;
 }
 
 /**
@@ -543,7 +607,6 @@ class ArtistCrawlerState implements Serializable {
     ArtistCrawlerState(List<QueuedArtist> queue) {
         artistQueue = queue;
     }
-
 
     /**
      * Gets the artist queue

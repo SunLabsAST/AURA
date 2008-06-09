@@ -34,6 +34,7 @@ public class Artist extends ItemAdapter {
     public final static String FIELD_FOLLOWERS = "followers";
     public final static String FIELD_INFLUENCERS = "influencers";
     public final static String FIELD_PHOTOS = "photos";
+    public final static String FIELD_SPOTIFY = "spotifyID";
     public final static String FIELD_POPULARITY = "popularity";
     public final static String FIELD_RELATED_ARTISTS = "relatedArtists";
     public final static String FIELD_SOCIAL_TAGS = "socialTags";
@@ -113,6 +114,7 @@ public class Artist extends ItemAdapter {
                     Item.FieldCapability.SIMILARITY), Item.FieldType.STRING);
             ds.defineField(Item.ItemType.ARTIST, FIELD_URLS);
             ds.defineField(Item.ItemType.ARTIST, FIELD_VIDEOS);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_SPOTIFY);
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }
@@ -179,6 +181,22 @@ public class Artist extends ItemAdapter {
      */
     public void setBioSummary(String bio) {
         setField(FIELD_BIOGRAPHY_SUMMARY, bio);
+    }
+
+    /**
+     * Gets the spotify id for the artist
+     * @return the spotifiy id
+     */
+    public String getSpotifyID() {
+        return getFieldAsString(FIELD_SPOTIFY, "");
+    }
+
+    /**
+     * Sets the spotify id for  the artist
+     * @param spotify id for  the artist
+     */
+    public void setSpotifyID(String id) {
+        setField(FIELD_SPOTIFY, id);
     }
 
     /**

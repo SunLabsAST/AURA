@@ -66,7 +66,6 @@ public class MusicDatabase {
         return null;
     }
 
-
     public List<Scored<Artist>> artistFindSimilar(String artistID, int count) throws AuraException {
         List<Scored<Item>> simItems = findSimilar(artistID, Artist.FIELD_SOCIAL_TAGS, count, ItemType.ARTIST);
         return convertToScoredArtistList(simItems);
@@ -104,8 +103,8 @@ public class MusicDatabase {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
     }
-    
-    public List<String> artistTagGetMostPopularNames(int count) throws AuraException {
+
+    public List<ArtistTag> artistTagGetMostPopular(int count) throws AuraException {
         try {
             List<Scored<Item>> items = dataStore.query("aura-type=ARTIST_TAG", "-popularity", count, null);
             List<ArtistTag> artistTags = new ArrayList();
@@ -113,16 +112,21 @@ public class MusicDatabase {
                 artistTags.add(new ArtistTag(i.getItem()));
             }
 
-            List<String> artistTagNames = new ArrayList();
-            for (ArtistTag artistTag : artistTags) {
-                artistTagNames.add(artistTag.getName());
-            }
-            return artistTagNames;
+            return artistTags;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
     }
-    
+
+    public List<String> artistTagGetMostPopularNames(int count) throws AuraException {
+        List<ArtistTag> artistTags = artistTagGetMostPopular(count);
+        List<String> artistTagNames = new ArrayList();
+        for (ArtistTag artistTag : artistTags) {
+            artistTagNames.add(artistTag.getName());
+        }
+        return artistTagNames;
+    }
+
     public ArtistTag artistTagLookup(String artistTagID) throws AuraException {
         Item item = getItem(artistTagID);
         if (item != null) {
@@ -144,7 +148,7 @@ public class MusicDatabase {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
     }
-                
+
     public Album albumLookup(String albumID) throws AuraException {
         Item item = getItem(albumID);
         if (item != null) {
@@ -153,7 +157,7 @@ public class MusicDatabase {
         }
         return null;
     }
-    
+
     public Event eventLookup(String eventID) throws AuraException {
         Item item = getItem(eventID);
         if (item != null) {

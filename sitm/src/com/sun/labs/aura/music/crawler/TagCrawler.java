@@ -41,6 +41,7 @@ import java.util.logging.Logger;
  * @author plamere
  */
 public class TagCrawler implements AuraService, Configurable {
+
     private Wikipedia wikipedia;
     private Youtube youtube;
     private FlickrManager flickr;
@@ -65,11 +66,11 @@ public class TagCrawler implements AuraService, Configurable {
      */
     public void start() {
         if (!running) {
-            running = true;
             Thread t = new Thread() {
 
                 @Override
                 public void run() {
+                    autoUpdater();
                 }
             };
             t.start();
@@ -93,6 +94,27 @@ public class TagCrawler implements AuraService, Configurable {
         util = new Util(dataStore, flickr, youtube);
     }
 
+    public void autoUpdater() {
+        try {
+            running = true;
+            // start crawling after running for an hour
+            Thread.sleep(1000 * 60 * 60);
+            while (running) {
+                discoverArtistTags();
+                updateArtistTags();
+                // update tags once a week
+                Thread.sleep(1000 * 60 * 60 * 24 * 7);
+            }
+        } catch (InterruptedException ex) {
+            Logger.getLogger(TagCrawler.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (AuraException ex) {
+            Logger.getLogger(TagCrawler.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (RemoteException ex) {
+            Logger.getLogger(TagCrawler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        running = false;
+    }
+
     /**
      * Starts discovering artists. When a new artist is encountered it is 
      * added to the datastore
@@ -111,6 +133,7 @@ public class TagCrawler implements AuraService, Configurable {
                     // System.out.printf("norm count for %s/%s is %d\n", artist.getName(), tag.getName(), normalizedCount);
                     accumulateTag(tag.getName(), artist.getKey(), normalizedCount);
                 }
+
             }
         }
         pruneAndWriteTags();
@@ -122,11 +145,13 @@ public class TagCrawler implements AuraService, Configurable {
             artistTagMap = new HashMap();
             tagMap.put(tagName, artistTagMap);
         }
+
         Tag tag = artistTagMap.get(artistMBAID);
         if (tag == null) {
             tag = new Tag(artistMBAID, 0);
             artistTagMap.put(artistMBAID, tag);
         }
+
         tag.accum(count);
     }
 
@@ -139,14 +164,16 @@ public class TagCrawler implements AuraService, Configurable {
                     sum += tag.getCount();
                     artistTag.addTaggedArtist(tag.getName(), tag.getCount());
                 }
+
                 logger.info("Adding tag " + artistTag.getName() + " key: " + artistTag.getKey() + " artists " + artistTag.getTaggedArtist().size());
                 artistTag.setPopularity(sum);
                 artistTag.flush(dataStore);
             }
+
         }
     }
 
-    public void updateArtistTags(int max) throws AuraException, RemoteException {
+    public void updateArtistTags() throws AuraException, RemoteException {
         List<Item> items = dataStore.getAll(ItemType.ARTIST_TAG);
         List<ArtistTag> tags = new ArrayList(items.size());
 
@@ -157,13 +184,10 @@ public class TagCrawler implements AuraService, Configurable {
         Collections.sort(tags, ArtistTag.POPULARITY);
         Collections.reverse(tags);
 
-        int count = 0;
         for (ArtistTag tag : tags) {
             updateSingleTag(tag);
-            if (count++ > max) {
-                break;
-            }
         }
+
     }
 
     public void updateSingleTag(ArtistTag artistTag) throws AuraException, RemoteException {
@@ -174,10 +198,13 @@ public class TagCrawler implements AuraService, Configurable {
         } else {
             logger.info("Skipping update for tag " + artistTag.getName());
         }
+
     }
 
     private boolean needsUpdate(ArtistTag artistTag) {
-        return (System.currentTimeMillis() - artistTag.getTimeAdded() > MIN_UPDATE_TIME);
+        boolean stale = (System.currentTimeMillis() - artistTag.getTimeAdded() > MIN_UPDATE_TIME);
+        boolean empty = artistTag.getDescription().length() == 0;
+        return stale || empty;
     }
 
     /**
@@ -187,7 +214,8 @@ public class TagCrawler implements AuraService, Configurable {
      * @throws com.sun.labs.aura.util.AuraException if a problem with the datastore is encountered
      * @throws java.rmi.RemoteException if a communicatin error occurs
      */
-    void collectTagInfo(final ArtistTag artistTag) throws AuraException, RemoteException {
+    void collectTagInfo(final ArtistTag artistTag)
+            throws AuraException, RemoteException {
 
         CommandRunner runner = new CommandRunner(false, logger.isLoggable(Level.INFO));
 
@@ -199,6 +227,7 @@ public class TagCrawler implements AuraService, Configurable {
                 for (Photo photo : photos) {
                     artistTag.addPhoto(photo.getKey());
                 }
+
             }
         });
 
@@ -210,6 +239,7 @@ public class TagCrawler implements AuraService, Configurable {
                 for (Video video : videos) {
                     artistTag.addVideo(video.getKey());
                 }
+
             }
         });
 
@@ -221,6 +251,7 @@ public class TagCrawler implements AuraService, Configurable {
                 if (wikiUrl != null) {
                     artistTag.setDescription(wikipedia.getSummaryDescription(wikiUrl));
                 }
+
             }
         });
 
@@ -233,6 +264,7 @@ public class TagCrawler implements AuraService, Configurable {
             // but still return the artist so we can add it to the store
             logger.warning("Exception " + e);
         }
+
     }
 
     private String getWikiGenreMusicURL(String genreName) {
@@ -242,6 +274,7 @@ public class TagCrawler implements AuraService, Configurable {
         if (result != null) {
             url = result.getUrl();
         }
+
         return url;
     }
 
@@ -251,6 +284,7 @@ public class TagCrawler implements AuraService, Configurable {
             if (!skipSet.contains(sr.getUrl())) {
                 return sr;
             }
+
         }
         return null;
     }
