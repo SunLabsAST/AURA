@@ -250,7 +250,7 @@ public class MusicShell implements AuraService, Configurable {
 
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
                 if (args.length == 1) {
-                    tagCrawler.updateArtistTags(1000);
+                    tagCrawler.updateArtistTags();
                 } else {
                     String qname = sutils.stuff(args, 1);
                     ArtistTag artistTag = findArtistTag(qname);
@@ -279,7 +279,7 @@ public class MusicShell implements AuraService, Configurable {
                     @Override
                     public void run() {
                         try {
-                            tagCrawler.updateArtistTags(max);
+                            tagCrawler.updateArtistTags();
                             System.out.println("Done with artist tag update");
                         } catch (Exception ex) {
                             System.out.println("Trouble collecting tags");
