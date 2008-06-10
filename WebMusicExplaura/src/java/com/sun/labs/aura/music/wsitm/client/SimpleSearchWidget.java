@@ -12,6 +12,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.Random;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
@@ -23,6 +24,7 @@ import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HTMLTable;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
@@ -777,7 +779,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
     
     private Widget getAlbumsWidget(ArtistDetails artistDetails) {
-        Panel panel = new FlowPanel();
+        /*Panel panel = new FlowPanel();
         for (int i = 0; i < artistDetails.getAlbums().length; i++) {
             AlbumDetails album = artistDetails.getAlbums()[i];
             Image image = new Image(album.getAlbumArt());
@@ -788,7 +790,8 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         }
         panel.setStyleName("albums");
         panel.setWidth("100%");
-        return createSection("Albums", panel);
+         **/
+        return createSection("Albums", new AlbumScrollWidget(artistDetails.getAlbums()));
     }
 
     private Widget getEventsWidget(ArtistDetails artistDetails) {
@@ -1037,9 +1040,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private SuggestBox createSuggestBox(MultiWordSuggestOracle oracle) {
         SuggestBox sbox = new SuggestBox(oracle);
 
-        //textBox = new TextBox();
-        //textBox.setMaxLength(120);
-        //textBox.setVisibleLength(30);
         sbox.setStyleName("searchText");
         sbox.ensureDebugId ("cwSuggestBox");
         sbox.setLimit(25);
@@ -1047,7 +1047,18 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         sbox.addKeyboardListener(new KeyboardListenerAdapter() {
             public void onKeyPress(Widget sender, char keyCode, int modifiers) {
                 if (keyCode == KEY_ENTER) {
-                    search.search();
+                    
+                    /* Hack to go around the bug of the suggestbox which wasn't 
+                     * using the highlighted element of the suggetions popup 
+                     * when submitting the form
+                     * */
+                    Timer t = new Timer() {
+                        public void run() {
+                            search.search();
+                        }
+                    };
+                    t.schedule(100);
+                    
                 }
             }
         });
@@ -1239,7 +1250,10 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         protected ScrollItem[] items;
         
         private final int NBR_ITEM_ON_PREVIEW=12;
-        private final int NBR_ITEM_PER_LINE=4;
+        private final int NBR_ITEM_PER_LINE=3;
+        
+        protected int maxImgHeight = 0;
+        protected int maxImgWidth = 0;
         
         protected Grid mainPanel = new Grid(2,1);
         protected Grid topPanel = new Grid(1,3);
@@ -1247,12 +1261,22 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         protected Panel currPreview;
         protected Panel nextPreview;
         
-        protected int currIndex=0; // index of the first preview item we're showing
+        protected int currIndex = 0; // index of the first preview item we're showing
+        /** when we've seen the last item, start over right away (=true) or display
+         * empty elements (=false)
+         */
+        protected boolean wrapAround = false;
         
         abstract protected Widget triggerAction(int index);
         abstract protected String getSectionName();
         
         protected Widget init() {
+            
+            // If number of elements smaller than the available grid size, don't warp around
+            if (items.length<=NBR_ITEM_ON_PREVIEW) {
+                wrapAround=false;
+            }
+            
             topPanel.addStyleName("center");
             topPanel.setWidth("100%");
             topPanel.setCellPadding(4);
@@ -1273,22 +1297,31 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                 }
             });
             
+            HTMLTable.ColumnFormatter cF = topPanel.getColumnFormatter();
             if (items.length>NBR_ITEM_ON_PREVIEW) {
                 topPanel.setWidget(0, 0, prev);
                 topPanel.setWidget(0, 2, next);
+                cF.setWidth(0, "25px");
+                cF.setWidth(2, "25px");
+            } else {
+                cF.setWidth(0, "0px");
+                cF.setWidth(2, "0px");
             }
+            
             if (items.length>0) {
                 setPreviewPanel(getNextElements(NBR_ITEM_ON_PREVIEW));
+                HTMLTable.CellFormatter cellF = topPanel.getCellFormatter();
+                cellF.setAlignment(0, 1, HorizontalPanel.ALIGN_CENTER, VerticalPanel.ALIGN_MIDDLE);
             } else {
                 topPanel.setWidget(0, 1, new Label("No "+getSectionName()));
             }
             mainPanel.setWidget(0,0,topPanel);
-            mainPanel.setWidth("100%");
+            //mainPanel.setWidth("100%");
             
             return mainPanel;
         }
         
-        protected ScrollItem[] getNextElements(int n) {
+        protected ArrayList<ScrollItem> getNextElements(int n) {
             // If we want previous elements
             if (n<0) {
                 currIndex+=(2*n); // which will be a substraction
@@ -1298,24 +1331,26 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
             
             n=Math.abs(n);
-            ScrollItem[] sI = new ScrollItem[n];
+            ArrayList<ScrollItem> sI = new ArrayList<ScrollItem>();
             for (int i=0; i<n; i++) {
-                sI[i] = new ScrollItem(items[currIndex].title, 
-                        items[currIndex].thumb, currIndex);
+                sI.add(new ScrollItem(items[currIndex].title, 
+                        items[currIndex].thumb, currIndex));
                 if (++currIndex>=items.length) {
                     currIndex=0;
+                    if (!wrapAround) {
+                        break;
+                    }
                 }
             }
             return sI;
         }
         
-        private void setPreviewPanel(ScrollItem[] sI) {
+        private void setPreviewPanel(ArrayList<ScrollItem> sI) {
             nextPreview = new VerticalPanel();
             ArrayList<HorizontalPanel> topPreviewArray = new ArrayList<HorizontalPanel>();
             HorizontalPanel topPreview=null;
             
             int index=0;
-            
             for (ScrollItem i : sI) {
                 if (topPreview==null || ++index>=NBR_ITEM_PER_LINE) {
                     if (topPreview!=null) {
@@ -1326,6 +1361,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                     index = 0;
                     topPreview = new HorizontalPanel();
                     topPreview.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
+                    topPreview.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
                     topPreview.setWidth("560px");
                     topPreview.setSpacing(8);
                 }
@@ -1340,21 +1376,19 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                 });
                 
                 // Crop if necessary
-                if (i.maxH>0 && (img.getHeight()>i.maxH || img.getWidth()>i.maxW)) {
-                    if (img.getHeight()>img.getWidth()) {
-                        double ratio = (double)img.getHeight()/i.maxH;
-                        int newW = (int)(img.getWidth()/ratio);
-                        img.setVisibleRect(0, 0, i.maxH, newW);
-                    } else {
-                        double ratio = (double)img.getWidth()/i.maxW;
-                        int newH = (int)(img.getHeight()/ratio);
-                        img.setVisibleRect(0, 0, newH, i.maxW);
-                    }
+                if (maxImgHeight>0 && maxImgWidth>0) {
+                    img.setVisibleRect(0, 0, maxImgHeight, maxImgWidth);
                 }
                 topPreview.add(img);
             }
             
             if (topPreview!=null) {
+                
+                while (index<NBR_ITEM_PER_LINE) {
+                    topPreview.add(new Label(""));
+                    index++;
+                }
+                
                 topPreviewArray.add(topPreview);
                 topPreview=null;
             }
@@ -1382,21 +1416,10 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             public String thumb;
             public int index;
             
-            public int maxH=0;
-            public int maxW=0;
-            
             public ScrollItem(String title, String thumb, int index) {
                 this.title=title;
                 this.thumb=thumb;
                 this.index=index;
-            }
-            
-            public ScrollItem(String title, String thumb, int index, int maxH, int maxW) {
-                this.title=title;
-                this.thumb=thumb;
-                this.index=index;
-                this.maxH=maxH;
-                this.maxW=maxW;
             }
         }
         
@@ -1405,17 +1428,18 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     class ImageScrollWidget extends ScrollWidget {
 
         private ArtistPhoto[] aP;
-        private static final int IMG_MAX_H = 97;
-        private static final int IMG_MAX_W = 130;
         
         
         public ImageScrollWidget(ArtistPhoto[] aP) {
             this.aP=aP;
 
+            maxImgHeight = 130;
+            maxImgWidth = 130;
+            
             items = new ScrollItem[aP.length];
             for (int i=0; i<aP.length; i++) {
                 items[i] = new ScrollItem(aP[i].getTitle(), 
-                        aP[i].getThumbNailImageUrl(), i, IMG_MAX_H, IMG_MAX_W);
+                        aP[i].getSmallImageUrl(), i);
             }
             
             initWidget(init());
@@ -1440,8 +1464,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         private ArtistVideo[] aV;
         
         public VideoScrollWidget(ArtistVideo[] aV) {
-            this.aV=aV;
-            
+            this.aV=aV;    
             items = new ScrollItem[aV.length];
             for (int i=0; i<aV.length; i++) {
                 items[i] = new ScrollItem(aV[i].getTitle(), 
@@ -1461,6 +1484,36 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             showPopup(html,"WebMusicExplaura :: YouTube Video");
         
             return new Label("");//new Label("now playing "+index);
+        }
+        
+    }
+    
+    class AlbumScrollWidget extends ScrollWidget {
+
+        private static final int IMG_MAX_H = 100;
+        private static final int IMG_MAX_W = 100;
+        
+        private AlbumDetails[] aD;
+        
+        public AlbumScrollWidget(AlbumDetails[] aD) {
+            this.aD=aD;
+            
+            items = new ScrollItem[aD.length];
+            for (int i=0; i<aD.length; i++) {
+                items[i] = new ScrollItem(aD[i].getTitle(), 
+                        aD[i].getAlbumArt(), i);
+            }
+            
+            initWidget(init());
+        }
+        
+        protected Widget triggerAction(int index) {
+            Window.open(aD[index].getAmazonLink(), "Window1", "");
+            return new Label("");
+        }
+
+        protected String getSectionName() {
+            return "albums";
         }
         
     }
