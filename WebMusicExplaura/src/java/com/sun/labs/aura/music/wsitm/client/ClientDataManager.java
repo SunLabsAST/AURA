@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.google.gwt.user.client.Window;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,7 +19,7 @@ public class ClientDataManager {
     private Map<String,Integer> tagMap; // maps the tag name to the index at which it is in the tagCloud
     private String lastFmUser;
     private Double maxScore;
-    private String favArtistName;
+    private Map<String,Double> favArtist;
     private boolean isLoggedIn=false;
     
     private PageHeaderWidget phw;
@@ -50,18 +51,27 @@ public class ClientDataManager {
     }
     
     public void setTagCloud(ItemInfo[] tagCloud, String lastFmUser, 
-            Double maxScore, String favArtistName) {
+            ArtistDetails[] artistDetails) {
         
         isLoggedIn=true;
         
         this.tagCloud = tagCloud;
         this.lastFmUser = lastFmUser;
-        this.maxScore = maxScore;
-        this.favArtistName = favArtistName;
         
         tagMap = new HashMap<String, Integer>();
         for (int i = 0; i < tagCloud.length; i++) {
-            tagMap.put(tagCloud[i].getItemName(), i);
+            tagMap.put(tagCloud[i].getId(), i);
+        }
+        
+        favArtist = new HashMap<String, Double>();
+        maxScore = -1.0;
+        for (ArtistDetails aD : artistDetails) {
+            double score = computeTastauraMeterScore(aD);
+            if (score > maxScore) {
+                maxScore = score;
+            }
+            Window.alert("putting "+aD.getName()+" with "+score);
+            favArtist.put(aD.getName(), score);
         }
     }
     
@@ -69,8 +79,8 @@ public class ClientDataManager {
         return lastFmUser;
     }
     
-    public String getFavArtistName() {
-        return favArtistName;
+    public Map<String,Double> getFavArtist() {
+        return favArtist;
     }
     
     public void resetUser() {
@@ -94,4 +104,27 @@ public class ClientDataManager {
         return key;
     }
     
+    public double computeTastauraMeterScore(ArtistDetails aD) {
+        
+        if (!isLoggedIn) {
+            return -1;
+        }
+        
+        //String s="";
+        double score = 0.0;
+        boolean a = false;
+        for (ItemInfo i : aD.getFrequentTags()) {
+            String nameKey = ClientDataManager.nameToKey(i.getItemName());
+            if (tagMap.containsKey(nameKey)) {
+                //s+=i.getItemName()+" "+((int)(tagCloud[tagMap.get(nameKey)].getScore()*100))+" x "+i.getScore()+"\n";
+                int key = tagMap.get(nameKey);
+                ItemInfo t = tagCloud[key];
+                score += i.getScore() * t.getScore();
+            }
+        }
+        //int normScore = (int)((double)score/cdm.getMaxScore()*100.0);
+        //Window.alert(s);
+        //Window.alert("Score:"+score+"\nMax score:"+cdm.getMaxScore());
+        return score;
+    }
 }

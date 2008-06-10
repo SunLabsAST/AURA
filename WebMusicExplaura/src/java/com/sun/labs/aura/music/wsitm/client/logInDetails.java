@@ -14,8 +14,7 @@ import com.google.gwt.user.client.rpc.IsSerializable;
  */
 public class logInDetails implements IsSerializable {
 
-    public ItemInfo[] tags;
-    public String favArtistName;
-    public Double maxScore;
+    public ItemInfo[] userTags;
+    public ArtistDetails[] favArtistDetails;
     
 }

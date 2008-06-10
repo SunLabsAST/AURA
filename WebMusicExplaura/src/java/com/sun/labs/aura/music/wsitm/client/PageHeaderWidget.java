@@ -19,7 +19,6 @@ import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
-import java.util.Map;
 
 
 /**
@@ -60,17 +59,19 @@ public class PageHeaderWidget extends Composite {
     @Override
     public Widget getWidget() {
         
-        
-        
         mainPanel = new Grid(1,3);
         mainPanel.setStyleName("pageHeader");
         mainPanel.setWidth("100%");
         
+        populateMainPanel();
+     
+        return mainPanel;
+        
+    }
+
+    private void populateMainPanel() {
         txtbox = new TextBox();
         txtbox.addKeyboardListener(new KeyboardListener() {
-
-            public void onKeyDown(Widget arg0, char arg1, int arg2) {
-            }
 
             public void onKeyPress(Widget arg0, char keyCode, int arg2) {
                 if (keyCode == KEY_ENTER) {
@@ -78,11 +79,13 @@ public class PageHeaderWidget extends Composite {
                 }
             }
 
+            public void onKeyDown(Widget arg0, char arg1, int arg2) {
+            }
+
             public void onKeyUp(Widget arg0, char arg1, int arg2) {
-                throw new UnsupportedOperationException("Not supported yet.");
             }
         });
-        
+
         Button b = new Button();
         b.setText("Set Last.FM user");
         b.addClickListener(new ClickListener() {
@@ -91,24 +94,24 @@ public class PageHeaderWidget extends Composite {
                 fetchUserInfo();
             }
         });
-        
-        
-        
+
+
+
         HorizontalPanel h = new HorizontalPanel();
         h.add(txtbox);
         h.add(b);
         mainPanel.setWidget(0, 0, h);
-                
-        return mainPanel;
-        
-    }
 
+    }
+    
     private void fetchUserInfo() {
         mainPanel.clearCell(0, 0);
         HorizontalPanel h = new HorizontalPanel();
         h.setWidth("300px");
         h.add(new Image("ajax-ball.gif"));
-        h.add(new Label("Fetching your user profile..."));
+        Label lbl = new Label("Fetching your user profile...");
+        lbl.addStyleName("whiteTxt");
+        h.add(lbl);
         mainPanel.setWidget(0, 1, h);
 
         invokeGetUserTagCloud(txtbox.getText());
@@ -121,14 +124,14 @@ public class PageHeaderWidget extends Composite {
                 // do some UI stuff to show success
                 mainPanel.clearCell(0, 1);
                 logInDetails lin = (logInDetails) result;
-                ItemInfo[] tagCloud = lin.tags;
-                Double maxScore = lin.maxScore;
-                String favArtistName = lin.favArtistName;
-                
-                if (tagCloud==null || tagCloud.length==0) {
+                if (lin==null || lin.userTags==null || lin.userTags.length==0) {
                     Window.alert("Error fetching your user information.");
+                    cdm.resetUser();
+                    populateMainPanel();
                 } else {
-                    cdm.setTagCloud(tagCloud, txtbox.getText(), maxScore, favArtistName);
+                
+                    ItemInfo[] tagCloud = lin.userTags;
+                    cdm.setTagCloud(tagCloud, txtbox.getText(), lin.favArtistDetails);
                     
                     mainPanel.setWidget(0,0,new Label("Logged in: "+cdm.getLastFmUser()));
                     
@@ -142,7 +145,6 @@ public class PageHeaderWidget extends Composite {
                     });
                     
                     mainPanel.setWidget(0, 2, viewCloudLbl);
-                    
                 }
             }
 
