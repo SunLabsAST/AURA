@@ -70,7 +70,7 @@ public class ClientDataManager {
             if (score > maxScore) {
                 maxScore = score;
             }
-            Window.alert("putting "+aD.getName()+" with "+score);
+            //Window.alert("putting "+aD.getName()+" with "+score);
             favArtist.put(aD.getName(), score);
         }
     }

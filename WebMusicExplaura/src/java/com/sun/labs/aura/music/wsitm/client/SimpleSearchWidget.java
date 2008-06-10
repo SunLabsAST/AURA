@@ -595,9 +595,9 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     }
 
     Widget getSpotifyListenWidget(final ArtistDetails artistDetails) {
-        String musicURL = artistDetails.getMusicURL();
+        String musicURL = artistDetails.getSpotifyId();
         if (musicURL != null) {
-            HTML html = new HTML("<a href=\"" + musicURL + "\"><img src=\"play.gif\"/></a>"); 
+            HTML html = new HTML("<a href=\"" + musicURL + "\"><img src=\"play-icon30.jpg\"/></a>"); 
             html.setTitle("Play " + artistDetails.getName() + " with Spotify");
             return html;
         } else {
@@ -606,7 +606,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     }
 
     Widget getListenWidget(final TagDetails tagDetails) {
-        Image image = new Image("play.gif");
+        Image image = new Image("play-icon30.jpg");
         image.setTitle("Play music like " + tagDetails.getName() + " at last.fm");
         image.addClickListener(new ClickListener() {
 

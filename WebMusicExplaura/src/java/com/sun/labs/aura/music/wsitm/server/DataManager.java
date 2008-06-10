@@ -179,6 +179,8 @@ public class DataManager implements Configurable {
         details.setPhotos(getArtistPhotoFromIds(a.getPhotos()));
         details.setVideos(getArtistVideoFromIds(a.getVideos()));
         details.setPopularity(a.getPopularity());
+        details.setSpotifyId(a.getSpotifyID());
+                
         if (beatlesPopularity!=-1) {
             details.setNormPopularity(a.getPopularity()/beatlesPopularity);
         } else {
