@@ -163,11 +163,11 @@ public class ArtistTag extends ItemAdapter {
     }
 
     public static String nameToKey(String name) {
-        return "artist-tag:" + normalizeKey(name);
+        return "artist-tag:" + normalizeName(name);
     }
 
-    private static String normalizeKey(String key) {
-        key = key.replaceAll("\\W", "").toLowerCase();
-        return key;
+    public static String normalizeName(String name) {
+        name = name.replaceAll("\\W", "").toLowerCase();
+        return name;
     }
 }

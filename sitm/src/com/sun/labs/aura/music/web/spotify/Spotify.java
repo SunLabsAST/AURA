@@ -53,7 +53,7 @@ public class Spotify {
                 if (foundArtistName != null) {
                     if (normalizedArtist.equals(Utilities.normalize(foundArtistName))) {
                         String trackID = track.getAttribute("href");
-                        System.out.println("Spotify: " + artist + "->" + foundArtistName);
+                        //System.out.println("Spotify: " + artist + "->" + foundArtistName);
                         return trackID;
                     }
                 }

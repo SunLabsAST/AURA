@@ -5,14 +5,12 @@
 
 package com.sun.labs.aura.music.webservices;
 
-import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.String;
 import java.util.List;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
