@@ -62,15 +62,22 @@ img {
 .itemInfo:hover {text-decoration: underline; color: red;}
 .refresh {cursor: pointer; text-decoration: underline; margin-top: 20px;}
 
-.gwt-DialogBox {  background: #73885D; border-style:solid;
+.gwt-DialogBox {  
+    background: #877F5C; border-style:solid;
     border-width:4;
-    border-color:black;
+    border-color: #304427;
     padding:0px;
 }
-.gwt-DialogBox .Caption {  color: #ffffff; font-size: 1.2em; background: #000000;}
+.gwt-DialogBox .Caption {  
+        color: #000000; 
+        font-size: 1.2em; 
+        background: #73885D; 
+        border-bottom: solid 2px #304427; 
+        padding: 2px;
+}
 .gwt-DialogBox .content { font-weight: bold; font-size: 120%; background-color: #B0BFA1; color: #f0f8c6;  margin: 10px; }
-.outerpopup    { background-color: #73885D; color: #00f8c6;  margin: 2px;  border: medium solid #73885d; border-width: 12px;}
-.borderpopup   { background-color: #73885D; color: #00f8c6;  margin: 2px;  border: medium solid #73885d; border-width: 6px;}
+.outerpopup    { background-color: #877F5C; color: #D4C790;  margin: 2px;  border: medium solid #877F5C; border-width: 12px;}
+.borderpopup   { background-color: #877F5C; color: #D4C790;  margin: 2px;  border: medium solid #877F5C; border-width: 6px;}
 .searchResults { text-align: center; vertical-align: top; width: 80%; }
 .artistList    { text-align: center; vertical-align: top; }
 .heading { font-weight: bold; color : green; }
@@ -156,4 +163,20 @@ img {
 .popRight {
     color: #DBE8B5;
     background-color: #DBE8B5;
+}
+.tag1 {
+    color: #D4C790;
+    text-decoration: none;
+}
+.tag4:hover {
+    color: #B0BFA1;
+    background-color: #D4C790;
+}
+.tag2 {
+    color: #ADA376;
+    text-decoration: none;
+}
+.tag3:hover {
+    color: #B0BFA1;
+    background-color: #D4C790;
 }
