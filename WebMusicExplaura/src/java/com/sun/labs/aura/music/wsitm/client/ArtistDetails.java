@@ -28,7 +28,9 @@ public class ArtistDetails implements IsSerializable, Details {
     private String id;
     private String name;
     private String encodedName;
+    private String spotifyID;
     private float popularity;
+    private float normPopularity;
     private int beginYear;
     private int endYear;
     /**
@@ -199,6 +201,14 @@ public class ArtistDetails implements IsSerializable, Details {
     public void setPopularity(float popularity) {
         this.popularity = popularity;
     }
+    
+    public float getNormPopularity() {
+        return normPopularity;
+    }
+
+    public void setNormPopularity(float normPopularity) {
+        this.normPopularity = normPopularity;
+    }    
 
     public ItemInfo[] getRecommendedArtists() {
         return recommendedArtists;
@@ -271,6 +281,14 @@ public class ArtistDetails implements IsSerializable, Details {
 
     public void setEncodedName(String encodedName) {
         this.encodedName = encodedName;
+    }
+    
+    public String getSpotifyId() {
+        return spotifyID;
+    }
+    
+    public void setSpotifyId(String spotifyId) {
+        this.spotifyID=spotifyId;
     }
 
     public ItemInfo[] getCollaborations() {

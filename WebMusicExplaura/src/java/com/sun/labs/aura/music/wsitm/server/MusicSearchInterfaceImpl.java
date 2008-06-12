@@ -11,6 +11,7 @@ package com.sun.labs.aura.music.wsitm.server;
 
 import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.ItemInfo;
@@ -18,9 +19,11 @@ import com.sun.labs.aura.music.wsitm.client.MusicSearchInterface;
 import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.TagTree;
+import com.sun.labs.aura.music.wsitm.client.logInDetails;
 import com.sun.labs.aura.util.AuraException;
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
@@ -39,6 +42,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
 
     @Override
     public void init(ServletConfig sc) throws ServletException {
+        logger.info("Init");
         super.init(sc);
         dm = ServletTools.getDataManager(sc);
         //logger = dm.getLogger();
@@ -73,7 +77,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             // Make sure the tag has the right header
             if (!searchString.startsWith("artist-tag:")) {
-                searchString="artist-tag:"+searchString;
+                searchString=ArtistTag.nameToKey(searchString);
             }
             return dm.artistSearchByTag(searchString, maxResults);
         } catch (Exception e) {
@@ -93,14 +97,12 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public TagDetails getTagDetails(String id, boolean refresh) throws Exception {
-        logger.info("MusicSearchInterfaceImpl::getTagDetails: "+id);
+    public TagDetails getTagDetails(String tagName, boolean refresh) throws Exception {
+        logger.info("MusicSearchInterfaceImpl::getTagDetails: "+tagName);
         try {
-            // Make sure the tag is passed with the correct header
-            if (!id.startsWith("artist-tag:")) {
-                id="artist-tag:"+id;
-            }
-            return dm.getTagDetails(id, refresh);
+            if (!tagName.startsWith("artist-tag:"))
+                tagName=ArtistTag.nameToKey(tagName);
+            return dm.getTagDetails(tagName, refresh);
         } catch (Exception e) { 
             logger.severe(traceToString(e));
             throw e;
@@ -145,6 +147,24 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     public List<String> getArtistOracle() throws Exception {
         try {
             return dm.getArtistOracle();
+        } catch (Exception e) {
+            logger.severe(traceToString(e));
+            throw e;
+        }
+    }
+    
+    public List<String> getTagOracle() throws Exception {
+        try {
+            return dm.getTagOracle();
+        } catch (Exception e) {
+            logger.severe(traceToString(e));
+            throw e;
+        }
+    }
+    
+    public logInDetails getUserTagCloud(String lastfmUser) throws Exception {
+        try {
+            return dm.getUserTagCloud(lastfmUser);
         } catch (Exception e) {
             logger.severe(traceToString(e));
             throw e;

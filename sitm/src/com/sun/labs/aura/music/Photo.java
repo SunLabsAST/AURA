@@ -141,6 +141,22 @@ public class Photo extends ItemAdapter {
     }  
     
     /**
+     * Set the photo page url
+     * @param url url of the photo page
+     */
+    public void setPhotoPageUrl(String url) {
+        setField(FIELD_PHOTO_PAGE_URL,url);
+    }
+    
+    /**
+     * Get the photo page url
+     * @return the photo page url
+     */
+    public String getPhotoPageUrl() {
+        return getFieldAsString(FIELD_PHOTO_PAGE_URL, "");
+    }
+    
+    /**
      * Gets the title of the photo
      * @return the title
      */

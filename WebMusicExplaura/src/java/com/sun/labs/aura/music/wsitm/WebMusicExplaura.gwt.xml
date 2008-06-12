@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module>
         <!--  <inherits name="com.google.gwt.core.Core"/> -->
-	<inherits name='com.google.gwt.user.User'/>
+        <inherits name='asquare.gwt.tk.Tk'/>
+        <inherits name='com.extjs.gxt.ui.GXT'/>
+        <inherits name='com.google.gwt.user.User'/>
         <!-- <inherits name="com.google.gwt.user.theme.standard.Standard"/> -->
     
 	<entry-point class="com.sun.labs.aura.music.wsitm.client.Main"/>
