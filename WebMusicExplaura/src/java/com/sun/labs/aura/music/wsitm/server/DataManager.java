@@ -486,6 +486,7 @@ public class DataManager implements Configurable {
             artistPhotoArray[index].setSmallImageUrl(dataStorePhoto.getSmallImgUrl());
             artistPhotoArray[index].setThumbNailImageUrl(dataStorePhoto.getThumbnailUrl());
             artistPhotoArray[index].setTitle(dataStorePhoto.getTitle());
+            artistPhotoArray[index].setPhotoPageURL(dataStorePhoto.getPhotoPageUrl());
             index++;
         }
         return artistPhotoArray;

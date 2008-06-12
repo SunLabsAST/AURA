@@ -50,6 +50,7 @@ public class Util {
                 photo.setImgUrl(image.getImageURL());
                 photo.setThumbnailUrl(image.getThumbNailImageUrl());
                 photo.setSmallImgUrl(image.getSmallImageUrl());
+                photo.setPhotoPageUrl(image.getPhotoPageURL());
                 photo.flush(dataStore);
             } else {
                 photo = new Photo(item);
