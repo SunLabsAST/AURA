@@ -2,36 +2,38 @@
 
 # Start services necessary for running Aura.
 
-cd $(dirname $0)/../ > /dev/null
-
-BASEDIR="$(pwd)"
 CMD="$(readlink -f $0)"
+cd $(dirname $0)/../
+BASEDIR="$(pwd)"
 
 LOGDIR="$BASEDIR/logs"
 mkdir -p "$LOGDIR"
 
 # Find a local directory to store the database in
-for dir in /big/aura-test /scratch2/$(whoami) /var/tmp; do
+DATADIRS="/big/aura-test /scratch2/$(whoami) /var/tmp"
+for dir in $DATADIRS; do
     if [ -d $dir ]; then
 	DBDIR=$dir
 	break
     fi
 done
 
-AURAHOME="$BASEDIR/aura"
+[ -z "$AURAHOME" ] && AURAHOME="$BASEDIR/aura"
 JARDIR="$BASEDIR/aura/dist"
 LIBDIR="$BASEDIR/Libraries"
-JSKPOLICY="$LIBDIR/jini/jsk-all.policy"
+
+[ -z "$JSKPOLICY" ] && JSKPOLICY="$LIBDIR/jini/jsk-all.policy"
 
 CONFIGPATH="$BASEDIR/aardvark/src/com/sun/labs/aura/aardvark/resource"
 CONFIGPATH="/com/sun/labs/aura/datastore/util"
-JAR="$JARDIR/aura.jar"
-BASEJAVACMD="java -DauraHome=$AURAHOME -DauraPolicy=$JSKPOLICY -DcsDirs=$JARDIR"
+
+[ -z "$AURAJAR" ] && AURAJAR="$JARDIR/aura.jar"
+
+AURALIBS=$AURAJAR
+for file in $(find "$LIBDIR" -name *jar); do AURALIBS=$AURALIBS:$file; done
+
+BASEJAVACMD="java -DauraHome=$AURAHOME -DauraPolicy=$JSKPOLICY -DcsDirs=$JARDIR  -cp $AURALIBS"
 JAVACMD=$BASEJAVACMD
-
-for file in $(find "$JARDIR" -name *jar); do AURALIBS=$AURALIBS:$file; done
-
-export CLASSPATH=AURALIBS
 
 TIMESTAMP=$(date "+%Y:%m:%d:%H:%M:%S")
 
@@ -49,7 +51,7 @@ until [ -z "$cmd" ]; do
 	    "$LIBDIR/jini/startReggie.sh"
             ;;
         dsh)
-	    TORUN="$JAVACMD -Xmx1g -jar $JAR $CONFIGPATH/dataStoreHeadConfig.xml dataStoreHeadStarter"
+	    TORUN="$JAVACMD -Xmx1g com.sun.labs.aura.AuraServiceStarter $CONFIGPATH/dataStoreHeadConfig.xml dataStoreHeadStarter"
 	    LOG=$LOGDIR/$TIMESTAMP.data_store_head.log
             echo "Starting data store head" > $LOG
             ;;
@@ -57,7 +59,7 @@ until [ -z "$cmd" ]; do
             PREFIX=${cmd#pc}
             PREFIX=${PREFIX:-0}
             PORT=$(( 44444 + $PREFIX ))
-	    TORUN="$JAVACMD -Xmx1g -Dprefix=$PREFIX -DcsPort=$PORT -jar $JAR"
+	    TORUN="$JAVACMD -Xmx1g -Dprefix=$PREFIX -DcsPort=$PORT com.sun.labs.aura.AuraServiceStarter"
             TORUN="$TORUN $CONFIGPATH/partitionClusterConfig.xml partitionClusterStarter"
 	    LOG=$LOGDIR/$TIMESTAMP.partition_cluster_$PREFIX.log
             echo "Starting partition cluster: $PREFIX on port $PORT" > $LOG
@@ -67,7 +69,7 @@ until [ -z "$cmd" ]; do
             PREFIX=${PREFIX:-0}
             PORT=$(( 33333 + $PREFIX ))
 	    LOG=$LOGDIR/$TIMESTAMP.replicant_$PREFIX.log
-            TORUN="$JAVACMD -d64 -Xmx4g -Dprefix=$PREFIX -DcsPort=$PORT -DdataDir=$DBDIR -jar $JAR"
+            TORUN="$JAVACMD -d64 -Xmx4g -Dprefix=$PREFIX -DcsPort=$PORT -DdataDir=$DBDIR com.sun.labs.aura.AuraServiceStarter"
 	    TORUN="$TORUN $CONFIGPATH/replicantConfig.xml replicantStarter"
             echo "Starting replicant $PREFIX on port $PORT in $DBDIR" > $LOG
             ;;
@@ -120,6 +122,22 @@ Usage: $(basename $0) [ all | reg | dsh | pc[0|1]+ | rep[0|1]+ ]
    pc[0|1]+: Start a partition cluster for the given bit string (pc1, pc010, pc10, etc.)
    rep[0|1]+: Start a replicant for the given bit string (rep0, rep101, rep10, etc.)
    all: Start all services in the tabs of a gnome terminal
+   killalltail: Kill all tail processes
+  
+Exe:
+  To start an interface registrar on the local machine and a complete datastore in
+   separate processes on search.east:
+    $(basename $0) all -host search.east
+  To shut down the remote datastore processes: (term signals go to ssh rather than tail)
+    $(basename $0) -host search.east killalltail
+
+Notes:
+  The output shown in the terminal is not the live output from the process, rather the
+   output goes to a timestamped file in the logs directory and the information on the
+   screen is from a tail of that file.
+
+  Data directories in order of preference are:
+    $DATADIRS
 EOF
             ;;
     esac
