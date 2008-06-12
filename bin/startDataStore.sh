@@ -10,7 +10,7 @@ LOGDIR="$BASEDIR/logs"
 mkdir -p "$LOGDIR"
 
 # Find a local directory to store the database in
-DATADIRS="/big/aura-test /scratch2/$(whoami) /var/tmp"
+DATADIRS="/big/aura-test /scratch2/$(whoami) $TMPDIR /var/tmp /tmp"
 for dir in $DATADIRS; do
     if [ -d $dir ]; then
 	DBDIR=$dir
