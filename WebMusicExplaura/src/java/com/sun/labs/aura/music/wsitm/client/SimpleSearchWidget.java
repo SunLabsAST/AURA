@@ -12,6 +12,7 @@ import asquare.gwt.tk.client.ui.SimpleHyperLink;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
+import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.Random;
@@ -30,6 +31,7 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.MouseListenerCollection;
 import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RadioButton;
@@ -602,7 +604,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
     Widget getSpotifyListenWidget(final ArtistDetails artistDetails) {
         String musicURL = artistDetails.getSpotifyId();
-        if (musicURL != null) {
+        if (musicURL != null && !musicURL.equals("")) {
             HTML html = new HTML("<a href=\"" + musicURL + "\"><img src=\"play-icon30.jpg\"/></a>"); 
             html.setTitle("Play " + artistDetails.getName() + " with Spotify");
             return html;
@@ -1059,6 +1061,13 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                     DeferredCommand.addCommand(new Command(){ public void execute(){
                         search.search();
                     }});
+                } else if (keyCode == KEY_ESCAPE) {
+                    Window.alert("escape!!");
+                    MouseListenerCollection a = new MouseListenerCollection();
+                    //DOM.
+                    //a.fireMouseEvent(sender, new Event(Event.ONCLICK));
+                    //a.fireMouseDown(sender, sender.getAbsoluteLeft(), sender.getAbsoluteTop());
+                    //a.fireMouseUp(sender, sender.getAbsoluteLeft(), sender.getAbsoluteTop());
                 }
             }
         });
