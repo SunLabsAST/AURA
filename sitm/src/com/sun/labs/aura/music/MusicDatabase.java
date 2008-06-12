@@ -71,6 +71,12 @@ public class MusicDatabase {
         return convertToScoredArtistList(simItems);
     }
 
+    public List<Scored<Artist>> artistFindSimilar(String artistID, String field, int count) throws AuraException {
+        List<Scored<Item>> simItems = findSimilar(artistID, field, count, ItemType.ARTIST);
+        return convertToScoredArtistList(simItems);
+    }
+
+
     public List<Scored<ArtistTag>> artistTagSearch(String artistTagName, int returnCount) throws AuraException {
         String query = "(aura-type = ARTIST_TAG) <AND> (aura-name <matches> \"*" + artistTagName + "*\")";
         List<Scored<Item>> scoredItems = query(query, returnCount);

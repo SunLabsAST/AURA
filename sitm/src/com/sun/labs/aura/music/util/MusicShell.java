@@ -33,8 +33,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Manages the set of feed crawling threads
@@ -48,8 +46,8 @@ public class MusicShell implements AuraService, Configurable {
     private StatService statService;
     private ShellUtils sutils;
     private MusicDatabase musicDatabase;
-
     private static Comparator<Tag> FREQ_SORT = new Comparator<Tag>() {
+
         public int compare(Tag o1, Tag o2) {
             return o1.getCount() - o2.getCount();
         }
@@ -119,7 +117,40 @@ public class MusicShell implements AuraService, Configurable {
             }
 
             public String getHelp() {
-                return "find similar artist by name using just socia tags";
+                return "find similar artist by name using just their social tags";
+            }
+        });
+
+        shell.add("fixupArtists", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                fixupArtists();
+                return "";
+            }
+
+            public String getHelp() {
+                return "repairs artists in the database";
+            }
+        });
+
+        shell.add("fsab", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                String qname = sutils.stuff(args, 1);
+                Artist artist = findArtist(qname);
+                if (artist != null) {
+                    System.out.println("Finding similar for " + artist.getName());
+                    List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(),
+                            Artist.FIELD_BIO_TAGS, sutils.getHits(), new TypeFilter(ItemType.ARTIST));
+                    sutils.dumpScoredItems(simItems);
+                    return "";
+                } else {
+                    return "Can't find artist " + qname;
+                }
+            }
+
+            public String getHelp() {
+                return "find similar artist by name using just their bio tags";
             }
         });
 
@@ -272,10 +303,11 @@ public class MusicShell implements AuraService, Configurable {
                 int count = 100;
                 if (args.length > 1) {
                     count = Integer.parseInt(args[1]);
-                } 
+                }
                 final int max = count;
 
                 Thread t = new Thread() {
+
                     @Override
                     public void run() {
                         try {
@@ -418,6 +450,29 @@ public class MusicShell implements AuraService, Configurable {
         int count = 0;
         for (Item item : items) {
             System.out.printf("%d %s %s\n", ++count, item.getKey(), item.getName());
+        }
+    }
+
+    private void fixupArtists() throws AuraException, RemoteException {
+        List<Item> artists = dataStore.getAll(ItemType.ARTIST);
+        for (Item item : artists) {
+            Artist artist = new Artist(item);
+            repairTags(artist);
+        }
+    }
+
+    private void repairTags(Artist artist) throws AuraException, RemoteException {
+        List<Tag> tags = artist.getSocialTags();
+        if (tags.size() > 0 && tags.get(0).getCount() == 101) {
+            System.out.println("Fixing " + artist.getName());
+            for (Tag tag : tags) {
+                int c = tag.getCount() - 1;
+                int score = c * c + 1;
+                artist.setSocialTag(tag.getName(), score);
+            }
+            artist.flush(dataStore);
+        } else {
+            System.out.println("Skipping " + artist.getName());
         }
     }
 

@@ -51,6 +51,12 @@ public class FindSimilarArtist extends HttpServlet {
                     maxCount = Integer.parseInt(maxCountString);
                 }
 
+
+                String field = request.getParameter("field");
+                if (field == null) {
+                    field = Artist.FIELD_SOCIAL_TAGS;
+                }
+
                 try {
                     Artist artist = null;
                     if (key == null) {
@@ -64,7 +70,12 @@ public class FindSimilarArtist extends HttpServlet {
                     }
                     if (key != null) {
                         if ((artist = mdb.artistLookup(key)) != null) {
-                            List<Scored<Artist>> scoredArtists = mdb.artistFindSimilar(key, maxCount);
+                            List<Scored<Artist>> scoredArtists;
+                            if ("all".equals(field)) {
+                                scoredArtists = mdb.artistFindSimilar(key, maxCount);
+                            } else {
+                                scoredArtists = mdb.artistFindSimilar(key, field, maxCount);
+                            }
 
                             out.println("<FindSimilarArtist key=\"" + key + "\" name=\"" + Util.filter(artist.getName()) + "\">");
                             for (Scored<Artist> scoredArtist : scoredArtists) {
