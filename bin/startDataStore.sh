@@ -9,14 +9,8 @@ BASEDIR="$(pwd)"
 LOGDIR="$BASEDIR/logs"
 mkdir -p "$LOGDIR"
 
-# Find a local directory to store the database in
+BASEPORT=33333
 DATADIRS="/big/aura-test /scratch2/$(whoami) $TMPDIR /var/tmp /tmp"
-for dir in $DATADIRS; do
-    if [ -d $dir ]; then
-	DBDIR=$dir
-	break
-    fi
-done
 
 [ -z "$AURAHOME" ] && AURAHOME="$BASEDIR/aura"
 JARDIR="$BASEDIR/aura/dist"
@@ -58,16 +52,24 @@ until [ -z "$cmd" ]; do
         pc*)
             PREFIX=${cmd#pc}
             PREFIX=${PREFIX:-0}
-            PORT=$(( 44444 + $PREFIX ))
+            PORT=$(( $BASEPORT + $PREFIX ))
 	    TORUN="$JAVACMD -Xmx1g -Dprefix=$PREFIX -DcsPort=$PORT com.sun.labs.aura.AuraServiceStarter"
             TORUN="$TORUN $CONFIGPATH/partitionClusterConfig.xml partitionClusterStarter"
 	    LOG=$LOGDIR/$TIMESTAMP.partition_cluster_$PREFIX.log
             echo "Starting partition cluster: $PREFIX on port $PORT" > $LOG
             ;;
         rep*)
+            # Find a local directory to store the database in
+	    for dir in $DATADIRS; do
+		if [ -d $dir ]; then
+		    DBDIR=$dir
+		    break
+		fi
+	    done
+
             PREFIX=${cmd#rep}
             PREFIX=${PREFIX:-0}
-            PORT=$(( 33333 + $PREFIX ))
+            PORT=$(( $BASEPORT + 10 + $PREFIX ))
 	    LOG=$LOGDIR/$TIMESTAMP.replicant_$PREFIX.log
             TORUN="$JAVACMD -d64 -Xmx4g -Dprefix=$PREFIX -DcsPort=$PORT -DdataDir=$DBDIR com.sun.labs.aura.AuraServiceStarter"
 	    TORUN="$TORUN $CONFIGPATH/replicantConfig.xml replicantStarter"
@@ -76,6 +78,15 @@ until [ -z "$cmd" ]; do
 	-timestamp)
 	    shift
 	    TIMESTAMP=$1
+	    ;;
+	-baseport)
+	    shift
+	    BASEPORT=$1
+	    ;;
+	-datadir)
+	    shift
+	    DATADIRS="$1"
+	    mkdir -p "$DATADIRS"
 	    ;;
 	-host)
 	    # We want the environment variables evaluated on the remote server, so
@@ -116,7 +127,7 @@ until [ -z "$cmd" ]; do
             ;;
         *)
             cat<<EOF
-Usage: $(basename $0) [ all | reg | dsh | pc[0|1]+ | rep[0|1]+ ]
+Usage: $(basename $0) <opt>* [ all | reg | dsh | pc[0|1]+ | rep[0|1]+ ]
    reg: Start the JINI registration service
    dsh: Start the Aura data store head
    pc[0|1]+: Start a partition cluster for the given bit string (pc1, pc010, pc10, etc.)
@@ -124,7 +135,13 @@ Usage: $(basename $0) [ all | reg | dsh | pc[0|1]+ | rep[0|1]+ ]
    all: Start all services in the tabs of a gnome terminal
    killalltail: Kill all tail processes
   
-Exe:
+ Where opt is:
+  -host <hostname> : Host to run the command on via ssh
+  -timestamp <timestamp> : Timestamp to mark the logfile with
+  -baseport <port num> : Port number to start JINI services relative to
+  -datadir <directory> : Directory to store database in
+
+Example:
   To start an interface registrar on the local machine and a complete datastore in
    separate processes on search.east:
     $(basename $0) all -host search.east
