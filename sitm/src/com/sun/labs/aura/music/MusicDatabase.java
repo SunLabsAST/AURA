@@ -12,6 +12,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -21,6 +22,7 @@ import java.util.List;
 public class MusicDatabase {
 
     private DataStore dataStore;
+    private List<SimType> simTypes;
 
     public MusicDatabase(DataStore dataStore) throws AuraException {
         this.dataStore = dataStore;
@@ -32,6 +34,20 @@ public class MusicDatabase {
         new Track().defineFields(dataStore);
         new Venue().defineFields(dataStore);
         new Video().defineFields(dataStore);
+
+        initSimTypes();
+
+    }
+
+    private void initSimTypes() {
+        List<SimType> stypes = new ArrayList();
+        stypes.add(new FieldSimType("Social Tags", "Similarity based upon Social Tags", Artist.FIELD_SOCIAL_TAGS));
+        stypes.add(new FieldSimType("Bio Tags", "Similarity based upon BIO tags", Artist.FIELD_BIO_TAGS));
+        stypes.add(new FieldSimType("Auto Tags", "Similarity based upon Auto tags", Artist.FIELD_AUTO_TAGS));
+        stypes.add(new FieldSimType("Biography", "Similarity based upon the biography", Artist.FIELD_BIOGRAPHY_SUMMARY));
+        stypes.add(new FieldSimType("Related", "Similarity based upon related artists", Artist.FIELD_RELATED_ARTISTS));
+        stypes.add(new AllSimType());
+        simTypes = Collections.unmodifiableList(stypes);
     }
 
     public List<Scored<Artist>> artistSearch(String artistName, int returnCount) throws AuraException {
@@ -47,6 +63,10 @@ public class MusicDatabase {
             return new Artist(item);
         }
         return null;
+    }
+
+    public List<SimType> getSimTypes() {
+        return simTypes;
     }
 
     public Artist artistFindBestMatch(String artistName) throws AuraException {
@@ -146,10 +166,14 @@ public class MusicDatabase {
     }
 
     public List<Scored<ArtistTag>> artistGetDistinctiveTags(String id, int count) throws AuraException {
+        return artistGetDistinctiveTags(id, Artist.FIELD_SOCIAL_TAGS, count);
+    }
+
+    private List<Scored<ArtistTag>> artistGetDistinctiveTags(String id, String field, int count) throws AuraException {
         try {
             List<Scored<ArtistTag>> artistTags = new ArrayList();
 
-            List<Scored<String>> tagNames = dataStore.getTopTerms(id, Artist.FIELD_SOCIAL_TAGS, count);
+            List<Scored<String>> tagNames = dataStore.getTopTerms(id, field, count);
             for (Scored<String> scoredTagName : tagNames) {
                 ArtistTag artistTag = artistTagLookup(ArtistTag.nameToKey(scoredTagName.getItem()));
                 // not all tags may be in the database yet
@@ -261,6 +285,68 @@ public class MusicDatabase {
             return simItems;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
+        }
+    }
+
+    private class FieldSimType implements SimType {
+        private String name;
+        private String description;
+        private String field;
+
+        FieldSimType(String name, String description, String fieldName) {
+            this.name = name;
+            this.description = description;
+            this.field = fieldName;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public List<Scored<Artist>> findSimilarArtists(String artistID, int count) throws AuraException {
+            return artistFindSimilar(artistID, field, count);
+        }
+
+        // for future use
+        private List<Scored<String>> explainSimilarity(String id1, String id2, int count) throws AuraException {
+            try {
+                return dataStore.explainSimilarity(id1, id1, field, count);
+            } catch (RemoteException ex) {
+                throw new AuraException("Can't talk to the datastore " + ex, ex);
+            }
+        }
+
+        private List<Scored<ArtistTag>> getDistinctiveTags(String id, int count) throws AuraException {
+            return artistGetDistinctiveTags(id, field, count);
+        }
+    }
+
+    private class AllSimType implements SimType {
+        private String name;
+        private String description;
+        private String field;
+
+        AllSimType() {
+            this.name = "All";
+            this.description = "Artist similarity based upon all fields";
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+
+        public List<Scored<Artist>> findSimilarArtists(String artistID, int count) throws AuraException {
+            List<Scored<Item>> simItems = findSimilar(artistID, count, ItemType.ARTIST);
+            return convertToScoredArtistList(simItems);
         }
     }
 }
