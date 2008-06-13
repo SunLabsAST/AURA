@@ -12,7 +12,6 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -75,7 +74,6 @@ public class MusicDatabase {
         List<Scored<Item>> simItems = findSimilar(artistID, field, count, ItemType.ARTIST);
         return convertToScoredArtistList(simItems);
     }
-
 
     public List<Scored<ArtistTag>> artistTagSearch(String artistTagName, int returnCount) throws AuraException {
         String query = "(aura-type = ARTIST_TAG) <AND> (aura-name <matches> \"*" + artistTagName + "*\")";
@@ -147,9 +145,16 @@ public class MusicDatabase {
         return convertToScoredArtistTagList(simItems);
     }
 
-    public List<Scored<String>> artistGetDistinctiveTags(String id, int count) throws AuraException {
+    public List<Scored<ArtistTag>> artistGetDistinctiveTags(String id, int count) throws AuraException {
         try {
-            return dataStore.getTopTerms(id, Artist.FIELD_SOCIAL_TAGS, count);
+            List<Scored<ArtistTag>> artistTags = new ArrayList();
+
+            List<Scored<String>> tagNames = dataStore.getTopTerms(id, Artist.FIELD_SOCIAL_TAGS, count);
+            for (Scored<String> scoredTagName : tagNames) {
+                ArtistTag artistTag = artistTagLookup(ArtistTag.nameToKey(scoredTagName.getItem()));
+                artistTags.add(new Scored<ArtistTag>(artistTag, scoredTagName.getScore()));
+            }
+            return artistTags;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }

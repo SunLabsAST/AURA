@@ -31,7 +31,6 @@ import com.sun.labs.aura.music.web.wikipedia.WikiInfo;
 import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
 import com.sun.labs.aura.music.web.youtube.Youtube;
 import com.sun.labs.aura.util.AuraException;
-import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
@@ -51,10 +50,10 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -80,7 +79,7 @@ public class ArtistCrawler implements AuraService, Configurable {
     private final static int FLUSH_COUNT = 10;
     private boolean running = false;
     private final static int MAX_FAN_OUT = 5;
-    private Set<String> validTags = new HashSet();
+    private Map<String,String> validTagMap = new HashMap();
 
     /**
      * Starts running the crawler
@@ -132,16 +131,13 @@ public class ArtistCrawler implements AuraService, Configurable {
             artistQueue = new PriorityQueue(1000, QueuedArtist.PRIORITY_ORDER);
             dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
             stateDir = ps.getString(PROP_STATE_DIR);
-            filterTags = ps.getBoolean(PROP_FILTER_TAGS);
             updateRateInSeconds = ps.getInt(PROP_UPDATE_RATE);
             util = new Util(dataStore, flickr, youtube);
             createStateFileDirectory();
             loadState();
 
-            if (filterTags) {
-                loadTagFilter();
-            }
-            logger.info("tag filter: " + validTags.size() + " tags");
+            loadTagFilter();
+            logger.info("tag filter: " + validTagMap.size() + " tags");
         } catch (IOException ioe) {
             throw new PropertyException(ioe, "ArtistCrawler", ps.getInstanceName(), "");
         }
@@ -498,10 +494,10 @@ public class ArtistCrawler implements AuraService, Configurable {
 
     private void addBioTags(Artist artist, String description) {
         String words = normalizeText(" " + description + " ");
-        for (String tag : validTags) {
+        for (String tag : validTagMap.keySet()) {
             int count = findMatches(tag, words);
             if (count > 0) {
-                artist.addBioTag(tag, count);
+                artist.addBioTag(mapTagName(tag), count);
                 // logger.info("Adding " + tag + ":" + count);
             }
         }
@@ -540,19 +536,25 @@ public class ArtistCrawler implements AuraService, Configurable {
     private void addLastFmTags(Artist artist) throws AuraException, RemoteException, IOException {
         SocialTag[] tags = lastFM.getArtistTags(artist.getName());
         for (SocialTag tag : tags) {
-            if (isValidTag(tag)) {
-                 int normFreq = (tag.getFreq() + 1) * (tag.getFreq() + 1);
-                artist.addSocialTag(tag.getName(), normFreq);
+            String tagName = mapTagName(tag.getName());
+            if (tagName != null) {
+                int normFreq = (tag.getFreq() + 1) * (tag.getFreq() + 1);
+                artist.addSocialTag(tagName, normFreq);
             }
         }
     }
 
-    private boolean isValidTag(SocialTag tag) {
-        if (filterTags) {
-            return validTags.contains(ArtistTag.normalizeName(tag.getName()));
-        } else {
-            return true;
+    private String mapTagName(String tagName) {
+        String mappedName =  validTagMap.get(tagName);
+        if (mappedName == null) {
+            mappedName =  validTagMap.get(ArtistTag.normalizeName(tagName));
         }
+        /*
+        if (mappedName != null && !tagName.equals(mappedName)) {
+            System.out.printf("remapped '%s' to '%s'\n", tagName, mappedName);
+        }
+        */
+        return mappedName;
     }
 
     private void addSimilarArtistsToQueue(Artist artist) throws AuraException, RemoteException, IOException {
@@ -596,9 +598,15 @@ public class ArtistCrawler implements AuraService, Configurable {
                     if (line.startsWith("#")) {
                         continue;
                     }
-                    String tag = ArtistTag.normalizeName(line);
-                    validTags.add(tag);
-                    validTags.add(normalizeText(line));
+                    String[] aliases = line.split(",");
+                    if (aliases.length > 0) {
+                        String primary = aliases[0].trim();
+                        for (String alias : aliases) {
+                            alias = alias.trim();
+                            validTagMap.put(alias, primary);
+                            validTagMap.put(ArtistTag.normalizeName(alias), primary);
+                        }
+                    }
                 }
             } finally {
                 in.close();
@@ -617,9 +625,6 @@ public class ArtistCrawler implements AuraService, Configurable {
     @ConfigString(defaultValue = "artistCrawler")
     public final static String PROP_STATE_DIR = "crawlerStateDir";
     private String stateDir;
-    @ConfigBoolean(defaultValue = true)
-    public final static String PROP_FILTER_TAGS = "filterTags";
-    private boolean filterTags;
     @ConfigInteger(defaultValue = 60 * 60 * 24 * 7 * 2)
     public final static String PROP_UPDATE_RATE = "updateRateInSeconds";
     private int updateRateInSeconds;

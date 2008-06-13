@@ -1,7 +1,8 @@
 # just genre, mood, locale, instrumentation, style, usage
+# format:  main name[,alias,alias]
 rock
 indie
-alternative
+alternative, alternative rock
 metal
 electronic
 punk
@@ -9,13 +10,12 @@ pop
 indie rock
 Hip-Hop
 classic rock
-alternative rock
-female vocalists
+female vocalists, female, female vocalist, female vocals, female artists, female vocal, female singers, female singer, female voice, female fronted
 emo
 hardcore
 death metal
 electronica
-singer-songwriter
+singer-songwriter, singer-songwriters
 black metal
 hard rock
 jazz
@@ -74,13 +74,12 @@ idm
 grindcore
 90s
 electro
-rnb
+rnb, r and b, rhythm and blues
 ebm
 country
 post-hardcore
 downtempo
 Progressive
-female
 symphonic metal
 american
 House
@@ -118,7 +117,6 @@ lounge
 alternative metal
 folk rock
 anime
-female vocalist
 australian
 Lo-Fi
 Love
@@ -152,7 +150,7 @@ minimal
 blues rock
 christian rock
 deutsch
-male vocalists
+male vocalists, male, male vocalist, male vocals, male artists
 00s
 power pop
 classic
@@ -170,7 +168,6 @@ Disco
 futurepop
 pagan metal
 electropop
-r and b
 swing
 dream pop
 neofolk
@@ -185,8 +182,6 @@ video game music
 easy listening
 finnish metal
 USA
-rhythm and blues
-male
 hair metal
 noise rock
 math rock
@@ -209,11 +204,9 @@ guitar virtuoso
 soft rock
 riot grrrl
 prog
-female vocals
 dark electro
 Soundtracks
 horror punk
-new york
 Gangsta Rap
 Neo-Soul
 Britrock
@@ -336,11 +329,9 @@ chanson
 Punk-Pop
 romantic
 free jazz
-female artists
 noisecore
 minimal techno
 chinese
-Red Hot Chili Peppers
 underground rap
 World Music
 electro industrial
@@ -406,7 +397,6 @@ breaks
 Czech
 Game Music
 svenskt
-male vocalist
 skacore
 turkish
 east coast rap
@@ -426,7 +416,6 @@ mallcore
 power violence
 cuban
 musicals
-female vocal
 Manchester
 Progressive House
 anti-folk
@@ -483,7 +472,6 @@ francophone
 death-doom metal
 Berlin
 50s
-singer-songwriters
 final fantasy
 country rock
 Real hip-hop
@@ -508,9 +496,7 @@ Extreme Metal
 portuguese
 Classic Punk
 texas
-female fronted
 noise pop
-female singers
 melodic death
 8bit
 Nirvana
@@ -765,7 +751,7 @@ power
 austrian
 political punk
 crack rock steady
-female singer-songwriter
+female singer-songwriter, female singer-songwriters
 dischord
 dubstep
 women
@@ -928,7 +914,6 @@ gothenburg
 psych
 stuff
 Emo rock
-female singer
 Greek
 Brooklyn
 cinematic
@@ -952,7 +937,6 @@ German Bands
 hard n heavy
 peaceful
 lyrics
-female singer-songwriters
 quiet
 celtic metal
 fast
@@ -973,8 +957,7 @@ a capella
 Muusika
 melodeath
 psych folk
-female voice
-New York City
+New York City, NYC, New York
 Driving
 British Metal
 High School
@@ -1097,7 +1080,6 @@ Black - Thrash Metal
 finnish hardcore
 podcast
 drugs
-male vocals
 melbourne
 brain food
 folk noir
@@ -1541,7 +1523,6 @@ Hanging Out
 acoustic ambient
 Confrontational
 actual
-male artists
 Grunge Rock
 horror metal
 Boisterous
