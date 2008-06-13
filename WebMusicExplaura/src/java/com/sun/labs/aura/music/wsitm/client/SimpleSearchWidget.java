@@ -26,6 +26,7 @@ import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.Random;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
@@ -409,47 +410,53 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     }
 
     private void invokeGetArtistInfo(String artistID, boolean refresh) {
-        if (artistID.startsWith("artist:")) {
-            artistID = artistID.replaceAll("artist:", "");
-        }
-        //
-        AsyncCallback callback = new AsyncCallback() {
 
-            public void onSuccess(Object result) {
-                // do some UI stuff to show success
-                ArtistDetails artistDetails = (ArtistDetails) result;
-                if (artistDetails != null && artistDetails.isOK()) {
-                    Widget artistPanel = createArtistPanel("Artists", artistDetails);
-                    search.setText(artistDetails.getName(), SearchResults.SEARCH_FOR_ARTIST_BY_ARTIST);
-                    setResults("artist:" + artistDetails.getId(), artistPanel);
-                    clearMessage();
-                } else {
-                    if (artistDetails == null) {
-                        showError("Sorry. The details for the artist don't seem to be in our database.");
-                        clearResults();
+        if (cdm.getCurrSimTypeName() == null || cdm.getCurrSimTypeName().equals("")) {
+            Timer t = new TimerWithArtist(artistID, refresh);
+            t.schedule(250);
+        } else {
+            if (artistID.startsWith("artist:")) {
+                artistID = artistID.replaceAll("artist:", "");
+            }
+            //
+            AsyncCallback callback = new AsyncCallback() {
+
+                public void onSuccess(Object result) {
+                    // do some UI stuff to show success
+                    ArtistDetails artistDetails = (ArtistDetails) result;
+                    if (artistDetails != null && artistDetails.isOK()) {
+                        Widget artistPanel = createArtistPanel("Artists", artistDetails);
+                        search.setText(artistDetails.getName(), SearchResults.SEARCH_FOR_ARTIST_BY_ARTIST);
+                        setResults("artist:" + artistDetails.getId(), artistPanel);
+                        clearMessage();
                     } else {
-                        showError("Whooops " + artistDetails.getStatus());
-                        clearResults();
+                        if (artistDetails == null) {
+                            showError("Sorry. The details for the artist don't seem to be in our database.");
+                            clearResults();
+                        } else {
+                            showError("Whooops " + artistDetails.getStatus());
+                            clearResults();
+                        }
                     }
                 }
+
+                public void onFailure(Throwable caught) {
+                    failureAction(caught);
+                }
+            };
+
+            showMessage("Getting info for artist", ICON_WAIT);
+
+            // (4) Make the call. Control flow will continue immediately and later
+            // 'callback' will be invoked when the RPC completes.
+            //
+            //  Provide your own name.
+            try {
+                musicServer.getArtistDetails(artistID, refresh, cdm.getCurrSimTypeName(), callback);
+            } catch (Exception ex) {
+                Window.alert(ex.getMessage());
+
             }
-
-            public void onFailure(Throwable caught) {
-                failureAction(caught);
-            }
-        };
-
-        showMessage("Getting info for artist",ICON_WAIT);
-
-        // (4) Make the call. Control flow will continue immediately and later
-        // 'callback' will be invoked when the RPC completes.
-        //
-        //  Provide your own name.
-        try {
-            musicServer.getArtistDetails(artistID, refresh, cdm.getCurrSimTypeName(), callback);
-        } catch (Exception ex) {
-            Window.alert(ex.getMessage());
-            
         }
     }
 
@@ -508,7 +515,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         showMessage("Getting common tags",ICON_WAIT);
         try {
-            musicServer.getCommonTags(artistID1, artistID2, 30, callback);
+            musicServer.getCommonTags(artistID1, artistID2, 30, cdm.getCurrSimTypeName(), callback);
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }
@@ -537,7 +544,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         VerticalPanel left = new VerticalPanel();
         if (artistDetails.getSimilarArtists().length > 0) {
-            left.add(getItemInfoList2("Tagomendations", artistDetails.getSimilarArtists(), id, true, artistOracle));
+            left.add(getItemInfoList2(cdm.getCurrSimTypeName()+"-omendations", artistDetails.getSimilarArtists(), id, true, artistOracle));
         }
         if (artistDetails.getRecommendedArtists().length > 0) {
             left.add(getItemInfoList("Recommendations", artistDetails.getRecommendedArtists(), id, true, artistOracle));
@@ -1153,6 +1160,24 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         fetchOracle=null;
     }
     
+    class TimerWithArtist extends Timer {
+        
+        private String artistID;
+        private boolean refresh;
+        
+        public TimerWithArtist(String artistID, boolean refresh) {
+            super();
+            this.artistID=artistID;
+            this.refresh=refresh;
+        }
+
+        @Override
+        public void run() {
+            invokeGetArtistInfo(artistID, refresh);
+        }
+        
+    }
+    
     abstract class AsyncCallbackWithType implements AsyncCallback {
         
         public Oracles type;
@@ -1223,7 +1248,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         public void onClick(Widget sender) {
             HTML html = new HTML(photo.getRichHtmlWrapper());
-            showPopup(html,"WebMusicExplaura :: Flick Photo");
+            showPopup(html,"WebMusicExplaura :: Flickr Photo");
         }
     }
 

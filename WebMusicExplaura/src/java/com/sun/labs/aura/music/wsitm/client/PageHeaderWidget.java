@@ -74,24 +74,20 @@ public class PageHeaderWidget extends Composite {
         mainPanel.setStyleName("pageHeader");
         mainPanel.setWidth("100%");
         
-        toolBar = new ToolBar();
-        toolBar.setWidth(160);
+        HorizontalPanel hP = new HorizontalPanel();
+        Label lbl = new Label("Recommendation type : ");
+        lbl.setStyleName("whiteTxt");
+        hP.add(lbl);
         
-        recTypeToolItem = new TextToolItem("Recommendation type");
+        toolBar = new ToolBar();
+        toolBar.setWidth(100);
+        
+        recTypeToolItem = new TextToolItem("Loading...");
         recTypeToolItem.setIconStyle("icon-menu-show");
 
-        Menu menu = new Menu();
-
-        CheckMenuItem r = new CheckMenuItem("Loading...");
-        r.setGroup("recType");
-        r.setChecked(false);
-        r.setEnabled(false);
-        
-        menu.add(r);
-
-        recTypeToolItem.setMenu(menu);
         toolBar.add(recTypeToolItem);
-        mainPanel.setWidget(0, 1, toolBar);
+        hP.add(toolBar);
+        mainPanel.setWidget(0, 1, hP);
         
         invokeGetSimTypes();
         
@@ -154,6 +150,7 @@ public class PageHeaderWidget extends Composite {
                     r.addSelectionListener(new SelectionListener<MenuEvent>() {
 
                         public void componentSelected(MenuEvent arg0) {
+                            recTypeToolItem.setText(((CheckMenuItem)arg0.item).getItemId());
                             cdm.setCurrSimTypeName(((CheckMenuItem)arg0.item).getItemId());
                         }
                     });
@@ -162,6 +159,7 @@ public class PageHeaderWidget extends Composite {
                     if (firstElem) {
                         r.setChecked(true);
                         cdm.setCurrSimTypeName(name);
+                        recTypeToolItem.setText(name);
                         firstElem=false;
                     } else {
                         r.setChecked(false);
@@ -236,18 +234,4 @@ public class PageHeaderWidget extends Composite {
             Window.alert(ex.getMessage());
         }
     }
-    /**
-    class RecTypeSelectionListener extends SelectionListener {
-
-        private String type;
-        
-        public RecTypeSelectionListener(String type) {
-            this.type=type;
-        }
-
-        public void componentSelected(ComponentEvent arg0) {
-            Info.display("Title", "You clicked on "+type, new Params());            
-        }
-    }
-     * */
 }

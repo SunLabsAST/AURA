@@ -24,7 +24,7 @@ public interface MusicSearchInterface extends RemoteService {
     public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName) throws Exception ;
     public TagDetails getTagDetails(String id, boolean refresh, String simTypeName) throws Exception;
     public TagTree getTagTree();
-    public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num) throws Exception;
+    public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num, String simType) throws Exception;
     public List<String> getArtistOracle() throws Exception;
     public List<String> getTagOracle() throws Exception;
     public logInDetails getUserTagCloud(String lastfmUser, String simTypeName) throws Exception;

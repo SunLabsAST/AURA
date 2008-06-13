@@ -139,9 +139,9 @@ public class DataManager implements Configurable {
      * @param num number of tags to retreive
      * @return the common tags
      */
-    public ItemInfo[] getCommonTags(String id1, String id2, int num) 
+    public ItemInfo[] getCommonTags(String id1, String id2, int num, String simType) 
             throws AuraException, RemoteException {
-        List<Scored<String>> simList = mdb.artistExplainSimilarity(id1, id2, num);
+        List<Scored<String>> simList = simTypes.get(simType).explainSimilarity(id1, id2, num);
         return scoredTagStringToItemInfo(simList);
     }
     

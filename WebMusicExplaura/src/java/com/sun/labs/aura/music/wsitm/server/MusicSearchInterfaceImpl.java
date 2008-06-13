@@ -113,11 +113,11 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         return dm.getTagTree();
     }
     
-    public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num) 
+    public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num, String simType) 
             throws Exception {
         logger.info("MusicSearchInterfaceImpl::getCommonTags for "+artistID1+" and "+artistID2);
         try {
-            return dm.getCommonTags(artistID1, artistID2, num);
+            return dm.getCommonTags(artistID1, artistID2, num, simType);
         } catch (Exception e) {
             logger.severe(traceToString(e));
             throw e;
