@@ -446,7 +446,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         //
         //  Provide your own name.
         try {
-            musicServer.getArtistDetails(artistID, refresh, callback);
+            musicServer.getArtistDetails(artistID, refresh, cdm.getCurrSimTypeName(), callback);
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
             
@@ -487,7 +487,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         //
         //  Provide your own name.
         try {
-            musicServer.getTagDetails(tagID, refresh, callback);
+            musicServer.getTagDetails(tagID, refresh, cdm.getCurrSimTypeName(), callback);
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }
@@ -1643,14 +1643,18 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         }
 
         public void search() {
-            String query = textBox.getText().toLowerCase();
-            if (getSearchType() == SearchResults.SEARCH_FOR_TAG_BY_TAG) {
-                invokeTagSearchService(query, 0);
+            if (cdm.getCurrSimTypeName() == null || cdm.getCurrSimTypeName().equals("")) {
+                Window.alert("Error. Cannot search without the similarity types.");
             } else {
-                invokeArtistSearchService(query, getSearchType() == SearchResults.SEARCH_FOR_ARTIST_BY_TAG, 0);
+                String query = textBox.getText().toLowerCase();
+                if (getSearchType() == SearchResults.SEARCH_FOR_TAG_BY_TAG) {
+                    invokeTagSearchService(query, 0);
+                } else {
+                    invokeArtistSearchService(query, getSearchType() == SearchResults.SEARCH_FOR_ARTIST_BY_TAG, 0);
+                }
             }
         }
-        
+
         public void setSearchBox(SuggestBox box) {
             this.textBox=box;
         }

@@ -87,22 +87,22 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
                 
     }
 
-    public ArtistDetails getArtistDetails(String id, boolean refresh) throws Exception {      
+    public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName) throws Exception {      
         logger.info("MusicSearchInterfaceImpl::getArtistDetails: "+id);
         try {
-            return dm.getArtistDetails(id, false);
+            return dm.getArtistDetails(id, false, simTypeName);
         } catch (Exception e) {
             logger.severe(traceToString(e));
             throw e;
         }
     }
 
-    public TagDetails getTagDetails(String tagName, boolean refresh) throws Exception {
+    public TagDetails getTagDetails(String tagName, boolean refresh, String simTypeName) throws Exception {
         logger.info("MusicSearchInterfaceImpl::getTagDetails: "+tagName);
         try {
             if (!tagName.startsWith("artist-tag:"))
                 tagName=ArtistTag.nameToKey(tagName);
-            return dm.getTagDetails(tagName, refresh);
+            return dm.getTagDetails(tagName, refresh, simTypeName);
         } catch (Exception e) { 
             logger.severe(traceToString(e));
             throw e;
@@ -162,9 +162,18 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
     
-    public logInDetails getUserTagCloud(String lastfmUser) throws Exception {
+    public logInDetails getUserTagCloud(String lastfmUser, String simTypeName) throws Exception {
         try {
-            return dm.getUserTagCloud(lastfmUser);
+            return dm.getUserTagCloud(lastfmUser, simTypeName);
+        } catch (Exception e) {
+            logger.severe(traceToString(e));
+            throw e;
+        }
+    }
+    
+    public Map<String, String> getSimTypes() throws Exception {
+        try {
+            return dm.getSimTypes();
         } catch (Exception e) {
             logger.severe(traceToString(e));
             throw e;

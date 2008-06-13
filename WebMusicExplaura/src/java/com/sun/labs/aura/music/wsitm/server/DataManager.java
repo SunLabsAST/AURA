@@ -15,9 +15,11 @@ import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.Event;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.Photo;
+import com.sun.labs.aura.music.SimType;
 import com.sun.labs.aura.music.Video;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
+import com.sun.labs.aura.music.wsitm.client.Details;
 import com.sun.labs.aura.music.wsitm.client.AlbumDetails;
 import com.sun.labs.aura.music.wsitm.client.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.ArtistEvent;
@@ -69,7 +71,7 @@ public class DataManager implements Configurable {
     
     ConfigurationManager configMgr;
     
-    private ExpiringLRUCache cache;
+    private Map<String, ExpiringLRUCache> cache;
     private MusicDatabase mdb;
     private int expiredTimeInDays = 0;
     private boolean singleThread = false;
@@ -79,6 +81,8 @@ public class DataManager implements Configurable {
     
     private List<String> artistOracle;
     private List<String> tagOracle;
+    
+    private Map<String, SimType> simTypes;
     
     /**
      * Creates a new instance of the datamanager
@@ -91,8 +95,10 @@ public class DataManager implements Configurable {
         logger.info("Instantiating new DataManager with cache size of "+cacheSize);
         
         //int cacheSize = (int)configMgr.lookup(CACHE_SIZE);
-        cache = new ExpiringLRUCache(cacheSize, SEC_TO_LIVE_IN_CACHE);
-        //mdb = new MusicDatabase(path);
+        cache = new HashMap<String, ExpiringLRUCache>();
+        for (SimType s : mdb.getSimTypes()) {
+            cache.put(s.getName(), new ExpiringLRUCache(cacheSize, SEC_TO_LIVE_IN_CACHE));
+        }
         this.mdb = mdb;
         
         artistOracle = new ArrayList<String>();
@@ -110,6 +116,11 @@ public class DataManager implements Configurable {
             Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+        simTypes = new HashMap<String, SimType>();
+        for (SimType s : mdb.getSimTypes()) {
+            simTypes.put(s.getName(), s);
+        }
+        
         logger.info("DataManager ready.");
     }
     
@@ -138,17 +149,18 @@ public class DataManager implements Configurable {
      * Gets the details for the given artist (by id)
      * @param id  the id of the artist
      * @param refresh if true, ignore cache and load from datastore
+     * @param simTypeName name of the symType to use
      * @return  the artist details
      */
-    public ArtistDetails getArtistDetails(String id, boolean refresh) 
+    public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName) 
             throws AuraException, RemoteException {
         ArtistDetails details = null;
         
-        details = (ArtistDetails) cache.sget(id);
+        details = (ArtistDetails) cache.get(simTypeName).sget(id);
         if (details == null || refresh) {
-            details = (ArtistDetails) loadArtistDetailsFromStore(id);
+            details = (ArtistDetails) loadArtistDetailsFromStore(id, simTypes.get(simTypeName));
             if (details != null) {
-                cache.sput(id, details);
+                cache.get(simTypeName).sput(id, details);
             } else {
                 return null;
             }
@@ -161,7 +173,7 @@ public class DataManager implements Configurable {
      * @param id the artist's id
      * @return the artist's details or null if the details are not in the datastore
      */
-    private ArtistDetails loadArtistDetailsFromStore(String id) throws AuraException, 
+    private ArtistDetails loadArtistDetailsFromStore(String id, SimType simType) throws AuraException, 
             RemoteException {
         
         ArtistDetails details = new ArtistDetails();
@@ -195,7 +207,7 @@ public class DataManager implements Configurable {
         }
                 
         // Fetch similar artists
-        List<Scored<Artist>> scoredArtists = mdb.artistFindSimilar(id, NUMBER_SIM_ARTISTS);
+        List<Scored<Artist>> scoredArtists = simType.findSimilarArtists(id, NUMBER_SIM_ARTISTS);
         sortByArtistPopularity(scoredArtists);
         details.setSimilarArtists(scoredArtistToItemInfo(scoredArtists));
         
@@ -264,8 +276,8 @@ public class DataManager implements Configurable {
         details.setFrequentTags(scoredArtistTagToItemInfo(scoredTags.subList(0, getMax(scoredTags,NUMBER_TAGS_TO_SHOW))));
         
         // Fetch list of distinctive tags
-        List<Scored<String>> topTags = mdb.artistGetDistinctiveTags(a.getKey(),NUMBER_TAGS_TO_SHOW);
-        details.setDistinctiveTags(scoredTagStringToItemInfo(topTags));
+        List<Scored<ArtistTag>> topTags = mdb.artistGetDistinctiveTags(a.getKey(),NUMBER_TAGS_TO_SHOW);
+        details.setDistinctiveTags(scoredArtistTagToItemInfo(topTags));
         
         return details;
     }
@@ -286,7 +298,7 @@ public class DataManager implements Configurable {
         return sr;
     }
 
-    public logInDetails getUserTagCloud(String lastfmUser) throws AuraException {
+    public logInDetails getUserTagCloud(String lastfmUser, String simTypeName) throws AuraException {
         logger.info("Fetching user tag cloud for user "+lastfmUser);
         try {
             LastFM lastfm = new LastFM();
@@ -336,7 +348,7 @@ public class DataManager implements Configurable {
             lid.userTags=scoredTagToItemInfo(scoredTags);
             ArrayList<ArtistDetails> aaD = new ArrayList<ArtistDetails>();
             for (String mbid : favArtistMBID) {
-                ArtistDetails tad = getArtistDetails(mbid,false);
+                ArtistDetails tad = getArtistDetails(mbid, false, simTypeName);
                 if (tad!=null) {
                     aaD.add(tad);
                     if (aaD.size()>=3) {
@@ -451,15 +463,15 @@ public class DataManager implements Configurable {
       * @param refresh if true, ignore cache and load from datastore
       * @return the tag details
       */
-    public TagDetails getTagDetails(String id, boolean refresh) throws AuraException,
+    public TagDetails getTagDetails(String id, boolean refresh, String simTypeName) throws AuraException,
             RemoteException {
         TagDetails details = null;
 
-        details = (TagDetails) cache.sget(id);
+        details = (TagDetails) cache.get(simTypeName).sget(id);
         if (details == null || refresh) {
             details = (TagDetails) loadTagDetailsFromStore(id);
             if (details != null) {
-                cache.sput(id, details);
+                cache.get(simTypeName).sput(id, details);
             } else {
                 return null;
             }
@@ -636,7 +648,7 @@ public class DataManager implements Configurable {
             double popularity = t.getFreq();
             if (isArtist) {
                 // We need to fetch each artist's name. First look in the cache if we have the details
-                aD = (ArtistDetails) cache.sget(t.getName());
+                aD = (ArtistDetails) getInAnyCache(t.getName());
                 if (aD == null) {
                     a = mdb.artistLookup(t.getName());
                     artistName = a.getName();
@@ -668,6 +680,30 @@ public class DataManager implements Configurable {
         }
 
         return artistTagResults;
+    }
+    
+    public Map<String, String> getSimTypes() {
+        Map<String, String> simTypes = new HashMap<String, String>();
+        for (SimType s : mdb.getSimTypes()) {
+            simTypes.put(s.getName(), s.getDescription());
+        }
+        return simTypes;
+    }
+    
+    /**
+     * Search for a key in all simType caches
+     * @param searchKey the key to search for
+     * @return the details object found, if any
+     */
+    private Details getInAnyCache(String searchKey) {
+        Details d;
+        for (String k : cache.keySet()) {
+            d = (Details) cache.get(k).sget(searchKey);
+            if (d!=null) {
+                return d;
+            }
+        }
+        return null;
     }
     
     /**

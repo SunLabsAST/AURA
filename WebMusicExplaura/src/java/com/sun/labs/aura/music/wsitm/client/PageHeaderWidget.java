@@ -5,7 +5,10 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.extjs.gxt.ui.client.Events;
+import com.extjs.gxt.ui.client.event.BaseEvent;
 import com.extjs.gxt.ui.client.event.ComponentEvent;
+import com.extjs.gxt.ui.client.event.MenuEvent;
 import com.extjs.gxt.ui.client.event.SelectionListener;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
@@ -16,6 +19,7 @@ import com.extjs.gxt.ui.client.widget.menu.SeparatorMenuItem;
 import com.extjs.gxt.ui.client.widget.toolbar.TextToolItem;
 import com.extjs.gxt.ui.client.widget.toolbar.ToolBar;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
@@ -29,6 +33,7 @@ import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
+import java.util.Map;
 
 
 /**
@@ -41,6 +46,10 @@ public class PageHeaderWidget extends Composite {
     private Grid mainPanel;
     private TextBox txtbox;
 
+    // toolbar objects
+    private ToolBar toolBar;
+    TextToolItem recTypeToolItem;
+    
     private ClientDataManager cdm;
     
     public PageHeaderWidget(ClientDataManager cdm) {
@@ -50,17 +59,9 @@ public class PageHeaderWidget extends Composite {
     }
     
     private void initRPC() {
-        // (1) Create the client proxy. Note that although you are creating the
-        // service interface proper, you cast the result to the async version of
-        // the interface. The cast is always safe because the generated proxy
-        // implements the async interface automatically.
-        //
+
         musicServer = (MusicSearchInterfaceAsync) GWT.create(MusicSearchInterface.class);
 
-        // (2) Specify the URL at which our service implementation is running.
-        // Note that the target URL must reside on the same domain and port from
-        // which the host page was served.
-        //
         ServiceDefTarget endpoint = (ServiceDefTarget) musicServer;
         String moduleRelativeURL = GWT.getModuleBaseURL() + "musicsearch";
         endpoint.setServiceEntryPoint(moduleRelativeURL);
@@ -73,40 +74,26 @@ public class PageHeaderWidget extends Composite {
         mainPanel.setStyleName("pageHeader");
         mainPanel.setWidth("100%");
         
-        ToolBar toolBar = new ToolBar();
+        toolBar = new ToolBar();
         toolBar.setWidth(160);
         
-        TextToolItem item1 = new TextToolItem("Recommendation type");
-        item1.setIconStyle("icon-menu-show");
+        recTypeToolItem = new TextToolItem("Recommendation type");
+        recTypeToolItem.setIconStyle("icon-menu-show");
 
         Menu menu = new Menu();
 
-        //MenuItem radios = new MenuItem("Recommendation type");
-        //menu.add(radios);
+        CheckMenuItem r = new CheckMenuItem("Loading...");
+        r.setGroup("recType");
+        r.setChecked(false);
+        r.setEnabled(false);
         
-        //Menu radioMenu = new Menu();
-        CheckMenuItem r = new CheckMenuItem("Tagomendations");
-        r.setGroup("recType");
-        r.setChecked(true);
-        //r.addSelectionListener(new RecTypeSelectionListener("tagomendations"));
         menu.add(r);
-        r = new CheckMenuItem("Biotagomendations");
-        r.setGroup("recType");
-        //r.addSelectionListener(new RecTypeSelectionListener("biohazardomendations"));
-        menu.add(r);
-        r = new CheckMenuItem("Collaborative filtering");
-        r.setGroup("recType");
-        menu.add(r);
-        //r.addSelectionListener(new RecTypeSelectionListener("willomendations"));
-        r = new CheckMenuItem("Autotagomendations");
-        r.setGroup("recType");
-        //r.addSelectionListener(new RecTypeSelectionListener("autotagomendations"));
-        menu.add(r);
-        //radios.setSubMenu(radioMenu);
 
-        item1.setMenu(menu);
-        toolBar.add(item1);
+        recTypeToolItem.setMenu(menu);
+        toolBar.add(recTypeToolItem);
         mainPanel.setWidget(0, 1, toolBar);
+        
+        invokeGetSimTypes();
         
         populateMainPanel();
      
@@ -140,15 +127,59 @@ public class PageHeaderWidget extends Composite {
             }
         });
 
-
-
         HorizontalPanel h = new HorizontalPanel();
         h.add(txtbox);
         h.add(b);
         mainPanel.setWidget(0, 0, h);
 
     }
-    
+
+    private void invokeGetSimTypes() {
+        AsyncCallback callback = new AsyncCallback() {
+
+            public void onFailure(Throwable arg0) {
+                Window.alert("Error fetching similarity types.");
+            }
+
+            public void onSuccess(Object arg0) {
+                cdm.setSimTypes((Map<String, String>) arg0);
+                
+                Menu menu = new Menu();
+                boolean firstElem = true;
+                for (String name : cdm.getSimTypes().keySet()) {
+                    CheckMenuItem r = new CheckMenuItem(name);
+                    r.setGroup("recType");
+                    r.setItemId(name);
+                    r.setToolTip(cdm.getSimTypes().get(name));
+                    r.addSelectionListener(new SelectionListener<MenuEvent>() {
+
+                        public void componentSelected(MenuEvent arg0) {
+                            cdm.setCurrSimTypeName(((CheckMenuItem)arg0.item).getItemId());
+                        }
+                    });
+                    
+                    
+                    if (firstElem) {
+                        r.setChecked(true);
+                        cdm.setCurrSimTypeName(name);
+                        firstElem=false;
+                    } else {
+                        r.setChecked(false);
+                    }
+                    
+                    menu.add(r);
+                }
+                recTypeToolItem.setMenu(menu);
+            }
+        };
+
+        try {
+            musicServer.getSimTypes(callback);
+        } catch (Exception ex) {
+            Window.alert(ex.getMessage());
+        }
+    }
+
     private void fetchUserInfo() {
         mainPanel.clearCell(0, 0);
         HorizontalPanel h = new HorizontalPanel();
@@ -200,7 +231,7 @@ public class PageHeaderWidget extends Composite {
         };
 
         try {
-            musicServer.getUserTagCloud(lastfmUser, callback);
+            musicServer.getUserTagCloud(lastfmUser, cdm.getCurrSimTypeName(), callback);
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }

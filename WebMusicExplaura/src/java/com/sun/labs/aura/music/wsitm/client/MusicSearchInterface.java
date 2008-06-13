@@ -21,11 +21,12 @@ public interface MusicSearchInterface extends RemoteService {
     public SearchResults artistSearch(String searchString, int maxResults) throws Exception;
     public SearchResults artistSearchByTag(String searchString, int maxResults) throws Exception;
     public SearchResults tagSearch(String searchString, int maxResults) throws Exception;
-    public ArtistDetails getArtistDetails(String id, boolean refresh) throws Exception ;
-    public TagDetails getTagDetails(String id, boolean refresh) throws Exception;
+    public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName) throws Exception ;
+    public TagDetails getTagDetails(String id, boolean refresh, String simTypeName) throws Exception;
     public TagTree getTagTree();
     public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num) throws Exception;
     public List<String> getArtistOracle() throws Exception;
     public List<String> getTagOracle() throws Exception;
-    public logInDetails getUserTagCloud(String lastfmUser) throws Exception;
+    public logInDetails getUserTagCloud(String lastfmUser, String simTypeName) throws Exception;
+    public Map<String, String> getSimTypes() throws Exception;
 }
