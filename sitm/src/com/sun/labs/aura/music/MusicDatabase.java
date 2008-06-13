@@ -152,7 +152,10 @@ public class MusicDatabase {
             List<Scored<String>> tagNames = dataStore.getTopTerms(id, Artist.FIELD_SOCIAL_TAGS, count);
             for (Scored<String> scoredTagName : tagNames) {
                 ArtistTag artistTag = artistTagLookup(ArtistTag.nameToKey(scoredTagName.getItem()));
-                artistTags.add(new Scored<ArtistTag>(artistTag, scoredTagName.getScore()));
+                // not all tags may be in the database yet
+                if (artistTag != null) {
+                    artistTags.add(new Scored<ArtistTag>(artistTag, scoredTagName.getScore()));
+                }
             }
             return artistTags;
         } catch (RemoteException ex) {
