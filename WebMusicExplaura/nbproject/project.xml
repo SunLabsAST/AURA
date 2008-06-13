@@ -181,6 +181,10 @@
                     <file>${file.reference.gwttk-0.2.3.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
+                <library files="1">
+                    <file>${file.reference.gwt-fx_2.0.0_RC2.jar}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
             </web-module-libraries>
             <web-module-additional-libraries/>
             <source-roots>

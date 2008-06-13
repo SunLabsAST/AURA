@@ -5,6 +5,16 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.extjs.gxt.ui.client.event.ComponentEvent;
+import com.extjs.gxt.ui.client.event.SelectionListener;
+import com.extjs.gxt.ui.client.util.Params;
+import com.extjs.gxt.ui.client.widget.Info;
+import com.extjs.gxt.ui.client.widget.menu.CheckMenuItem;
+import com.extjs.gxt.ui.client.widget.menu.Menu;
+import com.extjs.gxt.ui.client.widget.menu.MenuItem;
+import com.extjs.gxt.ui.client.widget.menu.SeparatorMenuItem;
+import com.extjs.gxt.ui.client.widget.toolbar.TextToolItem;
+import com.extjs.gxt.ui.client.widget.toolbar.ToolBar;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -62,6 +72,41 @@ public class PageHeaderWidget extends Composite {
         mainPanel = new Grid(1,3);
         mainPanel.setStyleName("pageHeader");
         mainPanel.setWidth("100%");
+        
+        ToolBar toolBar = new ToolBar();
+        toolBar.setWidth(160);
+        
+        TextToolItem item1 = new TextToolItem("Recommendation type");
+        item1.setIconStyle("icon-menu-show");
+
+        Menu menu = new Menu();
+
+        //MenuItem radios = new MenuItem("Recommendation type");
+        //menu.add(radios);
+        
+        //Menu radioMenu = new Menu();
+        CheckMenuItem r = new CheckMenuItem("Tagomendations");
+        r.setGroup("recType");
+        r.setChecked(true);
+        //r.addSelectionListener(new RecTypeSelectionListener("tagomendations"));
+        menu.add(r);
+        r = new CheckMenuItem("Biotagomendations");
+        r.setGroup("recType");
+        //r.addSelectionListener(new RecTypeSelectionListener("biohazardomendations"));
+        menu.add(r);
+        r = new CheckMenuItem("Collaborative filtering");
+        r.setGroup("recType");
+        menu.add(r);
+        //r.addSelectionListener(new RecTypeSelectionListener("willomendations"));
+        r = new CheckMenuItem("Autotagomendations");
+        r.setGroup("recType");
+        //r.addSelectionListener(new RecTypeSelectionListener("autotagomendations"));
+        menu.add(r);
+        //radios.setSubMenu(radioMenu);
+
+        item1.setMenu(menu);
+        toolBar.add(item1);
+        mainPanel.setWidget(0, 1, toolBar);
         
         populateMainPanel();
      
@@ -154,14 +199,24 @@ public class PageHeaderWidget extends Composite {
             }
         };
 
-        // (4) Make the call. Control flow will continue immediately and later
-        // 'callback' will be invoked when the RPC completes.
-        //
-        //  Provide your own name.
         try {
             musicServer.getUserTagCloud(lastfmUser, callback);
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }
     }
+    /**
+    class RecTypeSelectionListener extends SelectionListener {
+
+        private String type;
+        
+        public RecTypeSelectionListener(String type) {
+            this.type=type;
+        }
+
+        public void componentSelected(ComponentEvent arg0) {
+            Info.display("Title", "You clicked on "+type, new Params());            
+        }
+    }
+     * */
 }

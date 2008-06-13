@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module>
         <!--  <inherits name="com.google.gwt.core.Core"/> -->
+        <inherits name='org.adamtacy.GWTEffects'/>
         <inherits name='asquare.gwt.tk.Tk'/>
+        <inherits name='com.extjs.gxt.themes.Themes' />
         <inherits name='com.extjs.gxt.ui.GXT'/>
         <inherits name='com.google.gwt.user.User'/>
         <!-- <inherits name="com.google.gwt.user.theme.standard.Standard"/> -->
@@ -12,6 +14,7 @@
 	<!-- <extend-property name="locale" values="en"/>
         
          -->
+        <!-- <stylesheet name="com.extjs.gxt.themes.public.css.xtheme-slate.css" /> -->
         <stylesheet src="styles.css"/>
 	<!-- Do not define servlets here, use web.xml -->
 </module>

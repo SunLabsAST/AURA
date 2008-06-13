@@ -8,8 +8,18 @@
  */
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.extjs.gxt.ui.client.core.El;
 import asquare.gwt.tk.client.ui.SimpleHyperLink;
+import com.extjs.gxt.ui.client.Events;
+import com.extjs.gxt.ui.client.Style.Direction;
+import com.extjs.gxt.ui.client.Style.Direction;
+import com.extjs.gxt.ui.client.event.ComponentEvent;
+import com.extjs.gxt.ui.client.event.Listener;
+import com.extjs.gxt.ui.client.fx.FxConfig;
+import com.extjs.gxt.ui.client.widget.ContentPanel;
+import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.Event;
@@ -31,6 +41,7 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.LoadListener;
 import com.google.gwt.user.client.ui.MouseListenerCollection;
 import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.Panel;
@@ -44,6 +55,9 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.adamtacy.client.ui.EffectPanel;
+import org.adamtacy.client.ui.effects.impl.Fade;
+import org.adamtacy.client.ui.effects.impl.Fade.FadeProperties;
 
 /**
  *
@@ -197,16 +211,21 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         //  resultName = URL.decodeComponent(resultName);
         if (resultName.startsWith("artist:")) {
+            updateSuggestBox(Oracles.ARTIST);
             invokeGetArtistInfo(resultName, false);
         } else if (resultName.startsWith("tag:")) {
+            updateSuggestBox(Oracles.TAG);
             invokeGetTagInfo(resultName, false);
         } else if (resultName.startsWith("artistSearch:")) {
+            updateSuggestBox(Oracles.ARTIST);
             String query = resultName.replaceAll("artistSearch:", "");
             invokeArtistSearchService(query, false, 0);
         } else if (resultName.startsWith("artistSearchByTag:")) {
+            updateSuggestBox(Oracles.TAG);
             String query = resultName.replaceAll("artistSearchByTag:", "");
             invokeArtistSearchService(query, true, 0);
         } else if (resultName.startsWith("tagSearch:")) {
+            updateSuggestBox(Oracles.TAG);
             String query = resultName.replaceAll("tagSearch:", "");
             invokeTagSearchService(query, 0);
         } else if (resultName.equals("home")) {
@@ -499,9 +518,9 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         VerticalPanel main = new VerticalPanel();
         main.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
         main.add(getBioWidget(artistDetails));
-        main.add(getVideosWidget(artistDetails.getVideos()));
-        main.add(getPhotosWidget(artistDetails.getPhotos()));
-        main.add(getAlbumsWidget(artistDetails));
+        main.add(createSection("Videos", new VideoScrollWidget(artistDetails.getVideos())));
+        main.add(createSection("Photos", new ImageScrollWidget(artistDetails.getPhotos())));
+        main.add(createSection("Albums", new AlbumScrollWidget(artistDetails.getAlbums())));
         main.setHorizontalAlignment(HorizontalPanel.ALIGN_LEFT);
         main.add(getEventsWidget(artistDetails));
         main.setStyleName("center");
@@ -557,8 +576,8 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             VerticalPanel v = new VerticalPanel();
             v.add(getTagWidget(tagDetails));
             v.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
-            v.add(getVideosWidget(tagDetails.getVideos()));
-            v.add(getPhotosWidget(tagDetails.getPhotos()));
+            v.add(createSection("Videos", new VideoScrollWidget(tagDetails.getVideos())));
+            v.add(createSection("Photos", new ImageScrollWidget(tagDetails.getPhotos())));
             v.setStyleName("center");
             main.add(v, DockPanel.CENTER);
         }
@@ -644,33 +663,11 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         }
     }
 
-    Widget getVideosWidget(ArtistVideo[] videos) {
-        /*
-        Panel videoPanel = new FlowPanel();
-        if (videos.length == 0) {
-            videoPanel.add(new Label("None available"));
-        } else {
-            for (int i = 0; i < videos.length; i++) {
-                ArtistVideo video = videos[i];
-                Image image = new Image(video.getThumbnail());
-                image.addClickListener(new VideoClickListener(video));
-                image.setTitle(video.getTitle());
-                image.setStyleName("video");
-                videoPanel.add(image);
-            }
-        }
-        videoPanel.setStyleName("videos");
-         */
-        
-        return createSection("Videos", new VideoScrollWidget(videos));
-    }
-
     Widget getTastAuraMeterPanel(ArtistDetails aD) {
         
         double currArtistScore = cdm.computeTastauraMeterScore(aD);
-        //Window.alert("currArtistScore:"+currArtistScore);
-        
         double realMaxScore;    // max between currArtist and user's fav artists' max score
+        
         if (currArtistScore>cdm.getMaxScore()) {
             realMaxScore = currArtistScore;
         } else {
@@ -683,8 +680,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             vPanel.add(getPopularityWidget(key, cdm.getFavArtist().get(key)/realMaxScore, false, null));
         }
         
-        
-        //vPanel.add(getPopularityWidget(cdm.getFavArtistName(),favWidth));
         vPanel.add(getPopularityWidget(aD.getName(), 
                 currArtistScore/realMaxScore, false, "itemInfoHighlight"));
         
@@ -761,43 +756,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         vPanel.add(lbl);
         vPanel.add(table);
         return vPanel;
-    }
-    
-    Widget getPhotosWidget(ArtistPhoto[] photos) {
-        /*Panel photoPanel = new FlowPanel();
-        if (photos.length == 0) {
-            photoPanel.add(new Label("None available"));
-        } else {
-            for (int i = 0; i < photos.length; i++) {
-                ArtistPhoto photo = photos[i];
-                Image image = new Image(photo.getSmallImageUrl());
-                image.addClickListener(new PhotoClickListener(photo));
-                image.setTitle(photo.getTitle());
-                image.setStyleName("image");
-                photoPanel.add(image);
-            }
-        }
-        photoPanel.setStyleName("photos");
-        return createSection("Photos", photoPanel);
-         **/
-        return createSection("Photos", new ImageScrollWidget(photos));
-    }
-
-    
-    private Widget getAlbumsWidget(ArtistDetails artistDetails) {
-        /*Panel panel = new FlowPanel();
-        for (int i = 0; i < artistDetails.getAlbums().length; i++) {
-            AlbumDetails album = artistDetails.getAlbums()[i];
-            Image image = new Image(album.getAlbumArt());
-            image.addClickListener(new LinkClickListener(album.getAmazonLink()));
-            image.setStyleName("albumArt");
-            image.setTitle(album.getTitle());
-            panel.add(image);
-        }
-        panel.setStyleName("albums");
-        panel.setWidth("100%");
-         **/
-        return createSection("Albums", new AlbumScrollWidget(artistDetails.getAlbums()));
     }
 
     private Widget getEventsWidget(ArtistDetails artistDetails) {
@@ -967,6 +925,28 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     }
 
     private Widget getItemInfoList(final String title, final ItemInfo[] itemInfo, String highlightID, boolean getArtistOnClick, MultiWordSuggestOracle oracle) {
+        /*
+         Listener listener = new Listener<ComponentEvent>() {  
+       public void handleEvent(ComponentEvent ce) {  
+         ContentPanel cp = (ContentPanel) ce.component;  
+         String n = cp.getTitleText();  
+         if (ce.type == Events.Expand) {  
+           Info.display("Panel Change", "The '{0}' panel was expanded", n);  
+         } else {  
+           Info.display("Panel Change", "The '{0}' panel was collapsed", n);  
+         }  
+       }  
+     };
+        
+        ContentPanel cp = new ContentPanel();  
+        cp.setCollapsible(true);  
+        cp.setWidth(200);  
+        cp.setBodyStyle("fontSize: 12px");  
+        cp.setHeading("Collapsible");  
+        cp.addListener(Events.Expand, listener);  
+        cp.addListener(Events.Collapse, listener);  
+        */
+        
         Grid artistGrid = new Grid(itemInfo.length, 1);
         for (int i = 0; i < itemInfo.length; i++) {
 
@@ -984,6 +964,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
             artistGrid.setWidget(i, 0, label);
         }
+        
         Widget w;
         if (!getArtistOnClick) {
             Grid titleWidget = new Grid(1, 2);
@@ -1228,7 +1209,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         public void onClick(Widget sender) {
             HTML html = new HTML(getEmbeddedVideo(video, true));
-            //html.setStyleName("popup");
             showPopup(html,"WebMusicExplaura :: YouTube Video");
         }
     }
@@ -1243,7 +1223,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         public void onClick(Widget sender) {
             HTML html = new HTML(photo.getRichHtmlWrapper());
-            //html.setStyleName("popup");
             showPopup(html,"WebMusicExplaura :: Flick Photo");
         }
     }
@@ -1333,15 +1312,9 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                 }
             });
             
-            //HTMLTable.ColumnFormatter cF = topPanel.getColumnFormatter();
             if (items.length>NBR_ITEM_ON_PREVIEW) {
                 topPanel.setWidget(0, 0, prev);
                 topPanel.setWidget(0, 2, next);
-                //cF.setWidth(0, "25px");
-                //cF.setWidth(2, "25px");
-            } else {
-                //cF.setWidth(0, "0px");
-                //cF.setWidth(2, "0px");
             }
             topPanel.setWidget(0, 1, new Label(items.length+" "+getSectionName()));
             
@@ -1351,8 +1324,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             
             if (items.length>0) {
                 setPreviewPanel(getNextElements(NBR_ITEM_ON_PREVIEW));
-                //HTMLTable.CellFormatter cellF = topPanel.getCellFormatter();
-                //cellF.setAlignment(0, 1, HorizontalPanel.ALIGN_CENTER, VerticalPanel.ALIGN_MIDDLE);
                 mainPanel.setWidget(0, 0, topPanel);
             } else {
                 mainPanel.setWidget(1, 0, new Label("No "+getSectionName()));
@@ -1407,25 +1378,35 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                     index = 0;
                     topPreview = new HorizontalPanel();
                     topPreview.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
-                    topPreview.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+                    topPreview.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
                     topPreview.setWidth("100%");
                     topPreview.setSpacing(8);
                 }
                 
+                Grid g = new Grid(1,1);
+                g.setSize(maxImgHeight+"px", maxImgWidth+"px");
+                g.setTitle(i.title);
+                
+                EffectPanel theEffectPanel = new EffectPanel();
+                Fade f = new Fade();
+                f.getProperties().setStartOpacity(0);
+                f.getProperties().setEndOpacity(100);
+                theEffectPanel.addEffect(f);
+                
                 Image img = new Image(i.thumb);
-                img.setTitle(i.title);
-                img.addClickListener(new IndexClickListener(i.index) {
-
-                    public void onClick(Widget arg0) {
-                        triggerAction(index);
-                    }
-                });
+                //img.setTitle(i.title);
+                theEffectPanel.add(img);
+                img.setVisible(false);
+                img.addLoadListener(new LoadListenerPanelContainer(theEffectPanel));
+                img.addClickListener(new IndexClickListener(i.index));
                 
                 // Crop if necessary
                 if (maxImgHeight>0 && maxImgWidth>0) {
-                    img.setVisibleRect(0, 0, maxImgHeight, maxImgWidth);
+                    img.setVisibleRect(0, 0, maxImgWidth, maxImgHeight);
                 }
-                topPreview.add(img);
+                
+                g.setWidget(0, 0, theEffectPanel);
+                topPreview.add(g);
             }
             
             if (topPreview!=null) {
@@ -1446,7 +1427,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             mainPanel.setWidget(1, 0, nextPreview);
         }
         
-        protected abstract class IndexClickListener implements ClickListener {
+        protected class IndexClickListener implements ClickListener {
             protected int index;
             
             public IndexClickListener(int index) {
@@ -1454,7 +1435,30 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                 this.index=index;
             }
 
-            public abstract void onClick(Widget arg0);
+            public void onClick(Widget arg0) {
+                        triggerAction(index);
+            }
+        }
+        
+        
+        private class LoadListenerPanelContainer implements LoadListener {
+            
+            private EffectPanel theEffectPanel;
+            
+            /**
+             * @param w widget we want the effect applied to
+             */
+            public LoadListenerPanelContainer(EffectPanel theEffectPanel) {
+                super();
+                this.theEffectPanel=theEffectPanel;
+            }
+            
+            public void onError(Widget arg0) {
+            }
+
+            public void onLoad(Widget arg0) {
+                theEffectPanel.startEffects();
+            }
         }
         
         protected class ScrollItem {
@@ -1514,6 +1518,9 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                 items[i] = new ScrollItem(aV[i].getTitle(), 
                         aV[i].getThumbnail(), i);
             }
+        
+            maxImgHeight = 97;
+            maxImgWidth = 130;
             
             initWidget(init());
         }

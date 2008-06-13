@@ -261,32 +261,11 @@ public class DataManager implements Configurable {
             }
         }
         sortArtistTag(scoredTags, Sorter.sortFields.COUNTorSCORE);
-        /*
-        ItemInfo[] freqTags = new ItemInfo[NUMBER_TAGS_TO_SHOW];
-        index=0;
-        for (Scored<Tag> sT : scoredTags.subList(0, NUMBER_TAGS_TO_SHOW)) {
-            freqTags[index] = new ItemInfo(sT.getItem().getName(),
-                    sT.getItem().getName(),sT.getItem().getCount(),
-                    sT.getItem().getCount());
-            index++;
-        }
-        details.setFrequentTags(freqTags);
-        */
         details.setFrequentTags(scoredArtistTagToItemInfo(scoredTags.subList(0, getMax(scoredTags,NUMBER_TAGS_TO_SHOW))));
         
         // Fetch list of distinctive tags
         List<Scored<String>> topTags = mdb.artistGetDistinctiveTags(a.getKey(),NUMBER_TAGS_TO_SHOW);
         details.setDistinctiveTags(scoredTagStringToItemInfo(topTags));
-        
-        
-        //details.setMusicURL(id);
-        //details.setImageURL((String) a.getPhotos().toArray()[0]);
-        
-        /*
-        details.setUrls(cache)
-        details.setRecommendedArtists(recommendedArtists)
-        details.setCollaborations(collaborations);
-        */
         
         return details;
     }
@@ -312,12 +291,6 @@ public class DataManager implements Configurable {
         try {
             LastFM lastfm = new LastFM();
             com.sun.labs.aura.music.web.lastfm.Item[] items = lastfm.getTopArtistsForUser(lastfmUser);
-/*            String s="";
-            for (com.sun.labs.aura.music.web.lastfm.Item i : items) {
-                s+="    "+i.getName()+"   "+i.getFreq()+"\n";
-            }
-            logger.info(s);
- **/
             Map<String,TagScoreAccumulator> userTagMap = new HashMap<String,TagScoreAccumulator>();
             
             // For each of this user's top artists
@@ -357,26 +330,6 @@ public class DataManager implements Configurable {
                 scoredTags.add(new Scored(t, tsa.getScore()));
             }
             scoredTags=sortScoredTag(scoredTags, Sorter.sortFields.POPULARITY);
-            
-            // Compute the maximum score that will be possible for this user
-            /*
-            Double maxScore = 0.0;
-            int maxIndex = -1;
-            for (int i=0; i<favArtistTags.size(); i++) {
-                Double score = 0.0;
-                for (Scored<Tag> sT : favArtistTags.get(i).subList(0, getMax(favArtistTags.get(i), NUMBER_TAGS_TO_SHOW))) {
-                    Tag t = sT.getItem();
-                    //logger.info(t.getName()+" "+((int)(userTagMap.get(ArtistTag.nameToKey(t.getName()))*100))+" x "+t.getCount());
-                    score += ((int)(userTagMap.get(ArtistTag.nameToKey(t.getName())).getScore()*100)) * t.getCount();
-                }
-                logger.info("Getting max score :: "+favArtistName.get(i)+"  "+score);
-                if (score>maxScore) {
-                    maxScore=score;
-                    maxIndex=i;
-                }
-            }
-              //double score = scoredArtists.get(i).getScore();
-            */
             logger.info("Returning usertagcloud of size "+scoredTags.size());
             
             logInDetails lid = new logInDetails();
@@ -812,17 +765,6 @@ public class DataManager implements Configurable {
     public MusicDatabase getMusicDatabase() {
         return mdb;
     }
-/*
-    @Override
-    public void start() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void stop() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
- * */
 }
 
 class TagScoreAccumulator {
@@ -1007,68 +949,5 @@ class ArtistTagSorter extends Sorter implements Comparator<Scored<ArtistTag>> {
         } else {
             return 0;
         }
-    }
-}
-
-class Commanders {
-
-    private boolean trace = true;
-    private boolean singleThread;
-    private List<Commander> commanders = new ArrayList<Commander>();
-
-    Commanders(boolean singleThread) {
-        this.singleThread = singleThread;
-    }
-
-    void add(Commander c) {
-        commanders.add(c);
-    }
-
-    void run() {
-        if (singleThread) {
-            for (Commander c : commanders) {
-                c.run();
-            }
-        } else {
-            for (Commander c : commanders) {
-                c.start();
-            }
-
-            for (Commander c : commanders) {
-                try {
-                    c.join();
-                } catch (InterruptedException ie) {
-                }
-            }
-        }
-        if (trace) {
-            for (Commander c : commanders) {
-                System.out.println("   " + c);
-            }
-        }
-    }
-}
-
-abstract class Commander extends Thread {
-
-    private String name;
-    private long executeTime;
-
-    Commander(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public final void run() {
-        long startTime = System.currentTimeMillis();
-        go();
-        executeTime = System.currentTimeMillis() - startTime;
-    }
-
-    abstract void go();
-
-    @Override
-    public String toString() {
-        return name + ":" + executeTime + " ms";
     }
 }
