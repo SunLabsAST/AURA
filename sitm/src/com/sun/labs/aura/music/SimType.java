@@ -17,4 +17,5 @@ public interface SimType {
     public String getDescription();
     public String getName();
     public List<Scored<Artist>> findSimilarArtists(String artistID, int count) throws AuraException;
+    public List<Scored<String>> explainSimilarity(String artistID1, String artistID2, int count) throws AuraException;
 }

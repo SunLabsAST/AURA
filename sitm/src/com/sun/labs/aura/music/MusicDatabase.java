@@ -109,6 +109,14 @@ public class MusicDatabase {
         }
     }
 
+    public List<Scored<String>> artistExplainSimilarity(String artistID1, String artistID2, String field, int count) throws AuraException {
+        try {
+            return dataStore.explainSimilarity(artistID1, artistID2, field, count);
+        } catch (RemoteException ex) {
+            throw new AuraException("Can't talk to the datastore " + ex, ex);
+        }
+    }
+
     public List<String> artistGetMostPopularNames(int count) throws AuraException {
         try {
             List<Scored<Item>> items = dataStore.query("aura-type=ARTIST", "-popularity", count, null);
@@ -311,8 +319,7 @@ public class MusicDatabase {
             return artistFindSimilar(artistID, field, count);
         }
 
-        // for future use
-        private List<Scored<String>> explainSimilarity(String id1, String id2, int count) throws AuraException {
+        public List<Scored<String>> explainSimilarity(String id1, String id2, int count) throws AuraException {
             try {
                 return dataStore.explainSimilarity(id1, id1, field, count);
             } catch (RemoteException ex) {
@@ -328,7 +335,6 @@ public class MusicDatabase {
     private class AllSimType implements SimType {
         private String name;
         private String description;
-        private String field;
 
         AllSimType() {
             this.name = "All";
@@ -347,6 +353,10 @@ public class MusicDatabase {
         public List<Scored<Artist>> findSimilarArtists(String artistID, int count) throws AuraException {
             List<Scored<Item>> simItems = findSimilar(artistID, count, ItemType.ARTIST);
             return convertToScoredArtistList(simItems);
+        }
+
+        public List<Scored<String>> explainSimilarity(String artistID1, String artistID2, int count) throws AuraException {
+            return artistExplainSimilarity(artistID1, artistID2, count);
         }
     }
 }
