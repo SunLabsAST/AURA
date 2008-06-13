@@ -38,6 +38,7 @@ public class Artist extends ItemAdapter {
     public final static String FIELD_POPULARITY = "popularity";
     public final static String FIELD_RELATED_ARTISTS = "relatedArtists";
     public final static String FIELD_SOCIAL_TAGS = "socialTags";
+    public final static String FIELD_BIO_TAGS = "bioTags";
     public final static String FIELD_URLS = "urls";
     public final static String FIELD_VIDEOS = "videos";
 
@@ -110,6 +111,9 @@ public class Artist extends ItemAdapter {
             ds.defineField(Item.ItemType.ARTIST, FIELD_RELATED_ARTISTS, ms,
                     Item.FieldType.STRING);
             ds.defineField(Item.ItemType.ARTIST, FIELD_SOCIAL_TAGS, EnumSet.of(
+                    Item.FieldCapability.SEARCH,
+                    Item.FieldCapability.SIMILARITY), Item.FieldType.STRING);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_BIO_TAGS, EnumSet.of(
                     Item.FieldCapability.SEARCH,
                     Item.FieldCapability.SIMILARITY), Item.FieldType.STRING);
             ds.defineField(Item.ItemType.ARTIST, FIELD_URLS);
@@ -217,6 +221,15 @@ public class Artist extends ItemAdapter {
     }
 
     /**
+     * Sets an auto tag to the artist
+     * @param tag name of the tag
+     * @param count tag count
+     */
+    public void setAutoTag(String tag, int count) {
+        setTag(FIELD_AUTO_TAGS, tag, count);
+    }
+
+    /**
      * Gets the artist's social tags 
      * @return tag map
      */
@@ -231,6 +244,41 @@ public class Artist extends ItemAdapter {
      */
     public void addSocialTag(String tag, int count) {
         addTag(FIELD_SOCIAL_TAGS, tag, count);
+    }
+
+    /**
+     * Sets a social tag to the artist
+     * @param tag name of the tag
+     * @param count tag count
+     */
+    public void setSocialTag(String tag, int count) {
+        setTag(FIELD_SOCIAL_TAGS, tag, count);
+    }
+
+    /**
+     * Gets the artist's bio tags 
+     * @return tag map
+     */
+    public List<Tag> getBioTags() {
+        return getTagsAsList(FIELD_BIO_TAGS);
+    }
+
+    /**
+     * Adds a bio tag to the artist
+     * @param tag name of the tag
+     * @param count tag count
+     */
+    public void addBioTag(String tag, int count) {
+        addTag(FIELD_BIO_TAGS, tag, count);
+    }
+
+    /**
+     * Sets a bio tag to the artist
+     * @param tag name of the tag
+     * @param count tag count
+     */
+    public void setBioTag(String tag, int count) {
+        setTag(FIELD_BIO_TAGS, tag, count);
     }
 
     /**

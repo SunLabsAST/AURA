@@ -15,9 +15,11 @@ package com.sun.labs.aura.music.web.wikipedia;
  */
 public class WikiInfo {
     private String summary = "None available.";
+    private String fullText = "";
     private String url;
     
     
+    @Override
     public String toString() {
         return url + "\n" +  summary;
     }
@@ -34,7 +36,14 @@ public class WikiInfo {
     public void setSummary(String summary) {
         this.summary = summary;
     }
+    
+    public String getFullText() {
+        return fullText;
+    }
 
+    public void setFullText(String fullText) {
+        this.fullText = fullText;
+    }
 
     public String getUrl() {
         return url;

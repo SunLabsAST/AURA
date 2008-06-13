@@ -31,8 +31,8 @@ import com.sun.labs.aura.music.web.wikipedia.WikiInfo;
 import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
 import com.sun.labs.aura.music.web.youtube.Youtube;
 import com.sun.labs.aura.util.AuraException;
-import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
+import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
@@ -48,13 +48,16 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -76,7 +79,7 @@ public class ArtistCrawler implements AuraService, Configurable {
     private final static int FLUSH_COUNT = 10;
     private boolean running = false;
     private final static int MAX_FAN_OUT = 5;
-    private Set<String> validTags = new HashSet();
+    private Map<String,String> validTagMap = new HashMap();
 
     /**
      * Starts running the crawler
@@ -84,14 +87,27 @@ public class ArtistCrawler implements AuraService, Configurable {
     public void start() {
         if (!running) {
             running = true;
-            Thread t = new Thread() {
+            {
+                Thread t = new Thread() {
 
-                @Override
-                public void run() {
-                    discoverArtists();
-                }
-            };
-            t.start();
+                    @Override
+                    public void run() {
+                        discoverArtists();
+                    }
+                };
+                t.start();
+            }
+
+            {
+                Thread t = new Thread() {
+
+                    @Override
+                    public void run() {
+                        artistUpdater();
+                    }
+                };
+                t.start();
+            }
         }
     }
 
@@ -115,15 +131,13 @@ public class ArtistCrawler implements AuraService, Configurable {
             artistQueue = new PriorityQueue(1000, QueuedArtist.PRIORITY_ORDER);
             dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
             stateDir = ps.getString(PROP_STATE_DIR);
-            filterTags = ps.getBoolean(PROP_FILTER_TAGS);
+            updateRateInSeconds = ps.getInt(PROP_UPDATE_RATE);
             util = new Util(dataStore, flickr, youtube);
             createStateFileDirectory();
             loadState();
 
-            if (filterTags) {
-                loadTagFilter();
-            }
-            logger.info("tag filter: " + validTags.size() + " tags");
+            loadTagFilter();
+            logger.info("tag filter: " + validTagMap.size() + " tags");
         } catch (IOException ioe) {
             throw new PropertyException(ioe, "ArtistCrawler", ps.getInstanceName(), "");
         }
@@ -172,6 +186,54 @@ public class ArtistCrawler implements AuraService, Configurable {
         }
     }
 
+    private void updateArtists(boolean force, long period) throws AuraException, RemoteException, InterruptedException {
+        List<Item> items = dataStore.getAll(Item.ItemType.ARTIST);
+        List<Artist> artists = new ArrayList<Artist>();
+        for (Item i : items) {
+            artists.add(new Artist(i));
+        }
+        Collections.sort(artists, Artist.POPULARITY);
+        Collections.reverse(artists);
+        for (Artist artist : artists) {
+            if (force || needsUpdate(artist)) {
+                logger.info("Updating " + artist.getName());
+                updateArtist(artist);
+                try {
+                    Thread.sleep(period);
+                } catch (InterruptedException e) {
+                    break;
+                }
+            } else {
+                logger.info(artist.getName() + " is upto date");
+            }
+        }
+    }
+
+    private void artistUpdater() {
+        try {
+            while (running) {
+                long startTime = System.currentTimeMillis();
+                updateArtists(false, 5000L);
+                long delta = System.currentTimeMillis() - startTime;
+                long delay = updateRateInSeconds * 1000L  - delta;
+                if (delay > 0L) {
+                    logger.info("ArtistUpdater waiting " + (delay / (1000. * 60 * 60)) + " hours.");
+                    Thread.sleep(delay);
+                }
+            }
+        } catch (AuraException ex) {
+            logger.warning("trouble in artist updater, shutting down " + ex);
+        } catch (RemoteException ex) {
+            logger.warning("trouble in artist updater, shutting down " + ex);
+        } catch (InterruptedException ex) {
+            logger.info("artist updater, interrupted, shutting down");
+        }
+    }
+
+    private boolean needsUpdate(Artist artist) {
+        return (System.currentTimeMillis() - artist.getTimeAdded()) > updateRateInSeconds * 1000L;
+    }
+
     private boolean worthVisiting(LastArtist lartist) throws AuraException, RemoteException {
         if (lartist.getMbaid() == null || lartist.getMbaid().length() == 0) {
             return false;
@@ -212,70 +274,73 @@ public class ArtistCrawler implements AuraService, Configurable {
                 item = StoreFactory.newItem(ItemType.ARTIST, mbaid, queuedArtist.getArtistName());
                 final Artist artist = new Artist(item);
                 artist.setPopularity(queuedArtist.getPopularity());
-
-                CommandRunner runner = new CommandRunner(false, logger.isLoggable(Level.INFO));
-                runner.add(new Commander("last.fm") {
-
-                    @Override
-                    public void go() throws Exception {
-                        addLastFmTags(artist);
-                        addSimilarArtistsToQueue(artist);
-                    }
-                });
-
-                runner.add(new Commander("musicbrainz+wikipedia") {
-
-                    @Override
-                    public void go() throws Exception {
-                        addMusicBrainzInfo(artist);
-                        addWikipediaInfo(artist);
-                    }
-                });
-
-                runner.add(new Commander("flickr") {
-
-                    @Override
-                    public void go() throws Exception {
-                        addFlickrPhotos(artist);
-                    }
-                });
-
-                runner.add(new Commander("spotify") {
-
-                    @Override
-                    public void go() throws Exception {
-                        addSpotifyInfo(artist);
-                    }
-                });
-
-                runner.add(new Commander("youtube") {
-
-                    @Override
-                    public void go() throws Exception {
-                        addYoutubeVideos(artist);
-                    }
-                });
-
-                runner.add(new Commander("upcoming") {
-
-                    @Override
-                    public void go() throws Exception {
-                        addUpcomingInfo(artist);
-                    }
-                });
-
-                try {
-                    runner.go();
-                } catch (Exception e) {
-                    // if we get an exception when we are crawling, 
-                    // we still have some good data, so log the problem
-                    // but still return the artist so we can add it to the store
-                    logger.warning("Exception " + e);
-                }
+                updateArtist(artist);
                 return artist;
             }
         }
         return null;
+    }
+
+    private void updateArtist(final Artist artist) {
+        CommandRunner runner = new CommandRunner(false, logger.isLoggable(Level.INFO));
+        runner.add(new Commander("last.fm") {
+
+            @Override
+            public void go() throws Exception {
+                addLastFmTags(artist);
+                addSimilarArtistsToQueue(artist);
+            }
+        });
+
+        runner.add(new Commander("musicbrainz+wikipedia") {
+
+            @Override
+            public void go() throws Exception {
+                addMusicBrainzInfo(artist);
+                addWikipediaInfo(artist);
+            }
+        });
+
+        runner.add(new Commander("flickr") {
+
+            @Override
+            public void go() throws Exception {
+                addFlickrPhotos(artist);
+            }
+        });
+
+        runner.add(new Commander("spotify") {
+
+            @Override
+            public void go() throws Exception {
+                addSpotifyInfo(artist);
+            }
+        });
+
+        runner.add(new Commander("youtube") {
+
+            @Override
+            public void go() throws Exception {
+                addYoutubeVideos(artist);
+            }
+        });
+
+        runner.add(new Commander("upcoming") {
+
+            @Override
+            public void go() throws Exception {
+                addUpcomingInfo(artist);
+            }
+        });
+
+        try {
+            runner.go();
+        } catch (Exception e) {
+            // if we get an exception when we are crawling, 
+            // we still have some good data, so log the problem
+            // but still return the artist so we can add it to the store
+            logger.warning("Exception " + e);
+        }
     }
 
     /**
@@ -424,6 +489,34 @@ public class ArtistCrawler implements AuraService, Configurable {
         }
         WikiInfo wikiInfo = wikipedia.getWikiInfo(query);
         artist.setBioSummary(wikiInfo.getSummary());
+        addBioTags(artist, wikiInfo.getFullText());
+    }
+
+    private void addBioTags(Artist artist, String description) {
+        String words = normalizeText(" " + description + " ");
+        for (String tag : validTagMap.keySet()) {
+            int count = findMatches(tag, words);
+            if (count > 0) {
+                artist.addBioTag(mapTagName(tag), count);
+                // logger.info("Adding " + tag + ":" + count);
+            }
+        }
+    }
+
+    private String normalizeText(String s) {
+        s = s.replaceAll("[^\\w\\s]", " ").toLowerCase();
+        s = s.replaceAll("[\\s]+", " ");
+        return s;
+    }
+
+    private int findMatches(String tag, String text) {
+        Pattern p = Pattern.compile("\\s" + tag + "\\s");
+        Matcher m = p.matcher(text);
+        int count = 0;
+        while (m.find()) {
+            count++;
+        }
+        return count;
     }
 
     private void addYoutubeVideos(Artist artist) throws AuraException, RemoteException, IOException {
@@ -443,19 +536,25 @@ public class ArtistCrawler implements AuraService, Configurable {
     private void addLastFmTags(Artist artist) throws AuraException, RemoteException, IOException {
         SocialTag[] tags = lastFM.getArtistTags(artist.getName());
         for (SocialTag tag : tags) {
-            if (isValidTag(tag)) {
-                artist.addSocialTag(tag.getName(), tag.getFreq() + 1);
+            String tagName = mapTagName(tag.getName());
+            if (tagName != null) {
+                int normFreq = (tag.getFreq() + 1) * (tag.getFreq() + 1);
+                artist.addSocialTag(tagName, normFreq);
             }
         }
     }
-    
 
-    private boolean isValidTag(SocialTag tag) {
-        if (filterTags) {
-            return validTags.contains(ArtistTag.normalizeName(tag.getName()));
-        } else {
-            return true;
+    private String mapTagName(String tagName) {
+        String mappedName =  validTagMap.get(tagName);
+        if (mappedName == null) {
+            mappedName =  validTagMap.get(ArtistTag.normalizeName(tagName));
         }
+        /*
+        if (mappedName != null && !tagName.equals(mappedName)) {
+            System.out.printf("remapped '%s' to '%s'\n", tagName, mappedName);
+        }
+        */
+        return mappedName;
     }
 
     private void addSimilarArtistsToQueue(Artist artist) throws AuraException, RemoteException, IOException {
@@ -499,17 +598,23 @@ public class ArtistCrawler implements AuraService, Configurable {
                     if (line.startsWith("#")) {
                         continue;
                     }
-                    String tag = ArtistTag.normalizeName(line);
-                    validTags.add(tag);
+                    String[] aliases = line.split(",");
+                    if (aliases.length > 0) {
+                        String primary = aliases[0].trim();
+                        for (String alias : aliases) {
+                            alias = alias.trim();
+                            validTagMap.put(alias, primary);
+                            validTagMap.put(ArtistTag.normalizeName(alias), primary);
+                        }
+                    }
                 }
             } finally {
                 in.close();
             }
         } catch (IOException ioe) {
-            logger.warning("Couldn't reaad the tagfilter list");
+            logger.warning("Couldn't read the tagfilter list");
         }
     }
-
     /**
      * the configurable property for the itemstore used by this manager
      */
@@ -520,9 +625,9 @@ public class ArtistCrawler implements AuraService, Configurable {
     @ConfigString(defaultValue = "artistCrawler")
     public final static String PROP_STATE_DIR = "crawlerStateDir";
     private String stateDir;
-    @ConfigBoolean(defaultValue = true)
-    public final static String PROP_FILTER_TAGS = "filterTags";
-    private boolean filterTags;
+    @ConfigInteger(defaultValue = 60 * 60 * 24 * 7 * 2)
+    public final static String PROP_UPDATE_RATE = "updateRateInSeconds";
+    private int updateRateInSeconds;
 }
 
 /**

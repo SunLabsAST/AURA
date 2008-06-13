@@ -347,6 +347,19 @@ public abstract class ItemAdapter implements Serializable {
         }
         modified = true;
     }
+
+    protected void setTag(String field, String tagName, int count) {
+        Map<String,Tag> tagMap = getTagMap(field);
+        if (tagMap == null) {
+            HashMap<String, Tag> newTagMap = new HashMap<String, Tag>();
+            item.setField(field, newTagMap);
+            tagMap = newTagMap;
+        }
+
+        Tag tag = new Tag(tagName, count);
+        tagMap.put(tagName, tag);
+        modified = true;
+    }
     
     /**
      * Adds an object to an artist
