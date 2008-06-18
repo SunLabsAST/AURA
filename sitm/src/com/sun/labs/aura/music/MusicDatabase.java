@@ -4,16 +4,23 @@
  */
 package com.sun.labs.aura.music;
 
+import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.datastore.ItemEvent;
+import com.sun.labs.aura.datastore.ItemListener;
+import com.sun.labs.aura.datastore.StoreFactory;
+import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -34,8 +41,28 @@ public class MusicDatabase {
         new Track().defineFields(dataStore);
         new Venue().defineFields(dataStore);
         new Video().defineFields(dataStore);
+        new Listener().defineFields(dataStore);
 
         initSimTypes();
+
+        try {
+        dataStore.addItemListener(ItemType.USER, new ItemListener() {
+
+            public void itemCreated(ItemEvent e) throws RemoteException {
+                System.out.println("new item " + e);
+            }
+
+            public void itemChanged(ItemEvent e) throws RemoteException {
+                System.out.println("changed item " + e);
+            }
+
+            public void itemDeleted(ItemEvent e) throws RemoteException {
+                System.out.println("deleted item " + e);
+            }
+        });
+        } catch (RemoteException r) {
+
+        }
 
     }
 
@@ -44,18 +71,166 @@ public class MusicDatabase {
         stypes.add(new FieldSimType("Social Tags", "Similarity based upon Social Tags", Artist.FIELD_SOCIAL_TAGS));
         stypes.add(new FieldSimType("Bio Tags", "Similarity based upon BIO tags", Artist.FIELD_BIO_TAGS));
         stypes.add(new FieldSimType("Auto Tags", "Similarity based upon Auto tags", Artist.FIELD_AUTO_TAGS));
-        stypes.add(new FieldSimType("Biography", "Similarity based upon the biography", Artist.FIELD_BIOGRAPHY_SUMMARY));
         stypes.add(new FieldSimType("Related", "Similarity based upon related artists", Artist.FIELD_RELATED_ARTISTS));
         stypes.add(new AllSimType());
         simTypes = Collections.unmodifiableList(stypes);
     }
 
+    /**
+     * Enrolls a listener in the recommender
+     * @param openID the openID of the listener
+     * @return the listener
+     * @throws AuraException if the listener is already enrolled or a problem occurs while enrolling the listener
+     */
+    public Listener enrollListener(String openID) throws AuraException, RemoteException {
+        if (getListener(openID) == null) {
+            try {
+                User theUser = StoreFactory.newUser(openID, openID);
+                return updateListener(new Listener(theUser));
+            } catch (RemoteException rx) {
+                throw new AuraException("Error communicating with item store", rx);
+            }
+        } else {
+            throw new AuraException("attempting to enroll duplicate listener " +
+                    openID);
+        }
+    }
+
+    /**
+     * Update the version of the listener stored in the datastore
+     * 
+     * @param listener the listener to update
+     * @return the listener
+     * @throws AuraException if there was an error
+     */
+    public Listener updateListener(Listener listener) throws AuraException, RemoteException {
+        try {
+            return new Listener(dataStore.putUser(listener.getUser()));
+        } catch (RemoteException rx) {
+            throw new AuraException("Error communicating with item store", rx);
+        }
+    }
+
+    /**
+     * Adds play info for a listener
+     * @param listener the listener
+     * @param artistID the artist ID
+     * @param playCount the playcount
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void addPlayAttention(Listener listener, String artistID, int playCount) throws AuraException, RemoteException {
+        for (int i = 0; i < playCount; i++) {
+            Attention attention = StoreFactory.newAttention(listener.getKey(), artistID, Attention.Type.PLAYED);
+            dataStore.attend(attention);
+        }
+    }
+
+    /**
+     * Adds fav info for a listener
+     * @param listener the listener
+     * @param artistID the artist ID
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void addFavoriteAttention(Listener listener, String artistID) throws AuraException, RemoteException {
+        Attention attention = StoreFactory.newAttention(listener.getKey(), artistID, Attention.Type.LOVED);
+        dataStore.attend(attention);
+    }
+    
+    /**
+     * Gets the Favorite artists IDs for a listener
+     * @param listener the listener of interest
+     * @param max the maximum number to return
+     * @return the set of artist IDs
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public Set<String> getFavoriteArtists(Listener listener, int max) throws AuraException, RemoteException {
+        List<Attention> attns = dataStore.getLastAttentionForSource(listener.getKey(), Attention.Type.LOVED, max);
+        Set<String> results = new HashSet();
+        for (Attention attn : attns) {
+            results.add(attn.getTargetKey());
+        }
+        return results;
+    }
+    
+    /**
+     * Deletes a listener from the data store
+     * 
+     * @param listener the listener to delete
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void deleteListener(Listener listener) throws AuraException, RemoteException {
+        if (listener != null) {
+            dataStore.deleteUser(listener.getKey());
+        }
+    }
+    
+    /**
+     * Gets the attention data for a listener
+     * @param listener the listener of interest
+     * @param type the type of attention data of interest (null indicates all)
+     * @return the list of attention data (sorted by timestamp)
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<Attention> getLastAttentionData(Listener listener, Attention.Type type, 
+                int count) throws AuraException, RemoteException {
+        return dataStore.getLastAttentionForSource(listener.getKey(), type, count);
+    }
+    
+    /**
+     * Gets all the stored attention data for a listener
+     * @param listener the listener of interest
+     * @return the list of all attention data
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<Attention> getAttention(Listener listener) throws AuraException, RemoteException {
+        return dataStore.getAttentionForSource(listener.getKey());
+    }
+    
+
+    /**
+     * Gets the listener from the openID
+     * @param openID the openID for the listener
+     * @return the listener or null if the listener doesn't exist
+     */
+    public Listener getListener(String openID) throws AuraException, RemoteException {
+        try {
+            User user = dataStore.getUser(openID);
+            if (user != null) {
+                return new Listener(user);
+            } else {
+                return null;
+            }
+        } catch (RemoteException rx) {
+            throw new AuraException("Error communicating with item store", rx);
+        }
+    }
+
+
+    /**
+     * Searches for artists that matc the given name
+     * @param artistName the name to search for
+     * @param returnCount the number of artists to return
+     * @return a list fo artists scored by how well they match the query
+     * @throws com.sun.labs.aura.util.AuraException
+     */
     public List<Scored<Artist>> artistSearch(String artistName, int returnCount) throws AuraException {
         String squery = "(aura-type = artist) <AND> (aura-name <matches> \"*" + artistName + "*\")";
         List<Scored<Item>> scoredItems = query(squery, returnCount);
         return convertToScoredArtistList(scoredItems);
     }
 
+    /**
+     * Looks up an Artist by the ID of the artist
+     * @param artistID the musicbrainz id of the artist
+     * @return the artist or null if the artist could not be found
+     * @throws com.sun.labs.aura.util.AuraException
+     */
     public Artist artistLookup(String artistID) throws AuraException {
         Item item = getItem(artistID);
         if (item != null) {
@@ -65,10 +240,21 @@ public class MusicDatabase {
         return null;
     }
 
+    /**
+     * Gets the similarity types for the system. The simlarity types control
+     * the type of artist similarity used.
+     * @return the list of SimTypes
+     */
     public List<SimType> getSimTypes() {
         return simTypes;
     }
 
+    /**
+     * Given an artist query, find the best matching artist
+     * @param artistName an artist query
+     * @return the best matching artist or null if no match could be found.
+     * @throws com.sun.labs.aura.util.AuraException
+     */
     public Artist artistFindBestMatch(String artistName) throws AuraException {
         List<Scored<Artist>> artists = artistSearch(artistName, 1);
         if (artists.size() == 1) {
@@ -77,6 +263,12 @@ public class MusicDatabase {
         return null;
     }
 
+    /**
+     * Finds the best matching artist tag
+     * @param artistTagName the name of the artist tag
+     * @return the best matching artist tag or null if none could be found.
+     * @throws com.sun.labs.aura.util.AuraException
+     */
     public ArtistTag artistTagFindBestMatch(String artistTagName) throws AuraException {
         List<Scored<ArtistTag>> artistTags = artistTagSearch(artistTagName, 1);
         if (artistTags.size() == 1) {
@@ -85,11 +277,26 @@ public class MusicDatabase {
         return null;
     }
 
+    /**
+     * Find the most similar artist to a given artist
+     * @param artistID the ID of the seed artist
+     * @param count the number of similar artists to return
+     * @return a list of artists scored by their similarity to the seed artist.
+     * @throws com.sun.labs.aura.util.AuraException
+     */
     public List<Scored<Artist>> artistFindSimilar(String artistID, int count) throws AuraException {
         List<Scored<Item>> simItems = findSimilar(artistID, Artist.FIELD_SOCIAL_TAGS, count, ItemType.ARTIST);
         return convertToScoredArtistList(simItems);
     }
 
+    /**
+     * Find the most similar artist to a given artist
+     * @param artistID the ID of the seed artist
+     * @param field the field to use for similarity
+     * @param count the number of similar artists to return
+     * @return a list of artists scored by their similarity to the seed artist.
+     * @throws com.sun.labs.aura.util.AuraException
+     */
     public List<Scored<Artist>> artistFindSimilar(String artistID, String field, int count) throws AuraException {
         List<Scored<Item>> simItems = findSimilar(artistID, field, count, ItemType.ARTIST);
         return convertToScoredArtistList(simItems);

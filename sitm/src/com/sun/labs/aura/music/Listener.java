@@ -7,42 +7,105 @@ package com.sun.labs.aura.music;
 
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
+import java.rmi.RemoteException;
 
 /**
  *
  * @author plamere
  */
 public class Listener extends ItemAdapter {
-    public final static String FIELD_AGE =             "LISTENER_AGE";
-    public final static String FIELD_GENDER =         "LISTENER_GENDER";
-    public final static String FIELD_LAST_FM_NAME =   "LISTENER_LAST_FM_NAME";
-    public final static String FIELD_PANDORA_NAME =   "LISTENER_PANDORA_NAME";
+    public final static String FIELD_YOB =              "LISTENER_YEAR_OF_BIRTH";
+    public final static String FIELD_STATE =            "LISTENER_STATE";
+    public final static String FIELD_GENDER =           "LISTENER_GENDER";
+    public final static String FIELD_LAST_FM_NAME =     "LISTENER_LAST_FM_NAME";
+    public final static String FIELD_PANDORA_NAME =     "LISTENER_PANDORA_NAME";
+    public final static String FIELD_LOCALE_COUNTRY =  "LISTENER_LOCALE_COUNTRY";
     public enum Gender { Male, Female, Unknown };
+
+    public  final static int STATE_INITIAL_LASTFM_CRAWL = 1;
+    public  final static int STATE_INITIAL_PANDORA_CRAWL = 2;
 
     @Override
     public void defineFields(DataStore ds) throws AuraException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        try {
+            ds.defineField(Item.ItemType.USER, FIELD_YOB);
+            ds.defineField(Item.ItemType.USER, FIELD_GENDER);
+            ds.defineField(Item.ItemType.USER, FIELD_STATE);
+            ds.defineField(Item.ItemType.USER, FIELD_LAST_FM_NAME);
+            ds.defineField(Item.ItemType.USER, FIELD_PANDORA_NAME);
+            ds.defineField(Item.ItemType.USER, FIELD_LOCALE_COUNTRY);
+        } catch(RemoteException ex) {
+            throw new AuraException("Error defining fields for Album", ex);
+        }
     }
 
-    public Listener(Item item) {
-        super(item, Item.ItemType.USER);
+    public Listener(User user) {
+        super(user, Item.ItemType.USER);
+    }
+
+    public Listener() {
     }
 
     public int getAge() {
-        return getFieldAsInt(FIELD_AGE);
+        return getCurrentYear() - getYearOfBirth();
+    }
+
+    public User getUser() {
+        return (User) getItem();
+    }
+
+    public int getYearOfBirth() {
+        return getFieldAsInt(FIELD_YOB);
     }
 
     public Gender getGender() {
         return Gender.valueOf(getFieldAsString(FIELD_GENDER));
     }
 
+    public void setGender(Gender g) {
+        setField(FIELD_GENDER, g.toString());
+    }
+
     public String getLastFmName() {
         return getFieldAsString(FIELD_LAST_FM_NAME);
     }
 
+    public void setLastFmName(String name) {
+        setField(FIELD_LAST_FM_NAME, name);
+    }
+
+    public int getState() {
+        return getFieldAsInt(FIELD_STATE);
+    }
+
+    public void setState(int flags) {
+        setField(FIELD_STATE, flags);
+    }
+
     public String getPandoraName() {
         return getFieldAsString(FIELD_LAST_FM_NAME);
+    }
+
+    public void setPandoraName(String name) {
+        setField(FIELD_PANDORA_NAME, name);
+    }
+
+    public void setYearOfBirth(int yob) {
+        setField(FIELD_YOB, yob);
+    }
+
+    public String getLocaleCountry() {
+        return getFieldAsString(FIELD_LOCALE_COUNTRY);
+    }
+    
+    public void setLocaleCountry(String country) {
+        setField(FIELD_LOCALE_COUNTRY, country);
+    }
+    
+    public int getCurrentYear() {
+        return 2008;        // FIX ME
     }
 }
