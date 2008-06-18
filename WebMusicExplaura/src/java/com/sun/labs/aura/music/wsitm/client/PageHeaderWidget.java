@@ -5,21 +5,15 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
-import com.extjs.gxt.ui.client.Events;
-import com.extjs.gxt.ui.client.event.BaseEvent;
-import com.extjs.gxt.ui.client.event.ComponentEvent;
+import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.extjs.gxt.ui.client.event.MenuEvent;
 import com.extjs.gxt.ui.client.event.SelectionListener;
-import com.extjs.gxt.ui.client.util.Params;
-import com.extjs.gxt.ui.client.widget.Info;
 import com.extjs.gxt.ui.client.widget.menu.CheckMenuItem;
 import com.extjs.gxt.ui.client.widget.menu.Menu;
-import com.extjs.gxt.ui.client.widget.menu.MenuItem;
-import com.extjs.gxt.ui.client.widget.menu.SeparatorMenuItem;
 import com.extjs.gxt.ui.client.widget.toolbar.TextToolItem;
 import com.extjs.gxt.ui.client.widget.toolbar.ToolBar;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.Event;
+import com.google.gwt.user.client.Cookies;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
@@ -33,6 +27,7 @@ import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import java.util.Map;
 
 
@@ -98,6 +93,12 @@ public class PageHeaderWidget extends Composite {
     }
 
     private void populateMainPanel() {
+
+        if (Cookies.getCookie(ClientDataManager.openIdCookieName)!=null) {
+            mainPanel.setWidget(0,0, new Label("your appear to be logged in :: "+Cookies.getCookie(ClientDataManager.openIdCookieName)));
+            return;
+        }
+
         txtbox = new TextBox();
         txtbox.addKeyboardListener(new KeyboardListener() {
 
@@ -115,7 +116,7 @@ public class PageHeaderWidget extends Composite {
         });
 
         Button b = new Button();
-        b.setText("Set Last.FM user");
+        b.setText("try to login with openID");
         b.addClickListener(new ClickListener() {
 
             public void onClick(Widget arg0) {
@@ -150,11 +151,18 @@ public class PageHeaderWidget extends Composite {
                     r.addSelectionListener(new SelectionListener<MenuEvent>() {
 
                         public void componentSelected(MenuEvent arg0) {
-                            recTypeToolItem.setText(((CheckMenuItem)arg0.item).getItemId());
-                            cdm.setCurrSimTypeName(((CheckMenuItem)arg0.item).getItemId());
+                            // If the selection has changed
+                            if (!cdm.getCurrSimTypeName().equals(((CheckMenuItem)arg0.item).getItemId())) {
+                                recTypeToolItem.setText(((CheckMenuItem)arg0.item).getItemId());
+                                cdm.setCurrSimTypeName(((CheckMenuItem)arg0.item).getItemId());
+
+                                if (!cdm.getCurrArtistID().equals("")) {
+                                    cdm.displayWaitIconUpdatableWidgets();
+                                    invokeGetArtistInfo(cdm.getCurrArtistID(),false);
+                                }
+                            }
                         }
                     });
-                    
                     
                     if (firstElem) {
                         r.setChecked(true);
@@ -188,7 +196,8 @@ public class PageHeaderWidget extends Composite {
         h.add(lbl);
         mainPanel.setWidget(0, 1, h);
 
-        invokeGetUserTagCloud(txtbox.getText());
+        //invokeGetUserTagCloud(txtbox.getText());
+        Window.Location.assign("./Login?app-openid-auth=true&app-openid-name="+txtbox.getText());
     }
     
     private void invokeGetUserTagCloud(String lastfmUser) {
@@ -234,4 +243,40 @@ public class PageHeaderWidget extends Composite {
             Window.alert(ex.getMessage());
         }
     }
+    
+    /**
+     * Fetch artist details. Used when similarity type is updated
+     * @param artistID
+     * @param refresh
+     */
+    private void invokeGetArtistInfo(String artistID, boolean refresh) {
+
+        if (artistID.startsWith("artist:")) {
+            artistID = artistID.replaceAll("artist:", "");
+        }
+
+        AsyncCallback callback = new AsyncCallback() {
+
+            public void onSuccess(Object result) {
+                // do some UI stuff to show success
+                ArtistDetails artistDetails = (ArtistDetails) result;
+                if (artistDetails != null && artistDetails.isOK()) {
+                    cdm.updateUpdatableWidgets(artistDetails);
+                } else {
+                    Window.alert("An error occured while fetching the new recommendations.");
+                }
+            }
+
+            public void onFailure(Throwable caught) {
+                Window.alert("An error occured while fetching the new recommendations.");
+            }
+        };
+
+        try {
+            musicServer.getArtistDetails(artistID, refresh, cdm.getCurrSimTypeName(), callback);
+        } catch (Exception ex) {
+            Window.alert(ex.getMessage());
+        }
+    }
+
 }

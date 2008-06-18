@@ -1,0 +1,307 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package com.sun.labs.aura.music.wsitm.server;
+
+import com.google.gwt.user.client.Cookies;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.RemoteService;
+
+import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
+import org.openid4java.OpenIDException;
+import org.openid4java.consumer.ConsumerManager;
+import org.openid4java.consumer.VerificationResult;
+import org.openid4java.discovery.DiscoveryInformation;
+import org.openid4java.discovery.Identifier;
+import org.openid4java.message.AuthRequest;
+import org.openid4java.message.ParameterList;
+import org.openid4java.consumer.ConsumerException;
+import org.openid4java.consumer.InMemoryConsumerAssociationStore;
+import org.openid4java.consumer.InMemoryNonceVerifier;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletConfig;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.MessageFormat;
+import java.util.List;
+import java.util.logging.Logger;
+import javax.servlet.http.Cookie;
+
+/**
+ * User: aviadbendov
+ * Date: Apr 18, 2008
+ * Time: 9:27:03 PM
+ *
+ * A servlet incharge of the OpenID authentication process, from authentication to verification.
+ * @author Aviad Bendov
+ * @see Original version : http://chaoticjava.com/posts/using-openid-within-gwt/
+ */
+@SuppressWarnings({"GwtInconsistentSerializableClass"})
+public class OpenIDServlet extends HttpServlet implements RemoteService {
+
+    public static interface Callback {
+        String getOpenIdServletURL(HttpServletRequest request);
+        String getLoginURL(HttpServletRequest request);
+        String getMainPageURL(HttpServletRequest request);
+
+        String createUniqueIdForUser(String user);
+        void saveIdentifierForUniqueId(String uniqueId, Identifier identifier);
+    }
+
+    private static Callback callback = new SitmCallback();
+
+    private ConsumerManager manager;
+/*
+    public OpenIDServlet() {
+        try {
+            manager = new ConsumerManager();
+        } catch (ConsumerException e) {
+            throw new RuntimeException("Error creating consumer manager", e);
+        }
+    }
+  */  
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        try {
+            this.manager = new ConsumerManager();
+            manager.setAssociations(new InMemoryConsumerAssociationStore());
+            manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
+        } catch (ConsumerException e) {
+            throw new ServletException(e);
+        }
+
+    }
+
+    /**
+     * <b>Note</b>: In a normal servlet environment, this method would probably
+     * redirect the response itself. However, since GWT servlets do not allow for
+     * such behavior, a path to this servlet is returned and the redirection is done
+     * on the client side.
+     * @param openIdName The OpenID identifier the user provided.
+     * @return The URL the browser should be redirected to.
+     */
+    public static String getAuthenticationURL(String openIdName) {
+        // This is where a redirect for the response was supposed to occur; however, since GWT doesn't allow that
+        // on responses coming from a GWT servlet, only a redirect via the web page is made.
+        return null;
+        //return MessageFormat.format("{3}?{1}=true&{2}={0}", openIdName, authParameter, nameParameter, callback.getOpenIdServletURL());
+    }
+
+    /**
+     * Returns the unique cookie and the OpenID identifier saved on the user's
+     * browser.
+     *
+     * The servlet should be the only entity accessing and manipulating these cookies,
+     * so it is also in-charge of fetching them when needed.
+     * @param request The user's request to extract the cookies from.
+     * @return Array containing { UniqueId, OpenID-Identifier }
+     */
+    public static String[] getRequestUserInfo(HttpServletRequest request) {
+                    
+        return new String[] {
+                getCookieValue(request,ClientDataManager.openIdCookieName),
+                getCookieValue(request,ClientDataManager.uniqueIdCookieName)
+        };
+    }
+
+    /**
+     * Implements the GET method by either sending it to an OpenID authentication or verification
+     * mechanism.
+     *
+     * Checks the parameters of the GET method; if they contain the "authParameter" set to true,
+     * the authentication process is performed. If not, the verification process is performed
+     * (the parameters in the verification process are controlled by the OpenID provider).
+     *
+     * @param request The request sent to the servlet. Might come from the GWT application or
+     * the OpenID provider.
+     *
+     * @param response The response sent to the user. Generally used to redirect the user to the next
+     * step in the OpenID process.
+     *
+     * @throws ServletException Usually wrapping an OpenID process exception.
+     * @throws IOException Usually when redirection could not be performed.
+     */
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        /*
+        PrintWriter pw = response.getWriter();
+        for (Object s :request.getParameterMap().keySet()) {
+            pw.write((String)s+":"+request.getParameter((String)s));
+        }
+        pw.close();
+        return;
+         **/
+        if (Boolean.valueOf(request.getParameter(ClientDataManager.authParameter))) {
+            authenticate(request, response);
+        } else {
+            verify(request, response);
+
+        }
+    }
+
+    /**
+     * Discovers the OpenID provider from the provided user string, and starts an authentication process
+     * against it.
+     *
+     * This is done in three steps:
+     * <ol>
+     * <li>Discover the OpenID provider URL</li>
+     * <li>Create a unique cookie and send it to the user, so that after
+     * the provider redirects the user back we'll know what to do with him.</li>
+     * <li>Redirect the user to the provider URL, supplying the verification URL as a return point.</li>
+     * </ol>
+     *
+     * @param request The request for the OpenID authentication.
+     * @param response The response, used to redirect the user.
+     *
+     * @throws IOException Occurs when a redirection is not successful.
+     * @throws ServletException Wrapping an OpenID exception.
+     */
+    private void authenticate(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        final String loginString = request.getParameter(ClientDataManager.nameParameter);
+
+        try {
+            /*
+            String openIdCookie = Cookies.getCookie(openIdCookieName);
+            String uniqueIdCookie = Cookies.getCookie(uniqueIdCookieName);
+            */
+            String uuid = callback.createUniqueIdForUser(loginString);
+            response.addCookie(new Cookie(ClientDataManager.uniqueIdCookieName, uuid));
+            //Cookies.setCookie(uniqueIdCookieName, uuid);
+
+            // perform discovery on the user-supplied identifier
+            List discoveries = manager.discover(loginString);
+
+            // attempt to associate with the OpenID provider
+            // and retrieve one service endpoint for authentication
+            DiscoveryInformation discovered = manager.associate(discoveries);
+
+            // store the discovery information in the user's session
+            request.getSession().setAttribute("openid-disc", discovered);
+            
+            // obtain a AuthRequest message to be sent to the OpenID provider
+            AuthRequest authReq = manager.authenticate(discovered, callback.getOpenIdServletURL(request), null);
+
+            Logger.getLogger("").info("Redirecting user to : "+authReq.getDestinationUrl(true));
+            
+            // redirect to OpenID for authentication
+            response.sendRedirect(authReq.getDestinationUrl(true));
+        }
+        catch (OpenIDException e) {
+            throw new ServletException("Login string probably caused an error. loginString = " + loginString, e);
+        }
+    }
+
+    /**
+     * Checks the response received by the OpenID provider, and saves the user identifier for later use
+     * if the authentication was sucesssful.
+     *
+     * <b>Note</b>: While confusing, the OpenID provider's response is in fact encapsulated within
+     * the request; this is because it is the provider who requested the page, and sent the response
+     * as parameters.
+     *
+     * This is done in three steps:
+     * <ol>
+     * <li>Verify the OpenID resposne.</li>
+     * <li>If verification was successful, retrieve the OpenID identifier of the user
+     * and save it for later use.</li>
+     * <li>Redirect the user back to the main page of the application, together with a cookie containing
+     * his OpneID identifier.</li>
+     * </ol>
+
+     * @param request The request, containing the OpenID provider's response as parameters.
+     * @param response The response, used to redirect the user back to the application page.
+     * @throws IOException Occurs when redirection is not successful.
+     * @throws ServletException Wrapping an OpenID exception.
+     */
+    private void verify(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        try {
+
+            // extract the parameters from the authentication response
+            // (which comes in as a HTTP request from the OpenID provider)
+            ParameterList responseParams =
+                    new ParameterList(request.getParameterMap());
+
+            // retrieve the previously stored discovery information
+            DiscoveryInformation discovered = (DiscoveryInformation) request.getSession().getAttribute("openid-disc");
+            if (discovered==null)
+                Logger.getLogger("").info("discovered null!!");
+            else
+                Logger.getLogger("").info("discovered not null");
+                
+            // extract the receiving URL from the HTTP request
+            StringBuffer receivingURL = request.getRequestURL();
+            String queryString = request.getQueryString();
+            if (queryString != null && queryString.length() > 0)
+                receivingURL.append("?").append(request.getQueryString());
+            
+            Logger.getLogger("").info("Received back "+receivingURL.toString());
+            
+            // verify the response; ConsumerManager needs to be the same
+            // (static) instance used to place the authentication request
+            VerificationResult verification = manager.verify(
+                    receivingURL.toString(),
+                    responseParams, discovered);
+            
+            // examine the verification result and extract the verified identifier
+            Identifier id = verification.getVerifiedId();
+            if (id != null) {
+                response.addCookie(new Cookie(ClientDataManager.openIdCookieName, id.getIdentifier()));
+                //Cookies.setCookie(openIdCookieName, id.getIdentifier());
+
+                callback.saveIdentifierForUniqueId(getCookieValue(request,ClientDataManager.uniqueIdCookieName), id);
+            }
+
+            Logger.getLogger("").info("Login successfull");
+            response.sendRedirect(callback.getMainPageURL(request));
+        }
+        catch (OpenIDException e) {
+            throw new ServletException("Could not verify identity", e);
+        }
+    }
+
+    private static String getCookieValue(HttpServletRequest request, String key) {
+        for (Cookie c : request.getCookies()) {
+            if (c.getName().equals(key)) {
+                return c.getValue();
+            }
+        }
+        return "";
+    }
+    
+    public static class SitmCallback implements Callback {
+
+        private String getURL(String s, String tail) {
+            return s.substring(0, s.lastIndexOf("/"))+tail;
+        }
+        
+        public String getOpenIdServletURL(HttpServletRequest request) {
+            return getURL(request.getRequestURL().toString(),"/Login");
+        }
+
+        public String getLoginURL(HttpServletRequest request) {
+            return getURL(request.getRequestURL().toString(),"/Login");
+        }
+
+        public String getMainPageURL(HttpServletRequest request) {
+            return getURL(request.getRequestURL().toString(),"/");
+        }
+
+        public String createUniqueIdForUser(String user) {
+            Logger.getLogger("").info("creating unique id for user "+user);
+            return user;
+        }
+
+        public void saveIdentifierForUniqueId(String uniqueId, Identifier identifier) {
+            Logger.getLogger("").info("must save identifier for user. unique id :"+uniqueId+" :: "+identifier.getIdentifier());
+        }
+        
+    }
+}
+

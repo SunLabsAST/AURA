@@ -19,15 +19,15 @@ import com.sun.labs.aura.music.SimType;
 import com.sun.labs.aura.music.Video;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
-import com.sun.labs.aura.music.wsitm.client.Details;
-import com.sun.labs.aura.music.wsitm.client.AlbumDetails;
-import com.sun.labs.aura.music.wsitm.client.ArtistDetails;
-import com.sun.labs.aura.music.wsitm.client.ArtistEvent;
-import com.sun.labs.aura.music.wsitm.client.ArtistPhoto;
-import com.sun.labs.aura.music.wsitm.client.ArtistVideo;
-import com.sun.labs.aura.music.wsitm.client.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.items.Details;
+import com.sun.labs.aura.music.wsitm.client.items.AlbumDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistEvent;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistPhoto;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistVideo;
+import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.SearchResults;
-import com.sun.labs.aura.music.wsitm.client.TagDetails;
+import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.TagTree;
 import com.sun.labs.aura.music.wsitm.client.logInDetails;
 import com.sun.labs.aura.util.AuraException;
@@ -52,7 +52,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 /**
  *
  * @author plamere
@@ -66,6 +65,8 @@ public class DataManager implements Configurable {
     private static final int NUMBER_TAGS_TO_SHOW=20;
     private static final int NUMBER_SIM_ARTISTS=20;
     private static final int SEC_TO_LIVE_IN_CACHE=604800; // 1 week
+    private static final int NUMBER_ARTIST_ORACLE = 1000;
+    private static final int NUMBER_TAGS_ORACLE = 500;
     
     private Logger logger = Logger.getLogger("");
     
@@ -74,7 +75,6 @@ public class DataManager implements Configurable {
     private Map<String, ExpiringLRUCache> cache;
     private MusicDatabase mdb;
     private int expiredTimeInDays = 0;
-    private boolean singleThread = false;
     
     private static final String beatlesMDID="b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
     private float beatlesPopularity=-1;
@@ -105,10 +105,10 @@ public class DataManager implements Configurable {
         tagOracle = new ArrayList<String>();
 
         try {
-            logger.info("Fetching most popular artists...");
-            artistOracle = mdb.artistGetMostPopularNames(2500);
-            logger.info("Fetching most popular tags...");
-            tagOracle = mdb.artistTagGetMostPopularNames(500);
+            logger.info("Fetching "+NUMBER_ARTIST_ORACLE+" most popular artists...");
+            artistOracle = mdb.artistGetMostPopularNames(NUMBER_ARTIST_ORACLE);
+            logger.info("Fetching "+NUMBER_TAGS_ORACLE+" most popular tags...");
+            tagOracle = mdb.artistTagGetMostPopularNames(NUMBER_TAGS_ORACLE);
             logger.info("DONE");
             
             beatlesPopularity=mdb.artistLookup(beatlesMDID).getPopularity();
@@ -175,7 +175,7 @@ public class DataManager implements Configurable {
      */
     private ArtistDetails loadArtistDetailsFromStore(String id, SimType simType) throws AuraException, 
             RemoteException {
-        
+        logger.info("Loading artist details from store :: "+id);
         ArtistDetails details = new ArtistDetails();
         Artist a = mdb.artistLookup(id);
         if (a==null) {

@@ -8,21 +8,17 @@
  */
 package com.sun.labs.aura.music.wsitm.client;
 
-import com.extjs.gxt.ui.client.core.El;
+import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistPhoto;
+import com.sun.labs.aura.music.wsitm.client.items.AlbumDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistEvent;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistVideo;
 import asquare.gwt.tk.client.ui.SimpleHyperLink;
-import com.extjs.gxt.ui.client.Events;
-import com.extjs.gxt.ui.client.Style.Direction;
-import com.extjs.gxt.ui.client.Style.Direction;
-import com.extjs.gxt.ui.client.event.ComponentEvent;
-import com.extjs.gxt.ui.client.event.Listener;
-import com.extjs.gxt.ui.client.fx.FxConfig;
-import com.extjs.gxt.ui.client.widget.ContentPanel;
-import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
-import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.Random;
@@ -58,7 +54,6 @@ import java.util.List;
 import java.util.Map;
 import org.adamtacy.client.ui.EffectPanel;
 import org.adamtacy.client.ui.effects.impl.Fade;
-import org.adamtacy.client.ui.effects.impl.Fade.FadeProperties;
 
 /**
  *
@@ -210,6 +205,9 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
     private void showResults(String resultName) {
 
+        // Reset current artistID. Will be updated in invokeGetArtistInfo
+        cdm.setCurrArtistID("");
+        
         //  resultName = URL.decodeComponent(resultName);
         if (resultName.startsWith("artist:")) {
             updateSuggestBox(Oracles.ARTIST);
@@ -428,6 +426,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                         Widget artistPanel = createArtistPanel("Artists", artistDetails);
                         search.setText(artistDetails.getName(), SearchResults.SEARCH_FOR_ARTIST_BY_ARTIST);
                         setResults("artist:" + artistDetails.getId(), artistPanel);
+                        cdm.setCurrArtistID(artistDetails.getId());
                         clearMessage();
                     } else {
                         if (artistDetails == null) {
@@ -447,10 +446,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
             showMessage("Getting info for artist", ICON_WAIT);
 
-            // (4) Make the call. Control flow will continue immediately and later
-            // 'callback' will be invoked when the RPC completes.
-            //
-            //  Provide your own name.
             try {
                 musicServer.getArtistDetails(artistID, refresh, cdm.getCurrSimTypeName(), callback);
             } catch (Exception ex) {
@@ -544,7 +539,16 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         VerticalPanel left = new VerticalPanel();
         if (artistDetails.getSimilarArtists().length > 0) {
-            left.add(getItemInfoList2(cdm.getCurrSimTypeName()+"-omendations", artistDetails.getSimilarArtists(), id, true, artistOracle));
+            left.add(
+                    new Updatable(new HTML("<H2>"+cdm.getCurrSimTypeName()+"-omendations</H2>"),
+                    getItemInfoList2(artistDetails.getSimilarArtists(), id, true, artistOracle), cdm, id) {
+
+                        public void update(ArtistDetails aD) {
+                            setNewContent(new HTML("<H2>"+cdm.getCurrSimTypeName()+"-omendations</H2>"),
+                                    getItemInfoList2(aD.getSimilarArtists(), extraParam, true, artistOracle));
+                        }
+                    }
+           );
         }
         if (artistDetails.getRecommendedArtists().length > 0) {
             left.add(getItemInfoList("Recommendations", artistDetails.getRecommendedArtists(), id, true, artistOracle));
@@ -790,7 +794,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         }
         return createSection("Upcoming Events", widget);
     }
-
+    
     Widget createSection(String title, Widget widget) {
         return createSection(new HTML("<h2>" + title + "</H2>"), widget);
     }
@@ -994,7 +998,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         return w;
     }
 
-    private Widget getItemInfoList2(String title, ItemInfo[] itemInfo, 
+    private Widget getItemInfoList2(ItemInfo[] itemInfo, 
             String highlightID, boolean getArtistOnClick, MultiWordSuggestOracle oracle) {
         Grid artistGrid = new Grid(itemInfo.length, 2);
         for (int i = 0; i < itemInfo.length; i++) {
@@ -1019,10 +1023,11 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             why.addClickListener(new CommonTagsClickListener(highlightID, itemInfo[i].getId()));
             artistGrid.setWidget(i, 1, why);
         }
-        Widget w = createSection(title, artistGrid);
-        w.setStyleName("infoList");
-        w.setWidth("200px");
-        return w;
+        //Widget w = createSection(title, artistGrid);
+        //w.setStyleName("infoList");
+        //w.setWidth("200px");
+        //return w;
+        return artistGrid;
     }
 
     public Widget getLoadingBarWidget() {
@@ -1589,7 +1594,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         }
         
     }
-    
+
     class SearchWidget extends Composite {
 
         private SuggestBox textBox;

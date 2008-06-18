@@ -4,7 +4,11 @@
  */
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,14 +17,28 @@ import java.util.Map;
  */
 public class ClientDataManager {
 
+    // Constants used by both client and server side for openID authentification
+    public static final String authParameter = "app-openid-auth";
+    public static final String nameParameter = "app-openid-name";
+    public static final String openIdCookieName = "app-openid-identifier";
+    public static final String uniqueIdCookieName = "app-openid-uniqueid";
+
+
+    private String currArtist;
+    
+    private List<Updatable> updatableWidgets;
+    
     private Map<String, String> simTypes;
     private String currSimTypeName;
+    
     private ItemInfo[] tagCloud;
     private Map<String, Integer> tagMap; // maps the tag name to the index at which it is in the tagCloud
+    
     private String lastFmUser;
     private Double maxScore;
     private Map<String, Double> favArtist;
     private boolean isLoggedIn = false;
+    
     private PageHeaderWidget phw;
     private SimpleSearchWidget ssw;
 
@@ -141,5 +159,47 @@ public class ClientDataManager {
         //Window.alert(s);
         //Window.alert("Score:"+score+"\nMax score:"+cdm.getMaxScore());
         return score;
+    }
+    
+    /**
+     * Updates all the registered widgets with the new artist details information
+     * @param aD new artist details
+     */
+    public void updateUpdatableWidgets(ArtistDetails aD) {
+        for (Updatable u : updatableWidgets) {
+            u.update(aD);
+        }
+    }
+    
+    /**
+     * Clear all currently registered updatable widgets
+     */
+    public void clearUpdatableWidgets() {
+        updatableWidgets = new LinkedList();
+    }
+    
+    /**
+     * Register new updatable widget
+     * @param u
+     */
+    public void addUpdatableWidget(Updatable u) {
+        if (updatableWidgets==null) {
+            updatableWidgets = new LinkedList();
+        }
+        updatableWidgets.add(u);
+    }
+    
+    public void displayWaitIconUpdatableWidgets() {
+        for (Updatable u : updatableWidgets) {
+            u.displayWaitIcon();
+        }
+    }
+    
+    public void setCurrArtistID(String id) {
+        this.currArtist=id;
+    }
+    
+    public String getCurrArtistID() {
+        return currArtist;
     }
 }

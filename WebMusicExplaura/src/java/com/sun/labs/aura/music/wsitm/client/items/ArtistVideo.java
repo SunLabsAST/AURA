@@ -7,7 +7,7 @@
  * and open the template in the editor.
  */
 
-package com.sun.labs.aura.music.wsitm.client;
+package com.sun.labs.aura.music.wsitm.client.items;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
