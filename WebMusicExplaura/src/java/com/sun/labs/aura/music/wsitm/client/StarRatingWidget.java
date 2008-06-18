@@ -20,6 +20,9 @@ public class StarRatingWidget extends Widget {
     private int nbrSelectedStars = 0;
 
 
+    public StarRatingWidget(int initialSelection) {
+
+    }
 
     private void triggerAction(int index) {
         Window.alert("you clicked on star "+index);

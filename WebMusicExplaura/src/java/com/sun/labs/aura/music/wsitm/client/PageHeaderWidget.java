@@ -29,6 +29,7 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
 
 /**
@@ -94,40 +95,8 @@ public class PageHeaderWidget extends Composite {
 
     private void populateMainPanel() {
 
-        if (Cookies.getCookie(ClientDataManager.openIdCookieName)!=null) {
-            mainPanel.setWidget(0,0, new Label("your appear to be logged in :: "+Cookies.getCookie(ClientDataManager.openIdCookieName)));
-            return;
-        }
-
-        txtbox = new TextBox();
-        txtbox.addKeyboardListener(new KeyboardListener() {
-
-            public void onKeyPress(Widget arg0, char keyCode, int arg2) {
-                if (keyCode == KEY_ENTER) {
-                    fetchUserInfo();
-                }
-            }
-
-            public void onKeyDown(Widget arg0, char arg1, int arg2) {
-            }
-
-            public void onKeyUp(Widget arg0, char arg1, int arg2) {
-            }
-        });
-
-        Button b = new Button();
-        b.setText("try to login with openID");
-        b.addClickListener(new ClickListener() {
-
-            public void onClick(Widget arg0) {
-                fetchUserInfo();
-            }
-        });
-
-        HorizontalPanel h = new HorizontalPanel();
-        h.add(txtbox);
-        h.add(b);
-        mainPanel.setWidget(0, 0, h);
+        mainPanel.setWidget(0,0, new Label("Please wait while we fetch your session information..."));
+        invokeGetUserSessionInfo();
 
     }
 
@@ -226,7 +195,7 @@ public class PageHeaderWidget extends Composite {
                             cdm.getSimpleSearchWidget().showTagCloud("Your your tag cloud", cdm.getTagCloud());
                         }
                     });
-                    
+
                     mainPanel.setWidget(0, 2, viewCloudLbl);
                 }
             }
@@ -243,7 +212,68 @@ public class PageHeaderWidget extends Composite {
             Window.alert(ex.getMessage());
         }
     }
-    
+
+    private void invokeGetUserSessionInfo() {
+        AsyncCallback callback = new AsyncCallback() {
+
+            public void onSuccess(Object result) {
+
+                logInDetails l = (logInDetails) result;
+                if (l.loggedIn) {
+                    String name;
+                    if (l.nickName != null) {
+                        name = l.nickName;
+                    } else {
+                        name = l.realName;
+                    }
+                    mainPanel.setWidget(0, 0, new Label("Logged in as " + name));
+
+                } else {
+                    txtbox = new TextBox();
+                    txtbox.addKeyboardListener(new KeyboardListener() {
+
+                        public void onKeyPress(Widget arg0, char keyCode, int arg2) {
+                            if (keyCode == KEY_ENTER) {
+                                fetchUserInfo();
+                            }
+                        }
+
+                        public void onKeyDown(Widget arg0, char arg1, int arg2) {
+                        }
+
+                        public void onKeyUp(Widget arg0, char arg1, int arg2) {
+                        }
+                    });
+
+                    Button b = new Button();
+                    b.setText("try to login with openID");
+                    b.addClickListener(new ClickListener() {
+
+                        public void onClick(Widget arg0) {
+                            fetchUserInfo();
+                        }
+                    });
+
+                    HorizontalPanel h = new HorizontalPanel();
+                    h.add(txtbox);
+                    h.add(b);
+                    mainPanel.setWidget(0, 0, h);
+                }
+            }
+
+            public void onFailure(Throwable caught) {
+                //failureAction(caught);
+                Window.alert(caught.toString());
+            }
+        };
+
+        try {
+            musicServer.getLogInDetails(callback);
+        } catch (Exception ex) {
+            Window.alert(ex.getMessage());
+        }
+    }
+
     /**
      * Fetch artist details. Used when similarity type is updated
      * @param artistID

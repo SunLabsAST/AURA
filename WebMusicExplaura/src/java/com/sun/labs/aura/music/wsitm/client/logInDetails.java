@@ -18,5 +18,15 @@ public class logInDetails implements IsSerializable {
 
     public ItemInfo[] userTags;
     public ArtistDetails[] favArtistDetails;
+
+    public boolean loggedIn=false;
+    public String realName;
+    public String nickName;
+    public String birthDate;
+    public String email;
+    public String state;
+    public String country;
+    public String gender;
+    public String language;
     
 }

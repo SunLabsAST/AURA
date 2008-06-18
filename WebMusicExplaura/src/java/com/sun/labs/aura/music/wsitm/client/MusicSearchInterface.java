@@ -31,5 +31,6 @@ public interface MusicSearchInterface extends RemoteService {
     public List<String> getArtistOracle() throws Exception;
     public List<String> getTagOracle() throws Exception;
     public logInDetails getUserTagCloud(String lastfmUser, String simTypeName) throws Exception;
+    public logInDetails getLogInDetails() throws Exception;
     public Map<String, String> getSimTypes() throws Exception;
 }

@@ -23,7 +23,6 @@ public class ClientDataManager {
     public static final String openIdCookieName = "app-openid-identifier";
     public static final String uniqueIdCookieName = "app-openid-uniqueid";
 
-
     private String currArtist;
     
     private List<Updatable> updatableWidgets;

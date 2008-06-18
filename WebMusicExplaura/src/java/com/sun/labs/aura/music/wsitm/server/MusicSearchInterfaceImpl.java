@@ -28,6 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -170,7 +171,49 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             throw e;
         }
     }
-    
+
+    public logInDetails getLogInDetails() throws Exception {
+        try {
+            logInDetails l = new logInDetails();
+
+            HttpSession session = this.getThreadLocalRequest().getSession();
+            if (session.getAttribute(OpenIDServlet.ATTR_BIRTHDATE)!=null) {
+                l.birthDate=(String)session.getAttribute(OpenIDServlet.ATTR_BIRTHDATE);
+            }
+            if (session.getAttribute(OpenIDServlet.ATTR_COUNTRY)!=null) {
+                l.country=(String)session.getAttribute(OpenIDServlet.ATTR_COUNTRY);
+            }
+            if (session.getAttribute(OpenIDServlet.ATTR_EMAIL)!=null) {
+                l.email=(String)session.getAttribute(OpenIDServlet.ATTR_EMAIL);
+            }
+            if (session.getAttribute(OpenIDServlet.ATTR_GENDER)!=null) {
+                l.gender=(String)session.getAttribute(OpenIDServlet.ATTR_GENDER);
+            }
+            if (session.getAttribute(OpenIDServlet.ATTR_LANGUAGE)!=null) {
+                l.language=(String)session.getAttribute(OpenIDServlet.ATTR_LANGUAGE);
+            }
+            if (session.getAttribute(OpenIDServlet.ATTR_NICKNAME)!=null) {
+                l.nickName=(String)session.getAttribute(OpenIDServlet.ATTR_NICKNAME);
+            }
+            if (session.getAttribute(OpenIDServlet.ATTR_NAME)!=null) {
+                l.realName=(String)session.getAttribute(OpenIDServlet.ATTR_NAME);
+            }
+            if (session.getAttribute(OpenIDServlet.ATTR_STATE)!=null) {
+                l.state=(String)session.getAttribute(OpenIDServlet.ATTR_STATE);
+            }
+
+            if (l.realName!=null || l.nickName!=null) {
+                l.loggedIn=true;
+            }
+            
+            return l;
+            
+        } catch (Exception e) {
+            logger.severe(traceToString(e));
+            throw e;
+        }
+    }
+
     public Map<String, String> getSimTypes() throws Exception {
         try {
             return dm.getSimTypes();
@@ -179,4 +222,5 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             throw e;
         }
     }
+
 }

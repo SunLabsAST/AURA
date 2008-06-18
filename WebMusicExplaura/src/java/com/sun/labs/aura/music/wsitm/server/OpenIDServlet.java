@@ -31,8 +31,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.Cookie;
+import org.openid4java.message.AuthSuccess;
+import org.openid4java.message.ax.AxMessage;
+import org.openid4java.message.ax.FetchRequest;
+import org.openid4java.message.ax.FetchResponse;
 
 /**
  * User: aviadbendov
@@ -52,8 +57,17 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
         String getMainPageURL(HttpServletRequest request);
 
         String createUniqueIdForUser(String user);
-        void saveIdentifierForUniqueId(String uniqueId, Identifier identifier);
+        void saveIdentifierForUniqueId(HttpServletRequest request, String uniqueId, Identifier identifier);
     }
+
+    public static final String ATTR_NAME = "name";
+    public static final String ATTR_NICKNAME = "nickname";
+    public static final String ATTR_EMAIL = "email";
+    public static final String ATTR_BIRTHDATE = "birthdate";
+    public static final String ATTR_GENDER = "gender";
+    public static final String ATTR_STATE = "state";
+    public static final String ATTR_COUNTRY = "state";
+    public static final String ATTR_LANGUAGE = "lang";
 
     private static Callback callback = new SitmCallback();
 
@@ -71,6 +85,7 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
         super.init(config);
         try {
             this.manager = new ConsumerManager();
+            Logger.getLogger("org.openid4java").setLevel(Level.ALL);
             manager.setAssociations(new InMemoryConsumerAssociationStore());
             manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
         } catch (ConsumerException e) {
@@ -189,7 +204,25 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
             AuthRequest authReq = manager.authenticate(discovered, callback.getOpenIdServletURL(request), null);
 
             Logger.getLogger("").info("Redirecting user to : "+authReq.getDestinationUrl(true));
+
+            // Attribute Exchange - List of schemas : http://www.axschema.org/types
+            FetchRequest fetch = FetchRequest.createFetchRequest();
+
+            fetch.addAttribute(ATTR_NAME,"http://schema.openid.net/namePerson", true);
+            fetch.addAttribute(ATTR_NICKNAME,"http://schema.openid.net/namePerson/friendly", true);
+            fetch.addAttribute(ATTR_EMAIL, "http://schema.openid.net/contact/email",  false);
+            fetch.addAttribute(ATTR_BIRTHDATE, "http://schema.openid.net/birthDate", false);
+            fetch.addAttribute(ATTR_GENDER, "http://schema.openid.net/person/gender", false);
+            fetch.addAttribute(ATTR_STATE, "http://schema.openid.net/contact/state/home", false);
+            fetch.addAttribute(ATTR_COUNTRY, "http://schema.openid.net/contact/country/home", false);
+            fetch.addAttribute(ATTR_LANGUAGE, "http://schema.openid.net/pref/language", false);
             
+            // we only want one email address
+            fetch.setCount(ATTR_EMAIL,1);
+
+            // attach the extension to the authentication request
+            authReq.addExtension(fetch);
+
             // redirect to OpenID for authentication
             response.sendRedirect(authReq.getDestinationUrl(true));
         }
@@ -230,10 +263,6 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
 
             // retrieve the previously stored discovery information
             DiscoveryInformation discovered = (DiscoveryInformation) request.getSession().getAttribute("openid-disc");
-            if (discovered==null)
-                Logger.getLogger("").info("discovered null!!");
-            else
-                Logger.getLogger("").info("discovered not null");
                 
             // extract the receiving URL from the HTTP request
             StringBuffer receivingURL = request.getRequestURL();
@@ -250,15 +279,45 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
                     responseParams, discovered);
             
             // examine the verification result and extract the verified identifier
-            Identifier id = verification.getVerifiedId();
-            if (id != null) {
-                response.addCookie(new Cookie(ClientDataManager.openIdCookieName, id.getIdentifier()));
-                //Cookies.setCookie(openIdCookieName, id.getIdentifier());
+            Identifier verified = verification.getVerifiedId();
+            if (verified != null) {
+                response.addCookie(new Cookie(ClientDataManager.openIdCookieName, verified.getIdentifier()));
 
-                callback.saveIdentifierForUniqueId(getCookieValue(request,ClientDataManager.uniqueIdCookieName), id);
+                AuthSuccess authSuccess = (AuthSuccess) verification.getAuthResponse();
+
+                // Extract user information
+                if (authSuccess.hasExtension(AxMessage.OPENID_NS_AX)) {
+                    FetchResponse fetchResp = (FetchResponse) authSuccess
+                            .getExtension(AxMessage.OPENID_NS_AX);
+
+                    String birthdate = fetchResp.getAttributeValue(ATTR_BIRTHDATE);
+                    String name = fetchResp.getAttributeValue(ATTR_NAME);
+                    String nickname = fetchResp.getAttributeValue(ATTR_NICKNAME);
+                    String country = fetchResp.getAttributeValue(ATTR_COUNTRY);
+                    String state = fetchResp.getAttributeValue(ATTR_STATE);
+                    String gender = fetchResp.getAttributeValue(ATTR_GENDER);
+                    String lang = fetchResp.getAttributeValue(ATTR_LANGUAGE);
+
+                    String email = fetchResp.getAttributeValue(ATTR_EMAIL);
+
+                    request.getSession().setAttribute(ATTR_NAME, fetchResp.getAttributeValue(ATTR_NAME));
+                    request.getSession().setAttribute(ATTR_NICKNAME, fetchResp.getAttributeValue(ATTR_NICKNAME));
+                    request.getSession().setAttribute(ATTR_BIRTHDATE, fetchResp.getAttributeValue(ATTR_BIRTHDATE));
+                    request.getSession().setAttribute(ATTR_COUNTRY, fetchResp.getAttributeValue(ATTR_COUNTRY));
+                    request.getSession().setAttribute(ATTR_STATE, fetchResp.getAttributeValue(ATTR_GENDER));
+                    request.getSession().setAttribute(ATTR_LANGUAGE, fetchResp.getAttributeValue(ATTR_LANGUAGE));
+                    request.getSession().setAttribute(ATTR_EMAIL, fetchResp.getAttributeValue(ATTR_EMAIL));
+
+                } else {
+                    Logger.getLogger("").info("Did not receive any details for the user.");
+                }
+                Logger.getLogger("").info("Login successfull");
+                callback.saveIdentifierForUniqueId(request, getCookieValue(request,ClientDataManager.uniqueIdCookieName), verified);
+            } else {
+                Logger.getLogger("").info("Login failed");
             }
 
-            Logger.getLogger("").info("Login successfull");
+            
             response.sendRedirect(callback.getMainPageURL(request));
         }
         catch (OpenIDException e) {
@@ -298,9 +357,11 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
             return user;
         }
 
-        public void saveIdentifierForUniqueId(String uniqueId, Identifier identifier) {
-            Logger.getLogger("").info("must save identifier for user. unique id :"+uniqueId+" :: "+identifier.getIdentifier());
+        public void saveIdentifierForUniqueId(HttpServletRequest request, String uniqueId, Identifier identifier) {
+            request.getSession().setAttribute("openid-disc", identifier);
+            Logger.getLogger("").info("Saving identifier for user. unique id :"+uniqueId+" :: "+identifier.getIdentifier());
         }
+
         
     }
 }
