@@ -234,6 +234,22 @@ public class GridUtil {
     public static final String auraDistMntPnt = "/files/auraDist";
 
     /**
+     * Gets the file system where persistent caches can be stored.
+     * @param grid the grid where we should get the filesystem
+     * @param instance the instance we want the file system for
+     * @return the code file system
+     * @throws java.rmi.RemoteException
+     * @throws com.sun.caroline.platform.StorageManagementException
+     */
+    public static FileSystem getCacheFS(Grid grid, String instance) throws RemoteException, StorageManagementException {
+        return getFS(grid, instance + "-cache");
+    }
+    /**
+     * The mount point for the code file system in a deployed service.
+     */
+    public static final String cacheFSMntPnt = "/files/cache";
+
+    /**
      * Gets the usage (in bytes) for all of the filesystems registered for a
      * given grid account.
      * @param grid the grid for which we want disk usage.

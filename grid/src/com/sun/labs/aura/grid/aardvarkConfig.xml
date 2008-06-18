@@ -1,28 +1,21 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
-<!--
-    Document   : startAura.xml
-    Created on : May 20, 2008, 10:25 AM
-    Author     : stgreen
-    Description:
-        Configuration for the AuraStart grid script.
--->
 <config>
     
-    <component name="startAura" type="com.sun.labs.aura.grid.StartAura"/>
+    <component name="startAardvark" type="com.sun.labs.aura.grid.StartAardvark"/>
     
-    <component name="stopAura" type="com.sun.labs.aura.grid.StopAura"/>
+    <component name="stopAardvark" type="com.sun.labs.aura.grid.StopAardvark"/>
     
     <component name="start" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
-            <item>startAura</item>
+            <item>startAardvark</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
     
     <component name="stop" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
-            <item>stopAura</item>
+            <item>stopAardvark</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
