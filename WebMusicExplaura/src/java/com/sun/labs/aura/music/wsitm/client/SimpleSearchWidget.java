@@ -1068,44 +1068,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         return sbox;
     }
     
-    public DialogBox getDialogBox() {
-        final DialogBox popup = new DialogBox(true);
-        return popup;
-    }
-    
-    public void showPopup(Widget w, String title) {
-        showPopup(w, title, getDialogBox());
-    }
-    
-    public void showPopup(Widget w, String title, final DialogBox popup) {
-        //final DialogBox popup = new DialogBox(true);
-        DockPanel docPanel = new DockPanel();
-
-        //docPanel.setStyleName("borderpopup");
-        //docPanel.addStyleName("cw-DialogBox");
-        Label closeButton = new Label("Close");
-        closeButton.setStyleName("clickableLabel");
-        closeButton.addStyleName("whiteTxt");
-        closeButton.addClickListener(new ClickListener() {
-
-            public void onClick(Widget sender) {
-                popup.hide();
-            }
-        });
-
-        Panel container = new FlowPanel();
-        container.setStyleName("outerpopup");
-        container.add(w);
-
-        docPanel.add(container, DockPanel.CENTER);
-        docPanel.add(closeButton, DockPanel.SOUTH);
-        docPanel.setCellHorizontalAlignment(closeButton, DockPanel.ALIGN_RIGHT);
-        popup.add(docPanel);
-        popup.setText(title);
-        popup.setAnimationEnabled(true);
-        popup.center();
-    }
-
     /**
      * Update suggest box with new oracle if necessary. Will fetch oracle if it 
      * is currently null
@@ -1239,7 +1201,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         public void onClick(Widget sender) {
             HTML html = new HTML(getEmbeddedVideo(video, true));
-            showPopup(html,"WebMusicExplaura :: YouTube Video");
+            Popup.showPopup(html,"WebMusicExplaura :: YouTube Video");
         }
     }
 
@@ -1253,7 +1215,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         public void onClick(Widget sender) {
             HTML html = new HTML(photo.getRichHtmlWrapper());
-            showPopup(html,"WebMusicExplaura :: Flickr Photo");
+            Popup.showPopup(html,"WebMusicExplaura :: Flickr Photo");
         }
     }
 
@@ -1532,7 +1494,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         @Override
         protected void triggerAction(int index) {
             HTML html = new HTML(aP[index].getRichHtmlWrapper());
-            showPopup(html,"WebMusicExplaura :: Flick Photo");
+            Popup.showPopup(html,"WebMusicExplaura :: Flick Photo");
         }
         
     }
@@ -1561,7 +1523,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         
         protected void triggerAction(int index) {
             HTML html = new HTML(getEmbeddedVideo(aV[index], true));
-            showPopup(html,"WebMusicExplaura :: YouTube Video");
+            Popup.showPopup(html,"WebMusicExplaura :: YouTube Video");
         }
         
     }
@@ -1695,7 +1657,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     }
 
     public void showTagCloud(String title, ItemInfo[] tags) {
-        final DialogBox d = this.getDialogBox();
+        final DialogBox d = Popup.getDialogBox();
         Panel p = new FlowPanel();
         p.setWidth("600px");
         HorizontalPanel innerP = new HorizontalPanel();
@@ -1721,7 +1683,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
       
                 p.add(sH);
             }
-            showPopup(p,"WebMusicExplaura :: "+title,d);
+            Popup.showPopup(p,"WebMusicExplaura :: "+title,d);
         }
     }
 

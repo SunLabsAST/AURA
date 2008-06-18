@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.extjs.gxt.ui.client.event.MenuEvent;
 import com.extjs.gxt.ui.client.event.SelectionListener;
@@ -26,8 +27,10 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
+import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
@@ -156,12 +159,13 @@ public class PageHeaderWidget extends Composite {
     }
 
     private void fetchUserInfo() {
+        Image.prefetch("ajax-ball.gif");
         mainPanel.clearCell(0, 0);
         HorizontalPanel h = new HorizontalPanel();
         h.setWidth("300px");
         h.add(new Image("ajax-ball.gif"));
         Label lbl = new Label("Fetching your user profile...");
-        lbl.addStyleName("whiteTxt");
+        lbl.setStyleName("whiteTxt");
         h.add(lbl);
         mainPanel.setWidget(0, 1, h);
 
@@ -175,7 +179,7 @@ public class PageHeaderWidget extends Composite {
             public void onSuccess(Object result) {
                 // do some UI stuff to show success
                 mainPanel.clearCell(0, 1);
-                logInDetails lin = (logInDetails) result;
+                ListenerDetails lin = (ListenerDetails) result;
                 if (lin==null || lin.userTags==null || lin.userTags.length==0) {
                     Window.alert("Error fetching your user information.");
                     cdm.resetUser();
@@ -218,7 +222,8 @@ public class PageHeaderWidget extends Composite {
 
             public void onSuccess(Object result) {
 
-                logInDetails l = (logInDetails) result;
+                ListenerDetails l = (ListenerDetails) result;
+                cdm.setListenerDetails(l);
                 if (l.loggedIn) {
                     String name;
                     if (l.nickName != null) {
@@ -226,7 +231,37 @@ public class PageHeaderWidget extends Composite {
                     } else {
                         name = l.realName;
                     }
-                    mainPanel.setWidget(0, 0, new Label("Logged in as " + name));
+
+                    HorizontalPanel hP = new HorizontalPanel();
+                    Label loggedLbl = new Label("Logged in as " + name);
+                    loggedLbl.setStyleName("whiteTxt");
+                    hP.add(loggedLbl);
+
+                    HorizontalPanel vP = new HorizontalPanel();
+
+                    Label lnk = new Label("Edit profile");
+                    lnk.addClickListener(new ClickListener() {
+
+                        public void onClick(Widget arg0) {
+                            showUserPreferencesPopup();
+                        }
+                    });
+                    lnk.setStyleName("whiteTxt");
+                    vP.add(lnk);
+
+                    lnk = new Label("Logout");
+                    lnk.addClickListener(new ClickListener() {
+
+                        public void onClick(Widget arg0) {
+                            Window.alert("do logout");
+                        }
+                    });
+                    lnk.setStyleName("whiteTxt");
+                    vP.add(lnk);
+
+                    hP.add(vP);
+
+                    mainPanel.setWidget(0, 0, hP);
 
                 } else {
                     txtbox = new TextBox();
@@ -274,6 +309,38 @@ public class PageHeaderWidget extends Composite {
         }
     }
 
+    private void showUserPreferencesPopup() {
+
+        Map<String, TextBox> newSettings = new HashMap<String, TextBox>();
+
+        HorizontalPanel main = new HorizontalPanel();
+
+        Grid g = new Grid(2,2);
+
+        TextBox lastfmUserBox = new TextBox();
+        newSettings.put("lastfmUser", lastfmUserBox);
+        TextBox pandoraUserBox = new TextBox();
+        newSettings.put("pandoraUser", pandoraUserBox);
+
+        Label txt = new Label("Last.fm username :");
+        txt.setStyleName("whiteTxt");
+        g.setWidget(0, 0, txt);
+        g.setWidget(0, 1, lastfmUserBox);
+        txt = new Label("Pandora username : ");
+        txt.setStyleName("whiteTxt");
+        g.setWidget(1, 0, txt);
+        g.setWidget(1, 1, pandoraUserBox);
+
+        main.add(g);
+
+        Button updateButton = new Button("Update");
+        updateButton.addClickListener(new UserPrefSubmitClickListener(newSettings));
+        main.add(updateButton);
+
+        Popup.showPopup(main, "User configuration");
+
+    }
+
     /**
      * Fetch artist details. Used when similarity type is updated
      * @param artistID
@@ -307,6 +374,46 @@ public class PageHeaderWidget extends Composite {
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }
+    }
+
+    private void invokeUpdateListener(ListenerDetails lD) {
+
+        AsyncCallback callback = new AsyncCallback() {
+
+            public void onSuccess(Object result) {
+                // do some UI stuff to show success
+                Window.alert("Update OK");
+            }
+
+            public void onFailure(Throwable caught) {
+                Window.alert("Update failed!");
+            }
+        };
+
+        try {
+            musicServer.updateListener(lD, callback);
+        } catch (Exception ex) {
+            Window.alert(ex.getMessage());
+        }
+    }
+
+    class UserPrefSubmitClickListener implements ClickListener {
+
+        private Map<String, TextBox> newSettings;
+
+        public UserPrefSubmitClickListener(Map<String, TextBox> newSettings) {
+            this.newSettings = newSettings;
+        }
+
+        public void onClick(Widget asdrg0) {
+            ListenerDetails lD = cdm.getListenerDetails();
+
+            lD.lastfmUser = newSettings.get("lastfmUser").getText();
+            lD.pandoraUser = newSettings.get("pandoraUser").getText();
+
+            invokeUpdateListener(lD);
+        }
+
     }
 
 }

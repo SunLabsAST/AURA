@@ -9,6 +9,7 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
@@ -30,7 +31,8 @@ public interface MusicSearchInterface extends RemoteService {
     public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num, String simType) throws Exception;
     public List<String> getArtistOracle() throws Exception;
     public List<String> getTagOracle() throws Exception;
-    public logInDetails getUserTagCloud(String lastfmUser, String simTypeName) throws Exception;
-    public logInDetails getLogInDetails() throws Exception;
+    public ListenerDetails getUserTagCloud(String lastfmUser, String simTypeName) throws Exception;
+    public ListenerDetails getLogInDetails() throws Exception;
+    public void updateListener(ListenerDetails lD) throws Exception;
     public Map<String, String> getSimTypes() throws Exception;
 }

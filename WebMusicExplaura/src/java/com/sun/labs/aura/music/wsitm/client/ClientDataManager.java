@@ -6,6 +6,7 @@ package com.sun.labs.aura.music.wsitm.client;
 
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,12 +18,6 @@ import java.util.Map;
  */
 public class ClientDataManager {
 
-    // Constants used by both client and server side for openID authentification
-    public static final String authParameter = "app-openid-auth";
-    public static final String nameParameter = "app-openid-name";
-    public static final String openIdCookieName = "app-openid-identifier";
-    public static final String uniqueIdCookieName = "app-openid-uniqueid";
-
     private String currArtist;
     
     private List<Updatable> updatableWidgets;
@@ -33,13 +28,14 @@ public class ClientDataManager {
     private ItemInfo[] tagCloud;
     private Map<String, Integer> tagMap; // maps the tag name to the index at which it is in the tagCloud
     
-    private String lastFmUser;
     private Double maxScore;
     private Map<String, Double> favArtist;
     private boolean isLoggedIn = false;
     
     private PageHeaderWidget phw;
     private SimpleSearchWidget ssw;
+
+    private ListenerDetails lD;
 
     public void setWidgets(PageHeaderWidget phw, SimpleSearchWidget ssw) {
         this.phw = phw;
@@ -72,7 +68,7 @@ public class ClientDataManager {
         isLoggedIn = true;
 
         this.tagCloud = tagCloud;
-        this.lastFmUser = lastFmUser;
+        //this.lastFmUser = lastFmUser;
 
         tagMap = new HashMap<String, Integer>();
         for (int i = 0; i < tagCloud.length; i++) {
@@ -92,7 +88,15 @@ public class ClientDataManager {
     }
 
     public String getLastFmUser() {
-        return lastFmUser;
+        return lD.lastfmUser;
+    }
+
+    public void setListenerDetails(ListenerDetails lD) {
+        this.lD=lD;
+    }
+
+    public ListenerDetails getListenerDetails() {
+        return lD;
     }
 
     public Map<String, Double> getFavArtist() {
@@ -102,7 +106,7 @@ public class ClientDataManager {
     public void resetUser() {
         tagCloud = null;
         tagMap = null;
-        lastFmUser = null;
+//        lastFmUser = null;
 
         isLoggedIn = false;
     }

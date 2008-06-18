@@ -69,6 +69,12 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
     public static final String ATTR_COUNTRY = "state";
     public static final String ATTR_LANGUAGE = "lang";
 
+    public static final String authParameter = "app-openid-auth";
+    public static final String nameParameter = "app-openid-name";
+    public static final String openIdCookieName = "app-openid-identifier";
+    public static final String uniqueIdCookieName = "app-openid-uniqueid";
+
+
     private static Callback callback = new SitmCallback();
 
     private ConsumerManager manager;
@@ -121,8 +127,8 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
     public static String[] getRequestUserInfo(HttpServletRequest request) {
                     
         return new String[] {
-                getCookieValue(request,ClientDataManager.openIdCookieName),
-                getCookieValue(request,ClientDataManager.uniqueIdCookieName)
+                getCookieValue(request,openIdCookieName),
+                getCookieValue(request,uniqueIdCookieName)
         };
     }
 
@@ -152,7 +158,7 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
         pw.close();
         return;
          **/
-        if (Boolean.valueOf(request.getParameter(ClientDataManager.authParameter))) {
+        if (Boolean.valueOf(request.getParameter(authParameter))) {
             authenticate(request, response);
         } else {
             verify(request, response);
@@ -179,7 +185,7 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
      * @throws ServletException Wrapping an OpenID exception.
      */
     private void authenticate(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        final String loginString = request.getParameter(ClientDataManager.nameParameter);
+        final String loginString = request.getParameter(nameParameter);
 
         try {
             /*
@@ -187,7 +193,7 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
             String uniqueIdCookie = Cookies.getCookie(uniqueIdCookieName);
             */
             String uuid = callback.createUniqueIdForUser(loginString);
-            response.addCookie(new Cookie(ClientDataManager.uniqueIdCookieName, uuid));
+            response.addCookie(new Cookie(uniqueIdCookieName, uuid));
             //Cookies.setCookie(uniqueIdCookieName, uuid);
 
             // perform discovery on the user-supplied identifier
@@ -281,7 +287,8 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
             // examine the verification result and extract the verified identifier
             Identifier verified = verification.getVerifiedId();
             if (verified != null) {
-                response.addCookie(new Cookie(ClientDataManager.openIdCookieName, verified.getIdentifier()));
+
+                response.addCookie(new Cookie(openIdCookieName, verified.getIdentifier()));
 
                 AuthSuccess authSuccess = (AuthSuccess) verification.getAuthResponse();
 
@@ -290,34 +297,25 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
                     FetchResponse fetchResp = (FetchResponse) authSuccess
                             .getExtension(AxMessage.OPENID_NS_AX);
 
-                    String birthdate = fetchResp.getAttributeValue(ATTR_BIRTHDATE);
-                    String name = fetchResp.getAttributeValue(ATTR_NAME);
-                    String nickname = fetchResp.getAttributeValue(ATTR_NICKNAME);
-                    String country = fetchResp.getAttributeValue(ATTR_COUNTRY);
-                    String state = fetchResp.getAttributeValue(ATTR_STATE);
-                    String gender = fetchResp.getAttributeValue(ATTR_GENDER);
-                    String lang = fetchResp.getAttributeValue(ATTR_LANGUAGE);
-
-                    String email = fetchResp.getAttributeValue(ATTR_EMAIL);
-
+                    request.getSession().setAttribute(openIdCookieName, verified.getIdentifier());
                     request.getSession().setAttribute(ATTR_NAME, fetchResp.getAttributeValue(ATTR_NAME));
                     request.getSession().setAttribute(ATTR_NICKNAME, fetchResp.getAttributeValue(ATTR_NICKNAME));
                     request.getSession().setAttribute(ATTR_BIRTHDATE, fetchResp.getAttributeValue(ATTR_BIRTHDATE));
                     request.getSession().setAttribute(ATTR_COUNTRY, fetchResp.getAttributeValue(ATTR_COUNTRY));
-                    request.getSession().setAttribute(ATTR_STATE, fetchResp.getAttributeValue(ATTR_GENDER));
+                    request.getSession().setAttribute(ATTR_STATE, fetchResp.getAttributeValue(ATTR_STATE));
                     request.getSession().setAttribute(ATTR_LANGUAGE, fetchResp.getAttributeValue(ATTR_LANGUAGE));
                     request.getSession().setAttribute(ATTR_EMAIL, fetchResp.getAttributeValue(ATTR_EMAIL));
+                    request.getSession().setAttribute(ATTR_GENDER, fetchResp.getAttributeValue(ATTR_GENDER));
 
                 } else {
                     Logger.getLogger("").info("Did not receive any details for the user.");
                 }
                 Logger.getLogger("").info("Login successfull");
-                callback.saveIdentifierForUniqueId(request, getCookieValue(request,ClientDataManager.uniqueIdCookieName), verified);
+                callback.saveIdentifierForUniqueId(request, getCookieValue(request,uniqueIdCookieName), verified);
             } else {
                 Logger.getLogger("").info("Login failed");
             }
 
-            
             response.sendRedirect(callback.getMainPageURL(request));
         }
         catch (OpenIDException e) {
@@ -354,7 +352,11 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
 
         public String createUniqueIdForUser(String user) {
             Logger.getLogger("").info("creating unique id for user "+user);
-            return user;
+            if (user.startsWith("http://")) {
+                return user.substring(7);
+            } else {
+                return user;
+            }
         }
 
         public void saveIdentifierForUniqueId(HttpServletRequest request, String uniqueId, Identifier identifier) {
