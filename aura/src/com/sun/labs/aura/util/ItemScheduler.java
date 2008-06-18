@@ -30,6 +30,8 @@ import java.rmi.RemoteException;
  */
 
 public interface ItemScheduler extends Component, Remote {
+    public final static int SCHEDULE_IMMEDIATELY = 0;
+    public final static int SCHEDULE_DEFAULT = -1;
 
     /**
      * Gets the key of the next item that needs to be scheduled

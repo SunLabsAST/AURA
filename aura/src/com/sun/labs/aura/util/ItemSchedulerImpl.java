@@ -77,7 +77,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     }
 
     public void releaseItem(String itemKey, int secondsUntilNextScheduledProcessing) {
-        if (secondsUntilNextScheduledProcessing <= 0) {
+        if (secondsUntilNextScheduledProcessing < 0) {
             secondsUntilNextScheduledProcessing = defaultPeriod;
         }
         addItem(itemKey, secondsUntilNextScheduledProcessing);
