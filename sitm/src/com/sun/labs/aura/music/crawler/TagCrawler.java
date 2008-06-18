@@ -53,6 +53,7 @@ public class TagCrawler implements AuraService, Configurable {
     private final int MIN_ARTISTS = 10;   // make me configurable
     private final int MIN_ARTIST_POPULARITY = 10;   // make me configurable
     private final long MIN_UPDATE_TIME = 1000L * 60L * 60L * 24L;
+    private final String BEATLES_ID = "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
     static Set skipSet;
     
 
@@ -120,23 +121,40 @@ public class TagCrawler implements AuraService, Configurable {
      * added to the datastore
      */
     public void discoverArtistTags() throws AuraException, RemoteException {
-        List<Item> items = dataStore.getAll(ItemType.ARTIST);
-        for (Item item : items) {
-            Artist artist = new Artist(item);
-            float popularity = artist.getPopularity();
-            if (popularity >= MIN_ARTIST_POPULARITY) {
-                logger.info("Crawling tags from artist " + artist.getName());
-                List<Tag> tags = artist.getSocialTags();
+        float normPopularity = getBeatlesPopularity();
+        if (normPopularity > 0) {
+            List<Item> items = dataStore.getAll(ItemType.ARTIST);
+            for (Item item : items) {
+                Artist artist = new Artist(item);
+                float popularity = artist.getPopularity();
+                if (popularity >= MIN_ARTIST_POPULARITY) {
+                    popularity /= normPopularity;
+                    popularity *= 100.0;
+                    if (popularity < 1) {
+                        popularity = 1;
+                    }
+                    logger.info("Crawling tags from artist " + artist.getName());
+                    List<Tag> tags = artist.getSocialTags();
 
-                for (Tag tag : tags) {
-                    int normalizedCount = (int) Math.rint(popularity * tag.getCount() / 100.);
-                    // System.out.printf("norm count for %s/%s is %d\n", artist.getName(), tag.getName(), normalizedCount);
-                    accumulateTag(tag.getName(), artist.getKey(), normalizedCount);
+                    for (Tag tag : tags) {
+                        //int normalizedCount = (int) Math.rint(popularity * tag.getCount());
+                        int normalizedCount = tag.getCount();
+                        System.out.printf("norm count for %s/%s is %d\n", artist.getName(), tag.getName(), normalizedCount);
+                        accumulateTag(tag.getName(), artist.getKey(), normalizedCount);
+                    }
                 }
-
             }
+            pruneAndWriteTags();
         }
-        pruneAndWriteTags();
+    }
+
+    private float getBeatlesPopularity() throws AuraException, RemoteException {
+        Item beatlesItem = dataStore.getItem(BEATLES_ID);
+        if (beatlesItem != null) {
+            Artist beatles = new Artist(beatlesItem);
+            return beatles.getPopularity();
+        }
+        return .0f;
     }
 
     private void accumulateTag(String tagName, String artistMBAID, int count) {

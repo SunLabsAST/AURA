@@ -14,6 +14,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.ArtistTag;
+import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.crawler.TagCrawler;
 import com.sun.labs.aura.recommender.TypeFilter;
@@ -324,6 +325,31 @@ public class MusicShell implements AuraService, Configurable {
 
             public String getHelp() {
                 return "updates the info for a tag or all tags";
+            }
+        });
+
+        shell.add("addListener", new CommandInterface() {
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                String name = args[1];
+                String lastfmName = args[2];
+                String pandoraName = args[3];
+                Listener l = musicDatabase.getListener(name);
+                if (l == null) {
+                    l = musicDatabase.enrollListener(name);
+                }
+                if (lastfmName != null) {
+                    l.setLastFmName(lastfmName);
+                }
+
+                if (pandoraName != null) {
+                    l.setPandoraName(pandoraName);
+                }
+                musicDatabase.updateListener(l);
+                return "";
+            }
+
+            public String getHelp() {
+                return "Adds a listener";
             }
         });
 

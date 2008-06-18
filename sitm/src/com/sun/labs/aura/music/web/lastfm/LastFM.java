@@ -69,8 +69,13 @@ public class LastFM {
         return reach;
     }
 
-    public Item[] getTopArtistsForUser(String user) throws IOException {
+    public LastItem[] getTopArtistsForUser(String user) throws IOException {
         String url = getTopArtistsForUserURL(user);
+        return getTopArtistForUserFromLastFM(url);
+    }
+
+    public LastItem[] getWeeklyArtistsForUser(String user) throws IOException {
+        String url = getWeeklyArtistsForUserURL(user);
         return getTopArtistForUserFromLastFM(url);
     }
 
@@ -107,8 +112,8 @@ public class LastFM {
         return artistList.toArray(new LastArtist[0]);
     }
 
-    private Item[] getTopArtistForUserFromLastFM(String url) throws IOException {
-        List<Item> items = new ArrayList<Item>();
+    private LastItem[] getTopArtistForUserFromLastFM(String url) throws IOException {
+        List<LastItem> items = new ArrayList<LastItem>();
 
         Document doc = commander.sendCommand(url);
         Element docElement = doc.getDocumentElement();
@@ -119,14 +124,16 @@ public class LastFM {
             String artistName = XmlUtil.getElementContents(item, "name");
             int freq = 0;
 
+            String mbid = XmlUtil.getElementContents(item, "mbid");
+
             String sfreq = XmlUtil.getElementContents(item, "playcount");
             if (sfreq != null) {
                 freq = Integer.parseInt(sfreq);
             }
-            Item artistItem = new Item(artistName, freq);
+            LastItem artistItem = new LastItem(artistName, mbid, freq);
             items.add(artistItem);
         }
-        return items.toArray(new Item[0]);
+        return items.toArray(new LastItem[0]);
     }
 
     private SocialTag[] getTagsFromLastFM(String url) throws IOException {
@@ -149,7 +156,7 @@ public class LastFM {
             SocialTag tag = new SocialTag(tagName, freq);
             tags.add(tag);
         }
-        Collections.sort(tags, Item.FREQ_ORDER);
+        Collections.sort(tags, LastItem.FREQ_ORDER);
         Collections.reverse(tags);
         return tags.toArray(new SocialTag[0]);
     }
@@ -202,6 +209,11 @@ public class LastFM {
         return url;
     }
 
+    private String getWeeklyArtistsForUserURL(String user) {
+        String url = "user/" + user + "/weeklyartistchart.xml";
+        return url;
+    }
+
     void dumpArtistTags(String artistName) throws IOException {
         System.out.printf("Tags for %s\n", artistName);
         SocialTag[] tags = getArtistTags(artistName);
@@ -212,8 +224,8 @@ public class LastFM {
 
     void dumpFavoriteArtists(String user) throws IOException {
         System.out.printf("Artists for %s\n", user);
-        Item[] items = getTopArtistsForUser(user);
-        for (Item item : items) {
+        LastItem[] items = getTopArtistsForUser(user);
+        for (LastItem item : items) {
             System.out.printf("    %d %s\n", item.getFreq(), item.getName());
         }
     }

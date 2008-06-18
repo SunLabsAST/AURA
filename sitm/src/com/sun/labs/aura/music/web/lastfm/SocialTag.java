@@ -4,7 +4,7 @@ package com.sun.labs.aura.music.web.lastfm;
 /**
  * Represents a social tag
  */
-public class SocialTag extends Item  {
+public class SocialTag extends LastItem  {
     
     /**
      * Creates a tag

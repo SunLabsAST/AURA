@@ -9,7 +9,7 @@
 package com.sun.labs.aura.music.web.apml;
 
 import com.sun.labs.aura.music.web.Cache;
-import com.sun.labs.aura.music.web.lastfm.Item;
+import com.sun.labs.aura.music.web.lastfm.LastItem;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -33,9 +33,9 @@ public class LastFMConceptRetriever {
 
     private static final float MIN_CONCEPT_SCORE = .03f;
     private LastFM lastfm;
-    private Cache<Item[]> itemCache;
-    private Cache<Item[]> userCache;
-    private final static Item[] EMPTY_ITEM = new Item[0];
+    private Cache<LastItem[]> itemCache;
+    private Cache<LastItem[]> userCache;
+    private final static LastItem[] EMPTY_ITEM = new LastItem[0];
     private Thread crawler = null;
 
     public LastFMConceptRetriever() throws IOException {
@@ -43,8 +43,8 @@ public class LastFMConceptRetriever {
     }
 
     public LastFMConceptRetriever(int maxItemsInCache, int maxDaysInCache, File itemDir, File userDir) throws IOException {
-        itemCache = new Cache<Item[]>(maxItemsInCache, maxDaysInCache, itemDir);
-        userCache = new Cache<Item[]>(maxItemsInCache, maxDaysInCache, userDir);
+        itemCache = new Cache<LastItem[]>(maxItemsInCache, maxDaysInCache, itemDir);
+        userCache = new Cache<LastItem[]>(maxItemsInCache, maxDaysInCache, userDir);
         lastfm = new LastFM();
     }
 
@@ -72,7 +72,7 @@ public class LastFMConceptRetriever {
     }
 
     public APML getAPMLForUser(String user) throws IOException {
-        Item[] artists = getTopArtistsForUser(user);
+        LastItem[] artists = getTopArtistsForUser(user);
         Concept[] implicit = getImplicitConceptsFromArtists(artists);
         Concept[] explicit = getExplicitConceptsForUser(artists);
         APML apml = new APML("music taste for " + user);
@@ -85,35 +85,35 @@ public class LastFMConceptRetriever {
     }
 
     public Concept[] getImplicitConceptsForUser(String user) throws IOException {
-        Item[] artists = getTopArtistsForUser(user);
+        LastItem[] artists = getTopArtistsForUser(user);
         return getImplicitConceptsFromArtists(artists);
     }
 
-    private Concept[] getExplicitConceptsForUser(Item[] artists) {
+    private Concept[] getExplicitConceptsForUser(LastItem[] artists) {
         List<Concept> conceptList = new ArrayList<Concept>();
-        Item mostFrequentArtist = findMostFrequentItem(artists);
-        for (Item artist : artists) {
+        LastItem mostFrequentArtist = findMostFrequentItem(artists);
+        for (LastItem artist : artists) {
             Concept concept = new Concept(artist.getName(), artist.getFreq() / (float) mostFrequentArtist.getFreq());
             conceptList.add(concept);
         }
         return normalizeAndPrune(conceptList, 0);
     }
 
-    private Concept[] getImplicitConceptsFromArtists(Item[] artists) throws IOException {
+    private Concept[] getImplicitConceptsFromArtists(LastItem[] artists) throws IOException {
         Map<String, Float> conceptMap = new HashMap<String, Float>();
-        Item mostFrequentArtist = findMostFrequentItem(artists);
+        LastItem mostFrequentArtist = findMostFrequentItem(artists);
 
-        for (Item item : artists) {
-            Item[] tags = null;
+        for (LastItem item : artists) {
+            LastItem[] tags = null;
             try {
                 tags = getArtistTags(item.getName());
             } catch (IOException ioe) {
                 continue;
             }
 
-            Item mostFrequentTag = findMostFrequentItem(tags);
+            LastItem mostFrequentTag = findMostFrequentItem(tags);
             float artistWeight = item.getFreq() / (float) mostFrequentArtist.getFreq();
-            for (Item tag : tags) {
+            for (LastItem tag : tags) {
                 float tagWeight = tag.getFreq() / (float) mostFrequentTag.getFreq();
                 accum(conceptMap, tag.getName(), tagWeight * artistWeight);
             }
@@ -130,8 +130,8 @@ public class LastFMConceptRetriever {
         return concepts;
     }
 
-    private Item[] getArtistTags(String artist) throws IOException {
-        Item[] tags = itemCache.get(artist);
+    private LastItem[] getArtistTags(String artist) throws IOException {
+        LastItem[] tags = itemCache.get(artist);
         if (tags == null) {
             try {
                 tags = lastfm.getArtistTags(artist, false);
@@ -145,8 +145,8 @@ public class LastFMConceptRetriever {
         return tags;
     }
 
-    private Item[] getTopArtistsForUser(String user) throws IOException {
-        Item[] artists = userCache.get(user);
+    private LastItem[] getTopArtistsForUser(String user) throws IOException {
+        LastItem[] artists = userCache.get(user);
         if (artists == null) {
             try {
                 artists = lastfm.getTopArtistsForUser(user);
@@ -194,10 +194,10 @@ public class LastFMConceptRetriever {
 
     }
 
-    private Item findMostFrequentItem(Item[] items) {
-        Item maxItem = null;
+    private LastItem findMostFrequentItem(LastItem[] items) {
+        LastItem maxItem = null;
 
-        for (Item item : items) {
+        for (LastItem item : items) {
             if (maxItem == null || item.getFreq() > maxItem.getFreq()) {
                 maxItem = item;
             }

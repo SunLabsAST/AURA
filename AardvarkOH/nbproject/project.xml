@@ -82,6 +82,9 @@
                     <file>${file.reference.jdom.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
+                <library>
+                    <file>${file.reference.ktsearch.jar}</file>
+                </library>
                 <library files="1">
                     <file>${file.reference.mail.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>

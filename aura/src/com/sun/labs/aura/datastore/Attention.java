@@ -32,8 +32,11 @@ public interface Attention extends Serializable, Comparable<Attention> {
         DISLIKED_FEED,
 
         /** an item such as a feed or an entry can link to another */
-        LINKS_TO
-                
+        LINKS_TO,
+        /** Played by a user */
+        PLAYED,
+        /** Loved by a user */
+        LOVED,
     };
     
     /**
