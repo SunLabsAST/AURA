@@ -13,6 +13,8 @@ import com.sun.labs.aura.music.Album;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.Event;
+import com.sun.labs.aura.music.Listener;
+import com.sun.labs.aura.music.Listener.Gender;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.SimType;
@@ -29,7 +31,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.TagTree;
-import com.sun.labs.aura.music.wsitm.client.logInDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Tag;
@@ -298,8 +300,9 @@ public class DataManager implements Configurable {
         return sr;
     }
 
-    public logInDetails getUserTagCloud(String lastfmUser, String simTypeName) throws AuraException {
+    public ListenerDetails getUserTagCloud(String lastfmUser, String simTypeName) throws AuraException {
         logger.info("Fetching user tag cloud for user "+lastfmUser);
+        /*
         try {
             LastFM lastfm = new LastFM();
             com.sun.labs.aura.music.web.lastfm.Item[] items = lastfm.getTopArtistsForUser(lastfmUser);
@@ -344,7 +347,7 @@ public class DataManager implements Configurable {
             scoredTags=sortScoredTag(scoredTags, Sorter.sortFields.POPULARITY);
             logger.info("Returning usertagcloud of size "+scoredTags.size());
             
-            logInDetails lid = new logInDetails();
+            ListenerDetails lid = new ListenerDetails();
             lid.userTags=scoredTagToItemInfo(scoredTags);
             ArrayList<ArtistDetails> aaD = new ArrayList<ArtistDetails>();
             for (String mbid : favArtistMBID) {
@@ -363,6 +366,8 @@ public class DataManager implements Configurable {
             logger.severe("IO Exception while trying to fetch APML for user "+lastfmUser);
             return null;
         }
+         * */
+        return null;
     }
     
     /**
@@ -478,7 +483,53 @@ public class DataManager implements Configurable {
         }
         return details;
     }
-    
+
+    public Listener syncListeners(Listener l, ListenerDetails lD) {
+// fix this so that data is copied both ways while having lD take priority
+        if (lD.gender.equals("M")) {
+            l.setGender(Gender.Male);
+        } else if (lD.gender.equals("F")) {
+            l.setGender(Gender.Female);
+        }
+        l.setLocaleCountry(lD.country);
+        l.setPandoraName(lD.pandoraUser);
+        l.setLastFmName(lD.lastfmUser);
+
+        return l;
+    }
+
+    /**
+     * Perform the datastore operations necessary when a user successfully logs in
+     * @param lD his listenerDetails obtained from his active session
+     * @return his listenerDetails with any modifications that were necessary
+     */
+    public ListenerDetails establishUserConnection(ListenerDetails lD) throws AuraException {
+        Listener l=null;
+        try {
+            l = mdb.getListener(lD.openID);
+
+            if (l == null) {
+                logger.info("Creating new user in datastore: " + lD.openID);
+                l = mdb.enrollListener(lD.openID);
+            } else {
+                logger.info("Retrieved user from datastore: " + lD.openID);
+            }
+
+            l = syncListeners(l, lD);
+
+            mdb.updateListener(l);
+        } catch (RemoteException rx) {
+            throw new AuraException("Error communicating with item store", rx);
+        }
+        return lD;
+
+    }
+
+    public void updateUser(ListenerDetails lD) throws AuraException, RemoteException {
+        Listener l = syncListeners(mdb.getListener(lD.openID), lD);
+        mdb.updateListener(l);
+    }
+
     public TagDetails loadTagDetailsFromStore(String id) throws AuraException,
             RemoteException {
         logger.info("searching for :"+id);
@@ -648,7 +699,7 @@ public class DataManager implements Configurable {
             double popularity = t.getFreq();
             if (isArtist) {
                 // We need to fetch each artist's name. First look in the cache if we have the details
-                aD = (ArtistDetails) getInAnyCache(t.getName());
+                aD = (ArtistDetails) getDetailsInAnyCache(t.getName());
                 if (aD == null) {
                     a = mdb.artistLookup(t.getName());
                     artistName = a.getName();
@@ -695,7 +746,7 @@ public class DataManager implements Configurable {
      * @param searchKey the key to search for
      * @return the details object found, if any
      */
-    private Details getInAnyCache(String searchKey) {
+    private Details getDetailsInAnyCache(String searchKey) {
         Details d;
         for (String k : cache.keySet()) {
             d = (Details) cache.get(k).sget(searchKey);

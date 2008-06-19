@@ -10,6 +10,7 @@
 package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 
 /**
  *
@@ -25,6 +26,8 @@ public interface MusicSearchInterfaceAsync {
        public void getCommonTags(String artistID1, String artistID2, int num, String simType, AsyncCallback callback) throws Exception;
        public void getArtistOracle(AsyncCallback callback) throws Exception;
        public void getTagOracle(AsyncCallback callback) throws Exception;
+       public void getLogInDetails(AsyncCallback callback) throws Exception;
        public void getUserTagCloud(String lastfmUser, String simTypeName, AsyncCallback callback) throws Exception;
+       public void updateListener(ListenerDetails lD, AsyncCallback callback) throws Exception;
        public void getSimTypes(AsyncCallback callback) throws Exception;
 }

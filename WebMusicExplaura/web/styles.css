@@ -121,16 +121,6 @@ img {
     cursor: default;
 }
 
-.cw-DialogBox {
-    opacity: 0.92;
-    filter: alpha(opacity=92);
-}
-
-.cw-NoTransparent {
-    opacity: 1;
-    filter: alpha(opacity=100);
-}
-
 .gwt-SuggestBox {
     padding: 2px;
 }
@@ -145,8 +135,6 @@ img {
     background: #73885D;
     color: white;
     cursor: default;
-    opacity: 0.85;
-    filter: alpha(opacity=85);
 }
 
 .gwt-SuggestBoxPopup .item-selected {
