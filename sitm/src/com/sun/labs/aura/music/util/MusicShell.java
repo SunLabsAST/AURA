@@ -331,8 +331,8 @@ public class MusicShell implements AuraService, Configurable {
         shell.add("addListener", new CommandInterface() {
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
                 String name = args[1];
-                String lastfmName = args[2];
-                String pandoraName = args[3];
+                String lastfmName = args.length > 2 ? args[2] : null;
+                String pandoraName = args.length > 3 ? args[3] : null;
                 Listener l = musicDatabase.getListener(name);
                 if (l == null) {
                     l = musicDatabase.enrollListener(name);
@@ -350,6 +350,31 @@ public class MusicShell implements AuraService, Configurable {
 
             public String getHelp() {
                 return "Adds a listener";
+            }
+        });
+
+        shell.add("rec", new CommandInterface() {
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                if (args.length != 2) {
+                    return "Usage: rec listener";
+                } else {
+                    String listenerID = args[1];
+                    Listener listener = musicDatabase.getListener(listenerID);
+                    if (listener == null) {
+                        return "Can't find listener " + listenerID;
+                    }
+
+                    List<Scored<Artist>> recs = musicDatabase.getRecommendations(listener, sutils.getHits());
+                    for (Scored<Artist> sartist : recs) {
+                        System.out.printf("%.2f %s %s\n", sartist.getScore(), 
+                                sartist.getItem().getKey(), sartist.getItem().getName());
+                    }
+                    return "";
+                }
+            }
+
+            public String getHelp() {
+                return "gets recommendations for a listener";
             }
         });
 

@@ -11,6 +11,7 @@ import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
 import java.rmi.RemoteException;
+import java.util.EnumSet;
 
 /**
  *
@@ -31,12 +32,16 @@ public class Listener extends ItemAdapter {
     @Override
     public void defineFields(DataStore ds) throws AuraException {
         try {
-            ds.defineField(Item.ItemType.USER, FIELD_YOB);
             ds.defineField(Item.ItemType.USER, FIELD_GENDER);
             ds.defineField(Item.ItemType.USER, FIELD_STATE);
             ds.defineField(Item.ItemType.USER, FIELD_LAST_FM_NAME);
             ds.defineField(Item.ItemType.USER, FIELD_PANDORA_NAME);
             ds.defineField(Item.ItemType.USER, FIELD_LOCALE_COUNTRY);
+
+            ds.defineField(Item.ItemType.USER, FIELD_YOB,
+                    EnumSet.of(Item.FieldCapability.MATCH,
+                    Item.FieldCapability.SORT),
+                    Item.FieldType.INTEGER);
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }
@@ -44,6 +49,7 @@ public class Listener extends ItemAdapter {
 
     public Listener(User user) {
         super(user, Item.ItemType.USER);
+        setYearOfBirth(1959);
     }
 
     public Listener() {
@@ -86,7 +92,7 @@ public class Listener extends ItemAdapter {
     }
 
     public String getPandoraName() {
-        return getFieldAsString(FIELD_LAST_FM_NAME);
+        return getFieldAsString(FIELD_PANDORA_NAME);
     }
 
     public void setPandoraName(String name) {

@@ -282,7 +282,7 @@ public class ArtistCrawler implements AuraService, Configurable {
     }
 
     private void updateArtist(final Artist artist) {
-        CommandRunner runner = new CommandRunner(false, logger.isLoggable(Level.INFO));
+        CommandRunner runner = new CommandRunner(false, logger.isLoggable(Level.FINE));
         runner.add(new Commander("last.fm") {
 
             @Override

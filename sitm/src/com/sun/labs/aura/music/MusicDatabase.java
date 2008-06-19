@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -30,6 +31,8 @@ public class MusicDatabase {
 
     private DataStore dataStore;
     private List<SimType> simTypes;
+    private Random rng = new Random();
+    private final String BEATLES_ID = "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
 
     public MusicDatabase(DataStore dataStore) throws AuraException {
         this.dataStore = dataStore;
@@ -44,26 +47,7 @@ public class MusicDatabase {
         new Listener().defineFields(dataStore);
 
         initSimTypes();
-
-        try {
-        dataStore.addItemListener(ItemType.USER, new ItemListener() {
-
-            public void itemCreated(ItemEvent e) throws RemoteException {
-                System.out.println("new item " + e);
-            }
-
-            public void itemChanged(ItemEvent e) throws RemoteException {
-                System.out.println("changed item " + e);
-            }
-
-            public void itemDeleted(ItemEvent e) throws RemoteException {
-                System.out.println("deleted item " + e);
-            }
-        });
-        } catch (RemoteException r) {
-
-        }
-
+        //initRecommendationTypes();
     }
 
     private void initSimTypes() {
@@ -137,7 +121,24 @@ public class MusicDatabase {
         Attention attention = StoreFactory.newAttention(listener.getKey(), artistID, Attention.Type.LOVED);
         dataStore.attend(attention);
     }
-    
+
+    /**
+     * Adds ratings
+     * @param listener the listener
+     * @param artistID the artist ID
+     * @param rating the  rating (0 to 5)
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void addRating(Listener listener, String artistID, int numStars) throws AuraException, RemoteException {
+        if (numStars < 0 || numStars > 5) {
+            throw new IllegalArgumentException("numStars must be between 0 and 5");
+        }
+        // fix this as soon as the attention system supports ratings
+        Attention attention = StoreFactory.newAttention(listener.getKey(), artistID, Attention.Type.LOVED);
+        dataStore.attend(attention);
+    }
+
     /**
      * Gets the Favorite artists IDs for a listener
      * @param listener the listener of interest
@@ -146,7 +147,19 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public Set<String> getFavoriteArtists(Listener listener, int max) throws AuraException, RemoteException {
+    public List<Artist> getFavoriteArtists(Listener listener, int max) throws AuraException, RemoteException {
+        List<Attention> attns = dataStore.getLastAttentionForSource(listener.getKey(), Attention.Type.LOVED, max);
+        List<Artist> results = new ArrayList();
+        for (Attention attn : attns) {
+            Artist artist = artistLookup(attn.getTargetKey());
+            if (artist != null) {
+                results.add(artist);
+            }
+        }
+        return results;
+    }
+
+    public Set<String> getFavoriteArtistsAsIDSet(Listener listener, int max) throws AuraException, RemoteException {
         List<Attention> attns = dataStore.getLastAttentionForSource(listener.getKey(), Attention.Type.LOVED, max);
         Set<String> results = new HashSet();
         for (Attention attn : attns) {
@@ -154,7 +167,62 @@ public class MusicDatabase {
         }
         return results;
     }
-    
+
+    public List<Scored<Artist>> getRecommendations(Listener listener, int max) throws AuraException, RemoteException {
+        Set<String> skipIDS = getAttendedToArtists(listener);
+        Artist artist = getRandomGoodArtistFromListener(listener);
+        List<Scored<Artist>> results = new ArrayList();
+        List<Scored<Artist>> simArtists = artistFindSimilar(artist.getKey(), max * 5);
+        for (Scored<Artist> sartist : simArtists) {
+            if (!skipIDS.contains(sartist.getItem().getKey())) {
+                results.add(sartist);
+                if (results.size() >= max) {
+                    break;
+                }
+            }
+        }
+        return results;
+    }
+
+    private Artist getRandomGoodArtistFromListener(Listener listener) throws AuraException, RemoteException {
+        List<Attention> attentions = dataStore.getAttentionForSource(listener.getKey());
+        attentions = filterOut(attentions, Attention.Type.DISLIKED);
+        String id = BEATLES_ID;
+        if (attentions.size() > 0) {
+            id =  selectRandom(attentions).getTargetKey();
+        }
+        return artistLookup(id);
+    }
+
+    private List<Attention> filterOut(List<Attention> attns, Attention.Type type) {
+        List<Attention> attentions = new ArrayList();
+        for (Attention attn : attns) {
+            if (attn.getType() != type) {
+                attentions.add(attn);
+            }
+        }
+        return attentions;
+    }
+
+
+    private Set<String> getAttendedToArtists(Listener listener) throws AuraException, RemoteException {
+        Set<String> ids = new HashSet();
+        List<Attention> attentions = dataStore.getAttentionForSource(listener.getKey());
+        for (Attention attn : attentions) {
+            ids.add(attn.getTargetKey());
+        }
+        return ids;
+    }
+
+    private <T> T selectRandom(List<T> l) {
+        if (l.size() > 0) {
+            int index = rng.nextInt(l.size());
+            return l.get(index);
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Deletes a listener from the data store
      * 
@@ -167,7 +235,7 @@ public class MusicDatabase {
             dataStore.deleteUser(listener.getKey());
         }
     }
-    
+
     /**
      * Gets the attention data for a listener
      * @param listener the listener of interest
@@ -176,11 +244,11 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public List<Attention> getLastAttentionData(Listener listener, Attention.Type type, 
-                int count) throws AuraException, RemoteException {
+    public List<Attention> getLastAttentionData(Listener listener, Attention.Type type,
+            int count) throws AuraException, RemoteException {
         return dataStore.getLastAttentionForSource(listener.getKey(), type, count);
     }
-    
+
     /**
      * Gets all the stored attention data for a listener
      * @param listener the listener of interest
@@ -191,7 +259,6 @@ public class MusicDatabase {
     public List<Attention> getAttention(Listener listener) throws AuraException, RemoteException {
         return dataStore.getAttentionForSource(listener.getKey());
     }
-    
 
     /**
      * Gets the listener from the openID
@@ -210,7 +277,6 @@ public class MusicDatabase {
             throw new AuraException("Error communicating with item store", rx);
         }
     }
-
 
     /**
      * Searches for artists that matc the given name
@@ -248,6 +314,16 @@ public class MusicDatabase {
     public List<SimType> getSimTypes() {
         return simTypes;
     }
+
+    /**
+     * Gets the recommendatin types for the system.
+     * @return
+     */
+    /*
+    public List<RecommendationType> getRecommendationTypes() {
+        return recTypes;
+    }
+     * */
 
     /**
      * Given an artist query, find the best matching artist
@@ -504,6 +580,7 @@ public class MusicDatabase {
     }
 
     private class FieldSimType implements SimType {
+
         private String name;
         private String description;
         private String field;
@@ -540,6 +617,7 @@ public class MusicDatabase {
     }
 
     private class AllSimType implements SimType {
+
         private String name;
         private String description;
 
@@ -555,7 +633,6 @@ public class MusicDatabase {
         public String getDescription() {
             return description;
         }
-
 
         public List<Scored<Artist>> findSimilarArtists(String artistID, int count) throws AuraException {
             List<Scored<Item>> simItems = findSimilar(artistID, count, ItemType.ARTIST);
