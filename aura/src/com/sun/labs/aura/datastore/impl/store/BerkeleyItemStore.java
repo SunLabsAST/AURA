@@ -289,7 +289,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                 existed = true;
             }
 
-            if(mustIndex || itemImpl.isNew()) {
+            if(mustIndex || !existed) {
                 //
                 // The item was modified in a way that requires indexing.
                 searchEngine.index(itemImpl);
