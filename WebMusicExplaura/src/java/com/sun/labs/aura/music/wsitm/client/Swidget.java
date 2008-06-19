@@ -22,9 +22,11 @@ public abstract class Swidget extends Composite {
     private String name;
 
     protected MusicSearchInterfaceAsync musicServer;
+    protected ClientDataManager cdm;
     
-    public Swidget(String name) {
+    public Swidget(String name, ClientDataManager cdm) {
         this.name = name;
+        this.cdm = cdm;
         initRPC();
     }
     

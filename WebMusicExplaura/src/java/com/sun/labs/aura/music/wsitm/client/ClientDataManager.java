@@ -37,6 +37,10 @@ public class ClientDataManager {
 
     private ListenerDetails lD;
 
+    public ClientDataManager() {
+        lD = new ListenerDetails();
+    }
+
     public void setWidgets(PageHeaderWidget phw, SimpleSearchWidget ssw) {
         this.phw = phw;
         this.ssw = ssw;

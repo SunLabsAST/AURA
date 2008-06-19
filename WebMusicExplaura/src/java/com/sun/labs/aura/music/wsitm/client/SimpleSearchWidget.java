@@ -68,7 +68,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private SearchWidget search;
     private Image icon;
     
-    private ClientDataManager cdm;
     private static MultiWordSuggestOracle artistOracle;
     private static MultiWordSuggestOracle tagOracle;
     private Oracles currLoadedOracle;
@@ -84,9 +83,8 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private static final String ICON_WAIT = "ajax-bar.gif";
     
     public SimpleSearchWidget(ClientDataManager cdm) {
-        super("Simple Search");
+        super("Simple Search", cdm);
         try {
-            this.cdm=cdm;
             History.addHistoryListener(this);
             initWidget(getWidget());
             showResults(History.getToken());

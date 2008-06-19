@@ -15,6 +15,7 @@ import com.extjs.gxt.ui.client.widget.toolbar.TextToolItem;
 import com.extjs.gxt.ui.client.widget.toolbar.ToolBar;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Cookies;
+import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
@@ -243,7 +244,8 @@ public class PageHeaderWidget extends Composite {
                     lnk.addClickListener(new ClickListener() {
 
                         public void onClick(Widget arg0) {
-                            showUserPreferencesPopup();
+                            //showUserPreferencesPopup();
+                            History.newItem("userPref:");
                         }
                     });
                     lnk.setStyleName("whiteTxt");
@@ -309,45 +311,6 @@ public class PageHeaderWidget extends Composite {
         }
     }
 
-    private void showUserPreferencesPopup() {
-
-        Map<String, TextBox> newSettings = new HashMap<String, TextBox>();
-
-        HorizontalPanel main = new HorizontalPanel();
-
-        Grid g = new Grid(2,2);
-
-        TextBox lastfmUserBox = new TextBox();
-        newSettings.put("lastfmUser", lastfmUserBox);
-        if (cdm.getListenerDetails().lastfmUser!=null) {
-            lastfmUserBox.setText(cdm.getListenerDetails().lastfmUser);
-        }
-
-        TextBox pandoraUserBox = new TextBox();
-        newSettings.put("pandoraUser", pandoraUserBox);
-        if (cdm.getListenerDetails().pandoraUser!=null) {
-            pandoraUserBox.setText(cdm.getListenerDetails().pandoraUser);
-        }
-
-        Label txt = new Label("Last.fm username :");
-        txt.setStyleName("whiteTxt");
-        g.setWidget(0, 0, txt);
-        g.setWidget(0, 1, lastfmUserBox);
-        txt = new Label("Pandora username : ");
-        txt.setStyleName("whiteTxt");
-        g.setWidget(1, 0, txt);
-        g.setWidget(1, 1, pandoraUserBox);
-
-        main.add(g);
-
-        Button updateButton = new Button("Update");
-        updateButton.addClickListener(new UserPrefSubmitClickListener(newSettings));
-        main.add(updateButton);
-
-        Popup.showPopup(main, "User configuration");
-
-    }
-
     /**
      * Fetch artist details. Used when similarity type is updated
      * @param artistID
@@ -382,46 +345,4 @@ public class PageHeaderWidget extends Composite {
             Window.alert(ex.getMessage());
         }
     }
-
-    private void invokeUpdateListener(ListenerDetails lD) {
-
-        AsyncCallback callback = new AsyncCallback() {
-
-            public void onSuccess(Object result) {
-                // do some UI stuff to show success
-                Window.alert("Update OK");
-            }
-
-            public void onFailure(Throwable caught) {
-                Window.alert("Update failed!");
-            }
-        };
-
-        try {
-            musicServer.updateListener(lD, callback);
-        } catch (Exception ex) {
-            Window.alert(ex.getMessage());
-        }
-    }
-
-    class UserPrefSubmitClickListener implements ClickListener {
-
-        private Map<String, TextBox> newSettings;
-
-        public UserPrefSubmitClickListener(Map<String, TextBox> newSettings) {
-            this.newSettings = newSettings;
-        }
-
-        public void onClick(Widget asdrg0) {
-            ListenerDetails lD = cdm.getListenerDetails();
-
-            lD.lastfmUser = newSettings.get("lastfmUser").getText();
-            lD.pandoraUser = newSettings.get("pandoraUser").getText();
-            Window.alert("pandora client side is :"+lD.pandoraUser);
-
-            invokeUpdateListener(lD);
-        }
-
-    }
-
 }

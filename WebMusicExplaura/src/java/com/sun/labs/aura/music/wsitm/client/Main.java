@@ -9,6 +9,8 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.extjs.gxt.ui.client.util.Params;
+import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.HistoryListener;
@@ -62,6 +64,9 @@ public class Main implements EntryPoint, HistoryListener {
 
         contentPanel = new FlowPanel();
 
+        Swidget userPref = new ProfileWidget(cdm);
+        registerTokenHeaders(userPref);
+
         Swidget artistSearch = new SimpleSearchWidget(cdm);
         registerTokenHeaders(artistSearch);
 
@@ -99,13 +104,12 @@ public class Main implements EntryPoint, HistoryListener {
     }
 
     private void showResults(String resultName) {
-
         String resultNameHeader = resultName.substring(0, resultName.indexOf(":")+1);
 
         if (tokenHeadersMap.containsKey(resultNameHeader)) {
             setResults(resultName, tokenHeadersMap.get(resultNameHeader));
         } else {
-            setResults("home",null);
+            setResults("searchHome:", tokenHeadersMap.get("searchHome:"));
         }
     }
 

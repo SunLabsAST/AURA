@@ -18,6 +18,7 @@ import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.Tree;
 import com.google.gwt.user.client.ui.TreeItem;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class TagExplorer extends Swidget {
     
     /** Creates a new instance of TagExplorer */
     public TagExplorer() {
-        super("Tag Explorer");
+        super("Tag Explorer", new ClientDataManager());
         initRPC();
         mainPanel = new DockPanel();
         initWidget(mainPanel);

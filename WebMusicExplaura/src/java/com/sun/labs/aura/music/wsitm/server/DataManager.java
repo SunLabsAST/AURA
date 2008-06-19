@@ -553,7 +553,6 @@ public class DataManager implements Configurable {
             }
 
             l = syncListeners(l, lD);
-
             mdb.updateListener(l);
         } catch (RemoteException rx) {
             throw new AuraException("Error communicating with item store", rx);
