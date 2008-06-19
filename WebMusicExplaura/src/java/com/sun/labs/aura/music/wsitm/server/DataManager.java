@@ -484,16 +484,53 @@ public class DataManager implements Configurable {
         return details;
     }
 
+    /**
+     * Perform a sync between a listener and listenerdetails, givin priority to
+     * what's contained in the listenerDetails
+     * @param l
+     * @param lD
+     * @return updated listener
+     */
     public Listener syncListeners(Listener l, ListenerDetails lD) {
-// fix this so that data is copied both ways while having lD take priority
-        if (lD.gender.equals("M")) {
-            l.setGender(Gender.Male);
-        } else if (lD.gender.equals("F")) {
-            l.setGender(Gender.Female);
+
+        if (lD.gender!=null) {
+            if (lD.gender.equals("M")) {
+                l.setGender(Gender.Male);
+            } else if (lD.gender.equals("F")) {
+                l.setGender(Gender.Female);
+            }
+        } else if (l.getGender()!=null) {
+            if (l.getGender()==Gender.Female) {
+                lD.gender="F";
+            } else if (l.getGender()==Gender.Male) {
+                lD.gender="M";
+            }
         }
-        l.setLocaleCountry(lD.country);
-        l.setPandoraName(lD.pandoraUser);
-        l.setLastFmName(lD.lastfmUser);
+        
+        if (lD.country!=null) {
+            l.setLocaleCountry(lD.country);
+        } else if (l.getLocaleCountry()!=null) {
+            lD.country=l.getLocaleCountry();
+        }
+
+        if (lD.pandoraUser!=null) {
+            l.setPandoraName(lD.pandoraUser);
+            logger.info("setting pandora for L to :"+lD.pandoraUser);
+        } else if (l.getPandoraName()!=null) {
+            logger.info("setting pandora to :"+l.getPandoraName());
+            lD.pandoraUser=l.getPandoraName();
+        }
+
+        if (lD.lastfmUser!=null) {
+            l.setLastFmName(lD.lastfmUser);
+            logger.info("setting lastfm for L to :"+lD.lastfmUser);
+        } else if (l.getLastFmName()!=null) {
+            logger.info("setting lastfm to :"+l.getLastFmName());
+            lD.lastfmUser=l.getLastFmName();
+        }
+
+        logger.info("pandora is now :"+l.getPandoraName());
+        logger.info("lastfm is now :"+l.getLastFmName());
 
         return l;
     }

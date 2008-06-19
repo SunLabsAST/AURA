@@ -218,6 +218,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public void updateListener(ListenerDetails lD) throws Exception {
+        logger.info("UpdateListener :: "+lD.openID);
         dm.updateUser(lD);
     }
 

@@ -18,6 +18,8 @@ import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.Tree;
 import com.google.gwt.user.client.ui.TreeItem;
 import com.google.gwt.user.client.ui.Widget;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -36,7 +38,14 @@ public class TagExplorer extends Swidget {
         initWidget(mainPanel);
         invokeGetTree();
     }
-    
+
+    public List<String> getTokenHeaders() {
+
+        List<String> l = new ArrayList<String>();
+        l.add("tagexplore:");
+        return l;
+    }
+
     private void setResults(String historyName, Widget result) {
         if (curResult == result) {
             return;

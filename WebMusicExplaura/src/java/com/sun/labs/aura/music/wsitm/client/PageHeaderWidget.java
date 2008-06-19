@@ -319,8 +319,15 @@ public class PageHeaderWidget extends Composite {
 
         TextBox lastfmUserBox = new TextBox();
         newSettings.put("lastfmUser", lastfmUserBox);
+        if (cdm.getListenerDetails().lastfmUser!=null) {
+            lastfmUserBox.setText(cdm.getListenerDetails().lastfmUser);
+        }
+
         TextBox pandoraUserBox = new TextBox();
         newSettings.put("pandoraUser", pandoraUserBox);
+        if (cdm.getListenerDetails().pandoraUser!=null) {
+            pandoraUserBox.setText(cdm.getListenerDetails().pandoraUser);
+        }
 
         Label txt = new Label("Last.fm username :");
         txt.setStyleName("whiteTxt");
@@ -410,6 +417,7 @@ public class PageHeaderWidget extends Composite {
 
             lD.lastfmUser = newSettings.get("lastfmUser").getText();
             lD.pandoraUser = newSettings.get("pandoraUser").getText();
+            Window.alert("pandora client side is :"+lD.pandoraUser);
 
             invokeUpdateListener(lD);
         }

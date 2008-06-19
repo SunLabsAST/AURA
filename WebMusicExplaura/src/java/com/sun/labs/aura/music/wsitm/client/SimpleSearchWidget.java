@@ -25,7 +25,6 @@ import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
@@ -67,7 +66,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private Label message;
     private boolean debug;
     private SearchWidget search;
-    private MusicSearchInterfaceAsync musicServer;
     private Image icon;
     
     private ClientDataManager cdm;
@@ -75,7 +73,9 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private static MultiWordSuggestOracle tagOracle;
     private Oracles currLoadedOracle;
     private Oracles fetchOracle;    // Oracle we are currently fetching
-    
+
+    private String curToken = null;
+
     public static enum Oracles {
         ARTIST,
         TAG
@@ -86,7 +86,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     public SimpleSearchWidget(ClientDataManager cdm) {
         super("Simple Search");
         try {
-            initRPC();
             this.cdm=cdm;
             History.addHistoryListener(this);
             initWidget(getWidget());
@@ -146,8 +145,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             if (iconPath!=null && !iconPath.equals("")) {
                 icon.setUrl(iconPath);
                 icon.setVisible(true);
-            }
-            else {
+            } else {
                 icon.setVisible(false);
             }
 
@@ -177,8 +175,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             showMessage(msg);
         }
     }
-    private String curToken = null;
-
     
     private void setResults(String historyName, Widget result) {
         if (curResult == result) {
@@ -202,6 +198,19 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private void clearResults() {
         setResults("home", null);
     }
+
+    public List<String> getTokenHeaders() {
+
+        List<String> l = new ArrayList<String>();
+        l.add("artist:");
+        l.add("tag:");
+        l.add("artistSearch:");
+        l.add("artistSearchByTag:");
+        l.add("tagSearch:");
+        l.add("searchHome:");
+        return l;
+    }
+
 
     private void showResults(String resultName) {
 
@@ -228,7 +237,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             String query = resultName.replaceAll("tagSearch:", "");
             invokeTagSearchService(query, 0);
         } else if (resultName.equals("home")) {
-            setResults("home", null);
+            setResults("searchHome", null);
         } else {
             GWT.log("unknown history token " + resultName, new Throwable());
             // Window.alert("unknown history token " + resultName);
@@ -237,36 +246,9 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     }
 
     public void onHistoryChanged(String historyToken) {
-        //debug("history changed token is '" + historyToken + "'");
-        historyToken = decodeHistoryToken(historyToken);
-        //debug("history decoded token is '" + historyToken + "'");
-        
         if (!historyToken.equals(curToken)) {
             showResults(historyToken);
         }
-    }
-
-    // On Firefox, the history tokens are already decoded, but this is not
-    // the case on safari, so we decode them here.
-    static native String decodeHistoryToken(String historyToken) /*-{
-        return decodeURIComponent(historyToken);
-    }-*/;
-
-    private void initRPC() {
-        // (1) Create the client proxy. Note that although you are creating the
-        // service interface proper, you cast the result to the async version of
-        // the interface. The cast is always safe because the generated proxy
-        // implements the async interface automatically.
-        //
-        musicServer = (MusicSearchInterfaceAsync) GWT.create(MusicSearchInterface.class);
-
-        // (2) Specify the URL at which our service implementation is running.
-        // Note that the target URL must reside on the same domain and port from
-        // which the host page was served.
-        //
-        ServiceDefTarget endpoint = (ServiceDefTarget) musicServer;
-        String moduleRelativeURL = GWT.getModuleBaseURL() + "musicsearch";
-        endpoint.setServiceEntryPoint(moduleRelativeURL);
     }
 
     private void invokeTagSearchService(String searchText, int page) {
