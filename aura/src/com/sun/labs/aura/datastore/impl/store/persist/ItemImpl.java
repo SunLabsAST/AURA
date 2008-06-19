@@ -55,7 +55,7 @@ public class ItemImpl implements Item {
      * A flag indicating that a field that the search engine needs to index
      * has been set by someone.
      */
-    private transient Set<String> sets;
+    private transient Set<String> modifiedFields;
 
     protected static final Logger logger = Logger.getLogger("");
     
@@ -63,7 +63,7 @@ public class ItemImpl implements Item {
      * We need to provide a default constructor for BDB.
      */
     protected ItemImpl() {
-        sets = new HashSet<String>();
+        modifiedFields = new HashSet<String>();
     }
 
     /**
@@ -77,7 +77,7 @@ public class ItemImpl implements Item {
         this.name = name;
         this.typeAndTimeAdded = new IntAndTimeKey(this.itemType,
                                                   System.currentTimeMillis());
-        sets = new HashSet<String>();
+        modifiedFields = new HashSet<String>();
     }
     
     public String getKey() {
@@ -130,15 +130,15 @@ public class ItemImpl implements Item {
         if (value!=null && field!=null) {
             getMap();
             map.put(field, value);
-            if (sets==null) {
-                sets = new HashSet<String>();                
+            if (modifiedFields==null) {
+                modifiedFields = new HashSet<String>();                
             }
-            sets.add(field);
+            modifiedFields.add(field);
         }
     }
 
-    public Set<String> getSetFields() {
-        return sets;
+    public Set<String> getModifiedFields() {
+        return modifiedFields;
     }
     
     public Serializable getField(String field) {
@@ -204,12 +204,26 @@ public class ItemImpl implements Item {
      * @param oos
      */
     private void writeObject(ObjectOutputStream oos) throws IOException {
+
+        //
+        // The set of modified fields is transient, because we don't want it to be (eventually) in the
+        // BDB, but we do want to send it over the wire, so we need to serialize
+        // it by hand and read it out on the other end.
+        oos.writeObject(modifiedFields);
         //
         // Try to store the map (storeMap checks to see if it needs storing)
         storeMap();
         oos.defaultWriteObject();
     }
     
+    private void readObject(java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        //
+        // Read our set of modified fields.
+        modifiedFields = (Set<String>) in.readObject();
+        in.defaultReadObject();
+    }
+  
     @Override
     public String toString() {
         return key + " [" + Integer.toBinaryString(key.hashCode()) + "]";

@@ -4,19 +4,13 @@ import com.sun.caroline.platform.CustomerNetworkConfiguration;
 import com.sun.caroline.platform.DuplicateNameException;
 import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.FileSystemMountParameters;
-import com.sun.caroline.platform.Grid;
-import com.sun.caroline.platform.GridFactory;
 import com.sun.caroline.platform.Network;
 import com.sun.caroline.platform.NetworkAllocationException;
 import com.sun.caroline.platform.ProcessConfiguration;
-import com.sun.caroline.platform.ProcessContext;
 import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
-import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.datastore.impl.DSBitSet;
 import com.sun.labs.util.props.ConfigInteger;
-import com.sun.labs.util.props.ConfigString;
-import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
@@ -27,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
@@ -45,6 +38,8 @@ public abstract class Aura extends ServiceAdapter {
     private FileSystem auraDist;
     
     private FileSystem logFS;
+    
+    private FileSystem cacheFS;
 
     private Map<String, FileSystem> repFSMap = new HashMap<String,FileSystem>();
     
@@ -54,11 +49,9 @@ public abstract class Aura extends ServiceAdapter {
 
         GridUtil.getFS(grid, "sys.packages");
         auraDist = GridUtil.getAuraDistFS(grid, instance);
-        
-        //
-        // Make a place to write all text output log files
         logFS = GridUtil.getAuraLogFS(grid, instance);
-
+        cacheFS = GridUtil.getCacheFS(grid, instance);
+                
         //
         // Set up the file systems for each replicant
         for(String currPrefix : prefixCodeList) {

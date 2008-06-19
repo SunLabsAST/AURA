@@ -93,6 +93,9 @@
             <fileset dir="../dist">
                 <include name="grid.jar"/>
             </fileset>
+            <fileset dir="../../aura/dist">
+                <include name="aura.jar"/>
+            </fileset>
         </dav:put>    
         <dav:put url="${dav.url}/${jini.col}" userid="${user}" password="${pw}" lock="false">            
             <!-- Jini libraries -->

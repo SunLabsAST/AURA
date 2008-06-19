@@ -261,7 +261,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
             // Walk the fields, make sure they're defined, and figure out whether
             // we need to re-index this item.
             boolean mustIndex = false;
-            Set<String> setFields = itemImpl.getSetFields();
+            Set<String> setFields = itemImpl.getModifiedFields();
             for(Map.Entry<String,Serializable> e : itemImpl) {
                 FieldDescription fd;
                 try {
