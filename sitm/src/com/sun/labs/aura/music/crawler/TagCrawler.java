@@ -235,7 +235,7 @@ public class TagCrawler implements AuraService, Configurable {
     void collectTagInfo(final ArtistTag artistTag)
             throws AuraException, RemoteException {
 
-        CommandRunner runner = new CommandRunner(false, logger.isLoggable(Level.INFO));
+        CommandRunner runner = new CommandRunner(false, logger.isLoggable(Level.FINE));
 
         runner.add(new Commander("flickr") {
 

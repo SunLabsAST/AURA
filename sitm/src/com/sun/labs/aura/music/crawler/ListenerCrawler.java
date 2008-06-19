@@ -4,7 +4,6 @@
  */
 package com.sun.labs.aura.music.crawler;
 
-import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
@@ -27,6 +26,7 @@ import java.util.logging.Logger;
  * @author plamere
  */
 public class ListenerCrawler extends ItemSchedulerImpl {
+
     private LastFM lastfm;
     private Pandora pandora;
     private MusicDatabase mdb;
@@ -61,6 +61,15 @@ public class ListenerCrawler extends ItemSchedulerImpl {
         super.newProperties(ps);
         logger = ps.getLogger();
         numThreads = ps.getInt(PROP_NUM_THREADS);
+        try {
+            lastfm = new LastFM();
+            pandora = new Pandora();
+            mdb = new MusicDatabase(dataStore);
+        } catch (AuraException ex) {
+            throw new PropertyException(ex, ps.getInstanceName(), "musicDatabase", "problems with the music database");
+        } catch (IOException ex) {
+            throw new PropertyException(ex, ps.getInstanceName(), "", "problems connecting to last.fm/pandora");
+        }
     }
 
     private void crawlAllListeners() {
@@ -83,7 +92,7 @@ public class ListenerCrawler extends ItemSchedulerImpl {
     }
 
     private void crawlListener(Listener listener) throws AuraException, RemoteException, IOException {
-        logger.info("Crawling " + listener.getName());
+        logger.info("Crawling listener " + listener.getName());
         int state = listener.getState();
         if (listener.getLastFmName() != null) {
             if ((state & Listener.STATE_INITIAL_LASTFM_CRAWL) != Listener.STATE_INITIAL_LASTFM_CRAWL) {
@@ -99,13 +108,16 @@ public class ListenerCrawler extends ItemSchedulerImpl {
     }
 
     private void fullCrawlLastFM(Listener listener) throws AuraException, IOException {
-        logger.info("Full crawl for " + listener.getName());
+        logger.fine("Full crawl for " + listener.getName());
         LastItem[] artists = lastfm.getTopArtistsForUser(listener.getLastFmName());
         for (LastItem artistItem : artists) {
             if (artistItem.getMBID() != null) {
                 Artist artist = mdb.artistLookup(artistItem.getMBID());
                 if (artist != null) {
                     mdb.addPlayAttention(listener, artist.getKey(), artistItem.getFreq());
+                    logger.fine("last.fm full crawl, added play attention for artist " + artistItem.getName());
+                } else {
+                    logger.fine("last.fm full crawl, skipping artist " + artistItem.getName());
                 }
             }
         }
@@ -113,20 +125,23 @@ public class ListenerCrawler extends ItemSchedulerImpl {
 
     private void weeklyCrawlPandora(Listener listener) throws AuraException, IOException {
         if (listener.getPandoraName() != null) {
-            logger.info("Pandora crawl for " + listener.getName());
-            Set<String> favs = mdb.getFavoriteArtists(listener, 100000);
+            logger.fine("Pandora crawl for " + listener.getName());
+            Set<String> favs = mdb.getFavoriteArtistsAsIDSet(listener, 100000);
             List<String> artists = pandora.getFavoriteArtistNamesForUser(listener.getPandoraName());
             for (String artistName : artists) {
                 Artist artist = mdb.artistFindBestMatch(artistName);
                 if (artist != null && !favs.contains(artist.getKey())) {
                     mdb.addFavoriteAttention(listener, artist.getKey());
+                    logger.fine("pandora crawl, added play attention for artist " + artist.getName());
+                } else {
+                    logger.fine("pandora crawl, skipping artist " + artistName);
                 }
             }
         }
     }
 
     private void weeklyCrawlLastFM(Listener listener) throws AuraException, IOException {
-        logger.info("Weekly crawl for " + listener.getName());
+        logger.fine("Weekly crawl for " + listener.getName());
         LastItem[] artists = lastfm.getWeeklyArtistsForUser(listener.getLastFmName());
         for (LastItem artistItem : artists) {
             if (artistItem.getMBID() != null) {
