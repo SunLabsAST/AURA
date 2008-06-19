@@ -56,9 +56,7 @@ public class ItemImpl implements Item {
      * has been set by someone.
      */
     private transient Set<String> sets;
-    
-    private transient boolean isNew;
-    
+
     protected static final Logger logger = Logger.getLogger("");
     
     /**
@@ -79,14 +77,9 @@ public class ItemImpl implements Item {
         this.name = name;
         this.typeAndTimeAdded = new IntAndTimeKey(this.itemType,
                                                   System.currentTimeMillis());
-        isNew = true;
         sets = new HashSet<String>();
     }
     
-    public boolean isNew() {
-        return isNew;
-    }
-
     public String getKey() {
         return key;
     }

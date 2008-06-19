@@ -339,6 +339,8 @@ public class BerkeleyDataWrapper {
      * be replaced.
      * 
      * @param item the item to put
+     * @return the existing entity that was updated or null of the item was
+     * inserted
      */
     public ItemImpl putItem(ItemImpl item) throws AuraException {
         ItemImpl ret = null;

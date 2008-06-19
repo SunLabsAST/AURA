@@ -9,17 +9,15 @@
 
 package com.sun.labs.aura.music.wsitm.server;
 
-import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.sun.labs.aura.music.ArtistTag;
-import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.MusicSearchInterface;
 import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.TagTree;
-import com.sun.labs.aura.music.wsitm.client.logInDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.util.AuraException;
 import java.rmi.RemoteException;
 import java.util.List;
@@ -28,6 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -162,7 +161,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
     
-    public logInDetails getUserTagCloud(String lastfmUser, String simTypeName) throws Exception {
+    public ListenerDetails getUserTagCloud(String lastfmUser, String simTypeName) throws Exception {
         try {
             return dm.getUserTagCloud(lastfmUser, simTypeName);
         } catch (Exception e) {
@@ -170,7 +169,58 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             throw e;
         }
     }
-    
+
+    public ListenerDetails getLogInDetails() throws Exception {
+        try {
+            ListenerDetails lD = new ListenerDetails();
+
+            HttpSession session = this.getThreadLocalRequest().getSession();
+            if (session.getAttribute(OpenIDServlet.openIdCookieName)!=null) {
+                lD.openID=(String)session.getAttribute(OpenIDServlet.openIdCookieName);
+            }
+            if (session.getAttribute(OpenIDServlet.ATTR_BIRTHDATE)!=null) {
+                lD.birthDate=(String)session.getAttribute(OpenIDServlet.ATTR_BIRTHDATE);
+            }
+            if (session.getAttribute(OpenIDServlet.ATTR_COUNTRY)!=null) {
+                lD.country=(String)session.getAttribute(OpenIDServlet.ATTR_COUNTRY);
+            }
+            if (session.getAttribute(OpenIDServlet.ATTR_EMAIL)!=null) {
+                lD.email=(String)session.getAttribute(OpenIDServlet.ATTR_EMAIL);
+            }
+            if (session.getAttribute(OpenIDServlet.ATTR_GENDER)!=null) {
+                lD.gender=(String)session.getAttribute(OpenIDServlet.ATTR_GENDER);
+            }
+            if (session.getAttribute(OpenIDServlet.ATTR_LANGUAGE)!=null) {
+                lD.language=(String)session.getAttribute(OpenIDServlet.ATTR_LANGUAGE);
+            }
+            if (session.getAttribute(OpenIDServlet.ATTR_NICKNAME)!=null) {
+                lD.nickName=(String)session.getAttribute(OpenIDServlet.ATTR_NICKNAME);
+            }
+            if (session.getAttribute(OpenIDServlet.ATTR_NAME)!=null) {
+                lD.realName=(String)session.getAttribute(OpenIDServlet.ATTR_NAME);
+            }
+            if (session.getAttribute(OpenIDServlet.ATTR_STATE)!=null) {
+                lD.state=(String)session.getAttribute(OpenIDServlet.ATTR_STATE);
+            }
+
+            if (lD.openID!=null && (lD.realName!=null || lD.nickName!=null)) {
+                lD.loggedIn=true;
+                dm.establishUserConnection(lD);
+            }
+
+
+            return lD;
+            
+        } catch (Exception e) {
+            logger.severe(traceToString(e));
+            throw e;
+        }
+    }
+
+    public void updateListener(ListenerDetails lD) throws Exception {
+        dm.updateUser(lD);
+    }
+
     public Map<String, String> getSimTypes() throws Exception {
         try {
             return dm.getSimTypes();
@@ -179,4 +229,5 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             throw e;
         }
     }
+
 }
