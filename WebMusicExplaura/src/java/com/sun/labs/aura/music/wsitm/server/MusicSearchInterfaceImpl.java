@@ -216,7 +216,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
                 lD.loggedIn = true;
                 dm.establishUserConnection(lD);
             }
-
             return lD;
 
         } catch (AuraException ex) {

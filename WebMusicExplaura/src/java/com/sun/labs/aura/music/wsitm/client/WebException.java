@@ -16,7 +16,8 @@ public class WebException extends Exception implements IsSerializable {
     private errorMessages errorType;
 
     public static enum errorMessages {
-        ITEM_STORE_COMMUNICATION_FAILED
+        ITEM_STORE_COMMUNICATION_FAILED,
+        RPC_STATUS_CODE_EXCEPTION
     }
 
     public WebException() {
@@ -54,6 +55,8 @@ public class WebException extends Exception implements IsSerializable {
 
         if (eM == errorMessages.ITEM_STORE_COMMUNICATION_FAILED) {
             return "A problem occured while trying to cummunicate with the datastore.";
+        } else if (eM == errorMessages.RPC_STATUS_CODE_EXCEPTION) {
+            return "A server problem occured while processing your request.";
         } else {
             return "Unkonwn error";
         }

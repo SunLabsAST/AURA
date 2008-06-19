@@ -554,32 +554,26 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         main.setHorizontalAlignment(VerticalPanel.ALIGN_CENTER);
         main.setWidth("100%");
 
-        {
-            VerticalPanel left = new VerticalPanel();
-            left.setWidth("150px");
-            left.setStyleName("left");
-            Widget w = getItemInfoList(tagDetails.getName() + " artists", tagDetails.getRepresentativeArtists(), null, true, tagOracle);
-            left.add(w);
-            main.add(left, DockPanel.WEST);
-        }
+        VerticalPanel left = new VerticalPanel();
+        left.setWidth("150px");
+        left.setStyleName("left");
+        Widget w = getItemInfoList(tagDetails.getName() + " artists", tagDetails.getRepresentativeArtists(), null, true, tagOracle);
+        left.add(w);
+        main.add(left, DockPanel.WEST);
 
-        {
-            VerticalPanel v = new VerticalPanel();
-            v.add(getTagWidget(tagDetails));
-            v.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
-            v.add(createSection("Videos", new VideoScrollWidget(tagDetails.getVideos())));
-            v.add(createSection("Photos", new ImageScrollWidget(tagDetails.getPhotos())));
-            v.setStyleName("center");
-            main.add(v, DockPanel.CENTER);
-        }
+        VerticalPanel v = new VerticalPanel();
+        v.add(getTagWidget(tagDetails));
+        v.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
+        v.add(createSection("Videos", new VideoScrollWidget(tagDetails.getVideos())));
+        v.add(createSection("Photos", new ImageScrollWidget(tagDetails.getPhotos())));
+        v.setStyleName("center");
+        main.add(v, DockPanel.CENTER);
 
-        {
-            VerticalPanel right = new VerticalPanel();
-            Widget w = getItemInfoList("Similar tags", tagDetails.getSimilarTags(), tagDetails.getId(), false, tagOracle);
-            w.setStyleName("right");
-            right.add(w);
-            main.add(right, DockPanel.EAST);
-        }
+        VerticalPanel right = new VerticalPanel();
+        w = getItemInfoList("Similar tags", tagDetails.getSimilarTags(), tagDetails.getId(), false, tagOracle);
+        w.setStyleName("right");
+        right.add(w);
+        main.add(right, DockPanel.EAST);
 
         main.setStyleName("resultpanel");
         return main;
@@ -589,14 +583,15 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         HTML html = new HTML();
         html.setHTML(getBestArtistImageAsHTML(artistDetails) + artistDetails.getBiographySummary());
         html.setStyleName("bio");
-        return createMainSection(artistDetails.getName(), html, getSpotifyListenWidget(artistDetails));
+        StarRatingWidget starWidget = new StarRatingWidget(3);
+        return createMainSection(artistDetails.getName(), html, getSpotifyListenWidget(artistDetails), starWidget);
     }
 
     Widget getTagWidget(TagDetails tagDetails) {
         HTML html = new HTML();
         html.setHTML(getBestTagImageAsHTML(tagDetails) + tagDetails.getDescription());
         html.setStyleName("bio");
-        return createMainSection(tagDetails.getName(), html, getListenWidget(tagDetails));
+        return createMainSection(tagDetails.getName(), html, getListenWidget(tagDetails), null);
     }
 
     Widget getLastFMListenWidget(final ArtistDetails artistDetails) {
@@ -793,14 +788,17 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         return panel;
     }
 
-    Widget createMainSection(String title, Widget widget, Widget adornment) {
+    Widget createMainSection(String title, Widget widget, Widget adornment, StarRatingWidget starWidget) {
         Panel panel = new VerticalPanel();
         DockPanel h = new DockPanel();
         h.add(new Label(title), DockPanel.WEST);
         if (adornment != null) {
             h.add(adornment, DockPanel.EAST);
-            h.setCellHorizontalAlignment(adornment, h.ALIGN_RIGHT);
+            h.setCellHorizontalAlignment(adornment, HorizontalPanel.ALIGN_RIGHT);
         }
+        /*if (starWidget != null) {
+            h.add(starWidget, DockPanel.NORTH);
+        }*/
         h.setWidth("100%");
         h.setStyleName("h1");
         panel.add(h);
