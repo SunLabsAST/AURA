@@ -22,6 +22,7 @@ import com.sun.caroline.platform.NetworkSetting;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.RunState;
+import com.sun.caroline.platform.StartFailureException;
 import com.sun.caroline.platform.StorageManagementException;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -31,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Queue;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -39,6 +41,8 @@ import java.util.logging.Logger;
 public class GridUtil {
     
     static Logger log = Logger.getLogger("com.sun.labs.aura.grid.GridUtil");
+    
+    public static final int RETRIES = 1;
 
     /**
      * Creates a process registration on a grid, reusing an on-grid registration
@@ -71,14 +75,30 @@ public class GridUtil {
         Thread starter = new Thread() {
 
             public void run() {
-                try {
-                    reg.start(true);
-                } catch(Exception e) {
-                    log.severe("Registration start failed " + e.
-                            getMessage());
+                int tries = 0;
+                Exception startException = null;
+                //
+                // Workaround for a mount problem.
+                while(tries < RETRIES) {
+                    tries++;
+                    try {
+                        reg.start(true);
+                        startException = null;
+                        break;
+                    } catch(StartFailureException sfe) {
+                        startException = sfe;
+                        continue;
+                    } catch(Exception e) {
+                        startException = e;
+                        break;
+                    }
                 }
-
-                log.fine("Registration " + reg.getName() + " started");
+                
+                if(startException != null) {
+                    log.log(Level.SEVERE, "Error starting service: " + reg, startException);
+                } else {
+                    log.fine(String.format("Registration %s started after %d tries", reg.getName(), tries));
+                }
             }
         };
         starter.start();
