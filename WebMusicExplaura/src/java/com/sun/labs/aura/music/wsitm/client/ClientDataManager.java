@@ -113,6 +113,7 @@ public class ClientDataManager {
 //        lastFmUser = null;
 
         isLoggedIn = false;
+        lD = new ListenerDetails();
     }
 
     public boolean isLoggedIn() {

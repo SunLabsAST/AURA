@@ -9,6 +9,8 @@ import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.extjs.gxt.ui.client.event.MenuEvent;
 import com.extjs.gxt.ui.client.event.SelectionListener;
+import com.extjs.gxt.ui.client.util.Params;
+import com.extjs.gxt.ui.client.widget.Info;
 import com.extjs.gxt.ui.client.widget.menu.CheckMenuItem;
 import com.extjs.gxt.ui.client.widget.menu.Menu;
 import com.extjs.gxt.ui.client.widget.toolbar.TextToolItem;
@@ -171,9 +173,31 @@ public class PageHeaderWidget extends Composite {
         mainPanel.setWidget(0, 1, h);
 
         //invokeGetUserTagCloud(txtbox.getText());
-        Window.Location.assign("./Login?app-openid-auth=true&app-openid-name="+txtbox.getText());
+        Window.Location.assign("./Login?app-openid-auth=true&app-openid-name=" + txtbox.getText());
     }
-    
+
+    private void invokeTerminateSession() {
+        AsyncCallback callback = new AsyncCallback() {
+
+            public void onSuccess(Object result) {
+                // do some UI stuff to show success
+                Info.display("Information", "You are now logged out. Have a nice and productive day.", new Params());
+                populateLoginBox();
+            }
+
+            public void onFailure(Throwable caught) {
+                //failureAction(caught);
+                Window.alert(caught.toString());
+            }
+        };
+
+        try {
+            musicServer.terminateSession(callback);
+        } catch (Exception ex) {
+            Window.alert(ex.getMessage());
+        }
+    }
+
     private void invokeGetUserTagCloud(String lastfmUser) {
         AsyncCallback callback = new AsyncCallback() {
 
@@ -244,8 +268,7 @@ public class PageHeaderWidget extends Composite {
                     lnk.addClickListener(new ClickListener() {
 
                         public void onClick(Widget arg0) {
-                            //showUserPreferencesPopup();
-                            History.newItem("userPref:");
+                            History.newItem("userpref:");
                         }
                     });
                     lnk.setStyleName("whiteTxt");
@@ -255,7 +278,8 @@ public class PageHeaderWidget extends Composite {
                     lnk.addClickListener(new ClickListener() {
 
                         public void onClick(Widget arg0) {
-                            Window.alert("do logout");
+                            cdm.resetUser();
+                            invokeTerminateSession();
                         }
                     });
                     lnk.setStyleName("whiteTxt");
@@ -266,35 +290,7 @@ public class PageHeaderWidget extends Composite {
                     mainPanel.setWidget(0, 0, hP);
 
                 } else {
-                    txtbox = new TextBox();
-                    txtbox.addKeyboardListener(new KeyboardListener() {
-
-                        public void onKeyPress(Widget arg0, char keyCode, int arg2) {
-                            if (keyCode == KEY_ENTER) {
-                                fetchUserInfo();
-                            }
-                        }
-
-                        public void onKeyDown(Widget arg0, char arg1, int arg2) {
-                        }
-
-                        public void onKeyUp(Widget arg0, char arg1, int arg2) {
-                        }
-                    });
-
-                    Button b = new Button();
-                    b.setText("try to login with openID");
-                    b.addClickListener(new ClickListener() {
-
-                        public void onClick(Widget arg0) {
-                            fetchUserInfo();
-                        }
-                    });
-
-                    HorizontalPanel h = new HorizontalPanel();
-                    h.add(txtbox);
-                    h.add(b);
-                    mainPanel.setWidget(0, 0, h);
+                    populateLoginBox();
                 }
             }
 
@@ -309,6 +305,40 @@ public class PageHeaderWidget extends Composite {
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }
+    }
+
+    private void populateLoginBox() {
+
+        txtbox = new TextBox();
+        txtbox.addKeyboardListener(new KeyboardListener() {
+
+            public void onKeyPress(Widget arg0, char keyCode, int arg2) {
+                if (keyCode == KEY_ENTER) {
+                    fetchUserInfo();
+                }
+            }
+
+            public void onKeyDown(Widget arg0, char arg1, int arg2) {
+            }
+
+            public void onKeyUp(Widget arg0, char arg1, int arg2) {
+            }
+        });
+
+        Button b = new Button();
+        b.setText("Llogin with openID");
+        b.addClickListener(new ClickListener() {
+
+            public void onClick(Widget arg0) {
+                fetchUserInfo();
+            }
+        });
+
+        HorizontalPanel h = new HorizontalPanel();
+        h.add(txtbox);
+        h.add(b);
+        mainPanel.setWidget(0, 0, h);
+
     }
 
     /**

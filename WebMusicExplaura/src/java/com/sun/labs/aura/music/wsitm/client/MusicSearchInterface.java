@@ -34,5 +34,6 @@ public interface MusicSearchInterface extends RemoteService {
     public ListenerDetails getUserTagCloud(String lastfmUser, String simTypeName) throws WebException;
     public ListenerDetails getLogInDetails() throws WebException;
     public void updateListener(ListenerDetails lD) throws WebException;
+    public void terminateSession();
     public Map<String, String> getSimTypes() throws WebException;
 }

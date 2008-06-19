@@ -227,6 +227,11 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    public void terminateSession() {
+            HttpSession session = this.getThreadLocalRequest().getSession();
+            session.setAttribute(OpenIDServlet.openIdCookieName, null);
+    }
+
     public void updateListener(ListenerDetails lD) throws WebException {
         logger.info("UpdateListener :: "+lD.openID);
         try {

@@ -29,5 +29,6 @@ public interface MusicSearchInterfaceAsync {
        public void getLogInDetails(AsyncCallback callback) throws WebException;
        public void getUserTagCloud(String lastfmUser, String simTypeName, AsyncCallback callback) throws WebException;
        public void updateListener(ListenerDetails lD, AsyncCallback callback) throws WebException;
+       public void terminateSession(AsyncCallback callback);
        public void getSimTypes(AsyncCallback callback) throws WebException;
 }
