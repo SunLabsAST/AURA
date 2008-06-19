@@ -1015,6 +1015,12 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         stop = (StopWords) ps.getComponent(PROP_STOPWORDS);
     }
     
+    public boolean ready() throws RemoteException {
+        //
+        // We're ready if the trie has all of its nodes.
+        return trie.isComplete();
+    }
+    
     public void registerPartitionCluster(PartitionCluster pc)
             throws RemoteException {
         logger.info("Adding partition cluster: " + pc.getPrefix());
@@ -1148,8 +1154,10 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
     public void stop() {
         try {
+            logger.info("Shutting down dsHead");
             cm.shutdown();
-            close();
+            logger.info("CM shutdown");
+//            close();
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to close DataStoreHead cleanly", e);
         }

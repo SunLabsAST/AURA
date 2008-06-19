@@ -15,6 +15,15 @@ import java.rmi.RemoteException;
  */
 
 public interface DataStore extends ItemStore, ItemSearch, Component, Remote {
+    
+    /**
+     * Indicates that the data store is ready to begin operation.  This will be
+     * true when all of the partition clusters have their replicants available.
+     * @return <code>true</code> if the data store is ready to begin processing 
+     * data, <code>false</code> otherwise.
+     * @throws java.rmi.RemoteException
+     */
+    public boolean ready() throws RemoteException;
 
     public void registerPartitionCluster(PartitionCluster pc)
             throws RemoteException;
