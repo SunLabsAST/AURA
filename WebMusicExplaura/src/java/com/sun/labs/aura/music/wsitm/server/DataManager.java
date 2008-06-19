@@ -540,23 +540,21 @@ public class DataManager implements Configurable {
      * @param lD his listenerDetails obtained from his active session
      * @return his listenerDetails with any modifications that were necessary
      */
-    public ListenerDetails establishUserConnection(ListenerDetails lD) throws AuraException {
-        Listener l=null;
-        try {
-            l = mdb.getListener(lD.openID);
+    public ListenerDetails establishUserConnection(ListenerDetails lD) throws AuraException, RemoteException {
+        Listener l = null;
 
-            if (l == null) {
-                logger.info("Creating new user in datastore: " + lD.openID);
-                l = mdb.enrollListener(lD.openID);
-            } else {
-                logger.info("Retrieved user from datastore: " + lD.openID);
-            }
+        l = mdb.getListener(lD.openID);
 
-            l = syncListeners(l, lD);
-            mdb.updateListener(l);
-        } catch (RemoteException rx) {
-            throw new AuraException("Error communicating with item store", rx);
+        if (l == null) {
+            logger.info("Creating new user in datastore: " + lD.openID);
+            l = mdb.enrollListener(lD.openID);
+        } else {
+            logger.info("Retrieved user from datastore: " + lD.openID);
         }
+
+        l = syncListeners(l, lD);
+        mdb.updateListener(l);
+
         return lD;
 
     }
