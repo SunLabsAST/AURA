@@ -9,8 +9,13 @@
 -->
 
 <config>
-    <property name="auraPolicy" value="/big/aura-test/dist/jsk-all.policy"/>
+    <!-- Where the aura data lives by default -->
+    <property name="auraHome" value="/aura"/>
 
+    <!-- Location of the JINI security policy -->
+    <property name="auraPolicy" value="/aura/dist/jsk-all.policy"/>
+
+    <!-- The JINI group to register under by default -->
     <property name="auraGroup" value="Aura"/>
 
     <!-- A component registry that will be used to lookup and register components. -->
