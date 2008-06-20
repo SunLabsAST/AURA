@@ -10,8 +10,10 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
+import com.sun.labs.aura.util.Tag;
 import java.rmi.RemoteException;
 import java.util.EnumSet;
+import java.util.List;
 
 /**
  *
@@ -23,7 +25,10 @@ public class Listener extends ItemAdapter {
     public final static String FIELD_GENDER =           "LISTENER_GENDER";
     public final static String FIELD_LAST_FM_NAME =     "LISTENER_LAST_FM_NAME";
     public final static String FIELD_PANDORA_NAME =     "LISTENER_PANDORA_NAME";
-    public final static String FIELD_LOCALE_COUNTRY =  "LISTENER_LOCALE_COUNTRY";
+    public final static String FIELD_LOCALE_COUNTRY =   "LISTENER_LOCALE_COUNTRY";
+    public final static String FIELD_ARTIST =           "LISTENER_ARTIST";
+    public final static String FIELD_SOCIAL_TAGS =      Artist.FIELD_SOCIAL_TAGS;
+
     public enum Gender { Male, Female, Unknown };
 
     public  final static int STATE_INITIAL_LASTFM_CRAWL = 1;
@@ -37,6 +42,12 @@ public class Listener extends ItemAdapter {
             ds.defineField(Item.ItemType.USER, FIELD_LAST_FM_NAME);
             ds.defineField(Item.ItemType.USER, FIELD_PANDORA_NAME);
             ds.defineField(Item.ItemType.USER, FIELD_LOCALE_COUNTRY);
+            ds.defineField(Item.ItemType.USER, FIELD_SOCIAL_TAGS, EnumSet.of(
+                    Item.FieldCapability.SEARCH,
+                    Item.FieldCapability.SIMILARITY), Item.FieldType.STRING);
+            ds.defineField(Item.ItemType.USER, FIELD_ARTIST, 
+                    EnumSet.of(Item.FieldCapability.MATCH, Item.FieldCapability.SIMILARITY),
+                    Item.FieldType.STRING);
 
             ds.defineField(Item.ItemType.USER, FIELD_YOB,
                     EnumSet.of(Item.FieldCapability.MATCH,
@@ -113,5 +124,59 @@ public class Listener extends ItemAdapter {
     
     public int getCurrentYear() {
         return 2008;        // FIX ME
+    }
+
+    /**
+     * Gets the artists that have been listened to  
+     * @return tag map
+     */
+    public List<Tag> getFavoriteArtist() {
+        return getTagsAsList(FIELD_ARTIST);
+    }
+
+    /**
+     * Adds a an artist to the artisttag
+     * @param mbaid the musicbrainzid of the artist
+     * @param count tag count
+     */
+    public void addFavoriteArtist(String mbaid, int count) {
+        addTag(FIELD_ARTIST, mbaid, count);
+    }
+
+    public void clearFavoriteArtists() {
+        clearTagMap(FIELD_ARTIST);
+    }
+
+    /**
+     * Gets the artist's social tags 
+     * @return tag map
+     */
+    public List<Tag> getSocialTags() {
+        return getTagsAsList(FIELD_SOCIAL_TAGS);
+    }
+
+    /**
+     * Adds a social tag to the artist
+     * @param tag name of the tag
+     * @param count tag count
+     */
+    public void addSocialTag(String tag, int count) {
+        addTag(FIELD_SOCIAL_TAGS, tag, count);
+    }
+
+    /**
+     * Sets a social tag to the artist
+     * @param tag name of the tag
+     * @param count tag count
+     */
+    public void setSocialTag(String tag, int count) {
+        setTag(FIELD_SOCIAL_TAGS, tag, count);
+    }
+
+    /**
+     * clears all social tags for this listener
+     */
+    public void clearSocialTags() {
+        clearTagMap(FIELD_SOCIAL_TAGS);
     }
 }

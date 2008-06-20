@@ -16,6 +16,8 @@ import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.Recommendation;
+import com.sun.labs.aura.music.RecommendationType;
 import com.sun.labs.aura.music.crawler.TagCrawler;
 import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
@@ -329,6 +331,7 @@ public class MusicShell implements AuraService, Configurable {
         });
 
         shell.add("addListener", new CommandInterface() {
+
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
                 String name = args[1];
                 String lastfmName = args.length > 2 ? args[2] : null;
@@ -354,20 +357,28 @@ public class MusicShell implements AuraService, Configurable {
         });
 
         shell.add("rec", new CommandInterface() {
+
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
-                if (args.length != 2) {
-                    return "Usage: rec listener";
+                if (args.length != 3) {
+                    return "Usage: rec listener rtype";
                 } else {
                     String listenerID = args[1];
+                    RecommendationType rtype = null;
+                    rtype = getRecommendationType(args[2]);
+                    if (rtype == null) {
+                        return "Can't find rectype " + rtype;
+                    }
+                    
                     Listener listener = musicDatabase.getListener(listenerID);
                     if (listener == null) {
                         return "Can't find listener " + listenerID;
                     }
 
-                    List<Scored<Artist>> recs = musicDatabase.getRecommendations(listener, sutils.getHits());
-                    for (Scored<Artist> sartist : recs) {
-                        System.out.printf("%.2f %s %s\n", sartist.getScore(), 
-                                sartist.getItem().getKey(), sartist.getItem().getName());
+                    List<Recommendation> recommendations = rtype.getRecommendations(listener, sutils.getHits(), null);
+                    
+                    for (Recommendation r : recommendations) {
+                        Artist artist = musicDatabase.artistLookup(r.getId());
+                        System.out.printf(" %.2f  %s\n    %s\n", r.getScore(), artist.getName(), r.getExplanation());
                     }
                     return "";
                 }
@@ -375,6 +386,22 @@ public class MusicShell implements AuraService, Configurable {
 
             public String getHelp() {
                 return "gets recommendations for a listener";
+            }
+        });
+
+
+
+        shell.add("rectypes", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                for (RecommendationType rtype : musicDatabase.getArtistRecommendationTypes()) {
+                    System.out.println("    " + rtype.getName() + " - " + rtype.getDescription());
+                }
+                return "";
+            }
+
+            public String getHelp() {
+                return "shows available rec types";
             }
         });
 
@@ -525,6 +552,15 @@ public class MusicShell implements AuraService, Configurable {
         } else {
             System.out.println("Skipping " + artist.getName());
         }
+    }
+
+    private RecommendationType getRecommendationType(String rtypeName) {
+        for (RecommendationType rtype : musicDatabase.getArtistRecommendationTypes()) {
+            if (rtype.getName().equals(rtypeName)) {
+                return rtype;
+            }
+        }
+        return null;
     }
 
     /**
