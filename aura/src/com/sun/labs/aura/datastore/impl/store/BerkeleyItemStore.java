@@ -360,13 +360,32 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
 
     public Attention attend(Attention att) throws AuraException {
         //
-        // Create the attention and add references to it from the item and
-        // the user. (bdb wrapper does this)
-        PersistentAttention pa = new PersistentAttention(att);
-        bdb.putAttention(pa);
-        return pa;
+        // Make a persistent attention and give it to the BDB
+        if (att instanceof PersistentAttention) {
+            bdb.putAttention((PersistentAttention)att);
+            return att;
+        } else {
+            PersistentAttention pa = new PersistentAttention(att);
+            bdb.putAttention(pa);
+            return pa;
+        }
     }
-    
+
+    public List<Attention> attend(List<Attention> attns) throws AuraException {
+        //
+        // Make persistent attentions and feed them to the BDB
+        List<PersistentAttention> pas = new ArrayList<PersistentAttention>(attns.size());
+        for (Attention a : attns) {
+            if (a instanceof PersistentAttention) {
+                pas.add((PersistentAttention)a);
+            } else {
+                pas.add(new PersistentAttention(a));
+            }
+        }
+        bdb.putAttention(pas);
+        return new ArrayList<Attention>(pas);
+    }
+
     public void removeAttention(String srcKey, String targetKey,
                                 Attention.Type type)
             throws AuraException {

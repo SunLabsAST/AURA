@@ -12,7 +12,7 @@ import com.sun.labs.aura.datastore.Attention.Type;
  * An attention implementation that is persisted in the Berkeley DB Java
  * Edition.
  */
-@Entity(version=2)
+@Entity(version=3)
 public class PersistentAttention implements Attention {
 
     /** The unique ID */
@@ -59,6 +59,18 @@ public class PersistentAttention implements Attention {
     @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     private StringAndTimeKey targetAndTime;
     
+    /**
+     * The meta-data string associated with this attention
+     */
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
+    private String metaString;
+    
+    /**
+     * The meta-data number associated with this attention
+     */
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
+    private Long metaLong;
+    
     /*
      * Maybe add an item type to speed up some queries?
      */
@@ -79,6 +91,8 @@ public class PersistentAttention implements Attention {
         this.targetKey = attn.getTargetKey();
         this.timeStamp = attn.getTimeStamp();
         this.type = attn.getType().ordinal();
+        this.metaLong = attn.getNumber();
+        this.metaString = attn.getString();
         this.sourceAndTime = new StringAndTimeKey(sourceKey, timeStamp);
         this.targetAndTime = new StringAndTimeKey(targetKey, timeStamp);
     }
@@ -122,6 +136,22 @@ public class PersistentAttention implements Attention {
         return null;
     }
     
+    public void setString(String string) {
+        this.metaString = string;
+    }
+    
+    public String getString() {
+        return metaString;
+    }
+
+    public void setNumber(Long num) {
+        this.metaLong = num;
+    }
+    
+    public Long getNumber() {
+        return metaLong;
+    }
+    
     @Override
     public boolean equals(Object o) {
         if (o instanceof Attention) {
@@ -130,6 +160,30 @@ public class PersistentAttention implements Attention {
                     other.getTargetKey().equals(getTargetKey()) &&
                     other.getTimeStamp() == getTimeStamp() &&
                     other.getType().equals(getType())) {
+                if (other.getString() != null) {
+                    if (metaString == null) {
+                        return false;
+                    }
+                    if (!other.getString().equals(metaString)) {
+                        return false;
+                    }
+                } else {
+                    if (metaString != null) {
+                        return false;
+                    }
+                }
+                if (other.getNumber() != null) {
+                    if (metaLong == null) {
+                        return false;
+                    }
+                    if (!other.getNumber().equals(metaLong)) {
+                        return false;
+                    }
+                } else {
+                    if (metaLong != null) {
+                        return false;
+                    }
+                }
                 return true;
             }
         }

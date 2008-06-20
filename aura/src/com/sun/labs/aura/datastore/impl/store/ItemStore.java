@@ -218,6 +218,19 @@ public interface ItemStore {
      */
     public Attention attend(Attention att)
             throws AuraException, RemoteException;
+
+    /**
+     * Adds attention to the the ItemStore.  The Attention should contain
+     * the User, the Item, the type of attention, and optionally a value
+     * associated with the type.
+     * 
+     * @param attns the list of attentions that were paid
+     * 
+     * @throws com.sun.labs.aura.aardvark.util.AuraException in the event that
+     *         an attention is invalid
+     */
+    public List<Attention> attend(List<Attention> attns)
+            throws AuraException, RemoteException;
     
     /**
      * Remove attention of a particular type between a source object and a 

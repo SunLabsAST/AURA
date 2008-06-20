@@ -9,6 +9,7 @@ import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.Transaction;
+import com.sleepycat.je.TransactionConfig;
 import com.sleepycat.persist.EntityCursor;
 import com.sleepycat.persist.EntityIndex;
 import com.sleepycat.persist.EntityJoin;
@@ -27,6 +28,7 @@ import com.sun.labs.aura.datastore.impl.store.persist.UserImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.StringAndTimeKey;
 import com.sun.labs.aura.util.Times;
+import com.sun.labs.minion.util.StopWatch;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -132,6 +134,11 @@ public class BerkeleyDataWrapper {
 
     protected Logger log;
 
+    protected int txCnt = 0;
+    protected int txTot = 0;
+    protected int attCurTot = 0;
+    protected StopWatch txsw = new StopWatch();
+    protected StopWatch txswCurr = new StopWatch();
     /**
      * Constructs a database wrapper.
      * 
@@ -442,19 +449,33 @@ public class BerkeleyDataWrapper {
     
     /**
      * Puts an attention into the entry store.  Attentions should never be
-     * overwritten.  Since Users and Items have links to their attentions by
-     * ID, we need to update that table too.
+     * overwritten.
      * 
      * @param pa the attention
      */
     public void putAttention(PersistentAttention pa) throws AuraException {
         int numRetries = 0;
+        txsw.start();
+        txswCurr.start();
         while(numRetries < MAX_DEADLOCK_RETRIES) {
             Transaction txn = null;
             try {
-                txn = dbEnv.beginTransaction(null, null);
+                TransactionConfig txConf = new TransactionConfig();
+                txConf.setWriteNoSync(true);
+                txn = dbEnv.beginTransaction(null, txConf);
                 allAttn.putNoOverwrite(txn, pa);
                 txn.commit();
+                txsw.stop();
+                txswCurr.stop();
+                txCnt++;
+                if (txCnt >= 5000) {
+                    txTot += txCnt;
+                    double avgTot = txsw.getTime() / (double)txTot;
+                    double avgCur = txswCurr.getTime() / (double)txCnt;
+                    log.info(" avg length over last 5000 txns: " + avgCur + "ms (" + numRetries + ")");
+                    txCnt = 0;
+                    txswCurr.reset();
+                }
                 return;
             } catch(DeadlockException e) {
                 try {
@@ -474,6 +495,62 @@ public class BerkeleyDataWrapper {
             }
         }
         throw new AuraException("putAttn failed for " + pa + " after " +
+                numRetries + " retries");
+    }
+
+    /**
+     * Puts attention into the entry store.  Attentions should never be
+     * overwritten.
+     * 
+     * @param pa the attention
+     */
+    public void putAttention(List<PersistentAttention> pas) throws AuraException {
+        int numRetries = 0;
+        txsw.start();
+        txswCurr.start();
+        while(numRetries < MAX_DEADLOCK_RETRIES) {
+            Transaction txn = null;
+            try {
+                TransactionConfig txConf = new TransactionConfig();
+                txConf.setWriteNoSync(true);
+                txn = dbEnv.beginTransaction(null, txConf);
+                for (PersistentAttention pa : pas) {
+                    allAttn.putNoOverwrite(txn, pa);
+                }
+                txn.commit();
+                txsw.stop();
+                txswCurr.stop();
+                txCnt++;
+                attCurTot += pas.size();
+                if (txCnt >= 100) {
+                    txTot += txCnt;
+                    double avgTot = txsw.getTime() / (double)txTot;
+                    double avgCur = txswCurr.getTime() / (double)txCnt;
+                    int attnPer = attCurTot / txCnt;
+                    log.info(" avg length over last " + txCnt + " txns: " + avgCur + "ms (" + attnPer + " a/t)");
+                    txCnt = 0;
+                    txswCurr.reset();
+                    attCurTot = 0;
+                }
+                return;
+            } catch(DeadlockException e) {
+                try {
+                    txn.abort();
+                    numRetries++;
+                } catch(DatabaseException ex) {
+                    throw new AuraException("Txn abort failed", ex);
+                }
+            } catch(DatabaseException e) {
+                try {
+                    if (txn != null) {
+                        txn.abort();
+                    }
+                } catch(DatabaseException ex) {
+                }
+                throw new AuraException("Transaction failed", e);
+            }
+        }
+        throw new AuraException("putAttns failed for <list> after " +
                 numRetries + " retries");
     }
 
