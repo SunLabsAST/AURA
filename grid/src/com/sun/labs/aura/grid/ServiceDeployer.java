@@ -47,7 +47,7 @@ public class ServiceDeployer {
     }
 
     public void deploy(String jarFile, String[] jvmArgs,
-            String config, String starter) throws Exception {
+            String config, String starter, String instance) throws Exception {
 
         String classpath = GridUtil.auraDistMntPnt + "/dist/aura.jar:" +
                 GridUtil.auraDistMntPnt + "/dist/aardvark.jar:" +
@@ -58,9 +58,12 @@ public class ServiceDeployer {
         }
         
         String[] cmd = new String[]{
+            "-DauraHome=" + GridUtil.auraDistMntPnt,
+            "-DauraInstance=" + instance,
+            "-DauraGroup=" + instance + "-aura",
             "-cp",
             classpath,
-                "com.sun.labs.aura.AuraServiceStarter",
+            "com.sun.labs.aura.AuraServiceStarter",
             config,
             starter
         };
@@ -195,7 +198,7 @@ public class ServiceDeployer {
             ServiceDeployer deployer =
                     new ServiceDeployer(instance, gridURL, user, passwd);
             deployer.deploy(jarFile, jvmArgs.toArray(new String[0]), config,
-                    starter);
+                    starter, instance);
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Error deploying service", ex);
         }

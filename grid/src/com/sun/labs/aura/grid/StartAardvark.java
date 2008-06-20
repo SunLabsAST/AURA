@@ -8,6 +8,9 @@ package com.sun.labs.aura.grid;
 import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistration;
+import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.util.props.ConfigInteger;
+import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.util.UUID;
@@ -18,6 +21,11 @@ import java.util.logging.Level;
  */
 public class StartAardvark extends Aardvark {
 
+    @ConfigInteger(defaultValue=10)
+    public static final String PROP_AURA_WAIT = "auraWait";
+    
+    private int auraWait;
+    
     @Override
     public String serviceName() {
         return "StartAardvark";
@@ -65,11 +73,22 @@ public class StartAardvark extends Aardvark {
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
-        numCrawlers = ps.getInt(PROP_NUM_CRAWLERS);
+        auraWait = ps.getInt(PROP_AURA_WAIT);
     }
 
     public void start() {
         try {
+            logger.info("Starting aardvark");
+            DataStore ds = (DataStore) cm.lookup("dataStore");
+            logger.info("Got datastore: " + ds);
+            int tries = 0;
+            while(tries < auraWait) {
+                if(ds.ready()) {
+                    break;
+                }
+                Thread.sleep(2000);
+                tries++;
+            }
             startAardvarkProcesses();
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Error starting Aardvark", ex);
