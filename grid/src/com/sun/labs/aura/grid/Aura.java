@@ -36,13 +36,13 @@ public abstract class Aura extends ServiceAdapter {
     protected String[] prefixCodeList;
 
     private FileSystem auraDist;
-    
+
     private FileSystem logFS;
-    
+
     private FileSystem cacheFS;
 
-    private Map<String, FileSystem> repFSMap = new HashMap<String,FileSystem>();
-    
+    private Map<String, FileSystem> repFSMap = new HashMap<String, FileSystem>();
+
     private Network network;
 
     public void getAuraFilesystems() throws Exception {
@@ -51,7 +51,7 @@ public abstract class Aura extends ServiceAdapter {
         auraDist = GridUtil.getAuraDistFS(grid, instance);
         logFS = GridUtil.getAuraLogFS(grid, instance);
         cacheFS = GridUtil.getCacheFS(grid, instance);
-                
+
         //
         // Set up the file systems for each replicant
         for(String currPrefix : prefixCodeList) {
@@ -61,7 +61,7 @@ public abstract class Aura extends ServiceAdapter {
             logger.info("Made fs for prefix " + currPrefix);
         }
     }
-    
+
     protected void createAuraNetwork() throws Exception {
         try {
             // Try to create a customer network for the test
@@ -94,11 +94,11 @@ public abstract class Aura extends ServiceAdapter {
     public String getStatServiceName() {
         return instance + "-statSrv";
     }
-    
+
     public String getReggieName() {
         return instance + "-reggie";
     }
-    
+
     /**
      * Gets a basic process configuration 
      * @param cwd the working directory for the configuration
@@ -109,7 +109,7 @@ public abstract class Aura extends ServiceAdapter {
      */
     protected ProcessConfiguration getProcessConfig(
             String cwd,
-            String logFile, 
+            String logFile,
             Collection<FileSystemMountParameters> extraMounts) {
         ProcessConfiguration pc = new ProcessConfiguration();
         pc.setSystemSinks(GridUtil.logFSMntPnt + "/" + logFile, false);
@@ -130,21 +130,26 @@ public abstract class Aura extends ServiceAdapter {
     }
 
     protected ProcessConfiguration getReggieConfig() throws Exception {
-        String cmdLine =
-                "-Djava.security.policy=" + GridUtil.auraDistMntPnt +
-                "/jini/jsk-all.policy" +
-                " -Djava.util.logging.config.file=" + GridUtil.auraDistMntPnt +
-                "/jini/logging.properties" +
-                " -jar " + GridUtil.auraDistMntPnt + "/jini/lib/start.jar" +
-                " " + GridUtil.auraDistMntPnt + "/jini/nobrowse.config";
+        String[] cmdLine = new String[]{
+            "-DauraGroup=" + instance + "-aura",
+            "-Djava.security.policy=" + GridUtil.auraDistMntPnt +
+            "/jini/jsk-all.policy",
+            "-Djava.util.logging.config.file=" + GridUtil.auraDistMntPnt +
+            "/jini/logging.properties",
+            "-jar",
+            GridUtil.auraDistMntPnt + "/jini/lib/start.jar",
+            GridUtil.auraDistMntPnt + "/jini/nobrowse.config"
+        };
 
         // create a configuration and set relevant properties
-        ProcessConfiguration pc = getProcessConfig(GridUtil.auraDistMntPnt + "/jini", "reggie.out", Collections.EMPTY_LIST);
-        pc.setCommandLine(cmdLine.trim().split(" "));
+        ProcessConfiguration pc = getProcessConfig(GridUtil.auraDistMntPnt +
+                "/jini", "reggie.out", Collections.EMPTY_LIST);
+        pc.setCommandLine(cmdLine);
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance + "-reggie").getUUID());
+        addresses.add(GridUtil.getAddressFor(grid, network, instance + "-reggie").
+                getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);
@@ -153,23 +158,27 @@ public abstract class Aura extends ServiceAdapter {
     }
 
     protected ProcessConfiguration getDataStoreHeadConfig() throws Exception {
-        String cmdLine =
-                "-Xmx2G" +
-                " -DauraHome=" + GridUtil.auraDistMntPnt +
-                " -jar " + GridUtil.auraDistMntPnt + "/dist/aardvark.jar" +
-                " /com/sun/labs/aura/aardvark/resource/dataStoreHeadConfig.xml" +
-                " dataStoreHeadStarter";
+        String[] cmdLine = new String[] {
+                "-Xmx2G",
+                "-DauraGroup=" + instance + "-aura",
+                "-DauraHome=" + GridUtil.auraDistMntPnt,
+                "-jar",
+                GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+                "/com/sun/labs/aura/aardvark/resource/dataStoreHeadConfig.xml",
+                "dataStoreHeadStarter"};
 
         // create a configuration and set relevant properties
-        ProcessConfiguration pc = getProcessConfig(GridUtil.logFSMntPnt, "dsHead.out", 
-            Collections.EMPTY_LIST);
-        pc.setCommandLine(cmdLine.trim().split(" "));
+        ProcessConfiguration pc = getProcessConfig(GridUtil.logFSMntPnt,
+                "dsHead.out",
+                Collections.EMPTY_LIST);
+        pc.setCommandLine(cmdLine);
         pc.setSystemSinks(GridUtil.logFSMntPnt + "/dsHead.out", false);
 
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance + "-dsHead").getUUID());
+        addresses.add(GridUtil.getAddressFor(grid, network, instance + "-dsHead").
+                getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);
@@ -179,20 +188,24 @@ public abstract class Aura extends ServiceAdapter {
 
     protected ProcessConfiguration getPartitionClusterConfig(String prefix)
             throws Exception {
-        String cmdLine =
-                "-DauraHome=" + GridUtil.auraDistMntPnt +
-                " -Dprefix=" + prefix +
-                " -jar " + GridUtil.auraDistMntPnt + "/dist/aardvark.jar" +
-                " /com/sun/labs/aura/aardvark/resource/partitionClusterConfig.xml" +
-                " partitionClusterStarter";
+        String[] cmdLine = new String[] {
+                "-DauraHome=" + GridUtil.auraDistMntPnt,
+                "-DauraGroup=" + instance + "-aura",
+                "-Dprefix=" + prefix,
+                "-jar",
+                GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+                "/com/sun/labs/aura/aardvark/resource/partitionClusterConfig.xml",
+                "partitionClusterStarter"};
 
         // create a configuration and set relevant properties
-        ProcessConfiguration pc = getProcessConfig(GridUtil.logFSMntPnt, "pc-" + prefix + ".out", Collections.EMPTY_LIST);
-        pc.setCommandLine(cmdLine.trim().split(" "));
+        ProcessConfiguration pc = getProcessConfig(GridUtil.logFSMntPnt, "pc-" +
+                prefix + ".out", Collections.EMPTY_LIST);
+        pc.setCommandLine(cmdLine);
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance + "-part-" + prefix).getUUID());
+        addresses.add(GridUtil.getAddressFor(grid, network,
+                instance + "-part-" + prefix).getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);
@@ -200,30 +213,35 @@ public abstract class Aura extends ServiceAdapter {
         return pc;
     }
 
-    protected ProcessConfiguration getReplicantConfig(String replicantConfig, String prefix)
+    protected ProcessConfiguration getReplicantConfig(String replicantConfig,
+            String prefix)
             throws Exception {
-        String cmdLine =
-                "-Xmx3g" +
-                " -DauraHome=" + GridUtil.auraDistMntPnt +
-                " -DstartingDataDir=" + GridUtil.auraDistMntPnt +
-                "/classifier/starting.idx" +
-                " -Dprefix=" + prefix +
-                " -DdataFS=/files/data/" + prefix +
-                " -jar " + GridUtil.auraDistMntPnt + "/dist/aardvark.jar" +
-                " " + replicantConfig +
-                " replicantStarter";
+        String[] cmdLine = new String[] {
+                "-Xmx3g",
+                "-DauraHome=" + GridUtil.auraDistMntPnt,
+                "-DauraGroup=" + instance + "-aura",
+                "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
+                "/classifier/starting.idx",
+                "-Dprefix=" + prefix,
+                "-DdataFS=/files/data/" + prefix,
+                "-jar",
+                GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+                replicantConfig,
+                "replicantStarter"};
 
         // create a configuration and set relevant properties
-        List<FileSystemMountParameters> extraMounts = 
+        List<FileSystemMountParameters> extraMounts =
                 Collections.singletonList(new FileSystemMountParameters(
                 repFSMap.get(instance + "-" + prefix).getUUID(),
                 "data"));
-        ProcessConfiguration pc = getProcessConfig(GridUtil.logFSMntPnt, "rep-" + prefix + ".out", extraMounts);
-        pc.setCommandLine(cmdLine.trim().split(" "));
+        ProcessConfiguration pc = getProcessConfig(GridUtil.logFSMntPnt,
+                "rep-" + prefix + ".out", extraMounts);
+        pc.setCommandLine(cmdLine);
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance + "-rep-" + prefix).getUUID());
+        addresses.add(GridUtil.getAddressFor(grid, network, instance + "-rep-" +
+                prefix).getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);
@@ -237,19 +255,23 @@ public abstract class Aura extends ServiceAdapter {
     }
 
     protected ProcessConfiguration getStatServiceConfig() throws Exception {
-        String cmdLine =
-                "-DauraHome=" + GridUtil.auraDistMntPnt +
-                " -jar " + GridUtil.auraDistMntPnt + "/dist/aardvark.jar" +
-                " /com/sun/labs/aura/aardvark/resource/statServiceConfig.xml" +
-                " statServiceStarter";
+        String[] cmdLine = new String[] {
+                "-DauraHome=" + GridUtil.auraDistMntPnt,
+                "-DauraGroup=" + instance + "-aura",
+                "-jar",
+                GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+                "/com/sun/labs/aura/aardvark/resource/statServiceConfig.xml",
+                "statServiceStarter"};
 
         // create a configuration and set relevant properties
-        ProcessConfiguration pc = getProcessConfig(GridUtil.logFSMntPnt, "statService.out", Collections.EMPTY_LIST);
-        pc.setCommandLine(cmdLine.trim().split(" "));
+        ProcessConfiguration pc = getProcessConfig(GridUtil.logFSMntPnt,
+                "statService.out", Collections.EMPTY_LIST);
+        pc.setCommandLine(cmdLine);
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance + "-statSrv").getUUID());
+        addresses.add(GridUtil.getAddressFor(grid, network, instance +
+                "-statSrv").getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);
@@ -259,7 +281,7 @@ public abstract class Aura extends ServiceAdapter {
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
-        
+
         //
         // Figure out how many nodes are in our data store and create the prefixes.
         nNodes = ps.getInt(PROP_N_NODES);

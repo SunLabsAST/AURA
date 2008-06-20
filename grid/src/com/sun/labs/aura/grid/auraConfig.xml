@@ -9,9 +9,15 @@
 -->
 <config>
     
-    <component name="startAura" type="com.sun.labs.aura.grid.StartAura"/>
+    <property name="auraInstance" value="live"/>
     
-    <component name="stopAura" type="com.sun.labs.aura.grid.StopAura"/>
+    <component name="startAura" type="com.sun.labs.aura.grid.StartAura">
+        <property name="instance" value="${auraInstance}"/>
+    </component>
+    
+    <component name="stopAura" type="com.sun.labs.aura.grid.StopAura">
+        <property name="instance" value="${auraInstance}"/>
+    </component>
     
     <component name="start" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
