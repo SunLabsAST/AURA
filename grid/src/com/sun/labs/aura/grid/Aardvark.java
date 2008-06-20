@@ -66,7 +66,8 @@ public abstract class Aardvark extends ServiceAdapter {
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
             "-DcacheDir=" + cacheFSMntPnt,
-            "-jar " + GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+            "-jar",
+            GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
             "/com/sun/labs/aura/aardvark/resource/feedSchedulerConfig.xml",
             "feedSchedulerStarter"
         };
@@ -107,7 +108,8 @@ public abstract class Aardvark extends ServiceAdapter {
         String[] cmdLine = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
-            "-jar " + GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+            "-jar",
+            GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
             "/com/sun/labs/aura/aardvark/resource/feedManagerConfig.xml",
             "feedManagerStarter"
         };
@@ -150,7 +152,8 @@ public abstract class Aardvark extends ServiceAdapter {
         String[] cmdLine = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
-            "-jar " + GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+            "-jar", 
+            GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
             "/com/sun/labs/aura/aardvark/resource/recommenderManagerConfig.xml",
             "recommenderManagerStarter"
         };
@@ -187,7 +190,8 @@ public abstract class Aardvark extends ServiceAdapter {
         String[] cmdLine = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
-            "-jar " + GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+            "-jar",
+            GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
             "/com/sun/labs/aura/aardvark/resource/aardvarkConfig.xml",
             "aardvarkStarter"
         };
