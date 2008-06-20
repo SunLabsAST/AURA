@@ -1,10 +1,32 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-
 <config>
     
-    <component name="startAardvark" type="com.sun.labs.aura.grid.StartAardvark"/>
+    <!-- Where the aura data lives -->
+    <property name="auraHome" value="/aura"/>
+    <property name="auraDistDir" value="${auraHome}/dist"/>
+    <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
+    <property name="auraGroup" value="Aura"/>
     
-    <component name="stopAardvark" type="com.sun.labs.aura.grid.StopAardvark"/>
+    <property name="auraInstance" value="live"/>
+    
+   <!-- A component registry that will be used to lookup and register components. -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>${auraGroup}</item>
+        </propertylist>
+        <property name="securityPolicy" value="${auraPolicy}"/>
+    </component>
+    
+    <!-- An aardvark system -->
+    <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore">
+    
+    <component name="startAardvark" type="com.sun.labs.aura.grid.StartAardvark"/>
+        <property name="instance" value="${auraInstance}"/>
+    </component>
+    
+    <component name="stopAardvark" type="com.sun.labs.aura.grid.StopAardvark">
+        <property name="instance" value="${auraInstance}"/>
+    </component>
     
     <component name="start" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
@@ -12,7 +34,6 @@
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
-    
     <component name="stop" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>stopAardvark</item>

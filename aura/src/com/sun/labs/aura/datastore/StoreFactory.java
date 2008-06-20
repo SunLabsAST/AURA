@@ -66,7 +66,34 @@ public class StoreFactory {
      */
     public static Attention newAttention(Item source, Item target,
                                          Attention.Type type) {
-        return new PersistentAttention(source.getKey(), target.getKey(), type);
+        return newAttention(source.getKey(), target.getKey(), type);
+    }
+
+    /**
+     * Constructs a new attention object with the given attributes
+     * 
+     * @param source the item paying attention
+     * @param target the item attended to
+     * @param type the type of attention paid
+     * 
+     * @return the attention object
+     */
+    public static Attention newAttention(Item source, Item target,
+                                         Attention.Type type, String data) {
+        return newAttention(source.getKey(), target.getKey(), type, data);
+    }
+    /**
+     * Constructs a new attention object with the given attributes
+     * 
+     * @param source the item paying attention
+     * @param target the item attended to
+     * @param type the type of attention paid
+     * 
+     * @return the attention object
+     */
+    public static Attention newAttention(Item source, Item target,
+                                         Attention.Type type, Long num) {
+        return newAttention(source.getKey(), target.getKey(), type, num);
     }
 
     /**
@@ -81,6 +108,40 @@ public class StoreFactory {
     public static Attention newAttention(String sourceKey, String targetKey,
                                          Attention.Type type) {
         return new PersistentAttention(sourceKey, targetKey, type);
+    }
+
+    /**
+     * Constructs a new attention object with the given attributes
+     * 
+     * @param sourceKey the key of the item paying attention
+     * @param targetKey the key of the item attended to
+     * @param type the type of attention paid
+     * 
+     * @return the attention object
+     */
+    public static Attention newAttention(String sourceKey, String targetKey,
+                                         Attention.Type type, String data) {
+        PersistentAttention attn =
+                new PersistentAttention(sourceKey, targetKey, type);
+        attn.setString(data);
+        return attn;
+    }
+
+    /**
+     * Constructs a new attention object with the given attributes
+     * 
+     * @param sourceKey the key of the item paying attention
+     * @param targetKey the key of the item attended to
+     * @param type the type of attention paid
+     * 
+     * @return the attention object
+     */
+    public static Attention newAttention(String sourceKey, String targetKey,
+                                         Attention.Type type, Long num) {
+        PersistentAttention attn =
+                new PersistentAttention(sourceKey, targetKey, type);
+        attn.setNumber(num);
+        return attn;
     }
 
 }

@@ -8,8 +8,6 @@ import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
-import com.sun.labs.aura.datastore.ItemEvent;
-import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.recommender.TypeFilter;
@@ -31,6 +29,7 @@ public class MusicDatabase {
 
     private DataStore dataStore;
     private List<SimType> simTypes;
+    private List<RecommendationType> recTypes;
     private Random rng = new Random();
     private final String BEATLES_ID = "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
 
@@ -47,7 +46,7 @@ public class MusicDatabase {
         new Listener().defineFields(dataStore);
 
         initSimTypes();
-        //initRecommendationTypes();
+        initArtistRecommendationTypes();
     }
 
     private void initSimTypes() {
@@ -58,6 +57,14 @@ public class MusicDatabase {
         stypes.add(new FieldSimType("Related", "Similarity based upon related artists", Artist.FIELD_RELATED_ARTISTS));
         stypes.add(new AllSimType());
         simTypes = Collections.unmodifiableList(stypes);
+    }
+
+    private void initArtistRecommendationTypes() {
+        List<RecommendationType> rtypes = new ArrayList();
+        rtypes.add(new SimpleArtistRecommendationType());
+        rtypes.add(new SimToRecentArtistRecommender());
+        rtypes.add(new SimToUserTagCloud());
+        recTypes = Collections.unmodifiableList(rtypes);
     }
 
     /**
@@ -139,6 +146,11 @@ public class MusicDatabase {
         dataStore.attend(attention);
     }
 
+    public int getLatestRating(Listener listener, String artistID) {
+        // TODO: implement this once the new attention interface arrives
+        return 4;
+    }
+
     /**
      * Gets the Favorite artists IDs for a listener
      * @param listener the listener of interest
@@ -168,6 +180,33 @@ public class MusicDatabase {
         return results;
     }
 
+    public List<Scored<String>> getRecentTopArtistsAsIDs(Listener listener, int max) throws AuraException, RemoteException {
+        ScoredManager<String> sm = new ScoredManager();
+        List<Attention> attns = dataStore.getLastAttentionForSource(listener.getKey(), Attention.Type.PLAYED, max * 10);
+        for (Attention attn : attns) {
+            if (attn.getType() == Attention.Type.PLAYED) {
+                sm.accum(attn.getTargetKey(), 1);
+            } else if (attn.getType() == Attention.Type.LOVED) {
+                sm.accum(attn.getTargetKey(), 100);
+            }
+        }
+        return sm.getTopN(max);
+    }
+
+    public List<Scored<String>> getAllArtistsAsIDs(Listener listener) throws AuraException, RemoteException {
+        ScoredManager<String> sm = new ScoredManager();
+        List<Attention> attns = dataStore.getAttentionForSource(listener.getKey());
+        for (Attention attn : attns) {
+            if (attn.getType() == Attention.Type.PLAYED) {
+                sm.accum(attn.getTargetKey(), 1);
+            } else if (attn.getType() == Attention.Type.LOVED) {
+                sm.accum(attn.getTargetKey(), 100);
+            }
+        }
+        return sm.getAll();
+    }
+    
+
     public List<Scored<Artist>> getRecommendations(Listener listener, int max) throws AuraException, RemoteException {
         Set<String> skipIDS = getAttendedToArtists(listener);
         Artist artist = getRandomGoodArtistFromListener(listener);
@@ -189,7 +228,7 @@ public class MusicDatabase {
         attentions = filterOut(attentions, Attention.Type.DISLIKED);
         String id = BEATLES_ID;
         if (attentions.size() > 0) {
-            id =  selectRandom(attentions).getTargetKey();
+            id = selectRandom(attentions).getTargetKey();
         }
         return artistLookup(id);
     }
@@ -203,7 +242,6 @@ public class MusicDatabase {
         }
         return attentions;
     }
-
 
     private Set<String> getAttendedToArtists(Listener listener) throws AuraException, RemoteException {
         Set<String> ids = new HashSet();
@@ -319,11 +357,9 @@ public class MusicDatabase {
      * Gets the recommendatin types for the system.
      * @return
      */
-    /*
-    public List<RecommendationType> getRecommendationTypes() {
+    public List<RecommendationType> getArtistRecommendationTypes() {
         return recTypes;
     }
-     * */
 
     /**
      * Given an artist query, find the best matching artist
@@ -641,6 +677,120 @@ public class MusicDatabase {
 
         public List<Scored<String>> explainSimilarity(String artistID1, String artistID2, int count) throws AuraException {
             return artistExplainSimilarity(artistID1, artistID2, count);
+        }
+    }
+
+    private class SimpleArtistRecommendationType implements RecommendationType {
+
+        public String getName() {
+            return "SimpleArtist";
+        }
+
+        public String getDescription() {
+            return "a simple recommender that just returns artists that are similar to " +
+                    " a single artist, selected at random, that the listener likes";
+        }
+
+        public List<Recommendation> getRecommendations(Listener listener, int count, RecommendationProfile rp)
+                throws AuraException, RemoteException {
+            Set<String> skipIDS = getAttendedToArtists(listener);
+            Artist artist = getRandomGoodArtistFromListener(listener);
+            List<Recommendation> results = new ArrayList();
+            List<Scored<Artist>> simArtists = artistFindSimilar(artist.getKey(), count * 5);
+            for (Scored<Artist> sartist : simArtists) {
+                if (!skipIDS.contains(sartist.getItem().getKey())) {
+                    results.add(new Recommendation(sartist.getItem().getKey(),
+                            sartist.getScore(), "Similar to artist " + artist.getName()));
+                    if (results.size() >= count) {
+                        break;
+                    }
+                }
+            }
+            return results;
+        }
+
+        public ItemType getType() {
+            return ItemType.ARTIST;
+        }
+    }
+
+
+    private class  SimToRecentArtistRecommender implements RecommendationType {
+
+        public String getName() {
+            return "SimToRecent";
+        }
+
+        public String getDescription() {
+            return "Finds artists that are similar to the recently played artists";
+        }
+
+        public List<Recommendation> getRecommendations(Listener listener, int count, RecommendationProfile rp)
+                throws AuraException, RemoteException {
+            ArtistScoreManager sm = new ArtistScoreManager(true);
+            List<Scored<String>> artistIDs = getRecentTopArtistsAsIDs(listener, 20);
+            StringBuilder sb = new StringBuilder();
+            
+            sb.append("Similar to recently played artists like ");
+
+            for (Scored<String> seedArtist : artistIDs) {
+                Artist artist = artistLookup(seedArtist.getItem());
+                if (artist != null) {
+                    sb.append(artist.getName());
+                    sb.append(",");
+
+                    sm.addSeedArtist(artist);
+                    List<Scored<Artist>> simArtists = artistFindSimilar(seedArtist.getItem(),  count * 3);
+                    for (Scored<Artist> simArtist : simArtists) {
+                        sm.accum(simArtist.getItem(), seedArtist.getScore() * simArtist.getScore());
+                    }
+                }
+            }
+            
+            String reason = sb.toString();
+            List<Recommendation> results = new ArrayList();
+            for (Scored<Artist> sartist : sm.getTop(count)) {
+                results.add(new Recommendation(sartist.getItem().getKey(), sartist.getScore(), reason));
+            }
+            return results;
+        }
+
+        public ItemType getType() {
+            return ItemType.ARTIST;
+        }
+    }
+
+    private class  SimToUserTagCloud implements RecommendationType {
+
+        public String getName() {
+            return "SimToUserTagCloud";
+        }
+
+        public String getDescription() {
+            return "Finds artists that are similar to users tag cloud";
+        }
+
+        public List<Recommendation> getRecommendations(Listener listener, int count, RecommendationProfile rp)
+                throws AuraException, RemoteException {
+            List<Scored<Item>> items = dataStore.findSimilar(listener.getKey(), Listener.FIELD_SOCIAL_TAGS, 
+                    count * 5, new TypeFilter(ItemType.ARTIST));
+            List<Recommendation> results = new ArrayList();
+            Set<String> skipIDS = getAttendedToArtists(listener);
+
+            for (Scored<Item> item :items) {
+                if (!skipIDS.contains(item.getItem().getKey())) {
+                    String reason = "";
+                    results.add(new Recommendation(item.getItem().getKey(), item.getScore(), reason));
+                    if (results.size() >= count) {
+                        break;
+                    }
+                }
+            }
+            return results;
+        }
+
+        public ItemType getType() {
+            return ItemType.ARTIST;
         }
     }
 }
