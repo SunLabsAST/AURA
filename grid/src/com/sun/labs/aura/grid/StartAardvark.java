@@ -9,8 +9,8 @@ import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
-import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.util.UUID;
@@ -21,7 +21,11 @@ import java.util.logging.Level;
  */
 public class StartAardvark extends Aardvark {
 
-    @ConfigInteger(defaultValue=10)
+    @ConfigComponent(type=com.sun.labs.aura.datastore.DataStore.class)
+    public static final String PROP_DATA_STORE = "dataStore";
+    private DataStore ds;
+    
+    @ConfigInteger(defaultValue=20)
     public static final String PROP_AURA_WAIT = "auraWait";
     
     private int auraWait;
@@ -74,13 +78,11 @@ public class StartAardvark extends Aardvark {
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
         auraWait = ps.getInt(PROP_AURA_WAIT);
+        ds = (DataStore) ps.getComponent(PROP_DATA_STORE);
     }
 
     public void start() {
         try {
-            logger.info("Starting aardvark");
-            DataStore ds = (DataStore) cm.lookup("dataStore");
-            logger.info("Got datastore: " + ds);
             int tries = 0;
             while(tries < auraWait) {
                 if(ds.ready()) {

@@ -4,6 +4,7 @@ import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.Grid;
 import com.sun.caroline.platform.GridFactory;
+import com.sun.caroline.platform.Network;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.ProcessRegistration;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -92,7 +94,17 @@ public class ServiceDeployer {
         pc.setWorkingDirectory(GridUtil.logFSMntPnt);
         pc.setProcessExitAction(ProcessExitAction.DESTROY);
 
-        ProcessRegistration reg = GridUtil.createProcess(grid, starter, pc);
+        Network network = grid.getNetwork(instance + "-auraNet");
+        if(network == null) {
+            throw new IllegalStateException("No network for deployment");
+        }
+        
+        List<UUID> addresses = new ArrayList<UUID>();
+        addresses.add(GridUtil.getAddressFor(grid, network, instance +
+                "-serviceDeployer").getUUID());
+
+        pc.setNetworkAddresses(addresses);
+        ProcessRegistration reg = GridUtil.createProcess(grid, instance + "-" + starter, pc);
         GridUtil.startRegistration(reg);
     }
 
