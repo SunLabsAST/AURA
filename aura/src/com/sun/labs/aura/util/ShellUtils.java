@@ -544,8 +544,8 @@ public class ShellUtils {
             System.out.println("null");
         } else {
             System.out.println(ItemAdapter.toString(item));
-            dumpAttentionData("src", dataStore.getAttentionForSource(item.getKey()));
-            dumpAttentionData("tgt", dataStore.getAttentionForTarget(item.getKey()));
+            System.out.println("src: " + dataStore.getAttentionForSource(item.getKey()).size());
+            System.out.println("tgt: " + dataStore.getAttentionForTarget(item.getKey()).size());
         }
     }
 
