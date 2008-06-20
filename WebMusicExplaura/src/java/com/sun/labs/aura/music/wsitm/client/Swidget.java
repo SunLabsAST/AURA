@@ -11,7 +11,10 @@ package com.sun.labs.aura.music.wsitm.client;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
+import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -23,10 +26,13 @@ public abstract class Swidget extends Composite {
 
     protected MusicSearchInterfaceAsync musicServer;
     protected ClientDataManager cdm;
-    
+
+    private Set<LoginListener> listeners;
+
     public Swidget(String name, ClientDataManager cdm) {
         this.name = name;
         this.cdm = cdm;
+        listeners = new HashSet<LoginListener>();
         initRPC();
     }
 
@@ -65,6 +71,26 @@ public abstract class Swidget extends Composite {
         ServiceDefTarget endpoint = (ServiceDefTarget) musicServer;
         String moduleRelativeURL = GWT.getModuleBaseURL() + "musicsearch";
         endpoint.setServiceEntryPoint(moduleRelativeURL);
+    }
+
+    protected void registerLoginListener(LoginListener ll) {
+        listeners.add(ll);
+    }
+
+    protected void removeLoginListener(LoginListener ll) {
+        listeners.remove(ll);
+    }
+
+    public void triggerLogin(ListenerDetails lD) {
+        for (LoginListener ll : listeners) {
+            ll.onLogin(lD);
+        }
+    }
+
+    public void triggerLogout() {
+        for (LoginListener ll : listeners) {
+            ll.onLogout();
+        }
     }
 
 }

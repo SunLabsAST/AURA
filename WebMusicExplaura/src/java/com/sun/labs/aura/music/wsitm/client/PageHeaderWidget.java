@@ -25,15 +25,19 @@ import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 
@@ -41,9 +45,8 @@ import java.util.Map;
  *
  * @author mailletf
  */
-public class PageHeaderWidget extends Composite {
+public class PageHeaderWidget extends Swidget {
 
-    private MusicSearchInterfaceAsync musicServer;
     private Grid mainPanel;
     private TextBox txtbox;
 
@@ -51,24 +54,13 @@ public class PageHeaderWidget extends Composite {
     private ToolBar toolBar;
     TextToolItem recTypeToolItem;
     
-    private ClientDataManager cdm;
     
     public PageHeaderWidget(ClientDataManager cdm) {
-        initRPC();
+        super("pageHeader",cdm);
         this.cdm=cdm;
         initWidget(getWidget());
     }
     
-    private void initRPC() {
-
-        musicServer = (MusicSearchInterfaceAsync) GWT.create(MusicSearchInterface.class);
-
-        ServiceDefTarget endpoint = (ServiceDefTarget) musicServer;
-        String moduleRelativeURL = GWT.getModuleBaseURL() + "musicsearch";
-        endpoint.setServiceEntryPoint(moduleRelativeURL);
-    }
-    
-    @Override
     public Widget getWidget() {
         
         mainPanel = new Grid(1,3);
@@ -101,15 +93,9 @@ public class PageHeaderWidget extends Composite {
 
         //
         // Set the section menu
-        Label sLabel = new Label("Search");
-        sLabel.addClickListener(new ClickListener() {
-
-            public void onClick(Widget arg0) {
-                History.newItem(cdm.getCurrSearchWidgetToken());
-            }
-        });
-        sLabel.setStyleName("headerMenuMedItem");
-        mainPanel.setWidget(0, 1, sLabel);
+        MainMenu mm = new MainMenu();
+        registerLoginListener(mm);
+        mainPanel.setWidget(0, 1, mm);
 
         populateMainPanel();
      
@@ -396,4 +382,65 @@ public class PageHeaderWidget extends Composite {
             Window.alert(ex.getMessage());
         }
     }
+
+    public List<String> getTokenHeaders() {
+        return new LinkedList<String>();
+    }
+
+    public class MainMenu extends LoginListener {
+
+        private Grid p;
+        private boolean loggedIn=false;
+
+        public MainMenu() {
+            p = new Grid(1,1);
+            update();
+            initWidget(p);
+        }
+
+        public Widget getWidget() {
+            return p;
+        }
+
+        private void update() {
+
+            HorizontalPanel hP = new HorizontalPanel();
+            hP.setSpacing(8);
+
+            Label sLabel = new Label("Search");
+            sLabel.addClickListener(new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    History.newItem(cdm.getCurrSearchWidgetToken());
+                }
+            });
+            sLabel.setStyleName("headerMenuMedItem");
+            hP.add(sLabel);
+
+            if (loggedIn) {
+                sLabel = new Label("Dashboard");
+                sLabel.addClickListener(new ClickListener() {
+
+                    public void onClick(Widget arg0) {
+                        History.newItem("dashboard:");
+                    }
+                });
+                sLabel.setStyleName("headerMenuMedItem");
+                hP.add(sLabel);
+            }
+
+            p.setWidget(0, 0, hP);
+        }
+
+        public void onLogin(ListenerDetails lD) {
+            loggedIn=true;
+            update();
+        }
+
+        public void onLogout() {
+            loggedIn=false;
+            update();
+        }
+    }
+
 }

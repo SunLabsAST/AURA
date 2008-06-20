@@ -78,6 +78,7 @@ public class Main implements EntryPoint, HistoryListener {
         registerTokenHeaders(artistSearch);
 
         PageHeaderWidget uP = new PageHeaderWidget(cdm);
+        cdm.registerSwidget(uP);
         cdm.setWidgets(uP, (SimpleSearchWidget)artistSearch);
         
         mainPanel.add(uP, DockPanel.NORTH);
@@ -146,6 +147,7 @@ public class Main implements EntryPoint, HistoryListener {
         if (curSwidget != null) {
         //    Info.display("DEBUG INFO FROM MAIN", "null swidget", new Params());
             contentPanel.remove(curSwidget);
+            cdm.unregisterSwidget(curSwidget);
             curSwidget = null;
         }
 
@@ -153,8 +155,8 @@ public class Main implements EntryPoint, HistoryListener {
         //    Info.display("DEBUG INFO FROM MAIN", "updataing and putting up new swidget", new Params());
             newSwidget.update();
             contentPanel.add(newSwidget);
+            cdm.registerSwidget(newSwidget);
             curSwidget = newSwidget;
-
         }
     }
 }

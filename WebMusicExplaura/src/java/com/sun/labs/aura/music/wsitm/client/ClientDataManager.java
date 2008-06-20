@@ -4,13 +4,17 @@
  */
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.extjs.gxt.ui.client.util.Params;
+import com.extjs.gxt.ui.client.widget.Info;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -35,10 +39,21 @@ public class ClientDataManager {
     private PageHeaderWidget phw;
     private SimpleSearchWidget ssw;
 
+    private Set<Swidget> registeredSwidgets;
+
     private ListenerDetails lD;
 
     public ClientDataManager() {
         lD = new ListenerDetails();
+        registeredSwidgets = new HashSet<Swidget>();
+    }
+
+    public void registerSwidget(Swidget s) {
+        registeredSwidgets.add(s);
+    }
+
+    public void unregisterSwidget(Swidget s) {
+        registeredSwidgets.remove(s);
     }
 
     public void setWidgets(PageHeaderWidget phw, SimpleSearchWidget ssw) {
@@ -94,6 +109,19 @@ public class ClientDataManager {
     }
 
     public void setListenerDetails(ListenerDetails lD) {
+        //
+        // If the logged in state has changed, we need to fire events
+        if (this.lD.loggedIn!=lD.loggedIn) {
+            if (this.lD.loggedIn) {
+                for (Swidget s : registeredSwidgets) {
+                    s.triggerLogout();
+                }
+            } else {
+                for (Swidget s : registeredSwidgets) {
+                    s.triggerLogin(lD);
+                }
+            }
+        }
         this.lD=lD;
     }
 
@@ -203,7 +231,7 @@ public class ClientDataManager {
             u.displayWaitIcon();
         }
     }
-    
+
     public void setCurrArtistID(String id) {
         this.currArtist=id;
     }
