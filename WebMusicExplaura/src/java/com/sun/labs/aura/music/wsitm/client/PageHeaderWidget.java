@@ -16,7 +16,8 @@ import com.extjs.gxt.ui.client.widget.menu.Menu;
 import com.extjs.gxt.ui.client.widget.toolbar.TextToolItem;
 import com.extjs.gxt.ui.client.widget.toolbar.ToolBar;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.Cookies;
+import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -33,9 +34,7 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
-import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 
 
 /**
@@ -73,6 +72,10 @@ public class PageHeaderWidget extends Composite {
     public Widget getWidget() {
         
         mainPanel = new Grid(1,3);
+        mainPanel.getColumnFormatter().setWidth(0, "33%");
+        mainPanel.getColumnFormatter().setWidth(1, "33%");
+        mainPanel.getCellFormatter().getElement(0, 1).setAttribute("align", "center");
+        mainPanel.getColumnFormatter().setWidth(2, "33%");
         mainPanel.setStyleName("pageHeader");
         mainPanel.setWidth("100%");
 
@@ -80,7 +83,7 @@ public class PageHeaderWidget extends Composite {
         // Set the recommendation type toolbar
         HorizontalPanel hP = new HorizontalPanel();
         Label lbl = new Label("Recommendation type : ");
-        lbl.setStyleName("whiteTxt");
+        lbl.setStyleName("headerMenuMed");
         hP.add(lbl);
         
         toolBar = new ToolBar();
@@ -105,7 +108,7 @@ public class PageHeaderWidget extends Composite {
                 History.newItem(cdm.getCurrSearchWidgetToken());
             }
         });
-        sLabel.setStyleName("whiteTxt");
+        sLabel.setStyleName("headerMenuMedItem");
         mainPanel.setWidget(0, 1, sLabel);
 
         populateMainPanel();
@@ -183,12 +186,14 @@ public class PageHeaderWidget extends Composite {
         h.setWidth("300px");
         h.add(new Image("ajax-ball.gif"));
         Label lbl = new Label("Fetching your user profile...");
-        lbl.setStyleName("whiteTxt");
+        lbl.setStyleName("headerMenuMed");
         h.add(lbl);
-        mainPanel.setWidget(0, 1, h);
+        mainPanel.setWidget(0, 0, h);
 
-        //invokeGetUserTagCloud(txtbox.getText());
-        Window.Location.assign("./Login?app-openid-auth=true&app-openid-name=" + txtbox.getText());
+        // Run in deffered command to let the progress image load
+        DeferredCommand.addCommand(new Command(){ public void execute(){
+            Window.Location.assign("./Login?app-openid-auth=true&app-openid-name=" + txtbox.getText());
+        }});
     }
 
     private void invokeTerminateSession() {
@@ -273,11 +278,12 @@ public class PageHeaderWidget extends Composite {
                     }
 
                     HorizontalPanel hP = new HorizontalPanel();
+                    hP.setSpacing(4);
                     Label loggedLbl = new Label("Logged in as " + name);
-                    loggedLbl.setStyleName("whiteTxt");
+                    loggedLbl.addStyleName("headerMenuMed");
                     hP.add(loggedLbl);
 
-                    HorizontalPanel vP = new HorizontalPanel();
+                    VerticalPanel vP = new VerticalPanel();
 
                     Label lnk = new Label("Edit profile");
                     lnk.addClickListener(new ClickListener() {
@@ -286,7 +292,7 @@ public class PageHeaderWidget extends Composite {
                             History.newItem("userpref:");
                         }
                     });
-                    lnk.setStyleName("whiteTxt");
+                    lnk.setStyleName("headerMenuTinyItem");
                     vP.add(lnk);
 
                     lnk = new Label("Logout");
@@ -297,7 +303,7 @@ public class PageHeaderWidget extends Composite {
                             invokeTerminateSession();
                         }
                     });
-                    lnk.setStyleName("whiteTxt");
+                    lnk.setStyleName("headerMenuTinyItem");
                     vP.add(lnk);
 
                     hP.add(vP);

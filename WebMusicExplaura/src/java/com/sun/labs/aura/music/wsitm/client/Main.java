@@ -14,6 +14,7 @@ import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.HistoryListener;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
@@ -60,6 +61,12 @@ public class Main implements EntryPoint, HistoryListener {
         mainPanel.setWidth("95%");
         
         Label title = new Label("Search Inside the Music - The Music Explaura");
+        title.addClickListener(new ClickListener() {
+
+            public void onClick(Widget arg0) {
+                History.newItem("searchHome:");
+            }
+        });
         title.setStyleName("title");
 
         contentPanel = new FlowPanel();

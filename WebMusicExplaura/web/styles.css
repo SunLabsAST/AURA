@@ -1,5 +1,7 @@
-.title { font-size: 150%;
+.title {
+    font-size: 150%;
     margin: 20;
+    cursor: pointer;
 }
 body {
     font-family: "Trebuchet MS", "Times New Roman", serif;
@@ -32,6 +34,22 @@ h3 { font-size: 1.0em; margin-top: 1em; margin-bottom: 2px; }
 img {
     border-style: hidden;
     border: 0px;
+}
+
+.headerMenuTinyItem {
+  color: white;
+  font-size: 10px;
+  cursor: pointer;
+}
+.headerMenuMed {
+  color: white;
+  font-size: 14px;
+}
+
+.headerMenuMedItem {
+  font-size: 14px;
+  cursor: pointer;
+  color: white;
 }
 
 .main { margin: 10; }
