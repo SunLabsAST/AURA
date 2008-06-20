@@ -37,7 +37,7 @@ public class Main implements EntryPoint, HistoryListener {
     
     private Map<String, Swidget> tokenHeadersMap;
     private String curToken = null;
-    private Swidget currSwidget;
+    private Swidget curSwidget;
 
     private Panel contentPanel;
     
@@ -100,35 +100,54 @@ public class Main implements EntryPoint, HistoryListener {
     public void onHistoryChanged(String historyToken) {
         if (!historyToken.equals(curToken)) {
             showResults(historyToken);
-        }
+/*        } else {
+            Info.display("DEBUG INFO FROM MAIN", "historytoken ("+historyToken+") ==== currToken ("+curToken+")", new Params());
+ **/    }
+
+    }
+
+    private final String getResultNameHeader(String resultName) {
+        return resultName.substring(0, resultName.indexOf(":")+1);
     }
 
     private void showResults(String resultName) {
-        String resultNameHeader = resultName.substring(0, resultName.indexOf(":")+1);
+        String resultNameHeader = getResultNameHeader(resultName);
 
         if (tokenHeadersMap.containsKey(resultNameHeader)) {
             setResults(resultName, tokenHeadersMap.get(resultNameHeader));
         } else {
+    //        Info.display("DEBUG INFO FROM MAIN", "can't find token header "+resultNameHeader, new Params());
             setResults("searchHome:", tokenHeadersMap.get("searchHome:"));
         }
     }
 
     private void setResults(String historyName, Swidget newSwidget) {
-        if (currSwidget == newSwidget) {
+        if (curSwidget == newSwidget) {
+      //      Info.display("DEBUG INFO FROM MAIN", "switgets are equal. no update", new Params());
             return;
         }
 
         if (!History.getToken().equals(historyName)) {
             History.newItem(historyName);
+        //    Info.display("DEBUG INFO FROM MAIN", "updating curToken to :"+historyName, new Params());
+            curToken = historyName;
+        } else if (newSwidget.getTokenHeaders().contains(getResultNameHeader(historyName))) {
+        //    Info.display("DEBUG INFO FROM MAIN", "AYAYAYAY!! updating curToken to :"+historyName, new Params());
             curToken = historyName;
         }
-        if (currSwidget != null) {
-            contentPanel.remove(currSwidget);
-            currSwidget = null;
+
+        if (curSwidget != null) {
+        //    Info.display("DEBUG INFO FROM MAIN", "null swidget", new Params());
+            contentPanel.remove(curSwidget);
+            curSwidget = null;
         }
+
         if (newSwidget != null) {
+        //    Info.display("DEBUG INFO FROM MAIN", "updataing and putting up new swidget", new Params());
+            newSwidget.update();
             contentPanel.add(newSwidget);
-            currSwidget = newSwidget;
+            curSwidget = newSwidget;
+
         }
     }
 }

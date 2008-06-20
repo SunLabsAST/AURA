@@ -29,12 +29,28 @@ public abstract class Swidget extends Composite {
         this.cdm = cdm;
         initRPC();
     }
-    
-    public String getName() {
+
+    /**
+     * Returns a list of all the token headers associated with this swidget
+     * @return
+     */
+    public abstract List<String> getTokenHeaders();
+
+    /**
+     * Gets called when the swidget is displayed. By default, this does nothing.
+     * Usefull for swidgets that might block out content out content is user is
+     * not logged in and still have that cached when he returns and might have
+     * logged in.
+     */
+    public void update() {
+
+    }
+
+    public final String getName() {
         return name;
     }
 
-    private void initRPC() {
+    private final void initRPC() {
         // (1) Create the client proxy. Note that although you are creating the
         // service interface proper, you cast the result to the async version of
         // the interface. The cast is always safe because the generated proxy
@@ -51,9 +67,4 @@ public abstract class Swidget extends Composite {
         endpoint.setServiceEntryPoint(moduleRelativeURL);
     }
 
-    /**
-     * Returns a list of all the token headers associated with this swidget
-     * @return
-     */
-    public abstract List<String> getTokenHeaders();
 }

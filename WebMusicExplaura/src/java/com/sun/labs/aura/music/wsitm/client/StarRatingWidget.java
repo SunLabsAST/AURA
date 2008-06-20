@@ -6,8 +6,12 @@
 package com.sun.labs.aura.music.wsitm.client;
 
 
+import com.extjs.gxt.ui.client.util.Params;
+import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Widget;
@@ -16,7 +20,7 @@ import com.google.gwt.user.client.ui.Widget;
  *
  * @author mailletf
  */
-public class StarRatingWidget extends Widget {
+public class StarRatingWidget extends Composite {
 
     private int nbrStars = 5;
     private int nbrSelectedStars = 0;
@@ -30,6 +34,8 @@ public class StarRatingWidget extends Widget {
     public StarRatingWidget(int initialSelection) {
         this.nbrSelectedStars = initialSelection;
 
+        FlowPanel p = new FlowPanel();
+
         images = new Image[nbrStars];
         for (int i=0; i<nbrStars; i++) {
             if (i<=nbrSelectedStars-1) {
@@ -39,12 +45,15 @@ public class StarRatingWidget extends Widget {
             }
             images[i].addClickListener(new IndexClickListener(i));
             images[i].addMouseListener(new IndexMouseListener(i));
+            p.add(images[i]);
         }
+
+        initWidget(p);
 
     }
 
     private void triggerAction(int index) {
-        Window.alert("you clicked on star "+index);
+        Info.display("Information", "you clicked on star "+index, new Params());
     }
 
     private class IndexMouseListener implements MouseListener {
@@ -65,11 +74,11 @@ public class StarRatingWidget extends Widget {
         }
 
         public void onMouseLeave(Widget arg0) {
-            for (int i=0; i<=index; i++) {
-                if (i<=nbrSelectedStars-1) {
-                    images[i] = new Image(STAR_NOTLID);
+            for (int i = 0; i < nbrStars; i++) {
+                if (i <= nbrSelectedStars - 1) {
+                    images[i].setUrl(STAR_NOTLID);
                 } else {
-                    images[i] = new Image(STAR_WHITE);
+                    images[i].setUrl(STAR_WHITE);
                 }
             }
         }

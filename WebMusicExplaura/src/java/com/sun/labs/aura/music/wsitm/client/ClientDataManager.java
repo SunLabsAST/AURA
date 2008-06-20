@@ -19,7 +19,8 @@ import java.util.Map;
 public class ClientDataManager {
 
     private String currArtist;
-    
+    private String currSearchWidgetToken = "searchHome:";
+
     private List<Updatable> updatableWidgets;
     
     private Map<String, String> simTypes;
@@ -30,7 +31,6 @@ public class ClientDataManager {
     
     private Double maxScore;
     private Map<String, Double> favArtist;
-    private boolean isLoggedIn = false;
     
     private PageHeaderWidget phw;
     private SimpleSearchWidget ssw;
@@ -68,8 +68,6 @@ public class ClientDataManager {
 
     public void setTagCloud(ItemInfo[] tagCloud, String lastFmUser,
             ArtistDetails[] artistDetails) {
-
-        isLoggedIn = true;
 
         this.tagCloud = tagCloud;
         //this.lastFmUser = lastFmUser;
@@ -112,12 +110,11 @@ public class ClientDataManager {
         tagMap = null;
 //        lastFmUser = null;
 
-        isLoggedIn = false;
         lD = new ListenerDetails();
     }
 
     public boolean isLoggedIn() {
-        return isLoggedIn;
+        return lD.loggedIn;
     }
 
     public Map<String, String> getSimTypes() {
@@ -147,7 +144,11 @@ public class ClientDataManager {
 
     public double computeTastauraMeterScore(ArtistDetails aD) {
 
-        if (!isLoggedIn) {
+        if (true) {
+            return 0;
+        }
+
+        if (!isLoggedIn()) {
             return -1;
         }
 
@@ -209,5 +210,13 @@ public class ClientDataManager {
     
     public String getCurrArtistID() {
         return currArtist;
+    }
+
+    public void setCurrSearchWidgetToken(String token) {
+        this.currSearchWidgetToken=token;
+    }
+
+    public String getCurrSearchWidgetToken() {
+        return currSearchWidgetToken;
     }
 }

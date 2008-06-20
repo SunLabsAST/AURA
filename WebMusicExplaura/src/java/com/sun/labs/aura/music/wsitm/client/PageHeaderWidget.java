@@ -75,7 +75,9 @@ public class PageHeaderWidget extends Composite {
         mainPanel = new Grid(1,3);
         mainPanel.setStyleName("pageHeader");
         mainPanel.setWidth("100%");
-        
+
+        //
+        // Set the recommendation type toolbar
         HorizontalPanel hP = new HorizontalPanel();
         Label lbl = new Label("Recommendation type : ");
         lbl.setStyleName("whiteTxt");
@@ -89,10 +91,23 @@ public class PageHeaderWidget extends Composite {
 
         toolBar.add(recTypeToolItem);
         hP.add(toolBar);
-        mainPanel.setWidget(0, 1, hP);
-        
+        mainPanel.setWidget(0, 2, hP);
+        mainPanel.getCellFormatter().getElement(0, 2).setAttribute("align", "right");
+
         invokeGetSimTypes();
-        
+
+        //
+        // Set the section menu
+        Label sLabel = new Label("Search");
+        sLabel.addClickListener(new ClickListener() {
+
+            public void onClick(Widget arg0) {
+                History.newItem(cdm.getCurrSearchWidgetToken());
+            }
+        });
+        sLabel.setStyleName("whiteTxt");
+        mainPanel.setWidget(0, 1, sLabel);
+
         populateMainPanel();
      
         return mainPanel;
@@ -326,7 +341,7 @@ public class PageHeaderWidget extends Composite {
         });
 
         Button b = new Button();
-        b.setText("Llogin with openID");
+        b.setText("Login with your openID");
         b.addClickListener(new ClickListener() {
 
             public void onClick(Widget arg0) {
