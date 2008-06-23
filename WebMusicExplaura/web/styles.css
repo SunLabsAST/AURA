@@ -52,6 +52,10 @@ img {
   color: white;
 }
 
+.recoTags {
+  font-size: 10px;
+}
+
 .main { margin: 10; }
 .searchPanel {  margin: 20px 20px 20px 20px; }
 .searchTypeButton { margin-left: 30px; margin-right: 30px; }

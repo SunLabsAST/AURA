@@ -10,6 +10,8 @@
 package com.sun.labs.aura.music.wsitm.client.items;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
+import com.google.gwt.user.client.ui.Image;
+import com.sun.labs.aura.music.wsitm.client.WebLib;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -297,6 +299,27 @@ public class ArtistDetails implements IsSerializable, Details {
 
     public void setCollaborations(ItemInfo[] collaborations) {
         this.collaborations = collaborations;
+    }
+
+    public Image getBestArtistImage() {
+        Image img = null;
+        if (photos.length > 0) {
+            img = new Image(photos[0].getThumbNailImageUrl());
+        } else if (albums.length > 0) {
+            img = new Image(albums[0].getAlbumArt());
+        }
+        return img;
+    }
+
+    public String getBestArtistImageAsHTML() {
+        String imgHtml = "";
+        if (photos.length > 0) {
+            imgHtml = photos[0].getHtmlWrapper();
+        } else if (albums.length > 0) {
+            AlbumDetails album = albums[0];
+            imgHtml = WebLib.createAnchoredImage(album.getAlbumArt(), album.getAmazonLink(), "margin-right: 10px; margin-bottom: 10px");
+        }
+        return imgHtml;
     }
 }
 

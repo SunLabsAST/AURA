@@ -504,9 +504,9 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         VerticalPanel main = new VerticalPanel();
         main.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
         main.add(getBioWidget(artistDetails));
-        main.add(createSection("Videos", new VideoScrollWidget(artistDetails.getVideos())));
-        main.add(createSection("Photos", new ImageScrollWidget(artistDetails.getPhotos())));
-        main.add(createSection("Albums", new AlbumScrollWidget(artistDetails.getAlbums())));
+        main.add(WebLib.createSection("Videos", new VideoScrollWidget(artistDetails.getVideos())));
+        main.add(WebLib.createSection("Photos", new ImageScrollWidget(artistDetails.getPhotos())));
+        main.add(WebLib.createSection("Albums", new AlbumScrollWidget(artistDetails.getAlbums())));
         main.setHorizontalAlignment(HorizontalPanel.ALIGN_LEFT);
         main.add(getEventsWidget(artistDetails));
         main.setStyleName("center");
@@ -570,8 +570,8 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         VerticalPanel v = new VerticalPanel();
         v.add(getTagWidget(tagDetails));
         v.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
-        v.add(createSection("Videos", new VideoScrollWidget(tagDetails.getVideos())));
-        v.add(createSection("Photos", new ImageScrollWidget(tagDetails.getPhotos())));
+        v.add(WebLib.createSection("Videos", new VideoScrollWidget(tagDetails.getVideos())));
+        v.add(WebLib.createSection("Photos", new ImageScrollWidget(tagDetails.getPhotos())));
         v.setStyleName("center");
         main.add(v, DockPanel.CENTER);
 
@@ -587,7 +587,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
     Widget getBioWidget(ArtistDetails artistDetails) {
         HTML html = new HTML();
-        html.setHTML(getBestArtistImageAsHTML(artistDetails) + artistDetails.getBiographySummary());
+        html.setHTML(artistDetails.getBestArtistImageAsHTML() + artistDetails.getBiographySummary());
         html.setStyleName("bio");
 
         StarRatingWidget starWidget = null;
@@ -595,50 +595,14 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             starWidget = new StarRatingWidget(0);
         }
 
-        return createMainSection(artistDetails.getName(), html, getSpotifyListenWidget(artistDetails), starWidget);
+        return createMainSection(artistDetails.getName(), html, WebLib.getSpotifyListenWidget(artistDetails, 30), starWidget);
     }
 
     Widget getTagWidget(TagDetails tagDetails) {
         HTML html = new HTML();
         html.setHTML(getBestTagImageAsHTML(tagDetails) + tagDetails.getDescription());
         html.setStyleName("bio");
-        return createMainSection(tagDetails.getName(), html, getListenWidget(tagDetails), null);
-    }
-
-    Widget getLastFMListenWidget(final ArtistDetails artistDetails) {
-        Image image = new Image("play-icon30.jpg");
-        //image.setSize("22px", "22px");
-        image.setTitle("Play music like " + artistDetails.getName() + " at last.fm");
-        image.addClickListener(new ClickListener() {
-
-            public void onClick(Widget sender) {
-                popupSimilarArtistRadio(artistDetails, true);
-            }
-        });
-        return image;
-    }
-
-    Widget getSpotifyListenWidget(final ArtistDetails artistDetails) {
-        String musicURL = artistDetails.getSpotifyId();
-        if (musicURL != null && !musicURL.equals("")) {
-            HTML html = new HTML("<a href=\"" + musicURL + "\"><img src=\"play-icon30.jpg\"/></a>");
-            html.setTitle("Play " + artistDetails.getName() + " with Spotify");
-            return html;
-        } else {
-            return getLastFMListenWidget(artistDetails);
-        }
-    }
-
-    Widget getListenWidget(final TagDetails tagDetails) {
-        Image image = new Image("play-icon30.jpg");
-        image.setTitle("Play music like " + tagDetails.getName() + " at last.fm");
-        image.addClickListener(new ClickListener() {
-
-            public void onClick(Widget sender) {
-                popupTagRadio(tagDetails, true);
-            }
-        });
-        return image;
+        return createMainSection(tagDetails.getName(), html, WebLib.getListenWidget(tagDetails), null);
     }
 
     Widget getMoreInfoWidget(ArtistDetails artistDetails) {
@@ -651,10 +615,10 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             for (Iterator i = urls.keySet().iterator(); i.hasNext();) {
                 String key = (String) i.next();
                 String url = (String) urls.get(key);
-                HTML html = new HTML(createAnchor(key, url));
+                HTML html = new HTML(WebLib.createAnchor(key, url));
                 grid.setWidget(index++, 0, html);
             }
-            return createSection("More info", grid);
+            return WebLib.createSection("More info", grid);
         } else {
             return new Label("");
         }
@@ -680,7 +644,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         vPanel.add(getPopularityWidget(aD.getName(),
                 currArtistScore/realMaxScore, false, "itemInfoHighlight"));
 
-        return createSection("Tast-aura-meter", vPanel);
+        return WebLib.createSection("Tast-aura-meter", vPanel);
     }
 
     Widget getPopularityPanel(ArtistDetails artistDetails) {
@@ -690,7 +654,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         vPanel.add(getPopularityWidget(artistDetails.getName(),
                 artistDetails.getNormPopularity(),true,null));
 
-        return createSection("Popularity", vPanel);
+        return WebLib.createSection("Popularity", vPanel);
     }
 
     Widget getTastAuraMeterWidget(String name, double normPopularity, boolean log) {
@@ -772,24 +736,13 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             for (int i = 0; i < events.length; i++) {
                 ArtistEvent event = events[i];
                 grid.setWidget(i, 0, new Label(events[i].getDate()));
-                grid.setWidget(i, 1, new HTML(createAnchor(event.getName(), event.getEventURL())));
+                grid.setWidget(i, 1, new HTML(WebLib.createAnchor(event.getName(), event.getEventURL())));
                 String venue = event.getVenue();
                 grid.setWidget(i, 2, new HTML(venue));
             }
             widget.add(grid);
         }
-        return createSection("Upcoming Events", widget);
-    }
-
-    Widget createSection(String title, Widget widget) {
-        return createSection(new HTML("<h2>" + title + "</h2>"), widget);
-    }
-
-    Widget createSection(Widget title, Widget widget) {
-        Panel panel = new VerticalPanel();
-        panel.add(title);
-        panel.add(widget);
-        return panel;
+        return WebLib.createSection("Upcoming Events", widget);
     }
 
     Widget createMainSectionOld(String title, Widget widget) {
@@ -815,40 +768,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         panel.add(h);
         panel.add(widget);
         return panel;
-    }
-
-    /**
-     * Creates a link
-     * @param text link description
-     * @param url link url
-     * @return html formated link
-     */
-    String createAnchor(String text, String url) {
-//        if (url!=null && url.compareTo(null)!=0 && url.compareTo("null")!=0 && url.compareTo("http://upcoming.org/venue/null/")!=0) {
-            return "<a href=\"" + url + "\" target=\"window1\">" + text + "</a>";
-  //      } else {
-    //        return text;
-    //    }
-    }
-
-    String createAnchoredImage(String imageURL, String url, String style) {
-        String styleSpec = "";
-        if (style != null) {
-            styleSpec = "style=\"" + style + "\"";
-        }
-        return createAnchor("<img class=\"inlineAlbumArt\" " + styleSpec + " src=\"" + imageURL + "\"/>", url);
-    }
-
-    private String getBestArtistImageAsHTML(ArtistDetails ad) {
-        String imgHtml = "";
-        ArtistPhoto[] photos = ad.getArtistPhotos();
-        if (photos.length > 0) {
-            imgHtml = photos[0].getHtmlWrapper();
-        } else if (ad.getAlbums().length > 0) {
-            AlbumDetails album = ad.getAlbums()[0];
-            imgHtml = createAnchoredImage(album.getAlbumArt(), album.getAmazonLink(), "margin-right: 10px; margin-bottom: 10px");
-        }
-        return imgHtml;
     }
 
     private String getBestTagImageAsHTML(TagDetails td) {
@@ -878,74 +797,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         return title + obj;
     }
 
-    private Widget getSimilarArtistRadio(ArtistDetails artist) {
-        String embeddedObject = "<object width=\"340\" height=\"123\">" + "<param name=\"movie\" value=\"http://panther1.last.fm/webclient/50/defaultEmbedPlayer.swf\" />" + "<param name=FlashVars value=\"viral=true&lfmMode=radio&amp;radioURL=lastfm://artist/ARTIST_NAME/similarartists&amp;" + "restTitle= ARTIST_NAME’s Similar Artists \" />" + "<param name=\"wmode\" value=\"transparent\" />" + "<embed src=\"http://panther1.last.fm/webclient/50/defaultEmbedPlayer.swf\" width=\"340\" " + "FlashVars=\"viral=true&lfmMode=radio&amp;radioURL=" + "lastfm://artist/ARTIST_NAME/similarartists&amp;restTitle= ARTIST_NAME’s Similar Artists \" height=\"123\" " + "type=\"application/x-shockwave-flash\" wmode=\"transparent\" />" + "</object>";
-        embeddedObject = embeddedObject.replaceAll("ARTIST_NAME", artist.getEncodedName());
-        return new HTML(embeddedObject);
-    }
-
-    private String getSimilarArtistRadioLink(ArtistDetails artist, boolean useTags) {
-        if (useTags) {
-            ItemInfo tag = getBestTag(artist);
-            if (tag != null) {
-                return getTagRadioLink(tag.getItemName());
-            } else {
-                return getSimilarArtistRadioLink(artist, false);
-            }
-        } else {
-            String link = "http://www.last.fm/webclient/popup/?radioURL=" + "lastfm://artist/ARTIST_REPLACE_ME/similarartists&resourceID=undefined" + "&resourceType=undefined&viral=true";
-            return link.replaceAll("ARTIST_REPLACE_ME", artist.getEncodedName());
-        }
-    }
-
-    private String getTagRadioLink(String tagName) {
-        tagName = tagName.replaceAll("\\s+", "%20");
-        String link = "http://www.last.fm/webclient/popup/?radioURL=" + "lastfm://globaltags/TAG_REPLACE_ME/&resourceID=undefined" + "&resourceType=undefined&viral=true";
-        return link.replaceAll("TAG_REPLACE_ME", tagName);
-    }
-
-    private ItemInfo getBestTag(ArtistDetails artist) {
-        ItemInfo tag = null;
-        ItemInfo[] tags = artist.getDistinctiveTags();
-        if (tags == null && tags.length == 0) {
-            tags = artist.getFrequentTags();
-        }
-        if (tags != null && tags.length > 0) {
-            tag = tags[0];
-        }
-        return tag;
-    }
-
-    private void popupSimilarArtistRadio(ArtistDetails artist, boolean useTags) {
-        Window.open(getSimilarArtistRadioLink(artist, useTags), "lastfm_popup", "width=400,height=170,menubar=no,toolbar=no,directories=no," + "location=no,resizable=no,scrollbars=no,status=no");
-    }
-
-    private void popupTagRadio(TagDetails tagDetails, boolean useTags) {
-        Window.open(getTagRadioLink(tagDetails.getName()), "lastfm_popup", "width=400,height=170,menubar=no,toolbar=no,directories=no," + "location=no,resizable=no,scrollbars=no,status=no");
-    }
-
     private Widget getItemInfoList(final String title, final ItemInfo[] itemInfo, String highlightID, boolean getArtistOnClick, MultiWordSuggestOracle oracle) {
-        /*
-         Listener listener = new Listener<ComponentEvent>() {
-       public void handleEvent(ComponentEvent ce) {
-         ContentPanel cp = (ContentPanel) ce.component;
-         String n = cp.getTitleText();
-         if (ce.type == Events.Expand) {
-           Info.display("Panel Change", "The '{0}' panel was expanded", n);
-         } else {
-           Info.display("Panel Change", "The '{0}' panel was collapsed", n);
-         }
-       }
-     };
-
-        ContentPanel cp = new ContentPanel();
-        cp.setCollapsible(true);
-        cp.setWidth(200);
-        cp.setBodyStyle("fontSize: 12px");
-        cp.setHeading("Collapsible");
-        cp.addListener(Events.Expand, listener);
-        cp.addListener(Events.Collapse, listener);
-        */
 
         Grid artistGrid = new Grid(itemInfo.length, 1);
         for (int i = 0; i < itemInfo.length; i++) {
@@ -978,9 +830,9 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                 }
             });
             titleWidget.setWidget(0, 1, l);
-            w = createSection(titleWidget, artistGrid);
+            w = WebLib.createSection(titleWidget, artistGrid);
         } else {
-            w = createSection(title, artistGrid);
+            w = WebLib.createSection(title, artistGrid);
         }
         w.setStyleName("infoList");
         w.setWidth("200px");

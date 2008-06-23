@@ -33,5 +33,6 @@ public class ListenerDetails implements IsSerializable {
 
     public String lastfmUser;
     public String pandoraUser;
-    
+
+    public ArtistDetails[] recommendations;
 }

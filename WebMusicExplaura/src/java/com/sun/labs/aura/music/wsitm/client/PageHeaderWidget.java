@@ -17,6 +17,7 @@ import com.extjs.gxt.ui.client.widget.toolbar.TextToolItem;
 import com.extjs.gxt.ui.client.widget.toolbar.ToolBar;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.Cookies;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
@@ -198,6 +199,7 @@ public class PageHeaderWidget extends Swidget {
         };
 
         try {
+            cdm.resetUser();
             musicServer.terminateSession(callback);
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
@@ -317,6 +319,7 @@ public class PageHeaderWidget extends Swidget {
     private void populateLoginBox() {
 
         txtbox = new TextBox();
+        txtbox.setText(Cookies.getCookie("defaultOpenID"));
         txtbox.addKeyboardListener(new KeyboardListener() {
 
             public void onKeyPress(Widget arg0, char keyCode, int arg2) {
@@ -337,6 +340,7 @@ public class PageHeaderWidget extends Swidget {
         b.addClickListener(new ClickListener() {
 
             public void onClick(Widget arg0) {
+                Cookies.setCookie("defaultOpenID", txtbox.getText());
                 fetchUserInfo();
             }
         });
@@ -427,7 +431,7 @@ public class PageHeaderWidget extends Swidget {
                 });
                 sLabel.setStyleName("headerMenuMedItem");
                 hP.add(sLabel);
-            }
+            } 
 
             p.setWidget(0, 0, hP);
         }

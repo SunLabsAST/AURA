@@ -73,6 +73,11 @@ public class Main implements EntryPoint, HistoryListener {
 
         Swidget userPref = new ProfileWidget(cdm);
         registerTokenHeaders(userPref);
+        cdm.registerSwidget(userPref);
+
+        Swidget dashboard = new DashboardSwidget(cdm);
+        registerTokenHeaders(dashboard);
+        cdm.registerSwidget(dashboard);
 
         Swidget artistSearch = new SimpleSearchWidget(cdm);
         registerTokenHeaders(artistSearch);
