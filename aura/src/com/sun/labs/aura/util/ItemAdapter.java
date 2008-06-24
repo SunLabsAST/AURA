@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -405,6 +406,7 @@ public abstract class ItemAdapter implements Serializable {
         sb.append("key : " + item.getKey() + "\n");
         sb.append("name: " + item.getName() + "\n");
         sb.append("type: " + item.getType() + "\n");
+        sb.append("Time: " + new Date(item.getTimeAdded()) + "\n");
 
         //
         // Get the map entries sorted by key.
