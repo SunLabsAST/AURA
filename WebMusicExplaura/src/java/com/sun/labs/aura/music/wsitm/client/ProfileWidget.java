@@ -59,7 +59,7 @@ public class ProfileWidget extends Swidget {
         if (cdm.isLoggedIn()) {
             mainPanel.add(getProfileWidget());
         } else {
-            mainPanel.add(new Label("Sorry but you must be logged in to access this page."));
+            mainPanel.add(getMustBeLoggedInWidget());
         }
     }
 

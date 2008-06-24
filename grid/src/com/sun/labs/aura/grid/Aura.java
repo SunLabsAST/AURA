@@ -62,23 +62,6 @@ public abstract class Aura extends ServiceAdapter {
         }
     }
 
-    protected void createAuraNetwork() throws Exception {
-        try {
-            // Try to create a customer network for the test
-            network = grid.createNetwork(instance + "-auraNet", 512,
-                    new CustomerNetworkConfiguration());
-            System.out.println("Created network " + network.getName());
-        } catch(DuplicateNameException e) {
-            // Reuse an existing network
-            network = grid.getNetwork(instance + "-auraNet");
-            System.out.println("Network already exists, reusing " + network.
-                    getName());
-        } catch(NetworkAllocationException e) {
-            System.err.println(e.getMessage());
-            System.exit(1);
-        }
-    }
-
     public String getDataStoreHeadName() {
         return instance + "-dsHead";
     }
@@ -295,6 +278,12 @@ public abstract class Aura extends ServiceAdapter {
             DSBitSet prefixBits = DSBitSet.parse(i);
             prefixBits.setPrefixLength(numBits);
             prefixCodeList[i] = prefixBits.toString();
+        }
+        try {
+            network = GridUtil.createAuraNetwork(grid, instance);
+        } catch(Exception e) {
+            throw new PropertyException("network", "network",
+                    "Can't create network");
         }
     }
 }

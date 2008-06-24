@@ -8,9 +8,10 @@ package com.sun.labs.aura.grid;
 import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistration;
+import com.sun.caroline.platform.RunState;
 import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
-import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.util.UUID;
@@ -21,7 +22,11 @@ import java.util.logging.Level;
  */
 public class StartAardvark extends Aardvark {
 
-    @ConfigInteger(defaultValue=10)
+    @ConfigComponent(type=com.sun.labs.aura.datastore.DataStore.class)
+    public static final String PROP_DATA_STORE = "dataStore";
+    private DataStore ds;
+    
+    @ConfigInteger(defaultValue=20)
     public static final String PROP_AURA_WAIT = "auraWait";
     
     private int auraWait;
@@ -45,6 +50,7 @@ public class StartAardvark extends Aardvark {
 
         //
         // Start a few feed crawlers
+        ProcessRegistration lastReg = null;
         for(int i = 0; i < numCrawlers; i++) {
             ProcessConfiguration feedMgrConfig = getFeedManagerConfig(i);
             ProcessRegistration feedMgrReg = GridUtil.createProcess(grid, getFMName(i),
@@ -52,12 +58,16 @@ public class StartAardvark extends Aardvark {
 
             //
             // Make a dynamic NAT for this process config
-            ProcessConfiguration pc = feedMgrConfig;
-            internal = pc.getNetworkAddresses().iterator().next();
+            internal = feedMgrConfig.getNetworkAddresses().iterator().next();
             GridUtil.createNAT(grid, instance, crawlerNat.getUUID(), internal, "feedMgr-" + i);
             GridUtil.startRegistration(feedMgrReg, false);
+            lastReg = feedMgrReg;
         }
 
+        while (lastReg.getRunState() != RunState.RUNNING) {
+            lastReg.waitForStateChange(1000000L);
+        }
+        
         //
         // Create a recommendation manager
         ProcessRegistration recReg = GridUtil.createProcess(grid, getRecName(),
@@ -74,13 +84,11 @@ public class StartAardvark extends Aardvark {
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
         auraWait = ps.getInt(PROP_AURA_WAIT);
+        ds = (DataStore) ps.getComponent(PROP_DATA_STORE);
     }
 
     public void start() {
         try {
-            logger.info("Starting aardvark");
-            DataStore ds = (DataStore) cm.lookup("dataStore");
-            logger.info("Got datastore: " + ds);
             int tries = 0;
             while(tries < auraWait) {
                 if(ds.ready()) {
