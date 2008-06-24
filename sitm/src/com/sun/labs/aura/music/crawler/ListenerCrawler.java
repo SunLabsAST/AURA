@@ -7,11 +7,14 @@ package com.sun.labs.aura.music.crawler;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.ScoredManager;
 import com.sun.labs.aura.music.web.lastfm.LastItem;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
 import com.sun.labs.aura.music.web.pandora.Pandora;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemSchedulerImpl;
+import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.Tag;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -99,12 +102,58 @@ public class ListenerCrawler extends ItemSchedulerImpl {
                 fullCrawlLastFM(listener);
                 state |= Listener.STATE_INITIAL_LASTFM_CRAWL;
                 listener.setState(state);
-                listener.flush(dataStore);
             } else {
                 weeklyCrawlLastFM(listener);
             }
         }
         weeklyCrawlPandora(listener);
+        updateListenerArtists(listener);
+        updateListenerTags(listener);
+        listener.flush(dataStore);
+    }
+    
+
+    private void updateListenerArtists(Listener listener) throws AuraException, RemoteException {
+        List<Scored<String>> scoredArtistIDs = mdb.getAllArtistsAsIDs(listener);
+        listener.clearFavoriteArtists();
+        for (Scored<String> scoredArtistID : scoredArtistIDs) {
+            listener.addFavoriteArtist(scoredArtistID.getItem(), (int) scoredArtistID.getScore());
+        }
+    }
+
+    private void updateListenerTags(Listener listener) throws AuraException, RemoteException {
+        ScoredManager<String> sm = new ScoredManager();
+        List<Scored<String>> scoredArtistIDs = mdb.getAllArtistsAsIDs(listener);
+        double max = getMax(scoredArtistIDs);
+        for (Scored<String> scoredArtistID : scoredArtistIDs) {
+            Artist artist = mdb.artistLookup(scoredArtistID.getItem());
+            double artistWeight = 100.0 * scoredArtistID.getScore() / max;
+            if (artist != null) {
+                List<Tag> tags = artist.getSocialTags();
+                for (Tag tag : tags) {
+                    logger.info("Adding " + tag.getName() + " " + tag.getCount() +  " " + artistWeight + " " +
+                            tag.getCount() * artistWeight);
+                    sm.accum(tag.getName(), tag.getCount() * artistWeight);
+                }
+            }
+        }
+
+        listener.clearSocialTags();
+        List<Scored<String>> tags = sm.getAll();
+        for (Scored<String> tag : tags) {
+            int score = (int) tag.getScore();
+            listener.addSocialTag(tag.getItem(), score);
+        }
+    }
+
+    double getMax(List<Scored<String>> l) {
+        double max = -Double.MAX_VALUE;
+        for (Scored s : l) {
+            if (s.getScore() >  max) {
+                max = s.getScore();
+            }
+        }
+        return max;
     }
 
     private void fullCrawlLastFM(Listener listener) throws AuraException, IOException {

@@ -1,5 +1,7 @@
-.title { font-size: 150%;
+.title {
+    font-size: 150%;
     margin: 20;
+    cursor: pointer;
 }
 body {
     font-family: "Trebuchet MS", "Times New Roman", serif;
@@ -25,6 +27,7 @@ body {
 h1 { font-size: 1.6em; margin-bottom: 4px; border-bottom: medium solid #73885d; border-width: thin;}
 .h1 {font-weight: bold; font-size: 1.6em; margin-bottom: 4px; border-bottom: medium solid #73885d; border-width: thin;}
 h2 { font-size: 1.2em; margin-top: 20px; margin-bottom: 4px; border-bottom: medium solid #73885d; border-width: thin;}
+.h2 { font-weight:bold; font-size: 1.2em; margin-top: 20px; margin-bottom: 4px; border-bottom: medium solid #73885d; border-width: thin;}
 h3 { font-size: 1.0em; margin-top: 1em; margin-bottom: 2px; }
 .center {     margin-left: auto;
     margin-right: auto;
@@ -32,6 +35,26 @@ h3 { font-size: 1.0em; margin-top: 1em; margin-bottom: 2px; }
 img {
     border-style: hidden;
     border: 0px;
+}
+
+.headerMenuTinyItem {
+  color: white;
+  font-size: 10px;
+  cursor: pointer;
+}
+.headerMenuMed {
+  color: white;
+  font-size: 14px;
+}
+
+.headerMenuMedItem {
+  font-size: 14px;
+  cursor: pointer;
+  color: white;
+}
+
+.recoTags {
+  font-size: 10px;
 }
 
 .main { margin: 10; }

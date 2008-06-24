@@ -228,6 +228,16 @@ public abstract class ItemAdapter implements Serializable {
         }
         return tagMap;
     }
+    
+    protected void clearTagMap(String field) {
+        HashMap<String, Tag> tagMap = (HashMap<String, Tag>) item.getField(field);
+        if (tagMap == null) {
+            tagMap = new HashMap<String, Tag>();
+            item.setField(field, tagMap);
+        } 
+        modified = true;
+        tagMap.clear();
+    }
 
     /**
      * Gets a field value as a list of tags

@@ -146,6 +146,11 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.attend(att);
     }
 
+    public List<Attention> attend(List<Attention> attns)
+            throws AuraException, RemoteException {
+        return replicant.attend(attns);
+    }
+
     public void removeAttention(String srcKey, String targetKey,
                                 Attention.Type type)
             throws AuraException, RemoteException {

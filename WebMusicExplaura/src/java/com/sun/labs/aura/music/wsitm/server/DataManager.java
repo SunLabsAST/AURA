@@ -48,6 +48,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,10 +64,11 @@ public class DataManager implements Configurable {
     private static final String MDB_KEY ="MusicDatabase";
     private static final String CACHE_SIZE ="cacheSize";
     
-    private static final int DEFAULT_CACHE_SIZE=500;
-    private static final int NUMBER_TAGS_TO_SHOW=20;
-    private static final int NUMBER_SIM_ARTISTS=20;
-    private static final int SEC_TO_LIVE_IN_CACHE=604800; // 1 week
+    private static final int DEFAULT_CACHE_SIZE = 500;
+    private static final int NUMBER_TAGS_TO_SHOW = 20;
+    private static final int NUMBER_SIM_ARTISTS = 20;
+    private static final int NBR_REC_LISTENER = 20;
+    private static final int SEC_TO_LIVE_IN_CACHE = 604800; // 1 week
     private static final int NUMBER_ARTIST_ORACLE = 1000;
     private static final int NUMBER_TAGS_ORACLE = 500;
     
@@ -178,17 +180,30 @@ public class DataManager implements Configurable {
     private ArtistDetails loadArtistDetailsFromStore(String id, SimType simType) throws AuraException, 
             RemoteException {
         logger.info("Loading artist details from store :: "+id);
-        ArtistDetails details = new ArtistDetails();
         Artist a = mdb.artistLookup(id);
         if (a==null) {
             return null;
+        } else {
+            return artistToArtistDetails(a, simType);
         }
-        
+   }
+
+    /**
+     * Convert an artist to an ArtistDetails object
+     * @param a artist to convert
+     * @param simType similarity type to use to find similar artists
+     * @return artistdetails object
+     */
+    private ArtistDetails artistToArtistDetails(Artist a, SimType simType) 
+            throws AuraException, RemoteException {
+
+        ArtistDetails details = new ArtistDetails();
+
         details.setName(a.getName());
         details.setBeginYear(a.getBeginYear());
         details.setEndYear(a.getEndYear());
         details.setBiographySummary(a.getBioSummary());
-        details.setId(id);
+        details.setId(a.getKey());
         details.setUrls(a.getUrls());
         details.setPhotos(getArtistPhotoFromIds(a.getPhotos()));
         details.setVideos(getArtistVideoFromIds(a.getVideos()));
@@ -209,7 +224,7 @@ public class DataManager implements Configurable {
         }
                 
         // Fetch similar artists
-        List<Scored<Artist>> scoredArtists = simType.findSimilarArtists(id, NUMBER_SIM_ARTISTS);
+        List<Scored<Artist>> scoredArtists = simType.findSimilarArtists(a.getKey(), NUMBER_SIM_ARTISTS);
         sortByArtistPopularity(scoredArtists);
         details.setSimilarArtists(scoredArtistToItemInfo(scoredArtists));
         
@@ -484,16 +499,56 @@ public class DataManager implements Configurable {
         return details;
     }
 
-    public Listener syncListeners(Listener l, ListenerDetails lD) {
-// fix this so that data is copied both ways while having lD take priority
-        if (lD.gender.equals("M")) {
-            l.setGender(Gender.Male);
-        } else if (lD.gender.equals("F")) {
-            l.setGender(Gender.Female);
+    /**
+     * Perform a sync between a listener and listenerdetails, givin priority to
+     * what's contained in the listenerDetails
+     * @param l
+     * @param lD
+     * @return updated listener
+     */
+    public Listener syncListeners(Listener l, ListenerDetails lD, SimType simType, 
+            boolean updateRecommendations) throws AuraException, RemoteException {
+
+        if (lD.gender!=null) {
+            if (lD.gender.equals("M")) {
+                l.setGender(Gender.Male);
+            } else if (lD.gender.equals("F")) {
+                l.setGender(Gender.Female);
+            }
+        } else if (l.getGender()!=null) {
+            if (l.getGender()==Gender.Female) {
+                lD.gender="F";
+            } else if (l.getGender()==Gender.Male) {
+                lD.gender="M";
+            }
         }
-        l.setLocaleCountry(lD.country);
-        l.setPandoraName(lD.pandoraUser);
-        l.setLastFmName(lD.lastfmUser);
+        
+        if (lD.country!=null) {
+            l.setLocaleCountry(lD.country);
+        } else if (l.getLocaleCountry()!=null) {
+            lD.country=l.getLocaleCountry();
+        }
+
+        if (lD.pandoraUser!=null) {
+            l.setPandoraName(lD.pandoraUser);
+        } else if (l.getPandoraName()!=null) {
+            lD.pandoraUser=l.getPandoraName();
+        }
+
+        if (lD.lastfmUser!=null) {
+            l.setLastFmName(lD.lastfmUser);
+        } else if (l.getLastFmName()!=null) {
+            lD.lastfmUser=l.getLastFmName();
+        }
+
+        if (updateRecommendations) {
+            // Fetch info for recommended artists
+            ArrayList<ArtistDetails> aDetails = new ArrayList<ArtistDetails>();
+            for (Scored<Artist> a : mdb.getRecommendations(l, NBR_REC_LISTENER)) {
+                aDetails.add(artistToArtistDetails(a.getItem(), simType));
+            }
+            lD.recommendations = aDetails.toArray(new ArtistDetails[0]);
+        }
 
         return l;
     }
@@ -503,30 +558,29 @@ public class DataManager implements Configurable {
      * @param lD his listenerDetails obtained from his active session
      * @return his listenerDetails with any modifications that were necessary
      */
-    public ListenerDetails establishUserConnection(ListenerDetails lD) throws AuraException {
-        Listener l=null;
-        try {
-            l = mdb.getListener(lD.openID);
+    public ListenerDetails establishUserConnection(ListenerDetails lD)
+            throws AuraException, RemoteException {
 
-            if (l == null) {
-                logger.info("Creating new user in datastore: " + lD.openID);
-                l = mdb.enrollListener(lD.openID);
-            } else {
-                logger.info("Retrieved user from datastore: " + lD.openID);
-            }
+        Listener l = null;
 
-            l = syncListeners(l, lD);
+        l = mdb.getListener(lD.openID);
 
-            mdb.updateListener(l);
-        } catch (RemoteException rx) {
-            throw new AuraException("Error communicating with item store", rx);
+        if (l == null) {
+            logger.info("Creating new user in datastore: " + lD.openID);
+            l = mdb.enrollListener(lD.openID);
+        } else {
+            logger.info("Retrieved user from datastore: " + lD.openID);
         }
+
+        l = syncListeners(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
+        mdb.updateListener(l);
+
         return lD;
 
     }
 
     public void updateUser(ListenerDetails lD) throws AuraException, RemoteException {
-        Listener l = syncListeners(mdb.getListener(lD.openID), lD);
+        Listener l = syncListeners(mdb.getListener(lD.openID), lD, null, false);
         mdb.updateListener(l);
     }
 
@@ -779,9 +833,10 @@ public class DataManager implements Configurable {
     /**
      * Converts a list of scored artists and returns them in an iteminfo array 
      * @param scoredArtists scored list of items (that will be cast as artists)
+     * @param fetchTags fetch the distinctive tags and spotify id and store them in ItemInfo?
      * @return
      */
-    private ItemInfo[] scoredArtistToItemInfo(List<Scored<Artist>> scoredArtists) {
+    private ItemInfo[] scoredArtistToItemInfo(List<Scored<Artist>> scoredArtists) throws AuraException {
 
         ItemInfo[] artistResults = new ItemInfo[scoredArtists.size()];
 

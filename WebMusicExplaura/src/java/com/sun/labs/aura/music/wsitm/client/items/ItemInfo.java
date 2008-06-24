@@ -20,7 +20,7 @@ public class ItemInfo implements IsSerializable {
     private String itemName;
     private double score;
     private double popularity;
-    
+
     public ItemInfo() {
     }
     

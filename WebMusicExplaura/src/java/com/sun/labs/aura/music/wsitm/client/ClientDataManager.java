@@ -4,13 +4,17 @@
  */
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.extjs.gxt.ui.client.util.Params;
+import com.extjs.gxt.ui.client.widget.Info;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -19,7 +23,8 @@ import java.util.Map;
 public class ClientDataManager {
 
     private String currArtist;
-    
+    private String currSearchWidgetToken = "searchHome:";
+
     private List<Updatable> updatableWidgets;
     
     private Map<String, String> simTypes;
@@ -30,12 +35,34 @@ public class ClientDataManager {
     
     private Double maxScore;
     private Map<String, Double> favArtist;
-    private boolean isLoggedIn = false;
     
     private PageHeaderWidget phw;
     private SimpleSearchWidget ssw;
 
+    private Set<Swidget> registeredSwidgets;
+
     private ListenerDetails lD;
+
+    public ClientDataManager() {
+        lD = new ListenerDetails();
+        registeredSwidgets = new HashSet<Swidget>();
+    }
+
+    /**
+     * Add swidget to the list of swidgets that will be notified of webevents such as login
+     * @param s swidget to add
+     */
+    public void registerSwidget(Swidget s) {
+        registeredSwidgets.add(s);
+    }
+
+    /**
+     * Remove swidget from the list of swidgets that will be notified of webevents such as login
+     * @param s swidget to add
+     */
+    public void unregisterSwidget(Swidget s) {
+        registeredSwidgets.remove(s);
+    }
 
     public void setWidgets(PageHeaderWidget phw, SimpleSearchWidget ssw) {
         this.phw = phw;
@@ -65,8 +92,6 @@ public class ClientDataManager {
     public void setTagCloud(ItemInfo[] tagCloud, String lastFmUser,
             ArtistDetails[] artistDetails) {
 
-        isLoggedIn = true;
-
         this.tagCloud = tagCloud;
         //this.lastFmUser = lastFmUser;
 
@@ -92,7 +117,23 @@ public class ClientDataManager {
     }
 
     public void setListenerDetails(ListenerDetails lD) {
-        this.lD=lD;
+        //
+        // If the logged in state has changed, we need to fire events
+        if (this.lD.loggedIn!=lD.loggedIn) {
+            if (this.lD.loggedIn) {
+                this.lD=lD;
+                for (Swidget s : registeredSwidgets) {
+                    s.triggerLogout();
+                }
+            } else {
+                this.lD=lD;
+                for (Swidget s : registeredSwidgets) {
+                    s.triggerLogin(lD);
+                }
+            }
+        } else {
+            this.lD=lD;
+        }
     }
 
     public ListenerDetails getListenerDetails() {
@@ -108,11 +149,12 @@ public class ClientDataManager {
         tagMap = null;
 //        lastFmUser = null;
 
-        isLoggedIn = false;
+        setListenerDetails(new ListenerDetails());
+
     }
 
     public boolean isLoggedIn() {
-        return isLoggedIn;
+        return lD.loggedIn;
     }
 
     public Map<String, String> getSimTypes() {
@@ -142,7 +184,11 @@ public class ClientDataManager {
 
     public double computeTastauraMeterScore(ArtistDetails aD) {
 
-        if (!isLoggedIn) {
+        if (true) {
+            return 0;
+        }
+
+        if (!isLoggedIn()) {
             return -1;
         }
 
@@ -197,12 +243,20 @@ public class ClientDataManager {
             u.displayWaitIcon();
         }
     }
-    
+
     public void setCurrArtistID(String id) {
         this.currArtist=id;
     }
     
     public String getCurrArtistID() {
         return currArtist;
+    }
+
+    public void setCurrSearchWidgetToken(String token) {
+        this.currSearchWidgetToken=token;
+    }
+
+    public String getCurrSearchWidgetToken() {
+        return currSearchWidgetToken;
     }
 }

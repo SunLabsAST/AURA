@@ -22,17 +22,18 @@ import java.util.Map;
  * @author plamere
  */
 public interface MusicSearchInterface extends RemoteService {
-    public SearchResults artistSearch(String searchString, int maxResults) throws Exception;
-    public SearchResults artistSearchByTag(String searchString, int maxResults) throws Exception;
-    public SearchResults tagSearch(String searchString, int maxResults) throws Exception;
-    public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName) throws Exception ;
-    public TagDetails getTagDetails(String id, boolean refresh, String simTypeName) throws Exception;
+    public SearchResults artistSearch(String searchString, int maxResults) throws WebException;
+    public SearchResults artistSearchByTag(String searchString, int maxResults) throws WebException;
+    public SearchResults tagSearch(String searchString, int maxResults) throws WebException;
+    public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName) throws WebException ;
+    public TagDetails getTagDetails(String id, boolean refresh, String simTypeName) throws WebException;
     public TagTree getTagTree();
-    public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num, String simType) throws Exception;
-    public List<String> getArtistOracle() throws Exception;
-    public List<String> getTagOracle() throws Exception;
-    public ListenerDetails getUserTagCloud(String lastfmUser, String simTypeName) throws Exception;
-    public ListenerDetails getLogInDetails() throws Exception;
-    public void updateListener(ListenerDetails lD) throws Exception;
-    public Map<String, String> getSimTypes() throws Exception;
+    public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num, String simType) throws WebException;
+    public List<String> getArtistOracle() throws WebException;
+    public List<String> getTagOracle() throws WebException;
+    public ListenerDetails getUserTagCloud(String lastfmUser, String simTypeName) throws WebException;
+    public ListenerDetails getLogInDetails() throws WebException;
+    public void updateListener(ListenerDetails lD) throws WebException;
+    public void terminateSession();
+    public Map<String, String> getSimTypes() throws WebException;
 }

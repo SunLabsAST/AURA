@@ -17,17 +17,18 @@ import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
  * @author plamere
  */
 public interface MusicSearchInterfaceAsync {
-       public void artistSearch(String searchString, int maxResults, AsyncCallback callback) throws Exception;
-       public void artistSearchByTag(String searchString, int maxResults, AsyncCallback callback) throws Exception; 
-       public void tagSearch(String searchString, int maxResults, AsyncCallback callback) throws Exception; 
-       public void getArtistDetails(String id, boolean refresh, String simTypeName, AsyncCallback callback) throws Exception;
-       public void getTagDetails(String id, boolean refresh, String simTypeName, AsyncCallback callback) throws Exception;
+       public void artistSearch(String searchString, int maxResults, AsyncCallback callback) throws WebException;
+       public void artistSearchByTag(String searchString, int maxResults, AsyncCallback callback) throws WebException;
+       public void tagSearch(String searchString, int maxResults, AsyncCallback callback) throws WebException;
+       public void getArtistDetails(String id, boolean refresh, String simTypeName, AsyncCallback callback) throws WebException;
+       public void getTagDetails(String id, boolean refresh, String simTypeName, AsyncCallback callback) throws WebException;
        public void getTagTree(AsyncCallback callback);
-       public void getCommonTags(String artistID1, String artistID2, int num, String simType, AsyncCallback callback) throws Exception;
-       public void getArtistOracle(AsyncCallback callback) throws Exception;
-       public void getTagOracle(AsyncCallback callback) throws Exception;
-       public void getLogInDetails(AsyncCallback callback) throws Exception;
-       public void getUserTagCloud(String lastfmUser, String simTypeName, AsyncCallback callback) throws Exception;
-       public void updateListener(ListenerDetails lD, AsyncCallback callback) throws Exception;
-       public void getSimTypes(AsyncCallback callback) throws Exception;
+       public void getCommonTags(String artistID1, String artistID2, int num, String simType, AsyncCallback callback) throws WebException;
+       public void getArtistOracle(AsyncCallback callback) throws WebException;
+       public void getTagOracle(AsyncCallback callback) throws WebException;
+       public void getLogInDetails(AsyncCallback callback) throws WebException;
+       public void getUserTagCloud(String lastfmUser, String simTypeName, AsyncCallback callback) throws WebException;
+       public void updateListener(ListenerDetails lD, AsyncCallback callback) throws WebException;
+       public void terminateSession(AsyncCallback callback);
+       public void getSimTypes(AsyncCallback callback) throws WebException;
 }

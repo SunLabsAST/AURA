@@ -40,7 +40,7 @@ public class DataStoreFactory {
      * DataStores are not loaded directly, rather they are instantiated using
      * a ConfigurationManager.
      */
-    public static DataStore getSimpleDataStore(String datadir) throws IOException, InterruptedException {
+    public static DataStore getSimpleDataStore(String datadir) throws IOException {
         Logger log = Logger.getLogger(DataStoreFactory.class.getName());
 
         if(configURI == null) {

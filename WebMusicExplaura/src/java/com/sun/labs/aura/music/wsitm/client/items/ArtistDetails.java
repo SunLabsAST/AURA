@@ -10,6 +10,8 @@
 package com.sun.labs.aura.music.wsitm.client.items;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
+import com.google.gwt.user.client.ui.Image;
+import com.sun.labs.aura.music.wsitm.client.WebLib;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -297,6 +299,39 @@ public class ArtistDetails implements IsSerializable, Details {
 
     public void setCollaborations(ItemInfo[] collaborations) {
         this.collaborations = collaborations;
+    }
+
+    /**
+     * Get the artist's image and use an album cover as a fallback
+     * @param thumbnail return a thumbnail sized image
+     * @return
+     */
+    public Image getBestArtistImage(boolean thumbnail) {
+        Image img = null;
+        if (photos.length > 0) {
+            if (thumbnail) {
+                img = new Image(photos[0].getThumbNailImageUrl());
+            } else {
+                img = new Image(photos[0].getSmallImageUrl());
+            }
+        } else if (albums.length > 0) {
+            img = new Image(albums[0].getAlbumArt());
+            if (thumbnail) {
+                img.setVisibleRect(0, 0, 75, 75);
+            }
+        }
+        return img;
+    }
+
+    public String getBestArtistImageAsHTML() {
+        String imgHtml = "";
+        if (photos.length > 0) {
+            imgHtml = photos[0].getHtmlWrapper();
+        } else if (albums.length > 0) {
+            AlbumDetails album = albums[0];
+            imgHtml = WebLib.createAnchoredImage(album.getAlbumArt(), album.getAmazonLink(), "margin-right: 10px; margin-bottom: 10px");
+        }
+        return imgHtml;
     }
 }
 

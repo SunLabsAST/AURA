@@ -369,6 +369,35 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return pc.attend(att);
     }
 
+    public List<Attention> attend(List<Attention> attns)
+            throws AuraException, RemoteException {
+        //
+        // Batch up the attentions to go to their respective partitions in
+        // groups
+        Map<PartitionCluster,List<Attention>> map =
+                new HashMap<PartitionCluster,List<Attention>>();
+        for (Attention att : attns) {
+            PartitionCluster pc = trie.get(DSBitSet.parse(att.hashCode()));
+            List dest = map.get(pc);
+            if (dest == null) {
+                dest = new ArrayList<Attention>();
+                map.put(pc, dest);
+            }
+            dest.add(att);
+        }
+
+        //
+        // Send each batch off to each required partition and gather up the
+        // results.  For more efficiency, we should do this all in parallel.
+        List<Attention> results = new ArrayList<Attention>();
+        for (Map.Entry<PartitionCluster,List<Attention>> ent : map.entrySet()) {
+            PartitionCluster pc = ent.getKey();
+            List<Attention> a = ent.getValue();
+            results.addAll(pc.attend(a));
+        }
+        return results;
+    }
+    
     public void removeAttention(String srcKey, String targetKey,
                                 Attention.Type type)
             throws AuraException, RemoteException {

@@ -67,4 +67,20 @@ public interface Attention extends Serializable, Comparable<Attention> {
      * @return the type of attention
      */
     public Type getType();
+    
+    /**
+     * Gets the meta-data string value associated with this attention if one
+     * exists.
+     * 
+     * @return the meta-data or null
+     */
+    public String getString();
+    
+    /**
+     * Gets the meta-data number value associated with this attention if one
+     * exists.
+     * 
+     * @return the meta-data or null
+     */
+    public Long getNumber();
 }
