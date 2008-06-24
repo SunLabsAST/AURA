@@ -288,7 +288,7 @@ public class GridUtil {
         return total;
     }
     
-    protected static Network createAuraNetwork(Grid grid, String instance) throws Exception {
+    public static Network createAuraNetwork(Grid grid, String instance) throws Exception {
         Network network = null;
         try {
             // Try to create a customer network for the test

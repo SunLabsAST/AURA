@@ -1,11 +1,8 @@
 package com.sun.labs.aura.grid;
 
-import com.sun.caroline.platform.CustomerNetworkConfiguration;
-import com.sun.caroline.platform.DuplicateNameException;
 import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.Network;
-import com.sun.caroline.platform.NetworkAllocationException;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
