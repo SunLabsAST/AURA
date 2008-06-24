@@ -18,6 +18,7 @@ import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.Recommendation;
 import com.sun.labs.aura.music.RecommendationType;
+import com.sun.labs.aura.music.crawler.ListenerCrawler;
 import com.sun.labs.aura.music.crawler.TagCrawler;
 import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
@@ -31,6 +32,7 @@ import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +47,7 @@ public class MusicShell implements AuraService, Configurable {
 
     private DataStore dataStore;
     private TagCrawler tagCrawler;
+    private ListenerCrawler listenerCrawler;
     private CommandInterpreter shell;
     private StatService statService;
     private ShellUtils sutils;
@@ -330,6 +333,7 @@ public class MusicShell implements AuraService, Configurable {
             }
         });
 
+
         shell.add("addListener", new CommandInterface() {
 
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
@@ -356,6 +360,37 @@ public class MusicShell implements AuraService, Configurable {
             }
         });
 
+        shell.add("listenerUpdate", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                if (args.length == 1) {
+                    Thread t = new Thread() {
+                        public void run() {
+                            try {
+                                listenerCrawler.crawlAllListeners();
+                            } catch (Exception ex) {
+                                System.out.println("Trouble crawling listeners");
+                            }
+                        }
+                    };
+                    t.start();
+                } else {
+                    String listenerID = args[1];
+                    Listener listener = musicDatabase.getListener(listenerID);
+                    if (listener != null) {
+                        listenerCrawler.crawlListener(listener);
+                    } else {
+                        System.out.println("Can't find listener " + listenerID);
+                    }
+                }
+                return "";
+            }
+
+            public String getHelp() {
+                return "updates the info for a listener";
+            }
+        });
+
         shell.add("rec", new CommandInterface() {
 
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
@@ -368,14 +403,14 @@ public class MusicShell implements AuraService, Configurable {
                     if (rtype == null) {
                         return "Can't find rectype " + rtype;
                     }
-                    
+
                     Listener listener = musicDatabase.getListener(listenerID);
                     if (listener == null) {
                         return "Can't find listener " + listenerID;
                     }
 
                     List<Recommendation> recommendations = rtype.getRecommendations(listener, sutils.getHits(), null);
-                    
+
                     for (Recommendation r : recommendations) {
                         Artist artist = musicDatabase.artistLookup(r.getId());
                         System.out.printf(" %.2f  %s\n    %s\n", r.getScore(), artist.getName(), r.getExplanation());
@@ -571,6 +606,7 @@ public class MusicShell implements AuraService, Configurable {
     public void newProperties(PropertySheet ps) throws PropertyException {
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
         tagCrawler = (TagCrawler) ps.getComponent(PROP_TAG_CRAWLER);
+        listenerCrawler = (ListenerCrawler) ps.getComponent(PROP_LISTENER_CRAWLER);
         statService = (StatService) ps.getComponent(PROP_STAT_SERVICE);
         try {
             musicDatabase = new MusicDatabase(dataStore);
@@ -587,4 +623,6 @@ public class MusicShell implements AuraService, Configurable {
     public final static String PROP_TAG_CRAWLER = "tagCrawler";
     @ConfigComponent(type = StatService.class)
     public final static String PROP_STAT_SERVICE = "statService";
+    @ConfigComponent(type = ListenerCrawler.class)
+    public final static String PROP_LISTENER_CRAWLER = "listenerCrawler";
 }
