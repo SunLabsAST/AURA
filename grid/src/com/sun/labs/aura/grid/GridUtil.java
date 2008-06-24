@@ -349,9 +349,6 @@ public class GridUtil {
         } catch(DuplicateNameException e) {
             log.finer("External address exists, reusing");
             externalAddress = grid.getExternalAddress(name + "-ext");
-        } catch(NetworkAddressAllocationException e) {
-            log.severe("Error allocating external address: " + e.getMessage());
-            System.exit(2);
         }
         bindHostName(grid.getExternalHostNameZone(), externalAddress, name);
         return externalAddress;
