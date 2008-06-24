@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package com.sun.labs.aura.grid;
+package com.sun.labs.aura.grid.rp;
 
 /**
  *

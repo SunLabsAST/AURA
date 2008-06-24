@@ -20,13 +20,13 @@
     <!-- An aardvark system -->
     <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
     
-    <component name="startAardvark" type="com.sun.labs.aura.grid.StartAardvark">
+    <component name="startAardvark" type="com.sun.labs.aura.grid.aardvark.StartAardvark">
         <property name="instance" value="${auraInstance}"/>
         <property name="dataStore" value="dataStore"/>
         <property name="logLevel" value="FINER"/>
     </component>
     
-    <component name="stopAardvark" type="com.sun.labs.aura.grid.StopAardvark">
+    <component name="stopAardvark" type="com.sun.labs.aura.grid.aardvark.StopAardvark">
         <property name="instance" value="${auraInstance}"/>
     </component>
     
