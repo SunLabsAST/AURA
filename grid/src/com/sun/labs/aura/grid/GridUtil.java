@@ -7,6 +7,7 @@ package com.sun.labs.aura.grid;
 
 import com.sun.caroline.platform.BaseFileSystemConfiguration;
 import com.sun.caroline.platform.ConflictingHostNameException;
+import com.sun.caroline.platform.CustomerNetworkConfiguration;
 import com.sun.caroline.platform.DuplicateNameException;
 import com.sun.caroline.platform.DynamicNatConfiguration;
 import com.sun.caroline.platform.FileSystem;
@@ -17,6 +18,7 @@ import com.sun.caroline.platform.HostNameZone;
 import com.sun.caroline.platform.Network;
 import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.NetworkAddressAllocationException;
+import com.sun.caroline.platform.NetworkAllocationException;
 import com.sun.caroline.platform.NetworkConfiguration;
 import com.sun.caroline.platform.NetworkSetting;
 import com.sun.caroline.platform.ProcessConfiguration;
@@ -285,6 +287,24 @@ public class GridUtil {
         }
         return total;
     }
+    
+    protected static Network createAuraNetwork(Grid grid, String instance) throws Exception {
+        Network network = null;
+        try {
+            // Try to create a customer network for the test
+            network = grid.createNetwork(instance + "-auraNet", 128,
+                    new CustomerNetworkConfiguration());
+            log.info("Created network " + network.getName());
+        } catch(DuplicateNameException e) {
+            // Reuse an existing network
+            network = grid.getNetwork(instance + "-auraNet");
+            log.fine("Network already exists, reusing " + network.
+                    getName());
+        } finally {
+            return network;
+        }
+    }
+
     /**
      * Get an address for a given hostname.  The hostname should be based
      * on the process name.  The address is allocated and a host name binding

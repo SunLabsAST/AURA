@@ -94,7 +94,7 @@ public class ServiceDeployer {
         pc.setWorkingDirectory(GridUtil.logFSMntPnt);
         pc.setProcessExitAction(ProcessExitAction.DESTROY);
 
-        Network network = grid.getNetwork(instance + "-auraNet");
+        Network network = GridUtil.createAuraNetwork(grid, instance);
         if(network == null) {
             throw new IllegalStateException("No network for deployment");
         }

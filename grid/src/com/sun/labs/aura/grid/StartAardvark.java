@@ -8,6 +8,7 @@ package com.sun.labs.aura.grid;
 import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistration;
+import com.sun.caroline.platform.RunState;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
@@ -49,6 +50,7 @@ public class StartAardvark extends Aardvark {
 
         //
         // Start a few feed crawlers
+        ProcessRegistration lastReg = null;
         for(int i = 0; i < numCrawlers; i++) {
             ProcessConfiguration feedMgrConfig = getFeedManagerConfig(i);
             ProcessRegistration feedMgrReg = GridUtil.createProcess(grid, getFMName(i),
@@ -56,12 +58,16 @@ public class StartAardvark extends Aardvark {
 
             //
             // Make a dynamic NAT for this process config
-            ProcessConfiguration pc = feedMgrConfig;
-            internal = pc.getNetworkAddresses().iterator().next();
+            internal = feedMgrConfig.getNetworkAddresses().iterator().next();
             GridUtil.createNAT(grid, instance, crawlerNat.getUUID(), internal, "feedMgr-" + i);
             GridUtil.startRegistration(feedMgrReg, false);
+            lastReg = feedMgrReg;
         }
 
+        while (lastReg.getRunState() != RunState.RUNNING) {
+            lastReg.waitForStateChange(1000000L);
+        }
+        
         //
         // Create a recommendation manager
         ProcessRegistration recReg = GridUtil.createProcess(grid, getRecName(),
