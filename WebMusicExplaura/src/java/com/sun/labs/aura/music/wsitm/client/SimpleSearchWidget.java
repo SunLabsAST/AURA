@@ -592,7 +592,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         StarRatingWidget starWidget = null;
         if (cdm.isLoggedIn()) {
-            starWidget = new StarRatingWidget(0);
+            starWidget = new StarRatingWidget(0, StarRatingWidget.Size.MEDIUM);
         }
 
         return createMainSection(artistDetails.getName(), html, WebLib.getSpotifyListenWidget(artistDetails, 30), starWidget);

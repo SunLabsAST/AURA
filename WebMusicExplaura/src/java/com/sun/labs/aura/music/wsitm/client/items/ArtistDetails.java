@@ -301,12 +301,24 @@ public class ArtistDetails implements IsSerializable, Details {
         this.collaborations = collaborations;
     }
 
-    public Image getBestArtistImage() {
+    /**
+     * Get the artist's image and use an album cover as a fallback
+     * @param thumbnail return a thumbnail sized image
+     * @return
+     */
+    public Image getBestArtistImage(boolean thumbnail) {
         Image img = null;
         if (photos.length > 0) {
-            img = new Image(photos[0].getThumbNailImageUrl());
+            if (thumbnail) {
+                img = new Image(photos[0].getThumbNailImageUrl());
+            } else {
+                img = new Image(photos[0].getSmallImageUrl());
+            }
         } else if (albums.length > 0) {
             img = new Image(albums[0].getAlbumArt());
+            if (thumbnail) {
+                img.setVisibleRect(0, 0, 75, 75);
+            }
         }
         return img;
     }

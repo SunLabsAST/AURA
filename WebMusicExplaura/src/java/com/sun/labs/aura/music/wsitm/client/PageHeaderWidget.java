@@ -81,6 +81,7 @@ public class PageHeaderWidget extends Swidget {
         
         toolBar = new ToolBar();
         toolBar.setWidth(100);
+        Info.display("toolbar",toolBar.getBaseStyle(), new Params());
         
         recTypeToolItem = new TextToolItem("Loading...");
         recTypeToolItem.setIconStyle("icon-menu-show");
@@ -172,7 +173,7 @@ public class PageHeaderWidget extends Swidget {
         HorizontalPanel h = new HorizontalPanel();
         h.setWidth("300px");
         h.add(new Image("ajax-ball.gif"));
-        Label lbl = new Label("Fetching your user profile...");
+        Label lbl = new Label("Connecting...");
         lbl.setStyleName("headerMenuMed");
         h.add(lbl);
         mainPanel.setWidget(0, 0, h);
@@ -319,7 +320,7 @@ public class PageHeaderWidget extends Swidget {
     private void populateLoginBox() {
 
         txtbox = new TextBox();
-        txtbox.setText(Cookies.getCookie("defaultOpenID"));
+        txtbox.setText(Cookies.getCookie("app-openid-uniqueid"));
         txtbox.addKeyboardListener(new KeyboardListener() {
 
             public void onKeyPress(Widget arg0, char keyCode, int arg2) {
@@ -340,7 +341,6 @@ public class PageHeaderWidget extends Swidget {
         b.addClickListener(new ClickListener() {
 
             public void onClick(Widget arg0) {
-                Cookies.setCookie("defaultOpenID", txtbox.getText());
                 fetchUserInfo();
             }
         });

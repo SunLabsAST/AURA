@@ -25,14 +25,47 @@ public class StarRatingWidget extends Composite {
     private int nbrStars = 5;
     private int nbrSelectedStars = 0;
 
-    private static final String STAR_LID = "star-lid.png";
-    private static final String STAR_NOTLID = "star-notlid.png";
-    private static final String STAR_WHITE = "star-white.png";
+    private String STAR_LID = "";
+    private String STAR_NOTLID = "";
+    private String STAR_WHITE = "";
+    private String NOT_INTERESTED = "";
+    private String NOT_INTERESTED_HOVER = "";
+
+    private static final String STAR_LID_M = "star-lid.png";
+    private static final String STAR_NOTLID_M = "star-notlid.png";
+    private static final String STAR_WHITE_M = "star-white.png";
+    private static final String NOT_INTERESTED_M = "not-interested2.png";
+    private static final String NOT_INTERESTED_HOVER_M = "not-interested2-hover.png";
+
+    private static final String STAR_LID_S = "star-lid-s.png";
+    private static final String STAR_NOTLID_S = "star-notlid-s.png";
+    private static final String STAR_WHITE_S = "star-white-s.png";
+    private static final String NOT_INTERESTED_S = "not-interested2-s.png";
+    private static final String NOT_INTERESTED_HOVER_S = "not-interested2-s-hover.png";
 
     private Image[] images;
 
-    public StarRatingWidget(int initialSelection) {
+    public enum Size {
+        SMALL,
+        MEDIUM
+    }
+
+    public StarRatingWidget(int initialSelection, Size size) {
         this.nbrSelectedStars = initialSelection;
+
+        if (size == Size.SMALL) {
+            STAR_LID = STAR_LID_S;
+            STAR_NOTLID = STAR_NOTLID_S;
+            STAR_WHITE = STAR_WHITE_S;
+            NOT_INTERESTED = NOT_INTERESTED_S;
+            NOT_INTERESTED_HOVER = NOT_INTERESTED_HOVER_S;
+        } else {
+            STAR_LID = STAR_LID_M;
+            STAR_NOTLID = STAR_NOTLID_M;
+            STAR_WHITE = STAR_WHITE_M;
+            NOT_INTERESTED = NOT_INTERESTED_M;
+            NOT_INTERESTED_HOVER = NOT_INTERESTED_HOVER_M;
+        }
 
         FlowPanel p = new FlowPanel();
 
@@ -47,7 +80,22 @@ public class StarRatingWidget extends Composite {
             images[i].addMouseListener(new IndexMouseListener(i));
             p.add(images[i]);
         }
+        Image noInterest = new Image(NOT_INTERESTED);
+        noInterest.addMouseListener(new MouseListener() {
 
+            public void onMouseDown(Widget arg0, int arg1, int arg2) {}
+            public void onMouseMove(Widget arg0, int arg1, int arg2) {}
+            public void onMouseUp(Widget arg0, int arg1, int arg2) {}
+
+            public void onMouseEnter(Widget arg0) {
+                ((Image)arg0).setUrl(NOT_INTERESTED_HOVER);
+            }
+
+            public void onMouseLeave(Widget arg0) {
+                ((Image)arg0).setUrl(NOT_INTERESTED);
+            }
+        });
+        p.add(noInterest);
         initWidget(p);
 
     }

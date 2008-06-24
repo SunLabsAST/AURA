@@ -5,8 +5,11 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.extjs.gxt.ui.client.util.Params;
+import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.Grid;
@@ -50,6 +53,8 @@ public class DashboardSwidget extends Swidget {
         private Grid g;
         private static final int IMG_SIZE = 150;
 
+        private Grid featArtist;
+
         public MainPanel() {
             g = new Grid(1,1);
             initWidget(g);
@@ -82,11 +87,13 @@ public class DashboardSwidget extends Swidget {
             vP.setSpacing(4);
             vP.setWidth("300px");
 
+            //
+            // Recommendations
             for (ArtistDetails aD : cdm.getListenerDetails().recommendations) {
                 HorizontalPanel artistPanel = new HorizontalPanel();
                 artistPanel.setSpacing(5);
 
-                Image img = aD.getBestArtistImage();
+                Image img = aD.getBestArtistImage(true);
                 artistPanel.add(img);
 
                 VerticalPanel txtPanel = new VerticalPanel();
@@ -101,30 +108,97 @@ public class DashboardSwidget extends Swidget {
                 aNamePanel.add(WebLib.getSpotifyListenWidget(aD, 20));
                 txtPanel.add(aNamePanel);
 
-                String tags = "";
-                for (int i=0; i<aD.getDistinctiveTags().length; i++) {
-                    tags += aD.getDistinctiveTags()[i].getItemName()+", ";
-                    if (i==4) {
-                        break;
-                    }
-                }
-                Label tagsLabel = new Label(tags.substring(0, tags.length()-2));
+                Label tagsLabel = new Label(getNDistinctiveTags(aD, 4));
                 tagsLabel.setStyleName("recoTags");
                 txtPanel.add(tagsLabel);
+
+                txtPanel.add(new StarRatingWidget(0, StarRatingWidget.Size.SMALL));
+
                 artistPanel.add(txtPanel);
+
 
                 vP.add(artistPanel);
             }
             dP.add(WebLib.createSection("Artist recommendations", vP), DockPanel.WEST);
 
             Label titleLbl = new Label("Dashhhhboard");
-            titleLbl.setStyleName("title");
+            titleLbl.setStyleName("h1");
             dP.add(titleLbl, DockPanel.NORTH);
 
+            //
+            // Featured artist
+            
+            featArtist = new Grid(2,1);
+            featArtist.setWidget(0, 0, new HTML("<h2>Featured Artist</h2>"));
+            featArtist.setWidget(1, 0, new Image("ajax-bar.gif"));
+            invokeFetchFeaturedArtist();
+
+            dP.add(featArtist, DockPanel.NORTH);
 
             return dP;
         }
 
+        private String getNDistinctiveTags(ArtistDetails aD, int n) {
+            String tags = "";
+            for (int i = 0; i < aD.getDistinctiveTags().length; i++) {
+                tags += aD.getDistinctiveTags()[i].getItemName() + ", ";
+                if (i == n) {
+                    break;
+                }
+            }
+            return tags.substring(0, tags.length()-2);
+        }
+
+        private void setFeaturedArtist(ArtistDetails aD) {
+            if (aD == null) {
+                featArtist.setWidget(1, 0, new Label("Unable to load artist."));
+            } else {
+
+                Grid featArtTitle = new Grid(1,3);
+                featArtTitle.setStyleName("h2");
+                featArtTitle.setWidth("100%");
+                featArtTitle.setWidget(0, 0, new Label("Featured artist :: "+aD.getName()));
+                featArtTitle.setWidget(0, 1, new StarRatingWidget(0,StarRatingWidget.Size.MEDIUM));
+                featArtTitle.setWidget(0, 2, WebLib.getSpotifyListenWidget(aD, 30));
+
+                featArtist.setWidget(0, 0, featArtTitle);
+
+                HorizontalPanel featHp = new HorizontalPanel();
+                featHp.setSpacing(5);
+                featHp.add(aD.getBestArtistImage(false));
+
+                VerticalPanel featVp = new VerticalPanel();
+                featVp.setSpacing(4);
+                featVp.add(new HTML(aD.getBiographySummary().substring(0, 300) + " [...]"));
+                featVp.add(new HTML("<b>Tags</b> : "+getNDistinctiveTags(aD, 10)));
+
+                featHp.add(featVp);
+
+
+                featArtist.setWidget(1, 0,  featHp);
+
+            }
+        }
+
+        private void invokeFetchFeaturedArtist() {
+
+            AsyncCallback callback = new AsyncCallback() {
+
+                public void onSuccess(Object result) {
+                    setFeaturedArtist((ArtistDetails) result);
+                }
+
+                public void onFailure(Throwable caught) {
+                    Window.alert(caught.getMessage());
+                }
+            };
+
+            try {
+                musicServer.getArtistDetails("24762087-34ce-4f65-b743-7d8402cf30dd", false, cdm.getCurrSimTypeName(), callback);
+            } catch (WebException ex) {
+                Window.alert(ex.getMessage());
+            }
+        }
     }
 
     public class TokenClickListener implements ClickListener {
