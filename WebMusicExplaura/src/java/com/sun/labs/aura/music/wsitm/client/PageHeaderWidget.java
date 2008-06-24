@@ -268,12 +268,19 @@ public class PageHeaderWidget extends Swidget {
 
                     HorizontalPanel hP = new HorizontalPanel();
                     hP.setSpacing(4);
-                    Label loggedLbl = new Label("Logged in as " + name);
-                    loggedLbl.addStyleName("headerMenuMed");
+                    Label loggedLbl = new Label(name);
+                    loggedLbl.addClickListener(new ClickListener() {
+
+                        public void onClick(Widget arg0) {
+                            History.newItem("userpref:");
+                        }
+                    });
+                    loggedLbl.addStyleName("headerMenuMedItem");
                     hP.add(loggedLbl);
 
                     VerticalPanel vP = new VerticalPanel();
 
+                    /*
                     Label lnk = new Label("Edit profile");
                     lnk.addClickListener(new ClickListener() {
 
@@ -283,8 +290,9 @@ public class PageHeaderWidget extends Swidget {
                     });
                     lnk.setStyleName("headerMenuTinyItem");
                     vP.add(lnk);
+                    */
 
-                    lnk = new Label("Logout");
+                    Label lnk = new Label("Logout");
                     lnk.addClickListener(new ClickListener() {
 
                         public void onClick(Widget arg0) {
