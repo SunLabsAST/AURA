@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.grid.aardvark;
 
+import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.aura.grid.*;
 import com.sun.caroline.platform.ProcessRegistration;
 import java.util.LinkedList;

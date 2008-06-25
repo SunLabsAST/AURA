@@ -10,7 +10,7 @@ import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.RunState;
 import com.sun.labs.aura.datastore.DataStore;
-import com.sun.labs.aura.grid.GridUtil;
+import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.PropertyException;

@@ -1,5 +1,6 @@
 package com.sun.labs.aura.grid;
 
+import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.Network;

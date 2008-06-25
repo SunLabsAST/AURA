@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.grid;
 
+import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.caroline.platform.ProcessRegistration;
 import java.util.LinkedList;
 import java.util.Queue;

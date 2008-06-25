@@ -7,7 +7,7 @@ import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
 import com.sun.caroline.platform.StorageManagementException;
-import com.sun.labs.aura.grid.GridUtil;
+import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigurationManager;

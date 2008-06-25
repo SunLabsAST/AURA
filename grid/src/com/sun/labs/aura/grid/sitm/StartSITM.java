@@ -7,7 +7,7 @@ package com.sun.labs.aura.grid.sitm;
 import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.labs.aura.datastore.DataStore;
-import com.sun.labs.aura.grid.GridUtil;
+import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.PropertyException;
@@ -53,8 +53,8 @@ public class StartSITM extends SITM {
         GridUtil.startRegistration(lcReg);
 
         ProcessRegistration tcReg =
-                GridUtil.createProcess(grid, getArtistCrawlerName(),
-                getArtistCrawlerConfig());
+                GridUtil.createProcess(grid, getTagCrawlerName(),
+                getTagCrawlerConfig());
         internal = tcReg.getRegistrationConfiguration().
                 getNetworkAddresses().iterator().next();
         GridUtil.createNAT(grid, instance, crawlerExt.getUUID(), internal,
@@ -83,7 +83,7 @@ public class StartSITM extends SITM {
             }
             startSITMProcesses();
         } catch(Exception ex) {
-            logger.log(Level.SEVERE, "Error starting Aardvark", ex);
+            logger.log(Level.SEVERE, "Error starting SITM", ex);
         }
     }
 

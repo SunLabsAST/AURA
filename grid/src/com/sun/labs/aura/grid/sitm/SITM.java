@@ -11,7 +11,7 @@ import com.sun.caroline.platform.Network;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.StorageManagementException;
-import com.sun.labs.aura.grid.GridUtil;
+import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -97,6 +97,8 @@ public abstract class SITM extends ServiceAdapter {
             "/com/sun/labs/aura/music/resource/artistCrawlerConfig.xml",
             "starter"
         };
+        
+        logger.info("Instance: " + instance);
         
         ProcessConfiguration pc = getProcessConfig(GridUtil.logFSMntPnt,
                 "artistCrawler.out");
