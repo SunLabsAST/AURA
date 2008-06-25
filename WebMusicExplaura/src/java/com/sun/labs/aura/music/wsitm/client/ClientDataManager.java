@@ -48,10 +48,18 @@ public class ClientDataManager {
         registeredSwidgets = new HashSet<Swidget>();
     }
 
+    /**
+     * Add swidget to the list of swidgets that will be notified of webevents such as login
+     * @param s swidget to add
+     */
     public void registerSwidget(Swidget s) {
         registeredSwidgets.add(s);
     }
 
+    /**
+     * Remove swidget from the list of swidgets that will be notified of webevents such as login
+     * @param s swidget to add
+     */
     public void unregisterSwidget(Swidget s) {
         registeredSwidgets.remove(s);
     }
@@ -113,16 +121,19 @@ public class ClientDataManager {
         // If the logged in state has changed, we need to fire events
         if (this.lD.loggedIn!=lD.loggedIn) {
             if (this.lD.loggedIn) {
+                this.lD=lD;
                 for (Swidget s : registeredSwidgets) {
                     s.triggerLogout();
                 }
             } else {
+                this.lD=lD;
                 for (Swidget s : registeredSwidgets) {
                     s.triggerLogin(lD);
                 }
             }
+        } else {
+            this.lD=lD;
         }
-        this.lD=lD;
     }
 
     public ListenerDetails getListenerDetails() {
@@ -138,7 +149,8 @@ public class ClientDataManager {
         tagMap = null;
 //        lastFmUser = null;
 
-        lD = new ListenerDetails();
+        setListenerDetails(new ListenerDetails());
+
     }
 
     public boolean isLoggedIn() {

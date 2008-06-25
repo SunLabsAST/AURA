@@ -91,7 +91,7 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
         super.init(config);
         try {
             this.manager = new ConsumerManager();
-            Logger.getLogger("org.openid4java").setLevel(Level.ALL);
+            //Logger.getLogger("org.openid4java").setLevel(Level.ALL);
             manager.setAssociations(new InMemoryConsumerAssociationStore());
             manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
         } catch (ConsumerException e) {

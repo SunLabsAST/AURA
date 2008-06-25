@@ -92,6 +92,7 @@
     <component name="musicShell" type="com.sun.labs.aura.music.util.MusicShell">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="tagCrawler" value="tagCrawler"/>
+        <property name="listenerCrawler" value="listenerCrawler"/>
         <property name="statService" value="statService"/>
     </component>
     

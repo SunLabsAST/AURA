@@ -8,9 +8,13 @@
  */
 
 package com.sun.labs.aura.music.wsitm.client;
+import com.extjs.gxt.ui.client.util.Params;
+import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.HashSet;
 import java.util.List;
@@ -73,12 +77,20 @@ public abstract class Swidget extends Composite {
         endpoint.setServiceEntryPoint(moduleRelativeURL);
     }
 
+    protected Widget getMustBeLoggedInWidget() {
+        return new Label("Sorry but you must be logged in to access this page.");
+    }
+
     protected void registerLoginListener(LoginListener ll) {
         listeners.add(ll);
     }
 
     protected void removeLoginListener(LoginListener ll) {
         listeners.remove(ll);
+    }
+
+    protected void removeAllLoginListeners() {
+        listeners = new HashSet<LoginListener>();
     }
 
     public void triggerLogin(ListenerDetails lD) {

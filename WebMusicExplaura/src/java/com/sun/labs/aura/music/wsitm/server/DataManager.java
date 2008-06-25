@@ -48,6 +48,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,10 +64,11 @@ public class DataManager implements Configurable {
     private static final String MDB_KEY ="MusicDatabase";
     private static final String CACHE_SIZE ="cacheSize";
     
-    private static final int DEFAULT_CACHE_SIZE=500;
-    private static final int NUMBER_TAGS_TO_SHOW=20;
-    private static final int NUMBER_SIM_ARTISTS=20;
-    private static final int SEC_TO_LIVE_IN_CACHE=604800; // 1 week
+    private static final int DEFAULT_CACHE_SIZE = 500;
+    private static final int NUMBER_TAGS_TO_SHOW = 20;
+    private static final int NUMBER_SIM_ARTISTS = 20;
+    private static final int NBR_REC_LISTENER = 20;
+    private static final int SEC_TO_LIVE_IN_CACHE = 604800; // 1 week
     private static final int NUMBER_ARTIST_ORACLE = 1000;
     private static final int NUMBER_TAGS_ORACLE = 500;
     
@@ -178,17 +180,30 @@ public class DataManager implements Configurable {
     private ArtistDetails loadArtistDetailsFromStore(String id, SimType simType) throws AuraException, 
             RemoteException {
         logger.info("Loading artist details from store :: "+id);
-        ArtistDetails details = new ArtistDetails();
         Artist a = mdb.artistLookup(id);
         if (a==null) {
             return null;
+        } else {
+            return artistToArtistDetails(a, simType);
         }
-        
+   }
+
+    /**
+     * Convert an artist to an ArtistDetails object
+     * @param a artist to convert
+     * @param simType similarity type to use to find similar artists
+     * @return artistdetails object
+     */
+    private ArtistDetails artistToArtistDetails(Artist a, SimType simType) 
+            throws AuraException, RemoteException {
+
+        ArtistDetails details = new ArtistDetails();
+
         details.setName(a.getName());
         details.setBeginYear(a.getBeginYear());
         details.setEndYear(a.getEndYear());
         details.setBiographySummary(a.getBioSummary());
-        details.setId(id);
+        details.setId(a.getKey());
         details.setUrls(a.getUrls());
         details.setPhotos(getArtistPhotoFromIds(a.getPhotos()));
         details.setVideos(getArtistVideoFromIds(a.getVideos()));
@@ -209,7 +224,7 @@ public class DataManager implements Configurable {
         }
                 
         // Fetch similar artists
-        List<Scored<Artist>> scoredArtists = simType.findSimilarArtists(id, NUMBER_SIM_ARTISTS);
+        List<Scored<Artist>> scoredArtists = simType.findSimilarArtists(a.getKey(), NUMBER_SIM_ARTISTS);
         sortByArtistPopularity(scoredArtists);
         details.setSimilarArtists(scoredArtistToItemInfo(scoredArtists));
         
@@ -491,7 +506,8 @@ public class DataManager implements Configurable {
      * @param lD
      * @return updated listener
      */
-    public Listener syncListeners(Listener l, ListenerDetails lD) {
+    public Listener syncListeners(Listener l, ListenerDetails lD, SimType simType, 
+            boolean updateRecommendations) throws AuraException, RemoteException {
 
         if (lD.gender!=null) {
             if (lD.gender.equals("M")) {
@@ -515,22 +531,24 @@ public class DataManager implements Configurable {
 
         if (lD.pandoraUser!=null) {
             l.setPandoraName(lD.pandoraUser);
-            logger.info("setting pandora for L to :"+lD.pandoraUser);
         } else if (l.getPandoraName()!=null) {
-            logger.info("setting pandora to :"+l.getPandoraName());
             lD.pandoraUser=l.getPandoraName();
         }
 
         if (lD.lastfmUser!=null) {
             l.setLastFmName(lD.lastfmUser);
-            logger.info("setting lastfm for L to :"+lD.lastfmUser);
         } else if (l.getLastFmName()!=null) {
-            logger.info("setting lastfm to :"+l.getLastFmName());
             lD.lastfmUser=l.getLastFmName();
         }
 
-        logger.info("pandora is now :"+l.getPandoraName());
-        logger.info("lastfm is now :"+l.getLastFmName());
+        if (updateRecommendations) {
+            // Fetch info for recommended artists
+            ArrayList<ArtistDetails> aDetails = new ArrayList<ArtistDetails>();
+            for (Scored<Artist> a : mdb.getRecommendations(l, NBR_REC_LISTENER)) {
+                aDetails.add(artistToArtistDetails(a.getItem(), simType));
+            }
+            lD.recommendations = aDetails.toArray(new ArtistDetails[0]);
+        }
 
         return l;
     }
@@ -540,7 +558,9 @@ public class DataManager implements Configurable {
      * @param lD his listenerDetails obtained from his active session
      * @return his listenerDetails with any modifications that were necessary
      */
-    public ListenerDetails establishUserConnection(ListenerDetails lD) throws AuraException, RemoteException {
+    public ListenerDetails establishUserConnection(ListenerDetails lD)
+            throws AuraException, RemoteException {
+
         Listener l = null;
 
         l = mdb.getListener(lD.openID);
@@ -552,7 +572,7 @@ public class DataManager implements Configurable {
             logger.info("Retrieved user from datastore: " + lD.openID);
         }
 
-        l = syncListeners(l, lD);
+        l = syncListeners(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
         mdb.updateListener(l);
 
         return lD;
@@ -560,7 +580,7 @@ public class DataManager implements Configurable {
     }
 
     public void updateUser(ListenerDetails lD) throws AuraException, RemoteException {
-        Listener l = syncListeners(mdb.getListener(lD.openID), lD);
+        Listener l = syncListeners(mdb.getListener(lD.openID), lD, null, false);
         mdb.updateListener(l);
     }
 
@@ -813,9 +833,10 @@ public class DataManager implements Configurable {
     /**
      * Converts a list of scored artists and returns them in an iteminfo array 
      * @param scoredArtists scored list of items (that will be cast as artists)
+     * @param fetchTags fetch the distinctive tags and spotify id and store them in ItemInfo?
      * @return
      */
-    private ItemInfo[] scoredArtistToItemInfo(List<Scored<Artist>> scoredArtists) {
+    private ItemInfo[] scoredArtistToItemInfo(List<Scored<Artist>> scoredArtists) throws AuraException {
 
         ItemInfo[] artistResults = new ItemInfo[scoredArtists.size()];
 

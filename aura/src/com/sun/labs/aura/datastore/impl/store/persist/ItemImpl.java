@@ -53,7 +53,10 @@ public class ItemImpl implements Item {
     
     /**
      * A flag indicating that a field that the search engine needs to index
-     * has been set by someone.
+     * has been set by someone.  This member is marked as transient because we
+     * don't want to persist it to the database, but, unfortunately, we do want
+     * to serialize it when doing RMI, so we do the serialization of this member
+     * by hand.
      */
     private transient Set<String> modifiedFields;
 

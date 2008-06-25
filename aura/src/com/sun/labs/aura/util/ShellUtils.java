@@ -134,6 +134,62 @@ public class ShellUtils {
                     }
                 });
 
+        shell.add("delItem",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length == 1) {
+                                return getHelp();
+                            }
+
+                            Item item = dataStore.getItem(args[1]);
+                            if (item != null) {
+                                dataStore.deleteItem(item.getKey());
+                            } else {
+                                System.out.println("Can't find item " + args[1]);
+                            }
+
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                            ex.printStackTrace();
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: delItem <key> deletes an item";
+                    }
+                });
+
+        shell.add("delUser",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if (args.length == 1) {
+                                return getHelp();
+                            }
+
+                            User user = dataStore.getUser(args[1]);
+                            if (user != null) {
+                                dataStore.deleteUser(user.getKey());
+                            } else {
+                                System.out.println("Can't find user " + args[1]);
+                            }
+
+                        } catch (Exception ex) {
+                            System.out.println("Error " + ex);
+                            ex.printStackTrace();
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: delUser <key> deletes a user";
+                    }
+                });
+
         shell.add("tstattn",
                 new CommandInterface() {
 

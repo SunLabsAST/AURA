@@ -205,7 +205,6 @@ public class MusicDatabase {
         }
         return sm.getAll();
     }
-    
 
     public List<Scored<Artist>> getRecommendations(Listener listener, int max) throws AuraException, RemoteException {
         Set<String> skipIDS = getAttendedToArtists(listener);
@@ -496,6 +495,14 @@ public class MusicDatabase {
         return artistGetDistinctiveTags(id, Artist.FIELD_SOCIAL_TAGS, count);
     }
 
+    public List<Scored<String>> artistGetDistinctiveTagNames(String id, int count) throws AuraException {
+        try {
+            return dataStore.getTopTerms(id, Artist.FIELD_SOCIAL_TAGS, count);
+        } catch (RemoteException ex) {
+            throw new AuraException("Can't talk to the datastore " + ex, ex);
+        }
+    }
+
     private List<Scored<ArtistTag>> artistGetDistinctiveTags(String id, String field, int count) throws AuraException {
         try {
             List<Scored<ArtistTag>> artistTags = new ArrayList();
@@ -714,8 +721,7 @@ public class MusicDatabase {
         }
     }
 
-
-    private class  SimToRecentArtistRecommender implements RecommendationType {
+    private class SimToRecentArtistRecommender implements RecommendationType {
 
         public String getName() {
             return "SimToRecent";
@@ -730,7 +736,7 @@ public class MusicDatabase {
             ArtistScoreManager sm = new ArtistScoreManager(true);
             List<Scored<String>> artistIDs = getRecentTopArtistsAsIDs(listener, 20);
             StringBuilder sb = new StringBuilder();
-            
+
             sb.append("Similar to recently played artists like ");
 
             for (Scored<String> seedArtist : artistIDs) {
@@ -740,13 +746,13 @@ public class MusicDatabase {
                     sb.append(",");
 
                     sm.addSeedArtist(artist);
-                    List<Scored<Artist>> simArtists = artistFindSimilar(seedArtist.getItem(),  count * 3);
+                    List<Scored<Artist>> simArtists = artistFindSimilar(seedArtist.getItem(), count * 3);
                     for (Scored<Artist> simArtist : simArtists) {
                         sm.accum(simArtist.getItem(), seedArtist.getScore() * simArtist.getScore());
                     }
                 }
             }
-            
+
             String reason = sb.toString();
             List<Recommendation> results = new ArrayList();
             for (Scored<Artist> sartist : sm.getTop(count)) {
@@ -760,7 +766,7 @@ public class MusicDatabase {
         }
     }
 
-    private class  SimToUserTagCloud implements RecommendationType {
+    private class SimToUserTagCloud implements RecommendationType {
 
         public String getName() {
             return "SimToUserTagCloud";
@@ -772,12 +778,12 @@ public class MusicDatabase {
 
         public List<Recommendation> getRecommendations(Listener listener, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
-            List<Scored<Item>> items = dataStore.findSimilar(listener.getKey(), Listener.FIELD_SOCIAL_TAGS, 
+            List<Scored<Item>> items = dataStore.findSimilar(listener.getKey(), Listener.FIELD_SOCIAL_TAGS,
                     count * 5, new TypeFilter(ItemType.ARTIST));
             List<Recommendation> results = new ArrayList();
             Set<String> skipIDS = getAttendedToArtists(listener);
 
-            for (Scored<Item> item :items) {
+            for (Scored<Item> item : items) {
                 if (!skipIDS.contains(item.getItem().getKey())) {
                     String reason = "";
                     results.add(new Recommendation(item.getItem().getKey(), item.getScore(), reason));

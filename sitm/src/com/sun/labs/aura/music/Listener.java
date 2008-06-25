@@ -58,7 +58,7 @@ public class Listener extends ItemAdapter {
         }
     }
 
-    public Listener(User user) {
+    public Listener(Item user) {
         super(user, Item.ItemType.USER);
         setYearOfBirth(1959);
     }

@@ -88,7 +88,6 @@ public class StartAura extends Aura {
 
     public void start() {
         try {
-            createAuraNetwork();
             getAuraFilesystems();
             createAuraProcesses();
         } catch (Exception e) {

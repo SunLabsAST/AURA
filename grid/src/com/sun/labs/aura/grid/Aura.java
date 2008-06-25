@@ -1,11 +1,8 @@
 package com.sun.labs.aura.grid;
 
-import com.sun.caroline.platform.CustomerNetworkConfiguration;
-import com.sun.caroline.platform.DuplicateNameException;
 import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.Network;
-import com.sun.caroline.platform.NetworkAllocationException;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
@@ -59,23 +56,6 @@ public abstract class Aura extends ServiceAdapter {
             repFSMap.put(instance + "-" + currPrefix,
                     GridUtil.getFS(grid, getReplicantName(currPrefix)));
             logger.info("Made fs for prefix " + currPrefix);
-        }
-    }
-
-    protected void createAuraNetwork() throws Exception {
-        try {
-            // Try to create a customer network for the test
-            network = grid.createNetwork(instance + "-auraNet", 512,
-                    new CustomerNetworkConfiguration());
-            System.out.println("Created network " + network.getName());
-        } catch(DuplicateNameException e) {
-            // Reuse an existing network
-            network = grid.getNetwork(instance + "-auraNet");
-            System.out.println("Network already exists, reusing " + network.
-                    getName());
-        } catch(NetworkAllocationException e) {
-            System.err.println(e.getMessage());
-            System.exit(1);
         }
     }
 
@@ -163,7 +143,7 @@ public abstract class Aura extends ServiceAdapter {
                 "-DauraGroup=" + instance + "-aura",
                 "-DauraHome=" + GridUtil.auraDistMntPnt,
                 "-jar",
-                GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+                GridUtil.auraDistMntPnt + "/dist/grid.jar",
                 "/com/sun/labs/aura/aardvark/resource/dataStoreHeadConfig.xml",
                 "dataStoreHeadStarter"};
 
@@ -193,7 +173,7 @@ public abstract class Aura extends ServiceAdapter {
                 "-DauraGroup=" + instance + "-aura",
                 "-Dprefix=" + prefix,
                 "-jar",
-                GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+                GridUtil.auraDistMntPnt + "/dist/grid.jar",
                 "/com/sun/labs/aura/aardvark/resource/partitionClusterConfig.xml",
                 "partitionClusterStarter"};
 
@@ -225,7 +205,7 @@ public abstract class Aura extends ServiceAdapter {
                 "-Dprefix=" + prefix,
                 "-DdataFS=/files/data/" + prefix,
                 "-jar",
-                GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+                GridUtil.auraDistMntPnt + "/dist/grid.jar",
                 replicantConfig,
                 "replicantStarter"};
 
@@ -259,7 +239,7 @@ public abstract class Aura extends ServiceAdapter {
                 "-DauraHome=" + GridUtil.auraDistMntPnt,
                 "-DauraGroup=" + instance + "-aura",
                 "-jar",
-                GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+                GridUtil.auraDistMntPnt + "/dist/grid.jar",
                 "/com/sun/labs/aura/aardvark/resource/statServiceConfig.xml",
                 "statServiceStarter"};
 
@@ -295,6 +275,12 @@ public abstract class Aura extends ServiceAdapter {
             DSBitSet prefixBits = DSBitSet.parse(i);
             prefixBits.setPrefixLength(numBits);
             prefixCodeList[i] = prefixBits.toString();
+        }
+        try {
+            network = GridUtil.createAuraNetwork(grid, instance);
+        } catch(Exception e) {
+            throw new PropertyException("network", "network",
+                    "Can't create network");
         }
     }
 }
