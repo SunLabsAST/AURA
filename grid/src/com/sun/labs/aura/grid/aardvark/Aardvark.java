@@ -1,6 +1,5 @@
 package com.sun.labs.aura.grid.aardvark;
 
-import com.sun.labs.aura.grid.*;
 import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.Network;
@@ -8,6 +7,8 @@ import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
 import com.sun.caroline.platform.StorageManagementException;
+import com.sun.labs.aura.grid.GridUtil;
+import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
@@ -68,7 +69,7 @@ public abstract class Aardvark extends ServiceAdapter {
             "-DauraGroup=" + instance + "-aura",
             "-DcacheDir=" + cacheFSMntPnt,
             "-jar",
-            GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+            GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/aardvark/resource/feedSchedulerConfig.xml",
             "feedSchedulerStarter"
         };
@@ -110,7 +111,7 @@ public abstract class Aardvark extends ServiceAdapter {
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
             "-jar",
-            GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+            GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/aardvark/resource/feedManagerConfig.xml",
             "feedManagerStarter"
         };
@@ -154,7 +155,7 @@ public abstract class Aardvark extends ServiceAdapter {
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
             "-jar", 
-            GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+            GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/aardvark/resource/recommenderManagerConfig.xml",
             "recommenderManagerStarter"
         };
@@ -192,7 +193,7 @@ public abstract class Aardvark extends ServiceAdapter {
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
             "-jar",
-            GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+            GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/aardvark/resource/aardvarkConfig.xml",
             "aardvarkStarter"
         };
