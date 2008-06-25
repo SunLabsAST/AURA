@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 
 import com.sun.labs.aura.AuraServiceStarter;
 import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.aura.datastore.impl.DataStoreHead;
 
 /**
  *
@@ -59,6 +60,7 @@ public class DataStoreFactory {
         ConfigurationManager configMgr = new ConfigurationManager(configURI);
         
         DataStore dataStore = (DataStore)configMgr.lookup(DATASTORE_KEY);
+        log.info("Loaded data store: " + dataStore);
 
         // In order to start each of the services, they need to be loaded by the
         // AuraServiceStarter through the ConfigurationManager
