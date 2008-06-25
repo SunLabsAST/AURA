@@ -6,6 +6,7 @@
 package com.sun.labs.aura.music.sample;
 
 import com.sun.labs.aura.util.AuraException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.File;
 import java.io.FileReader;
@@ -14,6 +15,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Set;
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -25,6 +28,14 @@ import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.music.Artist;
 
+import com.sun.labs.aura.datastore.impl.DataStoreHead;
+import com.sun.labs.aura.datastore.impl.PartitionCluster;
+import com.sun.labs.aura.datastore.impl.Replicant;
+import com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author Will Holcomb <william.holcomb@sun.com>
@@ -33,6 +44,10 @@ public class LastFMLoader {
     Logger log;
     int lineCount = 0;
     int attentionCount = 0;
+    long createTime = 0;
+    long readTime = 0;
+    long putTime = 0;
+    long attentionTime = 0;
     
     // Don't really want this here, but java's lexical closures require it
     boolean finished = false;
@@ -55,8 +70,12 @@ public class LastFMLoader {
 
         try {
             String line = null;
+            List<Attention> attentions = new ArrayList<Attention>();
+            long startTime = System.currentTimeMillis();
+            long endTime;
             while((line = input.readLine()) != null) {
                 lineCount++;
+                
                 String[] fields = line.split(fieldSep);
                 if(fields.length != 4) {
                     log.severe(String.format("Field: Split to %d part%s: '%s'",
@@ -65,16 +84,33 @@ public class LastFMLoader {
                                              line));
                     continue;
                 }
+                endTime = System.currentTimeMillis();
+                readTime += endTime - startTime;
+                startTime = endTime;
 
                 Item artist = (new Artist(fields[2], fields[1])).getItem();
                 User user = StoreFactory.newUser(fields[0], fields[0]);
 
                 dataStore.putUser(user);
                 dataStore.putItem(artist);
-                int numAttentions = attentionCount + Integer.valueOf(fields[3]);
+                endTime = System.currentTimeMillis();
+                putTime += endTime - startTime;
+                startTime = endTime;
+
+                int newAttentions = Integer.valueOf(fields[3]);
+                int numAttentions = attentionCount + newAttentions;
+                attentions.clear();
                 for(; attentionCount < numAttentions; attentionCount++) {
-                    dataStore.attend(StoreFactory.newAttention(user, artist, Attention.Type.VIEWED));
+                    attentions.add(StoreFactory.newAttention(user, artist, Attention.Type.VIEWED));
                 }
+                endTime = System.currentTimeMillis();
+                createTime += endTime - startTime;
+                startTime = endTime;
+ 
+                dataStore.attend(attentions);
+                endTime = System.currentTimeMillis();
+                attentionTime += endTime - startTime;
+                startTime = endTime;
             }
             //log.info("Loading: " + user.getName() + " -> " + artist.getName() + "(" + fields[3] + ")");
         } finally {
@@ -82,11 +118,12 @@ public class LastFMLoader {
         }
     }
     
-    public static void main(String[] args) throws IOException, AuraException, InterruptedException {
+    public static void main(String[] args) throws IOException, AuraException, InterruptedException, RemoteException {
         String datadir = (System.getProperty("java.io.tmpdir") +
                           File.separator + "lastfm_test");
         
-        DataStore dataStore = DataStoreFactory.getSimpleDataStore(datadir);
+        //final DataStore dataStore = DataStoreFactory.getSimpleDataStore(datadir);
+        final DataStore dataStore = DataStoreFactory.getSimpleDataStore(datadir);
         final LastFMLoader loader = new LastFMLoader();
         loader.log.info("DataStore: " + dataStore);
 
@@ -95,17 +132,51 @@ public class LastFMLoader {
             int lastAttentionCount = loader.attentionCount;
             long firstTime = System.currentTimeMillis();
             long lastTime = firstTime;
+            //DataStoreHead dataStoreHead = (DataStoreHead)dataStore;
         
             public void run() {
                 int newLineCount = loader.lineCount;
                 int newAttentionCount = loader.attentionCount;
                 long newTime = System.currentTimeMillis();
-                loader.log.info(String.format("%2$tY/%2$tm/%2$td %2$tk:%2$tM:%2$tS:%2$tL: Line #: %1$06d (+%4$03d): Attentions: %3$d (+%5$03d) (%6$.2f/sec) (Avg: %7$.2f/sec)",
-                                              newLineCount, new Date(), newAttentionCount,
+                long totalTime = newTime - firstTime;
+                
+                loader.log.info(String.format("%3$03d:%2$02d:%1$02d: Line #: %4$06d (+%6$03d): Attentions: %5$d (+%7$03d) (%8$.2f/sec) (Avg: %9$.2f/sec) (r:%10$.2f%%/p:%11$.2f%%/c:%12$.2f%%/a:%13$.2f%%)",
+                                              totalTime / 1000 % 60,
+                                              totalTime / 60000 % 60,
+                                              totalTime / 3600000 % 60,
+                                              newLineCount,
+                                              newAttentionCount,
                                               newLineCount - lastLineCount,
                                               newAttentionCount - lastAttentionCount,
                                               (float)(newAttentionCount - lastAttentionCount) / (newTime - lastTime) * 1000,
-                                              (float)newAttentionCount / (newTime - firstTime) * 1000));
+                                              (float)newAttentionCount / totalTime * 1000,
+                                              (float)loader.readTime / totalTime * 100,
+                                              (float)loader.putTime / totalTime * 100,
+                                              (float)loader.createTime / totalTime * 100,
+                                              (float)loader.attentionTime / totalTime * 100));
+/*
+                StringBuffer outputString = new StringBuffer("     Attention Times: ");
+                try {
+                    Set<PartitionCluster> clusters = dataStore.getPartitionClusters();
+                    for(PartitionCluster cluster : clusters) {
+                        try {
+                            Replicant replicant = cluster.getReplicants().get(0);
+                            long attentionTime = loader.attentionTime;
+                            long timePutting = Integer.valueOf(replicant.getItem(BerkeleyItemStore.ATTENTION_PUT_TIME).getName());
+                            outputString.append(String.format(" %s (put:%.2f%%)", replicant.getPrefix(),
+                                                              (float)timePutting / attentionTime * 100));
+                        } catch(AuraException ae) {
+                            loader.log.severe(ae.toString());
+                        } catch(RemoteException re) {
+                            loader.log.severe(re.toString());
+                        }
+                    }
+                } catch(RemoteException re) {
+                    loader.log.severe(re.toString());
+                }
+
+                loader.log.info(outputString.toString());
+*/
                 lastTime = newTime;
                 lastLineCount = newLineCount;
                 lastAttentionCount = newAttentionCount;
