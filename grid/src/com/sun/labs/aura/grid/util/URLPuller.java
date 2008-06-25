@@ -1,4 +1,4 @@
-package com.sun.labs.aura.grid;
+package com.sun.labs.aura.grid.util;
 
 import java.net.URL;
 import java.net.URLConnection;

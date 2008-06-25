@@ -1,0 +1,69 @@
+Many of the programs in the grid package require you to have a
+.caroline file in your home directory that contains the properties
+necessary to reach the grid.  We require one additional property that
+the usual Caroline infrastructure does not: the name of the "instance"
+that you want to run.  This allows us to have multiple copies of
+applications running, each with its own instance name.  We're careful
+to make sure that the instances are completely separated so, for
+example, you don't have to worry about discovering Jini Service
+registries from another instance.
+
+A .caroline file for running on the dev grid will look like:
+
+gridURL=https://dev.caroline.east.sun.com
+customerID=aura
+password=corona
+instance=sjg
+
+where the instance should be something distinct (e.g., your initials).
+
+There are two steps to deploying Aura.  The first is to make sure that
+the grid contains all of the current files.  This is accomplished via
+the build file for the grid project.  An ant target called upload-dist
+will build each of the aura, aardvark, and sitm projects, create a
+suitable distribution file structure and then upload the files to the
+grid.  Only files that have been changed will be uploaded, so it's
+safe to run the command when you've only (say) modified the sitm.jar
+and there's already an Aura running on-grid.
+
+The upload-dist target will create the distribution filesystem on the
+grid if necessary, and name the filesystem using the instance name
+provided in your .caroline file.
+
+Once you've uploaded the required jar files, you need to start the
+Aura services on the grid.  This is done via the ServiceDeployer
+class.   The ServiceDeployer is used to launch a program on the grid
+which will in turn launch whatever services are necessary.
+
+To start Aura, we'll use the StartAura deployer.  The standard build
+for the grid project generates a grid.jar that has ServiceDeployer as
+its main program, so from the grid project directory you could say:
+
+java -jar dist/grid.jar /com/sun/labs/aura/grid/auraConfig.xml start
+
+The configuration file (auraConfig.xml) contains the configuration for
+the components that will be run-on grid that will deploy the aura
+infrastructure.  If you have a look at auraConfig, you will see that
+there is a global property called nNodes that can be used to set the
+number of data store nodes to use (the default is 4.)
+
+You can pass a JVM argument through to the JVM that will be running on
+grid using the -a argument to ServiceDeployer.  So, if you want to run
+an eight node data store you could use the invocation:
+
+java -jar dist/grid.jar -a "-DnNodes=8" \
+     /com/sun/labs/aura/grid/auraConfig.xml start
+
+Note that you can't give the number of nodes as an argument to the JVM
+from which you're running ServiceDeployer:  it needs to make it
+through to the JVM on the grid where the StartAura service will be
+run!
+
+You can stop the on-grid aura using the invocation:
+
+java -jar dist/grid.jar /com/sun/labs/aura/grid/auraConfig.xml stop
+
+which runs the StopAura deployer on the grid.  Note that if you
+started up a data store with a non-default number of nodes, you need
+to provide that argument to the stop program as well.
+

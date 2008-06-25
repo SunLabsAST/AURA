@@ -20,26 +20,25 @@
     <!-- An aardvark system -->
     <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
     
-    <component name="startAardvark" type="com.sun.labs.aura.grid.StartAardvark">
+    <component name="startSITM" type="com.sun.labs.aura.grid.sitm.StartSITM">
         <property name="instance" value="${auraInstance}"/>
         <property name="dataStore" value="dataStore"/>
-        <property name="logLevel" value="FINER"/>
     </component>
     
-    <component name="stopAardvark" type="com.sun.labs.aura.grid.StopAardvark">
+    <component name="stopSITM" type="com.sun.labs.aura.grid.sitm.StopSITM">
         <property name="instance" value="${auraInstance}"/>
     </component>
     
     <component name="start" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
-            <item>startAardvark</item>
+            <item>startSITM</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
     
     <component name="stop" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
-            <item>stopAardvark</item>
+            <item>stopSITM</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
