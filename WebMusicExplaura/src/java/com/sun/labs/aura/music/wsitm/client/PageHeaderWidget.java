@@ -81,7 +81,6 @@ public class PageHeaderWidget extends Swidget {
         
         toolBar = new ToolBar();
         toolBar.setWidth(100);
-        Info.display("toolbar",toolBar.getBaseStyle(), new Params());
         
         recTypeToolItem = new TextToolItem("Loading...");
         recTypeToolItem.setIconStyle("icon-menu-show");

@@ -30,6 +30,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.TagTree;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -175,16 +176,64 @@ public class DataManager implements Configurable {
      * @param id the artist's id
      * @return the artist's details or null if the details are not in the datastore
      */
-    private ArtistDetails loadArtistDetailsFromStore(String id, SimType simType) throws AuraException,
-            RemoteException {
-        logger.info("Loading artist details from store :: "+id);
+    private ArtistDetails loadArtistDetailsFromStore(String id, SimType simType) 
+            throws AuraException, RemoteException {
+        logger.info("Loading artist details from store :: " + id);
         Artist a = mdb.artistLookup(id);
-        if (a==null) {
+        if (a == null) {
             return null;
         } else {
             return artistToArtistDetails(a, simType);
         }
-   }
+    }
+
+    private ArtistCompact artistToArtistCompact(Artist a) throws AuraException,
+            RemoteException {
+
+        ArtistCompact aC = new ArtistCompact();
+
+        aC.setName(a.getName());
+        aC.setBeginYear(a.getBeginYear());
+        aC.setEndYear(a.getEndYear());
+        aC.setBiographySummary(a.getBioSummary());
+        aC.setId(a.getKey());
+        aC.setPhotos(getArtistPhotoFromIds(a.getPhotos()));
+        aC.setPopularity(a.getPopularity());
+        aC.setSpotifyId(a.getSpotifyID());
+
+        if (beatlesPopularity!=-1) {
+            aC.setNormPopularity(a.getPopularity()/beatlesPopularity);
+        } else {
+            aC.setNormPopularity(-1);
+        }
+
+        try {
+            aC.setEncodedName(URLEncoder.encode(a.getName(), "UTF-8"));
+        } catch (UnsupportedEncodingException ex) {
+            aC.setEncodedName("Error converting name");
+            Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        // Fetch albums
+        Set<String> albumSet = a.getAlbums();
+        AlbumDetails[] albumDetailsArray = new AlbumDetails[albumSet.size()];
+        int index=0;
+        for (String ad : albumSet) {
+            Album storeAlbum = mdb.albumLookup(ad);
+            albumDetailsArray[index] = new AlbumDetails();
+            albumDetailsArray[index].setAsin(storeAlbum.getAsin());
+            albumDetailsArray[index].setId(storeAlbum.getKey());
+            albumDetailsArray[index].setTitle(storeAlbum.getTitle());
+            index++;
+        }
+        aC.setAlbums(albumDetailsArray);
+
+        // Fetch list of distinctive tags
+        List<Scored<String>> distinctiveTags = mdb.artistGetDistinctiveTagNames(a.getKey(), NUMBER_TAGS_TO_SHOW);
+        aC.setDistinctiveTags(scoredTagsNameToIntemInfo(distinctiveTags));
+
+        return aC;
+    }
 
     /**
      * Convert an artist to an ArtistDetails object
@@ -224,7 +273,11 @@ public class DataManager implements Configurable {
         // Fetch similar artists
         List<Scored<Artist>> scoredArtists = simType.findSimilarArtists(a.getKey(), NUMBER_SIM_ARTISTS);
         sortByArtistPopularity(scoredArtists);
-        details.setSimilarArtists(scoredArtistToItemInfo(scoredArtists));
+        ArtistCompact[] simArtist = new ArtistCompact[scoredArtists.size()];
+        for (int i=0; i<scoredArtists.size(); i++) {
+            simArtist[i] = artistToArtistCompact(scoredArtists.get(i).getItem());
+        }
+        details.setSimilarArtists(simArtist);
 
         // Fetch albums
         Set<String> albumSet = a.getAlbums();
@@ -259,19 +312,18 @@ public class DataManager implements Configurable {
         // Fetch related artists
         Set<String> collSet = a.getRelatedArtists();
         if (collSet!=null && collSet.size()>0) {
-            List<ItemInfo> artistColl = new ArrayList<ItemInfo>();
-            Artist tempA;
+            List<ArtistCompact> artistColl = new ArrayList<ArtistCompact>();
+            Artist tempArtist;
             for (String aID : collSet) {
-                tempA = mdb.artistLookup(aID);
+                tempArtist = mdb.artistLookup(aID);
                 // If the related artist is not in our database, skip it
-                if (tempA==null) {
+                if (tempArtist==null) {
                     continue;
                 }
-                artistColl.add(new ItemInfo(aID, tempA.getName(),
-                        tempA.getPopularity(), tempA.getPopularity()));
+                artistColl.add(artistToArtistCompact(tempArtist));
             }
             if (artistColl.size()>0) {
-                details.setCollaborations(artistColl.toArray(new ItemInfo[0]));
+                details.setCollaborations(artistColl.toArray(new ArtistCompact[0]));
             }
         }
 
@@ -526,11 +578,11 @@ public class DataManager implements Configurable {
 
         if (updateRecommendations) {
             // Fetch info for recommended artists
-            ArrayList<ArtistDetails> aDetails = new ArrayList<ArtistDetails>();
+            ArrayList<ArtistCompact> aCompact = new ArrayList<ArtistCompact>();
             for (Scored<Artist> a : mdb.getRecommendations(l, NBR_REC_LISTENER)) {
-                aDetails.add(artistToArtistDetails(a.getItem(), simType));
+                aCompact.add(artistToArtistCompact(a.getItem()));
             }
-            lD.recommendations = aDetails.toArray(new ArtistDetails[0]);
+            lD.recommendations = aCompact.toArray(new ArtistCompact[0]);
         }
 
         return l;
@@ -566,6 +618,11 @@ logger.info("done");
     public void updateUser(ListenerDetails lD) throws AuraException, RemoteException {
         Listener l = syncListeners(mdb.getListener(lD.openID), lD, null, false);
         mdb.updateListener(l);
+    }
+
+    public void setUserSongRating(ListenerDetails lD, int rating, String artistID)
+            throws AuraException, RemoteException {
+        mdb.addRating(mdb.getListener(lD.openID), artistID, rating);
     }
 
     public TagDetails loadTagDetailsFromStore(String id) throws AuraException,

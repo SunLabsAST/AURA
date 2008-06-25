@@ -95,7 +95,7 @@ public class StarRatingWidget extends Composite {
                 ((Image)arg0).setUrl(NOT_INTERESTED);
             }
         });
-        p.add(noInterest);
+        //p.add(noInterest);
         initWidget(p);
 
     }

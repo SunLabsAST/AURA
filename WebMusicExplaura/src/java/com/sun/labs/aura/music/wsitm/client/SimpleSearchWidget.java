@@ -524,31 +524,36 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         right.setStyleName("right");
 
         VerticalPanel left = new VerticalPanel();
+        left.setSpacing(4);
+        left.setWidth("300px");
         if (artistDetails.getSimilarArtists().length > 0) {
             left.add(
                     new Updatable(new HTML("<H2>"+cdm.getCurrSimTypeName()+"-omendations</H2>"),
-                    getItemInfoList2(artistDetails.getSimilarArtists(), id, true, artistOracle), cdm, id) {
+                    //getItemInfoList2(artistDetails.getSimilarArtists(), id, true, artistOracle), cdm, id) {
+                    new ArtistListWidget(artistDetails.getSimilarArtists()), cdm, id) {
 
                         public void update(ArtistDetails aD) {
                             setNewContent(new HTML("<H2>"+cdm.getCurrSimTypeName()+"-omendations</H2>"),
-                                    getItemInfoList2(aD.getSimilarArtists(), extraParam, true, artistOracle));
+                                    new ArtistListWidget(aD.getRecommendedArtists()));
                         }
                     }
            );
         }
+        
         if (artistDetails.getRecommendedArtists().length > 0) {
-            left.add(getItemInfoList("Recommendations", artistDetails.getRecommendedArtists(), id, true, artistOracle));
+            left.add(WebLib.createSection("Recommendations", new ArtistListWidget(artistDetails.getRecommendedArtists())));
+            //left.add(getItemInfoList("Recommendations", artistDetails.getRecommendedArtists(), id, true, artistOracle));
         }
         if (artistDetails.getCollaborations().length > 0) {
-            left.add(getItemInfoList("Related", artistDetails.getCollaborations(), id, true, artistOracle));
+            left.add(WebLib.createSection("Related", new ArtistListWidget(artistDetails.getCollaborations())));
+            //left.add(getItemInfoList("Related", artistDetails.getCollaborations(), id, true, artistOracle));
         }
         left.add(getMoreInfoWidget(artistDetails));
-        left.setWidth("150px");
         left.setStyleName("left");
 
         DockPanel artistPanel = new DockPanel();
         artistPanel.add(main, DockPanel.CENTER);
-        artistPanel.add(right, DockPanel.EAST);
+        //artistPanel.add(right, DockPanel.EAST);
         artistPanel.add(left, DockPanel.WEST);
         artistPanel.setWidth("100%");
         artistPanel.setStyleName("resultpanel");

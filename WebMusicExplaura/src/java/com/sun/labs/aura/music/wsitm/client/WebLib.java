@@ -11,6 +11,7 @@ import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
@@ -21,7 +22,7 @@ import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
  */
 public abstract class WebLib {
 
-    public static Widget getLastFMListenWidget(final ArtistDetails artistDetails) {
+    public static Widget getLastFMListenWidget(final ArtistCompact artistDetails) {
         Image image = new Image("play-icon30.jpg");
         //image.setSize("22px", "22px");
         image.setTitle("Play music like " + artistDetails.getName() + " at last.fm");
@@ -34,7 +35,7 @@ public abstract class WebLib {
         return image;
     }
 
-    public static Widget getSpotifyListenWidget(final ArtistDetails artistDetails, int size) {
+    public static Widget getSpotifyListenWidget(final ArtistCompact artistDetails, int size) {
         String musicURL = artistDetails.getSpotifyId();
         if (musicURL != null && !musicURL.equals("")) {
             HTML html = new HTML("<a href=\"" + musicURL + "\"><img src=\"play-icon"+size+".jpg\"/></a>");
@@ -69,15 +70,15 @@ public abstract class WebLib {
         return link.replaceAll("TAG_REPLACE_ME", tagName);
     }
 
-    public static void popupSimilarArtistRadio(ArtistDetails artist, boolean useTags) {
+    public static void popupSimilarArtistRadio(ArtistCompact artist, boolean useTags) {
         Window.open(WebLib.getSimilarArtistRadioLink(artist, useTags), "lastfm_popup", "width=400,height=170,menubar=no,toolbar=no,directories=no," + "location=no,resizable=no,scrollbars=no,status=no");
     }
     
-    public static ItemInfo getBestTag(ArtistDetails artist) {
+    public static ItemInfo getBestTag(ArtistCompact artist) {
         ItemInfo tag = null;
         ItemInfo[] tags = artist.getDistinctiveTags();
         if (tags == null && tags.length == 0) {
-            tags = artist.getFrequentTags();
+            tags = artist.getDistinctiveTags();
         }
         if (tags != null && tags.length > 0) {
             tag = tags[0];
@@ -85,7 +86,7 @@ public abstract class WebLib {
         return tag;
     }
 
-    public static String getSimilarArtistRadioLink(ArtistDetails artist, boolean useTags) {
+    public static String getSimilarArtistRadioLink(ArtistCompact artist, boolean useTags) {
         if (useTags) {
             ItemInfo tag = getBestTag(artist);
             if (tag != null) {
