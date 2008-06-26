@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.sun.labs.aura.grid.util;
 
 import com.sun.caroline.platform.BaseFileSystemConfiguration;
@@ -31,6 +30,7 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -40,23 +40,26 @@ import java.util.logging.Logger;
  * A set of basic utilities for grid deployment.
  */
 public class GridUtil {
-    
+
     Logger log = Logger.getLogger("com.sun.labs.aura.grid.GridUtil");
-    
+
     public final int RETRIES = 1;
-    
+
     private Grid grid;
-    
+
     private String instance;
-    
+
     private Network network;
+
+    private Queue<ProcessRegistration> stopped;
     
     public GridUtil(Grid grid, String instance) throws Exception {
         this.grid = grid;
         this.instance = instance;
-        network = createAuraNetwork();
+        stopped = new LinkedList<ProcessRegistration>();
+        createAuraNetwork();
     }
-    
+
     public Network getNetwork() {
         return network;
     }
@@ -73,7 +76,7 @@ public class GridUtil {
             ProcessConfiguration config) throws Exception {
         ProcessRegistration reg = null;
         try {
-            reg = grid.createProcessRegistration(name, config);
+            reg = grid.createProcessRegistration(String.format("%s-%s", instance, name), config);
         } catch(DuplicateNameException dne) {
             log.fine("ProcessRegistration: " + name + " already exists, reusing");
             reg = grid.getProcessRegistration(name);
@@ -108,11 +111,14 @@ public class GridUtil {
                         break;
                     }
                 }
-                
+
                 if(startException != null) {
-                    log.log(Level.SEVERE, "Error starting service: " + reg, startException);
+                    log.log(Level.SEVERE, "Error starting service: " + reg,
+                            startException);
                 } else {
-                    log.fine(String.format("Registration %s started after %d tries", reg.getName(), tries));
+                    log.fine(String.format(
+                            "Registration %s started after %d tries", reg.
+                            getName(), tries));
                 }
             }
         };
@@ -137,29 +143,29 @@ public class GridUtil {
         if(reg != null) {
             log.fine("Stopping: " + reg);
             reg.shutdownGently(true, 1000);
+            stopped.add(reg);
         } else {
             log.fine("No registration for " + name + " to stop");
         }
         return reg;
     }
 
-    public void waitForFinish(Queue<ProcessRegistration> q)
+    public void waitForFinish()
             throws Exception {
-        waitForFinish(q, 600000);
+        waitForFinish(600000);
     }
 
     /**
      * Waits for the queue of processes to finish.
-     * @param q a queue of registrations that we're interested in.
      * @param timeout how long we should wait before forcefully killing processes.
      * @throws java.lang.Exception
      */
-    public void waitForFinish(Queue<ProcessRegistration> q, long timeout)
+    public void waitForFinish(long timeout)
             throws Exception {
         long finish = timeout + System.currentTimeMillis();
         int n = 0;
-        while(q.size() > 0) {
-            ProcessRegistration reg = q.poll();
+        while(stopped.size() > 0) {
+            ProcessRegistration reg = stopped.poll();
 
             if(reg == null) {
                 continue;
@@ -169,7 +175,7 @@ public class GridUtil {
             // If it's not done, then put it back on the queue.
             if(reg.getProcessOutcome() == null || reg.getRunState() !=
                     RunState.NONE) {
-                q.offer(reg);
+                stopped.offer(reg);
                 Thread.sleep(500);
             }
 
@@ -179,8 +185,8 @@ public class GridUtil {
 
         }
 
-        while(q.size() > 0) {
-            ProcessRegistration reg = q.poll();
+        while(stopped.size() > 0) {
+            ProcessRegistration reg = stopped.poll();
             if(reg != null) {
                 reg.shutdownForcefully(true);
             }
@@ -215,8 +221,9 @@ public class GridUtil {
             if(allowCreate) {
                 log.fine("Creating filesystem " + fsName);
                 try {
-                fileSystem = grid.createBaseFileSystem(fsName, fsConfiguration);
-                } catch (DuplicateNameException dne) {
+                    fileSystem = grid.createBaseFileSystem(fsName,
+                            fsConfiguration);
+                } catch(DuplicateNameException dne) {
                     //
                     // A filesystem could sneak in between the check and create
                     // calls, so we better deal with that here.
@@ -244,8 +251,6 @@ public class GridUtil {
     public FileSystem getAuraLogFS() throws RemoteException, StorageManagementException {
         return getFS(instance + "-aura.logs");
     }
-    
-
     /**
      * The mount point for the logs file system in a deployed service.
      */
@@ -262,7 +267,6 @@ public class GridUtil {
     public FileSystem getAuraDistFS() throws RemoteException, StorageManagementException {
         return getFS(instance + "-aura.dist");
     }
-
     /**
      * The mount point for the code file system in a deployed service.
      */
@@ -270,9 +274,7 @@ public class GridUtil {
 
     /**
      * Gets the file system where persistent caches can be stored.
-     * @param grid the grid where we should get the filesystem
-     * @param instance the instance we want the file system for
-     * @return the code file system
+     * @return the cache file system
      * @throws java.rmi.RemoteException
      * @throws com.sun.caroline.platform.StorageManagementException
      */
@@ -300,9 +302,8 @@ public class GridUtil {
         }
         return total;
     }
-    
-    public Network createAuraNetwork() throws Exception {
-        Network network = null;
+
+    private void createAuraNetwork() throws Exception {
         try {
             // Try to create a customer network for the test
             network = grid.createNetwork(instance + "-auraNet", 128,
@@ -311,11 +312,8 @@ public class GridUtil {
         } catch(DuplicateNameException e) {
             // Reuse an existing network
             network = grid.getNetwork(instance + "-auraNet");
-            log.fine("Network already exists, reusing " + network.
-                    getName());
-        } finally {
-            return network;
-        }
+            log.fine("Network already exists, reusing " + network.getName());
+        } 
     }
 
     /**
@@ -332,14 +330,14 @@ public class GridUtil {
         // virtual service
         HostNameZone hnZone = grid.getInternalHostNameZone();
         NetworkAddress internalAddress = null;
-
+        hostName = instance + "-" + hostName;
         try {
             internalAddress =
-                    network.allocateAddress("addr-" + hostName);
-            log.fine("Allocated internal address " + internalAddress.
-                    getAddress());
+                    network.allocateAddress(hostName);
+            log.fine("Allocated internal address " +
+                    internalAddress.getAddress());
         } catch(DuplicateNameException e) {
-            internalAddress = network.getAddress("addr-" + hostName);
+            internalAddress = network.getAddress(hostName);
             log.finer("Reusing address " + internalAddress.getAddress());
         } catch(NetworkAddressAllocationException e) {
             log.severe("Error allocating address: " + e.getMessage());
@@ -399,22 +397,21 @@ public class GridUtil {
         NetworkConfiguration netConf =
                 new DynamicNatConfiguration(external,
                 internal);
+        String natName = instance + "-" + name + "-nat";
         try {
-            grid.createNetworkSetting(instance + "-" + name + "-nat",
-                    netConf);
+            grid.createNetworkSetting(natName, netConf);
         } catch(DuplicateNameException dne) {
-            NetworkSetting ns = grid.getNetworkSetting(instance +
-                    "-" + name + "-nat");
+            NetworkSetting ns = grid.getNetworkSetting(natName);
             ns.changeConfiguration(netConf);
         }
     }
-    
+
     public URL getConfigURL(String arg) {
         URL cu = com.sun.labs.aura.grid.util.GridUtil.class.getResource(arg);
         if(cu == null) {
             try {
-            cu = (new File(arg)).toURI().toURL();
-            } catch (MalformedURLException mue) {
+                cu = (new File(arg)).toURI().toURL();
+            } catch(MalformedURLException mue) {
                 return null;
             }
         }

@@ -25,13 +25,13 @@ public class StopAardvark extends Aardvark {
         Queue<ProcessRegistration> q = new LinkedList<ProcessRegistration>();
 
         try {
-            q.add(gu.stopProcess( getAAName()));
+            gu.stopProcess( getAAName());
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Error stopping Aardvark", ex);
         }
         for(int i = 0; i < 6; i++) {
             try {
-                q.add(gu.stopProcess( getFMName(i)));
+                gu.stopProcess( getFMName(i));
             } catch(Exception ex) {
                 logger.log(Level.SEVERE, "Error stopping feed manager " + i, ex);
             }
@@ -39,19 +39,19 @@ public class StopAardvark extends Aardvark {
 
         try {
 
-            q.add(gu.stopProcess( getSchedName()));
+            gu.stopProcess( getSchedName());
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Error stopping feed scheduler", ex);
         }
 
         try {
-            q.add(gu.stopProcess( getRecName()));
+            gu.stopProcess( getRecName());
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Error stopping recommender manager", ex);
         }
 
         try {
-            gu.waitForFinish(q);
+            gu.waitForFinish();
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Error waiting for processes to finish", ex);
         }

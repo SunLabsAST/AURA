@@ -4,7 +4,6 @@
  */
 package com.sun.labs.aura.grid;
 
-import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.caroline.platform.ProcessRegistration;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -22,15 +21,15 @@ public class StopAura extends Aura {
     public void start() {
         Queue<ProcessRegistration> q = new LinkedList<ProcessRegistration>();
         try {
-            q.add(gu.stopProcess(getStatServiceName()));
+            gu.stopProcess(getStatServiceName());
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Error stopping Stat Service", e);
         }
 
         for(String prefixCode : prefixCodeList) {
             try {
-                q.add(gu.stopProcess(getPartitionName(
-                        prefixCode)));
+                gu.stopProcess(getPartitionName(
+                        prefixCode));
             } catch(Exception e) {
                 logger.log(Level.SEVERE, "Error stopping partition " + prefixCode, e);
             }
@@ -38,27 +37,27 @@ public class StopAura extends Aura {
 
         for(String prefixCode : prefixCodeList) {
             try {
-                q.add(gu.stopProcess(getReplicantName(
-                        prefixCode)));
+                gu.stopProcess(getReplicantName(
+                        prefixCode));
             } catch(Exception e) {
                 logger.log(Level.SEVERE, "Error stopping replicant " + prefixCode, e);
             }
         }
 
         try {
-            q.add(gu.stopProcess(getDataStoreHeadName()));
+            gu.stopProcess(getDataStoreHeadName());
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Error stopping data store head", e);
         }
         
         try {
-            q.add(gu.stopProcess(getReggieName()));
+            gu.stopProcess(getReggieName());
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Error stopping reggie", e);
         }
 
         try {
-            gu.waitForFinish(q);
+            gu.waitForFinish();
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Error waiting for processes to finish", e);
         }
