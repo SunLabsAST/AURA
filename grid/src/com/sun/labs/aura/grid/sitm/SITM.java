@@ -21,8 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * A base class for starting and stopping the SITM services.
@@ -39,18 +37,16 @@ public abstract class SITM extends ServiceAdapter {
 
     protected Network network;
     
-    protected GridUtil gu;
-    
     public String getArtistCrawlerName() {
-        return instance + "-artistCrawler";
+        return "artistCrawler";
     }
     
     public String getListenerCrawlerName() {
-        return instance + "-listenerCrawler";
+        return "listenerCrawler";
     }
     
     public String getTagCrawlerName() {
-        return instance + "-tagCrawler";
+        return "tagCrawler";
     }
     
     /**
@@ -151,7 +147,7 @@ public abstract class SITM extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(gu.getAddressFor(getArtistCrawlerName()).getUUID());
+        addresses.add(gu.getAddressFor(getTagCrawlerName()).getUUID());
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);        
         return pc;
@@ -164,11 +160,6 @@ public abstract class SITM extends ServiceAdapter {
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
-        try {
-            gu = new GridUtil(grid, instance);
-        } catch(Exception ex) {
-            throw new PropertyException(ex, ps.getInstanceName(), "grid", "Error getting grid network");
-        }
         try {
             network = gu.getNetwork();
             gu.getFS("sys.packages");

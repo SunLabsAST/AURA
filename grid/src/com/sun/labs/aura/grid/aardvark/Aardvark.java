@@ -96,8 +96,7 @@ public abstract class Aardvark extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(gu.getAddressFor(instance +
-                "-feedSched").getUUID());
+        addresses.add(gu.getAddressFor(getSchedName()).getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);
@@ -136,8 +135,7 @@ public abstract class Aardvark extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(gu.getAddressFor(instance +
-                "-feedMgr-" + n).getUUID());
+        addresses.add(gu.getAddressFor(getFMName(n)).getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);
@@ -179,8 +177,7 @@ public abstract class Aardvark extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(gu.getAddressFor(instance +
-                "-recommender").getUUID());
+        addresses.add(gu.getAddressFor(getRecName()).getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);
@@ -217,8 +214,7 @@ public abstract class Aardvark extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(gu.getAddressFor(instance +
-                "-aardvark").getUUID());
+        addresses.add(gu.getAddressFor(getAAName()).getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);

@@ -52,7 +52,7 @@ public abstract class Aura extends ServiceAdapter {
         // Set up the file systems for each replicant
         for(String currPrefix : prefixCodeList) {
             logger.info("Making fs for prefix " + currPrefix);
-            repFSMap.put(instance + "-" + currPrefix,
+            repFSMap.put(currPrefix,
                     gu.getFS(getReplicantName(currPrefix)));
             logger.info("Made fs for prefix " + currPrefix);
         }
@@ -127,7 +127,7 @@ public abstract class Aura extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(gu.getAddressFor(instance + "-reggie").
+        addresses.add(gu.getAddressFor(getReggieName()).
                 getUUID());
 
         pc.setNetworkAddresses(addresses);
@@ -156,7 +156,7 @@ public abstract class Aura extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(gu.getAddressFor(instance + "-dsHead").getUUID());
+        addresses.add(gu.getAddressFor(getDataStoreHeadName()).getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);
@@ -182,7 +182,7 @@ public abstract class Aura extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(gu.getAddressFor(instance + "-part-" + prefix).getUUID());
+        addresses.add(gu.getAddressFor(getPartitionName(prefix)).getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);
@@ -209,7 +209,7 @@ public abstract class Aura extends ServiceAdapter {
         // create a configuration and set relevant properties
         List<FileSystemMountParameters> extraMounts =
                 Collections.singletonList(new FileSystemMountParameters(
-                repFSMap.get(instance + "-" + prefix).getUUID(),
+                repFSMap.get(prefix).getUUID(),
                 "data"));
         ProcessConfiguration pc = getProcessConfig(GridUtil.logFSMntPnt,
                 "rep-" + prefix + ".out", extraMounts);
@@ -217,7 +217,7 @@ public abstract class Aura extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(gu.getAddressFor(instance + "-rep-" + prefix).getUUID());
+        addresses.add(gu.getAddressFor(getReplicantName(prefix)).getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);
@@ -246,7 +246,7 @@ public abstract class Aura extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(gu.getAddressFor(instance + "-statSrv").getUUID());
+        addresses.add(gu.getAddressFor(getStatServiceName()).getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);

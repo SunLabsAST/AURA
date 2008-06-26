@@ -108,7 +108,7 @@ public class ServiceDeployer {
                 "-serviceDeployer").getUUID());
 
         pc.setNetworkAddresses(addresses);
-        ProcessRegistration reg = gu.createProcess(instance + "-" + starter, pc);
+        ProcessRegistration reg = gu.createProcess(starter, pc);
         gu.startRegistration(reg);
     }
 

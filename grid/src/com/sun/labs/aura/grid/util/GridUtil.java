@@ -214,6 +214,8 @@ public class GridUtil {
 
         BaseFileSystemConfiguration fsConfiguration =
                 new BaseFileSystemConfiguration();
+        
+        fsName = instance + "-" + fsName;
 
         FileSystem fileSystem = grid.getFileSystem(fsName);
 

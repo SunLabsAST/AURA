@@ -73,7 +73,7 @@ public class NetTest extends ServiceAdapter {
                     internal.getUUID(),
                     "netTest");
             ProcessRegistration reg =
-                    gu.createProcess(instance + "-netTest", pc);
+                    gu.createProcess("netTest", pc);
             gu.startRegistration(reg);
 
         } catch(Exception ex) {
