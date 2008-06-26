@@ -75,33 +75,7 @@ public abstract class Aardvark extends ServiceAdapter {
         };
 
         // create a configuration and set relevant properties
-        ProcessConfiguration pc = new ProcessConfiguration();
-        pc.setCommandLine(cmdLine);
-        pc.setSystemSinks(GridUtil.logFSMntPnt + "/feedSched.out", false);
-
-        Collection<FileSystemMountParameters> mountParams =
-                new ArrayList<FileSystemMountParameters>();
-
-        mountParams.add(
-                new FileSystemMountParameters(auraDist.getUUID(),
-                new File(GridUtil.auraDistMntPnt).getName()));
-        mountParams.add(
-                new FileSystemMountParameters(logFS.getUUID(),
-                new File(GridUtil.logFSMntPnt).getName()));
-        mountParams.add(
-                new FileSystemMountParameters(cacheFS.getUUID(), "cache"));
-
-        pc.setFileSystems(mountParams);
-        pc.setWorkingDirectory(GridUtil.logFSMntPnt);
-
-        // Set the addresses for the process
-        List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(gu.getAddressFor(getSchedName()).getUUID());
-
-        pc.setNetworkAddresses(addresses);
-        pc.setProcessExitAction(ProcessExitAction.PARK);
-
-        return pc;
+        return gu.getProcessConfig(cmdLine, getSchedName());
     }
 
     protected ProcessConfiguration getFeedManagerConfig(int n)
@@ -116,29 +90,7 @@ public abstract class Aardvark extends ServiceAdapter {
         };
 
         // create a configuration and set relevant properties
-        ProcessConfiguration pc = new ProcessConfiguration();
-        pc.setCommandLine(cmdLine);
-        pc.setSystemSinks(
-                GridUtil.logFSMntPnt + "/feedMgr-" + n + ".out", false);
-
-        Collection<FileSystemMountParameters> mountParams =
-                new ArrayList<FileSystemMountParameters>();
-
-        mountParams.add(
-                new FileSystemMountParameters(auraDist.getUUID(),
-                new File(GridUtil.auraDistMntPnt).getName()));
-        mountParams.add(
-                new FileSystemMountParameters(logFS.getUUID(),
-                new File(GridUtil.logFSMntPnt).getName()));
-        pc.setFileSystems(mountParams);
-        pc.setWorkingDirectory(GridUtil.logFSMntPnt);
-
-        // Set the addresses for the process
-        List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(gu.getAddressFor(getFMName(n)).getUUID());
-
-        pc.setNetworkAddresses(addresses);
-        pc.setProcessExitAction(ProcessExitAction.PARK);
+        ProcessConfiguration pc = gu.getProcessConfig(cmdLine, getFMName(n));
 
         // don't overlap with other replicants
         pc.setLocationConstraint(
@@ -158,31 +110,7 @@ public abstract class Aardvark extends ServiceAdapter {
             "recommenderManagerStarter"
         };
 
-        // create a configuration and set relevant properties
-        ProcessConfiguration pc = new ProcessConfiguration();
-        pc.setCommandLine(cmdLine);
-        pc.setSystemSinks(GridUtil.logFSMntPnt + "/recommender.out", false);
-
-        Collection<FileSystemMountParameters> mountParams =
-                new ArrayList<FileSystemMountParameters>();
-
-        mountParams.add(
-                new FileSystemMountParameters(auraDist.getUUID(),
-                new File(GridUtil.auraDistMntPnt).getName()));
-        mountParams.add(
-                new FileSystemMountParameters(logFS.getUUID(),
-                new File(GridUtil.logFSMntPnt).getName()));
-        pc.setFileSystems(mountParams);
-        pc.setWorkingDirectory(GridUtil.logFSMntPnt);
-
-        // Set the addresses for the process
-        List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(gu.getAddressFor(getRecName()).getUUID());
-
-        pc.setNetworkAddresses(addresses);
-        pc.setProcessExitAction(ProcessExitAction.PARK);
-
-        return pc;
+        return gu.getProcessConfig(cmdLine, getRecName());
     }
 
     protected ProcessConfiguration getAardvarkConfig() throws Exception {
@@ -196,30 +124,7 @@ public abstract class Aardvark extends ServiceAdapter {
         };
 
         // create a configuration and set relevant properties
-        ProcessConfiguration pc = new ProcessConfiguration();
-        pc.setCommandLine(cmdLine);
-        pc.setSystemSinks(GridUtil.logFSMntPnt + "/aardvark.out", false);
-
-        Collection<FileSystemMountParameters> mountParams =
-                new ArrayList<FileSystemMountParameters>();
-
-        mountParams.add(
-                new FileSystemMountParameters(auraDist.getUUID(),
-                new File(GridUtil.auraDistMntPnt).getName()));
-        mountParams.add(
-                new FileSystemMountParameters(logFS.getUUID(),
-                new File(GridUtil.logFSMntPnt).getName()));
-        pc.setFileSystems(mountParams);
-        pc.setWorkingDirectory(GridUtil.logFSMntPnt);
-
-        // Set the addresses for the process
-        List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(gu.getAddressFor(getAAName()).getUUID());
-
-        pc.setNetworkAddresses(addresses);
-        pc.setProcessExitAction(ProcessExitAction.PARK);
-
-        return pc;
+        return gu.getProcessConfig(cmdLine, getAAName());
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
@@ -229,7 +134,7 @@ public abstract class Aardvark extends ServiceAdapter {
             network = gu.getNetwork();
             auraDist = gu.getAuraDistFS();
             logFS = gu.getAuraLogFS();
-            cacheFS = gu.getCacheFS();
+            cacheFS = gu.getAuraCacheFS();
             numCrawlers = ps.getInt(PROP_NUM_CRAWLERS);
         } catch(RemoteException ex) {
             throw new PropertyException(ex, ps.getInstanceName(), "grid",

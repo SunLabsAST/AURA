@@ -10,6 +10,7 @@ import com.sun.caroline.platform.CustomerNetworkConfiguration;
 import com.sun.caroline.platform.DuplicateNameException;
 import com.sun.caroline.platform.DynamicNatConfiguration;
 import com.sun.caroline.platform.FileSystem;
+import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.Grid;
 import com.sun.caroline.platform.HostNameBinding;
 import com.sun.caroline.platform.HostNameBindingConfiguration;
@@ -20,6 +21,7 @@ import com.sun.caroline.platform.NetworkAddressAllocationException;
 import com.sun.caroline.platform.NetworkConfiguration;
 import com.sun.caroline.platform.NetworkSetting;
 import com.sun.caroline.platform.ProcessConfiguration;
+import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.RunState;
 import com.sun.caroline.platform.StartFailureException;
@@ -31,6 +33,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -53,15 +56,80 @@ public class GridUtil {
 
     private Queue<ProcessRegistration> stopped;
     
+    protected FileSystem auraDist;
+    
+    protected FileSystem auraCache;
+    
+    protected FileSystem auraLogs;
+    
     public GridUtil(Grid grid, String instance) throws Exception {
         this.grid = grid;
         this.instance = instance;
         stopped = new LinkedList<ProcessRegistration>();
         createAuraNetwork();
+        auraDist = getAuraDistFS();
+        auraCache = getAuraCacheFS();
+        auraLogs = getAuraLogFS();
     }
 
     public Network getNetwork() {
         return network;
+    }
+
+    /**
+     * Gets a basic process configuration 
+     * @param cwd the working directory for the configuration
+     * @param logName the name to log to.
+     * @return a process configuration.
+     */
+    public ProcessConfiguration getProcessConfig(
+            String[] cmdLine,
+            String logName) throws Exception {
+        return getProcessConfig(cmdLine, logName, null);
+    }
+    
+    /**
+     * 
+     * Gets a basic process configuration 
+     * @param cwd the working directory for the configuration
+     * @param logName the name to log to.
+     * @param extraMounts extra mount points to give to the process configuration.
+     * @return a process configuration.
+     */
+    public ProcessConfiguration getProcessConfig(
+            String[] cmdLine,
+            String logName, 
+            Collection<FileSystemMountParameters> extraMounts) throws Exception {
+        ProcessConfiguration pc = new ProcessConfiguration();
+        pc.setSystemSinks(String.format("%s/%s.out", logFSMntPnt,
+                logName), false);
+
+        //
+        // Every body will get dist, log and cache filesystems.
+        Collection<FileSystemMountParameters> mountParams =
+                new ArrayList<FileSystemMountParameters>();
+        mountParams.add(
+                new FileSystemMountParameters(auraDist.getUUID(),
+                new File(auraDistMntPnt).getName()));
+        mountParams.add(
+                new FileSystemMountParameters(auraLogs.getUUID(),
+                new File(logFSMntPnt).getName()));
+        mountParams.add(
+                new FileSystemMountParameters(auraCache.getUUID(),
+                new File(cacheFSMntPnt).getName()));
+        if(extraMounts != null) {
+            mountParams.addAll(extraMounts);
+        }
+        pc.setFileSystems(mountParams);
+        pc.setWorkingDirectory(auraDistMntPnt);
+        pc.setCommandLine(cmdLine);
+
+        // Set the addresses for the process
+        List<UUID> addresses = new ArrayList<UUID>();
+        addresses.add(getAddressFor(logName).getUUID());
+        pc.setNetworkAddresses(addresses);
+        pc.setProcessExitAction(ProcessExitAction.PARK);
+        return pc;
     }
 
     /**
@@ -280,7 +348,7 @@ public class GridUtil {
      * @throws java.rmi.RemoteException
      * @throws com.sun.caroline.platform.StorageManagementException
      */
-    public FileSystem getCacheFS() throws RemoteException, StorageManagementException {
+    public FileSystem getAuraCacheFS() throws RemoteException, StorageManagementException {
         return getFS(instance + "-cache");
     }
     /**
