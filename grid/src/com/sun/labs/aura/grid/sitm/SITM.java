@@ -5,36 +5,19 @@
 package com.sun.labs.aura.grid.sitm;
 
 import com.sun.caroline.platform.FileSystem;
-import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.Network;
 import com.sun.caroline.platform.ProcessConfiguration;
-import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.StorageManagementException;
 import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
-import java.io.File;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * A base class for starting and stopping the SITM services.
  */
 public abstract class SITM extends ServiceAdapter {
-
-    private FileSystem auraDist;
-
-    private FileSystem logFS;
-
-    private FileSystem cacheFS;
-
-    public static final String cacheFSMntPnt = "/files/cache";
-
-    protected Network network;
 
     public String getArtistCrawlerName() {
         return "artistCrawler";
@@ -53,7 +36,7 @@ public abstract class SITM extends ServiceAdapter {
             "-Xmx2g",
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
-            "-DcacheDir=" + cacheFSMntPnt,
+            "-DcacheDir=" + GridUtil.cacheFSMntPnt,
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/music/resource/artistCrawlerConfig.xml",
@@ -68,7 +51,7 @@ public abstract class SITM extends ServiceAdapter {
             "-Xmx2g",
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
-            "-DcacheDir=" + cacheFSMntPnt,
+            "-DcacheDir=" + GridUtil.cacheFSMntPnt,
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/music/resource/listenerCrawlerConfig.xml",
@@ -83,7 +66,7 @@ public abstract class SITM extends ServiceAdapter {
             "-Xmx2g",
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
-            "-DcacheDir=" + cacheFSMntPnt,
+            "-DcacheDir=" + GridUtil.cacheFSMntPnt,
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/music/resource/tagCrawlerConfig.xml",
@@ -100,28 +83,5 @@ public abstract class SITM extends ServiceAdapter {
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
-        try {
-            network = gu.getNetwork();
-            gu.getFS("sys.packages");
-            auraDist = gu.getAuraDistFS();
-            logFS = gu.getAuraLogFS();
-            cacheFS = gu.getAuraCacheFS();
-        } catch(RemoteException ex) {
-            throw new PropertyException(ex, ps.getInstanceName(), "grid",
-                    "Error getting network");
-        } catch(StorageManagementException smx) {
-            throw new PropertyException(smx, ps.getInstanceName(), "grid",
-                    "Error getting filesystems");
-        }
-        if(network == null) {
-            throw new PropertyException(ps.getInstanceName(), "grid",
-                    "Aura network not defined");
-        }
-
-        if(auraDist == null || logFS == null || cacheFS == null) {
-            throw new PropertyException(ps.getInstanceName(), "grid",
-                    "Required filesystems not defined");
-        }
-
     }
 }

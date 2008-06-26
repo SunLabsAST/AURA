@@ -36,16 +36,6 @@ public abstract class Aardvark extends ServiceAdapter {
 
     protected int numCrawlers;
 
-    private FileSystem auraDist;
-
-    private FileSystem logFS;
-
-    private FileSystem cacheFS;
-
-    public static final String cacheFSMntPnt = "/files/cache";
-
-    protected Network network;
-
     public String getFMName(int n) {
         return "feedMgr-" + n;
     }
@@ -67,7 +57,7 @@ public abstract class Aardvark extends ServiceAdapter {
             "-Xmx2g",
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
-            "-DcacheDir=" + cacheFSMntPnt,
+            "-DcacheDir=" + GridUtil.cacheFSMntPnt,
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/aardvark/resource/feedSchedulerConfig.xml",
@@ -104,7 +94,7 @@ public abstract class Aardvark extends ServiceAdapter {
         String[] cmdLine = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
-            "-jar", 
+            "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/aardvark/resource/recommenderManagerConfig.xml",
             "recommenderManagerStarter"
@@ -130,28 +120,6 @@ public abstract class Aardvark extends ServiceAdapter {
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
         cm = ps.getConfigurationManager();
-        try {
-            network = gu.getNetwork();
-            auraDist = gu.getAuraDistFS();
-            logFS = gu.getAuraLogFS();
-            cacheFS = gu.getAuraCacheFS();
-            numCrawlers = ps.getInt(PROP_NUM_CRAWLERS);
-        } catch(RemoteException ex) {
-            throw new PropertyException(ex, ps.getInstanceName(), "grid",
-                    "Error getting network");
-        } catch(StorageManagementException smx) {
-            throw new PropertyException(smx, ps.getInstanceName(), "grid",
-                    "Error getting filesystems");
-        }
-        if(network == null) {
-            throw new PropertyException(ps.getInstanceName(), "grid",
-                    "Aura network not defined");
-        }
-
-        if(auraDist == null || logFS == null || cacheFS == null) {
-            throw new PropertyException(ps.getInstanceName(), "grid",
-                    "Required filesystems not defined");
-        }
-
+        numCrawlers = ps.getInt(PROP_NUM_CRAWLERS);
     }
 }

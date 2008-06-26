@@ -88,7 +88,7 @@ public class StartAura extends Aura {
 
     public void start() {
         try {
-            getAuraFilesystems();
+            getReplicantFileSystems();
             createAuraProcesses();
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error starting Aura", e);

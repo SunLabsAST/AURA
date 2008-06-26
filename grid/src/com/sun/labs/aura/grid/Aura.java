@@ -3,22 +3,16 @@ package com.sun.labs.aura.grid;
 import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.FileSystemMountParameters;
-import com.sun.caroline.platform.Network;
 import com.sun.caroline.platform.ProcessConfiguration;
-import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
 import com.sun.labs.aura.datastore.impl.DSBitSet;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
@@ -33,20 +27,9 @@ public abstract class Aura extends ServiceAdapter {
 
     protected String[] prefixCodeList;
 
-    private FileSystem auraDist;
-
-    private FileSystem logFS;
-
-    private FileSystem cacheFS;
-
     private Map<String, FileSystem> repFSMap = new HashMap<String, FileSystem>();
 
-    public void getAuraFilesystems() throws Exception {
-
-        gu.getFS("sys.packages");
-        auraDist = gu.getAuraDistFS();
-        logFS = gu.getAuraLogFS();
-        cacheFS = gu.getAuraCacheFS();
+    public void getReplicantFileSystems() throws Exception {
 
         //
         // Set up the file systems for each replicant
