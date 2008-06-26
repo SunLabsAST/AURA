@@ -31,9 +31,9 @@ public class NetTest extends ServiceAdapter {
 
     public void start() {
         try {
-            Network network = GridUtil.createAuraNetwork(grid, instance);
-            FileSystem auraDist = GridUtil.getAuraDistFS(grid, instance);
-            FileSystem logFS = GridUtil.getAuraLogFS(grid, instance);
+            Network network = gu.getNetwork();
+            FileSystem auraDist = gu.getAuraDistFS();
+            FileSystem logFS = gu.getAuraLogFS();
 
             String classpath = GridUtil.auraDistMntPnt + "/dist/aura.jar:" +
                     GridUtil.auraDistMntPnt + "/dist/aardvark.jar:" +
@@ -62,21 +62,19 @@ public class NetTest extends ServiceAdapter {
 
             // Set the addresses for the process
             List<UUID> addresses = new ArrayList<UUID>();
-            NetworkAddress internal = GridUtil.getAddressFor(grid, network, instance +
+            NetworkAddress internal = gu.getAddressFor(instance +
                     "-netTest");
             addresses.add(internal.getUUID());
             pc.setNetworkAddresses(addresses);
             pc.setProcessExitAction(ProcessExitAction.PARK);
 
-            NetworkAddress external = GridUtil.getExternalAddressFor(grid,
-                    network, "netTester");
-            GridUtil.createNAT(grid, instance,
-                    external.getUUID(),
+            NetworkAddress external = gu.getExternalAddressFor("netTester");
+            gu.createNAT(external.getUUID(),
                     internal.getUUID(),
                     "netTest");
             ProcessRegistration reg =
-                    GridUtil.createProcess(grid, instance + "-netTest", pc);
-            GridUtil.startRegistration(reg);
+                    gu.createProcess(instance + "-netTest", pc);
+            gu.startRegistration(reg);
 
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Exception with test", ex);

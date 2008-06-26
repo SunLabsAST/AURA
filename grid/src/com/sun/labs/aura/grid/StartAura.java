@@ -32,26 +32,25 @@ public class StartAura extends Aura {
     public void createAuraProcesses() throws Exception {
         //
         // Get a reggie started up first thing
-        ProcessRegistration regReg = GridUtil.createProcess(grid,
-                getReggieName(),
+        ProcessRegistration regReg = gu.createProcess(getReggieName(),
                 getReggieConfig());
-        GridUtil.startRegistration(regReg);
+        gu.startRegistration(regReg);
 
         //
         // Next, get a data store head and start it
-        ProcessRegistration dsHeadReg = GridUtil.createProcess(grid,
+        ProcessRegistration dsHeadReg = gu.createProcess(
                 getDataStoreHeadName(),
                 getDataStoreHeadConfig());
-        GridUtil.startRegistration(dsHeadReg);
+        gu.startRegistration(dsHeadReg);
 
         //
         // Now, start partition clusters for each prefix
         ProcessRegistration lastReg = null;
         for(int i = 0; i < prefixCodeList.length; i++) {
-            ProcessRegistration pcReg = GridUtil.createProcess(grid, getPartitionName(
+            ProcessRegistration pcReg = gu.createProcess( getPartitionName(
                     prefixCodeList[i]),
                     getPartitionClusterConfig(prefixCodeList[i]));
-            GridUtil.startRegistration(pcReg, false);
+            gu.startRegistration(pcReg, false);
             lastReg = pcReg;
         }
 
@@ -62,10 +61,10 @@ public class StartAura extends Aura {
         //
         // Start the replicants for each prefix
         for(int i = 0; i < prefixCodeList.length; i++) {
-            ProcessRegistration repReg = GridUtil.createProcess(grid, getReplicantName(
+            ProcessRegistration repReg = gu.createProcess( getReplicantName(
                     prefixCodeList[i]), getReplicantConfig(replicantConfig,
                     prefixCodeList[i]));
-            GridUtil.startRegistration(repReg, false);
+            gu.startRegistration(repReg, false);
             lastReg = repReg;
         }
 
@@ -75,10 +74,10 @@ public class StartAura extends Aura {
 
         //
         // And finally start a stat service
-        ProcessRegistration statSrvReg = GridUtil.createProcess(grid,
+        ProcessRegistration statSrvReg = gu.createProcess(
                 getStatServiceName(),
                 getStatServiceConfig());
-        GridUtil.startRegistration(statSrvReg);
+        gu.startRegistration(statSrvReg);
 
     }
     

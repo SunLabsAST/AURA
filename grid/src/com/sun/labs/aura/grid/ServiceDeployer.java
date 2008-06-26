@@ -35,6 +35,8 @@ import java.util.logging.Logger;
 public class ServiceDeployer {
 
     Grid grid;
+    
+    GridUtil gu;
 
     FileSystem logFS;
 
@@ -42,11 +44,12 @@ public class ServiceDeployer {
     Logger logger = Logger.getLogger("");
 
     public ServiceDeployer(String instance, URL gridURL, String user,
-            String passwd) throws RemoteException, StorageManagementException {
+            String passwd) throws RemoteException, StorageManagementException, Exception {
         grid = GridFactory.getGrid(gridURL, user, passwd);
-        logFS = GridUtil.getAuraLogFS(grid, instance);
-        auraDistFS = GridUtil.getAuraDistFS(grid, instance);
         logger.info("Got grid: " + grid);
+        gu = new GridUtil(grid, instance);
+        logFS = gu.getAuraLogFS();
+        auraDistFS = gu.getAuraDistFS();
     }
 
     public void deploy(String jarFile, String[] jvmArgs,
@@ -95,18 +98,18 @@ public class ServiceDeployer {
         pc.setWorkingDirectory(GridUtil.logFSMntPnt);
         pc.setProcessExitAction(ProcessExitAction.DESTROY);
 
-        Network network = GridUtil.createAuraNetwork(grid, instance);
+        Network network = gu.getNetwork();
         if(network == null) {
             throw new IllegalStateException("No network for deployment");
         }
         
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance +
+        addresses.add(gu.getAddressFor(instance +
                 "-serviceDeployer").getUUID());
 
         pc.setNetworkAddresses(addresses);
-        ProcessRegistration reg = GridUtil.createProcess(grid, instance + "-" + starter, pc);
-        GridUtil.startRegistration(reg);
+        ProcessRegistration reg = gu.createProcess(instance + "-" + starter, pc);
+        gu.startRegistration(reg);
     }
 
     public static void main(String[] args) {

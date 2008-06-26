@@ -96,7 +96,7 @@ public abstract class Aardvark extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance +
+        addresses.add(gu.getAddressFor(instance +
                 "-feedSched").getUUID());
 
         pc.setNetworkAddresses(addresses);
@@ -136,7 +136,7 @@ public abstract class Aardvark extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance +
+        addresses.add(gu.getAddressFor(instance +
                 "-feedMgr-" + n).getUUID());
 
         pc.setNetworkAddresses(addresses);
@@ -179,7 +179,7 @@ public abstract class Aardvark extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance +
+        addresses.add(gu.getAddressFor(instance +
                 "-recommender").getUUID());
 
         pc.setNetworkAddresses(addresses);
@@ -217,7 +217,7 @@ public abstract class Aardvark extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance +
+        addresses.add(gu.getAddressFor(instance +
                 "-aardvark").getUUID());
 
         pc.setNetworkAddresses(addresses);
@@ -231,9 +231,9 @@ public abstract class Aardvark extends ServiceAdapter {
         cm = ps.getConfigurationManager();
         try {
             network = grid.getNetwork(instance + "-auraNet");
-            auraDist = GridUtil.getFS(grid, instance + "-aura.dist", false);
-            logFS = GridUtil.getFS(grid, instance + "-aura.logs", false);
-            cacheFS = GridUtil.getFS(grid, instance + "-cache", false);
+            auraDist = gu.getAuraDistFS();
+            logFS = gu.getAuraLogFS();
+            cacheFS = gu.getCacheFS();
             numCrawlers = ps.getInt(PROP_NUM_CRAWLERS);
         } catch(RemoteException ex) {
             throw new PropertyException(ex, ps.getInstanceName(), "grid",

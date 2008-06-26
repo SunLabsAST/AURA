@@ -18,7 +18,6 @@ import com.sun.caroline.platform.HostNameZone;
 import com.sun.caroline.platform.Network;
 import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.NetworkAddressAllocationException;
-import com.sun.caroline.platform.NetworkAllocationException;
 import com.sun.caroline.platform.NetworkConfiguration;
 import com.sun.caroline.platform.NetworkSetting;
 import com.sun.caroline.platform.ProcessConfiguration;
@@ -42,21 +41,35 @@ import java.util.logging.Logger;
  */
 public class GridUtil {
     
-    static Logger log = Logger.getLogger("com.sun.labs.aura.grid.GridUtil");
+    Logger log = Logger.getLogger("com.sun.labs.aura.grid.GridUtil");
     
-    public static final int RETRIES = 1;
+    public final int RETRIES = 1;
+    
+    private Grid grid;
+    
+    private String instance;
+    
+    private Network network;
+    
+    public GridUtil(Grid grid, String instance) throws Exception {
+        this.grid = grid;
+        this.instance = instance;
+        network = createAuraNetwork();
+    }
+    
+    public Network getNetwork() {
+        return network;
+    }
 
     /**
      * Creates a process registration on a grid, reusing an on-grid registration
      * if one exists.
-     * @param grid the grid where the registration should be created
      * @param name the name of the registration
      * @param config the configuration for the process
      * @return the on-grid process registration.
      * @throws java.lang.Exception if anything goes wrong creating the registration.
      */
-    public static ProcessRegistration createProcess(Grid grid, 
-            String name,
+    public ProcessRegistration createProcess(String name,
             ProcessConfiguration config) throws Exception {
         ProcessRegistration reg = null;
         try {
@@ -68,11 +81,11 @@ public class GridUtil {
         return reg;
     }
 
-    public static void startRegistration(ProcessRegistration reg) throws Exception {
+    public void startRegistration(ProcessRegistration reg) throws Exception {
         startRegistration(reg, true);
     }
 
-    public static void startRegistration(final ProcessRegistration reg, boolean wait)
+    public void startRegistration(final ProcessRegistration reg, boolean wait)
             throws Exception {
         Thread starter = new Thread() {
 
@@ -119,7 +132,7 @@ public class GridUtil {
      * @return
      * @throws java.lang.Exception
      */
-    public static ProcessRegistration stopProcess(Grid grid, String name) throws Exception {
+    public ProcessRegistration stopProcess(String name) throws Exception {
         ProcessRegistration reg = grid.getProcessRegistration(name);
         if(reg != null) {
             log.fine("Stopping: " + reg);
@@ -130,7 +143,7 @@ public class GridUtil {
         return reg;
     }
 
-    public static void waitForFinish(Queue<ProcessRegistration> q)
+    public void waitForFinish(Queue<ProcessRegistration> q)
             throws Exception {
         waitForFinish(q, 600000);
     }
@@ -141,7 +154,7 @@ public class GridUtil {
      * @param timeout how long we should wait before forcefully killing processes.
      * @throws java.lang.Exception
      */
-    public static void waitForFinish(Queue<ProcessRegistration> q, long timeout)
+    public void waitForFinish(Queue<ProcessRegistration> q, long timeout)
             throws Exception {
         long finish = timeout + System.currentTimeMillis();
         int n = 0;
@@ -179,17 +192,17 @@ public class GridUtil {
      * @param fsName the name of the file system to create.
      * @return a fileystem on the grid.
      */
-    public static FileSystem getFS(Grid grid, String fsName) throws
+    public FileSystem getFS(String fsName) throws
             RemoteException,
             StorageManagementException {
-        return getFS(grid, fsName, true);
+        return getFS(fsName, true);
     }
 
     /**
      * Create a file system, or accept an existing one with the same name
      * @param fsName
      */
-    public static FileSystem getFS(Grid grid, String fsName, boolean allowCreate) throws
+    public FileSystem getFS(String fsName, boolean allowCreate) throws
             RemoteException,
             StorageManagementException {
 
@@ -228,8 +241,8 @@ public class GridUtil {
      * @throws java.rmi.RemoteException
      * @throws com.sun.caroline.platform.StorageManagementException
      */
-    public static FileSystem getAuraLogFS(Grid grid, String instance) throws RemoteException, StorageManagementException {
-        return getFS(grid, instance + "-aura.logs");
+    public FileSystem getAuraLogFS() throws RemoteException, StorageManagementException {
+        return getFS(instance + "-aura.logs");
     }
     
 
@@ -246,8 +259,8 @@ public class GridUtil {
      * @throws java.rmi.RemoteException
      * @throws com.sun.caroline.platform.StorageManagementException
      */
-    public static FileSystem getAuraDistFS(Grid grid, String instance) throws RemoteException, StorageManagementException {
-        return getFS(grid, instance + "-aura.dist");
+    public FileSystem getAuraDistFS() throws RemoteException, StorageManagementException {
+        return getFS(instance + "-aura.dist");
     }
 
     /**
@@ -263,8 +276,8 @@ public class GridUtil {
      * @throws java.rmi.RemoteException
      * @throws com.sun.caroline.platform.StorageManagementException
      */
-    public static FileSystem getCacheFS(Grid grid, String instance) throws RemoteException, StorageManagementException {
-        return getFS(grid, instance + "-cache");
+    public FileSystem getCacheFS() throws RemoteException, StorageManagementException {
+        return getFS(instance + "-cache");
     }
     /**
      * The mount point for the code file system in a deployed service.
@@ -279,7 +292,7 @@ public class GridUtil {
      * @throws java.lang.Exception if there is a problem getting the usage from
      * the grid
      */
-    public static long getDiskUsage(Grid grid) throws Exception {
+    public long getDiskUsage() throws Exception {
 
         long total = 0;
         for(FileSystem fs : grid.findAllFileSystems()) {
@@ -288,7 +301,7 @@ public class GridUtil {
         return total;
     }
     
-    public static Network createAuraNetwork(Grid grid, String instance) throws Exception {
+    public Network createAuraNetwork() throws Exception {
         Network network = null;
         try {
             // Try to create a customer network for the test
@@ -314,7 +327,7 @@ public class GridUtil {
      * @return
      * @throws java.lang.Exception
      */
-    public static NetworkAddress getAddressFor(Grid grid, Network network, String hostName) throws Exception {
+    public NetworkAddress getAddressFor(String hostName) throws Exception {
         // Allocate the internal addresses and the real services behind the
         // virtual service
         HostNameZone hnZone = grid.getInternalHostNameZone();
@@ -337,24 +350,24 @@ public class GridUtil {
         return internalAddress;
     }
 
-    public static NetworkAddress getExternalAddressFor(Grid grid, Network network,
-            String name) throws Exception {
+    public NetworkAddress getExternalAddressFor(String name) throws Exception {
         // Allocate an external address for the virtual service if necessary
         NetworkAddress externalAddress = null;
+        String extName = instance + "-" + name + "-ext";
         try {
             externalAddress =
-                    grid.allocateExternalAddress(name + "-ext");
+                    grid.allocateExternalAddress(extName);
             log.fine("Allocated external address " +
                     externalAddress.getAddress());
         } catch(DuplicateNameException e) {
             log.finer("External address exists, reusing");
-            externalAddress = grid.getExternalAddress(name + "-ext");
+            externalAddress = grid.getExternalAddress(extName);
         }
         bindHostName(grid.getExternalHostNameZone(), externalAddress, name);
         return externalAddress;
     }
 
-    public static void bindHostName(HostNameZone hnZone,
+    public void bindHostName(HostNameZone hnZone,
             NetworkAddress addr,
             String hostName) throws Exception {
         HostNameBinding binding = null;
@@ -381,8 +394,7 @@ public class GridUtil {
 
     }
 
-    public static void createNAT(Grid grid, String instance, 
-            UUID external, UUID internal, String name)
+    public void createNAT(UUID external, UUID internal, String name)
             throws Exception {
         NetworkConfiguration netConf =
                 new DynamicNatConfiguration(external,
@@ -397,7 +409,7 @@ public class GridUtil {
         }
     }
     
-    public static URL getConfigURL(String arg) {
+    public URL getConfigURL(String arg) {
         URL cu = com.sun.labs.aura.grid.util.GridUtil.class.getResource(arg);
         if(cu == null) {
             try {

@@ -41,21 +41,19 @@ public abstract class Aura extends ServiceAdapter {
 
     private Map<String, FileSystem> repFSMap = new HashMap<String, FileSystem>();
 
-    private Network network;
-
     public void getAuraFilesystems() throws Exception {
 
-        GridUtil.getFS(grid, "sys.packages");
-        auraDist = GridUtil.getAuraDistFS(grid, instance);
-        logFS = GridUtil.getAuraLogFS(grid, instance);
-        cacheFS = GridUtil.getCacheFS(grid, instance);
+        gu.getFS("sys.packages");
+        auraDist = gu.getAuraDistFS();
+        logFS = gu.getAuraLogFS();
+        cacheFS = gu.getCacheFS();
 
         //
         // Set up the file systems for each replicant
         for(String currPrefix : prefixCodeList) {
             logger.info("Making fs for prefix " + currPrefix);
             repFSMap.put(instance + "-" + currPrefix,
-                    GridUtil.getFS(grid, getReplicantName(currPrefix)));
+                    gu.getFS(getReplicantName(currPrefix)));
             logger.info("Made fs for prefix " + currPrefix);
         }
     }
@@ -129,7 +127,7 @@ public abstract class Aura extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance + "-reggie").
+        addresses.add(gu.getAddressFor(instance + "-reggie").
                 getUUID());
 
         pc.setNetworkAddresses(addresses);
@@ -158,8 +156,7 @@ public abstract class Aura extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance + "-dsHead").
-                getUUID());
+        addresses.add(gu.getAddressFor(instance + "-dsHead").getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);
@@ -185,8 +182,7 @@ public abstract class Aura extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network,
-                instance + "-part-" + prefix).getUUID());
+        addresses.add(gu.getAddressFor(instance + "-part-" + prefix).getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);
@@ -221,8 +217,7 @@ public abstract class Aura extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance + "-rep-" +
-                prefix).getUUID());
+        addresses.add(gu.getAddressFor(instance + "-rep-" + prefix).getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);
@@ -251,8 +246,7 @@ public abstract class Aura extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance +
-                "-statSrv").getUUID());
+        addresses.add(gu.getAddressFor(instance + "-statSrv").getUUID());
 
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);
@@ -276,12 +270,6 @@ public abstract class Aura extends ServiceAdapter {
             DSBitSet prefixBits = DSBitSet.parse(i);
             prefixBits.setPrefixLength(numBits);
             prefixCodeList[i] = prefixBits.toString();
-        }
-        try {
-            network = GridUtil.createAuraNetwork(grid, instance);
-        } catch(Exception e) {
-            throw new PropertyException("network", "network",
-                    "Can't create network");
         }
     }
 }

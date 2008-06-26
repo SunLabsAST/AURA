@@ -51,8 +51,7 @@ public class CreateDatabase extends ServiceAdapter {
         NetworkAddress internal;
 
         try {
-            internal =
-                    GridUtil.getAddressFor(grid, network, dbName);
+            internal = gu.getAddressFor(dbName);
         } catch(Exception ex) {
             logger.severe("Error getting internal address for " + dbName + " " + ex);
             return;

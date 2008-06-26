@@ -22,14 +22,14 @@ public class StopAura extends Aura {
     public void start() {
         Queue<ProcessRegistration> q = new LinkedList<ProcessRegistration>();
         try {
-            q.add(GridUtil.stopProcess(grid, getStatServiceName()));
+            q.add(gu.stopProcess(getStatServiceName()));
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Error stopping Stat Service", e);
         }
 
         for(String prefixCode : prefixCodeList) {
             try {
-                q.add(GridUtil.stopProcess(grid, getPartitionName(
+                q.add(gu.stopProcess(getPartitionName(
                         prefixCode)));
             } catch(Exception e) {
                 logger.log(Level.SEVERE, "Error stopping partition " + prefixCode, e);
@@ -38,7 +38,7 @@ public class StopAura extends Aura {
 
         for(String prefixCode : prefixCodeList) {
             try {
-                q.add(GridUtil.stopProcess(grid, getReplicantName(
+                q.add(gu.stopProcess(getReplicantName(
                         prefixCode)));
             } catch(Exception e) {
                 logger.log(Level.SEVERE, "Error stopping replicant " + prefixCode, e);
@@ -46,19 +46,19 @@ public class StopAura extends Aura {
         }
 
         try {
-            q.add(GridUtil.stopProcess(grid, getDataStoreHeadName()));
+            q.add(gu.stopProcess(getDataStoreHeadName()));
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Error stopping data store head", e);
         }
         
         try {
-            q.add(GridUtil.stopProcess(grid, getReggieName()));
+            q.add(gu.stopProcess(getReggieName()));
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Error stopping reggie", e);
         }
 
         try {
-            GridUtil.waitForFinish(q);
+            gu.waitForFinish(q);
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Error waiting for processes to finish", e);
         }

@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A base class for starting and stopping the SITM services.
@@ -37,6 +39,8 @@ public abstract class SITM extends ServiceAdapter {
 
     protected Network network;
     
+    protected GridUtil gu;
+    
     public String getArtistCrawlerName() {
         return instance + "-artistCrawler";
     }
@@ -47,13 +51,6 @@ public abstract class SITM extends ServiceAdapter {
     
     public String getTagCrawlerName() {
         return instance + "-tagCrawler";
-    }
-    
-    public void getSITMFilesystems() throws Exception {
-        GridUtil.getFS(grid, "sys.packages");
-        auraDist = GridUtil.getAuraDistFS(grid, instance);
-        logFS = GridUtil.getAuraLogFS(grid, instance);
-        cacheFS = GridUtil.getCacheFS(grid, instance);
     }
     
     /**
@@ -106,7 +103,7 @@ public abstract class SITM extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, getArtistCrawlerName()).getUUID());
+        addresses.add(gu.getAddressFor(getArtistCrawlerName()).getUUID());
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);        
         return pc;
@@ -130,7 +127,7 @@ public abstract class SITM extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, getListenerCrawlerName()).getUUID());
+        addresses.add(gu.getAddressFor(getListenerCrawlerName()).getUUID());
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);        
         return pc;
@@ -154,7 +151,7 @@ public abstract class SITM extends ServiceAdapter {
 
         // Set the addresses for the process
         List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, getArtistCrawlerName()).getUUID());
+        addresses.add(gu.getAddressFor(getArtistCrawlerName()).getUUID());
         pc.setNetworkAddresses(addresses);
         pc.setProcessExitAction(ProcessExitAction.PARK);        
         return pc;
@@ -168,10 +165,16 @@ public abstract class SITM extends ServiceAdapter {
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
         try {
-            network = grid.getNetwork(instance + "-auraNet");
-            auraDist = GridUtil.getFS(grid, instance + "-aura.dist", false);
-            logFS = GridUtil.getFS(grid, instance + "-aura.logs", false);
-            cacheFS = GridUtil.getFS(grid, instance + "-cache", false);
+            gu = new GridUtil(grid, instance);
+        } catch(Exception ex) {
+            throw new PropertyException(ex, ps.getInstanceName(), "grid", "Error getting grid network");
+        }
+        try {
+            network = gu.getNetwork();
+            gu.getFS("sys.packages");
+            auraDist = gu.getAuraDistFS();
+            logFS = gu.getAuraLogFS();
+            cacheFS = gu.getCacheFS();
         } catch(RemoteException ex) {
             throw new PropertyException(ex, ps.getInstanceName(), "grid",
                     "Error getting network");
