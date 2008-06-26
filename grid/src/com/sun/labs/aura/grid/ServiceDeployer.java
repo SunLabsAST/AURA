@@ -163,7 +163,7 @@ public class ServiceDeployer {
             }
             user = "aura";
             passwd = "corona";
-            instance = "live";
+            instance = System.getProperty("user.name");
         }
 
         List<String> jvmArgs = new ArrayList<String>();
