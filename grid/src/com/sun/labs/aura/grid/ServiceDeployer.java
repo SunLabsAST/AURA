@@ -141,6 +141,9 @@ public class ServiceDeployer {
                 user = props.getProperty("customerID");
                 passwd = props.getProperty("password");
                 instance = props.getProperty("instance");
+                if(instance == null) {
+                    instance = System.getProperty("user.name");
+                }
             }
         } catch(Exception e) {
             logger.severe("Error reading .caroline: " + e);

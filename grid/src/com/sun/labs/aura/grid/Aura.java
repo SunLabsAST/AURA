@@ -59,23 +59,23 @@ public abstract class Aura extends ServiceAdapter {
     }
 
     public String getDataStoreHeadName() {
-        return instance + "-dsHead";
+        return "dsHead";
     }
 
     public String getPartitionName(String prefix) {
-        return instance + "-part-" + prefix;
+        return "part-" + prefix;
     }
 
     public String getReplicantName(String prefix) {
-        return instance + "-replicant-" + prefix;
+        return "replicant-" + prefix;
     }
 
     public String getStatServiceName() {
-        return instance + "-statSrv";
+        return "statSrv";
     }
 
     public String getReggieName() {
-        return instance + "-reggie";
+        return "reggie";
     }
 
     /**

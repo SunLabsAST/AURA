@@ -47,19 +47,19 @@ public abstract class Aardvark extends ServiceAdapter {
     protected Network network;
 
     public String getFMName(int n) {
-        return instance + "-feedMgr-" + n;
+        return "feedMgr-" + n;
     }
 
     public String getRecName() {
-        return instance + "-recommender";
+        return "recommender";
     }
 
     public String getSchedName() {
-        return instance + "-feedSched";
+        return "feedSched";
     }
 
     public String getAAName() {
-        return instance + "-aardvark";
+        return "aardvark";
     }
 
     protected ProcessConfiguration getFeedSchedulerConfig() throws Exception {
@@ -230,7 +230,7 @@ public abstract class Aardvark extends ServiceAdapter {
         super.newProperties(ps);
         cm = ps.getConfigurationManager();
         try {
-            network = grid.getNetwork(instance + "-auraNet");
+            network = gu.getNetwork();
             auraDist = gu.getAuraDistFS();
             logFS = gu.getAuraLogFS();
             cacheFS = gu.getCacheFS();
