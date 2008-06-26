@@ -319,8 +319,9 @@ public class GridUtil {
      * @throws com.sun.caroline.platform.StorageManagementException
      */
     public FileSystem getAuraLogFS() throws RemoteException, StorageManagementException {
-        return getFS(instance + "-aura.logs");
+        return getFS("aura.logs");
     }
+    
     /**
      * The mount point for the logs file system in a deployed service.
      */
@@ -335,8 +336,9 @@ public class GridUtil {
      * @throws com.sun.caroline.platform.StorageManagementException
      */
     public FileSystem getAuraDistFS() throws RemoteException, StorageManagementException {
-        return getFS(instance + "-aura.dist");
+        return getFS("aura.dist");
     }
+    
     /**
      * The mount point for the code file system in a deployed service.
      */
@@ -349,7 +351,7 @@ public class GridUtil {
      * @throws com.sun.caroline.platform.StorageManagementException
      */
     public FileSystem getAuraCacheFS() throws RemoteException, StorageManagementException {
-        return getFS(instance + "-cache");
+        return getFS("cache");
     }
     /**
      * The mount point for the code file system in a deployed service.

@@ -132,7 +132,7 @@ public abstract class Aura extends ServiceAdapter {
         // don't overlap with other replicants
         pc.setLocationConstraint(
                 new ProcessRegistrationFilter.NameMatch(
-                Pattern.compile(instance + ".*-rep-.*")));
+                Pattern.compile(instance + ".*-replicant-.*")));
 
         return pc;
     }

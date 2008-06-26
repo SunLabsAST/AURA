@@ -81,21 +81,7 @@ public class ServiceDeployer {
             cmd = tmp;
         }
 
-        ProcessConfiguration pc = new ProcessConfiguration();
-        pc.setCommandLine(cmd);
-        pc.setSystemSinks(GridUtil.logFSMntPnt + "/" + starter + ".out", false);
-
-        Collection<FileSystemMountParameters> mountParams =
-                new ArrayList<FileSystemMountParameters>();
-
-        mountParams.add(
-                new FileSystemMountParameters(auraDistFS.getUUID(),
-                new File(GridUtil.auraDistMntPnt).getName()));
-        mountParams.add(
-                new FileSystemMountParameters(logFS.getUUID(),
-                new File(GridUtil.logFSMntPnt).getName()));
-        pc.setFileSystems(mountParams);
-        pc.setWorkingDirectory(GridUtil.logFSMntPnt);
+        ProcessConfiguration pc = gu.getProcessConfig(cmd, starter);
         pc.setProcessExitAction(ProcessExitAction.DESTROY);
 
         Network network = gu.getNetwork();
@@ -103,11 +89,6 @@ public class ServiceDeployer {
             throw new IllegalStateException("No network for deployment");
         }
         
-        List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(gu.getAddressFor(instance +
-                "-serviceDeployer").getUUID());
-
-        pc.setNetworkAddresses(addresses);
         ProcessRegistration reg = gu.createProcess(starter, pc);
         gu.startRegistration(reg);
     }
