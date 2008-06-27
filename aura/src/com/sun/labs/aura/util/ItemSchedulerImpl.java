@@ -243,7 +243,7 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
      */
     @ConfigInteger(defaultValue = 60 * 60, range = {1, 60 * 60 * 24 * 365})
     public final static String PROP_DEFAULT_PERIOD = "defaultPeriod";
-    private int defaultPeriod;
+    protected int defaultPeriod;
     /**
      * the configurable property for late processing notification tim (in seconds)
      */

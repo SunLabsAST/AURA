@@ -39,7 +39,7 @@ public class Profile {
 
         sb.append("            <Concepts>\n");
         for (Concept concept : getImplicitConcepts()) {
-            sb.append("                " + concept + "\n");
+            sb.append("                " + concept.toXML(true) + "\n");
         }
         sb.append("            </Concepts>\n");
 
@@ -47,7 +47,7 @@ public class Profile {
         sb.append("  <ExplicitData>\n");
         sb.append("            <Concepts>\n");
         for (Concept concept : getExplicitConcepts()) {
-            sb.append("                " + concept + "\n");
+            sb.append("                " + concept.toXML(false) + "\n");
         }
         sb.append("            </Concepts>\n");
         sb.append("  </ExplicitData>\n");

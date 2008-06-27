@@ -27,6 +27,7 @@ import com.sun.labs.minion.WeightedField;
 import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
+import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -84,6 +85,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
             "itemSearchEngine";
 
     protected ItemSearchEngine searchEngine;
+
+    @ConfigInteger(defaultValue = 60)
+    public final static String PROP_CACHE_SIZE_MEM_PERCENTAGE = "cacheSizeMemPercentage";
+    private int cacheSizeMemPercentage;
 
     /**
      * Our partition cluster.
@@ -162,10 +167,13 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         // See if we should overwrite any existing database at that path
         overwriteExisting = ps.getBoolean(PROP_OVERWRITE);
 
+        // get the cache size memory percentage
+        cacheSizeMemPercentage = ps.getInt(PROP_CACHE_SIZE_MEM_PERCENTAGE);
+
         //
         // Configure and open the environment and entity store
         try {
-            bdb = new BerkeleyDataWrapper(dbEnvDir, logger, overwriteExisting);
+            bdb = new BerkeleyDataWrapper(dbEnvDir, logger, overwriteExisting, cacheSizeMemPercentage);
         } catch(DatabaseException e) {
             logger.severe("Failed to load the database environment at " +
                     dbEnvDir + ": " + e);

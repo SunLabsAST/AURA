@@ -24,6 +24,7 @@ import java.util.Set;
 class ArtistScoreManager {
     private Set<Artist> seedSet = new HashSet<Artist>();
     private Map<Artist, Double> artistScores = new HashMap<Artist, Double>();
+    private Map<Artist, Map<String, Double>> reasonMap = new HashMap();
     private double maxPopularity = 0.0;
     private double minPopularity = Double.MAX_VALUE;
     private double sumPopularity = 0.0;
@@ -57,6 +58,37 @@ class ArtistScoreManager {
             score = new Double(score.doubleValue() + val);
         }
         artistScores.put(artist, score);
+    } 
+
+    void accum(Artist artist, String reason, double val) {
+        Double score = artistScores.get(artist);
+
+        if (score == null) {
+            score = new Double(val);
+        } else {
+            score = new Double(score.doubleValue() + val);
+        }
+        artistScores.put(artist, score);
+
+        Map<String, Double> reasonMapEntry = reasonMap.get(artist);
+        if (reasonMapEntry == null) {
+            reasonMapEntry = new HashMap();
+            reasonMap.put(artist, reasonMapEntry);
+        } 
+        reasonMapEntry.put(reason, Double.valueOf(val));
+    } 
+
+    List<Scored<String>> getReason(Artist artist) {
+        Map<String, Double> reasonMapEntry = reasonMap.get(artist);
+        List<Scored<String>> results = new ArrayList();
+        if (reasonMapEntry != null) {
+            for (Map.Entry<String, Double> e : reasonMapEntry.entrySet()) {
+                results.add(new Scored<String>(e.getKey(), e.getValue()));
+            }
+            Collections.sort(results, new ScoredComparator<String>());
+            Collections.reverse(results);
+        }
+        return results;
     }
 
     List<Scored<Artist>> getTop(int num) {

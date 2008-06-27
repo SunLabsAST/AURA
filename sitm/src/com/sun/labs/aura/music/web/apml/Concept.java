@@ -35,17 +35,27 @@ public class Concept {
     private float value;
     private String from;
     private String update;
+    private String annotation;
 
-    public Concept(String key, float value, String from, String update) {
+    public Concept(String key, float value, String from, String update, String annotation) {
         this.key = normalize(key);
         this.value = value;
         this.from = from;
         this.update = update;
+        this.annotation = annotation;
+    }
+
+    public Concept(String key, float value, String annotation) {
+        this(key, value, DEFAULT_SOURCE, 
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(new Date()), annotation);
     }
 
     public Concept(String key, float value) {
-        this(key, value, DEFAULT_SOURCE, 
-            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(new Date()));
+        this(key, value, null);
+    }
+
+    public Concept(String key, float value, String from, String update) {
+        this(key, value, from, update, null);
     }
 
     public String getFrom() {
@@ -65,24 +75,31 @@ public class Concept {
     }
 
     private String normalize(String s) {
-        return s.replaceAll("[^\\w\\s]", " ");
+        return s.replaceAll("[^\\w\\s-]", " ");
     }
 
     //   <Concept key="media" value="0.73" from="GatheringTool.com" updated="2007-03-11T01:55:00Z" / >
-    public String toXML() {
+    public String toXML(boolean implicit) {
         StringBuilder sb = new StringBuilder();
+
+        if (annotation != null) {
+            sb.append("\n<!-- " + annotation + " -->");
+        }
+
         sb.append("<Concept ");
         append(sb, "key", getKey());
         append(sb, "value", Float.toString(getValue()));
-        append(sb, "from", getFrom());
-        append(sb, "updated", getUpdate());
+        if (implicit) {
+            append(sb, "from", getFrom());
+            append(sb, "updated", getUpdate());
+        }
         sb.append("/>");
         return sb.toString();
     }
 
     @Override
     public String toString() {
-        return toXML();
+        return toXML(true);
     }
 
     private static void append(StringBuilder sb, String key, String val) {

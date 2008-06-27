@@ -27,6 +27,7 @@ public class ArtistTag extends ItemAdapter {
     public final static String FIELD_TAGGED_ARTISTS = "taggedArtists";
     public final static String FIELD_VIDEOS = "videos";
     public final static String FIELD_PHOTOS = "photos";
+    public final static String FIELD_LAST_CRAWL = "lastCrawl";
 
     public final static Comparator<ArtistTag> POPULARITY = new Comparator<ArtistTag>() {
         public int compare(ArtistTag o1, ArtistTag o2) {
@@ -76,6 +77,7 @@ public class ArtistTag extends ItemAdapter {
                     EnumSet.of(Item.FieldCapability.MATCH, Item.FieldCapability.SIMILARITY),
                     Item.FieldType.STRING);
             ds.defineField(Item.ItemType.ARTIST_TAG, FIELD_VIDEOS);
+            ds.defineField(Item.ItemType.ARTIST_TAG, FIELD_LAST_CRAWL);
         } catch(RemoteException rx) {
             throw new AuraException("Error defining fields for ArtistTag", rx);
         }
@@ -103,6 +105,21 @@ public class ArtistTag extends ItemAdapter {
      */
     public String getDescription() {
         return getFieldAsString(FIELD_DESCRIPTION, "");
+    }
+
+    /**
+     * Gets the time that this item was last crawled
+     * @return the time this item was last crawled in ms since the epoch
+     */
+    public long getLastCrawl() {
+        return getFieldAsLong(FIELD_LAST_CRAWL);
+    }
+
+    /**
+     * Sets the time when this item was last crawled to now.
+     */
+    public void setLastCrawl() {
+        setField(FIELD_LAST_CRAWL, System.currentTimeMillis());
     }
 
     /**

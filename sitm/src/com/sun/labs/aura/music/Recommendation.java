@@ -5,7 +5,9 @@
 
 package com.sun.labs.aura.music;
 
+import com.sun.labs.aura.util.Scored;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  *
@@ -14,12 +16,12 @@ import java.io.Serializable;
 public class Recommendation implements Serializable {
     private double score = 0;
     private String id;
-    private String explanation;
+    private List<Scored<String>> explanation;
 
     public Recommendation() {
     }
 
-    public Recommendation(String id, double score, String explanation) {
+    public Recommendation(String id, double score, List<Scored<String>> explanation) {
         this.score = score;
         this.id = id;
         this.explanation = explanation;
@@ -29,7 +31,7 @@ public class Recommendation implements Serializable {
         return id;
     }
 
-    public String getExplanation() {
+    public List<Scored<String>> getExplanation() {
         return explanation;
     }
 
