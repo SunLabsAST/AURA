@@ -163,7 +163,7 @@ public class StarRatingWidget extends Composite {
         redrawStars();
 
         try {
-            musicServer.updateUserSongRating(lD, index, artistID, callback);
+            musicServer.updateUserSongRating(lD, index + 1, artistID, callback);
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }

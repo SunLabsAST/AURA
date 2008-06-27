@@ -46,6 +46,7 @@ import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.SuggestBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -500,6 +501,12 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         }
     }
 
+    private void addCompactArtistToOracle(ArtistCompact[] aCArray) {
+        for (ArtistCompact aC : aCArray) {
+            artistOracle.add(aC.getName());
+        }
+    }
+
     private Widget createArtistPanel(String title, ArtistDetails artistDetails) {
         VerticalPanel main = new VerticalPanel();
         main.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
@@ -527,10 +534,12 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         left.setSpacing(4);
         left.setWidth("300px");
         if (artistDetails.getSimilarArtists().length > 0) {
+            ArtistCompact[] aCArray = artistDetails.getSimilarArtists();
+            addCompactArtistToOracle(aCArray);
             left.add(
                     new Updatable(new HTML("<H2>"+cdm.getCurrSimTypeName()+"-omendations</H2>"),
                     //getItemInfoList2(artistDetails.getSimilarArtists(), id, true, artistOracle), cdm, id) {
-                    new ArtistListWidget(musicServer, cdm.getListenerDetails(), artistDetails.getSimilarArtists()), cdm, id) {
+                    new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray), cdm, id) {
 
                         public void update(ArtistDetails aD) {
                             setNewContent(new HTML("<H2>"+cdm.getCurrSimTypeName()+"-omendations</H2>"),
@@ -541,11 +550,15 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         }
         
         if (artistDetails.getRecommendedArtists().length > 0) {
-            left.add(WebLib.createSection("Recommendations", new ArtistListWidget(musicServer, cdm.getListenerDetails(), artistDetails.getRecommendedArtists())));
+            ArtistCompact[] aCArray = artistDetails.getRecommendedArtists();
+            addCompactArtistToOracle(aCArray);
+            left.add(WebLib.createSection("Recommendations", new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray)));
             //left.add(getItemInfoList("Recommendations", artistDetails.getRecommendedArtists(), id, true, artistOracle));
         }
         if (artistDetails.getCollaborations().length > 0) {
-            left.add(WebLib.createSection("Related", new ArtistListWidget(musicServer, cdm.getListenerDetails(), artistDetails.getCollaborations())));
+            ArtistCompact[] aCArray = artistDetails.getCollaborations();
+            addCompactArtistToOracle(aCArray);
+            left.add(WebLib.createSection("Related", new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray)));
             //left.add(getItemInfoList("Related", artistDetails.getCollaborations(), id, true, artistOracle));
         }
         left.add(getMoreInfoWidget(artistDetails));

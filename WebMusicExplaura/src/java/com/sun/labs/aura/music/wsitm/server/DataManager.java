@@ -590,7 +590,10 @@ public class DataManager implements Configurable {
 
     private ListenerDetails listenerToListenerDetails(Listener l, ListenerDetails lD,
             SimType simType, boolean updateRecommendations) throws AuraException, RemoteException {
-
+logger.info("in func");
+if (l==null) {
+    logger.info("l is null");
+}
         if (l.getGender()!=null) {
             if (l.getGender()==Gender.Female) {
                 lD.gender="F";
@@ -598,28 +601,31 @@ public class DataManager implements Configurable {
                 lD.gender="M";
             }
         }
-
+logger.info("1");
         if (l.getLocaleCountry()!=null) {
             lD.country=l.getLocaleCountry();
         }
-
+logger.info("2");
         if (l.getPandoraName()!=null) {
             lD.pandoraUser=l.getPandoraName();
         }
-
+logger.info("3");
         if (l.getLastFmName()!=null) {
             lD.lastfmUser=l.getLastFmName();
         }
-
+logger.info("4");
         if (updateRecommendations) {
+            logger.info("fetching recommendations...");
             // Fetch info for recommended artists
             ArrayList<ArtistCompact> aCompact = new ArrayList<ArtistCompact>();
             for (Scored<Artist> a : mdb.getRecommendations(l, NBR_REC_LISTENER)) {
                 aCompact.add(artistToArtistCompact(a.getItem()));
             }
+            logger.info("done rec");
             lD.recommendations = aCompact.toArray(new ArtistCompact[0]);
+            logger.info("set rec");
         }
-
+logger.info("ret");
         return lD;
     }
 
@@ -634,13 +640,11 @@ public class DataManager implements Configurable {
         if (l == null) {
             logger.info("Non openID user '" + lD.openID + "' does not exist.");
             throw new AuraException("User '"+userKey+"' does not exist.");
-        } else {
-            logger.info("Retrieved non openid user from datastore: " + userKey);
         }
+
 logger.info("sync");
         lD = listenerToListenerDetails(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
         lD.loggedIn = true;
-        logger.info("update");
 
 logger.info("done");
         return lD;
