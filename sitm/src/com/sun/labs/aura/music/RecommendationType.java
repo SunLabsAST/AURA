@@ -8,8 +8,6 @@ package com.sun.labs.aura.music;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.util.AuraException;
 import java.rmi.RemoteException;
-import java.util.List;
-import java.util.Set;
 
 /**
  *
@@ -35,7 +33,7 @@ public interface RecommendationType {
      * @param the recommendation profile
      * @return  the ordered list of recommendations
      */
-    List<Recommendation> getRecommendations(Listener listener, int count, RecommendationProfile rp) 
+    RecommendationSummary getRecommendations(Listener listener, int count, RecommendationProfile rp) 
                 throws AuraException, RemoteException;
 
 
