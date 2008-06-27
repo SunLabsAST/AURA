@@ -590,10 +590,7 @@ public class DataManager implements Configurable {
 
     private ListenerDetails listenerToListenerDetails(Listener l, ListenerDetails lD,
             SimType simType, boolean updateRecommendations) throws AuraException, RemoteException {
-logger.info("in func");
-if (l==null) {
-    logger.info("l is null");
-}
+
         if (l.getGender()!=null) {
             if (l.getGender()==Gender.Female) {
                 lD.gender="F";
@@ -601,31 +598,28 @@ if (l==null) {
                 lD.gender="M";
             }
         }
-logger.info("1");
+
         if (l.getLocaleCountry()!=null) {
             lD.country=l.getLocaleCountry();
         }
-logger.info("2");
+
         if (l.getPandoraName()!=null) {
             lD.pandoraUser=l.getPandoraName();
         }
-logger.info("3");
+
         if (l.getLastFmName()!=null) {
             lD.lastfmUser=l.getLastFmName();
         }
-logger.info("4");
+
         if (updateRecommendations) {
-            logger.info("fetching recommendations...");
             // Fetch info for recommended artists
             ArrayList<ArtistCompact> aCompact = new ArrayList<ArtistCompact>();
             for (Scored<Artist> a : mdb.getRecommendations(l, NBR_REC_LISTENER)) {
                 aCompact.add(artistToArtistCompact(a.getItem()));
             }
-            logger.info("done rec");
             lD.recommendations = aCompact.toArray(new ArtistCompact[0]);
-            logger.info("set rec");
         }
-logger.info("ret");
+
         return lD;
     }
 
@@ -642,11 +636,10 @@ logger.info("ret");
             throw new AuraException("User '"+userKey+"' does not exist.");
         }
 
-logger.info("sync");
         lD = listenerToListenerDetails(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
+        lD.openID = userKey;
         lD.loggedIn = true;
 
-logger.info("done");
         return lD;
 
     }
@@ -669,11 +662,11 @@ logger.info("done");
         } else {
             logger.info("Retrieved user from datastore: " + lD.openID);
         }
-logger.info("sync");
+
         l = syncListeners(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
         logger.info("update");
         mdb.updateListener(l);
-logger.info("done");
+
         return lD;
 
     }

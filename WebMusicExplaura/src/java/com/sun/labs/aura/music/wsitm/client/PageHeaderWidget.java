@@ -42,6 +42,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -121,8 +122,9 @@ public class PageHeaderWidget extends Swidget {
                 cdm.setSimTypes((Map<String, String>) arg0);
                 
                 listbox.clear();
-                for (String name : cdm.getSimTypes().keySet()) {
-                    listbox.addItem(name, name);
+                String[] keyArray = cdm.getSimTypes().keySet().toArray(new String[0]);
+                for (int i=keyArray.length-1; i>=0; i--) {
+                    listbox.addItem(keyArray[i], keyArray[i]);
                 }
                 listbox.setSelectedIndex(0);
                 cdm.setCurrSimTypeName(listbox.getItemText(0));
@@ -259,8 +261,10 @@ public class PageHeaderWidget extends Swidget {
             String name;
             if (l.nickName != null) {
                 name = l.nickName;
-            } else {
+            } else if (l.realName != null) {
                 name = l.realName;
+            } else {
+                name = l.openID;
             }
 
             HorizontalPanel hP = new HorizontalPanel();

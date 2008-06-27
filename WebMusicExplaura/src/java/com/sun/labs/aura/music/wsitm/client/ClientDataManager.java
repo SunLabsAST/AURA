@@ -6,6 +6,7 @@ package com.sun.labs.aura.music.wsitm.client;
 
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
+import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
@@ -43,9 +44,33 @@ public class ClientDataManager {
 
     private ListenerDetails lD;
 
+    public static enum Oracles {
+        ARTIST,
+        TAG
+    }
+
+    private MultiWordSuggestOracle artistOracle;
+    private MultiWordSuggestOracle tagOracle;
+
     public ClientDataManager() {
         lD = new ListenerDetails();
         registeredSwidgets = new HashSet<Swidget>();
+    }
+
+    public MultiWordSuggestOracle getTagOracle() {
+        return tagOracle;
+    }
+
+    public MultiWordSuggestOracle getArtistOracle() {
+        return artistOracle;
+    }
+
+    public void setTagOracle(MultiWordSuggestOracle tagOracle) {
+        this.tagOracle = tagOracle;
+    }
+
+    public void setArtistOracle(MultiWordSuggestOracle artistOracle) {
+        this.artistOracle = artistOracle;
     }
 
     /**

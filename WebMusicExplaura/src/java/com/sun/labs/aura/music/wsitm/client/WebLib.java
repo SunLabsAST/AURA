@@ -8,6 +8,7 @@ package com.sun.labs.aura.music.wsitm.client;
 import com.extjs.gxt.ui.client.widget.VerticalPanel;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Widget;
@@ -21,6 +22,8 @@ import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
  * @author mailletf
  */
 public abstract class WebLib {
+
+    public static final String ICON_WAIT = "ajax-bar.gif";
 
     public static Widget getLastFMListenWidget(final ArtistCompact artistDetails) {
         Image image = new Image("play-icon30.jpg");
@@ -131,5 +134,11 @@ public abstract class WebLib {
      */
     public static String createAnchor(String text, String url) {
             return "<a href=\"" + url + "\" target=\"window1\">" + text + "</a>";
+    }
+
+    public static Widget getLoadingBarWidget() {
+        FlowPanel panel = new FlowPanel();
+        panel.add(new HTML("<img src='" + ICON_WAIT + "'/>"));
+        return panel;
     }
 }

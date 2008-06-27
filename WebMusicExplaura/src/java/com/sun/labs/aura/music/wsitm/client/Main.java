@@ -79,6 +79,10 @@ public class Main implements EntryPoint, HistoryListener {
         registerTokenHeaders(dashboard);
         cdm.registerSwidget(dashboard);
 
+        Swidget steeringRec = new SteeringSwidget(cdm);
+        registerTokenHeaders(steeringRec);
+        cdm.registerSwidget(steeringRec);
+
         Swidget artistSearch = new SimpleSearchWidget(cdm);
         registerTokenHeaders(artistSearch);
 
