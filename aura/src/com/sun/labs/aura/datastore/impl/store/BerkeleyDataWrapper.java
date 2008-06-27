@@ -148,7 +148,7 @@ public class BerkeleyDataWrapper {
      */
     public BerkeleyDataWrapper(String dbEnvDir, Logger logger)
             throws DatabaseException {
-        this(dbEnvDir, logger, false);
+        this(dbEnvDir, logger, false, 60);
     }
 
     /**
@@ -161,7 +161,7 @@ public class BerkeleyDataWrapper {
      */
     public BerkeleyDataWrapper(String dbEnvDir,
             Logger logger,
-            boolean overwrite)
+            boolean overwrite, int cacheSizeMemPercentage)
             throws DatabaseException {
         this.log = logger;
 
@@ -170,6 +170,8 @@ public class BerkeleyDataWrapper {
 
         econf.setAllowCreate(true);
         econf.setTransactional(true);
+        econf.setCachePercent(cacheSizeMemPercentage);
+        
         sconf.setAllowCreate(true);
         sconf.setTransactional(true);
 
