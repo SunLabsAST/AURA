@@ -7,7 +7,7 @@ import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
 import com.sun.caroline.platform.StorageManagementException;
-import com.sun.labs.aura.grid.GridUtil;
+import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -36,30 +36,20 @@ public abstract class Aardvark extends ServiceAdapter {
 
     protected int numCrawlers;
 
-    private FileSystem auraDist;
-
-    private FileSystem logFS;
-
-    private FileSystem cacheFS;
-
-    public static final String cacheFSMntPnt = "/files/cache";
-
-    protected Network network;
-
     public String getFMName(int n) {
-        return instance + "-feedMgr-" + n;
+        return "feedMgr-" + n;
     }
 
     public String getRecName() {
-        return instance + "-recommender";
+        return "recommender";
     }
 
     public String getSchedName() {
-        return instance + "-feedSched";
+        return "feedSched";
     }
 
     public String getAAName() {
-        return instance + "-aardvark";
+        return "aardvark";
     }
 
     protected ProcessConfiguration getFeedSchedulerConfig() throws Exception {
@@ -67,7 +57,7 @@ public abstract class Aardvark extends ServiceAdapter {
             "-Xmx2g",
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
-            "-DcacheDir=" + cacheFSMntPnt,
+            "-DcacheDir=" + GridUtil.cacheFSMntPnt,
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/aardvark/resource/feedSchedulerConfig.xml",
@@ -75,34 +65,7 @@ public abstract class Aardvark extends ServiceAdapter {
         };
 
         // create a configuration and set relevant properties
-        ProcessConfiguration pc = new ProcessConfiguration();
-        pc.setCommandLine(cmdLine);
-        pc.setSystemSinks(GridUtil.logFSMntPnt + "/feedSched.out", false);
-
-        Collection<FileSystemMountParameters> mountParams =
-                new ArrayList<FileSystemMountParameters>();
-
-        mountParams.add(
-                new FileSystemMountParameters(auraDist.getUUID(),
-                new File(GridUtil.auraDistMntPnt).getName()));
-        mountParams.add(
-                new FileSystemMountParameters(logFS.getUUID(),
-                new File(GridUtil.logFSMntPnt).getName()));
-        mountParams.add(
-                new FileSystemMountParameters(cacheFS.getUUID(), "cache"));
-
-        pc.setFileSystems(mountParams);
-        pc.setWorkingDirectory(GridUtil.logFSMntPnt);
-
-        // Set the addresses for the process
-        List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance +
-                "-feedSched").getUUID());
-
-        pc.setNetworkAddresses(addresses);
-        pc.setProcessExitAction(ProcessExitAction.PARK);
-
-        return pc;
+        return gu.getProcessConfig(cmdLine, getSchedName());
     }
 
     protected ProcessConfiguration getFeedManagerConfig(int n)
@@ -117,30 +80,7 @@ public abstract class Aardvark extends ServiceAdapter {
         };
 
         // create a configuration and set relevant properties
-        ProcessConfiguration pc = new ProcessConfiguration();
-        pc.setCommandLine(cmdLine);
-        pc.setSystemSinks(
-                GridUtil.logFSMntPnt + "/feedMgr-" + n + ".out", false);
-
-        Collection<FileSystemMountParameters> mountParams =
-                new ArrayList<FileSystemMountParameters>();
-
-        mountParams.add(
-                new FileSystemMountParameters(auraDist.getUUID(),
-                new File(GridUtil.auraDistMntPnt).getName()));
-        mountParams.add(
-                new FileSystemMountParameters(logFS.getUUID(),
-                new File(GridUtil.logFSMntPnt).getName()));
-        pc.setFileSystems(mountParams);
-        pc.setWorkingDirectory(GridUtil.logFSMntPnt);
-
-        // Set the addresses for the process
-        List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance +
-                "-feedMgr-" + n).getUUID());
-
-        pc.setNetworkAddresses(addresses);
-        pc.setProcessExitAction(ProcessExitAction.PARK);
+        ProcessConfiguration pc = gu.getProcessConfig(cmdLine, getFMName(n));
 
         // don't overlap with other replicants
         pc.setLocationConstraint(
@@ -154,38 +94,13 @@ public abstract class Aardvark extends ServiceAdapter {
         String[] cmdLine = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
-            "-jar", 
+            "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/aardvark/resource/recommenderManagerConfig.xml",
             "recommenderManagerStarter"
         };
 
-        // create a configuration and set relevant properties
-        ProcessConfiguration pc = new ProcessConfiguration();
-        pc.setCommandLine(cmdLine);
-        pc.setSystemSinks(GridUtil.logFSMntPnt + "/recommender.out", false);
-
-        Collection<FileSystemMountParameters> mountParams =
-                new ArrayList<FileSystemMountParameters>();
-
-        mountParams.add(
-                new FileSystemMountParameters(auraDist.getUUID(),
-                new File(GridUtil.auraDistMntPnt).getName()));
-        mountParams.add(
-                new FileSystemMountParameters(logFS.getUUID(),
-                new File(GridUtil.logFSMntPnt).getName()));
-        pc.setFileSystems(mountParams);
-        pc.setWorkingDirectory(GridUtil.logFSMntPnt);
-
-        // Set the addresses for the process
-        List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance +
-                "-recommender").getUUID());
-
-        pc.setNetworkAddresses(addresses);
-        pc.setProcessExitAction(ProcessExitAction.PARK);
-
-        return pc;
+        return gu.getProcessConfig(cmdLine, getRecName());
     }
 
     protected ProcessConfiguration getAardvarkConfig() throws Exception {
@@ -199,58 +114,12 @@ public abstract class Aardvark extends ServiceAdapter {
         };
 
         // create a configuration and set relevant properties
-        ProcessConfiguration pc = new ProcessConfiguration();
-        pc.setCommandLine(cmdLine);
-        pc.setSystemSinks(GridUtil.logFSMntPnt + "/aardvark.out", false);
-
-        Collection<FileSystemMountParameters> mountParams =
-                new ArrayList<FileSystemMountParameters>();
-
-        mountParams.add(
-                new FileSystemMountParameters(auraDist.getUUID(),
-                new File(GridUtil.auraDistMntPnt).getName()));
-        mountParams.add(
-                new FileSystemMountParameters(logFS.getUUID(),
-                new File(GridUtil.logFSMntPnt).getName()));
-        pc.setFileSystems(mountParams);
-        pc.setWorkingDirectory(GridUtil.logFSMntPnt);
-
-        // Set the addresses for the process
-        List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance +
-                "-aardvark").getUUID());
-
-        pc.setNetworkAddresses(addresses);
-        pc.setProcessExitAction(ProcessExitAction.PARK);
-
-        return pc;
+        return gu.getProcessConfig(cmdLine, getAAName());
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
         cm = ps.getConfigurationManager();
-        try {
-            network = grid.getNetwork(instance + "-auraNet");
-            auraDist = GridUtil.getFS(grid, instance + "-aura.dist", false);
-            logFS = GridUtil.getFS(grid, instance + "-aura.logs", false);
-            cacheFS = GridUtil.getFS(grid, instance + "-cache", false);
-            numCrawlers = ps.getInt(PROP_NUM_CRAWLERS);
-        } catch(RemoteException ex) {
-            throw new PropertyException(ex, ps.getInstanceName(), "grid",
-                    "Error getting network");
-        } catch(StorageManagementException smx) {
-            throw new PropertyException(smx, ps.getInstanceName(), "grid",
-                    "Error getting filesystems");
-        }
-        if(network == null) {
-            throw new PropertyException(ps.getInstanceName(), "grid",
-                    "Aura network not defined");
-        }
-
-        if(auraDist == null || logFS == null || cacheFS == null) {
-            throw new PropertyException(ps.getInstanceName(), "grid",
-                    "Required filesystems not defined");
-        }
-
+        numCrawlers = ps.getInt(PROP_NUM_CRAWLERS);
     }
 }
