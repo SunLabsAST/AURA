@@ -1,11 +1,8 @@
 package com.sun.labs.aura.grid;
 
-import com.sun.caroline.platform.CustomerNetworkConfiguration;
-import com.sun.caroline.platform.DuplicateNameException;
 import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.Network;
-import com.sun.caroline.platform.NetworkAllocationException;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
@@ -146,7 +143,7 @@ public abstract class Aura extends ServiceAdapter {
                 "-DauraGroup=" + instance + "-aura",
                 "-DauraHome=" + GridUtil.auraDistMntPnt,
                 "-jar",
-                GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+                GridUtil.auraDistMntPnt + "/dist/grid.jar",
                 "/com/sun/labs/aura/aardvark/resource/dataStoreHeadConfig.xml",
                 "dataStoreHeadStarter"};
 
@@ -176,7 +173,7 @@ public abstract class Aura extends ServiceAdapter {
                 "-DauraGroup=" + instance + "-aura",
                 "-Dprefix=" + prefix,
                 "-jar",
-                GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+                GridUtil.auraDistMntPnt + "/dist/grid.jar",
                 "/com/sun/labs/aura/aardvark/resource/partitionClusterConfig.xml",
                 "partitionClusterStarter"};
 
@@ -208,7 +205,7 @@ public abstract class Aura extends ServiceAdapter {
                 "-Dprefix=" + prefix,
                 "-DdataFS=/files/data/" + prefix,
                 "-jar",
-                GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+                GridUtil.auraDistMntPnt + "/dist/grid.jar",
                 replicantConfig,
                 "replicantStarter"};
 
@@ -242,7 +239,7 @@ public abstract class Aura extends ServiceAdapter {
                 "-DauraHome=" + GridUtil.auraDistMntPnt,
                 "-DauraGroup=" + instance + "-aura",
                 "-jar",
-                GridUtil.auraDistMntPnt + "/dist/aardvark.jar",
+                GridUtil.auraDistMntPnt + "/dist/grid.jar",
                 "/com/sun/labs/aura/aardvark/resource/statServiceConfig.xml",
                 "statServiceStarter"};
 

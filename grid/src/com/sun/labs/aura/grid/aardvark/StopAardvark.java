@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.sun.labs.aura.grid;
+package com.sun.labs.aura.grid.aardvark;
 
+import com.sun.labs.aura.grid.*;
 import com.sun.caroline.platform.ProcessRegistration;
 import java.util.LinkedList;
 import java.util.Queue;
