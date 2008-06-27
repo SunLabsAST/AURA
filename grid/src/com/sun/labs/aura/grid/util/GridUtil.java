@@ -423,7 +423,7 @@ public class GridUtil {
     public NetworkAddress getExternalAddressFor(String name) throws Exception {
         // Allocate an external address for the virtual service if necessary
         NetworkAddress externalAddress = null;
-        String extName = instance + "-" + name + "-ext";
+        String extName = instance + "-" + name;
         try {
             externalAddress =
                     grid.allocateExternalAddress(extName);
@@ -469,7 +469,7 @@ public class GridUtil {
         NetworkConfiguration netConf =
                 new DynamicNatConfiguration(external,
                 internal);
-        String natName = instance + "-" + name + "-nat";
+        String natName = instance + "-" + name;
         try {
             grid.createNetworkSetting(natName, netConf);
         } catch(DuplicateNameException dne) {
