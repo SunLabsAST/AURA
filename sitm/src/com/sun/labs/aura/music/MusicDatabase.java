@@ -179,8 +179,7 @@ public class MusicDatabase {
     public int getLatestRating(Listener listener, String artistID) throws AuraException, RemoteException {
         // BUG: fix this when the new attention methods arrive
         List<Attention> attns = dataStore.getLastAttentionForSource(listener.getKey(), Attention.Type.RATING, 10000);
-        for (int i = attns.size() - 1; i >= 0; i--) {
-            Attention attn = attns.get(i);
+        for (Attention attn : attns) {
             if (attn.getTargetKey().equals(artistID)) {
                 return attn.getNumber().intValue();
             }
