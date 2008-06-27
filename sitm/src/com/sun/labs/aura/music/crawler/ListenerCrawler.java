@@ -4,6 +4,8 @@
  */
 package com.sun.labs.aura.music.crawler;
 
+import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
@@ -46,7 +48,7 @@ public class ListenerCrawler extends ItemSchedulerImpl {
 
                     @Override
                     public void run() {
-                        crawlAllListeners();
+                        scheduledCrawlListeners();
                     }
                 };
                 t.start();
@@ -75,7 +77,7 @@ public class ListenerCrawler extends ItemSchedulerImpl {
         }
     }
 
-    private void crawlAllListeners() {
+    private void scheduledCrawlListeners() {
         while (running) {
             String userID = null;
             try {
@@ -94,24 +96,48 @@ public class ListenerCrawler extends ItemSchedulerImpl {
         }
     }
 
-    private void crawlListener(Listener listener) throws AuraException, RemoteException, IOException {
-        logger.info("Crawling listener " + listener.getName());
-        int state = listener.getState();
-        if (listener.getLastFmName() != null) {
-            if ((state & Listener.STATE_INITIAL_LASTFM_CRAWL) != Listener.STATE_INITIAL_LASTFM_CRAWL) {
-                fullCrawlLastFM(listener);
-                state |= Listener.STATE_INITIAL_LASTFM_CRAWL;
-                listener.setState(state);
-            } else {
-                weeklyCrawlLastFM(listener);
+    public void crawlListener(Listener listener) throws AuraException, RemoteException {
+        if (needsCrawl(listener)) {
+            logger.info("Crawling listener " + listener.getName());
+            int state = listener.getState();
+            if (listener.getLastFmName() != null) {
+                if ((state & Listener.STATE_INITIAL_LASTFM_CRAWL) != Listener.STATE_INITIAL_LASTFM_CRAWL) {
+                    fullCrawlLastFM(listener);
+                    state |= Listener.STATE_INITIAL_LASTFM_CRAWL;
+                    listener.setState(state);
+                } else {
+                    weeklyCrawlLastFM(listener);
+                }
+            }
+            weeklyCrawlPandora(listener);
+            updateListenerArtists(listener);
+            updateListenerTags(listener);
+            listener.setLastCrawl();
+            listener.flush(dataStore);
+        } else {
+            logger.info("Skipping listener " + listener.getName());
+        }
+    }
+
+    private boolean needsCrawl(Listener listener) {
+        long delta = System.currentTimeMillis() - listener.getLastCrawl();
+        return delta >= getMinCrawlDelta();
+    }
+
+    private long getMinCrawlDelta() {
+        return defaultPeriod * 1000L;
+    }
+
+    public void crawlAllListeners() throws AuraException, RemoteException, IOException {
+        List<Item> items = dataStore.getAll(ItemType.USER);
+        for (Item item : items) {
+            Listener listener = new Listener(item);
+            try {
+                crawlListener(listener);
+            } catch (IOException ioe) {
             }
         }
-        weeklyCrawlPandora(listener);
-        updateListenerArtists(listener);
-        updateListenerTags(listener);
-        listener.flush(dataStore);
     }
-    
 
     private void updateListenerArtists(Listener listener) throws AuraException, RemoteException {
         List<Scored<String>> scoredArtistIDs = mdb.getAllArtistsAsIDs(listener);
@@ -131,7 +157,7 @@ public class ListenerCrawler extends ItemSchedulerImpl {
             if (artist != null) {
                 List<Tag> tags = artist.getSocialTags();
                 for (Tag tag : tags) {
-                    logger.info("Adding " + tag.getName() + " " + tag.getCount() +  " " + artistWeight + " " +
+                    logger.fine("Adding " + tag.getName() + " " + tag.getCount() + " " + artistWeight + " " +
                             tag.getCount() * artistWeight);
                     sm.accum(tag.getName(), tag.getCount() * artistWeight);
                 }
@@ -149,57 +175,68 @@ public class ListenerCrawler extends ItemSchedulerImpl {
     double getMax(List<Scored<String>> l) {
         double max = -Double.MAX_VALUE;
         for (Scored s : l) {
-            if (s.getScore() >  max) {
+            if (s.getScore() > max) {
                 max = s.getScore();
             }
         }
         return max;
     }
 
-    private void fullCrawlLastFM(Listener listener) throws AuraException, IOException {
-        logger.fine("Full crawl for " + listener.getName());
-        LastItem[] artists = lastfm.getTopArtistsForUser(listener.getLastFmName());
-        for (LastItem artistItem : artists) {
-            if (artistItem.getMBID() != null) {
-                Artist artist = mdb.artistLookup(artistItem.getMBID());
-                if (artist != null) {
-                    mdb.addPlayAttention(listener, artist.getKey(), artistItem.getFreq());
-                    logger.fine("last.fm full crawl, added play attention for artist " + artistItem.getName());
-                } else {
-                    logger.fine("last.fm full crawl, skipping artist " + artistItem.getName());
+    private void fullCrawlLastFM(Listener listener) throws AuraException {
+        try {
+            logger.fine("Full crawl for " + listener.getName());
+            LastItem[] artists = lastfm.getTopArtistsForUser(listener.getLastFmName());
+            for (LastItem artistItem : artists) {
+                if (artistItem.getMBID() != null) {
+                    Artist artist = mdb.artistLookup(artistItem.getMBID());
+                    if (artist != null) {
+                        mdb.addPlayAttention(listener, artist.getKey(), artistItem.getFreq());
+                        logger.fine("last.fm full crawl, added play attention for artist " + artistItem.getName());
+                    } else {
+                        logger.fine("last.fm full crawl, skipping artist " + artistItem.getName());
+                    }
                 }
             }
+        } catch (IOException ex) {
+            logger.warning("Problem collecting data from last.fm for user " + listener.getName());
         }
     }
 
-    private void weeklyCrawlPandora(Listener listener) throws AuraException, IOException {
+    private void weeklyCrawlPandora(Listener listener) throws AuraException {
         if (listener.getPandoraName() != null) {
-            logger.fine("Pandora crawl for " + listener.getName());
-            Set<String> favs = mdb.getFavoriteArtistsAsIDSet(listener, 100000);
-            List<String> artists = pandora.getFavoriteArtistNamesForUser(listener.getPandoraName());
-            for (String artistName : artists) {
-                Artist artist = mdb.artistFindBestMatch(artistName);
-                if (artist != null && !favs.contains(artist.getKey())) {
-                    mdb.addFavoriteAttention(listener, artist.getKey());
-                    logger.fine("pandora crawl, added play attention for artist " + artist.getName());
-                } else {
-                    logger.fine("pandora crawl, skipping artist " + artistName);
+            try {
+                logger.fine("Pandora crawl for " + listener.getName());
+                Set<String> favs = mdb.getFavoriteArtistsAsIDSet(listener, 100000);
+                List<String> artists = pandora.getFavoriteArtistNamesForUser(listener.getPandoraName());
+                for (String artistName : artists) {
+                    Artist artist = mdb.artistFindBestMatch(artistName);
+                    if (artist != null && !favs.contains(artist.getKey())) {
+                        mdb.addFavoriteAttention(listener, artist.getKey());
+                        logger.fine("pandora crawl, added play attention for artist " + artist.getName());
+                    } else {
+                        logger.fine("pandora crawl, skipping artist " + artistName);
+                    }
                 }
+            } catch (IOException ex) {
+                logger.warning("Problem collecting data from pandora for user " + listener.getName());
             }
         }
     }
 
-    private void weeklyCrawlLastFM(Listener listener) throws AuraException, IOException {
-        logger.fine("Weekly crawl for " + listener.getName());
-        LastItem[] artists = lastfm.getWeeklyArtistsForUser(listener.getLastFmName());
-        for (LastItem artistItem : artists) {
-            if (artistItem.getMBID() != null) {
-                Artist artist = mdb.artistLookup(artistItem.getMBID());
-                if (artist != null) {
-                    mdb.addPlayAttention(listener, artist.getKey(), artistItem.getFreq());
+    private void weeklyCrawlLastFM(Listener listener) throws AuraException {
+        try {
+            logger.fine("Weekly crawl for " + listener.getName());
+            LastItem[] artists = lastfm.getWeeklyArtistsForUser(listener.getLastFmName());
+            for (LastItem artistItem : artists) {
+                if (artistItem.getMBID() != null) {
+                    Artist artist = mdb.artistLookup(artistItem.getMBID());
+                    if (artist != null) {
+                        mdb.addPlayAttention(listener, artist.getKey(), artistItem.getFreq());
+                    }
                 }
             }
-
+        } catch (IOException ex) {
+            logger.warning("Problem collecting data from last.fm for user " + listener.getName());
         }
     }
     /**

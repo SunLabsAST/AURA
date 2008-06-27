@@ -196,7 +196,6 @@ public class ArtistCrawler implements AuraService, Configurable {
         Collections.reverse(artists);
         for (Artist artist : artists) {
             if (force || needsUpdate(artist)) {
-                logger.info("Updating " + artist.getName());
                 updateArtist(artist);
                 try {
                     Thread.sleep(period);
@@ -231,7 +230,7 @@ public class ArtistCrawler implements AuraService, Configurable {
     }
 
     private boolean needsUpdate(Artist artist) {
-        return (System.currentTimeMillis() - artist.getTimeAdded()) > updateRateInSeconds * 1000L;
+        return (System.currentTimeMillis() - artist.getLastCrawl()) > updateRateInSeconds * 1000L;
     }
 
     private boolean worthVisiting(LastArtist lartist) throws AuraException, RemoteException {
@@ -280,7 +279,7 @@ public class ArtistCrawler implements AuraService, Configurable {
         }
         return null;
     }
-
+    
     private void updateArtist(final Artist artist) {
         CommandRunner runner = new CommandRunner(false, logger.isLoggable(Level.FINE));
         runner.add(new Commander("last.fm") {
@@ -341,6 +340,7 @@ public class ArtistCrawler implements AuraService, Configurable {
             // but still return the artist so we can add it to the store
             logger.warning("Exception " + e);
         }
+        artist.setLastCrawl();
     }
 
     /**

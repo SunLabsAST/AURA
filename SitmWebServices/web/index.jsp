@@ -24,6 +24,17 @@
             <li> <a href="ArtistTagSearch?name=alt"> Tag search for 'alt' </a>
             <li> <a href="ArtistSocialTags?name=weezer"> Distinctive tags for weezer</a>
             <li> <a href="ArtistSocialTags?name=weezer&type=frequent"> Frequent tags for weezer</a>
+            <li> <a href="GetTags?max=100"> Get the 100 most popular tags</a>
+            <li> <a href="GetRecommendations?userID=http://paul.lamere.myopenid.com/"> Default Recommendations for lamere </a>
+            <li> <a href="GetRecommendations?userID=http://paul.lamere.myopenid.com/&alg=SimToUserTagCloud"> SimToUserTagCloud Recommendations for lamere </a>
+            <li> <a href="GetRecommendations?userID=http://paul.lamere.myopenid.com/&alg=SimpleArtist"> SimpleArtist Recommendations for lamere </a>
+            <li> <a href="GetRecommendations?userID=http://paul.lamere.myopenid.com/&alg=SimToRecent"> SimToRecent Recommendations for lamere </a>
+            <li> <a href="GetRecommendations?userID=lamere&alg=CollaborativeFilterer"> CF Recommendations for lamere </a>
+            <li> <a href="GetApml?userID=http://paul.lamere.myopenid.com/"> Gets the APML for lamere (with MBAIDs)</a>
+            <li> <a href="GetApml?userID=http://paul.lamere.myopenid.com/&format=artist"> Gets the APML for lamere (with artistNames)</a>
+            <li> <a href="FindSimilarListener?userID=http://paul.lamere.myopenid.com/"> Finds similar listener to lamere</a>
+            <li> <a href="GetItem?itemID=http://paul.lamere.myopenid.com/"> shows listener lamere</a>
+            <li> <a href="GetItem?itemID=6fe07aa5-fec0-4eca-a456-f29bff451b04"> shows artist 'weezer'</a>
         </ul>
     </body>
 </html>

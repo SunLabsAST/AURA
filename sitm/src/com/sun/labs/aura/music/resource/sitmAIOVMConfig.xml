@@ -36,6 +36,7 @@
         <property name="dbEnv" value="${auraHome}/0/db"/>
         <property name="itemSearchEngine" value="itemSearchEngine0"/>
         <property name="partitionCluster" value="partitionCluster0"/>
+        <property name="cacheSizeMemPercentage" value="30"/>
     </component>
     
     <!-- The configuration for a partition cluster. -->
@@ -44,6 +45,7 @@
         <property name="dbEnv" value="${auraHome}/1/db"/>
         <property name="itemSearchEngine" value="itemSearchEngine1"/>
         <property name="partitionCluster" value="partitionCluster1"/>
+        <property name="cacheSizeMemPercentage" value="30"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
@@ -92,6 +94,7 @@
     <component name="musicShell" type="com.sun.labs.aura.music.util.MusicShell">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="tagCrawler" value="tagCrawler"/>
+        <property name="listenerCrawler" value="listenerCrawler"/>
         <property name="statService" value="statService"/>
     </component>
     

@@ -36,7 +36,23 @@
         <servlet-name>GetTagsForArtist</servlet-name>
         <servlet-class>com.sun.labs.aura.music.webservices.GetTagsForArtist</servlet-class>
     </servlet>
-    <servlet-mapping>
+    <servlet>
+        <servlet-name>GetRecommendations</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.GetRecommendations</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>GetApml</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.GetApml</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>FindSimilarListener</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.FindSimilarListener</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>GetItem</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.GetItem</servlet-class>
+    </servlet>
+    <servlet><servlet-name>AddListener</servlet-name><servlet-class>com.sun.labs.aura.music.webservices.AddListener</servlet-class></servlet><servlet-mapping>
         <servlet-name>FindSimilarArtist</servlet-name>
         <url-pattern>/FindSimilarArtist</url-pattern>
     </servlet-mapping>
@@ -67,6 +83,26 @@
     <servlet-mapping>
         <servlet-name>GetTagsForArtist</servlet-name>
         <url-pattern>/GetTagsForArtist</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetRecommendations</servlet-name>
+        <url-pattern>/GetRecommendations</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetApml</servlet-name>
+        <url-pattern>/GetApml</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>FindSimilarListener</servlet-name>
+        <url-pattern>/FindSimilarListener</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetItem</servlet-name>
+        <url-pattern>/GetItem</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AddListener</servlet-name>
+        <url-pattern>/AddListener</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

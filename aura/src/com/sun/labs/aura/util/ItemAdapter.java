@@ -6,8 +6,6 @@
  *  redistribution of this file, and for a DISCLAIMER OF ALL
  *  WARRANTIES..
  */
-
-
 package com.sun.labs.aura.util;
 
 import com.sun.labs.aura.datastore.DataStore;
@@ -18,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,9 +29,9 @@ import java.util.Set;
  * types to add and retrieve data from the item map in a type-friendly fashion.
  */
 public abstract class ItemAdapter implements Serializable {
+
     protected Item item;
     private boolean modified;
-
 
     /**
      * Creates the ItemAdapter
@@ -47,6 +46,18 @@ public abstract class ItemAdapter implements Serializable {
         modified = true;
     }
 
+    public boolean equals(Object obj) {
+        if (obj instanceof ItemAdapter) {
+            ItemAdapter other = (ItemAdapter) obj;
+            return item.equals(other.item);
+        }
+        return false;
+    }
+
+    public int hashCode() {
+        return item.hashCode();
+    }
+
     public ItemAdapter() {
     }
 
@@ -58,7 +69,7 @@ public abstract class ItemAdapter implements Serializable {
         this.item = item;
         modified = false;
     }
-    
+
     /**
      * Defines the fields that the adapted item will be storing in the data
      * store.
@@ -74,7 +85,6 @@ public abstract class ItemAdapter implements Serializable {
     public String getName() {
         return item.getName();
     }
-    
 
     /**
      * Gets the key for the item
@@ -91,7 +101,7 @@ public abstract class ItemAdapter implements Serializable {
     public long getTimeAdded() {
         return item.getTimeAdded();
     }
-    
+
     /**
      * Push the item to the datastore if necessary
      * @param dataStore
@@ -102,7 +112,6 @@ public abstract class ItemAdapter implements Serializable {
             clearModified();
         }
     }
-
 
     /**
      * Determines if this item has been modified
@@ -118,7 +127,7 @@ public abstract class ItemAdapter implements Serializable {
     public void clearModified() {
         modified = false;
     }
-    
+
     /**
      * Gets the wrapped Item
      * @return the wrapped item
@@ -137,7 +146,6 @@ public abstract class ItemAdapter implements Serializable {
             modified = true;
         }
     }
-
 
     /**
      * Gets a field value as a float
@@ -194,7 +202,7 @@ public abstract class ItemAdapter implements Serializable {
      * @return the value as a String
      */
     protected String getFieldAsString(String name, String defaultVal) {
-        String ret =  (String) item.getField(name);
+        String ret = (String) item.getField(name);
         if (ret == null) {
             ret = defaultVal;
         }
@@ -228,13 +236,13 @@ public abstract class ItemAdapter implements Serializable {
         }
         return tagMap;
     }
-    
+
     protected void clearTagMap(String field) {
         HashMap<String, Tag> tagMap = (HashMap<String, Tag>) item.getField(field);
         if (tagMap == null) {
             tagMap = new HashMap<String, Tag>();
             item.setField(field, tagMap);
-        } 
+        }
         modified = true;
         tagMap.clear();
     }
@@ -245,7 +253,7 @@ public abstract class ItemAdapter implements Serializable {
      * @return the value of the field as a list of tags
      */
     protected List<Tag> getTagsAsList(String fieldName) {
-        Map<String,Tag> tagMap = getTagMap(fieldName);
+        Map<String, Tag> tagMap = getTagMap(fieldName);
         List<Tag> tagList = new ArrayList<Tag>(tagMap.values());
         Collections.sort(tagList);
         Collections.reverse(tagList);
@@ -341,36 +349,40 @@ public abstract class ItemAdapter implements Serializable {
      * @param count the tag count
      */
     protected void addTag(String field, String tagName, int count) {
-        Map<String,Tag> tagMap = getTagMap(field);
-        if (tagMap == null) {
-            HashMap<String, Tag> newTagMap = new HashMap<String, Tag>();
-            item.setField(field, newTagMap);
-            tagMap = newTagMap;
-        }
+        if (count > 0) {
+            Map<String, Tag> tagMap = getTagMap(field);
+            if (tagMap == null) {
+                HashMap<String, Tag> newTagMap = new HashMap<String, Tag>();
+                item.setField(field, newTagMap);
+                tagMap = newTagMap;
+            }
 
-        Tag tag = tagMap.get(tagName);
-        if (tag == null) {
-            tag = new Tag(tagName, count);
-            tagMap.put(tagName, tag);
-        } else {
-            tag.accum(count);
+            Tag tag = tagMap.get(tagName);
+            if (tag == null) {
+                tag = new Tag(tagName, count);
+                tagMap.put(tagName, tag);
+            } else {
+                tag.accum(count);
+            }
+            modified = true;
         }
-        modified = true;
     }
 
     protected void setTag(String field, String tagName, int count) {
-        Map<String,Tag> tagMap = getTagMap(field);
-        if (tagMap == null) {
-            HashMap<String, Tag> newTagMap = new HashMap<String, Tag>();
-            item.setField(field, newTagMap);
-            tagMap = newTagMap;
-        }
+        if (count > 0) {
+            Map<String, Tag> tagMap = getTagMap(field);
+            if (tagMap == null) {
+                HashMap<String, Tag> newTagMap = new HashMap<String, Tag>();
+                item.setField(field, newTagMap);
+                tagMap = newTagMap;
+            }
 
-        Tag tag = new Tag(tagName, count);
-        tagMap.put(tagName, tag);
-        modified = true;
+            Tag tag = new Tag(tagName, count);
+            tagMap.put(tagName, tag);
+            modified = true;
+        }
     }
-    
+
     /**
      * Adds an object to an artist
      * @param <T>
@@ -378,51 +390,52 @@ public abstract class ItemAdapter implements Serializable {
      * @param key the key to use (probably the ID of the object being added)
      * @param o the object to add
      */
-    protected <K,V> void addObjectToMap(String field, K key, V o) {
+    protected <K, V> void addObjectToMap(String field, K key, V o) {
         // If no map exists, create one
-        HashMap<K,V> objMap = (HashMap<K,V>) getFieldAsObject(field);
+        HashMap<K, V> objMap = (HashMap<K, V>) getFieldAsObject(field);
         if (objMap == null) {
-            objMap = new HashMap<K,V>();
+            objMap = new HashMap<K, V>();
             item.setField(field, objMap);
         }
-        
+
         // If the key already exists, replace it with version being passed
         if (objMap.containsKey(key)) {
             objMap.remove(key);
         }
         objMap.put(key, o);
-        
-        modified=true;
+
+        modified = true;
     }
 
     @Override
     public String toString() {
         return toString(getItem());
     }
-    
+
     public static String toString(Item item) {
         StringBuilder sb = new StringBuilder();
         sb.append("key : " + item.getKey() + "\n");
         sb.append("name: " + item.getName() + "\n");
         sb.append("type: " + item.getType() + "\n");
+        sb.append("Time: " + new Date(item.getTimeAdded()) + "\n");
 
         //
         // Get the map entries sorted by key.
-        List<Map.Entry<String,Serializable>> sl = new ArrayList<Map.Entry<String, Serializable>>();
-        for(Map.Entry<String,Serializable> e : item) {
+        List<Map.Entry<String, Serializable>> sl = new ArrayList<Map.Entry<String, Serializable>>();
+        for (Map.Entry<String, Serializable> e : item) {
             sl.add(e);
         }
-        Collections.sort(sl, new Comparator<Map.Entry<String,Serializable>>() {
+        Collections.sort(sl, new Comparator<Map.Entry<String, Serializable>>() {
+
             public int compare(Entry<String, Serializable> o1,
                     Entry<String, Serializable> o2) {
                 return o1.getKey().compareTo(o2.getKey());
             }
-            
         });
 
         //
         // Put them in the string.
-        for(Map.Entry<String,Serializable> e : sl) {
+        for (Map.Entry<String, Serializable> e : sl) {
             sb.append("    " + e.getKey() + ": ");
             if (e.getValue() instanceof Collection) {
                 for (Object element : (Collection) e.getValue()) {

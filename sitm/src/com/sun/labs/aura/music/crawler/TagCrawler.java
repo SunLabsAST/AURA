@@ -52,7 +52,7 @@ public class TagCrawler implements AuraService, Configurable {
     private Map<String, Map<String, Tag>> tagMap = new HashMap();
     private final int MIN_ARTISTS = 10;   // make me configurable
     private final int MIN_ARTIST_POPULARITY = 10;   // make me configurable
-    private final long MIN_UPDATE_TIME = 1000L * 60L * 60L * 24L;
+    private final long MIN_UPDATE_TIME = 1000L * 60L * 60L * 24L * 7;
     private final String BEATLES_ID = "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
     static Set skipSet;
     
@@ -98,13 +98,14 @@ public class TagCrawler implements AuraService, Configurable {
     public void autoUpdater() {
         try {
             running = true;
-            // start crawling after running for an hour
-            Thread.sleep(1000 * 60 * 60);
+            // start crawling after running for .5 hour
+            Thread.sleep(1000 * 60 * 30);
             while (running) {
                 discoverArtistTags();
                 updateArtistTags();
-                // update tags once a week
-                Thread.sleep(1000 * 60 * 60 * 24 * 7);
+                // BUG: make this configurable
+                // update tags once a day
+                Thread.sleep(1000 * 60 * 60 * 24);
             }
         } catch (InterruptedException ex) {
             Logger.getLogger(TagCrawler.class.getName()).log(Level.SEVERE, null, ex);
@@ -139,7 +140,7 @@ public class TagCrawler implements AuraService, Configurable {
                     for (Tag tag : tags) {
                         //int normalizedCount = (int) Math.rint(popularity * tag.getCount());
                         int normalizedCount = tag.getCount();
-                        System.out.printf("norm count for %s/%s is %d\n", artist.getName(), tag.getName(), normalizedCount);
+                        // System.out.printf("norm count for %s/%s is %d\n", artist.getName(), tag.getName(), normalizedCount);
                         accumulateTag(tag.getName(), artist.getKey(), normalizedCount);
                     }
                 }
@@ -220,7 +221,7 @@ public class TagCrawler implements AuraService, Configurable {
     }
 
     private boolean needsUpdate(ArtistTag artistTag) {
-        boolean stale = (System.currentTimeMillis() - artistTag.getTimeAdded() > MIN_UPDATE_TIME);
+        boolean stale = (System.currentTimeMillis() - artistTag.getLastCrawl() > MIN_UPDATE_TIME);
         boolean empty = artistTag.getDescription().length() == 0;
         return stale || empty;
     }
@@ -282,7 +283,7 @@ public class TagCrawler implements AuraService, Configurable {
             // but still return the artist so we can add it to the store
             logger.warning("Exception " + e);
         }
-
+        artistTag.setLastCrawl();
     }
 
     private String getWikiGenreMusicURL(String genreName) {

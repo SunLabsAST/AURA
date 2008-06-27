@@ -27,6 +27,7 @@ public class Listener extends ItemAdapter {
     public final static String FIELD_PANDORA_NAME =     "LISTENER_PANDORA_NAME";
     public final static String FIELD_LOCALE_COUNTRY =   "LISTENER_LOCALE_COUNTRY";
     public final static String FIELD_ARTIST =           "LISTENER_ARTIST";
+    public final static String FIELD_LAST_CRAWL =       "lastCrawl";
     public final static String FIELD_SOCIAL_TAGS =      Artist.FIELD_SOCIAL_TAGS;
 
     public enum Gender { Male, Female, Unknown };
@@ -53,12 +54,13 @@ public class Listener extends ItemAdapter {
                     EnumSet.of(Item.FieldCapability.MATCH,
                     Item.FieldCapability.SORT),
                     Item.FieldType.INTEGER);
+            ds.defineField(Item.ItemType.USER, FIELD_LAST_CRAWL);
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }
     }
 
-    public Listener(User user) {
+    public Listener(Item user) {
         super(user, Item.ItemType.USER);
         setYearOfBirth(1959);
     }
@@ -78,8 +80,21 @@ public class Listener extends ItemAdapter {
         return getFieldAsInt(FIELD_YOB);
     }
 
+    public long getLastCrawl() {
+        return getFieldAsLong(FIELD_LAST_CRAWL);
+    }
+
+    public void setLastCrawl() {
+        setField(FIELD_LAST_CRAWL, System.currentTimeMillis());
+    }
+
     public Gender getGender() {
-        return Gender.valueOf(getFieldAsString(FIELD_GENDER));
+        String sgender = getFieldAsString(FIELD_GENDER);
+        if (sgender == null) {
+            return Gender.Unknown;
+        } else {
+            return Gender.valueOf(sgender);
+        }
     }
 
     public void setGender(Gender g) {
