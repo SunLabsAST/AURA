@@ -97,21 +97,35 @@ public class ListenerCrawler extends ItemSchedulerImpl {
     }
 
     public void crawlListener(Listener listener) throws AuraException, RemoteException {
-        logger.info("Crawling listener " + listener.getName());
-        int state = listener.getState();
-        if (listener.getLastFmName() != null) {
-            if ((state & Listener.STATE_INITIAL_LASTFM_CRAWL) != Listener.STATE_INITIAL_LASTFM_CRAWL) {
-                fullCrawlLastFM(listener);
-                state |= Listener.STATE_INITIAL_LASTFM_CRAWL;
-                listener.setState(state);
-            } else {
-                weeklyCrawlLastFM(listener);
+        if (needsCrawl(listener)) {
+            logger.info("Crawling listener " + listener.getName());
+            int state = listener.getState();
+            if (listener.getLastFmName() != null) {
+                if ((state & Listener.STATE_INITIAL_LASTFM_CRAWL) != Listener.STATE_INITIAL_LASTFM_CRAWL) {
+                    fullCrawlLastFM(listener);
+                    state |= Listener.STATE_INITIAL_LASTFM_CRAWL;
+                    listener.setState(state);
+                } else {
+                    weeklyCrawlLastFM(listener);
+                }
             }
+            weeklyCrawlPandora(listener);
+            updateListenerArtists(listener);
+            updateListenerTags(listener);
+            listener.setLastCrawl();
+            listener.flush(dataStore);
+        } else {
+            logger.info("Skipping listener " + listener.getName());
         }
-        weeklyCrawlPandora(listener);
-        updateListenerArtists(listener);
-        updateListenerTags(listener);
-        listener.flush(dataStore);
+    }
+
+    private boolean needsCrawl(Listener listener) {
+        long delta = System.currentTimeMillis() - listener.getLastCrawl();
+        return delta >= getMinCrawlDelta();
+    }
+
+    private long getMinCrawlDelta() {
+        return defaultPeriod * 1000L;
     }
 
     public void crawlAllListeners() throws AuraException, RemoteException, IOException {
@@ -121,11 +135,9 @@ public class ListenerCrawler extends ItemSchedulerImpl {
             try {
                 crawlListener(listener);
             } catch (IOException ioe) {
-
             }
         }
     }
-    
 
     private void updateListenerArtists(Listener listener) throws AuraException, RemoteException {
         List<Scored<String>> scoredArtistIDs = mdb.getAllArtistsAsIDs(listener);
@@ -145,7 +157,7 @@ public class ListenerCrawler extends ItemSchedulerImpl {
             if (artist != null) {
                 List<Tag> tags = artist.getSocialTags();
                 for (Tag tag : tags) {
-                    logger.fine("Adding " + tag.getName() + " " + tag.getCount() +  " " + artistWeight + " " +
+                    logger.fine("Adding " + tag.getName() + " " + tag.getCount() + " " + artistWeight + " " +
                             tag.getCount() * artistWeight);
                     sm.accum(tag.getName(), tag.getCount() * artistWeight);
                 }
@@ -163,7 +175,7 @@ public class ListenerCrawler extends ItemSchedulerImpl {
     double getMax(List<Scored<String>> l) {
         double max = -Double.MAX_VALUE;
         for (Scored s : l) {
-            if (s.getScore() >  max) {
+            if (s.getScore() > max) {
                 max = s.getScore();
             }
         }

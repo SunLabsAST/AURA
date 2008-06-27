@@ -52,7 +52,7 @@ public class TagCrawler implements AuraService, Configurable {
     private Map<String, Map<String, Tag>> tagMap = new HashMap();
     private final int MIN_ARTISTS = 10;   // make me configurable
     private final int MIN_ARTIST_POPULARITY = 10;   // make me configurable
-    private final long MIN_UPDATE_TIME = 1000L * 60L * 60L * 24L;
+    private final long MIN_UPDATE_TIME = 1000L * 60L * 60L * 24L * 7;
     private final String BEATLES_ID = "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
     static Set skipSet;
     
@@ -221,7 +221,7 @@ public class TagCrawler implements AuraService, Configurable {
     }
 
     private boolean needsUpdate(ArtistTag artistTag) {
-        boolean stale = (System.currentTimeMillis() - artistTag.getTimeAdded() > MIN_UPDATE_TIME);
+        boolean stale = (System.currentTimeMillis() - artistTag.getLastCrawl() > MIN_UPDATE_TIME);
         boolean empty = artistTag.getDescription().length() == 0;
         return stale || empty;
     }
@@ -283,7 +283,7 @@ public class TagCrawler implements AuraService, Configurable {
             // but still return the artist so we can add it to the store
             logger.warning("Exception " + e);
         }
-
+        artistTag.setLastCrawl();
     }
 
     private String getWikiGenreMusicURL(String genreName) {
