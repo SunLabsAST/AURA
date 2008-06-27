@@ -2,8 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
-package com.sun.labs.aura.grid;
+package com.sun.labs.aura.grid.util;
 
 import com.sun.caroline.platform.BaseFileSystemConfiguration;
 import com.sun.caroline.platform.ConflictingHostNameException;
@@ -11,6 +10,7 @@ import com.sun.caroline.platform.CustomerNetworkConfiguration;
 import com.sun.caroline.platform.DuplicateNameException;
 import com.sun.caroline.platform.DynamicNatConfiguration;
 import com.sun.caroline.platform.FileSystem;
+import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.Grid;
 import com.sun.caroline.platform.HostNameBinding;
 import com.sun.caroline.platform.HostNameBindingConfiguration;
@@ -18,10 +18,10 @@ import com.sun.caroline.platform.HostNameZone;
 import com.sun.caroline.platform.Network;
 import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.NetworkAddressAllocationException;
-import com.sun.caroline.platform.NetworkAllocationException;
 import com.sun.caroline.platform.NetworkConfiguration;
 import com.sun.caroline.platform.NetworkSetting;
 import com.sun.caroline.platform.ProcessConfiguration;
+import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.RunState;
 import com.sun.caroline.platform.StartFailureException;
@@ -32,6 +32,8 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -41,26 +43,108 @@ import java.util.logging.Logger;
  * A set of basic utilities for grid deployment.
  */
 public class GridUtil {
+
+    Logger log = Logger.getLogger("com.sun.labs.aura.grid.GridUtil");
+
+    public final int RETRIES = 1;
+
+    private Grid grid;
+
+    private String instance;
+
+    private Network network;
+
+    private Queue<ProcessRegistration> stopped;
     
-    static Logger log = Logger.getLogger("com.sun.labs.aura.grid.GridUtil");
+    protected FileSystem auraDist;
     
-    public static final int RETRIES = 1;
+    protected FileSystem auraCache;
+    
+    protected FileSystem auraLogs;
+    
+    public GridUtil(Grid grid, String instance) throws Exception {
+        this.grid = grid;
+        this.instance = instance;
+        stopped = new LinkedList<ProcessRegistration>();
+        createAuraNetwork();
+        auraDist = getAuraDistFS();
+        auraCache = getAuraCacheFS();
+        auraLogs = getAuraLogFS();
+    }
+
+    public Network getNetwork() {
+        return network;
+    }
+
+    /**
+     * Gets a basic process configuration 
+     * @param cwd the working directory for the configuration
+     * @param logName the name to log to.
+     * @return a process configuration.
+     */
+    public ProcessConfiguration getProcessConfig(
+            String[] cmdLine,
+            String logName) throws Exception {
+        return getProcessConfig(cmdLine, logName, null);
+    }
+    
+    /**
+     * 
+     * Gets a basic process configuration 
+     * @param cwd the working directory for the configuration
+     * @param logName the name to log to.
+     * @param extraMounts extra mount points to give to the process configuration.
+     * @return a process configuration.
+     */
+    public ProcessConfiguration getProcessConfig(
+            String[] cmdLine,
+            String logName, 
+            Collection<FileSystemMountParameters> extraMounts) throws Exception {
+        ProcessConfiguration pc = new ProcessConfiguration();
+        pc.setSystemSinks(String.format("%s/%s.out", logFSMntPnt,
+                logName), false);
+
+        //
+        // Every body will get dist, log and cache filesystems.
+        Collection<FileSystemMountParameters> mountParams =
+                new ArrayList<FileSystemMountParameters>();
+        mountParams.add(
+                new FileSystemMountParameters(auraDist.getUUID(),
+                new File(auraDistMntPnt).getName()));
+        mountParams.add(
+                new FileSystemMountParameters(auraLogs.getUUID(),
+                new File(logFSMntPnt).getName()));
+        mountParams.add(
+                new FileSystemMountParameters(auraCache.getUUID(),
+                new File(cacheFSMntPnt).getName()));
+        if(extraMounts != null) {
+            mountParams.addAll(extraMounts);
+        }
+        pc.setFileSystems(mountParams);
+        pc.setWorkingDirectory(auraDistMntPnt);
+        pc.setCommandLine(cmdLine);
+
+        // Set the addresses for the process
+        List<UUID> addresses = new ArrayList<UUID>();
+        addresses.add(getAddressFor(logName).getUUID());
+        pc.setNetworkAddresses(addresses);
+        pc.setProcessExitAction(ProcessExitAction.PARK);
+        return pc;
+    }
 
     /**
      * Creates a process registration on a grid, reusing an on-grid registration
      * if one exists.
-     * @param grid the grid where the registration should be created
      * @param name the name of the registration
      * @param config the configuration for the process
      * @return the on-grid process registration.
      * @throws java.lang.Exception if anything goes wrong creating the registration.
      */
-    public static ProcessRegistration createProcess(Grid grid, 
-            String name,
+    public ProcessRegistration createProcess(String name,
             ProcessConfiguration config) throws Exception {
         ProcessRegistration reg = null;
         try {
-            reg = grid.createProcessRegistration(name, config);
+            reg = grid.createProcessRegistration(String.format("%s-%s", instance, name), config);
         } catch(DuplicateNameException dne) {
             log.fine("ProcessRegistration: " + name + " already exists, reusing");
             reg = grid.getProcessRegistration(name);
@@ -68,11 +152,11 @@ public class GridUtil {
         return reg;
     }
 
-    public static void startRegistration(ProcessRegistration reg) throws Exception {
+    public void startRegistration(ProcessRegistration reg) throws Exception {
         startRegistration(reg, true);
     }
 
-    public static void startRegistration(final ProcessRegistration reg, boolean wait)
+    public void startRegistration(final ProcessRegistration reg, boolean wait)
             throws Exception {
         Thread starter = new Thread() {
 
@@ -95,11 +179,14 @@ public class GridUtil {
                         break;
                     }
                 }
-                
+
                 if(startException != null) {
-                    log.log(Level.SEVERE, "Error starting service: " + reg, startException);
+                    log.log(Level.SEVERE, "Error starting service: " + reg,
+                            startException);
                 } else {
-                    log.fine(String.format("Registration %s started after %d tries", reg.getName(), tries));
+                    log.fine(String.format(
+                            "Registration %s started after %d tries", reg.
+                            getName(), tries));
                 }
             }
         };
@@ -119,34 +206,34 @@ public class GridUtil {
      * @return
      * @throws java.lang.Exception
      */
-    public static ProcessRegistration stopProcess(Grid grid, String name) throws Exception {
+    public ProcessRegistration stopProcess(String name) throws Exception {
         ProcessRegistration reg = grid.getProcessRegistration(name);
         if(reg != null) {
             log.fine("Stopping: " + reg);
             reg.shutdownGently(true, 1000);
+            stopped.add(reg);
         } else {
             log.fine("No registration for " + name + " to stop");
         }
         return reg;
     }
 
-    public static void waitForFinish(Queue<ProcessRegistration> q)
+    public void waitForFinish()
             throws Exception {
-        waitForFinish(q, 600000);
+        waitForFinish(600000);
     }
 
     /**
      * Waits for the queue of processes to finish.
-     * @param q a queue of registrations that we're interested in.
      * @param timeout how long we should wait before forcefully killing processes.
      * @throws java.lang.Exception
      */
-    public static void waitForFinish(Queue<ProcessRegistration> q, long timeout)
+    public void waitForFinish(long timeout)
             throws Exception {
         long finish = timeout + System.currentTimeMillis();
         int n = 0;
-        while(q.size() > 0) {
-            ProcessRegistration reg = q.poll();
+        while(stopped.size() > 0) {
+            ProcessRegistration reg = stopped.poll();
 
             if(reg == null) {
                 continue;
@@ -156,7 +243,7 @@ public class GridUtil {
             // If it's not done, then put it back on the queue.
             if(reg.getProcessOutcome() == null || reg.getRunState() !=
                     RunState.NONE) {
-                q.offer(reg);
+                stopped.offer(reg);
                 Thread.sleep(500);
             }
 
@@ -166,8 +253,8 @@ public class GridUtil {
 
         }
 
-        while(q.size() > 0) {
-            ProcessRegistration reg = q.poll();
+        while(stopped.size() > 0) {
+            ProcessRegistration reg = stopped.poll();
             if(reg != null) {
                 reg.shutdownForcefully(true);
             }
@@ -179,22 +266,24 @@ public class GridUtil {
      * @param fsName the name of the file system to create.
      * @return a fileystem on the grid.
      */
-    public static FileSystem getFS(Grid grid, String fsName) throws
+    public FileSystem getFS(String fsName) throws
             RemoteException,
             StorageManagementException {
-        return getFS(grid, fsName, true);
+        return getFS(fsName, true);
     }
 
     /**
      * Create a file system, or accept an existing one with the same name
      * @param fsName
      */
-    public static FileSystem getFS(Grid grid, String fsName, boolean allowCreate) throws
+    public FileSystem getFS(String fsName, boolean allowCreate) throws
             RemoteException,
             StorageManagementException {
 
         BaseFileSystemConfiguration fsConfiguration =
                 new BaseFileSystemConfiguration();
+        
+        fsName = instance + "-" + fsName;
 
         FileSystem fileSystem = grid.getFileSystem(fsName);
 
@@ -202,8 +291,9 @@ public class GridUtil {
             if(allowCreate) {
                 log.fine("Creating filesystem " + fsName);
                 try {
-                fileSystem = grid.createBaseFileSystem(fsName, fsConfiguration);
-                } catch (DuplicateNameException dne) {
+                    fileSystem = grid.createBaseFileSystem(fsName,
+                            fsConfiguration);
+                } catch(DuplicateNameException dne) {
                     //
                     // A filesystem could sneak in between the check and create
                     // calls, so we better deal with that here.
@@ -228,11 +318,10 @@ public class GridUtil {
      * @throws java.rmi.RemoteException
      * @throws com.sun.caroline.platform.StorageManagementException
      */
-    public static FileSystem getAuraLogFS(Grid grid, String instance) throws RemoteException, StorageManagementException {
-        return getFS(grid, instance + "-aura.logs");
+    public FileSystem getAuraLogFS() throws RemoteException, StorageManagementException {
+        return getFS("aura.logs");
     }
     
-
     /**
      * The mount point for the logs file system in a deployed service.
      */
@@ -246,10 +335,10 @@ public class GridUtil {
      * @throws java.rmi.RemoteException
      * @throws com.sun.caroline.platform.StorageManagementException
      */
-    public static FileSystem getAuraDistFS(Grid grid, String instance) throws RemoteException, StorageManagementException {
-        return getFS(grid, instance + "-aura.dist");
+    public FileSystem getAuraDistFS() throws RemoteException, StorageManagementException {
+        return getFS("aura.dist");
     }
-
+    
     /**
      * The mount point for the code file system in a deployed service.
      */
@@ -257,14 +346,12 @@ public class GridUtil {
 
     /**
      * Gets the file system where persistent caches can be stored.
-     * @param grid the grid where we should get the filesystem
-     * @param instance the instance we want the file system for
-     * @return the code file system
+     * @return the cache file system
      * @throws java.rmi.RemoteException
      * @throws com.sun.caroline.platform.StorageManagementException
      */
-    public static FileSystem getCacheFS(Grid grid, String instance) throws RemoteException, StorageManagementException {
-        return getFS(grid, instance + "-cache");
+    public FileSystem getAuraCacheFS() throws RemoteException, StorageManagementException {
+        return getFS("cache");
     }
     /**
      * The mount point for the code file system in a deployed service.
@@ -279,7 +366,7 @@ public class GridUtil {
      * @throws java.lang.Exception if there is a problem getting the usage from
      * the grid
      */
-    public static long getDiskUsage(Grid grid) throws Exception {
+    public long getDiskUsage() throws Exception {
 
         long total = 0;
         for(FileSystem fs : grid.findAllFileSystems()) {
@@ -287,9 +374,8 @@ public class GridUtil {
         }
         return total;
     }
-    
-    public static Network createAuraNetwork(Grid grid, String instance) throws Exception {
-        Network network = null;
+
+    private void createAuraNetwork() throws Exception {
         try {
             // Try to create a customer network for the test
             network = grid.createNetwork(instance + "-auraNet", 128,
@@ -298,11 +384,8 @@ public class GridUtil {
         } catch(DuplicateNameException e) {
             // Reuse an existing network
             network = grid.getNetwork(instance + "-auraNet");
-            log.fine("Network already exists, reusing " + network.
-                    getName());
-        } finally {
-            return network;
-        }
+            log.fine("Network already exists, reusing " + network.getName());
+        } 
     }
 
     /**
@@ -314,19 +397,19 @@ public class GridUtil {
      * @return
      * @throws java.lang.Exception
      */
-    public static NetworkAddress getAddressFor(Grid grid, Network network, String hostName) throws Exception {
+    public NetworkAddress getAddressFor(String hostName) throws Exception {
         // Allocate the internal addresses and the real services behind the
         // virtual service
         HostNameZone hnZone = grid.getInternalHostNameZone();
         NetworkAddress internalAddress = null;
-
+        hostName = instance + "-" + hostName;
         try {
             internalAddress =
-                    network.allocateAddress("addr-" + hostName);
-            log.fine("Allocated internal address " + internalAddress.
-                    getAddress());
+                    network.allocateAddress(hostName);
+            log.fine("Allocated internal address " +
+                    internalAddress.getAddress());
         } catch(DuplicateNameException e) {
-            internalAddress = network.getAddress("addr-" + hostName);
+            internalAddress = network.getAddress(hostName);
             log.finer("Reusing address " + internalAddress.getAddress());
         } catch(NetworkAddressAllocationException e) {
             log.severe("Error allocating address: " + e.getMessage());
@@ -337,24 +420,24 @@ public class GridUtil {
         return internalAddress;
     }
 
-    public static NetworkAddress getExternalAddressFor(Grid grid, Network network,
-            String name) throws Exception {
+    public NetworkAddress getExternalAddressFor(String name) throws Exception {
         // Allocate an external address for the virtual service if necessary
         NetworkAddress externalAddress = null;
+        String extName = instance + "-" + name;
         try {
             externalAddress =
-                    grid.allocateExternalAddress(name + "-ext");
+                    grid.allocateExternalAddress(extName);
             log.fine("Allocated external address " +
                     externalAddress.getAddress());
         } catch(DuplicateNameException e) {
-            log.finer("External address exists, reusing");
-            externalAddress = grid.getExternalAddress(name + "-ext");
+            log.info("External address exists, reusing");
+            externalAddress = grid.getExternalAddress(extName);
         }
         bindHostName(grid.getExternalHostNameZone(), externalAddress, name);
         return externalAddress;
     }
 
-    public static void bindHostName(HostNameZone hnZone,
+    public void bindHostName(HostNameZone hnZone,
             NetworkAddress addr,
             String hostName) throws Exception {
         HostNameBinding binding = null;
@@ -381,28 +464,26 @@ public class GridUtil {
 
     }
 
-    public static void createNAT(Grid grid, String instance, 
-            UUID external, UUID internal, String name)
+    public void createNAT(UUID external, UUID internal, String name)
             throws Exception {
         NetworkConfiguration netConf =
                 new DynamicNatConfiguration(external,
                 internal);
+        String natName = instance + "-" + name;
         try {
-            grid.createNetworkSetting(instance + "-" + name + "-nat",
-                    netConf);
+            grid.createNetworkSetting(natName, netConf);
         } catch(DuplicateNameException dne) {
-            NetworkSetting ns = grid.getNetworkSetting(instance +
-                    "-" + name + "-nat");
+            NetworkSetting ns = grid.getNetworkSetting(natName);
             ns.changeConfiguration(netConf);
         }
     }
-    
-    public static URL getConfigURL(String arg) {
-        URL cu = com.sun.labs.aura.grid.GridUtil.class.getResource(arg);
+
+    public URL getConfigURL(String arg) {
+        URL cu = com.sun.labs.aura.grid.util.GridUtil.class.getResource(arg);
         if(cu == null) {
             try {
-            cu = (new File(arg)).toURI().toURL();
-            } catch (MalformedURLException mue) {
+                cu = (new File(arg)).toURI().toURL();
+            } catch(MalformedURLException mue) {
                 return null;
             }
         }

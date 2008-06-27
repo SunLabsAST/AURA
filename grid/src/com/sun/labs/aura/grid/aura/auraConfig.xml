@@ -13,12 +13,12 @@
     
     <property name="nNodes" value="4"/>
     
-    <component name="startAura" type="com.sun.labs.aura.grid.StartAura">
+    <component name="startAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="nNodes" value="${nNodes}"/>
         <property name="instance" value="${auraInstance}"/>
     </component>
     
-    <component name="stopAura" type="com.sun.labs.aura.grid.StopAura">
+    <component name="stopAura" type="com.sun.labs.aura.grid.aura.StopAura">
         <property name="nNodes" value="${nNodes}"/>
         <property name="instance" value="${auraInstance}"/>
     </component>

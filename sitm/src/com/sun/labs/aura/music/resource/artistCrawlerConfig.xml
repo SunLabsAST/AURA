@@ -29,21 +29,11 @@
         <propertylist name="groupList">
             <item>${auraGroup}</item>
         </propertylist>
-        <property name="csDirs" value="${auraDistDir}/lib"/>
-        <property name="csPort" value="${csPort}"/>
-        <propertylist name="codebaseJars">
-            <item>sitm.jar</item>
-            <item>aura.jar</item>
-            <item>minion.jar</item>
-            <item>LabsUtil.jar</item>
-        </propertylist>
         <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
     
     <!-- The configuration for a partition cluster. -->
-    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore" export="true">
-        <property name="logLevel" value="WARNING"/>
-    </component>
+    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
     
     <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawler">
         <property name="dataStore" value="dataStoreHead"/>

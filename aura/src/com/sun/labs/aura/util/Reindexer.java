@@ -43,6 +43,7 @@ public class Reindexer implements IndexListener {
 
     public void reindex(String db) throws Exception {
         bdw = new BerkeleyDataWrapper(db, logger);
+        engine.redefineFields(bdw);
         logger.info("Opened: " + db);
         for(ItemType type : ItemType.values()) {
             int count = 0;
@@ -169,7 +170,6 @@ public class Reindexer implements IndexListener {
 
         ItemSearchEngine engine = new ItemSearchEngine(indexDir,
                 "/com/sun/labs/aura/util/resource/reindexConfig.xml");
-
         Reindexer re = new Reindexer(engine);
         for(String db : dbs) {
             re.reindex(db);

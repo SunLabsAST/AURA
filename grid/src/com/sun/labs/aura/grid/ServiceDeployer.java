@@ -1,5 +1,6 @@
 package com.sun.labs.aura.grid;
 
+import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.Grid;
@@ -34,6 +35,8 @@ import java.util.logging.Logger;
 public class ServiceDeployer {
 
     Grid grid;
+    
+    GridUtil gu;
 
     FileSystem logFS;
 
@@ -41,11 +44,12 @@ public class ServiceDeployer {
     Logger logger = Logger.getLogger("");
 
     public ServiceDeployer(String instance, URL gridURL, String user,
-            String passwd) throws RemoteException, StorageManagementException {
+            String passwd) throws RemoteException, StorageManagementException, Exception {
         grid = GridFactory.getGrid(gridURL, user, passwd);
-        logFS = GridUtil.getAuraLogFS(grid, instance);
-        auraDistFS = GridUtil.getAuraDistFS(grid, instance);
         logger.info("Got grid: " + grid);
+        gu = new GridUtil(grid, instance);
+        logFS = gu.getAuraLogFS();
+        auraDistFS = gu.getAuraDistFS();
     }
 
     public void deploy(String jarFile, String[] jvmArgs,
@@ -77,35 +81,16 @@ public class ServiceDeployer {
             cmd = tmp;
         }
 
-        ProcessConfiguration pc = new ProcessConfiguration();
-        pc.setCommandLine(cmd);
-        pc.setSystemSinks(GridUtil.logFSMntPnt + "/" + starter + ".out", false);
-
-        Collection<FileSystemMountParameters> mountParams =
-                new ArrayList<FileSystemMountParameters>();
-
-        mountParams.add(
-                new FileSystemMountParameters(auraDistFS.getUUID(),
-                new File(GridUtil.auraDistMntPnt).getName()));
-        mountParams.add(
-                new FileSystemMountParameters(logFS.getUUID(),
-                new File(GridUtil.logFSMntPnt).getName()));
-        pc.setFileSystems(mountParams);
-        pc.setWorkingDirectory(GridUtil.logFSMntPnt);
+        ProcessConfiguration pc = gu.getProcessConfig(cmd, starter);
         pc.setProcessExitAction(ProcessExitAction.DESTROY);
 
-        Network network = GridUtil.createAuraNetwork(grid, instance);
+        Network network = gu.getNetwork();
         if(network == null) {
             throw new IllegalStateException("No network for deployment");
         }
         
-        List<UUID> addresses = new ArrayList<UUID>();
-        addresses.add(GridUtil.getAddressFor(grid, network, instance +
-                "-serviceDeployer").getUUID());
-
-        pc.setNetworkAddresses(addresses);
-        ProcessRegistration reg = GridUtil.createProcess(grid, instance + "-" + starter, pc);
-        GridUtil.startRegistration(reg);
+        ProcessRegistration reg = gu.createProcess(starter, pc);
+        gu.startRegistration(reg);
     }
 
     public static void main(String[] args) {
@@ -137,6 +122,9 @@ public class ServiceDeployer {
                 user = props.getProperty("customerID");
                 passwd = props.getProperty("password");
                 instance = props.getProperty("instance");
+                if(instance == null) {
+                    instance = System.getProperty("user.name");
+                }
             }
         } catch(Exception e) {
             logger.severe("Error reading .caroline: " + e);
@@ -156,7 +144,7 @@ public class ServiceDeployer {
             }
             user = "aura";
             passwd = "corona";
-            instance = "live";
+            instance = System.getProperty("user.name");
         }
 
         List<String> jvmArgs = new ArrayList<String>();

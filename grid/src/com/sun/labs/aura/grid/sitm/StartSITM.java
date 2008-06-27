@@ -6,8 +6,9 @@ package com.sun.labs.aura.grid.sitm;
 
 import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.ProcessRegistration;
+import com.sun.caroline.platform.RunState;
 import com.sun.labs.aura.datastore.DataStore;
-import com.sun.labs.aura.grid.GridUtil;
+import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.PropertyException;
@@ -32,34 +33,38 @@ public class StartSITM extends SITM {
 
     public void startSITMProcesses() throws Exception {
         NetworkAddress crawlerExt =
-                GridUtil.getExternalAddressFor(grid, network, "crawlerExt");
+                gu.getExternalAddressFor("sitmCrawlerExt");
 
         ProcessRegistration acReg =
-                GridUtil.createProcess(grid, getArtistCrawlerName(),
+                gu.createProcess(getArtistCrawlerName(),
                 getArtistCrawlerConfig());
         UUID internal = acReg.getRegistrationConfiguration().
                 getNetworkAddresses().iterator().next();
-        GridUtil.createNAT(grid, instance, crawlerExt.getUUID(), internal,
+        gu.createNAT(crawlerExt.getUUID(), internal,
                 "artistCrawler");
-        GridUtil.startRegistration(acReg);
+        gu.startRegistration(acReg);
 
         ProcessRegistration lcReg =
-                GridUtil.createProcess(grid, getListenerCrawlerName(),
+                gu.createProcess(getListenerCrawlerName(),
                 getListenerCrawlerConfig());
         internal = lcReg.getRegistrationConfiguration().
                 getNetworkAddresses().iterator().next();
-        GridUtil.createNAT(grid, instance, crawlerExt.getUUID(), internal,
+        gu.createNAT(crawlerExt.getUUID(), internal,
                 "listenerCrawler");
-        GridUtil.startRegistration(lcReg);
+        gu.startRegistration(lcReg);
 
         ProcessRegistration tcReg =
-                GridUtil.createProcess(grid, getArtistCrawlerName(),
-                getArtistCrawlerConfig());
+                gu.createProcess(getTagCrawlerName(),
+                getTagCrawlerConfig());
+        logger.info("tcReg: " + tcReg);
         internal = tcReg.getRegistrationConfiguration().
                 getNetworkAddresses().iterator().next();
-        GridUtil.createNAT(grid, instance, crawlerExt.getUUID(), internal,
+        gu.createNAT(crawlerExt.getUUID(), internal,
                 "tagCrawler");
-        GridUtil.startRegistration(tcReg);
+        gu.startRegistration(tcReg);
+        while(tcReg.getRunState() != RunState.RUNNING) {
+            tcReg.waitForStateChange(1000000L);
+        }
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
@@ -70,7 +75,7 @@ public class StartSITM extends SITM {
 
     public void start() {
         try {
-            
+
             //
             // Wait until the data store is ready.
             int tries = 0;
@@ -83,7 +88,7 @@ public class StartSITM extends SITM {
             }
             startSITMProcesses();
         } catch(Exception ex) {
-            logger.log(Level.SEVERE, "Error starting Aardvark", ex);
+            logger.log(Level.SEVERE, "Error starting SITM", ex);
         }
     }
 
