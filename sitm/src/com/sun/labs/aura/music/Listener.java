@@ -89,7 +89,12 @@ public class Listener extends ItemAdapter {
     }
 
     public Gender getGender() {
-        return Gender.valueOf(getFieldAsString(FIELD_GENDER));
+        String sgender = getFieldAsString(FIELD_GENDER);
+        if (sgender == null) {
+            return Gender.Unknown;
+        } else {
+            return Gender.valueOf(sgender);
+        }
     }
 
     public void setGender(Gender g) {

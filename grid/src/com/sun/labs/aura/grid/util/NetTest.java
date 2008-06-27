@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.sun.labs.aura.grid;
+package com.sun.labs.aura.grid.util;
 
+import com.sun.labs.aura.grid.*;
 import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.Network;

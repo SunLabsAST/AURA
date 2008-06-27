@@ -29,7 +29,6 @@ import java.util.Set;
  * types to add and retrieve data from the item map in a type-friendly fashion.
  */
 public abstract class ItemAdapter implements Serializable {
-
     protected Item item;
     private boolean modified;
 

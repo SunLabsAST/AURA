@@ -2,7 +2,10 @@
 <!-- You may freely edit this file. See commented blocks below for -->
 <!-- some examples of how to customize the build. -->
 <!-- (If you delete it and reopen the project it will be recreated.) -->
-<project name="grid" default="default" basedir=".">
+<project name="grid" default="default" basedir="."
+    xmlns:dav="antlib:org.apache.webdav.ant"
+    xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
+        
     <description>Builds and deploys grid projects.</description>
     <import file="nbproject/build-impl.xml"/>
     
@@ -10,11 +13,155 @@
         <ant dir="grid-deploy" antfile="tomcat.xml"/>
     </target>
     
-    <target name="upload-jar" depends="jar">
-        <ant dir="grid-deploy" antfile="create-dist.xml" target="upload-grid" inheritall="false"/>
+    <!-- Builds a copy of the jar with a specific main class and the jini libraries -->
+    <target depends="init,compile,-pre-pre-jar,-pre-jar" name="do-dist-jar-with-libraries">
+        <property location="${build.classes.dir}" name="build.classes.dir.resolved"/>
+        <pathconvert property="run.classpath.without.build.classes.dir">
+            <path path="${run.classpath}"/>
+            <map from="${build.classes.dir.resolved}" to=""/>
+        </pathconvert>
+        <pathconvert pathsep=" " property="jar.classpath">
+            <path path="${run.classpath.without.build.classes.dir}"/>
+            <chainedmapper>
+                <flattenmapper/>
+                <globmapper from="*" to="lib/*"/>
+            </chainedmapper>
+        </pathconvert>
+        <taskdef classname="org.netbeans.modules.java.j2seproject.copylibstask.CopyLibs" classpath="${libs.CopyLibs.classpath}" name="copylibs"/>
+        <copylibs compress="${jar.compress}" jarfile="${dist.jar}" manifest="${manifest.file}" runtimeclasspath="${run.classpath.without.build.classes.dir}">
+            <fileset dir="${build.classes.dir}"/>
+            <manifest>
+                <attribute name="Main-Class" value="com.sun.labs.aura.AuraServiceStarter"/>
+                <attribute name="Class-Path" value="${jar.classpath}"/>
+            </manifest>
+        </copylibs>
     </target>
+    
+    <target name="make-dist-jar-dir" description="Make the dist jar directory" depends="do-dist-jar-with-libraries">
+        <property location="${dist.dir}/dist" name="dd"/>
+        <property location="../Libraries" name="lib.dir"/>
+        <delete file="${dist.dir}/grid-dist.jar"/>
+        <mkdir dir="${dd}"/>
+        <mkdir dir="${dd}/lib"/>
+        <copy file="${lib.dir}/jini/jsk-all.policy" todir="${dd}"/>
+        <copy file="${dist.jar}" todir="${dd}"/>
+        <copy file="${dist.jar}" todir="${dd}/lib"/>
+        <copy todir="${dd}/lib">
+            <fileset dir="${dist.dir}/lib"/>
+        </copy>
+    </target>
+    
+    <!-- Package up the jar with the service starter main class along with some
+         other things. -->
+    <target name="dist-jar" description="Build a jar to distribute" depends="make-dist-jar-dir">
+        <jar jarfile="${dist.dir}/aardvark-dist.jar" basedir="${dist.dir}" includes="dist/**"/>
+        <delete dir="${dist.dir}/dist"/>
+    </target>
+    
+    <!-- Code to upload things to the grid. -->
+    
+    <!-- Where the libraries are -->
+    <property name="tool.libraries" value="../ToolLibraries"/>
 
-    <target name="upload-dist" depends="jar">
-        <ant dir="grid-deploy" antfile="create-dist.xml" inheritall="false"/>
+    <!-- Declare the Caroline tasks -->
+    <taskdef resource="com/sun/caroline/tools/carolant/antlib.xml"
+            uri="antlib:com.sun.caroline.tools.carolant">
+        <classpath>
+            <pathelement location="${tool.libraries}/carolant.jar"/>
+            <pathelement location="${tool.libraries}/caroline.jar"/>
+        </classpath>
+    </taskdef>
+        
+   <!-- Declare the Caroline Ant tasks -->
+    <taskdef resource="org/apache/webdav/ant/antlib.xml" uri="antlib:org.apache.webdav.ant">
+        <classpath>
+            <pathelement location="${tool.libraries}/jakarta-slide-ant-webdav-2.2pre1.jar"/>
+            <pathelement location="${tool.libraries}/jakarta-slide-webdavlib-2.2pre1.jar"/>
+            <pathelement location="${tool.libraries}/commons-httpclient.jar"/>
+            <pathelement location="${tool.libraries}/commons-logging.jar"/>
+            <pathelement location="${tool.libraries}/jdom-1.0.jar"/>
+        </classpath>
+    </taskdef>
+    <loadproperties srcfile="${user.home}${file.separator}.caroline">
+        <filterchain>
+            <prefixlines prefix="grid."/>
+        </filterchain>
+    </loadproperties>
+
+    <!-- create a grid adapter instance to retrieve a reference the grid -->
+    <caroline:grid/>
+
+    <!-- use implicit properties set by the grid adapter above-->
+    <property name="user" value="${com.sun.caroline.customerID}"/>
+    <property name="pw" value="${com.sun.caroline.password}"/>
+    <property name="grid.url" value="${com.sun.caroline.gridURL}"/>
+    <property name="dav.url" value="${grid.url}/${user}"/>
+    
+    <!-- A webdav URL for the dist filesystem. -->
+    <property name="dist.url" value="${dav.url}/${grid.instance}-aura.dist"/>
+    
+    <!-- Where the Ant libraries are -->
+    <property name="ant.lib" value="${tool.libraries}/ant-lib"/>
+    
+    <!-- The name of the system packages file system -->
+    <property name="packages.filesystem" value="sys.packages"/>   
+     
+    <!-- The name of the code filesystem on grid. -->
+    <property name="code.filesystem" value="${grid.instance}-aura.dist"/>
+    
+    <!-- properties to hold resource names -->
+    <property name="dist.col" value="${code.filesystem}/dist"/>
+    <property name="jini.col" value="${code.filesystem}/jini"/>
+    
+    <!-- Upload Resources to Caroline filesystems -->
+    
+    <!-- create a caroline filesystem to upload the Ant jars to -->
+    <target name="create-filesystems" 
+        description="creates filesystems needed for the code">
+        <caroline:filesystem name="${packages.filesystem}" op="create"/>
+        <caroline:filesystem name="${code.filesystem}" op="create"/>
+    </target>
+    
+    <!-- create a WebDAV collection to upload Ant jars to-->
+    <target name="create-dist-collections" description="creates Ant package" depends="create-filesystems">
+        <dav:mkcol url="${dav.url}/${dist.col}" userid="${user}" password="${pw}"/>
+        <dav:mkcol url="${dav.url}/${jini.col}" userid="${user}" password="${pw}"/>
+    </target>
+    <target name="upload-grid" description="Uploads grid jar file">
+        <dav:put url="${dav.url}/${dist.col}" userid="${user}" password="${pw}" lock="false">            
+            <!-- Distribution jar -->
+            <fileset dir="../dist">
+                <include name="grid.jar"/>
+            </fileset>
+        </dav:put>
+    </target>
+    
+    <!-- builds the distribution jar, then uploads the results.-->
+    <target name="upload-dist" description="Uploads distribution files" depends="create-dist-collections,make-dist-jar-dir">
+        <dav:put url="${dav.url}/${dist.col}" userid="${user}" password="${pw}" lock="false">            
+            <!-- Distribution jar -->
+            <fileset dir="dist/dist">
+                <include name="**/*.jar"/>
+                <include name="**/*.policy"/>
+            </fileset>
+            <fileset dir="dist">
+                <include name="grid.jar"/>
+            </fileset>
+            <fileset dir="../aura/dist">
+                <include name="aura.jar"/>
+            </fileset>
+            <fileset dir="../aardvark/dist">
+                <include name="aardvark.jar"/>
+            </fileset>
+            <fileset dir="../sitm/dist">
+                <include name="sitm.jar"/>
+            </fileset>
+        </dav:put>
+        <dav:put url="${dav.url}/${jini.col}" userid="${user}" password="${pw}" lock="false">            
+            <!-- Jini libraries -->
+            <fileset dir="../Libraries/jini">
+                <include name="**/*"/>
+            </fileset>
+        </dav:put>
     </target>
 </project>

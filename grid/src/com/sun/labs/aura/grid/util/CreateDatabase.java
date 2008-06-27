@@ -3,8 +3,9 @@
  * and open the template in the editor.
  */
 
-package com.sun.labs.aura.grid;
+package com.sun.labs.aura.grid.util;
 
+import com.sun.labs.aura.grid.*;
 import com.sun.caroline.platform.ConflictingNetworkSettingException;
 import com.sun.caroline.platform.DuplicateNameException;
 import com.sun.caroline.platform.Network;
