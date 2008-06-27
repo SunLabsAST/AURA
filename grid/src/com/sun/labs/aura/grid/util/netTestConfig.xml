@@ -11,7 +11,7 @@
     
     <property name="auraInstance" value="sjg"/>
     
-    <component name="netTest" type="com.sun.labs.aura.grid.NetTest">
+    <component name="netTest" type="com.sun.labs.aura.grid.util.NetTest">
         <property name="instance" value="${auraInstance}"/>
         <property name="logLevel" value="FINER"/>
     </component>
