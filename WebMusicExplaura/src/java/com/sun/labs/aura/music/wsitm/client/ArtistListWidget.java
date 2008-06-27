@@ -7,6 +7,7 @@ package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Grid;
@@ -17,6 +18,10 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -25,18 +30,37 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 public class ArtistListWidget extends Composite {
 
     private Grid g;
+    private MusicSearchInterfaceAsync musicServer;
+    private ListenerDetails lD;
 
-    public ArtistListWidget(ArtistCompact[] aDArray) {
+    private ArtistCompact[] aDArray;
+    private Map<String,Integer> ratingMap;
+
+    public ArtistListWidget(MusicSearchInterfaceAsync musicServer,
+            ListenerDetails lD, ArtistCompact[] aDArray) {
+
+        this.musicServer = musicServer;
+        this.lD = lD;
+
         g = new Grid(1,1);
-        g.setWidget(0, 0, getUpdatedPanel(aDArray));
+        this.aDArray=aDArray;
         initWidget(g);
+
+        invokeFetchRatings();
     }
 
     public void updateWidget(ArtistCompact[] aDArray) {
-        g.setWidget(0, 0, getUpdatedPanel(aDArray));
+        if (this.aDArray!=aDArray) {
+            this.aDArray = aDArray;
+            //invokeFetchRatings();
+        }
+            //else {
+//            g.setWidget(0, 0, getUpdatedPanel());
+//        }
+        invokeFetchRatings();
     }
 
-    private Panel getUpdatedPanel(ArtistCompact[] aDArray) {
+    private Panel getUpdatedPanel() {
 
         VerticalPanel vP = new VerticalPanel();
 
@@ -46,6 +70,8 @@ public class ArtistListWidget extends Composite {
             artistPanel.setSpacing(5);
 
             Image img = aD.getBestArtistImage(true);
+            img.addClickListener(new TokenClickListener("artist:" + aD.getId()));
+            img.setStyleName("image");
             if (img==null) {
                 artistPanel.add(new Image("nopic.gif"));
             } else {
@@ -59,6 +85,7 @@ public class ArtistListWidget extends Composite {
             aNamePanel.setSpacing(5);
             Label aName = new Label(aD.getName());
             aName.addClickListener(new TokenClickListener("artist:" + aD.getId()));
+            aName.addStyleName("image");
             aNamePanel.add(aName);
             aNamePanel.add(WebLib.getSpotifyListenWidget(aD, 20));
 
@@ -68,7 +95,15 @@ public class ArtistListWidget extends Composite {
             tagsLabel.setStyleName("recoTags");
             txtPanel.add(tagsLabel);
 
-            StarRatingWidget star = new StarRatingWidget(0, StarRatingWidget.Size.SMALL);
+            int rating;
+            if (ratingMap.containsKey(aD.getId())) {
+                rating = ratingMap.get(aD.getId());
+            } else {
+                rating = 0;
+            }
+
+            StarRatingWidget star = new StarRatingWidget(musicServer, lD, aD.getId(),
+                    rating, StarRatingWidget.Size.SMALL);
             txtPanel.add(star);
 
             artistPanel.add(txtPanel);
@@ -77,6 +112,35 @@ public class ArtistListWidget extends Composite {
         }
 
         return vP;
+    }
+
+    private void invokeFetchRatings() {
+
+            AsyncCallback callback = new AsyncCallback() {
+
+                public void onSuccess(Object result) {
+                    Map<String,Integer> map = (Map<String,Integer>)result;
+                    if (map!=null) {
+                       ratingMap = map;
+                       g.setWidget(0, 0, getUpdatedPanel());
+                    }
+                }
+
+                public void onFailure(Throwable caught) {
+                    Window.alert("Error fetching ratings.");
+                }
+            };
+
+            Set<String> artistIDs = new HashSet<String>();
+            for (ArtistCompact aC : aDArray) {
+                artistIDs.add(aC.getId());
+            }
+
+            try {
+                musicServer.fetchUserSongRating(lD, artistIDs, callback);
+            } catch (WebException ex) {
+                Window.alert(ex.getMessage());
+            }
     }
 
     /**

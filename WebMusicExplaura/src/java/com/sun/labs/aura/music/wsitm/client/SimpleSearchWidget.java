@@ -530,22 +530,22 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             left.add(
                     new Updatable(new HTML("<H2>"+cdm.getCurrSimTypeName()+"-omendations</H2>"),
                     //getItemInfoList2(artistDetails.getSimilarArtists(), id, true, artistOracle), cdm, id) {
-                    new ArtistListWidget(artistDetails.getSimilarArtists()), cdm, id) {
+                    new ArtistListWidget(musicServer, cdm.getListenerDetails(), artistDetails.getSimilarArtists()), cdm, id) {
 
                         public void update(ArtistDetails aD) {
                             setNewContent(new HTML("<H2>"+cdm.getCurrSimTypeName()+"-omendations</H2>"),
-                                    new ArtistListWidget(aD.getRecommendedArtists()));
+                                    new ArtistListWidget(musicServer, cdm.getListenerDetails(), aD.getRecommendedArtists()));
                         }
                     }
            );
         }
         
         if (artistDetails.getRecommendedArtists().length > 0) {
-            left.add(WebLib.createSection("Recommendations", new ArtistListWidget(artistDetails.getRecommendedArtists())));
+            left.add(WebLib.createSection("Recommendations", new ArtistListWidget(musicServer, cdm.getListenerDetails(), artistDetails.getRecommendedArtists())));
             //left.add(getItemInfoList("Recommendations", artistDetails.getRecommendedArtists(), id, true, artistOracle));
         }
         if (artistDetails.getCollaborations().length > 0) {
-            left.add(WebLib.createSection("Related", new ArtistListWidget(artistDetails.getCollaborations())));
+            left.add(WebLib.createSection("Related", new ArtistListWidget(musicServer, cdm.getListenerDetails(), artistDetails.getCollaborations())));
             //left.add(getItemInfoList("Related", artistDetails.getCollaborations(), id, true, artistOracle));
         }
         left.add(getMoreInfoWidget(artistDetails));
@@ -595,10 +595,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         html.setHTML(artistDetails.getBestArtistImageAsHTML() + artistDetails.getBiographySummary());
         html.setStyleName("bio");
 
-        StarRatingWidget starWidget = null;
-        if (cdm.isLoggedIn()) {
-            starWidget = new StarRatingWidget(0, StarRatingWidget.Size.MEDIUM);
-        }
+        StarRatingWidget starWidget = new StarRatingWidget(musicServer, cdm.getListenerDetails(), artistDetails.getId(), StarRatingWidget.Size.MEDIUM);
 
         return createMainSection(artistDetails.getName(), html, WebLib.getSpotifyListenWidget(artistDetails, 30), starWidget);
     }
@@ -768,6 +765,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         if (starWidget != null) {
             h.add(starWidget, DockPanel.NORTH);
         }
+
         h.setWidth("100%");
         h.setStyleName("h1");
         panel.add(h);

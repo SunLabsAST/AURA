@@ -16,6 +16,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.google.gwt.user.client.rpc.RemoteService;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -33,7 +34,11 @@ public interface MusicSearchInterface extends RemoteService {
     public List<String> getTagOracle() throws WebException;
     public ListenerDetails getUserTagCloud(String lastfmUser, String simTypeName) throws WebException;
     public ListenerDetails getLogInDetails() throws WebException;
+    public ListenerDetails getNonOpenIdLogInDetails(String userKey) throws WebException;
     public void updateListener(ListenerDetails lD) throws WebException;
+    public void updateUserSongRating(ListenerDetails lD, int rating, String artistID) throws WebException;
+    public Integer fetchUserSongRating(ListenerDetails lD, String artistID) throws WebException;
+    public Map<String,Integer> fetchUserSongRating(ListenerDetails lD, Set<String> artistID) throws WebException;
     public void terminateSession();
     public Map<String, String> getSimTypes() throws WebException;
 }

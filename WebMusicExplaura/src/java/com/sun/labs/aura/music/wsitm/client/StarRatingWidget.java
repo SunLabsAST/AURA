@@ -9,12 +9,15 @@ package com.sun.labs.aura.music.wsitm.client;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 
 /**
  *
@@ -22,8 +25,13 @@ import com.google.gwt.user.client.ui.Widget;
  */
 public class StarRatingWidget extends Composite {
 
+    private MusicSearchInterfaceAsync musicServer;
+    private ListenerDetails lD;
+    private String artistID;
+
     private int nbrStars = 5;
     private int nbrSelectedStars = 0;
+    private int oldNbrSelectedStars = nbrSelectedStars; // save to revert in case RPC call fails
 
     private String STAR_LID = "";
     private String STAR_NOTLID = "";
@@ -45,13 +53,41 @@ public class StarRatingWidget extends Composite {
 
     private Image[] images;
 
+    private Grid g;
+
     public enum Size {
         SMALL,
         MEDIUM
     }
 
-    public StarRatingWidget(int initialSelection, Size size) {
+    public StarRatingWidget(MusicSearchInterfaceAsync musicServer, ListenerDetails lD,
+            String artistID, Size size) {
+
+        g = new Grid(1, 1);
+        initWidget(g);
+
+        initializeRatingWidget(musicServer, lD, artistID, -1, size);
+        invokeFetchRating();
+
+    }
+
+    public StarRatingWidget(MusicSearchInterfaceAsync musicServer, ListenerDetails lD, 
+            String artistID, int initialSelection, Size size) {
+
+        g = new Grid(1, 1);
+        initWidget(g);
+
+        initializeRatingWidget(musicServer, lD, artistID, initialSelection, size);
+        drawRatingWidget();
+    }
+
+    private void initializeRatingWidget(MusicSearchInterfaceAsync musicServer, ListenerDetails lD,
+            String artistID, int initialSelection, Size size) {
+
         this.nbrSelectedStars = initialSelection;
+        this.lD = lD;
+        this.artistID = artistID;
+        this.musicServer = musicServer;
 
         if (size == Size.SMALL) {
             STAR_LID = STAR_LID_S;
@@ -66,6 +102,10 @@ public class StarRatingWidget extends Composite {
             NOT_INTERESTED = NOT_INTERESTED_M;
             NOT_INTERESTED_HOVER = NOT_INTERESTED_HOVER_M;
         }
+
+    }
+
+    private void drawRatingWidget() {
 
         FlowPanel p = new FlowPanel();
 
@@ -96,12 +136,69 @@ public class StarRatingWidget extends Composite {
             }
         });
         //p.add(noInterest);
-        initWidget(p);
+        g.setWidget(0, 0, p);
+    }
+
+    private void invokeSaveRating(int index) {
+
+        if (!lD.loggedIn) {
+            Window.alert("Error. You must be logged in to access this feature. But we should redirect you to another page so you can create an account...");
+            return;
+        }
+
+        AsyncCallback callback = new AsyncCallback() {
+
+            public void onSuccess(Object result) {
+            }
+
+            public void onFailure(Throwable caught) {
+                Window.alert("Unable to save your rating for artistID "+artistID);
+                nbrSelectedStars = oldNbrSelectedStars;
+                redrawStars();
+            }
+        };
+
+        oldNbrSelectedStars = nbrSelectedStars;
+        nbrSelectedStars = index + 1;
+        redrawStars();
+
+        try {
+            musicServer.updateUserSongRating(lD, index, artistID, callback);
+        } catch (Exception ex) {
+            Window.alert(ex.getMessage());
+        }
 
     }
 
-    private void triggerAction(int index) {
-        Info.display("Information", "you clicked on star "+index, new Params());
+    private void redrawStars() {
+        for (int i = 0; i < nbrStars; i++) {
+            if (i <= nbrSelectedStars - 1) {
+                images[i].setUrl(STAR_NOTLID);
+            } else {
+                images[i].setUrl(STAR_WHITE);
+            }
+        }
+    }
+
+    private void invokeFetchRating() {
+
+            AsyncCallback callback = new AsyncCallback() {
+
+                public void onSuccess(Object result) {
+                    nbrSelectedStars = (Integer)result;
+                    drawRatingWidget();
+                }
+
+                public void onFailure(Throwable caught) {
+                    Window.alert("Error fetching rating.");
+                }
+            };
+
+            try {
+                musicServer.fetchUserSongRating(lD, artistID, callback);
+            } catch (WebException ex) {
+                Window.alert(ex.getMessage());
+            }
     }
 
     private class IndexMouseListener implements MouseListener {
@@ -122,13 +219,7 @@ public class StarRatingWidget extends Composite {
         }
 
         public void onMouseLeave(Widget arg0) {
-            for (int i = 0; i < nbrStars; i++) {
-                if (i <= nbrSelectedStars - 1) {
-                    images[i].setUrl(STAR_NOTLID);
-                } else {
-                    images[i].setUrl(STAR_WHITE);
-                }
-            }
+            redrawStars();
         }
 
         public void onMouseMove(Widget arg0, int arg1, int arg2) {
@@ -149,7 +240,7 @@ public class StarRatingWidget extends Composite {
         }
 
         public void onClick(Widget arg0) {
-            triggerAction(index);
+            invokeSaveRating(index);
         }
     }
 

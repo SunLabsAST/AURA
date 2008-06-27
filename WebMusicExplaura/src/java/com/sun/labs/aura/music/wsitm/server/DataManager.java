@@ -541,7 +541,7 @@ public class DataManager implements Configurable {
      * @param lD
      * @return updated listener
      */
-    public Listener syncListeners(Listener l, ListenerDetails lD, SimType simType,
+    private Listener syncListeners(Listener l, ListenerDetails lD, SimType simType,
             boolean updateRecommendations) throws AuraException, RemoteException {
 
         if (lD.gender!=null) {
@@ -588,6 +588,65 @@ public class DataManager implements Configurable {
         return l;
     }
 
+    private ListenerDetails listenerToListenerDetails(Listener l, ListenerDetails lD,
+            SimType simType, boolean updateRecommendations) throws AuraException, RemoteException {
+
+        if (l.getGender()!=null) {
+            if (l.getGender()==Gender.Female) {
+                lD.gender="F";
+            } else if (l.getGender()==Gender.Male) {
+                lD.gender="M";
+            }
+        }
+
+        if (l.getLocaleCountry()!=null) {
+            lD.country=l.getLocaleCountry();
+        }
+
+        if (l.getPandoraName()!=null) {
+            lD.pandoraUser=l.getPandoraName();
+        }
+
+        if (l.getLastFmName()!=null) {
+            lD.lastfmUser=l.getLastFmName();
+        }
+
+        if (updateRecommendations) {
+            // Fetch info for recommended artists
+            ArrayList<ArtistCompact> aCompact = new ArrayList<ArtistCompact>();
+            for (Scored<Artist> a : mdb.getRecommendations(l, NBR_REC_LISTENER)) {
+                aCompact.add(artistToArtistCompact(a.getItem()));
+            }
+            lD.recommendations = aCompact.toArray(new ArtistCompact[0]);
+        }
+
+        return lD;
+    }
+
+    public ListenerDetails establishNonOpenIdUserConnection(String userKey)
+            throws AuraException, RemoteException {
+
+        ListenerDetails lD = new ListenerDetails();
+        Listener l = null;
+
+        l = mdb.getListener(userKey);
+
+        if (l == null) {
+            logger.info("Non openID user '" + lD.openID + "' does not exist.");
+            throw new AuraException("User '"+userKey+"' does not exist.");
+        } else {
+            logger.info("Retrieved non openid user from datastore: " + userKey);
+        }
+logger.info("sync");
+        lD = listenerToListenerDetails(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
+        lD.loggedIn = true;
+        logger.info("update");
+
+logger.info("done");
+        return lD;
+
+    }
+
     /**
      * Perform the datastore operations necessary when a user successfully logs in
      * @param lD his listenerDetails obtained from his active session
@@ -620,9 +679,37 @@ logger.info("done");
         mdb.updateListener(l);
     }
 
-    public void setUserSongRating(ListenerDetails lD, int rating, String artistID)
+    public void updateUserSongRating(ListenerDetails lD, int rating, String artistID)
             throws AuraException, RemoteException {
-        mdb.addRating(mdb.getListener(lD.openID), artistID, rating);
+        if (lD.loggedIn) {
+            logger.info("Setting rating "+rating+" for artist " + artistID + " for user "+ lD.openID);
+            mdb.addRating(mdb.getListener(lD.openID), artistID, rating);
+        }
+    }
+
+    public int fetchUserSongRating(ListenerDetails lD, String artistID)
+            throws AuraException, RemoteException {
+        if (lD.loggedIn) {
+            logger.info("Fetching rating for artist " + artistID + " for user "+ lD.openID);
+            return mdb.getLatestRating(mdb.getListener(lD.openID), artistID);
+        } else {
+            return 0;
+        }
+    }
+
+    public Map<String,Integer> fetchUserSongRating(ListenerDetails lD, Set<String> artistID)
+            throws AuraException, RemoteException {
+
+        Map<String,Integer> ratingMap = new HashMap<String,Integer>();
+
+        if (lD.loggedIn) {
+            logger.info("Fetching rating for artist " + artistID + " for user "+ lD.openID);
+            Listener l = mdb.getListener(lD.openID);
+            for (String aID : artistID) {
+                ratingMap.put(aID, mdb.getLatestRating(l, aID));
+            }
+        }
+        return ratingMap;
     }
 
     public TagDetails loadTagDetailsFromStore(String id) throws AuraException,
@@ -1060,7 +1147,6 @@ class ExpiringLRUCache {
 
 class ArtistPopularitySorter implements Comparator<Scored<Artist>> {
 
-    @Override
     public int compare(Scored<Artist> o1, Scored<Artist> o2) {
         double s1 = o1.getItem().getPopularity();
         double s2 = o2.getItem().getPopularity();
@@ -1104,7 +1190,6 @@ class TagSorter extends Sorter implements Comparator<Scored<Tag>> {
         }
     }
 
-    @Override
     public int compare(Scored<Tag> o1, Scored<Tag> o2) {
         //@todo freq instead of pop
         double s1 = getField(o1);
@@ -1133,7 +1218,6 @@ class ArtistTagSorter extends Sorter implements Comparator<Scored<ArtistTag>> {
         }
     }
 
-    @Override
     public int compare(Scored<ArtistTag> o1, Scored<ArtistTag> o2) {
         //@todo freq instead of pop
         double s1 = getField(o1);

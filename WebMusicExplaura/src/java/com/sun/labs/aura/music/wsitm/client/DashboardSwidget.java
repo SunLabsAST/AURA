@@ -114,7 +114,7 @@ public class DashboardSwidget extends Swidget {
                 tagsLabel.setStyleName("recoTags");
                 txtPanel.add(tagsLabel);
 
-                txtPanel.add(new StarRatingWidget(0, StarRatingWidget.Size.SMALL));
+                //txtPanel.add(new StarRatingWidget(0, StarRatingWidget.Size.SMALL));
 
                 artistPanel.add(txtPanel);
 
@@ -166,7 +166,7 @@ public class DashboardSwidget extends Swidget {
                 featArtTitle.setStyleName("h2");
                 featArtTitle.setWidth("100%");
                 featArtTitle.setWidget(0, 0, new Label("Featured artist :: "+aD.getName()));
-                featArtTitle.setWidget(0, 1, new StarRatingWidget(0,StarRatingWidget.Size.MEDIUM));
+                //featArtTitle.setWidget(0, 1, new StarRatingWidget(0,StarRatingWidget.Size.MEDIUM));
                 featArtTitle.setWidget(0, 2, WebLib.getSpotifyListenWidget(aD, 30));
 
                 featArtist.setWidget(0, 0, featArtTitle);
