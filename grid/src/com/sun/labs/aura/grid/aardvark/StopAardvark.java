@@ -22,16 +22,14 @@ public class StopAardvark extends Aardvark {
     }
 
     private void stopAardvarkProcesses() {
-        Queue<ProcessRegistration> q = new LinkedList<ProcessRegistration>();
-
         try {
-            gu.stopProcess( getAAName());
+            gu.stopProcess(getAAName());
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Error stopping Aardvark", ex);
         }
         for(int i = 0; i < 6; i++) {
             try {
-                gu.stopProcess( getFMName(i));
+                gu.stopProcess(getFMName(i));
             } catch(Exception ex) {
                 logger.log(Level.SEVERE, "Error stopping feed manager " + i, ex);
             }
@@ -39,13 +37,13 @@ public class StopAardvark extends Aardvark {
 
         try {
 
-            gu.stopProcess( getSchedName());
+            gu.stopProcess(getSchedName());
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Error stopping feed scheduler", ex);
         }
 
         try {
-            gu.stopProcess( getRecName());
+            gu.stopProcess(getRecName());
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Error stopping recommender manager", ex);
         }
