@@ -17,6 +17,8 @@ public class FindSimilarConfig implements Serializable {
     
     private ResultsFilter filter;
     
+    private double skimPercent;
+    
     /**
      * Generate a default configuration.
      */
@@ -53,6 +55,14 @@ public class FindSimilarConfig implements Serializable {
         this.fields = fields;
         this.n = n;
         this.filter = filter;
+    }
+    
+    public void setSkimPercent(double skimPercent) {
+        this.skimPercent = skimPercent;
+    }
+    
+    public double getSkimPercent() {
+        return skimPercent;
     }
     
     public String getField() {

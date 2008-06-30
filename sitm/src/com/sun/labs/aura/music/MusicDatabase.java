@@ -10,6 +10,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.datastore.impl.store.FindSimilarConfig;
 import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
@@ -740,7 +741,7 @@ public class MusicDatabase {
 
     private List<Scored<Item>> findSimilar(String id, int count, ItemType type) throws AuraException {
         try {
-            List<Scored<Item>> simItems = dataStore.findSimilar(id, count, new TypeFilter(type));
+            List<Scored<Item>> simItems = dataStore.findSimilar(id, new FindSimilarConfig(count, new TypeFilter(type)));
             return simItems;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
@@ -749,7 +750,7 @@ public class MusicDatabase {
 
     private List<Scored<Item>> findSimilar(String id, String field, int count, ItemType type) throws AuraException {
         try {
-            List<Scored<Item>> simItems = dataStore.findSimilar(id, field, count, new TypeFilter(type));
+            List<Scored<Item>> simItems = dataStore.findSimilar(id, new FindSimilarConfig(field, count, new TypeFilter(type)));
             return simItems;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
@@ -960,8 +961,9 @@ public class MusicDatabase {
 
         public RecommendationSummary getRecommendations(Listener listener, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
-            List<Scored<Item>> items = dataStore.findSimilar(listener.getKey(), Listener.FIELD_SOCIAL_TAGS,
-                    count * 5, new TypeFilter(ItemType.ARTIST));
+            List<Scored<Item>> items = dataStore.findSimilar(listener.getKey(), 
+                    new FindSimilarConfig(Listener.FIELD_SOCIAL_TAGS,
+                    count * 5, new TypeFilter(ItemType.ARTIST)));
             List<Recommendation> results = new ArrayList();
             Set<String> skipIDS = getAttendedToArtists(listener);
 
