@@ -79,6 +79,10 @@ public class Main implements EntryPoint, HistoryListener {
         registerTokenHeaders(dashboard);
         cdm.registerSwidget(dashboard);
 
+        Swidget steeringRec = new SteeringSwidget(cdm);
+        registerTokenHeaders(steeringRec);
+        cdm.registerSwidget(steeringRec);
+
         Swidget artistSearch = new SimpleSearchWidget(cdm);
         registerTokenHeaders(artistSearch);
 
@@ -113,10 +117,7 @@ public class Main implements EntryPoint, HistoryListener {
     public void onHistoryChanged(String historyToken) {
         if (!historyToken.equals(curToken)) {
             showResults(historyToken);
-/*        } else {
-            Info.display("DEBUG INFO FROM MAIN", "historytoken ("+historyToken+") ==== currToken ("+curToken+")", new Params());
- **/    }
-
+        }
     }
 
     private final String getResultNameHeader(String resultName) {
@@ -129,35 +130,29 @@ public class Main implements EntryPoint, HistoryListener {
         if (tokenHeadersMap.containsKey(resultNameHeader)) {
             setResults(resultName, tokenHeadersMap.get(resultNameHeader));
         } else {
-    //        Info.display("DEBUG INFO FROM MAIN", "can't find token header "+resultNameHeader, new Params());
             setResults("searchHome:", tokenHeadersMap.get("searchHome:"));
         }
     }
 
     private void setResults(String historyName, Swidget newSwidget) {
         if (curSwidget == newSwidget) {
-      //      Info.display("DEBUG INFO FROM MAIN", "switgets are equal. no update", new Params());
             return;
         }
 
         if (!History.getToken().equals(historyName)) {
             History.newItem(historyName);
-        //    Info.display("DEBUG INFO FROM MAIN", "updating curToken to :"+historyName, new Params());
             curToken = historyName;
         } else if (newSwidget.getTokenHeaders().contains(getResultNameHeader(historyName))) {
-        //    Info.display("DEBUG INFO FROM MAIN", "AYAYAYAY!! updating curToken to :"+historyName, new Params());
             curToken = historyName;
         }
 
         if (curSwidget != null) {
-        //    Info.display("DEBUG INFO FROM MAIN", "null swidget", new Params());
             contentPanel.remove(curSwidget);
             cdm.unregisterSwidget(curSwidget);
             curSwidget = null;
         }
 
         if (newSwidget != null) {
-        //    Info.display("DEBUG INFO FROM MAIN", "updataing and putting up new swidget", new Params());
             newSwidget.update();
             contentPanel.add(newSwidget);
             cdm.registerSwidget(newSwidget);

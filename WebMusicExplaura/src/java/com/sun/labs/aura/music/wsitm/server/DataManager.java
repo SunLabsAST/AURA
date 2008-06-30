@@ -20,7 +20,6 @@ import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.SimType;
 import com.sun.labs.aura.music.Video;
 import com.sun.labs.util.props.ConfigurationManager;
-import com.sun.labs.aura.music.web.lastfm.LastFM;
 import com.sun.labs.aura.music.wsitm.client.items.Details;
 import com.sun.labs.aura.music.wsitm.client.items.AlbumDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
@@ -31,6 +30,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.TagTree;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -48,7 +48,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,7 +62,7 @@ public class DataManager implements Configurable {
 
     private static final String MDB_KEY ="MusicDatabase";
     private static final String CACHE_SIZE ="cacheSize";
-    
+
     private static final int DEFAULT_CACHE_SIZE = 500;
     private static final int NUMBER_TAGS_TO_SHOW = 20;
     private static final int NUMBER_SIM_ARTISTS = 20;
@@ -71,40 +70,40 @@ public class DataManager implements Configurable {
     private static final int SEC_TO_LIVE_IN_CACHE = 604800; // 1 week
     private static final int NUMBER_ARTIST_ORACLE = 1000;
     private static final int NUMBER_TAGS_ORACLE = 500;
-    
+
     private Logger logger = Logger.getLogger("");
-    
+
     ConfigurationManager configMgr;
-    
+
     private Map<String, ExpiringLRUCache> cache;
     private MusicDatabase mdb;
     private int expiredTimeInDays = 0;
-    
+
     private static final String beatlesMDID="b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
     private float beatlesPopularity=-1;
-    
+
     private List<String> artistOracle;
     private List<String> tagOracle;
-    
+
     private Map<String, SimType> simTypes;
-    
+
     /**
      * Creates a new instance of the datamanager
      * @param path  the path to the database
      * @param cacheSize  the size of the cache
-     * @throws java.io.IOException  
+     * @throws java.io.IOException
      */
     public DataManager(MusicDatabase mdb, int cacheSize) {
-        
+
         logger.info("Instantiating new DataManager with cache size of "+cacheSize);
-        
+
         //int cacheSize = (int)configMgr.lookup(CACHE_SIZE);
         cache = new HashMap<String, ExpiringLRUCache>();
         for (SimType s : mdb.getSimTypes()) {
             cache.put(s.getName(), new ExpiringLRUCache(cacheSize, SEC_TO_LIVE_IN_CACHE));
         }
         this.mdb = mdb;
-        
+
         artistOracle = new ArrayList<String>();
         tagOracle = new ArrayList<String>();
 
@@ -114,7 +113,7 @@ public class DataManager implements Configurable {
             logger.info("Fetching "+NUMBER_TAGS_ORACLE+" most popular tags...");
             tagOracle = mdb.artistTagGetMostPopularNames(NUMBER_TAGS_ORACLE);
             logger.info("DONE");
-            
+
             beatlesPopularity=mdb.artistLookup(beatlesMDID).getPopularity();
         } catch (AuraException ex) {
             Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
@@ -124,18 +123,18 @@ public class DataManager implements Configurable {
         for (SimType s : mdb.getSimTypes()) {
             simTypes.put(s.getName(), s);
         }
-        
+
         logger.info("DataManager ready.");
     }
-    
+
     public List<String> getArtistOracle() {
         return artistOracle;
     }
-    
+
     public List<String> getTagOracle() {
         return tagOracle;
     }
-    
+
     /**
      * Get the common tags between two artists
      * @param id1 the id of artist 1
@@ -143,12 +142,12 @@ public class DataManager implements Configurable {
      * @param num number of tags to retreive
      * @return the common tags
      */
-    public ItemInfo[] getCommonTags(String id1, String id2, int num, String simType) 
+    public ItemInfo[] getCommonTags(String id1, String id2, int num, String simType)
             throws AuraException, RemoteException {
         List<Scored<String>> simList = simTypes.get(simType).explainSimilarity(id1, id2, num);
         return scoredTagStringToItemInfo(simList);
     }
-    
+
     /**
      * Gets the details for the given artist (by id)
      * @param id  the id of the artist
@@ -156,10 +155,10 @@ public class DataManager implements Configurable {
      * @param simTypeName name of the symType to use
      * @return  the artist details
      */
-    public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName) 
+    public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName)
             throws AuraException, RemoteException {
         ArtistDetails details = null;
-        
+
         details = (ArtistDetails) cache.get(simTypeName).sget(id);
         if (details == null || refresh) {
             details = (ArtistDetails) loadArtistDetailsFromStore(id, simTypes.get(simTypeName));
@@ -177,16 +176,64 @@ public class DataManager implements Configurable {
      * @param id the artist's id
      * @return the artist's details or null if the details are not in the datastore
      */
-    private ArtistDetails loadArtistDetailsFromStore(String id, SimType simType) throws AuraException, 
-            RemoteException {
-        logger.info("Loading artist details from store :: "+id);
+    private ArtistDetails loadArtistDetailsFromStore(String id, SimType simType) 
+            throws AuraException, RemoteException {
+        logger.info("Loading artist details from store :: " + id);
         Artist a = mdb.artistLookup(id);
-        if (a==null) {
+        if (a == null) {
             return null;
         } else {
             return artistToArtistDetails(a, simType);
         }
-   }
+    }
+
+    private ArtistCompact artistToArtistCompact(Artist a) throws AuraException,
+            RemoteException {
+
+        ArtistCompact aC = new ArtistCompact();
+
+        aC.setName(a.getName());
+        aC.setBeginYear(a.getBeginYear());
+        aC.setEndYear(a.getEndYear());
+        aC.setBiographySummary(a.getBioSummary());
+        aC.setId(a.getKey());
+        aC.setPhotos(getArtistPhotoFromIds(a.getPhotos()));
+        aC.setPopularity(a.getPopularity());
+        aC.setSpotifyId(a.getSpotifyID());
+
+        if (beatlesPopularity!=-1) {
+            aC.setNormPopularity(a.getPopularity()/beatlesPopularity);
+        } else {
+            aC.setNormPopularity(-1);
+        }
+
+        try {
+            aC.setEncodedName(URLEncoder.encode(a.getName(), "UTF-8"));
+        } catch (UnsupportedEncodingException ex) {
+            aC.setEncodedName("Error converting name");
+            Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        // Fetch albums
+        Set<String> albumSet = a.getAlbums();
+        AlbumDetails[] albumDetailsArray = new AlbumDetails[albumSet.size()];
+        int index=0;
+        for (String ad : albumSet) {
+            Album storeAlbum = mdb.albumLookup(ad);
+            albumDetailsArray[index] = new AlbumDetails();
+            albumDetailsArray[index].setAsin(storeAlbum.getAsin());
+            albumDetailsArray[index].setId(storeAlbum.getKey());
+            albumDetailsArray[index].setTitle(storeAlbum.getTitle());
+            index++;
+        }
+        aC.setAlbums(albumDetailsArray);
+
+        // Fetch list of distinctive tags
+        List<Scored<String>> distinctiveTags = mdb.artistGetDistinctiveTagNames(a.getKey(), NUMBER_TAGS_TO_SHOW);
+        aC.setDistinctiveTags(scoredTagsNameToIntemInfo(distinctiveTags));
+
+        return aC;
+    }
 
     /**
      * Convert an artist to an ArtistDetails object
@@ -194,7 +241,7 @@ public class DataManager implements Configurable {
      * @param simType similarity type to use to find similar artists
      * @return artistdetails object
      */
-    private ArtistDetails artistToArtistDetails(Artist a, SimType simType) 
+    private ArtistDetails artistToArtistDetails(Artist a, SimType simType)
             throws AuraException, RemoteException {
 
         ArtistDetails details = new ArtistDetails();
@@ -209,7 +256,7 @@ public class DataManager implements Configurable {
         details.setVideos(getArtistVideoFromIds(a.getVideos()));
         details.setPopularity(a.getPopularity());
         details.setSpotifyId(a.getSpotifyID());
-                
+
         if (beatlesPopularity!=-1) {
             details.setNormPopularity(a.getPopularity()/beatlesPopularity);
         } else {
@@ -222,12 +269,16 @@ public class DataManager implements Configurable {
             details.setEncodedName("Error converting name");
             Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
         }
-                
+
         // Fetch similar artists
         List<Scored<Artist>> scoredArtists = simType.findSimilarArtists(a.getKey(), NUMBER_SIM_ARTISTS);
         sortByArtistPopularity(scoredArtists);
-        details.setSimilarArtists(scoredArtistToItemInfo(scoredArtists));
-        
+        ArtistCompact[] simArtist = new ArtistCompact[scoredArtists.size()];
+        for (int i=0; i<scoredArtists.size(); i++) {
+            simArtist[i] = artistToArtistCompact(scoredArtists.get(i).getItem());
+        }
+        details.setSimilarArtists(simArtist);
+
         // Fetch albums
         Set<String> albumSet = a.getAlbums();
         AlbumDetails[] albumDetailsArray = new AlbumDetails[albumSet.size()];
@@ -241,7 +292,7 @@ public class DataManager implements Configurable {
             index++;
         }
         details.setAlbums(albumDetailsArray);
-        
+
         // Fetch upcoming events
         Set<String> eventsSet = a.getEvents();
         ArtistEvent[] eventsArray = new ArtistEvent[eventsSet.size()];
@@ -257,60 +308,44 @@ public class DataManager implements Configurable {
             index++;
         }
         details.setEvents(eventsArray);
-        
+
         // Fetch related artists
         Set<String> collSet = a.getRelatedArtists();
         if (collSet!=null && collSet.size()>0) {
-            List<ItemInfo> artistColl = new ArrayList<ItemInfo>();
-            Artist tempA;
+            List<ArtistCompact> artistColl = new ArrayList<ArtistCompact>();
+            Artist tempArtist;
             for (String aID : collSet) {
-                tempA = mdb.artistLookup(aID);
+                tempArtist = mdb.artistLookup(aID);
                 // If the related artist is not in our database, skip it
-                if (tempA==null) {
+                if (tempArtist==null) {
                     continue;
                 }
-                artistColl.add(new ItemInfo(aID, tempA.getName(),
-                        tempA.getPopularity(), tempA.getPopularity()));
+                artistColl.add(artistToArtistCompact(tempArtist));
             }
             if (artistColl.size()>0) {
-                details.setCollaborations(artistColl.toArray(new ItemInfo[0]));
+                details.setCollaborations(artistColl.toArray(new ArtistCompact[0]));
             }
         }
-        
-        // Fetch and sort frequent tags
-        List<Tag> tagList = a.getSocialTags();
-        List<Scored<ArtistTag>> scoredTags = new ArrayList<Scored<ArtistTag>>();
-        
-        Scored<ArtistTag> aT;
-        for (Tag t : tagList) {
-            aT = new Scored(mdb.artistTagLookup(ArtistTag.nameToKey(t.getName())),t.getCount());
-            // Tag might not be in our database. Only add it if it is
-            if (aT != null && aT.getItem()!=null) {
-                scoredTags.add(aT);
-            }
-        }
-        sortArtistTag(scoredTags, Sorter.sortFields.COUNTorSCORE);
-        details.setFrequentTags(scoredArtistTagToItemInfo(scoredTags.subList(0, getMax(scoredTags,NUMBER_TAGS_TO_SHOW))));
-        
+
         // Fetch list of distinctive tags
-        List<Scored<ArtistTag>> topTags = mdb.artistGetDistinctiveTags(a.getKey(),NUMBER_TAGS_TO_SHOW);
-        details.setDistinctiveTags(scoredArtistTagToItemInfo(topTags));
-        
+        List<Scored<String>> distinctiveTags = mdb.artistGetDistinctiveTagNames(a.getKey(), NUMBER_TAGS_TO_SHOW);
+        details.setDistinctiveTags(scoredTagsNameToIntemInfo(distinctiveTags));
+
         return details;
     }
-    
+
     /**
      * Search for social tags
      * @param searchString the search string
      * @param maxResults  the maximum results to return
      * @return search results
      */
-    public SearchResults tagSearch(String searchString, int maxResults) 
-            throws AuraException, RemoteException {        
+    public SearchResults tagSearch(String searchString, int maxResults)
+            throws AuraException, RemoteException {
         logger.info("DataManager::tagSearch: "+searchString);
         ItemInfo[] tagResults = scoredArtistTagToItemInfo(mdb.artistTagSearch(searchString, maxResults));
 
-        SearchResults sr = new SearchResults(searchString, 
+        SearchResults sr = new SearchResults(searchString,
                 SearchResults.SEARCH_FOR_TAG_BY_TAG, tagResults);
         return sr;
     }
@@ -322,7 +357,7 @@ public class DataManager implements Configurable {
             LastFM lastfm = new LastFM();
             com.sun.labs.aura.music.web.lastfm.Item[] items = lastfm.getTopArtistsForUser(lastfmUser);
             Map<String,TagScoreAccumulator> userTagMap = new HashMap<String,TagScoreAccumulator>();
-            
+
             // For each of this user's top artists
             ArrayList<List<Scored<Tag>>> favArtistTags= new ArrayList<List<Scored<Tag>>>();
             ArrayList<String> favArtistMBID = new ArrayList<String>();
@@ -335,7 +370,7 @@ public class DataManager implements Configurable {
                         // Keep the user's favorite artist's tags
                         favArtistTags.add(sortTag(tags, Sorter.sortFields.COUNTorSCORE));
                         favArtistMBID.add(lsa.get(0).getItem().getKey());
-                        
+
                         for (Tag t : tags) {
                             String tagName = t.getName();
                             double tagValue = (double)t.getCount() * (Math.log(i.getFreq())+1)/Math.log(2);
@@ -351,17 +386,17 @@ public class DataManager implements Configurable {
                     return null;
                 }
             }
-             
+
             List<Scored<Tag>> scoredTags = new ArrayList<Scored<Tag>>();
             for (String key : userTagMap.keySet()) {
                 TagScoreAccumulator tsa = userTagMap.get(key);
                 Tag t = new Tag(tsa.getName(),(int)(tsa.getScore()*100));
-                
+
                 scoredTags.add(new Scored(t, tsa.getScore()));
             }
             scoredTags=sortScoredTag(scoredTags, Sorter.sortFields.POPULARITY);
             logger.info("Returning usertagcloud of size "+scoredTags.size());
-            
+
             ListenerDetails lid = new ListenerDetails();
             lid.userTags=scoredTagToItemInfo(scoredTags);
             ArrayList<ArtistDetails> aaD = new ArrayList<ArtistDetails>();
@@ -384,7 +419,7 @@ public class DataManager implements Configurable {
          * */
         return null;
     }
-    
+
     /**
      * Search for an artist
      * @param maxResults maximum results to return
@@ -394,7 +429,7 @@ public class DataManager implements Configurable {
         logger.info("DataManager::artistSearch: "+searchString);
         ItemInfo[] artistResults = scoredArtistToItemInfo(mdb.artistSearch(searchString, maxResults));
 
-        SearchResults sr = new SearchResults(searchString, 
+        SearchResults sr = new SearchResults(searchString,
                 SearchResults.SEARCH_FOR_ARTIST_BY_TAG, artistResults);
         return sr;
     }
@@ -405,17 +440,17 @@ public class DataManager implements Configurable {
      * @param maxResults maximum number of results to return
      * @return results
      */
-    public SearchResults artistSearchByTag(String searchString, int maxResults) 
+    public SearchResults artistSearchByTag(String searchString, int maxResults)
             throws AuraException, RemoteException {
         logger.info("DataManager::artistSearchByTag: "+searchString);
-        
+
         ArtistTag tag = mdb.artistTagLookup(searchString);
         if (tag==null) {
             // found no results! treat this
             logger.info("DataManager::artistSearchByTag. No results found for : "+searchString);
             return null;
         }
-        
+
         ArrayList<ItemInfo> tagResults = new ArrayList<ItemInfo>();
         for (Tag t : tag.getTaggedArtist()) {
             if (tagResults.size()>=maxResults) {
@@ -426,8 +461,8 @@ public class DataManager implements Configurable {
                 tagResults.add(new ItemInfo(t.getName(), a.getName(), t.getCount(), t.getFreq()));
             }
         }
-        SearchResults sr = new SearchResults(searchString, 
-                SearchResults.SEARCH_FOR_ARTIST_BY_TAG, 
+        SearchResults sr = new SearchResults(searchString,
+                SearchResults.SEARCH_FOR_ARTIST_BY_TAG,
                 tagResults.toArray(new ItemInfo[0]));
         return sr;
     }
@@ -451,13 +486,13 @@ public class DataManager implements Configurable {
         }
         return artistVideoArray;
     }
-    
+
     /**
      * Converts a set of photo ids to an array of ArtistPhoto
      * @param photoSet set of photo ids
      * @return ArtistPhoto array
      */
-    private ArtistPhoto[] getArtistPhotoFromIds(Set<String> photoSet) 
+    private ArtistPhoto[] getArtistPhotoFromIds(Set<String> photoSet)
             throws AuraException, RemoteException {
         ArtistPhoto[] artistPhotoArray = new ArtistPhoto[photoSet.size()];
         int index=0;
@@ -506,7 +541,7 @@ public class DataManager implements Configurable {
      * @param lD
      * @return updated listener
      */
-    public Listener syncListeners(Listener l, ListenerDetails lD, SimType simType, 
+    private Listener syncListeners(Listener l, ListenerDetails lD, SimType simType,
             boolean updateRecommendations) throws AuraException, RemoteException {
 
         if (lD.gender!=null) {
@@ -522,7 +557,7 @@ public class DataManager implements Configurable {
                 lD.gender="M";
             }
         }
-        
+
         if (lD.country!=null) {
             l.setLocaleCountry(lD.country);
         } else if (l.getLocaleCountry()!=null) {
@@ -543,14 +578,70 @@ public class DataManager implements Configurable {
 
         if (updateRecommendations) {
             // Fetch info for recommended artists
-            ArrayList<ArtistDetails> aDetails = new ArrayList<ArtistDetails>();
+            ArrayList<ArtistCompact> aCompact = new ArrayList<ArtistCompact>();
             for (Scored<Artist> a : mdb.getRecommendations(l, NBR_REC_LISTENER)) {
-                aDetails.add(artistToArtistDetails(a.getItem(), simType));
+                aCompact.add(artistToArtistCompact(a.getItem()));
             }
-            lD.recommendations = aDetails.toArray(new ArtistDetails[0]);
+            lD.recommendations = aCompact.toArray(new ArtistCompact[0]);
         }
 
         return l;
+    }
+
+    private ListenerDetails listenerToListenerDetails(Listener l, ListenerDetails lD,
+            SimType simType, boolean updateRecommendations) throws AuraException, RemoteException {
+
+        if (l.getGender()!=null) {
+            if (l.getGender()==Gender.Female) {
+                lD.gender="F";
+            } else if (l.getGender()==Gender.Male) {
+                lD.gender="M";
+            }
+        }
+
+        if (l.getLocaleCountry()!=null) {
+            lD.country=l.getLocaleCountry();
+        }
+
+        if (l.getPandoraName()!=null) {
+            lD.pandoraUser=l.getPandoraName();
+        }
+
+        if (l.getLastFmName()!=null) {
+            lD.lastfmUser=l.getLastFmName();
+        }
+
+        if (updateRecommendations) {
+            // Fetch info for recommended artists
+            ArrayList<ArtistCompact> aCompact = new ArrayList<ArtistCompact>();
+            for (Scored<Artist> a : mdb.getRecommendations(l, NBR_REC_LISTENER)) {
+                aCompact.add(artistToArtistCompact(a.getItem()));
+            }
+            lD.recommendations = aCompact.toArray(new ArtistCompact[0]);
+        }
+
+        return lD;
+    }
+
+    public ListenerDetails establishNonOpenIdUserConnection(String userKey)
+            throws AuraException, RemoteException {
+
+        ListenerDetails lD = new ListenerDetails();
+        Listener l = null;
+
+        l = mdb.getListener(userKey);
+
+        if (l == null) {
+            logger.info("Non openID user '" + lD.openID + "' does not exist.");
+            throw new AuraException("User '"+userKey+"' does not exist.");
+        }
+
+        lD = listenerToListenerDetails(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
+        lD.openID = userKey;
+        lD.loggedIn = true;
+
+        return lD;
+
     }
 
     /**
@@ -573,6 +664,7 @@ public class DataManager implements Configurable {
         }
 
         l = syncListeners(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
+        logger.info("update");
         mdb.updateListener(l);
 
         return lD;
@@ -582,6 +674,39 @@ public class DataManager implements Configurable {
     public void updateUser(ListenerDetails lD) throws AuraException, RemoteException {
         Listener l = syncListeners(mdb.getListener(lD.openID), lD, null, false);
         mdb.updateListener(l);
+    }
+
+    public void updateUserSongRating(ListenerDetails lD, int rating, String artistID)
+            throws AuraException, RemoteException {
+        if (lD.loggedIn) {
+            logger.info("Setting rating "+rating+" for artist " + artistID + " for user "+ lD.openID);
+            mdb.addRating(mdb.getListener(lD.openID), artistID, rating);
+        }
+    }
+
+    public int fetchUserSongRating(ListenerDetails lD, String artistID)
+            throws AuraException, RemoteException {
+        if (lD.loggedIn) {
+            logger.info("Fetching rating for artist " + artistID + " for user "+ lD.openID);
+            return mdb.getLatestRating(mdb.getListener(lD.openID), artistID);
+        } else {
+            return 0;
+        }
+    }
+
+    public Map<String,Integer> fetchUserSongRating(ListenerDetails lD, Set<String> artistID)
+            throws AuraException, RemoteException {
+
+        Map<String,Integer> ratingMap = new HashMap<String,Integer>();
+
+        if (lD.loggedIn) {
+            logger.info("Fetching rating for artist " + artistID + " for user "+ lD.openID);
+            Listener l = mdb.getListener(lD.openID);
+            for (String aID : artistID) {
+                ratingMap.put(aID, mdb.getLatestRating(l, aID));
+            }
+        }
+        return ratingMap;
     }
 
     public TagDetails loadTagDetailsFromStore(String id) throws AuraException,
@@ -600,7 +725,7 @@ public class DataManager implements Configurable {
         details.setPhotos(getArtistPhotoFromIds(tag.getPhotos()));
         details.setVideos(getArtistVideoFromIds(tag.getVideos()));
         details.setPopularity(tag.getPopularity());
-        
+
         try {
             details.setEncodedName(URLEncoder.encode(tag.getName(), "UTF-8"));
         } catch (UnsupportedEncodingException ex) {
@@ -616,12 +741,12 @@ public class DataManager implements Configurable {
         List<Scored<ArtistTag>> simTags = mdb.artistTagFindSimilar(id, NUMBER_TAGS_TO_SHOW);
         sortArtistTag(simTags, Sorter.sortFields.POPULARITY);
         details.setSimilarTags(scoredArtistTagToItemInfo(simTags));
-        
+
         return details;
     }
 
     /**
-     * Returns the maximum between the supplied list's size or the maximum 
+     * Returns the maximum between the supplied list's size or the maximum
      * amount of tags we are allowed to show
      * @param l list to check
      * @return
@@ -634,7 +759,7 @@ public class DataManager implements Configurable {
             return maxNumber;
         }
     }
-    
+
     public Logger getLogger() {
         return logger;
     }
@@ -692,7 +817,7 @@ public class DataManager implements Configurable {
         return new TagTree(id, name, children);
         */
     }
-    
+
     static Set skipSet;
 
     static {
@@ -712,13 +837,13 @@ public class DataManager implements Configurable {
         }
         return sortScoredTag(scoredTags,sortBy);
     }
-    
+
     private List<Scored<Tag>> sortScoredTag(List<Scored<Tag>> scoredTags, Sorter.sortFields sortBy) {
         Collections.sort(scoredTags, new TagSorter(sortBy));
         Collections.reverse(scoredTags);
         return scoredTags;
     }
-    
+
     private void sortArtistTag(List<Scored<ArtistTag>> scoredTags, Sorter.sortFields sortBy) {
         Collections.sort(scoredTags, new ArtistTagSorter(sortBy));
         Collections.reverse(scoredTags);
@@ -739,7 +864,7 @@ public class DataManager implements Configurable {
      * @param isArtist set true if the tag object actually contains artist information
      * @return
      */
-    private ItemInfo[] tagToItemInfo(List<Scored<Tag>> tags, boolean isArtist) 
+    private ItemInfo[] tagToItemInfo(List<Scored<Tag>> tags, boolean isArtist)
             throws AuraException {
 
         Artist a;
@@ -767,9 +892,22 @@ public class DataManager implements Configurable {
         }
         return artistTagResults;
     }
-    
+
+    private ItemInfo[] scoredTagsNameToIntemInfo(List<Scored<String>> tagsName) {
+
+        ItemInfo[] tagResults = new ItemInfo[tagsName.size()];
+        Scored<String> sS;
+
+        for (int i=0; i<tagsName.size(); i++) {
+            sS = tagsName.get(i);
+            tagResults[i] = new ItemInfo(ArtistTag.nameToKey(sS.getItem()),
+                    sS.getItem(), sS.getScore(), sS.getScore());
+        }
+        return tagResults;
+    }
+
     /**
-     * Converts a list of scored artists and returns them in an iteminfo array 
+     * Converts a list of scored artists and returns them in an iteminfo array
      * @param scoredArtists scored list of items (that will be cast as artists)
      * @return
      */
@@ -786,7 +924,7 @@ public class DataManager implements Configurable {
 
         return artistTagResults;
     }
-    
+
     public Map<String, String> getSimTypes() {
         Map<String, String> simTypes = new HashMap<String, String>();
         for (SimType s : mdb.getSimTypes()) {
@@ -794,7 +932,7 @@ public class DataManager implements Configurable {
         }
         return simTypes;
     }
-    
+
     /**
      * Search for a key in all simType caches
      * @param searchKey the key to search for
@@ -810,9 +948,9 @@ public class DataManager implements Configurable {
         }
         return null;
     }
-    
+
     /**
-     * Converts a list of scored tags and returns them in an iteminfo array 
+     * Converts a list of scored tags and returns them in an iteminfo array
      * @param scoredArtists scored list of items (that will be cast as artists)
      * @return
      */
@@ -829,9 +967,9 @@ public class DataManager implements Configurable {
 
         return tagResults;
     }
-    
+
     /**
-     * Converts a list of scored artists and returns them in an iteminfo array 
+     * Converts a list of scored artists and returns them in an iteminfo array
      * @param scoredArtists scored list of items (that will be cast as artists)
      * @param fetchTags fetch the distinctive tags and spotify id and store them in ItemInfo?
      * @return
@@ -866,7 +1004,7 @@ public class DataManager implements Configurable {
                 } else {
                     popularity = aT.getPopularity();
                 }
-                tagsArray.add(new ItemInfo(sS.getItem(), sS.getItem(), sS.getScore(), 
+                tagsArray.add(new ItemInfo(sS.getItem(), sS.getItem(), sS.getScore(),
                         popularity));
             } catch (AuraException ex) {
                 Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
@@ -887,7 +1025,7 @@ public class DataManager implements Configurable {
         }
         return stringIDs;
     }
-        
+
     public int getExpiredTimeInDays() {
         return expiredTimeInDays;
     }
@@ -895,15 +1033,15 @@ public class DataManager implements Configurable {
     public void setExpiredTimeInDays(int expiredTimeInDays) {
         this.expiredTimeInDays = expiredTimeInDays;
     }
-    
+
     public void newProperties(PropertySheet ps) throws PropertyException {
         //@todo fix this
         //log.log("annon", "WebMusicExplaura (Datamanager) newProperties called", "");
         mdb = (MusicDatabase) ps.getComponent(MDB_KEY);
         //int cacheSize = (Integer)ps.getComponent(CACHE_SIZE);
-        
+
     }
-    
+
     public MusicDatabase getMusicDatabase() {
         return mdb;
     }
@@ -912,24 +1050,24 @@ public class DataManager implements Configurable {
 class TagScoreAccumulator {
     private String name;
     private double score;
-    
+
     public TagScoreAccumulator(String name, double score) {
         this.name=name;
         this.score=score;
     }
-    
+
     public double getScore() {
         return score;
     }
-    
+
     public String getName() {
         return name;
     }
-    
+
     public String getKey() {
         return ArtistTag.nameToKey(name);
     }
-    
+
     public void accum(double score) {
         this.score+=score;
     }
@@ -938,26 +1076,26 @@ class TagScoreAccumulator {
 class ExpiringLRUCache {
 
     private LRUCache<String, Object> cache;
-    private int time2live; // time objects can live in cache in millisec
-    
+    private long time2live; // time objects can live in cache in millisec
+
     public ExpiringLRUCache(int maxSize, int time2live) {
         cache = new LRUCache(maxSize);
-        this.time2live=time2live*1000;
+        this.time2live = time2live*1000;
     }
-    
+
     public Object sget(String s) {
-        ObjectContainer o = (ObjectContainer)cache.sget(s);
-        if (o==null || o.getExpiration()<System.currentTimeMillis()) {
+        ObjectContainer o = (ObjectContainer) cache.sget(s);
+        if (o == null || o.getExpiration() < System.currentTimeMillis()) {
             return null;
         } else {
             return o.getObject();
         }
     }
-    
+
     public Object sput(String s, Object o) {
-        return cache.sput(s, new ObjectContainer((int) (System.currentTimeMillis() + time2live), o));
+        return cache.sput(s, new ObjectContainer(System.currentTimeMillis() + time2live, o));
     }
-    
+
     private class LRUCache<String, Object> extends LinkedHashMap<String, Object> {
 
         private int maxSize;
@@ -983,30 +1121,29 @@ class ExpiringLRUCache {
      }
 
     private class ObjectContainer {
-        
+
         private Object obj;
-        private int expiration;
-        
-        public ObjectContainer(int creationTime, Object obj) {
+        private long expiration;
+
+        public ObjectContainer(long creationTime, Object obj) {
             this.expiration=creationTime;
             this.obj=obj;
         }
-        
+
         public Object getObject() {
             return obj;
         }
-        
-        public int getExpiration() {
+
+        public long getExpiration() {
             return expiration;
         }
-        
+
     }
 
 }
 
 class ArtistPopularitySorter implements Comparator<Scored<Artist>> {
 
-    @Override
     public int compare(Scored<Artist> o1, Scored<Artist> o2) {
         double s1 = o1.getItem().getPopularity();
         double s2 = o2.getItem().getPopularity();
@@ -1023,17 +1160,17 @@ class ArtistPopularitySorter implements Comparator<Scored<Artist>> {
 abstract class Sorter {
 
     protected sortFields sortBy;
-    
+
     public static enum sortFields {
         COUNTorSCORE,
         POPULARITY
-    
+
     }
-    
+
     public Sorter(sortFields sortBy) {
         this.sortBy=sortBy;
     }
-    
+
 }
 
 class TagSorter extends Sorter implements Comparator<Scored<Tag>> {
@@ -1041,7 +1178,7 @@ class TagSorter extends Sorter implements Comparator<Scored<Tag>> {
     public TagSorter(sortFields sortBy) {
         super(sortBy);
     }
-    
+
     private final double getField(Scored<Tag> o) {
         if (sortBy==sortFields.COUNTorSCORE) {
             return o.getItem().getCount();
@@ -1049,8 +1186,7 @@ class TagSorter extends Sorter implements Comparator<Scored<Tag>> {
             return o.getItem().getFreq();
         }
     }
-    
-    @Override
+
     public int compare(Scored<Tag> o1, Scored<Tag> o2) {
         //@todo freq instead of pop
         double s1 = getField(o1);
@@ -1070,7 +1206,7 @@ class ArtistTagSorter extends Sorter implements Comparator<Scored<ArtistTag>> {
     public ArtistTagSorter(sortFields sortBy) {
         super(sortBy);
     }
-    
+
     private final double getField(Scored<ArtistTag> o) {
         if (sortBy==sortFields.COUNTorSCORE) {
             return o.getScore();
@@ -1078,8 +1214,7 @@ class ArtistTagSorter extends Sorter implements Comparator<Scored<ArtistTag>> {
             return o.getItem().getPopularity();
         }
     }
-    
-    @Override
+
     public int compare(Scored<ArtistTag> o1, Scored<ArtistTag> o2) {
         //@todo freq instead of pop
         double s1 = getField(o1);

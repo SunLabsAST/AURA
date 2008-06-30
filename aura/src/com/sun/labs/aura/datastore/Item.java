@@ -23,7 +23,8 @@ public interface Item extends Serializable, Iterable<Map.Entry<String,Serializab
         VIDEO,
         EVENT,
         VENUE,
-        ARTIST_TAG
+        ARTIST_TAG,
+        TAG_CLOUD
     }
     
     /**

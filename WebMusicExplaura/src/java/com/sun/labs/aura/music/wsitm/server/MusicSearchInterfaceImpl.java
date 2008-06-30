@@ -23,6 +23,7 @@ import com.sun.labs.aura.util.AuraException;
 import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
@@ -179,6 +180,18 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    public ListenerDetails getNonOpenIdLogInDetails(String userKey) throws WebException {
+        try {
+            return dm.establishNonOpenIdUserConnection(userKey);
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
     public ListenerDetails getLogInDetails() throws WebException {
         try {
             ListenerDetails lD = new ListenerDetails();
@@ -236,6 +249,42 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         logger.info("UpdateListener :: "+lD.openID);
         try {
             dm.updateUser(lD);
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
+    public void updateUserSongRating(ListenerDetails lD, int rating, String artistID) throws WebException {
+        try {
+            dm.updateUserSongRating(lD, rating, artistID);
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
+    public Integer fetchUserSongRating(ListenerDetails lD, String artistID) throws WebException {
+        try {
+            return new Integer(dm.fetchUserSongRating(lD, artistID));
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
+    public Map<String,Integer> fetchUserSongRating(ListenerDetails lD, Set<String> artistID) throws WebException {
+        try {
+            return dm.fetchUserSongRating(lD, artistID);
         } catch (AuraException ex) {
             logger.severe(traceToString(ex));
             throw new WebException(ex.getMessage(), ex);

@@ -17,6 +17,7 @@ import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.Recommendation;
+import com.sun.labs.aura.music.RecommendationSummary;
 import com.sun.labs.aura.music.RecommendationType;
 import com.sun.labs.aura.music.crawler.ListenerCrawler;
 import com.sun.labs.aura.music.crawler.TagCrawler;
@@ -32,7 +33,6 @@ import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
-import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -409,11 +409,13 @@ public class MusicShell implements AuraService, Configurable {
                         return "Can't find listener " + listenerID;
                     }
 
-                    List<Recommendation> recommendations = rtype.getRecommendations(listener, sutils.getHits(), null);
+                    RecommendationSummary rs =  rtype.getRecommendations(listener, sutils.getHits(), null);
 
-                    for (Recommendation r : recommendations) {
+                    System.out.println(rs.getExplanation());
+                    for (Recommendation r : rs.getRecommendations()) {
                         Artist artist = musicDatabase.artistLookup(r.getId());
-                        System.out.printf(" %.2f  %s\n    %s\n", r.getScore(), artist.getName(), r.getExplanation());
+                        System.out.printf(" %.2f  %s\n", r.getScore(), artist.getName());
+                        System.out.printf("    %s\n", scoredListToString(r.getExplanation()));
                     }
                     return "";
                 }
@@ -614,6 +616,15 @@ public class MusicShell implements AuraService, Configurable {
             throw new PropertyException(ex, "MusicShell", ps.getInstanceName(), "Can't create music database");
         }
     }
+
+    private String scoredListToString(List<Scored<String>> list) {
+        StringBuilder sb = new StringBuilder();
+        for (Scored<String> ss : list) {
+            sb.append(String.format("(%s,%.3f)", ss.getItem(), ss.getScore()));
+        }
+        return sb.toString().trim();
+    }
+
     /**
      * the configurable property for the itemstore used by this manager
      */

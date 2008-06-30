@@ -98,7 +98,10 @@
             <!-- Upload build script to unzip service distribution -->
             <fileset dir="${basedir}/on-grid-scripts">
                 <include name="build.xml"/>
-            </fileset>           
+            </fileset>
+            <fileset dir="${tool.libraries}">
+                <include name="jsk-all.policy"/>
+            </fileset>
         </dav:put>    
     </target>
     

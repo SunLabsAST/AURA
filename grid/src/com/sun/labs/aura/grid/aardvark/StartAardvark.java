@@ -10,7 +10,7 @@ import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.RunState;
 import com.sun.labs.aura.datastore.DataStore;
-import com.sun.labs.aura.grid.GridUtil;
+import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.PropertyException;
@@ -40,28 +40,28 @@ public class StartAardvark extends Aardvark {
     public void startAardvarkProcesses() throws Exception {
         //
         // Start the Feed Scheduler
-        NetworkAddress crawlerNat = GridUtil.getExternalAddressFor(grid, network, "feedMgrNat");
+        NetworkAddress crawlerNat = gu.getExternalAddressFor("feedMgrNat");
         ProcessRegistration feedSchedReg =
-                GridUtil.createProcess(grid, getSchedName(), getFeedSchedulerConfig());
+                gu.createProcess(getSchedName(), getFeedSchedulerConfig());
 
         UUID internal = feedSchedReg.getRegistrationConfiguration().
                 getNetworkAddresses().iterator().next();
-        GridUtil.createNAT(grid, instance, crawlerNat.getUUID(), internal, "feedSched");
-        GridUtil.startRegistration(feedSchedReg);
+        gu.createNAT(crawlerNat.getUUID(), internal, "feedSched");
+        gu.startRegistration(feedSchedReg);
 
         //
         // Start a few feed crawlers
         ProcessRegistration lastReg = null;
         for(int i = 0; i < numCrawlers; i++) {
             ProcessConfiguration feedMgrConfig = getFeedManagerConfig(i);
-            ProcessRegistration feedMgrReg = GridUtil.createProcess(grid, getFMName(i),
+            ProcessRegistration feedMgrReg = gu.createProcess( getFMName(i),
                     feedMgrConfig);
 
             //
             // Make a dynamic NAT for this process config
             internal = feedMgrConfig.getNetworkAddresses().iterator().next();
-            GridUtil.createNAT(grid, instance, crawlerNat.getUUID(), internal, "feedMgr-" + i);
-            GridUtil.startRegistration(feedMgrReg, false);
+            gu.createNAT(crawlerNat.getUUID(), internal, "feedMgr-" + i);
+            gu.startRegistration(feedMgrReg, false);
             lastReg = feedMgrReg;
         }
 
@@ -71,15 +71,15 @@ public class StartAardvark extends Aardvark {
         
         //
         // Create a recommendation manager
-        ProcessRegistration recReg = GridUtil.createProcess(grid, getRecName(),
+        ProcessRegistration recReg = gu.createProcess( getRecName(),
                 getRecommenderConfig());
-        GridUtil.startRegistration(recReg);
+        gu.startRegistration(recReg);
 
         //
         // And now make an Aardvark
-        ProcessRegistration aardvarkReg = GridUtil.createProcess(grid, getAAName(),
+        ProcessRegistration aardvarkReg = gu.createProcess( getAAName(),
                 getAardvarkConfig());
-        GridUtil.startRegistration(aardvarkReg);
+        gu.startRegistration(aardvarkReg);
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {

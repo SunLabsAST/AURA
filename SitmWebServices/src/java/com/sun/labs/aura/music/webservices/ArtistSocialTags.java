@@ -84,7 +84,7 @@ public class ArtistSocialTags extends HttpServlet {
                                 Util.tagClose(out, SERVLET_NAME);
                             } else {
 
-                                List<Scored<String>> tags = mdb.artistGetDistinctiveTags(key, maxCount);
+                                List<Scored<String>> tags = mdb.artistGetDistinctiveTagNames(key, maxCount);
 
                                 out.println("<ArtistSocialTags>");
                                 for (Scored<String> scoredTag : tags) {

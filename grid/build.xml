@@ -163,5 +163,7 @@
                 <include name="**/*"/>
             </fileset>
         </dav:put>
+        <!-- Redo the jar target so that the service deployer is the main program! -->
+        <antcall target="jar"/>
     </target>
 </project>

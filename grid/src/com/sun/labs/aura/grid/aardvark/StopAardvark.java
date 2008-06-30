@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.grid.aardvark;
 
+import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.aura.grid.*;
 import com.sun.caroline.platform.ProcessRegistration;
 import java.util.LinkedList;
@@ -21,16 +22,14 @@ public class StopAardvark extends Aardvark {
     }
 
     private void stopAardvarkProcesses() {
-        Queue<ProcessRegistration> q = new LinkedList<ProcessRegistration>();
-
         try {
-            q.add(GridUtil.stopProcess(grid, getAAName()));
+            gu.stopProcess(getAAName());
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Error stopping Aardvark", ex);
         }
         for(int i = 0; i < 6; i++) {
             try {
-                q.add(GridUtil.stopProcess(grid, getFMName(i)));
+                gu.stopProcess(getFMName(i));
             } catch(Exception ex) {
                 logger.log(Level.SEVERE, "Error stopping feed manager " + i, ex);
             }
@@ -38,19 +37,19 @@ public class StopAardvark extends Aardvark {
 
         try {
 
-            q.add(GridUtil.stopProcess(grid, getSchedName()));
+            gu.stopProcess(getSchedName());
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Error stopping feed scheduler", ex);
         }
 
         try {
-            q.add(GridUtil.stopProcess(grid, getRecName()));
+            gu.stopProcess(getRecName());
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Error stopping recommender manager", ex);
         }
 
         try {
-            GridUtil.waitForFinish(q);
+            gu.waitForFinish();
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Error waiting for processes to finish", ex);
         }
