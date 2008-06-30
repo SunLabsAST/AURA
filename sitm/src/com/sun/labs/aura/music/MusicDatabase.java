@@ -488,8 +488,8 @@ public class MusicDatabase {
      * @return a list of artists scored by their similarity to the seed artist.
      * @throws com.sun.labs.aura.util.AuraException
      */
-    public List<Scored<Artist>> tagCloudFindSimilarArtists(String tagCloudID, int count) throws AuraException {
-        List<Scored<Item>> simItems = findSimilar(tagCloudID, TagCloud.FIELD_SOCIAL_TAGS, count, ItemType.ARTIST);
+    public List<Scored<Artist>> tagCloudFindSimilarArtists(TagCloud tagCloud, int count) throws AuraException {
+        List<Scored<Item>> simItems = findSimilar(tagCloud.getKey(), TagCloud.FIELD_SOCIAL_TAGS, count, ItemType.ARTIST);
         return convertToScoredArtistList(simItems);
     }
 
@@ -500,8 +500,9 @@ public class MusicDatabase {
      * @return a list of artists scored by their similarity to the seed artist.
      * @throws com.sun.labs.aura.util.AuraException
      */
-    public List<Scored<TagCloud>> tagCloudFindSimilarTagClouds(String tagCloudID, int count) throws AuraException {
-        List<Scored<Item>> simItems = findSimilar(tagCloudID, Artist.FIELD_SOCIAL_TAGS, count, ItemType.TAG_CLOUD);
+    public List<Scored<TagCloud>> tagCloudFindSimilarTagClouds(TagCloud tagCloud, int count) throws AuraException {
+        // BUG: fix this once the new similarity methods are in place
+        List<Scored<Item>> simItems = findSimilar(tagCloud.getKey(), Artist.FIELD_SOCIAL_TAGS, count, ItemType.TAG_CLOUD);
         return convertToScoredTagCloudList(simItems);
     }
 
