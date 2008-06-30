@@ -694,16 +694,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         DocumentVector dv = pc.getDocumentVector(key);
-        int numClusters = trie.size();
-        PCLatch latch;
-        if (config.getN() == 1) {
-            // Special case:
-            // Return if we've heard from three quarters of our clusters
-            latch = new PCLatch(numClusters, 20000);
-        } else {
-            latch = new PCLatch(numClusters);
-        }
-        return findSimilar(dv, config, latch);
+        int numClusters = (int) Math.ceil(trie.size() * config.getReportPercent());
+        return findSimilar(dv, config, new PCLatch(numClusters, config.getTimeout()));
     }
 
 
@@ -714,8 +706,9 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
             dvs.add(pc.getDocumentVector(key));
         }
+        int numClusters = (int) Math.ceil(trie.size() * config.getReportPercent());
         MultiDocumentVectorImpl mdvi = new MultiDocumentVectorImpl(dvs);
-        PCLatch latch = new PCLatch(trie.size());
+        PCLatch latch = new PCLatch(numClusters, config.getTimeout());
         return findSimilar(mdvi, config, latch);
     }
 
@@ -743,7 +736,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
                 public List<Scored<Item>> call()
                         throws AuraException, RemoteException {
-                    List<Scored<Item>> ret = pc.findSimilar(dv, config.getN(), rf);
+                    List<Scored<Item>> ret = pc.findSimilar(dv, config);
                     latch.countDown();
                     return ret;
                 }
@@ -1046,7 +1039,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     }
     
     protected static class PCLatch extends CountDownLatch {
-        protected int timeout;
+        protected long timeout;
         protected int initialCount;
         protected boolean allowPartialResults;
         
@@ -1080,7 +1073,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
          * @param count the initial count of the latch
          * @param timeout the initial time to wait in milliseconds
          */
-        public PCLatch(int count, int timeout) {
+        public PCLatch(int count, long timeout) {
             super(count);
             initialCount = count;
             this.timeout = timeout;
@@ -1096,7 +1089,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             return allowPartialResults;
         }
 
-        public int getTimeout() {
+        public long getTimeout() {
             return timeout;
         }
         

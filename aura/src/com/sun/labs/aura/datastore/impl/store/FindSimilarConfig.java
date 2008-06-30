@@ -13,17 +13,32 @@ public class FindSimilarConfig implements Serializable {
     
     private WeightedField[] fields;
     
-    private int n;
+    private int n = 10;
     
     private ResultsFilter filter;
     
-    private double skimPercent;
+    /**
+     * The percentage of terms that should be used when doing find similars using
+     * this config.
+     */
+    private double skimPercent = 0.25;
+    
+    /**
+     * The percentage of clusters that need to report results before the result
+     * set will be used.  Defaults to 0.75.
+     */
+    private double reportPercent = 0.75;
+    
+    /**
+     * The timeout (in ms) after which we will stop waiting for more results.
+     * Defaults to zero, which means that no timeout will be used.
+     */
+    private long timeout;
     
     /**
      * Generate a default configuration.
      */
     public FindSimilarConfig() {
-        n = 10;
     }
     
     public FindSimilarConfig(int n) {
@@ -63,6 +78,22 @@ public class FindSimilarConfig implements Serializable {
     
     public double getSkimPercent() {
         return skimPercent;
+    }
+
+    public double getReportPercent() {
+        return reportPercent;
+    }
+
+    public void setReportPercent(double reportPercent) {
+        this.reportPercent = reportPercent;
+    }
+
+    public long getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(long timeout) {
+        this.timeout = timeout;
     }
     
     public String getField() {
