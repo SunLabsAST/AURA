@@ -39,7 +39,7 @@ To start Aura, we'll use the StartAura deployer.  The standard build
 for the grid project generates a grid.jar that has ServiceDeployer as
 its main program, so from the grid project directory you could say:
 
-java -jar dist/grid.jar /com/sun/labs/aura/grid/auraConfig.xml start
+java -jar dist/grid.jar /com/sun/labs/aura/grid/aura/auraConfig.xml start
 
 The configuration file (auraConfig.xml) contains the configuration for
 the components that will be run-on grid that will deploy the aura
@@ -52,7 +52,7 @@ grid using the -a argument to ServiceDeployer.  So, if you want to run
 an eight node data store you could use the invocation:
 
 java -jar dist/grid.jar -a "-DnNodes=8" \
-     /com/sun/labs/aura/grid/auraConfig.xml start
+     /com/sun/labs/aura/grid/aura/auraConfig.xml start
 
 Note that you can't give the number of nodes as an argument to the JVM
 from which you're running ServiceDeployer:  it needs to make it
@@ -61,7 +61,7 @@ run!
 
 You can stop the on-grid aura using the invocation:
 
-java -jar dist/grid.jar /com/sun/labs/aura/grid/auraConfig.xml stop
+java -jar dist/grid.jar /com/sun/labs/aura/grid/aura/auraConfig.xml stop
 
 which runs the StopAura deployer on the grid.  Note that if you
 started up a data store with a non-default number of nodes, you need

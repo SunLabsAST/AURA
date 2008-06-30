@@ -29,6 +29,7 @@ import java.util.Set;
  * types to add and retrieve data from the item map in a type-friendly fashion.
  */
 public abstract class ItemAdapter implements Serializable {
+
     protected Item item;
     private boolean modified;
 
@@ -378,6 +379,14 @@ public abstract class ItemAdapter implements Serializable {
 
             Tag tag = new Tag(tagName, count);
             tagMap.put(tagName, tag);
+            modified = true;
+        }
+    }
+
+    protected void removeTag(String field, String tagName) {
+        Map<String, Tag> tagMap = getTagMap(field);
+        if (tagMap != null) {
+            tagMap.remove(tagName);
             modified = true;
         }
     }
