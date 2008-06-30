@@ -432,7 +432,7 @@ public class ItemSearchEngine implements Configurable {
         //
         // Recover from having been serialized.
         dv.setEngine(engine);
-        ResultSet sim = dv.findSimilar("-score", skimPercentage);
+        ResultSet sim = dv.findSimilar("-score", config.getSkimPercent());
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         NanoWatch nw = new NanoWatch();
         nw.start();
