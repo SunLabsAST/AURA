@@ -46,8 +46,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         logger.info("Init");
         super.init(sc);
         dm = ServletTools.getDataManager(sc);
-        //logger = dm.getLogger();
-        //logger.log("_system_", "startup", "");
     }
 
     public SearchResults tagSearch(String searchString, int maxResults) throws WebException {
