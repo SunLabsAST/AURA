@@ -10,6 +10,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.datastore.impl.store.FindSimilarConfig;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.WeightedField;
 import com.sun.labs.minion.util.NanoWatch;
@@ -418,7 +419,7 @@ public class ShellUtils {
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
                         String key = args[1];
-                        List<Scored<Item>> items = dataStore.findSimilar(key, nHits, null);
+                        List<Scored<Item>> items = dataStore.findSimilar(key, new FindSimilarConfig(nHits));
                         dumpScoredItems(items);
                         return "";
                     }
@@ -434,7 +435,7 @@ public class ShellUtils {
                             throws Exception {
                         String field = args[1];
                         String key = args[2];
-                        List<Scored<Item>> items = dataStore.findSimilar(key, field, nHits, null);
+                        List<Scored<Item>> items = dataStore.findSimilar(key, new FindSimilarConfig(field, nHits, null));
                         dumpScoredItems(items);
                         return "";
                     }
@@ -506,7 +507,7 @@ public class ShellUtils {
                         for (WeightedField wf : fields) {
                             System.out.printf("   %s: %f\n", wf.getFieldName(), wf.getWeight());
                         }
-                        List<Scored<Item>> items = dataStore.findSimilar(key, fields, nHits, null);
+                        List<Scored<Item>> items = dataStore.findSimilar(key, new FindSimilarConfig(fields, nHits, null));
                         dumpScoredItems(items);
                         return "";
                     }
