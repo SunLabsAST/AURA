@@ -107,7 +107,7 @@ until [ -z "$cmd" ]; do
 	    # SIGTERM goes to SSH on the local machine rather than tail on the remote machine, so cleanup currently requires:
 	    # ToDo: Clean this up and make it less prone to accidentally killing processes unintentionally.
 	    #   startDataStore.sh -host search.east killalltail
-	    for pid in $(ps -ef | grep $(whoami) | gawk '{if(match($8,/tail/)) print $2}'); do
+	    for pid in $(ps -ef | grep $(whoami) | gawk '{if(match($9,/tail/)) print $2}'); do
 		echo "Killing tail PID: $pid"
 		kill $pid;
 	    done
