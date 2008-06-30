@@ -281,6 +281,24 @@ public class MusicDatabase {
         return results;
     }
 
+    public TagCloud tagCloudCreate(String id, String name) throws AuraException {
+        if (getTagCloud(id) == null) {
+            Item item = StoreFactory.newItem(ItemType.TAG_CLOUD, id, name);
+            return new TagCloud(item);
+        } else {
+            throw new AuraException("attempting to create duplicate tagcloud " + id);
+        }
+    }
+
+    public TagCloud getTagCloud(String id) throws AuraException {
+        try {
+            Item item = dataStore.getItem(id);
+            return new TagCloud(item);
+        } catch (RemoteException rx) {
+            throw new AuraException("Error communicating with item store", rx);
+        }
+    }
+
     private Artist getRandomGoodArtistFromListener(Listener listener) throws AuraException, RemoteException {
         List<Attention> attentions = dataStore.getAttentionForSource(listener.getKey());
         attentions = filterOut(attentions, Attention.Type.DISLIKED);
@@ -461,6 +479,30 @@ public class MusicDatabase {
     public List<Scored<Artist>> artistFindSimilar(String artistID, int count) throws AuraException {
         List<Scored<Item>> simItems = findSimilar(artistID, Artist.FIELD_SOCIAL_TAGS, count, ItemType.ARTIST);
         return convertToScoredArtistList(simItems);
+    }
+    
+    /**
+     * Find the most similar artist to a given tagcloud
+     * @param tagCloudID the ID of the tag cloud
+     * @param count the number of similar artists to return
+     * @return a list of artists scored by their similarity to the seed artist.
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public List<Scored<Artist>> tagCloudFindSimilarArtists(String tagCloudID, int count) throws AuraException {
+        List<Scored<Item>> simItems = findSimilar(tagCloudID, TagCloud.FIELD_SOCIAL_TAGS, count, ItemType.ARTIST);
+        return convertToScoredArtistList(simItems);
+    }
+
+    /**
+     * Find the most similar tag cloud to a given tagcloud
+     * @param tagCloudID the ID of the tag cloud
+     * @param count the number of similar artists to return
+     * @return a list of artists scored by their similarity to the seed artist.
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public List<Scored<TagCloud>> tagCloudFindSimilarTagClouds(String tagCloudID, int count) throws AuraException {
+        List<Scored<Item>> simItems = findSimilar(tagCloudID, Artist.FIELD_SOCIAL_TAGS, count, ItemType.TAG_CLOUD);
+        return convertToScoredTagCloudList(simItems);
     }
 
     /**
@@ -669,6 +711,14 @@ public class MusicDatabase {
             artistList.add(new Scored<Artist>(new Artist(scoredItem.getItem()), scoredItem.getScore()));
         }
         return artistList;
+    }
+
+    private List<Scored<TagCloud>> convertToScoredTagCloudList(List<Scored<Item>> items) {
+        List<Scored<TagCloud>> tagCloudList = new ArrayList();
+        for (Scored<Item> scoredItem : items) {
+            tagCloudList.add(new Scored<TagCloud>(new TagCloud(scoredItem.getItem()), scoredItem.getScore()));
+        }
+        return tagCloudList;
     }
 
     private List<Scored<Listener>> convertToScoredListenerList(List<Scored<Item>> items) {
