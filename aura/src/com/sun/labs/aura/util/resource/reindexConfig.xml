@@ -16,7 +16,7 @@
     
     <property name="num_pipelines" value="1"/>
     
-    <property name="startingDataDir" value="${auraHome}/starting.idx"/>
+    <property name="startingDataDir" value="/starting.idx"/>
 
     <!-- A search engine that can be used to do classification -->
     <component name="aardvark_search_engine" inherit="search_engine">

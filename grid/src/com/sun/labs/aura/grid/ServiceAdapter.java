@@ -9,6 +9,7 @@ import com.sun.caroline.platform.Grid;
 import com.sun.caroline.platform.GridFactory;
 import com.sun.caroline.platform.ProcessContext;
 import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
@@ -29,6 +30,8 @@ public abstract class ServiceAdapter implements Configurable, AuraService {
     protected Logger logger;
 
     protected Grid grid;
+    
+    protected GridUtil gu;
     
     /**
      * Gets the name of this service, suitable for placing in error messages.
@@ -59,8 +62,13 @@ public abstract class ServiceAdapter implements Configurable, AuraService {
                     PROP_INSTANCE, "Cannot run " + serviceName() + " off-grid");
         }
         grid = context.getGrid();
-
         instance = ps.getString(PROP_INSTANCE);
+        try {
+            gu = new GridUtil(grid, instance);
+        } catch(Exception e) {
+            throw new PropertyException("network", "network",
+                    "Can't create network");
+        }
     }
 
 }

@@ -24,6 +24,7 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -32,6 +33,7 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -40,6 +42,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -54,7 +57,8 @@ public class PageHeaderWidget extends Swidget {
     // toolbar objects
     private ToolBar toolBar;
     TextToolItem recTypeToolItem;
-    
+
+    private ListBox listbox;
     
     public PageHeaderWidget(ClientDataManager cdm) {
         super("pageHeader",cdm);
@@ -78,16 +82,11 @@ public class PageHeaderWidget extends Swidget {
         Label lbl = new Label("Recommendation type : ");
         lbl.setStyleName("headerMenuMed");
         hP.add(lbl);
-        
-        toolBar = new ToolBar();
-        toolBar.setWidth(100);
-        Info.display("toolbar",toolBar.getBaseStyle(), new Params());
-        
-        recTypeToolItem = new TextToolItem("Loading...");
-        recTypeToolItem.setIconStyle("icon-menu-show");
 
-        toolBar.add(recTypeToolItem);
-        hP.add(toolBar);
+        listbox = new ListBox(false);
+        listbox.addItem("Loading...");
+        hP.add(listbox);
+
         mainPanel.setWidget(0, 2, hP);
         mainPanel.getCellFormatter().getElement(0, 2).setAttribute("align", "right");
 
@@ -122,41 +121,31 @@ public class PageHeaderWidget extends Swidget {
             public void onSuccess(Object arg0) {
                 cdm.setSimTypes((Map<String, String>) arg0);
                 
-                Menu menu = new Menu();
-                boolean firstElem = true;
-                for (String name : cdm.getSimTypes().keySet()) {
-                    CheckMenuItem r = new CheckMenuItem(name);
-                    r.setGroup("recType");
-                    r.setItemId(name);
-                    r.setToolTip(cdm.getSimTypes().get(name));
-                    r.addSelectionListener(new SelectionListener<MenuEvent>() {
+                listbox.clear();
+                String[] keyArray = cdm.getSimTypes().keySet().toArray(new String[0]);
+                for (int i=keyArray.length-1; i>=0; i--) {
+                    listbox.addItem(keyArray[i], keyArray[i]);
+                }
+                listbox.setSelectedIndex(0);
+                cdm.setCurrSimTypeName(listbox.getItemText(0));
+                listbox.addChangeListener(new ChangeListener() {
 
-                        public void componentSelected(MenuEvent arg0) {
+                    public void onChange(Widget arg0) {
+
+                            String newSelectName = listbox.getItemText(listbox.getSelectedIndex());
+
                             // If the selection has changed
-                            if (!cdm.getCurrSimTypeName().equals(((CheckMenuItem)arg0.item).getItemId())) {
-                                recTypeToolItem.setText(((CheckMenuItem)arg0.item).getItemId());
-                                cdm.setCurrSimTypeName(((CheckMenuItem)arg0.item).getItemId());
+                            if (!cdm.getCurrSimTypeName().equals(newSelectName)) {
+                                cdm.setCurrSimTypeName(newSelectName);
 
                                 if (!cdm.getCurrArtistID().equals("")) {
                                     cdm.displayWaitIconUpdatableWidgets();
                                     invokeGetArtistInfo(cdm.getCurrArtistID(),false);
                                 }
                             }
-                        }
-                    });
-                    
-                    if (firstElem) {
-                        r.setChecked(true);
-                        cdm.setCurrSimTypeName(name);
-                        recTypeToolItem.setText(name);
-                        firstElem=false;
-                    } else {
-                        r.setChecked(false);
+
                     }
-                    
-                    menu.add(r);
-                }
-                recTypeToolItem.setMenu(menu);
+                });
             }
         };
 
@@ -178,10 +167,17 @@ public class PageHeaderWidget extends Swidget {
         h.add(lbl);
         mainPanel.setWidget(0, 0, h);
 
-        // Run in deffered command to let the progress image load
-        DeferredCommand.addCommand(new Command(){ public void execute(){
-            Window.Location.assign("./Login?app-openid-auth=true&app-openid-name=" + txtbox.getText());
-        }});
+        //
+        // Login with local db if user is not using an openid
+        if (txtbox.getText().startsWith("test-") || txtbox.getText().endsWith(".com") ||
+                txtbox.getText().endsWith(".net") || txtbox.getText().endsWith(".org")) {
+            // Run in deffered command to let the progress image load
+            DeferredCommand.addCommand(new Command(){ public void execute() {
+                Window.Location.assign("./Login?app-openid-auth=true&app-openid-name=" + txtbox.getText());
+            }});
+        } else {
+            invokeGetUserSessionInfo(txtbox.getText());
+        }
     }
 
     private void invokeTerminateSession() {
@@ -251,61 +247,103 @@ public class PageHeaderWidget extends Swidget {
         }
     }
 
+    /**
+     * Called after a successful login by the invoke methods that just received
+     * the new ListenerDetails containing the login information. Updates page header UI
+     * @param l
+     */
+    private void updatePanelAfterLogin(ListenerDetails l) {
+
+        if (l!=null && l.loggedIn) {
+
+            cdm.setListenerDetails(l);
+
+            String name;
+            if (l.nickName != null) {
+                name = l.nickName;
+            } else if (l.realName != null) {
+                name = l.realName;
+            } else {
+                name = l.openID;
+            }
+
+            HorizontalPanel hP = new HorizontalPanel();
+            hP.setSpacing(4);
+            Label loggedLbl = new Label(name);
+            loggedLbl.addClickListener(new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    History.newItem("userpref:");
+                }
+            });
+            loggedLbl.addStyleName("headerMenuMedItem");
+            hP.add(loggedLbl);
+
+            VerticalPanel vP = new VerticalPanel();
+
+            Label lnk = new Label("Logout");
+            lnk.addClickListener(new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    cdm.resetUser();
+                    invokeTerminateSession();
+                }
+            });
+            lnk.setStyleName("headerMenuTinyItem");
+            vP.add(lnk);
+
+            hP.add(vP);
+
+            mainPanel.setWidget(0, 0, hP);
+
+        } else {
+            populateLoginBox();
+        }
+
+    }
+
+    /**
+     * Get user info for a non openid user
+     * @param userKey user key
+     */
+    private void invokeGetUserSessionInfo(String userKey) {
+        AsyncCallback callback = new AsyncCallback() {
+
+            public void onSuccess(Object result) {
+
+                ListenerDetails l = (ListenerDetails) result;
+                updatePanelAfterLogin(l);
+            }
+
+            public void onFailure(Throwable caught) {
+                Window.alert(caught.toString());
+                populateLoginBox();
+            }
+        };
+
+        try {
+            musicServer.getNonOpenIdLogInDetails(userKey, callback);
+        } catch (Exception ex) {
+            populateLoginBox();
+            Window.alert(ex.getMessage());
+        }
+    }
+
+    /**
+     * Get user info for a potentially logged in user. This will log in a user
+     * who has just entered his openid info after being redirected here from the
+     * openid servlet
+     */
     private void invokeGetUserSessionInfo() {
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
 
                 ListenerDetails l = (ListenerDetails) result;
-                cdm.setListenerDetails(l);
-                if (l.loggedIn) {
-                    String name;
-                    if (l.nickName != null) {
-                        name = l.nickName;
-                    } else {
-                        name = l.realName;
-                    }
-
-                    HorizontalPanel hP = new HorizontalPanel();
-                    hP.setSpacing(4);
-                    Label loggedLbl = new Label("Logged in as " + name);
-                    loggedLbl.addStyleName("headerMenuMed");
-                    hP.add(loggedLbl);
-
-                    VerticalPanel vP = new VerticalPanel();
-
-                    Label lnk = new Label("Edit profile");
-                    lnk.addClickListener(new ClickListener() {
-
-                        public void onClick(Widget arg0) {
-                            History.newItem("userpref:");
-                        }
-                    });
-                    lnk.setStyleName("headerMenuTinyItem");
-                    vP.add(lnk);
-
-                    lnk = new Label("Logout");
-                    lnk.addClickListener(new ClickListener() {
-
-                        public void onClick(Widget arg0) {
-                            cdm.resetUser();
-                            invokeTerminateSession();
-                        }
-                    });
-                    lnk.setStyleName("headerMenuTinyItem");
-                    vP.add(lnk);
-
-                    hP.add(vP);
-
-                    mainPanel.setWidget(0, 0, hP);
-
-                } else {
-                    populateLoginBox();
-                }
+                updatePanelAfterLogin(l);
             }
 
             public void onFailure(Throwable caught) {
-                //failureAction(caught);
                 Window.alert(caught.toString());
             }
         };

@@ -19,6 +19,7 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.ArrayList;
@@ -89,8 +90,9 @@ public class DashboardSwidget extends Swidget {
 
             //
             // Recommendations
-            for (ArtistDetails aD : cdm.getListenerDetails().recommendations) {
+            for (ArtistCompact aD : cdm.getListenerDetails().recommendations) {
                 HorizontalPanel artistPanel = new HorizontalPanel();
+                artistPanel.setStyleName("artistPanel");
                 artistPanel.setSpacing(5);
 
                 Image img = aD.getBestArtistImage(true);
@@ -112,7 +114,7 @@ public class DashboardSwidget extends Swidget {
                 tagsLabel.setStyleName("recoTags");
                 txtPanel.add(tagsLabel);
 
-                txtPanel.add(new StarRatingWidget(0, StarRatingWidget.Size.SMALL));
+                //txtPanel.add(new StarRatingWidget(0, StarRatingWidget.Size.SMALL));
 
                 artistPanel.add(txtPanel);
 
@@ -138,7 +140,13 @@ public class DashboardSwidget extends Swidget {
             return dP;
         }
 
-        private String getNDistinctiveTags(ArtistDetails aD, int n) {
+        /**
+         * Stores the n first distinctive tags for an artist in a comma seperated string
+         * @param aD artist's details
+         * @param n number of tags
+         * @return comma seperated string
+         */
+        private String getNDistinctiveTags(ArtistCompact aD, int n) {
             String tags = "";
             for (int i = 0; i < aD.getDistinctiveTags().length; i++) {
                 tags += aD.getDistinctiveTags()[i].getItemName() + ", ";
@@ -158,7 +166,7 @@ public class DashboardSwidget extends Swidget {
                 featArtTitle.setStyleName("h2");
                 featArtTitle.setWidth("100%");
                 featArtTitle.setWidget(0, 0, new Label("Featured artist :: "+aD.getName()));
-                featArtTitle.setWidget(0, 1, new StarRatingWidget(0,StarRatingWidget.Size.MEDIUM));
+                //featArtTitle.setWidget(0, 1, new StarRatingWidget(0,StarRatingWidget.Size.MEDIUM));
                 featArtTitle.setWidget(0, 2, WebLib.getSpotifyListenWidget(aD, 30));
 
                 featArtist.setWidget(0, 0, featArtTitle);

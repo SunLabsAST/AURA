@@ -8,6 +8,7 @@
  */
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.sun.labs.aura.music.wsitm.client.ClientDataManager.Oracles;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistPhoto;
 import com.sun.labs.aura.music.wsitm.client.items.AlbumDetails;
@@ -46,6 +47,7 @@ import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.SuggestBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -69,19 +71,10 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private SearchWidget search;
     private Image icon;
 
-    private static MultiWordSuggestOracle artistOracle;
-    private static MultiWordSuggestOracle tagOracle;
     private Oracles currLoadedOracle;
     private Oracles fetchOracle;    // Oracle we are currently fetching
 
     private String curToken = null;
-
-    public static enum Oracles {
-        ARTIST,
-        TAG
-    }
-
-    private static final String ICON_WAIT = "ajax-bar.gif";
 
     public SimpleSearchWidget(ClientDataManager cdm) {
         super("Simple Search", cdm);
@@ -265,7 +258,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                         invokeGetTagInfo(ar.getId(), false);
                     } else {
                         showMessage("Found " + sr.getItemResults().length + " matches");
-                        setResults(sr.toString(), getItemInfoList("Pick one: ", sr.getItemResults(), null, false,tagOracle));
+                        setResults(sr.toString(), getItemInfoList("Pick one: ", sr.getItemResults(), null, false, cdm.getTagOracle()));
                     }
                 } else {
                     if (sr == null) {
@@ -283,7 +276,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         };
 
-        showMessage("Searching for " + searchText,ICON_WAIT);
+        showMessage("Searching for " + searchText,WebLib.ICON_WAIT);
 
         // (4) Make the call. Control flow will continue immediately and later
         // 'callback' will be invoked when the RPC completes.
@@ -314,7 +307,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         };
 
         searchBoxContainerPanel.clear();
-        searchBoxContainerPanel.add(getLoadingBarWidget());
+        searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
 
         try {
             if (type==Oracles.ARTIST) {
@@ -343,7 +336,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                         invokeGetArtistInfo(ar.getId(), false);
                     } else {
                         showMessage("Found " + sr.getItemResults().length + " matches");
-                        Widget searchResults = getItemInfoList("Pick one: ", sr.getItemResults(), null, true, artistOracle);
+                        Widget searchResults = getItemInfoList("Pick one: ", sr.getItemResults(), null, true, cdm.getArtistOracle());
                         searchResults.setStyleName("searchResults");
                         searchResults.setWidth("300px");
                         setResults(sr.toString(), searchResults);
@@ -364,7 +357,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         };
 
-        showMessage("Searching for " + searchText,ICON_WAIT);
+        showMessage("Searching for " + searchText,WebLib.ICON_WAIT);
         try {
             if (byTag) {
                 musicServer.artistSearchByTag(searchText, 100, callback);
@@ -427,7 +420,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                 }
             };
 
-            showMessage("Getting info for artist", ICON_WAIT);
+            showMessage("Getting info for artist", WebLib.ICON_WAIT);
 
             try {
                 musicServer.getArtistDetails(artistID, refresh, cdm.getCurrSimTypeName(), callback);
@@ -466,7 +459,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         };
 
-        showMessage("Getting info for tag",ICON_WAIT);
+        showMessage("Getting info for tag", WebLib.ICON_WAIT);
 
         // (4) Make the call. Control flow will continue immediately and later
         // 'callback' will be invoked when the RPC completes.
@@ -492,11 +485,17 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         };
 
-        showMessage("Getting common tags",ICON_WAIT);
+        showMessage("Getting common tags", WebLib.ICON_WAIT);
         try {
             musicServer.getCommonTags(artistID1, artistID2, 30, cdm.getCurrSimTypeName(), callback);
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
+        }
+    }
+
+    private void addCompactArtistToOracle(ArtistCompact[] aCArray) {
+        for (ArtistCompact aC : aCArray) {
+            cdm.getArtistOracle().add(aC.getName());
         }
     }
 
@@ -513,8 +512,8 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         VerticalPanel right = new VerticalPanel();
         String id = artistDetails.getId();
-        right.add(getItemInfoList("Distinctive Tags", artistDetails.getDistinctiveTags(), null, false, tagOracle));
-        right.add(getItemInfoList("Frequent Tags", artistDetails.getFrequentTags(), null, false, tagOracle));
+        right.add(getItemInfoList("Distinctive Tags", artistDetails.getDistinctiveTags(), null, false, cdm.getTagOracle()));
+        right.add(getItemInfoList("Frequent Tags", artistDetails.getFrequentTags(), null, false, cdm.getTagOracle()));
         right.add(getPopularityPanel(artistDetails));
         /*
         if (cdm.isLoggedIn()) {
@@ -524,31 +523,42 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         right.setStyleName("right");
 
         VerticalPanel left = new VerticalPanel();
+        left.setSpacing(4);
+        left.setWidth("300px");
         if (artistDetails.getSimilarArtists().length > 0) {
+            ArtistCompact[] aCArray = artistDetails.getSimilarArtists();
+            addCompactArtistToOracle(aCArray);
             left.add(
                     new Updatable(new HTML("<H2>"+cdm.getCurrSimTypeName()+"-omendations</H2>"),
-                    getItemInfoList2(artistDetails.getSimilarArtists(), id, true, artistOracle), cdm, id) {
+                    //getItemInfoList2(artistDetails.getSimilarArtists(), id, true, artistOracle), cdm, id) {
+                    new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray), cdm, id) {
 
                         public void update(ArtistDetails aD) {
                             setNewContent(new HTML("<H2>"+cdm.getCurrSimTypeName()+"-omendations</H2>"),
-                                    getItemInfoList2(aD.getSimilarArtists(), extraParam, true, artistOracle));
+                                    new ArtistListWidget(musicServer, cdm.getListenerDetails(), aD.getRecommendedArtists()));
                         }
                     }
            );
         }
+        
         if (artistDetails.getRecommendedArtists().length > 0) {
-            left.add(getItemInfoList("Recommendations", artistDetails.getRecommendedArtists(), id, true, artistOracle));
+            ArtistCompact[] aCArray = artistDetails.getRecommendedArtists();
+            addCompactArtistToOracle(aCArray);
+            left.add(WebLib.createSection("Recommendations", new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray)));
+            //left.add(getItemInfoList("Recommendations", artistDetails.getRecommendedArtists(), id, true, artistOracle));
         }
         if (artistDetails.getCollaborations().length > 0) {
-            left.add(getItemInfoList("Related", artistDetails.getCollaborations(), id, true, artistOracle));
+            ArtistCompact[] aCArray = artistDetails.getCollaborations();
+            addCompactArtistToOracle(aCArray);
+            left.add(WebLib.createSection("Related", new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray)));
+            //left.add(getItemInfoList("Related", artistDetails.getCollaborations(), id, true, artistOracle));
         }
         left.add(getMoreInfoWidget(artistDetails));
-        left.setWidth("150px");
         left.setStyleName("left");
 
         DockPanel artistPanel = new DockPanel();
         artistPanel.add(main, DockPanel.CENTER);
-        artistPanel.add(right, DockPanel.EAST);
+        //artistPanel.add(right, DockPanel.EAST);
         artistPanel.add(left, DockPanel.WEST);
         artistPanel.setWidth("100%");
         artistPanel.setStyleName("resultpanel");
@@ -563,7 +573,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         VerticalPanel left = new VerticalPanel();
         left.setWidth("150px");
         left.setStyleName("left");
-        Widget w = getItemInfoList(tagDetails.getName() + " artists", tagDetails.getRepresentativeArtists(), null, true, tagOracle);
+        Widget w = getItemInfoList(tagDetails.getName() + " artists", tagDetails.getRepresentativeArtists(), null, true, cdm.getTagOracle());
         left.add(w);
         main.add(left, DockPanel.WEST);
 
@@ -576,7 +586,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         main.add(v, DockPanel.CENTER);
 
         VerticalPanel right = new VerticalPanel();
-        w = getItemInfoList("Similar tags", tagDetails.getSimilarTags(), tagDetails.getId(), false, tagOracle);
+        w = getItemInfoList("Similar tags", tagDetails.getSimilarTags(), tagDetails.getId(), false, cdm.getTagOracle());
         w.setStyleName("right");
         right.add(w);
         main.add(right, DockPanel.EAST);
@@ -590,10 +600,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         html.setHTML(artistDetails.getBestArtistImageAsHTML() + artistDetails.getBiographySummary());
         html.setStyleName("bio");
 
-        StarRatingWidget starWidget = null;
-        if (cdm.isLoggedIn()) {
-            starWidget = new StarRatingWidget(0, StarRatingWidget.Size.MEDIUM);
-        }
+        StarRatingWidget starWidget = new StarRatingWidget(musicServer, cdm.getListenerDetails(), artistDetails.getId(), StarRatingWidget.Size.MEDIUM);
 
         return createMainSection(artistDetails.getName(), html, WebLib.getSpotifyListenWidget(artistDetails, 30), starWidget);
     }
@@ -763,6 +770,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         if (starWidget != null) {
             h.add(starWidget, DockPanel.NORTH);
         }
+
         h.setWidth("100%");
         h.setStyleName("h1");
         panel.add(h);
@@ -871,12 +879,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         return artistGrid;
     }
 
-    public Widget getLoadingBarWidget() {
-        FlowPanel panel = new FlowPanel();
-        panel.add(new HTML("<img src='"+ICON_WAIT+"'/>"));
-        return panel;
-    }
-
     private SuggestBox createSuggestBox(MultiWordSuggestOracle oracle) {
         SuggestBox sbox = new SuggestBox(oracle);
 
@@ -919,17 +921,17 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             return;
         } else {
             if (type == Oracles.ARTIST) {
-                if (artistOracle == null) {
+                if (cdm.getArtistOracle() == null) {
                     invokeOracleFetchService(type);
                 } else {
-                    swapSuggestBox(artistOracle, fetchOracle);
+                    swapSuggestBox(cdm.getArtistOracle(), fetchOracle);
                     fetchOracle = null;
                 }
             } else {
-                if (tagOracle == null) {
+                if (cdm.getTagOracle() == null) {
                     invokeOracleFetchService(type);
                 } else {
-                    swapSuggestBox(tagOracle, fetchOracle);
+                    swapSuggestBox(cdm.getTagOracle(), fetchOracle);
                     fetchOracle = null;
                 }
             }
@@ -957,10 +959,10 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         searchBoxContainerPanel.add(search.getSearchBox());
 
         if (newOracleType==Oracles.ARTIST) {
-            artistOracle = newOracle;
+            cdm.setArtistOracle(newOracle);
             currLoadedOracle = Oracles.ARTIST;
         } else {
-            tagOracle = newOracle;
+            cdm.setTagOracle(newOracle);
             currLoadedOracle = Oracles.TAG;
         }
     }
@@ -1408,7 +1410,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             textBox.setTabIndex(0);
 
             searchBoxContainerPanel = new FlowPanel();
-            searchBoxContainerPanel.add(getLoadingBarWidget());
+            searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
 
             Panel searchType = new FlowPanel();
             searchButtons = new RadioButton[3];

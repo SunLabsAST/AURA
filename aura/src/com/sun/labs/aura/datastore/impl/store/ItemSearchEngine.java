@@ -3,7 +3,7 @@ package com.sun.labs.aura.datastore.impl.store;
 import com.sun.labs.aura.datastore.Indexable;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
-import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
+import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.minion.CompositeResultsFilter;
@@ -88,15 +88,15 @@ public class ItemSearchEngine implements Configurable {
     private boolean shuttingDown;
 
     private long flushCheckInterval;
-    
+
     private double skimPercentage;
 
     private Timer flushTimer;
-    
+
     public ItemSearchEngine() {
         
     }
-    
+
     /**
      * Creates an item search engine pointed at a particular index directory.
      * @param indexDir
@@ -117,7 +117,17 @@ public class ItemSearchEngine implements Configurable {
         } catch(SearchEngineException see) {
             log.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
         }
-        
+    }
+
+    public void redefineFields(BerkeleyDataWrapper bdw) throws AuraException {
+        Map<String, FieldDescription> fields = bdw.getFieldDescriptions();
+        for(Map.Entry<String, FieldDescription> e : fields.entrySet()) {
+            EnumSet<Item.FieldCapability> caps = e.getValue().getCapabilities();
+            if(caps != null && caps.size() > 0) {
+                defineField(null, e.getKey(), e.getValue().getCapabilities(), e.
+                        getValue().getType());
+            }
+        }
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
@@ -150,18 +160,20 @@ public class ItemSearchEngine implements Configurable {
         flushTimer = new Timer("ItemSearchEngineFlushTimer");
         flushTimer.scheduleAtFixedRate(new FlushTimerTask(), flushCheckInterval,
                 flushCheckInterval);
-        
+
         skimPercentage = ps.getDouble(PROP_SKIM_PERCENTAGE);
-        
+
     }
 
     public SearchEngine getSearchEngine() {
         return engine;
     }
 
-    public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
+    public void defineField(ItemType itemType, String field,
+            EnumSet<Item.FieldCapability> caps,
             Item.FieldType fieldType) throws AuraException {
-        EnumSet<FieldInfo.Attribute> attr = EnumSet.noneOf(FieldInfo.Attribute.class);
+        EnumSet<FieldInfo.Attribute> attr = EnumSet.noneOf(
+                FieldInfo.Attribute.class);
         for(Item.FieldCapability fc : caps) {
             switch(fc) {
                 case FILTER:
@@ -183,13 +195,13 @@ public class ItemSearchEngine implements Configurable {
                     break;
             }
         }
-        
+
         if(attr.contains(FieldInfo.Attribute.SAVED) && fieldType == null) {
-            throw new IllegalArgumentException("Field " + field + 
-                    " with capabilities " + caps + 
+            throw new IllegalArgumentException("Field " + field +
+                    " with capabilities " + caps +
                     " requires field type to be specified.");
         }
-        
+
         //
         // We may have been passed a type when it's not necessary, so we'll 
         // just hide that from the engine.
@@ -205,7 +217,7 @@ public class ItemSearchEngine implements Configurable {
             throw new AuraException("Error defining field " + field, ex);
         }
     }
-    
+
     /**
      * Indexes an item.  Note that the data indexed may not be available immediately
      * for searching, depending on the configuration of the indexer.
@@ -232,7 +244,7 @@ public class ItemSearchEngine implements Configurable {
             im.put("aura-key", item.getKey());
             im.put("aura-name", item.getName());
             im.put("aura-type", item.getType().toString());
-            
+
             //
             // Index the elements of the map that require indexing.
             for(Map.Entry<String, Serializable> e : item) {
@@ -251,14 +263,14 @@ public class ItemSearchEngine implements Configurable {
                 // field for this name.  We'll need to make sure that we're not
                 // clobbering field types as we go.
                 FieldInfo fi = engine.getFieldInfo(e.getKey());
-                
+
                 if(fi == null) {
                     //
                     // We should have had this field defined, so we can skip this
                     // one.
                     continue;
                 }
-                
+
                 FieldInfo.Type type = getType(val);
 
                 //
@@ -321,13 +333,13 @@ public class ItemSearchEngine implements Configurable {
             return FieldInfo.Type.FLOAT;
         }
 
-        
+
         //
         // The type of a map is the type of its values.  Arbitrary, but fun!
         if(val instanceof Map) {
             return getType(((Map) val).values());
         }
-        
+
         //
         // Figure out an appropriate type for a collection.  We first want to 
         // make sure that all of the elements are of the same type.  This would
@@ -401,7 +413,7 @@ public class ItemSearchEngine implements Configurable {
     public DocumentVector getDocumentVector(String key, WeightedField[] fields) {
         return engine.getDocumentVector(key, fields);
     }
-    
+
     /**
      * Finds the n most-similar items to the given item, based on the data in the 
      * provided field.
@@ -414,7 +426,8 @@ public class ItemSearchEngine implements Configurable {
      * smaller than the number of items requested!
      * @see #getDocumentVector
      */
-    public List<Scored<String>> findSimilar(DocumentVector dv, int n, ResultsFilter rf)
+    public List<Scored<String>> findSimilar(DocumentVector dv, int n,
+            ResultsFilter rf)
             throws AuraException {
 
         //
@@ -427,7 +440,7 @@ public class ItemSearchEngine implements Configurable {
         try {
             for(Result r : sim.getResults(0, n, rf)) {
                 ResultImpl ri = (ResultImpl) r;
-                ret.add(new Scored<String>(ri.getKey(), 
+                ret.add(new Scored<String>(ri.getKey(),
                         ri.getScore(),
                         ri.getSortVals(),
                         ri.getDirections()));
@@ -442,17 +455,18 @@ public class ItemSearchEngine implements Configurable {
             nt = ((CompositeResultsFilter) rf).getTested();
             np = ((CompositeResultsFilter) rf).getPassed();
         }
-        log.info(String.format("fsgr %s docs: %d test: %d pass: %d gr: %.2f", 
-                dv.getKey(), 
+        log.info(String.format("fsgr %s docs: %d test: %d pass: %d gr: %.2f",
+                dv.getKey(),
                 sim.size(),
-                nt, np, 
+                nt, np,
                 nw.getTimeMillis()));
         return ret;
     }
 
     public List<Scored<String>> getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException {
-        DocumentVectorImpl dv = (DocumentVectorImpl) getDocumentVector(key, field);
+        DocumentVectorImpl dv = (DocumentVectorImpl) getDocumentVector(key,
+                field);
         if(dv == null) {
             return new ArrayList<Scored<String>>();
         }
@@ -464,13 +478,14 @@ public class ItemSearchEngine implements Configurable {
         }
         return ret;
     }
-    
+
     public List<Scored<String>> getTopFeatures(String autotag, int n) {
         ClassifierModel cm = ((SearchEngineImpl) engine).getClassifier(autotag);
         if(cm == null) {
             return new ArrayList<Scored<String>>();
         }
-        PriorityQueue<FeatureCluster> q = new PriorityQueue<FeatureCluster>(n, FeatureCluster.weightComparator);
+        PriorityQueue<FeatureCluster> q = new PriorityQueue<FeatureCluster>(n,
+                FeatureCluster.weightComparator);
         for(FeatureCluster fc : cm.getFeatures()) {
             if(q.size() < n) {
                 q.offer(fc);
@@ -493,17 +508,20 @@ public class ItemSearchEngine implements Configurable {
 
     public List<Scored<String>> findSimilarAutotags(String autotag, int n)
             throws AuraException, RemoteException {
-        List<FieldValue> l = ((SearchEngineImpl) engine).getSimilarClassifiers(autotag, n);
+        List<FieldValue> l = ((SearchEngineImpl) engine).getSimilarClassifiers(
+                autotag, n);
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         for(FieldValue fv : l) {
             ret.add(new Scored<String>(fv.getValue(), fv.getScore()));
         }
         return ret;
     }
-    
-    public List<Scored<String>> explainSimilarAutotags(String a1, String a2, int n)
+
+    public List<Scored<String>> explainSimilarAutotags(String a1, String a2,
+            int n)
             throws AuraException, RemoteException {
-        List<WeightedFeature> l = ((SearchEngineImpl) engine).getSimilarClassifierTerms(a1, a2, n);
+        List<WeightedFeature> l = ((SearchEngineImpl) engine).
+                getSimilarClassifierTerms(a1, a2, n);
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         for(WeightedFeature wf : l) {
             ret.add(new Scored<String>(wf.getName(), wf.getWeight()));
@@ -523,23 +541,26 @@ public class ItemSearchEngine implements Configurable {
      * contribution towards the autotagging.
      */
     public List<Scored<String>> getExplanation(String key, String autoTag,
-            int n) 
+            int n)
             throws AuraException, RemoteException {
-        ClassifierModel cm = ((SearchEngineImpl) engine).getClassifierManager().getClassifier(autoTag);
+        ClassifierModel cm = ((SearchEngineImpl) engine).getClassifierManager().
+                getClassifier(autoTag);
         if(cm == null || !(cm instanceof ExplainableClassifierModel)) {
             log.warning("Not an explainable classifier: " + autoTag);
             return new ArrayList<Scored<String>>();
         }
-        
-        List<WeightedFeature> wf = ((ExplainableClassifierModel) cm).explain(key);
+
+        List<WeightedFeature> wf =
+                ((ExplainableClassifierModel) cm).explain(key);
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
-        for(Iterator<WeightedFeature> i = wf.iterator(); i.hasNext() && ret.size() < n;) {
+        for(Iterator<WeightedFeature> i = wf.iterator(); i.hasNext() &&
+                ret.size() < n;) {
             WeightedFeature f = i.next();
             ret.add(new Scored<String>(f.getName(), f.getWeight()));
         }
         return ret;
     }
-    
+
     /**
      * Gets a list of the keys for the items that have a field with a given value.
      * @param name the name of the field
@@ -563,14 +584,15 @@ public class ItemSearchEngine implements Configurable {
         return ret;
     }
 
-    public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf) throws AuraException, RemoteException {
+    public List<Scored<String>> query(String query, String sort, int n,
+            ResultsFilter rf) throws AuraException, RemoteException {
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         try {
             for(Result r : engine.search(query, sort).getResults(0, n, rf)) {
                 ResultImpl ri = (ResultImpl) r;
-                ret.add(new Scored<String>(ri.getKey(), 
+                ret.add(new Scored<String>(ri.getKey(),
                         ri.getScore(),
-                        ri.getSortVals(), 
+                        ri.getSortVals(),
                         ri.getDirections()));
             }
         } catch(SearchEngineException see) {
@@ -588,7 +610,7 @@ public class ItemSearchEngine implements Configurable {
         }
         return ret;
     }
-    
+
     /**
      * Gets the items that have had a given autotag applied to them.
      * @param autotag the tag that we want items to have been assigned
@@ -603,20 +625,21 @@ public class ItemSearchEngine implements Configurable {
         try {
 
             List<Scored<String>> ret = new ArrayList<Scored<String>>();
-            
-            ResultSetImpl rs = (ResultSetImpl) engine.search(String.format("autotag = \"%s\"", autotag));
-            for(Result r : rs.getResultsForScoredField(0, n, "autotag", autotag, "autotag-score")) {
+
+            ResultSetImpl rs = (ResultSetImpl) engine.search(String.format(
+                    "autotag = \"%s\"", autotag));
+            for(Result r : rs.getResultsForScoredField(0, n, "autotag", autotag,
+                    "autotag-score")) {
                 ret.add(new Scored<String>(r.getKey(), r.getScore()));
             }
             return ret;
-                    
-            
+
+
         } catch(SearchEngineException ex) {
             throw new AuraException("Error searching for autotag " + autotag, ex);
         }
     }
-   
-    
+
     /**
      * Gets a list of scored strings consisting of the autotags assigned to
      * an item and their associated classifier scores.  This requires rather
@@ -643,16 +666,21 @@ public class ItemSearchEngine implements Configurable {
             // No document by that name here...
             return null;
         }
-        List<String> autotags = (List<String>) ((InvFileDiskPartition) dke.getPartition()).getFieldStore().getSavedFieldData("autotag", dke.getID(), true);
+        List<String> autotags = (List<String>) ((InvFileDiskPartition) dke.
+                getPartition()).getFieldStore().getSavedFieldData("autotag",
+                dke.getID(), true);
         if(autotags.size() == 0) {
-            
+
             //
             // No tags.
             return null;
         }
-        List<Double> autotagScores = (List<Double>) ((InvFileDiskPartition) dke.getPartition()).getFieldStore().getSavedFieldData("autotag-score", dke.getID(), true);
+        List<Double> autotagScores = (List<Double>) ((InvFileDiskPartition) dke.
+                getPartition()).getFieldStore().getSavedFieldData(
+                "autotag-score", dke.getID(), true);
         if(autotags.size() != autotagScores.size()) {
-            log.warning("Mismatched autotags and scores: " + autotags + " " + autotagScores);
+            log.warning("Mismatched autotags and scores: " + autotags + " " +
+                    autotagScores);
         }
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         int lim = Math.min(autotags.size(), autotagScores.size());
@@ -719,11 +747,11 @@ public class ItemSearchEngine implements Configurable {
      */
     @ConfigInteger(defaultValue = 3000, range = {1, 3000000})
     public static final String PROP_FLUSH_INTERVAL = "flushInterval";
-    
+
     /**
      * The skim percentage to use for findSimilar.
      */
-    @ConfigDouble(defaultValue=0.25)
+    @ConfigDouble(defaultValue = 0.25)
     public static final String PROP_SKIM_PERCENTAGE = "skimPercentage";
 
 }

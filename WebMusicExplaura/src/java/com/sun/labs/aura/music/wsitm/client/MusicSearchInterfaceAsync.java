@@ -11,6 +11,7 @@ package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import java.util.Set;
 
 /**
  *
@@ -27,8 +28,12 @@ public interface MusicSearchInterfaceAsync {
        public void getArtistOracle(AsyncCallback callback) throws WebException;
        public void getTagOracle(AsyncCallback callback) throws WebException;
        public void getLogInDetails(AsyncCallback callback) throws WebException;
+       public void getNonOpenIdLogInDetails(String userKey, AsyncCallback callback) throws WebException;
        public void getUserTagCloud(String lastfmUser, String simTypeName, AsyncCallback callback) throws WebException;
        public void updateListener(ListenerDetails lD, AsyncCallback callback) throws WebException;
+       public void updateUserSongRating(ListenerDetails lD, int rating, String artistID, AsyncCallback callback) throws WebException;
+       public void fetchUserSongRating(ListenerDetails lD, String artistID, AsyncCallback callback) throws WebException;
+       public void fetchUserSongRating(ListenerDetails lD, Set<String> artistID, AsyncCallback callback) throws WebException;
        public void terminateSession(AsyncCallback callback);
        public void getSimTypes(AsyncCallback callback) throws WebException;
 }

@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!--
-    Document   : fullConfig.xml
-    Created on : May 22, 2008, 3:12 PM
-    Author     : stgreen
-    Description:
-        An all-in-one-VM configuration for search inside the music.
--->
-
 <config>
     <!-- Where the aura data lives -->
     <property name="auraHome" value="/aura/sitm/db"/>
@@ -28,14 +20,6 @@
     <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
         <propertylist name="groupList">
             <item>${auraGroup}</item>
-        </propertylist>
-        <property name="csDirs" value="${auraDistDir}/lib"/>
-        <property name="csPort" value="${csPort}"/>
-        <propertylist name="codebaseJars">
-            <item>sitm.jar</item>
-            <item>aura.jar</item>
-            <item>minion.jar</item>
-            <item>LabsUtil.jar</item>
         </propertylist>
         <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
