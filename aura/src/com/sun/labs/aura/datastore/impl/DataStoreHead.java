@@ -14,6 +14,7 @@ import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
+import com.sun.labs.aura.datastore.impl.store.FindSimilarConfig;
 import com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ScoredComparator;
@@ -689,40 +690,24 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return pc.getDocumentVector(key);
     }
     
-    public List<Scored<Item>> findSimilar(String key, int n, ResultsFilter rf)
+    public List<Scored<Item>> findSimilar(String key, FindSimilarConfig config)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         DocumentVector dv = pc.getDocumentVector(key);
         int numClusters = trie.size();
         PCLatch latch;
-        if (n == 1) {
+        if (config.getN() == 1) {
             // Special case:
             // Return if we've heard from three quarters of our clusters
             latch = new PCLatch(numClusters, 20000);
         } else {
             latch = new PCLatch(numClusters);
         }
-        return findSimilar(dv, n, rf, latch);
+        return findSimilar(dv, config, latch);
     }
 
-    public List<Scored<Item>> findSimilar(String key, final String field,
-            int n, ResultsFilter rf)
-            throws AuraException, RemoteException {
-        PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
-        DocumentVector dv = pc.getDocumentVector(key, field);
-        int numClusters = trie.size();
-        PCLatch latch;
 
-        // TODO - some apps need predictable results, while others happily
-        // will trade predictabilty for speed.  We need to make this configurable
-        // for now, it is hardcoded to give predictable results.
-        //PBL changed this to give predictable results
-        latch = new PCLatch(numClusters);
-        //latch = new PCLatch((int)(numClusters * 0.75));
-        return findSimilar(dv, n, rf, latch);
-    }
-
-    public List<Scored<Item>> findSimilar(List<String> keys, int n, ResultsFilter rf)
+    public List<Scored<Item>> findSimilar(List<String> keys, FindSimilarConfig config) 
             throws AuraException, RemoteException {
         List<DocumentVector> dvs = new ArrayList<DocumentVector>();
         for(String key : keys) {
@@ -731,37 +716,13 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
         MultiDocumentVectorImpl mdvi = new MultiDocumentVectorImpl(dvs);
         PCLatch latch = new PCLatch(trie.size());
-        return findSimilar(mdvi, n, rf, latch);
+        return findSimilar(mdvi, config, latch);
     }
 
-    public List<Scored<Item>> findSimilar(List<String> keys,
-            final String field,
-            int n, ResultsFilter rf)
-            throws AuraException, RemoteException {
-        List<DocumentVector> dvs = new ArrayList<DocumentVector>();
-        for(String key : keys) {
-            PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
-            dvs.add(pc.getDocumentVector(key, field));
-        }
-        MultiDocumentVectorImpl mdvi = new MultiDocumentVectorImpl(dvs);
-        PCLatch latch = new PCLatch(trie.size());
-        return findSimilar(mdvi, n, rf, latch);
-    }
-
-    public List<Scored<Item>> findSimilar(final String key,
-            final WeightedField[] fields,
-            final int n, ResultsFilter rf)
-            throws AuraException, RemoteException {
-        PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
-        DocumentVector dv = pc.getDocumentVector(key, fields);
-        PCLatch latch = new PCLatch(trie.size());
-        return findSimilar(dv, n, rf, latch);
-    }
 
     private List<Scored<Item>> findSimilar(
             DocumentVector dv,
-            final int n,
-            ResultsFilter rf,
+            final FindSimilarConfig config,
             final PCLatch latch)
             throws AuraException, RemoteException {
 
@@ -778,11 +739,11 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         // Here's our list of callers to find similar.  Each one will be given
         // a handle to a countdown latch to watch when they finish.
         for(PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p, dv, rf) {
+            callers.add(new PCCaller(p, dv, config.getFilter()) {
 
                 public List<Scored<Item>> call()
                         throws AuraException, RemoteException {
-                    List<Scored<Item>> ret = pc.findSimilar(dv, n, rf);
+                    List<Scored<Item>> ret = pc.findSimilar(dv, config.getN(), rf);
                     latch.countDown();
                     return ret;
                 }
@@ -799,7 +760,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             for (Callable c : callers) {
                 futures.add(executor.submit(c));
             }
-            List<Scored<Item>> res = sortScored(futures, n, latch);
+            List<Scored<Item>> res = sortScored(futures, config.getN(), latch);
             sw.stop();
             logger.info("findSimilar for " + dv.getKey() + " executed in " + sw.getTime() + "ms");
             return res;

@@ -50,25 +50,7 @@ public interface ItemSearch {
      * to least similar.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(String key, int n, ResultsFilter rf)
-            throws AuraException, RemoteException;
-
-    /**
-     * Finds the n most-similar items to the given item, based on the data in the 
-     * provided field.
-     * @param key the item for which we want similar items
-     * @param field the name of the field that should be used to find similar
-     * items
-     * @param n the number of similar items to return
-     * @param rf a (possibly <code>null</code>) filter to apply to the results
-     * retrieved from the data store
-     * @return a list of the items most similar to the given item, in order from
-     * most to least similar, based on the 
-     * data indexed into the given field.  Note that the returned set may be
-     * smaller than the number of items requested!
-     */
-    public List<Scored<Item>> findSimilar(String key, String field, int n,
-            ResultsFilter rf)
+    public List<Scored<Item>> findSimilar(String key, FindSimilarConfig config)
             throws AuraException, RemoteException;
 
     /**
@@ -81,44 +63,7 @@ public interface ItemSearch {
      * to least similar.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(List<String> keys, int n,
-            ResultsFilter rf)
-            throws AuraException, RemoteException;
-
-    /**
-     * Finds the n most-similar items to the given item, based on the data in the 
-     * provided field.
-     * @param key the item for which we want similar items
-     * @param field the name of the field that should be used to find similar
-     * items
-     * @param n the number of similar items to return
-     * @param rf a (possibly <code>null</code>) filter to apply to the results
-     * retrieved from the data store
-     * @return a list of the items most similar to the given item, in order from
-     * most to least similar, based on the 
-     * data indexed into the given field.  Note that the returned set may be
-     * smaller than the number of items requested!
-     */
-    public List<Scored<Item>> findSimilar(List<String> keys, String field,
-            int n, ResultsFilter rf)
-            throws AuraException, RemoteException;
-
-    /**
-     * Finds the n most-similar items to the given items, based on a combination
-     * of the data held in the provided fields.
-     * @param key the item for which we want similar items
-     * @param fields the fields (and associated weights) that we should use to 
-     * compute the similarity between items.
-     * @param n the number of similar items to return
-     * @param rf a (possibly <code>null</code>) filter to apply to the results
-     * retrieved from the data store
-     * @return a list of the items most similar to the given item, in order from 
-     * most to least similar, based on the data
-     * in the provided fields.   Note that the returned set may be
-     * smaller than the number of items requested!
-     */
-    public List<Scored<Item>> findSimilar(String key, WeightedField[] fields,
-            int n, ResultsFilter rf)
+    public List<Scored<Item>> findSimilar(List<String> keys, FindSimilarConfig config)
             throws AuraException, RemoteException;
 
     /**
