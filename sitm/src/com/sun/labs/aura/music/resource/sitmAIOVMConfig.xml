@@ -74,7 +74,8 @@
     <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawler">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="crawlerStateDir" value="${auraHome}/crawler.state"/>
-        <property name="logLevel" value="WARNING"/>
+        <property name="maxArtists" value="20">
+        <property name="logLevel" value="INFO"/>
         <property name="updateRateInSeconds" value="1000000"/>
 
     </component>

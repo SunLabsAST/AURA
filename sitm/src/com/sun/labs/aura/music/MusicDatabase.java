@@ -741,7 +741,7 @@ public class MusicDatabase {
 
     private List<Scored<Item>> findSimilar(String id, int count, ItemType type) throws AuraException {
         try {
-            List<Scored<Item>> simItems = dataStore.findSimilar(id, new FindSimilarConfig(count, new TypeFilter(type)));
+            List<Scored<Item>> simItems = dataStore.findSimilar(id, getFindSimilarConfig(count, new TypeFilter(type)));
             return simItems;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
@@ -750,7 +750,7 @@ public class MusicDatabase {
 
     private List<Scored<Item>> findSimilar(String id, String field, int count, ItemType type) throws AuraException {
         try {
-            List<Scored<Item>> simItems = dataStore.findSimilar(id, new FindSimilarConfig(field, count, new TypeFilter(type)));
+            List<Scored<Item>> simItems = dataStore.findSimilar(id, getFindSimilarConfig(field, count, new TypeFilter(type)));
             return simItems;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
@@ -906,6 +906,20 @@ public class MusicDatabase {
         }
     }
 
+    private FindSimilarConfig getFindSimilarConfig(String field, int count, TypeFilter filter) {
+        FindSimilarConfig fsc = new FindSimilarConfig(field, count, filter);
+        fsc.setSkimPercent(100.);
+        fsc.setReportPercent(100.);
+        return fsc;
+    }
+
+    private FindSimilarConfig getFindSimilarConfig(int count, TypeFilter filter) {
+        FindSimilarConfig fsc = new FindSimilarConfig(count, filter);
+        fsc.setSkimPercent(100.);
+        fsc.setReportPercent(100.);
+        return fsc;
+    }
+
     private List<Recommendation> getSimilarArtists(List<Scored<String>> seedArtists, Set<String> skipArtists, int count)
             throws AuraException {
         List<Recommendation> recommendations = new ArrayList();
@@ -962,7 +976,7 @@ public class MusicDatabase {
         public RecommendationSummary getRecommendations(Listener listener, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
             List<Scored<Item>> items = dataStore.findSimilar(listener.getKey(), 
-                    new FindSimilarConfig(Listener.FIELD_SOCIAL_TAGS,
+                    getFindSimilarConfig(Listener.FIELD_SOCIAL_TAGS,
                     count * 5, new TypeFilter(ItemType.ARTIST)));
             List<Recommendation> results = new ArrayList();
             Set<String> skipIDS = getAttendedToArtists(listener);

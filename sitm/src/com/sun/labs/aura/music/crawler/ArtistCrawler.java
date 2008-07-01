@@ -132,6 +132,7 @@ public class ArtistCrawler implements AuraService, Configurable {
             dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
             stateDir = ps.getString(PROP_STATE_DIR);
             updateRateInSeconds = ps.getInt(PROP_UPDATE_RATE);
+            maxArtists = ps.getInt(PROP_MAX_ARTISTS);
             util = new Util(dataStore, flickr, youtube);
             createStateFileDirectory();
             loadState();
@@ -176,6 +177,13 @@ public class ArtistCrawler implements AuraService, Configurable {
                         saveState();
                     }
                 }
+
+                // if we've reached maxartists we are done
+                if (dataStore.getItemCount(ItemType.ARTIST) >= maxArtists) {
+                    logger.info("Artist crawler reached max artists, shutting down");
+                    break;
+                }
+
             } catch (AuraException ex) {
                 logger.warning("Aura Trouble during crawl " + ex);
             } catch (RemoteException ex) {
@@ -628,6 +636,10 @@ public class ArtistCrawler implements AuraService, Configurable {
     @ConfigInteger(defaultValue = 60 * 60 * 24 * 7 * 2)
     public final static String PROP_UPDATE_RATE = "updateRateInSeconds";
     private int updateRateInSeconds;
+
+    @ConfigInteger(defaultValue = 100000)
+    public final static String PROP_MAX_ARTISTS = "maxArtists";
+    private int maxArtists;
 }
 
 /**
