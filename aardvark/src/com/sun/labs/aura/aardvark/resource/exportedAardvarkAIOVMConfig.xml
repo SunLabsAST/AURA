@@ -102,7 +102,7 @@
     </component>
     
     <component name="feedManager" type="com.sun.labs.aura.aardvark.impl.crawler.FeedManager">
-        <property name="dataStore" value="dataStore"/>
+        <property name="dataStore" value="dataStoreHead"/>
         <property name="statService" value="statService"/>
         <property name="feedScheduler" value="feedScheduler"/>
         <property name="numThreads" value="5"/>

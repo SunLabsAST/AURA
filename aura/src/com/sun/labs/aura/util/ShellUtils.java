@@ -27,9 +27,14 @@ import java.util.logging.Logger;
 public class ShellUtils {
 
     private DataStore dataStore;
+
     private StatService statService;
+
     private Logger logger;
+
     private int nHits = 10;
+    
+    private double skimPercentage = 0.25;
 
     /**
      * Adds aura specific commands to the shell
@@ -37,7 +42,8 @@ public class ShellUtils {
      * @param aDataStore the data store
      * @param aStatService the stat service
      */
-    public ShellUtils(CommandInterpreter shell, DataStore aDataStore, StatService aStatService) {
+    public ShellUtils(CommandInterpreter shell, DataStore aDataStore,
+            StatService aStatService) {
         this.dataStore = aDataStore;
         this.statService = aStatService;
 
@@ -46,11 +52,11 @@ public class ShellUtils {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length < 2) {
+                            if(args.length < 2) {
                                 return getHelp();
                             }
                             nHits = Integer.parseInt(args[1]);
-                        } catch (Exception ex) {
+                        } catch(Exception ex) {
                             System.out.println("Error " + ex);
                         }
                         return "";
@@ -64,14 +70,15 @@ public class ShellUtils {
         shell.add("itemStats", new CommandInterface() {
 
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
-                for (ItemType type : ItemType.values()) {
+                for(ItemType type : ItemType.values()) {
                     long count = dataStore.getItemCount(type);
-                    if (count > 0) {
+                    if(count > 0) {
                         System.out.printf("  %8d %s\n", count, type.toString());
                     }
                 }
 
-                System.out.printf("  %d Attention Data\n", dataStore.getAttentionCount());
+                System.out.printf("  %d Attention Data\n", dataStore.
+                        getAttentionCount());
                 return "";
             }
 
@@ -87,16 +94,17 @@ public class ShellUtils {
                         try {
                             NanoWatch nw = new NanoWatch();
                             System.out.println("args: " + args.length);
-                            for (int i = 1; i < args.length; i++) {
+                            for(int i = 1; i < args.length; i++) {
                                 nw.start();
                                 Item item = dataStore.getItem(args[i]);
                                 nw.stop();
                             }
-                            System.out.printf("%d gets took: %.4f avg: %.4f/get\n",
+                            System.out.printf(
+                                    "%d gets took: %.4f avg: %.4f/get\n",
                                     args.length - 1,
                                     nw.getTimeMillis(),
                                     nw.getTimeMillis() / (args.length - 1));
-                        } catch (Exception ex) {
+                        } catch(Exception ex) {
                             System.out.println("Error " + ex);
                             ex.printStackTrace();
                         }
@@ -113,17 +121,18 @@ public class ShellUtils {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length == 1) {
+                            if(args.length == 1) {
                                 return getHelp();
                             }
 
                             Item item = dataStore.getItem(args[1]);
                             dumpItemFull(item);
-                            if (item != null) {
-                                System.out.printf("%-15s %s\n", "autotags", item.getField("autotag"));
+                            if(item != null) {
+                                System.out.printf("%-15s %s\n", "autotags",
+                                        item.getField("autotag"));
                             }
 
-                        } catch (Exception ex) {
+                        } catch(Exception ex) {
                             System.out.println("Error " + ex);
                             ex.printStackTrace();
                         }
@@ -140,18 +149,18 @@ public class ShellUtils {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length == 1) {
+                            if(args.length == 1) {
                                 return getHelp();
                             }
 
                             Item item = dataStore.getItem(args[1]);
-                            if (item != null) {
+                            if(item != null) {
                                 dataStore.deleteItem(item.getKey());
                             } else {
                                 System.out.println("Can't find item " + args[1]);
                             }
 
-                        } catch (Exception ex) {
+                        } catch(Exception ex) {
                             System.out.println("Error " + ex);
                             ex.printStackTrace();
                         }
@@ -168,18 +177,18 @@ public class ShellUtils {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length == 1) {
+                            if(args.length == 1) {
                                 return getHelp();
                             }
 
                             User user = dataStore.getUser(args[1]);
-                            if (user != null) {
+                            if(user != null) {
                                 dataStore.deleteUser(user.getKey());
                             } else {
                                 System.out.println("Can't find user " + args[1]);
                             }
 
-                        } catch (Exception ex) {
+                        } catch(Exception ex) {
                             System.out.println("Error " + ex);
                             ex.printStackTrace();
                         }
@@ -196,21 +205,23 @@ public class ShellUtils {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length != 3) {
+                            if(args.length != 3) {
                                 return getHelp();
                             }
 
                             Item item1 = dataStore.getItem(args[1]);
                             Item item2 = dataStore.getItem(args[2]);
-                            if (item1 != null && item2 != null) {
-                                dataStore.attend(StoreFactory.newAttention(args[1], args[2], Attention.Type.LINKS_TO));
+                            if(item1 != null && item2 != null) {
+                                dataStore.attend(StoreFactory.newAttention(
+                                        args[1], args[2],
+                                        Attention.Type.LINKS_TO));
                             }
 
                             Item item1A = dataStore.getItem(args[1]);
                             Item item2A = dataStore.getItem(args[2]);
                             dumpItemFull(item1A);
                             dumpItemFull(item2A);
-                        } catch (Exception ex) {
+                        } catch(Exception ex) {
                             System.out.println("Error " + ex);
                             ex.printStackTrace();
                         }
@@ -228,7 +239,7 @@ public class ShellUtils {
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
                             dumpTagFrequencies(nHits);
-                        } catch (Exception ex) {
+                        } catch(Exception ex) {
                             System.out.println("Error " + ex);
                             ex.printStackTrace();
                         }
@@ -247,15 +258,16 @@ public class ShellUtils {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length != 2) {
+                            if(args.length != 2) {
                                 return "Usage: attnTgt id";
                             } else {
-                                List<Attention> attns = dataStore.getAttentionForTarget(args[1]);
-                                for (Attention attn : attns) {
+                                List<Attention> attns = dataStore.
+                                        getAttentionForTarget(args[1]);
+                                for(Attention attn : attns) {
                                     System.out.println(attn);
                                 }
                             }
-                        } catch (Exception ex) {
+                        } catch(Exception ex) {
                             System.out.println("Error " + ex);
                         }
                         return "";
@@ -270,15 +282,16 @@ public class ShellUtils {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length != 2) {
+                            if(args.length != 2) {
                                 return "Usage: attnSrc id";
                             } else {
-                                List<Attention> attns = dataStore.getAttentionForSource(args[1]);
-                                for (Attention attn : attns) {
+                                List<Attention> attns = dataStore.
+                                        getAttentionForSource(args[1]);
+                                for(Attention attn : attns) {
                                     System.out.println(attn);
                                 }
                             }
-                        } catch (Exception ex) {
+                        } catch(Exception ex) {
                             System.out.println("Error " + ex);
                         }
                         return "";
@@ -294,24 +307,28 @@ public class ShellUtils {
 
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
-                            if (args.length > 2) {
+                            if(args.length > 2) {
                                 return "Usage: stats [prefix]";
                             }
 
                             String prefix = args.length == 2 ? args[1] : "";
                             String[] counters = statService.getCounterNames();
                             Arrays.sort(counters);
-                            System.out.printf("%20s %8s %8s %8s\n", "Stat", "counter", "average", "per min");
-                            System.out.printf("%20s %8s %8s %8s\n", "----", "-------", "-------", "-------");
-                            for (String counter : counters) {
-                                if (counter.startsWith(prefix)) {
+                            System.out.printf("%20s %8s %8s %8s\n", "Stat",
+                                    "counter", "average", "per min");
+                            System.out.printf("%20s %8s %8s %8s\n", "----",
+                                    "-------", "-------", "-------");
+                            for(String counter : counters) {
+                                if(counter.startsWith(prefix)) {
                                     long count = statService.get(counter);
                                     double avg = statService.getAverage(counter);
-                                    double avgPerMin = statService.getAveragePerMinute(counter);
-                                    System.out.printf("%20s %8d %8.3f %8.3f\n", counter, count, avg, avgPerMin);
+                                    double avgPerMin = statService.
+                                            getAveragePerMinute(counter);
+                                    System.out.printf("%20s %8d %8.3f %8.3f\n",
+                                            counter, count, avg, avgPerMin);
                                 }
                             }
-                        } catch (Exception e) {
+                        } catch(Exception e) {
                             System.out.println("Error " + e);
                         }
                         return "";
@@ -327,7 +344,8 @@ public class ShellUtils {
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
                         String query = stuff(args, 1);
-                        List<Scored<Item>> items = dataStore.query(query, nHits, null);
+                        List<Scored<Item>> items = dataStore.query(query, nHits,
+                                null);
                         dumpScoredItems(items);
                         return "";
                     }
@@ -342,7 +360,8 @@ public class ShellUtils {
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
                         String autotag = stuff(args, 1).trim();
-                        List<Scored<Item>> items = dataStore.getAutotagged(autotag, nHits);
+                        List<Scored<Item>> items = dataStore.getAutotagged(
+                                autotag, nHits);
                         dumpScoredItems(items);
                         return "";
                     }
@@ -358,8 +377,9 @@ public class ShellUtils {
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
                         String autotag = stuff(args, 1).trim();
-                        List<Scored<String>> terms = dataStore.getTopAutotagTerms(autotag, nHits);
-                        for (Scored<String> term : terms) {
+                        List<Scored<String>> terms = dataStore.
+                                getTopAutotagTerms(autotag, nHits);
+                        for(Scored<String> term : terms) {
                             System.out.println(term);
                         }
 
@@ -379,7 +399,7 @@ public class ShellUtils {
                         String autotag = stuff(args, 1).trim();
                         List<Scored<String>> autotags =
                                 dataStore.findSimilarAutotags(autotag, nHits);
-                        for (Scored<String> tag : autotags) {
+                        for(Scored<String> tag : autotags) {
                             System.out.println(tag);
                         }
 
@@ -396,12 +416,13 @@ public class ShellUtils {
 
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
-                        if (args.length < 3) {
+                        if(args.length < 3) {
                             return getHelp();
                         }
                         List<Scored<String>> terms =
-                                dataStore.explainSimilarAutotags(args[1], args[2], nHits);
-                        for (Scored<String> term : terms) {
+                                dataStore.explainSimilarAutotags(args[1],
+                                args[2], nHits);
+                        for(Scored<String> term : terms) {
                             System.out.println(term);
                         }
 
@@ -413,13 +434,33 @@ public class ShellUtils {
                     }
                 });
 
+        shell.add("setSkim",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        try {
+                            skimPercentage = Double.parseDouble(args[1]);
+                            return "";
+                        } catch(NumberFormatException nfe) {
+                            return args[1] + " is not a valid percentage";
+                        }
+                    }
+
+                    public String getHelp() {
+                        return "Find similar";
+                    }
+                });
         shell.add("fs",
                 new CommandInterface() {
 
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
                         String key = args[1];
-                        List<Scored<Item>> items = dataStore.findSimilar(key, new FindSimilarConfig(nHits));
+                        FindSimilarConfig config = new FindSimilarConfig(nHits);
+                        config.setSkimPercent(skimPercentage);
+                        List<Scored<Item>> items = dataStore.findSimilar(key,
+                                config);
                         dumpScoredItems(items);
                         return "";
                     }
@@ -435,7 +476,10 @@ public class ShellUtils {
                             throws Exception {
                         String field = args[1];
                         String key = args[2];
-                        List<Scored<Item>> items = dataStore.findSimilar(key, new FindSimilarConfig(field, nHits, null));
+                        FindSimilarConfig config = new FindSimilarConfig(field, nHits, null);
+                        config.setSkimPercent(skimPercentage);
+                        List<Scored<Item>> items = dataStore.findSimilar(key,
+                                config);
                         dumpScoredItems(items);
                         return "";
                     }
@@ -449,13 +493,14 @@ public class ShellUtils {
 
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
-                        if (args.length < 3) {
+                        if(args.length < 3) {
                             return getHelp();
                         }
                         String key1 = args[1];
                         String key2 = args[2];
-                        List<Scored<String>> expn = dataStore.explainSimilarity(key1, key2, nHits);
-                        for (Scored<String> term : expn) {
+                        List<Scored<String>> expn = dataStore.explainSimilarity(
+                                key1, key2, nHits);
+                        for(Scored<String> term : expn) {
                             System.out.print(term + " ");
                         }
                         System.out.println("");
@@ -471,14 +516,15 @@ public class ShellUtils {
 
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
-                        if (args.length < 4) {
+                        if(args.length < 4) {
                             return getHelp();
                         }
                         String field = args[1];
                         String key1 = args[2];
                         String key2 = args[3];
-                        List<Scored<String>> expn = dataStore.explainSimilarity(key1, key2, field, nHits);
-                        for (Scored<String> term : expn) {
+                        List<Scored<String>> expn = dataStore.explainSimilarity(
+                                key1, key2, field, nHits);
+                        for(Scored<String> term : expn) {
                             System.out.print(term + " ");
                         }
                         System.out.println("");
@@ -504,10 +550,14 @@ public class ShellUtils {
                         String key = args[1];
 
                         System.out.println("Using fields:");
-                        for (WeightedField wf : fields) {
-                            System.out.printf("   %s: %f\n", wf.getFieldName(), wf.getWeight());
+                        for(WeightedField wf : fields) {
+                            System.out.printf("   %s: %f\n", wf.getFieldName(),
+                                    wf.getWeight());
                         }
-                        List<Scored<Item>> items = dataStore.findSimilar(key, new FindSimilarConfig(fields, nHits, null));
+                        FindSimilarConfig config = new FindSimilarConfig(fields, nHits, null);
+                        config.setSkimPercent(skimPercentage);
+                        List<Scored<Item>> items = dataStore.findSimilar(key,
+                                config);
                         dumpScoredItems(items);
                         return "";
                     }
@@ -526,8 +576,9 @@ public class ShellUtils {
                         String field = args.length > 2 ? args[2] : "content";
                         List<Scored<String>> terms = dataStore.getTopTerms(key,
                                 field, nHits);
-                        for (Scored<String> term : terms) {
-                            System.out.printf("%.3f %s\n", term.getScore(), term.getItem());
+                        for(Scored<String> term : terms) {
+                            System.out.printf("%.3f %s\n", term.getScore(),
+                                    term.getItem());
                         }
 
                         return "";
@@ -545,9 +596,11 @@ public class ShellUtils {
                             throws Exception {
                         String autotag = args[1];
                         String key = args[2];
-                        List<Scored<String>> terms = dataStore.getExplanation(key, autotag, nHits);
-                        for (Scored<String> term : terms) {
-                            System.out.printf("%.3f %s\n", term.getScore(), term.getItem());
+                        List<Scored<String>> terms = dataStore.getExplanation(
+                                key, autotag, nHits);
+                        for(Scored<String> term : terms) {
+                            System.out.printf("%.3f %s\n", term.getScore(),
+                                    term.getItem());
                         }
 
                         return "";
@@ -560,7 +613,7 @@ public class ShellUtils {
     }
 
     public void dumpAllUsers() throws AuraException, RemoteException {
-        for (Item item : dataStore.getAll(ItemType.USER)) {
+        for(Item item : dataStore.getAll(ItemType.USER)) {
             dumpUser((User) item);
         }
     }
@@ -570,44 +623,47 @@ public class ShellUtils {
     }
 
     public void dumpItem(Item item) {
-        if (item == null) {
+        if(item == null) {
             System.out.println("null");
         } else {
-            System.out.printf(" %16s %s %s\n", item.getType().toString(), item.getKey(), item.getName());
+            System.out.printf(" %16s %s %s\n", item.getType().toString(), item.
+                    getKey(), item.getName());
         }
     }
 
     public void dumpScoredItems(List<Scored<Item>> items) {
-        for (Scored<Item> item : items) {
+        for(Scored<Item> item : items) {
             System.out.printf("%.3f ", item.getScore());
             dumpItem(item.getItem());
         }
     }
 
     public void dumpScored(List<Scored<String>> scoredStrings) {
-        for (Scored<String> scored : scoredStrings) {
+        for(Scored<String> scored : scoredStrings) {
             System.out.printf("%.3f %s\n", scored.getScore(), scored.getItem());
         }
     }
 
     public void dumpTags(List<Tag> tags) {
-        for (Tag tag : tags) {
+        for(Tag tag : tags) {
             System.out.printf("%d %s\n", tag.getCount(), tag.getName());
         }
     }
 
     public void dumpItemFull(Item item) throws AuraException, RemoteException {
-        if (item == null) {
+        if(item == null) {
             System.out.println("null");
         } else {
             System.out.println(ItemAdapter.toString(item));
-            System.out.println("src: " + dataStore.getAttentionForSource(item.getKey()).size());
-            System.out.println("tgt: " + dataStore.getAttentionForTarget(item.getKey()).size());
+            System.out.println("src: " + dataStore.getAttentionForSource(item.
+                    getKey()).size());
+            System.out.println("tgt: " + dataStore.getAttentionForTarget(item.
+                    getKey()).size());
         }
     }
 
     public void dumpScoredItem(Scored<Item> scoredItem) throws AuraException, RemoteException {
-        if (scoredItem == null) {
+        if(scoredItem == null) {
             System.out.println("null");
         } else {
             System.out.printf(" %.0f %s\n", scoredItem.getScore(),
@@ -615,19 +671,21 @@ public class ShellUtils {
         }
     }
 
-    public void dumpAttentionData(String msg, List<Attention> attentionData) throws AuraException, RemoteException {
+    public void dumpAttentionData(String msg, List<Attention> attentionData)
+            throws AuraException, RemoteException {
         System.out.println("Attention " + msg);
-        for (Attention attention : attentionData) {
+        for(Attention attention : attentionData) {
             Item source = dataStore.getItem(attention.getSourceKey());
             Item target = dataStore.getItem(attention.getTargetKey());
             String type = attention.getType().toString();
 
-            System.out.printf("   %s -- %s -- %s\n", fmtItem(source), type, fmtItem(target));
+            System.out.printf("   %s -- %s -- %s\n", fmtItem(source), type,
+                    fmtItem(target));
         }
     }
 
     private String fmtItem(Item item) {
-        if (item == null) {
+        if(item == null) {
             return "(null)";
         } else {
             return item.getKey() + "(" + item.getName() + ")";
@@ -639,19 +697,20 @@ public class ShellUtils {
         try {
             List<FieldFrequency> tagFreqs = dataStore.getTopValues("tag", n,
                     true);
-            for (FieldFrequency ff : tagFreqs) {
-                System.out.printf("%d %s\n", ff.getFreq(), ff.getVal().toString().trim());
+            for(FieldFrequency ff : tagFreqs) {
+                System.out.printf("%d %s\n", ff.getFreq(), ff.getVal().toString().
+                        trim());
             }
-        } catch (AuraException ex) {
+        } catch(AuraException ex) {
             logger.severe("dumpTagFrequencies " + ex);
-        } catch (RemoteException ex) {
+        } catch(RemoteException ex) {
             logger.severe("dumpTagFrequencies " + ex);
         }
     }
 
     public String stuff(String[] args, int p) {
         StringBuilder sb = new StringBuilder();
-        for (int i = p; i < args.length; i++) {
+        for(int i = p; i < args.length; i++) {
             sb.append(args[i]);
             sb.append(' ');
         }
@@ -660,5 +719,9 @@ public class ShellUtils {
 
     public int getHits() {
         return nHits;
+    }
+    
+    public double getSkimPercentage() {
+        return skimPercentage;
     }
 }
