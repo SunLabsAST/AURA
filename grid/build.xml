@@ -54,7 +54,7 @@
     <!-- Package up the jar with the service starter main class along with some
          other things. -->
     <target name="dist-jar" description="Build a jar to distribute" depends="make-dist-jar-dir">
-        <jar jarfile="${dist.dir}/aardvark-dist.jar" basedir="${dist.dir}" includes="dist/**"/>
+        <jar jarfile="${dist.dir}/grid-dist.jar" basedir="${dist.dir}" includes="dist/**"/>
         <delete dir="${dist.dir}/dist"/>
     </target>
     

@@ -1,0 +1,36 @@
+There are two steps for creating a service that can be deployed using
+the automatic machinery in the Aura grid project.
+
+First, you need to write the actual service or services that will be
+deployed.  It is highly recommended that any such services implement
+the AuraService interface, but this is not an absolute requirement.
+Recall that the service will have to request the data store (and
+whatever else it needs) from the service registry running on the grid.
+
+Once you have the service that you wish to deploy, the second part is
+to write the program that will be used to deploy the service.  This
+class needs to implement the Configurable and AuraService interfaces,
+but it's much easier to just extend the
+com.sun.labs.aura.grid.ServiceAdapter abstract class.  This base class
+takes care of a number of issues, including getting the grid context
+and instance name.
+
+The GridUtil class (an instance of which is instantiated by the
+ServiceAdapter) can be used to do a number of useful things (e.g.,
+getting a filesystem, creating it if necessary.)  The GridUtil class
+is instantiated with an instance name, and it will take care of naming
+things in an instance-specific way.
+
+It's probably a good idea to have the deployer program split into a
+base class that handles configuration for startting and stopping
+instances, and subclasses that handle starting and stopping
+independently.
+
+An example of this can be found in the com.sun.labs.aura.grid.aura
+package.  Here, the Aura base class contains methods to get process
+registrations for the various components of an Aura data store.  The
+StartAura class contains the code to start these registrations on-grid
+and to do the network configuration.  The StopAura class contains the
+code to stop the registrations.
+
+ 

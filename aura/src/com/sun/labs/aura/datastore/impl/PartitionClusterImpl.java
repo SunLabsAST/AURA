@@ -10,6 +10,7 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
+import com.sun.labs.aura.datastore.impl.store.FindSimilarConfig;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
@@ -216,31 +217,10 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getTopValues(field, n, ignoreCase);
     }
 
-    public List<Scored<Item>> findSimilar(String key, int n, ResultsFilter rf)
-            throws AuraException, RemoteException {
-        DocumentVector dv = replicant.getDocumentVector(key);
-        return replicant.findSimilar(dv, n, rf);
-    }
-
-    public List<Scored<Item>> findSimilar(String key, String field, int n, ResultsFilter rf)
-            throws AuraException, RemoteException {
-        DocumentVector dv = replicant.getDocumentVector(key, field);
-        return replicant.findSimilar(dv, n, rf);
-    }
-
-    public List<Scored<Item>> findSimilar(String key,
-                                       WeightedField[] fields,
-                                       int n, ResultsFilter rf)
-            throws AuraException, RemoteException {
-        DocumentVector dv = replicant.getDocumentVector(key, fields);
-        return replicant.findSimilar(dv, n, rf);
-    }
-    
     public List<Scored<Item>> query(String query, int n, ResultsFilter rf) 
             throws AuraException, RemoteException {
         return replicant.query(query, n, rf);
     }
-
 
     public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf) 
             throws AuraException, RemoteException {
@@ -335,7 +315,7 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getDocumentVector(key, fields);
     }
 
-    public List<Scored<Item>> findSimilar(DocumentVector dv, int n, ResultsFilter rf) throws AuraException, RemoteException {
-        return replicant.findSimilar(dv, n, rf);
+    public List<Scored<Item>> findSimilar(DocumentVector dv, FindSimilarConfig config) throws AuraException, RemoteException {
+        return replicant.findSimilar(dv, config);
     }
 }

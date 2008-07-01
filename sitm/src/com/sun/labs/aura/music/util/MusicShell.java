@@ -12,6 +12,7 @@ import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.datastore.impl.store.FindSimilarConfig;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.Listener;
@@ -92,8 +93,9 @@ public class MusicShell implements AuraService, Configurable {
                 Artist artist = findArtist(qname);
                 if (artist != null) {
                     System.out.println("Finding similar for " + artist.getName());
-                    List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(), sutils.getHits(),
-                            new TypeFilter(ItemType.ARTIST));
+                    List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(), 
+                            new FindSimilarConfig(sutils.getHits(),
+                            new TypeFilter(ItemType.ARTIST)));
                     sutils.dumpScoredItems(simItems);
                     return "";
                 } else {
@@ -114,7 +116,7 @@ public class MusicShell implements AuraService, Configurable {
                 if (artist != null) {
                     System.out.println("Finding similar for " + artist.getName());
                     List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(),
-                            Artist.FIELD_SOCIAL_TAGS, sutils.getHits(), new TypeFilter(ItemType.ARTIST));
+                            new FindSimilarConfig(Artist.FIELD_SOCIAL_TAGS, sutils.getHits(), new TypeFilter(ItemType.ARTIST)));
                     sutils.dumpScoredItems(simItems);
                     return "";
                 } else {
@@ -147,7 +149,7 @@ public class MusicShell implements AuraService, Configurable {
                 if (artist != null) {
                     System.out.println("Finding similar for " + artist.getName());
                     List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(),
-                            Artist.FIELD_BIO_TAGS, sutils.getHits(), new TypeFilter(ItemType.ARTIST));
+                            new FindSimilarConfig(Artist.FIELD_BIO_TAGS, sutils.getHits(), new TypeFilter(ItemType.ARTIST)));
                     sutils.dumpScoredItems(simItems);
                     return "";
                 } else {
@@ -451,8 +453,8 @@ public class MusicShell implements AuraService, Configurable {
                     ArtistTag artistTag = findArtistTag(qname);
                     if (artistTag != null) {
                         List<Scored<Item>> simItems = dataStore.findSimilar(artistTag.getKey(),
-                                ArtistTag.FIELD_TAGGED_ARTISTS, sutils.getHits(),
-                                new TypeFilter(ItemType.ARTIST_TAG));
+                                new FindSimilarConfig(ArtistTag.FIELD_TAGGED_ARTISTS, sutils.getHits(),
+                                new TypeFilter(ItemType.ARTIST_TAG)));
                         sutils.dumpScoredItems(simItems);
                     }
                 }

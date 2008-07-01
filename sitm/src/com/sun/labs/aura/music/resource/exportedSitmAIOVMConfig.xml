@@ -105,6 +105,7 @@
         <property name="dataStore" value="dataStoreHead"/>
         <property name="crawlerStateDir" value="${auraHome}/crawler.state"/>
         <property name="logLevel" value="INFO"/>
+        <property name="maxArtists" value="5000"/>
         <property name="updateRateInSeconds" value="345600"/>
     </component>
 

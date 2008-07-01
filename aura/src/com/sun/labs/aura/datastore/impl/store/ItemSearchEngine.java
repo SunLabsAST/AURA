@@ -426,19 +426,18 @@ public class ItemSearchEngine implements Configurable {
      * smaller than the number of items requested!
      * @see #getDocumentVector
      */
-    public List<Scored<String>> findSimilar(DocumentVector dv, int n,
-            ResultsFilter rf)
+    public List<Scored<String>> findSimilar(DocumentVector dv, FindSimilarConfig config)
             throws AuraException {
 
         //
         // Recover from having been serialized.
         dv.setEngine(engine);
-        ResultSet sim = dv.findSimilar("-score", skimPercentage);
+        ResultSet sim = dv.findSimilar("-score", config.getSkimPercent());
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         NanoWatch nw = new NanoWatch();
         nw.start();
         try {
-            for(Result r : sim.getResults(0, n, rf)) {
+            for(Result r : sim.getResults(0, config.getN(), config.getFilter())) {
                 ResultImpl ri = (ResultImpl) r;
                 ret.add(new Scored<String>(ri.getKey(),
                         ri.getScore(),
@@ -451,9 +450,10 @@ public class ItemSearchEngine implements Configurable {
         nw.stop();
         int nt = 0;
         int np = 0;
-        if(rf instanceof CompositeResultsFilter) {
-            nt = ((CompositeResultsFilter) rf).getTested();
-            np = ((CompositeResultsFilter) rf).getPassed();
+        if(config.getFilter() instanceof CompositeResultsFilter) {
+            CompositeResultsFilter crf = (CompositeResultsFilter) config.getFilter();
+            nt = crf.getTested();
+            np = crf.getPassed();
         }
         log.info(String.format("fsgr %s docs: %d test: %d pass: %d gr: %.2f",
                 dv.getKey(),
