@@ -444,6 +444,7 @@ public class PageHeaderWidget extends Swidget {
             return p;
         }
 
+
         private void update() {
 
             HorizontalPanel hP = new HorizontalPanel();
@@ -458,6 +459,17 @@ public class PageHeaderWidget extends Swidget {
             });
             sLabel.setStyleName("headerMenuMedItem");
             hP.add(sLabel);
+
+            sLabel = new Label("Steerable");
+            sLabel.addClickListener(new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    History.newItem("steering:");
+                }
+            });
+            sLabel.setStyleName("headerMenuMedItem");
+            hP.add(sLabel);
+
 
             if (loggedIn) {
                 sLabel = new Label("Dashboard");

@@ -66,6 +66,7 @@ public class ArtistListWidget extends Composite {
 
         for (ArtistCompact aD : aDArray) {
             HorizontalPanel artistPanel = new HorizontalPanel();
+            artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
             artistPanel.setStyleName("artistPanel");
             artistPanel.setSpacing(5);
 
@@ -104,7 +105,16 @@ public class ArtistListWidget extends Composite {
 
             StarRatingWidget star = new StarRatingWidget(musicServer, lD, aD.getId(),
                     rating, StarRatingWidget.Size.SMALL);
-            txtPanel.add(star);
+            Label starLbl = new Label("Your rating: ");
+            starLbl.setStyleName("recoTags");
+            starLbl.addStyleName("marginRight");
+            HorizontalPanel starHP = new HorizontalPanel();
+            starHP.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
+            starHP.add(starLbl);
+            starHP.add(star);
+            txtPanel.add(starHP);
+
+            txtPanel.add(WebLib.getSmallPopularityWidget(aD.getNormPopularity(), true));
 
             artistPanel.add(txtPanel);
 

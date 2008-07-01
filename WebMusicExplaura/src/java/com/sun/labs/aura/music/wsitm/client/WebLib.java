@@ -5,12 +5,14 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
-import com.extjs.gxt.ui.client.widget.VerticalPanel;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
@@ -140,5 +142,76 @@ public abstract class WebLib {
         FlowPanel panel = new FlowPanel();
         panel.add(new HTML("<img src='" + ICON_WAIT + "'/>"));
         return panel;
+    }
+
+    /**
+     * Build a horizontal bar representing the popularity
+     * @param name name of the artist or concept
+     * @param normPopularity popularity as a number between 0 and 1
+     * @param log plot on a log scale
+     * @param style style to apply to the name
+     */
+    public static Widget getPopularityWidget(String name, double normPopularity, boolean log, String style) {
+
+        VerticalPanel vPanel = new VerticalPanel();
+        Label lbl = new Label(name);
+        if (style!=null && !style.equals("")) {
+            lbl.addStyleName(style);
+        }
+        vPanel.add(lbl);
+        vPanel.add(getPopularityHisto(normPopularity, log, 15));
+        return vPanel;
+    }
+
+    /**
+     * Get small version of horizontal bar representing the popularity
+     * @param normPopularity popularity as a number between 0 and 1
+     * @param log plot on log scale
+     * @return
+     */
+    public static Widget getSmallPopularityWidget(double normPopularity, boolean log) {
+
+        HorizontalPanel hPanel = new HorizontalPanel();
+        hPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
+        Label lbl = new Label("Popularity: ");
+        lbl.setStyleName("recoTags");
+        lbl.addStyleName("marginRight");
+        hPanel.add(lbl);
+        hPanel.add(getPopularityHisto(normPopularity, log, 8));
+        return hPanel;
+    }
+
+    private static Widget getPopularityHisto(double normPopularity, boolean log, int height) {
+
+        if (log) {
+            normPopularity = Math.log(normPopularity + 1) / Math.log(2); // get the base 2 log
+        }
+        int leftWidth = (int) (normPopularity * 100);
+        if (leftWidth < 1) {
+            leftWidth = 1;
+        } else if (leftWidth > 100) {
+            leftWidth = 100;
+        }
+        int rightWidth = 100 - leftWidth;
+
+        HorizontalPanel table = new HorizontalPanel();
+        table.setWidth("100px");
+        table.setBorderWidth(0);
+        table.setSpacing(0);
+
+        Widget left = new Label("");
+        left.setStyleName("popLeft");
+        left.setWidth(leftWidth + "");
+        left.setHeight(height+"px");
+
+        Widget right = new Label("");
+        right.setStyleName("popRight");
+        right.setWidth(rightWidth + "");
+        left.setHeight(height+"px");
+
+        table.add(left);
+        table.add(right);
+
+        return table;
     }
 }

@@ -84,44 +84,8 @@ public class DashboardSwidget extends Swidget {
 
             DockPanel dP = new DockPanel();
 
-            VerticalPanel vP = new VerticalPanel();
-            vP.setSpacing(4);
-            vP.setWidth("300px");
-
-            //
-            // Recommendations
-            for (ArtistCompact aD : cdm.getListenerDetails().recommendations) {
-                HorizontalPanel artistPanel = new HorizontalPanel();
-                artistPanel.setStyleName("artistPanel");
-                artistPanel.setSpacing(5);
-
-                Image img = aD.getBestArtistImage(true);
-                artistPanel.add(img);
-
-                VerticalPanel txtPanel = new VerticalPanel();
-
-
-                HorizontalPanel aNamePanel = new HorizontalPanel();
-                aNamePanel.setSpacing(5);
-                Label aName = new Label(aD.getName());
-                aName.addClickListener(new TokenClickListener("artist:"+aD.getId()));
-                aNamePanel.add(aName);
-
-                aNamePanel.add(WebLib.getSpotifyListenWidget(aD, 20));
-                txtPanel.add(aNamePanel);
-
-                Label tagsLabel = new Label(getNDistinctiveTags(aD, 4));
-                tagsLabel.setStyleName("recoTags");
-                txtPanel.add(tagsLabel);
-
-                //txtPanel.add(new StarRatingWidget(0, StarRatingWidget.Size.SMALL));
-
-                artistPanel.add(txtPanel);
-
-
-                vP.add(artistPanel);
-            }
-            dP.add(WebLib.createSection("Artist recommendations", vP), DockPanel.WEST);
+            ArtistListWidget alp = new ArtistListWidget(musicServer, cdm.getListenerDetails(), cdm.getListenerDetails().recommendations);
+            dP.add(WebLib.createSection("Artist recommendations", alp), DockPanel.WEST);
 
             Label titleLbl = new Label("Dashhhhboard");
             titleLbl.setStyleName("h1");

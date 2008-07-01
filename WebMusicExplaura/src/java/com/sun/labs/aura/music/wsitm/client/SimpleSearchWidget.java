@@ -38,6 +38,7 @@ import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.LoadListener;
@@ -45,6 +46,7 @@ import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.SuggestBox;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
@@ -493,7 +495,8 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         }
     }
 
-    private void addCompactArtistToOracle(ArtistCompact[] aCArray) {
+
+    private final void addCompactArtistToOracle(ArtistCompact[] aCArray) {
         for (ArtistCompact aC : aCArray) {
             cdm.getArtistOracle().add(aC.getName());
         }
@@ -529,13 +532,14 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             ArtistCompact[] aCArray = artistDetails.getSimilarArtists();
             addCompactArtistToOracle(aCArray);
             left.add(
-                    new Updatable(new HTML("<H2>"+cdm.getCurrSimTypeName()+"-omendations</H2>"),
-                    //getItemInfoList2(artistDetails.getSimilarArtists(), id, true, artistOracle), cdm, id) {
+                    new Updatable(new HTML("<H2>Similar artists</H2>"),
                     new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray), cdm, id) {
 
                         public void update(ArtistDetails aD) {
-                            setNewContent(new HTML("<H2>"+cdm.getCurrSimTypeName()+"-omendations</H2>"),
-                                    new ArtistListWidget(musicServer, cdm.getListenerDetails(), aD.getRecommendedArtists()));
+                            ArtistCompact[] aCArray = aD.getSimilarArtists();
+                            addCompactArtistToOracle(aCArray);
+                            setNewContent(new HTML("<H2>Similar artists</H2>"),
+                                    new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray));
                         }
                     }
            );
@@ -545,13 +549,11 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             ArtistCompact[] aCArray = artistDetails.getRecommendedArtists();
             addCompactArtistToOracle(aCArray);
             left.add(WebLib.createSection("Recommendations", new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray)));
-            //left.add(getItemInfoList("Recommendations", artistDetails.getRecommendedArtists(), id, true, artistOracle));
         }
         if (artistDetails.getCollaborations().length > 0) {
             ArtistCompact[] aCArray = artistDetails.getCollaborations();
             addCompactArtistToOracle(aCArray);
             left.add(WebLib.createSection("Related", new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray)));
-            //left.add(getItemInfoList("Related", artistDetails.getCollaborations(), id, true, artistOracle));
         }
         left.add(getMoreInfoWidget(artistDetails));
         left.setStyleName("left");
@@ -602,14 +604,16 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         StarRatingWidget starWidget = new StarRatingWidget(musicServer, cdm.getListenerDetails(), artistDetails.getId(), StarRatingWidget.Size.MEDIUM);
 
-        return createMainSection(artistDetails.getName(), html, WebLib.getSpotifyListenWidget(artistDetails, 30), starWidget);
+        return createMainSection(artistDetails.getName(), html,
+                WebLib.getSpotifyListenWidget(artistDetails, 30),
+                artistDetails.getDistinctiveTags(), starWidget);
     }
 
     Widget getTagWidget(TagDetails tagDetails) {
         HTML html = new HTML();
         html.setHTML(getBestTagImageAsHTML(tagDetails) + tagDetails.getDescription());
         html.setStyleName("bio");
-        return createMainSection(tagDetails.getName(), html, WebLib.getListenWidget(tagDetails), null);
+        return createMainSection(tagDetails.getName(), html, WebLib.getListenWidget(tagDetails));
     }
 
     Widget getMoreInfoWidget(ArtistDetails artistDetails) {
@@ -645,10 +649,10 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         VerticalPanel vPanel = new VerticalPanel();
 
         for (String key : cdm.getFavArtist().keySet()) {
-            vPanel.add(getPopularityWidget(key, cdm.getFavArtist().get(key)/realMaxScore, false, null));
+            vPanel.add(WebLib.getPopularityWidget(key, cdm.getFavArtist().get(key)/realMaxScore, false, null));
         }
 
-        vPanel.add(getPopularityWidget(aD.getName(),
+        vPanel.add(WebLib.getPopularityWidget(aD.getName(),
                 currArtistScore/realMaxScore, false, "itemInfoHighlight"));
 
         return WebLib.createSection("Tast-aura-meter", vPanel);
@@ -657,8 +661,8 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     Widget getPopularityPanel(ArtistDetails artistDetails) {
 
         VerticalPanel vPanel = new VerticalPanel();
-        vPanel.add(getPopularityWidget("The Beatles",1,true,null));
-        vPanel.add(getPopularityWidget(artistDetails.getName(),
+        vPanel.add(WebLib.getPopularityWidget("The Beatles",1,true,null));
+        vPanel.add(WebLib.getPopularityWidget(artistDetails.getName(),
                 artistDetails.getNormPopularity(),true,null));
 
         return WebLib.createSection("Popularity", vPanel);
@@ -675,55 +679,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         **/
         return null;
 
-    }
-
-    /**
-     * Build a horizontal bar representing the popularity
-     * @param name name of the artist or concept
-     * @param normPopularity popularity as a number between 0 and 1
-     * @param log plot on a log scale
-     * @param style style to apply to the name
-     */
-    Widget getPopularityWidget(String name, double normPopularity, boolean log, String style) {
-
-        if (log) {
-            normPopularity=Math.log(normPopularity+1)/Math.log(2); // get the base 2 log
-        }
-        int leftWidth = (int)(normPopularity*100);
-        if (leftWidth<1) {
-            leftWidth=1;
-        } else if (leftWidth>100) {
-            leftWidth=100;
-        }
-        int rightWidth = 100-leftWidth;
-
-        HorizontalPanel table = new HorizontalPanel();
-        table.setWidth("100px");
-        table.setBorderWidth(0);
-        table.setSpacing(0);
-
-        Widget left = new Label("");
-        left.setStyleName("popLeft");
-        left.setWidth(leftWidth+"");
-        left.setHeight("15px");
-
-        Widget right = new Label("");
-        right.setStyleName("popRight");
-        right.setWidth(rightWidth+"");
-        left.setHeight("15px");
-
-        table.add(left);
-        table.add(right);
-
-
-        VerticalPanel vPanel = new VerticalPanel();
-        Label lbl = new Label(name);
-        if (style!=null && !style.equals("")) {
-            lbl.addStyleName(style);
-        }
-        vPanel.add(lbl);
-        vPanel.add(table);
-        return vPanel;
     }
 
     private Widget getEventsWidget(ArtistDetails artistDetails) {
@@ -759,7 +714,11 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         return panel;
     }
 
-    Widget createMainSection(String title, Widget widget, Widget adornment, StarRatingWidget starWidget) {
+    Widget createMainSection(String title, Widget widget, Widget adornment) {
+        return createMainSection(title, widget, adornment, null, null);
+    }
+
+    Widget createMainSection(String title, Widget widget, Widget adornment, ItemInfo[] tagCloud, StarRatingWidget starWidget) {
         Panel panel = new VerticalPanel();
         DockPanel h = new DockPanel();
         h.add(new Label(title), DockPanel.WEST);
@@ -774,6 +733,13 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         h.setWidth("100%");
         h.setStyleName("h1");
         panel.add(h);
+        if (tagCloud != null) {
+            panel.add(new TagInputWidget("artist"));
+            
+            Panel p = getTagsInPanel(tagCloud);
+            p.addStyleName("tagCloudMargin");
+            panel.add(p);
+        }
         panel.add(widget);
         return panel;
     }
@@ -1399,20 +1365,20 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
     }
 
-    class SearchWidget extends Composite {
+    public class SearchWidget extends Composite {
 
         private SuggestBox textBox;
         private RadioButton[] searchButtons;
 
-        SearchWidget() {
+        public SearchWidget() {
 
             textBox = new SuggestBox();
-            textBox.setTabIndex(0);
+            textBox.setTabIndex(1);
 
             searchBoxContainerPanel = new FlowPanel();
             searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
 
-            Panel searchType = new FlowPanel();
+            Panel searchType = new VerticalPanel();
             searchButtons = new RadioButton[3];
             searchButtons[0] = new RadioButton("searchType", "For Artist");
             searchButtons[1] = new RadioButton("searchType", "By Tag");
@@ -1444,8 +1410,10 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             searchType.setWidth("100%");
             searchType.setStyleName("searchPanel");
 
-            FlowPanel searchPanel = new FlowPanel();
+            HorizontalPanel searchPanel = new HorizontalPanel();
             searchPanel.setStyleName("searchPanel");
+            searchPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
+            searchPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
 
             Button searchButton = new Button("Search", new ClickListener() {
                 public void onClick(Widget sender) {
@@ -1453,10 +1421,16 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                 }
             });
             searchButton.addStyleName("main");
-            searchButton.setTabIndex(1);
+            searchButton.setTabIndex(2);
 
-            searchPanel.add(searchBoxContainerPanel);
-            searchPanel.add(searchButton);
+            VerticalPanel leftP = new VerticalPanel();
+            leftP.setHeight("100%");
+            leftP.setWidth("100%");
+            leftP.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
+            leftP.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
+            leftP.add(searchBoxContainerPanel);
+            leftP.add(searchButton);
+            searchPanel.add(leftP);
             searchPanel.add(searchType);
             this.initWidget(searchPanel);
         }
@@ -1499,20 +1473,32 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         }
     }
 
-    public void showTagCloud(String title, ItemInfo[] tags) {
-        final DialogBox d = Popup.getDialogBox();
+    public Panel getTagsInPanel(ItemInfo[] tags) {
+        return getTagsInPanel(tags,null);
+    }
+
+    /**
+     * Return a panel containing the tags cloud passed in parameter. If panel 
+     * will be used in pop-up, pass the DialogBox that will contain it in d to add
+     * so the pop-up can be closed when a tag is clicked on
+     * @param tags
+     * @param d
+     * @return
+     */
+    public Panel getTagsInPanel(ItemInfo[] tags, DialogBox d) {
         Panel p = new FlowPanel();
-        p.setWidth("600px");
+        if (d!=null) {
+            p.setWidth("600px");
+        }
         HorizontalPanel innerP = new HorizontalPanel();
         innerP.setSpacing(4);
 
         if (tags.length > 0) {
-            //StringBuffer sb = new StringBuffer();
             double max = tags[0].getScore();
             double min = tags[tags.length - 1].getScore();
             double range = max - min;
             tags = shuffle(tags);
-            int index=0;
+            
             for (int i = 0; i < tags.length; i++) {
                 int color = (i % 2) + 1;
                 int fontSize = scoreToFontSize((tags[i].getScore() - min) / range);
@@ -1522,10 +1508,23 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                 sH.setHTML(s);
                 sH.setStyleName("tag"+color);
                 sH.addClickListener(new ItemInfoClickListener(tags[i], false));
-                sH.addClickListener(new PopupHiderClickListener(d));
+                if (d!=null) {
+                    sH.addClickListener(new PopupHiderClickListener(d));
+                }
 
                 p.add(sH);
             }
+
+            return p;
+        } else {
+            return null;
+        }
+    }
+
+    public void showTagCloud(String title, ItemInfo[] tags) {
+        final DialogBox d = Popup.getDialogBox();
+        Panel p = getTagsInPanel(tags, d);
+        if (p!=null) {
             Popup.showPopup(p,"WebMusicExplaura :: "+title,d);
         }
     }

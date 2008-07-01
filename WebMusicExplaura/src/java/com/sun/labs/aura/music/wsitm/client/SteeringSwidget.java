@@ -8,9 +8,11 @@ package com.sun.labs.aura.music.wsitm.client;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
@@ -29,7 +31,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -77,14 +79,36 @@ public class SteeringSwidget extends Swidget {
 
             // Left
             mainArtistListPanel = new Grid(1,1);
+            mainArtistListPanel.setWidth("300px");
             mainArtistListPanel.setWidget(0, 0, new Label("Add tags to your tag cloud to get recommendations"));
             dP.add(WebLib.createSection("Recommendations", mainArtistListPanel), DockPanel.WEST);
 
             // North
             HorizontalPanel hP = new HorizontalPanel();
-            hP.add(new Label("Name :"));
+            hP.add(new Label("Name:"));
             hP.add(new TextBox());
-            dP.add(hP, DockPanel.NORTH);
+            Button saveButton = new Button("Save");
+            saveButton.addClickListener(new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    Info.display("Info", "I should be saving your tag cloud but I'm busy talking with the happy tag.", new Params());
+                }
+            });
+
+            Button resetButton = new Button("Reset");
+            resetButton.addClickListener(new ClickListener() {
+
+               public void onClick(Widget arg0) {
+                   tagLand.removeAllTags();
+               }
+            });
+            hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+            hP.add(resetButton);
+
+            VerticalPanel northVP = new VerticalPanel();
+            northVP.add(hP);
+            northVP.add(new TagInputWidget("tag cloud"));
+            dP.add(northVP, DockPanel.NORTH);
 
             tagLand = new ResizableTagWidget();
             dP.add(tagLand, DockPanel.NORTH);
@@ -99,7 +123,7 @@ public class SteeringSwidget extends Swidget {
             }
 
             sbox = new SuggestBox(cdm.getTagOracle());
-            sbox.setStyleName("searchText");
+            //sbox.setStyleName("searchText");
             sbox.ensureDebugId("cwSuggestBox");
             sbox.setLimit(20);
 
@@ -221,37 +245,46 @@ public class SteeringSwidget extends Swidget {
 
     public class ResizableTagWidget extends Composite {
 
-        private Map<String, Double> tagMap;
-        private List<ResizableTag> tagCloud;
+        private Map<String, ResizableTag> tagCloud;
 
         private Grid g;
-        private FlowPanel fP;
+        private FocusPanel fP;
         private FlowPanel flowP;
 
         private int lastX;
         private int lastY;
+        
+        int colorIndex = 1;
+        
+        private String[] color;
 
         public ResizableTagWidget() {
 
             //this.tagMap = tagMap;
-            FlowPanel mainp = new FlowPanel();
-            fP = new FlowPanel();
-            fP.setWidth("100%");
+            //FlowPanel mainp = new FlowPanel();
+            fP = new FocusPanel();
+            fP.setWidth("600px");
+            fP.setHeight("450px");
             flowP = new FlowPanel();
+            flowP.setWidth("600px");
+            flowP.getElement().setAttribute("style", "margin-top: 15px");
             //fP.setWidget(flowP);
             fP.add(flowP);
-            mainp.add(fP);
-            initWidget(mainp);
+            initWidget(fP);
+            //mainp.add(flowP);
+            //initWidget(mainp);
 
-            tagCloud = new LinkedList<ResizableTag>();
-            tagCloud.add(new ResizableTag("i am a happy tag", 1.0)); //, fP));
+            color = new String[2];
+            color[0] = "#D4C790";
+            color[1] = "#ADA376";
 
-            for (ResizableTag rT : tagCloud) {
+            tagCloud = new HashMap<String, ResizableTag>();
+
+            for (ResizableTag rT : tagCloud.values()) {
                 flowP.add(rT);
             }
 
-            fP.setWidth("100%");
-            /*
+            
             fP.addMouseListener(new MouseListener() {
 
                 public void onMouseDown(Widget arg0, int arg1, int arg2) {
@@ -263,46 +296,64 @@ public class SteeringSwidget extends Swidget {
                 }
 
                 public void onMouseLeave(Widget arg0) {
+                    for (ResizableTag rT : tagCloud.values()) {
+                        rT.setClickFalse();
+                    }
                 }
 
                 public void onMouseMove(Widget arg0, int arg1, int arg2) {
-                    int increment = lastX - arg1;
-                    for (ResizableTag rT : tagCloud) {
+                    int increment = lastY - arg2;
+
+                    flowP.clear();
+                    for (ResizableTag rT : tagCloud.values()) {
                         rT.updateSize(increment);
+                        flowP.add(rT);
                     }
                     lastX = arg1;
                     lastY = arg2;
                 }
 
                 public void onMouseUp(Widget arg0, int arg1, int arg2) {
+                    for (ResizableTag rT : tagCloud.values()) {
+                        rT.setClickFalse();
+                    }
                 }
             });
-             * */
+
         }
 
         public void addTag(ItemInfo tag) {
-            ResizableTag rT = new ResizableTag(tag.getItemName(), 1); //, fP);
-            tagCloud.add(rT);
-            flowP.add(rT);
-            Info.display("resizableTabWidget","add tag triggered", new Params());
+            if (!tagCloud.containsKey(tag.getId())) {
+                ResizableTag rT = new ResizableTag(tag.getItemName(), color[(colorIndex++)%2]);
+                tagCloud.put(tag.getId(), rT);
+                flowP.add(rT);
+            }
         }
 
-        public class ResizableTag extends Composite {
+        public void removeAllTags() {
+            tagCloud.clear();
+            flowP.clear();
+            colorIndex=1;
+        }
+
+        public class ResizableTag extends Label {
 
             private Label lbl;
             private boolean hasClicked = false;
             private FocusPanel fP;
-            private int currentSize;
-            private double value;
+            private int currentSize = 12;
+            private String color;
 
-            public ResizableTag(String txt, double initValue) { // , FocusPanel fP) {
+            public ResizableTag(String txt, String color) {
+                setElement(DOM.createSpan());
+                setStyleName("gwt-Label");
+                addStyleName("marginRight");
+                this.color = color;
+                resetAttributes();
+                setText(txt);
 
-                lbl = new Label(txt);
-                //this.fP = fP;
-
-                //Label lbl = new Label("i am a happy tag");
-                lbl.setHeight(currentSize + "px");
-                lbl.addMouseListener(new MouseListener() {
+                setHeight(currentSize + "px");
+                addMouseListener(new MouseListener() {
 
                     public void onMouseDown(Widget arg0, int arg1, int arg2) {
                         hasClicked = true;
@@ -322,12 +373,37 @@ public class SteeringSwidget extends Swidget {
                     }
                 });
 
-                initWidget(lbl);
+            }
+
+            private final void resetAttributes() {
+                getElement().setAttribute("style", "font-size:"+currentSize+"px; color:"+color+";");
+            }
+
+            public void updateSize(int increment, String color) {
+                this.color = color;
+                updateSize(increment);
             }
 
             public void updateSize(int increment) {
-                currentSize += increment;
-                lbl.setHeight(currentSize + "px");
+                if (hasClicked) {
+                    currentSize += increment;
+                    if (currentSize<4) {
+                        currentSize=2;
+                    }
+                    resetAttributes();
+                }
+            }
+
+            public String getName() {
+                return lbl.getText();
+            }
+
+            public void setClickFalse() {
+                hasClicked = false;
+            }
+
+            public boolean equals(ResizableTag rT) {
+                return this.getName().equals(rT.getName());
             }
         }
     }
