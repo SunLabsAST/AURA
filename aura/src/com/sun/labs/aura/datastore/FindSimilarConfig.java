@@ -1,4 +1,4 @@
-package com.sun.labs.aura.datastore.impl.store;
+package com.sun.labs.aura.datastore;
 
 import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.minion.WeightedField;

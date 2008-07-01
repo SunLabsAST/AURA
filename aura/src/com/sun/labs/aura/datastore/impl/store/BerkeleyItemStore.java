@@ -1,11 +1,12 @@
 package com.sun.labs.aura.datastore.impl.store;
 
-import com.sun.labs.aura.datastore.DBIterator;
 import com.sleepycat.je.DatabaseException;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
+import com.sun.labs.aura.datastore.DBIterator;
+import com.sun.labs.aura.datastore.FindSimilarConfig;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemEvent;

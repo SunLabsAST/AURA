@@ -1,5 +1,6 @@
 package com.sun.labs.aura.datastore.impl.store;
 
+import com.sun.labs.aura.datastore.FindSimilarConfig;
 import com.sun.labs.aura.datastore.Indexable;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
