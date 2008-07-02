@@ -28,6 +28,7 @@ import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ShellUtils;
 import com.sun.labs.aura.util.StatService;
 import com.sun.labs.aura.util.Tag;
+import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.util.command.CommandInterface;
 import com.sun.labs.util.command.CommandInterpreter;
 import com.sun.labs.util.props.ConfigComponent;
@@ -168,9 +169,9 @@ public class MusicShell implements AuraService, Configurable {
                 String qname = sutils.stuff(args, 1);
                 Artist artist = findArtist(qname);
                 if (artist != null) {
-                    List<Scored<String>> tags = dataStore.getTopTerms(artist.getKey(), Artist.FIELD_SOCIAL_TAGS, sutils.getHits());
+                    WordCloud tags = dataStore.getTopTerms(artist.getKey(), Artist.FIELD_SOCIAL_TAGS, sutils.getHits());
                     System.out.println("Distinctive tags for " + artist.getName());
-                    sutils.dumpScored(tags);
+                    sutils.dumpCloud(tags);
                     return "";
                 } else {
                     return "Can't find artist " + qname;

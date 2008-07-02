@@ -15,6 +15,7 @@ import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.WordCloud;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -614,7 +615,7 @@ public class MusicDatabase {
         return artistGetDistinctiveTags(id, Artist.FIELD_SOCIAL_TAGS, count);
     }
 
-    public List<Scored<String>> artistGetDistinctiveTagNames(String id, int count) throws AuraException {
+    public WordCloud artistGetDistinctiveTagNames(String id, int count) throws AuraException {
         try {
             return dataStore.getTopTerms(id, Artist.FIELD_SOCIAL_TAGS, count);
         } catch (RemoteException ex) {
@@ -626,7 +627,7 @@ public class MusicDatabase {
         try {
             List<Scored<ArtistTag>> artistTags = new ArrayList();
 
-            List<Scored<String>> tagNames = dataStore.getTopTerms(id, field, count);
+            WordCloud tagNames = dataStore.getTopTerms(id, field, count);
             for (Scored<String> scoredTagName : tagNames) {
                 ArtistTag artistTag = artistTagLookup(ArtistTag.nameToKey(scoredTagName.getItem()));
                 // not all tags may be in the database yet

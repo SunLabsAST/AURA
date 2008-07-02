@@ -28,6 +28,7 @@ import com.sun.labs.minion.classification.WeightedFeature;
 import com.sun.labs.minion.engine.SearchEngineImpl;
 import com.sun.labs.minion.indexer.entry.DocKeyEntry;
 import com.sun.labs.minion.indexer.partition.InvFileDiskPartition;
+import com.sun.labs.minion.retrieval.CompositeDocumentVectorImpl;
 import com.sun.labs.minion.retrieval.DocumentVectorImpl;
 import com.sun.labs.minion.retrieval.FieldEvaluator;
 import com.sun.labs.minion.retrieval.FieldTerm;
@@ -415,31 +416,28 @@ public class ItemSearchEngine implements Configurable {
     }
     
     public DocumentVector getDocumentVector(WordCloud cloud, FindSimilarConfig config) {
+        
+        //
+        // Get weighted features from the cloud.
+        WeightedFeature[] wf = new WeightedFeature[cloud.size()];
+        int p = 0;
+        for(Scored<String> s : cloud) {
+            wf[p++] = new WeightedFeature(s.getItem(), (float) s.getScore());
+        }
         if(config.getFields() == null) {
-            DocumentVectorImpl dvi = new DocumentVectorImpl(engine, getFeatures(cloud));
+            DocumentVectorImpl dvi = new DocumentVectorImpl(engine, wf);
             dvi.setField(config.getField());
             return dvi;
         } else {
-            return null;
+            return new CompositeDocumentVectorImpl(engine, wf, config.getFields());
         }
     }
     
-    public WeightedFeature[] getFeatures(WordCloud cloud) {
-        WeightedFeature[] ret = new WeightedFeature[cloud.size()];
-        int p = 0;
-        for(Scored<String> s : cloud) {
-            ret[p++] = new WeightedFeature(s.getItem(), (float) s.getScore());
-        }
-        return ret;
-    }
-
     /**
      * Finds the n most-similar items to the given item, based on the data in the 
      * provided field.
      * @param dv the document vector for the item of interest
-     * @param n the number of similar items to return
-     * @param rf a (possibly <code>null</code>) filter to apply when getting 
-     * the top results from the findSimilar
+     * @param config the configuration for the find similar operation
      * @return the set of items most similar to the given item, based on the
      * data indexed into the given field.  Note that the returned set may be
      * smaller than the number of items requested!

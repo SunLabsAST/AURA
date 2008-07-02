@@ -644,6 +644,12 @@ public class ShellUtils {
         }
     }
 
+    public void dumpCloud(WordCloud cloud) {
+        for(Scored<String> scored : cloud) {
+            System.out.printf("%.3f %s\n", scored.getScore(), scored.getItem());
+        }
+    }
+
     public void dumpTags(List<Tag> tags) {
         for(Tag tag : tags) {
             System.out.printf("%d %s\n", tag.getCount(), tag.getName());
