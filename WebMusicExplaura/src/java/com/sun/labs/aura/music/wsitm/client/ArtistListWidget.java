@@ -52,11 +52,7 @@ public class ArtistListWidget extends Composite {
     public void updateWidget(ArtistCompact[] aDArray) {
         if (this.aDArray!=aDArray) {
             this.aDArray = aDArray;
-            //invokeFetchRatings();
         }
-            //else {
-//            g.setWidget(0, 0, getUpdatedPanel());
-//        }
         invokeFetchRatings();
     }
 
@@ -65,60 +61,12 @@ public class ArtistListWidget extends Composite {
         VerticalPanel vP = new VerticalPanel();
 
         for (ArtistCompact aD : aDArray) {
-            HorizontalPanel artistPanel = new HorizontalPanel();
-            artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
-            artistPanel.setStyleName("artistPanel");
-            artistPanel.setSpacing(5);
+            vP.add(new DeletableWidget(new ArtistPanel(aD)) {
 
-            Image img = aD.getBestArtistImage(true);
-            img.addClickListener(new TokenClickListener("artist:" + aD.getId()));
-            img.setStyleName("image");
-            if (img==null) {
-                artistPanel.add(new Image("nopic.gif"));
-            } else {
-                artistPanel.add(img);
-            }
-
-            VerticalPanel txtPanel = new VerticalPanel();
-
-
-            HorizontalPanel aNamePanel = new HorizontalPanel();
-            aNamePanel.setSpacing(5);
-            Label aName = new Label(aD.getName());
-            aName.addClickListener(new TokenClickListener("artist:" + aD.getId()));
-            aName.addStyleName("image");
-            aNamePanel.add(aName);
-            aNamePanel.add(WebLib.getSpotifyListenWidget(aD, 20));
-
-            txtPanel.add(aNamePanel);
-
-            Label tagsLabel = new Label(getNDistinctiveTags(aD, 4));
-            tagsLabel.setStyleName("recoTags");
-            txtPanel.add(tagsLabel);
-
-            int rating;
-            if (ratingMap.containsKey(aD.getId())) {
-                rating = ratingMap.get(aD.getId());
-            } else {
-                rating = 0;
-            }
-
-            StarRatingWidget star = new StarRatingWidget(musicServer, lD, aD.getId(),
-                    rating, StarRatingWidget.Size.SMALL);
-            Label starLbl = new Label("Your rating: ");
-            starLbl.setStyleName("recoTags");
-            starLbl.addStyleName("marginRight");
-            HorizontalPanel starHP = new HorizontalPanel();
-            starHP.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
-            starHP.add(starLbl);
-            starHP.add(star);
-            txtPanel.add(starHP);
-
-            txtPanel.add(WebLib.getSmallPopularityWidget(aD.getNormPopularity(), true));
-
-            artistPanel.add(txtPanel);
-
-            vP.add(artistPanel);
+                public void onDelete() {
+                    ((VerticalPanel)g.getWidget(0, 0)).remove(this);
+                }
+            });
         }
 
         return vP;
@@ -182,5 +130,68 @@ public class ArtistListWidget extends Composite {
             History.newItem(token);
         }
 
+    }
+
+    public class ArtistPanel extends Composite {
+
+        public ArtistPanel(ArtistCompact aD) {
+
+            HorizontalPanel artistPanel = new HorizontalPanel();
+            artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
+            artistPanel.setStyleName("artistPanel");
+            artistPanel.setSpacing(5);
+
+            Image img = aD.getBestArtistImage(true);
+            img.addClickListener(new TokenClickListener("artist:" + aD.getId()));
+            img.setStyleName("image");
+            if (img==null) {
+                artistPanel.add(new Image("nopic.gif"));
+            } else {
+                artistPanel.add(img);
+            }
+
+            VerticalPanel txtPanel = new VerticalPanel();
+
+
+            HorizontalPanel aNamePanel = new HorizontalPanel();
+            aNamePanel.setSpacing(5);
+            Label aName = new Label(aD.getName());
+            aName.addClickListener(new TokenClickListener("artist:" + aD.getId()));
+            aName.addStyleName("image");
+            aNamePanel.add(aName);
+            Widget spotify = WebLib.getSpotifyListenWidget(aD, 20);
+            spotify.getElement().setAttribute("style", "align : right;");
+            aNamePanel.add(spotify);
+
+            txtPanel.add(aNamePanel);
+
+            Label tagsLabel = new Label(getNDistinctiveTags(aD, 4));
+            tagsLabel.setStyleName("recoTags");
+            txtPanel.add(tagsLabel);
+
+            int rating;
+            if (ratingMap.containsKey(aD.getId())) {
+                rating = ratingMap.get(aD.getId());
+            } else {
+                rating = 0;
+            }
+
+            StarRatingWidget star = new StarRatingWidget(musicServer, lD, aD.getId(),
+                    rating, StarRatingWidget.Size.SMALL);
+            Label starLbl = new Label("Your rating: ");
+            starLbl.setStyleName("recoTags");
+            starLbl.addStyleName("marginRight");
+            HorizontalPanel starHP = new HorizontalPanel();
+            starHP.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
+            starHP.add(starLbl);
+            starHP.add(star);
+            txtPanel.add(starHP);
+
+            txtPanel.add(WebLib.getSmallPopularityWidget(aD.getNormPopularity(), true));
+
+            artistPanel.add(txtPanel);
+
+            initWidget(artistPanel);
+        } 
     }
 }
