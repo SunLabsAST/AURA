@@ -8,6 +8,7 @@ package com.sun.labs.aura.music.wsitm.client;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -25,13 +26,13 @@ import java.util.Map;
  */
 public class TagInputWidget extends Composite {
 
-    private Map<String, Tag> userTags;
+    private Map<String, DeletableWidget> userTags;
     private FlowPanel tagPanel;
     private TextBox txtBox;
 
     public TagInputWidget(String itemName) {
 
-        userTags = new HashMap<String, Tag>();
+        userTags = new HashMap<String, DeletableWidget>();
 
         HorizontalPanel mainPanel = new HorizontalPanel();
         mainPanel.add(new Label("Tag this "+itemName+": "));
@@ -58,13 +59,13 @@ public class TagInputWidget extends Composite {
 
     private void redrawTags() {
         tagPanel.clear();
-        for (Tag t : userTags.values()) {
+        for (DeletableWidget t : userTags.values()) {
             tagPanel.add(t);
         }
     }
 
     public void addTag(String tag) {
-        userTags.put(tag, new Tag(tag));
+        userTags.put(tag, new DeletableTag(tag));
         clearTextBoxTxt();
         redrawTags();
     }
@@ -99,15 +100,63 @@ public class TagInputWidget extends Composite {
         }
     }
 
-    public class Tag extends Label {
+    public class DeletableTag extends DeletableWidget {
+
+        private String tag;
+
+        public DeletableTag(String tag) {
+            super(new Tag(tag));
+            this.tag = tag;
+        }
+
+        public void onDelete() {
+            removeTag(tag);
+        }
+    }
+
+    public abstract class DeletableWidget extends Composite {
+
+        private FlowPanel fP;
+        private boolean isHovering = false;
+        private Widget w;
+
+        public DeletableWidget(Widget w) {
+            super();
+
+            this.w = w;
+            fP = new FlowPanel();
+            fP.add(w);
+
+            SpannedLabel xB = new SpannedLabel("X");
+            xB.addClickListener(new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    onDelete();
+                }
+            });
+
+            fP.add(xB);
+            initWidget(fP);
+        }
+        
+        public Widget getWidget() {
+            return w;
+        }
+
+        /**
+         * Called when the widget's delete button is clicked
+         */
+        public abstract void onDelete();
+
+    }
+
+    public class Tag extends SpannedLabel {
 
             private boolean hasClicked = false;
 
             public Tag(String txt) {
-                setElement(DOM.createSpan());
-                setStyleName("gwt-Label");
+                super(txt);
                 addStyleName("marginRight");
-                setText(txt);
 
                 addMouseListener(new MouseListener() {
 
