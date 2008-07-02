@@ -6,13 +6,11 @@
 package com.sun.labs.aura.music.sample;
 
 import com.sun.labs.aura.util.AuraException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Set;
@@ -41,7 +39,6 @@ import java.util.List;
  * @author Will Holcomb <william.holcomb@sun.com>
  */
 public class LastFMLoader {
-    Logger log;
     int lineCount = 0;
     int attentionCount = 0;
     long createTime = 0;
@@ -49,11 +46,16 @@ public class LastFMLoader {
     long putTime = 0;
     long attentionTime = 0;
     
+    Logger log = Logger.getLogger(LastFMLoader.class.getName());
+    
     // Don't really want this here, but java's lexical closures require it
     boolean finished = false;
     
     public LastFMLoader() {
-        log = Logger.getLogger(LastFMLoader.class.getName());
+    }
+
+    public void setLogger(Logger log) {
+        this.log = log;
     }
     
     /**
@@ -118,16 +120,15 @@ public class LastFMLoader {
         }
     }
     
-    public static void main(String[] args) throws IOException, AuraException, InterruptedException, RemoteException {
-        String datadir = (System.getProperty("java.io.tmpdir") +
-                          File.separator + "lastfm_test");
-        
-        //final DataStore dataStore = DataStoreFactory.getSimpleDataStore(datadir);
-        final DataStore dataStore = DataStoreFactory.getSimpleDataStore(datadir);
-        final LastFMLoader loader = new LastFMLoader();
-        loader.log.info("DataStore: " + dataStore);
-
-        TimerTask logger = new TimerTask() {
+    /**
+     * Logging is done in a TimerTask to make it more regular
+     * 
+     * @param logger
+     * @return
+     */
+    public TimerTask getLoggerTimerTask() {
+        final LastFMLoader loader = this;
+        return new TimerTask() {
             int lastLineCount = loader.lineCount;
             int lastAttentionCount = loader.attentionCount;
             long firstTime = System.currentTimeMillis();
@@ -182,9 +183,19 @@ public class LastFMLoader {
                 lastAttentionCount = newAttentionCount;
             }
         };
+    }
+
+    public static void main(String[] args) throws IOException, AuraException, InterruptedException, RemoteException {
+        String datadir = (System.getProperty("java.io.tmpdir") +
+                          File.separator + "lastfm_test");
         
+        //final DataStore dataStore = DataStoreFactory.getSimpleDataStore(datadir);
+        DataStore dataStore = DataStoreFactory.getSimpleDataStore(datadir);
+        LastFMLoader loader = new LastFMLoader();
+        loader.log.info("DataStore: " + dataStore);
+
         Timer loggerTimer = new Timer();
-        loggerTimer.scheduleAtFixedRate(logger, 0, 3000);
+        loggerTimer.scheduleAtFixedRate(loader.getLoggerTimerTask(), 0, 3000);
         
         /*
         if(args.length < 0) {
