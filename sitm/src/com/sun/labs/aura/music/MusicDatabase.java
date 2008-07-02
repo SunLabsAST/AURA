@@ -908,15 +908,15 @@ public class MusicDatabase {
 
     private FindSimilarConfig getFindSimilarConfig(String field, int count, TypeFilter filter) {
         FindSimilarConfig fsc = new FindSimilarConfig(field, count, filter);
-        fsc.setSkimPercent(100.);
-        fsc.setReportPercent(100.);
+        fsc.setSkimPercent(1.);
+        fsc.setReportPercent(1.);
         return fsc;
     }
 
     private FindSimilarConfig getFindSimilarConfig(int count, TypeFilter filter) {
         FindSimilarConfig fsc = new FindSimilarConfig(count, filter);
-        fsc.setSkimPercent(100.);
-        fsc.setReportPercent(100.);
+        fsc.setSkimPercent(1.);
+        fsc.setReportPercent(1.);
         return fsc;
     }
 
@@ -1018,11 +1018,17 @@ public class MusicDatabase {
             List<Scored<Listener>> simListeners = listenerFindSimilar(listener.getKey(), MAX_LISTENERS);
             ArtistScoreManager sm = new ArtistScoreManager(true);
             for (Scored<Listener> sl : simListeners) {
+                if (sl.getItem().equals(listener)) {
+                    continue;
+                }
                 List<Scored<String>> artistIDs = getRecentTopArtistsAsIDs(sl.getItem(), count * 5);
                 for (Scored<String> sartistID : artistIDs) {
                     if (!skipIDs.contains(sartistID.getItem())) {
+                        // System.out.println("id " + sartistID.getItem());
                         Artist artist = artistLookup(sartistID.getItem());
-                        sm.accum(artist, sartistID.getItem(), sl.getScore() * sartistID.getScore());
+                        if (artist != null) {
+                            sm.accum(artist, sartistID.getItem(), sl.getScore() * sartistID.getScore());
+                        }
                     }
                 }
             }

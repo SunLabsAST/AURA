@@ -93,7 +93,7 @@ class ArtistScoreManager {
 
     List<Scored<Artist>> getTop(int num) {
         List<Scored<Artist>> scoredList = new ArrayList<Scored<Artist>>();
-        double averagePopularity = 1.0;
+        double averagePopularity = Double.MAX_VALUE;
         if (seedSet.size() > 0) {
             averagePopularity = sumPopularity / seedSet.size();
         }
