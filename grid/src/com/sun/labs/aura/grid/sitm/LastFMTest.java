@@ -5,36 +5,20 @@
 
 package com.sun.labs.aura.grid.sitm;
 
-import com.sun.caroline.platform.FileSystem;
-import com.sun.caroline.platform.FileSystemMountParameters;
-import com.sun.caroline.platform.GridFactory;
-import com.sun.caroline.platform.ProcessConfiguration;
-import com.sun.caroline.platform.ProcessContext;
-import com.sun.caroline.platform.ProcessRegistration;
-import com.sun.caroline.platform.RunState;
-import com.sun.caroline.platform.StorageManagementException;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.grid.ServiceAdapter;
-import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.aura.music.sample.LastFMLoader;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.rmi.RemoteException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Timer;
-import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 /**
@@ -85,14 +69,14 @@ public class LastFMTest extends ServiceAdapter {
         } catch (IOException ex) {
             logger.severe("Could not close: " + ex);
         } catch (AuraException ex) {
-            logger.severe("Could not close: " + ex);
+            logger.severe("Aura Error: " + ex);
         } finally {
-            try {
-                if(input != null) {
+            if(input != null) {
+                try {
                     input.close();
+                } catch (IOException ex) {
+                    logger.severe("Could not close: " + ex);
                 }
-            } catch (IOException ex) {
-                logger.severe("Could not close: " + ex);
             }
             loggerTimer.cancel();    
         }
