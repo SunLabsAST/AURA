@@ -1,15 +1,16 @@
 #!/bin/bash
 
-cd "$(dirname $0)/../../"
+pushd "$(dirname $0)/../../" > /dev/null
 BASEDIR="$(pwd)"
+popd > /dev/null
 AURAHOME=$BASEDIR/aura
 JSKPOLICY=$BASEDIR/Libraries/jini/jsk-all.policy
 
-AURALIBS=aura/dist/aura.jar:sitm/dist/sitm.jar
-for file in $(find Libraries/ -name *jar); do AURALIBS=$AURALIBS:$file; done
+AURALIBS=$BASEDIR/aura/dist/aura.jar:$BASEDIR/sitm/dist/sitm.jar
+for file in $(find $BASEDIR/Libraries/ -name *jar); do AURALIBS=$AURALIBS:$file; done
 
 DATA=$@
-[ -z "$DATA" ] && DATA=sitm/data/lastfm.users
+[ -z "$DATA" ] && DATA=$BASEDIR/sitm/data/lastfm.users
 
 echo "Loading Data: $DATA"
 

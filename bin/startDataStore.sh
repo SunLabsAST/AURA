@@ -60,18 +60,20 @@ until [ -z "$cmd" ]; do
             ;;
         rep*)
             # Find a local directory to store the database in
-	    for dir in $DATADIRS; do
-		if [ -d $dir ]; then
-		    DBDIR=$dir
-		    break
-		fi
-	    done
+	    if [ -z "$AURADBDIR" ]; then
+		for dir in $DATADIRS; do
+		    if [ -d $dir ]; then
+			AURADBDIR=$dir
+			break
+		    fi
+		done
+	    fi
 
             PREFIX=${cmd#rep}
             PREFIX=${PREFIX:-0}
             PORT=$(( $BASEPORT + 10 + $PREFIX ))
 	    LOG=$LOGDIR/$TIMESTAMP.replicant_$PREFIX.log
-            TORUN="$JAVACMD -d64 -Xmx4g -Dprefix=$PREFIX -DcsPort=$PORT -DdataDir=$DBDIR com.sun.labs.aura.AuraServiceStarter"
+            TORUN="$JAVACMD -d64 -Xmx4g -Dprefix=$PREFIX -DcsPort=$PORT -DdataDir=$AURADBDIR com.sun.labs.aura.AuraServiceStarter"
 	    TORUN="$TORUN $CONFIGPATH/replicantConfig.xml replicantStarter"
             echo "Starting replicant $PREFIX on port $PORT in $DBDIR" > $LOG
             ;;
@@ -85,8 +87,8 @@ until [ -z "$cmd" ]; do
 	    ;;
 	-datadir)
 	    shift
-	    DATADIRS="$1"
-	    mkdir -p "$DATADIRS"
+	    AURADBDIR="$1"
+	    mkdir -p "$AURADBDIR"
 	    ;;
 	-host)
 	    # We want the environment variables evaluated on the remote server, so
@@ -105,7 +107,7 @@ until [ -z "$cmd" ]; do
 	    # SIGTERM goes to SSH on the local machine rather than tail on the remote machine, so cleanup currently requires:
 	    # ToDo: Clean this up and make it less prone to accidentally killing processes unintentionally.
 	    #   startDataStore.sh -host search.east killalltail
-	    for pid in $(ps -ef | grep $(whoami) | gawk '{if(match($8,/tail/)) print $2}'); do
+	    for pid in $(ps -ef | grep $(whoami) | gawk '{if(match($9,/tail/)) print $2}'); do
 		echo "Killing tail PID: $pid"
 		kill $pid;
 	    done
