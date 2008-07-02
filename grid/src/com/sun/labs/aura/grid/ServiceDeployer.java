@@ -35,12 +35,11 @@ import java.util.logging.Logger;
 public class ServiceDeployer {
 
     Grid grid;
-    
     GridUtil gu;
-
     FileSystem logFS;
-
     FileSystem auraDistFS;
+    Collection<FileSystemMountParameters> mountParams =
+            new ArrayList<FileSystemMountParameters>();
     Logger logger = Logger.getLogger("");
 
     public ServiceDeployer(String instance, URL gridURL, String user,
@@ -52,6 +51,13 @@ public class ServiceDeployer {
         auraDistFS = gu.getAuraDistFS();
     }
 
+    public void addMount(String mountDir) throws RemoteException, StorageManagementException {
+        UUID uuid = gu.getFS(mountDir).getUUID();
+        String mountPoint = new File(mountDir).getName();
+        logger.info("Mounting " + uuid + " at " + mountPoint);
+        mountParams.add(new FileSystemMountParameters(uuid, mountPoint));
+    }
+    
     public void deploy(String jarFile, String[] jvmArgs,
             String config, String starter, String instance) throws Exception {
 
@@ -81,7 +87,7 @@ public class ServiceDeployer {
             cmd = tmp;
         }
 
-        ProcessConfiguration pc = gu.getProcessConfig(cmd, starter);
+        ProcessConfiguration pc = gu.getProcessConfig(cmd, starter, mountParams);
         pc.setProcessExitAction(ProcessExitAction.DESTROY);
 
         Network network = gu.getNetwork();
@@ -101,7 +107,7 @@ public class ServiceDeployer {
             h.setFormatter(new SimpleLabsLogFormatter());
         }
 
-        String flags = "j:a:i:g:u:";
+        String flags = "j:a:i:g:u:m:";
         Getopt gopt = new Getopt(args, flags);
 
         URL gridURL = null;
@@ -109,7 +115,8 @@ public class ServiceDeployer {
         String passwd = null;
         String instance = null;
         String jarFile = null;
-
+        ArrayList<String> mounts = new ArrayList<String>();
+     
         //
         // Try to read ~/.caroline.
         File homeDir = new File(System.getProperty("user.home"));
@@ -171,6 +178,9 @@ public class ServiceDeployer {
                 case 'u':
                     user = gopt.optArg;
                     break;
+                case 'm':
+                    mounts.add(gopt.optArg);
+                    break;
             }
         }
 
@@ -197,6 +207,9 @@ public class ServiceDeployer {
         try {
             ServiceDeployer deployer =
                     new ServiceDeployer(instance, gridURL, user, passwd);
+            for(String mountPoint : mounts) {
+                deployer.addMount(mountPoint);
+            }
             deployer.deploy(jarFile, jvmArgs.toArray(new String[0]), config,
                     starter, instance);
         } catch(Exception ex) {
