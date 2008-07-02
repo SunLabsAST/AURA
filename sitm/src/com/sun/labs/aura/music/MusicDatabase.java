@@ -908,15 +908,15 @@ public class MusicDatabase {
 
     private FindSimilarConfig getFindSimilarConfig(String field, int count, TypeFilter filter) {
         FindSimilarConfig fsc = new FindSimilarConfig(field, count, filter);
-        fsc.setSkimPercent(100.);
-        fsc.setReportPercent(100.);
+        fsc.setSkimPercent(1.);
+        fsc.setReportPercent(1.);
         return fsc;
     }
 
     private FindSimilarConfig getFindSimilarConfig(int count, TypeFilter filter) {
         FindSimilarConfig fsc = new FindSimilarConfig(count, filter);
-        fsc.setSkimPercent(100.);
-        fsc.setReportPercent(100.);
+        fsc.setSkimPercent(1.);
+        fsc.setReportPercent(1.);
         return fsc;
     }
 
