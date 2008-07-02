@@ -79,6 +79,10 @@ public class Scored<T> implements Serializable {
     public double getScore() {
         return score;
     }
+
+    public void setScore(double score) {
+        this.score = score;
+    }
     
     public Object[] getSortVals() {
         return sortVals;

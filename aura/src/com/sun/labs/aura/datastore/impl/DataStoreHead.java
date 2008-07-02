@@ -18,6 +18,7 @@ import com.sun.labs.aura.datastore.impl.store.FindSimilarConfig;
 import com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ScoredComparator;
+import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
@@ -767,7 +768,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     }
  
 
-    public List<Scored<String>> getTopTerms(String key,
+    public WordCloud getTopTerms(String key,
             String field, int n) 
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));

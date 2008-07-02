@@ -6,6 +6,7 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.CompositeResultsFilter;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldInfo;
@@ -284,6 +285,8 @@ public class ItemSearchEngine implements Configurable {
                 Object indexVal = val;
                 if(indexVal instanceof Map) {
                     indexVal = ((Map) indexVal).values();
+                } else if(indexVal instanceof WordCloud) {
+                    indexVal = ((WordCloud) indexVal).getWords().values();
                 } else if(val instanceof Indexable ||
                         val instanceof String) {
                     //
@@ -463,16 +466,16 @@ public class ItemSearchEngine implements Configurable {
         return ret;
     }
 
-    public List<Scored<String>> getTopTerms(String key, String field, int n)
+    public WordCloud getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException {
         DocumentVectorImpl dv = (DocumentVectorImpl) getDocumentVector(key,
                 field);
         if(dv == null) {
-            return new ArrayList<Scored<String>>();
+            return new WordCloud();
         }
         WeightedFeature[] wf = dv.getFeatures();
         Util.sort(wf, WeightedFeature.getInverseWeightComparator());
-        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        WordCloud ret = new WordCloud();
         for(int i = 0; i < wf.length && i < n; i++) {
             ret.add(new Scored<String>(wf[i].getName(), wf[i].getWeight()));
         }

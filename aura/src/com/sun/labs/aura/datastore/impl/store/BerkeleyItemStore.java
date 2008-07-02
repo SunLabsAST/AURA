@@ -18,6 +18,7 @@ import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.IndexListener;
@@ -519,7 +520,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return res;
     }
 
-    public List<Scored<String>> getTopTerms(String key, String field, int n)
+    public WordCloud getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException {
         return searchEngine.getTopTerms(key, field, n);
     }

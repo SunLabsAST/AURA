@@ -574,7 +574,7 @@ public class ShellUtils {
                             throws Exception {
                         String key = args[1];
                         String field = args.length > 2 ? args[2] : "content";
-                        List<Scored<String>> terms = dataStore.getTopTerms(key,
+                        WordCloud terms = dataStore.getTopTerms(key,
                                 field, nHits);
                         for(Scored<String> term : terms) {
                             System.out.printf("%.3f %s\n", term.getScore(),

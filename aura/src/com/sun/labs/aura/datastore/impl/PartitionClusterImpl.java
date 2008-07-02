@@ -12,6 +12,7 @@ import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.impl.store.FindSimilarConfig;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
@@ -248,7 +249,7 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.explainSimilarAutotags(a1, a2, n);
     }
 
-    public List<Scored<String>> getTopTerms(String key, String field, int n)
+    public WordCloud getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException {
         return replicant.getTopTerms(key, field, n);
     }
