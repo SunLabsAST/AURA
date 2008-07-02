@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Document   : lastfmConfig.xml
+    Created on : June 30, 2008, 11:14 AM
+    Author     : wh224365
+    Description:
+-->
+<config>
+    <!-- Where the aura data lives -->
+    <property name="auraHome" value="/aura"/>
+    <property name="auraDistDir" value="${auraHome}/dist"/>
+    <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
+    <property name="auraGroup" value="Aura"/>
+    
+    <property name="auraInstance" value="live"/>
+    
+   <!-- A component registry that will be used to lookup and register components. -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>${auraGroup}</item>
+        </propertylist>
+        <property name="securityPolicy" value="${auraPolicy}"/>
+    </component>
+    
+    <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
+    
+    <component name="startLastFM" type="com.sun.labs.aura.grid.sitm.LastFMTest">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="dataStore" value="dataStore"/>
+        <property name="inputFile" value="/files/data/lastfm.users"/>
+        <!-- <property name="action" value="start"/> -->
+    </component>
+    
+    <component name="stopLastFM" type="com.sun.labs.aura.grid.sitm.LastFMTest">
+        <property name="instance" value="${auraInstance}"/>
+        <!-- <property name="action" value="stop"/> -->
+    </component>
+    
+    <component name="start" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>startLastFM</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+    
+    <component name="stop" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>stopLastFM</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+</config>
