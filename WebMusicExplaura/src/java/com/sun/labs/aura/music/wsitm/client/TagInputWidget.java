@@ -5,16 +5,13 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
-import com.extjs.gxt.ui.client.util.Params;
-import com.extjs.gxt.ui.client.widget.Info;
-import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.FocusListener;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 import java.util.HashMap;
@@ -30,23 +27,57 @@ public class TagInputWidget extends Composite {
     private FlowPanel tagPanel;
     private TextBox txtBox;
 
+    private final static String DEFAULT_TBOX_TXT = "Add comma seperated tags";
+
     public TagInputWidget(String itemName) {
 
         userTags = new HashMap<String, DeletableWidget>();
 
         HorizontalPanel mainPanel = new HorizontalPanel();
-        mainPanel.add(new Label("Tag this "+itemName+": "));
+        Label titleLbl = new Label("Tag this "+itemName+": ");
+        titleLbl.getElement().setAttribute("style", "margin-right:5px");
+        mainPanel.add(titleLbl);
 
         tagPanel = new FlowPanel();
         mainPanel.add(tagPanel);
 
         txtBox = new TextBox();
+        resetTextBoxIfEmpty();
         txtBox.addKeyboardListener(new TxtboxKeyboardListener(this));
+        txtBox.addFocusListener(new FocusListener() {
+
+            public void onFocus(Widget arg0) {
+                clearTextBoxIfDefault();
+            }
+
+            public void onLostFocus(Widget arg0) {
+                resetTextBoxIfEmpty();
+            }
+        });
+        txtBox.addClickListener(new ClickListener() {
+
+            public void onClick(Widget arg0) {
+
+            }});
 
         mainPanel.add(txtBox);
 
         initWidget(mainPanel);
 
+    }
+
+    private void resetTextBoxIfEmpty() {
+        if (txtBox.getText().equals("")) {
+            txtBox.setText(DEFAULT_TBOX_TXT);
+            txtBox.getElement().setAttribute("style", "font-style: italic; color: gray; margin-left: 5px;");
+        }
+    }
+
+    private void clearTextBoxIfDefault() {
+        if (txtBox.getText().equals(DEFAULT_TBOX_TXT)) {
+            txtBox.setText("");
+            txtBox.getElement().setAttribute("style", "margin-left: 5px;");
+        }
     }
 
     public String getTextBoxTxt() {
@@ -59,13 +90,19 @@ public class TagInputWidget extends Composite {
 
     private void redrawTags() {
         tagPanel.clear();
+        boolean first = true;
         for (DeletableWidget t : userTags.values()) {
+            if (first) {
+                first = false;
+            } else {
+                tagPanel.add(new SpannedLabel(", "));
+            }
             tagPanel.add(t);
         }
     }
 
     public void addTag(String tag) {
-        userTags.put(tag, new DeletableTag(tag));
+        userTags.put(tag, new DeletableTag(new SpannedLabel(tag)));
         clearTextBoxTxt();
         redrawTags();
     }
@@ -87,6 +124,7 @@ public class TagInputWidget extends Composite {
         }
 
         public void onKeyPress(Widget arg0, char arg1, int arg2) {
+
             if (arg1 == KeyboardListener.KEY_ENTER) {
                 for (String newTag : tiw.getTextBoxTxt().split(",")) {
                     newTag = newTag.toLowerCase().trim();
@@ -100,13 +138,13 @@ public class TagInputWidget extends Composite {
         }
     }
 
-    public class DeletableTag extends DeletableWidget {
+    public class DeletableTag extends DeletableWidget<SpannedLabel> {
 
         private String tag;
 
-        public DeletableTag(String tag) {
-            super(new Tag(tag));
-            this.tag = tag;
+        public DeletableTag(SpannedLabel w) {
+            super(w);
+            this.tag = w.getText();
         }
 
         public void onDelete() {
@@ -114,70 +152,5 @@ public class TagInputWidget extends Composite {
         }
     }
 
-    public abstract class DeletableWidget extends Composite {
-
-        private FlowPanel fP;
-        private boolean isHovering = false;
-        private Widget w;
-
-        public DeletableWidget(Widget w) {
-            super();
-
-            this.w = w;
-            fP = new FlowPanel();
-            fP.add(w);
-
-            SpannedLabel xB = new SpannedLabel("X");
-            xB.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
-                    onDelete();
-                }
-            });
-
-            fP.add(xB);
-            initWidget(fP);
-        }
-        
-        public Widget getWidget() {
-            return w;
-        }
-
-        /**
-         * Called when the widget's delete button is clicked
-         */
-        public abstract void onDelete();
-
-    }
-
-    public class Tag extends SpannedLabel {
-
-            private boolean hasClicked = false;
-
-            public Tag(String txt) {
-                super(txt);
-                addStyleName("marginRight");
-
-                addMouseListener(new MouseListener() {
-
-                    public void onMouseDown(Widget arg0, int arg1, int arg2) {
-                    }
-
-                    public void onMouseEnter(Widget arg0) {
-                    }
-
-                    public void onMouseLeave(Widget arg0) {
-                    }
-
-                    public void onMouseMove(Widget arg0, int arg1, int arg2) {
-                    }
-
-                    public void onMouseUp(Widget arg0, int arg1, int arg2) {
-                    }
-                });
-
-            }
-
-        }
 }
 
