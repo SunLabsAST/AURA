@@ -44,9 +44,7 @@ public interface ItemSearch {
     /**
      * Finds a the n most similar items to the given item.
      * @param key the item that we want to find similar items for
-     * @param n the number of similar items to return
-     * @param rf a (possibly <code>null</code>) filter to apply to the results
-     * retrieved from the data store
+     * @param config the configuration to use for this find similar operation
      * @return a list of items most similar to the given item, in order from most
      * to least similar.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
@@ -57,14 +55,23 @@ public interface ItemSearch {
     /**
      * Finds a the n most similar items to the given items.
      * @param keys the items that we want to find similar items for
-     * @param n the number of similar items to return
+     * @param config the configuration to use for this find similar operation
      * @return a list of items most similar to the given item, in order from most
-     * @param rf a (possibly <code>null</code>) filter to apply to the results
-     * retrieved from the data store
      * to least similar.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
     public List<Scored<Item>> findSimilar(List<String> keys, FindSimilarConfig config)
+            throws AuraException, RemoteException;
+
+    /**
+     * Finds a the n most similar items to the given items.
+     * @param cloud a word cloud for which we want to find similar items
+     * @param config the configuration to use for this find similar operation
+     * @return a list of items most similar to the given item, in order from most
+     * to least similar.  The similarity of the items is based on 
+     * all of the indexed text associated with the item in the data store.
+     */
+    public List<Scored<Item>> findSimilar(WordCloud cloud, FindSimilarConfig config)
             throws AuraException, RemoteException;
 
     /**

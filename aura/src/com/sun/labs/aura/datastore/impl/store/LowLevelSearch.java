@@ -52,13 +52,10 @@ public interface LowLevelSearch extends Remote {
     public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf)
             throws AuraException, RemoteException;
 
-    public DocumentVector getDocumentVector(String key)
+    public DocumentVector getDocumentVector(String key, FindSimilarConfig config)
             throws AuraException, RemoteException;
     
-    public DocumentVector getDocumentVector(String key, String field)
-            throws AuraException, RemoteException;
-    
-    public DocumentVector getDocumentVector(String key, WeightedField[] fields)
+    public DocumentVector getDocumentVector(WordCloud cloud, FindSimilarConfig config)
             throws AuraException, RemoteException;
     
     /**

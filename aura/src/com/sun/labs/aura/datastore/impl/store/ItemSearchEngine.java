@@ -400,21 +400,37 @@ public class ItemSearchEngine implements Configurable {
      * key has not been indexed or if an error occurs while fetching the docuemnt,
      * then <code>null</code> will be returned.
      */
-    public DocumentVector getDocumentVector(String key) {
-        try {
-            return engine.getDocumentVector(key);
-        } catch(SearchEngineException ex) {
-            log.log(Level.SEVERE, "Error searching for key " + key, ex);
+    public DocumentVector getDocumentVector(String key, FindSimilarConfig config) {
+        if(config.getField() == null && config.getFields() == null) {
+            try {
+                return engine.getDocumentVector(key);
+            } catch(SearchEngineException ex) {
+                return null;
+            }
+        } else if(config.getField() != null) {
+            return engine.getDocumentVector(key, config.getField());
+        } else {
+            return engine.getDocumentVector(key, config.getFields());
+        }
+    }
+    
+    public DocumentVector getDocumentVector(WordCloud cloud, FindSimilarConfig config) {
+        if(config.getFields() == null) {
+            DocumentVectorImpl dvi = new DocumentVectorImpl(engine, getFeatures(cloud));
+            dvi.setField(config.getField());
+            return dvi;
+        } else {
             return null;
         }
     }
-
-    public DocumentVector getDocumentVector(String key, String field) {
-        return engine.getDocumentVector(key, field);
-    }
-
-    public DocumentVector getDocumentVector(String key, WeightedField[] fields) {
-        return engine.getDocumentVector(key, fields);
+    
+    public WeightedFeature[] getFeatures(WordCloud cloud) {
+        WeightedFeature[] ret = new WeightedFeature[cloud.size()];
+        int p = 0;
+        for(Scored<String> s : cloud) {
+            ret[p++] = new WeightedFeature(s.getItem(), (float) s.getScore());
+        }
+        return ret;
     }
 
     /**
@@ -469,7 +485,7 @@ public class ItemSearchEngine implements Configurable {
     public WordCloud getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException {
         DocumentVectorImpl dv = (DocumentVectorImpl) getDocumentVector(key,
-                field);
+                new FindSimilarConfig(field));
         if(dv == null) {
             return new WordCloud();
         }

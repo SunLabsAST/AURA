@@ -159,7 +159,7 @@ public class Listener extends ItemAdapter {
     }
 
     public void clearFavoriteArtists() {
-        clearTagMap(FIELD_ARTIST);
+        clearWordCloud(FIELD_ARTIST);
     }
 
     /**
@@ -192,6 +192,6 @@ public class Listener extends ItemAdapter {
      * clears all social tags for this listener
      */
     public void clearSocialTags() {
-        clearTagMap(FIELD_SOCIAL_TAGS);
+        clearWordCloud(FIELD_SOCIAL_TAGS);
     }
 }

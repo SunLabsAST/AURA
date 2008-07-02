@@ -303,17 +303,12 @@ public class PartitionClusterImpl implements PartitionCluster,
         }
     }
 
-    public DocumentVector getDocumentVector(String key) throws RemoteException, AuraException {
-        return replicant.getDocumentVector(key);
+    public DocumentVector getDocumentVector(String key, FindSimilarConfig config) throws RemoteException, AuraException {
+        return replicant.getDocumentVector(key, config);
     }
 
-    public DocumentVector getDocumentVector(String key, String field) throws RemoteException, AuraException {
-        return replicant.getDocumentVector(key, field);
-    }
-
-    public DocumentVector getDocumentVector(String key, WeightedField[] fields)
-            throws RemoteException, AuraException {
-        return replicant.getDocumentVector(key, fields);
+    public DocumentVector getDocumentVector(WordCloud cloud, FindSimilarConfig config) throws RemoteException, AuraException {
+        return replicant.getDocumentVector(cloud, config);
     }
 
     public List<Scored<Item>> findSimilar(DocumentVector dv, FindSimilarConfig config) throws AuraException, RemoteException {

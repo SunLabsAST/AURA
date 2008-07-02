@@ -55,6 +55,11 @@ public class FindSimilarConfig implements Serializable {
         n = 10;
     }
     
+    public FindSimilarConfig(WeightedField[] fields) {
+        this.fields = fields;
+        n = 10;
+    }
+    
     public FindSimilarConfig(String field, int n) {
         this.field = field;
         this.n = n;

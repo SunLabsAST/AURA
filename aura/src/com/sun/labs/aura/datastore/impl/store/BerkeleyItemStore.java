@@ -484,16 +484,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return searchEngine.explainSimilarAutotags(a1, a2, n);
     }
     
-    public DocumentVector getDocumentVector(String key) {
-        return searchEngine.getDocumentVector(key);
+    public DocumentVector getDocumentVector(String key, FindSimilarConfig config) {
+        return searchEngine.getDocumentVector(key, config);
     }
     
-    public DocumentVector getDocumentVector(String key, String field) {
-        return searchEngine.getDocumentVector(key, field);
-    }
-    
-    public DocumentVector getDocumentVector(String key, WeightedField[] fields) {
-        return searchEngine.getDocumentVector(key, fields);
+    public DocumentVector getDocumentVector(WordCloud cloud, FindSimilarConfig config) {
+        return searchEngine.getDocumentVector(cloud, config);
     }
     
     public List<FieldFrequency> getTopValues(String field, int n,

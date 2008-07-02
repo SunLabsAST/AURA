@@ -688,15 +688,14 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     
     public DocumentVector getDocumentVector(String key, String field) throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
-        return pc.getDocumentVector(key);
+        return pc.getDocumentVector(key, new FindSimilarConfig(field));
     }
     
     public List<Scored<Item>> findSimilar(String key, FindSimilarConfig config)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
-        DocumentVector dv = pc.getDocumentVector(key);
-        int numClusters = (int) Math.ceil(trie.size() * config.getReportPercent());
-        return findSimilar(dv, config, new PCLatch(numClusters, config.getTimeout()));
+        DocumentVector dv = pc.getDocumentVector(key, config);
+        return findSimilar(dv, config);
     }
 
 
@@ -705,20 +704,28 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         List<DocumentVector> dvs = new ArrayList<DocumentVector>();
         for(String key : keys) {
             PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
-            dvs.add(pc.getDocumentVector(key));
+            dvs.add(pc.getDocumentVector(key, config));
         }
-        int numClusters = (int) Math.ceil(trie.size() * config.getReportPercent());
         MultiDocumentVectorImpl mdvi = new MultiDocumentVectorImpl(dvs);
-        PCLatch latch = new PCLatch(numClusters, config.getTimeout());
-        return findSimilar(mdvi, config, latch);
+        return findSimilar(mdvi, config);
     }
 
 
+    public List<Scored<Item>> findSimilar(WordCloud cloud, FindSimilarConfig config)
+            throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(cloud.toString()));
+        return findSimilar(pc.getDocumentVector(cloud, config), config);
+    }
     private List<Scored<Item>> findSimilar(
             DocumentVector dv,
-            final FindSimilarConfig config,
-            final PCLatch latch)
+            final FindSimilarConfig config)
             throws AuraException, RemoteException {
+        
+        
+        int numClusters = Math.min((int) Math.ceil(trie.size() *
+                config.getReportPercent()), trie.size());
+        
+        final PCLatch latch = new PCLatch(numClusters, config.getTimeout());
 
         //
         // What if the key didn't exist?
@@ -790,8 +797,9 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             throws AuraException, RemoteException {
         PartitionCluster pc1 = trie.get(DSBitSet.parse(key1.hashCode()));
         PartitionCluster pc2 = trie.get(DSBitSet.parse(key2.hashCode()));
-        DocumentVector dv1 = pc1.getDocumentVector(key1, field);
-        DocumentVector dv2 = pc2.getDocumentVector(key2, field);
+        FindSimilarConfig config = new FindSimilarConfig(field);
+        DocumentVector dv1 = pc1.getDocumentVector(key1, config);
+        DocumentVector dv2 = pc2.getDocumentVector(key2, config);
         return explainSimilarity(dv1, dv2, n);
     }
     
@@ -799,8 +807,9 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             throws AuraException, RemoteException {
         PartitionCluster pc1 = trie.get(DSBitSet.parse(key1.hashCode()));
         PartitionCluster pc2 = trie.get(DSBitSet.parse(key2.hashCode()));
-        DocumentVector dv1 = pc1.getDocumentVector(key1, fields);
-        DocumentVector dv2 = pc2.getDocumentVector(key2, fields);
+        FindSimilarConfig config = new FindSimilarConfig(fields);
+        DocumentVector dv1 = pc1.getDocumentVector(key1, config);
+        DocumentVector dv2 = pc2.getDocumentVector(key2, config);
         return explainSimilarity(dv1, dv2, n);
     }
     
