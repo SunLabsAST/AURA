@@ -33,6 +33,10 @@ public class WordCloud implements Serializable, Iterable<Scored<String>> {
     public Scored<String> getWord(String word) {
         return words.get(word);
     }
+
+    public void remove(String word) {
+        words.remove(word);
+    }
     
     public void add(Scored<String> s) {
         Scored<String> c = words.get(s.getItem());
