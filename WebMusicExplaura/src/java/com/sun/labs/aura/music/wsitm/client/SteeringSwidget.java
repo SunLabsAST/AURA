@@ -8,7 +8,9 @@ package com.sun.labs.aura.music.wsitm.client;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.DeferredCommand;
+import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
@@ -28,6 +30,7 @@ import com.google.gwt.user.client.ui.SuggestBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.ArrayList;
@@ -65,6 +68,8 @@ public class SteeringSwidget extends Swidget {
         private ResizableTagWidget tagLand;
         private ArtistListWidget artistList;
 
+        private VerticalPanel savePanel;
+
         private SuggestBox sbox;
 
         public MainPanel() {
@@ -83,37 +88,80 @@ public class SteeringSwidget extends Swidget {
             mainArtistListPanel.setWidget(0, 0, new Label("Add tags to your tag cloud to get recommendations"));
             dP.add(WebLib.createSection("Recommendations", mainArtistListPanel), DockPanel.WEST);
 
+            // Save panel
+            savePanel = new VerticalPanel();
+            HorizontalPanel saveNamePanel = new HorizontalPanel();
+            saveNamePanel.add(new Label("Name:"));
+            saveNamePanel.add(new TextBox());
+            savePanel.add(saveNamePanel);
+            savePanel.add(new TagInputWidget("tag cloud"));
+            savePanel.setVisible(false);
+
+
             // North
-            HorizontalPanel hP = new HorizontalPanel();
-            hP.add(new Label("Name:"));
-            hP.add(new TextBox());
-            Button saveButton = new Button("Save");
+            HorizontalPanel mainNorthMenuPanel = new HorizontalPanel();
+            mainNorthMenuPanel.setSpacing(5);
+
+            Button saveButton = new Button("Save this cloud");
             saveButton.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
-                    Info.display("Info", "I should be saving your tag cloud but I'm busy talking with the happy tag.", new Params());
+                    savePanel.setVisible(!savePanel.isVisible());
                 }
             });
+            mainNorthMenuPanel.add(saveButton);
 
-            Button resetButton = new Button("Reset");
+            Button updateButton = new Button("Update recommendations");
+            updateButton.addClickListener(new ClickListener() {
+
+               public void onClick(Widget arg0) {
+                   invokeFetchNewRecommendations();
+               }
+            });
+           mainNorthMenuPanel.add(updateButton);
+
+
+            Button resetButton = new Button("Erase all tags");
             resetButton.addClickListener(new ClickListener() {
 
                public void onClick(Widget arg0) {
                    tagLand.removeAllTags();
                }
             });
-            hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
-            hP.add(resetButton);
-
-            VerticalPanel northVP = new VerticalPanel();
-            northVP.add(hP);
-            northVP.add(new TagInputWidget("tag cloud"));
-            dP.add(northVP, DockPanel.NORTH);
+            mainNorthMenuPanel.add(resetButton);
+            
+            dP.add(mainNorthMenuPanel, DockPanel.NORTH);
+            dP.add(savePanel, DockPanel.NORTH);
 
             tagLand = new ResizableTagWidget();
             dP.add(tagLand, DockPanel.NORTH);
 
             initWidget(dP);
+        }
+
+        private void invokeFetchNewRecommendations() {
+            AsyncCallback callback = new AsyncCallback() {
+
+                public void onSuccess(Object result) {
+
+                    ArtistCompact[] aCArray = (ArtistCompact[]) result;
+                    mainArtistListPanel.setWidget(0, 0,
+                            new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray));
+
+                }
+
+                public void onFailure(Throwable caught) {
+                    Window.alert(caught.getMessage());
+                }
+            };
+
+            mainArtistListPanel.setWidget(0, 0, WebLib.getLoadingBarWidget());
+
+            try {
+                musicServer.getSteerableRecommendations(tagLand.getTapMap(), callback);
+            } catch (Exception ex) {
+                Window.alert(ex.getMessage());
+            }
         }
 
         private void updateTagSuggestBox() {
@@ -166,9 +214,6 @@ public class SteeringSwidget extends Swidget {
                         ItemInfo[] results = sr.getItemResults();
                         if (results.length == 0) {
                             mainTagPanel.setWidget(1, 0, new Label("No Match for " + sr.getQuery()));
-                        //} else if (results.length == 1) {
-                        //    ItemInfo ar = results[0];
-                        //    invokeGetTagInfo(ar.getId(), false);
                         } else {
                             VerticalPanel hP = new VerticalPanel();
                             for (ItemInfo iI : results) {
@@ -247,6 +292,8 @@ public class SteeringSwidget extends Swidget {
 
         private Map<String, DeletableResizableTag> tagCloud;
 
+        private double maxSize = 0.1;
+
         private Grid g;
         private FocusPanel fP;
         private FlowPanel flowP;
@@ -256,27 +303,22 @@ public class SteeringSwidget extends Swidget {
         
         int colorIndex = 1;
         
-        private String[] color;
+        private ColorConfig[] color;
 
         public ResizableTagWidget() {
 
-            //this.tagMap = tagMap;
-            //FlowPanel mainp = new FlowPanel();
             fP = new FocusPanel();
             fP.setWidth("600px");
             fP.setHeight("450px");
             flowP = new FlowPanel();
             flowP.setWidth("600px");
             flowP.getElement().setAttribute("style", "margin-top: 15px");
-            //fP.setWidget(flowP);
             fP.add(flowP);
             initWidget(fP);
-            //mainp.add(flowP);
-            //initWidget(mainp);
 
-            color = new String[2];
-            color[0] = "#D4C790";
-            color[1] = "#ADA376";
+            color = new ColorConfig[2];
+            color[0] = new ColorConfig("#D4C790", "#D49090");
+            color[1] = new ColorConfig("#ADA376", "#AD7676");
 
             tagCloud = new HashMap<String, DeletableResizableTag>();
 
@@ -297,14 +339,21 @@ public class SteeringSwidget extends Swidget {
                 }
 
                 public void onMouseMove(Widget arg0, int arg1, int arg2) {
+
+                    //DOM.eventPreventDefault(DOM.eventGetCurrentEvent());
+
                     int increment = lastY - arg2;
 
                     double diff = 0;
+                    maxSize = 0; // reset maxsize to deal with when the top tag is scaled down
                     for (DeletableResizableTag dW : tagCloud.values()) {
                         double tempDiff = dW.getWidget().updateSize(increment, true);
                         dW.setXButtonPosition();
                         if (tempDiff != 0) {
                             diff = tempDiff;
+                        }
+                        if (Math.abs(dW.getWidget().getCurrentSize())>maxSize) {
+                            maxSize = Math.abs(dW.getWidget().getCurrentSize());
                         }
                     }
                     
@@ -317,6 +366,9 @@ public class SteeringSwidget extends Swidget {
                         for (DeletableResizableTag dW : tagCloud.values()) {
                             dW.getWidget().updateSize(diff, false);
                             dW.setXButtonPosition();
+                            if (Math.abs(dW.getWidget().getCurrentSize())>maxSize) {
+                                maxSize = Math.abs(dW.getWidget().getCurrentSize());
+                            }
                         }
                     }
 
@@ -331,6 +383,15 @@ public class SteeringSwidget extends Swidget {
                 }
             });
 
+        }
+
+        public Map<String, Double> getTapMap() {
+            Map<String, Double> tagMap = new HashMap<String, Double>();
+            // Add the tags normalised by the size of the biggest one
+            for (String tag : tagCloud.keySet()) {
+                tagMap.put(tagCloud.get(tag).getWidget().getText(), tagCloud.get(tag).getWidget().getCurrentSize()/maxSize);
+            }
+            return tagMap;
         }
 
         public void addTag(ItemInfo tag) {
@@ -375,7 +436,7 @@ public class SteeringSwidget extends Swidget {
             }
 
             private final double getXButtonMargin() {
-                return getWidget().getCurrentSize()*0.8;
+                return Math.abs(getWidget().getCurrentSize())*0.6;
             }
 
             public void setXButtonPosition() {
@@ -401,13 +462,13 @@ public class SteeringSwidget extends Swidget {
 
             private boolean hasClicked = false;
             private FocusPanel fP;
-            private double currentSize = 12;
-            private String color;
+            private double currentSize = 40;
+            private ColorConfig color;
 
             private static final int MIN_SIZE = 4;
             private static final int MAX_SIZE = 175;
 
-            public ResizableTag(String txt, String color) {
+            public ResizableTag(String txt, ColorConfig color) {
                 super(txt);
                 addStyleName("marginRight");
                 this.color = color;
@@ -436,29 +497,36 @@ public class SteeringSwidget extends Swidget {
             }
 
             private final void resetAttributes() {
-                getElement().setAttribute("style", "user-select: none; font-size:"+currentSize+"px; color:"+color+";");
+                getElement().setAttribute("style", "font-size:"+Math.abs(currentSize)+"px; color:"+color.getColor(currentSize)+";");
             }
 
-            public void updateColor(String color) {
+            public void updateColor(ColorConfig color) {
                 this.color = color;
                 updateSize(0, true);
             }
 
-            public void updateSize(int increment, String color) {
+            public void updateSize(int increment, ColorConfig color) {
                 this.color = color;
                 updateSize(increment, true);
             }
 
+            /**
+             * Update size of tag
+             * @param increment increment by which to increase or decrease the tag's size
+             * @param modifyHasClicked modify the tag that is being dragged or all the others
+             * @return the increment by which the other tags need to be resized if this tag has reached it's maximum or minimum size
+             */
             public double updateSize(double increment, boolean modifyHasClicked) {
                 if (hasClicked == modifyHasClicked) {
                     currentSize += increment;
-                    if (currentSize<MIN_SIZE) {
-                        double diff = MIN_SIZE - currentSize;
-                        currentSize=MIN_SIZE;
-                        return diff;
-                    } else if (currentSize>MAX_SIZE) {
-                        double diff = MAX_SIZE - currentSize;
-                        currentSize = MAX_SIZE;
+                    // If we're crossing from positive to negative
+                    if (-MIN_SIZE<currentSize && currentSize<MIN_SIZE) {
+                        currentSize = MIN_SIZE * increment/Math.abs(increment);
+                        return 0;
+                    } else if (Math.abs(currentSize)>MAX_SIZE) {
+                        double absCurrSize = Math.abs(currentSize);
+                        double diff = currentSize/absCurrSize * (MAX_SIZE - absCurrSize);
+                        currentSize = currentSize/absCurrSize * MAX_SIZE;
                         return diff;
                     }
                     resetAttributes();
@@ -477,6 +545,31 @@ public class SteeringSwidget extends Swidget {
             public boolean equals(ResizableTag rT) {
                 return this.getText().equals(rT.getText());
             }
+        }
+
+        public class ColorConfig {
+
+            private String positive;
+            private String negative;
+
+            public ColorConfig(String positive, String negative) {
+                this.positive = positive;
+                this.negative = negative;
+            }
+
+            /**
+             * Return the right color based on the current size of the item.
+             * @param size
+             * @return
+             */
+            public final String getColor(double size) {
+                if (size<0) {
+                    return negative;
+                } else {
+                    return positive;
+                }
+            }
+
         }
     }
 }

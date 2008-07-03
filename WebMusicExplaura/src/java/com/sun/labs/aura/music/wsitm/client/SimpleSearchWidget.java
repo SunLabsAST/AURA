@@ -1493,10 +1493,19 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         HorizontalPanel innerP = new HorizontalPanel();
         innerP.setSpacing(4);
 
-        if (tags.length > 0) {
-            double max = tags[0].getScore();
-            double min = tags[tags.length - 1].getScore();
+        if (tags != null && tags.length > 0) {
+
+            double max = 0;
+            double min = 1;
+            for (ItemInfo tag : tags) {
+                if (tag.getScore()>max) {
+                    max = tag.getScore();
+                } else if (tag.getScore()<min) {
+                    min = tag.getScore();
+                }
+            }
             double range = max - min;
+            
             tags = shuffle(tags);
             
             for (int i = 0; i < tags.length; i++) {

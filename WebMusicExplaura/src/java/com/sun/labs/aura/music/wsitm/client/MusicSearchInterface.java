@@ -14,6 +14,7 @@ import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.google.gwt.user.client.rpc.RemoteService;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,4 +42,5 @@ public interface MusicSearchInterface extends RemoteService {
     public Map<String,Integer> fetchUserSongRating(ListenerDetails lD, Set<String> artistID) throws WebException;
     public void terminateSession();
     public Map<String, String> getSimTypes() throws WebException;
+    public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap) throws WebException;
 }

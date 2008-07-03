@@ -11,6 +11,7 @@ package com.sun.labs.aura.music.wsitm.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.sun.labs.aura.music.ArtistTag;
+import com.sun.labs.aura.music.TagCloud;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.MusicSearchInterface;
@@ -18,8 +19,11 @@ import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.TagTree;
 import com.sun.labs.aura.music.wsitm.client.WebException;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.WordCloud;
 import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Map;
@@ -293,7 +297,22 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public Map<String, String> getSimTypes() {
-            return dm.getSimTypes();
+         return dm.getSimTypes();
     }
 
+    public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap) throws WebException {
+        try {
+            WordCloud wC = new WordCloud();
+            for (String tagName : tagMap.keySet()) {
+                wC.add(new Scored<String>(tagName, tagMap.get(tagName)));
+            }
+            return dm.getSteerableRecommendations(wC);
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
 }
