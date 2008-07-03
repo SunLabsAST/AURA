@@ -788,29 +788,22 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return pc.getExplanation(key, autoTag, n);
     }
 
-    public List<Scored<String>> explainSimilarity(String key1, String key2, int n) 
-            throws AuraException, RemoteException {
-        return explainSimilarity(key1, key2, (String) null, n);
-    }
-    
-    public List<Scored<String>> explainSimilarity(String key1, String key2, String field, int n) 
+    public List<Scored<String>> explainSimilarity(String key1, String key2, FindSimilarConfig config) 
             throws AuraException, RemoteException {
         PartitionCluster pc1 = trie.get(DSBitSet.parse(key1.hashCode()));
         PartitionCluster pc2 = trie.get(DSBitSet.parse(key2.hashCode()));
-        FindSimilarConfig config = new FindSimilarConfig(field);
         DocumentVector dv1 = pc1.getDocumentVector(key1, config);
         DocumentVector dv2 = pc2.getDocumentVector(key2, config);
-        return explainSimilarity(dv1, dv2, n);
+        return explainSimilarity(dv1, dv2, config.getN());
     }
     
-    public List<Scored<String>> explainSimilarity(String key1, String key2, WeightedField[] fields, int n) 
+   public List<Scored<String>> explainSimilarity(WordCloud cloud, String key, FindSimilarConfig config) 
             throws AuraException, RemoteException {
-        PartitionCluster pc1 = trie.get(DSBitSet.parse(key1.hashCode()));
-        PartitionCluster pc2 = trie.get(DSBitSet.parse(key2.hashCode()));
-        FindSimilarConfig config = new FindSimilarConfig(fields);
-        DocumentVector dv1 = pc1.getDocumentVector(key1, config);
-        DocumentVector dv2 = pc2.getDocumentVector(key2, config);
-        return explainSimilarity(dv1, dv2, n);
+        PartitionCluster pc1 = trie.get(DSBitSet.parse(cloud.hashCode()));
+        PartitionCluster pc2 = trie.get(DSBitSet.parse(key.hashCode()));
+        DocumentVector dv1 = pc1.getDocumentVector(cloud, config);
+        DocumentVector dv2 = pc2.getDocumentVector(key, config);
+        return explainSimilarity(dv1, dv2, config.getN());
     }
     
     private List<Scored<String>> explainSimilarity(DocumentVector dv1, DocumentVector dv2, int n) 

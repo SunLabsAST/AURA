@@ -600,7 +600,7 @@ public class MusicDatabase {
 
     public List<Scored<String>> artistExplainSimilarity(String artistID1, String artistID2, int count) throws AuraException {
         try {
-            return dataStore.explainSimilarity(artistID1, artistID2, Artist.FIELD_SOCIAL_TAGS, count);
+            return dataStore.explainSimilarity(artistID1, artistID2, new FindSimilarConfig(Artist.FIELD_SOCIAL_TAGS, count));
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -608,7 +608,7 @@ public class MusicDatabase {
 
     public List<Scored<String>> artistExplainSimilarity(String artistID1, String artistID2, String field, int count) throws AuraException {
         try {
-            return dataStore.explainSimilarity(artistID1, artistID2, field, count);
+            return dataStore.explainSimilarity(artistID1, artistID2, new FindSimilarConfig(field, count));
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -853,7 +853,7 @@ public class MusicDatabase {
 
         public List<Scored<String>> explainSimilarity(String id1, String id2, int count) throws AuraException {
             try {
-                return dataStore.explainSimilarity(id1, id1, field, count);
+                return dataStore.explainSimilarity(id1, id1, new FindSimilarConfig(field, count));
             } catch (RemoteException ex) {
                 throw new AuraException("Can't talk to the datastore " + ex, ex);
             }
@@ -1054,7 +1054,7 @@ public class MusicDatabase {
             for (Scored<Item> item : items) {
                 if (!skipIDS.contains(item.getItem().getKey())) {
                     List<Scored<String>> reason = dataStore.explainSimilarity(listener.getKey(),
-                            item.getItem().getKey(), Listener.FIELD_SOCIAL_TAGS, count);
+                            item.getItem().getKey(), new FindSimilarConfig(Listener.FIELD_SOCIAL_TAGS, count));
                     results.add(new Recommendation(item.getItem().getKey(), item.getScore(), reason));
                     if (results.size() >= count) {
                         break;

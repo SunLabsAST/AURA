@@ -210,7 +210,7 @@ public class MusicShell implements AuraService, Configurable {
                     Artist artist1 = findArtist(args[1]);
                     Artist artist2 = findArtist(args[2]);
                     if (artist1 != null && artist2 != null) {
-                        List<Scored<String>> results = dataStore.explainSimilarity(artist1.getKey(), artist2.getKey(), sutils.getHits());
+                        List<Scored<String>> results = dataStore.explainSimilarity(artist1.getKey(), artist2.getKey(), new FindSimilarConfig(sutils.getHits()));
                         sutils.dumpScored(results);
                         return "";
                     } else {

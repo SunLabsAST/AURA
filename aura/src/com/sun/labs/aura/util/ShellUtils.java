@@ -499,7 +499,7 @@ public class ShellUtils {
                         String key1 = args[1];
                         String key2 = args[2];
                         List<Scored<String>> expn = dataStore.explainSimilarity(
-                                key1, key2, nHits);
+                                key1, key2, new FindSimilarConfig(nHits));
                         for(Scored<String> term : expn) {
                             System.out.print(term + " ");
                         }
@@ -522,8 +522,9 @@ public class ShellUtils {
                         String field = args[1];
                         String key1 = args[2];
                         String key2 = args[3];
+                        
                         List<Scored<String>> expn = dataStore.explainSimilarity(
-                                key1, key2, field, nHits);
+                                key1, key2, new FindSimilarConfig(field, nHits));
                         for(Scored<String> term : expn) {
                             System.out.print(term + " ");
                         }
