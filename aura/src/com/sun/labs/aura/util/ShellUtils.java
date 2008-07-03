@@ -10,7 +10,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
-import com.sun.labs.aura.datastore.impl.store.FindSimilarConfig;
+import com.sun.labs.aura.datastore.impl.store.SimilarityConfig;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.WeightedField;
 import com.sun.labs.minion.util.NanoWatch;
@@ -457,7 +457,7 @@ public class ShellUtils {
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
                         String key = args[1];
-                        FindSimilarConfig config = new FindSimilarConfig(nHits);
+                        SimilarityConfig config = new SimilarityConfig(nHits);
                         config.setSkimPercent(skimPercentage);
                         List<Scored<Item>> items = dataStore.findSimilar(key,
                                 config);
@@ -476,7 +476,7 @@ public class ShellUtils {
                             throws Exception {
                         String field = args[1];
                         String key = args[2];
-                        FindSimilarConfig config = new FindSimilarConfig(field, nHits, null);
+                        SimilarityConfig config = new SimilarityConfig(field, nHits, null);
                         config.setSkimPercent(skimPercentage);
                         List<Scored<Item>> items = dataStore.findSimilar(key,
                                 config);
@@ -499,7 +499,7 @@ public class ShellUtils {
                         String key1 = args[1];
                         String key2 = args[2];
                         List<Scored<String>> expn = dataStore.explainSimilarity(
-                                key1, key2, nHits);
+                                key1, key2, new SimilarityConfig(nHits));
                         for(Scored<String> term : expn) {
                             System.out.print(term + " ");
                         }
@@ -522,8 +522,9 @@ public class ShellUtils {
                         String field = args[1];
                         String key1 = args[2];
                         String key2 = args[3];
+                        
                         List<Scored<String>> expn = dataStore.explainSimilarity(
-                                key1, key2, field, nHits);
+                                key1, key2, new SimilarityConfig(field, nHits));
                         for(Scored<String> term : expn) {
                             System.out.print(term + " ");
                         }
@@ -554,7 +555,7 @@ public class ShellUtils {
                             System.out.printf("   %s: %f\n", wf.getFieldName(),
                                     wf.getWeight());
                         }
-                        FindSimilarConfig config = new FindSimilarConfig(fields, nHits, null);
+                        SimilarityConfig config = new SimilarityConfig(fields, nHits, null);
                         config.setSkimPercent(skimPercentage);
                         List<Scored<Item>> items = dataStore.findSimilar(key,
                                 config);
@@ -582,7 +583,7 @@ public class ShellUtils {
                                     term.getItem());
                         }
                         
-                        FindSimilarConfig config = new FindSimilarConfig(field, nHits, null);
+                        SimilarityConfig config = new SimilarityConfig(field, nHits, null);
                         config.setSkimPercent(1);
                         List<Scored<Item>> items = dataStore.findSimilar(terms,
                                 config);

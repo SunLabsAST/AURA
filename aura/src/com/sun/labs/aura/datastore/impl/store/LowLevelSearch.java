@@ -52,10 +52,10 @@ public interface LowLevelSearch extends Remote {
     public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf)
             throws AuraException, RemoteException;
 
-    public DocumentVector getDocumentVector(String key, FindSimilarConfig config)
+    public DocumentVector getDocumentVector(String key, SimilarityConfig config)
             throws AuraException, RemoteException;
     
-    public DocumentVector getDocumentVector(WordCloud cloud, FindSimilarConfig config)
+    public DocumentVector getDocumentVector(WordCloud cloud, SimilarityConfig config)
             throws AuraException, RemoteException;
     
     /**
@@ -66,7 +66,7 @@ public interface LowLevelSearch extends Remote {
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(DocumentVector dv, FindSimilarConfig config)
+    public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config)
             throws AuraException, RemoteException;
 
     /**

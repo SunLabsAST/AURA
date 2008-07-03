@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * A configuration that will control how a find similar runs.
  */
-public class FindSimilarConfig implements Serializable {
+public class SimilarityConfig implements Serializable {
     
     private String field;
     
@@ -38,40 +38,40 @@ public class FindSimilarConfig implements Serializable {
     /**
      * Generate a default configuration.
      */
-    public FindSimilarConfig() {
+    public SimilarityConfig() {
     }
     
-    public FindSimilarConfig(int n) {
+    public SimilarityConfig(int n) {
         this.n = n;
     }
     
-    public FindSimilarConfig(int n, ResultsFilter filter) {
+    public SimilarityConfig(int n, ResultsFilter filter) {
         this.n = n;
         this.filter = filter;
     }
     
-    public FindSimilarConfig(String field) {
+    public SimilarityConfig(String field) {
         this.field = field;
         n = 10;
     }
     
-    public FindSimilarConfig(WeightedField[] fields) {
+    public SimilarityConfig(WeightedField[] fields) {
         this.fields = fields;
         n = 10;
     }
     
-    public FindSimilarConfig(String field, int n) {
+    public SimilarityConfig(String field, int n) {
         this.field = field;
         this.n = n;
     }
     
-    public FindSimilarConfig(String field, int n, ResultsFilter filter) {
+    public SimilarityConfig(String field, int n, ResultsFilter filter) {
         this.field = field;
         this.n = n;
         this.filter = filter;
     }
 
-    public FindSimilarConfig(WeightedField[] fields, int n, ResultsFilter filter) {
+    public SimilarityConfig(WeightedField[] fields, int n, ResultsFilter filter) {
         this.fields = fields;
         this.n = n;
         this.filter = filter;
