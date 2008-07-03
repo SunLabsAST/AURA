@@ -4,6 +4,7 @@ import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.FindSimilarConfig;
 import com.sun.labs.aura.datastore.Item;
@@ -126,6 +127,45 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getItems(user, attnType, itemType);
     }
 
+    public List<Attention> getAttention(AttentionConfig ac)
+            throws AuraException, RemoteException {
+        return replicant.getAttention(ac);
+    }
+
+    public DBIterator<Attention> getAttentionIterator(AttentionConfig ac)
+            throws AuraException, RemoteException {
+        return replicant.getAttentionIterator(ac);
+    }
+
+    public Long getAttentionCount(AttentionConfig ac)
+            throws AuraException, RemoteException {
+        return replicant.getAttentionCount(ac);
+    }
+    
+    public List<Attention> getAttentionSince(AttentionConfig ac,
+                                             Date timeStamp)
+            throws AuraException, RemoteException {
+        return replicant.getAttentionSince(ac, timeStamp);
+    }
+
+    public DBIterator<Attention> getAttentionSinceIterator(AttentionConfig ac,
+                                                           Date timeStamp)
+            throws AuraException, RemoteException {
+        return replicant.getAttentionSinceIterator(ac, timeStamp);
+    }
+
+    public Long getAttentionSinceCount(AttentionConfig ac,
+                                       Date timeStamp)
+            throws AuraException, RemoteException {
+        return replicant.getAttentionSinceCount(ac, timeStamp);
+    }
+    
+    public List<Attention> getLastAttention(AttentionConfig ac,
+                                            int count)
+            throws AuraException, RemoteException {
+        return replicant.getLastAttention(ac, count);
+    }
+    
     public List<Attention> getAttentionForSource(String srcKey)
             throws AuraException, RemoteException {
         return replicant.getAttentionForSource(srcKey);

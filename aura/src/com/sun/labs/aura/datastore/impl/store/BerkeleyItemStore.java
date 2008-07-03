@@ -5,6 +5,7 @@ import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.FindSimilarConfig;
 import com.sun.labs.aura.datastore.Item;
@@ -38,6 +39,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -351,6 +353,77 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return res;
     }
 
+    public List<Attention> getAttention(AttentionConfig ac)
+            throws AuraException {
+        DBIterator<Attention> attn = bdb.getAttentionIterator(ac);
+        List<Attention> res = new ArrayList<Attention>();
+        try {
+            while (attn.hasNext()) {
+                res.add(attn.next());
+            }
+            attn.close();
+        } catch (RemoteException e) {
+            throw new AuraException("Remote exception on local object!!", e);
+        }
+        return res;
+    }
+
+    public DBIterator<Attention> getAttentionIterator(AttentionConfig ac)
+            throws AuraException {
+        DBIterator<Attention> res = bdb.getAttentionIterator(ac);
+        res = (DBIterator<Attention>)cm.getRemote(res);
+        return res;
+    }
+
+    
+    public Long getAttentionCount(AttentionConfig ac) {
+        return bdb.getAttentionCount(ac);
+    }
+    
+    public List<Attention> getAttentionSince(AttentionConfig ac,
+                                             Date timeStamp)
+            throws AuraException {
+        DBIterator<Attention> attn =
+                bdb.getAttentionSinceIterator(ac, timeStamp);
+        List<Attention> res = new ArrayList<Attention>();
+        try {
+            while (attn.hasNext()) {
+                res.add(attn.next());
+            }
+            attn.close();
+        } catch (RemoteException e) {
+            throw new AuraException("Remote exception on local object!!", e);
+        }
+        return res;
+    }
+
+    public DBIterator<Attention> getAttentionSinceIterator(AttentionConfig ac,
+                                                           Date timeStamp)
+            throws AuraException {
+        DBIterator<Attention> res =
+                bdb.getAttentionSinceIterator(ac, timeStamp);
+        res = (DBIterator<Attention>)cm.getRemote(res);
+        return res;
+    }
+
+    
+    public Long getAttentionSinceCount(AttentionConfig ac, Date timeStamp)
+            throws AuraException {
+        return bdb.getAttentionSinceCount(ac, timeStamp);
+    }
+    
+    public List<Attention> getLastAttention(AttentionConfig ac, int count)
+            throws AuraException {
+        List<Attention> attn = getAttention(ac);
+        if (attn.isEmpty()) {
+            return attn;
+        }
+        
+        int numReturned = Math.min(count, attn.size());
+        Collections.sort(attn, new ReverseAttentionTimeComparator());
+        return new ArrayList(attn.subList(0, numReturned));
+    }
+    
     public List<Attention> getAttentionForSource(String srcKey)
             throws AuraException {
         return bdb.getAttentionForSource(srcKey);
