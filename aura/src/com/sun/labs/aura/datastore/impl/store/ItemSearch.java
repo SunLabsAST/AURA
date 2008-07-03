@@ -7,7 +7,6 @@ import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
-import com.sun.labs.minion.WeightedField;
 import java.rmi.RemoteException;
 import java.util.List;
 
@@ -49,7 +48,7 @@ public interface ItemSearch {
      * to least similar.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(String key, FindSimilarConfig config)
+    public List<Scored<Item>> findSimilar(String key, SimilarityConfig config)
             throws AuraException, RemoteException;
 
     /**
@@ -60,7 +59,7 @@ public interface ItemSearch {
      * to least similar.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(List<String> keys, FindSimilarConfig config)
+    public List<Scored<Item>> findSimilar(List<String> keys, SimilarityConfig config)
             throws AuraException, RemoteException;
 
     /**
@@ -71,7 +70,7 @@ public interface ItemSearch {
      * to least similar.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(WordCloud cloud, FindSimilarConfig config)
+    public List<Scored<Item>> findSimilar(WordCloud cloud, SimilarityConfig config)
             throws AuraException, RemoteException;
 
     /**
@@ -129,50 +128,51 @@ public interface ItemSearch {
     /**
      * Explains the similarity between two items.  The explaination consists of
      * the terms that the documents have in common, along with a score indicating
-     * the importance of terms to the similarity. 
-     * @param key1 the key of the first item
-     * @param key2 the key of the second item
-     * @param n the number of terms in common to return
-     * @return a list of scored strings.  The string is the term that the two
-     * items have in common and the score is the contributio of this term to the
-     * similarity between the two items.
-     */
-    public List<Scored<String>> explainSimilarity(String key1, String key2,
-            int n)
-            throws AuraException, RemoteException;
-
-    /**
-     * Explains the similarity between two items.  The explaination consists of
-     * the terms that the documents have in common, along with a score indicating
      * the importance of terms to the similarity.
      * @param key1 the key of the first item
      * @param key2 the key of the second item
-     * @param field the field upon which the comparison should be based
-     * @param n the number of terms in common to return
+     * @param config the similarity configuration that details how the explanation
+     * should be built
      * @return a list of scored strings.  The string is the term that the two
      * items have in common and the score is the contributio of this term to the
      * similarity between the two items.
      */
     public List<Scored<String>> explainSimilarity(String key1, String key2,
-            String field, int n)
+            SimilarityConfig config) 
             throws AuraException, RemoteException;
     
     /**
-     * Explains the similarity between two items.  The explaination consists of
+     * Explains the similarity between a word cloud and an item.  The explaination consists of
      * the terms that the documents have in common, along with a score indicating
      * the importance of terms to the similarity.
-     * @param key1 the key of the first item
-     * @param key2 the key of the second item
-     * @param fields the fields upon which the comparison should be based
-     * @param n the number of terms in common to return
+     * @param cloud the word cloud
+     * @param key the key of the item
+     * @param config the similarity configuration that details how the explanation
+     * should be built
      * @return a list of scored strings.  The string is the term that the two
      * items have in common and the score is the contributio of this term to the
      * similarity between the two items.
      */
-    public List<Scored<String>> explainSimilarity(String key1, String key2,
-            WeightedField[] fields, int n)
+    public List<Scored<String>> explainSimilarity(WordCloud cloud, String key,
+            SimilarityConfig config) 
             throws AuraException, RemoteException;
-
+    
+    /**
+     * Explains the similarity between two word clouds.  The explaination consists of
+     * the terms that the documents have in common, along with a score indicating
+     * the importance of terms to the similarity.
+     * @param cloud1 the first word cloud
+     * @param cloud2 the second word cloud
+     * @param config the similarity configuration that details how the explanation
+     * should be built
+     * @return a list of scored strings.  The string is the term that the two
+     * items have in common and the score is the contributio of this term to the
+     * similarity between the two items.
+     */
+    public List<Scored<String>> explainSimilarity(WordCloud cloud1, WordCloud cloud2,
+            SimilarityConfig config) 
+            throws AuraException, RemoteException;
+    
     /**
      * Gets the items that have had a given autotag applied to them.
      * @param autotag the tag that we want items to have been assigned

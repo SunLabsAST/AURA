@@ -65,10 +65,9 @@ public class FindSimilarArtistFromWordCloud extends HttpServlet {
                     return;
                 }
 
-                List<Scored<Artist>> scoredArtists = mdb.wordCloudFindSimilarArtists(cloud, maxCount);
-                out.println("<FindSimilarArtistFromWordCloud>");
 
-                Util.tagClose(out, SERVLET_NAME);
+                List<Scored<Artist>> scoredArtists = mdb.wordCloudFindSimilarArtists(cloud, maxCount);
+                Util.tagOpen(out, SERVLET_NAME);
                 for (Scored<Artist> scoredArtist : scoredArtists) {
                     Artist simArtist = scoredArtist.getItem();
                     out.println("    <artist key=\"" +

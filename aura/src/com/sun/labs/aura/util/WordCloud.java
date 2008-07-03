@@ -93,13 +93,15 @@ public class WordCloud implements Serializable, Iterable<Scored<String>> {
     }
 
     /**
-     * Converts a string representation of a wordcloud to a WordCloud
+     * Converts a string representation of a wordcloud to a WordCloud. The string
+     * can be of the form '(tag, weight)(tag, weight)
+     * or 'tag,tag,tag'
      * @param wc the string representation
      * @return a wordcloud or null
      */
     public static WordCloud convertStringToWordCloud(String wc) {
         WordCloud cloud = new WordCloud();
-        Pattern pattern = Pattern.compile("(\\(([^,]*),\\s*([\\d\\.]+)\\s*\\))");
+        Pattern pattern = Pattern.compile("(\\(([^,]*),\\s*(-*[\\d\\.]+)\\s*\\))");
         Matcher matcher = pattern.matcher(wc);
         while (matcher.find()) {
             String tag = matcher.group(2).trim();
@@ -111,6 +113,17 @@ public class WordCloud implements Serializable, Iterable<Scored<String>> {
                 return null;
             }
         }
+
+        
+        // if we couldn't find anything with the complex pattern, try
+        // the simple version
+        if (cloud.getWords().size() == 0) {
+            String[] tags = wc.split(",");
+            for (String tag : tags) {
+                cloud.add(tag.trim(), 1f);
+            }
+        }
+
         return cloud.getWords().size() > 0 ? cloud : null;
     }
 
@@ -123,6 +136,8 @@ public class WordCloud implements Serializable, Iterable<Scored<String>> {
     public static void main(String[] args) {
         test("(t1,.1)(t2, .2)(t 3, .3)");
         test("(this is a test,.1)(t2, .2)(t 3, .3)");
+        test("(this is a test,.1)(t2, .2)(gothic, -.3)");
         test("(badcloud)");
+        test("emo, punk, jazz,metal");
     }
 }

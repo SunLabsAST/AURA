@@ -10,7 +10,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
-import com.sun.labs.aura.datastore.impl.store.FindSimilarConfig;
+import com.sun.labs.aura.datastore.impl.store.SimilarityConfig;
 import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
@@ -600,7 +600,7 @@ public class MusicDatabase {
 
     public List<Scored<String>> artistExplainSimilarity(String artistID1, String artistID2, int count) throws AuraException {
         try {
-            return dataStore.explainSimilarity(artistID1, artistID2, Artist.FIELD_SOCIAL_TAGS, count);
+            return dataStore.explainSimilarity(artistID1, artistID2, new SimilarityConfig(Artist.FIELD_SOCIAL_TAGS, count));
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -608,7 +608,7 @@ public class MusicDatabase {
 
     public List<Scored<String>> artistExplainSimilarity(String artistID1, String artistID2, String field, int count) throws AuraException {
         try {
-            return dataStore.explainSimilarity(artistID1, artistID2, field, count);
+            return dataStore.explainSimilarity(artistID1, artistID2, new SimilarityConfig(field, count));
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -853,7 +853,7 @@ public class MusicDatabase {
 
         public List<Scored<String>> explainSimilarity(String id1, String id2, int count) throws AuraException {
             try {
-                return dataStore.explainSimilarity(id1, id1, field, count);
+                return dataStore.explainSimilarity(id1, id1, new SimilarityConfig(field, count));
             } catch (RemoteException ex) {
                 throw new AuraException("Can't talk to the datastore " + ex, ex);
             }
@@ -976,15 +976,15 @@ public class MusicDatabase {
         }
     }
 
-    private FindSimilarConfig getFindSimilarConfig(String field, int count, TypeFilter filter) {
-        FindSimilarConfig fsc = new FindSimilarConfig(field, count, filter);
+    private SimilarityConfig getFindSimilarConfig(String field, int count, TypeFilter filter) {
+        SimilarityConfig fsc = new SimilarityConfig(field, count, filter);
         fsc.setSkimPercent(1.);
         fsc.setReportPercent(1.);
         return fsc;
     }
 
-    private FindSimilarConfig getFindSimilarConfig(int count, TypeFilter filter) {
-        FindSimilarConfig fsc = new FindSimilarConfig(count, filter);
+    private SimilarityConfig getFindSimilarConfig(int count, TypeFilter filter) {
+        SimilarityConfig fsc = new SimilarityConfig(count, filter);
         fsc.setSkimPercent(1.);
         fsc.setReportPercent(1.);
         return fsc;
@@ -1054,7 +1054,7 @@ public class MusicDatabase {
             for (Scored<Item> item : items) {
                 if (!skipIDS.contains(item.getItem().getKey())) {
                     List<Scored<String>> reason = dataStore.explainSimilarity(listener.getKey(),
-                            item.getItem().getKey(), Listener.FIELD_SOCIAL_TAGS, count);
+                            item.getItem().getKey(), new SimilarityConfig(Listener.FIELD_SOCIAL_TAGS, count));
                     results.add(new Recommendation(item.getItem().getKey(), item.getScore(), reason));
                     if (results.size() >= count) {
                         break;

@@ -484,11 +484,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return searchEngine.explainSimilarAutotags(a1, a2, n);
     }
     
-    public DocumentVector getDocumentVector(String key, FindSimilarConfig config) {
+    public DocumentVector getDocumentVector(String key, SimilarityConfig config) {
         return searchEngine.getDocumentVector(key, config);
     }
     
-    public DocumentVector getDocumentVector(WordCloud cloud, FindSimilarConfig config) {
+    public DocumentVector getDocumentVector(WordCloud cloud, SimilarityConfig config) {
         return searchEngine.getDocumentVector(cloud, config);
     }
     
@@ -505,7 +505,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(DocumentVector dv, FindSimilarConfig config)
+    public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config)
             throws AuraException, RemoteException {
         NanoWatch sw = new NanoWatch();
         sw.start();
