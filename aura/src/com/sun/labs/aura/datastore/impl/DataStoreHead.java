@@ -14,7 +14,7 @@ import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
-import com.sun.labs.aura.datastore.impl.store.FindSimilarConfig;
+import com.sun.labs.aura.datastore.impl.store.SimilarityConfig;
 import com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ScoredComparator;
@@ -688,10 +688,10 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     
     public DocumentVector getDocumentVector(String key, String field) throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
-        return pc.getDocumentVector(key, new FindSimilarConfig(field));
+        return pc.getDocumentVector(key, new SimilarityConfig(field));
     }
     
-    public List<Scored<Item>> findSimilar(String key, FindSimilarConfig config)
+    public List<Scored<Item>> findSimilar(String key, SimilarityConfig config)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         DocumentVector dv = pc.getDocumentVector(key, config);
@@ -699,7 +699,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     }
 
 
-    public List<Scored<Item>> findSimilar(List<String> keys, FindSimilarConfig config) 
+    public List<Scored<Item>> findSimilar(List<String> keys, SimilarityConfig config) 
             throws AuraException, RemoteException {
         List<DocumentVector> dvs = new ArrayList<DocumentVector>();
         for(String key : keys) {
@@ -711,14 +711,14 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     }
 
 
-    public List<Scored<Item>> findSimilar(WordCloud cloud, FindSimilarConfig config)
+    public List<Scored<Item>> findSimilar(WordCloud cloud, SimilarityConfig config)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(cloud.hashCode()));
         return findSimilar(pc.getDocumentVector(cloud, config), config);
     }
     private List<Scored<Item>> findSimilar(
             DocumentVector dv,
-            final FindSimilarConfig config)
+            final SimilarityConfig config)
             throws AuraException, RemoteException {
         
         
@@ -788,7 +788,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return pc.getExplanation(key, autoTag, n);
     }
 
-    public List<Scored<String>> explainSimilarity(String key1, String key2, FindSimilarConfig config) 
+    public List<Scored<String>> explainSimilarity(String key1, String key2, SimilarityConfig config) 
             throws AuraException, RemoteException {
         PartitionCluster pc1 = trie.get(DSBitSet.parse(key1.hashCode()));
         PartitionCluster pc2 = trie.get(DSBitSet.parse(key2.hashCode()));
@@ -797,7 +797,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return explainSimilarity(dv1, dv2, config.getN());
     }
     
-   public List<Scored<String>> explainSimilarity(WordCloud cloud, String key, FindSimilarConfig config) 
+   public List<Scored<String>> explainSimilarity(WordCloud cloud, String key, SimilarityConfig config) 
             throws AuraException, RemoteException {
         PartitionCluster pc1 = trie.get(DSBitSet.parse(cloud.hashCode()));
         PartitionCluster pc2 = trie.get(DSBitSet.parse(key.hashCode()));

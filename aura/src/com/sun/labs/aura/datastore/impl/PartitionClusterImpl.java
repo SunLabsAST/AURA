@@ -10,7 +10,7 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
-import com.sun.labs.aura.datastore.impl.store.FindSimilarConfig;
+import com.sun.labs.aura.datastore.impl.store.SimilarityConfig;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
@@ -303,15 +303,15 @@ public class PartitionClusterImpl implements PartitionCluster,
         }
     }
 
-    public DocumentVector getDocumentVector(String key, FindSimilarConfig config) throws RemoteException, AuraException {
+    public DocumentVector getDocumentVector(String key, SimilarityConfig config) throws RemoteException, AuraException {
         return replicant.getDocumentVector(key, config);
     }
 
-    public DocumentVector getDocumentVector(WordCloud cloud, FindSimilarConfig config) throws RemoteException, AuraException {
+    public DocumentVector getDocumentVector(WordCloud cloud, SimilarityConfig config) throws RemoteException, AuraException {
         return replicant.getDocumentVector(cloud, config);
     }
 
-    public List<Scored<Item>> findSimilar(DocumentVector dv, FindSimilarConfig config) throws AuraException, RemoteException {
+    public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
         return replicant.findSimilar(dv, config);
     }
 }

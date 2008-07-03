@@ -401,7 +401,7 @@ public class ItemSearchEngine implements Configurable {
      * key has not been indexed or if an error occurs while fetching the docuemnt,
      * then <code>null</code> will be returned.
      */
-    public DocumentVector getDocumentVector(String key, FindSimilarConfig config) {
+    public DocumentVector getDocumentVector(String key, SimilarityConfig config) {
         if(config.getField() == null && config.getFields() == null) {
             try {
                 return engine.getDocumentVector(key);
@@ -415,7 +415,7 @@ public class ItemSearchEngine implements Configurable {
         }
     }
     
-    public DocumentVector getDocumentVector(WordCloud cloud, FindSimilarConfig config) {
+    public DocumentVector getDocumentVector(WordCloud cloud, SimilarityConfig config) {
         
         //
         // Get weighted features from the cloud.
@@ -443,7 +443,7 @@ public class ItemSearchEngine implements Configurable {
      * smaller than the number of items requested!
      * @see #getDocumentVector
      */
-    public List<Scored<String>> findSimilar(DocumentVector dv, FindSimilarConfig config)
+    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config)
             throws AuraException {
 
         //
@@ -483,7 +483,7 @@ public class ItemSearchEngine implements Configurable {
     public WordCloud getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException {
         DocumentVectorImpl dv = (DocumentVectorImpl) getDocumentVector(key,
-                new FindSimilarConfig(field));
+                new SimilarityConfig(field));
         if(dv == null) {
             return new WordCloud();
         }

@@ -49,7 +49,7 @@ public interface ItemSearch {
      * to least similar.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(String key, FindSimilarConfig config)
+    public List<Scored<Item>> findSimilar(String key, SimilarityConfig config)
             throws AuraException, RemoteException;
 
     /**
@@ -60,7 +60,7 @@ public interface ItemSearch {
      * to least similar.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(List<String> keys, FindSimilarConfig config)
+    public List<Scored<Item>> findSimilar(List<String> keys, SimilarityConfig config)
             throws AuraException, RemoteException;
 
     /**
@@ -71,7 +71,7 @@ public interface ItemSearch {
      * to least similar.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(WordCloud cloud, FindSimilarConfig config)
+    public List<Scored<Item>> findSimilar(WordCloud cloud, SimilarityConfig config)
             throws AuraException, RemoteException;
 
     /**
@@ -139,7 +139,7 @@ public interface ItemSearch {
      * similarity between the two items.
      */
     public List<Scored<String>> explainSimilarity(String key1, String key2,
-            FindSimilarConfig config) 
+            SimilarityConfig config) 
             throws AuraException, RemoteException;
     
     /**
@@ -155,7 +155,7 @@ public interface ItemSearch {
      * similarity between the two items.
      */
     public List<Scored<String>> explainSimilarity(WordCloud cloud, String key,
-            FindSimilarConfig config) 
+            SimilarityConfig config) 
             throws AuraException, RemoteException;
     
     /**
