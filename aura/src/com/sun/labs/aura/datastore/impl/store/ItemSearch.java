@@ -7,7 +7,6 @@ import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
-import com.sun.labs.minion.WeightedField;
 import java.rmi.RemoteException;
 import java.util.List;
 
@@ -155,6 +154,22 @@ public interface ItemSearch {
      * similarity between the two items.
      */
     public List<Scored<String>> explainSimilarity(WordCloud cloud, String key,
+            SimilarityConfig config) 
+            throws AuraException, RemoteException;
+    
+    /**
+     * Explains the similarity between two word clouds.  The explaination consists of
+     * the terms that the documents have in common, along with a score indicating
+     * the importance of terms to the similarity.
+     * @param cloud1 the first word cloud
+     * @param cloud2 the second word cloud
+     * @param config the similarity configuration that details how the explanation
+     * should be built
+     * @return a list of scored strings.  The string is the term that the two
+     * items have in common and the score is the contributio of this term to the
+     * similarity between the two items.
+     */
+    public List<Scored<String>> explainSimilarity(WordCloud cloud1, WordCloud cloud2,
             SimilarityConfig config) 
             throws AuraException, RemoteException;
     

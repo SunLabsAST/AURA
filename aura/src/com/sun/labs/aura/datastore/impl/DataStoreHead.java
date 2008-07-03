@@ -806,6 +806,14 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return explainSimilarity(dv1, dv2, config.getN());
     }
     
+   public List<Scored<String>> explainSimilarity(WordCloud cloud1, WordCloud cloud2, SimilarityConfig config) 
+            throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(cloud1.hashCode()));
+        DocumentVector dv1 = pc.getDocumentVector(cloud1, config);
+        DocumentVector dv2 = pc.getDocumentVector(cloud2, config);
+        return explainSimilarity(dv1, dv2, config.getN());
+    }
+    
     private List<Scored<String>> explainSimilarity(DocumentVector dv1, DocumentVector dv2, int n) 
             throws AuraException, RemoteException {
         if(dv1 == null || dv2 == null) {
