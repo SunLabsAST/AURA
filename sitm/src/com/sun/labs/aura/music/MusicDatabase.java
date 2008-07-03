@@ -190,6 +190,54 @@ public class MusicDatabase {
     }
 
     /**
+     * Adds a tag for a listener for an item
+     * @param listener the listener doing the tagging
+     * @param item the item being tagged
+     * @param tag the tag
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void addTag(Listener listener, String itemID, String tag) throws AuraException, RemoteException {
+        if (dataStore.getItem(itemID) != null) {
+            Attention attention = StoreFactory.newAttention(listener.getKey(), itemID,
+                    Attention.Type.TAG, tag);
+            dataStore.attend(attention);
+        }
+    }
+
+    /**
+     * Gets the list of tags applied to the item by the user
+     * @param listener the listener 
+     * @param item the item 
+     * @return
+     */
+    public List<String> getTags(Listener listener, String itemID) throws AuraException, RemoteException {
+        List<String> results = new ArrayList();
+        List<Attention> attns = dataStore.getLastAttentionForSource(listener.getKey(), Attention.Type.TAG, Integer.MAX_VALUE);
+        for (Attention attn : attns) {
+            if (attn.getTargetKey().equals(itemID)) {
+                results.add(attn.getString());
+            }
+        }
+        return results;
+    }
+
+    /**
+     * Gets the list of all tags applied by the user
+     * @param listener the listener 
+     * @param item the item 
+     * @return
+     */
+    public List<String> getAllTags(Listener listener) throws AuraException, RemoteException {
+        List<String> results = new ArrayList();
+        List<Attention> attns = dataStore.getLastAttentionForSource(listener.getKey(), Attention.Type.TAG, Integer.MAX_VALUE);
+        for (Attention attn : attns) {
+            results.add(attn.getString());
+        }
+        return results;
+    }
+
+    /**
      * Gets the Favorite artists IDs for a listener
      * @param listener the listener of interest
      * @param max the maximum number to return
@@ -482,7 +530,7 @@ public class MusicDatabase {
         List<Scored<Item>> simItems = findSimilar(artistID, Artist.FIELD_SOCIAL_TAGS, count, ItemType.ARTIST);
         return convertToScoredArtistList(simItems);
     }
-    
+
     /**
      * Find the most similar artist to a given tagcloud
      * @param tagCloudID the ID of the tag cloud
@@ -491,7 +539,18 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      */
     public List<Scored<Artist>> tagCloudFindSimilarArtists(TagCloud tagCloud, int count) throws AuraException {
-        List<Scored<Item>> simItems = findSimilar(tagCloud.getKey(), TagCloud.FIELD_SOCIAL_TAGS, count, ItemType.ARTIST);
+        return wordCloudFindSimilarArtists(tagCloud.getWordCloud(), count);
+    }
+
+    /**
+     * Find the most similar artist to a given WordCloud
+     * @param tagCloudID the ID of the tag cloud
+     * @param count the number of similar artists to return
+     * @return a list of artists scored by their similarity to the seed artist.
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public List<Scored<Artist>> wordCloudFindSimilarArtists(WordCloud wc, int count) throws AuraException {
+        List<Scored<Item>> simItems = findSimilar(wc, Artist.FIELD_SOCIAL_TAGS, count, ItemType.ARTIST);
         return convertToScoredArtistList(simItems);
     }
 
@@ -758,6 +817,16 @@ public class MusicDatabase {
         }
     }
 
+    private List<Scored<Item>> findSimilar(WordCloud wc, String field, int count, ItemType type) throws AuraException {
+        try {
+            System.out.println("FindSimilarWC " + wc);
+            List<Scored<Item>> simItems = dataStore.findSimilar(wc, getFindSimilarConfig(field, count, new TypeFilter(type)));
+            return simItems;
+        } catch (RemoteException ex) {
+            throw new AuraException("Can't talk to the datastore " + ex, ex);
+        }
+    }
+
     private class FieldSimType implements SimType {
 
         private String name;
@@ -976,7 +1045,7 @@ public class MusicDatabase {
 
         public RecommendationSummary getRecommendations(Listener listener, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
-            List<Scored<Item>> items = dataStore.findSimilar(listener.getKey(), 
+            List<Scored<Item>> items = dataStore.findSimilar(listener.getKey(),
                     getFindSimilarConfig(Listener.FIELD_SOCIAL_TAGS,
                     count * 5, new TypeFilter(ItemType.ARTIST)));
             List<Recommendation> results = new ArrayList();

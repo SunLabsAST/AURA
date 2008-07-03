@@ -52,7 +52,20 @@
         <servlet-name>GetItem</servlet-name>
         <servlet-class>com.sun.labs.aura.music.webservices.GetItem</servlet-class>
     </servlet>
-    <servlet><servlet-name>AddListener</servlet-name><servlet-class>com.sun.labs.aura.music.webservices.AddListener</servlet-class></servlet><servlet-mapping>
+    <servlet><servlet-name>AddListener</servlet-name><servlet-class>com.sun.labs.aura.music.webservices.AddListener</servlet-class></servlet>
+    <servlet>
+        <servlet-name>TagItem</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.TagItem</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>GetListenerTags</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.GetListenerTags</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>FindSimilarArtistFromWordCloud</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.FindSimilarArtistFromWordCloud</servlet-class>
+    </servlet>
+    <servlet-mapping>
         <servlet-name>FindSimilarArtist</servlet-name>
         <url-pattern>/FindSimilarArtist</url-pattern>
     </servlet-mapping>
@@ -103,6 +116,18 @@
     <servlet-mapping>
         <servlet-name>AddListener</servlet-name>
         <url-pattern>/AddListener</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>TagItem</servlet-name>
+        <url-pattern>/TagItem</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetListenerTags</servlet-name>
+        <url-pattern>/GetListenerTags</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>FindSimilarArtistFromWordCloud</servlet-name>
+        <url-pattern>/FindSimilarArtistFromWordCloud</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

@@ -9,6 +9,7 @@ import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Tag;
+import com.sun.labs.aura.util.WordCloud;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -84,7 +85,7 @@ public class ArtistSocialTags extends HttpServlet {
                                 Util.tagClose(out, SERVLET_NAME);
                             } else {
 
-                                List<Scored<String>> tags = mdb.artistGetDistinctiveTagNames(key, maxCount);
+                                WordCloud tags = mdb.artistGetDistinctiveTagNames(key, maxCount);
 
                                 out.println("<ArtistSocialTags>");
                                 for (Scored<String> scoredTag : tags) {
@@ -103,7 +104,7 @@ public class ArtistSocialTags extends HttpServlet {
 
                     }
                 } catch (AuraException ex) {
-                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Problem accessing data");
+                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Problem accessing data:" + ex);
                 }
             }
         } finally {

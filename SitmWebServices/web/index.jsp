@@ -18,6 +18,7 @@
         <ul>    
             <li> <a href="FindSimilarArtist?name=weezer"> Artists Similar to Weezer </a>
             <li> <a href="FindSimilarArtist?name=beatles"> Artists Similar to The Beatles </a>
+            <li> <a href="FindSimilarArtistFromWordCloud?wordCloud='(indie,1)(punk,1)(emo,.5)'"> Find Artists Similar to Word Cloud (indie, punk, emo)</a>
             <li> <a href="FindSimilarArtistTags?name=metal&max=100"> Similar metal tags </a>
             <li> <a href="FindSimilarArtist?key=aa7a2827-f74b-473c-bd79-03d065835cf7"> Artists Similar to Franz Ferdinand </a>
             <li> <a href="ArtistSearch?name=beat"> Artist search for 'beat' </a>
@@ -35,6 +36,8 @@
             <li> <a href="FindSimilarListener?userID=http://paul.lamere.myopenid.com/"> Finds similar listener to lamere</a>
             <li> <a href="GetItem?itemID=http://paul.lamere.myopenid.com/"> shows listener lamere</a>
             <li> <a href="GetItem?itemID=6fe07aa5-fec0-4eca-a456-f29bff451b04"> shows artist 'weezer'</a>
+            <li> <a href="TagItem?userID=http://paul.lamere.myopenid.com/&itemID=6fe07aa5-fec0-4eca-a456-f29bff451b04&tag=weezercore"> apply a tag to weezer</a>
+            <li> <a href="GetListenerTags?userID=http://paul.lamere.myopenid.com/&itemID=6fe07aa5-fec0-4eca-a456-f29bff451b04"> get tags applied to 'weezer'</a>
         </ul>
     </body>
 </html>

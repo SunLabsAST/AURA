@@ -8,6 +8,8 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A cloud of tags and weights.
@@ -27,6 +29,16 @@ public class WordCloud implements Serializable, Iterable<Scored<String>> {
             words.put(word, s);
         } else {
             s.setScore(s.getScore() + weight);
+        }
+    }
+
+    public void set(String word, double weight) {
+        Scored<String> s = words.get(word);
+        if(s == null) {
+            s = new Scored(word, weight);
+            words.put(word, s);
+        } else {
+            s.setScore(weight);
         }
     }
     
@@ -66,5 +78,51 @@ public class WordCloud implements Serializable, Iterable<Scored<String>> {
      */
     public Iterator<Scored<String>> iterator() {
         return words.values().iterator();
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (Scored<String> s : this) {
+            sb.append("(");
+            sb.append(s.getItem());
+            sb.append(",");
+            sb.append(s.getScore());
+            sb.append(")");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Converts a string representation of a wordcloud to a WordCloud
+     * @param wc the string representation
+     * @return a wordcloud or null
+     */
+    public static WordCloud convertStringToWordCloud(String wc) {
+        WordCloud cloud = new WordCloud();
+        Pattern pattern = Pattern.compile("(\\(([^,]*),\\s*([\\d\\.]+)\\s*\\))");
+        Matcher matcher = pattern.matcher(wc);
+        while (matcher.find()) {
+            String tag = matcher.group(2).trim();
+            String sweight = matcher.group(3).trim();
+            try {
+                float weight = Float.parseFloat(sweight);
+                cloud.add(tag, weight);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return cloud.getWords().size() > 0 ? cloud : null;
+    }
+
+    private static void test(String wc) {
+        WordCloud cloud = convertStringToWordCloud(wc);
+        System.out.println("Text : " + wc);
+        System.out.println("Cloud: " + cloud);
+    }
+
+    public static void main(String[] args) {
+        test("(t1,.1)(t2, .2)(t 3, .3)");
+        test("(this is a test,.1)(t2, .2)(t 3, .3)");
+        test("(badcloud)");
     }
 }

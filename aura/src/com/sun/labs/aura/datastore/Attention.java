@@ -39,6 +39,8 @@ public interface Attention extends Serializable, Comparable<Attention> {
         LOVED,
         /** * a rating */
         RATING,
+        /** * a tag */
+        TAG,
     };
     
     /**

@@ -9,10 +9,9 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
-import com.sun.labs.aura.util.Tag;
+import com.sun.labs.aura.util.WordCloud;
 import java.rmi.RemoteException;
 import java.util.EnumSet;
-import java.util.List;
 
 /**
  *
@@ -22,7 +21,7 @@ public class TagCloud extends ItemAdapter {
 
     public final static String FIELD_CREATOR = "creator";
     public final static String FIELD_DESCRIPTION = "description";
-    public final static String FIELD_SOCIAL_TAGS = "socialTags";
+    public final static String FIELD_WORLD_CLOUD = "wordCloud";
 
     /**
      * Wraps an Item as an TagCloud
@@ -48,14 +47,10 @@ public class TagCloud extends ItemAdapter {
 
     public void defineFields(DataStore ds) throws AuraException {
         try {
-            ds.defineField(Item.ItemType.TAG_CLOUD, FIELD_SOCIAL_TAGS, EnumSet.of(
-                    Item.FieldCapability.SEARCH,
-                    Item.FieldCapability.SIMILARITY), Item.FieldType.STRING);
-
+            ds.defineField(Item.ItemType.TAG_CLOUD, FIELD_WORLD_CLOUD);
             ds.defineField(Item.ItemType.TAG_CLOUD, FIELD_DESCRIPTION,
                     EnumSet.of(Item.FieldCapability.SIMILARITY,
                     Item.FieldCapability.SEARCH), Item.FieldType.STRING);
-
             ds.defineField(Item.ItemType.TAG_CLOUD, FIELD_CREATOR,
                     EnumSet.of(Item.FieldCapability.MATCH), Item.FieldType.STRING);
 
@@ -65,37 +60,19 @@ public class TagCloud extends ItemAdapter {
     }
 
     /**
-     * Gets the artist's social tags 
+     * Gets the wordcloudkm
      * @return tag map
      */
-    public List<Tag> getSocialTags() {
-        return getTagsAsList(FIELD_SOCIAL_TAGS);
+    public WordCloud getWordCloud() {
+        return (WordCloud) getFieldAsObject(FIELD_WORLD_CLOUD);
     }
 
     /**
-     * Adds a social tag to the TagCloud
-     * @param tag name of the tag
-     * @param count tag count
+     * Sets the wordcloud
+     * @return tag map
      */
-    public void addSocialTag(String tag, int count) {
-        addTag(FIELD_SOCIAL_TAGS, tag, count);
-    }
-
-    /**
-     * Sets a social tag to the TagCloud
-     * @param tag name of the tag
-     * @param count tag count
-     */
-    public void setSocialTag(String tag, int count) {
-        if (count <= 0) {
-            removeSocialTag(tag);
-        } else {
-            setTag(FIELD_SOCIAL_TAGS, tag, count);
-        }
-    }
-
-    public void removeSocialTag(String tag) {
-        removeTag(FIELD_SOCIAL_TAGS, tag);
+    public void setWordCloud(WordCloud wordCloud) {
+        setFieldAsObject(FIELD_WORLD_CLOUD, wordCloud);
     }
 
     /**
