@@ -1020,6 +1020,22 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         logger.info("Adding partition cluster: " + pc.getPrefix());
         trie.add(pc, pc.getPrefix());
     }
+    
+    public Replicant getReplicant(String prefix) throws RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(prefix));
+        if(pc != null) {
+            return pc.getReplicant();
+        }
+        return null;
+    }
+    
+    public List<String> getPrefixes() throws RemoteException {
+        List<String> ret = new ArrayList<String>();
+        for(PartitionCluster pc : trie.getAll()) {
+            ret.add(pc.getPrefix().toString());
+        }
+        return ret;
+    }
 
     protected abstract class PCCaller<V> implements Callable {
         protected PartitionCluster pc;

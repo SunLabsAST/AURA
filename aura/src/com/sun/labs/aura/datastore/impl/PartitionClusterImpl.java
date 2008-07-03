@@ -291,6 +291,10 @@ public class PartitionClusterImpl implements PartitionCluster,
                     prefixCode + " prefix added: " + replicant.getPrefix());
         }
     }
+    
+    public Replicant getReplicant() throws RemoteException {
+        return replicant;
+    }
 
     public void start() {
     }
