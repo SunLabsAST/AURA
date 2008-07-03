@@ -713,7 +713,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
     public List<Scored<Item>> findSimilar(WordCloud cloud, FindSimilarConfig config)
             throws AuraException, RemoteException {
-        PartitionCluster pc = trie.get(DSBitSet.parse(cloud.toString()));
+        PartitionCluster pc = trie.get(DSBitSet.parse(cloud.hashCode()));
         return findSimilar(pc.getDocumentVector(cloud, config), config);
     }
     private List<Scored<Item>> findSimilar(

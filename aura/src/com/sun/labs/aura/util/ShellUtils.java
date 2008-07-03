@@ -566,6 +566,34 @@ public class ShellUtils {
                         return "Find similar with weighted fields";
                     }
                 });
+                
+        shell.add("cfs",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String key = args[1];
+                        String field = args.length > 2 ? args[2] : "content";
+                        WordCloud terms = dataStore.getTopTerms(key,
+                                field, nHits);
+                        System.out.println("Top terms:");
+                        for(Scored<String> term : terms) {
+                            System.out.printf("%.3f %s\n", term.getScore(),
+                                    term.getItem());
+                        }
+                        
+                        FindSimilarConfig config = new FindSimilarConfig(field, nHits, null);
+                        config.setSkimPercent(1);
+                        List<Scored<Item>> items = dataStore.findSimilar(terms,
+                                config);
+                        dumpScoredItems(items);
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "<key> [<field>] gets the top terms from the given field (default: content) in the given document.";
+                    }
+                });
 
         shell.add("topTerms",
                 new CommandInterface() {
