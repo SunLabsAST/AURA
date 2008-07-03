@@ -169,14 +169,16 @@ public abstract class WebLib {
      * @param log plot on log scale
      * @return
      */
-    public static Widget getSmallPopularityWidget(double normPopularity, boolean log) {
+    public static Widget getSmallPopularityWidget(double normPopularity, boolean log, boolean displayName) {
 
         HorizontalPanel hPanel = new HorizontalPanel();
         hPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
         Label lbl = new Label("Popularity: ");
         lbl.setStyleName("recoTags");
         lbl.addStyleName("marginRight");
-        hPanel.add(lbl);
+        if (displayName) {
+            hPanel.add(lbl);
+        }
         hPanel.add(getPopularityHisto(normPopularity, log, 8));
         return hPanel;
     }

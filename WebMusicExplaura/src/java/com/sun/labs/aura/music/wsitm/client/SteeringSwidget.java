@@ -34,7 +34,10 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -173,6 +176,7 @@ public class SteeringSwidget extends Swidget {
             sbox = new SuggestBox(cdm.getTagOracle());
             //sbox.setStyleName("searchText");
             sbox.ensureDebugId("cwSuggestBox");
+            sbox.getElement().setAttribute("style", "width:150px");
             sbox.setLimit(20);
 
             sbox.addKeyboardListener(new KeyboardListenerAdapter() {
@@ -215,14 +219,12 @@ public class SteeringSwidget extends Swidget {
                         if (results.length == 0) {
                             mainTagPanel.setWidget(1, 0, new Label("No Match for " + sr.getQuery()));
                         } else {
-                            VerticalPanel hP = new VerticalPanel();
-                            for (ItemInfo iI : results) {
-                                cdm.getTagOracle().add(iI.getItemName());
-                                Label lbl = new Label(iI.getItemName());
-                                lbl.addClickListener(new TagClickListener(iI));
-                                hP.add(lbl);
-                            }
-                            mainTagPanel.setWidget(1, 0, hP);
+                            mainTagPanel.setWidget(1, 0, new SortableItemInfoList(results) {
+
+                                protected void onItemClick(ItemInfo i) {
+                                    tagLand.addTag(i);
+                                }
+                            });
                         }
                     } else {
                         if (sr == null) {
@@ -271,19 +273,6 @@ public class SteeringSwidget extends Swidget {
                 musicServer.getTagOracle(callback);
             } catch (Exception ex) {
                 Window.alert(ex.getMessage());
-            }
-        }
-
-        public class TagClickListener implements ClickListener {
-
-            ItemInfo iI;
-
-            public TagClickListener(ItemInfo iI) {
-                this.iI = iI;
-            }
-
-            public void onClick(Widget arg0) {
-                tagLand.addTag(iI);
             }
         }
     }
@@ -571,5 +560,93 @@ public class SteeringSwidget extends Swidget {
             }
 
         }
+    }
+
+    public abstract class SortableItemInfoList extends Composite {
+
+        private Grid mainPanel;
+        private List<ItemInfo> iI;
+
+        public SortableItemInfoList(ItemInfo[] iI) {
+            this.iI = new ArrayList<ItemInfo>();
+            for (ItemInfo i : iI) {
+                this.iI.add(i);
+            }
+
+            mainPanel = new Grid(iI.length + 1, 2);
+
+            //
+            // Add the title line
+            Label nameLbl = new Label("Name *");
+            nameLbl.addClickListener(new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    ((Label)mainPanel.getWidget(0, 0)).setText("Name *");
+                    ((Label)mainPanel.getWidget(0, 1)).setText("Popularity");
+                    populateMainPanel(new NameSorter());
+                }
+            });
+            mainPanel.setWidget(0, 0, nameLbl);
+
+            Label popLbl = new Label("Popularity");
+            popLbl.addClickListener(new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    ((Label)mainPanel.getWidget(0, 0)).setText("Name");
+                    ((Label)mainPanel.getWidget(0, 1)).setText("Popularity *");
+                    populateMainPanel(new PopularitySorter());
+                }
+            });
+            mainPanel.setWidget(0, 1, popLbl);
+
+            populateMainPanel(new PopularitySorter());
+            initWidget(mainPanel);
+        }
+
+        private void populateMainPanel(Comparator<ItemInfo> c) {
+
+            //
+            // Add all the items
+            Collections.sort(iI, c);
+            int lineIndex = 1;
+            for (ItemInfo i : iI) {
+                Label tagLbl = new Label(i.getItemName());
+                tagLbl.addClickListener(new TagClickListener(i));
+                mainPanel.setWidget(lineIndex, 0, tagLbl);
+                mainPanel.setWidget(lineIndex, 1, WebLib.getSmallPopularityWidget(i.getPopularity(), true, false));
+                lineIndex++;
+            }
+        }
+
+        protected abstract void onItemClick(ItemInfo i);
+
+        public class PopularitySorter implements Comparator<ItemInfo> {
+
+            public int compare(ItemInfo o1, ItemInfo o2) {
+                return new Double(o1.getPopularity()).compareTo(new Double(o2.getPopularity()));
+            }
+
+        }
+
+        public class NameSorter implements Comparator<ItemInfo> {
+
+            public int compare(ItemInfo o1, ItemInfo o2) {
+                return o1.getItemName().compareTo(o2.getItemName());
+            }
+        }
+
+        public class TagClickListener implements ClickListener {
+
+            ItemInfo iI;
+
+            public TagClickListener(ItemInfo iI) {
+                this.iI = iI;
+            }
+
+            public void onClick(Widget arg0) {
+                onItemClick(iI);
+            }
+        }
+
     }
 }

@@ -205,7 +205,7 @@ public class ArtistListWidget extends Composite {
             starHP.add(star);
             txtPanel.add(starHP);
 
-            txtPanel.add(WebLib.getSmallPopularityWidget(aD.getNormPopularity(), true));
+            txtPanel.add(WebLib.getSmallPopularityWidget(aD.getNormPopularity(), true, true));
 
             artistPanel.add(txtPanel);
 
