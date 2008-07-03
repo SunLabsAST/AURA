@@ -20,7 +20,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
-import com.sun.labs.aura.datastore.impl.store.FindSimilarConfig;
+import com.sun.labs.aura.datastore.FindSimilarConfig;
 import com.sun.labs.aura.recommender.FieldExclusionFilter;
 import com.sun.labs.aura.recommender.FieldRangeFilter;
 import com.sun.labs.aura.recommender.LengthFilter;
