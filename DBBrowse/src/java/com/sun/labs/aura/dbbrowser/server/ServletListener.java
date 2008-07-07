@@ -5,7 +5,6 @@
 
 package com.sun.labs.aura.dbbrowser.server;
 
-import com.sun.labs.aura.aardvark.Aardvark;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.io.IOException;
@@ -36,10 +35,7 @@ public class ServletListener implements ServletContextListener {
                 ConfigurationManager cm = new ConfigurationManager();
                 cm.addProperties(config);
                 context.setAttribute("configManager", cm);
-                
-                Aardvark aardvark = (Aardvark)cm.lookup("aardvark");
-                context.setAttribute("aardvark", aardvark);
-                
+                                
                 DataStore dataStore = (DataStore)cm.lookup("dataStore");
                 context.setAttribute("dataStore", dataStore);
             } catch (IOException ioe) {

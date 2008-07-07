@@ -27,6 +27,7 @@ public class SearchPanel extends VerticalPanel {
     private Button itemNameBtn = new Button("Search");
     private Button itemGenBtn = new Button("Search");
     private Button itemFSBtn = new Button("Search");
+    private Button testBtn = new Button("TestMe");
     
     private TabbedGUI parent;
     
@@ -227,5 +228,25 @@ public class SearchPanel extends VerticalPanel {
         });
         add(fsSrchPanel);
     
+        testBtn.addClickListener(new ClickListener() {
+            public void onClick(Widget w) {
+                final AsyncCallback callback = new AsyncCallback() {
+
+                    public void onSuccess(Object result) {
+                        if(result != null) {
+                            parent.showAttention((AttnDesc[]) result);
+                        } else {
+                            parent.showError("Remote error!");
+                        }
+                    }
+
+                    public void onFailure(Throwable caught) {
+                        parent.showError(caught.getMessage());
+                    }
+                };
+                service.doTest(callback);
+            }
+        });
+        add(testBtn);
     }
 }

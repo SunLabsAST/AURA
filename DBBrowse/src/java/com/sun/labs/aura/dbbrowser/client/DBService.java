@@ -19,4 +19,5 @@ public interface DBService extends RemoteService {
     
     public AttnDesc[] getAttentionForTarget(String key);
     
+    public AttnDesc[] doTest();
 }
