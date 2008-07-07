@@ -568,7 +568,16 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             });
         }
  
-        return assembleAttentionList(executor, callers);
+        try {
+            List<Future<List<Attention>>> results =
+                    executor.invokeAll(callers);
+            return sortAttention(results, count);
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+        return new ArrayList<Attention>();
     }
     
     public Attention attend(Attention att)
