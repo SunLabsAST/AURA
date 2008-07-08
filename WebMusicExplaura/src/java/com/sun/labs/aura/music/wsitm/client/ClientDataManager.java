@@ -38,16 +38,11 @@ public class ClientDataManager {
     private Map<String, Double> favArtist;
     
     private PageHeaderWidget phw;
-    private SimpleSearchWidget ssw;
+    private SimpleSearchSwidget ssw;
 
     private Set<Swidget> registeredSwidgets;
 
     private ListenerDetails lD;
-
-    public static enum Oracles {
-        ARTIST,
-        TAG
-    }
 
     private MultiWordSuggestOracle artistOracle;
     private MultiWordSuggestOracle tagOracle;
@@ -89,7 +84,7 @@ public class ClientDataManager {
         registeredSwidgets.remove(s);
     }
 
-    public void setWidgets(PageHeaderWidget phw, SimpleSearchWidget ssw) {
+    public void setWidgets(PageHeaderWidget phw, SimpleSearchSwidget ssw) {
         this.phw = phw;
         this.ssw = ssw;
     }
@@ -98,7 +93,7 @@ public class ClientDataManager {
         return phw;
     }
 
-    public SimpleSearchWidget getSimpleSearchWidget() {
+    public SimpleSearchSwidget getSimpleSearchWidget() {
         return ssw;
     }
 

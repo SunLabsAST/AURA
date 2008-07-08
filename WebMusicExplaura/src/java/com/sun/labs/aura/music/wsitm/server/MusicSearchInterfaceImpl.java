@@ -300,6 +300,15 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
          return dm.getSimTypes();
     }
 
+    public ItemInfo[] getDistinctiveTags(String artistID, int count) throws WebException {
+        try {
+            return dm.getDistinctiveTags(artistID, count);
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        }
+    }
+
     public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap) throws WebException {
         try {
             WordCloud wC = new WordCloud();

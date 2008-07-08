@@ -144,6 +144,10 @@ public abstract class WebLib {
         return panel;
     }
 
+    public static Widget getPopularityWidget(String name, double normPopularity, boolean log, String style) {
+        return getPopularityWidget(name, normPopularity, 100, log, style);
+    }
+
     /**
      * Build a horizontal bar representing the popularity
      * @param name name of the artist or concept
@@ -151,7 +155,7 @@ public abstract class WebLib {
      * @param log plot on a log scale
      * @param style style to apply to the name
      */
-    public static Widget getPopularityWidget(String name, double normPopularity, boolean log, String style) {
+    public static Widget getPopularityWidget(String name, double normPopularity, int maxWidth, boolean log, String style) {
 
         VerticalPanel vPanel = new VerticalPanel();
         Label lbl = new Label(name);
@@ -159,17 +163,22 @@ public abstract class WebLib {
             lbl.addStyleName(style);
         }
         vPanel.add(lbl);
-        vPanel.add(getPopularityHisto(normPopularity, log, 15));
+        vPanel.add(getPopularityHisto(normPopularity, log, 15, maxWidth));
         return vPanel;
+    }
+
+    public static Widget getSmallPopularityWidget(double normPopularity, boolean log, boolean displayName) {
+        return getSmallPopularityWidget(normPopularity, 100, log, displayName);
     }
 
     /**
      * Get small version of horizontal bar representing the popularity
      * @param normPopularity popularity as a number between 0 and 1
+     * @param maxWidth width of the popularity histo if normPopularity=1
      * @param log plot on log scale
      * @return
      */
-    public static Widget getSmallPopularityWidget(double normPopularity, boolean log, boolean displayName) {
+    public static Widget getSmallPopularityWidget(double normPopularity, int maxWidth, boolean log, boolean displayName) {
 
         HorizontalPanel hPanel = new HorizontalPanel();
         hPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
@@ -179,25 +188,25 @@ public abstract class WebLib {
         if (displayName) {
             hPanel.add(lbl);
         }
-        hPanel.add(getPopularityHisto(normPopularity, log, 8));
+        hPanel.add(getPopularityHisto(normPopularity, log, 8, maxWidth));
         return hPanel;
     }
 
-    private static Widget getPopularityHisto(double normPopularity, boolean log, int height) {
+    private static Widget getPopularityHisto(double normPopularity, boolean log, int height, int maxWidth) {
 
         if (log) {
             normPopularity = Math.log(normPopularity + 1) / Math.log(2); // get the base 2 log
         }
-        int leftWidth = (int) (normPopularity * 100);
+        int leftWidth = (int) (normPopularity * maxWidth);
         if (leftWidth < 1) {
             leftWidth = 1;
-        } else if (leftWidth > 100) {
-            leftWidth = 100;
+        } else if (leftWidth > maxWidth) {
+            leftWidth = maxWidth;
         }
-        int rightWidth = 100 - leftWidth;
+        int rightWidth = maxWidth - leftWidth;
 
         HorizontalPanel table = new HorizontalPanel();
-        table.setWidth("100px");
+        table.setWidth(maxWidth+"px");
         table.setBorderWidth(0);
         table.setSpacing(0);
 

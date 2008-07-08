@@ -8,7 +8,7 @@
  */
 package com.sun.labs.aura.music.wsitm.client;
 
-import com.sun.labs.aura.music.wsitm.client.ClientDataManager.Oracles;
+import com.sun.labs.aura.music.wsitm.client.AbstractSearchWidget.Oracles;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistPhoto;
 import com.sun.labs.aura.music.wsitm.client.items.AlbumDetails;
@@ -19,9 +19,6 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistVideo;
 import asquare.gwt.tk.client.ui.SimpleHyperLink;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.Command;
-import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.Random;
@@ -38,15 +35,12 @@ import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.KeyboardListener;
-import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.LoadListener;
 import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.SuggestBox;
-import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
@@ -63,7 +57,7 @@ import org.adamtacy.client.ui.effects.impl.Fade;
  *
  * @author plamere
  */
-public class SimpleSearchWidget extends Swidget implements HistoryListener {
+public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
     private Widget curResult;
     private DockPanel mainPanel;
@@ -73,12 +67,9 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     private SearchWidget search;
     private Image icon;
 
-    private Oracles currLoadedOracle;
-    private Oracles fetchOracle;    // Oracle we are currently fetching
-
     private String curToken = null;
 
-    public SimpleSearchWidget(ClientDataManager cdm) {
+    public SimpleSearchSwidget(ClientDataManager cdm) {
         super("Simple Search", cdm);
         try {
             History.addHistoryListener(this);
@@ -92,8 +83,10 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
     /** Creates a new instance of SimpleSearchWidget */
     public Widget getWidget() {
 
-        search = new SearchWidget();
-        updateSuggestBox(Oracles.ARTIST);
+        searchBoxContainerPanel = new FlowPanel();
+        
+        search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel);
+        search.updateSuggestBox(Oracles.ARTIST);
 
         message = new Label();
         //message.setWidth("100%");
@@ -214,21 +207,21 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
         //  resultName = URL.decodeComponent(resultName);
         if (resultName.startsWith("artist:")) {
-            updateSuggestBox(Oracles.ARTIST);
+            search.updateSuggestBox(Oracles.ARTIST);
             invokeGetArtistInfo(resultName, false);
         } else if (resultName.startsWith("tag:")) {
-            updateSuggestBox(Oracles.TAG);
+            search.updateSuggestBox(Oracles.TAG);
             invokeGetTagInfo(resultName, false);
         } else if (resultName.startsWith("artistSearch:")) {
-            updateSuggestBox(Oracles.ARTIST);
+            search.updateSuggestBox(Oracles.ARTIST);
             String query = resultName.replaceAll("artistSearch:", "");
             invokeArtistSearchService(query, false, 0);
         } else if (resultName.startsWith("artistSearchByTag:")) {
-            updateSuggestBox(Oracles.TAG);
+            search.updateSuggestBox(Oracles.TAG);
             String query = resultName.replaceAll("artistSearchByTag:", "");
             invokeArtistSearchService(query, true, 0);
         } else if (resultName.startsWith("tagSearch:")) {
-            updateSuggestBox(Oracles.TAG);
+            search.updateSuggestBox(Oracles.TAG);
             String query = resultName.replaceAll("tagSearch:", "");
             invokeTagSearchService(query, 0);
         } else if (resultName.startsWith("searchHome:")) {
@@ -286,37 +279,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         //  Provide your own name.
         try {
             musicServer.tagSearch(searchText, 100, callback);
-        } catch (Exception ex) {
-            Window.alert(ex.getMessage());
-        }
-    }
-
-    private void invokeOracleFetchService(Oracles type) {
-
-        AsyncCallbackWithType callback = new AsyncCallbackWithType(type) {
-
-            public void onSuccess(Object result) {
-                // do some UI stuff to show success
-                List<String> callBackList = (List<String>) result;
-                MultiWordSuggestOracle newOracle = new MultiWordSuggestOracle();
-                newOracle.addAll(callBackList);
-                swapSuggestBox(newOracle,this.type);
-            }
-
-            public void onFailure(Throwable caught) {
-                failureAction(caught);
-            }
-        };
-
-        searchBoxContainerPanel.clear();
-        searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
-
-        try {
-            if (type==Oracles.ARTIST) {
-                musicServer.getArtistOracle(callback);
-            } else {
-                musicServer.getTagOracle(callback);
-            }
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }
@@ -402,7 +364,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                     if (artistDetails != null && artistDetails.isOK()) {
                         Widget artistPanel = createArtistPanel("Artists", artistDetails);
                         search.setText(artistDetails.getName(), SearchResults.SEARCH_FOR_ARTIST_BY_ARTIST);
-                        updateSuggestBox(Oracles.ARTIST);
+                        search.updateSuggestBox(Oracles.ARTIST);
                         setResults("artist:" + artistDetails.getId(), artistPanel);
                         cdm.setCurrArtistID(artistDetails.getId());
                         clearMessage();
@@ -442,7 +404,7 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
                 if (tagDetails != null && tagDetails.isOK()) {
                     Widget tagPanel = createTagPanel("Tags", tagDetails);
                     search.setText(tagDetails.getName(), SearchResults.SEARCH_FOR_TAG_BY_TAG);
-                    updateSuggestBox(Oracles.TAG);
+                    search.updateSuggestBox(Oracles.TAG);
                     setResults(tagDetails.getId(), tagPanel);
                     clearMessage();
                 } else {
@@ -845,94 +807,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         return artistGrid;
     }
 
-    private SuggestBox createSuggestBox(MultiWordSuggestOracle oracle) {
-        SuggestBox sbox = new SuggestBox(oracle);
-
-        sbox.setStyleName("searchText");
-        sbox.ensureDebugId ("cwSuggestBox");
-        sbox.setLimit(20);
-
-        sbox.addKeyboardListener(new KeyboardListenerAdapter() {
-            public void onKeyPress(Widget sender, char keyCode, int modifiers) {
-                if (keyCode == KEY_ENTER) {
-
-                    /* Hack to go around the bug of the suggestbox which wasn't
-                     * using the highlighted element of the suggetions popup
-                     * when submitting the form
-                     * */
-                    DeferredCommand.addCommand(new Command(){ public void execute(){
-                        search.search();
-                    }});
-                } else if (keyCode == KEY_ESCAPE) {
-                    //Window.alert("escape!!");
-                    //MouseListenerCollection a = new MouseListenerCollection();
-                    //DOM.
-                    //a.fireMouseEvent(sender, new Event(Event.ONCLICK));
-                    //a.fireMouseDown(sender, sender.getAbsoluteLeft(), sender.getAbsoluteTop());
-                    //a.fireMouseUp(sender, sender.getAbsoluteLeft(), sender.getAbsoluteTop());
-                }
-            }
-        });
-
-        return sbox;
-    }
-
-    /**
-     * Update suggest box with new oracle if necessary. Will fetch oracle if it
-     * is currently null
-     * @param type artist or tag
-     */
-    private void updateSuggestBox(Oracles type) {
-        if (currLoadedOracle!=null && currLoadedOracle == type) {
-            return;
-        } else {
-            if (type == Oracles.ARTIST) {
-                if (cdm.getArtistOracle() == null) {
-                    invokeOracleFetchService(type);
-                } else {
-                    swapSuggestBox(cdm.getArtistOracle(), fetchOracle);
-                    fetchOracle = null;
-                }
-            } else {
-                if (cdm.getTagOracle() == null) {
-                    invokeOracleFetchService(type);
-                } else {
-                    swapSuggestBox(cdm.getTagOracle(), fetchOracle);
-                    fetchOracle = null;
-                }
-            }
-        }
-    }
-
-    /**
-     * Does the actual swapping of the suggest box with the provided oracle
-     * @param newOracle
-     *
-     */
-    private void swapSuggestBox(MultiWordSuggestOracle newOracle, Oracles newOracleType) {
-
-        String oldTxt;
-        if (search.getSearchBox()!=null) {
-            oldTxt = search.getSearchBox().getText();
-        } else {
-            oldTxt="";
-        }
-
-        searchBoxContainerPanel.clear();
-        SuggestBox textBox = createSuggestBox(newOracle);
-        textBox.setText(oldTxt);
-        search.setSearchBox(textBox);
-        searchBoxContainerPanel.add(search.getSearchBox());
-
-        if (newOracleType==Oracles.ARTIST) {
-            cdm.setArtistOracle(newOracle);
-            currLoadedOracle = Oracles.ARTIST;
-        } else {
-            cdm.setTagOracle(newOracle);
-            currLoadedOracle = Oracles.TAG;
-        }
-    }
-
     class TimerWithArtist extends Timer {
 
         private String artistID;
@@ -948,20 +822,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
         public void run() {
             invokeGetArtistInfo(artistID, refresh);
         }
-
-    }
-
-    abstract class AsyncCallbackWithType implements AsyncCallback {
-
-        public Oracles type;
-
-        public AsyncCallbackWithType(Oracles type) {
-            super();
-            this.type=type;
-        }
-
-        public abstract void onFailure(Throwable arg0);
-        public abstract void onSuccess(Object arg0);
 
     }
 
@@ -1365,17 +1225,16 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
 
     }
 
-    public class SearchWidget extends Composite {
+    public class SearchWidget extends AbstractSearchWidget {
 
-        private SuggestBox textBox;
-        private RadioButton[] searchButtons;
+        public SearchWidget(MusicSearchInterfaceAsync musicServer,
+            ClientDataManager cdm, Panel searchBoxContainerPanel) {
 
-        public SearchWidget() {
+            super(musicServer, cdm, searchBoxContainerPanel);
 
             textBox = new SuggestBox();
             textBox.setTabIndex(1);
 
-            searchBoxContainerPanel = new FlowPanel();
             searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
 
             Panel searchType = new VerticalPanel();
@@ -1435,22 +1294,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             this.initWidget(searchPanel);
         }
 
-        private int getSearchType() {
-            for (int i = 0; i < searchButtons.length; i++) {
-                if (searchButtons[i].isChecked()) {
-                    return i;
-                }
-            }
-            return 0;
-        }
-
-        void setText(String text, int which) {
-            textBox.setText(text);
-            for (int i = 0; i < searchButtons.length; i++) {
-                searchButtons[i].setChecked(i == which);
-            }
-        }
-
         public void search() {
             if (cdm.getCurrSimTypeName() == null || cdm.getCurrSimTypeName().equals("")) {
                 Window.alert("Error. Cannot search without the similarity types.");
@@ -1464,13 +1307,6 @@ public class SimpleSearchWidget extends Swidget implements HistoryListener {
             }
         }
 
-        public void setSearchBox(SuggestBox box) {
-            this.textBox=box;
-        }
-
-        public SuggestBox getSearchBox() {
-            return textBox;
-        }
     }
 
     public Panel getTagsInPanel(ItemInfo[] tags) {

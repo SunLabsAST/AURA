@@ -42,5 +42,6 @@ public interface MusicSearchInterface extends RemoteService {
     public Map<String,Integer> fetchUserSongRating(ListenerDetails lD, Set<String> artistID) throws WebException;
     public void terminateSession();
     public Map<String, String> getSimTypes() throws WebException;
+    public ItemInfo[] getDistinctiveTags(String artistID, int count) throws WebException;
     public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap) throws WebException;
 }

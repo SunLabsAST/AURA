@@ -54,9 +54,7 @@ public abstract class Swidget extends Composite {
      * not logged in and still have that cached when he returns and might have
      * logged in.
      */
-    public void update() {
-
-    }
+    public void update() {}
 
     public final String getName() {
         return name;

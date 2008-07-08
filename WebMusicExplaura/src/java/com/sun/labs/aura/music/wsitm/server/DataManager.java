@@ -18,7 +18,6 @@ import com.sun.labs.aura.music.Listener.Gender;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.SimType;
-import com.sun.labs.aura.music.TagCloud;
 import com.sun.labs.aura.music.Video;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.aura.music.wsitm.client.items.Details;
@@ -334,6 +333,23 @@ public class DataManager implements Configurable {
         details.setDistinctiveTags(WordCloudToIntemInfo(distinctiveTags));
 
         return details;
+    }
+
+    /**
+     * Get distinctive tags for an artist
+     * @param artistID
+     * @param count number of tags to retrieve
+     * @return
+     */
+    public ItemInfo[] getDistinctiveTags(String artistID, int count) throws AuraException {
+        //
+        // Look in the cache to see if we already have the artist
+        Details aD = getDetailsInAnyCache(artistID);
+        if (aD != null) {
+            return ((ArtistDetails)aD).getDistinctiveTags();
+        } else {
+            return WordCloudToIntemInfo(mdb.artistGetDistinctiveTagNames(artistID, count));
+        }
     }
 
     /**

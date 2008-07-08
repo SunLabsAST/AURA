@@ -37,5 +37,6 @@ public interface MusicSearchInterfaceAsync {
        public void fetchUserSongRating(ListenerDetails lD, Set<String> artistID, AsyncCallback callback) throws WebException;
        public void terminateSession(AsyncCallback callback);
        public void getSimTypes(AsyncCallback callback) throws WebException;
+       public void getDistinctiveTags(String artistID, int count, AsyncCallback callback) throws WebException;
        public void getSteerableRecommendations(Map<String, Double> tagMap, AsyncCallback callback) throws WebException;
 }

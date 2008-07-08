@@ -202,3 +202,7 @@ img {
     color: #B0BFA1;
     background-color: #D4C790;
 }
+.smallTagClick {
+  font-size: 11px;
+  cursor: pointer;
+}
