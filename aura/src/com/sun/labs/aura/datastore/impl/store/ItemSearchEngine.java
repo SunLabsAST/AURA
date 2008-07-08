@@ -20,7 +20,6 @@ import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.minion.SearchEngine;
 import com.sun.labs.minion.SearchEngineException;
 import com.sun.labs.minion.SearchEngineFactory;
-import com.sun.labs.minion.WeightedField;
 import com.sun.labs.minion.classification.ClassifierModel;
 import com.sun.labs.minion.classification.ExplainableClassifierModel;
 import com.sun.labs.minion.classification.FeatureCluster;
@@ -51,10 +50,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -419,17 +420,22 @@ public class ItemSearchEngine implements Configurable {
         
         //
         // Get weighted features from the cloud.
-        WeightedFeature[] wf = new WeightedFeature[cloud.size()];
-        int p = 0;
+        List<WeightedFeature> feat = new ArrayList<WeightedFeature>();
+        Set<String> exclude = new HashSet<String>();
         for(Scored<String> s : cloud) {
-            wf[p++] = new WeightedFeature(s.getItem(), (float) s.getScore());
+            if(s.getScore() > 0) {
+                feat.add(new WeightedFeature(s.getItem(), (float) s.getScore()));
+            } else {
+                exclude.add(s.getItem());
+            }
         }
+        config.setExclude(exclude);
         if(config.getFields() == null) {
-            DocumentVectorImpl dvi = new DocumentVectorImpl(engine, wf);
+            DocumentVectorImpl dvi = new DocumentVectorImpl(engine, feat.toArray(new WeightedFeature[0]));
             dvi.setField(config.getField());
             return dvi;
         } else {
-            return new CompositeDocumentVectorImpl(engine, wf, config.getFields());
+            return new CompositeDocumentVectorImpl(engine, feat.toArray(new WeightedFeature[0]), config.getFields());
         }
     }
     
@@ -450,6 +456,19 @@ public class ItemSearchEngine implements Configurable {
         // Recover from having been serialized.
         dv.setEngine(engine);
         ResultSet sim = dv.findSimilar("-score", config.getSkimPercent());
+        
+        //
+        // See if we need to exclude some terms.
+        Set<String> excluded = config.getExclude();
+        if(excluded != null && excluded.size() > 0) {
+            ResultSet exc;
+            try {
+                exc = getExcluded(config.getExclude());
+            } catch(SearchEngineException ex) {
+                throw new AuraException("Error negating terms");
+            }
+            sim.intersect(exc);
+        }
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         NanoWatch nw = new NanoWatch();
         nw.start();
@@ -478,6 +497,20 @@ public class ItemSearchEngine implements Configurable {
                 nt, np,
                 nw.getTimeMillis()));
         return ret;
+    }
+    
+    private ResultSet getExcluded(Set<String> excluded) throws SearchEngineException {
+        StringBuilder qb = new StringBuilder();
+        for(Iterator<String> i = excluded.iterator(); i.hasNext();) {
+            String exc = i.next();
+            qb.append(String.format("(<exact> '%s')", exc));
+            if(i.hasNext()) {
+                qb.append(" <or> ");
+            }
+        }
+        String query = String.format("<not> (%s)", qb.toString());
+        log.info("exclusion query: " + query);
+        return engine.search(query);
     }
 
     public WordCloud getTopTerms(String key, String field, int n)

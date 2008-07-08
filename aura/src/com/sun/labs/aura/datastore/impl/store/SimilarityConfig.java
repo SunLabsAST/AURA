@@ -3,6 +3,7 @@ package com.sun.labs.aura.datastore.impl.store;
 import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.minion.WeightedField;
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  * A configuration that will control how a find similar runs.
@@ -16,6 +17,8 @@ public class SimilarityConfig implements Serializable {
     private int n = 10;
     
     private ResultsFilter filter;
+    
+    private Set<String> exclude;
     
     /**
      * The percentage of terms that should be used when doing find similars using
@@ -116,6 +119,13 @@ public class SimilarityConfig implements Serializable {
     public ResultsFilter getFilter() {
         return filter;
     }
+
+    public void setExclude(Set<String> exclude) {
+        this.exclude = exclude;
+    }
     
+    public Set<String> getExclude() {
+        return exclude;
+    }
     
 }
