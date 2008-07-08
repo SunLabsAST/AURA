@@ -37,6 +37,7 @@ public class MusicDatabase {
     private Map<String, RecommendationType> recTypeMap;
     private Random rng = new Random();
     private ArtistTag rockTag = null;
+    private Artist beatles = null;
     private final String BEATLES_ID = "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
     public final static String DEFAULT_RECOMMENDER = "SimToRecent(2)";
 
@@ -621,6 +622,13 @@ public class MusicDatabase {
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+    }
+
+    public float artistGetNormalizedPopularity(Artist artist) throws AuraException {
+        if (beatles == null) {
+            beatles = artistLookup(ArtistTag.nameToKey(BEATLES_ID));
+        }
+        return artist.getPopularity() / beatles.getPopularity();
     }
 
     public List<String> artistGetMostPopularNames(int count) throws AuraException {
