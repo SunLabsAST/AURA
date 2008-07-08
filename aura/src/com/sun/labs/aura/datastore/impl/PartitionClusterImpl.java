@@ -4,13 +4,14 @@ import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
-import com.sun.labs.aura.datastore.impl.store.SimilarityConfig;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
@@ -81,6 +82,11 @@ public class PartitionClusterImpl implements PartitionCluster,
             throws AuraException, RemoteException {
         return replicant.getAll(itemType);
     }
+    
+    public DBIterator<Item> getAllIterator(ItemType itemType)
+            throws AuraException, RemoteException {
+        return replicant.getAllIterator(itemType);
+    }
 
     public Item getItem(String key) throws AuraException, RemoteException {
         return replicant.getItem(key);
@@ -127,6 +133,45 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant.getItems(user, attnType, itemType);
     }
 
+    public List<Attention> getAttention(AttentionConfig ac)
+            throws AuraException, RemoteException {
+        return replicant.getAttention(ac);
+    }
+
+    public DBIterator<Attention> getAttentionIterator(AttentionConfig ac)
+            throws AuraException, RemoteException {
+        return replicant.getAttentionIterator(ac);
+    }
+
+    public Long getAttentionCount(AttentionConfig ac)
+            throws AuraException, RemoteException {
+        return replicant.getAttentionCount(ac);
+    }
+    
+    public List<Attention> getAttentionSince(AttentionConfig ac,
+                                             Date timeStamp)
+            throws AuraException, RemoteException {
+        return replicant.getAttentionSince(ac, timeStamp);
+    }
+
+    public DBIterator<Attention> getAttentionSinceIterator(AttentionConfig ac,
+                                                           Date timeStamp)
+            throws AuraException, RemoteException {
+        return replicant.getAttentionSinceIterator(ac, timeStamp);
+    }
+
+    public Long getAttentionSinceCount(AttentionConfig ac,
+                                       Date timeStamp)
+            throws AuraException, RemoteException {
+        return replicant.getAttentionSinceCount(ac, timeStamp);
+    }
+    
+    public List<Attention> getLastAttention(AttentionConfig ac,
+                                            int count)
+            throws AuraException, RemoteException {
+        return replicant.getLastAttention(ac, count);
+    }
+    
     public List<Attention> getAttentionForSource(String srcKey)
             throws AuraException, RemoteException {
         return replicant.getAttentionForSource(srcKey);
@@ -290,6 +335,10 @@ public class PartitionClusterImpl implements PartitionCluster,
             logger.log(Level.SEVERE, "Adding replicant with wrong prefix our prefix: " +
                     prefixCode + " prefix added: " + replicant.getPrefix());
         }
+    }
+    
+    public Replicant getReplicant() throws RemoteException {
+        return replicant;
     }
 
     public void start() {

@@ -3,6 +3,7 @@ package com.sun.labs.aura.datastore.impl.store;
 import com.sun.labs.aura.datastore.Indexable;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -20,7 +21,6 @@ import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.minion.SearchEngine;
 import com.sun.labs.minion.SearchEngineException;
 import com.sun.labs.minion.SearchEngineFactory;
-import com.sun.labs.minion.WeightedField;
 import com.sun.labs.minion.classification.ClassifierModel;
 import com.sun.labs.minion.classification.ExplainableClassifierModel;
 import com.sun.labs.minion.classification.FeatureCluster;
@@ -51,10 +51,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -419,17 +421,22 @@ public class ItemSearchEngine implements Configurable {
         
         //
         // Get weighted features from the cloud.
-        WeightedFeature[] wf = new WeightedFeature[cloud.size()];
-        int p = 0;
+        List<WeightedFeature> feat = new ArrayList<WeightedFeature>();
+        Set<String> exclude = new HashSet<String>();
         for(Scored<String> s : cloud) {
-            wf[p++] = new WeightedFeature(s.getItem(), (float) s.getScore());
+            if(s.getScore() > 0) {
+                feat.add(new WeightedFeature(s.getItem(), (float) s.getScore()));
+            } else {
+                exclude.add(s.getItem());
+            }
         }
+        config.setExclude(exclude);
         if(config.getFields() == null) {
-            DocumentVectorImpl dvi = new DocumentVectorImpl(engine, wf);
+            DocumentVectorImpl dvi = new DocumentVectorImpl(engine, feat.toArray(new WeightedFeature[0]));
             dvi.setField(config.getField());
             return dvi;
         } else {
-            return new CompositeDocumentVectorImpl(engine, wf, config.getFields());
+            return new CompositeDocumentVectorImpl(engine, feat.toArray(new WeightedFeature[0]), config.getFields());
         }
     }
     
@@ -450,6 +457,15 @@ public class ItemSearchEngine implements Configurable {
         // Recover from having been serialized.
         dv.setEngine(engine);
         ResultSet sim = dv.findSimilar("-score", config.getSkimPercent());
+        
+        //
+        // See if we need to exclude some terms.
+        Set<String> exclude = config.getExclude();
+        if(exclude != null && exclude.size() > 0) {
+            ResultSet exc = ((SearchEngineImpl) engine).anyTerms(exclude,
+                    config.getFieldNames());
+            sim.difference(exc);
+        }
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         NanoWatch nw = new NanoWatch();
         nw.start();
@@ -479,7 +495,7 @@ public class ItemSearchEngine implements Configurable {
                 nw.getTimeMillis()));
         return ret;
     }
-
+    
     public WordCloud getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException {
         DocumentVectorImpl dv = (DocumentVectorImpl) getDocumentVector(key,

@@ -1,6 +1,7 @@
 
 package com.sun.labs.aura.datastore.impl;
 
+import com.sun.labs.aura.datastore.AttentionConfig;
 import java.util.BitSet;
 
 /**
@@ -67,6 +68,18 @@ public class Util {
         return val;
     }
     
+
+    public static boolean isEmpty(AttentionConfig ac) {
+        if (ac.getSourceKey() == null &&
+                ac.getTargetKey() == null &&
+                ac.getTargetKey() == null &&
+                ac.getStringVal() == null &&
+                ac.getNumberVal() == null) {
+            return true;
+        }
+        return false;
+    }
+
     public static void main(String args[]) {
         for(int i = 0; i < args.length; i++ ) {
             int x = parseBits(args[i]);

@@ -370,10 +370,10 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
                 COMPILATION SECTION
             -->
     <target depends="init" if="no.dist.ear.dir" name="deps-module-jar" unless="no.deps">
-        <ant antfile="${project.aardvark}/build.xml" inheritall="false" target="jar"/>
+        <ant antfile="${project.aura}/build.xml" inheritall="false" target="jar"/>
     </target>
     <target depends="init" if="dist.ear.dir" name="deps-ear-jar" unless="no.deps">
-        <ant antfile="${project.aardvark}/build.xml" inheritall="false" target="jar"/>
+        <ant antfile="${project.aura}/build.xml" inheritall="false" target="jar"/>
     </target>
     <target depends="init, deps-module-jar, deps-ear-jar" name="deps-jar" unless="no.deps"/>
     <target depends="init,deps-jar" name="-pre-pre-compile">
@@ -513,8 +513,8 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,-do-dist-with-manifest,-do-dist-without-manifest" name="do-dist"/>
     <target depends="init" if="dist.ear.dir" name="library-inclusion-in-manifest">
-        <basename file="${reference.aardvark.jar}" property="included.lib.reference.aardvark.jar"/>
-        <copy-ear-war file="${reference.aardvark.jar}" propname="included.lib.reference.aardvark.jar.X"/>
+        <basename file="${reference.aura.jar}" property="included.lib.reference.aura.jar"/>
+        <copy-ear-war file="${reference.aura.jar}" propname="included.lib.reference.aura.jar.X"/>
         <basename file="${file.reference.jdom.jar}" property="included.lib.file.reference.jdom.jar"/>
         <copy-ear-war file="${file.reference.jdom.jar}" propname="included.lib.file.reference.jdom.jar.X"/>
         <basename file="${file.reference.jini-core.jar}" property="included.lib.file.reference.jini-core.jar"/>
@@ -523,8 +523,6 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy-ear-war file="${file.reference.jini-ext.jar}" propname="included.lib.file.reference.jini-ext.jar.X"/>
         <basename file="${file.reference.jsk-lib.jar}" property="included.lib.file.reference.jsk-lib.jar"/>
         <copy-ear-war file="${file.reference.jsk-lib.jar}" propname="included.lib.file.reference.jsk-lib.jar.X"/>
-        <basename file="${file.reference.ktsearch.jar}" property="included.lib.file.reference.ktsearch.jar"/>
-        <copy-ear-war file="${file.reference.ktsearch.jar}" propname="included.lib.file.reference.ktsearch.jar.X"/>
         <basename file="${file.reference.LabsUtil.jar}" property="included.lib.file.reference.LabsUtil.jar"/>
         <copy-ear-war file="${file.reference.LabsUtil.jar}" propname="included.lib.file.reference.LabsUtil.jar.X"/>
         <basename file="${file.reference.rome-0.9.jar}" property="included.lib.file.reference.rome-0.9.jar"/>
@@ -543,19 +541,20 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy-ear-war file="${file.reference.gwt-servlet.jar-1}" propname="included.lib.file.reference.gwt-servlet.jar-1.X"/>
         <basename file="${file.reference.gwt-user.jar}" property="included.lib.file.reference.gwt-user.jar"/>
         <copy-ear-war file="${file.reference.gwt-user.jar}" propname="included.lib.file.reference.gwt-user.jar.X"/>
+        <basename file="${file.reference.minion.jar}" property="included.lib.file.reference.minion.jar"/>
+        <copy-ear-war file="${file.reference.minion.jar}" propname="included.lib.file.reference.minion.jar.X"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${included.lib.reference.aardvark.jar} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.jini-core.jar} ${included.lib.file.reference.jini-ext.jar} ${included.lib.file.reference.jsk-lib.jar} ${included.lib.file.reference.ktsearch.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.rome-0.9.jar} ${included.lib.file.reference.sun-util.jar} ${included.lib.file.reference.tools.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.gwt-dev-linux.jar-1} ${included.lib.file.reference.gwt-servlet.jar-1} ${included.lib.file.reference.gwt-user.jar} "/>
+            <attribute name="Class-Path" value="${included.lib.reference.aura.jar} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.jini-core.jar} ${included.lib.file.reference.jini-ext.jar} ${included.lib.file.reference.jsk-lib.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.rome-0.9.jar} ${included.lib.file.reference.sun-util.jar} ${included.lib.file.reference.tools.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.gwt-dev-linux.jar-1} ${included.lib.file.reference.gwt-servlet.jar-1} ${included.lib.file.reference.gwt-user.jar} ${included.lib.file.reference.minion.jar} "/>
         </manifest>
         <delete dir="${dist.ear.dir}/temp"/>
     </target>
     <target depends="init" name="library-inclusion-in-archive" unless="dist.ear.dir">
-        <copy file="${reference.aardvark.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${reference.aura.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.jdom.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.jini-core.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.jini-ext.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.jsk-lib.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.ktsearch.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.LabsUtil.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.rome-0.9.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.sun-util.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
@@ -565,6 +564,7 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy file="${file.reference.gwt-dev-linux.jar-1}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.gwt-servlet.jar-1}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.gwt-user.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.minion.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>
@@ -848,7 +848,7 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
                 CLEANUP SECTION
             -->
     <target depends="init" if="no.dist.ear.dir" name="deps-clean" unless="no.deps">
-        <ant antfile="${project.aardvark}/build.xml" inheritall="false" target="clean"/>
+        <ant antfile="${project.aura}/build.xml" inheritall="false" target="clean"/>
     </target>
     <target depends="init" name="do-clean">
         <condition property="build.dir.to.clean" value="${build.web.dir}">

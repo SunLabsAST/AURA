@@ -7,14 +7,15 @@ import com.sun.labs.aura.cluster.KMeans;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
-import com.sun.labs.aura.datastore.impl.store.SimilarityConfig;
 import com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ScoredComparator;
@@ -129,6 +130,44 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return ret;
     }
 
+    public DBIterator<Item> getAllIterator(final ItemType itemType)
+            throws AuraException, RemoteException {
+        //
+        // Get all the items of this type from all the partitions and combine
+        // the sets.  No particular ordering is guaranteed so the merge is
+        // simple.  First, set up the infrastructure to call all the clusters:
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<DBIterator<Item>>> callers = new HashSet<Callable<DBIterator<Item>>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller<DBIterator<Item>>(p) {
+                public DBIterator<Item> call() throws AuraException, RemoteException {
+                    return pc.getAllIterator(itemType);
+                }
+            });
+        }
+        
+        //
+        // Try to run the whole thing and get a set of DBIterators out
+        Set<DBIterator<Item>> iterators = new HashSet<DBIterator<Item>>();
+        try {
+            List<Future<DBIterator<Item>>> results =
+                    executor.invokeAll(callers);
+            for (Future<DBIterator<Item>> future : results) {
+                iterators.add(future.get());
+            }
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+        
+        //
+        // Now throw all the DBIterators together into a list so we can
+        // iterate over all of them.  Since no particular ordering is
+        // promised by this method, we'll use a simple composite iterator.
+        MultiDBIterator<Item> mdbi = new MultiDBIterator<Item>(iterators);
+        return (DBIterator<Item>) cm.getRemote(mdbi);
+    }
 
     public Item getItem(String key) throws AuraException, RemoteException {
         //
@@ -287,7 +326,10 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         // attentions don't necessarily live in the same partition as the
         // attentions themselves.  First get all the relevant attention, then
         // get all the target items of the right type.
-        List<Attention> attns = getAttentionFor(user.getKey(), true, attnType);
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(user.getKey());
+        ac.setType(attnType);
+        List<Attention> attns = getAttention(ac);
         Set<String> targets = new HashSet<String>();
         for (Attention a : attns) {
             targets.add(a.getTargetKey());
@@ -307,6 +349,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return ret;
     }
 
+    @Deprecated
     protected List<Attention> getAttentionFor(final String itemKey,
                                              final boolean isSrc,
                                              final Attention.Type type)
@@ -351,16 +394,231 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return ret;
     }
 
+    @Deprecated
     public List<Attention> getAttentionForSource(String srcKey)
             throws AuraException, RemoteException {
         return getAttentionFor(srcKey, true, null);
     }
 
+    @Deprecated
     public List<Attention> getAttentionForTarget(String itemKey)
             throws AuraException, RemoteException {
         return getAttentionFor(itemKey, false, null);
     }
 
+    public List<Attention> getAttention(final AttentionConfig ac)
+            throws AuraException, RemoteException {
+        //
+        // Make sure that some criteria was specified
+        if (Util.isEmpty(ac)) {
+            throw new AuraException("At least one constraint must be set " +
+                    "before calling getAttention(AttentionConfig)");
+        }
+        
+        //
+        // Ask all the partitions to gather up their attention for this item.
+        // Attentions are stored evenly across all partitions.
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<List<Attention>>> callers =
+                new HashSet<Callable<List<Attention>>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+                public List<Attention> call()
+                        throws AuraException, RemoteException {
+                    return pc.getAttention(ac);
+                }
+            });
+        }
+ 
+        return assembleAttentionList(executor, callers);
+    }
+    
+    public DBIterator<Attention> getAttentionIterator(final AttentionConfig ac)
+            throws AuraException, RemoteException {
+        //
+        // Make sure that some criteria was specified
+        if (Util.isEmpty(ac)) {
+            throw new AuraException("At least one constraint must be set " +
+                    "before calling getAttention(AttentionConfig)");
+        }
+        
+        //
+        // Ask all the partitions to gather up their attention for this item.
+        // Attentions are stored evenly across all partitions.
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<DBIterator<Attention>>> callers =
+                new HashSet<Callable<DBIterator<Attention>>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+                public DBIterator<Attention> call()
+                        throws AuraException, RemoteException {
+                    return pc.getAttentionIterator(ac);
+                }
+            });
+        }
+        
+        return assembleAttentionIterator(executor, callers);
+    }
+    
+    
+    public Long getAttentionCount(final AttentionConfig ac)
+            throws AuraException, RemoteException {
+        //
+        // Ask all the partitions to gather up their attention for this item.
+        // Attentions are stored evenly across all partitions.
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<Long>> callers = new HashSet<Callable<Long>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+                public Long call() throws AuraException, RemoteException {
+                    return pc.getAttentionCount(ac);
+                }
+            });
+        }
+        
+        //
+        // Tally up the counts and return
+        long count = 0;
+        try {
+            List<Future<Long>> results = executor.invokeAll(callers);
+            for (Future<Long> future : results) {
+                count += future.get();
+            }
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+        return count;
+    }
+
+    public List<Attention> getAttentionSince(final AttentionConfig ac,
+                                             final Date timeStamp)
+            throws AuraException, RemoteException {
+        //
+        // Make sure that some criteria was specified
+        if (Util.isEmpty(ac)) {
+            throw new AuraException("At least one constraint must be set " +
+                    "before calling getAttentionSince(AttentionConfig)");
+        }
+        
+        //
+        // Ask all the partitions to gather up their attention for this item.
+        // Attentions are stored evenly across all partitions.
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<List<Attention>>> callers =
+                new HashSet<Callable<List<Attention>>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+                public List<Attention> call()
+                        throws AuraException, RemoteException {
+                    return pc.getAttentionSince(ac, timeStamp);
+                }
+            });
+        }
+ 
+        return assembleAttentionList(executor, callers);
+    }
+    
+    public DBIterator<Attention> getAttentionSinceIterator(
+                final AttentionConfig ac,
+                final Date timeStamp)
+            throws AuraException, RemoteException {
+        //
+        // Make sure that some criteria was specified
+        if (Util.isEmpty(ac)) {
+            throw new AuraException("At least one constraint must be set " +
+                    "before calling getAttentionSince(AttentionConfig)");
+        }
+        
+        //
+        // Ask all the partitions to gather up their attention for this item.
+        // Attentions are stored evenly across all partitions.
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<DBIterator<Attention>>> callers =
+                new HashSet<Callable<DBIterator<Attention>>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+                public DBIterator<Attention> call()
+                        throws AuraException, RemoteException {
+                    return pc.getAttentionSinceIterator(ac, timeStamp);
+                }
+            });
+        }
+        
+        return assembleAttentionIterator(executor, callers);
+    }
+    
+    
+    public Long getAttentionSinceCount(final AttentionConfig ac,
+                                       final Date timeStamp)
+            throws AuraException, RemoteException {
+        //
+        // Ask all the partitions to gather up their attention for this item.
+        // Attentions are stored evenly across all partitions.
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<Long>> callers = new HashSet<Callable<Long>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+                public Long call() throws AuraException, RemoteException {
+                    return pc.getAttentionSinceCount(ac, timeStamp);
+                }
+            });
+        }
+        
+        //
+        // Tally up the counts and return
+        long count = 0;
+        try {
+            List<Future<Long>> results = executor.invokeAll(callers);
+            for (Future<Long> future : results) {
+                count += future.get();
+            }
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+        return count;
+    }
+    
+    public List<Attention> getLastAttention(final AttentionConfig ac,
+                                            final int count)
+            throws AuraException, RemoteException {
+        //
+        // Make sure that some criteria was specified
+        if (Util.isEmpty(ac)) {
+            throw new AuraException("At least one constraint must be set " +
+                    "before calling getAttentionSince(AttentionConfig)");
+        }
+        
+        //
+        // Ask all the partitions to gather up their attention for this item.
+        // Attentions are stored evenly across all partitions.
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<List<Attention>>> callers =
+                new HashSet<Callable<List<Attention>>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+                public List<Attention> call()
+                        throws AuraException, RemoteException {
+                    return pc.getLastAttention(ac, count);
+                }
+            });
+        }
+ 
+        try {
+            List<Future<List<Attention>>> results =
+                    executor.invokeAll(callers);
+            return sortAttention(results, count);
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+        return new ArrayList<Attention>();
+    }
+    
     public Attention attend(Attention att)
             throws AuraException, RemoteException {
         //
@@ -1020,6 +1278,22 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         logger.info("Adding partition cluster: " + pc.getPrefix());
         trie.add(pc, pc.getPrefix());
     }
+    
+    public Replicant getReplicant(String prefix) throws RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(prefix));
+        if(pc != null) {
+            return pc.getReplicant();
+        }
+        return null;
+    }
+    
+    public List<String> getPrefixes() throws RemoteException {
+        List<String> ret = new ArrayList<String>();
+        for(PartitionCluster pc : trie.getAll()) {
+            ret.add(pc.getPrefix().toString());
+        }
+        return ret;
+    }
 
     protected abstract class PCCaller<V> implements Callable {
         protected PartitionCluster pc;
@@ -1143,6 +1417,61 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
     }
 
+    /**
+     * Executes a set of callers that return attention iterators and assembles
+     * the results into a MultiDBIterator then returns that.
+     * 
+     * @param executor the executor to use
+     * @param callers the callers to call
+     * @return an iterator over the results
+     */
+    protected DBIterator<Attention> assembleAttentionIterator(
+            ExecutorService executor,
+            Set<Callable<DBIterator<Attention>>> callers)
+            throws AuraException, RemoteException {
+        
+        Set<DBIterator<Attention>> ret = new HashSet<DBIterator<Attention>>();
+        try {
+            List<Future<DBIterator<Attention>>> results =
+                    executor.invokeAll(callers);
+            for (Future<DBIterator<Attention>> future : results) {
+                ret.add(future.get());
+            }
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+        
+        //
+        // Now throw all the DBIterators together into a list so we can
+        // iterate over all of them.  Since no particular ordering is
+        // promised by this method, we'll use a simple composite iterator.
+        MultiDBIterator<Attention> mdbi = new MultiDBIterator<Attention>(ret);
+        return (DBIterator<Attention>) cm.getRemote(mdbi);
+    }
+
+    protected List<Attention> assembleAttentionList(
+            ExecutorService executor,
+            Set<Callable<List<Attention>>> callers)
+            throws AuraException, RemoteException {
+        //
+        // Run all the callables and collect up the results
+        List<Attention> ret = new ArrayList<Attention>();
+        try {
+            List<Future<List<Attention>>> results = executor.invokeAll(callers);
+            for (Future<List<Attention>> future : results) {
+                ret.addAll(future.get());
+            }
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+        Collections.sort(ret, new ReverseAttentionTimeComparator());
+        return ret;
+    }
+    
     public void start() {
     }
 

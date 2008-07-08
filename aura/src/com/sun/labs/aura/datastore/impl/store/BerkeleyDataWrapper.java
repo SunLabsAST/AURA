@@ -20,8 +20,10 @@ import com.sleepycat.persist.SecondaryIndex;
 import com.sleepycat.persist.StoreConfig;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.datastore.impl.Util;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.datastore.impl.store.persist.IntAndTimeKey;
 import com.sun.labs.aura.datastore.impl.store.persist.UserImpl;
@@ -32,6 +34,7 @@ import com.sun.labs.minion.util.StopWatch;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -130,6 +133,18 @@ public class BerkeleyDataWrapper {
      * the composite key of target ID and timestamp
      */
     protected SecondaryIndex<StringAndTimeKey, Long, PersistentAttention> attnByTargetAndTime;
+    
+    /**
+     * The index of all Attention in the item store, accessible by
+     * the meta-data string provided by the user
+     */
+    protected SecondaryIndex<String, Long, PersistentAttention> attnByStringVal;
+    
+    /**
+     * The index of all Attention in the item store, accessible by
+     * the meta-data number provided by the user
+     */
+    protected SecondaryIndex<Long, Long, PersistentAttention> attnByNumberVal;
     
     protected Map<String,FieldDescription> fields;
 
@@ -255,6 +270,16 @@ public class BerkeleyDataWrapper {
                 StringAndTimeKey.class,
                 "targetAndTime");
         
+        logger.fine("Opening attnByStringVal");
+        attnByStringVal = store.getSecondaryIndex(allAttn,
+                String.class,
+                "metaString");
+        
+        logger.fine("Opening attnByNumberVal");
+        attnByNumberVal = store.getSecondaryIndex(allAttn,
+                Long.class,
+                "metaLong");
+        
         log.info("BDB done loading");
     }
 
@@ -332,6 +357,22 @@ public class BerkeleyDataWrapper {
         return items;
     }
 
+    public DBIterator<Item> getAllIterator(Item.ItemType type)
+            throws AuraException {
+        EntityCursor cur = null;
+        Transaction txn = null;
+        try {
+            txn = dbEnv.beginTransaction(null, null);
+            txn.setTxnTimeout(0);
+            EntityIndex index = itemByType.subIndex(type.ordinal());
+            cur = index.entities(txn, CursorConfig.READ_UNCOMMITTED);
+        } catch(DatabaseException e) {
+            handleCursorException(cur, txn, e);
+        }
+        DBIterator<Item> dbIt = new EntityIterator<Item>(cur, txn);
+        return dbIt;
+    }
+    
     /**
      * Gets an item from the entity store
      * @param key the key of the item to fetch
@@ -736,21 +777,7 @@ public class BerkeleyDataWrapper {
                     end, true,
                     cc);
         } catch(DatabaseException e) {
-            try {
-                if(cursor != null) {
-                    cursor.close();
-                }
-            } catch(DatabaseException ex) {
-                log.log(Level.WARNING, "Failed to close cursor", ex);
-            }
-            try {
-                if(txn != null) {
-                    txn.abort();
-                }
-            } catch(DatabaseException ex) {
-                log.log(Level.WARNING, "Failed to abort cursor txn", ex);
-            }
-            throw new AuraException("getAttentionAddedSince failed", e);
+            handleCursorException(cursor, txn, e);
         }
 
         DBIterator<Item> dbIt = new EntityIterator<Item>(cursor, txn);
@@ -911,6 +938,162 @@ public class BerkeleyDataWrapper {
         return ret;
     }
     
+    protected EntityJoin<Long, PersistentAttention> getAttentionJoin(
+            AttentionConfig ac) {
+        EntityJoin<Long, PersistentAttention> join = new EntityJoin(allAttn);
+        if (ac.getSourceKey() != null) {
+            join.addCondition(attnBySourceKey, ac.getSourceKey());
+        }
+        if (ac.getTargetKey() != null) {
+            join.addCondition(attnByTargetKey, ac.getTargetKey());
+        }
+        if (ac.getType() != null) {
+            join.addCondition(attnByType, ac.getType().ordinal());
+        }
+        if (ac.getStringVal() != null) {
+            join.addCondition(attnByStringVal, ac.getStringVal());
+        }
+        if (ac.getNumberVal() != null) {
+            join.addCondition(attnByNumberVal, ac.getNumberVal());
+        }
+        return join;
+    }
+    
+    public DBIterator<Attention> getAttentionIterator(AttentionConfig ac)
+            throws AuraException {
+        if (Util.isEmpty(ac)) {
+            throw new AuraException("At least one constraint must be " +
+                    "specified before calling getAttention(AttentionConfig)");
+        }
+        EntityJoin<Long,PersistentAttention> join = getAttentionJoin(ac);
+
+        ForwardCursor cur = null;
+        Transaction txn = null;
+        try {
+            txn = dbEnv.beginTransaction(null, null);
+            txn.setTxnTimeout(0);
+            cur = join.entities(txn, CursorConfig.READ_UNCOMMITTED);
+        } catch(DatabaseException e) {
+            handleCursorException(cur, txn, e);
+        }
+        DBIterator<Attention> dbIt = new EntityIterator<Attention>(cur, txn);
+        return dbIt;
+    }
+    
+    /**
+     * Returns a count of attention meeting the given criteria
+     * 
+     * @param ac
+     * @return
+     */
+    public Long getAttentionCount(AttentionConfig ac) {
+        if (Util.isEmpty(ac)) {
+            try {
+                return allAttn.count();
+            } catch(DatabaseException e) {
+                log.log(Level.WARNING, "Failed to get count of all attentions",
+                        e);
+            }
+            return new Long(0);
+        }
+        
+        //
+        // We need to iterate over all the attentions since the DB can't
+        // tell us the count.  If calling this with a single constraint
+        // is common (for example, only a source key, or only a target key)
+        // we can probably special case to answer faster by instantiating
+        // a subIndex for the specific value and calling count() on it.
+        EntityJoin<Long,PersistentAttention> join = getAttentionJoin(ac);
+        long ret = 0;
+        try {
+            ForwardCursor<PersistentAttention> cur = null;
+            try {
+                cur = join.entities(null, CursorConfig.READ_UNCOMMITTED);
+                for(PersistentAttention attn : cur) {
+                    ret++;
+                }
+            } finally {
+                if(cur != null) {
+                    cur.close();
+                }
+            }
+        } catch(DatabaseException e) {
+            log.log(Level.WARNING, "Failed to read attention ", e);
+        }
+        return ret;
+
+    }
+    
+    public DBIterator<Attention> getAttentionSinceIterator(AttentionConfig ac,
+                                                           Date timeStamp)
+            throws AuraException {
+        if (Util.isEmpty(ac)) {
+            throw new AuraException("At least one constraint must be " +
+                "specified before calling getAttentionSince(AttentionConfig)");
+        }
+        //
+        // We'll do the join in the DB, then filter the time on memory
+        EntityJoin<Long,PersistentAttention> join = getAttentionJoin(ac);
+
+        ForwardCursor cur = null;
+        Transaction txn = null;
+        try {
+            txn = dbEnv.beginTransaction(null, null);
+            txn.setTxnTimeout(0);
+            cur = join.entities(txn, CursorConfig.READ_UNCOMMITTED);
+        } catch(DatabaseException e) {
+            handleCursorException(cur, txn, e);
+        }
+        DateFilterEntityIterator dbIt =
+                new DateFilterEntityIterator(cur, txn, timeStamp);
+        return dbIt;
+    }
+
+    /**
+     * Returns a count of attention meeting the given criteria, after the given
+     * date
+     * 
+     * @param ac
+     * @return
+     */
+    public Long getAttentionSinceCount(AttentionConfig ac, Date timeStamp)
+            throws AuraException {
+        if (Util.isEmpty(ac)) {
+            throw new AuraException("At least one constraint must be " +
+                "specified before calling getAttentionSince(AttentionConfig)");
+        }
+        
+        //
+        // We need to iterate over all the attentions since the DB can't
+        // tell us the count.  If calling this with a single constraint
+        // is common (for example, only a source key, or only a target key)
+        // we can probably special case to answer faster by instantiating
+        // a subIndex for the specific value and calling count() on it.
+        EntityJoin<Long,PersistentAttention> join = getAttentionJoin(ac);
+        long ret = 0;
+        try {
+            ForwardCursor<PersistentAttention> cur = null;
+            try {
+                cur = join.entities(null, CursorConfig.READ_UNCOMMITTED);
+                for(PersistentAttention attn : cur) {
+                    //
+                    // Post process the date filter in memory
+                    if (attn.getTimeStamp() >= timeStamp.getTime()) {
+                        ret++;
+                    }
+                }
+            } finally {
+                if(cur != null) {
+                    cur.close();
+                }
+            }
+        } catch(DatabaseException e) {
+            log.log(Level.WARNING, "Failed to read attention ", e);
+        }
+        return ret;
+
+    }
+
     public DBIterator<Attention> getAttentionForSourceSince(String key,
             long timeStamp) throws AuraException {
         return getAttentionForKeySince(key, true, timeStamp);
@@ -1172,6 +1355,25 @@ public class BerkeleyDataWrapper {
             }
         }
 
+    }
+    
+    protected void handleCursorException(ForwardCursor cur, Transaction txn, Exception cause)
+            throws AuraException {
+        try {
+            if(cur != null) {
+                cur.close();
+            }
+        } catch(DatabaseException ex) {
+            log.log(Level.WARNING, "Failed to close cursor", ex);
+        }
+        try {
+            if(txn != null) {
+                txn.abort();
+            }
+        } catch(DatabaseException ex) {
+            log.log(Level.WARNING, "Failed to abort cursor txn", ex);
+        }
+        throw new AuraException("Cursor failed", cause);
     }
 
 }

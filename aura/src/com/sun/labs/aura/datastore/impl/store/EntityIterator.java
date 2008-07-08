@@ -4,7 +4,7 @@ package com.sun.labs.aura.datastore.impl.store;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Transaction;
-import com.sleepycat.persist.EntityCursor;
+import com.sleepycat.persist.ForwardCursor;
 import java.util.Iterator;
 
 /**
@@ -12,18 +12,18 @@ import java.util.Iterator;
  * provides a mechanism for closing the cursor.
  */
 public class EntityIterator<E> implements DBIterator {
-    private EntityCursor cursor;
+    private ForwardCursor cursor;
     
-    private Iterator<E> it;
+    protected Iterator<E> it;
     
     private Transaction txn;
     
-    public EntityIterator(EntityCursor<E> cursor) {
+    public EntityIterator(ForwardCursor<E> cursor) {
         this.cursor = cursor;
         it = cursor.iterator();
     }
     
-    public EntityIterator(EntityCursor<E> cursor, Transaction txn) {
+    public EntityIterator(ForwardCursor<E> cursor, Transaction txn) {
         this(cursor);
         this.txn = txn;
     }
