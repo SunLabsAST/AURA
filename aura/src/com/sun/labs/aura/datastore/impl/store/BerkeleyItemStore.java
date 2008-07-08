@@ -251,6 +251,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return bdb.getAll(itemType);
     }
 
+    public DBIterator<Item> getAllIterator(ItemType itemType)
+            throws AuraException {
+        DBIterator<Item> dbit = bdb.getAllIterator(itemType);
+        return (DBIterator<Item>)cm.getRemote(dbit);
+    }
+    
     public Item getItem(String key) throws AuraException {
         return bdb.getItem(key);
     }

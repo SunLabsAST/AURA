@@ -82,6 +82,11 @@ public class PartitionClusterImpl implements PartitionCluster,
             throws AuraException, RemoteException {
         return replicant.getAll(itemType);
     }
+    
+    public DBIterator<Item> getAllIterator(ItemType itemType)
+            throws AuraException, RemoteException {
+        return replicant.getAllIterator(itemType);
+    }
 
     public Item getItem(String key) throws AuraException, RemoteException {
         return replicant.getItem(key);
