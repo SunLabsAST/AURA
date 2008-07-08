@@ -13,6 +13,7 @@ import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
+import java.util.logging.Logger;
 
 /**
  * An abstract base class for something that wants to process the data in a replicant.
@@ -49,7 +50,10 @@ public abstract class ReplicantProcessor implements AuraService, Configurable {
 
     protected Replicant replicant;
     
+    protected Logger logger;
+    
     public void newProperties(PropertySheet ps) throws PropertyException {
+        logger = ps.getLogger();
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
         prefix = ps.getString(PROP_PREFIX);
         try {
