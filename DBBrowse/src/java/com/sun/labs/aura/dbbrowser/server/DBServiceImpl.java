@@ -13,16 +13,14 @@ import com.sun.labs.aura.dbbrowser.client.ItemDesc;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.AttentionConfig;
-import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
-import com.sun.labs.aura.datastore.FindSimilarConfig;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.dbbrowser.client.DBService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.minion.util.StopWatch;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -115,7 +113,7 @@ public class DBServiceImpl extends RemoteServiceServlet implements
         try {
             StopWatch sw = new StopWatch();
             sw.start();
-            FindSimilarConfig fsc = new FindSimilarConfig("content", 10);
+            SimilarityConfig fsc = new SimilarityConfig("content", 10);
             List<Scored<Item>> res = store.findSimilar(key, fsc);
             sw.stop();
             ItemDesc[] results = new ItemDesc[res.size() + 1];
