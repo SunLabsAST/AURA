@@ -357,6 +357,22 @@ public class BerkeleyDataWrapper {
         return items;
     }
 
+    public DBIterator<Item> getAllIterator(Item.ItemType type)
+            throws AuraException {
+        EntityCursor cur = null;
+        Transaction txn = null;
+        try {
+            txn = dbEnv.beginTransaction(null, null);
+            txn.setTxnTimeout(0);
+            EntityIndex index = itemByType.subIndex(type.ordinal());
+            cur = index.entities(txn, CursorConfig.READ_UNCOMMITTED);
+        } catch(DatabaseException e) {
+            handleCursorException(cur, txn, e);
+        }
+        DBIterator<Item> dbIt = new EntityIterator<Item>(cur, txn);
+        return dbIt;
+    }
+    
     /**
      * Gets an item from the entity store
      * @param key the key of the item to fetch
@@ -761,21 +777,7 @@ public class BerkeleyDataWrapper {
                     end, true,
                     cc);
         } catch(DatabaseException e) {
-            try {
-                if(cursor != null) {
-                    cursor.close();
-                }
-            } catch(DatabaseException ex) {
-                log.log(Level.WARNING, "Failed to close cursor", ex);
-            }
-            try {
-                if(txn != null) {
-                    txn.abort();
-                }
-            } catch(DatabaseException ex) {
-                log.log(Level.WARNING, "Failed to abort cursor txn", ex);
-            }
-            throw new AuraException("getAttentionAddedSince failed", e);
+            handleCursorException(cursor, txn, e);
         }
 
         DBIterator<Item> dbIt = new EntityIterator<Item>(cursor, txn);
@@ -972,21 +974,7 @@ public class BerkeleyDataWrapper {
             txn.setTxnTimeout(0);
             cur = join.entities(txn, CursorConfig.READ_UNCOMMITTED);
         } catch(DatabaseException e) {
-            try {
-                if(cur != null) {
-                    cur.close();
-                }
-            } catch(DatabaseException ex) {
-                log.log(Level.WARNING, "Failed to close cursor", ex);
-            }
-            try {
-                if(txn != null) {
-                    txn.abort();
-                }
-            } catch(DatabaseException ex) {
-                log.log(Level.WARNING, "Failed to abort cursor txn", ex);
-            }
-            throw new AuraException("getAttentionIterator failed", e);
+            handleCursorException(cur, txn, e);
         }
         DBIterator<Attention> dbIt = new EntityIterator<Attention>(cur, txn);
         return dbIt;
@@ -1054,21 +1042,7 @@ public class BerkeleyDataWrapper {
             txn.setTxnTimeout(0);
             cur = join.entities(txn, CursorConfig.READ_UNCOMMITTED);
         } catch(DatabaseException e) {
-            try {
-                if(cur != null) {
-                    cur.close();
-                }
-            } catch(DatabaseException ex) {
-                log.log(Level.WARNING, "Failed to close cursor", ex);
-            }
-            try {
-                if(txn != null) {
-                    txn.abort();
-                }
-            } catch(DatabaseException ex) {
-                log.log(Level.WARNING, "Failed to abort cursor txn", ex);
-            }
-            throw new AuraException("getAttentionSinceIterator failed", e);
+            handleCursorException(cur, txn, e);
         }
         DateFilterEntityIterator dbIt =
                 new DateFilterEntityIterator(cur, txn, timeStamp);
@@ -1381,6 +1355,25 @@ public class BerkeleyDataWrapper {
             }
         }
 
+    }
+    
+    protected void handleCursorException(ForwardCursor cur, Transaction txn, Exception cause)
+            throws AuraException {
+        try {
+            if(cur != null) {
+                cur.close();
+            }
+        } catch(DatabaseException ex) {
+            log.log(Level.WARNING, "Failed to close cursor", ex);
+        }
+        try {
+            if(txn != null) {
+                txn.abort();
+            }
+        } catch(DatabaseException ex) {
+            log.log(Level.WARNING, "Failed to abort cursor txn", ex);
+        }
+        throw new AuraException("Cursor failed", cause);
     }
 
 }

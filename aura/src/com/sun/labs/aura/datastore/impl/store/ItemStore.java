@@ -70,6 +70,9 @@ public interface ItemStore {
     public List<Item> getAll(ItemType itemType)
             throws AuraException, RemoteException;
 
+    public DBIterator<Item> getAllIterator(ItemType itemType)
+            throws AuraException, RemoteException;
+    
     /**
      * Gets an item from the store that has the given key
      * 

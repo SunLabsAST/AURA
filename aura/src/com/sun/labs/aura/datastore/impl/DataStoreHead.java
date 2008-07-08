@@ -130,6 +130,44 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return ret;
     }
 
+    public DBIterator<Item> getAllIterator(final ItemType itemType)
+            throws AuraException, RemoteException {
+        //
+        // Get all the items of this type from all the partitions and combine
+        // the sets.  No particular ordering is guaranteed so the merge is
+        // simple.  First, set up the infrastructure to call all the clusters:
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<DBIterator<Item>>> callers = new HashSet<Callable<DBIterator<Item>>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller<DBIterator<Item>>(p) {
+                public DBIterator<Item> call() throws AuraException, RemoteException {
+                    return pc.getAllIterator(itemType);
+                }
+            });
+        }
+        
+        //
+        // Try to run the whole thing and get a set of DBIterators out
+        Set<DBIterator<Item>> iterators = new HashSet<DBIterator<Item>>();
+        try {
+            List<Future<DBIterator<Item>>> results =
+                    executor.invokeAll(callers);
+            for (Future<DBIterator<Item>> future : results) {
+                iterators.add(future.get());
+            }
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+        
+        //
+        // Now throw all the DBIterators together into a list so we can
+        // iterate over all of them.  Since no particular ordering is
+        // promised by this method, we'll use a simple composite iterator.
+        MultiDBIterator<Item> mdbi = new MultiDBIterator<Item>(iterators);
+        return (DBIterator<Item>) cm.getRemote(mdbi);
+    }
 
     public Item getItem(String key) throws AuraException, RemoteException {
         //
