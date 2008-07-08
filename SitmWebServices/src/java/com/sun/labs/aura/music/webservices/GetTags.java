@@ -55,7 +55,7 @@ public class GetTags extends HttpServlet {
                 for (ArtistTag tag : tags) {
                     out.println("    <tag key=\"" + tag.getKey() + "\" name=\"" 
                             + Util.filter(tag.getName()) + "\"" 
-                            + " popularity=\"" + tag.getPopularity() + "\"" + "/>");
+                            + " popularity=\"" + mdb.artistTagGetNormalizedPopularity(tag) + "\"" + "/>");
                 }
 
                 Util.outputOKStatus(out);

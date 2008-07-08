@@ -3,6 +3,7 @@ package com.sun.labs.aura.datastore.impl.store;
 import com.sun.labs.aura.datastore.Indexable;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;

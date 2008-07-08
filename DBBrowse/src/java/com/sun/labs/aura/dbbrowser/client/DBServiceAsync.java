@@ -27,4 +27,6 @@ public interface DBServiceAsync {
     public void getAttentionForSource(String key, AsyncCallback asyncCallback);
 
     public void getAttentionForTarget(String key, AsyncCallback asyncCallback);
+    
+    public void doTest(AsyncCallback asyncCallback);
 }
