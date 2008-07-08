@@ -11,6 +11,7 @@ package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -36,4 +37,5 @@ public interface MusicSearchInterfaceAsync {
        public void fetchUserSongRating(ListenerDetails lD, Set<String> artistID, AsyncCallback callback) throws WebException;
        public void terminateSession(AsyncCallback callback);
        public void getSimTypes(AsyncCallback callback) throws WebException;
+       public void getSteerableRecommendations(Map<String, Double> tagMap, AsyncCallback callback) throws WebException;
 }

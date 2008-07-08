@@ -19,6 +19,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -60,13 +61,19 @@ public class ArtistListWidget extends Composite {
 
         VerticalPanel vP = new VerticalPanel();
 
-        for (ArtistCompact aD : aDArray) {
-            vP.add(new DeletableWidget(new ArtistPanel(aD)) {
+        if (aDArray != null && aDArray.length > 0) {
+            for (ArtistCompact aD : aDArray) {
+                Image img = new Image("not-interested-vert.jpg");
+                img.getElement().setAttribute("style", "vertical-align:top; display:none;");
+                vP.add(new DeletableWidget(new ArtistPanel(aD), new HorizontalPanel(), img) {
 
-                public void onDelete() {
-                    ((VerticalPanel)g.getWidget(0, 0)).remove(this);
-                }
-            });
+                    public void onDelete() {
+                        ((VerticalPanel) g.getWidget(0, 0)).remove(this);
+                    }
+                });
+            }
+        } else {
+            vP.add(new Label("No artists found."));
         }
 
         return vP;
@@ -80,8 +87,11 @@ public class ArtistListWidget extends Composite {
                     Map<String,Integer> map = (Map<String,Integer>)result;
                     if (map!=null) {
                        ratingMap = map;
-                       g.setWidget(0, 0, getUpdatedPanel());
+                    } else {
+                       ratingMap = new HashMap<String,Integer>();
                     }
+
+                    g.setWidget(0, 0, getUpdatedPanel());
                 }
 
                 public void onFailure(Throwable caught) {
@@ -89,15 +99,23 @@ public class ArtistListWidget extends Composite {
                 }
             };
 
-            Set<String> artistIDs = new HashSet<String>();
-            for (ArtistCompact aC : aDArray) {
-                artistIDs.add(aC.getId());
-            }
+            if (lD.loggedIn) {
 
-            try {
-                musicServer.fetchUserSongRating(lD, artistIDs, callback);
-            } catch (WebException ex) {
-                Window.alert(ex.getMessage());
+                g.setWidget(0, 0, new Image("ajax-loader.gif"));
+
+                Set<String> artistIDs = new HashSet<String>();
+                for (ArtistCompact aC : aDArray) {
+                    artistIDs.add(aC.getId());
+                }
+
+                try {
+                    musicServer.fetchUserSongRating(lD, artistIDs, callback);
+                } catch (WebException ex) {
+                    Window.alert(ex.getMessage());
+                }
+            } else {
+                ratingMap = new HashMap<String,Integer>();
+                g.setWidget(0, 0, getUpdatedPanel());
             }
     }
 
@@ -187,7 +205,7 @@ public class ArtistListWidget extends Composite {
             starHP.add(star);
             txtPanel.add(starHP);
 
-            txtPanel.add(WebLib.getSmallPopularityWidget(aD.getNormPopularity(), true));
+            txtPanel.add(WebLib.getSmallPopularityWidget(aD.getNormPopularity(), true, true));
 
             artistPanel.add(txtPanel);
 

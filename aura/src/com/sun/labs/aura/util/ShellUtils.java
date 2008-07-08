@@ -5,12 +5,13 @@
 package com.sun.labs.aura.util;
 
 import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
-import com.sun.labs.aura.datastore.impl.store.SimilarityConfig;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.WeightedField;
 import com.sun.labs.minion.util.NanoWatch;
@@ -261,8 +262,10 @@ public class ShellUtils {
                             if(args.length != 2) {
                                 return "Usage: attnTgt id";
                             } else {
+                                AttentionConfig ac = new AttentionConfig();
+                                ac.setTargetKey(args[1]);
                                 List<Attention> attns = dataStore.
-                                        getAttentionForTarget(args[1]);
+                                        getAttention(ac);
                                 for(Attention attn : attns) {
                                     System.out.println(attn);
                                 }
@@ -285,8 +288,10 @@ public class ShellUtils {
                             if(args.length != 2) {
                                 return "Usage: attnSrc id";
                             } else {
+                                AttentionConfig ac = new AttentionConfig();
+                                ac.setSourceKey(args[1]);
                                 List<Attention> attns = dataStore.
-                                        getAttentionForSource(args[1]);
+                                        getAttention(ac);
                                 for(Attention attn : attns) {
                                     System.out.println(attn);
                                 }

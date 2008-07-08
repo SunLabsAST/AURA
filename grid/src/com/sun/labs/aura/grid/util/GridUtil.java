@@ -378,7 +378,7 @@ public class GridUtil {
     private void createAuraNetwork() throws Exception {
         try {
             // Try to create a customer network for the test
-            network = grid.createNetwork(instance + "-auraNet", 128,
+            network = grid.createNetwork(instance + "-auraNet", 256,
                     new CustomerNetworkConfiguration());
             log.info("Created network " + network.getName());
         } catch(DuplicateNameException e) {

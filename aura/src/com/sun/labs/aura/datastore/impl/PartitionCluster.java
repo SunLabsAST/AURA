@@ -27,6 +27,13 @@ public interface PartitionCluster extends ItemStore, LowLevelSearch, Component, 
      * @param replicant the replicant to add
      */
     public void addReplicant(Replicant replicant) throws RemoteException;
+    
+    /**
+     * Gets a replicant managed by this cluster.
+     * @return one of this cluster's replicants
+     * @throws java.rmi.RemoteException
+     */
+    public Replicant getReplicant() throws RemoteException;
 
     public List<Attention> getAttentionForSource(String srcKey,
                                                 Attention.Type type)

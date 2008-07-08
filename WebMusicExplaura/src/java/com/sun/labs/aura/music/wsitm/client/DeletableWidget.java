@@ -10,6 +10,8 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.MouseListenerCollection;
+import com.google.gwt.user.client.ui.Panel;
+import com.google.gwt.user.client.ui.SourcesClickEvents;
 import com.google.gwt.user.client.ui.SourcesMouseEvents;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -20,34 +22,59 @@ import com.google.gwt.user.client.ui.Widget;
 public abstract class DeletableWidget <T extends Widget> extends Composite
         implements SourcesMouseEvents {
 
-    protected FlowPanel fP;
-    protected T w;
-    protected Image xB;
+    
+    protected Panel mainPanel; // panel containing the main widget and the close button
+    protected T w; // main widget
+    protected Widget xB; // close button
     protected boolean isHovering = false;
 
     private MouseListenerCollection mouseListeners;
 
     public DeletableWidget(T w) {
         super();
+        doDefaultXButtonConstruct(w, new SpannedFlowPanel());
+    }
 
+    public DeletableWidget(T w, Panel mainPanel) {
+        super();
+        doDefaultXButtonConstruct(w, mainPanel);
+    }
+
+    private void doDefaultXButtonConstruct(T w, Panel mainPanel) {
         this.w = w;
-        fP = new SpannedFlowPanel();
-
-
-        fP.add(w);
+        this.mainPanel = mainPanel;
 
         xB = new Image("green-x.jpg");
-        xB.addClickListener(new ClickListener() {
-
-            public void onClick(Widget arg0) {
-                onDelete();
-            }
-        });
         xB.getElement().setAttribute("style", "vertical-align:top; display:none; margin-top: 3px;");
-        fP.add(xB);
 
-        initWidget(fP);
+        addWidgetsToPanel();
+        initWidget(this.mainPanel);
+        addListenersToWidgets();
+    }
 
+    public DeletableWidget(T w, Panel mainPanel, Widget xButton) {
+        super();
+
+        this.w = w;
+        this.xB = xButton;
+        this.mainPanel = mainPanel;
+
+        addWidgetsToPanel();
+        initWidget(this.mainPanel);
+        addListenersToWidgets();
+    }
+    
+    /**
+     * Adds widgets to mainPanel. Overwrite if the passed main panel does not support
+     * the add method or you wish to add widgets in another order than widget and then
+     * x button.
+     */
+    public void addWidgetsToPanel() {
+        mainPanel.add(w);
+        mainPanel.add(xB);
+    }
+    
+    public void addListenersToWidgets() {
         this.addMouseListener(new MouseListener() {
 
             public void onMouseDown(Widget arg0, int arg1, int arg2) {
@@ -78,6 +105,12 @@ public abstract class DeletableWidget <T extends Widget> extends Composite
             }
         });
 
+        ((SourcesClickEvents)xB).addClickListener(new ClickListener() {
+
+            public void onClick(Widget arg0) {
+                onDelete();
+            }
+        });
     }
 
     /**

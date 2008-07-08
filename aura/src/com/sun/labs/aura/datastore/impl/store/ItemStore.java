@@ -4,6 +4,7 @@ package com.sun.labs.aura.datastore.impl.store;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
@@ -193,6 +194,7 @@ public interface ItemStore {
      * @return the set of all attention
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
+    @Deprecated
     public List<Attention> getAttentionForSource(String srcKey)
             throws AuraException, RemoteException;
 
@@ -203,7 +205,111 @@ public interface ItemStore {
      * @return the set of all attention
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
+    @Deprecated
     public List<Attention> getAttentionForTarget(String itemKey)
+            throws AuraException, RemoteException;
+    
+    /**
+     * Get all the attention matching a particular set of constraints.  Set
+     * the various fields of the AttentionConfig to describe the matching
+     * constraints on the Attentions.  Use this method if you expect a
+     * relatively small number of results.
+     * 
+     * @param ac the constraints to use on Attention objects
+     * @return the matching attentions
+     * @throws com.sun.labs.aura.util.AuraException if no constraints are
+     * specified
+     */
+    public List<Attention> getAttention(AttentionConfig ac)
+            throws AuraException, RemoteException;
+    
+    /**
+     * Get an iterator over the attention matching a particular set of
+     * constraints.  Set the various fields of the AttentionConfig to describe
+     * the matching constraints on the Attentions.  Use this method if you
+     * expect a relatively large number of results.
+     * 
+     * @param ac the constraints to use on Attention objects
+     * @return an iterator over the matching attentions
+     * @throws com.sun.labs.aura.util.AuraException if no constraints are
+     * specified
+     */
+    public DBIterator<Attention> getAttentionIterator(AttentionConfig ac)
+            throws AuraException, RemoteException;
+
+    /**
+     * Get the number of attentions matching a particular set of constraints.
+     * Set the various fields of the AttentionConfig to describe the matching
+     * constraints on the Attentions.  Use an empty AttentionConfig to get
+     * a count of all attentions.
+     * 
+     * @param ac the constraints to use on the Attention objects
+     * @return the number of attentions that match
+     */
+    public Long getAttentionCount(AttentionConfig ac)
+            throws AuraException, RemoteException;
+    
+    /**
+     * Gets all the attention recorded since a particular time that match
+     * a particular set of constraints.  Set the various fields of
+     * the AttentionConfig to describe the matching constraints on the
+     * Attentions.  Use this method if you expect a relatively small number
+     * of results.
+     * 
+     * @param ac the constraints to use on the Attention objects
+     * @param timeStamp the time (inclusive) after which attentions should be returned
+     * @return the list of attentions that match
+     * @throws com.sun.labs.aura.util.AuraException if no constraints are set
+     */
+    public List<Attention> getAttentionSince(AttentionConfig ac,
+                                             Date timeStamp)
+            throws AuraException, RemoteException;
+    
+    /**
+     * Gets an iterator over all the attention recorded since a particular time
+     * that match a particular set of constraints.  Set the
+     * various fields of the AttentionConfig to describe the matching
+     * constraints on the Attentions.  Use this method if you expect a
+     * relatively large number of results.
+     * 
+     * @param ac the constraints to use on the Attention objects
+     * @param timeStamp the time (inclusive) after which attentions should be returned
+     * @return an iterator over the attentions that match
+     * @throws com.sun.labs.aura.util.AuraException if no cosntraints are
+     * specified
+     */
+    public DBIterator<Attention> getAttentionSinceIterator(AttentionConfig ac,
+                                                           Date timeStamp)
+            throws AuraException, RemoteException;
+    
+    /**
+     * Gets a count of all the attentions recorded since a particular time that
+     * match a particular set of constraints.  Set the various fields of the
+     * AttentionConfig to describe the matching constraints on the Attentions.
+     * 
+     * @param ac the constraints to use on the Attention objects
+     * @param timeStamp the time (inclusive) after which attentions should be returned
+     * @return a count of the attentions that match
+     */
+    public Long getAttentionSinceCount(AttentionConfig ac,
+                                       Date timeStamp)
+            throws AuraException, RemoteException;
+    
+    /**
+     * Gets the last N attentions recorded that match
+     * a particular set of constraints.  Set the various fields of
+     * the AttentionConfig to describe the matching constraints on the
+     * Attentions.  This method may not execute as efficiently as the
+     * getLastAttentionForSource methods if there are a large number of
+     * Attentions that match the provided constraints.
+     * 
+     * @param ac the constraints to use on the Attention objects
+     * @param count the number of most-recent attentions to return
+     * @return the list of attentions that match
+     * @throws com.sun.labs.aura.util.AuraException if no constraints are set
+     */
+    public List<Attention> getLastAttention(AttentionConfig ac,
+                                            int count)
             throws AuraException, RemoteException;
     
     /**
@@ -256,6 +362,7 @@ public interface ItemStore {
      * @return the Attentions added since that time
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
+    @Deprecated
     public DBIterator<Attention> getAttentionSince(Date timeStamp)
             throws AuraException, RemoteException;
     
@@ -269,6 +376,7 @@ public interface ItemStore {
      * @return the Attentions added for the source since the time
      * @throws com.sun.labs.aura.util.AuraException
      */
+    @Deprecated
     public DBIterator<Attention> getAttentionForSourceSince(String sourceKey,
             Date timeStamp) throws AuraException, RemoteException;
     
@@ -282,6 +390,7 @@ public interface ItemStore {
      * @return the Attentions added for the target since the time
      * @throws com.sun.labs.aura.util.AuraException
      */
+    @Deprecated
     public DBIterator<Attention> getAttentionForTargetSince(String targetKey,
             Date timeStamp) throws AuraException, RemoteException;
 
@@ -361,6 +470,7 @@ public interface ItemStore {
      * 
      * @return the count
      */
+    @Deprecated
     public long getAttentionCount() throws AuraException, RemoteException;
     
     /**

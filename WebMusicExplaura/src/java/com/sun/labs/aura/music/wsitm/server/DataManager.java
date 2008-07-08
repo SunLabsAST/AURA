@@ -18,6 +18,7 @@ import com.sun.labs.aura.music.Listener.Gender;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.SimType;
+import com.sun.labs.aura.music.TagCloud;
 import com.sun.labs.aura.music.Video;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.aura.music.wsitm.client.items.Details;
@@ -35,6 +36,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Tag;
+import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -229,8 +231,8 @@ public class DataManager implements Configurable {
         aC.setAlbums(albumDetailsArray);
 
         // Fetch list of distinctive tags
-        List<Scored<String>> distinctiveTags = mdb.artistGetDistinctiveTagNames(a.getKey(), NUMBER_TAGS_TO_SHOW);
-        aC.setDistinctiveTags(scoredTagsNameToIntemInfo(distinctiveTags));
+        WordCloud wC = mdb.artistGetDistinctiveTagNames(a.getKey(), NUMBER_TAGS_TO_SHOW);
+        aC.setDistinctiveTags(WordCloudToIntemInfo(wC));
 
         return aC;
     }
@@ -328,8 +330,8 @@ public class DataManager implements Configurable {
         }
 
         // Fetch list of distinctive tags
-        List<Scored<String>> distinctiveTags = mdb.artistGetDistinctiveTagNames(a.getKey(), NUMBER_TAGS_TO_SHOW);
-        details.setDistinctiveTags(scoredTagsNameToIntemInfo(distinctiveTags));
+        WordCloud distinctiveTags = mdb.artistGetDistinctiveTagNames(a.getKey(), NUMBER_TAGS_TO_SHOW);
+        details.setDistinctiveTags(WordCloudToIntemInfo(distinctiveTags));
 
         return details;
     }
@@ -709,6 +711,23 @@ public class DataManager implements Configurable {
         return ratingMap;
     }
 
+    public ArtistCompact[] getSteerableRecommendations(WordCloud wC)
+            throws AuraException, RemoteException {
+
+        for (Scored<String> sS : wC) {
+            logger.info("passing ("+sS.getItem()+","+sS.getScore()+")");
+        }
+
+        List<Scored<Artist>> lsA = mdb.wordCloudFindSimilarArtists(wC, NUMBER_SIM_ARTISTS);
+        ArtistCompact[] aCArray = new ArtistCompact[lsA.size()];
+        int index = 0;
+        for (Scored<Artist> sA : lsA) {
+            aCArray[index++] = artistToArtistCompact(sA.getItem());
+        }
+        logger.info("returning size of "+aCArray.length);
+        return aCArray;
+    }
+
     public TagDetails loadTagDetailsFromStore(String id) throws AuraException,
             RemoteException {
         logger.info("searching for :"+id);
@@ -893,15 +912,15 @@ public class DataManager implements Configurable {
         return artistTagResults;
     }
 
-    private ItemInfo[] scoredTagsNameToIntemInfo(List<Scored<String>> tagsName) {
+    private ItemInfo[] WordCloudToIntemInfo(WordCloud wC) {
 
-        ItemInfo[] tagResults = new ItemInfo[tagsName.size()];
-        Scored<String> sS;
+        ItemInfo[] tagResults = new ItemInfo[wC.size()];
 
-        for (int i=0; i<tagsName.size(); i++) {
-            sS = tagsName.get(i);
-            tagResults[i] = new ItemInfo(ArtistTag.nameToKey(sS.getItem()),
+        int index = 0;
+        for (Scored<String> sS : wC) {
+            tagResults[index] = new ItemInfo(ArtistTag.nameToKey(sS.getItem()),
                     sS.getItem(), sS.getScore(), sS.getScore());
+            index++;
         }
         return tagResults;
     }
