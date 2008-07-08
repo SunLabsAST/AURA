@@ -35,7 +35,7 @@ public class AttentionConfig implements Serializable {
      * @param sourceKey the source key to require
      */
     public void setSourceKey(String sourceKey) {
-        if (sourceKey != null && !sourceKey.isEmpty()) {
+        if (sourceKey != null && sourceKey.length() > 0) {
             this.sourceKey = sourceKey;
         }
     }
@@ -55,7 +55,7 @@ public class AttentionConfig implements Serializable {
      * @param targetKey the target key to require
      */
     public void setTargetKey(String targetKey) {
-        if (targetKey != null && !targetKey.isEmpty()) {
+        if (targetKey != null && targetKey.length() > 0) {
             this.targetKey = targetKey;
         }
     }
@@ -93,7 +93,7 @@ public class AttentionConfig implements Serializable {
      * @param stringVal the string value to require
      */
     public void setStringVal(String stringVal) {
-        if (stringVal != null && !stringVal.isEmpty()) {
+        if (stringVal != null && stringVal.length() > 0) {
             this.stringVal = stringVal;
         }
     }
