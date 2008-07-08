@@ -460,15 +460,11 @@ public class ItemSearchEngine implements Configurable {
         
         //
         // See if we need to exclude some terms.
-        Set<String> excluded = config.getExclude();
-        if(excluded != null && excluded.size() > 0) {
-            ResultSet exc;
-            try {
-                exc = getExcluded(config.getExclude());
-            } catch(SearchEngineException ex) {
-                throw new AuraException("Error negating terms");
-            }
-            sim.intersect(exc);
+        Set<String> exclude = config.getExclude();
+        if(exclude != null && exclude.size() > 0) {
+            ResultSet exc = ((SearchEngineImpl) engine).anyTerms(exclude,
+                    config.getFieldNames());
+            sim.difference(exc);
         }
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         NanoWatch nw = new NanoWatch();
@@ -500,20 +496,6 @@ public class ItemSearchEngine implements Configurable {
         return ret;
     }
     
-    private ResultSet getExcluded(Set<String> excluded) throws SearchEngineException {
-        StringBuilder qb = new StringBuilder();
-        for(Iterator<String> i = excluded.iterator(); i.hasNext();) {
-            String exc = i.next();
-            qb.append(String.format("(<exact> '%s')", exc));
-            if(i.hasNext()) {
-                qb.append(" <or> ");
-            }
-        }
-        String query = String.format("<not> (%s)", qb.toString());
-        log.info("exclusion query: " + query);
-        return engine.search(query);
-    }
-
     public WordCloud getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException {
         DocumentVectorImpl dv = (DocumentVectorImpl) getDocumentVector(key,
