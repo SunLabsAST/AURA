@@ -609,7 +609,7 @@ public class BerkeleyDataWrapper {
      * @param itemKey the key of the item
      * @throws com.sun.labs.aura.util.AuraException
      */
-    public void deleteAttention(String itemKey)
+    public void removeAttention(String itemKey)
             throws AuraException {
         int numRetries = 0;
         while(numRetries < MAX_DEADLOCK_RETRIES) {

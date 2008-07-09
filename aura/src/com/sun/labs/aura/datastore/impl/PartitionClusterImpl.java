@@ -17,7 +17,6 @@ import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
-import com.sun.labs.minion.WeightedField;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
@@ -204,9 +203,9 @@ public class PartitionClusterImpl implements PartitionCluster,
         replicant.removeAttention(srcKey, targetKey, type);
     }
     
-    public void deleteAttention(String itemKey)
+    public void removeAttention(String itemKey)
             throws AuraException, RemoteException {
-        replicant.deleteAttention(itemKey);
+        replicant.removeAttention(itemKey);
     }
     
     public DBIterator<Attention> getAttentionSince(Date timeStamp)

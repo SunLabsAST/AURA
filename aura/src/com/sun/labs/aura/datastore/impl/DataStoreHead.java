@@ -247,7 +247,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         for (PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
                 public Object call() throws AuraException, RemoteException {
-                    pc.deleteAttention(itemKey);
+                    pc.removeAttention(itemKey);
                     return null;
                 }
             });
