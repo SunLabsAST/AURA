@@ -89,7 +89,7 @@ public abstract class TagDisplayLib {
 
                     public void onClick(Widget arg0) {
                         //invokeGetTagInfo(data.getId(), false)
-                        History.newItem("artist-tag:"+ClientDataManager.nameToKey(data.getId()));
+                        History.newItem(ClientDataManager.nameToKey(data.getId()));
                     }
                 });
                 if (d!=null) {

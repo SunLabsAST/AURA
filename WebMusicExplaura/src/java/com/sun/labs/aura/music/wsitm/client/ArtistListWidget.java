@@ -189,6 +189,7 @@ public abstract class ArtistListWidget extends Composite {
             whyButton.addClickListener(new DataEmbededClickListener<String>(aD.getId()) {
 
                 public void onClick(Widget arg0) {
+
                     openWhyPopup(data);
                 }
             });

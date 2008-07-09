@@ -362,6 +362,8 @@ public class SteeringSwidget extends Swidget {
                 this.color = color;
                 resetAttributes();
 
+                getElement().setAttribute("style", "user-select: none");
+
                 addMouseListener(new MouseListener() {
 
                     public void onMouseDown(Widget arg0, int arg1, int arg2) {
@@ -494,6 +496,7 @@ public class SteeringSwidget extends Swidget {
 
             VerticalPanel hP = new VerticalPanel();
             hP.setStyleName("pageHeader");
+            hP.setWidth("200px");
 
             if (showBackButton) {
                 Label backButton = new Label("Back");
@@ -576,6 +579,8 @@ public class SteeringSwidget extends Swidget {
         private Grid mainPanel;
         private List<ItemInfo> iI;
 
+        private double maxValue = 0;
+
         public SortableItemInfoList(ItemInfo[] iI) {
             this.iI = ItemInfo.arrayToList(iI);
 
@@ -611,12 +616,14 @@ public class SteeringSwidget extends Swidget {
 
         private void populateMainPanel(Comparator<ItemInfo> c) {
 
-            //
             // Add all the items
             Collections.sort(iI, c);
             int lineIndex = 1;
-            // Normalise by this result set's biggest value
-            double maxValue = iI.get(0).getPopularity();
+            // Normalise by this result set's biggest value. The first time this function
+            // is called, it will be with a popularity sorter giving us the maxValue
+            if (maxValue == 0) {
+                maxValue = iI.get(0).getPopularity();
+            }
             for (ItemInfo i : iI) {
                 Label tagLbl = new Label(i.getItemName());
                 tagLbl.addClickListener(new TagClickListener(i));
@@ -667,16 +674,16 @@ public class SteeringSwidget extends Swidget {
 
             Panel searchType = new VerticalPanel();
             searchButtons = new SearchTypeRadioButton[2];
-            searchButtons[0] = new SearchTypeRadioButton("searchType", "By Artist", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
-            searchButtons[1] = new SearchTypeRadioButton("searchType", "For Tag", searchTypes.SEARCH_FOR_TAG_BY_TAG);
-            searchButtons[1].setChecked(true);
+            searchButtons[0] = new SearchTypeRadioButton("searchType", "For Tag", searchTypes.SEARCH_FOR_TAG_BY_TAG);
+            searchButtons[1] = new SearchTypeRadioButton("searchType", "By Artist", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
+            searchButtons[0].setChecked(true);
 
-            searchButtons[0].addClickListener(new ClickListener() {
+            searchButtons[1].addClickListener(new ClickListener() {
                 public void onClick(Widget arg0) {
                     updateSuggestBox(Oracles.ARTIST);
                 }
             });
-            searchButtons[1].addClickListener(new ClickListener() {
+            searchButtons[0].addClickListener(new ClickListener() {
                 public void onClick(Widget arg0) {
                     updateSuggestBox(Oracles.TAG);
                 }
