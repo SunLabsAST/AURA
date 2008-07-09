@@ -877,7 +877,7 @@ public class MusicDatabase {
 
         public List<Scored<String>> explainSimilarity(String id1, String id2, int count) throws AuraException {
             try {
-                return dataStore.explainSimilarity(id1, id1, new SimilarityConfig(field, count));
+                return dataStore.explainSimilarity(id1, id2, new SimilarityConfig(field, count));
             } catch (RemoteException ex) {
                 throw new AuraException("Can't talk to the datastore " + ex, ex);
             }
