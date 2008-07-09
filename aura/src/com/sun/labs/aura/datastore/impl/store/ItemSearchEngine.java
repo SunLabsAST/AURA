@@ -464,7 +464,7 @@ public class ItemSearchEngine implements Configurable {
         if(exclude != null && exclude.size() > 0) {
             ResultSet exc = ((SearchEngineImpl) engine).anyTerms(exclude,
                     config.getFieldNames());
-            sim.difference(exc);
+            sim = sim.difference(exc);
         }
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         NanoWatch nw = new NanoWatch();
