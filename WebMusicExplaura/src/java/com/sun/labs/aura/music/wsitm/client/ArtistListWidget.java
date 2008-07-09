@@ -165,13 +165,12 @@ public abstract class ArtistListWidget extends Composite {
             };
 
             Image img = aD.getBestArtistImage(true);
-            img.addClickListener(cL);
-            img.setStyleName("image");
             if (img==null) {
-                artistPanel.add(new Image("nopic.gif"));
-            } else {
-                artistPanel.add(img);
+                img = new Image("nopic.gif");
             }
+            img.setStyleName("image");
+            img.addClickListener(cL);
+            artistPanel.add(img);
 
             VerticalPanel txtPanel = new VerticalPanel();
 

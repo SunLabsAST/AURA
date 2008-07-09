@@ -16,7 +16,6 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistEvent;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistVideo;
-import asquare.gwt.tk.client.ui.SimpleHyperLink;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.History;
@@ -28,7 +27,6 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
@@ -39,7 +37,6 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.LoadListener;
 import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.Panel;
-import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.SuggestBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -455,21 +452,10 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         main.setStyleName("center");
 
         String id = artistDetails.getId();
-        /*
-        VerticalPanel right = new VerticalPanel();
-        right.add(getItemInfoList("Distinctive Tags", artistDetails.getDistinctiveTags(), null, false, cdm.getTagOracle()));
-        right.add(getItemInfoList("Frequent Tags", artistDetails.getFrequentTags(), null, false, cdm.getTagOracle()));
-        right.add(getPopularityPanel(artistDetails));
-        
-        if (cdm.isLoggedIn()) {
-            right.add(getTastAuraMeterPanel(artistDetails));
-        }
-         
-        right.setStyleName("right");
-* */
         VerticalPanel left = new VerticalPanel();
         left.setSpacing(4);
         left.setWidth("300px");
+
         if (artistDetails.getSimilarArtists().length > 0) {
             ArtistCompact[] aCArray = artistDetails.getSimilarArtists();
             addCompactArtistToOracle(aCArray);
