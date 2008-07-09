@@ -600,6 +600,39 @@ public class ShellUtils {
                         return "<key> [<field>] gets the top terms from the given field (default: content) in the given document.";
                     }
                 });
+        shell.add("wcfs",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String field = args[1];
+                        System.out.println("field: " + field);
+                        System.out.println("args: " + args.length);
+                        if((args.length - 2) % 2 != 0) {
+                            return getHelp();
+                        }
+                        WordCloud terms = new WordCloud();
+                        for(int i = 2; i < args.length-1; i+= 2) {
+                            terms.add(args[i], Double.parseDouble(args[i+1]));
+                        }
+                        System.out.println("Terms:");
+                        for(Scored<String> term : terms) {
+                            System.out.printf("%.3f %s\n", term.getScore(),
+                                    term.getItem());
+                        }
+                        SimilarityConfig config = new SimilarityConfig(field,
+                                nHits, null);
+                        config.setSkimPercent(1);
+                        List<Scored<Item>> items = dataStore.findSimilar(terms,
+                                config);
+                        dumpScoredItems(items);
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "<field> [<word> <weight>] [<word> <weight>] ... finds items similar to the given word cloud from the given field";
+                    }
+                });
 
         shell.add("topTerms",
                 new CommandInterface() {
