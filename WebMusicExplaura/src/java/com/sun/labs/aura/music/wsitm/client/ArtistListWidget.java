@@ -70,8 +70,8 @@ public abstract class ArtistListWidget extends Composite {
             for (ArtistCompact aD : aDArray) {
                 Image img = new Image("not-interested-vert.jpg");
                 img.getElement().setAttribute("style", "vertical-align:top; display:none;");
-                vP.add(new DeletableWidget(new ArtistPanel(aD), new HorizontalPanel(), img) {
-
+                //vP.add(new DeletableWidget(new ArtistPanel(aD), new HorizontalPanel(), img) {
+                vP.add(new DeletableWidget(new ArtistPanel(aD), new HorizontalPanel()) {
                     public void onDelete() {
                         ((VerticalPanel) g.getWidget(0, 0)).remove(this);
                     }

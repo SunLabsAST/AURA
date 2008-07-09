@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -26,6 +27,21 @@ import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 public abstract class WebLib {
 
     public static final String ICON_WAIT = "ajax-bar.gif";
+
+    /**
+     * Selection MUST be reenabled when widget is deleted to prevent a memory leak
+     * @see Taken from Gwt EXT 1.0
+     * @param disable Set to true to disable the selection and to false to reenable it
+     */
+    public native static void disableTextSelectInternal(Element e, boolean disable)/*-{
+    if (disable) {
+    e.ondrag = function () { return false; };
+    e.onselectstart = function () { return false; };
+    } else {
+    e.ondrag = null;
+    e.onselectstart = null;
+    }
+    }-*/;
 
     public static Widget getLastFMListenWidget(final ArtistCompact artistDetails) {
         Image image = new Image("play-icon30.jpg");

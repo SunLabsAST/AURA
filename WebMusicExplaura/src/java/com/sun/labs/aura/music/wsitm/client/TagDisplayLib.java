@@ -6,6 +6,8 @@
 package com.sun.labs.aura.music.wsitm.client;
 
 import asquare.gwt.tk.client.ui.SimpleHyperLink;
+import com.extjs.gxt.ui.client.util.Params;
+import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Random;
@@ -88,8 +90,11 @@ public abstract class TagDisplayLib {
                 sH.addClickListener(new DataEmbededClickListener<ItemInfo>(tags[i]) {
 
                     public void onClick(Widget arg0) {
-                        //invokeGetTagInfo(data.getId(), false)
-                        History.newItem(ClientDataManager.nameToKey(data.getId()));
+                        String tagLink = data.getId();
+                        if (!tagLink.startsWith("artist-tag:")) {
+                            tagLink = ClientDataManager.nameToKey(tagLink);
+                        }
+                        History.newItem("tag:"+tagLink);
                     }
                 });
                 if (d!=null) {

@@ -428,7 +428,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         //
         //  Provide your own name.
         try {
-            musicServer.getTagDetails(tagID, refresh, cdm.getCurrSimTypeName(), callback);
+            musicServer.getTagDetails(tagID.substring(tagID.indexOf(":")+1), refresh, cdm.getCurrSimTypeName(), callback);
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }

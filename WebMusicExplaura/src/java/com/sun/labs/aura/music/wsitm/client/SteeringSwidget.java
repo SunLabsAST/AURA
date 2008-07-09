@@ -273,6 +273,16 @@ public class SteeringSwidget extends Swidget {
 
         }
 
+        protected void onAttach() {
+            WebLib.disableTextSelectInternal(this.getElement(), true);
+            super.onAttach();
+        }
+
+        protected void onDetach() {
+            super.onDetach();
+            WebLib.disableTextSelectInternal(this.getElement(), false);
+        }
+
         public Map<String, Double> getTapMap() {
             Map<String, Double> tagMap = new HashMap<String, Double>();
             // Add the tags normalised by the size of the biggest one
@@ -362,8 +372,6 @@ public class SteeringSwidget extends Swidget {
                 this.color = color;
                 resetAttributes();
 
-                getElement().setAttribute("style", "user-select: none");
-
                 addMouseListener(new MouseListener() {
 
                     public void onMouseDown(Widget arg0, int arg1, int arg2) {
@@ -387,7 +395,7 @@ public class SteeringSwidget extends Swidget {
             }
 
             private final void resetAttributes() {
-                getElement().setAttribute("style", "font-size:"+Math.abs(currentSize)+"px; color:"+color.getColor(currentSize)+";");
+                getElement().setAttribute("style", "-moz-user-select: none; -khtml-user-select: none; user-select: none; font-size:"+Math.abs(currentSize)+"px; color:"+color.getColor(currentSize)+";");
             }
 
             public void updateColor(ColorConfig color) {
@@ -672,7 +680,8 @@ public class SteeringSwidget extends Swidget {
 
             searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
 
-            Panel searchType = new VerticalPanel();
+            HorizontalPanel searchType = new HorizontalPanel();
+            searchType.setSpacing(5);
             searchButtons = new SearchTypeRadioButton[2];
             searchButtons[0] = new SearchTypeRadioButton("searchType", "For Tag", searchTypes.SEARCH_FOR_TAG_BY_TAG);
             searchButtons[1] = new SearchTypeRadioButton("searchType", "By Artist", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
@@ -699,8 +708,7 @@ public class SteeringSwidget extends Swidget {
             searchType.setWidth("100%");
             searchType.setStyleName("searchPanel");
 
-            HorizontalPanel searchPanel = new HorizontalPanel();
-            searchPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
+            VerticalPanel searchPanel = new VerticalPanel();
             searchPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
 
             VerticalPanel leftP = new VerticalPanel();

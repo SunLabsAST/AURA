@@ -142,7 +142,7 @@ public class StarRatingWidget extends Composite {
     private void invokeSaveRating(int index) {
 
         if (!lD.loggedIn) {
-            Window.alert("Error. You must be logged in to access this feature. But we should redirect you to another page so you can create an account...");
+            Window.alert("Message from the happy tag : you must be logged in to access this feature. I should redirect you to another page so you can create an account, but I'd rather keep you here so we can be friends.");
             return;
         }
 

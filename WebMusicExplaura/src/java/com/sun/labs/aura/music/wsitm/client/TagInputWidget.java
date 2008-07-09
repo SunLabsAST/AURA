@@ -27,7 +27,7 @@ public class TagInputWidget extends Composite {
     private FlowPanel tagPanel;
     private TextBox txtBox;
 
-    private final static String DEFAULT_TBOX_TXT = "Add comma seperated tags";
+    private final static String DEFAULT_TBOX_TXT = "Add comma separated tags";
 
     public TagInputWidget(String itemName) {
 

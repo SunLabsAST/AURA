@@ -51,7 +51,7 @@ public abstract class DeletableWidget <T extends Widget> extends Composite
         initWidget(this.mainPanel);
         addListenersToWidgets();
     }
-
+  
     public DeletableWidget(T w, Panel mainPanel, Widget xButton) {
         super();
 
@@ -94,7 +94,7 @@ public abstract class DeletableWidget <T extends Widget> extends Composite
                         }
                     }
                 };
-                t.schedule(100);
+                t.schedule(250);
                 isHovering = false;
             }
 
