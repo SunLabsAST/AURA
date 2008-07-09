@@ -19,6 +19,7 @@ import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.SimType;
 import com.sun.labs.aura.music.Video;
+import com.sun.labs.aura.music.wsitm.client.AbstractSearchWidget.searchTypes;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.aura.music.wsitm.client.items.Details;
 import com.sun.labs.aura.music.wsitm.client.items.AlbumDetails;
@@ -364,7 +365,7 @@ public class DataManager implements Configurable {
         ItemInfo[] tagResults = scoredArtistTagToItemInfo(mdb.artistTagSearch(searchString, maxResults));
 
         SearchResults sr = new SearchResults(searchString,
-                SearchResults.SEARCH_FOR_TAG_BY_TAG, tagResults);
+                searchTypes.SEARCH_FOR_TAG_BY_TAG, tagResults);
         return sr;
     }
 
@@ -448,7 +449,7 @@ public class DataManager implements Configurable {
         ItemInfo[] artistResults = scoredArtistToItemInfo(mdb.artistSearch(searchString, maxResults));
 
         SearchResults sr = new SearchResults(searchString,
-                SearchResults.SEARCH_FOR_ARTIST_BY_TAG, artistResults);
+                searchTypes.SEARCH_FOR_ARTIST_BY_TAG, artistResults);
         return sr;
     }
 
@@ -480,7 +481,7 @@ public class DataManager implements Configurable {
             }
         }
         SearchResults sr = new SearchResults(searchString,
-                SearchResults.SEARCH_FOR_ARTIST_BY_TAG,
+                searchTypes.SEARCH_FOR_ARTIST_BY_TAG,
                 tagResults.toArray(new ItemInfo[0]));
         return sr;
     }
@@ -946,14 +947,14 @@ public class DataManager implements Configurable {
      * @param scoredArtists scored list of items (that will be cast as artists)
      * @return
      */
-    private ItemInfo[] scoredArtistTagToItemInfo(List<Scored<ArtistTag>> scoredArtists) {
+    private ItemInfo[] scoredArtistTagToItemInfo(List<Scored<ArtistTag>> scoredArtists) throws AuraException {
 
         ItemInfo[] artistTagResults = new ItemInfo[scoredArtists.size()];
 
         for (int i = 0; i < artistTagResults.length; i++) {
             ArtistTag artistTag = scoredArtists.get(i).getItem();
             double score = scoredArtists.get(i).getScore();
-            double popularity = artistTag.getPopularity();
+            double popularity = mdb.artistTagGetNormalizedPopularity(artistTag);
             artistTagResults[i] = new ItemInfo(artistTag.getKey(), artistTag.getName(), score, popularity);
         }
 

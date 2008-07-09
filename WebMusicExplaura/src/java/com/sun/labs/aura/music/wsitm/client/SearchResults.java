@@ -10,6 +10,7 @@
 package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
+import com.sun.labs.aura.music.wsitm.client.AbstractSearchWidget.searchTypes;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 
 /**
@@ -17,12 +18,10 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
  * @author plamere
  */
 public class SearchResults implements IsSerializable {
-    public final static int SEARCH_FOR_ARTIST_BY_ARTIST = 0;
-    public final static int SEARCH_FOR_ARTIST_BY_TAG = 1;
-    public final static int SEARCH_FOR_TAG_BY_TAG = 2;
+    
     private String query;
     private String status;
-    private int searchType;
+    private searchTypes searchType;
     private ItemInfo[] itemResults = null;
     
     public SearchResults() {
@@ -31,7 +30,7 @@ public class SearchResults implements IsSerializable {
     /**
      * Creates a new instance of SearchResults
      */
-    public SearchResults(String query, int searchType, ItemInfo[] itemResults) {
+    public SearchResults(String query, searchTypes searchType, ItemInfo[] itemResults) {
         this.query = query;
         this.itemResults = itemResults;
         this.searchType = searchType;
@@ -58,14 +57,14 @@ public class SearchResults implements IsSerializable {
         return query;
     }
     
-    public int getSearchType() {
+    public searchTypes getSearchType() {
         return searchType;
     }
     
     public String toString() {
-        if (searchType == 0) {
+        if (searchType == searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST) {
             return "artistSearch:" + query;
-        } else if (searchType == 1) {
+        } else if (searchType == searchTypes.SEARCH_FOR_ARTIST_BY_TAG) {
             return "artistSearchByTag:" + query;
         } else {
             return "tagSearch:" + query;

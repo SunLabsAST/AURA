@@ -136,20 +136,6 @@ public class ArtistListWidget extends Composite {
         return tags.substring(0, tags.length() - 2);
     }
 
-    public class TokenClickListener implements ClickListener {
-
-        String token="";
-
-        public TokenClickListener(String token) {
-            this.token = token;
-        }
-
-        public void onClick(Widget arg0) {
-            History.newItem(token);
-        }
-
-    }
-
     public class ArtistPanel extends Composite {
 
         public ArtistPanel(ArtistCompact aD) {
@@ -159,8 +145,15 @@ public class ArtistListWidget extends Composite {
             artistPanel.setStyleName("artistPanel");
             artistPanel.setSpacing(5);
 
+            ClickListener cL = new DataEmbededClickListener<String>("artist:" + aD.getId()) {
+
+                public void onClick(Widget arg0) {
+                    History.newItem(data);
+                }
+            };
+
             Image img = aD.getBestArtistImage(true);
-            img.addClickListener(new TokenClickListener("artist:" + aD.getId()));
+            img.addClickListener(cL);
             img.setStyleName("image");
             if (img==null) {
                 artistPanel.add(new Image("nopic.gif"));
@@ -174,7 +167,7 @@ public class ArtistListWidget extends Composite {
             HorizontalPanel aNamePanel = new HorizontalPanel();
             aNamePanel.setSpacing(5);
             Label aName = new Label(aD.getName());
-            aName.addClickListener(new TokenClickListener("artist:" + aD.getId()));
+            aName.addClickListener(cL);
             aName.addStyleName("image");
             aNamePanel.add(aName);
             Widget spotify = WebLib.getSpotifyListenWidget(aD, 20);

@@ -469,10 +469,13 @@ public class SteeringSwidget extends Swidget {
         private ResizableTagWidget tagLand;
 
         public ItemInfoHierarchyWidget(ItemInfo[] iI, ResizableTagWidget tagLand) {
-            mainGrid = new Grid(3,1);
             mainItems = iI;
             this.tagLand = tagLand;
 
+            mainGrid = new Grid(2,1);
+            displayMainItems();
+
+            initWidget(mainGrid);
         }
 
         /**
@@ -482,14 +485,14 @@ public class SteeringSwidget extends Swidget {
          * @param iI
          */
         public void displayDetails(ItemInfo iI) {
-            mainGrid.getCellFormatter().getElement(0, 0).setAttribute("style", "display:none;");
-            mainGrid.getCellFormatter().getElement(1, 0).setAttribute("style", "display:;");
-            mainGrid.getCellFormatter().getElement(2, 0).setAttribute("style", "display:;");
-            mainGrid.setWidget(2, 0, WebLib.getLoadingBarWidget());
+            mainGrid.setWidget(1, 0, WebLib.getLoadingBarWidget());
             invokeGetDistincitveTagsService(iI.getId());
 
-            HorizontalPanel hP = new HorizontalPanel();
-            SpannedLabel backButton = new SpannedLabel("Back");
+            VerticalPanel hP = new VerticalPanel();
+            hP.setStyleName("pageHeader");
+            
+            Label backButton = new Label("Back");
+            backButton.setStyleName("headerMenuTinyItem");
             backButton.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
@@ -497,21 +500,24 @@ public class SteeringSwidget extends Swidget {
                 }
             });
 
-            SpannedLabel title = new SpannedLabel("Tags for "+iI.getItemName());
+            Label title = new Label("Tags for "+iI.getItemName());
             hP.add(backButton);
             hP.add(title);
-            mainGrid.setWidget(1, 0, hP);
-
+            mainGrid.setWidget(0, 0, hP);
         }
 
         public void displayMainItems() {
-            mainGrid.getCellFormatter().getElement(0, 0).setAttribute("style", "display:;");
-            mainGrid.getCellFormatter().getElement(1, 0).setAttribute("style", "display:none;");
-            mainGrid.getCellFormatter().getElement(2, 0).setAttribute("style", "display:none;");
 
             VerticalPanel vP = new VerticalPanel();
+
+            Label explanation = new Label("Click on an artist's name to display its most distinctive tags");
+            explanation.setStyleName("smallItalicExplanation");
+            explanation.getElement().setAttribute("style", "margin-bottom: 5px");
+            vP.add(explanation);
+            
             for (ItemInfo item : mainItems) {
                 Label itemName = new Label(item.getItemName());
+                itemName.setStyleName("pointer");
                 itemName.addClickListener(new DataEmbededClickListener<ItemInfo>(item) {
 
                     public void onClick(Widget arg0) {
@@ -521,6 +527,7 @@ public class SteeringSwidget extends Swidget {
                 vP.add(itemName);
             }
             mainGrid.setWidget(0, 0, vP);
+            mainGrid.setWidget(1, 0, new Label(""));
         }
 
         private void invokeGetDistincitveTagsService(String artistID) {
@@ -531,9 +538,9 @@ public class SteeringSwidget extends Swidget {
                     ItemInfo[] results = (ItemInfo[]) result;
                     if (results != null) {
                         if (results.length == 0) {
-                            mainGrid.setWidget(2, 0, new Label("No tags found"));
+                            mainGrid.setWidget(1, 0, new Label("No tags found"));
                         } else {
-                            mainGrid.setWidget(2, 0, new SortableItemInfoList(results) {
+                            mainGrid.setWidget(1, 0, new SortableItemInfoList(results) {
 
                                 protected void onItemClick(ItemInfo i) {
                                     tagLand.addTag(i);
@@ -541,7 +548,7 @@ public class SteeringSwidget extends Swidget {
                             });
                         }
                     } else {
-                        mainGrid.setWidget(2, 0, new Label("An unknown error occured."));
+                        mainGrid.setWidget(1, 0, new Label("An unknown error occured."));
                     }
                 }
 
@@ -574,7 +581,7 @@ public class SteeringSwidget extends Swidget {
 
             //
             // Add the title line
-            Label nameLbl = new Label("Name *");
+            Label nameLbl = new Label("Name");
             nameLbl.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
@@ -585,7 +592,7 @@ public class SteeringSwidget extends Swidget {
             });
             mainPanel.setWidget(0, 0, nameLbl);
 
-            Label popLbl = new Label("Popularity");
+            Label popLbl = new Label("Popularity *");
             popLbl.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
@@ -606,12 +613,14 @@ public class SteeringSwidget extends Swidget {
             // Add all the items
             Collections.sort(iI, c);
             int lineIndex = 1;
+            // Normalise by this result set's biggest value
+            double maxValue = iI.get(0).getPopularity();
             for (ItemInfo i : iI) {
                 Label tagLbl = new Label(i.getItemName());
                 tagLbl.addClickListener(new TagClickListener(i));
                 tagLbl.setStyleName("smallTagClick");
                 mainPanel.setWidget(lineIndex, 0, tagLbl);
-                mainPanel.setWidget(lineIndex, 1, WebLib.getSmallPopularityWidget(i.getPopularity(), 75, true, false));
+                mainPanel.setWidget(lineIndex, 1, WebLib.getSmallPopularityWidget(i.getPopularity()/maxValue, 75, true, false));
                 lineIndex++;
             }
         }
@@ -621,7 +630,8 @@ public class SteeringSwidget extends Swidget {
         public class PopularitySorter implements Comparator<ItemInfo> {
 
             public int compare(ItemInfo o1, ItemInfo o2) {
-                return new Double(o1.getPopularity()).compareTo(new Double(o2.getPopularity()));
+                // Descending order
+                return -1*(new Double(o1.getPopularity()).compareTo(new Double(o2.getPopularity())));
             }
 
         }
@@ -670,9 +680,10 @@ public class SteeringSwidget extends Swidget {
             searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
 
             Panel searchType = new VerticalPanel();
-            searchButtons = new RadioButton[2];
-            searchButtons[0] = new RadioButton("searchType", "By Artist");
-            searchButtons[1] = new RadioButton("searchType", "For Tag");
+            searchButtons = new SearchTypeRadioButton[2];
+            searchButtons[0] = new SearchTypeRadioButton("searchType", "By Artist", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
+            searchButtons[1] = new SearchTypeRadioButton("searchType", "For Tag", searchTypes.SEARCH_FOR_TAG_BY_TAG);
+            searchButtons[1].setChecked(true);
 
             searchButtons[0].addClickListener(new ClickListener() {
                 public void onClick(Widget arg0) {
@@ -685,7 +696,7 @@ public class SteeringSwidget extends Swidget {
                 }
             });
 
-            setText("", SearchResults.SEARCH_FOR_ARTIST_BY_ARTIST);
+            setText("", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
             updateSuggestBox(Oracles.ARTIST);
 
             for (int i = 0; i < searchButtons.length; i++) {
@@ -712,6 +723,7 @@ public class SteeringSwidget extends Swidget {
         }
 
         public void search() {
+            mainTagPanel.setWidget(1, 0, WebLib.getLoadingBarWidget());
             if (getCurrLoadedOracle() == Oracles.TAG) {
                 invokeTagSearchService(textBox.getText().toLowerCase());
             } else {

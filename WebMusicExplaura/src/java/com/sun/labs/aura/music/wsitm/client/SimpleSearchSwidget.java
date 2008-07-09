@@ -43,6 +43,7 @@ import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.SuggestBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.AbstractSearchWidget.searchTypes;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -363,7 +364,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                     ArtistDetails artistDetails = (ArtistDetails) result;
                     if (artistDetails != null && artistDetails.isOK()) {
                         Widget artistPanel = createArtistPanel("Artists", artistDetails);
-                        search.setText(artistDetails.getName(), SearchResults.SEARCH_FOR_ARTIST_BY_ARTIST);
+                        search.setText(artistDetails.getName(), searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
                         search.updateSuggestBox(Oracles.ARTIST);
                         setResults("artist:" + artistDetails.getId(), artistPanel);
                         cdm.setCurrArtistID(artistDetails.getId());
@@ -403,7 +404,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                 TagDetails tagDetails = (TagDetails) result;
                 if (tagDetails != null && tagDetails.isOK()) {
                     Widget tagPanel = createTagPanel("Tags", tagDetails);
-                    search.setText(tagDetails.getName(), SearchResults.SEARCH_FOR_TAG_BY_TAG);
+                    search.setText(tagDetails.getName(), searchTypes.SEARCH_FOR_TAG_BY_TAG);
                     search.updateSuggestBox(Oracles.TAG);
                     setResults(tagDetails.getId(), tagPanel);
                     clearMessage();
@@ -1238,10 +1239,10 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
 
             Panel searchType = new VerticalPanel();
-            searchButtons = new RadioButton[3];
-            searchButtons[0] = new RadioButton("searchType", "For Artist");
-            searchButtons[1] = new RadioButton("searchType", "By Tag");
-            searchButtons[2] = new RadioButton("searchType", "For Tag");
+            searchButtons = new SearchTypeRadioButton[3];
+            searchButtons[0] = new SearchTypeRadioButton("searchType", "For Artist", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
+            searchButtons[1] = new SearchTypeRadioButton("searchType", "By Tag", searchTypes.SEARCH_FOR_ARTIST_BY_TAG);
+            searchButtons[2] = new SearchTypeRadioButton("searchType", "For Tag", searchTypes.SEARCH_FOR_TAG_BY_TAG);
 
             searchButtons[0].addClickListener(new ClickListener() {
                 public void onClick(Widget arg0) {
@@ -1259,7 +1260,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                 }
             });
 
-            setText("", SearchResults.SEARCH_FOR_ARTIST_BY_ARTIST);
+            setText("", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
             updateSuggestBox(Oracles.ARTIST);
 
             for (int i = 0; i < searchButtons.length; i++) {
@@ -1299,10 +1300,10 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                 Window.alert("Error. Cannot search without the similarity types.");
             } else {
                 String query = textBox.getText().toLowerCase();
-                if (getSearchType() == SearchResults.SEARCH_FOR_TAG_BY_TAG) {
+                if (getSearchType() == searchTypes.SEARCH_FOR_TAG_BY_TAG) {
                     invokeTagSearchService(query, 0);
                 } else {
-                    invokeArtistSearchService(query, getSearchType() == SearchResults.SEARCH_FOR_ARTIST_BY_TAG, 0);
+                    invokeArtistSearchService(query, getSearchType() == searchTypes.SEARCH_FOR_ARTIST_BY_TAG, 0);
                 }
             }
         }
