@@ -18,9 +18,12 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
-import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,20 +31,20 @@ import java.util.Set;
  *
  * @author mailletf
  */
-public class ArtistListWidget extends Composite {
+public abstract class ArtistListWidget extends Composite {
 
     private Grid g;
     private MusicSearchInterfaceAsync musicServer;
-    private ListenerDetails lD;
+    private ClientDataManager cdm;
 
     private ArtistCompact[] aDArray;
     private Map<String,Integer> ratingMap;
 
     public ArtistListWidget(MusicSearchInterfaceAsync musicServer,
-            ListenerDetails lD, ArtistCompact[] aDArray) {
+            ClientDataManager cdm, ArtistCompact[] aDArray) {
 
         this.musicServer = musicServer;
-        this.lD = lD;
+        this.cdm = cdm;
 
         g = new Grid(1,1);
         this.aDArray=aDArray;
@@ -49,6 +52,8 @@ public class ArtistListWidget extends Composite {
 
         invokeFetchRatings();
     }
+
+    public abstract void openWhyPopup(String artistID);
 
     public void updateWidget(ArtistCompact[] aDArray) {
         if (this.aDArray!=aDArray) {
@@ -99,7 +104,7 @@ public class ArtistListWidget extends Composite {
                 }
             };
 
-            if (lD.loggedIn) {
+            if (cdm.getListenerDetails().loggedIn) {
 
                 g.setWidget(0, 0, new Image("ajax-loader.gif"));
 
@@ -109,7 +114,7 @@ public class ArtistListWidget extends Composite {
                 }
 
                 try {
-                    musicServer.fetchUserSongRating(lD, artistIDs, callback);
+                    musicServer.fetchUserSongRating(cdm.getListenerDetails(), artistIDs, callback);
                 } catch (WebException ex) {
                     Window.alert(ex.getMessage());
                 }
@@ -126,9 +131,16 @@ public class ArtistListWidget extends Composite {
      * @return comma seperated string
      */
     private String getNDistinctiveTags(ArtistCompact aD, int n) {
+
+        List<ItemInfo> tagList = new ArrayList<ItemInfo>();
+        for (ItemInfo i : aD.getDistinctiveTags()) {
+            tagList.add(i);
+        }
+        Collections.sort(tagList, ItemInfo.getScoreSorter());
+
         String tags = "";
-        for (int i = 0; i < aD.getDistinctiveTags().length; i++) {
-            tags += aD.getDistinctiveTags()[i].getItemName() + ", ";
+        for (int i = 0; i < tagList.size(); i++) {
+            tags += tagList.get(i).getItemName() + ", ";
             if (i == n) {
                 break;
             }
@@ -174,6 +186,15 @@ public class ArtistListWidget extends Composite {
             spotify.getElement().setAttribute("style", "align : right;");
             aNamePanel.add(spotify);
 
+            SpannedLabel whyButton = new SpannedLabel("why?");
+            whyButton.addClickListener(new DataEmbededClickListener<String>(aD.getId()) {
+
+                public void onClick(Widget arg0) {
+                    openWhyPopup(data);
+                }
+            });
+            aNamePanel.add(whyButton);
+
             txtPanel.add(aNamePanel);
 
             Label tagsLabel = new Label(getNDistinctiveTags(aD, 4));
@@ -187,7 +208,7 @@ public class ArtistListWidget extends Composite {
                 rating = 0;
             }
 
-            StarRatingWidget star = new StarRatingWidget(musicServer, lD, aD.getId(),
+            StarRatingWidget star = new StarRatingWidget(musicServer, cdm.getListenerDetails(), aD.getId(),
                     rating, StarRatingWidget.Size.SMALL);
             Label starLbl = new Label("Your rating: ");
             starLbl.setStyleName("recoTags");

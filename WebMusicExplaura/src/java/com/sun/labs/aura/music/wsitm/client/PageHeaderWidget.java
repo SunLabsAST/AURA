@@ -68,7 +68,7 @@ public class PageHeaderWidget extends Swidget {
         //
         // Set the recommendation type toolbar
         HorizontalPanel hP = new HorizontalPanel();
-        Label lbl = new Label("Recommendation type : ");
+        Label lbl = new Label("Similarity type : ");
         lbl.setStyleName("headerMenuMed");
         hP.add(lbl);
 
@@ -215,7 +215,7 @@ public class PageHeaderWidget extends Swidget {
                     viewCloudLbl.addClickListener(new ClickListener() {
 
                         public void onClick(Widget arg0) {
-                            cdm.getSimpleSearchWidget().showTagCloud("Your your tag cloud", cdm.getTagCloud());
+                            TagDisplayLib.showTagCloud("Your your tag cloud", cdm.getTagCloud());
                         }
                     });
 

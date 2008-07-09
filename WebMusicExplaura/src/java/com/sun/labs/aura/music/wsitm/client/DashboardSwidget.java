@@ -84,8 +84,8 @@ public class DashboardSwidget extends Swidget {
 
             DockPanel dP = new DockPanel();
 
-            ArtistListWidget alp = new ArtistListWidget(musicServer, cdm.getListenerDetails(), cdm.getListenerDetails().recommendations);
-            dP.add(WebLib.createSection("Artist recommendations", alp), DockPanel.WEST);
+//            ArtistCloudArtistListWidget alp = new ArtistCloudArtistListWidget(musicServer, cdm, cdm.getListenerDetails().recommendations), cdm.get;
+  //          dP.add(WebLib.createSection("Artist recommendations", alp), DockPanel.WEST);
 
             Label titleLbl = new Label("Dashhhhboard");
             titleLbl.setStyleName("h1");
@@ -185,5 +185,22 @@ public class DashboardSwidget extends Swidget {
             History.newItem(token);
         }
 
+    }
+
+    public class ArtistCloudArtistListWidget extends ArtistListWidget {
+
+        private String currArtistId;
+
+        public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
+            ClientDataManager cdm, ArtistCompact[] aDArray, String currArtistId) {
+
+            super(musicServer, cdm, aDArray);
+            this.currArtistId = currArtistId;
+        }
+
+        public void openWhyPopup(String artistID) {
+            TagDisplayLib.invokeGetCommonTags(currArtistId, artistID,
+                    musicServer, cdm, new CommonTagsAsyncCallback() {});
+        }
     }
 }

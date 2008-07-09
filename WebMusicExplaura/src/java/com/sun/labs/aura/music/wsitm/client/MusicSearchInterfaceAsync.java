@@ -26,6 +26,7 @@ public interface MusicSearchInterfaceAsync {
        public void getTagDetails(String id, boolean refresh, String simTypeName, AsyncCallback callback) throws WebException;
        public void getTagTree(AsyncCallback callback);
        public void getCommonTags(String artistID1, String artistID2, int num, String simType, AsyncCallback callback) throws WebException;
+       public void getCommonTags(Map<String, Double> tagMap, String artistID, int num, AsyncCallback callback) throws WebException;
        public void getArtistOracle(AsyncCallback callback) throws WebException;
        public void getTagOracle(AsyncCallback callback) throws WebException;
        public void getLogInDetails(AsyncCallback callback) throws WebException;

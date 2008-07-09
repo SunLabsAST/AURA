@@ -151,6 +151,19 @@ public class DataManager implements Configurable {
     }
 
     /**
+     * Get the common tags between a tagMap and an artist
+     * @param tagMap tag map containing tags and their weights
+     * @param artistId
+     * @param num number of tags to retreive
+     * @return the commons tags
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public ItemInfo[] getCommonTags(Map<String, Double> tagMap, String artistId, int num) throws AuraException {
+        List<Scored<String>> simList = mdb.artistExplainSimilarity(mapToWordCloud(tagMap), artistId, num);
+        return scoredTagStringToItemInfo(simList);
+    }
+
+    /**
      * Gets the details for the given artist (by id)
      * @param id  the id of the artist
      * @param refresh if true, ignore cache and load from datastore
@@ -728,21 +741,24 @@ public class DataManager implements Configurable {
         return ratingMap;
     }
 
-    public ArtistCompact[] getSteerableRecommendations(WordCloud wC)
+    public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap)
             throws AuraException, RemoteException {
 
-        for (Scored<String> sS : wC) {
-            logger.info("passing ("+sS.getItem()+","+sS.getScore()+")");
-        }
-
-        List<Scored<Artist>> lsA = mdb.wordCloudFindSimilarArtists(wC, NUMBER_SIM_ARTISTS);
+        List<Scored<Artist>> lsA = mdb.wordCloudFindSimilarArtists(mapToWordCloud(tagMap), NUMBER_SIM_ARTISTS);
         ArtistCompact[] aCArray = new ArtistCompact[lsA.size()];
         int index = 0;
         for (Scored<Artist> sA : lsA) {
             aCArray[index++] = artistToArtistCompact(sA.getItem());
         }
-        logger.info("returning size of "+aCArray.length);
         return aCArray;
+    }
+
+    private WordCloud mapToWordCloud(Map<String, Double> tagMap) {
+        WordCloud wC = new WordCloud();
+        for (String tagName : tagMap.keySet()) {
+            wC.add(new Scored<String>(tagName, tagMap.get(tagName)));
+        }
+        return wC;
     }
 
     public TagDetails loadTagDetailsFromStore(String id) throws AuraException,

@@ -356,18 +356,18 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             if (artistID.startsWith("artist:")) {
                 artistID = artistID.replaceAll("artist:", "");
             }
-            //
+
             AsyncCallback callback = new AsyncCallback() {
 
                 public void onSuccess(Object result) {
                     // do some UI stuff to show success
                     ArtistDetails artistDetails = (ArtistDetails) result;
                     if (artistDetails != null && artistDetails.isOK()) {
+                        cdm.setCurrArtistID(artistDetails.getId());
                         Widget artistPanel = createArtistPanel("Artists", artistDetails);
                         search.setText(artistDetails.getName(), searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
                         search.updateSuggestBox(Oracles.ARTIST);
                         setResults("artist:" + artistDetails.getId(), artistPanel);
-                        cdm.setCurrArtistID(artistDetails.getId());
                         clearMessage();
                     } else {
                         if (artistDetails == null) {
@@ -437,28 +437,6 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         }
     }
 
-    private void invokeGetCommonTags(String artistID1, String artistID2) {
-        AsyncCallback callback = new AsyncCallback() {
-
-            public void onSuccess(Object result) {
-                clearMessage();
-                showTagCloud("Common tags", (ItemInfo[]) result);
-            }
-
-            public void onFailure(Throwable caught) {
-                failureAction(caught);
-            }
-        };
-
-        showMessage("Getting common tags", WebLib.ICON_WAIT);
-        try {
-            musicServer.getCommonTags(artistID1, artistID2, 30, cdm.getCurrSimTypeName(), callback);
-        } catch (Exception ex) {
-            Window.alert(ex.getMessage());
-        }
-    }
-
-
     private final void addCompactArtistToOracle(ArtistCompact[] aCArray) {
         for (ArtistCompact aC : aCArray) {
             cdm.getArtistOracle().add(aC.getName());
@@ -476,18 +454,19 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         main.add(getEventsWidget(artistDetails));
         main.setStyleName("center");
 
-        VerticalPanel right = new VerticalPanel();
         String id = artistDetails.getId();
+        /*
+        VerticalPanel right = new VerticalPanel();
         right.add(getItemInfoList("Distinctive Tags", artistDetails.getDistinctiveTags(), null, false, cdm.getTagOracle()));
         right.add(getItemInfoList("Frequent Tags", artistDetails.getFrequentTags(), null, false, cdm.getTagOracle()));
         right.add(getPopularityPanel(artistDetails));
-        /*
+        
         if (cdm.isLoggedIn()) {
             right.add(getTastAuraMeterPanel(artistDetails));
         }
-         * */
+         
         right.setStyleName("right");
-
+* */
         VerticalPanel left = new VerticalPanel();
         left.setSpacing(4);
         left.setWidth("300px");
@@ -496,13 +475,13 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             addCompactArtistToOracle(aCArray);
             left.add(
                     new Updatable(new HTML("<H2>Similar artists</H2>"),
-                    new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray), cdm, id) {
+                    new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID()), cdm, id) {
 
                         public void update(ArtistDetails aD) {
                             ArtistCompact[] aCArray = aD.getSimilarArtists();
                             addCompactArtistToOracle(aCArray);
                             setNewContent(new HTML("<H2>Similar artists</H2>"),
-                                    new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray));
+                                    new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID()));
                         }
                     }
            );
@@ -511,12 +490,12 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         if (artistDetails.getRecommendedArtists().length > 0) {
             ArtistCompact[] aCArray = artistDetails.getRecommendedArtists();
             addCompactArtistToOracle(aCArray);
-            left.add(WebLib.createSection("Recommendations", new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray)));
+            left.add(WebLib.createSection("Recommendations", new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID())));
         }
         if (artistDetails.getCollaborations().length > 0) {
             ArtistCompact[] aCArray = artistDetails.getCollaborations();
             addCompactArtistToOracle(aCArray);
-            left.add(WebLib.createSection("Related", new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray)));
+            left.add(WebLib.createSection("Related", new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID())));
         }
         left.add(getMoreInfoWidget(artistDetails));
         left.setStyleName("left");
@@ -699,7 +678,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         if (tagCloud != null) {
             panel.add(new TagInputWidget("artist"));
             
-            Panel p = getTagsInPanel(tagCloud);
+            Panel p = TagDisplayLib.getTagsInPanel(tagCloud);
             p.addStyleName("tagCloudMargin");
             panel.add(p);
         }
@@ -763,7 +742,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             l.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
-                    showTagCloud(title, itemInfo);
+                    TagDisplayLib.showTagCloud(title, itemInfo);
                 }
             });
             titleWidget.setWidget(0, 1, l);
@@ -775,7 +754,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         w.setWidth("200px");
         return w;
     }
-
+/*
     private Widget getItemInfoList2(ItemInfo[] itemInfo,
             String highlightID, boolean getArtistOnClick, MultiWordSuggestOracle oracle) {
         Grid artistGrid = new Grid(itemInfo.length, 2);
@@ -807,7 +786,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         //return w;
         return artistGrid;
     }
-
+*/
     class TimerWithArtist extends Timer {
 
         private String artistID;
@@ -824,19 +803,6 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             invokeGetArtistInfo(artistID, refresh);
         }
 
-    }
-
-    class PopupHiderClickListener implements ClickListener {
-
-        DialogBox d;
-
-        public PopupHiderClickListener(DialogBox d) {
-            this.d=d;
-        }
-
-        public void onClick(Widget arg0) {
-            d.hide();
-        }
     }
 
     class ItemInfoClickListener implements ClickListener {
@@ -886,19 +852,32 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         }
     }
 
-    class LinkClickListener implements ClickListener {
+    public class ArtistCloudArtistListWidget extends ArtistListWidget {
 
-        private String url;
+        private String currArtistId;
 
-        LinkClickListener(String url) {
-            this.url = url;
+        public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
+            ClientDataManager cdm, ArtistCompact[] aDArray, String currArtistId) {
+
+            super(musicServer, cdm, aDArray);
+            this.currArtistId = currArtistId;
         }
 
-        public void onClick(Widget sender) {
-            Window.open(url, "Window1", "");
+        public void openWhyPopup(String artistID) {
+            showMessage("Getting common tags", WebLib.ICON_WAIT);
+            TagDisplayLib.invokeGetCommonTags(currArtistId, artistID,
+                    musicServer, cdm, new SSSCommonTagsAsyncCallback());
         }
     }
 
+    public class SSSCommonTagsAsyncCallback extends CommonTagsAsyncCallback {
+
+        public void onCallback(ItemInfo[] results) {
+            clearMessage();
+        }
+    }
+
+/*
     class CommonTagsClickListener implements ClickListener {
 
         private String id1;
@@ -913,7 +892,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             invokeGetCommonTags(id1, id2);
         }
     }
-
+*/
     abstract class ScrollWidget extends Composite {
 
         protected ScrollItem[] items;
@@ -1310,78 +1289,6 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
     }
 
-    public Panel getTagsInPanel(ItemInfo[] tags) {
-        return getTagsInPanel(tags,null);
-    }
-
-    /**
-     * Return a panel containing the tags cloud passed in parameter. If panel 
-     * will be used in pop-up, pass the DialogBox that will contain it in d to add
-     * so the pop-up can be closed when a tag is clicked on
-     * @param tags
-     * @param d
-     * @return
-     */
-    public Panel getTagsInPanel(ItemInfo[] tags, DialogBox d) {
-        Panel p = new FlowPanel();
-        if (d!=null) {
-            p.setWidth("600px");
-        }
-        HorizontalPanel innerP = new HorizontalPanel();
-        innerP.setSpacing(4);
-
-        if (tags != null && tags.length > 0) {
-
-            double max = 0;
-            double min = 1;
-            for (ItemInfo tag : tags) {
-                if (tag.getScore()>max) {
-                    max = tag.getScore();
-                } else if (tag.getScore()<min) {
-                    min = tag.getScore();
-                }
-            }
-            double range = max - min;
-            
-            tags = shuffle(tags);
-            
-            for (int i = 0; i < tags.length; i++) {
-                int color = (i % 2) + 1;
-                int fontSize = scoreToFontSize((tags[i].getScore() - min) / range);
-
-                String s = "<span style='font-size:" + fontSize + "px;'>" + tags[i].getItemName() + " </span>   ";
-                SimpleHyperLink sH = new SimpleHyperLink();
-                sH.setHTML(s);
-                sH.setStyleName("tag"+color);
-                sH.addClickListener(new ItemInfoClickListener(tags[i], false));
-                if (d!=null) {
-                    sH.addClickListener(new PopupHiderClickListener(d));
-                }
-
-                p.add(sH);
-            }
-
-            return p;
-        } else {
-            return null;
-        }
-    }
-
-    public void showTagCloud(String title, ItemInfo[] tags) {
-        final DialogBox d = Popup.getDialogBox();
-        Panel p = getTagsInPanel(tags, d);
-        if (p!=null) {
-            Popup.showPopup(p,"WebMusicExplaura :: "+title,d);
-        }
-    }
-
-    private int scoreToFontSize(double score) {
-        int min = 12;
-        int max = 60;
-        int range = max - min;
-        return (int) Math.round(range * score + min);
-    }
-
     private ItemInfo[] alphaSort(ItemInfo[] itemInfo) {
 
         ItemInfo[] ii = new ItemInfo[itemInfo.length];
@@ -1401,24 +1308,4 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         return ii;
     }
 
-    private ItemInfo[] shuffle(ItemInfo[] itemInfo) {
-
-        ItemInfo[] ii = new ItemInfo[itemInfo.length];
-
-        for (int i = 0; i < itemInfo.length; i++) {
-            ii[i] = itemInfo[i];
-        }
-
-        Arrays.sort(ii, new Comparator() {
-
-            public int compare(Object o1, Object o2) {
-                if (Random.nextBoolean()) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            }
-        });
-        return ii;
-    }
 }

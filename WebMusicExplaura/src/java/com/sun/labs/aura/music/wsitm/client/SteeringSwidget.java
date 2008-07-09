@@ -150,7 +150,7 @@ public class SteeringSwidget extends Swidget {
 
                     ArtistCompact[] aCArray = (ArtistCompact[]) result;
                     mainArtistListPanel.setWidget(0, 0,
-                            new ArtistListWidget(musicServer, cdm.getListenerDetails(), aCArray));
+                            new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, tagLand));
 
                 }
 
@@ -473,7 +473,11 @@ public class SteeringSwidget extends Swidget {
             this.tagLand = tagLand;
 
             mainGrid = new Grid(2,1);
-            displayMainItems();
+            if (mainItems.length>1) {
+                displayMainItems();
+            } else {
+                displayDetails(mainItems[0], false);
+            }
 
             initWidget(mainGrid);
         }
@@ -484,30 +488,31 @@ public class SteeringSwidget extends Swidget {
          * to the main item list
          * @param iI
          */
-        public void displayDetails(ItemInfo iI) {
+        public void displayDetails(ItemInfo iI, boolean showBackButton) {
             mainGrid.setWidget(1, 0, WebLib.getLoadingBarWidget());
             invokeGetDistincitveTagsService(iI.getId());
 
             VerticalPanel hP = new VerticalPanel();
             hP.setStyleName("pageHeader");
-            
-            Label backButton = new Label("Back");
-            backButton.setStyleName("headerMenuTinyItem");
-            backButton.addClickListener(new ClickListener() {
 
-                public void onClick(Widget arg0) {
-                    displayMainItems();
-                }
-            });
+            if (showBackButton) {
+                Label backButton = new Label("Back");
+                backButton.setStyleName("headerMenuTinyItem");
+                backButton.addClickListener(new ClickListener() {
 
+                    public void onClick(Widget arg0) {
+                        displayMainItems();
+                    }
+                });
+                hP.add(backButton);
+            }
             Label title = new Label("Tags for "+iI.getItemName());
-            hP.add(backButton);
             hP.add(title);
             mainGrid.setWidget(0, 0, hP);
         }
 
         public void displayMainItems() {
-
+            
             VerticalPanel vP = new VerticalPanel();
 
             Label explanation = new Label("Click on an artist's name to display its most distinctive tags");
@@ -521,7 +526,7 @@ public class SteeringSwidget extends Swidget {
                 itemName.addClickListener(new DataEmbededClickListener<ItemInfo>(item) {
 
                     public void onClick(Widget arg0) {
-                        displayDetails(data);
+                        displayDetails(data, true);
                     }
                 });
                 vP.add(itemName);
@@ -572,10 +577,7 @@ public class SteeringSwidget extends Swidget {
         private List<ItemInfo> iI;
 
         public SortableItemInfoList(ItemInfo[] iI) {
-            this.iI = new ArrayList<ItemInfo>();
-            for (ItemInfo i : iI) {
-                this.iI.add(i);
-            }
+            this.iI = ItemInfo.arrayToList(iI);
 
             mainPanel = new Grid(iI.length + 1, 2);
 
@@ -587,7 +589,7 @@ public class SteeringSwidget extends Swidget {
                 public void onClick(Widget arg0) {
                     ((Label)mainPanel.getWidget(0, 0)).setText("Name");
                     ((Label)mainPanel.getWidget(0, 1)).setText("Popularity *");
-                    populateMainPanel(new NameSorter());
+                    populateMainPanel(ItemInfo.getNameSorter());
                 }
             });
             mainPanel.setWidget(0, 0, nameLbl);
@@ -598,12 +600,12 @@ public class SteeringSwidget extends Swidget {
                 public void onClick(Widget arg0) {
                     ((Label)mainPanel.getWidget(0, 0)).setText("Name");
                     ((Label)mainPanel.getWidget(0, 1)).setText("Popularity *");
-                    populateMainPanel(new PopularitySorter());
+                    populateMainPanel(ItemInfo.getPopularitySorter());
                 }
             });
             mainPanel.setWidget(0, 1, popLbl);
 
-            populateMainPanel(new PopularitySorter());
+            populateMainPanel(ItemInfo.getPopularitySorter());
             initWidget(mainPanel);
         }
 
@@ -626,22 +628,6 @@ public class SteeringSwidget extends Swidget {
         }
 
         protected abstract void onItemClick(ItemInfo i);
-
-        public class PopularitySorter implements Comparator<ItemInfo> {
-
-            public int compare(ItemInfo o1, ItemInfo o2) {
-                // Descending order
-                return -1*(new Double(o1.getPopularity()).compareTo(new Double(o2.getPopularity())));
-            }
-
-        }
-
-        public class NameSorter implements Comparator<ItemInfo> {
-
-            public int compare(ItemInfo o1, ItemInfo o2) {
-                return o1.getItemName().compareTo(o2.getItemName());
-            }
-        }
 
         public class TagClickListener implements ClickListener {
 
@@ -805,6 +791,24 @@ public class SteeringSwidget extends Swidget {
             } catch (Exception ex) {
                 Window.alert(ex.getMessage());
             }
+        }
+    }
+
+    public class ArtistCloudArtistListWidget extends ArtistListWidget {
+
+        private ResizableTagWidget tagLand;
+
+        public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
+                ClientDataManager cdm, ArtistCompact[] aDArray, ResizableTagWidget tagLand) {
+
+            super(musicServer, cdm, aDArray);
+            this.tagLand = tagLand;
+        }
+
+        public void openWhyPopup(String artistID) {
+            Info.display("Information","Fetching common tags", new Params());
+            TagDisplayLib.invokeGetCommonTags(tagLand.getTapMap(), artistID,
+                    musicServer, cdm, new CommonTagsAsyncCallback() {});
         }
     }
 }
