@@ -40,4 +40,5 @@ public interface MusicSearchInterfaceAsync {
        public void getSimTypes(AsyncCallback callback) throws WebException;
        public void getDistinctiveTags(String artistID, int count, AsyncCallback callback) throws WebException;
        public void getSteerableRecommendations(Map<String, Double> tagMap, AsyncCallback callback) throws WebException;
+       public void getArtistCompact(String artistId, AsyncCallback callback) throws WebException;
 }

@@ -7,6 +7,8 @@ package com.sun.labs.aura.music.wsitm.client;
 
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
+import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.Window;
@@ -19,6 +21,7 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Panel;
@@ -78,6 +81,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         private SearchWidget search;
         private FlowPanel searchBoxContainerPanel;
 
+        private FlowPanel refreshingPanel;
+
         public MainPanel() {
             dP = new DockPanel();
 
@@ -85,7 +90,23 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             mainArtistListPanel = new Grid(1, 1);
             mainArtistListPanel.setWidth("300px");
             mainArtistListPanel.setWidget(0, 0, new Label("Add tags to your tag cloud to get recommendations"));
-            dP.add(WebLib.createSection("Recommendations", mainArtistListPanel), DockPanel.WEST);
+
+            HorizontalPanel hP = new HorizontalPanel();
+            hP.setStyleName("h2");
+            hP.setWidth("300px");
+            hP.add(new SpannedLabel("Recommendations"));
+
+            refreshingPanel = new FlowPanel();
+            //SpannedLabel refreshing = new SpannedLabel("Refreshing");
+            //refreshing.setStyleName("smallItalicExplanation");
+            //refreshingPanel.add(refreshing);
+            refreshingPanel.add(new Image("ajax-loader-small.gif "));
+            refreshingPanel.setVisible(false);
+
+            hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+            hP.add(refreshingPanel);
+
+            dP.add(WebLib.createSection(hP, mainArtistListPanel), DockPanel.WEST);
 
             // Right (continued lower)
             mainTagPanel = new Grid(2, 1);
@@ -128,7 +149,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             resetButton.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
-                    tagLand.removeAllTags();
+                    tagLand.removeAllTags(true);
                 }
             });
             mainNorthMenuPanel.add(resetButton);
@@ -161,6 +182,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                     ArtistCompact[] aCArray = (ArtistCompact[]) result;
                     mainArtistListPanel.setWidget(0, 0,
                             new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, tagLand));
+                    refreshingPanel.setVisible(false);
 
                 }
 
@@ -169,7 +191,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 }
             };
 
-            mainArtistListPanel.setWidget(0, 0, WebLib.getLoadingBarWidget());
+            refreshingPanel.setVisible(true);;
 
             try {
                 musicServer.getSteerableRecommendations(tagLand.getTapMap(), callback);
@@ -185,10 +207,12 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         }
 
         public void loadArtistCloud(String artistId) {
+            tagLand.removeAllTags(false);
             if (artistId.startsWith("steering:")) {
                 artistId = artistId.substring(artistId.indexOf(":")+1);
             }
             invokeGetDistincitveTagsService(artistId);
+            invokeGetArtistCompactService(artistId);
         }
 
         private void invokeGetDistincitveTagsService(String artistID) {
@@ -215,6 +239,30 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
             try {
                 musicServer.getDistinctiveTags(artistID, 30, callback);
+            } catch (Exception ex) {
+                Window.alert(ex.getMessage());
+
+            }
+        }
+
+        private void invokeGetArtistCompactService(String artistId) {
+
+            AsyncCallback callback = new AsyncCallback() {
+
+                public void onSuccess(Object result) {
+                    ArtistCompact aC = (ArtistCompact) result;
+                    if (aC != null) {
+                        search.displayArtist(new ItemInfo(aC.getId(), aC.getName(), aC.getNormPopularity(), aC.getNormPopularity()));
+                    }
+                }
+
+                public void onFailure(Throwable caught) {
+                    Window.alert(caught.getMessage());
+                }
+            };
+
+            try {
+                musicServer.getArtistCompact(artistId, callback);
             } catch (Exception ex) {
                 Window.alert(ex.getMessage());
 
@@ -287,36 +335,39 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
                     int increment = lastY - arg2;
 
-                    double diff = 0;
-                    maxSize = 0; // reset maxsize to deal with when the top tag is scaled down
-                    for (DeletableResizableTag dW : tagCloud.values()) {
-                        double tempDiff = dW.getWidget().updateSize(increment, true);
-                        dW.setXButtonPosition();
-                        if (tempDiff != 0) {
-                            diff = tempDiff;
-                        }
-                        if (Math.abs(dW.getWidget().getCurrentSize())>maxSize) {
-                            maxSize = Math.abs(dW.getWidget().getCurrentSize());
-                        }
-                    }
-                    
-                    //
-                    // Do a second pass to modify the tags that aren't being resized
-                    // if the one that is resized has reached its maximum of minimum
-                    // size
-                    if (diff != 0) {
-                        diff = diff / (tagCloud.size()-1);
+                    // Don't refresh everytime to let the browser take its breath
+                    if (Math.abs(increment) > 3) {
+
+                        double diff = 0;
+                        maxSize = 0; // reset maxsize to deal with when the top tag is scaled down
                         for (DeletableResizableTag dW : tagCloud.values()) {
-                            dW.getWidget().updateSize(diff, false);
+                            double tempDiff = dW.getWidget().updateSize(increment, true, true);
                             dW.setXButtonPosition();
+                            if (tempDiff != 0) {
+                                diff = tempDiff;
+                            }
                             if (Math.abs(dW.getWidget().getCurrentSize())>maxSize) {
                                 maxSize = Math.abs(dW.getWidget().getCurrentSize());
                             }
                         }
-                    }
 
-                    lastX = arg1;
-                    lastY = arg2;
+                        //
+                        // Do a second pass to modify the tags that aren't being resized
+                        // if the one that is resized has reached its max/min size
+                        if (diff != 0) {
+                            diff = diff / (tagCloud.size()-1);
+                            for (DeletableResizableTag dW : tagCloud.values()) {
+                                dW.getWidget().updateSize(diff, false, false);
+                                dW.setXButtonPosition();
+                                if (Math.abs(dW.getWidget().getCurrentSize())>maxSize) {
+                                    maxSize = Math.abs(dW.getWidget().getCurrentSize());
+                                }
+                            }
+                        }
+
+                        lastX = arg1;
+                        lastY = arg2;
+                    }
                 }
 
                 public void onMouseUp(Widget arg0, int arg1, int arg2) {
@@ -352,32 +403,48 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             return tagMap;
         }
 
+        /**
+         * Add all supplied tags (actually only the 10 with the highest score)
+         * @param tag
+         */
         public void addTags(ItemInfo[] tag) {
 
             int avgSizeOfAddedCloud = 40;
 
             List<ItemInfo> iIList = ItemInfo.arrayToList(tag);
+            List<ItemInfo> cutList = new ArrayList<ItemInfo>();
 
-            // Find the list's maximum value
-            //Collections.sort(iIList, ItemInfo.getScoreSorter());
-            //double maxValue = iIList.get(0).getScore();
+            // Use only the top ten tags with the biggest score
+            Collections.sort(iIList, ItemInfo.getScoreSorter());
+            maxSize = iIList.get(0).getScore();
+            int nbr = 0;
+            for (ItemInfo i : iIList) {
+                cutList.add(i);
+                if (nbr++ >= 10) {
+                    break;
+                }
+            }
 
             double sumScore = 0;
-            for (ItemInfo i : iIList) {
+            for (ItemInfo i : cutList) {
                 sumScore += i.getScore();
             }
 
             // Find the size of the biggest tag so that the average size of the
             // added tags match avgSizeOfAddedCloud
-            double maxTagSize = avgSizeOfAddedCloud * iIList.size() / sumScore;
+            double maxTagSize = avgSizeOfAddedCloud * cutList.size() / sumScore;
 
             // Add the tags to the cloud
-            Collections.sort(iIList, ItemInfo.getRandomSorter());
-            for (ItemInfo i : iIList) {
+            Collections.sort(cutList, ItemInfo.getRandomSorter());
+            for (ItemInfo i : cutList) {
                 addTag(i, i.getScore() * maxTagSize, false);
             }
 
-            updateRecommendations();
+            DeferredCommand.addCommand(new Command() {
+                public void execute() {
+                    updateRecommendations();
+                }
+            });
         }
 
         public void addTag(ItemInfo tag, boolean updateRecommendations) {
@@ -414,18 +481,20 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             updateRecommendations();
         }
 
-        public void removeAllTags() {
+        public void removeAllTags(boolean updateRecommendations) {
             tagCloud.clear();
             flowP.clear();
             colorIndex=1;
 
-            updateRecommendations();
+            if (updateRecommendations) {
+                updateRecommendations();
+            }
         }
 
         public void redrawTagCloud() {
             colorIndex = 1;
             for (DeletableWidget<ResizableTag> dW : tagCloud.values()) {
-                dW.getWidget().updateColor(color[(colorIndex++)%2]);
+                dW.getWidget().updateColor(color[(colorIndex++)%2], true);
             }
         }
 
@@ -484,6 +553,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
             private void initialize(ColorConfig color) {
                 addStyleName("marginRight");
+                addStyleName("hand");
                 this.color = color;
                 resetAttributes();
 
@@ -512,14 +582,14 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 getElement().setAttribute("style", "-moz-user-select: none; -khtml-user-select: none; user-select: none; font-size:"+Math.abs(currentSize)+"px; color:"+color.getColor(currentSize)+";");
             }
 
-            public void updateColor(ColorConfig color) {
+            public void updateColor(ColorConfig color, boolean allowSignFlip) {
                 this.color = color;
-                updateSize(0, true);
+                updateSize(0, true, allowSignFlip);
             }
 
-            public void updateSize(int increment, ColorConfig color) {
+            public void updateSize(int increment, ColorConfig color, boolean allowSignFlip) {
                 this.color = color;
-                updateSize(increment, true);
+                updateSize(increment, true, allowSignFlip);
             }
 
             /**
@@ -528,18 +598,29 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
              * @param modifyHasClicked modify the tag that is being dragged or all the others
              * @return the increment by which the other tags need to be resized if this tag has reached it's maximum or minimum size
              */
-            public double updateSize(double increment, boolean modifyHasClicked) {
+            public double updateSize(double increment, boolean modifyHasClicked, boolean allowSignFlip) {
+                double oldSize = currentSize;
                 if (hasClicked == modifyHasClicked) {
-                    currentSize += increment;
-                    // If we're crossing from positive to negative
-                    if (-MIN_SIZE<currentSize && currentSize<MIN_SIZE) {
-                        currentSize = MIN_SIZE * increment/Math.abs(increment);
-                        return 0;
-                    } else if (Math.abs(currentSize)>MAX_SIZE) {
-                        double absCurrSize = Math.abs(currentSize);
-                        double diff = currentSize/absCurrSize * (MAX_SIZE - absCurrSize);
-                        currentSize = currentSize/absCurrSize * MAX_SIZE;
-                        return diff;
+                    // If a sign flip would occur and we don't allow it, set the tag's size
+                    // as the min value
+                    double sizePlusInc = currentSize + increment;
+                    if (!allowSignFlip && (
+                            (sizePlusInc * currentSize < 0 )) ||  // if we've crossed over
+                            (-MIN_SIZE < sizePlusInc && sizePlusInc < MIN_SIZE)) {  // if we're inbetween the two {+/-}MIN_SIZES;
+                        currentSize = currentSize / Math.abs(currentSize) * MIN_SIZE;
+                        Info.display("info","old size:"+oldSize+"    currSize:"+currentSize, new Params());
+                    } else {
+                        currentSize += increment;
+                        // If we're crossing from positive to negative
+                        if (-MIN_SIZE < currentSize && currentSize < MIN_SIZE) {
+                            currentSize = MIN_SIZE * increment / Math.abs(increment);
+                            return 0;
+                        } else if (Math.abs(currentSize) > MAX_SIZE) {
+                            double absCurrSize = Math.abs(currentSize);
+                            double diff = currentSize / absCurrSize * (MAX_SIZE - absCurrSize);
+                            currentSize = currentSize / absCurrSize * MAX_SIZE;
+                            return diff;
+                        }
                     }
                     resetAttributes();
                 }
@@ -740,18 +821,18 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
                 public void onClick(Widget arg0) {
                     ((Label)mainPanel.getWidget(0, 0)).setText("Name");
-                    ((Label)mainPanel.getWidget(0, 1)).setText("Popularity *");
+                    ((Label)mainPanel.getWidget(0, 1)).setText("Popularity*");
                     populateMainPanel(ItemInfo.getNameSorter());
                 }
             });
             mainPanel.setWidget(0, 0, nameLbl);
 
-            Label popLbl = new Label("Popularity *");
+            Label popLbl = new Label("Popularity*");
             popLbl.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
                     ((Label)mainPanel.getWidget(0, 0)).setText("Name");
-                    ((Label)mainPanel.getWidget(0, 1)).setText("Popularity *");
+                    ((Label)mainPanel.getWidget(0, 1)).setText("Popularity*");
                     populateMainPanel(ItemInfo.getPopularitySorter());
                 }
             });
@@ -869,6 +950,16 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             } else {
                 invokeArtistSearchService(textBox.getText().toLowerCase());
             }
+        }
+
+        /**
+         * Display the supplied artist's distincitve tags
+         * @param a
+         */
+        public void displayArtist(ItemInfo a) {
+            ItemInfo[] aA = new ItemInfo[1];
+            aA[0] = a;
+            mainTagPanel.setWidget(1, 0, new ItemInfoHierarchyWidget(aA, tagLand));
         }
 
         private void invokeArtistSearchService(String searchText) {

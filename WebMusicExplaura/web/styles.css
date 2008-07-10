@@ -99,6 +99,9 @@ img {
 .pointer {
   cursor: pointer;
 }
+.hand {
+  cursor: hand;
+}
 
 .gwt-DialogBox {  
     background: #877F5C; border-style:solid;
@@ -213,4 +216,5 @@ img {
 .smallItalicExplanation {
   font-size: 12px;
   font-style:italic;
+  font-weight:normal;
 }
