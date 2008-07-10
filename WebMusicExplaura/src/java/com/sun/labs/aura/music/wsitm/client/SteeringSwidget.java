@@ -465,6 +465,10 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 flowP.add(dW);
                 flowP.add(new SpannedLabel(" "));
 
+                if (tagCloud.size() == 1) {
+                    maxSize = rT.getCurrentSize();
+                }
+
                 if (updateRecommendations) {
                     updateRecommendations();
                 }
