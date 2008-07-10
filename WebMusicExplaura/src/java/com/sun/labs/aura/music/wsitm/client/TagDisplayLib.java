@@ -77,7 +77,7 @@ public abstract class TagDisplayLib {
             }
             double range = max - min;
 
-            tags = shuffle(tags);
+            tags = ItemInfo.shuffle(tags);
 
             for (int i = 0; i < tags.length; i++) {
                 int color = (i % 2) + 1;
@@ -134,27 +134,6 @@ public abstract class TagDisplayLib {
             Window.alert(ex.getMessage());
         }
 
-    }
-
-    private static ItemInfo[] shuffle(ItemInfo[] itemInfo) {
-
-        ItemInfo[] ii = new ItemInfo[itemInfo.length];
-
-        for (int i = 0; i < itemInfo.length; i++) {
-            ii[i] = itemInfo[i];
-        }
-
-        Arrays.sort(ii, new Comparator() {
-
-            public int compare(Object o1, Object o2) {
-                if (Random.nextBoolean()) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            }
-        });
-        return ii;
     }
 
     public abstract class AsyncCallbackWithCommand implements AsyncCallback {

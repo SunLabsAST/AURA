@@ -49,7 +49,7 @@ public abstract class ArtistListWidget extends Composite {
         g = new Grid(1,1);
         this.aDArray=aDArray;
         initWidget(g);
-
+        setWidth("300px");
         invokeFetchRatings();
     }
 
@@ -194,6 +194,15 @@ public abstract class ArtistListWidget extends Composite {
                 }
             });
             aNamePanel.add(whyButton);
+
+            SpannedLabel steerButton = new SpannedLabel("Steer");
+            steerButton.addClickListener(new DataEmbededClickListener<String>(aD.getId()) {
+
+                public void onClick(Widget arg0) {
+                    History.newItem("steering:"+data);
+                }
+            });
+            aNamePanel.add(steerButton);
 
             txtPanel.add(aNamePanel);
 

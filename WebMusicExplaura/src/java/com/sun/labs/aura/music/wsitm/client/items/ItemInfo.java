@@ -9,8 +9,10 @@
 
 package com.sun.labs.aura.music.wsitm.client.items;
 
+import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.rpc.IsSerializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -70,6 +72,10 @@ public class ItemInfo implements IsSerializable {
         return new ScoreSorter();
     }
 
+    public static Comparator<ItemInfo> getRandomSorter() {
+        return new RandomSorter();
+    }
+
     public static List<ItemInfo> arrayToList(ItemInfo[] iIArray) {
         ArrayList<ItemInfo> iI = new ArrayList<ItemInfo>();
         for (ItemInfo i : iIArray) {
@@ -99,5 +105,28 @@ public class ItemInfo implements IsSerializable {
         public int compare(ItemInfo o1, ItemInfo o2) {
             return o1.getItemName().compareTo(o2.getItemName());
         }
+    }
+
+    public static class RandomSorter implements Comparator<ItemInfo> {
+
+        public int compare(ItemInfo o1, ItemInfo o2) {
+            if (Random.nextBoolean()) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
+    }
+
+    public static ItemInfo[] shuffle(ItemInfo[] itemInfo) {
+
+        ItemInfo[] ii = new ItemInfo[itemInfo.length];
+
+        for (int i = 0; i < itemInfo.length; i++) {
+            ii[i] = itemInfo[i];
+        }
+
+        Arrays.sort(ii, getRandomSorter());
+        return ii;
     }
 }

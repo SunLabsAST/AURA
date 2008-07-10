@@ -7,6 +7,8 @@ package com.sun.labs.aura.music.wsitm.client;
 
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
+import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
@@ -20,7 +22,6 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Panel;
-import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.SuggestBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -40,12 +41,13 @@ import java.util.Map;
  *
  * @author mailletf
  */
-public class SteeringSwidget extends Swidget {
+public class SteeringSwidget extends Swidget implements HistoryListener {
 
     private MainPanel mP;
 
     public SteeringSwidget(ClientDataManager cdm) {
         super("Steering", cdm);
+        History.addHistoryListener(this);
         mP = new MainPanel();
         registerLoginListener(mP);
         initWidget(mP);
@@ -56,6 +58,14 @@ public class SteeringSwidget extends Swidget {
         List<String> l = new ArrayList<String>();
         l.add("steering:");
         return l;
+    }
+
+    public void onHistoryChanged(String historyToken) {
+        if (historyToken.startsWith("steering:")) {
+            if (historyToken.length() > 9) {
+                mP.loadArtistCloud(historyToken.substring(9));
+            }
+        }
     }
 
     private class MainPanel extends LoginListener {
@@ -128,12 +138,12 @@ public class SteeringSwidget extends Swidget {
 
             //
             // North 2
-            tagLand = new ResizableTagWidget();
+            tagLand = new ResizableTagWidget(this);
             dP.add(tagLand, DockPanel.NORTH);
 
             // Right again
             searchBoxContainerPanel = new FlowPanel();
-            mainTagPanel.setWidth("200px");
+            mainTagPanel.setWidth("185px");
             mainTagPanel.setWidget(1, 0, new Label("Search for tags to add using the above search box"));
 
             search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel, mainTagPanel, tagLand);
@@ -143,7 +153,7 @@ public class SteeringSwidget extends Swidget {
             initWidget(dP);
         }
 
-        private void invokeFetchNewRecommendations() {
+        public void invokeFetchNewRecommendations() {
             AsyncCallback callback = new AsyncCallback() {
 
                 public void onSuccess(Object result) {
@@ -174,6 +184,42 @@ public class SteeringSwidget extends Swidget {
         public void onLogout() {
         }
 
+        public void loadArtistCloud(String artistId) {
+            if (artistId.startsWith("steering:")) {
+                artistId = artistId.substring(artistId.indexOf(":")+1);
+            }
+            invokeGetDistincitveTagsService(artistId);
+        }
+
+        private void invokeGetDistincitveTagsService(String artistID) {
+
+            AsyncCallback callback = new AsyncCallback() {
+
+                public void onSuccess(Object result) {
+                    ItemInfo[] results = (ItemInfo[]) result;
+                    if (results != null) {
+                        if (results.length == 0) {
+                            Window.alert("No tags found for artist");
+                        } else {
+                            tagLand.addTags(results);
+                        }
+                    } else {
+                        Window.alert("An unknown error occured while loading the artist's tag cloud");
+                    }
+                }
+
+                public void onFailure(Throwable caught) {
+                    Window.alert(caught.getMessage());
+                }
+            };
+
+            try {
+                musicServer.getDistinctiveTags(artistID, 30, callback);
+            } catch (Exception ex) {
+                Window.alert(ex.getMessage());
+
+            }
+        }
     }
 
     public class ResizableTagWidget extends Composite {
@@ -186,6 +232,8 @@ public class SteeringSwidget extends Swidget {
         private FocusPanel fP;
         private FlowPanel flowP;
 
+        private MainPanel mainPanel;
+
         private int lastX;
         private int lastY;
         
@@ -193,7 +241,9 @@ public class SteeringSwidget extends Swidget {
         
         private ColorConfig[] color;
 
-        public ResizableTagWidget() {
+        public ResizableTagWidget(MainPanel mainPanel) {
+
+            this.mainPanel = mainPanel;
 
             fP = new FocusPanel();
             fP.setWidth("500px");
@@ -221,14 +271,19 @@ public class SteeringSwidget extends Swidget {
                 }
 
                 public void onMouseLeave(Widget arg0) {
+                    boolean wasTrue = false;
                     for (DeletableWidget<ResizableTag> dW : tagCloud.values()) {
+                        if (dW.getWidget().hasClicked()) {
+                            wasTrue = true;
+                        }
                         dW.getWidget().setClickFalse();
+                    }
+                    if (wasTrue) {
+                        updateRecommendations();
                     }
                 }
 
                 public void onMouseMove(Widget arg0, int arg1, int arg2) {
-
-                    //DOM.eventPreventDefault(DOM.eventGetCurrentEvent());
 
                     int increment = lastY - arg2;
 
@@ -268,9 +323,14 @@ public class SteeringSwidget extends Swidget {
                     for (DeletableWidget<ResizableTag> dW : tagCloud.values()) {
                         dW.getWidget().setClickFalse();
                     }
+                    updateRecommendations();
                 }
             });
 
+        }
+
+        public void updateRecommendations() {
+            mainPanel.invokeFetchNewRecommendations();
         }
 
         protected void onAttach() {
@@ -292,14 +352,55 @@ public class SteeringSwidget extends Swidget {
             return tagMap;
         }
 
-        public void addTag(ItemInfo tag) {
+        public void addTags(ItemInfo[] tag) {
+
+            int avgSizeOfAddedCloud = 40;
+
+            List<ItemInfo> iIList = ItemInfo.arrayToList(tag);
+
+            // Find the list's maximum value
+            //Collections.sort(iIList, ItemInfo.getScoreSorter());
+            //double maxValue = iIList.get(0).getScore();
+
+            double sumScore = 0;
+            for (ItemInfo i : iIList) {
+                sumScore += i.getScore();
+            }
+
+            // Find the size of the biggest tag so that the average size of the
+            // added tags match avgSizeOfAddedCloud
+            double maxTagSize = avgSizeOfAddedCloud * iIList.size() / sumScore;
+
+            // Add the tags to the cloud
+            Collections.sort(iIList, ItemInfo.getRandomSorter());
+            for (ItemInfo i : iIList) {
+                addTag(i, i.getScore() * maxTagSize, false);
+            }
+
+            updateRecommendations();
+        }
+
+        public void addTag(ItemInfo tag, boolean updateRecommendations) {
+            addTag(tag, 0, updateRecommendations);
+        }
+
+        public void addTag(ItemInfo tag, double tagSize, boolean updateRecommendations) {
             if (!tagCloud.containsKey(tag.getId())) {
-                ResizableTag rT = new ResizableTag(tag.getItemName(), color[(colorIndex++)%2]);
+                ResizableTag rT;
+                if (tagSize != 0) {
+                    rT = new ResizableTag(tag.getItemName(), color[(colorIndex++)%2], tagSize);
+                } else {
+                    rT = new ResizableTag(tag.getItemName(), color[(colorIndex++)%2]);
+                }
                 DeletableResizableTag dW = new DeletableResizableTag(rT);
 
                 tagCloud.put(tag.getId(), dW);
                 flowP.add(dW);
                 flowP.add(new SpannedLabel(" "));
+
+                if (updateRecommendations) {
+                    updateRecommendations();
+                }
             }
         }
 
@@ -309,12 +410,16 @@ public class SteeringSwidget extends Swidget {
                 tagCloud.remove(tagId);
                 redrawTagCloud();
             }
+
+            updateRecommendations();
         }
 
         public void removeAllTags() {
             tagCloud.clear();
             flowP.clear();
             colorIndex=1;
+
+            updateRecommendations();
         }
 
         public void redrawTagCloud() {
@@ -368,6 +473,16 @@ public class SteeringSwidget extends Swidget {
 
             public ResizableTag(String txt, ColorConfig color) {
                 super(txt);
+                initialize(color);
+            }
+
+            public ResizableTag(String txt, ColorConfig color, double initialSize) {
+                super(txt);
+                currentSize = initialSize;
+                initialize(color);
+            }
+
+            private void initialize(ColorConfig color) {
                 addStyleName("marginRight");
                 this.color = color;
                 resetAttributes();
@@ -391,7 +506,6 @@ public class SteeringSwidget extends Swidget {
                         hasClicked = false;
                     }
                 });
-
             }
 
             private final void resetAttributes() {
@@ -440,6 +554,10 @@ public class SteeringSwidget extends Swidget {
                 hasClicked = false;
             }
 
+            public boolean hasClicked() {
+                return hasClicked;
+            }
+
             public boolean equals(ResizableTag rT) {
                 return this.getText().equals(rT.getText());
             }
@@ -475,6 +593,7 @@ public class SteeringSwidget extends Swidget {
 
         private Grid mainGrid;
         private ItemInfo[] mainItems;
+        private ItemInfo[] subItems = null;
 
         private ResizableTagWidget tagLand;
 
@@ -504,8 +623,10 @@ public class SteeringSwidget extends Swidget {
 
             VerticalPanel hP = new VerticalPanel();
             hP.setStyleName("pageHeader");
-            hP.setWidth("200px");
+            hP.setWidth("185px");
 
+            HorizontalPanel smallMenuPanel = new HorizontalPanel();
+            smallMenuPanel.setSpacing(4);
             if (showBackButton) {
                 Label backButton = new Label("Back");
                 backButton.setStyleName("headerMenuTinyItem");
@@ -515,15 +636,32 @@ public class SteeringSwidget extends Swidget {
                         displayMainItems();
                     }
                 });
-                hP.add(backButton);
+                smallMenuPanel.add(backButton);
+                smallMenuPanel.add(new SpannedLabel("   "));
             }
+            Label addAllButton = new Label("Add all tags");
+            addAllButton.setStyleName("headerMenuTinyItem");
+            addAllButton.addClickListener(new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    if (subItems != null) {
+                        tagLand.addTags(subItems);
+                    } else {
+                        Info.display("Add all tags", "subitems is null", new Params());
+                    }
+                }
+            });
+            smallMenuPanel.add(addAllButton);
+            hP.add(smallMenuPanel);
+
             Label title = new Label("Tags for "+iI.getItemName());
             hP.add(title);
             mainGrid.setWidget(0, 0, hP);
         }
 
         public void displayMainItems() {
-            
+
+            subItems = null;
             VerticalPanel vP = new VerticalPanel();
 
             Label explanation = new Label("Click on an artist's name to display its most distinctive tags");
@@ -556,10 +694,11 @@ public class SteeringSwidget extends Swidget {
                         if (results.length == 0) {
                             mainGrid.setWidget(1, 0, new Label("No tags found"));
                         } else {
+                            subItems = results;
                             mainGrid.setWidget(1, 0, new SortableItemInfoList(results) {
 
                                 protected void onItemClick(ItemInfo i) {
-                                    tagLand.addTag(i);
+                                    tagLand.addTag(i, true);
                                 }
                             });
                         }
@@ -720,7 +859,7 @@ public class SteeringSwidget extends Swidget {
             searchPanel.add(leftP);
             searchPanel.add(searchType);
             this.initWidget(searchPanel);
-            this.setWidth("200px");
+            this.setWidth("185px");
         }
 
         public void search() {
@@ -781,7 +920,7 @@ public class SteeringSwidget extends Swidget {
                             mainTagPanel.setWidget(1, 0, new SortableItemInfoList(results) {
 
                                 protected void onItemClick(ItemInfo i) {
-                                    tagLand.addTag(i);
+                                    tagLand.addTag(i, true);
                                 }
                             });
                         }
