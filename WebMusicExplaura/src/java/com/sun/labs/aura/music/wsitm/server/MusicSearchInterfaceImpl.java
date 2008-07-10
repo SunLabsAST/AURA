@@ -334,7 +334,9 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
         logger.info("getSteerableRecommendations for cloud:{"+stringMap+"}");
         try {
-            return dm.getSteerableRecommendations(tagMap);
+            ArtistCompact[] aC = dm.getSteerableRecommendations(tagMap);
+            logger.info("returning "+aC.length+" recommendations");
+            return aC;
         } catch (AuraException ex) {
             logger.severe(traceToString(ex));
             throw new WebException(ex.getMessage(), ex);

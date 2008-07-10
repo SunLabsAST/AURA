@@ -533,18 +533,18 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         StarRatingWidget starWidget = new StarRatingWidget(musicServer, cdm.getListenerDetails(), artistDetails.getId(), StarRatingWidget.Size.MEDIUM);
 
         HorizontalPanel hP = new HorizontalPanel();
-        SpannedLabel steerButton = new SpannedLabel("steer");
-        steerButton.addClickListener(new DataEmbededClickListener<String>(artistDetails.getId()) {
+        Widget spotify = WebLib.getSpotifyListenWidget(artistDetails, 30);
+        if (spotify!=null) {
+            hP.add(spotify);
+        }
+        SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.BIG,
+                new DataEmbededClickListener<String>(artistDetails.getId()) {
 
             public void onClick(Widget arg0) {
                 History.newItem("steering:"+data);
             }
         });
         hP.add(steerButton);
-        Widget spotify = WebLib.getSpotifyListenWidget(artistDetails, 30);
-        if (spotify!=null) {
-            hP.add(spotify);
-        }
 
         return createMainSection(artistDetails.getName(), html,
                 hP,

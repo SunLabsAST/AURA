@@ -195,8 +195,8 @@ public abstract class ArtistListWidget extends Composite {
             });
             aNamePanel.add(whyButton);
 
-            SpannedLabel steerButton = new SpannedLabel("Steer");
-            steerButton.addClickListener(new DataEmbededClickListener<String>(aD.getId()) {
+            SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL,
+                    new DataEmbededClickListener<String>(aD.getId()) {
 
                 public void onClick(Widget arg0) {
                     History.newItem("steering:"+data);

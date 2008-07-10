@@ -293,6 +293,11 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
             this.mainPanel = mainPanel;
 
+            int panelWidth = 480;
+            if (Window.getClientWidth()>1024) {
+                panelWidth = (int)(Window.getClientWidth() * 480.0 / 1024.0);
+            }
+
             fP = new FocusPanel();
             fP.setWidth("500px");
             fP.setHeight("450px");
@@ -341,7 +346,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                         double diff = 0;
                         maxSize = 0; // reset maxsize to deal with when the top tag is scaled down
                         for (DeletableResizableTag dW : tagCloud.values()) {
-                            double tempDiff = dW.getWidget().updateSize(increment, true, true);
+                            double tempDiff = dW.getWidget().updateSize(increment, true);
                             dW.setXButtonPosition();
                             if (tempDiff != 0) {
                                 diff = tempDiff;
@@ -357,7 +362,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                         if (diff != 0) {
                             diff = diff / (tagCloud.size()-1);
                             for (DeletableResizableTag dW : tagCloud.values()) {
-                                dW.getWidget().updateSize(diff, false, false);
+                                dW.getWidget().updateSize(diff, false);
                                 dW.setXButtonPosition();
                                 if (Math.abs(dW.getWidget().getCurrentSize())>maxSize) {
                                     maxSize = Math.abs(dW.getWidget().getCurrentSize());
@@ -398,7 +403,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             Map<String, Double> tagMap = new HashMap<String, Double>();
             // Add the tags normalised by the size of the biggest one
             for (String tag : tagCloud.keySet()) {
-                tagMap.put(tagCloud.get(tag).getWidget().getText(), tagCloud.get(tag).getWidget().getCurrentSize()/maxSize);
+                // @todo remove lowercase when engine is fixed
+                tagMap.put(tagCloud.get(tag).getWidget().getText().toLowerCase(), tagCloud.get(tag).getWidget().getCurrentSize()/maxSize);
             }
             return tagMap;
         }
@@ -467,6 +473,10 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
                 if (tagCloud.size() == 1) {
                     maxSize = rT.getCurrentSize();
+                } else {
+                    if (rT.getCurrentSize() > maxSize) {
+                        maxSize = rT.getCurrentSize();
+                    }
                 }
 
                 if (updateRecommendations) {
@@ -588,12 +598,12 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
             public void updateColor(ColorConfig color, boolean allowSignFlip) {
                 this.color = color;
-                updateSize(0, true, allowSignFlip);
+                updateSize(0, true);
             }
 
-            public void updateSize(int increment, ColorConfig color, boolean allowSignFlip) {
+            public void updateSize(int increment, ColorConfig color) {
                 this.color = color;
-                updateSize(increment, true, allowSignFlip);
+                updateSize(increment, true);
             }
 
             /**
@@ -602,31 +612,31 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
              * @param modifyHasClicked modify the tag that is being dragged or all the others
              * @return the increment by which the other tags need to be resized if this tag has reached it's maximum or minimum size
              */
-            public double updateSize(double increment, boolean modifyHasClicked, boolean allowSignFlip) {
+            public double updateSize(double increment, boolean modifyHasClicked) {
                 double oldSize = currentSize;
                 if (hasClicked == modifyHasClicked) {
-                    // If a sign flip would occur and we don't allow it, set the tag's size
-                    // as the min value
-                    double sizePlusInc = currentSize + increment;
-                    if (!allowSignFlip && (
-                            (sizePlusInc * currentSize < 0 )) ||  // if we've crossed over
-                            (-MIN_SIZE < sizePlusInc && sizePlusInc < MIN_SIZE)) {  // if we're inbetween the two {+/-}MIN_SIZES;
-                        currentSize = currentSize / Math.abs(currentSize) * MIN_SIZE;
-                        Info.display("info","old size:"+oldSize+"    currSize:"+currentSize, new Params());
-                    } else {
-                        currentSize += increment;
-                        // If we're crossing from positive to negative
-                        if (-MIN_SIZE < currentSize && currentSize < MIN_SIZE) {
-                            currentSize = MIN_SIZE * increment / Math.abs(increment);
-                            return 0;
-                        } else if (Math.abs(currentSize) > MAX_SIZE) {
-                            double absCurrSize = Math.abs(currentSize);
-                            double diff = currentSize / absCurrSize * (MAX_SIZE - absCurrSize);
-                            currentSize = currentSize / absCurrSize * MAX_SIZE;
-                            return diff;
-                        }
+
+                    currentSize += increment;
+                    double diff = 0;
+                    if (Math.abs(currentSize) > MAX_SIZE) {
+                        double absCurrSize = Math.abs(currentSize);
+                        diff = currentSize / absCurrSize * (MAX_SIZE - absCurrSize);
+                        currentSize = currentSize / absCurrSize * MAX_SIZE;
                     }
+                    // If we're crossing from positive to negative
+                    if (-MIN_SIZE < currentSize && currentSize < MIN_SIZE) {
+                        currentSize = MIN_SIZE * increment / Math.abs(increment);
+                        diff = 0;
+                    }
+
+                    // If sign flip is not allowed and it happened, restore value
+                    if (!this.hasClicked && (oldSize * currentSize < 0)) {
+                        currentSize = MIN_SIZE * oldSize / Math.abs(oldSize);
+                    }
+
                     resetAttributes();
+
+                    return diff;
                 }
                 return 0;
             }
@@ -724,7 +734,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 smallMenuPanel.add(backButton);
                 smallMenuPanel.add(new SpannedLabel("   "));
             }
-            Label addAllButton = new Label("Add all tags");
+            Label addAllButton = new Label("Add top tags");
             addAllButton.setStyleName("headerMenuTinyItem");
             addAllButton.addClickListener(new ClickListener() {
 
@@ -858,7 +868,12 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             }
             for (ItemInfo i : iI) {
                 Label tagLbl = new Label(i.getItemName());
-                tagLbl.addClickListener(new TagClickListener(i));
+                tagLbl.addClickListener(new DataEmbededClickListener<ItemInfo>(i) {
+
+                    public void onClick(Widget arg0) {
+                        onItemClick(data);
+                    }
+                });
                 tagLbl.setStyleName("smallTagClick");
                 mainPanel.setWidget(lineIndex, 0, tagLbl);
                 mainPanel.setWidget(lineIndex, 1, WebLib.getSmallPopularityWidget(i.getPopularity()/maxValue, 75, true, false));
@@ -868,18 +883,6 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
         protected abstract void onItemClick(ItemInfo i);
 
-        public class TagClickListener implements ClickListener {
-
-            ItemInfo iI;
-
-            public TagClickListener(ItemInfo iI) {
-                this.iI = iI;
-            }
-
-            public void onClick(Widget arg0) {
-                onItemClick(iI);
-            }
-        }
     }
 
     public class SearchWidget extends AbstractSearchWidget {
@@ -922,8 +925,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 }
             });
 
-            setText("", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
-            updateSuggestBox(Oracles.ARTIST);
+            setText("", searchTypes.SEARCH_FOR_TAG_BY_TAG);
+            updateSuggestBox(Oracles.TAG);
 
             for (int i = 0; i < searchButtons.length; i++) {
                 searchType.add(searchButtons[i]);
