@@ -517,12 +517,11 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             public DeletableResizableTag(ResizableTag t) {
                 super(t);
 
-                xB.getElement().setAttribute("style",
-                        "display:none; margin-bottom: "+getXButtonMargin()+"px;");
+                xB.getElement().setAttribute("style", "margin-bottom: "+getXButtonMargin()+"px;");
             }
 
             private final double getXButtonMargin() {
-                return Math.abs(getWidget().getCurrentSize())*0.6;
+                return Math.abs(getWidget().getCurrentSize())*0.5;
             }
 
             public void setXButtonPosition() {

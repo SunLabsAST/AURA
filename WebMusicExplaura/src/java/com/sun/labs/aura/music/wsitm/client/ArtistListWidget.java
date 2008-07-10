@@ -176,24 +176,18 @@ public abstract class ArtistListWidget extends Composite {
 
 
             HorizontalPanel aNamePanel = new HorizontalPanel();
+            aNamePanel.setWidth("210px");
             aNamePanel.setSpacing(5);
             Label aName = new Label(aD.getName());
             aName.addClickListener(cL);
             aName.addStyleName("image");
             aNamePanel.add(aName);
+
+            HorizontalPanel buttonPanel = new HorizontalPanel();
+            buttonPanel.setSpacing(5);
             Widget spotify = WebLib.getSpotifyListenWidget(aD, 20);
             spotify.getElement().setAttribute("style", "align : right;");
-            aNamePanel.add(spotify);
-
-            SpannedLabel whyButton = new SpannedLabel("why?");
-            whyButton.addClickListener(new DataEmbededClickListener<String>(aD.getId()) {
-
-                public void onClick(Widget arg0) {
-
-                    openWhyPopup(data);
-                }
-            });
-            aNamePanel.add(whyButton);
+            buttonPanel.add(spotify);
 
             SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL,
                     new DataEmbededClickListener<String>(aD.getId()) {
@@ -202,7 +196,22 @@ public abstract class ArtistListWidget extends Composite {
                     History.newItem("steering:"+data);
                 }
             });
-            aNamePanel.add(steerButton);
+            buttonPanel.add(steerButton);
+
+            SpannedLabel whyButton = new SpannedLabel("why?");
+            whyButton.getElement().setAttribute("style", "font-size: 12px");
+            whyButton.addStyleName("pointer");
+            whyButton.addClickListener(new DataEmbededClickListener<String>(aD.getId()) {
+
+                public void onClick(Widget arg0) {
+
+                    openWhyPopup(data);
+                }
+            });
+            buttonPanel.add(whyButton);
+
+            aNamePanel.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+            aNamePanel.add(buttonPanel);
 
             txtPanel.add(aNamePanel);
 

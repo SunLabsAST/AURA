@@ -25,7 +25,8 @@ public abstract class DeletableWidget <T extends Widget> extends Composite
     
     protected Panel mainPanel; // panel containing the main widget and the close button
     protected T w; // main widget
-    protected Widget xB; // close button
+    protected SwapableImage xB; // close button
+    protected Widget xBHidden; // close button
     protected boolean isHovering = false;
 
     private MouseListenerCollection mouseListeners;
@@ -44,15 +45,16 @@ public abstract class DeletableWidget <T extends Widget> extends Composite
         this.w = w;
         this.mainPanel = mainPanel;
 
-        xB = new Image("green-x.jpg");
-        xB.getElement().setAttribute("style", "vertical-align:top; display:none; margin-top: 3px;");
+        xB = new SwapableImage("green-x.jpg","green-x-hidden.jpg");
+        xB.getElement().setAttribute("style", "vertical-align:top; margin-top: 3px;");
+        xB.setImg2();
 
         addWidgetsToPanel();
         initWidget(this.mainPanel);
         addListenersToWidgets();
     }
   
-    public DeletableWidget(T w, Panel mainPanel, Widget xButton) {
+    public DeletableWidget(T w, Panel mainPanel, SwapableImage xButton) {
         super();
 
         this.w = w;
@@ -82,7 +84,8 @@ public abstract class DeletableWidget <T extends Widget> extends Composite
 
             public void onMouseEnter(Widget arg0) {
                 isHovering = true;
-                xB.setVisible(true);
+                //xB.setVisible(true);
+                xB.setImg1();
             }
 
             public void onMouseLeave(Widget arg0) {
@@ -90,7 +93,8 @@ public abstract class DeletableWidget <T extends Widget> extends Composite
 
                     public void run() {
                         if (!isHovering) {
-                            xB.setVisible(false);
+                            //xB.setVisible(false);
+                            xB.setImg2();
                         }
                     }
                 };

@@ -44,6 +44,7 @@ public class SteeringWheelWidget extends Image {
         addClickListener(cL);
         setUrl(steerImage);
         setTitle("Get steerable recommendations starting with this artist");
+        addStyleName("pointer");
 
         this.addMouseListener(new MouseListener() {
 
