@@ -10,6 +10,7 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
@@ -54,6 +55,10 @@ public abstract class ArtistListWidget extends Composite {
     }
 
     public abstract void openWhyPopup(String artistID);
+    
+    public void onTagClick(ItemInfo tag) {
+        History.newItem("tag:"+tag.getId());
+    }
 
     public void updateWidget(ArtistCompact[] aDArray) {
         if (this.aDArray!=aDArray) {
@@ -130,7 +135,7 @@ public abstract class ArtistListWidget extends Composite {
      * @param n number of tags
      * @return comma seperated string
      */
-    private String getNDistinctiveTags(ArtistCompact aD, int n) {
+    private Panel getNDistinctiveTags(ArtistCompact aD, int n) {
 
         List<ItemInfo> tagList = new ArrayList<ItemInfo>();
         for (ItemInfo i : aD.getDistinctiveTags()) {
@@ -138,14 +143,24 @@ public abstract class ArtistListWidget extends Composite {
         }
         Collections.sort(tagList, ItemInfo.getScoreSorter());
 
-        String tags = "";
+        FlowPanel tagPanel = new FlowPanel();
         for (int i = 0; i < tagList.size(); i++) {
-            tags += tagList.get(i).getItemName() + ", ";
+            SpannedLabel t = new SpannedLabel(tagList.get(i).getItemName());
+            t.addStyleName("pointer");
+            t.addClickListener(new DataEmbededClickListener<ItemInfo>(tagList.get(i)) {
+
+                public void onClick(Widget arg0) {
+                    onTagClick(data);
+                }
+            });
+            tagPanel.add(t);
             if (i == n) {
                 break;
+            } else {
+                tagPanel.add(new SpannedLabel(", "));
             }
         }
-        return tags.substring(0, tags.length() - 2);
+        return tagPanel;
     }
 
     public class ArtistPanel extends Composite {
@@ -215,7 +230,7 @@ public abstract class ArtistListWidget extends Composite {
 
             txtPanel.add(aNamePanel);
 
-            Label tagsLabel = new Label(getNDistinctiveTags(aD, 4));
+            Panel tagsLabel = getNDistinctiveTags(aD, 4);
             tagsLabel.setStyleName("recoTags");
             txtPanel.add(tagsLabel);
 

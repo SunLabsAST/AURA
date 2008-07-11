@@ -54,7 +54,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         mP = new MainPanel();
         registerLoginListener(mP);
         initWidget(mP);
-        onHistoryChanged(History.getToken());
+        //onHistoryChanged(History.getToken());
     }
 
     public List<String> getTokenHeaders() {
@@ -1059,6 +1059,10 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
             super(musicServer, cdm, aDArray);
             this.tagLand = tagLand;
+        }
+
+        public void onTagClick(ItemInfo tag) {
+            tagLand.addTag(tag, true);
         }
 
         public void openWhyPopup(String artistID) {
