@@ -197,8 +197,8 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         return l;
     }
 
-    public MenuItem getMenuTitle() {
-        return new MenuItem("Search",new ClickListener() {
+    protected void initMenuItem() {
+        menuItem = new MenuItem("Search",new ClickListener() {
 
                 public void onClick(Widget arg0) {
                     History.newItem(cdm.getCurrSearchWidgetToken());

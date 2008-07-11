@@ -30,6 +30,7 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -56,6 +57,7 @@ public class PageHeaderWidget extends Swidget {
     public PageHeaderWidget(ClientDataManager cdm) {
         super("pageHeader",cdm);
         this.cdm=cdm;
+        menuItems = new ArrayList<MenuItem>();
         initWidget(getWidget());
     }
     
@@ -100,6 +102,10 @@ public class PageHeaderWidget extends Swidget {
     public void setMenuItems(List<MenuItem> mI) {
         this.menuItems = mI;
         mm.update();
+    }
+
+    public void updateSelectedMenuItem() {
+
     }
 
     private void populateMainPanel() {
@@ -427,8 +433,9 @@ public class PageHeaderWidget extends Swidget {
         return new LinkedList<String>();
     }
 
-    public MenuItem getMenuTitle() {
-        return null;
+    protected void initMenuItem() {
+        // this does not have a menu
+        menuItem = new MenuItem();
     }
 
     public class MainMenu extends LoginListener {
@@ -459,6 +466,7 @@ public class PageHeaderWidget extends Swidget {
                         Label sLabel = new Label(mI.getName());
                         sLabel.addClickListener(mI.getClickListener());
                         sLabel.setStyleName("headerMenuMedItem");
+                        mI.setLabel(sLabel);
                         hP.add(sLabel);
                     }
                 }

@@ -64,8 +64,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         return l;
     }
 
-    public MenuItem getMenuTitle() {
-        return new MenuItem("Steering",MenuItem.getDefaultTokenClickListener("steering:"),false,1);
+    protected void initMenuItem() {
+        menuItem = new MenuItem("Steering",MenuItem.getDefaultTokenClickListener("steering:"),false,1);
     }
 
     public void onHistoryChanged(String historyToken) {

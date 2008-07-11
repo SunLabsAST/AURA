@@ -55,8 +55,9 @@ public class ProfileWidget extends Swidget {
         return l;
     }
 
-    public MenuItem getMenuTitle() {
-        return null;
+    protected void initMenuItem() {
+        // no menu
+        menuItem = new MenuItem();
     }
 
     private void updateMainPanel() {

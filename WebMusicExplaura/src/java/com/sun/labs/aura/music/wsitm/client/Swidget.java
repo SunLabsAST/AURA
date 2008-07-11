@@ -33,12 +33,15 @@ public abstract class Swidget extends Composite {
     protected MusicSearchInterfaceAsync musicServer;
     protected ClientDataManager cdm;
 
+    protected MenuItem menuItem;
+
     private Set<LoginListener> listeners;
 
     public Swidget(String name, ClientDataManager cdm) {
         this.name = name;
         this.cdm = cdm;
         listeners = new HashSet<LoginListener>();
+        initMenuItem();
         initRPC();
     }
 
@@ -52,7 +55,11 @@ public abstract class Swidget extends Composite {
      * Returns this sections' title as it should appear in the top menu
      * @return null if not to appear in to menu
      */
-    public abstract MenuItem getMenuTitle();
+    public final MenuItem getMenuItem() {
+        return menuItem;
+    };
+
+    protected abstract void initMenuItem();
 
     /**
      * Gets called when the swidget is displayed. By default, this does nothing.

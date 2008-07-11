@@ -46,16 +46,18 @@ public class Main implements EntryPoint, HistoryListener {
     /** Creates a new instance of Main */
     public Main() {
 
-        History.addHistoryListener(this);
-        tokenHeadersMap = new HashMap<String, Swidget>();
-        cdm = new ClientDataManager();
     }
     
     public void onModuleLoad() {
+
+        History.addHistoryListener(this);
+        tokenHeadersMap = new HashMap<String, Swidget>();
+        cdm = new ClientDataManager();
+
         RootPanel.get().add(getMainPanel());
         showResults(History.getToken());
     }
-    
+
     Widget getMainPanel() {
         DockPanel mainPanel = new DockPanel();
         mainPanel.setHorizontalAlignment(VerticalPanel.ALIGN_CENTER);
@@ -81,16 +83,16 @@ public class Main implements EntryPoint, HistoryListener {
         Swidget dashboard = new DashboardSwidget(cdm);
         registerTokenHeaders(dashboard);
         cdm.registerSwidget(dashboard);
-        menuItems.add(dashboard.getMenuTitle());
+        menuItems.add(dashboard.getMenuItem());
 
         Swidget steeringRec = new SteeringSwidget(cdm);
         registerTokenHeaders(steeringRec);
         cdm.registerSwidget(steeringRec);
-        menuItems.add(steeringRec.getMenuTitle());
+        menuItems.add(steeringRec.getMenuItem());
 
         Swidget artistSearch = new SimpleSearchSwidget(cdm);
         registerTokenHeaders(artistSearch);
-        menuItems.add(artistSearch.getMenuTitle());
+        menuItems.add(artistSearch.getMenuItem());
 
         PageHeaderWidget uP = new PageHeaderWidget(cdm);
         cdm.registerSwidget(uP);
@@ -134,10 +136,19 @@ public class Main implements EntryPoint, HistoryListener {
     private void showResults(String resultName) {
         String resultNameHeader = getResultNameHeader(resultName);
 
+        // Set all menu items as deselected
+        for (Swidget w : tokenHeadersMap.values()) {
+            w.getMenuItem().setNotSelected();
+        }
+
         if (tokenHeadersMap.containsKey(resultNameHeader)) {
-            setResults(resultName, tokenHeadersMap.get(resultNameHeader));
+            Swidget s = tokenHeadersMap.get(resultNameHeader);
+            s.getMenuItem().setSelected();
+            setResults(resultName, s);
         } else {
-            setResults("searchHome:", tokenHeadersMap.get("searchHome:"));
+            Swidget s = tokenHeadersMap.get("searchHome:");
+            s.getMenuItem().setSelected();
+            setResults("searchHome:", s);
         }
     }
 
