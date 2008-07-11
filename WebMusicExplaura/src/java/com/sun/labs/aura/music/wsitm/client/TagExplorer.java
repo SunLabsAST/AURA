@@ -119,4 +119,9 @@ public class TagExplorer extends Swidget {
         
         musicServer.getTagTree(callback);
     }
+
+    @Override
+    public MenuItem getMenuTitle() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

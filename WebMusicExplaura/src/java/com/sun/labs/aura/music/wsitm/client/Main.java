@@ -22,9 +22,10 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.TabPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -69,6 +70,8 @@ public class Main implements EntryPoint, HistoryListener {
         });
         title.setStyleName("title");
 
+        List<MenuItem> menuItems = new ArrayList<MenuItem>();
+
         contentPanel = new FlowPanel();
 
         Swidget userPref = new ProfileWidget(cdm);
@@ -78,13 +81,16 @@ public class Main implements EntryPoint, HistoryListener {
         Swidget dashboard = new DashboardSwidget(cdm);
         registerTokenHeaders(dashboard);
         cdm.registerSwidget(dashboard);
+        menuItems.add(dashboard.getMenuTitle());
 
         Swidget steeringRec = new SteeringSwidget(cdm);
         registerTokenHeaders(steeringRec);
         cdm.registerSwidget(steeringRec);
+        menuItems.add(steeringRec.getMenuTitle());
 
         Swidget artistSearch = new SimpleSearchSwidget(cdm);
         registerTokenHeaders(artistSearch);
+        menuItems.add(artistSearch.getMenuTitle());
 
         PageHeaderWidget uP = new PageHeaderWidget(cdm);
         cdm.registerSwidget(uP);
@@ -93,7 +99,8 @@ public class Main implements EntryPoint, HistoryListener {
         mainPanel.add(uP, DockPanel.NORTH);
         mainPanel.add(title, DockPanel.NORTH);
         mainPanel.add(contentPanel, DockPanel.CENTER);
-        
+
+        uP.setMenuItems(menuItems);
 
         Panel footer = new HorizontalPanel();
         footer.add(new HTML("<hr/> Powered by Sun Microsystems, Last.fm, Spotify, Wikipedia, Flickr, Youtube, Yahoo, Musicbrainz, Upcoming and Amazon"));

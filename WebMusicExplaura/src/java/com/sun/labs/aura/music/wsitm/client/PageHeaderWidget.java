@@ -30,6 +30,7 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,9 @@ public class PageHeaderWidget extends Swidget {
 
     private Grid mainPanel;
     private TextBox txtbox;
+
+    private List<MenuItem> menuItems;
+    private MainMenu mm;
 
     // toolbar objects
     private ToolBar toolBar;
@@ -83,7 +87,7 @@ public class PageHeaderWidget extends Swidget {
 
         //
         // Set the section menu
-        MainMenu mm = new MainMenu();
+        mm = new MainMenu();
         registerLoginListener(mm);
         mainPanel.setWidget(0, 1, mm);
 
@@ -91,6 +95,11 @@ public class PageHeaderWidget extends Swidget {
      
         return mainPanel;
         
+    }
+
+    public void setMenuItems(List<MenuItem> mI) {
+        this.menuItems = mI;
+        mm.update();
     }
 
     private void populateMainPanel() {
@@ -418,6 +427,10 @@ public class PageHeaderWidget extends Swidget {
         return new LinkedList<String>();
     }
 
+    public MenuItem getMenuTitle() {
+        return null;
+    }
+
     public class MainMenu extends LoginListener {
 
         private Grid p;
@@ -439,6 +452,19 @@ public class PageHeaderWidget extends Swidget {
             HorizontalPanel hP = new HorizontalPanel();
             hP.setSpacing(8);
 
+            if (menuItems !=null && menuItems.size()>0) {
+                Collections.sort(menuItems, MenuItem.getOrderComparator());
+                for (MenuItem mI : menuItems) {
+                    if (!mI.mustBeLoggedIn() || (mI.mustBeLoggedIn() && loggedIn)) {
+                        Label sLabel = new Label(mI.getName());
+                        sLabel.addClickListener(mI.getClickListener());
+                        sLabel.setStyleName("headerMenuMedItem");
+                        hP.add(sLabel);
+                    }
+                }
+            }
+
+            /*
             Label sLabel = new Label("Search");
             sLabel.addClickListener(new ClickListener() {
 
@@ -471,7 +497,7 @@ public class PageHeaderWidget extends Swidget {
                 sLabel.setStyleName("headerMenuMedItem");
                 hP.add(sLabel);
             } 
-
+*/
             p.setWidget(0, 0, hP);
         }
 

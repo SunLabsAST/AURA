@@ -197,6 +197,14 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         return l;
     }
 
+    public MenuItem getMenuTitle() {
+        return new MenuItem("Search",new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    History.newItem(cdm.getCurrSearchWidgetToken());
+                }
+            },false,0);
+    }
 
     private void showResults(String resultName) {
 
@@ -397,13 +405,12 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
-                // do some UI stuff to show success
                 TagDetails tagDetails = (TagDetails) result;
                 if (tagDetails != null && tagDetails.isOK()) {
                     Widget tagPanel = createTagPanel("Tags", tagDetails);
                     search.setText(tagDetails.getName(), searchTypes.SEARCH_FOR_TAG_BY_TAG);
                     search.updateSuggestBox(Oracles.TAG);
-                    setResults(tagDetails.getId(), tagPanel);
+                    setResults("tag:"+tagDetails.getId(), tagPanel);
                     clearMessage();
                 } else {
                     if (tagDetails == null) {

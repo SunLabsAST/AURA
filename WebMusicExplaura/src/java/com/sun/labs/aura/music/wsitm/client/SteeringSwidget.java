@@ -54,6 +54,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         mP = new MainPanel();
         registerLoginListener(mP);
         initWidget(mP);
+        onHistoryChanged(History.getToken());
     }
 
     public List<String> getTokenHeaders() {
@@ -61,6 +62,10 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         List<String> l = new ArrayList<String>();
         l.add("steering:");
         return l;
+    }
+
+    public MenuItem getMenuTitle() {
+        return new MenuItem("Steering",MenuItem.getDefaultTokenClickListener("steering:"),false,1);
     }
 
     public void onHistoryChanged(String historyToken) {

@@ -47,7 +47,9 @@ public class DashboardSwidget extends Swidget {
         return l;
     }
 
-
+    public MenuItem getMenuTitle() {
+        return new MenuItem("Dashboard",MenuItem.getDefaultTokenClickListener("dashboard:"),true,3);
+    }
 
     private class MainPanel extends LoginListener {
 

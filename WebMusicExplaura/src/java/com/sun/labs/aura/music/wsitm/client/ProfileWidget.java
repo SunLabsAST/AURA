@@ -55,6 +55,10 @@ public class ProfileWidget extends Swidget {
         return l;
     }
 
+    public MenuItem getMenuTitle() {
+        return null;
+    }
+
     private void updateMainPanel() {
         if (cdm.isLoggedIn()) {
             mainPanel.add(getProfileWidget());

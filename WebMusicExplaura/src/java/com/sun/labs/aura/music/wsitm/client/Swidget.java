@@ -49,6 +49,12 @@ public abstract class Swidget extends Composite {
     public abstract List<String> getTokenHeaders();
 
     /**
+     * Returns this sections' title as it should appear in the top menu
+     * @return null if not to appear in to menu
+     */
+    public abstract MenuItem getMenuTitle();
+
+    /**
      * Gets called when the swidget is displayed. By default, this does nothing.
      * Usefull for swidgets that might block out content out content is user is
      * not logged in and still have that cached when he returns and might have
