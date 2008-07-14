@@ -208,6 +208,7 @@ public abstract class ArtistListWidget extends Composite {
                     new DataEmbededClickListener<String>(aD.getId()) {
 
                 public void onClick(Widget arg0) {
+                    cdm.setSteerableReset(true);
                     History.newItem("steering:"+data);
                 }
             });

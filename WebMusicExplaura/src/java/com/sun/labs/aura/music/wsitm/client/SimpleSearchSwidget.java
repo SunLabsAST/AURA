@@ -549,6 +549,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                 new DataEmbededClickListener<String>(artistDetails.getId()) {
 
             public void onClick(Widget arg0) {
+                cdm.setSteerableReset(true);
                 History.newItem("steering:"+data);
             }
         });
@@ -1150,7 +1151,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         @Override
         protected void triggerAction(int index) {
             HTML html = new HTML(aP[index].getRichHtmlWrapper());
-            Popup.showPopup(html,"WebMusicExplaura :: Flick Photo");
+            Popup.showPopup(html,"WebMusicExplaura :: Flickr Photo");
         }
 
     }

@@ -70,7 +70,10 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
     public void onHistoryChanged(String historyToken) {
         if (historyToken.startsWith("steering:")) {
-            if (historyToken.length() > 9) {
+            //
+            // Only reset if artist id is in querystring and we aksed
+            if (historyToken.length() > 9 && cdm.getSteerableReset()) {
+                cdm.setSteerableReset(false);
                 mP.loadArtistCloud(historyToken.substring(9));
             }
         }
@@ -102,9 +105,6 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             hP.add(new SpannedLabel("Recommendations"));
 
             refreshingPanel = new FlowPanel();
-            //SpannedLabel refreshing = new SpannedLabel("Refreshing");
-            //refreshing.setStyleName("smallItalicExplanation");
-            //refreshingPanel.add(refreshing);
             refreshingPanel.add(new Image("ajax-loader-small.gif "));
             refreshingPanel.setVisible(false);
 
@@ -278,6 +278,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
     public class ResizableTagWidget extends Composite {
 
         private Map<String, DeletableResizableTag> tagCloud;
+        private boolean hasChanged = false; // did the tagCloud change and recommendations need to be updated
 
         private double maxSize = 0.1;
 
@@ -290,7 +291,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         private int lastX;
         private int lastY;
         
-        int colorIndex = 1;
+        private int colorIndex = 1;
         
         private ColorConfig[] color;
 
@@ -304,7 +305,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             }
 
             fP = new FocusPanel();
-            fP.setWidth("500px");
+            fP.setWidth(panelWidth+"px");
             fP.setHeight("450px");
             flowP = new FlowPanel();
             flowP.setWidth("500px");
@@ -351,11 +352,19 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                         double diff = 0;
                         maxSize = 0; // reset maxsize to deal with when the top tag is scaled down
                         for (DeletableResizableTag dW : tagCloud.values()) {
+                            double oldSize = dW.getWidget().getCurrentSize();
                             double tempDiff = dW.getWidget().updateSize(increment, true);
-                            dW.setXButtonPosition();
+
+                            if (oldSize != dW.getWidget().getCurrentSize()) {
+                                hasChanged = true;
+
+                                dW.setXButtonPosition();
+                            }
+
                             if (tempDiff != 0) {
                                 diff = tempDiff;
                             }
+
                             if (Math.abs(dW.getWidget().getCurrentSize())>maxSize) {
                                 maxSize = Math.abs(dW.getWidget().getCurrentSize());
                             }
@@ -367,8 +376,15 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                         if (diff != 0) {
                             diff = diff / (tagCloud.size()-1);
                             for (DeletableResizableTag dW : tagCloud.values()) {
+                                double oldSize = dW.getWidget().getCurrentSize();
                                 dW.getWidget().updateSize(diff, false);
-                                dW.setXButtonPosition();
+
+                                if (oldSize != dW.getWidget().getCurrentSize()) {
+                                    hasChanged = true;
+
+                                    dW.setXButtonPosition();
+                                }
+
                                 if (Math.abs(dW.getWidget().getCurrentSize())>maxSize) {
                                     maxSize = Math.abs(dW.getWidget().getCurrentSize());
                                 }
@@ -391,7 +407,10 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         }
 
         public void updateRecommendations() {
-            mainPanel.invokeFetchNewRecommendations();
+            if (hasChanged) {
+                hasChanged = false;
+                mainPanel.invokeFetchNewRecommendations();
+            }
         }
 
         protected void onAttach() {
@@ -451,6 +470,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 addTag(i, i.getScore() * maxTagSize, false);
             }
 
+            hasChanged = true;
             DeferredCommand.addCommand(new Command() {
                 public void execute() {
                     updateRecommendations();
@@ -484,6 +504,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                     }
                 }
 
+                hasChanged = true;
                 if (updateRecommendations) {
                     updateRecommendations();
                 }
@@ -497,6 +518,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 redrawTagCloud();
             }
 
+            hasChanged = true;
             updateRecommendations();
         }
 
@@ -505,6 +527,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             flowP.clear();
             colorIndex=1;
 
+            hasChanged = true;
             if (updateRecommendations) {
                 updateRecommendations();
             }
