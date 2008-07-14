@@ -84,7 +84,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         private DockPanel dP;
         private Grid mainTagPanel;
         private Grid mainArtistListPanel;
-        private ResizableTagWidget tagLand;
+        private TagWidget tagLand;
         private VerticalPanel savePanel;
         private SearchWidget search;
         private FlowPanel searchBoxContainerPanel;
@@ -164,7 +164,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
             //
             // North 2
-            tagLand = new ResizableTagWidget(this);
+            tagLand = new TagMeterWidget(this); //new ResizableTagWidget(this);
             dP.add(tagLand, DockPanel.NORTH);
 
             // Right again
@@ -275,7 +275,168 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         }
     }
 
-    public class ResizableTagWidget extends Composite {
+    public abstract class TagWidget extends Composite {
+
+        protected MainPanel mainPanel;
+
+        public TagWidget(MainPanel mainPanel) {
+            this.mainPanel = mainPanel;
+        }
+
+        public void updateRecommendations() {
+            mainPanel.invokeFetchNewRecommendations();
+        }
+        public abstract Map<String, Double> getTapMap();
+        public abstract void addTags(ItemInfo[] tag);
+        public abstract void addTag(ItemInfo tag, boolean updateRecommendations) ;
+        public abstract void addTag(ItemInfo tag, double tagSize, boolean updateRecommendations);
+        public abstract void removeTag(String tagId);
+        public abstract void removeAllTags(boolean updateRecommendations);
+        public abstract void redrawTagCloud();
+
+    }
+
+    public class TagMeterWidget extends TagWidget {
+
+        private final static int DEFAULT_TAG_VALUE = 5;
+
+        private VerticalPanel mainTagPanel;
+
+        private Map<String, TagMeter> tagCloud;
+        private double maxSize = 1;
+
+        public TagMeterWidget(MainPanel mainPanel) {
+            super(mainPanel);
+            mainTagPanel = new VerticalPanel();
+            tagCloud = new HashMap<String, TagMeter>();
+            initWidget(mainTagPanel);
+        }
+
+        public Map<String, Double> getTapMap() {
+            Map<String, Double> tagMap = new HashMap<String, Double>();
+            for (String key : tagCloud.keySet()) {
+                // @todo remove lowercase when funny business in engine is fixed
+                tagMap.put(key.toLowerCase(), tagCloud.get(key).getRating()/maxSize);
+            }
+            return tagMap;
+        }
+
+        public void addTags(ItemInfo[] tag) {
+            Window.alert("Not supported yet.");
+        }
+
+        public void addTag(ItemInfo tag, boolean updateRecommendations) {
+            addTag(tag, DEFAULT_TAG_VALUE, updateRecommendations);
+        }
+
+        public void addTag(ItemInfo tag, double tagSize, boolean updateRecommendations) {
+            TagMeter tM = new TagMeter(tag, (int)tagSize);
+            mainTagPanel.add(tM);
+            tagCloud.put(tag.getItemName(), tM);
+
+            if (updateRecommendations) {
+                updateRecommendations();
+            }
+        }
+
+        public void removeTag(String tagId) {
+            mainTagPanel.remove(tagCloud.get(tagId));
+            tagCloud.remove(tagId);
+        }
+
+        public void removeAllTags(boolean updateRecommendations) {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        public void redrawTagCloud() {
+            // Not applicable to this implementation
+        }
+
+        public class TagMeter extends Composite {
+
+            private static final String REMOVE_BUTTON_URL = "remove.jpg";
+            private static final String GREEN_METER_OFF = "meter-green-off.jpg";
+            private static final String GREEN_METER_ON = "meter-green-on.jpg";
+
+            private ItemInfo tag;
+            private int rating;
+
+            private Grid mainPanel;
+
+            private TagMeter(ItemInfo tag, int initialRating) {
+                this.tag = tag;
+                this.rating = initialRating;
+
+                mainPanel = new Grid(1,3);
+
+                Image removeButton = new Image(REMOVE_BUTTON_URL);
+                removeButton.addClickListener(new DataEmbededClickListener<String>(tag.getItemName()) {
+
+                    public void onClick(Widget arg0) {
+                       removeTag(data);
+                    }
+                });
+
+                mainPanel.setWidget(0, 0, removeButton);
+                mainPanel.setWidget(0, 1, new Label(tag.getItemName()));
+                redrawMeter();
+                initWidget(mainPanel);
+            }
+
+            private void redrawMeter() {
+
+                HorizontalPanel meter = new HorizontalPanel();
+                meter.setSpacing(2);
+                for (int i=0; i<10; i++) {
+
+                    Image led;
+                    if (i<rating) {
+                        led = new Image("meter-green-off.jpg");
+                    } else {
+                        led = new Image("meter-green-on.jpg");
+                    }
+                    led.setHeight("20px");
+                    led.addClickListener(new DataEmbededClickListener<Integer>(i) {
+
+                        public void onClick(Widget arg0) {
+                            rating = data;
+                            redrawMeter();
+                            updateRecommendations();
+                        }
+                    });
+                    led.addMouseListener(new DataEmbededMouseListener<Image>(led) {
+
+                        public void onMouseEnter(Widget arg0) {
+                            //data.setUrl("meter-green-on.jpg");
+                        }
+
+                        public void onMouseLeave(Widget arg0) {
+                            //data.setUrl("meter-green-off.jpg");
+                        }
+                        public void onMouseDown(Widget arg0, int arg1, int arg2) {}
+                        public void onMouseMove(Widget arg0, int arg1, int arg2) {}
+                        public void onMouseUp(Widget arg0, int arg1, int arg2) {}
+                    });
+
+                    meter.add(led);
+                }
+                mainPanel.setWidget(0, 2, meter);
+
+            }
+
+            public int getRating() {
+                return rating;
+            }
+
+            public String getName() {
+                return tag.getItemName();
+            }
+
+        }
+
+    }
+
+    public class ResizableTagWidget extends TagWidget {
 
         private Map<String, DeletableResizableTag> tagCloud;
         private boolean hasChanged = false; // did the tagCloud change and recommendations need to be updated
@@ -286,8 +447,6 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         private FocusPanel fP;
         private FlowPanel flowP;
 
-        private MainPanel mainPanel;
-
         private int lastX;
         private int lastY;
         
@@ -297,7 +456,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
         public ResizableTagWidget(MainPanel mainPanel) {
 
-            this.mainPanel = mainPanel;
+            super(mainPanel);
 
             int panelWidth = 480;
             if (Window.getClientWidth()>1024) {
@@ -409,7 +568,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public void updateRecommendations() {
             if (hasChanged) {
                 hasChanged = false;
-                mainPanel.invokeFetchNewRecommendations();
+                super.updateRecommendations();
             }
         }
 
@@ -717,9 +876,9 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         private ItemInfo[] mainItems;
         private ItemInfo[] subItems = null;
 
-        private ResizableTagWidget tagLand;
+        private TagWidget tagLand;
 
-        public ItemInfoHierarchyWidget(ItemInfo[] iI, ResizableTagWidget tagLand) {
+        public ItemInfoHierarchyWidget(ItemInfo[] iI, TagWidget tagLand) {
             mainItems = iI;
             this.tagLand = tagLand;
 
@@ -915,11 +1074,11 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
     public class SearchWidget extends AbstractSearchWidget {
 
         private Grid mainTagPanel;
-        private ResizableTagWidget tagLand;
+        private TagWidget tagLand;
 
         public SearchWidget(MusicSearchInterfaceAsync musicServer,
             ClientDataManager cdm, Panel searchBoxContainerPanel, Grid mainTagPanel,
-            ResizableTagWidget tagLand) {
+            TagWidget tagLand) {
 
             super(musicServer, cdm, searchBoxContainerPanel);
 
@@ -1075,10 +1234,10 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
     public class ArtistCloudArtistListWidget extends ArtistListWidget {
 
-        private ResizableTagWidget tagLand;
+        private TagWidget tagLand;
 
         public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
-                ClientDataManager cdm, ArtistCompact[] aDArray, ResizableTagWidget tagLand) {
+                ClientDataManager cdm, ArtistCompact[] aDArray, TagWidget tagLand) {
 
             super(musicServer, cdm, aDArray);
             this.tagLand = tagLand;
