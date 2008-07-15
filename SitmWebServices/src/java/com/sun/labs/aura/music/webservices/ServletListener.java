@@ -25,18 +25,21 @@ public class ServletListener implements ServletContextListener {
     protected Logger logger = Logger.getLogger("");
 
     public void contextInitialized(ServletContextEvent sce) {
+        logger.warning("ServletListener here!");
         try {
             ServletContext context = sce.getServletContext();
             URL config = context.getResource("/sitmWebConfig.xml");
             try {
                 ConfigurationManager cm = new ConfigurationManager();
+                logger.warning("cm is " + cm);
                 cm.addProperties(config);
                 context.setAttribute("configManager", cm);
                 DataStore dataStore = (DataStore) cm.lookup("dataStoreHead");
-                context.setAttribute("MusicDatabase", new MusicDatabase(dataStore));
+                logger.warning("datastore is " + dataStore);
                 if (dataStore == null) {
                     logger.severe("Can't connect to datastore");
                 }
+                context.setAttribute("MusicDatabase", new MusicDatabase(dataStore));
             } catch (IOException ioe) {
                 logger.log(Level.SEVERE, "Failed to get datastore handle", ioe);
             } catch (AuraException ex) {
