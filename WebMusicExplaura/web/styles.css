@@ -17,6 +17,11 @@ body {
     line-height: 17px;
     font-weight: normal;
 }
+.noDrag {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  user-select: none;
+}
 .artistPanel {
 
 }
