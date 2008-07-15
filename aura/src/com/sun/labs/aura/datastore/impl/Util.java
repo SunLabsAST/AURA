@@ -72,7 +72,7 @@ public class Util {
     public static boolean isEmpty(AttentionConfig ac) {
         if (ac.getSourceKey() == null &&
                 ac.getTargetKey() == null &&
-                ac.getTargetKey() == null &&
+                ac.getType() == null &&
                 ac.getStringVal() == null &&
                 ac.getNumberVal() == null) {
             return true;
