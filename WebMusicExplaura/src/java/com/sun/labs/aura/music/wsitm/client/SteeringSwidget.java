@@ -1492,10 +1492,10 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             tagLand.addTag(tag, true);
         }
 
-        public void openWhyPopup(String artistID) {
-            Info.display("Information","Fetching common tags", new Params());
-            TagDisplayLib.invokeGetCommonTags(tagLand.getTapMap(), artistID,
-                    musicServer, cdm, new CommonTagsAsyncCallback() {});
+        public void openWhyPopup(WhyButton why) {
+            why.showLoad();
+            TagDisplayLib.invokeGetCommonTags(tagLand.getTapMap(), why.getId(),
+                    musicServer, cdm, new CommonTagsAsyncCallback(why) {});
         }
     }
 }

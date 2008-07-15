@@ -54,7 +54,7 @@ public abstract class ArtistListWidget extends Composite {
         invokeFetchRatings();
     }
 
-    public abstract void openWhyPopup(String artistID);
+    public abstract void openWhyPopup(WhyButton why);
     
     public void onTagClick(ItemInfo tag) {
         History.newItem("tag:"+tag.getId());
@@ -75,7 +75,6 @@ public abstract class ArtistListWidget extends Composite {
             for (ArtistCompact aD : aDArray) {
                 Image img = new Image("not-interested-vert.jpg");
                 img.getElement().setAttribute("style", "vertical-align:top; display:none;");
-                //vP.add(new DeletableWidget(new ArtistPanel(aD), new HorizontalPanel(), img) {
                 vP.add(new DeletableWidget(new ArtistPanel(aD), new HorizontalPanel()) {
                     public void onDelete() {
                         ((VerticalPanel) g.getWidget(0, 0)).remove(this);
@@ -91,42 +90,41 @@ public abstract class ArtistListWidget extends Composite {
 
     private void invokeFetchRatings() {
 
-            AsyncCallback callback = new AsyncCallback() {
+        AsyncCallback callback = new AsyncCallback() {
 
-                public void onSuccess(Object result) {
-                    Map<String,Integer> map = (Map<String,Integer>)result;
-                    if (map!=null) {
-                       ratingMap = map;
-                    } else {
-                       ratingMap = new HashMap<String,Integer>();
-                    }
-
-                    g.setWidget(0, 0, getUpdatedPanel());
+            public void onSuccess(Object result) {
+                Map<String,Integer> map = (Map<String,Integer>)result;
+                if (map!=null) {
+                   ratingMap = map;
+                } else {
+                   ratingMap = new HashMap<String, Integer>();
                 }
-
-                public void onFailure(Throwable caught) {
-                    Window.alert("Error fetching ratings.");
-                }
-            };
-
-            if (cdm.getListenerDetails().loggedIn) {
-
-                g.setWidget(0, 0, new Image("ajax-loader.gif"));
-
-                Set<String> artistIDs = new HashSet<String>();
-                for (ArtistCompact aC : aDArray) {
-                    artistIDs.add(aC.getId());
-                }
-
-                try {
-                    musicServer.fetchUserSongRating(cdm.getListenerDetails(), artistIDs, callback);
-                } catch (WebException ex) {
-                    Window.alert(ex.getMessage());
-                }
-            } else {
-                ratingMap = new HashMap<String,Integer>();
                 g.setWidget(0, 0, getUpdatedPanel());
             }
+
+            public void onFailure(Throwable caught) {
+                Window.alert("Error fetching ratings.");
+            }
+        };
+
+        if (cdm.getListenerDetails().loggedIn) {
+
+            g.setWidget(0, 0, new Image("ajax-loader.gif"));
+
+            Set<String> artistIDs = new HashSet<String>();
+            for (ArtistCompact aC : aDArray) {
+                artistIDs.add(aC.getId());
+            }
+
+            try {
+                musicServer.fetchUserSongRating(cdm.getListenerDetails(), artistIDs, callback);
+            } catch (WebException ex) {
+                Window.alert(ex.getMessage());
+            }
+        } else {
+            ratingMap = new HashMap<String, Integer>();
+            g.setWidget(0, 0, getUpdatedPanel());
+        }
     }
 
     /**
@@ -214,17 +212,8 @@ public abstract class ArtistListWidget extends Composite {
             });
             buttonPanel.add(steerButton);
 
-            SpannedLabel whyButton = new SpannedLabel("why?");
-            whyButton.getElement().setAttribute("style", "font-size: 12px");
-            whyButton.addStyleName("pointer");
-            whyButton.addClickListener(new DataEmbededClickListener<String>(aD.getId()) {
-
-                public void onClick(Widget arg0) {
-
-                    openWhyPopup(data);
-                }
-            });
-            buttonPanel.add(whyButton);
+            WhyButton why = new WhyButton(aD.getId());
+            buttonPanel.add(why);
 
             aNamePanel.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
             aNamePanel.add(buttonPanel);
@@ -259,5 +248,52 @@ public abstract class ArtistListWidget extends Composite {
 
             initWidget(artistPanel);
         } 
+    }
+
+    public class WhyButton extends Composite {
+
+        private Grid g;
+        private SpannedLabel why;
+        private Image load;
+
+        private String id;
+
+        public WhyButton(String id) {
+
+            this.id = id;
+
+            g = new Grid(1,1);
+            g.setWidth("30px");
+            g.getCellFormatter().getElement(0, 0).setAttribute("style", "align: center;");
+
+            why = new SpannedLabel("why?");
+            why.getElement().setAttribute("style", "font-size: 12px");
+            why.addStyleName("pointer");
+
+            g.setWidget(0, 0, why);
+            initWidget(g);
+
+            why.addClickListener(new DataEmbededClickListener<WhyButton>(this) {
+
+                public void onClick(Widget arg0) {
+                    openWhyPopup(data);
+                }
+            });
+
+            load = new Image("ajax-loader-small.gif");
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void showWhy() {
+            g.setWidget(0, 0, why);
+        }
+
+        public void showLoad() {
+            g.setWidget(0, 0, load);
+        }
+
     }
 }

@@ -872,36 +872,13 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             this.currArtistId = currArtistId;
         }
 
-        public void openWhyPopup(String artistID) {
-            showMessage("Getting common tags", WebLib.ICON_WAIT);
-            TagDisplayLib.invokeGetCommonTags(currArtistId, artistID,
-                    musicServer, cdm, new SSSCommonTagsAsyncCallback());
+        public void openWhyPopup(WhyButton why) {
+            why.showLoad();
+            TagDisplayLib.invokeGetCommonTags(currArtistId, why.getId(),
+                    musicServer, cdm, new CommonTagsAsyncCallback(why) {});
         }
     }
 
-    public class SSSCommonTagsAsyncCallback extends CommonTagsAsyncCallback {
-
-        public void onCallback(ItemInfo[] results) {
-            clearMessage();
-        }
-    }
-
-/*
-    class CommonTagsClickListener implements ClickListener {
-
-        private String id1;
-        private String id2;
-
-        CommonTagsClickListener(String id1, String id2) {
-            this.id1 = id1;
-            this.id2 = id2;
-        }
-
-        public void onClick(Widget sender) {
-            invokeGetCommonTags(id1, id2);
-        }
-    }
-*/
     abstract class ScrollWidget extends Composite {
 
         protected ScrollItem[] items;
