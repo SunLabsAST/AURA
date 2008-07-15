@@ -38,6 +38,8 @@
             <li> <a href="GetItem?itemID=6fe07aa5-fec0-4eca-a456-f29bff451b04"> shows artist 'weezer'</a>
             <li> <a href="TagItem?userID=http://paul.lamere.myopenid.com/&itemID=6fe07aa5-fec0-4eca-a456-f29bff451b04&tag=weezercore"> apply a tag to weezer</a>
             <li> <a href="GetListenerTags?userID=http://paul.lamere.myopenid.com/&itemID=6fe07aa5-fec0-4eca-a456-f29bff451b04"> get tags applied to 'weezer'</a>
-        </ul>
+            <li> <a href="GetAttentionData?src=lamere&max=500">Get 500 attention data points for user lamere</a>
+      </ul>
+        
     </body>
 </html>
