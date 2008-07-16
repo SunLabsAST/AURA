@@ -16,6 +16,7 @@
     <body>
         <h2>SITM Web Service</h2>
         <ul>    
+            <li> <a href="GetStats"> Gets the system status</a>
             <li> <a href="FindSimilarArtist?name=weezer"> Artists Similar to Weezer </a>
             <li> <a href="FindSimilarArtist?name=beatles"> Artists Similar to The Beatles </a>
             <li> <a href="FindSimilarArtistFromWordCloud?wordCloud='(indie,1)(punk,1)(emo,.5)'"> Find Artists Similar to Word Cloud (indie, punk, emo)</a>
@@ -38,6 +39,8 @@
             <li> <a href="GetItem?itemID=6fe07aa5-fec0-4eca-a456-f29bff451b04"> shows artist 'weezer'</a>
             <li> <a href="TagItem?userID=http://paul.lamere.myopenid.com/&itemID=6fe07aa5-fec0-4eca-a456-f29bff451b04&tag=weezercore"> apply a tag to weezer</a>
             <li> <a href="GetListenerTags?userID=http://paul.lamere.myopenid.com/&itemID=6fe07aa5-fec0-4eca-a456-f29bff451b04"> get tags applied to 'weezer'</a>
-        </ul>
+            <li> <a href="GetAttentionData?src=lamere&max=500">Get 500 attention data points for user lamere</a>
+      </ul>
+        
     </body>
 </html>

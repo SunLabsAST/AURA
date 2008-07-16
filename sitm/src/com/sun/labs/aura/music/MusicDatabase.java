@@ -5,6 +5,8 @@
 package com.sun.labs.aura.music;
 
 import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.AttentionConfig;
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
@@ -142,7 +144,8 @@ public class MusicDatabase {
      */
     public void addPlayAttention(Listener listener, String artistID, int playCount) throws AuraException, RemoteException {
         for (int i = 0; i < playCount; i++) {
-            Attention attention = StoreFactory.newAttention(listener.getKey(), artistID, Attention.Type.PLAYED);
+            Attention attention = StoreFactory.newAttention(listener.getKey(), artistID,
+                    Attention.Type.PLAYED, Long.valueOf(playCount));
             dataStore.attend(attention);
         }
     }
@@ -176,19 +179,27 @@ public class MusicDatabase {
         if (numStars < 0 || numStars > 5) {
             throw new IllegalArgumentException("numStars must be between 0 and 5");
         }
-        Attention attention = StoreFactory.newAttention(listener.getKey(), artistID, Attention.Type.RATING, Long.valueOf(numStars));
+        Attention attention = StoreFactory.newAttention(listener.getKey(), artistID,
+                Attention.Type.RATING, Long.valueOf(numStars));
         dataStore.attend(attention);
     }
 
     public int getLatestRating(Listener listener, String artistID) throws AuraException, RemoteException {
-        // BUG: fix this when the new attention methods arrive
-        List<Attention> attns = dataStore.getLastAttentionForSource(listener.getKey(), Attention.Type.RATING, 10000);
-        for (Attention attn : attns) {
-            if (attn.getTargetKey().equals(artistID)) {
-                return attn.getNumber().intValue();
-            }
+        int rating = 0;
+        AttentionConfig ac = new AttentionConfig();
+        ac.setType(Attention.Type.RATING);
+        ac.setSourceKey(listener.getKey());
+        ac.setTargetKey(artistID);
+        List<Attention> attns = dataStore.getLastAttention(ac, 1);
+        if (attns.size() > 0) {
+            rating = (int) getNumber(attns.get(0));
         }
-        return 0;
+        return rating;
+    }
+
+    public long getNumber(Attention attn) {
+        Long val = attn.getNumber();
+        return val == null ? 0L : Long.valueOf(val);
     }
 
     /**
@@ -214,12 +225,15 @@ public class MusicDatabase {
      * @return
      */
     public List<String> getTags(Listener listener, String itemID) throws AuraException, RemoteException {
-        List<String> results = new ArrayList();
-        List<Attention> attns = dataStore.getLastAttentionForSource(listener.getKey(), Attention.Type.TAG, Integer.MAX_VALUE);
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(listener.getKey());
+        ac.setType(Attention.Type.TAG);
+        ac.setTargetKey(itemID);
+
+        List<Attention> attns = dataStore.getAttention(ac);
+        List<String> results = new ArrayList(attns.size());
         for (Attention attn : attns) {
-            if (attn.getTargetKey().equals(itemID)) {
-                results.add(attn.getString());
-            }
+            results.add(attn.getString());
         }
         return results;
     }
@@ -227,16 +241,19 @@ public class MusicDatabase {
     /**
      * Gets the list of all tags applied by the user
      * @param listener the listener 
-     * @param item the item 
-     * @return
+     * @return a list of all tags, scored by there frequency of application
      */
-    public List<String> getAllTags(Listener listener) throws AuraException, RemoteException {
-        List<String> results = new ArrayList();
-        List<Attention> attns = dataStore.getLastAttentionForSource(listener.getKey(), Attention.Type.TAG, Integer.MAX_VALUE);
+    public List<Scored<String>> getAllTags(Listener listener) throws AuraException, RemoteException {
+        ScoredManager<String> sm = new ScoredManager();
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(listener.getKey());
+        ac.setType(Attention.Type.TAG);
+
+        List<Attention> attns = dataStore.getAttention(ac);
         for (Attention attn : attns) {
-            results.add(attn.getString());
+            sm.accum(attn.getString(), 1);
         }
-        return results;
+        return sm.getAll();
     }
 
     /**
@@ -248,10 +265,10 @@ public class MusicDatabase {
      * @throws java.rmi.RemoteException
      */
     public List<Artist> getFavoriteArtists(Listener listener, int max) throws AuraException, RemoteException {
-        List<Attention> attns = dataStore.getLastAttentionForSource(listener.getKey(), Attention.Type.LOVED, max);
-        List<Artist> results = new ArrayList();
-        for (Attention attn : attns) {
-            Artist artist = artistLookup(attn.getTargetKey());
+        Set<String> ids = getFavoriteArtistsAsIDSet(listener, max);
+        List<Artist> results = new ArrayList(ids.size());
+        for (String id : ids) {
+            Artist artist = artistLookup(id);
             if (artist != null) {
                 results.add(artist);
             }
@@ -260,7 +277,11 @@ public class MusicDatabase {
     }
 
     public Set<String> getFavoriteArtistsAsIDSet(Listener listener, int max) throws AuraException, RemoteException {
-        List<Attention> attns = dataStore.getLastAttentionForSource(listener.getKey(), Attention.Type.LOVED, max);
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(listener.getKey());
+        ac.setType(Attention.Type.LOVED);
+
+        List<Attention> attns = dataStore.getLastAttention(ac, max);
         Set<String> results = new HashSet();
         for (Attention attn : attns) {
             results.add(attn.getTargetKey());
@@ -270,51 +291,79 @@ public class MusicDatabase {
 
     public List<Scored<String>> getRecentTopArtistsAsIDs(Listener listener, int max) throws AuraException, RemoteException {
         ScoredManager<String> sm = new ScoredManager();
-        List<Attention> attns = dataStore.getLastAttentionForSource(listener.getKey(), max * 100);
+
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(listener.getKey());
+        List<Attention> attns = dataStore.getLastAttention(ac, max * 100);
         for (Attention attn : attns) {
-            if (attn.getType() == Attention.Type.PLAYED) {
-                sm.accum(attn.getTargetKey(), 1);
-            } else if (attn.getType() == Attention.Type.LOVED) {
-                sm.accum(attn.getTargetKey(), 100);
-            } else if (attn.getType() == Attention.Type.DISLIKED) {
-                sm.accum(attn.getTargetKey(), -100);
-            } else if (attn.getType() == Attention.Type.RATING) {
-                if (attn.getNumber() == 5) {
-                    sm.accum(attn.getTargetKey(), 100);
-                } else if (attn.getNumber() == 4) {
-                    sm.accum(attn.getTargetKey(), 10);
-                } else if (attn.getNumber() == 2) {
-                    sm.accum(attn.getTargetKey(), -10);
-                } else if (attn.getNumber() == 1) {
-                    sm.accum(attn.getTargetKey(), -100);
+            if (isArtist(attn.getTargetKey())) {
+                int score = getAttentionScore(attn);
+                if (score != 0) {
+                    sm.accum(attn.getTargetKey(), score);
                 }
             }
         }
         return sm.getTopN(max);
     }
 
-    public List<Scored<String>> getRecentFiveStarArtists(Listener listener, int max) throws AuraException, RemoteException {
-        ScoredManager<String> sm = new ScoredManager();
-        List<Attention> attns = dataStore.getLastAttentionForSource(listener.getKey(), Attention.Type.RATING, 10000);
-        for (Attention attn : attns) {
-            if (attn.getNumber() == 5) {
-                sm.accum(attn.getTargetKey(), 1);
+    private int getAttentionScore(Attention attn) {
+        long attentionValue = getNumber(attn);
+        int score = 0;
+        if (attn.getType() == Attention.Type.PLAYED) {
+            score = (int) (attentionValue == 0L ? 1 : attentionValue);
+        } else if (attn.getType() == Attention.Type.LOVED) {
+            score = 100;
+        } else if (attn.getType() == Attention.Type.DISLIKED) {
+            score = -100;
+        } else if (attn.getType() == Attention.Type.RATING) {
+            if (attentionValue == 5) {
+                score = 100;
+            } else if (attentionValue == 4) {
+                score = 10;
+            } else if (attentionValue == 2) {
+                score = -10;
+            } else if (attentionValue == 1) {
+                score = -100;
             }
+        }
+        return score;
+    }
+
+    public List<Scored<String>> getRecentFiveStarArtists(Listener listener, int max) throws AuraException, RemoteException {
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(listener.getKey());
+        ac.setType(Attention.Type.RATING);
+        ac.setNumberVal(5L);
+
+        ScoredManager<String> sm = new ScoredManager();
+        List<Attention> attns = dataStore.getLastAttention(ac, max);
+        for (Attention attn : attns) {
+            sm.accum(attn.getTargetKey(), 1);
         }
         return sm.getTopN(max);
     }
 
     public List<Scored<String>> getAllArtistsAsIDs(Listener listener) throws AuraException, RemoteException {
         ScoredManager<String> sm = new ScoredManager();
-        List<Attention> attns = dataStore.getAttentionForSource(listener.getKey());
-        for (Attention attn : attns) {
-            if (attn.getType() == Attention.Type.PLAYED) {
-                sm.accum(attn.getTargetKey(), 1);
-            } else if (attn.getType() == Attention.Type.LOVED) {
-                sm.accum(attn.getTargetKey(), 100);
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(listener.getKey());
+        DBIterator<Attention> attentionIterator = dataStore.getAttentionIterator(ac);
+        try {
+            while (attentionIterator.hasNext()) {
+                Attention attn = attentionIterator.next();
+                if (isArtist(attn.getTargetKey())) {
+                    sm.accum(attn.getTargetKey(), getAttentionScore(attn));
+                }
             }
+        } finally {
+            attentionIterator.close();
         }
         return sm.getAll();
+    }
+
+    private boolean isArtist(String id) {
+        // BUG: fix this, but don't be expensive
+        return true;
     }
 
     public List<Scored<Artist>> getRecommendations(Listener listener, int max) throws AuraException, RemoteException {
@@ -352,30 +401,31 @@ public class MusicDatabase {
     }
 
     private Artist getRandomGoodArtistFromListener(Listener listener) throws AuraException, RemoteException {
-        List<Attention> attentions = dataStore.getAttentionForSource(listener.getKey());
-        attentions = filterOut(attentions, Attention.Type.DISLIKED);
-        String id = BEATLES_ID;
-        if (attentions.size() > 0) {
-            id = selectRandom(attentions).getTargetKey();
+        List<Artist> artists = getFavoriteArtists(listener, 20);
+        Artist artist = null;
+        if (artists.size() > 0) {
+            artist = selectRandom(artists);
+        } else {
+            artist = artistLookup(BEATLES_ID);
         }
-        return artistLookup(id);
-    }
-
-    private List<Attention> filterOut(List<Attention> attns, Attention.Type type) {
-        List<Attention> attentions = new ArrayList();
-        for (Attention attn : attns) {
-            if (attn.getType() != type) {
-                attentions.add(attn);
-            }
-        }
-        return attentions;
+        return artist;
     }
 
     private Set<String> getAttendedToArtists(Listener listener) throws AuraException, RemoteException {
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(listener.getKey());
+
         Set<String> ids = new HashSet();
-        List<Attention> attentions = dataStore.getAttentionForSource(listener.getKey());
-        for (Attention attn : attentions) {
-            ids.add(attn.getTargetKey());
+        DBIterator<Attention> attentionIterator = dataStore.getAttentionIterator(ac);
+        try {
+            while (attentionIterator.hasNext()) {
+                Attention attn = attentionIterator.next();
+                if (isArtist(attn.getTargetKey())) {
+                    ids.add(attn.getTargetKey());
+                }
+            }
+        } finally {
+            attentionIterator.close();
         }
         return ids;
     }
@@ -412,18 +462,10 @@ public class MusicDatabase {
      */
     public List<Attention> getLastAttentionData(Listener listener, Attention.Type type,
             int count) throws AuraException, RemoteException {
-        return dataStore.getLastAttentionForSource(listener.getKey(), type, count);
-    }
-
-    /**
-     * Gets all the stored attention data for a listener
-     * @param listener the listener of interest
-     * @return the list of all attention data
-     * @throws com.sun.labs.aura.util.AuraException
-     * @throws java.rmi.RemoteException
-     */
-    public List<Attention> getAttention(Listener listener) throws AuraException, RemoteException {
-        return dataStore.getAttentionForSource(listener.getKey());
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(listener.getKey());
+        ac.setType(type);
+        return dataStore.getLastAttention(ac, count);
     }
 
     /**
@@ -672,7 +714,7 @@ public class MusicDatabase {
         }
         return artistTagNames;
     }
-    
+
     public float artistTagGetNormalizedPopularity(ArtistTag aTag) throws AuraException {
         if (rockTag == null) {
             rockTag = artistTagLookup(ArtistTag.nameToKey("rock"));
@@ -843,7 +885,6 @@ public class MusicDatabase {
 
     private List<Scored<Item>> findSimilar(WordCloud wc, String field, int count, ItemType type) throws AuraException {
         try {
-            System.out.println("FindSimilarWC " + wc);
             List<Scored<Item>> simItems = dataStore.findSimilar(wc, getFindSimilarConfig(field, count, new TypeFilter(type)));
             return simItems;
         } catch (RemoteException ex) {

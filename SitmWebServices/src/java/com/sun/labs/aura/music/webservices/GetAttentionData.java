@@ -4,10 +4,10 @@
  */
 package com.sun.labs.aura.music.webservices;
 
-import com.sun.labs.aura.music.Listener;
+import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.util.AuraException;
-import com.sun.labs.aura.util.Scored;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -21,9 +21,9 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author plamere
  */
-public class GetListenerTags extends HttpServlet {
+public class GetAttentionData extends HttpServlet {
 
-    private final static String SERVLET_NAME = "GetListenerTags";
+    private final static String SERVLET_NAME = "GetAttentionData";
 
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -33,6 +33,7 @@ public class GetListenerTags extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         ServletContext context = getServletContext();
+
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
         Timer timer = Util.getTimer();
@@ -43,50 +44,55 @@ public class GetListenerTags extends HttpServlet {
             if (mdb == null) {
                 Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Can't connect to the music database");
             } else {
-                String userID = request.getParameter("userID");
-                String itemID = request.getParameter("itemID");
+                String src = request.getParameter("src");
+                String target = request.getParameter("tgt");
+                String stringValue = request.getParameter("sv");
+                String numValue = request.getParameter("nv");
+                String stype = request.getParameter("type");
 
-
-                if (userID == null) {
-                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "missing userID");
-                    return;
+                Attention.Type type = null;
+                if (stype != null) {
+                    try {
+                        type = Attention.Type.valueOf(stype);
+                    } catch (IllegalArgumentException ex) {
+                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.BadArgument,
+                                "bad type " + stype);
+                        return;
+                    }
                 }
 
-                Listener listener = mdb.getListener(userID);
+                int maxCount = 100;
+                String maxCountString = request.getParameter("max");
+                if (maxCountString != null) {
+                    maxCount = Integer.parseInt(maxCountString);
+                }
 
-                if (itemID == null) {
-                    List<Scored<String>> stags = mdb.getAllTags(listener);
-                    if (stags != null) {
-                        Util.tagOpen(out, SERVLET_NAME);
-                        for (Scored<String> stag : stags) {
-                            out.println("    <tag key=\"" + stag.getItem() + " score=\"" + stag.getScore() + "\"/>");
-                        }
-                        Util.outputOKStatus(out);
-                        Util.tagClose(out, SERVLET_NAME);
-                    } else {
-                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.NotFound, "can't find tags");
+                AttentionConfig ac = new AttentionConfig();
+                ac.setSourceKey(src);
+                ac.setTargetKey(target);
+                ac.setType(type);
+                ac.setStringVal(stringValue);
+                ac.setStringVal(numValue);
+
+                try {
+                    List<Attention> attns = mdb.getDataStore().getLastAttention(ac, maxCount);
+
+                    Util.tagOpen(out, SERVLET_NAME);
+                    for (Attention attn : attns) {
+                        out.println(Util.toXML(attn));
                     }
-                } else {
-                    List<String> tags = mdb.getTags(listener, itemID);
-                    if (tags != null) {
-                        Util.tagOpen(out, SERVLET_NAME);
-                        for (String tag : tags) {
-                            out.println("    <tag key=\"" + tag + "\"/>");
-                        }
-                        Util.outputOKStatus(out);
-                        Util.tagClose(out, SERVLET_NAME);
-                    } else {
-                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.NotFound, "can't find tags");
-                    }
+                    Util.tagClose(out, SERVLET_NAME);
+                } catch (AuraException e) {
+                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, 
+                            "Can't get attention data " + e);
                 }
             }
-        } catch (AuraException ex) {
-            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Problem accessing data");
         } finally {
             timer.report(out);
             out.close();
         }
     }
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /** 
      * Handles the HTTP <code>GET</code> method.

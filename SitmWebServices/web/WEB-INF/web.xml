@@ -65,6 +65,14 @@
         <servlet-name>FindSimilarArtistFromWordCloud</servlet-name>
         <servlet-class>com.sun.labs.aura.music.webservices.FindSimilarArtistFromWordCloud</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>GetAttentionData</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.GetAttentionData</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>GetStats</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.GetStats</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>FindSimilarArtist</servlet-name>
         <url-pattern>/FindSimilarArtist</url-pattern>
@@ -128,6 +136,14 @@
     <servlet-mapping>
         <servlet-name>FindSimilarArtistFromWordCloud</servlet-name>
         <url-pattern>/FindSimilarArtistFromWordCloud</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetAttentionData</servlet-name>
+        <url-pattern>/GetAttentionData</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetStats</servlet-name>
+        <url-pattern>/GetStats</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

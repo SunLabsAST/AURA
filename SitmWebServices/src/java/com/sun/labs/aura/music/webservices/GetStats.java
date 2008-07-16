@@ -4,13 +4,14 @@
  */
 package com.sun.labs.aura.music.webservices;
 
-import com.sun.labs.aura.music.Listener;
+import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.AttentionConfig;
+import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.util.AuraException;
-import com.sun.labs.aura.util.Scored;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -21,9 +22,9 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author plamere
  */
-public class GetListenerTags extends HttpServlet {
+public class GetStats extends HttpServlet {
 
-    private final static String SERVLET_NAME = "GetListenerTags";
+    private final static String SERVLET_NAME = "GetStats";
 
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -33,6 +34,7 @@ public class GetListenerTags extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         ServletContext context = getServletContext();
+
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
         Timer timer = Util.getTimer();
@@ -43,50 +45,38 @@ public class GetListenerTags extends HttpServlet {
             if (mdb == null) {
                 Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Can't connect to the music database");
             } else {
-                String userID = request.getParameter("userID");
-                String itemID = request.getParameter("itemID");
+                Util.tagOpen(out, SERVLET_NAME);
+                try {
+                    DataStore ds = mdb.getDataStore();
+                    // show the number of items of each type
 
-
-                if (userID == null) {
-                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "missing userID");
-                    return;
-                }
-
-                Listener listener = mdb.getListener(userID);
-
-                if (itemID == null) {
-                    List<Scored<String>> stags = mdb.getAllTags(listener);
-                    if (stags != null) {
-                        Util.tagOpen(out, SERVLET_NAME);
-                        for (Scored<String> stag : stags) {
-                            out.println("    <tag key=\"" + stag.getItem() + " score=\"" + stag.getScore() + "\"/>");
+                    Util.tag(out, "ready", "" + ds.ready());
+                    Util.tag(out, "replicants", Integer.toString(ds.getPrefixes().size()));
+                    for (ItemType t : ItemType.values()) {
+                        long count = ds.getItemCount(t);
+                        if (count > 0L) {
+                            Util.tag(out, t.toString(), Long.toString(count));
                         }
-                        Util.outputOKStatus(out);
-                        Util.tagClose(out, SERVLET_NAME);
-                    } else {
-                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.NotFound, "can't find tags");
                     }
-                } else {
-                    List<String> tags = mdb.getTags(listener, itemID);
-                    if (tags != null) {
-                        Util.tagOpen(out, SERVLET_NAME);
-                        for (String tag : tags) {
-                            out.println("    <tag key=\"" + tag + "\"/>");
+                    for (Attention.Type t : Attention.Type.values()) {
+                        AttentionConfig ac = new AttentionConfig();
+                        ac.setType(t);
+                        long count = ds.getAttentionCount(ac);
+                        if (count > 0L) {
+                            Util.tag(out, t.toString(), Long.toString(count));
                         }
-                        Util.outputOKStatus(out);
-                        Util.tagClose(out, SERVLET_NAME);
-                    } else {
-                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.NotFound, "can't find tags");
                     }
+                } catch (AuraException ex) {
+                    Util.outputStatus(out,  Util.ErrorCode.DataStore, "Can't connect to the music database " + ex);
                 }
+                Util.tagClose(out, SERVLET_NAME);
             }
-        } catch (AuraException ex) {
-            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Problem accessing data");
         } finally {
             timer.report(out);
             out.close();
         }
     }
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /** 
      * Handles the HTTP <code>GET</code> method.
