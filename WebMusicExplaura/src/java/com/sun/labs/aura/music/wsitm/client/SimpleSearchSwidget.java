@@ -197,6 +197,14 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         return l;
     }
 
+    protected void initMenuItem() {
+        menuItem = new MenuItem("Search",new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    History.newItem(cdm.getCurrSearchWidgetToken());
+                }
+            },false,0);
+    }
 
     private void showResults(String resultName) {
 
@@ -397,13 +405,12 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
-                // do some UI stuff to show success
                 TagDetails tagDetails = (TagDetails) result;
                 if (tagDetails != null && tagDetails.isOK()) {
                     Widget tagPanel = createTagPanel("Tags", tagDetails);
                     search.setText(tagDetails.getName(), searchTypes.SEARCH_FOR_TAG_BY_TAG);
                     search.updateSuggestBox(Oracles.TAG);
-                    setResults(tagDetails.getId(), tagPanel);
+                    setResults("tag:"+tagDetails.getId(), tagPanel);
                     clearMessage();
                 } else {
                     if (tagDetails == null) {
@@ -533,18 +540,20 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         StarRatingWidget starWidget = new StarRatingWidget(musicServer, cdm.getListenerDetails(), artistDetails.getId(), StarRatingWidget.Size.MEDIUM);
 
         HorizontalPanel hP = new HorizontalPanel();
-        SpannedLabel steerButton = new SpannedLabel("steer");
-        steerButton.addClickListener(new DataEmbededClickListener<String>(artistDetails.getId()) {
+        Widget spotify = WebLib.getSpotifyListenWidget(artistDetails, 30);
+        if (spotify!=null) {
+            spotify.addStyleName("pointer");
+            hP.add(spotify);
+        }
+        SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.BIG,
+                new DataEmbededClickListener<String>(artistDetails.getId()) {
 
             public void onClick(Widget arg0) {
+                cdm.setSteerableReset(true);
                 History.newItem("steering:"+data);
             }
         });
         hP.add(steerButton);
-        Widget spotify = WebLib.getSpotifyListenWidget(artistDetails, 30);
-        if (spotify!=null) {
-            hP.add(spotify);
-        }
 
         return createMainSection(artistDetails.getName(), html,
                 hP,
@@ -863,36 +872,13 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             this.currArtistId = currArtistId;
         }
 
-        public void openWhyPopup(String artistID) {
-            showMessage("Getting common tags", WebLib.ICON_WAIT);
-            TagDisplayLib.invokeGetCommonTags(currArtistId, artistID,
-                    musicServer, cdm, new SSSCommonTagsAsyncCallback());
+        public void openWhyPopup(WhyButton why) {
+            why.showLoad();
+            TagDisplayLib.invokeGetCommonTags(currArtistId, why.getId(),
+                    musicServer, cdm, new CommonTagsAsyncCallback(why) {});
         }
     }
 
-    public class SSSCommonTagsAsyncCallback extends CommonTagsAsyncCallback {
-
-        public void onCallback(ItemInfo[] results) {
-            clearMessage();
-        }
-    }
-
-/*
-    class CommonTagsClickListener implements ClickListener {
-
-        private String id1;
-        private String id2;
-
-        CommonTagsClickListener(String id1, String id2) {
-            this.id1 = id1;
-            this.id2 = id2;
-        }
-
-        public void onClick(Widget sender) {
-            invokeGetCommonTags(id1, id2);
-        }
-    }
-*/
     abstract class ScrollWidget extends Composite {
 
         protected ScrollItem[] items;
@@ -1142,7 +1128,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         @Override
         protected void triggerAction(int index) {
             HTML html = new HTML(aP[index].getRichHtmlWrapper());
-            Popup.showPopup(html,"WebMusicExplaura :: Flick Photo");
+            Popup.showPopup(html,"WebMusicExplaura :: Flickr Photo");
         }
 
     }

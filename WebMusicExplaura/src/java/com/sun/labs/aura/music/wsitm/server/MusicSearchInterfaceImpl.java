@@ -50,7 +50,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public SearchResults tagSearch(String searchString, int maxResults) throws WebException {
-        logger.info("MusicSearchInterfaceImpl::tagSearch: "+searchString);
+        logger.info("tagSearch: "+searchString);
         try {
             return dm.tagSearch(searchString, maxResults);
         } catch (AuraException ex) {
@@ -64,7 +64,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public SearchResults artistSearch(String searchString, int maxResults) throws WebException {
-        logger.info("MusicSearchInterfaceImpl::artistSearch: "+searchString);
+        logger.info("artistSearch: "+searchString);
         try {
             return dm.artistSearch(searchString, maxResults);
         } catch (AuraException ex) {
@@ -79,7 +79,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
 
     public SearchResults artistSearchByTag(String searchString, int maxResults) 
             throws WebException {
-        logger.info("MusicSearchInterfaceImpl::artistSearchByTag: "+searchString);
+        logger.info("artistSearchByTag: "+searchString);
         try {
             // Make sure the tag has the right header
             if (!searchString.startsWith("artist-tag:")) {
@@ -97,7 +97,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName) throws WebException {
-        logger.info("MusicSearchInterfaceImpl::getArtistDetails: "+id);
+        logger.info("getArtistDetails: "+id);
         try {
             return dm.getArtistDetails(id, false, simTypeName);
         } catch (AuraException ex) {
@@ -110,7 +110,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public TagDetails getTagDetails(String tagName, boolean refresh, String simTypeName) throws WebException {
-        logger.info("MusicSearchInterfaceImpl::getTagDetails: "+tagName);
+        logger.info("getTagDetails: "+tagName);
         try {
             if (!tagName.startsWith("artist-tag:"))
                 tagName=ArtistTag.nameToKey(tagName);
@@ -130,7 +130,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     
     public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num, String simType) 
             throws WebException {
-        logger.info("MusicSearchInterfaceImpl::getCommonTags for "+artistID1+" and "+artistID2);
+        logger.info("getCommonTags for "+artistID1+" and "+artistID2);
         try {
             return dm.getCommonTags(artistID1, artistID2, num, simType);
         } catch (AuraException ex) {
@@ -143,7 +143,11 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public ItemInfo[] getCommonTags(Map<String, Double> tagMap, String artistID, int num) throws WebException {
-        logger.info("MusicSearchInterfaceImpl::getCommonTags for "+artistID+" and tag cloud");
+        String stringMap = "";
+        for (String key : tagMap.keySet()) {
+            stringMap += key+":"+tagMap.get(key)+",";
+        }
+        logger.info("getCommonTags for "+artistID+" and cloud={"+stringMap+"}");
         try {
             return dm.getCommonTags(tagMap, artistID, num);
         } catch (AuraException ex) {
@@ -173,10 +177,12 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public List<String> getArtistOracle() {
+        logger.info("getArtistOracle");
         return dm.getArtistOracle();
     }
     
     public List<String> getTagOracle() {
+        logger.info("getTagOracle");
         return dm.getTagOracle();
     }
     
@@ -190,6 +196,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public ListenerDetails getNonOpenIdLogInDetails(String userKey) throws WebException {
+        logger.info("getNonOpenIdLogInDetails for key:"+userKey);
         try {
             return dm.establishNonOpenIdUserConnection(userKey);
         } catch (AuraException ex) {
@@ -202,6 +209,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public ListenerDetails getLogInDetails() throws WebException {
+        logger.info("getLogInDetails");
         try {
             ListenerDetails lD = new ListenerDetails();
 
@@ -250,8 +258,9 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public void terminateSession() {
-            HttpSession session = this.getThreadLocalRequest().getSession();
-            session.setAttribute(OpenIDServlet.openIdCookieName, null);
+        logger.info("terminateSession");
+        HttpSession session = this.getThreadLocalRequest().getSession();
+        session.setAttribute(OpenIDServlet.openIdCookieName, null);
     }
 
     public void updateListener(ListenerDetails lD) throws WebException {
@@ -268,6 +277,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public void updateUserSongRating(ListenerDetails lD, int rating, String artistID) throws WebException {
+        logger.info("UpdateUserSongRating :: user:"+lD.openID+" artist:"+artistID+" rating:"+rating);
         try {
             dm.updateUserSongRating(lD, rating, artistID);
         } catch (AuraException ex) {
@@ -280,6 +290,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public Integer fetchUserSongRating(ListenerDetails lD, String artistID) throws WebException {
+        logger.info("fetchUserSongRating :: user:"+lD.openID+" artist:"+artistID);
         try {
             return new Integer(dm.fetchUserSongRating(lD, artistID));
         } catch (AuraException ex) {
@@ -317,8 +328,27 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap) throws WebException {
+        String stringMap = "";
+        for (String key : tagMap.keySet()) {
+            stringMap += key+":"+tagMap.get(key)+",";
+        }
+        logger.info("getSteerableRecommendations for cloud:{"+stringMap+"}");
         try {
-            return dm.getSteerableRecommendations(tagMap);
+            ArtistCompact[] aC = dm.getSteerableRecommendations(tagMap);
+            logger.info("returning "+aC.length+" recommendations");
+            return aC;
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
+    public ArtistCompact getArtistCompact(String artistId) throws WebException {
+        try {
+            return dm.getArtistCompact(artistId);
         } catch (AuraException ex) {
             logger.severe(traceToString(ex));
             throw new WebException(ex.getMessage(), ex);

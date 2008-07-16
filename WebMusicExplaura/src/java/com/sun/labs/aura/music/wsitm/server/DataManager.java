@@ -193,7 +193,7 @@ public class DataManager implements Configurable {
      */
     private ArtistDetails loadArtistDetailsFromStore(String id, SimType simType) 
             throws AuraException, RemoteException {
-        logger.info("Loading artist details from store :: " + id);
+        logger.info("loading artist from store :: " + id);
         Artist a = mdb.artistLookup(id);
         if (a == null) {
             return null;
@@ -741,6 +741,10 @@ public class DataManager implements Configurable {
         return ratingMap;
     }
 
+    public ArtistCompact getArtistCompact(String artistId) throws AuraException, RemoteException {
+        return artistToArtistCompact(mdb.artistLookup(artistId));
+    }
+
     public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap)
             throws AuraException, RemoteException {
 
@@ -763,7 +767,7 @@ public class DataManager implements Configurable {
 
     public TagDetails loadTagDetailsFromStore(String id) throws AuraException,
             RemoteException {
-        logger.info("searching for :"+id);
+        logger.info("searching for tag :"+id);
         ArtistTag tag = mdb.artistTagLookup(id);
         if (tag==null) {
             logger.info("null on "+id);
@@ -772,7 +776,7 @@ public class DataManager implements Configurable {
         TagDetails details = new TagDetails();
 
         details.setDescription(tag.getDescription());
-        details.setId(ArtistTag.nameToKey(id));
+        details.setId(id);
         details.setName(tag.getName());
         details.setPhotos(getArtistPhotoFromIds(tag.getPhotos()));
         details.setVideos(getArtistVideoFromIds(tag.getVideos()));

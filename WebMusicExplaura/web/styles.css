@@ -17,6 +17,11 @@ body {
     line-height: 17px;
     font-weight: normal;
 }
+.noDrag {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  user-select: none;
+}
 .artistPanel {
 
 }
@@ -98,6 +103,9 @@ img {
 
 .pointer {
   cursor: pointer;
+}
+.hand {
+  cursor: hand;
 }
 
 .gwt-DialogBox {  
@@ -213,4 +221,5 @@ img {
 .smallItalicExplanation {
   font-size: 12px;
   font-style:italic;
+  font-weight:normal;
 }

@@ -47,7 +47,9 @@ public class DashboardSwidget extends Swidget {
         return l;
     }
 
-
+    protected void initMenuItem() {
+        menuItem = new MenuItem("Dashboard",MenuItem.getDefaultTokenClickListener("dashboard:"),true,3);
+    }
 
     private class MainPanel extends LoginListener {
 
@@ -173,20 +175,6 @@ public class DashboardSwidget extends Swidget {
         }
     }
 
-    public class TokenClickListener implements ClickListener {
-
-        String token="";
-
-        public TokenClickListener(String token) {
-            this.token = token;
-        }
-
-        public void onClick(Widget arg0) {
-            History.newItem(token);
-        }
-
-    }
-
     public class ArtistCloudArtistListWidget extends ArtistListWidget {
 
         private String currArtistId;
@@ -198,9 +186,10 @@ public class DashboardSwidget extends Swidget {
             this.currArtistId = currArtistId;
         }
 
-        public void openWhyPopup(String artistID) {
-            TagDisplayLib.invokeGetCommonTags(currArtistId, artistID,
-                    musicServer, cdm, new CommonTagsAsyncCallback() {});
+        public void openWhyPopup(WhyButton why) {
+            why.showLoad();
+            TagDisplayLib.invokeGetCommonTags(currArtistId, why.getId(),
+                    musicServer, cdm, new CommonTagsAsyncCallback(why) {});
         }
     }
 }

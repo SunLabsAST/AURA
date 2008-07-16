@@ -43,8 +43,8 @@ public abstract class WebLib {
     }
     }-*/;
 
-    public static Widget getLastFMListenWidget(final ArtistCompact artistDetails) {
-        Image image = new Image("play-icon30.jpg");
+    public static Widget getLastFMListenWidget(final ArtistCompact artistDetails, int size) {
+        Image image = new Image("play-lastfm-"+size+".jpg");
         //image.setSize("22px", "22px");
         image.setTitle("Play music like " + artistDetails.getName() + " at last.fm");
         image.addClickListener(new ClickListener() {
@@ -59,11 +59,11 @@ public abstract class WebLib {
     public static Widget getSpotifyListenWidget(final ArtistCompact artistDetails, int size) {
         String musicURL = artistDetails.getSpotifyId();
         if (musicURL != null && !musicURL.equals("")) {
-            HTML html = new HTML("<a href=\"" + musicURL + "\"><img src=\"play-icon"+size+".jpg\"/></a>");
+            HTML html = new HTML("<a href=\"" + musicURL + "\"><img src=\"play-spotify-"+size+".jpg\"/></a>");
             html.setTitle("Play " + artistDetails.getName() + " with Spotify");
             return html;
         } else {
-            return getLastFMListenWidget(artistDetails);
+            return getLastFMListenWidget(artistDetails, size);
         }
     }
 
