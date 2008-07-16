@@ -49,6 +49,11 @@ public class Util {
         out.println("</" + tag + ">");
     }
 
+    static void outputClosingStatus(PrintWriter out, String tag, ErrorCode code, String message) {
+        outputStatus(out, code, message);
+        out.println("</" + tag + ">");
+    }
+
     static void outputOKStatus(PrintWriter out) {
         outputStatus(out, ErrorCode.OK, null);
     }
@@ -63,6 +68,12 @@ public class Util {
 
     static void tagClose(PrintWriter out, String tag) {
         out.println("</" + tag + ">");
+    }
+
+    static void tag(PrintWriter out, String tag, String val) {
+        tagOpen(out, tag);
+        out.println(val);
+        tagClose(out, tag);
     }
 
     public static String toXML(Item item) {

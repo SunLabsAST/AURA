@@ -16,6 +16,7 @@
     <body>
         <h2>SITM Web Service</h2>
         <ul>    
+            <li> <a href="GetStats"> Gets the system status</a>
             <li> <a href="FindSimilarArtist?name=weezer"> Artists Similar to Weezer </a>
             <li> <a href="FindSimilarArtist?name=beatles"> Artists Similar to The Beatles </a>
             <li> <a href="FindSimilarArtistFromWordCloud?wordCloud='(indie,1)(punk,1)(emo,.5)'"> Find Artists Similar to Word Cloud (indie, punk, emo)</a>
