@@ -192,9 +192,14 @@ public class MusicDatabase {
         ac.setTargetKey(artistID);
         List<Attention> attns = dataStore.getLastAttention(ac, 1);
         if (attns.size() > 0) {
-            rating = attns.get(0).getNumber().intValue();
+            rating = (int) getNumber(attns.get(0));
         }
         return rating;
+    }
+
+    public long getNumber(Attention attn) {
+        Long val = attn.getNumber();
+        return val == null ? 0L : Long.valueOf(val);
     }
 
     /**
@@ -302,21 +307,22 @@ public class MusicDatabase {
     }
 
     private int getAttentionScore(Attention attn) {
+        long attentionValue = getNumber(attn);
         int score = 0;
         if (attn.getType() == Attention.Type.PLAYED) {
-            score = (int) (attn.getNumber() == 0L ? 1 : attn.getNumber());
+            score = (int) (attentionValue == 0L ? 1 : attentionValue);
         } else if (attn.getType() == Attention.Type.LOVED) {
             score = 100;
         } else if (attn.getType() == Attention.Type.DISLIKED) {
             score = -100;
         } else if (attn.getType() == Attention.Type.RATING) {
-            if (attn.getNumber() == 5) {
+            if (attentionValue == 5) {
                 score = 100;
-            } else if (attn.getNumber() == 4) {
+            } else if (attentionValue == 4) {
                 score = 10;
-            } else if (attn.getNumber() == 2) {
+            } else if (attentionValue == 2) {
                 score = -10;
-            } else if (attn.getNumber() == 1) {
+            } else if (attentionValue == 1) {
                 score = -100;
             }
         }

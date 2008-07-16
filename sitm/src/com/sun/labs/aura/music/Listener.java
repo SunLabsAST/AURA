@@ -163,7 +163,7 @@ public class Listener extends ItemAdapter {
     }
 
     /**
-     * Gets the artist's social tags 
+     * Gets the listener's social tags 
      * @return tag map
      */
     public List<Tag> getSocialTags() {
@@ -171,7 +171,7 @@ public class Listener extends ItemAdapter {
     }
 
     /**
-     * Adds a social tag to the artist
+     * Adds a social tag to the listener
      * @param tag name of the tag
      * @param count tag count
      */
@@ -180,7 +180,7 @@ public class Listener extends ItemAdapter {
     }
 
     /**
-     * Sets a social tag to the artist
+     * Sets a social tag to the listener
      * @param tag name of the tag
      * @param count tag count
      */
