@@ -87,7 +87,7 @@ public class DashboardSwidget extends Swidget {
             DockPanel dP = new DockPanel();
 
 //            ArtistCloudArtistListWidget alp = new ArtistCloudArtistListWidget(musicServer, cdm, cdm.getListenerDetails().recommendations), cdm.get;
-  //          dP.add(WebLib.createSection("Artist recommendations", alp), DockPanel.WEST);
+//            dP.add(WebLib.createSection("Artist recommendations", alp), DockPanel.WEST);
 
             Label titleLbl = new Label("Dashhhhboard");
             titleLbl.setStyleName("h1");

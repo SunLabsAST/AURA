@@ -326,19 +326,21 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         }
 
         public void addTags(Map<String, Double> tagMap, int limit) {
-            int max = tagMap.size();
-            if (limit>0 && limit<max) {
-                max = limit;
-            }
+            if (tagMap!=null && !tagMap.isEmpty()) {
+                int max = tagMap.size();
+                if (limit>0 && limit<max) {
+                    max = limit;
+                }
 
-            ItemInfo[] tags = new ItemInfo[max];
-            int index=0;
-            for (String key : tagMap.keySet()) {
-                Double val = tagMap.get(key);
-                tags[index] = new ItemInfo(ClientDataManager.nameToKey(key), key, val, val);
-                index++;
+                ItemInfo[] tags = new ItemInfo[max];
+                int index=0;
+                for (String key : tagMap.keySet()) {
+                    Double val = tagMap.get(key);
+                    tags[index] = new ItemInfo(ClientDataManager.nameToKey(key), key, val, val);
+                    index++;
+                }
+                addTags(tags, limit);
             }
-            addTags(tags, limit);
         }
 
         public abstract Map<String, Double> getTapMap();
@@ -464,36 +466,37 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
          * @param tag
          */
         public void addTags(ItemInfo[] tag, int limit) {
-
-            if (limit==0) {
-                limit = tag.length;
-            }
-
-            List<ItemInfo> iIList = ItemInfo.arrayToList(tag);
-            List<ItemInfo> cutList = new ArrayList<ItemInfo>();
-
-            // Use only the top ten tags with the biggest score
-            Collections.sort(iIList, ItemInfo.getScoreSorter());
-            maxSize = iIList.get(0).getScore();
-            int nbr = 0;
-            for (ItemInfo i : iIList) {
-                cutList.add(i);
-                if (nbr++ >= limit) {
-                    break;
+            if (tag!=null && tag.length>0) {
+                if (limit==0) {
+                    limit = tag.length;
                 }
-            }
 
-            // Add the tags to the cloud
-            for (ItemInfo i : cutList) {
-                addTag(i, i.getScore()/maxSize * MAX_TAG_VALUE, false);
-            }
+                List<ItemInfo> iIList = ItemInfo.arrayToList(tag);
+                List<ItemInfo> cutList = new ArrayList<ItemInfo>();
 
-            DeferredCommand.addCommand(new Command() {
-
-                public void execute() {
-                    updateRecommendations();
+                // Use only the top ten tags with the biggest score
+                Collections.sort(iIList, ItemInfo.getScoreSorter());
+                maxSize = iIList.get(0).getScore();
+                int nbr = 0;
+                for (ItemInfo i : iIList) {
+                    cutList.add(i);
+                    if (nbr++ >= limit) {
+                        break;
+                    }
                 }
-            });
+
+                // Add the tags to the cloud
+                for (ItemInfo i : cutList) {
+                    addTag(i, i.getScore()/maxSize * MAX_TAG_VALUE, false);
+                }
+
+                DeferredCommand.addCommand(new Command() {
+
+                    public void execute() {
+                        updateRecommendations();
+                    }
+                });
+            }
         }
 
         public void addTag(ItemInfo tag, boolean updateRecommendations) {
@@ -838,54 +841,55 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
          * @param tag
          */
         public void addTags(ItemInfo[] tag, int limit) {
-
-            if (limit==0) {
-                limit = tag.length;
-            }
-
-            int avgSizeOfAddedCloud = 40;
-
-            List<ItemInfo> iIList = ItemInfo.arrayToList(tag);
-            List<ItemInfo> cutList = new ArrayList<ItemInfo>();
-
-            // Use only the top ten tags with the biggest score
-            Collections.sort(iIList, ItemInfo.getScoreSorter());
-            maxSize = iIList.get(0).getScore();
-            int nbr = 0;
-            for (ItemInfo i : iIList) {
-                cutList.add(i);
-                if (nbr++ >= limit) {
-                    break;
+            if (tag!=null && tag.length>0) {
+                if (limit==0) {
+                    limit = tag.length;
                 }
-            }
 
-            double sumScore = 0;
-            for (ItemInfo i : cutList) {
-                sumScore += i.getScore();
-            }
+                int avgSizeOfAddedCloud = 40;
 
-            // Find the size of the biggest tag so that the average size of the
-            // added tags match avgSizeOfAddedCloud
-            double maxTagSize = avgSizeOfAddedCloud * cutList.size() / sumScore;
+                List<ItemInfo> iIList = ItemInfo.arrayToList(tag);
+                List<ItemInfo> cutList = new ArrayList<ItemInfo>();
 
-            // Add the tags to the cloud
-            Collections.sort(cutList, ItemInfo.getRandomSorter());
-            for (ItemInfo i : cutList) {
-                double score;
-                if (i.getScore() < 0) {
-                    score = -0.6;
-                } else {
-                    score = i.getScore();
+                // Use only the top ten tags with the biggest score
+                Collections.sort(iIList, ItemInfo.getScoreSorter());
+                maxSize = iIList.get(0).getScore();
+                int nbr = 0;
+                for (ItemInfo i : iIList) {
+                    cutList.add(i);
+                    if (nbr++ >= limit) {
+                        break;
+                    }
                 }
-                addTag(i, score * maxTagSize, false);
-            }
 
-            hasChanged = true;
-            DeferredCommand.addCommand(new Command() {
-                public void execute() {
-                    updateRecommendations();
+                double sumScore = 0;
+                for (ItemInfo i : cutList) {
+                    sumScore += i.getScore();
                 }
-            });
+
+                // Find the size of the biggest tag so that the average size of the
+                // added tags match avgSizeOfAddedCloud
+                double maxTagSize = avgSizeOfAddedCloud * cutList.size() / sumScore;
+
+                // Add the tags to the cloud
+                Collections.sort(cutList, ItemInfo.getRandomSorter());
+                for (ItemInfo i : cutList) {
+                    double score;
+                    if (i.getScore() < 0) {
+                        score = -0.6;
+                    } else {
+                        score = i.getScore();
+                    }
+                    addTag(i, score * maxTagSize, false);
+                }
+
+                hasChanged = true;
+                DeferredCommand.addCommand(new Command() {
+                    public void execute() {
+                        updateRecommendations();
+                    }
+                });
+            }
         }
 
         public void addTag(ItemInfo tag, boolean updateRecommendations) {

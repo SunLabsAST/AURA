@@ -15,10 +15,12 @@ import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistPhoto;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -142,6 +144,22 @@ public abstract class ArtistListWidget extends Composite {
         Collections.sort(tagList, ItemInfo.getScoreSorter());
 
         FlowPanel tagPanel = new FlowPanel();
+        SpannedFlowPanel addTagPanel = new SpannedFlowPanel();
+
+        SpannedLabel title = new SpannedLabel("Tags: ");
+        title.addStyleName("pointer");
+        title.addClickListener(new DataEmbededClickListener<Panel>(addTagPanel) {
+
+            public void onClick(Widget arg0) {
+                if (data.isVisible()) {
+                    data.setVisible(false);
+                } else {
+                    data.setVisible(true);
+                }
+            }
+        });
+        title.addStyleName("bold");
+        tagPanel.add(title);
         for (int i = 0; i < tagList.size(); i++) {
             SpannedLabel t = new SpannedLabel(tagList.get(i).getItemName());
             t.addStyleName("pointer");
@@ -151,13 +169,21 @@ public abstract class ArtistListWidget extends Composite {
                     onTagClick(data);
                 }
             });
-            tagPanel.add(t);
-            if (i == n) {
-                break;
+
+            if (i < n) {
+                tagPanel.add(t);
+                // If we're not on the last tag
+                if (i != n-1) {
+                    tagPanel.add(new SpannedLabel(", "));
+                }
             } else {
-                tagPanel.add(new SpannedLabel(", "));
+                addTagPanel.add(new SpannedLabel(", "));
+                addTagPanel.add(t);
             }
         }
+
+        addTagPanel.setVisible(false);
+        tagPanel.add(addTagPanel);
         return tagPanel;
     }
 
@@ -166,7 +192,7 @@ public abstract class ArtistListWidget extends Composite {
         public ArtistPanel(ArtistCompact aD) {
 
             HorizontalPanel artistPanel = new HorizontalPanel();
-            artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
+            artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_TOP);
             artistPanel.setStyleName("artistPanel");
             artistPanel.setSpacing(5);
 
@@ -177,7 +203,7 @@ public abstract class ArtistListWidget extends Composite {
                 }
             };
 
-            Image img = aD.getBestArtistImage(true);
+            Image img = new MouseOverRollImage(aD.getPhotos()); //aD.getBestArtistImage(true);
             if (img==null) {
                 img = new Image("nopic.gif");
             }
@@ -236,6 +262,7 @@ public abstract class ArtistListWidget extends Composite {
             Label starLbl = new Label("Your rating: ");
             starLbl.setStyleName("recoTags");
             starLbl.addStyleName("marginRight");
+            starLbl.addStyleName("bold");
             HorizontalPanel starHP = new HorizontalPanel();
             starHP.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
             starHP.add(starLbl);
@@ -247,7 +274,55 @@ public abstract class ArtistListWidget extends Composite {
             artistPanel.add(txtPanel);
 
             initWidget(artistPanel);
-        } 
+        }
+
+        private class MouseOverRollImage extends Image {
+
+            private ArtistPhoto[] photos;
+            private int index = 0;
+            private boolean allLoaded = false;
+
+            private int lastX = 0;
+            private int lastY = 0;
+
+            public MouseOverRollImage(ArtistPhoto[] photos) {
+
+                if (photos != null && photos.length > 0) {
+
+                    this.photos = photos;
+                    index = 0;
+
+                    this.addMouseListener(new MouseListener() {
+
+                        public void onMouseMove(Widget arg0, int arg1, int arg2) {
+                            if (Math.abs(lastX - arg1) + Math.abs(lastY - arg2) > 5) {
+                                showNextImage();
+                                lastX = arg1;
+                                lastY = arg2;
+                            }
+                        }
+                        public void onMouseDown(Widget arg0, int arg1, int arg2) {}
+                        public void onMouseEnter(Widget arg0) {}
+                        public void onMouseLeave(Widget arg0) {}
+                        public void onMouseUp(Widget arg0, int arg1, int arg2) {}
+                    });
+                    showNextImage();
+                } else {
+                    setUrl("nopic.gif");
+                }
+            }
+
+            public void showNextImage() {
+                setUrl(photos[index++].getThumbNailImageUrl());
+                if (index >= photos.length) {
+                    index = 0;
+                    allLoaded = true;
+                } else if (!allLoaded) {
+                    Image.prefetch(photos[index].getThumbNailImageUrl());
+                }
+            }
+
+        }
     }
 
     public class WhyButton extends Composite {

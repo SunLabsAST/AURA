@@ -48,6 +48,7 @@ public abstract class DeletableWidget <T extends Widget> extends Composite
         xB = new SwapableImage("green-x.jpg","green-x-hidden.jpg");
         xB.getElement().setAttribute("style", "vertical-align:top; margin-top: 3px;");
         xB.setImg2();
+        xB.addStyleName("image");
 
         addWidgetsToPanel();
         initWidget(this.mainPanel);
@@ -160,10 +161,4 @@ public abstract class DeletableWidget <T extends Widget> extends Composite
      */
     public abstract void onDelete();
 
-    public class SpannedFlowPanel extends FlowPanel {
-
-        public SpannedFlowPanel() {
-            setElement(DOM.createSpan());
-        }
-    }
 }
