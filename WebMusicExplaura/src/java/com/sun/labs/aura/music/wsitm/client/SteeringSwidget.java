@@ -326,19 +326,21 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         }
 
         public void addTags(Map<String, Double> tagMap, int limit) {
-            int max = tagMap.size();
-            if (limit>0 && limit<max) {
-                max = limit;
-            }
+            if (tagMap!=null && !tagMap.isEmpty()) {
+                int max = tagMap.size();
+                if (limit>0 && limit<max) {
+                    max = limit;
+                }
 
-            ItemInfo[] tags = new ItemInfo[max];
-            int index=0;
-            for (String key : tagMap.keySet()) {
-                Double val = tagMap.get(key);
-                tags[index] = new ItemInfo(ClientDataManager.nameToKey(key), key, val, val);
-                index++;
+                ItemInfo[] tags = new ItemInfo[max];
+                int index=0;
+                for (String key : tagMap.keySet()) {
+                    Double val = tagMap.get(key);
+                    tags[index] = new ItemInfo(ClientDataManager.nameToKey(key), key, val, val);
+                    index++;
+                }
+                addTags(tags, limit);
             }
-            addTags(tags, limit);
         }
 
         public abstract Map<String, Double> getTapMap();
@@ -408,7 +410,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
     public class TagMeterWidget extends TagWidget {
 
-        private final static int MAX_TAG_VALUE = 60;
+        private final static int MAX_TAG_VALUE = TagMeter.TOTAL_WIDTH;
         private final static int DEFAULT_TAG_VALUE = MAX_TAG_VALUE/2;
 
         private VerticalPanel mainTagPanel;
@@ -442,7 +444,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 if (rating>maxScore) {
                     maxScore = rating;
                 }
-                if (rating>0) {
+                if (rating > TagMeter.RED_WIDTH) {
                     sumScorePos += rating;
                     nbrPos++;
                 }
@@ -450,7 +452,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
             for (String key : tagCloud.keySet()) {
                 double rating = tagCloud.get(key).getRating();
-                if (rating==0) {
+                if (rating < TagMeter.RED_WIDTH) {
                     rating = -(sumScorePos/nbrPos);
                 }
                 // @todo remove lowercase when funny business in engine is fixed
@@ -464,36 +466,37 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
          * @param tag
          */
         public void addTags(ItemInfo[] tag, int limit) {
-
-            if (limit==0) {
-                limit = tag.length;
-            }
-
-            List<ItemInfo> iIList = ItemInfo.arrayToList(tag);
-            List<ItemInfo> cutList = new ArrayList<ItemInfo>();
-
-            // Use only the top ten tags with the biggest score
-            Collections.sort(iIList, ItemInfo.getScoreSorter());
-            maxSize = iIList.get(0).getScore();
-            int nbr = 0;
-            for (ItemInfo i : iIList) {
-                cutList.add(i);
-                if (nbr++ >= limit) {
-                    break;
+            if (tag!=null && tag.length>0) {
+                if (limit==0) {
+                    limit = tag.length;
                 }
-            }
 
-            // Add the tags to the cloud
-            for (ItemInfo i : cutList) {
-                addTag(i, i.getScore()/maxSize * MAX_TAG_VALUE, false);
-            }
+                List<ItemInfo> iIList = ItemInfo.arrayToList(tag);
+                List<ItemInfo> cutList = new ArrayList<ItemInfo>();
 
-            DeferredCommand.addCommand(new Command() {
-
-                public void execute() {
-                    updateRecommendations();
+                // Use only the top ten tags with the biggest score
+                Collections.sort(iIList, ItemInfo.getScoreSorter());
+                maxSize = iIList.get(0).getScore();
+                int nbr = 0;
+                for (ItemInfo i : iIList) {
+                    cutList.add(i);
+                    if (nbr++ >= limit) {
+                        break;
+                    }
                 }
-            });
+
+                // Add the tags to the cloud
+                for (ItemInfo i : cutList) {
+                    addTag(i, i.getScore()/maxSize * MAX_TAG_VALUE, false);
+                }
+
+                DeferredCommand.addCommand(new Command() {
+
+                    public void execute() {
+                        updateRecommendations();
+                    }
+                });
+            }
         }
 
         public void addTag(ItemInfo tag, boolean updateRecommendations) {
@@ -503,7 +506,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public void addTag(ItemInfo tag, double tagSize, boolean updateRecommendations) {
             if (!tagCloud.containsKey(tag.getId())) {
                 if (tagSize<0) {
-                    tagSize = 0;
+                    tagSize = TagMeter.RED_WIDTH / 2;
                 }
                 TagMeter tM = new TagMeter(tag, (int)tagSize, MAX_TAG_VALUE);
                 mainTagPanel.add(tM);
@@ -537,12 +540,24 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
         public class TagMeter extends Composite {
 
+            private static final int METER_HEIGHT = 16;
+            public static final int RED_WIDTH = 23;
+            public static final int TOTAL_WIDTH = 280;
+
+            private static final String METER_OFF = "meter-off.jpg";
+            private static final String METER_ON = "meter-on.jpg";
+            private static final String METER_HOVER = "meter-hover.jpg";
+
             private ItemInfo tag;
             private int rating;
 
             private Grid mainPanel;
+            private FocusPanel fP;
 
-            private NonDraggableImage[] leds;
+            private Image redMeter;
+            private Image greenMeterHover;
+            private Image greenMeterLeft;
+            private Image greenMeterRight;
 
             private TagMeter(ItemInfo tag, int initialRating, int maxRating) {
                 this.tag = tag;
@@ -551,88 +566,92 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 mainPanel = new Grid(1,2);
                 mainPanel.setWidth("100%");
 
+                fP = new FocusPanel();
+
+                redMeter = new Image(METER_OFF);
+                greenMeterHover = new Image(METER_HOVER);
+                greenMeterLeft = new Image(METER_ON);
+                greenMeterRight = new Image(METER_OFF);
+                HorizontalPanel hP = new HorizontalPanel();
+                hP.add(redMeter);
+                hP.add(greenMeterHover);
+                hP.add(greenMeterLeft);
+                hP.add(greenMeterRight);
+                fP.add(hP);
+
+                fP.getElement().setAttribute("style", "margin-right: 40px");
+                fP.addMouseListener(new MouseListener() {
+
+                    public void onMouseDown(Widget arg0, int arg1, int arg2) {}
+                    public void onMouseEnter(Widget arg0) {}
+
+                    public void onMouseLeave(Widget arg0) {
+                        redrawMeter();
+                    }
+
+                    public void onMouseMove(Widget arg0, int y, int x) {
+                        // We are hovering over the red section
+                        if (y<=RED_WIDTH) {
+                            redMeter.setUrlAndVisibleRect(METER_HOVER, 0, 0, RED_WIDTH, METER_HEIGHT);
+                            if (rating>RED_WIDTH) {
+                                greenMeterLeft.setVisibleRect(RED_WIDTH, 0, rating - RED_WIDTH, METER_HEIGHT);
+                                greenMeterRight.setVisibleRect(rating, 0, TOTAL_WIDTH - rating, METER_HEIGHT);
+                            } else {
+                                greenMeterLeft.setVisibleRect(0, 0, 0, METER_HEIGHT);
+                                greenMeterRight.setVisibleRect(RED_WIDTH, 0, TOTAL_WIDTH - RED_WIDTH, METER_HEIGHT);
+                            }
+                        // We are hovering over the green section
+                        } else {
+                            if (rating<=RED_WIDTH) {
+                                redMeter.setUrlAndVisibleRect(METER_ON, 0, 0, RED_WIDTH, METER_HEIGHT);
+                            } else {
+                                redMeter.setUrlAndVisibleRect(METER_OFF, 0, 0, RED_WIDTH, METER_HEIGHT);
+                            }
+
+                            greenMeterHover.setVisibleRect(RED_WIDTH, 0, y - RED_WIDTH, METER_HEIGHT);
+                            // If we are higher than the previous rating
+                            if (y>rating) {
+                                greenMeterLeft.setVisibleRect(0, 0, 0, METER_HEIGHT);
+                                greenMeterRight.setVisibleRect(y, 0, TOTAL_WIDTH - y, METER_HEIGHT);
+                            } else {
+                                greenMeterLeft.setVisibleRect(y, 0, rating - y, METER_HEIGHT);
+                                greenMeterRight.setVisibleRect(rating, 0, TOTAL_WIDTH - rating, METER_HEIGHT);
+                            }
+                        }
+                    }
+
+                    public void onMouseUp(Widget arg0, int y, int x) {
+                            ((FocusPanel)arg0).setFocus(false);
+                            rating = y;
+                            redrawMeter();
+                            updateRecommendations();
+                    }
+                });
+
                 mainPanel.setWidget(0, 0, new DeletableTag(new SpannedLabel(tag.getItemName())));
                 mainPanel.getCellFormatter().setHorizontalAlignment(0, 0, HorizontalPanel.ALIGN_LEFT);
                 mainPanel.getCellFormatter().setHorizontalAlignment(0, 1, HorizontalPanel.ALIGN_RIGHT);
                 
                 mainPanel.getCellFormatter().setWidth(0, 1, "150px");
 
-                leds = new NonDraggableImage[maxRating+1];
-                HorizontalPanel meter = new HorizontalPanel();
-                for (int i = 0; i < leds.length; i++) {
-                    String color;
-                    if (i==0) {
-                        color = "red";
-                    } else {
-                        color = "green";
-                    }
-                    if ((i==0 && rating!=0) || rating<i) {
-                        leds[i] = new NonDraggableImage("meter-"+color+"-off.jpg");
-                    } else {
-                        leds[i] = new NonDraggableImage("meter-"+color+"-on.jpg");
-                    }
-                    leds[i].setStyleName("noDrag");
-                    leds[i].addStyleName("image");
-                    leds[i].setHeight("15px");
-                    leds[i].addClickListener(new DataEmbededClickListener<Integer>(i) {
-
-                        public void onClick(Widget arg0) {
-                            rating = data;
-                            redrawMeter();
-                            updateRecommendations();
-                        }
-                    });
-                    leds[i].addMouseListener(new DataEmbededMouseListener<Integer>(i) {
-
-                        public void onMouseEnter(Widget arg0) {
-                            for (int i = 0; i < leds.length; i++) {
-                                String color;
-                                if (i == 0) {
-                                    color = "red";
-                                } else {
-                                    color = "green";
-                                }
-                                if ((i == 0 && data != 0) || data < i) {
-                                    if ((i == 0 && rating != 0) || rating < i) {
-                                        leds[i].setUrl("meter-" + color + "-off.jpg");
-                                    } else {
-                                        leds[i].setUrl("meter-" + color + "-on.jpg");
-                                    }
-                                } else {
-                                    leds[i].setUrl("meter-" + color + "-hover.jpg");
-                                }
-                            }
-                        }
-
-                        public void onMouseLeave(Widget arg0) {
-                            redrawMeter();
-                        }
-                        public void onMouseDown(Widget arg0, int arg1, int arg2) {}
-                        public void onMouseMove(Widget arg0, int arg1, int arg2) {}
-                        public void onMouseUp(Widget arg0, int arg1, int arg2) {}
-                    });
-
-                    meter.add(leds[i]);
-                }
-                meter.getElement().setAttribute("style", "margin-right: 40px");
-                mainPanel.setWidget(0, 1, meter);
+                mainPanel.setWidget(0, 1, fP);
 
                 initWidget(mainPanel);
+
+                redrawMeter();
             }
 
             private void redrawMeter() {
-                for (int i=0; i<leds.length; i++) {
-                    String color;
-                    if (i==0) {
-                        color = "red";
-                    } else {
-                        color = "green";
-                    }
-                    if ((i==0 && rating!=0) || rating<i) {
-                        leds[i].setUrl("meter-"+color+"-off.jpg");
-                    } else {
-                        leds[i].setUrl("meter-"+color+"-on.jpg");
-                    }
+                if (rating > RED_WIDTH) {
+                    redMeter.setUrlAndVisibleRect(METER_OFF, 0, 0, RED_WIDTH, METER_HEIGHT);
+                    greenMeterHover.setVisibleRect(0, 0, 0, METER_HEIGHT);
+                    greenMeterLeft.setUrlAndVisibleRect(METER_ON, RED_WIDTH, 0, rating - RED_WIDTH, METER_HEIGHT);
+                    greenMeterRight.setUrlAndVisibleRect(METER_OFF, rating, 0, TOTAL_WIDTH - rating, METER_HEIGHT);
+                } else {
+                    redMeter.setUrlAndVisibleRect(METER_ON, 0, 0, RED_WIDTH, METER_HEIGHT);
+                    greenMeterHover.setVisibleRect(0, 0, 0, METER_HEIGHT);
+                    greenMeterLeft.setUrlAndVisibleRect(METER_ON, 0, 0, 0, METER_HEIGHT);
+                    greenMeterRight.setUrlAndVisibleRect(METER_OFF, RED_WIDTH, 0, TOTAL_WIDTH - RED_WIDTH, METER_HEIGHT);
                 }
             }
 
@@ -645,7 +664,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             }
         }
 
-        public class DeletableTag extends DeletableWidget<Label> {
+        private class DeletableTag extends DeletableWidget<Label> {
 
             private String tag;
 
@@ -659,22 +678,6 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             }
         }
 
-        private class NonDraggableImage extends Image {
-
-            public NonDraggableImage(String url) {
-                super(url);
-            }
-
-            protected void onAttach() {
-                WebLib.disableTextSelectInternal(this.getElement(), true);
-                super.onAttach();
-            }
-
-            protected void onDetach() {
-                super.onDetach();
-                WebLib.disableTextSelectInternal(this.getElement(), false);
-            }
-        }
     }
 
     public class ResizableTagWidget extends TagWidget {
@@ -724,10 +727,11 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 public void onMouseDown(Widget arg0, int arg1, int arg2) {
                     lastX = arg1;
                     lastY = arg2;
+
+                    ((FocusPanel)arg0).setFocus(false);
                 }
 
-                public void onMouseEnter(Widget arg0) {
-                }
+                public void onMouseEnter(Widget arg0) {}
 
                 public void onMouseLeave(Widget arg0) {
                     boolean wasTrue = false;
@@ -740,6 +744,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                     if (wasTrue) {
                         updateRecommendations();
                     }
+
+                    ((FocusPanel)arg0).setFocus(false);
                 }
 
                 public void onMouseMove(Widget arg0, int arg1, int arg2) {
@@ -794,12 +800,15 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                         lastX = arg1;
                         lastY = arg2;
                     }
+
+                    ((FocusPanel)arg0).setFocus(false);
                 }
 
                 public void onMouseUp(Widget arg0, int arg1, int arg2) {
                     for (DeletableWidget<ResizableTag> dW : tagCloud.values()) {
                         dW.getWidget().setClickFalse();
                     }
+                    ((FocusPanel)arg0).setFocus(false);
                     updateRecommendations();
                 }
             });
@@ -838,54 +847,55 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
          * @param tag
          */
         public void addTags(ItemInfo[] tag, int limit) {
-
-            if (limit==0) {
-                limit = tag.length;
-            }
-
-            int avgSizeOfAddedCloud = 40;
-
-            List<ItemInfo> iIList = ItemInfo.arrayToList(tag);
-            List<ItemInfo> cutList = new ArrayList<ItemInfo>();
-
-            // Use only the top ten tags with the biggest score
-            Collections.sort(iIList, ItemInfo.getScoreSorter());
-            maxSize = iIList.get(0).getScore();
-            int nbr = 0;
-            for (ItemInfo i : iIList) {
-                cutList.add(i);
-                if (nbr++ >= limit) {
-                    break;
+            if (tag!=null && tag.length>0) {
+                if (limit==0) {
+                    limit = tag.length;
                 }
-            }
 
-            double sumScore = 0;
-            for (ItemInfo i : cutList) {
-                sumScore += i.getScore();
-            }
+                int avgSizeOfAddedCloud = 40;
 
-            // Find the size of the biggest tag so that the average size of the
-            // added tags match avgSizeOfAddedCloud
-            double maxTagSize = avgSizeOfAddedCloud * cutList.size() / sumScore;
+                List<ItemInfo> iIList = ItemInfo.arrayToList(tag);
+                List<ItemInfo> cutList = new ArrayList<ItemInfo>();
 
-            // Add the tags to the cloud
-            Collections.sort(cutList, ItemInfo.getRandomSorter());
-            for (ItemInfo i : cutList) {
-                double score;
-                if (i.getScore() < 0) {
-                    score = -0.6;
-                } else {
-                    score = i.getScore();
+                // Use only the top ten tags with the biggest score
+                Collections.sort(iIList, ItemInfo.getScoreSorter());
+                maxSize = iIList.get(0).getScore();
+                int nbr = 0;
+                for (ItemInfo i : iIList) {
+                    cutList.add(i);
+                    if (nbr++ >= limit) {
+                        break;
+                    }
                 }
-                addTag(i, score * maxTagSize, false);
-            }
 
-            hasChanged = true;
-            DeferredCommand.addCommand(new Command() {
-                public void execute() {
-                    updateRecommendations();
+                double sumScore = 0;
+                for (ItemInfo i : cutList) {
+                    sumScore += i.getScore();
                 }
-            });
+
+                // Find the size of the biggest tag so that the average size of the
+                // added tags match avgSizeOfAddedCloud
+                double maxTagSize = avgSizeOfAddedCloud * cutList.size() / sumScore;
+
+                // Add the tags to the cloud
+                Collections.sort(cutList, ItemInfo.getRandomSorter());
+                for (ItemInfo i : cutList) {
+                    double score;
+                    if (i.getScore() < 0) {
+                        score = -0.6;
+                    } else {
+                        score = i.getScore();
+                    }
+                    addTag(i, score * maxTagSize, false);
+                }
+
+                hasChanged = true;
+                DeferredCommand.addCommand(new Command() {
+                    public void execute() {
+                        updateRecommendations();
+                    }
+                });
+            }
         }
 
         public void addTag(ItemInfo tag, boolean updateRecommendations) {

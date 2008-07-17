@@ -201,6 +201,7 @@ public abstract class WebLib {
         Label lbl = new Label("Popularity: ");
         lbl.setStyleName("recoTags");
         lbl.addStyleName("marginRight");
+        lbl.addStyleName("bold");
         if (displayName) {
             hPanel.add(lbl);
         }

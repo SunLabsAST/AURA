@@ -45,6 +45,9 @@ h3 { font-size: 1.0em; margin-top: 1em; margin-bottom: 2px; }
 .center {     margin-left: auto;
     margin-right: auto;
 }
+.bold {
+  font-weight:bold;
+}
 img {
     border-style: hidden;
     border: 0px;
