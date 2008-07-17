@@ -28,12 +28,12 @@ public interface RecommendationType {
 
     /**
      * Gets recommendations
-     * @param listener the listener of interest
+     * @param listenerID the id of the listener of interest
      * @param count the number of recommendations to generate
      * @param the recommendation profile
      * @return  the ordered list of recommendations
      */
-    RecommendationSummary getRecommendations(Listener listener, int count, RecommendationProfile rp) 
+    RecommendationSummary getRecommendations(String listenerID, int count, RecommendationProfile rp) 
                 throws AuraException, RemoteException;
 
 

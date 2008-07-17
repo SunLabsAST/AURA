@@ -332,4 +332,8 @@ public class Utilities {
         }
         return sb.toString().trim();
     }
+
+    public static String detag(String s) {
+        return s.replaceAll("\\<.*?\\>", "");
+    }
 }

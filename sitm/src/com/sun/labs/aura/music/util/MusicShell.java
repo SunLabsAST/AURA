@@ -412,7 +412,7 @@ public class MusicShell implements AuraService, Configurable {
                         return "Can't find listener " + listenerID;
                     }
 
-                    RecommendationSummary rs =  rtype.getRecommendations(listener, sutils.getHits(), null);
+                    RecommendationSummary rs =  rtype.getRecommendations(listener.getKey(), sutils.getHits(), null);
 
                     System.out.println(rs.getExplanation());
                     for (Recommendation r : rs.getRecommendations()) {

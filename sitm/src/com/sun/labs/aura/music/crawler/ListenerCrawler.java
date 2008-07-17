@@ -140,7 +140,7 @@ public class ListenerCrawler extends ItemSchedulerImpl {
     }
 
     private void updateListenerArtists(Listener listener) throws AuraException, RemoteException {
-        List<Scored<String>> scoredArtistIDs = mdb.getAllArtistsAsIDs(listener);
+        List<Scored<String>> scoredArtistIDs = mdb.getAllArtistsAsIDs(listener.getKey());
         listener.clearFavoriteArtists();
         for (Scored<String> scoredArtistID : scoredArtistIDs) {
             listener.addFavoriteArtist(scoredArtistID.getItem(), (int) scoredArtistID.getScore());
@@ -149,7 +149,7 @@ public class ListenerCrawler extends ItemSchedulerImpl {
 
     private void updateListenerTags(Listener listener) throws AuraException, RemoteException {
         ScoredManager<String> sm = new ScoredManager();
-        List<Scored<String>> scoredArtistIDs = mdb.getAllArtistsAsIDs(listener);
+        List<Scored<String>> scoredArtistIDs = mdb.getAllArtistsAsIDs(listener.getKey());
         double max = getMax(scoredArtistIDs);
         for (Scored<String> scoredArtistID : scoredArtistIDs) {
             Artist artist = mdb.artistLookup(scoredArtistID.getItem());
@@ -190,7 +190,7 @@ public class ListenerCrawler extends ItemSchedulerImpl {
                 if (artistItem.getMBID() != null) {
                     Artist artist = mdb.artistLookup(artistItem.getMBID());
                     if (artist != null) {
-                        mdb.addPlayAttention(listener, artist.getKey(), artistItem.getFreq());
+                        mdb.addPlayAttention(listener.getKey(), artist.getKey(), artistItem.getFreq());
                         logger.fine("last.fm full crawl, added play attention for artist " + artistItem.getName());
                     } else {
                         logger.fine("last.fm full crawl, skipping artist " + artistItem.getName());
@@ -206,12 +206,12 @@ public class ListenerCrawler extends ItemSchedulerImpl {
         if (listener.getPandoraName() != null) {
             try {
                 logger.fine("Pandora crawl for " + listener.getName());
-                Set<String> favs = mdb.getFavoriteArtistsAsIDSet(listener, 100000);
+                Set<String> favs = mdb.getFavoriteArtistsAsIDSet(listener.getKey(), 100000);
                 List<String> artists = pandora.getFavoriteArtistNamesForUser(listener.getPandoraName());
                 for (String artistName : artists) {
                     Artist artist = mdb.artistFindBestMatch(artistName);
                     if (artist != null && !favs.contains(artist.getKey())) {
-                        mdb.addFavoriteAttention(listener, artist.getKey());
+                        mdb.addFavoriteAttention(listener.getKey(), artist.getKey());
                         logger.fine("pandora crawl, added play attention for artist " + artist.getName());
                     } else {
                         logger.fine("pandora crawl, skipping artist " + artistName);
@@ -231,7 +231,7 @@ public class ListenerCrawler extends ItemSchedulerImpl {
                 if (artistItem.getMBID() != null) {
                     Artist artist = mdb.artistLookup(artistItem.getMBID());
                     if (artist != null) {
-                        mdb.addPlayAttention(listener, artist.getKey(), artistItem.getFreq());
+                        mdb.addPlayAttention(listener.getKey(), artist.getKey(), artistItem.getFreq());
                     }
                 }
             }
