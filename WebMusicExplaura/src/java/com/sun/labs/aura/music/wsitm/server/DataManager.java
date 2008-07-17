@@ -611,7 +611,7 @@ public class DataManager implements Configurable {
         if (updateRecommendations) {
             // Fetch info for recommended artists
             ArrayList<ArtistCompact> aCompact = new ArrayList<ArtistCompact>();
-            for (Scored<Artist> a : mdb.getRecommendations(l, NBR_REC_LISTENER)) {
+            for (Scored<Artist> a : mdb.getRecommendations(l.getKey(), NBR_REC_LISTENER)) {
                 aCompact.add(artistToArtistCompact(a.getItem()));
             }
             lD.recommendations = aCompact.toArray(new ArtistCompact[0]);
@@ -646,7 +646,7 @@ public class DataManager implements Configurable {
         if (updateRecommendations) {
             // Fetch info for recommended artists
             ArrayList<ArtistCompact> aCompact = new ArrayList<ArtistCompact>();
-            for (Scored<Artist> a : mdb.getRecommendations(l, NBR_REC_LISTENER)) {
+            for (Scored<Artist> a : mdb.getRecommendations(l.getKey(), NBR_REC_LISTENER)) {
                 aCompact.add(artistToArtistCompact(a.getItem()));
             }
             lD.recommendations = aCompact.toArray(new ArtistCompact[0]);
@@ -732,14 +732,14 @@ public class DataManager implements Configurable {
             throws AuraException, RemoteException {
 
         logger.info("Setting rating "+rating+" for artist " + artistId + " for user "+ userId);
-        mdb.addRating(mdb.getListener(userId), artistId, rating);
+        mdb.addRating(userId, artistId, rating);
     }
 
     public int fetchUserSongRating(String userId, String artistID)
             throws AuraException, RemoteException {
 
         logger.info("Fetching rating for artist " + artistID + " for user "+ userId);
-        return mdb.getLatestRating(mdb.getListener(userId), artistID);
+        return mdb.getLatestRating(userId, artistID);
     }
 
     public Map<String,Integer> fetchUserSongRating(String userId, Set<String> artistID)
@@ -748,9 +748,8 @@ public class DataManager implements Configurable {
         Map<String, Integer> ratingMap = new HashMap<String, Integer>();
 
         logger.info("Fetching rating for artist " + artistID + " for user " + userId);
-        Listener l = mdb.getListener(userId);
         for (String aID : artistID) {
-            ratingMap.put(aID, mdb.getLatestRating(l, aID));
+            ratingMap.put(aID, mdb.getLatestRating(userId, aID));
         }
 
         return ratingMap;
@@ -783,13 +782,13 @@ public class DataManager implements Configurable {
     public Set<String> fetchUserTagsForItem(String listenerId, String itemId)
             throws AuraException, RemoteException {
         Set<String> tags = new HashSet<String>();
-        tags.addAll(mdb.getTags(mdb.getListener(listenerId), itemId));
+        tags.addAll(mdb.getTags(listenerId, itemId));
         return tags;
     }
 
     public void addUserTagForItem(String listenerId, String itemId, String tag) 
             throws AuraException, RemoteException {
-        mdb.addTag(mdb.getListener(listenerId), itemId, tag);
+        mdb.addTag(listenerId, itemId, tag);
     }
 
     public TagDetails loadTagDetailsFromStore(String id) throws AuraException,
