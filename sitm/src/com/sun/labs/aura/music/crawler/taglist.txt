@@ -440,7 +440,6 @@ NOT METAL
 psychill
 prog metal
 digital hardcore
-bands
 fantasy metal
 powernoise
 NYC
@@ -838,7 +837,7 @@ death thrash metal
 fav
 alternative country
 old school industrial
-band
+band, bands
 black music
 gentle
 Industrial Death Metal
@@ -1057,7 +1056,6 @@ Electronic Pop
 anime soundtrack
 boys with guitars
 hippie
-listen to
 dansk
 golden oldies
 disco punk
@@ -1319,7 +1317,6 @@ girls with guitars
 alt-folk
 progressive folk
 Russian Pop
-get
 brooding
 Finnish Black Metal
 electro dub
