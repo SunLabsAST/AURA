@@ -55,7 +55,7 @@ public class GetListenerTags extends HttpServlet {
                 Listener listener = mdb.getListener(userID);
 
                 if (itemID == null) {
-                    List<Scored<String>> stags = mdb.getAllTags(listener);
+                    List<Scored<String>> stags = mdb.getAllTags(listener.getKey());
                     if (stags != null) {
                         Util.tagOpen(out, SERVLET_NAME);
                         for (Scored<String> stag : stags) {
@@ -67,7 +67,7 @@ public class GetListenerTags extends HttpServlet {
                         Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.NotFound, "can't find tags");
                     }
                 } else {
-                    List<String> tags = mdb.getTags(listener, itemID);
+                    List<String> tags = mdb.getTags(listener.getKey(), itemID);
                     if (tags != null) {
                         Util.tagOpen(out, SERVLET_NAME);
                         for (String tag : tags) {
