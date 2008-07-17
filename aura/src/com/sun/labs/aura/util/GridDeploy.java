@@ -26,7 +26,7 @@ import com.sun.caroline.platform.ProcessRegistrationFilter;
 import com.sun.caroline.platform.RunState;
 import com.sun.caroline.platform.StorageManagementException;
 import com.sun.labs.aura.datastore.impl.DSBitSet;
-import com.sun.org.apache.xalan.internal.xsltc.cmdline.getopt.GetOpt;
+import com.sun.labs.minion.util.Getopt;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.MalformedURLException;
@@ -86,13 +86,13 @@ public class GridDeploy {
         }
         
         String globalParams = "n:";
-        GetOpt gopt = new GetOpt(argv, globalParams);
+        Getopt gopt = new Getopt(argv, globalParams);
         int numParts = 0;
         int c;
-        while((c = gopt.getNextOption()) != -1) {
+        while((c = gopt.getopt()) != -1) {
             switch(c) {
                 case 'n':
-                    numParts = Integer.parseInt(gopt.getOptionArg());
+                    numParts = Integer.parseInt(gopt.optArg);
                     break;
             }
         }
@@ -112,17 +112,15 @@ public class GridDeploy {
         
         //
         // Set up cmdArgs to be an argv array of args after the command name
-        String cmdArgs[] = gopt.getCmdArgs();
-        if (cmdArgs.length == 0) {
+        if (gopt.optInd >= argv.length) {
             System.out.println("Usage: " + usage);
             return;
         }
-        String cmd = cmdArgs[0];
-        String[] tmp = new String[cmdArgs.length - 1];
-        for (int i = 1; i < cmdArgs.length; i++) {
-            tmp[i - 1] = cmdArgs[i];
+        String cmd = argv[gopt.optInd];
+        String[] cmdArgs = new String[argv.length - gopt.optInd - 1];
+        for (int i = 0; i < cmdArgs.length; i++) {
+            cmdArgs[i] = argv[i + gopt.optInd + 1];
         }
-        cmdArgs = tmp;
 
         String homeDir = System.getProperty("user.home");
         File dotCaroline = new File(homeDir + "/.caroline");
@@ -157,16 +155,16 @@ public class GridDeploy {
             gd.createAuraInfrastructure();
             gd.createReindexerProcess(cmdArgs[0]);
         } else if (cmd.equals("splitDB")) {
-            GetOpt opt = new GetOpt(cmdArgs, "h:s:");
+            Getopt opt = new Getopt(cmdArgs, "h:s:");
             int numSplits = 0;
             String target = null;
-            while((c = opt.getNextOption()) != -1) {
+            while((c = opt.getopt()) != -1) {
                 switch(c) {
                     case 's':
-                        numSplits = Integer.parseInt(opt.getOptionArg());
+                        numSplits = Integer.parseInt(opt.optArg);
                         break;
                     case 'h':
-                        target = opt.getOptionArg();
+                        target = opt.optArg;
                         break;
                 }
             }
