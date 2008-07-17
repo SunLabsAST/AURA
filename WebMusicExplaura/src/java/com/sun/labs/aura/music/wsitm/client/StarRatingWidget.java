@@ -67,7 +67,11 @@ public class StarRatingWidget extends LoginListener {
         initWidget(g);
 
         initializeRatingWidget(musicServer, lD, artistID, -1, size);
-        invokeFetchRating();
+        if (lD.loggedIn) {
+            invokeFetchRating();
+        } else {
+            drawRatingWidget();
+        }
 
     }
 
@@ -202,23 +206,23 @@ public class StarRatingWidget extends LoginListener {
 
     private void invokeFetchRating() {
 
-            AsyncCallback callback = new AsyncCallback() {
+        AsyncCallback callback = new AsyncCallback() {
 
-                public void onSuccess(Object result) {
-                    nbrSelectedStars = (Integer)result;
-                    drawRatingWidget();
-                }
-
-                public void onFailure(Throwable caught) {
-                    Window.alert("Error fetching rating.");
-                }
-            };
-
-            try {
-                musicServer.fetchUserSongRating(artistID, callback);
-            } catch (WebException ex) {
-                Window.alert(ex.getMessage());
+            public void onSuccess(Object result) {
+                nbrSelectedStars = (Integer) result;
+                drawRatingWidget();
             }
+
+            public void onFailure(Throwable caught) {
+                Window.alert("Error fetching rating.");
+            }
+        };
+
+        try {
+            musicServer.fetchUserSongRating(artistID, callback);
+        } catch (WebException ex) {
+            Window.alert(ex.getMessage());
+        }
     }
 
     public void onLogin(ListenerDetails lD) {

@@ -45,6 +45,7 @@ public class TagInputWidget extends LoginListener {
     public TagInputWidget(MusicSearchInterfaceAsync musicServer, ListenerDetails lD, String itemType, String itemId) {
 
         this.musicServer = musicServer;
+        this.lD = lD;
         this.itemId = itemId;
 
         userTags = new HashMap<String, SpannedLabel>();
@@ -61,25 +62,14 @@ public class TagInputWidget extends LoginListener {
         resetTextBoxIfEmpty();
         txtBox.addKeyboardListener(new KeyboardListener() {
 
-            public void onKeyDown(Widget arg0, char arg1, int arg2) {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-
             public void onKeyPress(Widget arg0, char arg1, int arg2) {
                 if (arg1 == KeyboardListener.KEY_ENTER) {
-                    Set<String> tags = new HashSet<String>();
-                    for (String newTag : getTextBoxTxt().split(",")) {
-                        newTag = newTag.toLowerCase().trim();
-                        tags.add(newTag);
-                    }
-                    invokeAddTags(tags);
-                    clearTextBoxTxt();
+                    onTagSubmit();
                 }
             }
 
-            public void onKeyUp(Widget arg0, char arg1, int arg2) {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
+            public void onKeyDown(Widget arg0, char arg1, int arg2) {}
+            public void onKeyUp(Widget arg0, char arg1, int arg2) {}
         });
         txtBox.addFocusListener(new FocusListener() {
 
@@ -97,8 +87,26 @@ public class TagInputWidget extends LoginListener {
         progressImg.setVisible(false);
         mainPanel.add(progressImg);
 
+        if (lD != null && lD.loggedIn) {
+            invokeFetchUserTags();
+        }
+
         initWidget(mainPanel);
 
+    }
+
+    private void onTagSubmit() {
+        if (lD !=null && lD.loggedIn) {
+            Set<String> tags = new HashSet<String>();
+            for (String newTag : getTextBoxTxt().split(",")) {
+                newTag = newTag.toLowerCase().trim();
+                tags.add(newTag);
+            }
+            invokeAddTags(tags);
+            clearTextBoxTxt();
+        } else {
+            Window.alert("Message from the happy tag : you must be logged in to access this feature. I should redirect you to another page so you can create an account, but I'd rather keep you here and give you a big happy tag hug!");
+        }
     }
 
     private void resetTextBoxIfEmpty() {
@@ -161,22 +169,34 @@ public class TagInputWidget extends LoginListener {
         
          AsyncCallback<Set<String>> callback = new AsyncCallback<Set<String>>() {
 
-            public void onFailure(Throwable arg0) {
-                Window.alert(arg0.toString());
-            }
+             public void onFailure(Throwable arg0) {
+                 Window.alert(arg0.toString());
+                 resetTextBox();
+             }
 
-            public void onSuccess(Set<String> tags) {
-                for (String s : tags) {
-                    addTag(s);
-                }
-            }
-        };
+             public void onSuccess(Set<String> tags) {
+                 for (String s : tags) {
+                     addTag(s);
+                 }
+                 resetTextBox();
+             }
 
-        try {
-            musicServer.fetchUserTagsForItem(itemId, callback);
-        } catch (Exception ex) {
-            Window.alert(ex.getMessage());
-        }
+             public void resetTextBox() {
+                 txtBox.setEnabled(true);
+                 showSystemTextBoxMessage(DEFAULT_TBOX_TXT);
+                 progressImg.setVisible(false);
+             }
+         };
+
+         showSystemTextBoxMessage(PROCESSING_TBOX_MSG);
+         txtBox.setEnabled(false);
+         progressImg.setVisible(true);
+
+         try {
+             musicServer.fetchUserTagsForItem(itemId, callback);
+         } catch (Exception ex) {
+             Window.alert(ex.getMessage());
+         }
     }
 
      private void invokeAddTags(Set<String> tags) {
