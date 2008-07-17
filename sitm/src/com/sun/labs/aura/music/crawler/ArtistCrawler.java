@@ -501,7 +501,7 @@ public class ArtistCrawler implements AuraService, Configurable {
         }
 
         // some debugging code
-        if (crawlAlbumBlurbs) {
+        if (true && crawlAlbumBlurbs) {
             List<Tag> tags = artist.getBlurbTags();
             System.out.println("====== Blurbs for " + artist.getName() + " === albums: " + mbai.getAlbums().size());
             int count = 0;
