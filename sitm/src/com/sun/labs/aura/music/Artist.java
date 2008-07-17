@@ -39,6 +39,7 @@ public class Artist extends ItemAdapter {
     public final static String FIELD_RELATED_ARTISTS = "relatedArtists";
     public final static String FIELD_SOCIAL_TAGS = "socialTags";
     public final static String FIELD_BIO_TAGS = "bioTags";
+    public final static String FIELD_BLURB_TAGS = "blurbTags";
     public final static String FIELD_URLS = "urls";
     public final static String FIELD_VIDEOS = "videos";
     public final static String FIELD_LAST_CRAWL = "lastCrawl";
@@ -115,6 +116,9 @@ public class Artist extends ItemAdapter {
                     Item.FieldCapability.SEARCH,
                     Item.FieldCapability.SIMILARITY), Item.FieldType.STRING);
             ds.defineField(Item.ItemType.ARTIST, FIELD_BIO_TAGS, EnumSet.of(
+                    Item.FieldCapability.SEARCH,
+                    Item.FieldCapability.SIMILARITY), Item.FieldType.STRING);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_BLURB_TAGS, EnumSet.of(
                     Item.FieldCapability.SEARCH,
                     Item.FieldCapability.SIMILARITY), Item.FieldType.STRING);
             ds.defineField(Item.ItemType.ARTIST, FIELD_URLS);
@@ -297,6 +301,32 @@ public class Artist extends ItemAdapter {
      */
     public void setBioTag(String tag, int count) {
         setTag(FIELD_BIO_TAGS, tag, count);
+    }
+
+    /**
+     * Gets the artist's blurb tags 
+     * @return tag map
+     */
+    public List<Tag> getBlurbTags() {
+        return getTagsAsList(FIELD_BLURB_TAGS);
+    }
+
+    /**
+     * Adds a blurb tag to the artist
+     * @param tag name of the tag
+     * @param count tag count
+     */
+    public void addBlurbTag(String tag, int count) {
+        addTag(FIELD_BLURB_TAGS, tag, count);
+    }
+
+    /**
+     * Sets a blurb tag to the artist
+     * @param tag name of the tag
+     * @param count tag count
+     */
+    public void setBlurbTag(String tag, int count) {
+        setTag(FIELD_BLURB_TAGS, tag, count);
     }
 
     /**

@@ -66,7 +66,7 @@ public class GetRecommendations extends HttpServlet {
                         if (listener != null) {
                             RecommendationType rtype = mdb.getArtistRecommendationType(alg);
                             if (rtype != null) {
-                                RecommendationSummary rs = rtype.getRecommendations(listener, maxCount, null);
+                                RecommendationSummary rs = rtype.getRecommendations(listener.getKey(), maxCount, null);
 
                                 out.println("<GetRecommendations userID=\"" + userID + "\" alg=\"" + rtype.getName() + "\">");
                                 out.println("    <explanation>");
