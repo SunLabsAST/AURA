@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -27,8 +28,23 @@ public abstract class WebLib {
 
     public static final String ICON_WAIT = "ajax-bar.gif";
 
-    public static Widget getLastFMListenWidget(final ArtistCompact artistDetails) {
-        Image image = new Image("play-icon30.jpg");
+    /**
+     * Selection MUST be reenabled when widget is deleted to prevent a memory leak
+     * @see Taken from Gwt EXT 1.0
+     * @param disable Set to true to disable the selection and to false to reenable it
+     */
+    public native static void disableTextSelectInternal(Element e, boolean disable)/*-{
+    if (disable) {
+    e.ondrag = function () { return false; };
+    e.onselectstart = function () { return false; };
+    } else {
+    e.ondrag = null;
+    e.onselectstart = null;
+    }
+    }-*/;
+
+    public static Widget getLastFMListenWidget(final ArtistCompact artistDetails, int size) {
+        Image image = new Image("play-lastfm-"+size+".jpg");
         //image.setSize("22px", "22px");
         image.setTitle("Play music like " + artistDetails.getName() + " at last.fm");
         image.addClickListener(new ClickListener() {
@@ -43,11 +59,11 @@ public abstract class WebLib {
     public static Widget getSpotifyListenWidget(final ArtistCompact artistDetails, int size) {
         String musicURL = artistDetails.getSpotifyId();
         if (musicURL != null && !musicURL.equals("")) {
-            HTML html = new HTML("<a href=\"" + musicURL + "\"><img src=\"play-icon"+size+".jpg\"/></a>");
+            HTML html = new HTML("<a href=\"" + musicURL + "\"><img src=\"play-spotify-"+size+".jpg\"/></a>");
             html.setTitle("Play " + artistDetails.getName() + " with Spotify");
             return html;
         } else {
-            return getLastFMListenWidget(artistDetails);
+            return getLastFMListenWidget(artistDetails, size);
         }
     }
 
@@ -185,6 +201,7 @@ public abstract class WebLib {
         Label lbl = new Label("Popularity: ");
         lbl.setStyleName("recoTags");
         lbl.addStyleName("marginRight");
+        lbl.addStyleName("bold");
         if (displayName) {
             hPanel.add(lbl);
         }

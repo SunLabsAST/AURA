@@ -1,6 +1,6 @@
-
 package com.sun.labs.aura.music.webservices;
 
+import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.util.Tag;
 import java.io.PrintWriter;
@@ -19,8 +19,11 @@ import java.util.Map.Entry;
  */
 public class Util {
 
-    enum ErrorCode { OK, MissingArgument, DataStore, Configuration, NotFound, BadArgument};
-    
+    enum ErrorCode {
+
+        OK, MissingArgument, DataStore, Configuration, NotFound, BadArgument
+    };
+
     static String filter(String s) {
         if (s != null) {
             s = s.replaceAll("[^\\p{ASCII}]", "");
@@ -46,6 +49,11 @@ public class Util {
         out.println("</" + tag + ">");
     }
 
+    static void outputClosingStatus(PrintWriter out, String tag, ErrorCode code, String message) {
+        outputStatus(out, code, message);
+        out.println("</" + tag + ">");
+    }
+
     static void outputOKStatus(PrintWriter out) {
         outputStatus(out, ErrorCode.OK, null);
     }
@@ -53,13 +61,19 @@ public class Util {
     static Timer getTimer() {
         return new Timer();
     }
-    
+
     static void tagOpen(PrintWriter out, String tag) {
         out.println("<" + tag + ">");
     }
 
     static void tagClose(PrintWriter out, String tag) {
         out.println("</" + tag + ">");
+    }
+
+    static void tag(PrintWriter out, String tag, String val) {
+        tagOpen(out, tag);
+        out.println(val);
+        tagClose(out, tag);
     }
 
     public static String toXML(Item item) {
@@ -71,21 +85,21 @@ public class Util {
 
         //
         // Get the map entries sorted by key.
-        List<Map.Entry<String,Serializable>> sl = new ArrayList<Map.Entry<String, Serializable>>();
-        for(Map.Entry<String,Serializable> e : item) {
+        List<Map.Entry<String, Serializable>> sl = new ArrayList<Map.Entry<String, Serializable>>();
+        for (Map.Entry<String, Serializable> e : item) {
             sl.add(e);
         }
-        Collections.sort(sl, new Comparator<Map.Entry<String,Serializable>>() {
+        Collections.sort(sl, new Comparator<Map.Entry<String, Serializable>>() {
+
             public int compare(Entry<String, Serializable> o1,
                     Entry<String, Serializable> o2) {
                 return o1.getKey().compareTo(o2.getKey());
             }
-            
         });
 
         //
         // Put them in the string.
-        for(Map.Entry<String,Serializable> e : sl) {
+        for (Map.Entry<String, Serializable> e : sl) {
             if (e.getValue() instanceof Collection) {
                 for (Object element : (Collection) e.getValue()) {
                     sb.append(toXMLString(e.getKey(), element));
@@ -100,6 +114,23 @@ public class Util {
             }
         }
         sb.append("</item>");
+        return sb.toString();
+    }
+
+    public static String toXML(Attention attn) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<attn>");
+        sb.append("    <src>" + attn.getSourceKey() + "</src>");
+        sb.append("    <tgt>" + attn.getTargetKey() + "</tgt>");
+        sb.append("    <type>" + attn.getType().toString() + "</type>");
+        sb.append("    <time>" + attn.getTimeStamp() + "</time>");
+        if (attn.getString() != null) {
+            sb.append("    <sv>" + attn.getString() + "</sv>");
+        }
+        if (attn.getNumber() != null) {
+            sb.append("    <nv>" + attn.getNumber() + "</nv>");
+        }
+        sb.append("</attn>");
         return sb.toString();
     }
 
@@ -123,9 +154,10 @@ public class Util {
 }
 
 class Timer {
+
     long start = System.currentTimeMillis();
 
     void report(PrintWriter out) {
-        out.println("<!-- output generated in " + (System.currentTimeMillis() - start) + " ms -->" );
+        out.println("<!-- output generated in " + (System.currentTimeMillis() - start) + " ms -->");
     }
 }

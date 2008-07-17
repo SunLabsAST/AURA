@@ -38,7 +38,13 @@ public class ClientDataManager {
     private Map<String, Double> favArtist;
     
     private PageHeaderWidget phw;
-    private SimpleSearchSwidget ssw;
+    //private SimpleSearchSwidget ssw;
+
+    /**
+     * If true, steerableswidget will reload artist cloud if querystring is set
+     * If false, steerableswidget will keep the current cloud
+     */
+    private boolean forceSteerableReset = false;
 
     private Set<Swidget> registeredSwidgets;
 
@@ -86,15 +92,25 @@ public class ClientDataManager {
 
     public void setWidgets(PageHeaderWidget phw, SimpleSearchSwidget ssw) {
         this.phw = phw;
-        this.ssw = ssw;
+        //this.ssw = ssw;
     }
 
     public PageHeaderWidget getPageHeaderWidget() {
         return phw;
     }
 
+    /*
     public SimpleSearchSwidget getSimpleSearchWidget() {
         return ssw;
+    }
+     * */
+
+    public boolean getSteerableReset() {
+        return forceSteerableReset;
+    }
+
+    public void setSteerableReset(boolean newVal) {
+        forceSteerableReset = newVal;
     }
 
     public Double getMaxScore() {

@@ -47,7 +47,9 @@ public class DashboardSwidget extends Swidget {
         return l;
     }
 
-
+    protected void initMenuItem() {
+        menuItem = new MenuItem("Dashboard",MenuItem.getDefaultTokenClickListener("dashboard:"),true,3);
+    }
 
     private class MainPanel extends LoginListener {
 
@@ -84,8 +86,8 @@ public class DashboardSwidget extends Swidget {
 
             DockPanel dP = new DockPanel();
 
-            ArtistListWidget alp = new ArtistListWidget(musicServer, cdm.getListenerDetails(), cdm.getListenerDetails().recommendations);
-            dP.add(WebLib.createSection("Artist recommendations", alp), DockPanel.WEST);
+//            ArtistCloudArtistListWidget alp = new ArtistCloudArtistListWidget(musicServer, cdm, cdm.getListenerDetails().recommendations), cdm.get;
+//            dP.add(WebLib.createSection("Artist recommendations", alp), DockPanel.WEST);
 
             Label titleLbl = new Label("Dashhhhboard");
             titleLbl.setStyleName("h1");
@@ -173,17 +175,21 @@ public class DashboardSwidget extends Swidget {
         }
     }
 
-    public class TokenClickListener implements ClickListener {
+    public class ArtistCloudArtistListWidget extends ArtistListWidget {
 
-        String token="";
+        private String currArtistId;
 
-        public TokenClickListener(String token) {
-            this.token = token;
+        public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
+            ClientDataManager cdm, ArtistCompact[] aDArray, String currArtistId) {
+
+            super(musicServer, cdm, aDArray);
+            this.currArtistId = currArtistId;
         }
 
-        public void onClick(Widget arg0) {
-            History.newItem(token);
+        public void openWhyPopup(WhyButton why) {
+            why.showLoad();
+            TagDisplayLib.invokeGetCommonTags(currArtistId, why.getId(),
+                    musicServer, cdm, new CommonTagsAsyncCallback(why) {});
         }
-
     }
 }

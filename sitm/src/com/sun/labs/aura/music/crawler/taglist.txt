@@ -1,25 +1,22 @@
 # just genre, mood, locale, instrumentation, style, usage
 # format:  main name[,alias,alias]
 rock
-indie
+indie, indie rock
 alternative, alternative rock
 metal
-electronic
-punk
+electronic, electronica
+punk, punk rock
 pop
-indie rock
 Hip-Hop
 classic rock
-female vocalists, female, female vocalist, female vocals, female artists, female vocal, female singers, female singer, female voice, female fronted
+female vocalists, female, female vocalist, female vocals, female artists, female vocal, female singers, female singer, female voice, female fronted, Female Voices
 emo
 hardcore
 death metal
-electronica
 singer-songwriter, singer-songwriters
 black metal
 hard rock
 jazz
-punk rock
 folk
 heavy metal
 Progressive rock
@@ -63,7 +60,7 @@ finnish
 Classical
 trance
 acoustic
-psychedelic
+psychedelic, Psychedelia
 folk metal
 pop punk
 Canadian
@@ -244,7 +241,6 @@ mpb
 NWOBHM
 Kpop
 deathcore
-Female Voices
 motown
 breakbeat
 Swedish Metal
@@ -689,7 +685,6 @@ afrobeat
 moody
 nice
 scandinavia
-Psychedelia
 neoclassic
 nerdcore
 Indian

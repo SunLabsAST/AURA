@@ -116,8 +116,29 @@ public class StarRatingWidget extends Composite {
             } else {
                 images[i] = new Image(STAR_WHITE);
             }
-            images[i].addClickListener(new IndexClickListener(i));
-            images[i].addMouseListener(new IndexMouseListener(i));
+            images[i].addClickListener(new DataEmbededClickListener<Integer>(i) {
+
+                public void onClick(Widget arg0) {
+                    invokeSaveRating(data);
+                }
+            });
+            images[i].addMouseListener(new DataEmbededMouseListener<Integer>(i) {
+
+                public void onMouseEnter(Widget arg0) {
+                    for (int i = 0; i <= data; i++) {
+                        images[i].setUrl(STAR_LID);
+                    }
+                }
+
+                public void onMouseLeave(Widget arg0) {
+                    redrawStars();
+                }
+
+                public void onMouseDown(Widget arg0, int arg1, int arg2) {}
+                public void onMouseMove(Widget arg0, int arg1, int arg2) {}
+                public void onMouseUp(Widget arg0, int arg1, int arg2) {}
+
+            });
             p.add(images[i]);
         }
         Image noInterest = new Image(NOT_INTERESTED);
@@ -142,7 +163,7 @@ public class StarRatingWidget extends Composite {
     private void invokeSaveRating(int index) {
 
         if (!lD.loggedIn) {
-            Window.alert("Error. You must be logged in to access this feature. But we should redirect you to another page so you can create an account...");
+            Window.alert("Message from the happy tag : you must be logged in to access this feature. I should redirect you to another page so you can create an account, but I'd rather keep you here so we can be friends.");
             return;
         }
 
@@ -200,48 +221,4 @@ public class StarRatingWidget extends Composite {
                 Window.alert(ex.getMessage());
             }
     }
-
-    private class IndexMouseListener implements MouseListener {
-
-        private int index;
-
-        public IndexMouseListener(int index) {
-            this.index=index;
-        }
-
-        public void onMouseDown(Widget arg0, int arg1, int arg2) {
-        }
-
-        public void onMouseEnter(Widget arg0) {
-            for (int i=0; i<=index; i++) {
-                images[i].setUrl(STAR_LID);
-            }
-        }
-
-        public void onMouseLeave(Widget arg0) {
-            redrawStars();
-        }
-
-        public void onMouseMove(Widget arg0, int arg1, int arg2) {
-        }
-
-        public void onMouseUp(Widget arg0, int arg1, int arg2) {
-        }
-
-    }
-
-    private class IndexClickListener implements ClickListener {
-
-        private int index;
-
-        public IndexClickListener(int index) {
-            super();
-            this.index = index;
-        }
-
-        public void onClick(Widget arg0) {
-            invokeSaveRating(index);
-        }
-    }
-
 }

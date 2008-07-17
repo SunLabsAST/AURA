@@ -119,4 +119,8 @@ public class TagExplorer extends Swidget {
         
         musicServer.getTagTree(callback);
     }
+
+    protected void initMenuItem() {
+        menuItem = new MenuItem();
+    }
 }

@@ -7,6 +7,7 @@ package com.sun.labs.aura.music.webservices;
 import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Scored;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -53,22 +54,30 @@ public class GetListenerTags extends HttpServlet {
 
                 Listener listener = mdb.getListener(userID);
 
-                List<String> tags;
                 if (itemID == null) {
-                    tags = mdb.getAllTags(listener);
-                } else {
-                    tags = mdb.getTags(listener, itemID);
-                }
-
-                if (tags != null) {
-                    Util.tagOpen(out, SERVLET_NAME);
-                    for (String tag : tags) {
-                        out.println("    <tag key=\"" + tag + "/>");
+                    List<Scored<String>> stags = mdb.getAllTags(listener);
+                    if (stags != null) {
+                        Util.tagOpen(out, SERVLET_NAME);
+                        for (Scored<String> stag : stags) {
+                            out.println("    <tag key=\"" + stag.getItem() + " score=\"" + stag.getScore() + "\"/>");
+                        }
+                        Util.outputOKStatus(out);
+                        Util.tagClose(out, SERVLET_NAME);
+                    } else {
+                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.NotFound, "can't find tags");
                     }
-                    Util.outputOKStatus(out);
-                    Util.tagClose(out, SERVLET_NAME);
                 } else {
-                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.NotFound, "can't find tags");
+                    List<String> tags = mdb.getTags(listener, itemID);
+                    if (tags != null) {
+                        Util.tagOpen(out, SERVLET_NAME);
+                        for (String tag : tags) {
+                            out.println("    <tag key=\"" + tag + "\"/>");
+                        }
+                        Util.outputOKStatus(out);
+                        Util.tagClose(out, SERVLET_NAME);
+                    } else {
+                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.NotFound, "can't find tags");
+                    }
                 }
             }
         } catch (AuraException ex) {
