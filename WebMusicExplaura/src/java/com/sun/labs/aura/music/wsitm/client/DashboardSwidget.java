@@ -21,9 +21,12 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -86,8 +89,8 @@ public class DashboardSwidget extends Swidget {
 
             DockPanel dP = new DockPanel();
 
-//            ArtistCloudArtistListWidget alp = new ArtistCloudArtistListWidget(musicServer, cdm, cdm.getListenerDetails().recommendations), cdm.get;
-//            dP.add(WebLib.createSection("Artist recommendations", alp), DockPanel.WEST);
+            UserCloudArtistListWidget alp = new UserCloudArtistListWidget(musicServer, cdm, cdm.getListenerDetails().recommendations);
+            dP.add(WebLib.createSection("Artist recommendations", alp), DockPanel.WEST);
 
             Label titleLbl = new Label("Dashhhhboard");
             titleLbl.setStyleName("h1");
@@ -175,21 +178,29 @@ public class DashboardSwidget extends Swidget {
         }
     }
 
-    public class ArtistCloudArtistListWidget extends ArtistListWidget {
+      public class UserCloudArtistListWidget extends ArtistListWidget {
 
-        private String currArtistId;
+        private Map<String, Double> tagMap;
 
-        public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
-            ClientDataManager cdm, ArtistCompact[] aDArray, String currArtistId) {
+        public UserCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
+                ClientDataManager cdm, ArtistCompact[] aDArray) {
 
             super(musicServer, cdm, aDArray);
-            this.currArtistId = currArtistId;
+
+            tagMap = new HashMap<String, Double>();
+            if (cdm.getListenerDetails().userTagCloud != null) {
+                for (ItemInfo i : cdm.getListenerDetails().userTagCloud) {
+                    tagMap.put(i.getItemName(), i.getScore());
+                }
+            }
         }
 
         public void openWhyPopup(WhyButton why) {
             why.showLoad();
-            TagDisplayLib.invokeGetCommonTags(currArtistId, why.getId(),
-                    musicServer, cdm, new CommonTagsAsyncCallback(why) {});
+            TagDisplayLib.invokeGetCommonTags(tagMap, why.getId(),
+                    musicServer, cdm, new CommonTagsAsyncCallback(why) {
+            });
         }
     }
+
 }

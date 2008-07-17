@@ -15,6 +15,7 @@ import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.Cookies;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
@@ -29,9 +30,12 @@ import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -207,50 +211,6 @@ public class PageHeaderWidget extends Swidget {
         }
     }
 
-    private void invokeGetUserTagCloud(String lastfmUser) {
-        AsyncCallback callback = new AsyncCallback() {
-
-            public void onSuccess(Object result) {
-                // do some UI stuff to show success
-                mainPanel.clearCell(0, 1);
-                ListenerDetails lin = (ListenerDetails) result;
-                if (lin==null || lin.userTags==null || lin.userTags.length==0) {
-                    Window.alert("Error fetching your user information.");
-                    cdm.resetUser();
-                    populateMainPanel();
-                } else {
-                
-                    ItemInfo[] tagCloud = lin.userTags;
-                    cdm.setTagCloud(tagCloud, txtbox.getText(), lin.favArtistDetails);
-                    
-                    mainPanel.setWidget(0,0,new Label("Logged in: "+cdm.getLastFmUser()));
-                    
-                    Label viewCloudLbl = new Label("View tag cloud");
-                    viewCloudLbl.setHorizontalAlignment(Label.ALIGN_RIGHT);
-                    viewCloudLbl.addClickListener(new ClickListener() {
-
-                        public void onClick(Widget arg0) {
-                            TagDisplayLib.showTagCloud("Your your tag cloud", cdm.getTagCloud());
-                        }
-                    });
-
-                    mainPanel.setWidget(0, 2, viewCloudLbl);
-                }
-            }
-
-            public void onFailure(Throwable caught) {
-                //failureAction(caught);
-                Window.alert(caught.toString());
-            }
-        };
-
-        try {
-            musicServer.getUserTagCloud(lastfmUser, cdm.getCurrSimTypeName(), callback);
-        } catch (Exception ex) {
-            Window.alert(ex.getMessage());
-        }
-    }
-
     /**
      * Called after a successful login by the invoke methods that just received
      * the new ListenerDetails containing the login information. Updates page header UI
@@ -298,12 +258,44 @@ public class PageHeaderWidget extends Swidget {
 
             hP.add(vP);
 
+            ClickListener cL = new ClickListener() {
+                public void onClick(Widget arg0) {
+                    cdm.setSteerableReset(true);
+                    History.newItem("steering:userCloud");
+                }
+            };
+            Image steerable = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, cL);
+            steerable.setTitle("Steerable recommendations starting with your personal tag cloud");
+            hP.add(steerable);
+
+            // Plays a random recommended
+            ArtistCompact[] aC = cdm.getListenerDetails().recommendations;
+            if (aC.length > 0) {
+                Arrays.sort(aC, new Comparator<ArtistCompact>() {
+
+                    public int compare(ArtistCompact o1, ArtistCompact o2) {
+                        if (Random.nextBoolean()) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    }
+                });
+
+                for (ArtistCompact a : aC) {
+                    if (a.getSpotifyId() != null && a.getSpotifyId().length() > 0) {
+                        Widget instantPlay = WebLib.getSpotifyListenWidget(a, 20);
+                        hP.add(instantPlay);
+                        break;
+                    }
+                }
+            }
+
             mainPanel.setWidget(0, 0, hP);
 
         } else {
             populateLoginBox();
         }
-
     }
 
     /**

@@ -652,6 +652,26 @@ public class DataManager implements Configurable {
             lD.recommendations = aCompact.toArray(new ArtistCompact[0]);
         }
 
+        ArrayList<ItemInfo> iI = new ArrayList<ItemInfo>();
+        List<Tag> lT = l.getSocialTags();
+        if (lT != null && lT.size() > 0) {
+            Collections.sort(lT, new Comparator<Tag>() {
+
+                public int compare(Tag o1, Tag o2) {
+                    return new Integer(o1.getFreq()).compareTo(o2.getFreq());
+                }
+            });
+            double maxSize = lT.get(0).getFreq();
+            int nbr = 0;
+            for (Tag t : lT) {
+                iI.add(new ItemInfo(ArtistTag.nameToKey(t.getName()), t.getName(), t.getFreq() / maxSize, t.getFreq() / maxSize));
+                if (nbr++ > 50) {
+                    break;
+                }
+            }
+        }
+        lD.userTagCloud = iI.toArray(new ItemInfo[0]);
+
         return lD;
     }
 

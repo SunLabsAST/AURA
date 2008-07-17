@@ -238,7 +238,7 @@ public abstract class ArtistListWidget extends Composite {
             });
             buttonPanel.add(steerButton);
 
-            WhyButton why = new WhyButton(aD.getId());
+            WhyButton why = new WhyButton(aD.getId(), aD.getName());
             buttonPanel.add(why);
 
             aNamePanel.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
@@ -331,11 +331,13 @@ public abstract class ArtistListWidget extends Composite {
         private SpannedLabel why;
         private Image load;
 
+        private String artistName;
         private String id;
 
-        public WhyButton(String id) {
+        public WhyButton(String id, String artistName) {
 
             this.id = id;
+            this.artistName = artistName;
 
             g = new Grid(1,1);
             g.setWidth("30px");
@@ -360,6 +362,10 @@ public abstract class ArtistListWidget extends Composite {
 
         public String getId() {
             return id;
+        }
+
+        public String getName() {
+            return artistName;
         }
 
         public void showWhy() {

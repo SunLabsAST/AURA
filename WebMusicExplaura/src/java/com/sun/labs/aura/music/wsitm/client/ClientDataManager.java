@@ -24,6 +24,7 @@ import java.util.Set;
 public class ClientDataManager {
 
     private String currArtist;
+    private String currArtistName;
     private String currSearchWidgetToken = "searchHome:";
 
     private List<Updatable> updatableWidgets;
@@ -280,12 +281,17 @@ public class ClientDataManager {
         }
     }
 
-    public void setCurrArtistID(String id) {
-        this.currArtist=id;
+    public void setCurrArtistInfo(String id, String name) {
+        this.currArtist = id;
+        this.currArtistName = name;
     }
     
     public String getCurrArtistID() {
         return currArtist;
+    }
+
+    public String getCurrArtistName() {
+        return currArtistName;
     }
 
     public void setCurrSearchWidgetToken(String token) {

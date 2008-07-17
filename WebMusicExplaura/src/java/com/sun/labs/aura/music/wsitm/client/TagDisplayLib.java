@@ -33,7 +33,7 @@ public abstract class TagDisplayLib {
         final DialogBox d = Popup.getDialogBox();
         Panel p = getTagsInPanel(tags, d);
         if (p!=null) {
-            Popup.showPopup(p,"WebMusicExplaura :: "+title,d);
+            Popup.showPopup(p,title,d);
         }
     }
 

@@ -209,7 +209,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
     private void showResults(String resultName) {
 
         // Reset current artistID. Will be updated in invokeGetArtistInfo
-        cdm.setCurrArtistID("");
+        cdm.setCurrArtistInfo("", "");
 
         //  resultName = URL.decodeComponent(resultName);
         if (resultName.startsWith("artist:")) {
@@ -368,7 +368,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                     // do some UI stuff to show success
                     ArtistDetails artistDetails = (ArtistDetails) result;
                     if (artistDetails != null && artistDetails.isOK()) {
-                        cdm.setCurrArtistID(artistDetails.getId());
+                        cdm.setCurrArtistInfo(artistDetails.getId(), artistDetails.getName());
                         Widget artistPanel = createArtistPanel("Artists", artistDetails);
                         search.setText(artistDetails.getName(), searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
                         search.updateSuggestBox(Oracles.ARTIST);
@@ -468,13 +468,13 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             addCompactArtistToOracle(aCArray);
             left.add(
                     new Updatable(new HTML("<H2>Similar artists</H2>"),
-                    new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID()), cdm, id) {
+                    new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), artistDetails.getName()), cdm, id) {
 
                         public void update(ArtistDetails aD) {
                             ArtistCompact[] aCArray = aD.getSimilarArtists();
                             addCompactArtistToOracle(aCArray);
                             setNewContent(new HTML("<H2>Similar artists</H2>"),
-                                    new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID()));
+                                    new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), cdm.getCurrArtistName()));
                         }
                     }
            );
@@ -483,12 +483,12 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         if (artistDetails.getRecommendedArtists().length > 0) {
             ArtistCompact[] aCArray = artistDetails.getRecommendedArtists();
             addCompactArtistToOracle(aCArray);
-            left.add(WebLib.createSection("Recommendations", new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID())));
+            left.add(WebLib.createSection("Recommendations", new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), cdm.getCurrArtistName())));
         }
         if (artistDetails.getCollaborations().length > 0) {
             ArtistCompact[] aCArray = artistDetails.getCollaborations();
             addCompactArtistToOracle(aCArray);
-            left.add(WebLib.createSection("Related", new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID())));
+            left.add(WebLib.createSection("Related", new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), cdm.getCurrArtistName())));
         }
         left.add(getMoreInfoWidget(artistDetails));
         left.setStyleName("left");
@@ -864,18 +864,20 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
     public class ArtistCloudArtistListWidget extends ArtistListWidget {
 
         private String currArtistId;
+        private String currArtistName;
 
         public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
-            ClientDataManager cdm, ArtistCompact[] aDArray, String currArtistId) {
+            ClientDataManager cdm, ArtistCompact[] aDArray, String currArtistId, String currArtistName) {
 
             super(musicServer, cdm, aDArray);
             this.currArtistId = currArtistId;
+            this.currArtistName = currArtistName;
         }
 
         public void openWhyPopup(WhyButton why) {
             why.showLoad();
             TagDisplayLib.invokeGetCommonTags(currArtistId, why.getId(),
-                    musicServer, cdm, new CommonTagsAsyncCallback(why) {});
+                    musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between "+currArtistName+" and "+why.getName()) {});
         }
     }
 

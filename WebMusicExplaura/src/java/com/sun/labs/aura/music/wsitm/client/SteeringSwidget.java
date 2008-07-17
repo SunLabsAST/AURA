@@ -77,7 +77,13 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             // Only reset if artist id is in querystring and we aksed
             if (historyToken.length() > 9 && cdm.getSteerableReset()) {
                 cdm.setSteerableReset(false);
-                mP.loadArtistCloud(historyToken.substring(9));
+                if (historyToken.startsWith("steering:userCloud") && cdm.isLoggedIn()) {
+                    Info.display("info","in if", new Params());
+                    mP.loadCloud(cdm.getListenerDetails().userTagCloud);
+                } else {
+                    Info.display("info","in else", new Params());
+                    mP.loadArtistCloud(historyToken.substring(9));
+                }
             }
         }
     }
@@ -245,6 +251,16 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         }
 
         public void onLogout() {
+        }
+
+        public void loadCloud(ItemInfo[] cloud) {
+            tagLand.removeAllTags(true);
+            if (cloud != null && cloud.length > 0) {
+                tagLand.addTags(cloud, TagWidget.NBR_TOP_TAGS_TO_ADD);
+            } else {
+                Info.display("Steerable recommendations", "Your user cloud is empty; no tags to add.", new Params());
+            }
+            History.newItem("steering:");
         }
 
         public void loadArtistCloud(String artistId) {
@@ -1505,7 +1521,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public void openWhyPopup(WhyButton why) {
             why.showLoad();
             TagDisplayLib.invokeGetCommonTags(tagLand.getTapMap(), why.getId(),
-                    musicServer, cdm, new CommonTagsAsyncCallback(why) {});
+                    musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between your cloud and "+why.getName()) {});
         }
     }
 }
