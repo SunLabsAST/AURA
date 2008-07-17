@@ -17,6 +17,8 @@ import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.Video;
 import com.sun.labs.aura.music.util.CommandRunner;
 import com.sun.labs.aura.music.util.Commander;
+import com.sun.labs.aura.music.web.Utilities;
+import com.sun.labs.aura.music.web.amazon.Amazon;
 import com.sun.labs.aura.music.web.flickr.FlickrManager;
 import com.sun.labs.aura.music.web.lastfm.LastArtist;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
@@ -31,6 +33,8 @@ import com.sun.labs.aura.music.web.wikipedia.WikiInfo;
 import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
 import com.sun.labs.aura.music.web.youtube.Youtube;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Tag;
+import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
@@ -72,6 +76,7 @@ public class ArtistCrawler implements AuraService, Configurable {
     private FlickrManager flickr;
     private Upcoming upcoming;
     private Spotify spotify;
+    private Amazon amazon;
     private PriorityQueue<QueuedArtist> artistQueue;
     private Logger logger;
     private Util util;
@@ -79,7 +84,8 @@ public class ArtistCrawler implements AuraService, Configurable {
     private final static int FLUSH_COUNT = 10;
     private boolean running = false;
     private final static int MAX_FAN_OUT = 5;
-    private Map<String,String> validTagMap = new HashMap();
+    private int minBlurbCount = 3;
+    private Map<String, String> validTagMap = new HashMap();
 
     /**
      * Starts running the crawler
@@ -126,6 +132,7 @@ public class ArtistCrawler implements AuraService, Configurable {
             wikipedia = new Wikipedia();
             youtube = new Youtube();
             flickr = new FlickrManager();
+            amazon = new Amazon();
             upcoming = new Upcoming();
             spotify = new Spotify();
             artistQueue = new PriorityQueue(1000, QueuedArtist.PRIORITY_ORDER);
@@ -133,6 +140,8 @@ public class ArtistCrawler implements AuraService, Configurable {
             stateDir = ps.getString(PROP_STATE_DIR);
             updateRateInSeconds = ps.getInt(PROP_UPDATE_RATE);
             maxArtists = ps.getInt(PROP_MAX_ARTISTS);
+            crawlAlbumBlurbs = ps.getBoolean(PROP_CRAWL_ALBUM_BLURBS);
+            maxBlurbPages = ps.getInt(PROP_MAX_BLURB_PAGES);
             util = new Util(dataStore, flickr, youtube);
             createStateFileDirectory();
             loadState();
@@ -222,7 +231,7 @@ public class ArtistCrawler implements AuraService, Configurable {
                 long startTime = System.currentTimeMillis();
                 updateArtists(false, 5000L);
                 long delta = System.currentTimeMillis() - startTime;
-                long delay = updateRateInSeconds * 1000L  - delta;
+                long delay = updateRateInSeconds * 1000L - delta;
                 if (delay > 0L) {
                     logger.info("ArtistUpdater waiting " + (delay / (1000. * 60 * 60)) + " hours.");
                     Thread.sleep(delay);
@@ -287,7 +296,7 @@ public class ArtistCrawler implements AuraService, Configurable {
         }
         return null;
     }
-    
+
     private void updateArtist(final Artist artist) {
         CommandRunner runner = new CommandRunner(false, logger.isLoggable(Level.FINE));
         runner.add(new Commander("last.fm") {
@@ -456,6 +465,7 @@ public class ArtistCrawler implements AuraService, Configurable {
      */
     private void addMusicBrainzInfo(Artist artist) throws AuraException, RemoteException, IOException {
         MusicBrainzArtistInfo mbai = musicBrainz.getArtistInfo(artist.getKey());
+        Map<String, Integer> blurbMap = new HashMap();
         artist.setBeginYear(mbai.getBeginYear());
         artist.setEndYear(mbai.getEndYear());
 
@@ -470,6 +480,9 @@ public class ArtistCrawler implements AuraService, Configurable {
                 albumItem = StoreFactory.newItem(ItemType.ALBUM, mbrid, mbalbum.getTitle());
                 Album album = new Album(albumItem);
                 album.setAsin(mbalbum.getAsin());
+                if (crawlAlbumBlurbs) {
+                    crawlAlbumBlurbs(artist, album, blurbMap);
+                }
                 album.flush(dataStore);
             }
             artist.addAlbum(mbrid);
@@ -479,6 +492,54 @@ public class ArtistCrawler implements AuraService, Configurable {
             artist.addRelatedArtist(id);
         }
 
+        if (crawlAlbumBlurbs) {
+            for (Map.Entry<String,Integer> entry : blurbMap.entrySet()) {
+                if (entry.getValue() >= minBlurbCount) {
+                     artist.addBlurbTag(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+
+        // some debugging code
+        if (crawlAlbumBlurbs) {
+            List<Tag> tags = artist.getBlurbTags();
+            System.out.println("====== Blurbs for " + artist.getName() + " === albums: " + mbai.getAlbums().size());
+            int count = 0;
+            for (Tag tag : tags) {
+                System.out.printf("(%s,%d)", tag.getName(), tag.getCount());
+                if (++count % 10 == 0) {
+                    System.out.println();
+                }
+            }
+            System.out.println();
+        }
+
+    }
+
+    private void crawlAlbumBlurbs(Artist artist, Album album, Map<String, Integer> map) {
+        try {
+            //System.out.println("Crawling album " + album.getTitle());
+            if (album.getAsin() != null && album.getAsin().length() > 0) {
+                List<String> reviews = amazon.lookupReviews(album.getAsin(), maxBlurbPages);
+                for (String review : reviews) {
+                    review = Utilities.detag(review);
+                    String words = normalizeText(" " + review + " ");
+                    for (String tag : validTagMap.keySet()) {
+                        int count = findMatches(tag, words);
+                        if (count > 0) {
+                            String mappedTag = mapTagName(tag);
+                            Integer c = map.get(mappedTag);
+                            if (c == null) {
+                                c = Integer.valueOf(0);
+                            } 
+                            map.put(mappedTag, c + count);
+                        }
+                    }
+                }
+            }
+        } catch (IOException ioe) {
+            logger.warning("Trouble collecting reviews from " + album.getTitle() + " for " + artist.getName());
+        }
     }
 
     private void addSpotifyInfo(Artist artist) throws IOException {
@@ -506,7 +567,7 @@ public class ArtistCrawler implements AuraService, Configurable {
             int count = findMatches(tag, words);
             if (count > 0) {
                 artist.addBioTag(mapTagName(tag), count);
-                // logger.info("Adding " + tag + ":" + count);
+            // logger.info("Adding " + tag + ":" + count);
             }
         }
     }
@@ -553,15 +614,15 @@ public class ArtistCrawler implements AuraService, Configurable {
     }
 
     private String mapTagName(String tagName) {
-        String mappedName =  validTagMap.get(tagName);
+        String mappedName = validTagMap.get(tagName);
         if (mappedName == null) {
-            mappedName =  validTagMap.get(ArtistTag.normalizeName(tagName));
+            mappedName = validTagMap.get(ArtistTag.normalizeName(tagName));
         }
         /*
         if (mappedName != null && !tagName.equals(mappedName)) {
-            System.out.printf("remapped '%s' to '%s'\n", tagName, mappedName);
+        System.out.printf("remapped '%s' to '%s'\n", tagName, mappedName);
         }
-        */
+         */
         return mappedName;
     }
 
@@ -636,10 +697,15 @@ public class ArtistCrawler implements AuraService, Configurable {
     @ConfigInteger(defaultValue = 60 * 60 * 24 * 7 * 2)
     public final static String PROP_UPDATE_RATE = "updateRateInSeconds";
     private int updateRateInSeconds;
-
     @ConfigInteger(defaultValue = 100000)
     public final static String PROP_MAX_ARTISTS = "maxArtists";
     private int maxArtists;
+    @ConfigBoolean(defaultValue = true)
+    public final static String PROP_CRAWL_ALBUM_BLURBS = "crawlAlbumBlurbs";
+    private boolean crawlAlbumBlurbs;
+    @ConfigInteger(defaultValue = 10)
+    public final static String PROP_MAX_BLURB_PAGES = "maxBlurbPages";
+    private int maxBlurbPages;
 }
 
 /**
@@ -650,7 +716,9 @@ class QueuedArtist implements Serializable {
 
     public final static Comparator<QueuedArtist> PRIORITY_ORDER = new Comparator<QueuedArtist>() {
 
-        public int compare(QueuedArtist o1, QueuedArtist o2) {
+        public int compare(
+                QueuedArtist o1,
+                QueuedArtist o2) {
             return o1.getPriority() - o2.getPriority();
         }
     };

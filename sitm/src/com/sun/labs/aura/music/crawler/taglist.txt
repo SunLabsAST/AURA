@@ -792,7 +792,6 @@ Horrorcore
 ddr
 Eminem
 solo
-everything
 british rock
 Ohms World
 suomirock
@@ -805,7 +804,6 @@ not rock
 dinner
 independent
 technical
-other
 spain
 video games
 electronic rock
@@ -906,7 +904,6 @@ OPM
 crooner
 gothenburg
 psych
-stuff
 Emo rock
 Greek
 Brooklyn

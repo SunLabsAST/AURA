@@ -79,6 +79,7 @@ public class MusicDatabase {
         List<SimType> stypes = new ArrayList();
         stypes.add(new FieldSimType("Social Tags", "Similarity based upon Social Tags", Artist.FIELD_SOCIAL_TAGS));
         stypes.add(new FieldSimType("Bio Tags", "Similarity based upon BIO tags", Artist.FIELD_BIO_TAGS));
+        stypes.add(new FieldSimType("Blurb Tags", "Similarity based upon tags extracted from reviews", Artist.FIELD_BLURB_TAGS));
         stypes.add(new FieldSimType("Auto Tags", "Similarity based upon Auto tags", Artist.FIELD_AUTO_TAGS));
         stypes.add(new FieldSimType("Related", "Similarity based upon related artists", Artist.FIELD_RELATED_ARTISTS));
         stypes.add(new AllSimType());
@@ -142,9 +143,9 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public void addPlayAttention(Listener listener, String artistID, int playCount) throws AuraException, RemoteException {
+    public void addPlayAttention(String listenerID, String artistID, int playCount) throws AuraException, RemoteException {
         for (int i = 0; i < playCount; i++) {
-            Attention attention = StoreFactory.newAttention(listener.getKey(), artistID,
+            Attention attention = StoreFactory.newAttention(listenerID, artistID,
                     Attention.Type.PLAYED, Long.valueOf(playCount));
             dataStore.attend(attention);
         }
@@ -157,13 +158,13 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public void addFavoriteAttention(Listener listener, String artistID) throws AuraException, RemoteException {
-        Attention attention = StoreFactory.newAttention(listener.getKey(), artistID, Attention.Type.LOVED);
+    public void addFavoriteAttention(String listenerID, String artistID) throws AuraException, RemoteException {
+        Attention attention = StoreFactory.newAttention(listenerID, artistID, Attention.Type.LOVED);
         dataStore.attend(attention);
     }
 
-    public void addViewedAttention(Listener listener, String artistID) throws AuraException, RemoteException {
-        Attention attention = StoreFactory.newAttention(listener.getKey(), artistID, Attention.Type.VIEWED);
+    public void addViewedAttention(String listenerID, String artistID) throws AuraException, RemoteException {
+        Attention attention = StoreFactory.newAttention(listenerID, artistID, Attention.Type.VIEWED);
         dataStore.attend(attention);
     }
 
@@ -175,20 +176,20 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public void addRating(Listener listener, String artistID, int numStars) throws AuraException, RemoteException {
+    public void addRating(String listenerID, String artistID, int numStars) throws AuraException, RemoteException {
         if (numStars < 0 || numStars > 5) {
             throw new IllegalArgumentException("numStars must be between 0 and 5");
         }
-        Attention attention = StoreFactory.newAttention(listener.getKey(), artistID,
+        Attention attention = StoreFactory.newAttention(listenerID, artistID,
                 Attention.Type.RATING, Long.valueOf(numStars));
         dataStore.attend(attention);
     }
 
-    public int getLatestRating(Listener listener, String artistID) throws AuraException, RemoteException {
+    public int getLatestRating(String listenerID, String artistID) throws AuraException, RemoteException {
         int rating = 0;
         AttentionConfig ac = new AttentionConfig();
         ac.setType(Attention.Type.RATING);
-        ac.setSourceKey(listener.getKey());
+        ac.setSourceKey(listenerID);
         ac.setTargetKey(artistID);
         List<Attention> attns = dataStore.getLastAttention(ac, 1);
         if (attns.size() > 0) {
@@ -210,9 +211,9 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public void addTag(Listener listener, String itemID, String tag) throws AuraException, RemoteException {
+    public void addTag(String listenerID, String itemID, String tag) throws AuraException, RemoteException {
         if (dataStore.getItem(itemID) != null) {
-            Attention attention = StoreFactory.newAttention(listener.getKey(), itemID,
+            Attention attention = StoreFactory.newAttention(listenerID, itemID,
                     Attention.Type.TAG, tag);
             dataStore.attend(attention);
         }
@@ -224,9 +225,9 @@ public class MusicDatabase {
      * @param item the item 
      * @return
      */
-    public List<String> getTags(Listener listener, String itemID) throws AuraException, RemoteException {
+    public List<String> getTags(String listenerID, String itemID) throws AuraException, RemoteException {
         AttentionConfig ac = new AttentionConfig();
-        ac.setSourceKey(listener.getKey());
+        ac.setSourceKey(listenerID);
         ac.setType(Attention.Type.TAG);
         ac.setTargetKey(itemID);
 
@@ -243,10 +244,10 @@ public class MusicDatabase {
      * @param listener the listener 
      * @return a list of all tags, scored by there frequency of application
      */
-    public List<Scored<String>> getAllTags(Listener listener) throws AuraException, RemoteException {
+    public List<Scored<String>> getAllTags(String listenerID) throws AuraException, RemoteException {
         ScoredManager<String> sm = new ScoredManager();
         AttentionConfig ac = new AttentionConfig();
-        ac.setSourceKey(listener.getKey());
+        ac.setSourceKey(listenerID);
         ac.setType(Attention.Type.TAG);
 
         List<Attention> attns = dataStore.getAttention(ac);
@@ -264,8 +265,8 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public List<Artist> getFavoriteArtists(Listener listener, int max) throws AuraException, RemoteException {
-        Set<String> ids = getFavoriteArtistsAsIDSet(listener, max);
+    public List<Artist> getFavoriteArtists(String listenerID, int max) throws AuraException, RemoteException {
+        Set<String> ids = getFavoriteArtistsAsIDSet(listenerID, max);
         List<Artist> results = new ArrayList(ids.size());
         for (String id : ids) {
             Artist artist = artistLookup(id);
@@ -276,9 +277,9 @@ public class MusicDatabase {
         return results;
     }
 
-    public Set<String> getFavoriteArtistsAsIDSet(Listener listener, int max) throws AuraException, RemoteException {
+    public Set<String> getFavoriteArtistsAsIDSet(String listenerID, int max) throws AuraException, RemoteException {
         AttentionConfig ac = new AttentionConfig();
-        ac.setSourceKey(listener.getKey());
+        ac.setSourceKey(listenerID);
         ac.setType(Attention.Type.LOVED);
 
         List<Attention> attns = dataStore.getLastAttention(ac, max);
@@ -289,11 +290,11 @@ public class MusicDatabase {
         return results;
     }
 
-    public List<Scored<String>> getRecentTopArtistsAsIDs(Listener listener, int max) throws AuraException, RemoteException {
+    public List<Scored<String>> getRecentTopArtistsAsIDs(String listenerID, int max) throws AuraException, RemoteException {
         ScoredManager<String> sm = new ScoredManager();
 
         AttentionConfig ac = new AttentionConfig();
-        ac.setSourceKey(listener.getKey());
+        ac.setSourceKey(listenerID);
         List<Attention> attns = dataStore.getLastAttention(ac, max * 100);
         for (Attention attn : attns) {
             if (isArtist(attn.getTargetKey())) {
@@ -329,9 +330,9 @@ public class MusicDatabase {
         return score;
     }
 
-    public List<Scored<String>> getRecentFiveStarArtists(Listener listener, int max) throws AuraException, RemoteException {
+    public List<Scored<String>> getRecentFiveStarArtists(String listenerID, int max) throws AuraException, RemoteException {
         AttentionConfig ac = new AttentionConfig();
-        ac.setSourceKey(listener.getKey());
+        ac.setSourceKey(listenerID);
         ac.setType(Attention.Type.RATING);
         ac.setNumberVal(5L);
 
@@ -343,10 +344,10 @@ public class MusicDatabase {
         return sm.getTopN(max);
     }
 
-    public List<Scored<String>> getAllArtistsAsIDs(Listener listener) throws AuraException, RemoteException {
+    public List<Scored<String>> getAllArtistsAsIDs(String listenerID) throws AuraException, RemoteException {
         ScoredManager<String> sm = new ScoredManager();
         AttentionConfig ac = new AttentionConfig();
-        ac.setSourceKey(listener.getKey());
+        ac.setSourceKey(listenerID);
         DBIterator<Attention> attentionIterator = dataStore.getAttentionIterator(ac);
         try {
             while (attentionIterator.hasNext()) {
@@ -366,9 +367,9 @@ public class MusicDatabase {
         return true;
     }
 
-    public List<Scored<Artist>> getRecommendations(Listener listener, int max) throws AuraException, RemoteException {
-        Set<String> skipIDS = getAttendedToArtists(listener);
-        Artist artist = getRandomGoodArtistFromListener(listener);
+    public List<Scored<Artist>> getRecommendations(String listenerID, int max) throws AuraException, RemoteException {
+        Set<String> skipIDS = getAttendedToArtists(listenerID);
+        Artist artist = getRandomGoodArtistFromListener(listenerID);
         List<Scored<Artist>> results = new ArrayList();
         List<Scored<Artist>> simArtists = artistFindSimilar(artist.getKey(), max * 5);
         for (Scored<Artist> sartist : simArtists) {
@@ -400,8 +401,8 @@ public class MusicDatabase {
         }
     }
 
-    private Artist getRandomGoodArtistFromListener(Listener listener) throws AuraException, RemoteException {
-        List<Artist> artists = getFavoriteArtists(listener, 20);
+    private Artist getRandomGoodArtistFromListener(String listenerID) throws AuraException, RemoteException {
+        List<Artist> artists = getFavoriteArtists(listenerID, 20);
         Artist artist = null;
         if (artists.size() > 0) {
             artist = selectRandom(artists);
@@ -411,9 +412,9 @@ public class MusicDatabase {
         return artist;
     }
 
-    private Set<String> getAttendedToArtists(Listener listener) throws AuraException, RemoteException {
+    private Set<String> getAttendedToArtists(String listenerID) throws AuraException, RemoteException {
         AttentionConfig ac = new AttentionConfig();
-        ac.setSourceKey(listener.getKey());
+        ac.setSourceKey(listenerID);
 
         Set<String> ids = new HashSet();
         DBIterator<Attention> attentionIterator = dataStore.getAttentionIterator(ac);
@@ -446,10 +447,8 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public void deleteListener(Listener listener) throws AuraException, RemoteException {
-        if (listener != null) {
-            dataStore.deleteUser(listener.getKey());
-        }
+    public void deleteListener(String listenerID) throws AuraException, RemoteException {
+        dataStore.deleteUser(listenerID);
     }
 
     /**
@@ -460,10 +459,10 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public List<Attention> getLastAttentionData(Listener listener, Attention.Type type,
+    public List<Attention> getLastAttentionData(String listenerID, Attention.Type type,
             int count) throws AuraException, RemoteException {
         AttentionConfig ac = new AttentionConfig();
-        ac.setSourceKey(listener.getKey());
+        ac.setSourceKey(listenerID);
         ac.setType(type);
         return dataStore.getLastAttention(ac, count);
     }
@@ -968,10 +967,10 @@ public class MusicDatabase {
                     " a single artist, selected at random, that the listener likes";
         }
 
-        public RecommendationSummary getRecommendations(Listener listener, int count, RecommendationProfile rp)
+        public RecommendationSummary getRecommendations(String listenerID, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
-            Set<String> skipIDS = getAttendedToArtists(listener);
-            Artist artist = getRandomGoodArtistFromListener(listener);
+            Set<String> skipIDS = getAttendedToArtists(listenerID);
+            Artist artist = getRandomGoodArtistFromListener(listenerID);
             List<Recommendation> results = new ArrayList();
             List<Scored<Artist>> simArtists = artistFindSimilar(artist.getKey(), count * 5);
             for (Scored<Artist> sartist : simArtists) {
@@ -1004,11 +1003,11 @@ public class MusicDatabase {
             return "Finds artists that are similar to the recently played artists";
         }
 
-        public RecommendationSummary getRecommendations(Listener listener, int count, RecommendationProfile rp)
+        public RecommendationSummary getRecommendations(String listenerID, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
             ArtistScoreManager sm = new ArtistScoreManager(true);
-            List<Scored<String>> artistIDs = getRecentTopArtistsAsIDs(listener, 20);
-            Set<String> skipIDS = getAttendedToArtists(listener);
+            List<Scored<String>> artistIDs = getRecentTopArtistsAsIDs(listenerID, 20);
+            Set<String> skipIDS = getAttendedToArtists(listenerID);
             StringBuilder sb = new StringBuilder();
 
             sb.append("Similar to recently played artists like ");
@@ -1085,10 +1084,10 @@ public class MusicDatabase {
             return "Finds artists that are similar to the recently played artists (version 2)";
         }
 
-        public RecommendationSummary getRecommendations(Listener listener, int count, RecommendationProfile rp)
+        public RecommendationSummary getRecommendations(String listenerID, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
-            List<Scored<String>> artistIDs = getRecentTopArtistsAsIDs(listener, count / 2);
-            Set<String> skipIDS = getAttendedToArtists(listener);
+            List<Scored<String>> artistIDs = getRecentTopArtistsAsIDs(listenerID, count / 2);
+            Set<String> skipIDS = getAttendedToArtists(listenerID);
             List<Recommendation> recommendations = getSimilarArtists(artistIDs, skipIDS, count);
             return new RecommendationSummary("similarity to recent artists", recommendations);
         }
@@ -1108,17 +1107,17 @@ public class MusicDatabase {
             return "Finds artists that are similar to users tag cloud";
         }
 
-        public RecommendationSummary getRecommendations(Listener listener, int count, RecommendationProfile rp)
+        public RecommendationSummary getRecommendations(String listenerID, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
-            List<Scored<Item>> items = dataStore.findSimilar(listener.getKey(),
+            List<Scored<Item>> items = dataStore.findSimilar(listenerID,
                     getFindSimilarConfig(Listener.FIELD_SOCIAL_TAGS,
                     count * 5, new TypeFilter(ItemType.ARTIST)));
             List<Recommendation> results = new ArrayList();
-            Set<String> skipIDS = getAttendedToArtists(listener);
+            Set<String> skipIDS = getAttendedToArtists(listenerID);
 
             for (Scored<Item> item : items) {
                 if (!skipIDS.contains(item.getItem().getKey())) {
-                    List<Scored<String>> reason = dataStore.explainSimilarity(listener.getKey(),
+                    List<Scored<String>> reason = dataStore.explainSimilarity(listenerID,
                             item.getItem().getKey(), new SimilarityConfig(Listener.FIELD_SOCIAL_TAGS, count));
                     results.add(new Recommendation(item.getItem().getKey(), item.getScore(), reason));
                     if (results.size() >= count) {
@@ -1146,17 +1145,17 @@ public class MusicDatabase {
             return "Finds favorites artists from similar users";
         }
 
-        public RecommendationSummary getRecommendations(Listener listener, int count, RecommendationProfile rp)
+        public RecommendationSummary getRecommendations(String listenerID, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
 
-            Set<String> skipIDs = getAttendedToArtists(listener);
-            List<Scored<Listener>> simListeners = listenerFindSimilar(listener.getKey(), MAX_LISTENERS);
+            Set<String> skipIDs = getAttendedToArtists(listenerID);
+            List<Scored<Listener>> simListeners = listenerFindSimilar(listenerID, MAX_LISTENERS);
             ArtistScoreManager sm = new ArtistScoreManager(true);
             for (Scored<Listener> sl : simListeners) {
-                if (sl.getItem().equals(listener)) {
+                if (sl.getItem().getKey().equals(listenerID)) {
                     continue;
                 }
-                List<Scored<String>> artistIDs = getRecentTopArtistsAsIDs(sl.getItem(), count * 5);
+                List<Scored<String>> artistIDs = getRecentTopArtistsAsIDs(sl.getItem().getKey(), count * 5);
                 for (Scored<String> sartistID : artistIDs) {
                     if (!skipIDs.contains(sartistID.getItem())) {
                         // System.out.println("id " + sartistID.getItem());
