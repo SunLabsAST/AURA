@@ -23,7 +23,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
  *
  * @author mailletf
  */
-public class StarRatingWidget extends Composite {
+public class StarRatingWidget extends LoginListener {
 
     private MusicSearchInterfaceAsync musicServer;
     private ListenerDetails lD;
@@ -102,7 +102,6 @@ public class StarRatingWidget extends Composite {
             NOT_INTERESTED = NOT_INTERESTED_M;
             NOT_INTERESTED_HOVER = NOT_INTERESTED_HOVER_M;
         }
-
     }
 
     private void drawRatingWidget() {
@@ -184,7 +183,7 @@ public class StarRatingWidget extends Composite {
         redrawStars();
 
         try {
-            musicServer.updateUserSongRating(lD, index + 1, artistID, callback);
+            musicServer.updateUserSongRating(index + 1, artistID, callback);
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }
@@ -216,9 +215,20 @@ public class StarRatingWidget extends Composite {
             };
 
             try {
-                musicServer.fetchUserSongRating(lD, artistID, callback);
+                musicServer.fetchUserSongRating(artistID, callback);
             } catch (WebException ex) {
                 Window.alert(ex.getMessage());
             }
+    }
+
+    public void onLogin(ListenerDetails lD) {
+        this.lD = lD;
+        invokeFetchRating();
+    }
+
+    public void onLogout() {
+        lD = new ListenerDetails();
+        nbrSelectedStars = 0;
+        redrawStars();
     }
 }

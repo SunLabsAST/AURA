@@ -135,7 +135,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             saveNamePanel.add(new Label("Name:"));
             saveNamePanel.add(new TextBox());
             savePanel.add(saveNamePanel);
-            savePanel.add(new TagInputWidget("tag cloud"));
+            //savePanel.add(new TagInputWidget("tag cloud"));
             savePanel.setVisible(false);
 
 

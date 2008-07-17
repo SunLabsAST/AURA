@@ -33,12 +33,14 @@ public interface MusicSearchInterfaceAsync {
        public void getNonOpenIdLogInDetails(String userKey, AsyncCallback callback) throws WebException;
        public void getUserTagCloud(String lastfmUser, String simTypeName, AsyncCallback callback) throws WebException;
        public void updateListener(ListenerDetails lD, AsyncCallback callback) throws WebException;
-       public void updateUserSongRating(ListenerDetails lD, int rating, String artistID, AsyncCallback callback) throws WebException;
-       public void fetchUserSongRating(ListenerDetails lD, String artistID, AsyncCallback callback) throws WebException;
-       public void fetchUserSongRating(ListenerDetails lD, Set<String> artistID, AsyncCallback callback) throws WebException;
+       public void updateUserSongRating(int rating, String artistID, AsyncCallback callback) throws WebException;
+       public void fetchUserSongRating(String artistID, AsyncCallback callback) throws WebException;
+       public void fetchUserSongRating(Set<String> artistID, AsyncCallback callback) throws WebException;
        public void terminateSession(AsyncCallback callback);
        public void getSimTypes(AsyncCallback callback) throws WebException;
        public void getDistinctiveTags(String artistID, int count, AsyncCallback callback) throws WebException;
        public void getSteerableRecommendations(Map<String, Double> tagMap, AsyncCallback callback) throws WebException;
+       public void addUserTagsForItem(String itemId, Set<String> tag, AsyncCallback callback) throws WebException;
+       public void fetchUserTagsForItem(String itemId, AsyncCallback<Set<String>> callback) throws WebException;
        public void getArtistCompact(String artistId, AsyncCallback callback) throws WebException;
 }

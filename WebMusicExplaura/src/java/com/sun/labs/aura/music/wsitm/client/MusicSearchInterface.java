@@ -38,12 +38,14 @@ public interface MusicSearchInterface extends RemoteService {
     public ListenerDetails getLogInDetails() throws WebException;
     public ListenerDetails getNonOpenIdLogInDetails(String userKey) throws WebException;
     public void updateListener(ListenerDetails lD) throws WebException;
-    public void updateUserSongRating(ListenerDetails lD, int rating, String artistID) throws WebException;
-    public Integer fetchUserSongRating(ListenerDetails lD, String artistID) throws WebException;
-    public Map<String,Integer> fetchUserSongRating(ListenerDetails lD, Set<String> artistID) throws WebException;
+    public void updateUserSongRating(int rating, String artistID) throws WebException;
+    public Integer fetchUserSongRating(String artistID) throws WebException;
+    public Map<String,Integer> fetchUserSongRating(Set<String> artistID) throws WebException;
     public void terminateSession();
     public Map<String, String> getSimTypes() throws WebException;
     public ItemInfo[] getDistinctiveTags(String artistID, int count) throws WebException;
     public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap) throws WebException;
+    public void addUserTagsForItem(String itemId, Set<String> tag) throws WebException;
+    public Set<String> fetchUserTagsForItem(String itemId) throws WebException;
     public ArtistCompact getArtistCompact(String artistId) throws WebException;
 }

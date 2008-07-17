@@ -119,7 +119,7 @@ public abstract class ArtistListWidget extends Composite {
             }
 
             try {
-                musicServer.fetchUserSongRating(cdm.getListenerDetails(), artistIDs, callback);
+                musicServer.fetchUserSongRating(artistIDs, callback);
             } catch (WebException ex) {
                 Window.alert(ex.getMessage());
             }

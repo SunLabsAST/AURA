@@ -728,36 +728,31 @@ public class DataManager implements Configurable {
         mdb.updateListener(l);
     }
 
-    public void updateUserSongRating(ListenerDetails lD, int rating, String artistID)
+    public void updateUserSongRating(String userId, int rating, String artistId)
             throws AuraException, RemoteException {
-        if (lD.loggedIn) {
-            logger.info("Setting rating "+rating+" for artist " + artistID + " for user "+ lD.openID);
-            mdb.addRating(mdb.getListener(lD.openID), artistID, rating);
-        }
+
+        logger.info("Setting rating "+rating+" for artist " + artistId + " for user "+ userId);
+        mdb.addRating(mdb.getListener(userId), artistId, rating);
     }
 
-    public int fetchUserSongRating(ListenerDetails lD, String artistID)
+    public int fetchUserSongRating(String userId, String artistID)
             throws AuraException, RemoteException {
-        if (lD.loggedIn) {
-            logger.info("Fetching rating for artist " + artistID + " for user "+ lD.openID);
-            return mdb.getLatestRating(mdb.getListener(lD.openID), artistID);
-        } else {
-            return 0;
-        }
+
+        logger.info("Fetching rating for artist " + artistID + " for user "+ userId);
+        return mdb.getLatestRating(mdb.getListener(userId), artistID);
     }
 
-    public Map<String,Integer> fetchUserSongRating(ListenerDetails lD, Set<String> artistID)
+    public Map<String,Integer> fetchUserSongRating(String userId, Set<String> artistID)
             throws AuraException, RemoteException {
 
-        Map<String,Integer> ratingMap = new HashMap<String,Integer>();
+        Map<String, Integer> ratingMap = new HashMap<String, Integer>();
 
-        if (lD.loggedIn) {
-            logger.info("Fetching rating for artist " + artistID + " for user "+ lD.openID);
-            Listener l = mdb.getListener(lD.openID);
-            for (String aID : artistID) {
-                ratingMap.put(aID, mdb.getLatestRating(l, aID));
-            }
+        logger.info("Fetching rating for artist " + artistID + " for user " + userId);
+        Listener l = mdb.getListener(userId);
+        for (String aID : artistID) {
+            ratingMap.put(aID, mdb.getLatestRating(l, aID));
         }
+
         return ratingMap;
     }
 
@@ -783,6 +778,18 @@ public class DataManager implements Configurable {
             wC.add(new Scored<String>(tagName, tagMap.get(tagName)));
         }
         return wC;
+    }
+
+    public Set<String> fetchUserTagsForItem(String listenerId, String itemId)
+            throws AuraException, RemoteException {
+        Set<String> tags = new HashSet<String>();
+        tags.addAll(mdb.getTags(mdb.getListener(listenerId), itemId));
+        return tags;
+    }
+
+    public void addUserTagForItem(String listenerId, String itemId, String tag) 
+            throws AuraException, RemoteException {
+        mdb.addTag(mdb.getListener(listenerId), itemId, tag);
     }
 
     public TagDetails loadTagDetailsFromStore(String id) throws AuraException,
@@ -892,13 +899,6 @@ public class DataManager implements Configurable {
         }
         return new TagTree(id, name, children);
         */
-    }
-
-    static Set skipSet;
-
-    static {
-        skipSet = new HashSet<String>();
-        skipSet.add("http://en.wikipedia.org/wiki/Musical_genre");
     }
 
     private void sortByArtistPopularity(List<Scored<Artist>> scoredArtists) {
@@ -1240,7 +1240,6 @@ abstract class Sorter {
     public static enum sortFields {
         COUNTorSCORE,
         POPULARITY
-
     }
 
     public Sorter(sortFields sortBy) {

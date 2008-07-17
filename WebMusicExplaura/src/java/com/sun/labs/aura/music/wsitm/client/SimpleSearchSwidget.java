@@ -211,6 +211,9 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         // Reset current artistID. Will be updated in invokeGetArtistInfo
         cdm.setCurrArtistInfo("", "");
 
+        // Clear all login listeners
+        removeAllLoginListeners();
+
         //  resultName = URL.decodeComponent(resultName);
         if (resultName.startsWith("artist:")) {
             search.updateSuggestBox(Oracles.ARTIST);
@@ -538,6 +541,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         html.setStyleName("bio");
 
         StarRatingWidget starWidget = new StarRatingWidget(musicServer, cdm.getListenerDetails(), artistDetails.getId(), StarRatingWidget.Size.MEDIUM);
+        registerLoginListener(starWidget);
 
         HorizontalPanel hP = new HorizontalPanel();
         Widget spotify = WebLib.getSpotifyListenWidget(artistDetails, 30);
@@ -685,7 +689,9 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         h.setStyleName("h1");
         panel.add(h);
         if (tagCloud != null) {
-            panel.add(new TagInputWidget("artist"));
+            TagInputWidget tiw = new TagInputWidget(musicServer, cdm.getListenerDetails(), "artist", cdm.getCurrArtistID());
+            registerLoginListener(tiw);
+            panel.add(tiw);
             
             Panel p = TagDisplayLib.getTagsInPanel(tagCloud);
             p.addStyleName("tagCloudMargin");

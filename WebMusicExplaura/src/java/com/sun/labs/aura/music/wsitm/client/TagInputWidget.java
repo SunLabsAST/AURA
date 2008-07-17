@@ -5,36 +5,52 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FocusListener;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
  * @author mailletf
  */
-public class TagInputWidget extends Composite {
+public class TagInputWidget extends LoginListener {
 
-    private Map<String, DeletableWidget> userTags;
+    private MusicSearchInterfaceAsync musicServer;
+    private ListenerDetails lD;
+
+    private Map<String, SpannedLabel> userTags;
     private FlowPanel tagPanel;
     private TextBox txtBox;
+    private Image progressImg;
+
+    private String itemId;
 
     private final static String DEFAULT_TBOX_TXT = "Add comma separated tags";
+    private final static String PROCESSING_TBOX_MSG = "Processing...";
 
-    public TagInputWidget(String itemName) {
+    public TagInputWidget(MusicSearchInterfaceAsync musicServer, ListenerDetails lD, String itemType, String itemId) {
 
-        userTags = new HashMap<String, DeletableWidget>();
+        this.musicServer = musicServer;
+        this.itemId = itemId;
+
+        userTags = new HashMap<String, SpannedLabel>();
 
         HorizontalPanel mainPanel = new HorizontalPanel();
-        Label titleLbl = new Label("Tag this "+itemName+": ");
+        Label titleLbl = new Label("Tag this "+itemType+": ");
         titleLbl.getElement().setAttribute("style", "margin-right:5px");
         mainPanel.add(titleLbl);
 
@@ -43,7 +59,28 @@ public class TagInputWidget extends Composite {
 
         txtBox = new TextBox();
         resetTextBoxIfEmpty();
-        txtBox.addKeyboardListener(new TxtboxKeyboardListener(this));
+        txtBox.addKeyboardListener(new KeyboardListener() {
+
+            public void onKeyDown(Widget arg0, char arg1, int arg2) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            public void onKeyPress(Widget arg0, char arg1, int arg2) {
+                if (arg1 == KeyboardListener.KEY_ENTER) {
+                    Set<String> tags = new HashSet<String>();
+                    for (String newTag : getTextBoxTxt().split(",")) {
+                        newTag = newTag.toLowerCase().trim();
+                        tags.add(newTag);
+                    }
+                    invokeAddTags(tags);
+                    clearTextBoxTxt();
+                }
+            }
+
+            public void onKeyUp(Widget arg0, char arg1, int arg2) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+        });
         txtBox.addFocusListener(new FocusListener() {
 
             public void onFocus(Widget arg0) {
@@ -54,13 +91,11 @@ public class TagInputWidget extends Composite {
                 resetTextBoxIfEmpty();
             }
         });
-        txtBox.addClickListener(new ClickListener() {
-
-            public void onClick(Widget arg0) {
-
-            }});
-
         mainPanel.add(txtBox);
+
+        progressImg = new Image("ajax-loader-small.gif");
+        progressImg.setVisible(false);
+        mainPanel.add(progressImg);
 
         initWidget(mainPanel);
 
@@ -68,9 +103,13 @@ public class TagInputWidget extends Composite {
 
     private void resetTextBoxIfEmpty() {
         if (txtBox.getText().equals("")) {
-            txtBox.setText(DEFAULT_TBOX_TXT);
-            txtBox.getElement().setAttribute("style", "font-style: italic; color: gray; margin-left: 5px;");
+            showSystemTextBoxMessage(DEFAULT_TBOX_TXT);
         }
+    }
+    
+    private void showSystemTextBoxMessage(String msg) {
+        txtBox.setText(msg);
+        txtBox.getElement().setAttribute("style", "font-style: italic; color: gray; margin-left: 5px;");
     }
 
     private void clearTextBoxIfDefault() {
@@ -91,7 +130,7 @@ public class TagInputWidget extends Composite {
     private void redrawTags() {
         tagPanel.clear();
         boolean first = true;
-        for (DeletableWidget t : userTags.values()) {
+        for (SpannedLabel t : userTags.values()) {
             if (first) {
                 first = false;
             } else {
@@ -102,7 +141,8 @@ public class TagInputWidget extends Composite {
     }
 
     public void addTag(String tag) {
-        userTags.put(tag, new DeletableTag(new SpannedLabel(tag)));
+        //userTags.put(tag, new DeletableTag(new SpannedLabel(tag)));
+        userTags.put(tag, new SpannedLabel(tag));
         clearTextBoxTxt();
         redrawTags();
     }
@@ -112,30 +152,74 @@ public class TagInputWidget extends Composite {
         redrawTags();
     }
 
-    public class TxtboxKeyboardListener implements KeyboardListener {
+    public void removeAllTags() {
+        userTags.clear();
+        redrawTags();
+    }
 
-        private TagInputWidget tiw;
+     private void invokeFetchUserTags() {
+        
+         AsyncCallback<Set<String>> callback = new AsyncCallback<Set<String>>() {
 
-        public TxtboxKeyboardListener(TagInputWidget tiw) {
-            this.tiw = tiw;
-        }
-
-        public void onKeyDown(Widget arg0, char arg1, int arg2) {
-        }
-
-        public void onKeyPress(Widget arg0, char arg1, int arg2) {
-
-            if (arg1 == KeyboardListener.KEY_ENTER) {
-                for (String newTag : tiw.getTextBoxTxt().split(",")) {
-                    newTag = newTag.toLowerCase().trim();
-                    tiw.addTag(newTag);
-                }
-                tiw.clearTextBoxTxt();
+            public void onFailure(Throwable arg0) {
+                Window.alert(arg0.toString());
             }
-        }
 
-        public void onKeyUp(Widget arg0, char arg1, int arg2) {
+            public void onSuccess(Set<String> tags) {
+                for (String s : tags) {
+                    addTag(s);
+                }
+            }
+        };
+
+        try {
+            musicServer.fetchUserTagsForItem(itemId, callback);
+        } catch (Exception ex) {
+            Window.alert(ex.getMessage());
         }
+    }
+
+     private void invokeAddTags(Set<String> tags) {
+
+         DataEmbededAsyncCallback<Set<String>> callback = new DataEmbededAsyncCallback<Set<String>>(tags) {
+
+             public void onFailure(Throwable arg0) {
+                 Window.alert(arg0.toString());
+                 resetTextBox();
+             }
+
+             public void onSuccess(Set<String> tags) {
+                 for (String s : data) {
+                     addTag(s);
+                 }
+                 resetTextBox();
+             }
+
+             public void resetTextBox() {
+                 txtBox.setEnabled(true);
+                 showSystemTextBoxMessage(DEFAULT_TBOX_TXT);
+                 progressImg.setVisible(false);
+             }
+         };
+
+         showSystemTextBoxMessage(PROCESSING_TBOX_MSG);
+         txtBox.setEnabled(false);
+         progressImg.setVisible(true);
+
+         try {
+            musicServer.addUserTagsForItem(itemId, tags, callback);
+        } catch (Exception ex) {
+            Window.alert(ex.getMessage());
+        }
+    }
+
+    public void onLogin(ListenerDetails lD) {
+        this.lD = lD;
+        invokeFetchUserTags();
+    }
+
+    public void onLogout() {
+        removeAllTags();
     }
 
     public class DeletableTag extends DeletableWidget<SpannedLabel> {

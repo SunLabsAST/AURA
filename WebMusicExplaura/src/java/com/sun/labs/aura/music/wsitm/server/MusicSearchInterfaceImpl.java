@@ -257,6 +257,20 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    /**
+     * Return the current userid from its session
+     * @return openid of loggedin user or null if not logged in
+     */
+    private String getOpenIdFromSession() throws WebException {
+        HttpSession session = this.getThreadLocalRequest().getSession();
+        String userId = (String) session.getAttribute(OpenIDServlet.openIdCookieName);
+        if (userId != null && userId.length() > 0) {
+            return userId;
+        } else {
+            throw new WebException(WebException.errorMessages.MUST_BE_LOGGED_IN);
+        }
+    }
+
     public void terminateSession() {
         logger.info("terminateSession");
         HttpSession session = this.getThreadLocalRequest().getSession();
@@ -276,10 +290,13 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public void updateUserSongRating(ListenerDetails lD, int rating, String artistID) throws WebException {
-        logger.info("UpdateUserSongRating :: user:"+lD.openID+" artist:"+artistID+" rating:"+rating);
+    public void updateUserSongRating(int rating, String artistID) throws WebException {
+
+        String userId = getOpenIdFromSession();
+        logger.info("UpdateUserSongRating :: user:"+userId+" artist:"+artistID+" rating:"+rating);
+
         try {
-            dm.updateUserSongRating(lD, rating, artistID);
+            dm.updateUserSongRating(userId, rating, artistID);
         } catch (AuraException ex) {
             logger.severe(traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
@@ -289,10 +306,13 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public Integer fetchUserSongRating(ListenerDetails lD, String artistID) throws WebException {
-        logger.info("fetchUserSongRating :: user:"+lD.openID+" artist:"+artistID);
+    public Integer fetchUserSongRating(String artistID) throws WebException {
+
+        String userId = getOpenIdFromSession();
+        logger.info("fetchUserSongRating :: user:"+userId+" artist:"+artistID);
+
         try {
-            return new Integer(dm.fetchUserSongRating(lD, artistID));
+            return new Integer(dm.fetchUserSongRating(userId, artistID));
         } catch (AuraException ex) {
             logger.severe(traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
@@ -302,9 +322,13 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public Map<String,Integer> fetchUserSongRating(ListenerDetails lD, Set<String> artistID) throws WebException {
+    public Map<String,Integer> fetchUserSongRating(Set<String> artistID) throws WebException {
+
+        String userId = getOpenIdFromSession();
+        logger.info("fetchUserSongRating :: user:"+userId+" and set of artists");
+
         try {
-            return dm.fetchUserSongRating(lD, artistID);
+            return dm.fetchUserSongRating(userId, artistID);
         } catch (AuraException ex) {
             logger.severe(traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
@@ -337,6 +361,40 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             ArtistCompact[] aC = dm.getSteerableRecommendations(tagMap);
             logger.info("returning "+aC.length+" recommendations");
             return aC;
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
+    public void addUserTagsForItem(String itemId, Set<String> tag) throws WebException {
+        
+        String userId = getOpenIdFromSession();
+        logger.info("addUserTagForItem :: user:"+userId+", item:"+itemId+", "+tag.size()+" tags");
+
+        try {
+            for (String s : tag) {
+                dm.addUserTagForItem(userId, itemId, s);
+            }
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
+    public Set<String> fetchUserTagsForItem(String itemId) throws WebException {
+        
+        String userId = getOpenIdFromSession();
+        logger.info("fetchUserTagForItem :: user:"+userId+", item:"+itemId);
+
+        try {
+            return dm.fetchUserTagsForItem(userId, itemId);
         } catch (AuraException ex) {
             logger.severe(traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
