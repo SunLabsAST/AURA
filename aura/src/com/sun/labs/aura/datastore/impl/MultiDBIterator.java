@@ -57,7 +57,7 @@ public class MultiDBIterator<E> implements DBIterator {
         }
         return false;
     }
-
+    
     public E next() throws RemoteException {
         if (iterators != null) {
             if (currValIt.hasNext()) {

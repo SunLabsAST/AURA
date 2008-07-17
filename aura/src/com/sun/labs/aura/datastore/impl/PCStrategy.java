@@ -7,6 +7,7 @@ import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.util.AuraException;
@@ -15,7 +16,6 @@ import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
-import java.awt.event.ItemListener;
 import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.EnumSet;
@@ -54,11 +54,6 @@ public interface PCStrategy {
     public Item getItem(String key) throws AuraException, RemoteException;
 
     /**
-     * Get a particular user
-     */
-    public User getUser(String key) throws AuraException, RemoteException;
-    
-    /**
      * Get a user by the random string associated with the user
      */
     public User getUserForRandomString(String randStr)
@@ -70,19 +65,9 @@ public interface PCStrategy {
     public Item putItem(Item item) throws AuraException, RemoteException;
 
     /**
-     * Put a user into the replicants
-     */
-    public User putUser(User user) throws AuraException, RemoteException;
-
-    /**
      * Deletes just an item from the item store, not touching the attention.
      */
     public void deleteItem(String itemKey) throws AuraException, RemoteException;
-    
-    /**
-     * Deletes just a user from the item store, not touching the attention.
-     */
-    public void deleteUser(String userKey) throws AuraException, RemoteException;
     
     /**
      * Gets the items of a particular type added since a particular time
@@ -170,13 +155,6 @@ public interface PCStrategy {
     
 
     /**
-     * Gets the most recent attention for the given key as a source
-     */
-    public List<Attention> getLastAttentionForSource(String srcKey,
-                                                          int count)
-            throws AuraException, RemoteException;
-
-    /**
      * Gets the most recent attention of a particular type for the given
      * key as a source
      */
@@ -209,14 +187,6 @@ public interface PCStrategy {
     public List<FieldFrequency> getTopValues(String field,
                                              int n,
                                              boolean ignoreCase)
-            throws AuraException, RemoteException;
-
-    /**
-     * Run a query
-     */
-    public List<Scored<Item>> query(String query,
-                                    int n,
-                                    ResultsFilter rf) 
             throws AuraException, RemoteException;
 
     /**
