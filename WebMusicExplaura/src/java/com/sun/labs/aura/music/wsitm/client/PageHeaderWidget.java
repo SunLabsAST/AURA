@@ -52,6 +52,8 @@ public class PageHeaderWidget extends Swidget {
     private List<MenuItem> menuItems;
     private MainMenu mm;
 
+    private Widget instantRecPlayWidget;
+
     // toolbar objects
     private ToolBar toolBar;
     TextToolItem recTypeToolItem;
@@ -268,34 +270,40 @@ public class PageHeaderWidget extends Swidget {
             steerable.setTitle("Steerable recommendations starting with your personal tag cloud");
             hP.add(steerable);
 
-            // Plays a random recommended
-            ArtistCompact[] aC = cdm.getListenerDetails().recommendations;
-            if (aC.length > 0) {
-                Arrays.sort(aC, new Comparator<ArtistCompact>() {
-
-                    public int compare(ArtistCompact o1, ArtistCompact o2) {
-                        if (Random.nextBoolean()) {
-                            return 1;
-                        } else {
-                            return -1;
-                        }
-                    }
-                });
-
-                for (ArtistCompact a : aC) {
-                    if (a.getSpotifyId() != null && a.getSpotifyId().length() > 0) {
-                        Widget instantPlay = WebLib.getSpotifyListenWidget(a, 20);
-                        hP.add(instantPlay);
-                        break;
-                    }
-                }
+            // Plays a random recommendation
+            instantRecPlayWidget = getInstantRecPlayWidget();
+            if (instantRecPlayWidget != null) {
+                hP.add(instantRecPlayWidget);
             }
+
 
             mainPanel.setWidget(0, 0, hP);
 
         } else {
             populateLoginBox();
         }
+    }
+
+    private Widget getInstantRecPlayWidget() {
+        ArtistCompact[] aC = cdm.getListenerDetails().recommendations;
+        if (aC.length > 0) {
+            int itemIndex = Random.nextInt(aC.length);
+            int iterations = 0;
+            while (iterations++ < 2 * aC.length) {
+                if (aC[itemIndex].getSpotifyId() != null && aC[itemIndex].getSpotifyId().length() > 0) {
+
+                    ClickListener cL = new ClickListener() {
+                        public void onClick(Widget arg0) {
+                            instantRecPlayWidget = getInstantRecPlayWidget();
+                        }
+                    };
+
+                    Widget instantPlay = WebLib.getSpotifyListenWidget(aC[itemIndex], 20, cL);
+                    return instantPlay;
+                }
+            }
+        }
+        return null;
     }
 
     /**

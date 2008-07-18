@@ -8,6 +8,8 @@
  */
 package com.sun.labs.aura.music.wsitm.server;
 
+import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.Attention.Type;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.music.Album;
 import com.sun.labs.aura.music.Artist;
@@ -695,7 +697,6 @@ public class DataManager implements Configurable {
         lD.loggedIn = true;
         
         return lD;
-
     }
 
     /**
@@ -722,6 +723,10 @@ public class DataManager implements Configurable {
 
         return lD;
 
+    }
+
+    public List<Attention> getLastAttentionData(String userId, Type type, int count) throws AuraException, RemoteException {
+        return mdb.getLastAttentionData(userId, type, count);
     }
 
     public void updateUser(ListenerDetails lD) throws AuraException, RemoteException {

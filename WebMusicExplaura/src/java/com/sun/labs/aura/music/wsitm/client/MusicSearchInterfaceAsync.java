@@ -10,7 +10,10 @@
 package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,4 +46,6 @@ public interface MusicSearchInterfaceAsync {
        public void addUserTagsForItem(String itemId, Set<String> tag, AsyncCallback callback) throws WebException;
        public void fetchUserTagsForItem(String itemId, AsyncCallback<Set<String>> callback) throws WebException;
        public void getArtistCompact(String artistId, AsyncCallback callback) throws WebException;
+       public void getLastRatedArtists(int count, AsyncCallback<List<AttentionItem>> callback) throws WebException;
+       public void getLastTaggedArtists(int count, AsyncCallback<List<AttentionItem>> callback) throws WebException;
 }

@@ -10,6 +10,8 @@
 package com.sun.labs.aura.music.wsitm.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.Attention.Type;
 import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
@@ -19,9 +21,12 @@ import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.TagTree;
 import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.util.AuraException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -386,6 +391,82 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             for (String s : tag) {
                 dm.addUserTagForItem(userId, itemId, s);
             }
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
+    public List<AttentionItem> getLastTaggedArtists(int count) throws WebException {
+
+        String userId = getOpenIdFromSession();
+        logger.info("getLastRatedArtists :: user:"+userId);
+
+        try {
+
+            ArrayList<AttentionItem> aI = new ArrayList<AttentionItem>();
+            Set<String> artistIds = new HashSet<String>();
+
+            List<Attention> att = dm.getLastAttentionData(userId, Type.TAG, count);
+            for (Attention a : att) {
+                if (!artistIds.contains(a.getTargetKey())) {
+                    AttentionItem newAi = new AttentionItem(getArtistCompact(a.getTargetKey()));
+                    newAi.setTags(fetchUserTagsForItem(a.getTargetKey()));
+                    aI.add(newAi);
+                    artistIds.add(a.getTargetKey());
+                }
+            }
+
+            // Fetch ratings for all songs
+            Map<String,Integer> ratings = dm.fetchUserSongRating(userId, artistIds);
+            for (AttentionItem a : aI) {
+                ArtistCompact aC = (ArtistCompact)a.getItem();
+                if (ratings.containsKey(aC.getId())) {
+                    a.setRating(ratings.get(aC.getId()));
+                }
+            }
+
+            return aI;
+
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
+    public List<AttentionItem> getLastRatedArtists(int count) throws WebException {
+
+        String userId = getOpenIdFromSession();
+        logger.info("getLastRatedArtists :: user:"+userId);
+
+        try {
+
+            ArrayList<AttentionItem> aI = new ArrayList<AttentionItem>();
+            Set<String> artistIds = new HashSet<String>();
+
+            List<Attention> att = dm.getLastAttentionData(userId, Type.RATING, count);
+            for (Attention a : att) {
+                aI.add(new AttentionItem(getArtistCompact(a.getTargetKey())));
+                artistIds.add(a.getTargetKey());
+            }
+
+            // Fetch ratings for all songs
+            Map<String,Integer> ratings = dm.fetchUserSongRating(userId, artistIds);
+            for (AttentionItem a : aI) {
+                ArtistCompact aC = (ArtistCompact)a.getItem();
+                if (ratings.containsKey(aC.getId())) {
+                    a.setRating(ratings.get(aC.getId()));
+                }
+            }
+
+            return aI;
+
         } catch (AuraException ex) {
             logger.severe(traceToString(ex));
             throw new WebException(ex.getMessage(), ex);

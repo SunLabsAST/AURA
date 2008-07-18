@@ -554,7 +554,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         registerLoginListener(starWidget);
 
         HorizontalPanel hP = new HorizontalPanel();
-        Widget spotify = WebLib.getSpotifyListenWidget(artistDetails, 30);
+        Widget spotify = WebLib.getSpotifyListenWidget(artistDetails, 30, null);
         if (spotify!=null) {
             spotify.addStyleName("pointer");
             hP.add(spotify);

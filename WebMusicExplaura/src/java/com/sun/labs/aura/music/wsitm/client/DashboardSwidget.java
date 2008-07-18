@@ -8,6 +8,7 @@ package com.sun.labs.aura.music.wsitm.client;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
@@ -21,6 +22,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
+import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.ArrayList;
@@ -60,6 +62,8 @@ public class DashboardSwidget extends Swidget {
         private static final int IMG_SIZE = 150;
 
         private Grid featArtist;
+        private Grid recentRating;
+        private Grid recentTagged;
 
         public MainPanel() {
             g = new Grid(1,1);
@@ -92,9 +96,9 @@ public class DashboardSwidget extends Swidget {
             UserCloudArtistListWidget alp = new UserCloudArtistListWidget(musicServer, cdm, cdm.getListenerDetails().recommendations);
             dP.add(WebLib.createSection("Artist recommendations", alp), DockPanel.WEST);
 
-            Label titleLbl = new Label("Dashhhhboard");
+            Label titleLbl = new Label("Dashboard");
             titleLbl.setStyleName("h1");
-            dP.add(titleLbl, DockPanel.NORTH);
+            //dP.add(titleLbl, DockPanel.NORTH);
 
             //
             // Featured artist
@@ -104,8 +108,26 @@ public class DashboardSwidget extends Swidget {
             featArtist.setWidget(1, 0, new Image("ajax-bar.gif"));
             invokeFetchFeaturedArtist();
 
-            dP.add(featArtist, DockPanel.NORTH);
+            recentRating = new Grid(2,1);
+            recentRating.setWidget(0, 0, new HTML("<h2>Recently rated artists</h2>"));
+            recentRating.setWidget(1, 0, new Image("ajax-bar.gif"));
+            invokeFetchRecentRatedArtist();
 
+            recentTagged = new Grid(2,1);
+            recentTagged.setWidget(0, 0, new HTML("<h2>Recently tagged artists</h2>"));
+            recentTagged.setWidget(1, 0, new Image("ajax-bar.gif"));
+            invokeFetchRecentTagArtist();
+
+            //dP.add(featArtist, DockPanel.NORTH);
+            //dP.add(recentRating, DockPanel.NORTH);
+            //dP.add(recentTagged, DockPanel.NORTH);
+
+            VerticalPanel centerPanel = new VerticalPanel();
+            centerPanel.add(titleLbl);
+            centerPanel.add(featArtist);
+            centerPanel.add(recentRating);
+            centerPanel.add(recentTagged);
+            dP.add(centerPanel, DockPanel.NORTH);
             return dP;
         }
 
@@ -134,9 +156,9 @@ public class DashboardSwidget extends Swidget {
                 Grid featArtTitle = new Grid(1,3);
                 featArtTitle.setStyleName("h2");
                 featArtTitle.setWidth("100%");
-                featArtTitle.setWidget(0, 0, new Label("Featured artist :: "+aD.getName()));
+                featArtTitle.setWidget(0, 0, new Label("Featured artist : "+aD.getName()));
                 //featArtTitle.setWidget(0, 1, new StarRatingWidget(0,StarRatingWidget.Size.MEDIUM));
-                featArtTitle.setWidget(0, 2, WebLib.getSpotifyListenWidget(aD, 30));
+                featArtTitle.setWidget(0, 2, WebLib.getSpotifyListenWidget(aD, 30, null));
 
                 featArtist.setWidget(0, 0, featArtTitle);
 
@@ -157,6 +179,84 @@ public class DashboardSwidget extends Swidget {
             }
         }
 
+        private void invokeFetchRecentTagArtist() {
+
+            AsyncCallback<List<AttentionItem>> callback = new AsyncCallback<List<AttentionItem>>() {
+
+                public void onFailure(Throwable arg0) {
+                    Window.alert(arg0.toString());
+                }
+
+                public void onSuccess(List<AttentionItem> arg0) {
+
+                    int numLines = (int)Math.ceil(arg0.size() / 2.0);
+                    Grid artists = new Grid(numLines, 2);
+
+                    int lineIndex = 0;
+                    int colIndex = 0;
+
+
+                    for (AttentionItem aI : arg0) {
+
+                        CompactArtistWidget caw = new CompactArtistWidget((ArtistCompact)aI.getItem(), cdm,
+                                musicServer, null, aI.getRating(), aI.getTags());
+
+                        artists.setWidget(lineIndex, (colIndex++)%2, caw);
+
+                        if (colIndex%2 == 0) {
+                            lineIndex++;
+                        }
+                    }
+                    recentTagged.setWidget(1, 0, artists);
+                }
+            };
+
+            try {
+                musicServer.getLastTaggedArtists(6, callback);
+            } catch (WebException ex) {
+                Window.alert(ex.getMessage());
+            }
+        }
+
+        private void invokeFetchRecentRatedArtist() {
+
+            AsyncCallback<List<AttentionItem>> callback = new AsyncCallback<List<AttentionItem>>() {
+
+                public void onFailure(Throwable arg0) {
+                    Window.alert(arg0.toString());
+                }
+
+                public void onSuccess(List<AttentionItem> arg0) {
+
+                    int numLines = (int)Math.ceil(arg0.size() / 2.0);
+                    Grid artists = new Grid(numLines, 2);
+                    
+                    int lineIndex = 0;
+                    int colIndex = 0;
+                    
+                    
+                    for (AttentionItem aI : arg0) {
+
+                        CompactArtistWidget caw = new CompactArtistWidget((ArtistCompact)aI.getItem(), cdm,
+                                musicServer, null, aI.getRating(), null);
+
+                        artists.setWidget(lineIndex, (colIndex++)%2, caw);
+
+                        if (colIndex%2 == 0) {
+                            lineIndex++;
+                        }
+                    }
+                    recentRating.setWidget(1, 0, artists);
+                }
+            };
+
+            try {
+                musicServer.getLastRatedArtists(6, callback);
+            } catch (WebException ex) {
+                Window.alert(ex.getMessage());
+            }
+        }
+
         private void invokeFetchFeaturedArtist() {
 
             AsyncCallback callback = new AsyncCallback() {
@@ -171,7 +271,12 @@ public class DashboardSwidget extends Swidget {
             };
 
             try {
-                musicServer.getArtistDetails("24762087-34ce-4f65-b743-7d8402cf30dd", false, cdm.getCurrSimTypeName(), callback);
+
+                ArtistCompact[] aC = cdm.getListenerDetails().recommendations;
+                if (aC.length > 0) {
+                    int itemIndex = Random.nextInt(aC.length);
+                    musicServer.getArtistDetails(aC[itemIndex].getId(), false, cdm.getCurrSimTypeName(), callback);
+                }
             } catch (WebException ex) {
                 Window.alert(ex.getMessage());
             }
