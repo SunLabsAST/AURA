@@ -40,6 +40,13 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.SuggestBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.gwtext.client.data.FieldDef;
+import com.gwtext.client.data.Record;
+import com.gwtext.client.data.RecordDef;
+import com.gwtext.client.data.SimpleStore;
+import com.gwtext.client.data.Store;
+import com.gwtext.client.data.StringFieldDef;
+import com.gwtext.client.widgets.form.ComboBox;
 import com.sun.labs.aura.music.wsitm.client.AbstractSearchWidget.searchTypes;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import java.util.ArrayList;
@@ -446,7 +453,10 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
     private final void addCompactArtistToOracle(ArtistCompact[] aCArray) {
         for (ArtistCompact aC : aCArray) {
-            cdm.getArtistOracle().add(aC.getName());
+            RecordDef r = new RecordDef(
+                    new FieldDef[]{
+                       new StringFieldDef("name")});
+            cdm.getArtistOracle().add(r.createRecord(new String[]{aC.getName()}));
         }
     }
 
@@ -728,14 +738,25 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         return title + obj;
     }
 
-    private Widget getItemInfoList(final String title, final ItemInfo[] itemInfo, String highlightID, boolean getArtistOnClick, MultiWordSuggestOracle oracle) {
+    private Widget getItemInfoList(final String title, final ItemInfo[] itemInfo, String highlightID, boolean getArtistOnClick, Store oracle) {
 
         Grid artistGrid = new Grid(itemInfo.length, 1);
         for (int i = 0; i < itemInfo.length; i++) {
 
-             if (oracle!=null) {
-                oracle.add(itemInfo[i].getItemName());
+            if (oracle != null) {
+                RecordDef r = new RecordDef(
+                        new FieldDef[]{
+                            new StringFieldDef("name")
+                        });
+                oracle.add(r.createRecord("name", new String[]
+                {
+                    itemInfo[i].getItemName()
+                }
+                ));
             }
+
+
+        
 
             Label label = new Label(itemInfo[i].getItemName());
             label.addClickListener(new ItemInfoClickListener(itemInfo[i], getArtistOnClick));
@@ -1206,9 +1227,6 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
             super(musicServer, cdm, searchBoxContainerPanel);
 
-            textBox = new SuggestBox();
-            textBox.setTabIndex(1);
-
             searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
 
             Panel searchType = new VerticalPanel();
@@ -1233,8 +1251,8 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                 }
             });
 
-            setText("", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
             updateSuggestBox(Oracles.ARTIST);
+            setText("", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
 
             for (int i = 0; i < searchButtons.length; i++) {
                 searchType.add(searchButtons[i]);

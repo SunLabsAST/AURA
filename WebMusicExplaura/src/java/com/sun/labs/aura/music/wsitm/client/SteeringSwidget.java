@@ -31,6 +31,7 @@ import com.google.gwt.user.client.ui.SuggestBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.gwtext.client.widgets.form.ComboBox;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
@@ -1356,10 +1357,6 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             this.mainTagPanel = mainTagPanel;
             this.tagLand = tagLand;
 
-            textBox = new SuggestBox();
-            textBox.setTabIndex(1);
-            setSuggestBoxWidth(50);
-
             searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
 
             HorizontalPanel searchType = new HorizontalPanel();
@@ -1380,8 +1377,9 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 }
             });
 
-            setText("", searchTypes.SEARCH_FOR_TAG_BY_TAG);
             updateSuggestBox(Oracles.TAG);
+            setText("", searchTypes.SEARCH_FOR_TAG_BY_TAG);
+            setSuggestBoxWidth(180);
 
             for (int i = 0; i < searchButtons.length; i++) {
                 searchType.add(searchButtons[i]);
