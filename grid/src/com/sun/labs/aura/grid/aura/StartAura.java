@@ -2,7 +2,7 @@ package com.sun.labs.aura.grid.aura;
 
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.RunState;
-import com.sun.labs.util.props.ConfigString;
+import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.util.logging.Level;
@@ -11,13 +11,11 @@ import java.util.logging.Level;
  * An on-grid class to deploy Aura.
  */
 public class StartAura extends Aura {
-
-    @ConfigString(defaultValue =
-    "/com/sun/labs/aura/aardvark/resource/replicantSlowDumpConfig.xml")
-    public static final String PROP_REPLICANT_CONFIG = "replicantConfig";
-
-    private String replicantConfig;
     
+    @ConfigBoolean(defaultValue=false)
+    public static final String PROP_DEBUG_RMI = "debugRMI";
+    private boolean debugRMI;
+
     public String serviceName() {
         return "StartAura";
     }
@@ -39,7 +37,9 @@ public class StartAura extends Aura {
         // Next, get a data store head and start it
         ProcessRegistration dsHeadReg = gu.createProcess(
                 getDataStoreHeadName(),
-                getDataStoreHeadConfig());
+                debugRMI ? 
+                    getDataStoreHeadDebugConfig() : 
+                    getDataStoreHeadConfig());
         gu.startRegistration(dsHeadReg);
 
         //
@@ -48,7 +48,9 @@ public class StartAura extends Aura {
         for(int i = 0; i < prefixCodeList.length; i++) {
             ProcessRegistration pcReg = gu.createProcess( getPartitionName(
                     prefixCodeList[i]),
-                    getPartitionClusterConfig(prefixCodeList[i]));
+                    debugRMI ? 
+                        getPartitionClusterDebugConfig(prefixCodeList[i]) : 
+                        getPartitionClusterConfig(prefixCodeList[i]));
             gu.startRegistration(pcReg, false);
             lastReg = pcReg;
         }
@@ -79,12 +81,13 @@ public class StartAura extends Aura {
         gu.startRegistration(statSrvReg);
 
     }
-    
+
+    @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
-        replicantConfig = ps.getString(PROP_REPLICANT_CONFIG);
+        debugRMI = ps.getBoolean(PROP_DEBUG_RMI);
     }
-
+    
     public void start() {
         try {
             getReplicantFileSystems();

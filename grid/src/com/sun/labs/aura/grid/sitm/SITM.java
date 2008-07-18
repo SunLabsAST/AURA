@@ -4,15 +4,11 @@
  */
 package com.sun.labs.aura.grid.sitm;
 
-import com.sun.caroline.platform.FileSystem;
-import com.sun.caroline.platform.Network;
 import com.sun.caroline.platform.ProcessConfiguration;
-import com.sun.caroline.platform.StorageManagementException;
 import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
-import java.rmi.RemoteException;
 
 /**
  * A base class for starting and stopping the SITM services.
