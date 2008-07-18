@@ -39,7 +39,7 @@ public class LastFM {
     }
 
     public SocialTag[] getArtistTags(String artistName) throws IOException {
-        String url = getArtistTagURL(artistName, true);
+        String url = getArtistTagURL(artistName, false);
         return getTagsFromLastFM(url);
     }
 
