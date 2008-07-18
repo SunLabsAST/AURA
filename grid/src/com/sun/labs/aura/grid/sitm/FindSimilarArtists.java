@@ -34,7 +34,7 @@ public class FindSimilarArtists extends ServiceAdapter {
     public static final String PROP_ARTIST_NAME = "artistName";
     private String artistName;
     
-    @ConfigInteger(defaultValue=2)
+    @ConfigInteger(defaultValue=10)
     public static final String PROP_RUNS = "runs";
     private int runs;
 
@@ -60,8 +60,8 @@ public class FindSimilarArtists extends ServiceAdapter {
                 artist.getKey(), 10);
         nw.stop();
         displayArtists(scoredArtists);
-//        logger.info(String.format("Parallel findSimilar took %.3f", nw.
-//                getTimeMillis()));
+        logger.info(String.format("Parallel findSimilar took %.3f", nw.
+                getTimeMillis()));
 //        logger.info("Serial Find Similar");
 //        nw.reset();
 //        nw.start();
