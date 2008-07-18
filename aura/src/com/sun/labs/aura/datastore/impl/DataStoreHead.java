@@ -1109,27 +1109,30 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     public List<Scored<Item>> getAutotagged(final String autotag, final int n)
             throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<List<Scored<Item>>>> callers =
-                new HashSet<Callable<List<Scored<Item>>>>();
+        Set<Callable<List<Scored<String>>>> callers =
+                new HashSet<Callable<List<Scored<String>>>>();
         final PCLatch latch = new PCLatch(clusters.size());
         for(PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
 
-                public List<Scored<Item>> call()
+                public List<Scored<String>> call()
                         throws AuraException, RemoteException {
-                    List<Scored<Item>> ret = pc.getAutotagged(autotag, n);
+                    List<Scored<String>> ret = pc.getAutotagged(autotag, n);
                     latch.countDown();
                     return ret;
                 }
             });
         }
         try {
-            StopWatch sw = new StopWatch();
+            NanoWatch sw = new NanoWatch();
             sw.start();
-            List<Scored<Item>> res = sortScored(executor.invokeAll(callers),
-                    n, latch);
+            List<Scored<Item>> res = keysToItems(sortScored(executor.invokeAll(callers),
+                    n, latch));
             sw.stop();
-            logger.info("Autotagged " + autotag + " took " + sw.getTime() + "ms");
+            if(logger.isLoggable(Level.FINE)) {
+                logger.fine(String.format("dsh at %s took %.3f", autotag, sw.
+                        getTimeMillis()));
+            }
             return res;
         } catch(ExecutionException ex) {
             checkAndThrow(ex);
@@ -1269,7 +1272,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         
     }
     
-    private List<Scored<Item>> keysToItems(List<Scored<String>> l) {
+    private List<Scored<Item>> keysToItems(List<Scored<String>> l) throws AuraException, RemoteException {
         List<Scored<Item>> ret = new ArrayList<Scored<Item>>(l.size());
         for(Scored<String> ss : l) {
             Item i = getItem(ss.getItem());
@@ -1512,25 +1515,28 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             final int n, final ResultsFilter rf)
             throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<List<Scored<Item>>>> callers =
-                new HashSet<Callable<List<Scored<Item>>>>();
+        Set<Callable<List<Scored<String>>>> callers =
+                new HashSet<Callable<List<Scored<String>>>>();
         final PCLatch latch = new PCLatch(clusters.size());
         for(PartitionCluster p : clusters) {
             callers.add(new PCCaller(p, rf) {
-                public List<Scored<Item>> call()
+                public List<Scored<String>> call()
                         throws AuraException, RemoteException {
-                    List<Scored<Item>> ret = pc.query(query, sort, n, rf);
+                    List<Scored<String>> ret = pc.query(query, sort, n, rf);
                     latch.countDown();
                     return ret;
                 }
             });
         }
         try {
-            StopWatch sw = new StopWatch();
+            NanoWatch sw = new NanoWatch();
             sw.start();
-            List<Scored<Item>> res = sortScored(executor.invokeAll(callers), n, latch);
+            List<Scored<Item>> res = keysToItems(sortScored(executor.invokeAll(callers), n, latch));
             sw.stop();
-            logger.info("Query for " + query + " took " + sw.getTime() + "ms");
+            if(logger.isLoggable(Level.FINE)) {
+                logger.fine(String.format("dsh q %s took %.3f", query, sw.
+                        getTimeMillis()));
+            }
             return res;
         } catch(ExecutionException ex) {
             checkAndThrow(ex);

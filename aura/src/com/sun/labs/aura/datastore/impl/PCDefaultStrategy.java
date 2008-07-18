@@ -135,11 +135,11 @@ public class PCDefaultStrategy implements PCStrategy {
         return replicant.getTopValues(field, n, ignoreCase);
     }
 
-    public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf) throws AuraException, RemoteException {
+    public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf) throws AuraException, RemoteException {
         return replicant.query(query, sort, n, rf);
     }
 
-    public List<Scored<Item>> getAutotagged(String autotag, int n) throws AuraException, RemoteException {
+    public List<Scored<String>> getAutotagged(String autotag, int n) throws AuraException, RemoteException {
         return replicant.getAutotagged(autotag, n);
     }
 

@@ -520,30 +520,34 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return bdb.getLastAttentionForUser(srcKey, type, count);
     }
 
-    public List<Scored<Item>> query(String query, int n, ResultsFilter rf)
+    public List<Scored<String>> query(String query, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         return query(query, "-score", n, rf);
     }
 
-    public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf)
+    public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         NanoWatch sw = new NanoWatch();
         sw.start();
-        List<Scored<Item>> res =
-                keysToItems(searchEngine.query(query, sort, n, rf));
+        List<Scored<String>> res = searchEngine.query(query, sort, n, rf);
         sw.stop();
-        logger.info("q " + query + " " + sw.getTimeMillis());
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("rep q %s took %.3f", query, sw.
+                    getTimeMillis()));
+        }
         return res;
     }
 
-    public List<Scored<Item>> getAutotagged(String autotag, int n)
+    public List<Scored<String>> getAutotagged(String autotag, int n)
             throws AuraException, RemoteException {
         NanoWatch sw = new NanoWatch();
         sw.start();
-        List<Scored<Item>> res =
-                keysToItems(searchEngine.getAutotagged(autotag, n));
+        List<Scored<String>> res = searchEngine.getAutotagged(autotag, n);
         sw.stop();
-        logger.info("gat " + autotag + " " + sw.getTimeMillis());
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("rep gat %s %.3f", autotag, sw.
+                    getTimeMillis()));
+        }
         return res;
     }
     

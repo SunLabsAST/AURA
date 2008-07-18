@@ -39,7 +39,7 @@ public interface LowLevelSearch extends Remote {
      * @param n the number of results to return
      * @return the top results for the query, sorted by score
      */
-    public List<Scored<Item>> query(String query, int n, ResultsFilter rf)
+    public List<Scored<String>> query(String query, int n, ResultsFilter rf)
             throws AuraException, RemoteException;
 
     /**
@@ -49,7 +49,7 @@ public interface LowLevelSearch extends Remote {
      * @param n the number of results to return
      * @return the top results for the query
      */
-    public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf)
+    public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf)
             throws AuraException, RemoteException;
 
     public DocumentVector getDocumentVector(String key, SimilarityConfig config)
@@ -105,7 +105,7 @@ public interface LowLevelSearch extends Remote {
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public List<Scored<Item>> getAutotagged(String autotag, int n)
+    public List<Scored<String>> getAutotagged(String autotag, int n)
             throws AuraException, RemoteException;
 
     /**
