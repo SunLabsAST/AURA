@@ -19,7 +19,7 @@ import java.util.List;
  * @see ItemSearch
  */
 public interface LowLevelSearch extends Remote {
-
+    
     /**
      * Gets the most frequent values for the named field.
      * @param field the field for which we want the most frequent values
