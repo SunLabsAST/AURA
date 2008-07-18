@@ -47,7 +47,7 @@ public interface PartitionCluster extends ItemStore, LowLevelSearch, Component, 
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public void deleteAttention(String itemKey)
+    public void removeAttention(String itemKey)
             throws AuraException, RemoteException;
     
 }

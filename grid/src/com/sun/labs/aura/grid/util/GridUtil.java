@@ -289,10 +289,10 @@ public class GridUtil {
 
         if(fileSystem == null) {
             if(allowCreate) {
-                log.fine("Creating filesystem " + fsName);
                 try {
                     fileSystem = grid.createBaseFileSystem(fsName,
                             fsConfiguration);
+                    log.info("Created filesystem " + fsName);
                 } catch(DuplicateNameException dne) {
                     //
                     // A filesystem could sneak in between the check and create
@@ -406,11 +406,11 @@ public class GridUtil {
         try {
             internalAddress =
                     network.allocateAddress(hostName);
-            log.fine("Allocated internal address " +
+            log.info("Allocated internal address " +
                     internalAddress.getAddress());
         } catch(DuplicateNameException e) {
             internalAddress = network.getAddress(hostName);
-            log.finer("Reusing address " + internalAddress.getAddress());
+            log.fine("Reusing address " + internalAddress.getAddress());
         } catch(NetworkAddressAllocationException e) {
             log.severe("Error allocating address: " + e.getMessage());
             throw e;
@@ -427,10 +427,10 @@ public class GridUtil {
         try {
             externalAddress =
                     grid.allocateExternalAddress(extName);
-            log.fine("Allocated external address " +
+            log.info("Allocated external address " +
                     externalAddress.getAddress());
         } catch(DuplicateNameException e) {
-            log.info("External address exists, reusing");
+            log.fine("External address exists, reusing");
             externalAddress = grid.getExternalAddress(extName);
         }
         bindHostName(grid.getExternalHostNameZone(), externalAddress, name);
@@ -450,6 +450,7 @@ public class GridUtil {
             hnbConf.setHostName(hostName);
             binding =
                     hnZone.createBinding(hnbConf.getHostName(), hnbConf);
+            log.info("Created hostname binding for " + hostName);
         } catch(DuplicateNameException dne) {
             binding = hnZone.getBinding(hostName);
             log.finer("Host name \"" + hostName +

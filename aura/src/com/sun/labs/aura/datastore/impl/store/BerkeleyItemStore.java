@@ -480,9 +480,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         bdb.removeAttention(srcKey, targetKey, type);
     }
 
-    public void deleteAttention(String itemKey)
+    public void removeAttention(String itemKey)
             throws AuraException, RemoteException {
-        bdb.deleteAttention(itemKey);
+        bdb.removeAttention(itemKey);
     }
 
     public DBIterator<Attention> getAttentionSince(Date timeStamp)

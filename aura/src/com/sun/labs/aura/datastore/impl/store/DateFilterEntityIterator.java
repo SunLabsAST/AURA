@@ -60,18 +60,15 @@ public class DateFilterEntityIterator extends EntityIterator {
     @Override
     public Attention next() {
         //
-        // If we have one waiting, return it and blank out the next
-        if (curr != null) {
-            Attention ret = curr;
-            curr = null;
-            return ret;
-        }
-        
-        //
-        // Otherwise, call hasNext to cue up the next one and return whatever
+        // Call hasNext to cue up the next one and return whatever
         // we got from it (a value or null).
         hasNext();
-        return curr;
+
+        //
+        // Return it and blank out the next
+        Attention ret = curr;
+        curr = null;
+        return ret;
     }
 
 }

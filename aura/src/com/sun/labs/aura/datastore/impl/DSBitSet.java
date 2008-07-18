@@ -30,15 +30,25 @@ public class DSBitSet extends BitSet {
     public int prefixLength() {
         return prefixLen;
     }
-    
+        
+    /**
+     * Determines if two DSBitSet objects are equal.  Only compares bits up
+     * to the prefix length.
+     * 
+     * @param o the DSBitSet to compare to
+     * @return true if the objects are equal
+     */
     @Override
     public boolean equals(Object o) {
-        if (super.equals(o)) {
-            if (o instanceof DSBitSet) {
-                DSBitSet bs = (DSBitSet) o;
-                if (bs.prefixLength() == prefixLength()) {
-                    return true;
+        if (o instanceof DSBitSet) {
+            DSBitSet bs = (DSBitSet) o;
+            if (bs.prefixLength() == prefixLength()) {
+                for (int i = 0; i < prefixLength(); i++) {
+                    if (get(i) != bs.get(i)) {
+                        return false;
+                    }
                 }
+                return true;
             }
         }
         return false;
