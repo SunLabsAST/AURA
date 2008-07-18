@@ -163,6 +163,7 @@ public class Commander {
 
             lastCommandTime = System.currentTimeMillis();
             if (is == null) {
+                System.out.println(name + " retry failure  cmd: " + url);
                 throw new IOException("Can't send command");
             }
             return is;

@@ -15,7 +15,7 @@ public abstract class Commander extends Thread {
     private Exception e = null;
 
     public Commander(String name) {
-        this.name = name;
+        setName(name);
     }
 
     @Override
@@ -34,11 +34,6 @@ public abstract class Commander extends Thread {
     }
 
     public abstract void go() throws Exception;
-
-    @Override
-    public String toString() {
-        return name;
-    }
 
     public long getExecuteTime() {
         return executeTime;

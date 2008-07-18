@@ -26,6 +26,7 @@ import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.IndexListener;
 import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.minion.SearchEngine;
+import com.sun.labs.minion.util.DirCopier;
 import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
@@ -36,6 +37,7 @@ import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -58,6 +60,12 @@ import java.util.logging.Logger;
  */
 public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         IndexListener {
+    
+    /**
+     * A directory that we should copy into /tmp/${prefix} to start out with.
+     */
+    @ConfigBoolean(defaultValue=false)
+    public static final String PROP_COPY_DIR = "copyDir";
 
     /**
      * The location of the BDB/JE Database Environment
@@ -74,6 +82,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     public static final String PROP_PREFIX = "prefix";
 
     private DSBitSet prefixCode;
+    
+    private String prefixString;
 
     @ConfigBoolean(defaultValue = false)
     public final static String PROP_OVERWRITE = "overwrite";
@@ -158,13 +168,42 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     public void newProperties(PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
 
-        prefixCode = DSBitSet.parse(ps.getString(PROP_PREFIX));
-
+        prefixString = ps.getString(PROP_PREFIX);
+        prefixCode = DSBitSet.parse(prefixString);
+        
+        boolean copyDir = ps.getBoolean(PROP_COPY_DIR);
+        
         //
-        // Get the database environment
+        // Get the database environment, copying it if necessary.
         dbEnvDir = ps.getString(PROP_DB_ENV);
         File f = new File(dbEnvDir);
         f.mkdirs();
+        
+        //
+        // If we want to copy the data into temp storage, do it now.
+        if(copyDir) {
+            logger.info("tmpdir: " + System.getProperty("java.io.tmpdir"));
+            String tds = String.format(System.getProperty("java.io.tmpdir") + "/replicant-%s/db/", ps.getString(PROP_PREFIX));
+            File td = new File(tds);
+            if(!td.mkdirs()) {
+                throw new PropertyException(ps.getInstanceName(), 
+                        PROP_COPY_DIR, 
+                        "Unable to make temporary directory for db");
+            }
+            try {
+                logger.info("Copying bdb into temp dir");
+                DirCopier dc = new DirCopier(f, td);
+                dc.copy();
+                logger.info("Copying completed");
+                f = td;
+                dbEnvDir = tds;
+            } catch(IOException ex) {
+                throw new PropertyException(ex, ps.getInstanceName(), 
+                        PROP_COPY_DIR, 
+                        "Unable to copy db directory");
+            }
+        }
+
 
         //
         // See if we should overwrite any existing database at that path

@@ -5,6 +5,7 @@
 package com.sun.labs.aura.music.crawler;
 
 import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
@@ -33,6 +34,8 @@ import com.sun.labs.aura.music.web.wikipedia.WikiInfo;
 import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
 import com.sun.labs.aura.music.web.youtube.Youtube;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.aura.util.Tag;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
@@ -58,6 +61,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -67,7 +72,7 @@ import java.util.regex.Pattern;
  *
  * @author plamere
  */
-public class ArtistCrawler implements AuraService, Configurable {
+public class ArtistCrawler implements AuraService, Configurable, Crawler {
 
     private LastFM lastFM;
     private MusicBrainz musicBrainz;
@@ -86,6 +91,7 @@ public class ArtistCrawler implements AuraService, Configurable {
     private final static int MAX_FAN_OUT = 5;
     private int minBlurbCount = 3;
     private Map<String, String> validTagMap = new HashMap();
+    private ExecutorService threadPool;
 
     /**
      * Starts running the crawler
@@ -94,25 +100,27 @@ public class ArtistCrawler implements AuraService, Configurable {
         if (!running) {
             running = true;
             {
-                Thread t = new Thread() {
-
-                    @Override
+                Runnable discoverer = new Runnable() {
+                    // this thread discovers new artists until
+                    // we reach the maxArtists
                     public void run() {
                         discoverArtists();
                     }
                 };
-                t.start();
+
+                threadPool.submit(discoverer);
             }
 
             {
-                Thread t = new Thread() {
+                Runnable updater = new Runnable() {
 
-                    @Override
+                    // this thread keeps all of our artists
+                    // fresh and updated
                     public void run() {
                         artistUpdater();
                     }
                 };
-                t.start();
+                threadPool.submit(updater);
             }
         }
     }
@@ -148,8 +156,51 @@ public class ArtistCrawler implements AuraService, Configurable {
 
             loadTagFilter();
             logger.info("tag filter: " + validTagMap.size() + " tags");
+
+            threadPool = Executors.newCachedThreadPool();
         } catch (IOException ioe) {
             throw new PropertyException(ioe, "ArtistCrawler", ps.getInstanceName(), "");
+        }
+    }
+
+    public void update(String id) throws AuraException, RemoteException {
+        final Item item = dataStore.getItem(id);
+        if (item == null) {
+            throw new AuraException("can't find item with ID " + id);
+        }
+        if (item.getType() != Item.ItemType.ARTIST) {
+            throw new AuraException("bad item type, should be ARTIST");
+        }
+        Runnable updater = new Runnable() {
+
+            public void run() {
+                Artist artist = new Artist(item);
+                try {
+                    updateArtist(artist, false, false);
+                } catch (AuraException ex) {
+                    logger.warning("Problem updating artist " + item.getKey() + " " + ex);
+                } catch (RemoteException ex) {
+                    logger.warning("Remote exception while updating artist " + item.getKey() + " " + ex);
+                }
+            }
+        };
+
+        threadPool.submit(updater);
+    }
+
+    public void add(String newID) throws AuraException, RemoteException {
+        Item item = dataStore.getItem(newID);
+        if (item == null) {
+            item = StoreFactory.newItem(ItemType.ARTIST, newID, "(unknown");
+            Artist artist = new Artist(item);
+            try {
+                addMusicBrainzInfo(artist);
+                updateArtist(artist, true, true);
+            } catch (IOException ioe) {
+                throw new AuraException("Can't get critical artist info from musicbrainz for " + newID + " " + ioe);
+            }
+        } else {
+            throw new AuraException("item with ID " + newID + " already exists");
         }
     }
 
@@ -162,11 +213,6 @@ public class ArtistCrawler implements AuraService, Configurable {
         int count = 0;
         try {
             primeArtistQueue("The Beatles");
-        /*
-        primeArtistQueue("Radiohead");
-        primeArtistQueue("Miles Davis");
-        primeArtistQueue("Britney Spears");
-         */
         } catch (AuraException ae) {
             logger.severe("ArtistCrawler Can't talk to the datastore, abandoning crawl");
             return;
@@ -174,18 +220,6 @@ public class ArtistCrawler implements AuraService, Configurable {
 
         while (running && artistQueue.size() > 0) {
             try {
-                QueuedArtist queuedArtist = artistQueue.poll();
-                long curTime = System.currentTimeMillis();
-                logger.info("Crawling " + queuedArtist + " remaining " + artistQueue.size() + " time " + (curTime - lastTime) + " ms");
-                lastTime = curTime;
-
-                Artist artist = collectArtistInfo(queuedArtist);
-                if (artist != null) {
-                    artist.flush(dataStore);
-                    if (count++ % FLUSH_COUNT == 0) {
-                        saveState();
-                    }
-                }
 
                 // if we've reached maxartists we are done
                 if (dataStore.getItemCount(ItemType.ARTIST) >= maxArtists) {
@@ -193,6 +227,17 @@ public class ArtistCrawler implements AuraService, Configurable {
                     break;
                 }
 
+                QueuedArtist queuedArtist = artistQueue.poll();
+                long curTime = System.currentTimeMillis();
+                logger.info("Crawling " + queuedArtist + " remaining " + artistQueue.size() + " time " + (curTime - lastTime) + " ms");
+                lastTime = curTime;
+
+                Artist artist = collectArtistInfo(queuedArtist);
+                if (artist != null) {
+                    if (count++ % FLUSH_COUNT == 0) {
+                        saveState();
+                    }
+                }
             } catch (AuraException ex) {
                 logger.warning("Aura Trouble during crawl " + ex);
             } catch (RemoteException ex) {
@@ -204,16 +249,11 @@ public class ArtistCrawler implements AuraService, Configurable {
     }
 
     private void updateArtists(boolean force, long period) throws AuraException, RemoteException, InterruptedException {
-        List<Item> items = dataStore.getAll(Item.ItemType.ARTIST);
-        List<Artist> artists = new ArrayList<Artist>();
-        for (Item i : items) {
-            artists.add(new Artist(i));
-        }
-        Collections.sort(artists, Artist.POPULARITY);
-        Collections.reverse(artists);
-        for (Artist artist : artists) {
+        List<Scored<String>> artistsWithPopularity = getAllArtistsWithPopularity();
+        for (Scored<String> sartist : artistsWithPopularity) {
+            Artist artist = new Artist(dataStore.getItem(sartist.getItem()));
             if (force || needsUpdate(artist)) {
-                updateArtist(artist);
+                updateArtist(artist, false, false);
                 try {
                     Thread.sleep(period);
                 } catch (InterruptedException e) {
@@ -225,17 +265,31 @@ public class ArtistCrawler implements AuraService, Configurable {
         }
     }
 
+    private List<Scored<String>> getAllArtistsWithPopularity() throws AuraException, RemoteException {
+        List<Scored<String>> artistList = new ArrayList();
+
+        DBIterator iter = dataStore.getAllIterator(ItemType.ARTIST);
+
+        try {
+            while (iter.hasNext()) {
+                Item item = (Item) iter.next();
+                Artist artist = new Artist(item);
+                artistList.add(new Scored<String>(artist.getKey(), artist.getPopularity()));
+            }
+
+        } finally {
+            iter.close();
+        }
+        Collections.sort(artistList, ScoredComparator.COMPARATOR);
+        Collections.reverse(artistList);
+        return artistList;
+    }
+
     private void artistUpdater() {
         try {
+            Thread.sleep(60 * 1000L);
             while (running) {
-                long startTime = System.currentTimeMillis();
-                updateArtists(false, 5000L);
-                long delta = System.currentTimeMillis() - startTime;
-                long delay = updateRateInSeconds * 1000L - delta;
-                if (delay > 0L) {
-                    logger.info("ArtistUpdater waiting " + (delay / (1000. * 60 * 60)) + " hours.");
-                    Thread.sleep(delay);
-                }
+                updateArtists(false, 2000L);
             }
         } catch (AuraException ex) {
             logger.warning("trouble in artist updater, shutting down " + ex);
@@ -281,7 +335,7 @@ public class ArtistCrawler implements AuraService, Configurable {
      * @throws com.sun.labs.aura.util.AuraException if a problem with the datastore is encountered
      * @throws java.rmi.RemoteException if a communicatin error occurs
      */
-    Artist collectArtistInfo(QueuedArtist queuedArtist) throws AuraException, RemoteException, IOException {
+    private Artist collectArtistInfo(QueuedArtist queuedArtist) throws AuraException, RemoteException, IOException {
         String mbaid = queuedArtist.getMBaid();
         if (mbaid != null && mbaid.length() > 0) {
             Item item = dataStore.getItem(mbaid);
@@ -290,21 +344,25 @@ public class ArtistCrawler implements AuraService, Configurable {
                 item = StoreFactory.newItem(ItemType.ARTIST, mbaid, queuedArtist.getArtistName());
                 final Artist artist = new Artist(item);
                 artist.setPopularity(queuedArtist.getPopularity());
-                updateArtist(artist);
+                updateArtist(artist, true, false);
                 return artist;
             }
         }
         return null;
     }
 
-    private void updateArtist(final Artist artist) {
+    private void updateArtist(final Artist artist, final boolean discoverMode, final boolean skipMusicBrainz) 
+                throws AuraException, RemoteException {
         CommandRunner runner = new CommandRunner(false, logger.isLoggable(Level.FINE));
         runner.add(new Commander("last.fm") {
 
             @Override
             public void go() throws Exception {
                 addLastFmTags(artist);
-                addSimilarArtistsToQueue(artist);
+                updateLastFMPopularity(artist);
+                if (discoverMode) {
+                    addSimilarArtistsToQueue(artist);
+                }
             }
         });
 
@@ -312,7 +370,9 @@ public class ArtistCrawler implements AuraService, Configurable {
 
             @Override
             public void go() throws Exception {
-                addMusicBrainzInfo(artist);
+                if (skipMusicBrainz) {
+                    addMusicBrainzInfo(artist);
+                }
                 addWikipediaInfo(artist);
             }
         });
@@ -355,9 +415,20 @@ public class ArtistCrawler implements AuraService, Configurable {
             // if we get an exception when we are crawling, 
             // we still have some good data, so log the problem
             // but still return the artist so we can add it to the store
-            logger.warning("Exception " + e);
+            logger.warning("Artist Crawler Exception " + e);
         }
         artist.setLastCrawl();
+        artist.flush(dataStore);
+    }
+
+    private void updateLastFMPopularity(Artist artist) {
+        try {
+            int popularity = lastFM.getPopularity(artist.getName());
+            artist.setPopularity(popularity);
+        } catch (IOException ioe) {
+            // can't get popularity data from last.fm
+            // so just skip the update for now
+        }
     }
 
     /**
@@ -377,18 +448,20 @@ public class ArtistCrawler implements AuraService, Configurable {
      * are similar to the beatles
      */
     private void primeArtistQueue(String artistName) throws AuraException {
-        try {
-            logger.info("Priming queue with " + artistName);
-            LastArtist[] simArtists = lastFM.getSimilarArtists(artistName);
-            for (LastArtist simArtist : simArtists) {
-                if (worthVisiting(simArtist)) {
-                    int popularity = lastFM.getPopularity(simArtist.getArtistName());
-                    logger.info("  adding  " + simArtist.getArtistName() + " pop: " + popularity);
-                    enqueue(simArtist, popularity);
+        if (artistQueue.size() == 0) {
+            try {
+                logger.info("Priming queue with " + artistName);
+                LastArtist[] simArtists = lastFM.getSimilarArtists(artistName);
+                for (LastArtist simArtist : simArtists) {
+                    if (worthVisiting(simArtist)) {
+                        int popularity = lastFM.getPopularity(simArtist.getArtistName());
+                        logger.info("  adding  " + simArtist.getArtistName() + " pop: " + popularity);
+                        enqueue(simArtist, popularity);
+                    }
                 }
+            } catch (IOException ex) {
+                Logger.getLogger(ArtistCrawler.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } catch (IOException ex) {
-            Logger.getLogger(ArtistCrawler.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -468,22 +541,31 @@ public class ArtistCrawler implements AuraService, Configurable {
         Map<String, Integer> blurbMap = new HashMap();
         artist.setBeginYear(mbai.getBeginYear());
         artist.setEndYear(mbai.getEndYear());
+        artist.setName(mbai.getName());
 
         for (String name : mbai.getURLMap().keySet()) {
             artist.addUrl(name, mbai.getURLMap().get(name));
         }
 
         for (MusicBrainzAlbumInfo mbalbum : mbai.getAlbums()) {
+            int pages = maxBlurbPages / mbai.getAlbums().size();
+            if (pages <= 1) {
+                pages = 1;
+            }
             String mbrid = mbalbum.getId();
             Item albumItem = dataStore.getItem(mbrid);
+            Album album = null;
             if (albumItem == null) {
                 albumItem = StoreFactory.newItem(ItemType.ALBUM, mbrid, mbalbum.getTitle());
-                Album album = new Album(albumItem);
+                album = new Album(albumItem);
                 album.setAsin(mbalbum.getAsin());
-                if (crawlAlbumBlurbs) {
-                    crawlAlbumBlurbs(artist, album, blurbMap);
-                }
                 album.flush(dataStore);
+            } else {
+                album = new Album(albumItem);
+            }
+
+            if (crawlAlbumBlurbs) {
+                crawlAlbumBlurbs(artist, album, blurbMap, pages);
             }
             artist.addAlbum(mbrid);
         }
@@ -493,9 +575,14 @@ public class ArtistCrawler implements AuraService, Configurable {
         }
 
         if (crawlAlbumBlurbs) {
-            for (Map.Entry<String,Integer> entry : blurbMap.entrySet()) {
-                if (entry.getValue() >= minBlurbCount) {
-                     artist.addBlurbTag(entry.getKey(), entry.getValue());
+            int curSize = artist.getBlurbTags().size();
+            // if we found more tags than before, replace the
+            // old ones with the new ones.
+            if (blurbMap.size() > curSize) {
+                for (Map.Entry<String, Integer> entry : blurbMap.entrySet()) {
+                    if (entry.getValue() >= minBlurbCount) {
+                        artist.setBlurbTag(entry.getKey(), entry.getValue());
+                    }
                 }
             }
         }
@@ -513,14 +600,13 @@ public class ArtistCrawler implements AuraService, Configurable {
             }
             System.out.println();
         }
-
     }
 
-    private void crawlAlbumBlurbs(Artist artist, Album album, Map<String, Integer> map) {
+    private void crawlAlbumBlurbs(Artist artist, Album album, Map<String, Integer> map, int maxPages) {
         try {
-            //System.out.println("Crawling album " + album.getTitle());
+            // System.out.println("Crawling album " + album.getTitle());
             if (album.getAsin() != null && album.getAsin().length() > 0) {
-                List<String> reviews = amazon.lookupReviews(album.getAsin(), maxBlurbPages);
+                List<String> reviews = amazon.lookupReviews(album.getAsin(), maxPages);
                 for (String review : reviews) {
                     review = Utilities.detag(review);
                     String words = normalizeText(" " + review + " ");
@@ -531,7 +617,8 @@ public class ArtistCrawler implements AuraService, Configurable {
                             Integer c = map.get(mappedTag);
                             if (c == null) {
                                 c = Integer.valueOf(0);
-                            } 
+                            }
+                            // System.out.println("   adding " + mappedTag);
                             map.put(mappedTag, c + count);
                         }
                     }
@@ -566,7 +653,7 @@ public class ArtistCrawler implements AuraService, Configurable {
         for (String tag : validTagMap.keySet()) {
             int count = findMatches(tag, words);
             if (count > 0) {
-                artist.addBioTag(mapTagName(tag), count);
+                artist.setBioTag(mapTagName(tag), count);
             // logger.info("Adding " + tag + ":" + count);
             }
         }
@@ -590,6 +677,7 @@ public class ArtistCrawler implements AuraService, Configurable {
 
     private void addYoutubeVideos(Artist artist) throws AuraException, RemoteException, IOException {
         List<Video> videos = util.collectYoutubeVideos(artist.getName(), 24);
+        artist.clearVideos();
         for (Video video : videos) {
             artist.addVideo(video.getKey());
         }
@@ -597,6 +685,7 @@ public class ArtistCrawler implements AuraService, Configurable {
 
     private void addFlickrPhotos(Artist artist) throws AuraException, RemoteException, IOException {
         List<Photo> photos = util.collectFlickrPhotos(artist.getName(), 24);
+        artist.clearPhotos();
         for (Photo photo : photos) {
             artist.addPhoto(photo.getKey());
         }
@@ -608,7 +697,7 @@ public class ArtistCrawler implements AuraService, Configurable {
             String tagName = mapTagName(tag.getName());
             if (tagName != null) {
                 int normFreq = (tag.getFreq() + 1) * (tag.getFreq() + 1);
-                artist.addSocialTag(tagName, normFreq);
+                artist.setSocialTag(tagName, normFreq);
             }
         }
     }
@@ -644,6 +733,7 @@ public class ArtistCrawler implements AuraService, Configurable {
         int count = 0;
         int MAX_EVENTS = 5;
         List<UpcomingEvent> events = upcoming.searchEventsByArtist(artist.getName());
+        artist.clearEvents();
         for (UpcomingEvent event : events) {
             Item item = StoreFactory.newItem(ItemType.EVENT, event.getEventID(), event.getName());
             Event itemEvent = new Event(item);

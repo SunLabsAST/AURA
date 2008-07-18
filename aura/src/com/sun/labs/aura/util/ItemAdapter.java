@@ -391,6 +391,11 @@ public abstract class ItemAdapter implements Serializable {
         }
     }
 
+
+    protected void clearTags(String field) {
+        clearTagMap(field);
+    }
+
     /**
      * Adds an object to an artist
      * @param <T>
