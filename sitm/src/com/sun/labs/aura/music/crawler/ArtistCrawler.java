@@ -103,7 +103,6 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
                 Runnable discoverer = new Runnable() {
                     // this thread discovers new artists until
                     // we reach the maxArtists
-                    @Override
                     public void run() {
                         discoverArtists();
                     }
@@ -117,12 +116,11 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
 
                     // this thread keeps all of our artists
                     // fresh and updated
-                    @Override
                     public void run() {
                         artistUpdater();
                     }
                 };
-                t.start();
+                threadPool.submit(updater);
             }
         }
     }
