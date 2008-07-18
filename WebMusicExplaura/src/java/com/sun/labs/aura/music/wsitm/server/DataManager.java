@@ -684,14 +684,16 @@ public class DataManager implements Configurable {
         l = mdb.getListener(userKey);
 
         if (l == null) {
-            logger.info("Non openID user '" + lD.openID + "' does not exist.");
-            throw new AuraException("User '"+userKey+"' does not exist.");
+            logger.info("Non openID user '" + userKey + "' does not exist.");
+            throw new AuraException("User '" + userKey + "' does not exist.");
+        } else {
+            logger.info("Non openID user '" + userKey + "' fetched.");
         }
 
         lD = listenerToListenerDetails(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
         lD.openID = userKey;
         lD.loggedIn = true;
-
+        
         return lD;
 
     }
@@ -716,7 +718,6 @@ public class DataManager implements Configurable {
         }
 
         l = syncListeners(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
-        logger.info("update");
         mdb.updateListener(l);
 
         return lD;

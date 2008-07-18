@@ -105,6 +105,7 @@ public abstract class ArtistListWidget extends Composite {
             }
 
             public void onFailure(Throwable caught) {
+                Window.alert(caught.toString());
                 Window.alert("Error fetching ratings.");
             }
         };

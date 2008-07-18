@@ -198,7 +198,14 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     public ListenerDetails getNonOpenIdLogInDetails(String userKey) throws WebException {
         logger.info("getNonOpenIdLogInDetails for key:"+userKey);
         try {
-            return dm.establishNonOpenIdUserConnection(userKey);
+            ListenerDetails lD = dm.establishNonOpenIdUserConnection(userKey);
+            
+            if (lD.loggedIn) {
+                HttpSession session = this.getThreadLocalRequest().getSession();
+                session.setAttribute(OpenIDServlet.openIdCookieName, lD.openID);
+            }
+            return lD;
+            
         } catch (AuraException ex) {
             logger.severe(traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
