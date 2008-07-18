@@ -584,15 +584,16 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config)
+    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config)
             throws AuraException, RemoteException {
         NanoWatch sw = new NanoWatch();
         sw.start();
         List<Scored<String>> fsr = searchEngine.findSimilar(dv, config);
         sw.stop();
-        logger.info("fs " + dv.getKey() + " " + sw.getTimeMillis());
-        List<Scored<Item>> res = keysToItems(fsr);
-        return res;
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("fs %s %.3f", dv.getKey(), sw.getTimeMillis()));
+        }
+        return fsr;
     }
 
     public WordCloud getTopTerms(String key, String field, int n)

@@ -23,9 +23,9 @@ import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
-import com.sun.labs.minion.WeightedField;
 import com.sun.labs.minion.pipeline.StopWords;
 import com.sun.labs.minion.retrieval.MultiDocumentVectorImpl;
+import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.minion.util.StopWatch;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
@@ -975,6 +975,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         PartitionCluster pc = trie.get(DSBitSet.parse(cloud.hashCode()));
         return findSimilar(pc.getDocumentVector(cloud, config), config);
     }
+    
     private List<Scored<Item>> findSimilar(
             DocumentVector dv,
             final SimilarityConfig config)
@@ -992,18 +993,22 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             return new ArrayList<Scored<Item>>();
         }
         
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("dsh fs start"));
+        }
+
         Set<PartitionCluster> clusters = trie.getAll();
-        List<Callable<List<Scored<Item>>>> callers =
-                new ArrayList<Callable<List<Scored<Item>>>>();
+        List<Callable<List<Scored<String>>>> callers =
+                new ArrayList<Callable<List<Scored<String>>>>();
         //
         // Here's our list of callers to find similar.  Each one will be given
         // a handle to a countdown latch to watch when they finish.
         for(PartitionCluster p : clusters) {
             callers.add(new PCCaller(p, dv, config.getFilter()) {
 
-                public List<Scored<Item>> call()
+                public List<Scored<String>> call()
                         throws AuraException, RemoteException {
-                    List<Scored<Item>> ret = pc.findSimilar(dv, config);
+                    List<Scored<String>> ret = pc.findSimilar(dv, config);
                     latch.countDown();
                     return ret;
                 }
@@ -1013,17 +1018,19 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         //
         // Run the computation, sort the results and return.
         try {
-            StopWatch sw = new StopWatch();
+            NanoWatch sw = new NanoWatch();
             sw.start();
-            List<Future<List<Scored<Item>>>> futures =
-                    new ArrayList<Future<List<Scored<Item>>>>();
+            List<Future<List<Scored<String>>>> futures =
+                    new ArrayList<Future<List<Scored<String>>>>();
             for (Callable c : callers) {
                 futures.add(executor.submit(c));
             }
-            List<Scored<Item>> res = sortScored(futures, config.getN(), latch);
+            List<Scored<Item>> ret = keysToItems(sortScored(futures, config.getN(), latch));
             sw.stop();
-            logger.info("findSimilar for " + dv.getKey() + " executed in " + sw.getTime() + "ms");
-            return res;
+            if(logger.isLoggable(Level.FINE)) {
+                logger.fine(String.format("dsh fs %s took %.3f", dv.getKey(), sw.getTimeMillis()));
+            }
+            return ret;
         } catch(ExecutionException ex) {
             checkAndThrow(ex);
             return new ArrayList<Scored<Item>>();
@@ -1193,22 +1200,22 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
      *  Utility and configuration methods
      * 
      */
-    private List<Scored<Item>> sortScored(
-            List<Future<List<Scored<Item>>>> results,
+    private List<Scored<String>> sortScored(
+            List<Future<List<Scored<String>>>> results,
             int n,
             PCLatch latch)
                 throws InterruptedException, ExecutionException {
         
-        PriorityQueue<Scored<Item>> sorter = new PriorityQueue<Scored<Item>>(n, ScoredComparator.COMPARATOR);
+        PriorityQueue<Scored<String>> sorter = new PriorityQueue<Scored<String>>(n, ScoredComparator.COMPARATOR);
         //
         // Wait for some, or all, or some time limit for execution to
         // finish.
         latch.await();
-        for(Future<List<Scored<Item>>> future : results) {
+        for(Future<List<Scored<String>>> future : results) {
             if (future.isDone() || (!latch.allowPartialResults())) {
-                List<Scored<Item>> curr = future.get();
+                List<Scored<String>> curr = future.get();
                 if(curr != null) {
-                    for(Scored<Item> item : curr) {
+                    for(Scored<String> item : curr) {
                         if(sorter.size() < n) {
                             sorter.offer(item);
                         } else {
@@ -1224,7 +1231,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
         //
         // Get the top n.
-        List<Scored<Item>> ret = new ArrayList<Scored<Item>>(sorter.size());
+        List<Scored<String>> ret = new ArrayList<Scored<String>>(sorter.size());
         while(sorter.size() > 0) {
             ret.add(sorter.poll());
         }
@@ -1260,6 +1267,15 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         Collections.reverse(ret);
         return ret;
         
+    }
+    
+    private List<Scored<Item>> keysToItems(List<Scored<String>> l) {
+        List<Scored<Item>> ret = new ArrayList<Scored<Item>>(l.size());
+        for(Scored<String> ss : l) {
+            Item i = getItem(ss.getItem());
+            ret.add(new Scored<Item>(i, ss));
+        }
+        return ret;
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {

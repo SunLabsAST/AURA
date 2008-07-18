@@ -253,7 +253,7 @@ public interface PCStrategy {
     /**
      * Find similar items to the provided doc vector
      */
-    public List<Scored<Item>> findSimilar(DocumentVector dv,
+    public List<Scored<String>> findSimilar(DocumentVector dv,
                                           SimilarityConfig config)
             throws AuraException, RemoteException;
 

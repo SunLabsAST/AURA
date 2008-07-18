@@ -61,12 +61,12 @@ public interface LowLevelSearch extends Remote {
     /**
      * Finds a the n most similar items to the given vector.
      * @param dv the vector for the item that we want to find similar items to
-     * @param n the number of similar items to return
+     * @param config the configuration for the find similar operation
      * @return the set of items most similar to the given item, ordered by 
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config)
+    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config)
             throws AuraException, RemoteException;
 
     /**

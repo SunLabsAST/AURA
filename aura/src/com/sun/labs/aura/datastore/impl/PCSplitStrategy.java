@@ -14,6 +14,7 @@ import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.ReverseScoredComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.aura.util.WordCloud;
@@ -420,14 +421,13 @@ public class PCSplitStrategy implements PCStrategy {
         return local.getDocumentVector(cloud, config);
     }
 
-    public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
-        List<Scored<Item>> l = local.findSimilar(dv, config);
-        List<Scored<Item>> r = remote.findSimilar(dv, config);
+    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
+        List<Scored<String>> l = local.findSimilar(dv, config);
+        List<Scored<String>> r = remote.findSimilar(dv, config);
         l.removeAll(r);
         l.addAll(r);
-        Collections.sort(l, ScoredComparator.COMPARATOR);
-        Collections.reverse(l);
-        return new ArrayList<Scored<Item>>(l.subList(0, config.getN()));        
+        Collections.sort(l, ReverseScoredComparator.COMPARATOR);
+        return new ArrayList<Scored<String>>(l.subList(0, config.getN()));        
     }
 
     public void close() throws AuraException, RemoteException {

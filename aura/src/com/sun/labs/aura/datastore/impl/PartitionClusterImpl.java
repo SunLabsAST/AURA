@@ -362,7 +362,7 @@ public class PartitionClusterImpl implements PartitionCluster,
         return strategy.getDocumentVector(cloud, config);
     }
 
-    public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
+    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
         return strategy.findSimilar(dv, config);
     }
 }

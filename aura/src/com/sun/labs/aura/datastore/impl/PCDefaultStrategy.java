@@ -171,7 +171,7 @@ public class PCDefaultStrategy implements PCStrategy {
         return replicant.getDocumentVector(cloud, config);
     }
 
-    public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
+    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
         return replicant.findSimilar(dv, config);
     }
 
