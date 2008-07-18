@@ -20,6 +20,7 @@ import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.Recommendation;
 import com.sun.labs.aura.music.RecommendationSummary;
 import com.sun.labs.aura.music.RecommendationType;
+import com.sun.labs.aura.music.crawler.Crawler;
 import com.sun.labs.aura.music.crawler.ListenerCrawler;
 import com.sun.labs.aura.music.crawler.TagCrawler;
 import com.sun.labs.aura.recommender.TypeFilter;
@@ -49,6 +50,7 @@ public class MusicShell implements AuraService, Configurable {
 
     private DataStore dataStore;
     private TagCrawler tagCrawler;
+    private Crawler artistCrawler;
     private ListenerCrawler listenerCrawler;
     private CommandInterpreter shell;
     private StatService statService;
@@ -247,6 +249,45 @@ public class MusicShell implements AuraService, Configurable {
 
             public String getHelp() {
                 return "lartist [artist name] - list an artist (or all artists) ";
+            }
+        });
+
+        shell.add("artistAdd", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                if (args.length != 2) {
+                    return getHelp();
+                } else {
+                    String mbaid = args[1];
+                    artistCrawler.add(mbaid);
+                }
+                return "";
+            }
+
+            public String getHelp() {
+                return "artistAdd mbaid";
+            }
+        });
+
+        shell.add("artistUpdate", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                if (args.length <= 1) {
+                    return getHelp();
+                } else {
+                    String qname = sutils.stuff(args, 1);
+                    Artist artist = findArtist(qname);
+                    if (artist != null) {
+                        artistCrawler.update(artist.getKey());
+                    } else {
+                        System.out.println("Can't find " + qname);
+                    }
+                }
+                return "";
+            }
+
+            public String getHelp() {
+                return "artistUpdate artist name - force the crawl of an artist";
             }
         });
 
@@ -611,6 +652,7 @@ public class MusicShell implements AuraService, Configurable {
     public void newProperties(PropertySheet ps) throws PropertyException {
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
         tagCrawler = (TagCrawler) ps.getComponent(PROP_TAG_CRAWLER);
+        artistCrawler = (Crawler) ps.getComponent(PROP_ARTIST_CRAWLER);
         listenerCrawler = (ListenerCrawler) ps.getComponent(PROP_LISTENER_CRAWLER);
         statService = (StatService) ps.getComponent(PROP_STAT_SERVICE);
         try {
@@ -639,4 +681,6 @@ public class MusicShell implements AuraService, Configurable {
     public final static String PROP_STAT_SERVICE = "statService";
     @ConfigComponent(type = ListenerCrawler.class)
     public final static String PROP_LISTENER_CRAWLER = "listenerCrawler";
+    @ConfigComponent(type = Crawler.class)
+    public final static String PROP_ARTIST_CRAWLER = "artistCrawler";
 }

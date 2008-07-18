@@ -156,6 +156,9 @@
             <fileset dir="../sitm/dist">
                 <include name="sitm.jar"/>
             </fileset>
+            <fileset dir=".">
+                <include name="rmilogging.properties"/>
+            </fileset>
         </dav:put>
         <dav:put url="${dav.url}/${jini.col}" userid="${user}" password="${pw}" lock="false">            
             <!-- Jini libraries -->

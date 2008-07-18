@@ -68,7 +68,7 @@ public class TagItem extends HttpServlet {
                     return;
                 }
 
-                mdb.addTag(listener, itemID, tag);
+                mdb.addTag(listener.getKey(), itemID, tag);
                 Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.OK, "tag '" + tag 
                         + "' added to item "  + itemID + " by " + listener.getKey());
             }

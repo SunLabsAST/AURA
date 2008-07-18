@@ -728,10 +728,18 @@ public class ShellUtils {
             System.out.println("null");
         } else {
             System.out.println(ItemAdapter.toString(item));
-            System.out.println("src: " + dataStore.getAttentionForSource(item.
-                    getKey()).size());
-            System.out.println("tgt: " + dataStore.getAttentionForTarget(item.
-                    getKey()).size());
+            {
+                AttentionConfig ac = new AttentionConfig();
+                ac.setSourceKey(item.getKey());
+                long count  = dataStore.getAttentionCount(ac);
+                System.out.println("src: " + count);
+            }
+            {
+                AttentionConfig ac = new AttentionConfig();
+                ac.setTargetKey(item.getKey());
+                long count  = dataStore.getAttentionCount(ac);
+                System.out.println("tgt: " + count);
+            }
         }
     }
 

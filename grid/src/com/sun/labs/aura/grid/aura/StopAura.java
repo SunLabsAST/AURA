@@ -19,9 +19,11 @@ public class StopAura extends Aura {
     }
     
     public void start() {
+        logger.info("Stopping registrations");
         Queue<ProcessRegistration> q = new LinkedList<ProcessRegistration>();
         try {
             gu.stopProcess(getStatServiceName());
+            logger.info("Stopped stat service");
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Error stopping Stat Service", e);
         }

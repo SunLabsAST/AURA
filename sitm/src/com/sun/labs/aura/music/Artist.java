@@ -252,6 +252,13 @@ public class Artist extends ItemAdapter {
     }
 
     /**
+     * Clears all of the autotags
+     */
+    public void clearAutoTags() {
+        clearTags(FIELD_AUTO_TAGS);
+    }
+
+    /**
      * Gets the artist's social tags 
      * @return tag map
      */
@@ -278,6 +285,13 @@ public class Artist extends ItemAdapter {
     }
 
     /**
+     * Clears the social tags
+     */
+    public void clearSocialTags() {
+        clearTags(FIELD_SOCIAL_TAGS);
+    }
+
+    /**
      * Gets the artist's bio tags 
      * @return tag map
      */
@@ -301,6 +315,13 @@ public class Artist extends ItemAdapter {
      */
     public void setBioTag(String tag, int count) {
         setTag(FIELD_BIO_TAGS, tag, count);
+    }
+    
+    /**
+     * Clears the bio tags
+     */
+    public void clearBioTags() {
+        clearTags(FIELD_BIO_TAGS);
     }
 
     /**
@@ -330,6 +351,13 @@ public class Artist extends ItemAdapter {
     }
 
     /**
+     * Clears the blurb tags
+     */
+    public void clearBlurbTags() {
+        clearTags(FIELD_BLURB_TAGS);
+    }
+
+    /**
      * Gets the artist's associated URLs
      * @return associated urls
      */
@@ -351,6 +379,16 @@ public class Artist extends ItemAdapter {
     }
 
     /**
+     * Clears the URLS
+     */
+    public void clearUrls() {
+        Map<String,String> map = (Map<String, String>) getFieldAsObject(FIELD_URLS);
+        if (map != null) {
+            map.clear();
+        }
+    }
+
+    /**
      * Adds a video to an artist
      * @param videoID id of the video
      */
@@ -364,6 +402,16 @@ public class Artist extends ItemAdapter {
      */
     public Set<String> getVideos() {
         return getFieldAsStringSet(FIELD_VIDEOS);
+    }
+
+    /**
+     * Clears the videos
+     */
+    public void clearVideos() {
+        Set<String> videos = getFieldAsStringSet(FIELD_VIDEOS);
+        if (videos != null) {
+            videos.clear();
+        }
     }
 
     /**
@@ -383,6 +431,16 @@ public class Artist extends ItemAdapter {
     }
 
     /**
+     * Clears the related artists
+     */
+    public void clearRelatedArtists() {
+        Set<String> set = getFieldAsStringSet(FIELD_RELATED_ARTISTS);
+        if (set != null) {
+            set.clear();
+        }
+    }
+
+    /**
      * Adds a follower (an artist influenced by this artist)
      * @param artist id of a following artist
      */
@@ -396,6 +454,16 @@ public class Artist extends ItemAdapter {
      */
     public Set<String> getFollowers() {
         return getFieldAsStringSet(FIELD_FOLLOWERS);
+    }
+
+    /**
+     * Clears all followers associated with this artist
+     */
+    public void clearFollowers() {
+        Set<String> set = getFieldAsStringSet(FIELD_FOLLOWERS);
+        if (set != null) {
+            set.clear();
+        }
     }
 
     /**
@@ -415,6 +483,16 @@ public class Artist extends ItemAdapter {
     }
 
     /**
+     * Clears all influencers associated with this artist
+     */
+    public void clearInfluencers() {
+        Set<String> set = getFieldAsStringSet(FIELD_INFLUENCERS);
+        if (set != null) {
+            set.clear();
+        }
+    }
+
+    /**
      * Get the photos associated with an artist
      * @return photos map
      */
@@ -428,6 +506,16 @@ public class Artist extends ItemAdapter {
      */
     public void addPhoto(String photoId) {
         appendToField(FIELD_PHOTOS, photoId);
+    }
+
+    /**
+     * Clears all photos associated with this artist
+     */
+    public void clearPhotos() {
+        Set<String> set = getFieldAsStringSet(FIELD_PHOTOS);
+        if (set != null) {
+            set.clear();
+        }
     }
 
     /**
@@ -447,6 +535,16 @@ public class Artist extends ItemAdapter {
     }
 
     /**
+     * Clears all events associated with this artist
+     */
+    public void clearEvents() {
+        Set<String> set = getFieldAsStringSet(FIELD_EVENTS);
+        if (set != null) {
+            set.clear();
+        }
+    }
+
+    /**
      * Get the collaborations associated with an artist
      * @return collaborations map
      */
@@ -463,6 +561,16 @@ public class Artist extends ItemAdapter {
     }
 
     /**
+     * Clears all collaborations associated with this artist
+     */
+    public void clearCollaborations() {
+        Set<String> set = getFieldAsStringSet(FIELD_COLLABORATIONS);
+        if (set != null) {
+            set.clear();
+        }
+    }
+
+    /**
      * Get the albums associated with an artist
      * @return album id set
      */
@@ -476,5 +584,15 @@ public class Artist extends ItemAdapter {
      */
     public void addAlbum(String albumId) {
         appendToField(FIELD_ALBUM, albumId);
+    }
+
+    /**
+     * Clears all albums associated with this artist
+     */
+    public void clearAlbums() {
+        Set<String> set = getFieldAsStringSet(FIELD_ALBUM);
+        if (set != null) {
+            set.clear();
+        }
     }
 }

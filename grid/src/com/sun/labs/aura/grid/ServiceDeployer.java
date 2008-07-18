@@ -45,7 +45,7 @@ public class ServiceDeployer {
     public ServiceDeployer(String instance, URL gridURL, String user,
             String passwd) throws RemoteException, StorageManagementException, Exception {
         grid = GridFactory.getGrid(gridURL, user, passwd);
-        logger.info("Got grid: " + grid);
+        logger.info("Got grid: " + grid.getGridURL() + " instance: " + instance);
         gu = new GridUtil(grid, instance);
         logFS = gu.getAuraLogFS();
         auraDistFS = gu.getAuraDistFS();
@@ -72,6 +72,7 @@ public class ServiceDeployer {
         String[] cmd = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraInstance=" + instance,
+            "-DauraPolicy=" + GridUtil.auraDistMntPnt + "/dist/jsk-all.policy",
             "-DauraGroup=" + instance + "-aura",
             "-cp",
             classpath,

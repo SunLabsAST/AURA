@@ -17,7 +17,6 @@ import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
-import com.sun.labs.minion.WeightedField;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
@@ -53,6 +52,8 @@ public class PartitionClusterImpl implements PartitionCluster,
     //protected List<BerkeleyItemStore> replicants;
     protected Replicant replicant;
     
+    protected PCStrategy strategy;
+    
     protected Logger logger;
     
     /**
@@ -75,45 +76,45 @@ public class PartitionClusterImpl implements PartitionCluster,
 
     public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
             Item.FieldType fieldType) throws AuraException, RemoteException {
-        replicant.defineField(itemType, field, caps, fieldType);
+        strategy.defineField(itemType, field, caps, fieldType);
     }
     
     public List<Item> getAll(ItemType itemType)
             throws AuraException, RemoteException {
-        return replicant.getAll(itemType);
+        return strategy.getAll(itemType);
     }
     
     public DBIterator<Item> getAllIterator(ItemType itemType)
             throws AuraException, RemoteException {
-        return replicant.getAllIterator(itemType);
+        return strategy.getAllIterator(itemType);
     }
 
     public Item getItem(String key) throws AuraException, RemoteException {
-        return replicant.getItem(key);
+        return strategy.getItem(key);
     }
 
     public User getUser(String key) throws AuraException, RemoteException {
-        return replicant.getUser(key);
+        return (User)strategy.getItem(key);
     }
 
     public User getUserForRandomString(String randStr)
             throws AuraException, RemoteException {
-        return replicant.getUserForRandomString(randStr);
+        return strategy.getUserForRandomString(randStr);
     }
     
     public Item putItem(Item item) throws AuraException, RemoteException {
-        return replicant.putItem(item);
+        return strategy.putItem(item);
     }
 
     public User putUser(User user) throws AuraException, RemoteException {
-        return replicant.putUser(user);
+        return (User)strategy.putItem(user);
     }
 
     /**
      * Deletes just an item from the item store, not touching the attention.
      */
     public void deleteItem(String itemKey) throws AuraException, RemoteException {
-        replicant.deleteItem(itemKey);
+        strategy.deleteItem(itemKey);
     }
     
     /**
@@ -125,102 +126,102 @@ public class PartitionClusterImpl implements PartitionCluster,
     
     public DBIterator<Item> getItemsAddedSince(ItemType type, Date timeStamp)
             throws AuraException, RemoteException {
-        return replicant.getItemsAddedSince(type, timeStamp);
+        return strategy.getItemsAddedSince(type, timeStamp);
     }
 
     public List<Item> getItems(User user, Type attnType, ItemType itemType)
             throws AuraException, RemoteException {
-        return replicant.getItems(user, attnType, itemType);
+        return strategy.getItems(user, attnType, itemType);
     }
 
     public List<Attention> getAttention(AttentionConfig ac)
             throws AuraException, RemoteException {
-        return replicant.getAttention(ac);
+        return strategy.getAttention(ac);
     }
 
     public DBIterator<Attention> getAttentionIterator(AttentionConfig ac)
             throws AuraException, RemoteException {
-        return replicant.getAttentionIterator(ac);
+        return strategy.getAttentionIterator(ac);
     }
 
     public Long getAttentionCount(AttentionConfig ac)
             throws AuraException, RemoteException {
-        return replicant.getAttentionCount(ac);
+        return strategy.getAttentionCount(ac);
     }
     
     public List<Attention> getAttentionSince(AttentionConfig ac,
                                              Date timeStamp)
             throws AuraException, RemoteException {
-        return replicant.getAttentionSince(ac, timeStamp);
+        return strategy.getAttentionSince(ac, timeStamp);
     }
 
     public DBIterator<Attention> getAttentionSinceIterator(AttentionConfig ac,
                                                            Date timeStamp)
             throws AuraException, RemoteException {
-        return replicant.getAttentionSinceIterator(ac, timeStamp);
+        return strategy.getAttentionSinceIterator(ac, timeStamp);
     }
 
     public Long getAttentionSinceCount(AttentionConfig ac,
                                        Date timeStamp)
             throws AuraException, RemoteException {
-        return replicant.getAttentionSinceCount(ac, timeStamp);
+        return strategy.getAttentionSinceCount(ac, timeStamp);
     }
     
     public List<Attention> getLastAttention(AttentionConfig ac,
                                             int count)
             throws AuraException, RemoteException {
-        return replicant.getLastAttention(ac, count);
+        return strategy.getLastAttention(ac, count);
     }
     
     public List<Attention> getAttentionForSource(String srcKey)
             throws AuraException, RemoteException {
-        return replicant.getAttentionForSource(srcKey);
+        throw new UnsupportedOperationException("getAttentionForSource no longer supported");
     }
     
     public List<Attention> getAttentionForSource(String srcKey,
                                                 Attention.Type type)
             throws AuraException, RemoteException {
-        return replicant.getAttentionForSource(srcKey, type);
+        throw new UnsupportedOperationException("getAttentionForSource no longer supported");
     }
     
     public List<Attention> getAttentionForTarget(String itemKey)
             throws AuraException, RemoteException {
-        return replicant.getAttentionForTarget(itemKey);
+        throw new UnsupportedOperationException("getAttentionForTarget no longer supported");
     }
 
     public Attention attend(Attention att)
             throws AuraException, RemoteException {
-        return replicant.attend(att);
+        return strategy.attend(att);
     }
 
     public List<Attention> attend(List<Attention> attns)
             throws AuraException, RemoteException {
-        return replicant.attend(attns);
+        return strategy.attend(attns);
     }
 
     public void removeAttention(String srcKey, String targetKey,
                                 Attention.Type type)
             throws AuraException, RemoteException {
-        replicant.removeAttention(srcKey, targetKey, type);
+        strategy.removeAttention(srcKey, targetKey, type);
     }
     
-    public void deleteAttention(String itemKey)
+    public void removeAttention(String itemKey)
             throws AuraException, RemoteException {
-        replicant.deleteAttention(itemKey);
+        strategy.removeAttention(itemKey);
     }
     
     public DBIterator<Attention> getAttentionSince(Date timeStamp)
             throws AuraException, RemoteException {
-        return replicant.getAttentionSince(timeStamp);
+        throw new UnsupportedOperationException("getAttentionSince no longer supported");
     }
     public DBIterator<Attention> getAttentionForSourceSince(String sourceKey,
             Date timeStamp) throws AuraException, RemoteException {
-        return replicant.getAttentionForSourceSince(sourceKey, timeStamp);
+        throw new UnsupportedOperationException("getAttentionForSourceSince no longer supported");
     }
     
     public DBIterator<Attention> getAttentionForTargetSince(String targetKey,
             Date timeStamp) throws AuraException, RemoteException {
-        return replicant.getAttentionForTargetSince(targetKey, timeStamp);
+        throw new UnsupportedOperationException("getAttentionForTargetSince no longer supported");
     }
 
     public List<Attention> getLastAttentionForSource(String srcKey,
@@ -233,76 +234,76 @@ public class PartitionClusterImpl implements PartitionCluster,
                                                           Type type,
                                                           int count)
             throws AuraException, RemoteException {
-        return replicant.getLastAttentionForSource(srcKey, type, count);
+        return strategy.getLastAttentionForSource(srcKey, type, count);
     }
 
     public void addItemListener(ItemType itemType, ItemListener listener)
             throws AuraException, RemoteException {
         //
         // Should the listener only go down to the partition cluster level?
-        replicant.addItemListener(itemType, listener);
+        strategy.addItemListener(itemType, listener);
     }
 
     public void removeItemListener(ItemType itemType, ItemListener listener)
             throws AuraException, RemoteException {
         //
         // Should the listener only go down to the partition cluster level?
-        replicant.removeItemListener(itemType, listener);
+        strategy.removeItemListener(itemType, listener);
     }
 
     public long getItemCount(ItemType itemType)
             throws AuraException, RemoteException {
-        return replicant.getItemCount(itemType);
+        return strategy.getItemCount(itemType);
     }
 
     public long getAttentionCount() throws AuraException, RemoteException {
-        return replicant.getAttentionCount();
+        throw new UnsupportedOperationException("getAttentionCount() no longer supported");
     }
     
     public List<FieldFrequency> getTopValues(String field, int n, boolean ignoreCase) throws AuraException, RemoteException {
-        return replicant.getTopValues(field, n, ignoreCase);
+        return strategy.getTopValues(field, n, ignoreCase);
     }
 
     public List<Scored<Item>> query(String query, int n, ResultsFilter rf) 
             throws AuraException, RemoteException {
-        return replicant.query(query, n, rf);
+        return strategy.query(query, "-score", n, rf);
     }
 
     public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf) 
             throws AuraException, RemoteException {
-        return replicant.query(query, sort, n, rf);
+        return strategy.query(query, sort, n, rf);
     }
     
     public List<Scored<Item>> getAutotagged(String autotag, int n)
             throws AuraException, RemoteException {
-        return replicant.getAutotagged(autotag, n);
+        return strategy.getAutotagged(autotag, n);
     }
 
     public List<Scored<String>> getTopAutotagTerms(String autotag, int n)
             throws AuraException, RemoteException {
-        return replicant.getTopAutotagTerms(autotag, n);
+        return strategy.getTopAutotagTerms(autotag, n);
     }
 
     public List<Scored<String>> findSimilarAutotags(String autotag, int n)
             throws AuraException, RemoteException {
-        return replicant.findSimilarAutotags(autotag, n);
+        return strategy.findSimilarAutotags(autotag, n);
     }
 
     public List<Scored<String>> explainSimilarAutotags(String a1, String a2,
             int n)
             throws AuraException, RemoteException {
-        return replicant.explainSimilarAutotags(a1, a2, n);
+        return strategy.explainSimilarAutotags(a1, a2, n);
     }
 
     public WordCloud getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException {
-        return replicant.getTopTerms(key, field, n);
+        return strategy.getTopTerms(key, field, n);
     }
 
     public List<Scored<String>> getExplanation(String key, String autoTag,
             int n)
             throws AuraException, RemoteException {
-        return replicant.getExplanation(key, autoTag, n);
+        return strategy.getExplanation(key, autoTag, n);
     }
 
     public synchronized void close() throws AuraException, RemoteException {
@@ -331,6 +332,7 @@ public class PartitionClusterImpl implements PartitionCluster,
         logger.log(Level.INFO, "Adding replicant with prefix " + replicant.getPrefix());
         if (replicant.getPrefix().equals(prefixCode)) {
             this.replicant = replicant;
+            strategy = new PCDefaultStrategy(replicant);
         } else {
             logger.log(Level.SEVERE, "Adding replicant with wrong prefix our prefix: " +
                     prefixCode + " prefix added: " + replicant.getPrefix());
@@ -353,14 +355,14 @@ public class PartitionClusterImpl implements PartitionCluster,
     }
 
     public DocumentVector getDocumentVector(String key, SimilarityConfig config) throws RemoteException, AuraException {
-        return replicant.getDocumentVector(key, config);
+        return strategy.getDocumentVector(key, config);
     }
 
     public DocumentVector getDocumentVector(WordCloud cloud, SimilarityConfig config) throws RemoteException, AuraException {
-        return replicant.getDocumentVector(cloud, config);
+        return strategy.getDocumentVector(cloud, config);
     }
 
     public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
-        return replicant.findSimilar(dv, config);
+        return strategy.findSimilar(dv, config);
     }
 }
