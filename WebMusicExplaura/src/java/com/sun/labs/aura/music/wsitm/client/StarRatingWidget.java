@@ -10,7 +10,6 @@ import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
@@ -23,10 +22,10 @@ import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
  *
  * @author mailletf
  */
-public class StarRatingWidget extends LoginListener {
+public class StarRatingWidget extends Composite implements RatingListener, LoginListener {
 
     private MusicSearchInterfaceAsync musicServer;
-    private ListenerDetails lD;
+    private ClientDataManager cdm;
     private String artistID;
 
     private int nbrStars = 5;
@@ -51,6 +50,8 @@ public class StarRatingWidget extends LoginListener {
     private static final String NOT_INTERESTED_S = "not-interested2-s.png";
     private static final String NOT_INTERESTED_HOVER_S = "not-interested2-s-hover.png";
 
+    private int hashCode;
+
     private Image[] images;
 
     private Grid g;
@@ -60,14 +61,14 @@ public class StarRatingWidget extends LoginListener {
         MEDIUM
     }
 
-    public StarRatingWidget(MusicSearchInterfaceAsync musicServer, ListenerDetails lD,
+    public StarRatingWidget(MusicSearchInterfaceAsync musicServer, ClientDataManager cdm,
             String artistID, Size size) {
 
         g = new Grid(1, 1);
         initWidget(g);
 
-        initializeRatingWidget(musicServer, lD, artistID, -1, size);
-        if (lD.loggedIn) {
+        initializeRatingWidget(musicServer, cdm, artistID, -1, size);
+        if (cdm.isLoggedIn()) {
             invokeFetchRating();
         } else {
             drawRatingWidget();
@@ -75,23 +76,25 @@ public class StarRatingWidget extends LoginListener {
 
     }
 
-    public StarRatingWidget(MusicSearchInterfaceAsync musicServer, ListenerDetails lD, 
+    public StarRatingWidget(MusicSearchInterfaceAsync musicServer, ClientDataManager cdm,
             String artistID, int initialSelection, Size size) {
 
         g = new Grid(1, 1);
         initWidget(g);
 
-        initializeRatingWidget(musicServer, lD, artistID, initialSelection, size);
+        initializeRatingWidget(musicServer, cdm, artistID, initialSelection, size);
         drawRatingWidget();
     }
 
-    private void initializeRatingWidget(MusicSearchInterfaceAsync musicServer, ListenerDetails lD,
+    private void initializeRatingWidget(MusicSearchInterfaceAsync musicServer, ClientDataManager cdm,
             String artistID, int initialSelection, Size size) {
 
         this.nbrSelectedStars = initialSelection;
-        this.lD = lD;
+        this.cdm = cdm;
         this.artistID = artistID;
         this.musicServer = musicServer;
+
+        cdm.getRatingListenerManager().addListener(artistID, this);
 
         if (size == Size.SMALL) {
             STAR_LID = STAR_LID_S;
@@ -106,6 +109,13 @@ public class StarRatingWidget extends LoginListener {
             NOT_INTERESTED = NOT_INTERESTED_M;
             NOT_INTERESTED_HOVER = NOT_INTERESTED_HOVER_M;
         }
+
+        hashCode = (artistID + "-" + System.currentTimeMillis()).hashCode();
+    }
+
+    public void onDelete() {
+        cdm.getRatingListenerManager().removeListener(artistID, this);
+        cdm.getLoginListenerManager().removeListener(this);
     }
 
     private void drawRatingWidget() {
@@ -165,7 +175,7 @@ public class StarRatingWidget extends LoginListener {
 
     private void invokeSaveRating(int index) {
 
-        if (!lD.loggedIn) {
+        if (!cdm.isLoggedIn()) {
             Window.alert("Message from the happy tag : you must be logged in to access this feature. I should redirect you to another page so you can create an account, but I'd rather keep you here so we can be friends.");
             return;
         }
@@ -173,6 +183,7 @@ public class StarRatingWidget extends LoginListener {
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
+                cdm.getRatingListenerManager().triggerOnRate(artistID, nbrSelectedStars);
             }
 
             public void onFailure(Throwable caught) {
@@ -226,13 +237,20 @@ public class StarRatingWidget extends LoginListener {
     }
 
     public void onLogin(ListenerDetails lD) {
-        this.lD = lD;
         invokeFetchRating();
     }
 
     public void onLogout() {
-        lD = new ListenerDetails();
         nbrSelectedStars = 0;
         redrawStars();
+    }
+
+    public void onRate(String itemId, int rating) {
+        nbrSelectedStars = rating;
+        drawRatingWidget();
+    }
+
+    public int hashCode() {
+        return hashCode;
     }
 }

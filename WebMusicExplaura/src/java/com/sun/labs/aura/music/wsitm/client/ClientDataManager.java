@@ -42,6 +42,10 @@ public class ClientDataManager {
     private PageHeaderWidget phw;
     //private SimpleSearchSwidget ssw;
 
+    private RatingListenerManager ratingListenerManager;
+    private TaggingListenerManager taggingListenerManager;
+    private LoginListenerManager loginListenerManager;
+
     /**
      * If true, steerableswidget will reload artist cloud if querystring is set
      * If false, steerableswidget will keep the current cloud
@@ -58,6 +62,22 @@ public class ClientDataManager {
     public ClientDataManager() {
         lD = new ListenerDetails();
         registeredSwidgets = new HashSet<Swidget>();
+        
+        ratingListenerManager = new RatingListenerManager();
+        taggingListenerManager = new TaggingListenerManager();
+        loginListenerManager = new LoginListenerManager();
+    }
+
+    public RatingListenerManager getRatingListenerManager() {
+        return ratingListenerManager;
+    }
+
+    public TaggingListenerManager getTaggingListenerManager() {
+        return taggingListenerManager;
+    }
+
+    public LoginListenerManager getLoginListenerManager() {
+        return loginListenerManager;
     }
 
     public Store getTagOracle() {
@@ -154,23 +174,18 @@ public class ClientDataManager {
         return lD.lastfmUser;
     }
 
-    public void setListenerDetails(ListenerDetails lD) {
+    public void setListenerDetails(ListenerDetails newlD) {
         //
         // If the logged in state has changed, we need to fire events
-        if (this.lD.loggedIn!=lD.loggedIn) {
+        if (this.lD.loggedIn!=newlD.loggedIn) {
+            this.lD=newlD;
             if (this.lD.loggedIn) {
-                this.lD=lD;
-                for (Swidget s : registeredSwidgets) {
-                    s.triggerLogout();
-                }
+                getLoginListenerManager().triggerOnLogin();
             } else {
-                this.lD=lD;
-                for (Swidget s : registeredSwidgets) {
-                    s.triggerLogin(lD);
-                }
+                getLoginListenerManager().triggerOnLogout();
             }
         } else {
-            this.lD=lD;
+            this.lD=newlD;
         }
     }
 
@@ -185,10 +200,8 @@ public class ClientDataManager {
     public void resetUser() {
         tagCloud = null;
         tagMap = null;
-//        lastFmUser = null;
 
         setListenerDetails(new ListenerDetails());
-
     }
 
     public boolean isLoggedIn() {
@@ -301,5 +314,128 @@ public class ClientDataManager {
 
     public String getCurrSearchWidgetToken() {
         return currSearchWidgetToken;
+    }
+
+
+
+    public class ListenerManager <T extends WebListener> {
+
+        protected Set<T> listeners;
+
+        public ListenerManager() {
+            listeners = new HashSet<T>();
+        }
+
+        /**
+         * Adds a RatingListener not bounded to a particular item id. Will be triggered whenever an item is rated
+         * @param rL RatingListener to add
+         */
+        public void addListener(T rL) {
+            listeners.add(rL);
+        }
+
+        /**
+         * Removes the RatingListener that is not bounded to a particular item
+         * @param rL RatingListener to remove
+         */
+        public void removeListener(T rL) {
+            listeners.remove(rL);
+        }
+
+        public int countListeners() {
+            return listeners.size();
+        }
+    }
+
+    public class ItemBoundedListenerManager<T extends WebListener> extends ListenerManager<T> {
+
+        protected Map<String, Set<T>> itemIdBoundedListeners;
+
+        public ItemBoundedListenerManager() {
+            super();
+            itemIdBoundedListeners = new HashMap<String, Set<T>>();
+        }
+
+        /**
+         * Adds a RatingListener bounded to the given itemId
+         * @param itemId itemId to bound the listener to
+         * @param rL RatingListener to add
+         */
+        public void addListener(String itemId, T rL) {
+            if (!itemIdBoundedListeners.containsKey(itemId)) {
+                itemIdBoundedListeners.put(itemId, new HashSet<T>());
+            }
+            itemIdBoundedListeners.get(itemId).add(rL);
+        }
+
+        public void removeListener(String itemId, T rL) {
+            if (!itemIdBoundedListeners.get(itemId).contains(rL)) {
+            }
+            itemIdBoundedListeners.get(itemId).remove(rL);
+            if (itemIdBoundedListeners.get(itemId).size() == 0) {
+                itemIdBoundedListeners.remove(itemId);
+            }
+        }
+
+        public int countItemBoundedListeners() {
+            return itemIdBoundedListeners.size();
+        }
+
+    }
+
+    public class LoginListenerManager extends ListenerManager<LoginListener> {
+
+        public LoginListenerManager() {
+            super();
+        }
+
+        public void triggerOnLogin() {
+            for (LoginListener lL : listeners) {
+                lL.onLogin(lD);
+            }
+        }
+
+        public void triggerOnLogout() {
+            for (LoginListener lL : listeners) {
+                lL.onLogout();
+            }
+        }
+
+    }
+
+    public class RatingListenerManager extends ItemBoundedListenerManager<RatingListener> {
+
+        public RatingListenerManager() {
+            super();
+        }
+
+        public void triggerOnRate(String itemId, int rating) {
+            for (RatingListener rL : listeners) {
+                rL.onRate(itemId, rating);
+            }
+            if (itemIdBoundedListeners.containsKey(itemId)) {
+                for (RatingListener rL : itemIdBoundedListeners.get(itemId)) {
+                    rL.onRate(itemId, rating);
+                }
+            }
+        }
+    }
+
+    public class TaggingListenerManager extends ItemBoundedListenerManager<TaggingListener> {
+
+        public TaggingListenerManager() {
+            super();
+        }
+
+        public void triggerOnTag(String itemId, Set<String> tags) {
+            for (TaggingListener tL : listeners) {
+                tL.onTag(itemId, tags);
+            }
+            if (itemIdBoundedListeners.containsKey(itemId)) {
+                for (TaggingListener tL : itemIdBoundedListeners.get(itemId)) {
+                    tL.onTag(itemId, tags);
+                }
+            }
+        }
     }
 }

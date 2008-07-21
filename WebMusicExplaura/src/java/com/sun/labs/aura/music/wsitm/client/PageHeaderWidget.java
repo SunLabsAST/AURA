@@ -21,6 +21,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
@@ -54,8 +55,6 @@ public class PageHeaderWidget extends Swidget {
 
     private Widget instantRecPlayWidget;
 
-    // toolbar objects
-    private ToolBar toolBar;
     TextToolItem recTypeToolItem;
 
     private ListBox listbox;
@@ -96,7 +95,7 @@ public class PageHeaderWidget extends Swidget {
         //
         // Set the section menu
         mm = new MainMenu();
-        registerLoginListener(mm);
+        cdm.getLoginListenerManager().addListener(mm);
         mainPanel.setWidget(0, 1, mm);
 
         populateMainPanel();
@@ -278,7 +277,6 @@ public class PageHeaderWidget extends Swidget {
 
 
             mainPanel.setWidget(0, 0, hP);
-
         } else {
             populateLoginBox();
         }
@@ -438,10 +436,14 @@ public class PageHeaderWidget extends Swidget {
         menuItem = new MenuItem();
     }
 
-    public class MainMenu extends LoginListener {
+    public void doRemoveListeners() {
+        mm.onDelete();
+    }
+
+    public class MainMenu extends Composite implements LoginListener {
 
         private Grid p;
-        private boolean loggedIn=false;
+        private boolean loggedIn = false;
 
         public MainMenu() {
             p = new Grid(1,1);
@@ -453,9 +455,7 @@ public class PageHeaderWidget extends Swidget {
             return p;
         }
 
-
         private void update() {
-
             HorizontalPanel hP = new HorizontalPanel();
             hP.setSpacing(8);
 
@@ -471,52 +471,29 @@ public class PageHeaderWidget extends Swidget {
                     }
                 }
             }
-
-            /*
-            Label sLabel = new Label("Search");
-            sLabel.addClickListener(new ClickListener() {
+            SpannedLabel pwet = new SpannedLabel("nbr");
+            pwet.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
-                    History.newItem(cdm.getCurrSearchWidgetToken());
+                    ((Label)arg0).setText(cdm.getLoginListenerManager().countListeners()+"-"+cdm.getRatingListenerManager().countItemBoundedListeners());
                 }
             });
-            sLabel.setStyleName("headerMenuMedItem");
-            hP.add(sLabel);
-
-            sLabel = new Label("Steerable");
-            sLabel.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
-                    History.newItem("steering:");
-                }
-            });
-            sLabel.setStyleName("headerMenuMedItem");
-            hP.add(sLabel);
-
-
-            if (loggedIn) {
-                sLabel = new Label("Dashboard");
-                sLabel.addClickListener(new ClickListener() {
-
-                    public void onClick(Widget arg0) {
-                        History.newItem("dashboard:");
-                    }
-                });
-                sLabel.setStyleName("headerMenuMedItem");
-                hP.add(sLabel);
-            } 
-*/
+            hP.add(pwet);
             p.setWidget(0, 0, hP);
         }
 
         public void onLogin(ListenerDetails lD) {
-            loggedIn=true;
+            loggedIn = true;
             update();
         }
 
         public void onLogout() {
-            loggedIn=false;
+            loggedIn = false;
             update();
+        }
+
+        public void onDelete() {
+            cdm.getLoginListenerManager().removeListener(this);
         }
     }
 

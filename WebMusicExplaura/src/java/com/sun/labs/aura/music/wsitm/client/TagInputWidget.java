@@ -27,10 +27,10 @@ import java.util.Set;
  *
  * @author mailletf
  */
-public class TagInputWidget extends LoginListener {
+public class TagInputWidget extends Composite implements LoginListener {
 
     private MusicSearchInterfaceAsync musicServer;
-    private ListenerDetails lD;
+    private ClientDataManager cdm;
 
     private Map<String, SpannedLabel> userTags;
     private FlowPanel tagPanel;
@@ -42,10 +42,10 @@ public class TagInputWidget extends LoginListener {
     private final static String DEFAULT_TBOX_TXT = "Add comma separated tags";
     private final static String PROCESSING_TBOX_MSG = "Processing...";
 
-    public TagInputWidget(MusicSearchInterfaceAsync musicServer, ListenerDetails lD, String itemType, String itemId) {
+    public TagInputWidget(MusicSearchInterfaceAsync musicServer, ClientDataManager cdm, String itemType, String itemId) {
 
         this.musicServer = musicServer;
-        this.lD = lD;
+        this.cdm = cdm;
         this.itemId = itemId;
 
         userTags = new HashMap<String, SpannedLabel>();
@@ -87,7 +87,7 @@ public class TagInputWidget extends LoginListener {
         progressImg.setVisible(false);
         mainPanel.add(progressImg);
 
-        if (lD != null && lD.loggedIn) {
+        if (cdm.isLoggedIn()) {
             invokeFetchUserTags();
         }
 
@@ -96,7 +96,7 @@ public class TagInputWidget extends LoginListener {
     }
 
     private void onTagSubmit() {
-        if (lD !=null && lD.loggedIn) {
+        if (cdm.isLoggedIn()) {
             Set<String> tags = new HashSet<String>();
             for (String newTag : getTextBoxTxt().split(",")) {
                 newTag = newTag.toLowerCase().trim();
@@ -213,6 +213,8 @@ public class TagInputWidget extends LoginListener {
                      addTag(s);
                  }
                  resetTextBox();
+
+                 cdm.getTaggingListenerManager().triggerOnTag(itemId, tags);
              }
 
              public void resetTextBox() {
@@ -234,7 +236,6 @@ public class TagInputWidget extends LoginListener {
     }
 
     public void onLogin(ListenerDetails lD) {
-        this.lD = lD;
         invokeFetchUserTags();
     }
 
@@ -254,6 +255,10 @@ public class TagInputWidget extends LoginListener {
         public void onDelete() {
             removeTag(tag);
         }
+    }
+
+    public void onDelete() {
+        cdm.getLoginListenerManager().removeListener(this);
     }
 
 }

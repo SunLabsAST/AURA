@@ -1218,9 +1218,7 @@ class ExpiringLRUCache {
         public long getExpiration() {
             return expiration;
         }
-
     }
-
 }
 
 class ArtistPopularitySorter implements Comparator<Scored<Artist>> {

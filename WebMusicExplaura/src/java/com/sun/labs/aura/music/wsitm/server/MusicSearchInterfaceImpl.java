@@ -410,13 +410,17 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             ArrayList<AttentionItem> aI = new ArrayList<AttentionItem>();
             Set<String> artistIds = new HashSet<String>();
 
-            List<Attention> att = dm.getLastAttentionData(userId, Type.TAG, count);
+            List<Attention> att = dm.getLastAttentionData(userId, Type.TAG, count * 2);
             for (Attention a : att) {
                 if (!artistIds.contains(a.getTargetKey())) {
                     AttentionItem newAi = new AttentionItem(getArtistCompact(a.getTargetKey()));
                     newAi.setTags(fetchUserTagsForItem(a.getTargetKey()));
                     aI.add(newAi);
                     artistIds.add(a.getTargetKey());
+
+                    if (artistIds.size() == count) {
+                        break;
+                    }
                 }
             }
 
@@ -450,10 +454,16 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             ArrayList<AttentionItem> aI = new ArrayList<AttentionItem>();
             Set<String> artistIds = new HashSet<String>();
 
-            List<Attention> att = dm.getLastAttentionData(userId, Type.RATING, count);
+            List<Attention> att = dm.getLastAttentionData(userId, Type.RATING, count * 2);
             for (Attention a : att) {
-                aI.add(new AttentionItem(getArtistCompact(a.getTargetKey())));
-                artistIds.add(a.getTargetKey());
+                if (!artistIds.contains(a.getTargetKey())) {
+                    aI.add(new AttentionItem(getArtistCompact(a.getTargetKey())));
+                    artistIds.add(a.getTargetKey());
+                    
+                    if (artistIds.size() == count) {
+                        break;
+                    }
+                }
             }
 
             // Fetch ratings for all songs

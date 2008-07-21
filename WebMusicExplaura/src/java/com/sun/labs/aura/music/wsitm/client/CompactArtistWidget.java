@@ -29,10 +29,12 @@ import java.util.Set;
  *
  * @author mailletf
  */
-public class CompactArtistWidget extends Composite {
+public class CompactArtistWidget extends Composite implements HasListeners {
 
     private ClientDataManager cdm;
     private MusicSearchInterfaceAsync musicServer;
+
+    private StarRatingWidget star;
 
     public CompactArtistWidget(ArtistCompact aD, ClientDataManager cdm,
             MusicSearchInterfaceAsync musicServer, WhyButton whyB, 
@@ -107,8 +109,12 @@ public class CompactArtistWidget extends Composite {
         tagsLabel.setStyleName("recoTags");
         txtPanel.add(tagsLabel);
 
-        StarRatingWidget star = new StarRatingWidget(musicServer, cdm.getListenerDetails(), aD.getId(),
+        star = new StarRatingWidget(musicServer, cdm, aD.getId(),
                 currentRating, StarRatingWidget.Size.SMALL);
+
+        cdm.getRatingListenerManager().addListener(aD.getId(), star);
+        cdm.getLoginListenerManager().addListener(star);
+
         Label starLbl = new Label("Your rating: ");
         starLbl.setStyleName("recoTags");
         starLbl.addStyleName("marginRight");
@@ -133,6 +139,10 @@ public class CompactArtistWidget extends Composite {
 
     public void onTagClick(ItemInfo tag) {
         History.newItem("tag:"+tag.getId());
+    }
+
+    public void doRemoveListeners() {
+        star.onDelete();
     }
 
     private Panel getNDistinctiveTags(String header, ArtistCompact aD, int n) {

@@ -12,6 +12,7 @@ import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
@@ -26,9 +27,12 @@ import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -41,7 +45,9 @@ public class DashboardSwidget extends Swidget {
     public DashboardSwidget(ClientDataManager cdm) {
         super("Dashboard", cdm);
         mP = new MainPanel();
-        registerLoginListener(mP);
+        cdm.getRatingListenerManager().addListener(mP);
+        cdm.getTaggingListenerManager().addListener(mP);
+        cdm.getLoginListenerManager().addListener(mP);
         initWidget(mP);
     }
 
@@ -56,16 +62,26 @@ public class DashboardSwidget extends Swidget {
         menuItem = new MenuItem("Dashboard",MenuItem.getDefaultTokenClickListener("dashboard:"),true,3);
     }
 
-    private class MainPanel extends LoginListener {
+    public void doRemoveListeners() {
+        mP.onDelete();
+    }
+
+    private class MainPanel extends Composite implements LoginListener, RatingListener, TaggingListener, HasListeners {
 
         private Grid g;
         private static final int IMG_SIZE = 150;
 
         private Grid featArtist;
         private Grid recentRating;
+        private List<HasListeners> recentRatingListeners;
         private Grid recentTagged;
+        private List<HasListeners> recentTaggingListeners;
 
         public MainPanel() {
+
+            recentRatingListeners = new LinkedList<HasListeners>();
+            recentTaggingListeners = new LinkedList<HasListeners>();
+
             g = new Grid(1,1);
             initWidget(g);
             update();
@@ -80,7 +96,6 @@ public class DashboardSwidget extends Swidget {
         }
 
         public void update() {
-            
             if (cdm.isLoggedIn()) {
                 g.setWidget(0, 0, getDashboard());
             } else {
@@ -122,8 +137,18 @@ public class DashboardSwidget extends Swidget {
             //dP.add(recentRating, DockPanel.NORTH);
             //dP.add(recentTagged, DockPanel.NORTH);
 
+            int max = cdm.getListenerDetails().userTagCloud.length;
+            if (max > 20) {
+                max = 20;
+            }
+            ItemInfo[] trimTags = new ItemInfo[max];
+            for (int i=0; i<max; i++) {
+                trimTags[i] = cdm.getListenerDetails().userTagCloud[i];
+            }
+
             VerticalPanel centerPanel = new VerticalPanel();
             centerPanel.add(titleLbl);
+            centerPanel.add(TagDisplayLib.getTagsInPanel(trimTags));
             centerPanel.add(featArtist);
             centerPanel.add(recentRating);
             centerPanel.add(recentTagged);
@@ -200,7 +225,7 @@ public class DashboardSwidget extends Swidget {
 
                         CompactArtistWidget caw = new CompactArtistWidget((ArtistCompact)aI.getItem(), cdm,
                                 musicServer, null, aI.getRating(), aI.getTags());
-
+                        recentTaggingListeners.add(caw);
                         artists.setWidget(lineIndex, (colIndex++)%2, caw);
 
                         if (colIndex%2 == 0) {
@@ -239,7 +264,7 @@ public class DashboardSwidget extends Swidget {
 
                         CompactArtistWidget caw = new CompactArtistWidget((ArtistCompact)aI.getItem(), cdm,
                                 musicServer, null, aI.getRating(), null);
-
+                        recentRatingListeners.add(caw);
                         artists.setWidget(lineIndex, (colIndex++)%2, caw);
 
                         if (colIndex%2 == 0) {
@@ -281,9 +306,38 @@ public class DashboardSwidget extends Swidget {
                 Window.alert(ex.getMessage());
             }
         }
+
+        public void onDelete() {
+            cdm.getLoginListenerManager().removeListener(this);
+        }
+        
+        public void doRemoveListeners() {
+            onDelete();
+            clearListeners(recentRatingListeners);
+            clearListeners(recentTaggingListeners);
+        }
+
+        public void onRate(String itemId, int rating) {
+            clearListeners(recentRatingListeners);
+            recentRating.setWidget(1, 0, new Image("ajax-bar.gif"));
+            invokeFetchRecentRatedArtist();
+        }
+
+        public void onTag(String itemId, Set<String> tags) {
+            clearListeners(recentTaggingListeners);
+            recentTagged.setWidget(1, 0, new Image("ajax-bar.gif"));
+            invokeFetchRecentTagArtist();
+        }
+
+        private void clearListeners(List<HasListeners> hLL) {
+            for (HasListeners hL : hLL) {
+                hL.doRemoveListeners();
+            }
+            hLL.clear();
+        }
     }
 
-      public class UserCloudArtistListWidget extends ArtistListWidget {
+    public class UserCloudArtistListWidget extends ArtistListWidget {
 
         private Map<String, Double> tagMap;
 
@@ -307,5 +361,4 @@ public class DashboardSwidget extends Swidget {
             });
         }
     }
-
 }

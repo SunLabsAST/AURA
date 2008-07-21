@@ -55,7 +55,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         super("Steering", cdm);
         History.addHistoryListener(this);
         mP = new MainPanel();
-        registerLoginListener(mP);
+        cdm.getLoginListenerManager().addListener(mP);
         initWidget(mP);
         cdm.setSteerableReset(true);
         onHistoryChanged(History.getToken());
@@ -87,7 +87,11 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         }
     }
 
-    private class MainPanel extends LoginListener {
+    public void doRemoveListeners() {
+        mP.onDelete();
+    }
+
+    private class MainPanel extends Composite implements LoginListener {
 
         private DockPanel dP;
         private Grid mainTagPanel;
@@ -226,6 +230,12 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 public void onSuccess(Object result) {
 
                     ArtistCompact[] aCArray = (ArtistCompact[]) result;
+
+                    if (mainArtistListPanel.getWidget(0, 0) != null &&
+                            mainArtistListPanel.getWidget(0, 0) instanceof ArtistCloudArtistListWidget) {
+                        ((ArtistListWidget)mainArtistListPanel.getWidget(0, 0)).doRemoveListeners();
+                    }
+
                     mainArtistListPanel.setWidget(0, 0,
                             new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, tagLand));
                     refreshingPanel.setVisible(false);
@@ -323,6 +333,10 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 Window.alert(ex.getMessage());
 
             }
+        }
+
+        public void onDelete() {
+            cdm.getLoginListenerManager().removeListener(this);
         }
     }
 

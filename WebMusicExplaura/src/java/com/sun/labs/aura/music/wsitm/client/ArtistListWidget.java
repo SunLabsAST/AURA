@@ -5,27 +5,20 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
-import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
-import com.sun.labs.aura.music.wsitm.client.items.ArtistPhoto;
-import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,7 +27,7 @@ import java.util.Set;
  *
  * @author mailletf
  */
-public abstract class ArtistListWidget extends Composite {
+public abstract class ArtistListWidget extends Composite implements HasListeners {
 
     private Grid g;
     private MusicSearchInterfaceAsync musicServer;
@@ -43,11 +36,15 @@ public abstract class ArtistListWidget extends Composite {
     private ArtistCompact[] aDArray;
     private Map<String,Integer> ratingMap;
 
+    private List<CompactArtistWidget> artistWidgetList;
+
     public ArtistListWidget(MusicSearchInterfaceAsync musicServer,
             ClientDataManager cdm, ArtistCompact[] aDArray) {
 
         this.musicServer = musicServer;
         this.cdm = cdm;
+
+        artistWidgetList = new LinkedList<CompactArtistWidget>();
 
         g = new Grid(1,1);
         this.aDArray=aDArray;
@@ -65,7 +62,15 @@ public abstract class ArtistListWidget extends Composite {
         invokeFetchRatings();
     }
 
+    public void doRemoveListeners() {
+        for (CompactArtistWidget caw : artistWidgetList) {
+            caw.doRemoveListeners();
+        }
+    }
+
     private Panel getUpdatedPanel() {
+
+        doRemoveListeners();
 
         VerticalPanel vP = new VerticalPanel();
 
@@ -84,9 +89,10 @@ public abstract class ArtistListWidget extends Composite {
                 CompactArtistWidget caw = new CompactArtistWidget(aD, cdm,
                         musicServer, new WhyButton(aD.getId(), aD.getName()), rating, null);
 
-                vP.add(new DeletableWidget(caw, new HorizontalPanel()) {
+                vP.add(new DeletableWidget<CompactArtistWidget>(caw, new HorizontalPanel()) {
 
                     public void onDelete() {
+                        this.getWidget().doRemoveListeners();
                         ((VerticalPanel) g.getWidget(0, 0)).remove(this);
                     }
                 });
@@ -188,6 +194,5 @@ public abstract class ArtistListWidget extends Composite {
         public void showLoad() {
             g.setWidget(0, 0, load);
         }
-
     }
 }

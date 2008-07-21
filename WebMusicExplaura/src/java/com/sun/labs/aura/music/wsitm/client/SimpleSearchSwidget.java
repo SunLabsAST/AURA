@@ -35,18 +35,13 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.LoadListener;
-import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.Panel;
-import com.google.gwt.user.client.ui.SuggestBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.gwtext.client.data.FieldDef;
-import com.gwtext.client.data.Record;
 import com.gwtext.client.data.RecordDef;
-import com.gwtext.client.data.SimpleStore;
 import com.gwtext.client.data.Store;
 import com.gwtext.client.data.StringFieldDef;
-import com.gwtext.client.widgets.form.ComboBox;
 import com.sun.labs.aura.music.wsitm.client.AbstractSearchWidget.searchTypes;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import java.util.ArrayList;
@@ -73,6 +68,13 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
     private Image icon;
 
     private String curToken = null;
+
+    // Widgets that contain listeners that need to be removed to prevent leaks
+    private ArtistListWidget leftRecList;
+    private ArtistListWidget leftSimList;
+    private ArtistListWidget leftRelList;
+    private StarRatingWidget artistStar;
+    private TagInputWidget tagInputWidget;
 
     public SimpleSearchSwidget(ClientDataManager cdm) {
         super("Simple Search", cdm);
@@ -213,13 +215,34 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             },false,0);
     }
 
+    public void doRemoveListeners() {
+
+        if (leftRelList != null) {
+            leftRelList.doRemoveListeners();
+        }
+        if (leftSimList != null) {
+            leftSimList.doRemoveListeners();
+        }
+        if (leftRelList != null) {
+            leftRelList.doRemoveListeners();
+        }
+
+        if (artistStar != null) {
+            artistStar.onDelete();
+        }
+
+        if (tagInputWidget != null) {
+            tagInputWidget.onDelete();
+        }
+    }
+
     private void showResults(String resultName) {
 
         // Reset current artistID. Will be updated in invokeGetArtistInfo
         cdm.setCurrArtistInfo("", "");
 
-        // Clear all login listeners
-        removeAllLoginListeners();
+        // Clear all listeners
+        doRemoveListeners();
 
         //  resultName = URL.decodeComponent(resultName);
         if (resultName.startsWith("artist:")) {
@@ -479,15 +502,20 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         if (artistDetails.getSimilarArtists().length > 0) {
             ArtistCompact[] aCArray = artistDetails.getSimilarArtists();
             addCompactArtistToOracle(aCArray);
+
+            if (leftSimList != null) {
+                leftSimList.doRemoveListeners();
+            }
+            leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), artistDetails.getName());
             left.add(
-                    new Updatable(new HTML("<H2>Similar artists</H2>"),
-                    new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), artistDetails.getName()), cdm, id) {
+                    new Updatable(new HTML("<H2>Similar artists</H2>"), leftSimList, cdm, id) {
 
                         public void update(ArtistDetails aD) {
                             ArtistCompact[] aCArray = aD.getSimilarArtists();
                             addCompactArtistToOracle(aCArray);
-                            setNewContent(new HTML("<H2>Similar artists</H2>"),
-                                    new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), cdm.getCurrArtistName()));
+                            leftSimList.doRemoveListeners();
+                            leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), cdm.getCurrArtistName());
+                            setNewContent(new HTML("<H2>Similar artists</H2>"), leftSimList);
                         }
                     }
            );
@@ -496,19 +524,28 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         if (artistDetails.getRecommendedArtists().length > 0) {
             ArtistCompact[] aCArray = artistDetails.getRecommendedArtists();
             addCompactArtistToOracle(aCArray);
-            left.add(WebLib.createSection("Recommendations", new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), cdm.getCurrArtistName())));
+            
+            if (leftRecList != null) {
+                leftRecList.doRemoveListeners();
+            }
+            leftRecList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), cdm.getCurrArtistName());
+            left.add(WebLib.createSection("Recommendations", leftRecList));
         }
         if (artistDetails.getCollaborations().length > 0) {
             ArtistCompact[] aCArray = artistDetails.getCollaborations();
             addCompactArtistToOracle(aCArray);
-            left.add(WebLib.createSection("Related", new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), cdm.getCurrArtistName())));
+
+            if (leftRelList != null) {
+                leftRelList.doRemoveListeners();
+            }
+            leftRelList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), cdm.getCurrArtistName());
+            left.add(WebLib.createSection("Related", leftRelList));
         }
         left.add(getMoreInfoWidget(artistDetails));
         left.setStyleName("left");
 
         DockPanel artistPanel = new DockPanel();
         artistPanel.add(main, DockPanel.CENTER);
-        //artistPanel.add(right, DockPanel.EAST);
         artistPanel.add(left, DockPanel.WEST);
         artistPanel.setWidth("100%");
         artistPanel.setStyleName("resultpanel");
@@ -550,8 +587,8 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         html.setHTML(artistDetails.getBestArtistImageAsHTML() + artistDetails.getBiographySummary());
         html.setStyleName("bio");
 
-        StarRatingWidget starWidget = new StarRatingWidget(musicServer, cdm.getListenerDetails(), artistDetails.getId(), StarRatingWidget.Size.MEDIUM);
-        registerLoginListener(starWidget);
+        artistStar = new StarRatingWidget(musicServer, cdm, artistDetails.getId(), StarRatingWidget.Size.MEDIUM);
+        cdm.getLoginListenerManager().addListener(artistStar);
 
         HorizontalPanel hP = new HorizontalPanel();
         Widget spotify = WebLib.getSpotifyListenWidget(artistDetails, 30, null);
@@ -571,7 +608,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
         return createMainSection(artistDetails.getName(), html,
                 hP,
-                artistDetails.getDistinctiveTags(), starWidget);
+                artistDetails.getDistinctiveTags(), artistStar);
     }
 
     Widget getTagWidget(TagDetails tagDetails) {
@@ -699,9 +736,12 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         h.setStyleName("h1");
         panel.add(h);
         if (tagCloud != null) {
-            TagInputWidget tiw = new TagInputWidget(musicServer, cdm.getListenerDetails(), "artist", cdm.getCurrArtistID());
-            registerLoginListener(tiw);
-            panel.add(tiw);
+            if (tagInputWidget != null) {
+                tagInputWidget.onDelete();
+            }
+            tagInputWidget = new TagInputWidget(musicServer, cdm, "artist", cdm.getCurrArtistID());
+            cdm.getLoginListenerManager().addListener(tagInputWidget);
+            panel.add(tagInputWidget);
             
             Panel p = TagDisplayLib.getTagsInPanel(tagCloud);
             p.addStyleName("tagCloudMargin");
