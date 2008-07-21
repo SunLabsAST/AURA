@@ -634,7 +634,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         List<Scored<String>> fsr = searchEngine.findSimilar(dv, config);
         sw.stop();
         if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("fs %s %.3f", dv.getKey(), sw.getTimeMillis()));
+            logger.fine(String.format("rep fs %s %.3f", dv.getKey(), sw.getTimeMillis()));
         }
         return fsr;
     }

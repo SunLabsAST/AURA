@@ -516,11 +516,14 @@ public class ItemSearchEngine implements Configurable {
             nt = crf.getTested();
             np = crf.getPassed();
         }
-        log.fine(String.format("fsgr %s docs: %d test: %d pass: %d gr: %.2f",
-                dv.getKey(),
-                sim.size(),
-                nt, np,
-                nw.getTimeMillis()));
+        if(log.isLoggable(Level.FINER)) {
+            log.finer(String.format(
+                    "fsgr %s docs: %d test: %d pass: %d gr: %.2f",
+                    dv.getKey(),
+                    sim.size(),
+                    nt, np,
+                    nw.getTimeMillis()));
+        }
         return ret;
     }
     

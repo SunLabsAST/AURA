@@ -1070,6 +1070,9 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                 public List<Scored<String>> call()
                         throws AuraException, RemoteException {
                     List<Scored<String>> ret = pc.findSimilar(dv, config);
+                    if(logger.isLoggable(Level.FINER)) {
+                        logger.finer(String.format("dsh pc %s fs return", pc.getPrefix().toString()));
+                    }
                     latch.countDown();
                     return ret;
                 }
@@ -1526,11 +1529,11 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
 
         public Scored<Item> call() throws Exception {
-            PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
-
+            PartitionCluster pc = trie.get(DSBitSet.parse(key.getItem().hashCode()));
+            
             //
             // Ask the partition cluster for the item and return it.
-            return new Scored<Item>(pc.getItem(key.getItem()), key.getScore());
+            return new Scored<Item>(pc.getItem(key.getItem()), key);
         }
     }
 

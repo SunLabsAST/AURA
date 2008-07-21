@@ -363,6 +363,9 @@ public class PartitionClusterImpl implements PartitionCluster,
     }
 
     public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
-        return strategy.findSimilar(dv, config);
+        logger.finer(String.format("pc %s fs start", prefixCode.toString()));
+        List<Scored<String>> ret = strategy.findSimilar(dv, config);
+        logger.finer(String.format("pc %s fs done", prefixCode.toString()));
+        return ret;
     }
 }
