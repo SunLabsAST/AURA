@@ -571,7 +571,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         List<Scored<String>> res = searchEngine.query(query, sort, n, rf);
         sw.stop();
         if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("rep q %s took %.3f", query, sw.
+            logger.fine(String.format("rep %s q %s took %.3f", prefixString, query, sw.
                     getTimeMillis()));
         }
         return res;
@@ -584,7 +584,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         List<Scored<String>> res = searchEngine.getAutotagged(autotag, n);
         sw.stop();
         if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("rep gat %s %.3f", autotag, sw.
+            logger.fine(String.format("rep %s gat %s %.3f", prefixString, autotag, sw.
                     getTimeMillis()));
         }
         return res;
@@ -634,7 +634,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         List<Scored<String>> fsr = searchEngine.findSimilar(dv, config);
         sw.stop();
         if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("rep fs %s %.3f", dv.getKey(), sw.getTimeMillis()));
+            logger.fine(String.format("rep %s fs %s %.3f", prefixString, dv.getKey(), sw.getTimeMillis()));
         }
         return fsr;
     }
