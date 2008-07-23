@@ -1,6 +1,9 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.extjs.gxt.ui.client.Style.Direction;
+import com.extjs.gxt.ui.client.core.El;
+import com.extjs.gxt.ui.client.fx.FxConfig;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Timer;
@@ -19,7 +22,7 @@ import com.google.gwt.user.client.ui.Widget;
  *
  * @author mailletf
  */
-public abstract class DeletableWidget <T extends Widget> extends Composite
+public abstract class DeletableWidget <T extends Widget> extends AnimatedComposite
         implements SourcesMouseEvents {
 
     

@@ -28,6 +28,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -137,18 +138,25 @@ public class DashboardSwidget extends Swidget {
             //dP.add(recentRating, DockPanel.NORTH);
             //dP.add(recentTagged, DockPanel.NORTH);
 
-            int max = cdm.getListenerDetails().userTagCloud.length;
-            if (max > 20) {
-                max = 20;
-            }
-            ItemInfo[] trimTags = new ItemInfo[max];
-            for (int i=0; i<max; i++) {
-                trimTags[i] = cdm.getListenerDetails().userTagCloud[i];
+            ItemInfo[] trimTags = null;
+            if (cdm.getListenerDetails().userTagCloud != null) {
+                int max = cdm.getListenerDetails().userTagCloud.length;
+                if (max > 20) {
+                    max = 20;
+                }
+                List<ItemInfo> liI = ItemInfo.arrayToList(cdm.getListenerDetails().userTagCloud);
+                Collections.sort(liI,ItemInfo.getScoreSorter());
+                trimTags = new ItemInfo[max];
+                for (int i=0; i<max; i++) {
+                    trimTags[i] = liI.get(i);//cdm.getListenerDetails().userTagCloud[i];
+                }
             }
 
             VerticalPanel centerPanel = new VerticalPanel();
             centerPanel.add(titleLbl);
-            centerPanel.add(TagDisplayLib.getTagsInPanel(trimTags));
+            if (trimTags != null) {
+                centerPanel.add(TagDisplayLib.getTagsInPanel(trimTags));
+            }
             centerPanel.add(featArtist);
             centerPanel.add(recentRating);
             centerPanel.add(recentTagged);

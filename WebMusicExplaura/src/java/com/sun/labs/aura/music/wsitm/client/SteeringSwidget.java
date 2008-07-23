@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.extjs.gxt.ui.client.Style.Direction;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Command;
@@ -154,16 +155,6 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 }
             });
             mainNorthMenuPanel.add(saveButton);
-
-            Button updateButton = new Button("Update recommendations");
-            updateButton.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
-                    invokeFetchNewRecommendations();
-                }
-            });
-            mainNorthMenuPanel.add(updateButton);
-
 
             Button resetButton = new Button("Erase all tags");
             resetButton.addClickListener(new ClickListener() {
@@ -703,10 +694,14 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             }
 
             public void onDelete() {
-                removeTag(ClientDataManager.nameToKey(tag));
+                this.fadeOut(new DataEmbededCommand<String, String>(tag) {
+
+                    public void execute() {
+                        removeTag(ClientDataManager.nameToKey(data));
+                    }
+                });
             }
         }
-
     }
 
     public class ResizableTagWidget extends TagWidget {
@@ -1016,7 +1011,12 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             }
 
             public void onDelete() {
-                removeTag(ClientDataManager.nameToKey(getWidget().getText()));
+                this.fadeOut(new DataEmbededCommand<String, String>(getWidget().getText()) {
+
+                    public void execute() {
+                        removeTag(ClientDataManager.nameToKey(data));
+                    }
+                });
             }
         }
 

@@ -5,6 +5,10 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.extjs.gxt.ui.client.Style.Direction;
+import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.DeferredCommand;
+import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Composite;
@@ -16,6 +20,7 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -54,7 +59,16 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
     }
 
     public abstract void openWhyPopup(WhyButton why);
-    
+
+    /**
+     * Called on tag click in the CompactArtistWidget. Overwrite to change default
+     * behavior
+     * @param tag
+     */
+    public void onTagClick(ItemInfo tag) {
+        History.newItem("tag:"+tag.getId());
+    }
+
     public void updateWidget(ArtistCompact[] aDArray) {
         if (this.aDArray!=aDArray) {
             this.aDArray = aDArray;
@@ -86,14 +100,20 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                     rating = 0;
                 }
 
-                CompactArtistWidget caw = new CompactArtistWidget(aD, cdm,
-                        musicServer, new WhyButton(aD.getId(), aD.getName()), rating, null);
+                CompactArtistWidget caw = new OverWroteOnClickCompactArtistWidget(aD, cdm,
+                        musicServer, new WhyButton(aD.getId(), aD.getName()), rating, null, this);
 
                 vP.add(new DeletableWidget<CompactArtistWidget>(caw, new HorizontalPanel()) {
 
                     public void onDelete() {
                         this.getWidget().doRemoveListeners();
-                        ((VerticalPanel) g.getWidget(0, 0)).remove(this);
+                        this.slideOut(Direction.UP,
+                                new DataEmbededCommand<VerticalPanel, DeletableWidget>(((VerticalPanel) g.getWidget(0, 0)), this) {
+
+                            public void execute() {
+                                data.remove(sndData);
+                            }
+                        });
                     }
                 });
             }
@@ -193,6 +213,22 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
 
         public void showLoad() {
             g.setWidget(0, 0, load);
+        }
+    }
+
+    public class OverWroteOnClickCompactArtistWidget extends CompactArtistWidget {
+
+        private ArtistListWidget aLW;
+
+        public OverWroteOnClickCompactArtistWidget(ArtistCompact aD, ClientDataManager cdm,
+                MusicSearchInterfaceAsync musicServer, WhyButton whyB,
+                int currentRating, Set<String> userTags, ArtistListWidget aLW) {
+            super(aD, cdm, musicServer, whyB, currentRating, userTags);
+            this.aLW = aLW;
+        }
+
+        public void onTagClick(ItemInfo tag) {
+            aLW.onTagClick(tag);
         }
     }
 }
