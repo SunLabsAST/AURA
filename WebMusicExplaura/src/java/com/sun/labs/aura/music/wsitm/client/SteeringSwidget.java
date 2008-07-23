@@ -1301,6 +1301,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             //
             // Add the title line
             Label nameLbl = new Label("Name");
+            nameLbl.addStyleName("pointer");
             nameLbl.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
@@ -1312,6 +1313,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             mainPanel.setWidget(0, 0, nameLbl);
 
             Label popLbl = new Label("Popularity*");
+            popLbl.addStyleName("pointer");
             popLbl.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {

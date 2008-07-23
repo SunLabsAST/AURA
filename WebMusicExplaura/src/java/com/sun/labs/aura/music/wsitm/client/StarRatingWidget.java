@@ -50,8 +50,6 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
     private static final String NOT_INTERESTED_S = "not-interested2-s.png";
     private static final String NOT_INTERESTED_HOVER_S = "not-interested2-s-hover.png";
 
-    private int hashCode;
-
     private Image[] images;
 
     private Grid g;
@@ -109,8 +107,6 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
             NOT_INTERESTED = NOT_INTERESTED_M;
             NOT_INTERESTED_HOVER = NOT_INTERESTED_HOVER_M;
         }
-
-        hashCode = (artistID + "-" + System.currentTimeMillis()).hashCode();
     }
 
     public void onDelete() {
@@ -248,9 +244,5 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
     public void onRate(String itemId, int rating) {
         nbrSelectedStars = rating;
         drawRatingWidget();
-    }
-
-    public int hashCode() {
-        return hashCode;
     }
 }

@@ -80,6 +80,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         for (CompactArtistWidget caw : artistWidgetList) {
             caw.doRemoveListeners();
         }
+        artistWidgetList.clear();
     }
 
     private Panel getUpdatedPanel() {
@@ -102,6 +103,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
 
                 CompactArtistWidget caw = new OverWroteOnClickCompactArtistWidget(aD, cdm,
                         musicServer, new WhyButton(aD.getId(), aD.getName()), rating, null, this);
+                artistWidgetList.add(caw);
 
                 vP.add(new DeletableWidget<CompactArtistWidget>(caw, new HorizontalPanel()) {
 

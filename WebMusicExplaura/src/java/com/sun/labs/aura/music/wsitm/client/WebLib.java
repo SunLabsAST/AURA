@@ -29,6 +29,16 @@ public abstract class WebLib {
     public static final String ICON_WAIT = "ajax-bar.gif";
 
     /**
+     * Disables the browsers default context menu for the specified element.
+     *
+     * @see http://groups.google.com/group/Google-Web-Toolkit/browse_thread/thread/73c80118cb781390/3b76ad6a17a6c376
+     * @param elem the element whos context menu will be disabled
+     */
+    public static native void disableContextMenu(Element elem) /*-{
+    elem.oncontextmenu=elem.onclick;
+    }-*/;
+
+    /**
      * Selection MUST be reenabled when widget is deleted to prevent a memory leak
      * @see Taken from Gwt EXT 1.0
      * @param disable Set to true to disable the selection and to false to reenable it

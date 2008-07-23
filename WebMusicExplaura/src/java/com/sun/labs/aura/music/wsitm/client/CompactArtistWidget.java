@@ -6,6 +6,7 @@ package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Random;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -191,6 +192,13 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         for (int i = 0; i < tagList.size(); i++) {
             SpannedLabel t = new SpannedLabel(tagList.get(i).getItemName());
             t.addStyleName("pointer");
+            WebLib.disableContextMenu(t.getElement());
+            t.addRightClickListener(new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    Window.alert("bouya");
+                }
+            });
             t.addClickListener(new DataEmbededClickListener<ItemInfo>(tagList.get(i)) {
 
                 public void onClick(Widget arg0) {
