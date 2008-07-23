@@ -12,15 +12,10 @@ package com.sun.labs.aura.dbbrowser.client;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.ClickListener;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.Widget;
 
 /**
- *
- * @author ja151348
+ * The entry point that sets up the initial page
  */
 public class GWTMainEntryPoint implements EntryPoint {
     
@@ -33,20 +28,15 @@ public class GWTMainEntryPoint implements EntryPoint {
      * that declares an implementing class as an entry-point
      */
     public void onModuleLoad() {
-        final Label label = new Label("Hello, GWT!!!");
-        final Button button = new Button("Click me!");
-        
-        button.addClickListener(new ClickListener(){
-            public void onClick(Widget w) {
-                label.setVisible(!label.isVisible());
-            }
-        });
-        RootPanel.get().add(new TabbedGUI());
+        MainSelector sel = new MainSelector();
+        sel.addTool("Query DB", new TabbedQueryUI());
+        sel.addTool("Viz UI", new VizUI());
+        RootPanel.get().add(sel);
         //RootPanel.get().add(button);
         //RootPanel.get().add(label);
     }
     
-    public static DBServiceAsync getService(){
+    public static DBServiceAsync getDBService(){
         // Create the client proxy. Note that although you are creating the
         // service interface proper, you cast the result to the asynchronous
         // version of
@@ -59,6 +49,23 @@ public class GWTMainEntryPoint implements EntryPoint {
         //
         ServiceDefTarget endpoint = (ServiceDefTarget) service;
         String moduleRelativeURL = GWT.getModuleBaseURL() + "dbservice";
+        endpoint.setServiceEntryPoint(moduleRelativeURL);
+        return service;
+    }
+
+    public static VizServiceAsync getVizService(){
+        // Create the client proxy. Note that although you are creating the
+        // service interface proper, you cast the result to the asynchronous
+        // version of
+        // the interface. The cast is always safe because the generated proxy
+        // implements the asynchronous interface automatically.
+        VizServiceAsync service = (VizServiceAsync) GWT.create(VizService.class);
+        // Specify the URL at which our service implementation is running.
+        // Note that the target URL must reside on the same domain and port from
+        // which the host page was served.
+        //
+        ServiceDefTarget endpoint = (ServiceDefTarget) service;
+        String moduleRelativeURL = GWT.getModuleBaseURL() + "vizservice";
         endpoint.setServiceEntryPoint(moduleRelativeURL);
         return service;
     }

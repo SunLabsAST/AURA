@@ -31,6 +31,38 @@ a:visited {
   padding: 5px;
 }
 
+.db-topBar {
+    border-bottom: 2px solid #000;
+    padding-bottom: 5px;
+}
+
+.db-SelectorButton {
+    padding-right: 10px;
+}
+
+.db-DarkRow {
+  background-color: #d7e9f7;
+}
+
+.db-LightRow {
+  background-color: #eff7fd;
+}
+
+.viz-dshPanel {
+  background-color: #ccff66;
+  padding: 5px;
+  margin: 5px;
+  border: 1px solid #999999;
+  display: table;
+}
+
+.viz-pcPanel {
+  background-color: #66ffff;
+  padding: 5px;
+  margin: 5px;
+  border: 1px solid #999999;
+}
+
 .gwt-TabPanel {
   margin-top: 4px;
 }
@@ -41,14 +73,6 @@ a:visited {
   border: 2px solid #6cb0e4;
   /* gradient initial top color #6cb0e4; */
 /* #E8EEF7; */
-}
-
-.db-DarkRow {
-  background-color: #d7e9f7;
-}
-
-.db-LightRow {
-  background-color: #eff7fd;
 }
 
 .gwt-TabBar {

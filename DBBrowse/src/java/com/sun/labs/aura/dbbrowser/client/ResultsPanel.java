@@ -18,7 +18,7 @@ public class ResultsPanel extends DockPanel {
     private ItemDesc[] items;
     private FlexTable results;
     private ScrollPanel center = new ScrollPanel();
-    private TabbedGUI parent;
+    private TabbedQueryUI parent;
 
     private DBServiceAsync service;
     
@@ -28,7 +28,7 @@ public class ResultsPanel extends DockPanel {
     private static final int SRC_ATTN_COL = 3;
     private static final int TRG_ATTN_COL = 4;
     
-    public ResultsPanel(ItemDesc[] items, final TabbedGUI parent) {
+    public ResultsPanel(ItemDesc[] items, final TabbedQueryUI parent) {
         this.items = items;
         this.parent = parent;
         results = new FlexTable();
@@ -56,7 +56,7 @@ public class ResultsPanel extends DockPanel {
         });
         add(close, SOUTH);
         
-        service = GWTMainEntryPoint.getService();
+        service = GWTMainEntryPoint.getDBService();
     }
     
     protected void fillItems() {
@@ -66,7 +66,7 @@ public class ResultsPanel extends DockPanel {
         for (int i = 1; i < items.length; i++) {
             results.setText(row, TYPE_COL, items[i].getType());
             results.setText(row, NAME_COL, items[i].getName());
-            results.setHTML(row, KEY_COL, TabbedGUI.getLinkText(items[i].getKey()));
+            results.setHTML(row, KEY_COL, TabbedQueryUI.getLinkText(items[i].getKey()));
             AttnButton srcBtn = new AttnButton(items[i].getKey());
             srcBtn.addClickListener(new ClickListener() {
                 public void onClick(Widget arg0) {

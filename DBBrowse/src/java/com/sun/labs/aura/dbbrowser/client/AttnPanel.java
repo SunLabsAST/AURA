@@ -22,7 +22,7 @@ public class AttnPanel extends DockPanel {
     private AttnDesc[] attns;
     private FlexTable results;
     private ScrollPanel center = new ScrollPanel();
-    private TabbedGUI parent;
+    private TabbedQueryUI parent;
     private Label timeStamp;
 
     private DBServiceAsync service;
@@ -32,7 +32,7 @@ public class AttnPanel extends DockPanel {
     private static final int TRG_COL = 2;
     private static final int TIME_COL = 3;
 
-    public AttnPanel(AttnDesc[] attns, final TabbedGUI parent) {
+    public AttnPanel(AttnDesc[] attns, final TabbedQueryUI parent) {
         this.attns = attns;
         this.parent = parent;
         results = new FlexTable();
@@ -61,7 +61,7 @@ public class AttnPanel extends DockPanel {
         setQueryInfo(info.getQueryTime(), attns.length - 1, info.getNumTotal());
         add(close, SOUTH);
         
-        service = GWTMainEntryPoint.getService();
+        service = GWTMainEntryPoint.getDBService();
     }
     
     protected void setQueryInfo(long time, int resultsShown, int totalResults) {
@@ -76,7 +76,7 @@ public class AttnPanel extends DockPanel {
         for (int i = 1; i < attns.length; i++) {
             results.setText(row, TYPE_COL, attns[i].getType());
             results.setText(row, SRC_COL, attns[i].getSrcKey());
-            results.setHTML(row, TRG_COL, TabbedGUI.getLinkText(attns[i].getTargetKey()));
+            results.setHTML(row, TRG_COL, TabbedQueryUI.getLinkText(attns[i].getTargetKey()));
             results.setText(row, TIME_COL, attns[i].getTime());
             //
             // Stylize the row

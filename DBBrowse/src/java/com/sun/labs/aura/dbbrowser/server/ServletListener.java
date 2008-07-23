@@ -30,16 +30,17 @@ public class ServletListener implements ServletContextListener {
             logger.info("Config URL is " + config);
 
             //
-            // Get the Aardvark interface
+            // Get the datastore interface
             try {
                 ConfigurationManager cm = new ConfigurationManager();
                 cm.addProperties(config);
                 context.setAttribute("configManager", cm);
                                 
                 DataStore dataStore = (DataStore)cm.lookup("dataStore");
+                logger.info("Got data store!");
                 context.setAttribute("dataStore", dataStore);
             } catch (IOException ioe) {
-                logger.log(Level.SEVERE, "Failed to get Aardvark handle", ioe);
+                logger.log(Level.SEVERE, "Failed to get DataStore handle", ioe);
             }
         } catch (MalformedURLException ex) {
             logger.severe("Bad URL to config file " + ex.getMessage());

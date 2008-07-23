@@ -29,13 +29,13 @@ public class SearchPanel extends VerticalPanel {
     private Button itemFSBtn = new Button("Search");
     private Button testBtn = new Button("TestMe");
     
-    private TabbedGUI parent;
+    private TabbedQueryUI parent;
     
     private DBServiceAsync service;
     
-    public SearchPanel(final TabbedGUI parent) {
+    public SearchPanel(final TabbedQueryUI parent) {
         this.parent = parent;
-        service = GWTMainEntryPoint.getService();
+        service = GWTMainEntryPoint.getDBService();
         setHeight("400px");
         setWidth("100%");
         setStylePrimaryName("db-SearchPanel");
