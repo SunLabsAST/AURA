@@ -19,7 +19,7 @@ import java.util.List;
  * @see ItemSearch
  */
 public interface LowLevelSearch extends Remote {
-
+    
     /**
      * Gets the most frequent values for the named field.
      * @param field the field for which we want the most frequent values
@@ -39,7 +39,7 @@ public interface LowLevelSearch extends Remote {
      * @param n the number of results to return
      * @return the top results for the query, sorted by score
      */
-    public List<Scored<Item>> query(String query, int n, ResultsFilter rf)
+    public List<Scored<String>> query(String query, int n, ResultsFilter rf)
             throws AuraException, RemoteException;
 
     /**
@@ -49,7 +49,7 @@ public interface LowLevelSearch extends Remote {
      * @param n the number of results to return
      * @return the top results for the query
      */
-    public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf)
+    public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf)
             throws AuraException, RemoteException;
 
     public DocumentVector getDocumentVector(String key, SimilarityConfig config)
@@ -61,12 +61,12 @@ public interface LowLevelSearch extends Remote {
     /**
      * Finds a the n most similar items to the given vector.
      * @param dv the vector for the item that we want to find similar items to
-     * @param n the number of similar items to return
+     * @param config the configuration for the find similar operation
      * @return the set of items most similar to the given item, ordered by 
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config)
+    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config)
             throws AuraException, RemoteException;
 
     /**
@@ -105,7 +105,7 @@ public interface LowLevelSearch extends Remote {
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public List<Scored<Item>> getAutotagged(String autotag, int n)
+    public List<Scored<String>> getAutotagged(String autotag, int n)
             throws AuraException, RemoteException;
 
     /**

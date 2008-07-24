@@ -559,30 +559,34 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return bdb.getLastAttentionForUser(srcKey, type, count);
     }
 
-    public List<Scored<Item>> query(String query, int n, ResultsFilter rf)
+    public List<Scored<String>> query(String query, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         return query(query, "-score", n, rf);
     }
 
-    public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf)
+    public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         NanoWatch sw = new NanoWatch();
         sw.start();
-        List<Scored<Item>> res =
-                keysToItems(searchEngine.query(query, sort, n, rf));
+        List<Scored<String>> res = searchEngine.query(query, sort, n, rf);
         sw.stop();
-        logger.info("q " + query + " " + sw.getTimeMillis());
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("rep %s q %s took %.3f", prefixString, query, sw.
+                    getTimeMillis()));
+        }
         return res;
     }
 
-    public List<Scored<Item>> getAutotagged(String autotag, int n)
+    public List<Scored<String>> getAutotagged(String autotag, int n)
             throws AuraException, RemoteException {
         NanoWatch sw = new NanoWatch();
         sw.start();
-        List<Scored<Item>> res =
-                keysToItems(searchEngine.getAutotagged(autotag, n));
+        List<Scored<String>> res = searchEngine.getAutotagged(autotag, n);
         sw.stop();
-        logger.info("gat " + autotag + " " + sw.getTimeMillis());
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("rep %s gat %s %.3f", prefixString, autotag, sw.
+                    getTimeMillis()));
+        }
         return res;
     }
     
@@ -623,15 +627,16 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config)
+    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config)
             throws AuraException, RemoteException {
         NanoWatch sw = new NanoWatch();
         sw.start();
         List<Scored<String>> fsr = searchEngine.findSimilar(dv, config);
         sw.stop();
-        logger.info("fs " + dv.getKey() + " " + sw.getTimeMillis());
-        List<Scored<Item>> res = keysToItems(fsr);
-        return res;
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("rep %s fs %s %.3f", prefixString, dv.getKey(), sw.getTimeMillis()));
+        }
+        return fsr;
     }
 
     public WordCloud getTopTerms(String key, String field, int n)

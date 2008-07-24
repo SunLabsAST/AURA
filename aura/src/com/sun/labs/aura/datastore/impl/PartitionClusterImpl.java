@@ -264,17 +264,17 @@ public class PartitionClusterImpl implements PartitionCluster,
         return strategy.getTopValues(field, n, ignoreCase);
     }
 
-    public List<Scored<Item>> query(String query, int n, ResultsFilter rf) 
+    public List<Scored<String>> query(String query, int n, ResultsFilter rf) 
             throws AuraException, RemoteException {
         return strategy.query(query, "-score", n, rf);
     }
 
-    public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf) 
+    public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf) 
             throws AuraException, RemoteException {
         return strategy.query(query, sort, n, rf);
     }
     
-    public List<Scored<Item>> getAutotagged(String autotag, int n)
+    public List<Scored<String>> getAutotagged(String autotag, int n)
             throws AuraException, RemoteException {
         return strategy.getAutotagged(autotag, n);
     }
@@ -362,7 +362,10 @@ public class PartitionClusterImpl implements PartitionCluster,
         return strategy.getDocumentVector(cloud, config);
     }
 
-    public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
-        return strategy.findSimilar(dv, config);
+    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
+        logger.finer(String.format("pc %s fs start", prefixCode.toString()));
+        List<Scored<String>> ret = strategy.findSimilar(dv, config);
+        logger.finer(String.format("pc %s fs done", prefixCode.toString()));
+        return ret;
     }
 }

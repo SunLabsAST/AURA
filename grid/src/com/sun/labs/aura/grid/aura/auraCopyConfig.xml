@@ -16,7 +16,6 @@
     <component name="startAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="nNodes" value="${nNodes}"/>
         <property name="instance" value="${auraInstance}"/>
-        <property name="debugRMI" value="true"/>
         <property name="replicantConfig" value="/com/sun/labs/aura/aardvark/resource/replicantCopyConfig.xml"/>
     </component>
     

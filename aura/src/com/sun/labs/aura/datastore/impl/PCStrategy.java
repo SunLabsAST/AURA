@@ -192,7 +192,7 @@ public interface PCStrategy {
     /**
      * Run a query with a sort
      */
-    public List<Scored<Item>> query(String query,
+    public List<Scored<String>> query(String query,
                                     String sort,
                                     int n,
                                     ResultsFilter rf) 
@@ -201,7 +201,7 @@ public interface PCStrategy {
     /**
      * Gets items auto-tagged with a particular tag
      */
-    public List<Scored<Item>> getAutotagged(String autotag, int n)
+    public List<Scored<String>> getAutotagged(String autotag, int n)
             throws AuraException, RemoteException;
 
     /**
@@ -253,7 +253,7 @@ public interface PCStrategy {
     /**
      * Find similar items to the provided doc vector
      */
-    public List<Scored<Item>> findSimilar(DocumentVector dv,
+    public List<Scored<String>> findSimilar(DocumentVector dv,
                                           SimilarityConfig config)
             throws AuraException, RemoteException;
 

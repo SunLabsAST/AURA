@@ -7,7 +7,6 @@ package com.sun.labs.aura;
 import com.sun.labs.util.SimpleLabsLogFormatter;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponentList;
-import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
@@ -17,6 +16,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -107,6 +107,7 @@ public class AuraServiceStarter implements Configurable {
         // Use the labs format logging.
         Logger rl = Logger.getLogger("");
         for(Handler h : rl.getHandlers()) {
+            h.setLevel(Level.ALL);
             h.setFormatter(new SimpleLabsLogFormatter());
         }
 

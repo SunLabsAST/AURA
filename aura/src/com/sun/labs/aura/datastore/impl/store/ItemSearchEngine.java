@@ -34,14 +34,18 @@ import com.sun.labs.minion.retrieval.FieldEvaluator;
 import com.sun.labs.minion.retrieval.FieldTerm;
 import com.sun.labs.minion.retrieval.ResultImpl;
 import com.sun.labs.minion.retrieval.ResultSetImpl;
+import com.sun.labs.minion.util.DirCopier;
 import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.minion.util.Util;
+import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigDouble;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -142,7 +146,31 @@ public class ItemSearchEngine implements Configurable {
         Log.setLogger(log);
         Log.setLevel(engineLogLevel);
         String indexDir = ps.getString(PROP_INDEX_DIR);
-        String engineConfig = ps.getString(PROP_ENGINE_CONFIG_FILE);
+        
+        boolean copyDir = ps.getBoolean(PROP_COPY_DIR);
+        //
+        // If we want to copy the data into temp storage, do it now.
+        if(copyDir) {
+            String tds = String.format(System.getProperty("java.io.tmpdir") + "/replicant-%s/itemIndex.idx/", ps.getString(PROP_PREFIX));
+            File td = new File(tds);
+            if(!td.mkdirs()) {
+                throw new PropertyException(ps.getInstanceName(),
+                        PROP_COPY_DIR,
+                        "Unable to make temporary directory for search index");
+            }
+            try {
+                log.info("Copying search index into temp dir");
+                DirCopier dc = new DirCopier(new File(indexDir), td);
+                dc.copy();
+                log.info("Copying completed");
+                indexDir = tds;
+            } catch(IOException ex) {
+                throw new PropertyException(ex, ps.getInstanceName(),
+                        PROP_COPY_DIR,
+                        "Unable to copy search index directory");
+            }
+        }
+       String engineConfig = ps.getString(PROP_ENGINE_CONFIG_FILE);
 
         try {
             URL config = getClass().getResource(engineConfig);
@@ -488,11 +516,14 @@ public class ItemSearchEngine implements Configurable {
             nt = crf.getTested();
             np = crf.getPassed();
         }
-        log.info(String.format("fsgr %s docs: %d test: %d pass: %d gr: %.2f",
-                dv.getKey(),
-                sim.size(),
-                nt, np,
-                nw.getTimeMillis()));
+        if(log.isLoggable(Level.FINER)) {
+            log.finer(String.format(
+                    "fsgr %s docs: %d test: %d pass: %d gr: %.2f",
+                    dv.getKey(),
+                    sim.size(),
+                    nt, np,
+                    nw.getTimeMillis()));
+        }
         return ret;
     }
     
@@ -769,6 +800,12 @@ public class ItemSearchEngine implements Configurable {
     @ConfigInteger(defaultValue = 1)
     public static final String PROP_ENGINE_LOG_LEVEL = "engineLogLevel";
 
+    @ConfigBoolean(defaultValue=false)
+    public static final String PROP_COPY_DIR = "copyDir";
+    
+    @ConfigString(mandatory=false)
+    public static final String PROP_PREFIX = "prefix";
+    
     /**
      * The configurable index directory.
      */

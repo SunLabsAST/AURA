@@ -55,7 +55,7 @@
         <property name="dbEnv" value="${dataFS}/db"/>
         <property name="itemSearchEngine" value="itemSearchEngine"/>
         <property name="partitionCluster" value="partitionCluster"/>
-        <property name="logLevel" value="INFO"/>
+        <property name="logLevel" value="FINE"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
