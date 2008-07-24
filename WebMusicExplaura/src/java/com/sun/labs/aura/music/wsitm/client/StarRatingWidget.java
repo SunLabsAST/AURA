@@ -10,7 +10,6 @@ import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
@@ -23,10 +22,10 @@ import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
  *
  * @author mailletf
  */
-public class StarRatingWidget extends Composite {
+public class StarRatingWidget extends Composite implements RatingListener, LoginListener {
 
     private MusicSearchInterfaceAsync musicServer;
-    private ListenerDetails lD;
+    private ClientDataManager cdm;
     private String artistID;
 
     private int nbrStars = 5;
@@ -60,34 +59,40 @@ public class StarRatingWidget extends Composite {
         MEDIUM
     }
 
-    public StarRatingWidget(MusicSearchInterfaceAsync musicServer, ListenerDetails lD,
+    public StarRatingWidget(MusicSearchInterfaceAsync musicServer, ClientDataManager cdm,
             String artistID, Size size) {
 
         g = new Grid(1, 1);
         initWidget(g);
 
-        initializeRatingWidget(musicServer, lD, artistID, -1, size);
-        invokeFetchRating();
+        initializeRatingWidget(musicServer, cdm, artistID, -1, size);
+        if (cdm.isLoggedIn()) {
+            invokeFetchRating();
+        } else {
+            drawRatingWidget();
+        }
 
     }
 
-    public StarRatingWidget(MusicSearchInterfaceAsync musicServer, ListenerDetails lD, 
+    public StarRatingWidget(MusicSearchInterfaceAsync musicServer, ClientDataManager cdm,
             String artistID, int initialSelection, Size size) {
 
         g = new Grid(1, 1);
         initWidget(g);
 
-        initializeRatingWidget(musicServer, lD, artistID, initialSelection, size);
+        initializeRatingWidget(musicServer, cdm, artistID, initialSelection, size);
         drawRatingWidget();
     }
 
-    private void initializeRatingWidget(MusicSearchInterfaceAsync musicServer, ListenerDetails lD,
+    private void initializeRatingWidget(MusicSearchInterfaceAsync musicServer, ClientDataManager cdm,
             String artistID, int initialSelection, Size size) {
 
         this.nbrSelectedStars = initialSelection;
-        this.lD = lD;
+        this.cdm = cdm;
         this.artistID = artistID;
         this.musicServer = musicServer;
+
+        cdm.getRatingListenerManager().addListener(artistID, this);
 
         if (size == Size.SMALL) {
             STAR_LID = STAR_LID_S;
@@ -102,7 +107,11 @@ public class StarRatingWidget extends Composite {
             NOT_INTERESTED = NOT_INTERESTED_M;
             NOT_INTERESTED_HOVER = NOT_INTERESTED_HOVER_M;
         }
+    }
 
+    public void onDelete() {
+        cdm.getRatingListenerManager().removeListener(artistID, this);
+        cdm.getLoginListenerManager().removeListener(this);
     }
 
     private void drawRatingWidget() {
@@ -162,7 +171,7 @@ public class StarRatingWidget extends Composite {
 
     private void invokeSaveRating(int index) {
 
-        if (!lD.loggedIn) {
+        if (!cdm.isLoggedIn()) {
             Window.alert("Message from the happy tag : you must be logged in to access this feature. I should redirect you to another page so you can create an account, but I'd rather keep you here so we can be friends.");
             return;
         }
@@ -170,6 +179,7 @@ public class StarRatingWidget extends Composite {
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
+                cdm.getRatingListenerManager().triggerOnRate(artistID, nbrSelectedStars);
             }
 
             public void onFailure(Throwable caught) {
@@ -184,7 +194,7 @@ public class StarRatingWidget extends Composite {
         redrawStars();
 
         try {
-            musicServer.updateUserSongRating(lD, index + 1, artistID, callback);
+            musicServer.updateUserSongRating(index + 1, artistID, callback);
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }
@@ -203,22 +213,36 @@ public class StarRatingWidget extends Composite {
 
     private void invokeFetchRating() {
 
-            AsyncCallback callback = new AsyncCallback() {
+        AsyncCallback callback = new AsyncCallback() {
 
-                public void onSuccess(Object result) {
-                    nbrSelectedStars = (Integer)result;
-                    drawRatingWidget();
-                }
-
-                public void onFailure(Throwable caught) {
-                    Window.alert("Error fetching rating.");
-                }
-            };
-
-            try {
-                musicServer.fetchUserSongRating(lD, artistID, callback);
-            } catch (WebException ex) {
-                Window.alert(ex.getMessage());
+            public void onSuccess(Object result) {
+                nbrSelectedStars = (Integer) result;
+                drawRatingWidget();
             }
+
+            public void onFailure(Throwable caught) {
+                Window.alert("Error fetching rating.");
+            }
+        };
+
+        try {
+            musicServer.fetchUserSongRating(artistID, callback);
+        } catch (WebException ex) {
+            Window.alert(ex.getMessage());
+        }
+    }
+
+    public void onLogin(ListenerDetails lD) {
+        invokeFetchRating();
+    }
+
+    public void onLogout() {
+        nbrSelectedStars = 0;
+        redrawStars();
+    }
+
+    public void onRate(String itemId, int rating) {
+        nbrSelectedStars = rating;
+        drawRatingWidget();
     }
 }

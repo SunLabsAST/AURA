@@ -8,9 +8,11 @@ package com.sun.labs.aura.music.wsitm.client;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
@@ -21,9 +23,17 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
+import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
+import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -36,7 +46,9 @@ public class DashboardSwidget extends Swidget {
     public DashboardSwidget(ClientDataManager cdm) {
         super("Dashboard", cdm);
         mP = new MainPanel();
-        registerLoginListener(mP);
+        cdm.getRatingListenerManager().addListener(mP);
+        cdm.getTaggingListenerManager().addListener(mP);
+        cdm.getLoginListenerManager().addListener(mP);
         initWidget(mP);
     }
 
@@ -51,14 +63,26 @@ public class DashboardSwidget extends Swidget {
         menuItem = new MenuItem("Dashboard",MenuItem.getDefaultTokenClickListener("dashboard:"),true,3);
     }
 
-    private class MainPanel extends LoginListener {
+    public void doRemoveListeners() {
+        mP.onDelete();
+    }
+
+    private class MainPanel extends Composite implements LoginListener, RatingListener, TaggingListener, HasListeners {
 
         private Grid g;
         private static final int IMG_SIZE = 150;
 
         private Grid featArtist;
+        private Grid recentRating;
+        private List<HasListeners> recentRatingListeners;
+        private Grid recentTagged;
+        private List<HasListeners> recentTaggingListeners;
 
         public MainPanel() {
+
+            recentRatingListeners = new LinkedList<HasListeners>();
+            recentTaggingListeners = new LinkedList<HasListeners>();
+
             g = new Grid(1,1);
             initWidget(g);
             update();
@@ -73,7 +97,6 @@ public class DashboardSwidget extends Swidget {
         }
 
         public void update() {
-            
             if (cdm.isLoggedIn()) {
                 g.setWidget(0, 0, getDashboard());
             } else {
@@ -86,12 +109,12 @@ public class DashboardSwidget extends Swidget {
 
             DockPanel dP = new DockPanel();
 
-//            ArtistCloudArtistListWidget alp = new ArtistCloudArtistListWidget(musicServer, cdm, cdm.getListenerDetails().recommendations), cdm.get;
-//            dP.add(WebLib.createSection("Artist recommendations", alp), DockPanel.WEST);
+            UserCloudArtistListWidget alp = new UserCloudArtistListWidget(musicServer, cdm, cdm.getListenerDetails().recommendations);
+            dP.add(WebLib.createSection("Artist recommendations", alp), DockPanel.WEST);
 
-            Label titleLbl = new Label("Dashhhhboard");
+            Label titleLbl = new Label("Dashboard");
             titleLbl.setStyleName("h1");
-            dP.add(titleLbl, DockPanel.NORTH);
+            //dP.add(titleLbl, DockPanel.NORTH);
 
             //
             // Featured artist
@@ -101,8 +124,43 @@ public class DashboardSwidget extends Swidget {
             featArtist.setWidget(1, 0, new Image("ajax-bar.gif"));
             invokeFetchFeaturedArtist();
 
-            dP.add(featArtist, DockPanel.NORTH);
+            recentRating = new Grid(2,1);
+            recentRating.setWidget(0, 0, new HTML("<h2>Recently rated artists</h2>"));
+            recentRating.setWidget(1, 0, new Image("ajax-bar.gif"));
+            invokeFetchRecentRatedArtist();
 
+            recentTagged = new Grid(2,1);
+            recentTagged.setWidget(0, 0, new HTML("<h2>Recently tagged artists</h2>"));
+            recentTagged.setWidget(1, 0, new Image("ajax-bar.gif"));
+            invokeFetchRecentTagArtist();
+
+            //dP.add(featArtist, DockPanel.NORTH);
+            //dP.add(recentRating, DockPanel.NORTH);
+            //dP.add(recentTagged, DockPanel.NORTH);
+
+            ItemInfo[] trimTags = null;
+            if (cdm.getListenerDetails().userTagCloud != null) {
+                int max = cdm.getListenerDetails().userTagCloud.length;
+                if (max > 20) {
+                    max = 20;
+                }
+                List<ItemInfo> liI = ItemInfo.arrayToList(cdm.getListenerDetails().userTagCloud);
+                Collections.sort(liI,ItemInfo.getScoreSorter());
+                trimTags = new ItemInfo[max];
+                for (int i=0; i<max; i++) {
+                    trimTags[i] = liI.get(i);//cdm.getListenerDetails().userTagCloud[i];
+                }
+            }
+
+            VerticalPanel centerPanel = new VerticalPanel();
+            centerPanel.add(titleLbl);
+            if (trimTags != null) {
+                centerPanel.add(TagDisplayLib.getTagsInPanel(trimTags));
+            }
+            centerPanel.add(featArtist);
+            centerPanel.add(recentRating);
+            centerPanel.add(recentTagged);
+            dP.add(centerPanel, DockPanel.NORTH);
             return dP;
         }
 
@@ -131,9 +189,9 @@ public class DashboardSwidget extends Swidget {
                 Grid featArtTitle = new Grid(1,3);
                 featArtTitle.setStyleName("h2");
                 featArtTitle.setWidth("100%");
-                featArtTitle.setWidget(0, 0, new Label("Featured artist :: "+aD.getName()));
+                featArtTitle.setWidget(0, 0, new Label("Featured artist : "+aD.getName()));
                 //featArtTitle.setWidget(0, 1, new StarRatingWidget(0,StarRatingWidget.Size.MEDIUM));
-                featArtTitle.setWidget(0, 2, WebLib.getSpotifyListenWidget(aD, 30));
+                featArtTitle.setWidget(0, 2, WebLib.getSpotifyListenWidget(aD, 30, null));
 
                 featArtist.setWidget(0, 0, featArtTitle);
 
@@ -154,6 +212,84 @@ public class DashboardSwidget extends Swidget {
             }
         }
 
+        private void invokeFetchRecentTagArtist() {
+
+            AsyncCallback<List<AttentionItem>> callback = new AsyncCallback<List<AttentionItem>>() {
+
+                public void onFailure(Throwable arg0) {
+                    Window.alert(arg0.toString());
+                }
+
+                public void onSuccess(List<AttentionItem> arg0) {
+
+                    int numLines = (int)Math.ceil(arg0.size() / 2.0);
+                    Grid artists = new Grid(numLines, 2);
+
+                    int lineIndex = 0;
+                    int colIndex = 0;
+
+
+                    for (AttentionItem aI : arg0) {
+
+                        CompactArtistWidget caw = new CompactArtistWidget((ArtistCompact)aI.getItem(), cdm,
+                                musicServer, null, aI.getRating(), aI.getTags());
+                        recentTaggingListeners.add(caw);
+                        artists.setWidget(lineIndex, (colIndex++)%2, caw);
+
+                        if (colIndex%2 == 0) {
+                            lineIndex++;
+                        }
+                    }
+                    recentTagged.setWidget(1, 0, artists);
+                }
+            };
+
+            try {
+                musicServer.getLastTaggedArtists(6, callback);
+            } catch (WebException ex) {
+                Window.alert(ex.getMessage());
+            }
+        }
+
+        private void invokeFetchRecentRatedArtist() {
+
+            AsyncCallback<List<AttentionItem>> callback = new AsyncCallback<List<AttentionItem>>() {
+
+                public void onFailure(Throwable arg0) {
+                    Window.alert(arg0.toString());
+                }
+
+                public void onSuccess(List<AttentionItem> arg0) {
+
+                    int numLines = (int)Math.ceil(arg0.size() / 2.0);
+                    Grid artists = new Grid(numLines, 2);
+                    
+                    int lineIndex = 0;
+                    int colIndex = 0;
+                    
+                    
+                    for (AttentionItem aI : arg0) {
+
+                        CompactArtistWidget caw = new CompactArtistWidget((ArtistCompact)aI.getItem(), cdm,
+                                musicServer, null, aI.getRating(), null);
+                        recentRatingListeners.add(caw);
+                        artists.setWidget(lineIndex, (colIndex++)%2, caw);
+
+                        if (colIndex%2 == 0) {
+                            lineIndex++;
+                        }
+                    }
+                    recentRating.setWidget(1, 0, artists);
+                }
+            };
+
+            try {
+                musicServer.getLastRatedArtists(6, callback);
+            } catch (WebException ex) {
+                Window.alert(ex.getMessage());
+            }
+        }
+
         private void invokeFetchFeaturedArtist() {
 
             AsyncCallback callback = new AsyncCallback() {
@@ -168,28 +304,69 @@ public class DashboardSwidget extends Swidget {
             };
 
             try {
-                musicServer.getArtistDetails("24762087-34ce-4f65-b743-7d8402cf30dd", false, cdm.getCurrSimTypeName(), callback);
+
+                ArtistCompact[] aC = cdm.getListenerDetails().recommendations;
+                if (aC.length > 0) {
+                    int itemIndex = Random.nextInt(aC.length);
+                    musicServer.getArtistDetails(aC[itemIndex].getId(), false, cdm.getCurrSimTypeName(), callback);
+                }
             } catch (WebException ex) {
                 Window.alert(ex.getMessage());
             }
         }
+
+        public void onDelete() {
+            cdm.getLoginListenerManager().removeListener(this);
+        }
+        
+        public void doRemoveListeners() {
+            onDelete();
+            clearListeners(recentRatingListeners);
+            clearListeners(recentTaggingListeners);
+        }
+
+        public void onRate(String itemId, int rating) {
+            clearListeners(recentRatingListeners);
+            recentRating.setWidget(1, 0, new Image("ajax-bar.gif"));
+            invokeFetchRecentRatedArtist();
+        }
+
+        public void onTag(String itemId, Set<String> tags) {
+            clearListeners(recentTaggingListeners);
+            recentTagged.setWidget(1, 0, new Image("ajax-bar.gif"));
+            invokeFetchRecentTagArtist();
+        }
+
+        private void clearListeners(List<HasListeners> hLL) {
+            for (HasListeners hL : hLL) {
+                hL.doRemoveListeners();
+            }
+            hLL.clear();
+        }
     }
 
-    public class ArtistCloudArtistListWidget extends ArtistListWidget {
+    public class UserCloudArtistListWidget extends ArtistListWidget {
 
-        private String currArtistId;
+        private Map<String, Double> tagMap;
 
-        public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
-            ClientDataManager cdm, ArtistCompact[] aDArray, String currArtistId) {
+        public UserCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
+                ClientDataManager cdm, ArtistCompact[] aDArray) {
 
             super(musicServer, cdm, aDArray);
-            this.currArtistId = currArtistId;
+
+            tagMap = new HashMap<String, Double>();
+            if (cdm.getListenerDetails().userTagCloud != null) {
+                for (ItemInfo i : cdm.getListenerDetails().userTagCloud) {
+                    tagMap.put(i.getItemName(), i.getScore());
+                }
+            }
         }
 
         public void openWhyPopup(WhyButton why) {
             why.showLoad();
-            TagDisplayLib.invokeGetCommonTags(currArtistId, why.getId(),
-                    musicServer, cdm, new CommonTagsAsyncCallback(why) {});
+            TagDisplayLib.invokeGetCommonTags(tagMap, why.getId(),
+                    musicServer, cdm, new CommonTagsAsyncCallback(why) {
+            });
         }
     }
 }

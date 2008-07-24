@@ -17,9 +17,16 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 public abstract class CommonTagsAsyncCallback implements AsyncCallback {
 
     protected WhyButton why;
+    protected String title;
+
+    public CommonTagsAsyncCallback(WhyButton why, String title) {
+        this.why = why;
+        this.title = title;
+    }
 
     public CommonTagsAsyncCallback(WhyButton why) {
         this.why = why;
+        this.title = "Common tags";
     }
 
     /**
@@ -32,7 +39,7 @@ public abstract class CommonTagsAsyncCallback implements AsyncCallback {
 
     public final void onSuccess(Object result) {
         ItemInfo[] results = (ItemInfo[]) result;
-        TagDisplayLib.showTagCloud("Common tags", results);
+        TagDisplayLib.showTagCloud(title, results);
         onCallback(results);
 
     }

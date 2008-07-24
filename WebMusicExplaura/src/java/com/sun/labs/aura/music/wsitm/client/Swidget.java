@@ -13,20 +13,15 @@ import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  *
  * @author plamere
  */
-public abstract class Swidget extends Composite {
+public abstract class Swidget extends Composite implements HasListeners {
 
     private String name;
 
@@ -35,12 +30,9 @@ public abstract class Swidget extends Composite {
 
     protected MenuItem menuItem;
 
-    private Set<LoginListener> listeners;
-
     public Swidget(String name, ClientDataManager cdm) {
         this.name = name;
         this.cdm = cdm;
-        listeners = new HashSet<LoginListener>();
         initMenuItem();
         initRPC();
     }
@@ -93,29 +85,4 @@ public abstract class Swidget extends Composite {
     protected Widget getMustBeLoggedInWidget() {
         return new Label("Sorry but you must be logged in to access this page.");
     }
-
-    protected void registerLoginListener(LoginListener ll) {
-        listeners.add(ll);
-    }
-
-    protected void removeLoginListener(LoginListener ll) {
-        listeners.remove(ll);
-    }
-
-    protected void removeAllLoginListeners() {
-        listeners = new HashSet<LoginListener>();
-    }
-
-    public void triggerLogin(ListenerDetails lD) {
-        for (LoginListener ll : listeners) {
-            ll.onLogin(lD);
-        }
-    }
-
-    public void triggerLogout() {
-        for (LoginListener ll : listeners) {
-            ll.onLogout();
-        }
-    }
-
 }
