@@ -30,7 +30,6 @@ public interface MusicSearchInterface extends RemoteService {
     public SearchResults tagSearch(String searchString, int maxResults) throws WebException;
     public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName) throws WebException ;
     public TagDetails getTagDetails(String id, boolean refresh, String simTypeName) throws WebException;
-    public TagTree getTagTree();
     public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num, String simType) throws WebException;
     public ItemInfo[] getCommonTags(Map<String, Double> tagMap, String artistID, int num) throws WebException;
     public List<String> getArtistOracle() throws WebException;

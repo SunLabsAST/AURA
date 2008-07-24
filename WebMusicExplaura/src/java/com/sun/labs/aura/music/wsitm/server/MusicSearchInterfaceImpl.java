@@ -18,7 +18,6 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.MusicSearchInterface;
 import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
-import com.sun.labs.aura.music.wsitm.client.TagTree;
 import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
@@ -128,10 +127,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
-
-    public TagTree getTagTree() {
-        return dm.getTagTree();
-    }
     
     public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num, String simType) 
             throws WebException {
@@ -164,7 +159,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     public void destroy() {
         super.destroy();
         try {
-            //logger.log("_system_", "shutdown", "");
             dm.close();
         } catch (AuraException ex) {
             Logger.getLogger(MusicSearchInterfaceImpl.class.getName()).log(Level.SEVERE, null, ex);

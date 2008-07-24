@@ -729,21 +729,6 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy file="${file.reference.xalan.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.java-openid-sxip.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${libs.restapi.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.restlib.classpath.libfile.15}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.restlib.classpath.libfile.14}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.restlib.classpath.libfile.13}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.restlib.classpath.libfile.12}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.restlib.classpath.libfile.11}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.restlib.classpath.libfile.10}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.restlib.classpath.libfile.9}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.restlib.classpath.libfile.8}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.restlib.classpath.libfile.7}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.restlib.classpath.libfile.6}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.restlib.classpath.libfile.5}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.restlib.classpath.libfile.4}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.restlib.classpath.libfile.3}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.restlib.classpath.libfile.2}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${libs.restlib.classpath.libfile.1}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.gwtext.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">

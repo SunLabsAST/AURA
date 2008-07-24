@@ -21,7 +21,7 @@ import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.SimType;
 import com.sun.labs.aura.music.Video;
-import com.sun.labs.aura.music.wsitm.client.AbstractSearchWidget.searchTypes;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.aura.music.wsitm.client.items.Details;
 import com.sun.labs.aura.music.wsitm.client.items.AlbumDetails;
@@ -32,7 +32,6 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistVideo;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
-import com.sun.labs.aura.music.wsitm.client.TagTree;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.util.AuraException;
@@ -856,54 +855,6 @@ public class DataManager implements Configurable {
 
         //@todo fix this
         //logger.close();
-    }
-
-    public TagTree getTagTree() {
-        //@todo fix this
-        return null;
-        /*
-        if (tree == null) {
-            File file = getTreeFile();
-            if (file.exists()) {
-                try {
-                    BufferedReader reader = new BufferedReader(new FileReader(file));
-                    tree = (TagTree) xstream.fromXML(reader);
-                    reader.close();
-                } catch (IOException ioe) {
-                    System.err.println("trouble reading " + file);
-                }
-
-            } else {
-                tree = getTagTree(null, null);
-                try {
-                    BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-                    xstream.toXML(tree, writer);
-                    writer.close();
-                } catch (IOException ioe) {
-                    System.err.println("can't save details to " + file);
-                }
-            }
-        }
-        return tree;
-         **/
-    }
-
-    public TagTree getTagTree(String id, String name) {
-        return null;
-        //@todo fix this
-        /*
-        if (name == null) {
-            name = "root";
-        }
-        List<Tag> childTags = mdb.getChildren(id);
-        System.out.println("gtt " + id + " n " + name + " #c " + childTags);
-        TagTree[] children = new TagTree[childTags.size()];
-        for (int i = 0; i < children.length; i++) {
-            Tag ctag = childTags.get(i);
-            children[i] = getTagTree(ctag.getID(), ctag.getName());
-        }
-        return new TagTree(id, name, children);
-        */
     }
 
     private void sortByArtistPopularity(List<Scored<Artist>> scoredArtists) {

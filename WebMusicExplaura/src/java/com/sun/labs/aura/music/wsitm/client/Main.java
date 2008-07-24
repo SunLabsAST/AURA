@@ -9,6 +9,13 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
+import com.sun.labs.aura.music.wsitm.client.ui.swidget.Swidget;
+import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget;
+import com.sun.labs.aura.music.wsitm.client.ui.swidget.DashboardSwidget;
+import com.sun.labs.aura.music.wsitm.client.ui.swidget.SimpleSearchSwidget;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.PageHeaderWidget;
+import com.sun.labs.aura.music.wsitm.client.ui.swidget.ProfileSwidget;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.core.client.EntryPoint;
@@ -76,7 +83,7 @@ public class Main implements EntryPoint, HistoryListener {
 
         contentPanel = new FlowPanel();
 
-        Swidget userPref = new ProfileWidget(cdm);
+        Swidget userPref = new ProfileSwidget(cdm);
         registerTokenHeaders(userPref);
         cdm.registerSwidget(userPref);
 
