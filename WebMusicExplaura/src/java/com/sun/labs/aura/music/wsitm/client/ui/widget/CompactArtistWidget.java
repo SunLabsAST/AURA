@@ -80,9 +80,37 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         HorizontalPanel aNamePanel = new HorizontalPanel();
         aNamePanel.setWidth("210px");
         aNamePanel.setSpacing(5);
-        Label aName = new Label(aD.getName());
+        ContextMenuSpannedLabel aName = new ContextMenuSpannedLabel(aD.getName());
         aName.addClickListener(cL);
         aName.addStyleName("image");
+        //
+        //  Create context menu
+        aName.getContextMenu().addItem("View artist details", new Command() {
+
+            public void execute() {
+                Window.alert("Not implemented");
+            }
+        });
+        aName.getContextMenu().addItem("View tag cloud", new Command() {
+
+            public void execute() {
+                Window.alert("Not implemented");
+            }
+        });
+        aName.getContextMenu().addSeperator();
+        aName.getContextMenu().addItem("Start new steerable from artist", new Command() {
+
+            public void execute() {
+                Window.alert("Not implemented");
+            }
+        });
+        aName.getContextMenu().addItem("Add artist's top tags to steerable", new Command() {
+
+            public void execute() {
+                Window.alert("Not implemented");
+            }
+        });
+        
         aNamePanel.add(aName);
 
         HorizontalPanel buttonPanel = new HorizontalPanel();
@@ -207,7 +235,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
             t.getContextMenu().addItem("View tag details", new DataEmbededCommand<String,String>(tagList.get(i).getId()) {
 
                 public void execute() {
-                    History.newItem(data);
+                    History.newItem("tag:"+data);
                 }
             });
             t.getContextMenu().addItem("Add tag to current steerable tag cloud", new Command() {

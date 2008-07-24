@@ -14,7 +14,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.Updatable;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PageHeaderWidget;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
-import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.gwtext.client.data.Store;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
@@ -377,11 +376,12 @@ public class ClientDataManager {
         }
 
         public void removeListener(String itemId, T rL) {
-            if (!itemIdBoundedListeners.get(itemId).contains(rL)) {
-            }
-            itemIdBoundedListeners.get(itemId).remove(rL);
-            if (itemIdBoundedListeners.get(itemId).size() == 0) {
-                itemIdBoundedListeners.remove(itemId);
+            if (itemIdBoundedListeners.containsKey(itemId) &&
+                    itemIdBoundedListeners.get(itemId).contains(rL)) {
+                itemIdBoundedListeners.get(itemId).remove(rL);
+                if (itemIdBoundedListeners.get(itemId).size() == 0) {
+                    itemIdBoundedListeners.remove(itemId);
+                }
             }
         }
 
