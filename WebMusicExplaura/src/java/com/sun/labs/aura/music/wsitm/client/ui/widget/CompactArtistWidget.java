@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.user.client.Command;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
@@ -21,10 +22,13 @@ import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.gwtext.client.widgets.menu.BaseItem;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget.WhyButton;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistPhoto;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedFlowPanel;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,12 +65,13 @@ public class CompactArtistWidget extends Composite implements HasListeners {
             }
         };
 
-        Image img = new MouseOverRollImage(aD.getPhotos()); //aD.getBestArtistImage(true);
+        ContextMenuImage img = new MouseOverRollImage(aD.getPhotos()); //aD.getBestArtistImage(true);
         if (img == null) {
-            img = new Image("nopic.gif");
+            img = new ContextMenuImage("nopic.gif");
         }
         img.setStyleName("image");
         img.addClickListener(cL);
+
         artistPanel.add(img);
 
         VerticalPanel txtPanel = new VerticalPanel();
@@ -195,15 +200,30 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         title.addStyleName("bold");
         tagPanel.add(title);
         for (int i = 0; i < tagList.size(); i++) {
-            SpannedLabel t = new SpannedLabel(tagList.get(i).getItemName());
+            ContextMenuSpannedLabel t = new ContextMenuSpannedLabel(tagList.get(i).getItemName());
             t.addStyleName("pointer");
-            WebLib.disableContextMenu(t.getElement());
-            t.addRightClickListener(new ClickListener() {
+            //
+            // Create context menu
+            t.getContextMenu().addItem("View tag details", new DataEmbededCommand<String,String>(tagList.get(i).getId()) {
 
-                public void onClick(Widget arg0) {
-                    Window.alert("bouya");
+                public void execute() {
+                    History.newItem(data);
                 }
             });
+            t.getContextMenu().addItem("Add tag to current steerable tag cloud", new Command() {
+
+                public void execute() {
+                    Window.alert("Not yet implemented");
+                }
+            });
+            t.getContextMenu().addItem("View similar tags", new Command() {
+
+                public void execute() {
+                    Window.alert("Not yet implemented");
+                }
+            });
+            //
+            // Add main click listener
             t.addClickListener(new DataEmbededClickListener<ItemInfo>(tagList.get(i)) {
 
                 public void onClick(Widget arg0) {
@@ -228,7 +248,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         return tagPanel;
     }
 
-    private class MouseOverRollImage extends Image {
+    private class MouseOverRollImage extends ContextMenuImage {
 
         private ArtistPhoto[] photos;
         private int index = 0;
@@ -237,7 +257,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         private int lastY = 0;
 
         public MouseOverRollImage(ArtistPhoto[] photos) {
-
+            super();
             if (photos != null && photos.length > 0) {
 
                 this.photos = photos;
@@ -252,18 +272,10 @@ public class CompactArtistWidget extends Composite implements HasListeners {
                             lastY = arg2;
                         }
                     }
-
-                    public void onMouseDown(Widget arg0, int arg1, int arg2) {
-                    }
-
-                    public void onMouseEnter(Widget arg0) {
-                    }
-
-                    public void onMouseLeave(Widget arg0) {
-                    }
-
-                    public void onMouseUp(Widget arg0, int arg1, int arg2) {
-                    }
+                    public void onMouseDown(Widget arg0, int arg1, int arg2) {}
+                    public void onMouseEnter(Widget arg0) {}
+                    public void onMouseLeave(Widget arg0) {}
+                    public void onMouseUp(Widget arg0, int arg1, int arg2) {}
                 });
                 showNextImage();
             } else {
