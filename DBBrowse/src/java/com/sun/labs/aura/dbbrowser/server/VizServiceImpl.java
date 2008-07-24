@@ -11,8 +11,10 @@ package com.sun.labs.aura.dbbrowser.server;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.impl.PartitionCluster;
+import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.dbbrowser.client.DSHInfo;
 import com.sun.labs.aura.dbbrowser.client.PCInfo;
+import com.sun.labs.aura.dbbrowser.client.RepInfo;
 import com.sun.labs.aura.dbbrowser.client.VizService;
 import com.sun.labs.util.props.ComponentRegistry;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -112,9 +114,27 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         PCInfo ret = new PCInfo();
         try {
             ret.setPrefix(pc.getPrefix().toString());
+            for (ServiceItem svc : svcs) {
+                if (svc.service instanceof Replicant) {
+                    Replicant rep = (Replicant)svc.service;
+                    if (rep.getPrefix().equals(pc.getPrefix())) {
+                        ret.addRepInfo(newRepInfo(rep));
+                    }
+                }
+            }
         } catch (RemoteException e) {
             logger.warning("Failed to communicate with partition cluster");
         }
+        return ret;
+    }
+    
+    /**
+     * Factory method for making a RepInfo from a Rep
+     * @param rep
+     * @return
+     */
+    protected RepInfo newRepInfo(Replicant rep) {
+        RepInfo ret = new RepInfo();
         return ret;
     }
 }

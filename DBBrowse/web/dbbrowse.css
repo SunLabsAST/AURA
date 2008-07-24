@@ -63,6 +63,13 @@ a:visited {
   border: 1px solid #999999;
 }
 
+.viz-repPanel {
+  background-color:#66ccff;
+  padding: 5px;
+  margin: 5px;
+  border: 1px solid #999999;
+}
+
 .gwt-TabPanel {
   margin-top: 4px;
 }
