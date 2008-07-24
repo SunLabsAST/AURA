@@ -77,7 +77,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
     protected StopWords stop;
 
-    @ConfigBoolean(defaultValue = false)
+    @ConfigBoolean(defaultValue = true)
     public static final String PROP_PARALLEL_GET = "parallelGet";
 
     private boolean parallelGet;
