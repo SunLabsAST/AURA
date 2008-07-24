@@ -21,4 +21,5 @@ public interface VizService extends RemoteService{
     
     public List getPCInfo();
 
+    public void haltPC(PCInfo pc);
 }

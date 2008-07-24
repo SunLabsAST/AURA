@@ -20,4 +20,6 @@ public interface VizServiceAsync {
     public void getDSHInfo(AsyncCallback asyncCallback);
 
     public void getPCInfo(AsyncCallback asyncCallback);
+    
+    public void haltPC(PCInfo pc, AsyncCallback asyncCallback);
 }

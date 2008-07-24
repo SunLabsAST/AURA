@@ -9,6 +9,7 @@
 
 package com.sun.labs.aura.dbbrowser.server;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.impl.PartitionCluster;
 import com.sun.labs.aura.datastore.impl.Replicant;
@@ -16,6 +17,7 @@ import com.sun.labs.aura.dbbrowser.client.DSHInfo;
 import com.sun.labs.aura.dbbrowser.client.PCInfo;
 import com.sun.labs.aura.dbbrowser.client.RepInfo;
 import com.sun.labs.aura.dbbrowser.client.VizService;
+import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.ComponentRegistry;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.rmi.RemoteException;
@@ -90,6 +92,12 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         return ret;
     }
     
+    public void haltPC(PCInfo pc) {
+        logger.info("Halt PC " + pc.getPrefix());
+    }
+    
+    
+    
     /**
      * Factory method for making a DSHInfo from a DSH
      * @param dsh
@@ -114,16 +122,21 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         PCInfo ret = new PCInfo();
         try {
             ret.setPrefix(pc.getPrefix().toString());
-            for (ServiceItem svc : svcs) {
+            ret.setNumItems(pc.getItemCount(null));
+            ret.setNumAttention(pc.getAttentionCount(new AttentionConfig()));
+            /*for (ServiceItem svc : svcs) {
                 if (svc.service instanceof Replicant) {
                     Replicant rep = (Replicant)svc.service;
                     if (rep.getPrefix().equals(pc.getPrefix())) {
                         ret.addRepInfo(newRepInfo(rep));
                     }
                 }
-            }
+            }*/
+            ret.addRepInfo(newRepInfo(pc.getReplicant()));
         } catch (RemoteException e) {
             logger.warning("Failed to communicate with partition cluster");
+        } catch (AuraException ex) {
+            logger.warning("Aura exception: " + ex.getMessage());
         }
         return ret;
     }

@@ -61,6 +61,7 @@ a:visited {
   padding: 5px;
   margin: 5px;
   border: 1px solid #999999;
+  vertical-align: middle;
 }
 
 .viz-repPanel {
@@ -68,6 +69,19 @@ a:visited {
   padding: 5px;
   margin: 5px;
   border: 1px solid #999999;
+}
+
+.viz-statLabel {
+  
+  font-size: 12px;
+}
+
+.viz-actionLabel {
+  font-size: 10px;
+  color: blue;
+  text-decoration: underline;
+  display: inline;
+  padding-right: 4px;
 }
 
 .gwt-TabPanel {

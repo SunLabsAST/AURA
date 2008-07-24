@@ -19,6 +19,9 @@ public class PCInfo implements Serializable {
     /** A list of the replicants that make up this partition */
     protected List repInfos;
     
+    protected long numItems;
+    protected long numAttention;
+    
     public PCInfo() {
         repInfos = new ArrayList();
     }
@@ -29,6 +32,22 @@ public class PCInfo implements Serializable {
     
     public void setPrefix(String prefix) {
         this.prefix = prefix;
+    }
+    
+    public long getNumItems() {
+        return numItems;
+    }
+    
+    public void setNumItems(long numItems) {
+        this.numItems = numItems;
+    }
+    
+    public long getNumAttention() {
+        return numAttention;
+    }
+    
+    public void setNumAttention(long numAttention) {
+        this.numAttention = numAttention;
     }
     
     public void addRepInfo(RepInfo rep) {

@@ -20,7 +20,8 @@ public class DSHPanel extends FlowPanel {
         this.dsh = dsh;
         setStylePrimaryName("viz-dshPanel");
         add(new Label(dsh.getName()));
-        add(new Label("Status: " + (dsh.isReady() ? "ready" : "not ready")));
+        add(new StyleLabel("Status: " + (dsh.isReady() ? "ready" : "not ready"),
+                           "viz-statLabel"));
     }
     
     public DSHInfo getDSHInfo() {

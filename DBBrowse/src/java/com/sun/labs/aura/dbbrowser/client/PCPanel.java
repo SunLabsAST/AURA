@@ -5,10 +5,14 @@
 
 package com.sun.labs.aura.dbbrowser.client;
 
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 import java.util.Iterator;
 import java.util.List;
 
@@ -27,6 +31,17 @@ public class PCPanel extends HorizontalPanel {
         myself = new FlowPanel();
         add(myself);
         myself.add(new Label("Partition Cluster " + pc.getPrefix()));
+        myself.add(new StyleLabel("Items: " + pc.getNumItems(),
+                                  "viz-statLabel"));
+        myself.add(new StyleLabel("Attention: " + pc.getNumAttention(),
+                                  "viz-statLabel"));
+        StyleLabel halt = new StyleLabel("Halt", "viz-actionLabel");
+        halt.addClickListener(new ClickListener() {
+            public void onClick(Widget arg0) {
+                doHalt();
+            }
+        });
+        myself.add(halt);
         replicants = new VerticalPanel();
         add(replicants);
         List reps = pc.getRepInfos();
@@ -38,5 +53,20 @@ public class PCPanel extends HorizontalPanel {
     
     public PCInfo getPCInfo() {
         return pc;
+    }
+    
+    protected void doHalt() {
+        AsyncCallback asyncCallback = new AsyncCallback() {
+            public void onFailure(Throwable arg0) {
+                Window.alert("Communication disruption: " + arg0);
+            }
+
+            public void onSuccess(Object arg0) {
+                // not sure yet
+                Window.alert("done!");
+            }
+            
+        };
+        GWTMainEntryPoint.getVizService().haltPC(pc, asyncCallback);
     }
 }
