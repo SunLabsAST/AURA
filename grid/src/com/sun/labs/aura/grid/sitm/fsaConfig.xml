@@ -19,7 +19,7 @@
         <property name="instance" value="${auraInstance}"/>
         <property name="dataStore" value="dataStore"/>
         <property name="artistName" value="weezer"/>
-        <property name="runs" value="10"/>
+        <property name="runs" value="100"/>
     </component>
     
     <component name="start-fsa" type="com.sun.labs.aura.AuraServiceStarter">

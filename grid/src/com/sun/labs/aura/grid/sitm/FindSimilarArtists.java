@@ -50,47 +50,33 @@ public class FindSimilarArtists extends ServiceAdapter {
         ds = (DataStore) ps.getComponent(PROP_DATA_STORE);
         artistName = ps.getString(PROP_ARTIST_NAME);
         runs = ps.getInt(PROP_RUNS);
+        
+        
     }
     
-    private void runFindSimilars(MusicDatabase mdb, Artist artist) throws AuraException {
+    private double runFindSimilars(MusicDatabase mdb) throws AuraException {
         logger.info("Parallel Find Similar");
         NanoWatch nw = new NanoWatch();
         nw.start();
+        Artist artist = mdb.artistFindBestMatch(artistName);
         List<Scored<Artist>> scoredArtists = mdb.artistFindSimilar(
                 artist.getKey(), 10);
         nw.stop();
         displayArtists(scoredArtists);
         logger.info(String.format("Parallel findSimilar took %.3f", nw.
                 getTimeMillis()));
-//        logger.info("Serial Find Similar");
-//        nw.reset();
-//        nw.start();
-//        scoredArtists = mdb.artistSerialFindSimilar(artist.getKey(),
-//                Artist.FIELD_SOCIAL_TAGS, 10);
-//        nw.stop();
-//        displayArtists(scoredArtists);
-//        logger.info(String.format("Serial findSimilar took %.3f", nw.
-//                getTimeMillis()));
-//        logger.info("Find Similar, Return keys");
-//        nw.reset();
-//        nw.start();
-//        scoredArtists = mdb.artistFindSimilarKey(artist.getKey(),
-//                Artist.FIELD_SOCIAL_TAGS, 10);
-//        nw.stop();
-//        displayArtists(scoredArtists);
-//        logger.info(String.format("Key return findSimilar took %.3f", nw.
-//                getTimeMillis()));
+        return nw.getTimeMillis();
     }
     
     public void start() {
         try {
             MusicDatabase mdb = new MusicDatabase(ds);
-            Artist artist = mdb.artistFindBestMatch(artistName);
-            
+            double sum = 0;
             for(int i = 0; i < runs; i++) {
                 logger.info("Run: " + (i+1));
-                runFindSimilars(mdb, artist);
+                sum += runFindSimilars(mdb);
             }
+            logger.info(String.format("Average fs time: %.3f", sum / runs));
         } catch(AuraException ex) {
             logger.log(Level.SEVERE, "Error finding similar artists", ex);
         }
