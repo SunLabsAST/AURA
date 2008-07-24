@@ -29,6 +29,16 @@ public abstract class WebLib {
     public static final String ICON_WAIT = "ajax-bar.gif";
 
     /**
+     * Disables the browsers default context menu for the specified element.
+     *
+     * @see http://groups.google.com/group/Google-Web-Toolkit/browse_thread/thread/73c80118cb781390/3b76ad6a17a6c376
+     * @param elem the element whos context menu will be disabled
+     */
+    public static native void disableContextMenu(Element elem) /*-{
+    elem.oncontextmenu=elem.onclick;
+    }-*/;
+
+    /**
      * Selection MUST be reenabled when widget is deleted to prevent a memory leak
      * @see Taken from Gwt EXT 1.0
      * @param disable Set to true to disable the selection and to false to reenable it
@@ -43,7 +53,7 @@ public abstract class WebLib {
     }
     }-*/;
 
-    public static Widget getLastFMListenWidget(final ArtistCompact artistDetails, int size) {
+    public static Widget getLastFMListenWidget(final ArtistCompact artistDetails, int size, ClickListener cL) {
         Image image = new Image("play-lastfm-"+size+".jpg");
         //image.setSize("22px", "22px");
         image.setTitle("Play music like " + artistDetails.getName() + " at last.fm");
@@ -53,17 +63,23 @@ public abstract class WebLib {
                 popupSimilarArtistRadio(artistDetails, true);
             }
         });
+        if (cL != null) {
+            image.addClickListener(cL);
+        }
         return image;
     }
 
-    public static Widget getSpotifyListenWidget(final ArtistCompact artistDetails, int size) {
+    public static Widget getSpotifyListenWidget(final ArtistCompact artistDetails, int size, ClickListener cL) {
         String musicURL = artistDetails.getSpotifyId();
         if (musicURL != null && !musicURL.equals("")) {
             HTML html = new HTML("<a href=\"" + musicURL + "\"><img src=\"play-spotify-"+size+".jpg\"/></a>");
             html.setTitle("Play " + artistDetails.getName() + " with Spotify");
+            if (cL != null) {
+                html.addClickListener(cL);
+            }
             return html;
         } else {
-            return getLastFMListenWidget(artistDetails, size);
+            return getLastFMListenWidget(artistDetails, size, cL);
         }
     }
 

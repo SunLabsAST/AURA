@@ -8,6 +8,8 @@
  */
 package com.sun.labs.aura.music.wsitm.server;
 
+import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.Attention.Type;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.music.Album;
 import com.sun.labs.aura.music.Artist;
@@ -611,7 +613,7 @@ public class DataManager implements Configurable {
         if (updateRecommendations) {
             // Fetch info for recommended artists
             ArrayList<ArtistCompact> aCompact = new ArrayList<ArtistCompact>();
-            for (Scored<Artist> a : mdb.getRecommendations(l, NBR_REC_LISTENER)) {
+            for (Scored<Artist> a : mdb.getRecommendations(l.getKey(), NBR_REC_LISTENER)) {
                 aCompact.add(artistToArtistCompact(a.getItem()));
             }
             lD.recommendations = aCompact.toArray(new ArtistCompact[0]);
@@ -646,11 +648,31 @@ public class DataManager implements Configurable {
         if (updateRecommendations) {
             // Fetch info for recommended artists
             ArrayList<ArtistCompact> aCompact = new ArrayList<ArtistCompact>();
-            for (Scored<Artist> a : mdb.getRecommendations(l, NBR_REC_LISTENER)) {
+            for (Scored<Artist> a : mdb.getRecommendations(l.getKey(), NBR_REC_LISTENER)) {
                 aCompact.add(artistToArtistCompact(a.getItem()));
             }
             lD.recommendations = aCompact.toArray(new ArtistCompact[0]);
         }
+
+        ArrayList<ItemInfo> iI = new ArrayList<ItemInfo>();
+        List<Tag> lT = l.getSocialTags();
+        if (lT != null && lT.size() > 0) {
+            Collections.sort(lT, new Comparator<Tag>() {
+
+                public int compare(Tag o1, Tag o2) {
+                    return new Integer(o1.getFreq()).compareTo(o2.getFreq());
+                }
+            });
+            double maxSize = lT.get(0).getFreq();
+            int nbr = 0;
+            for (Tag t : lT) {
+                iI.add(new ItemInfo(ArtistTag.nameToKey(t.getName()), t.getName(), t.getFreq() / maxSize, t.getFreq() / maxSize));
+                if (nbr++ > 50) {
+                    break;
+                }
+            }
+        }
+        lD.userTagCloud = iI.toArray(new ItemInfo[0]);
 
         return lD;
     }
@@ -664,16 +686,17 @@ public class DataManager implements Configurable {
         l = mdb.getListener(userKey);
 
         if (l == null) {
-            logger.info("Non openID user '" + lD.openID + "' does not exist.");
-            throw new AuraException("User '"+userKey+"' does not exist.");
+            logger.info("Non openID user '" + userKey + "' does not exist.");
+            throw new AuraException("User '" + userKey + "' does not exist.");
+        } else {
+            logger.info("Non openID user '" + userKey + "' fetched.");
         }
 
         lD = listenerToListenerDetails(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
         lD.openID = userKey;
         lD.loggedIn = true;
-
+        
         return lD;
-
     }
 
     /**
@@ -696,11 +719,14 @@ public class DataManager implements Configurable {
         }
 
         l = syncListeners(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
-        logger.info("update");
         mdb.updateListener(l);
 
         return lD;
 
+    }
+
+    public List<Attention> getLastAttentionData(String userId, Type type, int count) throws AuraException, RemoteException {
+        return mdb.getLastAttentionData(userId, type, count);
     }
 
     public void updateUser(ListenerDetails lD) throws AuraException, RemoteException {
@@ -708,36 +734,30 @@ public class DataManager implements Configurable {
         mdb.updateListener(l);
     }
 
-    public void updateUserSongRating(ListenerDetails lD, int rating, String artistID)
+    public void updateUserSongRating(String userId, int rating, String artistId)
             throws AuraException, RemoteException {
-        if (lD.loggedIn) {
-            logger.info("Setting rating "+rating+" for artist " + artistID + " for user "+ lD.openID);
-            mdb.addRating(mdb.getListener(lD.openID), artistID, rating);
-        }
+
+        logger.info("Setting rating "+rating+" for artist " + artistId + " for user "+ userId);
+        mdb.addRating(userId, artistId, rating);
     }
 
-    public int fetchUserSongRating(ListenerDetails lD, String artistID)
+    public int fetchUserSongRating(String userId, String artistID)
             throws AuraException, RemoteException {
-        if (lD.loggedIn) {
-            logger.info("Fetching rating for artist " + artistID + " for user "+ lD.openID);
-            return mdb.getLatestRating(mdb.getListener(lD.openID), artistID);
-        } else {
-            return 0;
-        }
+
+        logger.info("Fetching rating for artist " + artistID + " for user "+ userId);
+        return mdb.getLatestRating(userId, artistID);
     }
 
-    public Map<String,Integer> fetchUserSongRating(ListenerDetails lD, Set<String> artistID)
+    public Map<String,Integer> fetchUserSongRating(String userId, Set<String> artistID)
             throws AuraException, RemoteException {
 
-        Map<String,Integer> ratingMap = new HashMap<String,Integer>();
+        Map<String, Integer> ratingMap = new HashMap<String, Integer>();
 
-        if (lD.loggedIn) {
-            logger.info("Fetching rating for artist " + artistID + " for user "+ lD.openID);
-            Listener l = mdb.getListener(lD.openID);
-            for (String aID : artistID) {
-                ratingMap.put(aID, mdb.getLatestRating(l, aID));
-            }
+        logger.info("Fetching rating for artist " + artistID + " for user " + userId);
+        for (String aID : artistID) {
+            ratingMap.put(aID, mdb.getLatestRating(userId, aID));
         }
+
         return ratingMap;
     }
 
@@ -763,6 +783,18 @@ public class DataManager implements Configurable {
             wC.add(new Scored<String>(tagName, tagMap.get(tagName)));
         }
         return wC;
+    }
+
+    public Set<String> fetchUserTagsForItem(String listenerId, String itemId)
+            throws AuraException, RemoteException {
+        Set<String> tags = new HashSet<String>();
+        tags.addAll(mdb.getTags(listenerId, itemId));
+        return tags;
+    }
+
+    public void addUserTagForItem(String listenerId, String itemId, String tag) 
+            throws AuraException, RemoteException {
+        mdb.addTag(listenerId, itemId, tag);
     }
 
     public TagDetails loadTagDetailsFromStore(String id) throws AuraException,
@@ -872,13 +904,6 @@ public class DataManager implements Configurable {
         }
         return new TagTree(id, name, children);
         */
-    }
-
-    static Set skipSet;
-
-    static {
-        skipSet = new HashSet<String>();
-        skipSet.add("http://en.wikipedia.org/wiki/Musical_genre");
     }
 
     private void sortByArtistPopularity(List<Scored<Artist>> scoredArtists) {
@@ -1193,9 +1218,7 @@ class ExpiringLRUCache {
         public long getExpiration() {
             return expiration;
         }
-
     }
-
 }
 
 class ArtistPopularitySorter implements Comparator<Scored<Artist>> {
@@ -1220,7 +1243,6 @@ abstract class Sorter {
     public static enum sortFields {
         COUNTorSCORE,
         POPULARITY
-
     }
 
     public Sorter(sortFields sortBy) {

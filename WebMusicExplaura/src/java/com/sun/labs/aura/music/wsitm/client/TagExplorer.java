@@ -123,4 +123,8 @@ public class TagExplorer extends Swidget {
     protected void initMenuItem() {
         menuItem = new MenuItem();
     }
+
+    public void doRemoveListeners() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

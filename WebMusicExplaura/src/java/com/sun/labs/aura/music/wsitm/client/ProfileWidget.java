@@ -30,7 +30,7 @@ import java.util.Map;
  *
  * @author mailletf
  */
-public class ProfileWidget extends Swidget {
+public class ProfileWidget extends Swidget implements LoginListener {
 
     private FlowPanel mainPanel;
     private Image loadImage;
@@ -66,6 +66,22 @@ public class ProfileWidget extends Swidget {
         } else {
             mainPanel.add(getMustBeLoggedInWidget());
         }
+    }
+
+    public void doRemoveListeners() {
+        onDelete();
+    }
+
+    public void onLogin(ListenerDetails lD) {
+        update();
+    }
+
+    public void onLogout() {
+        update();
+    }
+
+    public void onDelete() {
+        cdm.getLoginListenerManager().removeListener(this);
     }
 
     @Override
@@ -168,7 +184,5 @@ public class ProfileWidget extends Swidget {
 
             invokeUpdateListener(lD);
         }
-
     }
-
 }

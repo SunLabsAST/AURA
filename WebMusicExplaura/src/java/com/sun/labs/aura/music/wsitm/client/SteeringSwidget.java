@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.extjs.gxt.ui.client.Style.Direction;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Command;
@@ -31,6 +32,7 @@ import com.google.gwt.user.client.ui.SuggestBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.gwtext.client.widgets.form.ComboBox;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
@@ -54,7 +56,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         super("Steering", cdm);
         History.addHistoryListener(this);
         mP = new MainPanel();
-        registerLoginListener(mP);
+        cdm.getLoginListenerManager().addListener(mP);
         initWidget(mP);
         cdm.setSteerableReset(true);
         onHistoryChanged(History.getToken());
@@ -77,12 +79,20 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             // Only reset if artist id is in querystring and we aksed
             if (historyToken.length() > 9 && cdm.getSteerableReset()) {
                 cdm.setSteerableReset(false);
-                mP.loadArtistCloud(historyToken.substring(9));
+                if (historyToken.startsWith("steering:userCloud") && cdm.isLoggedIn()) {
+                    mP.loadCloud(cdm.getListenerDetails().userTagCloud);
+                } else {
+                    mP.loadArtistCloud(historyToken.substring(9));
+                }
             }
         }
     }
 
-    private class MainPanel extends LoginListener {
+    public void doRemoveListeners() {
+        mP.onDelete();
+    }
+
+    private class MainPanel extends Composite implements LoginListener {
 
         private DockPanel dP;
         private Grid mainTagPanel;
@@ -129,7 +139,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             saveNamePanel.add(new Label("Name:"));
             saveNamePanel.add(new TextBox());
             savePanel.add(saveNamePanel);
-            savePanel.add(new TagInputWidget("tag cloud"));
+            //savePanel.add(new TagInputWidget("tag cloud"));
             savePanel.setVisible(false);
 
 
@@ -145,16 +155,6 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 }
             });
             mainNorthMenuPanel.add(saveButton);
-
-            Button updateButton = new Button("Update recommendations");
-            updateButton.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
-                    invokeFetchNewRecommendations();
-                }
-            });
-            mainNorthMenuPanel.add(updateButton);
-
 
             Button resetButton = new Button("Erase all tags");
             resetButton.addClickListener(new ClickListener() {
@@ -221,6 +221,12 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 public void onSuccess(Object result) {
 
                     ArtistCompact[] aCArray = (ArtistCompact[]) result;
+
+                    if (mainArtistListPanel.getWidget(0, 0) != null &&
+                            mainArtistListPanel.getWidget(0, 0) instanceof ArtistCloudArtistListWidget) {
+                        ((ArtistListWidget)mainArtistListPanel.getWidget(0, 0)).doRemoveListeners();
+                    }
+
                     mainArtistListPanel.setWidget(0, 0,
                             new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, tagLand));
                     refreshingPanel.setVisible(false);
@@ -245,6 +251,16 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         }
 
         public void onLogout() {
+        }
+
+        public void loadCloud(ItemInfo[] cloud) {
+            tagLand.removeAllTags(true);
+            if (cloud != null && cloud.length > 0) {
+                tagLand.addTags(cloud, TagWidget.NBR_TOP_TAGS_TO_ADD);
+            } else {
+                Info.display("Steerable recommendations", "Your user cloud is empty; no tags to add.", new Params());
+            }
+            History.newItem("steering:");
         }
 
         public void loadArtistCloud(String artistId) {
@@ -308,6 +324,10 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 Window.alert(ex.getMessage());
 
             }
+        }
+
+        public void onDelete() {
+            cdm.getLoginListenerManager().removeListener(this);
         }
     }
 
@@ -674,10 +694,14 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             }
 
             public void onDelete() {
-                removeTag(ClientDataManager.nameToKey(tag));
+                this.fadeOut(new DataEmbededCommand<String, String>(tag) {
+
+                    public void execute() {
+                        removeTag(ClientDataManager.nameToKey(data));
+                    }
+                });
             }
         }
-
     }
 
     public class ResizableTagWidget extends TagWidget {
@@ -987,7 +1011,12 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             }
 
             public void onDelete() {
-                removeTag(ClientDataManager.nameToKey(getWidget().getText()));
+                this.fadeOut(new DataEmbededCommand<String, String>(getWidget().getText()) {
+
+                    public void execute() {
+                        removeTag(ClientDataManager.nameToKey(data));
+                    }
+                });
             }
         }
 
@@ -1272,6 +1301,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             //
             // Add the title line
             Label nameLbl = new Label("Name");
+            nameLbl.addStyleName("pointer");
             nameLbl.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
@@ -1283,6 +1313,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             mainPanel.setWidget(0, 0, nameLbl);
 
             Label popLbl = new Label("Popularity*");
+            popLbl.addStyleName("pointer");
             popLbl.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
@@ -1342,10 +1373,6 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             this.mainTagPanel = mainTagPanel;
             this.tagLand = tagLand;
 
-            textBox = new SuggestBox();
-            textBox.setTabIndex(1);
-            setSuggestBoxWidth(50);
-
             searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
 
             HorizontalPanel searchType = new HorizontalPanel();
@@ -1366,8 +1393,9 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 }
             });
 
-            setText("", searchTypes.SEARCH_FOR_TAG_BY_TAG);
             updateSuggestBox(Oracles.TAG);
+            setText("", searchTypes.SEARCH_FOR_TAG_BY_TAG);
+            setSuggestBoxWidth(180);
 
             for (int i = 0; i < searchButtons.length; i++) {
                 searchType.add(searchButtons[i]);
@@ -1505,7 +1533,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public void openWhyPopup(WhyButton why) {
             why.showLoad();
             TagDisplayLib.invokeGetCommonTags(tagLand.getTapMap(), why.getId(),
-                    musicServer, cdm, new CommonTagsAsyncCallback(why) {});
+                    musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between your cloud and "+why.getName()) {});
         }
     }
 }
