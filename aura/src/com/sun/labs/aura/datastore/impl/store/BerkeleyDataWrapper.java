@@ -150,11 +150,6 @@ public class BerkeleyDataWrapper {
 
     protected Logger log;
 
-    protected int txCnt = 0;
-    protected int txTot = 0;
-    protected int attCurTot = 0;
-    protected StopWatch txsw = new StopWatch();
-    protected StopWatch txswCurr = new StopWatch();
     /**
      * Constructs a database wrapper.
      * 
@@ -362,7 +357,9 @@ public class BerkeleyDataWrapper {
         EntityCursor cur = null;
         Transaction txn = null;
         try {
-            txn = dbEnv.beginTransaction(null, null);
+            TransactionConfig conf = new TransactionConfig();
+            conf.setReadUncommitted(true);
+            txn = dbEnv.beginTransaction(null, conf);
             txn.setTxnTimeout(0);
             EntityIndex index = itemByType.subIndex(type.ordinal());
             cur = index.entities(txn, CursorConfig.READ_UNCOMMITTED);
@@ -468,18 +465,15 @@ public class BerkeleyDataWrapper {
     public DBIterator<ItemImpl> getItemIterator() throws AuraException {
         EntityCursor c = null;
         DBIterator<ItemImpl> i = null;
+        Transaction txn = null;
         try {
-            c = itemByKey.entities();
-            i = new EntityIterator<ItemImpl>(c);
+            TransactionConfig conf = new TransactionConfig();
+            conf.setReadUncommitted(true);
+            txn = dbEnv.beginTransaction(null, conf);
+            c = itemByKey.entities(txn, CursorConfig.READ_UNCOMMITTED);
+            i = new EntityIterator<ItemImpl>(c, txn);
         } catch (DatabaseException e) {
-            if (c != null) {
-                try {
-                    c.close();
-                } catch (DatabaseException ex) {
-                    log.severe("Failed to close cursor for item iterator");
-                }
-            }
-            throw new AuraException("Failed to get item iterator", e);
+            handleCursorException(c, txn, e);
         }
         return i;
     }
@@ -503,8 +497,6 @@ public class BerkeleyDataWrapper {
      */
     public void putAttention(PersistentAttention pa) throws AuraException {
         int numRetries = 0;
-        txsw.start();
-        txswCurr.start();
         while(numRetries < MAX_DEADLOCK_RETRIES) {
             Transaction txn = null;
             try {
@@ -513,17 +505,6 @@ public class BerkeleyDataWrapper {
                 txn = dbEnv.beginTransaction(null, txConf);
                 allAttn.putNoOverwrite(txn, pa);
                 txn.commit();
-                txsw.stop();
-                txswCurr.stop();
-                txCnt++;
-                if (txCnt >= 5000) {
-                    txTot += txCnt;
-                    double avgTot = txsw.getTime() / (double)txTot;
-                    double avgCur = txswCurr.getTime() / (double)txCnt;
-                    log.info(" avg length over last 5000 txns: " + avgCur + "ms (" + numRetries + ")");
-                    txCnt = 0;
-                    txswCurr.reset();
-                }
                 return;
             } catch(DeadlockException e) {
                 try {
@@ -554,8 +535,6 @@ public class BerkeleyDataWrapper {
      */
     public void putAttention(List<PersistentAttention> pas) throws AuraException {
         int numRetries = 0;
-        txsw.start();
-        txswCurr.start();
         while(numRetries < MAX_DEADLOCK_RETRIES) {
             Transaction txn = null;
             try {
@@ -566,20 +545,6 @@ public class BerkeleyDataWrapper {
                     allAttn.putNoOverwrite(txn, pa);
                 }
                 txn.commit();
-                txsw.stop();
-                txswCurr.stop();
-                txCnt++;
-                attCurTot += pas.size();
-                if (txCnt >= 100) {
-                    txTot += txCnt;
-                    double avgTot = txsw.getTime() / (double)txTot;
-                    double avgCur = txswCurr.getTime() / (double)txCnt;
-                    int attnPer = attCurTot / txCnt;
-                    log.info(" avg length over last " + txCnt + " txns: " + avgCur + "ms (" + attnPer + " a/t)");
-                    txCnt = 0;
-                    txswCurr.reset();
-                    attCurTot = 0;
-                }
                 return;
             } catch(DeadlockException e) {
                 try {
@@ -759,7 +724,9 @@ public class BerkeleyDataWrapper {
         EntityCursor cursor = null;
         Transaction txn = null;
         try {
-            txn = dbEnv.beginTransaction(null, null);
+            TransactionConfig conf = new TransactionConfig();
+            conf.setReadUncommitted(true);
+            txn = dbEnv.beginTransaction(null, conf);
             //
             // This transaction is read-only and it is up to the developer
             // to release it.  Don't time out the transaction.
@@ -831,7 +798,9 @@ public class BerkeleyDataWrapper {
         EntityCursor c = null;
         Transaction txn = null;
         try {
-            txn = dbEnv.beginTransaction(null, null);
+            TransactionConfig conf = new TransactionConfig();
+            conf.setReadUncommitted(true);
+            txn = dbEnv.beginTransaction(null, conf);
             //
             // This transaction is read-only and it is up to the developer
             // to release it.  Don't time out the transaction.
@@ -889,7 +858,9 @@ public class BerkeleyDataWrapper {
             EntityCursor<PersistentAttention> c = null;
             Transaction txn = null;
             try {
-                txn = dbEnv.beginTransaction(null, null);
+                TransactionConfig conf = new TransactionConfig();
+                conf.setReadUncommitted(true);
+                txn = dbEnv.beginTransaction(null, conf);
                 CursorConfig cc = new CursorConfig();
                 cc.setReadCommitted(true);
                 c = attns.entities(txn, cc);
@@ -921,14 +892,21 @@ public class BerkeleyDataWrapper {
 
         try {
             ForwardCursor<PersistentAttention> cur = null;
+            Transaction txn = null;
             try {
-                cur = join.entities();
+                TransactionConfig conf = new TransactionConfig();
+                conf.setReadUncommitted(true);
+                txn = dbEnv.beginTransaction(null, conf);
+                cur = join.entities(txn, CursorConfig.READ_UNCOMMITTED);
                 for(PersistentAttention attn : cur) {
                     ret.add(attn);
                 }
             } finally {
                 if(cur != null) {
                     cur.close();
+                }
+                if (txn != null) {
+                    txn.commitNoSync();
                 }
             }
         } catch(DatabaseException e) {
@@ -970,7 +948,9 @@ public class BerkeleyDataWrapper {
         ForwardCursor cur = null;
         Transaction txn = null;
         try {
-            txn = dbEnv.beginTransaction(null, null);
+            TransactionConfig conf = new TransactionConfig();
+            conf.setReadUncommitted(true);
+            txn = dbEnv.beginTransaction(null, conf);
             txn.setTxnTimeout(0);
             cur = join.entities(txn, CursorConfig.READ_UNCOMMITTED);
         } catch(DatabaseException e) {
@@ -1007,14 +987,21 @@ public class BerkeleyDataWrapper {
         long ret = 0;
         try {
             ForwardCursor<PersistentAttention> cur = null;
+            Transaction txn = null;
             try {
-                cur = join.entities(null, CursorConfig.READ_UNCOMMITTED);
+                TransactionConfig conf = new TransactionConfig();
+                conf.setReadUncommitted(true);
+                txn = dbEnv.beginTransaction(null, conf);
+                cur = join.entities(txn, CursorConfig.READ_UNCOMMITTED);
                 for(PersistentAttention attn : cur) {
                     ret++;
                 }
             } finally {
                 if(cur != null) {
                     cur.close();
+                }
+                if (txn != null) {
+                    txn.commitNoSync();
                 }
             }
         } catch(DatabaseException e) {
@@ -1038,7 +1025,9 @@ public class BerkeleyDataWrapper {
         ForwardCursor cur = null;
         Transaction txn = null;
         try {
-            txn = dbEnv.beginTransaction(null, null);
+            TransactionConfig conf = new TransactionConfig();
+            conf.setReadUncommitted(true);
+            txn = dbEnv.beginTransaction(null, conf);
             txn.setTxnTimeout(0);
             cur = join.entities(txn, CursorConfig.READ_UNCOMMITTED);
         } catch(DatabaseException e) {
@@ -1073,8 +1062,12 @@ public class BerkeleyDataWrapper {
         long ret = 0;
         try {
             ForwardCursor<PersistentAttention> cur = null;
+            Transaction txn = null;
             try {
-                cur = join.entities(null, CursorConfig.READ_UNCOMMITTED);
+                TransactionConfig conf = new TransactionConfig();
+                conf.setReadUncommitted(true);
+                txn = dbEnv.beginTransaction(null, conf);
+                cur = join.entities(txn, CursorConfig.READ_UNCOMMITTED);
                 for(PersistentAttention attn : cur) {
                     //
                     // Post process the date filter in memory
@@ -1085,6 +1078,9 @@ public class BerkeleyDataWrapper {
             } finally {
                 if(cur != null) {
                     cur.close();
+                }
+                if (txn != null) {
+                    txn.commitNoSync();
                 }
             }
         } catch(DatabaseException e) {
@@ -1114,7 +1110,9 @@ public class BerkeleyDataWrapper {
         EntityCursor c = null;
         Transaction txn = null;
         try {
-            txn = dbEnv.beginTransaction(null, null);
+            TransactionConfig conf = new TransactionConfig();
+            conf.setReadUncommitted(true);
+            txn = dbEnv.beginTransaction(null, conf);
             //
             // This transaction is read-only and it is up to the developer
             // to release it.  Don't time out the transaction.
@@ -1254,13 +1252,17 @@ public class BerkeleyDataWrapper {
                 interval);
         StringAndTimeKey end = new StringAndTimeKey(srcKey + 1, recentTime);
         EntityCursor<PersistentAttention> cursor = null;
+        Transaction txn = null;
         try {
             try {
                 //
                 // Examine each item in the cursor in reverse order (newest
                 // first) to see if it matches our requirements.  If so, add
                 // it to our return set.
-                cursor = attnBySourceAndTime.entities(begin, true, end, false);
+                TransactionConfig conf = new TransactionConfig();
+                conf.setReadUncommitted(true);
+                txn = dbEnv.beginTransaction(null, conf);
+                cursor = attnBySourceAndTime.entities(txn, begin, true, end, false, CursorConfig.READ_UNCOMMITTED);
                 PersistentAttention curr = cursor.last();
                 while(curr != null && count > 0) {
                     if((type == null) || (curr.getType().equals(type))) {
@@ -1272,6 +1274,9 @@ public class BerkeleyDataWrapper {
             } finally {
                 if(cursor != null) {
                     cursor.close();
+                }
+                if (txn != null) {
+                    txn.commitNoSync();
                 }
             }
         } catch(DatabaseException e) {
