@@ -54,6 +54,11 @@ public interface PCStrategy {
     public Item getItem(String key) throws AuraException, RemoteException;
 
     /**
+     * Gets items associated with a number of keys.
+     */
+    public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException, RemoteException;
+
+    /**
      * Get a user by the random string associated with the user
      */
     public User getUserForRandomString(String randStr)

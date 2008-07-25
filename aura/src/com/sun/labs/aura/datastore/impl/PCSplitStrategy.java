@@ -141,6 +141,14 @@ public class PCSplitStrategy implements PCStrategy {
         }
     }
 
+    public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException, RemoteException {
+        List<Scored<Item>> ret = new ArrayList();
+        for(Scored<String> key : keys) {
+            ret.add(new Scored<Item>(getItem(key.getItem()), key));
+        }
+        return ret;
+    }
+
     public User getUserForRandomString(String randStr) throws AuraException, RemoteException {
         //
         // The first 8 characters of the random string are the hash code of
