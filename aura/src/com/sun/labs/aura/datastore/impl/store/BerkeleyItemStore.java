@@ -299,6 +299,20 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     public Item getItem(String key) throws AuraException {
         return bdb.getItem(key);
     }
+    
+    public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException {
+        NanoWatch nw = new NanoWatch();
+        nw.start();
+        List<Scored<Item>> ret = new ArrayList();
+        for(Scored<String> key : keys) {
+            ret.add(new Scored<Item>(getItem(key.getItem()), key));
+        }
+        nw.stop();
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("rep %s gIs for %d took %.3f", prefixString, keys.size(), nw.getTimeMillis()));
+        }
+        return ret;
+    }
 
     public User getUser(String key) throws AuraException {
         return (User) bdb.getItem(key);

@@ -1,4 +1,3 @@
-
 package com.sun.labs.aura.datastore.impl.store;
 
 import com.sun.labs.aura.datastore.DBIterator;
@@ -9,6 +8,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.util.Scored;
 import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.EnumSet;
@@ -36,7 +36,7 @@ public interface ItemStore {
      */
     public void defineField(ItemType itemType, String field)
             throws AuraException, RemoteException;
-    
+
     /**
      * Defines a particular field for a given item type.  It is acceptable to define
      * a field multiple times if the same capabilities and type are provided each
@@ -57,9 +57,10 @@ public interface ItemStore {
      * is supplied with a set of attributes that do not require a field type or
      * when a field type is not supplied when one is required.
      */
-    public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
+    public void defineField(ItemType itemType, String field,
+            EnumSet<Item.FieldCapability> caps,
             Item.FieldType fieldType) throws AuraException, RemoteException;
-    
+
     /**
      * Gets all of the items in the store that are of the given type.  This
      * could be a very large operation.
@@ -72,7 +73,7 @@ public interface ItemStore {
 
     public DBIterator<Item> getAllIterator(ItemType itemType)
             throws AuraException, RemoteException;
-    
+
     /**
      * Gets an item from the store that has the given key
      * 
@@ -82,7 +83,6 @@ public interface ItemStore {
      */
     public Item getItem(String key)
             throws AuraException, RemoteException;
-
 
     /**
      * Gets a user from the store that has the given key
@@ -105,7 +105,7 @@ public interface ItemStore {
      */
     public User getUserForRandomString(String randStr)
             throws AuraException, RemoteException;
-    
+
     /**
      * Delete a user from the date store.  This will remove the user item and
      * any attention that the user has created.
@@ -128,7 +128,6 @@ public interface ItemStore {
     public void deleteItem(String key)
             throws AuraException, RemoteException;
 
-    
     /**
      * Puts an item into the ItemStore.  The Item may be either a new Item
      * or a modification of an existing Item that was retrieved using one of
@@ -173,7 +172,7 @@ public interface ItemStore {
             ItemType type,
             Date timeStamp)
             throws AuraException, RemoteException;
-    
+
     /**
      * Gets all the items of a particular type to which a particular user has
      * given a particular type of attention.
@@ -188,7 +187,6 @@ public interface ItemStore {
             User user,
             Attention.Type attnType,
             ItemType itemType) throws AuraException, RemoteException;
-
 
     /**
      * Get all the attention related to a particular item
@@ -211,7 +209,7 @@ public interface ItemStore {
     @Deprecated
     public List<Attention> getAttentionForTarget(String itemKey)
             throws AuraException, RemoteException;
-    
+
     /**
      * Get all the attention matching a particular set of constraints.  Set
      * the various fields of the AttentionConfig to describe the matching
@@ -225,7 +223,7 @@ public interface ItemStore {
      */
     public List<Attention> getAttention(AttentionConfig ac)
             throws AuraException, RemoteException;
-    
+
     /**
      * Get an iterator over the attention matching a particular set of
      * constraints.  Set the various fields of the AttentionConfig to describe
@@ -251,7 +249,7 @@ public interface ItemStore {
      */
     public Long getAttentionCount(AttentionConfig ac)
             throws AuraException, RemoteException;
-    
+
     /**
      * Gets all the attention recorded since a particular time that match
      * a particular set of constraints.  Set the various fields of
@@ -265,9 +263,9 @@ public interface ItemStore {
      * @throws com.sun.labs.aura.util.AuraException if no constraints are set
      */
     public List<Attention> getAttentionSince(AttentionConfig ac,
-                                             Date timeStamp)
+            Date timeStamp)
             throws AuraException, RemoteException;
-    
+
     /**
      * Gets an iterator over all the attention recorded since a particular time
      * that match a particular set of constraints.  Set the
@@ -282,9 +280,9 @@ public interface ItemStore {
      * specified
      */
     public DBIterator<Attention> getAttentionSinceIterator(AttentionConfig ac,
-                                                           Date timeStamp)
+            Date timeStamp)
             throws AuraException, RemoteException;
-    
+
     /**
      * Gets a count of all the attentions recorded since a particular time that
      * match a particular set of constraints.  Set the various fields of the
@@ -295,9 +293,9 @@ public interface ItemStore {
      * @return a count of the attentions that match
      */
     public Long getAttentionSinceCount(AttentionConfig ac,
-                                       Date timeStamp)
+            Date timeStamp)
             throws AuraException, RemoteException;
-    
+
     /**
      * Gets the last N attentions recorded that match
      * a particular set of constraints.  Set the various fields of
@@ -312,9 +310,9 @@ public interface ItemStore {
      * @throws com.sun.labs.aura.util.AuraException if no constraints are set
      */
     public List<Attention> getLastAttention(AttentionConfig ac,
-                                            int count)
+            int count)
             throws AuraException, RemoteException;
-    
+
     /**
      * Adds attention to the the ItemStore.  The Attention should contain
      * the User, the Item, the type of attention, and optionally a value
@@ -340,7 +338,7 @@ public interface ItemStore {
      */
     public List<Attention> attend(List<Attention> attns)
             throws AuraException, RemoteException;
-    
+
     /**
      * Remove attention of a particular type between a source object and a 
      * target object.  If more than one such attention exists, all matching
@@ -352,10 +350,10 @@ public interface ItemStore {
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public void removeAttention(String srcKey, String targetKey, 
-                                Attention.Type type)
+    public void removeAttention(String srcKey, String targetKey,
+            Attention.Type type)
             throws AuraException, RemoteException;
-    
+
     /**
      * Gets all the attention that has been added to the store since a
      * particular date.  Returns an iterator over the attention that must be
@@ -368,7 +366,7 @@ public interface ItemStore {
     @Deprecated
     public DBIterator<Attention> getAttentionSince(Date timeStamp)
             throws AuraException, RemoteException;
-    
+
     /**
      * Get all the attention for a source since a particular time.  Returns
      * an iterator over the attention that must be closed when reading is
@@ -382,7 +380,7 @@ public interface ItemStore {
     @Deprecated
     public DBIterator<Attention> getAttentionForSourceSince(String sourceKey,
             Date timeStamp) throws AuraException, RemoteException;
-    
+
     /**
      * Get all the attention for a target since a particular time.  Returns
      * an iterator over the attention that must be closed when reading is
@@ -406,7 +404,7 @@ public interface ItemStore {
      * @return the most recent attentions, sorted by date
      */
     public List<Attention> getLastAttentionForSource(String srcKey,
-                                                          int count)
+            int count)
             throws AuraException, RemoteException;
 
     /**
@@ -419,10 +417,10 @@ public interface ItemStore {
      * @return the most recent attentions, sorted by date
      */
     public List<Attention> getLastAttentionForSource(String srcKey,
-                                                          Attention.Type type,
-                                                          int count)
+            Attention.Type type,
+            int count)
             throws AuraException, RemoteException;
-    
+
     /**
      * Adds an ItemListener to this ItemStore.  ItemListeners are sent
      * batches of Item-related events.  The policy for when to send events
@@ -438,10 +436,9 @@ public interface ItemStore {
      * @param listener the listener to which events are delivered
      */
     public void addItemListener(ItemType itemType,
-                                ItemListener listener)
+            ItemListener listener)
             throws AuraException, RemoteException;
-    
-   
+
     /**
      * Removes an ItemListener from this ItemStore.  Since the same
      * ItemListener may listen for multiple different ItemTypes, the type
@@ -455,7 +452,7 @@ public interface ItemStore {
      * @param listener the listener to which events should no longer be sent
      */
     public void removeItemListener(ItemType itemType,
-                                   ItemListener listener)
+            ItemListener listener)
             throws AuraException, RemoteException;
 
     /**
@@ -467,7 +464,7 @@ public interface ItemStore {
      */
     public long getItemCount(ItemType itemType)
             throws AuraException, RemoteException;
-    
+
     /**
      * Gets the count of the number of attentions in the data store
      * 
@@ -475,11 +472,10 @@ public interface ItemStore {
      */
     @Deprecated
     public long getAttentionCount() throws AuraException, RemoteException;
-    
+
     /**
      * Closes the item store cleanly.  This should be called before the
      * application exits.
      */
     public void close() throws AuraException, RemoteException;
-
 }

@@ -16,6 +16,7 @@ import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator;
+import com.sun.labs.aura.util.ReverseScoredComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.aura.util.WordCloud;
@@ -198,34 +199,72 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return item;
     }
 
-    private List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException {
+    private List<Scored<Item>> getItems(List<Scored<String>> keys) throws RemoteException, AuraException {
 
         NanoWatch nw = new NanoWatch();
         nw.start();
-        List<Callable<Scored<Item>>> callers =
-                new ArrayList<Callable<Scored<Item>>>();
+        List<Callable<List<Scored<Item>>>> callers =
+                new ArrayList();
+        
+        //
+        // Figure out which partitions we need to talk to.
+        Map<PartitionCluster,List<Scored<String>>> m = new HashMap();
         for(Scored<String> key : keys) {
-            callers.add(new ItemCallable(key));
+            PartitionCluster pc = trie.get(DSBitSet.parse(key.getItem().hashCode()));
+            List<Scored<String>> l = m.get(pc);
+            if(l == null) {
+                l = new ArrayList();
+                m.put(pc, l);
+            }
+            l.add(key);
         }
+        
+        List<Scored<Item>> ret;
+        
+        if(m.size() == 1) {
+            //
+            // A single partition is typical when looking for a particular item
+            Map.Entry<PartitionCluster,List<Scored<String>>> e = m.entrySet().iterator().next();
+            ret = e.getKey().getItems(e.getValue());
+        } else {
 
-        try {
-            List<Future<Scored<Item>>> l = executor.invokeAll(callers);
-            List<Scored<Item>> ret = new ArrayList<Scored<Item>>();
-            for(Future<Scored<Item>> f : l) {
-                ret.add(f.get());
+            //
+            // Run the gets in parallel
+            for(Map.Entry<PartitionCluster, List<Scored<String>>> e : m.entrySet()) {
+                callers.add(new PCCaller(e.getKey(), e.getValue()) {
+                    public List<Scored<Item>> call()
+                            throws AuraException, RemoteException {
+                        List<Scored<Item>> ret = pc.getItems(keys);
+                        if(logger.isLoggable(Level.FINER)) {
+                            logger.finer(String.format("dsh pc %s gis return", pc.getPrefix().
+                                    toString()));
+                        }
+                        return ret;
+                    }
+                });
             }
-            nw.stop();
-            if(logger.isLoggable(Level.FINER)) {
-                logger.finer(String.format("dsh gIs for %d took %.3f",
-                        keys.size(),
-                        nw.getTimeMillis()));
+
+            try {
+                List<Future<List<Scored<Item>>>> l = executor.invokeAll(callers);
+                ret = new ArrayList<Scored<Item>>();
+                for(Future<List<Scored<Item>>> f : l) {
+                    ret.addAll(f.get());
+                }
+                Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
+
+            } catch(InterruptedException ie) {
+                throw new AuraException("Interrupted while getting items", ie);
+            } catch(ExecutionException ee) {
+                throw new AuraException("Error getting items", ee);
             }
-           return ret;
-        } catch(InterruptedException ie) {
-            throw new AuraException("Interrupted while getting items", ie);
-        } catch(ExecutionException ee) {
-            throw new AuraException("Error getting items", ee);
         }
+        nw.stop();
+        if(logger.isLoggable(Level.FINER)) {
+            logger.finer(String.format("dsh gIs for %d took %.3f",
+                    keys.size(),
+                    nw.getTimeMillis()));
+        }
+        return ret;
     }
 
     public User getUser(String key) throws AuraException, RemoteException {

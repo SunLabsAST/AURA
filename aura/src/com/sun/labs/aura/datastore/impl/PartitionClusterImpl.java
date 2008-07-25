@@ -92,6 +92,10 @@ public class PartitionClusterImpl implements PartitionCluster,
     public Item getItem(String key) throws AuraException, RemoteException {
         return strategy.getItem(key);
     }
+    
+    public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException, RemoteException {
+        return strategy.getItems(keys);
+    }
 
     public User getUser(String key) throws AuraException, RemoteException {
         return (User)strategy.getItem(key);

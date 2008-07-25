@@ -51,8 +51,12 @@ public class PCDefaultStrategy implements PCStrategy {
         return replicant.getItem(key);
     }
 
+    public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException, RemoteException {
+        return replicant.getItems(keys);
+    }
+
     public User getUserForRandomString(String randStr) throws AuraException, RemoteException {
-       return replicant.getUserForRandomString(randStr);
+        return replicant.getUserForRandomString(randStr);
     }
 
     public Item putItem(Item item) throws AuraException, RemoteException {
