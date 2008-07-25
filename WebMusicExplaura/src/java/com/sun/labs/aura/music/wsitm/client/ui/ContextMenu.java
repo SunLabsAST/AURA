@@ -17,8 +17,8 @@ import com.gwtext.client.widgets.menu.BaseItem;
 import com.gwtext.client.widgets.menu.Item;
 import com.gwtext.client.widgets.menu.Menu;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
-import com.sun.labs.aura.music.wsitm.client.DataEmbededCommand;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededBaseItemListener;
+import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededBaseItemListener;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import java.util.LinkedList;
 
@@ -32,9 +32,14 @@ public class ContextMenu implements EventPreview {
     private boolean isVisible = false;
 
     private LinkedList<Item> itemList;
-
+  
     public ContextMenu() {
         menu = null;
+        itemList = new LinkedList<Item>();
+    }
+    
+    public ContextMenu(Menu menu) {
+        this.menu = menu;
         itemList = new LinkedList<Item>();
     }
 
@@ -85,6 +90,12 @@ public class ContextMenu implements EventPreview {
         isVisible = true;
     }
     
+    public void showSharedMenu(Event e, ItemInfo tag) {
+        DOM.addEventPreview(this);
+        ((SharedMenu) menu).showAt(e.getClientX(), e.getClientY(), tag);
+        isVisible = true;
+    }
+
     public boolean onEventPreview(Event event) {
 
         if (isVisible) {
@@ -103,36 +114,10 @@ public class ContextMenu implements EventPreview {
             }
         }
         return true;
-    }
     
-    /**
-     * Add the standard tag context menu items to the provided context menu capable object
-     * @param cm
-     * @param tag
-     */
-    public void addStandardTagContextMenu(ClientDataManager cdm, ItemInfo tag) {
-
-        addItem("View tag details", new DataEmbededCommand<String, String>(tag.getId()) {
-
-            public void execute() {
-                History.newItem("tag:" + data);
-            }
-        });
-        addItem("Add tag to current steerable tag cloud", new DataEmbededCommand<ClientDataManager,ItemInfo>(cdm, tag) {
-
-            public void execute() {
-                data.getSteerableTagCloudExternalController().addTag(sndData);
-            }
-        });
-        addItem("View similar tags", new Command() {
-
-            public void execute() {
-                Window.alert("Not yet implemented");
-            }
-        });
-
+         
     }
-    
+     
     private void initMenu() {
         if (menu == null) {
             menu = new Menu();
@@ -146,5 +131,10 @@ public class ContextMenu implements EventPreview {
     public interface HasContextMenu {
 
         public ContextMenu getContextMenu();
+    }
+    
+    public interface SharedMenu {
+        
+        public void showAt(int x, int y, ItemInfo currTag);
     }
 }

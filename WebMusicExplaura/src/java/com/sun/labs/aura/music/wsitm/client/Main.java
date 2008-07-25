@@ -103,7 +103,7 @@ public class Main implements EntryPoint, HistoryListener {
 
         PageHeaderWidget uP = new PageHeaderWidget(cdm);
         cdm.registerSwidget(uP);
-        cdm.setWidgets(uP, (SimpleSearchSwidget)artistSearch);
+        cdm.setWidgets(uP);
         
         mainPanel.add(uP, DockPanel.NORTH);
         mainPanel.add(title, DockPanel.NORTH);

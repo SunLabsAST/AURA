@@ -5,16 +5,13 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui;
 
-import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
-import com.sun.labs.aura.music.wsitm.client.*;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.ClickListenerCollection;
+import com.gwtext.client.widgets.menu.Menu;
 import com.sun.labs.aura.music.wsitm.client.event.SourcesRightClickEvents;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
 
@@ -25,12 +22,26 @@ import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
 public class ContextMenuSpannedLabel extends SpannedLabel implements SourcesRightClickEvents, HasContextMenu {
 
     private ClickListenerCollection rightClickListeners;
-    private ContextMenu cm;
+    protected ContextMenu cm;
 
+    /**
+     * Construct with a specific context menu
+     * @param txt
+     * @param sharedMenu
+     */
+    public ContextMenuSpannedLabel(String txt, Menu sharedMenu) {
+        super(txt);
+        this.cm = new ContextMenu(sharedMenu);
+        init();
+    }
+    
     public ContextMenuSpannedLabel(String txt) {
         super(txt);
         cm = new ContextMenu();
-        
+        init();
+    }
+    
+    private void init() {
         sinkEvents(Event.ONCONTEXTMENU);
         rightClickListeners = new ClickListenerCollection();
     }

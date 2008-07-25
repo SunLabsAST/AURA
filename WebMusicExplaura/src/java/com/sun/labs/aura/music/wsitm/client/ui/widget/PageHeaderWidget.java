@@ -144,18 +144,17 @@ public class PageHeaderWidget extends Swidget {
 
                     public void onChange(Widget arg0) {
 
-                            String newSelectName = listbox.getItemText(listbox.getSelectedIndex());
+                        String newSelectName = listbox.getItemText(listbox.getSelectedIndex());
 
-                            // If the selection has changed
-                            if (!cdm.getCurrSimTypeName().equals(newSelectName)) {
-                                cdm.setCurrSimTypeName(newSelectName);
+                        // If the selection has changed
+                        if (!cdm.getCurrSimTypeName().equals(newSelectName)) {
+                            cdm.setCurrSimTypeName(newSelectName);
 
-                                if (!cdm.getCurrArtistID().equals("")) {
-                                    cdm.displayWaitIconUpdatableWidgets();
-                                    invokeGetArtistInfo(cdm.getCurrArtistID(),false);
-                                }
+                            if (!cdm.getCurrArtistID().equals("")) {
+                                cdm.displayWaitIconUpdatableWidgets();
+                                invokeGetArtistInfo(cdm.getCurrArtistID(), false);
                             }
-
+                        }
                     }
                 });
             }
@@ -474,14 +473,6 @@ public class PageHeaderWidget extends Swidget {
                     }
                 }
             }
-            SpannedLabel pwet = new SpannedLabel("nbr");
-            pwet.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
-                    ((Label)arg0).setText(cdm.getLoginListenerManager().countListeners()+"-"+cdm.getRatingListenerManager().countItemBoundedListeners());
-                }
-            });
-            hP.add(pwet);
             p.setWidget(0, 0, hP);
         }
 

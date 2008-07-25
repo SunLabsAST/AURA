@@ -104,7 +104,8 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                 }
 
                 CompactArtistWidget caw = new OverWroteOnClickCompactArtistWidget(aD, cdm,
-                        musicServer, new WhyButton(aD.getId(), aD.getName()), rating, null, this);
+                        musicServer, new WhyButton(aD.getId(), aD.getName()), 
+                        rating, null, this);
                 artistWidgetList.add(caw);
 
                 vP.add(new DeletableWidget<CompactArtistWidget>(caw, new HorizontalPanel()) {
@@ -112,7 +113,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                     public void onDelete() {
                         this.getWidget().doRemoveListeners();
                         this.slideOut(Direction.UP,
-                                new DataEmbededCommand<VerticalPanel, DeletableWidget>(((VerticalPanel) g.getWidget(0, 0)), this) {
+                                new DualDataEmbededCommand<VerticalPanel, DeletableWidget>(((VerticalPanel) g.getWidget(0, 0)), this) {
 
                             public void execute() {
                                 data.remove(sndData);
@@ -231,6 +232,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
             this.aLW = aLW;
         }
 
+        @Override
         public void onTagClick(ItemInfo tag) {
             aLW.onTagClick(tag);
         }

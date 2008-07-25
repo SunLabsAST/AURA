@@ -4,14 +4,14 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
-import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.Event;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Random;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -22,14 +22,14 @@ import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.gwtext.client.widgets.menu.BaseItem;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget.WhyButton;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistPhoto;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
-import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
+import com.sun.labs.aura.music.wsitm.client.ui.SharedTagMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedFlowPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import java.util.ArrayList;
@@ -87,30 +87,30 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         aName.addStyleName("image");
         //
         //  Create context menu
-        aName.getContextMenu().addItem("View artist details", new DataEmbededCommand<String,String>("artist:" + aD.getId()) {
+        aName.getContextMenu().addItem("View artist details", new DataEmbededCommand<String>("artist:" + aD.getId()) {
 
             public void execute() {
                 History.newItem(data);
             }
         });
-        aName.getContextMenu().addItem("View tag cloud", new DataEmbededCommand<String, ItemInfo[]>(aD.getName(), aD.getDistinctiveTags()) {
+        aName.getContextMenu().addItem("View tag cloud", new DualDataEmbededCommand<String, ItemInfo[]>(aD.getName(), aD.getDistinctiveTags()) {
 
             public void execute() {
                 TagDisplayLib.showTagCloud("Tag cloud for "+data, sndData);
             }
         });
         //aName.getContextMenu().addSeperator();
-        aName.getContextMenu().addItem("Start new steerable from artist", new DataEmbededCommand<String,ClientDataManager>(aD.getId(), cdm) {
+        aName.getContextMenu().addItem("Start new steerable from artist", new DualDataEmbededCommand<String,ClientDataManager>(aD.getId(), cdm) {
 
             public void execute() {
                 sndData.setSteerableReset(true);
                 History.newItem("steering:" + data);
             }
         });
-        aName.getContextMenu().addItem("Add artist's top tags to steerable", new Command() {
+        aName.getContextMenu().addItem("Add artist's top tags to steerable", new DualDataEmbededCommand<ItemInfo[],ClientDataManager>(aD.getDistinctiveTags(), cdm) {
 
             public void execute() {
-                Window.alert("Not implemented");
+                sndData.getSteerableTagCloudExternalController().addTags(data);
             }
         });
         
@@ -231,17 +231,11 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         title.addStyleName("bold");
         tagPanel.add(title);
         for (int i = 0; i < tagList.size(); i++) {
-            ContextMenuSpannedLabel t = new ContextMenuSpannedLabel(tagList.get(i).getItemName());
+            ContextMenuSpannedLabel t = new ContextMenuTagLabel(tagList.get(i), cdm);
             t.addStyleName("pointer");
 
-            //
-            // Create context menu
-            t.getContextMenu().addStandardTagContextMenu(cdm, tagList.get(i));
-
-            //
             // Add main click listener
             t.addClickListener(new DataEmbededClickListener<ItemInfo>(tagList.get(i)) {
-
                 public void onClick(Widget arg0) {
                     onTagClick(data);
                 }
@@ -263,7 +257,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         tagPanel.add(addTagPanel);
         return tagPanel;
     }
-
+    
     private class MouseOverRollImage extends ContextMenuImage {
 
         private ArtistPhoto[] photos;

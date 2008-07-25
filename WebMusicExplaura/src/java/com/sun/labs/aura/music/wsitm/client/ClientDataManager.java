@@ -19,6 +19,7 @@ import com.sun.labs.aura.music.wsitm.client.event.TagCloudListener;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.ui.SharedTagMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.TagWidgetContainer;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,6 +68,8 @@ public class ClientDataManager {
     private Store artistOracle;
     private Store tagOracle;
 
+    private SharedTagMenu sharedTagMenu;
+
     public ClientDataManager() {
         lD = new ListenerDetails();
         registeredSwidgets = new HashSet<Swidget>();
@@ -76,6 +79,9 @@ public class ClientDataManager {
         loginListenerManager = new LoginListenerManager();
         tagCloudListenerManager = new TagCloudListenerManager();
         steerableTagCloudExternalController = new SteerableTagCloudExternalController();
+
+        sharedTagMenu = new SharedTagMenu(this);
+
     }
 
     public RatingListenerManager getRatingListenerManager() {
@@ -96,6 +102,10 @@ public class ClientDataManager {
     
     public SteerableTagCloudExternalController getSteerableTagCloudExternalController() {
         return steerableTagCloudExternalController;
+    }
+
+    public SharedTagMenu getSharedTagMenu() {
+        return sharedTagMenu;
     }
 
     public Store getTagOracle() {
@@ -130,20 +140,13 @@ public class ClientDataManager {
         registeredSwidgets.remove(s);
     }
 
-    public void setWidgets(PageHeaderWidget phw, SimpleSearchSwidget ssw) {
+    public void setWidgets(PageHeaderWidget phw) {
         this.phw = phw;
-        //this.ssw = ssw;
     }
 
     public PageHeaderWidget getPageHeaderWidget() {
         return phw;
     }
-
-    /*
-    public SimpleSearchSwidget getSimpleSearchWidget() {
-        return ssw;
-    }
-     * */
 
     public boolean getSteerableReset() {
         return forceSteerableReset;
@@ -520,6 +523,12 @@ public class ClientDataManager {
                 return tagLand.containsTag(tagId);
             } else {
                 return false;
+            }
+        }
+
+        public void addTags(ItemInfo[] tags) {
+            if (init) {
+                tagLand.addTags(tags, 10);
             }
         }
     }
