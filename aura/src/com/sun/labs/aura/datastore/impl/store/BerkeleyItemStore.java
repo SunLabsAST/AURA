@@ -668,6 +668,15 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         return bdb.getAttentionCount();
     }
 
+    public long getDBSize() {
+        return bdb.getSize();
+    }
+    
+    public long getIndexSize() {
+        return searchEngine.getSize();
+    }
+
+    
     /**
      * Internal method to handle sending/queueing item changed events.
      */

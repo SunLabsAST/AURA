@@ -7,6 +7,7 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.DeadlockException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.EnvironmentStats;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.Transaction;
 import com.sleepycat.je.TransactionConfig;
@@ -1355,6 +1356,21 @@ public class BerkeleyDataWrapper {
             }
         }
 
+    }
+    
+    /**
+     * Gets the size of the database in bytes
+     * 
+     * @return the size in bytes
+     */
+    public long getSize() {
+        try {
+            EnvironmentStats stats = dbEnv.getStats(null);
+            return stats.getTotalLogSize();
+        } catch (DatabaseException e) {
+            log.warning("Failed to get DB stats: " + e.getMessage());
+        }
+        return 0;
     }
     
     protected void handleCursorException(ForwardCursor cur, Transaction txn, Exception cause)

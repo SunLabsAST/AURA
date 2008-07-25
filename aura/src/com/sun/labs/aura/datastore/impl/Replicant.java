@@ -36,5 +36,20 @@ public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote 
      */
     public void removeAttention(String itemKey)
             throws AuraException, RemoteException;
+    
+    /**
+     * Gets the on-disk size of the database component of the replicant in
+     * bytes.
+     * 
+     * @return the size in bytes
+     */
+    public long getDBSize() throws RemoteException;
+    
+    /**
+     * Gets the on-disk size of the index component of the replicant in bytes.
+     * 
+     * @return the size in bytes
+     */
+    public long getIndexSize() throws RemoteException;
 
 }
