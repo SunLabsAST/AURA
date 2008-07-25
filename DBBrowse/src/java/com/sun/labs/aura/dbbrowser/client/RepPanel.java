@@ -19,8 +19,14 @@ public class RepPanel extends FlowPanel {
         this.rep = rep;
         setStylePrimaryName("viz-repPanel");
         add(new Label("Replicant"));
-        add(new StyleLabel("DB Size:  MB", "viz-statLabel"));
-        add(new StyleLabel("Index Size:  MB", "viz-statLabel"));
+        long dbSize = rep.getDBSize();
+        dbSize /= 1024 * 1024;
+        add(new StyleLabel("DB Size:  " + dbSize + "MB",
+                           "viz-statLabel"));
+        long indexSize = rep.getIndexSize();
+        indexSize /= 1024 * 1024;
+        add(new StyleLabel("Index Size:  " + indexSize + "MB",
+                           "viz-statLabel"));
         add(new StyleLabel("Halt", "viz-actionLabel"));
     }
     

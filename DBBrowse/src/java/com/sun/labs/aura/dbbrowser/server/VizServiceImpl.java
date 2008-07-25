@@ -158,6 +158,12 @@ public class VizServiceImpl extends RemoteServiceServlet implements
      */
     protected RepInfo newRepInfo(Replicant rep) {
         RepInfo ret = new RepInfo();
+        try {
+           ret.setDBSize(rep.getDBSize());
+           ret.setIndexSize(rep.getIndexSize());
+        } catch (RemoteException e) {
+            logger.warning("Failed to get rep info: " + e.getMessage());
+        }
         return ret;
     }
 }
