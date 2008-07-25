@@ -15,9 +15,11 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.PageHeaderWidget;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.gwtext.client.data.Store;
+import com.sun.labs.aura.music.wsitm.client.event.TagCloudListener;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.TagWidgetContainer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -40,18 +42,17 @@ public class ClientDataManager {
     private Map<String, String> simTypes;
     private String currSimTypeName;
     
-    private ItemInfo[] tagCloud;
-    private Map<String, Integer> tagMap; // maps the tag name to the index at which it is in the tagCloud
-    
     private Double maxScore;
     private Map<String, Double> favArtist;
     
     private PageHeaderWidget phw;
-    //private SimpleSearchSwidget ssw;
 
     private RatingListenerManager ratingListenerManager;
     private TaggingListenerManager taggingListenerManager;
     private LoginListenerManager loginListenerManager;
+    private TagCloudListenerManager tagCloudListenerManager;
+    
+    private SteerableTagCloudExternalController steerableTagCloudExternalController;
 
     /**
      * If true, steerableswidget will reload artist cloud if querystring is set
@@ -73,6 +74,8 @@ public class ClientDataManager {
         ratingListenerManager = new RatingListenerManager();
         taggingListenerManager = new TaggingListenerManager();
         loginListenerManager = new LoginListenerManager();
+        tagCloudListenerManager = new TagCloudListenerManager();
+        steerableTagCloudExternalController = new SteerableTagCloudExternalController();
     }
 
     public RatingListenerManager getRatingListenerManager() {
@@ -85,6 +88,14 @@ public class ClientDataManager {
 
     public LoginListenerManager getLoginListenerManager() {
         return loginListenerManager;
+    }
+    
+    public TagCloudListenerManager getTagCloudListenerManager() {
+        return tagCloudListenerManager;
+    }
+    
+    public SteerableTagCloudExternalController getSteerableTagCloudExternalController() {
+        return steerableTagCloudExternalController;
     }
 
     public Store getTagOracle() {
@@ -146,37 +157,6 @@ public class ClientDataManager {
         return maxScore;
     }
 
-    public ItemInfo[] getTagCloud() {
-        return tagCloud;
-    }
-
-    public Map<String, Integer> getTagMap() {
-        return tagMap;
-    }
-
-    public void setTagCloud(ItemInfo[] tagCloud, String lastFmUser,
-            ArtistDetails[] artistDetails) {
-
-        this.tagCloud = tagCloud;
-        //this.lastFmUser = lastFmUser;
-
-        tagMap = new HashMap<String, Integer>();
-        for (int i = 0; i < tagCloud.length; i++) {
-            tagMap.put(tagCloud[i].getId(), i);
-        }
-
-        favArtist = new HashMap<String, Double>();
-        maxScore = -1.0;
-        for (ArtistDetails aD : artistDetails) {
-            double score = computeTastauraMeterScore(aD);
-            if (score > maxScore) {
-                maxScore = score;
-            }
-            //Window.alert("putting "+aD.getName()+" with "+score);
-            favArtist.put(aD.getName(), score);
-        }
-    }
-
     public String getLastFmUser() {
         return lD.lastfmUser;
     }
@@ -205,9 +185,6 @@ public class ClientDataManager {
     }
 
     public void resetUser() {
-        tagCloud = null;
-        tagMap = null;
-
         setListenerDetails(new ListenerDetails());
     }
 
@@ -239,7 +216,7 @@ public class ClientDataManager {
         key = key.replaceAll("\\W", "").toLowerCase();
         return key;
     }
-
+/*
     public double computeTastauraMeterScore(ArtistDetails aD) {
 
         if (true) {
@@ -267,6 +244,7 @@ public class ClientDataManager {
         //Window.alert("Score:"+score+"\nMax score:"+cdm.getMaxScore());
         return score;
     }
+   */
     
     /**
      * Updates all the registered widgets with the new artist details information
@@ -322,8 +300,6 @@ public class ClientDataManager {
     public String getCurrSearchWidgetToken() {
         return currSearchWidgetToken;
     }
-
-
 
     public class ListenerManager <T extends WebListener> {
 
@@ -443,6 +419,107 @@ public class ClientDataManager {
                 for (TaggingListener tL : itemIdBoundedListeners.get(itemId)) {
                     tL.onTag(itemId, tags);
                 }
+            }
+        }
+    }
+    
+    public class TagCloudListenerManager extends ItemBoundedListenerManager<TagCloudListener> {
+
+        private boolean active = true;
+
+        public TagCloudListenerManager() {
+            super();
+        }
+        
+        public void triggerOnTagAdd(String tagId) {
+            if (active) {
+                for (TagCloudListener tcL : listeners) {
+                    tcL.onTagAdd(tagId);
+                }
+                if (itemIdBoundedListeners.containsKey(tagId)) {
+                    for (TagCloudListener tcL : itemIdBoundedListeners.get(tagId)) {
+                        tcL.onTagAdd(tagId);
+                    }
+                }
+            }
+        }
+
+        public void triggerOnTagDelete(String tagId) {
+            if (active) {
+                for (TagCloudListener tcL : listeners) {
+                    tcL.onTagDelete(tagId);
+                }
+                if (itemIdBoundedListeners.containsKey(tagId)) {
+                    for (TagCloudListener tcL : itemIdBoundedListeners.get(tagId)) {
+                        tcL.onTagDelete(tagId);
+                    }
+                }
+            }
+        }
+        
+        public void triggerOnTagDeleteAll() {
+            if (active) {
+                for (TagCloudListener tcL : listeners) {
+                    tcL.onTagDeleteAll();
+                }
+                for (String key : itemIdBoundedListeners.keySet()) {
+                    for (TagCloudListener tcL : itemIdBoundedListeners.get(key)) {
+                        tcL.onTagDeleteAll();
+                    }
+                }
+            }
+        }
+
+        /**
+         * Prevents any notifications from reaching listeners until notifications are reenabled
+         */
+        public void disableNotifications() {
+            active = false;
+        }
+
+        /**
+         * Allow notifications to reach listeners if they were previously disabled
+         */
+        public void enableNotifications() {
+            active = true;
+        }
+    }
+    
+    public class SteerableTagCloudExternalController {
+        
+        private TagWidgetContainer tagLand;
+        private boolean init;
+
+        public SteerableTagCloudExternalController() {
+            tagLand = null;
+            init = false;
+        }
+        
+        public SteerableTagCloudExternalController(TagWidgetContainer tagLand) {
+            if (tagLand != null) {
+                this.tagLand = tagLand;
+                init = true;
+            }
+        }
+
+        public void setTagWidget(TagWidgetContainer tagLand) {
+            if (tagLand != null) {
+                this.tagLand = tagLand;
+                init = true;
+            }
+        }
+        
+        public void addTag(ItemInfo tag) {
+            if (init) {
+                tagLand.addTag(tag, true);
+            }
+        }
+        
+        public boolean containsTag(String tagId) {
+            if (init) {
+                return tagLand.containsTag(tagId);
+            } else {
+                return false;
             }
         }
     }

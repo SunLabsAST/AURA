@@ -11,12 +11,13 @@ import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.ClickListenerCollection;
 import com.google.gwt.user.client.ui.Image;
 import com.sun.labs.aura.music.wsitm.client.event.SourcesRightClickEvents;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
 
 /**
  *
  * @author mailletf
  */
-public class ContextMenuImage extends Image implements SourcesRightClickEvents {
+public class ContextMenuImage extends Image implements SourcesRightClickEvents, HasContextMenu {
     
     private ClickListenerCollection rightClickListeners;
     private ContextMenu cm;

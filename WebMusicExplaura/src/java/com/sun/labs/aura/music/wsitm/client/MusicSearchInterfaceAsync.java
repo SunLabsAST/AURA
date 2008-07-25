@@ -32,7 +32,6 @@ public interface MusicSearchInterfaceAsync {
        public void getTagOracle(AsyncCallback callback) throws WebException;
        public void getLogInDetails(AsyncCallback callback) throws WebException;
        public void getNonOpenIdLogInDetails(String userKey, AsyncCallback callback) throws WebException;
-       public void getUserTagCloud(String lastfmUser, String simTypeName, AsyncCallback callback) throws WebException;
        public void updateListener(ListenerDetails lD, AsyncCallback callback) throws WebException;
        public void updateUserSongRating(int rating, String artistID, AsyncCallback callback) throws WebException;
        public void fetchUserSongRating(String artistID, AsyncCallback callback) throws WebException;

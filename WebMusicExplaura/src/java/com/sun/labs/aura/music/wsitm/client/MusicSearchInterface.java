@@ -34,7 +34,6 @@ public interface MusicSearchInterface extends RemoteService {
     public ItemInfo[] getCommonTags(Map<String, Double> tagMap, String artistID, int num) throws WebException;
     public List<String> getArtistOracle() throws WebException;
     public List<String> getTagOracle() throws WebException;
-    public ListenerDetails getUserTagCloud(String lastfmUser, String simTypeName) throws WebException;
     public ListenerDetails getLogInDetails() throws WebException;
     public ListenerDetails getNonOpenIdLogInDetails(String userKey) throws WebException;
     public void updateListener(ListenerDetails lD) throws WebException;

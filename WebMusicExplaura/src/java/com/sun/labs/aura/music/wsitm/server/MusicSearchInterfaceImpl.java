@@ -64,7 +64,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             logger.severe(traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
-
     }
 
     public SearchResults artistSearch(String searchString, int maxResults) throws WebException {
@@ -183,15 +182,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     public List<String> getTagOracle() {
         logger.info("getTagOracle");
         return dm.getTagOracle();
-    }
-    
-    public ListenerDetails getUserTagCloud(String lastfmUser, String simTypeName) throws WebException {
-        try {
-            return dm.getUserTagCloud(lastfmUser, simTypeName);
-        } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
-            throw new WebException(ex.getMessage(), ex);
-        }
     }
 
     public ListenerDetails getNonOpenIdLogInDetails(String userKey) throws WebException {

@@ -16,12 +16,13 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.ClickListenerCollection;
 import com.sun.labs.aura.music.wsitm.client.event.SourcesRightClickEvents;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
 
 /**
  *
  * @author mailletf
  */
-public class ContextMenuSpannedLabel extends SpannedLabel implements SourcesRightClickEvents {
+public class ContextMenuSpannedLabel extends SpannedLabel implements SourcesRightClickEvents, HasContextMenu {
 
     private ClickListenerCollection rightClickListeners;
     private ContextMenu cm;

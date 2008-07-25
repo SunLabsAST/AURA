@@ -651,7 +651,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
     Widget getTastAuraMeterPanel(ArtistDetails aD) {
 
-        double currArtistScore = cdm.computeTastauraMeterScore(aD);
+        double currArtistScore = 1; //cdm.computeTastauraMeterScore(aD);
         double realMaxScore;    // max between currArtist and user's fav artists' max score
 
         if (currArtistScore>cdm.getMaxScore()) {

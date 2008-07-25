@@ -15,7 +15,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.DeletableWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget;
-import com.extjs.gxt.ui.client.Style.Direction;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Command;
@@ -25,7 +24,6 @@ import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
@@ -38,20 +36,24 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Panel;
-import com.google.gwt.user.client.ui.SuggestBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.gwtext.client.widgets.form.ComboBox;
+import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
+import com.sun.labs.aura.music.wsitm.client.event.TagCloudListener;
+import com.sun.labs.aura.music.wsitm.client.event.WebListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -100,10 +102,11 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
     }
 
     public void doRemoveListeners() {
+        mP.doRemoveListeners();
         mP.onDelete();
     }
 
-    private class MainPanel extends Composite implements LoginListener {
+    private class MainPanel extends Composite implements LoginListener, HasListeners {
 
         private DockPanel dP;
         private Grid mainTagPanel;
@@ -200,6 +203,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             // North 2
             tagLand = new TagWidgetContainer(new ResizableTagWidget(this), this);
             currLoadedTagWidget = "Cloud";
+            cdm.getSteerableTagCloudExternalController().setTagWidget(tagLand);
             dP.add(tagLand, DockPanel.NORTH);
 
             // Right again
@@ -340,6 +344,11 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public void onDelete() {
             cdm.getLoginListenerManager().removeListener(this);
         }
+
+        public void doRemoveListeners() {
+            onDelete();
+            search.doRemoveListeners();
+        }
     }
 
     public abstract class TagWidget extends Composite {
@@ -381,6 +390,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public abstract void removeTag(String tagId);
         public abstract void removeAllTags(boolean updateRecommendations);
         public abstract void redrawTagCloud();
+        public abstract boolean containsTag(String tagId);
 
     }
 
@@ -400,9 +410,11 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         }
 
         public void swapTagWidget(TagWidget newTagWidget) {
+            cdm.getTagCloudListenerManager().disableNotifications();
             newTagWidget.addTags(activeTagWidget.getTapMap(), 0);
             activeTagWidget = newTagWidget;
             g.setWidget(0, 0, activeTagWidget);
+            cdm.getTagCloudListenerManager().enableNotifications();
         }
 
         public Map<String, Double> getTapMap() {
@@ -435,6 +447,10 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
         public void redrawTagCloud() {
             activeTagWidget.redrawTagCloud();
+        }
+
+        public boolean containsTag(String tagId) {
+            return activeTagWidget.containsTag(tagId);
         }
 
     }
@@ -546,6 +562,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 if (updateRecommendations) {
                     updateRecommendations();
                 }
+                
+                cdm.getTagCloudListenerManager().triggerOnTagAdd(tag.getId());
             }
         }
 
@@ -554,6 +572,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 mainTagPanel.remove(tagCloud.get(tagId));
                 tagCloud.remove(tagId);
                 updateRecommendations();
+                cdm.getTagCloudListenerManager().triggerOnTagDelete(tagId);
             } else {
                 Window.alert(tagId+" is not in tagcloud");
             }
@@ -562,11 +581,16 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public void removeAllTags(boolean updateRecommendations) {
             mainTagPanel.clear();
             tagCloud.clear();
+            cdm.getTagCloudListenerManager().triggerOnTagDeleteAll();
             updateRecommendations();
         }
 
         public void redrawTagCloud() {
             // Not applicable to this implementation
+        }
+
+        public boolean containsTag(String tagId) {
+            return tagCloud.containsKey(tagId);
         }
 
         public class TagMeter extends Composite {
@@ -963,6 +987,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 if (updateRecommendations) {
                     updateRecommendations();
                 }
+                
+                cdm.getTagCloudListenerManager().triggerOnTagAdd(tag.getId());
             }
         }
 
@@ -971,6 +997,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 flowP.remove(tagCloud.get(tagId));
                 tagCloud.remove(tagId);
                 redrawTagCloud();
+                cdm.getTagCloudListenerManager().triggerOnTagDelete(tagId);
 
                 hasChanged = true;
                 updateRecommendations();
@@ -981,6 +1008,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             tagCloud.clear();
             flowP.clear();
             colorIndex=1;
+            cdm.getTagCloudListenerManager().triggerOnTagDeleteAll();
 
             hasChanged = true;
             if (updateRecommendations) {
@@ -993,6 +1021,10 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             for (DeletableWidget<ResizableTag> dW : tagCloud.values()) {
                 dW.getWidget().updateColor(color[(colorIndex++)%2], true);
             }
+        }
+
+        public boolean containsTag(String tagId) {
+            return tagCloud.containsKey(tagId);
         }
 
         public class DeletableResizableTag extends DeletableWidget<ResizableTag> {
@@ -1165,12 +1197,13 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         }
     }
 
-    public class ItemInfoHierarchyWidget extends Composite {
+    public class ItemInfoHierarchyWidget extends Composite implements HasListeners {
 
         private Grid mainGrid;
         private ItemInfo[] mainItems;
         private ItemInfo[] subItems = null;
 
+        private HasListeners listenerContainer;
         private TagWidget tagLand;
 
         public ItemInfoHierarchyWidget(ItemInfo[] iI, TagWidget tagLand) {
@@ -1266,17 +1299,20 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
                 public void onSuccess(Object result) {
                     ItemInfo[] results = (ItemInfo[]) result;
+                    doRemoveListeners();
                     if (results != null) {
                         if (results.length == 0) {
                             mainGrid.setWidget(1, 0, new Label("No tags found"));
                         } else {
                             subItems = results;
-                            mainGrid.setWidget(1, 0, new SortableItemInfoList(results) {
+                            SortableItemInfoList sIIL = new SortableItemInfoList(results) {
 
                                 protected void onItemClick(ItemInfo i) {
                                     tagLand.addTag(i, true);
                                 }
-                            });
+                            };
+                            listenerContainer = sIIL;
+                            mainGrid.setWidget(1, 0, sIIL);
                         }
                     } else {
                         mainGrid.setWidget(1, 0, new Label("An unknown error occured."));
@@ -1295,16 +1331,26 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
             }
         }
+
+        public void doRemoveListeners() {
+            if (listenerContainer != null) {
+                listenerContainer.doRemoveListeners();
+            }
+            listenerContainer = null;
+        }
     }
 
-    public abstract class SortableItemInfoList extends Composite {
+    public abstract class SortableItemInfoList extends Composite implements HasListeners {
 
         private Grid mainPanel;
         private List<ItemInfo> iI;
-
+        private List<WebListener> webListeners;
+        
         private double maxValue = 0;
 
         public SortableItemInfoList(ItemInfo[] iI) {
+            
+            webListeners = new LinkedList<WebListener>();
             this.iI = ItemInfo.arrayToList(iI);
 
             mainPanel = new Grid(iI.length + 1, 2);
@@ -1350,7 +1396,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 maxValue = iI.get(0).getPopularity();
             }
             for (ItemInfo i : iI) {
-                Label tagLbl = new Label(i.getItemName());
+                TagCloudListeningLabel tagLbl = new TagCloudListeningLabel(i.getId(), i.getItemName());
                 tagLbl.addClickListener(new DataEmbededClickListener<ItemInfo>(i) {
 
                     public void onClick(Widget arg0) {
@@ -1358,20 +1404,62 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                     }
                 });
                 tagLbl.setStyleName("smallTagClick");
+                if (cdm.getSteerableTagCloudExternalController().containsTag(i.getId())) {
+                    tagLbl.addStyleName("tagColorAdded");
+                }
+                tagLbl.getContextMenu().addStandardTagContextMenu(cdm, i);
+                cdm.getTagCloudListenerManager().addListener(i.getId(), tagLbl);
+                webListeners.add(tagLbl);
                 mainPanel.setWidget(lineIndex, 0, tagLbl);
                 mainPanel.setWidget(lineIndex, 1, WebLib.getSmallPopularityWidget(i.getPopularity()/maxValue, 75, true, false));
                 lineIndex++;
             }
         }
+        
+        public void doRemoveListeners() {
+            for (WebListener wL : webListeners) {
+                wL.onDelete();
+            }
+            webListeners.clear();
+        }
 
         protected abstract void onItemClick(ItemInfo i);
 
+        private class TagCloudListeningLabel extends ContextMenuSpannedLabel implements TagCloudListener {
+
+            private String tagId;
+
+            public TagCloudListeningLabel(String tagId, String tagName) {
+                super(tagName);
+                this.tagId = tagId;
+            }
+            
+            public void onTagAdd(String tagId) {
+                addStyleName("tagColorAdded");
+            }
+
+            public void onTagDelete(String tagId) {
+                removeStyleName("tagColorAdded");
+            }
+
+            public void onDelete() {
+                cdm.getTagCloudListenerManager().removeListener(tagId, this);
+            }
+
+            public void onTagDeleteAll() {
+                onTagDelete("");
+            }
+            
+        }
+        
     }
 
-    public class SearchWidget extends AbstractSearchWidget {
+    public class SearchWidget extends AbstractSearchWidget implements HasListeners {
 
         private Grid mainTagPanel;
         private TagWidget tagLand;
+        
+        private HasListeners listenersContainer;
 
         public SearchWidget(MusicSearchInterfaceAsync musicServer,
             ClientDataManager cdm, Panel searchBoxContainerPanel, Grid mainTagPanel,
@@ -1446,7 +1534,11 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public void displayArtist(ItemInfo a) {
             ItemInfo[] aA = new ItemInfo[1];
             aA[0] = a;
-            mainTagPanel.setWidget(1, 0, new ItemInfoHierarchyWidget(aA, tagLand));
+            
+            doRemoveListeners();
+            ItemInfoHierarchyWidget iihw = new ItemInfoHierarchyWidget(aA, tagLand);
+            listenersContainer = iihw;
+            mainTagPanel.setWidget(1, 0, iihw);
         }
 
         private void invokeArtistSearchService(String searchText) {
@@ -1457,10 +1549,13 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                     SearchResults sr = (SearchResults) result;
                     if (sr != null && sr.isOK()) {
                         ItemInfo[] results = sr.getItemResults();
+                        doRemoveListeners();
                         if (results.length == 0) {
                             mainTagPanel.setWidget(1, 0, new Label("No Match for " + sr.getQuery()));
                         } else {
-                            mainTagPanel.setWidget(1, 0, new ItemInfoHierarchyWidget(results, tagLand));
+                            ItemInfoHierarchyWidget iihw = new ItemInfoHierarchyWidget(results, tagLand);
+                            listenersContainer = iihw;
+                            mainTagPanel.setWidget(1, 0, iihw);
                         }
                     } else {
                         if (sr == null) {
@@ -1480,7 +1575,6 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 musicServer.artistSearch(searchText, 10, callback);
             } catch (Exception ex) {
                 Window.alert(ex.getMessage());
-
             }
         }
 
@@ -1492,15 +1586,18 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                     SearchResults sr = (SearchResults) result;
                     if (sr != null && sr.isOK()) {
                         ItemInfo[] results = sr.getItemResults();
+                        doRemoveListeners();
                         if (results.length == 0) {
                             mainTagPanel.setWidget(1, 0, new Label("No Match for " + sr.getQuery()));
                         } else {
-                            mainTagPanel.setWidget(1, 0, new SortableItemInfoList(results) {
+                            SortableItemInfoList siil = new SortableItemInfoList(results) {
 
                                 protected void onItemClick(ItemInfo i) {
                                     tagLand.addTag(i, true);
                                 }
-                            });
+                            };
+                            listenersContainer = siil;
+                            mainTagPanel.setWidget(1, 0, siil);
                         }
                     } else {
                         if (sr == null) {
@@ -1524,6 +1621,13 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 Window.alert(ex.getMessage());
             }
         }
+
+        public void doRemoveListeners() {
+            if (listenersContainer != null) {
+                listenersContainer.doRemoveListeners();
+                listenersContainer = null;
+            }
+        }
     }
 
     public class ArtistCloudArtistListWidget extends ArtistListWidget {
@@ -1537,6 +1641,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             this.tagLand = tagLand;
         }
 
+        @Override
         public void onTagClick(ItemInfo tag) {
             tagLand.addTag(tag, true);
         }

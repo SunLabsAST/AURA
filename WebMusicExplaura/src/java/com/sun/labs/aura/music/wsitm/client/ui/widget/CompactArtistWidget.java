@@ -27,9 +27,11 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget.WhyButton
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistPhoto;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedFlowPanel;
+import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -85,23 +87,24 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         aName.addStyleName("image");
         //
         //  Create context menu
-        aName.getContextMenu().addItem("View artist details", new Command() {
+        aName.getContextMenu().addItem("View artist details", new DataEmbededCommand<String,String>("artist:" + aD.getId()) {
 
             public void execute() {
-                Window.alert("Not implemented");
+                History.newItem(data);
             }
         });
-        aName.getContextMenu().addItem("View tag cloud", new Command() {
+        aName.getContextMenu().addItem("View tag cloud", new DataEmbededCommand<String, ItemInfo[]>(aD.getName(), aD.getDistinctiveTags()) {
 
             public void execute() {
-                Window.alert("Not implemented");
+                TagDisplayLib.showTagCloud("Tag cloud for "+data, sndData);
             }
         });
-        aName.getContextMenu().addSeperator();
-        aName.getContextMenu().addItem("Start new steerable from artist", new Command() {
+        //aName.getContextMenu().addSeperator();
+        aName.getContextMenu().addItem("Start new steerable from artist", new DataEmbededCommand<String,ClientDataManager>(aD.getId(), cdm) {
 
             public void execute() {
-                Window.alert("Not implemented");
+                sndData.setSteerableReset(true);
+                History.newItem("steering:" + data);
             }
         });
         aName.getContextMenu().addItem("Add artist's top tags to steerable", new Command() {
@@ -230,26 +233,11 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         for (int i = 0; i < tagList.size(); i++) {
             ContextMenuSpannedLabel t = new ContextMenuSpannedLabel(tagList.get(i).getItemName());
             t.addStyleName("pointer");
+
             //
             // Create context menu
-            t.getContextMenu().addItem("View tag details", new DataEmbededCommand<String,String>(tagList.get(i).getId()) {
+            t.getContextMenu().addStandardTagContextMenu(cdm, tagList.get(i));
 
-                public void execute() {
-                    History.newItem("tag:"+data);
-                }
-            });
-            t.getContextMenu().addItem("Add tag to current steerable tag cloud", new Command() {
-
-                public void execute() {
-                    Window.alert("Not yet implemented");
-                }
-            });
-            t.getContextMenu().addItem("View similar tags", new Command() {
-
-                public void execute() {
-                    Window.alert("Not yet implemented");
-                }
-            });
             //
             // Add main click listener
             t.addClickListener(new DataEmbededClickListener<ItemInfo>(tagList.get(i)) {
