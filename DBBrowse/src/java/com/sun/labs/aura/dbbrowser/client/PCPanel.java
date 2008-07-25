@@ -36,11 +36,11 @@ public class PCPanel extends HorizontalPanel {
         myself.add(new StyleLabel("Attention: " + pc.getNumAttention(),
                                   "viz-statLabel"));
         StyleLabel halt = new StyleLabel("Halt", "viz-actionLabel");
-        halt.addClickListener(new ClickListener() {
+        VizUI.addConfDialog(halt, new ClickListener() {
             public void onClick(Widget arg0) {
                 doHalt();
             }
-        });
+        }, "Really halt Partition Cluster " + pc.getPrefix() + "?");
         myself.add(halt);
         replicants = new VerticalPanel();
         add(replicants);

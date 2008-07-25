@@ -7,10 +7,16 @@ package com.sun.labs.aura.dbbrowser.client;
 
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.FocusWidget;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 import java.util.Iterator;
 import java.util.List;
 
@@ -99,7 +105,35 @@ public class VizUI extends DockPanel {
         }
     }
     
-    protected void alert(String msg) {
+    protected static void alert(String msg) {
         Window.alert(msg);
+    }
+    
+    protected static void addConfDialog(final Label clickable,
+                                        final ClickListener listener,
+                                        final String msg) {
+        //
+        // create the logic to show a dialog when the widget is clicked
+        clickable.addClickListener(new ClickListener() {
+            public void onClick(Widget arg0) {
+                //
+                // make the dialog
+                final DialogBox dbox = new DialogBox(true, true);
+                FlowPanel contents = new FlowPanel();
+                dbox.setWidget(contents);
+                contents.add(new Label(msg));
+                Button b = new Button("Yes");
+                b.addClickListener(listener);
+                b.addClickListener(new ClickListener() {
+                    public void onClick(Widget arg0) {
+                        dbox.hide();
+                    }
+                });
+                contents.add(b);
+                dbox.setPopupPosition(clickable.getAbsoluteLeft(),
+                                      clickable.getAbsoluteTop());
+                dbox.show();
+            }
+        });
     }
 }

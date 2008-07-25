@@ -82,6 +82,7 @@ a:visited {
   text-decoration: underline;
   display: inline;
   padding-right: 4px;
+  cursor: pointer;
 }
 
 .gwt-TabPanel {

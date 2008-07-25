@@ -22,6 +22,8 @@ import com.sun.labs.util.props.ComponentRegistry;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -89,6 +91,14 @@ public class VizServiceImpl extends RemoteServiceServlet implements
                 ret.add(info);
             }
         }
+        Collections.sort(ret, new Comparator() {
+            public int compare(Object o1, Object o2) {
+                PCInfo pc1 = (PCInfo)o1;
+                PCInfo pc2 = (PCInfo)o2;
+                return pc1.getPrefix().compareTo(pc2.getPrefix());
+            }
+            
+        });
         return ret;
     }
     
