@@ -948,7 +948,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
             ClientDataManager cdm, ArtistCompact[] aDArray, String currArtistId, String currArtistName) {
 
-            super(musicServer, cdm, aDArray);
+            super(musicServer, cdm, aDArray, cdm.isLoggedIn());
             this.currArtistId = currArtistId;
             this.currArtistName = currArtistName;
         }

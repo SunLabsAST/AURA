@@ -46,7 +46,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
     private List<CompactArtistWidget> artistWidgetList;
 
     public ArtistListWidget(MusicSearchInterfaceAsync musicServer,
-            ClientDataManager cdm, ArtistCompact[] aDArray) {
+            ClientDataManager cdm, ArtistCompact[] aDArray, boolean fetchRatings) {
 
         this.musicServer = musicServer;
         this.cdm = cdm;
@@ -57,7 +57,13 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         this.aDArray=aDArray;
         initWidget(g);
         setWidth("300px");
-        invokeFetchRatings();
+
+        if (fetchRatings) {
+            invokeFetchRatings();
+        } else {
+            ratingMap = new HashMap<String, Integer>();
+            g.setWidget(0, 0, getUpdatedPanel());
+        }
     }
 
     public abstract void openWhyPopup(WhyButton why);
