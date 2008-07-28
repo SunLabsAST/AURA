@@ -508,7 +508,7 @@ public class MusicDatabase {
     }
 
     /**
-     * Searches for artists that matc the given name
+     * Searches for artists that match the given name
      * @param artistName the name to search for
      * @param returnCount the number of artists to return
      * @return a list fo artists scored by how well they match the query
