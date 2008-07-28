@@ -497,4 +497,16 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
+    
+    public ItemInfo[] getSimilarTags(String tagId) throws WebException {
+        try {
+            return dm.getSimilarTags(tagId);
+         } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
 }

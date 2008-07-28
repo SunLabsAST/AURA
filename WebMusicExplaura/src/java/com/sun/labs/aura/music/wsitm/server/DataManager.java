@@ -485,7 +485,7 @@ public class DataManager implements Configurable {
             RemoteException {
         TagDetails details = null;
 
-        details = (TagDetails) cache.get(simTypeName).sget(id);
+        details = (TagDetails) getDetailsInAnyCache(id);
         if (details == null || refresh) {
             details = (TagDetails) loadTagDetailsFromStore(id);
             if (details != null) {
@@ -495,6 +495,25 @@ public class DataManager implements Configurable {
             }
         }
         return details;
+    }
+    
+    public ItemInfo[] getSimilarTags(String tagId) throws AuraException, RemoteException {
+        
+        // Look in cache
+        TagDetails details = null;
+        details = (TagDetails) getDetailsInAnyCache(tagId);
+        
+        if (details == null) {
+            // Fetch similar tags
+            List<Scored<ArtistTag>> simTags = mdb.artistTagFindSimilar(tagId, NUMBER_TAGS_TO_SHOW);
+            sortArtistTag(simTags, Sorter.sortFields.POPULARITY);
+            return scoredArtistTagToItemInfo(simTags);
+        } else {
+            return details.getSimilarTags();
+        }
+
+        
+        
     }
 
     /**

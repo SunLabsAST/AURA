@@ -11,6 +11,7 @@ package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
+import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.List;
 import java.util.Map;
@@ -45,4 +46,5 @@ public interface MusicSearchInterfaceAsync {
        public void getArtistCompact(String artistId, AsyncCallback callback) throws WebException;
        public void getLastRatedArtists(int count, AsyncCallback<List<AttentionItem>> callback) throws WebException;
        public void getLastTaggedArtists(int count, AsyncCallback<List<AttentionItem>> callback) throws WebException;
+       public void getSimilarTags(String tagId, AsyncCallback<ItemInfo[]> callback) throws WebException;
 }
