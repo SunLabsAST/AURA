@@ -545,7 +545,7 @@ public class MusicDatabase {
     }
 
     /**
-     * Gets the recommendatin types for the system.
+     * Gets the recommendation types for the system.
      * @return
      */
     public List<RecommendationType> getArtistRecommendationTypes() {
