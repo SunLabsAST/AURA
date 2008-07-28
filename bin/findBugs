@@ -22,9 +22,10 @@ if [ ! -e "$FINDBUGS" ]; then
         exit -1
 fi
 
-cd "$(dirname $0)/../"
-AURALIBS=aura/dist/aura.jar
-for file in $(find Libraries/ -name *jar); do AURALIBS=$AURALIBS:$file; done
+pushd "$(dirname $0)/../" > /dev/null
+AURALIBS=$(pwd)/aura/dist/aura.jar
+for file in $(find $(pwd)/Libraries/ -name *jar); do AURALIBS=$AURALIBS:$file; done
+popd > /dev/null
 
 if [ -d "$1" ]; then
     OUTDIR="$1/build/"
