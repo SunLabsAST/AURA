@@ -937,7 +937,7 @@ public class DataManager implements Configurable {
         for (Recommendation r : rS.getRecommendations()) {
             ArtistCompact aC = this.getArtistCompact(r.getId());
             if (aC != null) {
-                aR.add(new ArtistRecommendation(aC, scoredTagStringToItemInfo(r.getExplanation()), r.getScore()));
+                aR.add(new ArtistRecommendation(aC, scoredTagStringToItemInfo(r.getExplanation()), r.getScore(), rS.getExplanation()));
             }
         }
         return aR;

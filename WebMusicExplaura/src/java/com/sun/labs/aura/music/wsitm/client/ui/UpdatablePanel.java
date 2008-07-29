@@ -29,26 +29,25 @@ public class UpdatablePanel extends Composite {
 
     public UpdatablePanel(Widget title, Widget widget, ClientDataManager cdm) {
 
-        HorizontalPanel hP = new HorizontalPanel();
-        hP.setStyleName("h2");
-        hP.setWidth("300px");
-        //hP.add(new SpannedLabel("Recommendations"));
-        hP.add(title);
+        Grid g = new Grid (1,2);
+        g.setStyleName("h2");
+        g.setWidth("300px");
+        g.setWidget(0, 0, title);
 
         refreshingPanel = new FlowPanel();
         refreshingPanel.add(new Image("ajax-loader-small.gif"));
         refreshingPanel.setVisible(false);
 
-        hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
-        hP.add(refreshingPanel);
+        g.getColumnFormatter().setWidth(1, "17px");
+        g.setWidget(0, 1, refreshingPanel);
 
         main = new Grid(2, 1);
-        main.setWidget(0, 0, title);
+        main.setWidget(0, 0, g);
         main.setWidget(1, 0, new AnimatedUpdatableSection(widget));
         this.initWidget(main);
     }
 
-    public void setWaitIconVicible(boolean visible) {
+    public void setWaitIconVisible(boolean visible) {
         refreshingPanel.setVisible(visible);
     }
 

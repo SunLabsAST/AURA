@@ -16,13 +16,15 @@ public class ArtistRecommendation implements IsSerializable {
     private ItemInfo[] explanation;
     private double score;
     private ArtistCompact aC;
+    private String description;
     
     public ArtistRecommendation() {}
     
-    public ArtistRecommendation(ArtistCompact aC, ItemInfo[] explanation, double score) {
+    public ArtistRecommendation(ArtistCompact aC, ItemInfo[] explanation, double score, String description) {
         this.explanation = explanation;
         this.score = score;
         this.aC = aC;
+        this.description = description;
     }
     
     public ArtistCompact getArtist() {
@@ -35,5 +37,9 @@ public class ArtistRecommendation implements IsSerializable {
 
     public double getScore() {
         return score;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }

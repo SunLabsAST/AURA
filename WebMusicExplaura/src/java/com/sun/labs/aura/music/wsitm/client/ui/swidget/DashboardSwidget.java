@@ -17,9 +17,11 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.CompactArtistWidget;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
+import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.Grid;
@@ -31,12 +33,15 @@ import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededChangeListener;
+import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.UpdatablePanel;
 import java.util.ArrayList;
@@ -125,7 +130,7 @@ public class DashboardSwidget extends Swidget {
             DockPanel dP = new DockPanel();
             
             recPanel = new Grid(1,1);
-            recPanel.setWidget(0, 0, new Label("Loding..."));
+            recPanel.setWidget(0, 0, new Label("Loading..."));
             if (cdm.getRecTypes() == null || cdm.getRecTypes().isEmpty()) {
                 invokeFetchRecType();
             } else {
@@ -275,33 +280,55 @@ public class DashboardSwidget extends Swidget {
          * Create the left recommendation pannel
          */
         private void createRecPanel() {
-            HorizontalPanel hP = new HorizontalPanel();
-            SpannedLabel title = new SpannedLabel("Recommendations");
-            title.setStyleName("h2");
-            hP.add(title);
 
-            ListBox listbox = new ListBox();
+            HorizontalPanel hP = new HorizontalPanel();
+            hP.setWidth("100%");
+            SpannedLabel title = new SpannedLabel("Recommendations");
+            hP.add(title);
+          
+            Label currShowing = new Label("");
+            
+            //
+            // Populate context menu
+            ContextMenu cM = new ContextMenu();
             String[] keyArray = cdm.getRecTypes().keySet().toArray(new String[0]);
             for (int i = keyArray.length - 1; i >= 0; i--) {
-                listbox.addItem(keyArray[i], keyArray[i]);
-            }
-            listbox.setSelectedIndex(0);
-            cdm.setCurrRecTypeName(listbox.getItemText(0));
-            listbox.addChangeListener(new DataEmbededChangeListener<ListBox>(listbox) {
+                cM.addItem(keyArray[i], new DualDataEmbededCommand<String, Label>(keyArray[i], currShowing) {
+                    public void execute() {
+                        String newSelectName = data;
 
-                public void onChange(Widget arg0) {
-
-                    String newSelectName = data.getItemText(data.getSelectedIndex());
-
-                    // If the selection has changed
-                    if (!cdm.getCurrRecTypeName().equals(newSelectName)) {
-                        cdm.setCurrRecTypeName(newSelectName);
-                        invokeFetchRecommendations();
+                        // If the selection has changed
+                        if (!cdm.getCurrRecTypeName().equals(newSelectName)) {
+                            cdm.setCurrRecTypeName(newSelectName);
+                            sndData.setText("Showing "+newSelectName);
+                            invokeFetchRecommendations();
+                        }
                     }
+                });
+            }
+            cdm.setCurrRecTypeName(keyArray[0]);
+            
+            //
+            // Create click listener
+            ClickListener cL = new DataEmbededClickListener<ContextMenu>(cM) {
+                public void onClick(Widget sender) {
+                    data.showMenu(DOM.eventGetCurrentEvent());
                 }
-            });
-            hP.add(listbox);
-            uP = new UpdatablePanel(hP, new Label("loading"), cdm);
+            };
+            
+            ContextMenuImage menuImg = new ContextMenuImage("customize.png");
+            menuImg.addClickListener(cL);
+            menuImg.addRightClickListener(cL);
+            hP.add(menuImg);
+            
+            VerticalPanel vP = new VerticalPanel();
+            vP.setWidth("100%");
+            currShowing.setText("Showing "+cdm.getCurrRecTypeName());
+            currShowing.setStyleName("smallItalicExplanation");
+            vP.add(hP);
+            vP.add(currShowing);
+            
+            uP = new UpdatablePanel(vP, new Image("ajax-loader-small.gif"), cdm);
             recPanel.setWidget(0, 0, uP);
             invokeFetchRecommendations();
         }
@@ -319,7 +346,7 @@ public class DashboardSwidget extends Swidget {
                         cdm.setRecTypes(recTypes);
                         createRecPanel();
                     } else {
-                        Window.alert("Recommendation types is null");
+                        Window.alert("Recommendation types are not available.");
                     }
                 }
             };
@@ -337,11 +364,11 @@ public class DashboardSwidget extends Swidget {
 
                 public void onSuccess(List<ArtistRecommendation> rec) {
                     uP.setNewContent(new UserCloudArtistListWidget(musicServer, cdm, ListArToAc(rec),rec));
-                    uP.setWaitIconVicible(false);
+                    uP.setWaitIconVisible(false);
                 }
             };
 
-            uP.setWaitIconVicible(true);
+            uP.setWaitIconVisible(true);
             
             try {
                 musicServer.getRecommendations(cdm.getCurrRecTypeName(), 20, callback);
@@ -472,7 +499,7 @@ public class DashboardSwidget extends Swidget {
         }
 
         public void openWhyPopup(WhyButton why) {
-            TagDisplayLib.showTagCloud("Comon tags", mapAR.get(why.getId()).getExplanation());
+            TagDisplayLib.showTagCloud(mapAR.get(why.getId()).getDescription(), mapAR.get(why.getId()).getExplanation());
         }
     }
 }
