@@ -23,14 +23,43 @@ public class DSBitSet extends BitSet {
         this.prefixLen = prefixLen;
     }
     
+    @Override
+    public Object clone() {
+        DSBitSet ret = (DSBitSet)super.clone();
+        ret.setPrefixLength(prefixLen);
+        return ret;
+    }
+    
+    /**
+     * Sets the length of the prefix represented by this bit set.  This is the
+     * number of significant bits in the prefix.  Any other values set will
+     * be ignored.
+     * 
+     * @param prefixLen
+     */
     public void setPrefixLength(int prefixLen) {
         this.prefixLen = prefixLen;
     }
     
+    /**
+     * Get the number of significant bits in this prefix.
+     * @return
+     */
     public int prefixLength() {
         return prefixLen;
     }
-        
+    
+    /**
+     * Adds a new most-significant bit to the bit set with the given zero or
+     * one value.
+     * 
+     * @param isOne true if this should be a one bit
+     */
+    public void addBit(boolean isOne) {
+        set(prefixLen, isOne);
+        prefixLen++;
+    }
+    
     /**
      * Determines if two DSBitSet objects are equal.  Only compares bits up
      * to the prefix length.

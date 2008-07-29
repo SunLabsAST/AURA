@@ -12,6 +12,7 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
+import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
@@ -23,9 +24,11 @@ import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -55,6 +58,8 @@ public class PartitionClusterImpl implements PartitionCluster,
     protected PCStrategy strategy;
     
     protected Logger logger;
+    
+    protected AtomicBoolean splitting = new AtomicBoolean(false);
     
     /**
      * Construct a PartitionClusterImpl for use with a particular item prefix.
@@ -122,6 +127,10 @@ public class PartitionClusterImpl implements PartitionCluster,
      */
     public void deleteUser(String userKey) throws AuraException, RemoteException {
         deleteItem(userKey);
+    }
+    
+    public void deleteLocalAttention(List<Long> ids) throws AuraException, RemoteException {
+        strategy.deleteLocalAttention(ids);
     }
     
     public DBIterator<Item> getItemsAddedSince(ItemType type, Date timeStamp)
@@ -306,6 +315,18 @@ public class PartitionClusterImpl implements PartitionCluster,
         return strategy.getExplanation(key, autoTag, n);
     }
 
+    public DocumentVector getDocumentVector(String key, SimilarityConfig config) throws RemoteException, AuraException {
+        return strategy.getDocumentVector(key, config);
+    }
+
+    public DocumentVector getDocumentVector(WordCloud cloud, SimilarityConfig config) throws RemoteException, AuraException {
+        return strategy.getDocumentVector(cloud, config);
+    }
+
+    public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
+        return strategy.findSimilar(dv, config);
+    }
+
     public synchronized void close() throws AuraException, RemoteException {
         if (!closed) {
             //
@@ -343,6 +364,32 @@ public class PartitionClusterImpl implements PartitionCluster,
         return replicant;
     }
 
+    public void split() throws AuraException, RemoteException {
+        if (!splitting.compareAndSet(false, true)) {
+            //
+            // We must already be splitting.
+            throw new AuraException("A split is already in progress for " + prefixCode);
+        }
+        //
+        // Determine what our new sub prefixes will be
+        DSBitSet localPrefix = (DSBitSet)prefixCode.clone();
+        localPrefix.addBit(false);
+        DSBitSet remotePrefix = (DSBitSet)prefixCode.clone();
+        remotePrefix.addBit(true);
+
+        //
+        // Use the Process Manager to get a new partition cluster for the "1"
+        // sub prefix
+        
+        //
+        // Install the split strategy for all requests going forward
+        
+        //
+        // Start a thread that will read every item from this partition and
+        // migrate if necessary.  Ditto for attentions.
+    }
+
+    
     public void start() {
     }
 
@@ -354,15 +401,76 @@ public class PartitionClusterImpl implements PartitionCluster,
         }
     }
 
-    public DocumentVector getDocumentVector(String key, SimilarityConfig config) throws RemoteException, AuraException {
-        return strategy.getDocumentVector(key, config);
+    class MigrateItems implements Runnable {
+        protected PartitionCluster remote;
+        protected DSBitSet remotePrefix;
+        
+        public MigrateItems(PartitionCluster remote,
+                                  DSBitSet remotePrefix) {
+            this.remote = remote;
+            this.remotePrefix = remotePrefix;
+        }
+        
+        public void run() {
+            //
+            // Start reading items and writing them as necessary.
+            try {
+                DBIterator<Item> items = getAllIterator(null);
+                while (items.hasNext()) {
+                    Item i = items.next();
+                    if (!Util.keyIsLocal(i.hashCode(),
+                                        prefixCode,
+                                        remotePrefix)) {
+                        remote.putItem(i);
+                        deleteItem(i.getKey());
+                    }
+                }
+            } catch (AuraException e) {
+                logger.log(Level.SEVERE, "Split/migrate items failed", e);
+            } catch (RemoteException ex) {
+                logger.log(Level.SEVERE, "Split/migrate items failed", ex);
+            }
+        }
     }
-
-    public DocumentVector getDocumentVector(WordCloud cloud, SimilarityConfig config) throws RemoteException, AuraException {
-        return strategy.getDocumentVector(cloud, config);
+    
+    class MigrateAttentions implements Runnable {
+        protected PartitionCluster remote;
+        protected DSBitSet remotePrefix;
+        
+        public MigrateAttentions(PartitionCluster remote, DSBitSet remotePrefix) {
+            this.remote = remote;
+            this.remotePrefix = remotePrefix;
+        }
+        
+        public void run() {
+            //
+            // Start reading attentions and writing them as necessary
+            try {
+                List<Attention> migrate = new ArrayList<Attention>();
+                List<Long> ids = new ArrayList<Long>();
+                DBIterator<Attention> attns =
+                        getAttentionIterator(new AttentionConfig());
+                while (attns.hasNext()) {
+                    Attention a = attns.next();
+                    if (!Util.keyIsLocal(a.hashCode(),
+                                         prefixCode,
+                                         remotePrefix)) {
+                        migrate.add(a);
+                        ids.add(((PersistentAttention)a).getID());
+                    }
+                    if (migrate.size() >= 100) {
+                        remote.attend(migrate);
+                        deleteLocalAttention(ids);
+                        migrate.clear();
+                        ids.clear();
+                    }
+                }
+            } catch (AuraException e) {
+                logger.log(Level.SEVERE, "Attention Migration failed", e);
+            } catch (RemoteException ex) {
+                logger.log(Level.SEVERE, "Attention Migration failed", ex);
+            }
+        }
     }
-
-    public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
-        return strategy.findSimilar(dv, config);
-    }
+    
 }

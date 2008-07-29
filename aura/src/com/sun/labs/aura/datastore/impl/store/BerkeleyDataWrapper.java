@@ -466,6 +466,38 @@ public class BerkeleyDataWrapper {
                 itemKey + " after " + numRetries + " retries");
     }
     
+    public void deleteAttention(List<Long> ids) throws AuraException {
+        int numRetries = 0;
+        while (numRetries < MAX_DEADLOCK_RETRIES) {
+            Transaction txn = null;
+            try {
+                txn = dbEnv.beginTransaction(null, null);
+                for (Long id : ids) {
+                    allAttn.delete(id);
+                }
+                txn.commit();
+                return;
+            } catch (DeadlockException e) {
+                try {
+                    txn.abort();
+                    numRetries++;
+                } catch (DatabaseException ex) {
+                    throw new AuraException("Txn abort failed", ex);
+                }
+            } catch (Exception e) {
+                try {
+                    if (txn != null) {
+                        txn.abort();
+                    }
+                } catch (DatabaseException ex) {
+                }
+                throw new AuraException("deleteItem transaction failed", e);
+            }
+        }
+        throw new AuraException("deleteAttention failed after " +
+                numRetries + " retries");
+    }
+    
     public DBIterator<ItemImpl> getItemIterator() throws AuraException {
         EntityCursor c = null;
         DBIterator<ItemImpl> i = null;
@@ -962,10 +994,6 @@ public class BerkeleyDataWrapper {
     
     public DBIterator<Attention> getAttentionIterator(AttentionConfig ac)
             throws AuraException {
-        if (Util.isEmpty(ac)) {
-            throw new AuraException("At least one constraint must be " +
-                    "specified before calling getAttention(AttentionConfig)");
-        }
         EntityJoin<Long,PersistentAttention> join = getAttentionJoin(ac);
 
         ForwardCursor cur = null;

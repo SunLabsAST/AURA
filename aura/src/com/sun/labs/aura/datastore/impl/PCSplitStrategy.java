@@ -70,17 +70,7 @@ public class PCSplitStrategy implements PCStrategy {
     }
     
     protected boolean keyIsLocal(int hashCode) throws AuraException {
-        DSBitSet toCheck = DSBitSet.parse(hashCode);
-        toCheck.setPrefixLength(localPrefix.prefixLength());
-        if (localPrefix.equals(toCheck)) {
-            return true;
-        }
-        
-        if (remotePrefix.equals(toCheck)) {
-            return false;
-        }
-        throw new AuraException("Prefix " + toCheck + " doesn't match local "
-                + localPrefix + " or remote " + remotePrefix);
+        return Util.keyIsLocal(hashCode, localPrefix, remotePrefix);
     }
     
     
@@ -166,8 +156,9 @@ public class PCSplitStrategy implements PCStrategy {
             // If this item exists in local, we should do a migration of it
             // now.  How will this conflict with db iterators that are doing
             // migration in the background???
+            Item ret = remote.putItem(item);
             local.deleteItem(item.getKey());
-            return remote.putItem(item);
+            return ret;
         }
     }
 
@@ -179,6 +170,10 @@ public class PCSplitStrategy implements PCStrategy {
             // if it is remote, also remove it there
             remote.deleteItem(itemKey);
         }
+    }
+    
+    public void deleteLocalAttention(List<Long> ids) throws AuraException, RemoteException {
+        local.deleteLocalAttention(ids);
     }
 
     public DBIterator<Item> getItemsAddedSince(ItemType type, Date timeStamp) throws AuraException, RemoteException {

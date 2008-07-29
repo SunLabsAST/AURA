@@ -35,6 +35,16 @@ public interface PartitionCluster extends ItemStore, LowLevelSearch, Component, 
      */
     public Replicant getReplicant() throws RemoteException;
 
+    /**
+     * Splits the data in this partition cluster.  A new partition cluster
+     * is created and data is migrated to that cluster.  Once all data
+     * has been moved, the data store heads are told of the new configuration.
+     * 
+     * @throws AuraException if an errors occurs or the current state does not
+     * allow a split (the split is already happening)
+     */
+    public void split() throws AuraException, RemoteException;
+    
     public List<Attention> getAttentionForSource(String srcKey,
                                                 Attention.Type type)
             throws AuraException, RemoteException;
@@ -49,5 +59,5 @@ public interface PartitionCluster extends ItemStore, LowLevelSearch, Component, 
      */
     public void removeAttention(String itemKey)
             throws AuraException, RemoteException;
-    
+        
 }

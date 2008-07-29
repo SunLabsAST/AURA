@@ -2,6 +2,7 @@
 package com.sun.labs.aura.datastore.impl;
 
 import com.sun.labs.aura.datastore.AttentionConfig;
+import com.sun.labs.aura.util.AuraException;
 import java.util.BitSet;
 
 /**
@@ -79,6 +80,24 @@ public class Util {
         }
         return false;
     }
+    
+    public static boolean keyIsLocal(int hashCode, 
+                                     DSBitSet localPrefix,
+                                     DSBitSet remotePrefix)
+                throws AuraException {
+        DSBitSet toCheck = DSBitSet.parse(hashCode);
+        toCheck.setPrefixLength(localPrefix.prefixLength());
+        if (localPrefix.equals(toCheck)) {
+            return true;
+        }
+        
+        if (remotePrefix.equals(toCheck)) {
+            return false;
+        }
+        throw new AuraException("Prefix " + toCheck + " doesn't match local "
+                + localPrefix + " or remote " + remotePrefix);
+    }
+
 
     public static void main(String args[]) {
         for(int i = 0; i < args.length; i++ ) {

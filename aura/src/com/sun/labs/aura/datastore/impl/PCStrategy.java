@@ -70,6 +70,13 @@ public interface PCStrategy {
     public void deleteItem(String itemKey) throws AuraException, RemoteException;
     
     /**
+     * Delete a set of attentions by ID
+     * 
+     * @param ids
+     */
+    public void deleteLocalAttention(List<Long> ids) throws AuraException, RemoteException;
+    
+    /**
      * Gets the items of a particular type added since a particular time
      */
     public DBIterator<Item> getItemsAddedSince(ItemType type, Date timeStamp)

@@ -38,6 +38,14 @@ public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote 
             throws AuraException, RemoteException;
     
     /**
+     * Delete a set of attention by ID
+     * 
+     * @param ids a list of attention ids to delete
+     */
+    public void deleteAttention(List<Long> ids)
+            throws AuraException, RemoteException;
+    
+    /**
      * Gets the on-disk size of the database component of the replicant in
      * bytes.
      * 

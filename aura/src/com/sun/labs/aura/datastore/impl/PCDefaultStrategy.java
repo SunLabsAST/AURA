@@ -63,6 +63,10 @@ public class PCDefaultStrategy implements PCStrategy {
         replicant.deleteItem(itemKey);
     }
 
+    public void deleteLocalAttention(List<Long> ids) throws AuraException, RemoteException {
+        replicant.deleteAttention(ids);
+    }
+    
     public DBIterator<Item> getItemsAddedSince(ItemType type, Date timeStamp) throws AuraException, RemoteException {
         return replicant.getItemsAddedSince(type, timeStamp);
     }

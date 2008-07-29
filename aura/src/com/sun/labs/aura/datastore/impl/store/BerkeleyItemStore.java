@@ -344,6 +344,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         bdb.deleteItem(itemKey);
     }
 
+    public void deleteAttention(List<Long> ids) throws AuraException {
+        bdb.deleteAttention(ids);
+    }
+    
     public List<Item> getItems(User user, Type attnType,
             ItemType itemType)
             throws AuraException {
