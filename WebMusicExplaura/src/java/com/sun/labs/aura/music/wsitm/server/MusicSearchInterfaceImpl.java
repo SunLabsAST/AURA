@@ -20,6 +20,7 @@ import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.util.AuraException;
@@ -76,8 +77,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         } catch (RemoteException ex) {
             logger.severe(traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
-        }
-           
+        } 
     }
 
     public SearchResults artistSearchByTag(String searchString, int maxResults) 
@@ -95,8 +95,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         } catch (RemoteException ex) {
             logger.severe(traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
-        }
-                
+        }        
     }
 
     public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName) throws WebException {
@@ -337,6 +336,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     public Map<String, String> getSimTypes() {
          return dm.getSimTypes();
     }
+    
+    public Map<String, String> getArtistRecommendationTypes() {
+        return dm.getArtistRecommendationTypes();
+    }
 
     public ItemInfo[] getDistinctiveTags(String artistID, int count) throws WebException {
         try {
@@ -434,7 +437,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         logger.info("getLastRatedArtists :: user:"+userId);
 
         try {
-
             ArrayList<AttentionItem> aI = new ArrayList<AttentionItem>();
             Set<String> artistIds = new HashSet<String>();
 
@@ -487,9 +489,37 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public ArtistCompact getArtistCompact(String artistId) throws WebException {
+        logger.info("getArtistCompact : "+ artistId);
         try {
             return dm.getArtistCompact(artistId);
         } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+    
+    public ItemInfo[] getSimilarTags(String tagId) throws WebException {
+        logger.info("getSimilarTags to '"+tagId+"'");
+        try {
+            return dm.getSimilarTags(tagId);
+         } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+    
+    public List<ArtistRecommendation> getRecommendations(String recTypeName, int cnt) throws WebException {
+        String userId = getOpenIdFromSession();
+        logger.info("getLastRatedArtists :: user:"+userId);
+        try {
+            return dm.getRecommendations(recTypeName, userId, cnt);
+         } catch (AuraException ex) {
             logger.severe(traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {

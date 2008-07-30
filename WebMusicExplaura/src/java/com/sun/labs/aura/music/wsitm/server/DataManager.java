@@ -19,6 +19,10 @@ import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.Listener.Gender;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.Photo;
+import com.sun.labs.aura.music.Recommendation;
+import com.sun.labs.aura.music.RecommendationProfile;
+import com.sun.labs.aura.music.RecommendationSummary;
+import com.sun.labs.aura.music.RecommendationType;
 import com.sun.labs.aura.music.SimType;
 import com.sun.labs.aura.music.Video;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
@@ -33,6 +37,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.SearchResults;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -485,7 +490,7 @@ public class DataManager implements Configurable {
             RemoteException {
         TagDetails details = null;
 
-        details = (TagDetails) cache.get(simTypeName).sget(id);
+        details = (TagDetails) getDetailsInAnyCache(id);
         if (details == null || refresh) {
             details = (TagDetails) loadTagDetailsFromStore(id);
             if (details != null) {
@@ -495,6 +500,25 @@ public class DataManager implements Configurable {
             }
         }
         return details;
+    }
+    
+    public ItemInfo[] getSimilarTags(String tagId) throws AuraException, RemoteException {
+        
+        // Look in cache
+        TagDetails details = null;
+        details = (TagDetails) getDetailsInAnyCache(tagId);
+        
+        if (details == null) {
+            // Fetch similar tags
+            List<Scored<ArtistTag>> simTags = mdb.artistTagFindSimilar(tagId, NUMBER_TAGS_TO_SHOW);
+            sortArtistTag(simTags, Sorter.sortFields.POPULARITY);
+            return scoredArtistTagToItemInfo(simTags);
+        } else {
+            return details.getSimilarTags();
+        }
+
+        
+        
     }
 
     /**
@@ -888,12 +912,38 @@ public class DataManager implements Configurable {
     }
 
     public Map<String, String> getSimTypes() {
+        logger.info("Getting sim types");
         Map<String, String> simTypes = new HashMap<String, String>();
         for (SimType s : mdb.getSimTypes()) {
             simTypes.put(s.getName(), s.getDescription());
         }
         return simTypes;
     }
+    
+    public Map<String, String> getArtistRecommendationTypes() {
+        logger.info("Getting rec types");
+        Map<String, String> recTypeMap = new HashMap<String, String>();
+        for (RecommendationType rT : mdb.getArtistRecommendationTypes()) {
+            recTypeMap.put(rT.getName(), rT.getDescription());
+        }
+        return recTypeMap;
+    }
+
+    public List<ArtistRecommendation> getRecommendations(String recTypeName, String userId, int cnt) throws AuraException, RemoteException {
+        logger.info("Getting recommendations for user "+ userId + " using recType:"+recTypeName);
+        List<ArtistRecommendation> aR = new ArrayList<ArtistRecommendation>();
+        
+        RecommendationSummary rS = mdb.getArtistRecommendationType(recTypeName).getRecommendations(userId, cnt, new Rp());
+        for (Recommendation r : rS.getRecommendations()) {
+            ArtistCompact aC = this.getArtistCompact(r.getId());
+            if (aC != null) {
+                aR.add(new ArtistRecommendation(aC, scoredTagStringToItemInfo(r.getExplanation()), r.getScore(), rS.getExplanation()));
+            }
+        }
+        return aR;
+    }
+
+    public class Rp implements RecommendationProfile {}
 
     /**
      * Search for a key in all simType caches

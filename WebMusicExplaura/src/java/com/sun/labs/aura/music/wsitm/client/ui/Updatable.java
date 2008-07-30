@@ -61,5 +61,11 @@ public abstract class Updatable extends Composite {
     }
     
     public abstract void update(ArtistDetails aD);
-    
+
+    private class AnimatedUpdatableSection extends AnimatedComposite {
+
+        public AnimatedUpdatableSection(Widget w) {
+            initWidget(w);
+        }
+    }
 }

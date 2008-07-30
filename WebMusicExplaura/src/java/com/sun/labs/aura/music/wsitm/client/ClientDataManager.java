@@ -41,6 +41,8 @@ public class ClientDataManager {
     private List<Updatable> updatableWidgets;
     
     private Map<String, String> simTypes;
+    private Map<String, String> recTypes;
+    private String currRecTypeName;
     private String currSimTypeName;
     
     private Double maxScore;
@@ -210,6 +212,23 @@ public class ClientDataManager {
     public void setCurrSimTypeName(String currName) {
         this.currSimTypeName=currName;
     }
+
+    public Map<String, String> getRecTypes() {
+        return recTypes;
+    }
+    
+    public void setRecTypes(Map<String, String> recTypes) {
+        this.recTypes=recTypes;
+    }
+    
+    public String getCurrRecTypeName() {
+        return currRecTypeName;
+    }
+    
+    public void setCurrRecTypeName(String currName) {
+        this.currRecTypeName=currName;
+    }
+
     
     public static String nameToKey(String name) {
         return "artist-tag:" + normalizeKey(name);

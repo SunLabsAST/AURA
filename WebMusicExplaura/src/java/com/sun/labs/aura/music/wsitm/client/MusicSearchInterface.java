@@ -15,6 +15,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ public interface MusicSearchInterface extends RemoteService {
     public Map<String,Integer> fetchUserSongRating(Set<String> artistID) throws WebException;
     public void terminateSession();
     public Map<String, String> getSimTypes() throws WebException;
+    public Map<String, String> getArtistRecommendationTypes();
     public ItemInfo[] getDistinctiveTags(String artistID, int count) throws WebException;
     public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap) throws WebException;
     public void addUserTagsForItem(String itemId, Set<String> tag) throws WebException;
@@ -49,4 +51,6 @@ public interface MusicSearchInterface extends RemoteService {
     public ArtistCompact getArtistCompact(String artistId) throws WebException;
     public List<AttentionItem> getLastRatedArtists(int count) throws WebException;
     public List<AttentionItem> getLastTaggedArtists(int count) throws WebException;
+    public ItemInfo[] getSimilarTags(String tagId) throws WebException;
+    public List<ArtistRecommendation> getRecommendations(String recTypeName, int cnt) throws WebException;
 }

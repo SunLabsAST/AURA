@@ -5,20 +5,18 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui;
 
+import com.extjs.gxt.ui.client.util.Params;
+import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.EventPreview;
-import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.Window;
 import com.gwtext.client.core.EventObject;
 import com.gwtext.client.widgets.menu.BaseItem;
 import com.gwtext.client.widgets.menu.Item;
 import com.gwtext.client.widgets.menu.Menu;
-import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededBaseItemListener;
-import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededBaseItemListener;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import java.util.LinkedList;
 
@@ -51,6 +49,7 @@ public class ContextMenu implements EventPreview {
      */
     public Item addItem(String name, Command cmd) {
         Item newItem = new Item(name, new DataEmbededBaseItemListener<Command>(cmd) {
+            @Override
             public void onClick(BaseItem item, EventObject e) {
                 data.execute();
             }
@@ -113,9 +112,7 @@ public class ContextMenu implements EventPreview {
                 }
             }
         }
-        return true;
-    
-         
+        return true;    
     }
      
     private void initMenu() {

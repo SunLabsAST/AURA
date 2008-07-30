@@ -10,7 +10,9 @@
 package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
+import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,7 @@ public interface MusicSearchInterfaceAsync {
        public void fetchUserSongRating(Set<String> artistID, AsyncCallback callback) throws WebException;
        public void terminateSession(AsyncCallback callback);
        public void getSimTypes(AsyncCallback callback) throws WebException;
+       public void getArtistRecommendationTypes(AsyncCallback<Map<String, String>> callback);
        public void getDistinctiveTags(String artistID, int count, AsyncCallback callback) throws WebException;
        public void getSteerableRecommendations(Map<String, Double> tagMap, AsyncCallback callback) throws WebException;
        public void addUserTagsForItem(String itemId, Set<String> tag, AsyncCallback callback) throws WebException;
@@ -45,4 +48,6 @@ public interface MusicSearchInterfaceAsync {
        public void getArtistCompact(String artistId, AsyncCallback callback) throws WebException;
        public void getLastRatedArtists(int count, AsyncCallback<List<AttentionItem>> callback) throws WebException;
        public void getLastTaggedArtists(int count, AsyncCallback<List<AttentionItem>> callback) throws WebException;
+       public void getSimilarTags(String tagId, AsyncCallback<ItemInfo[]> callback) throws WebException;
+       public void getRecommendations(String recTypeName, int cnt, AsyncCallback<List<ArtistRecommendation>> callback) throws WebException;
 }

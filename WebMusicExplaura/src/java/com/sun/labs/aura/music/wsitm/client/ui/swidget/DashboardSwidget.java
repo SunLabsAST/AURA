@@ -17,10 +17,11 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.CompactArtistWidget;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
-import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.Grid;
@@ -28,13 +29,21 @@ import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.event.DataEmbededChangeListener;
+import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
+import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
+import com.sun.labs.aura.music.wsitm.client.ui.UpdatablePanel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,6 +59,9 @@ import java.util.Set;
 public class DashboardSwidget extends Swidget {
 
     private MainPanel mP;
+    
+    private Grid recPanel;
+    private UpdatablePanel uP;
 
     public DashboardSwidget(ClientDataManager cdm) {
         super("Dashboard", cdm);
@@ -68,14 +80,15 @@ public class DashboardSwidget extends Swidget {
     }
 
     protected void initMenuItem() {
-        menuItem = new MenuItem("Dashboard",MenuItem.getDefaultTokenClickListener("dashboard:"),true,3);
+        menuItem = new MenuItem("Dashboard", MenuItem.getDefaultTokenClickListener("dashboard:"), true, 3);
     }
 
     public void doRemoveListeners() {
         mP.onDelete();
     }
 
-    private class MainPanel extends Composite implements LoginListener, RatingListener, TaggingListener, HasListeners {
+    private class MainPanel extends Composite implements LoginListener, 
+            RatingListener, TaggingListener, HasListeners {
 
         private Grid g;
         private static final int IMG_SIZE = 150;
@@ -114,11 +127,16 @@ public class DashboardSwidget extends Swidget {
 
         private Widget getDashboard() {
 
-
             DockPanel dP = new DockPanel();
-
-            UserCloudArtistListWidget alp = new UserCloudArtistListWidget(musicServer, cdm, cdm.getListenerDetails().recommendations);
-            dP.add(WebLib.createSection("Artist recommendations", alp), DockPanel.WEST);
+            
+            recPanel = new Grid(1,1);
+            recPanel.setWidget(0, 0, new Label("Loading..."));
+            if (cdm.getRecTypes() == null || cdm.getRecTypes().isEmpty()) {
+                invokeFetchRecType();
+            } else {
+                createRecPanel();
+            }           
+            dP.add(recPanel, DockPanel.WEST);
 
             Label titleLbl = new Label("Dashboard");
             titleLbl.setStyleName("h1");
@@ -126,7 +144,6 @@ public class DashboardSwidget extends Swidget {
 
             //
             // Featured artist
-            
             featArtist = new Grid(2,1);
             featArtist.setWidget(0, 0, new HTML("<h2>Featured Artist</h2>"));
             featArtist.setWidget(1, 0, new Image("ajax-bar.gif"));
@@ -259,6 +276,107 @@ public class DashboardSwidget extends Swidget {
             }
         }
 
+        /**
+         * Create the left recommendation pannel
+         */
+        private void createRecPanel() {
+
+            HorizontalPanel hP = new HorizontalPanel();
+            hP.setWidth("100%");
+            SpannedLabel title = new SpannedLabel("Recommendations");
+            hP.add(title);
+          
+            Label currShowing = new Label("");
+            
+            //
+            // Populate context menu
+            ContextMenu cM = new ContextMenu();
+            String[] keyArray = cdm.getRecTypes().keySet().toArray(new String[0]);
+            for (int i = keyArray.length - 1; i >= 0; i--) {
+                cM.addItem(keyArray[i], new DualDataEmbededCommand<String, Label>(keyArray[i], currShowing) {
+                    public void execute() {
+                        String newSelectName = data;
+
+                        // If the selection has changed
+                        if (!cdm.getCurrRecTypeName().equals(newSelectName)) {
+                            cdm.setCurrRecTypeName(newSelectName);
+                            sndData.setText("Showing "+newSelectName);
+                            invokeFetchRecommendations();
+                        }
+                    }
+                });
+            }
+            cdm.setCurrRecTypeName(keyArray[0]);
+            
+            //
+            // Create click listener
+            ClickListener cL = new DataEmbededClickListener<ContextMenu>(cM) {
+                public void onClick(Widget sender) {
+                    data.showMenu(DOM.eventGetCurrentEvent());
+                }
+            };
+            
+            ContextMenuImage menuImg = new ContextMenuImage("customize.png");
+            menuImg.addClickListener(cL);
+            menuImg.addRightClickListener(cL);
+            hP.add(menuImg);
+            
+            VerticalPanel vP = new VerticalPanel();
+            vP.setWidth("100%");
+            currShowing.setText("Showing "+cdm.getCurrRecTypeName());
+            currShowing.setStyleName("smallItalicExplanation");
+            vP.add(hP);
+            vP.add(currShowing);
+            
+            uP = new UpdatablePanel(vP, new Image("ajax-loader-small.gif"), cdm);
+            recPanel.setWidget(0, 0, uP);
+            invokeFetchRecommendations();
+        }
+
+        private void invokeFetchRecType() {
+
+            AsyncCallback<Map<String, String>> callback = new AsyncCallback<Map<String, String>>() {
+
+                public void onFailure(Throwable arg0) {
+                    Window.alert(arg0.toString());
+                }
+
+                public void onSuccess(Map<String, String> recTypes) {
+                    if (recTypes != null) {
+                        cdm.setRecTypes(recTypes);
+                        createRecPanel();
+                    } else {
+                        Window.alert("Recommendation types are not available.");
+                    }
+                }
+            };
+
+            musicServer.getArtistRecommendationTypes(callback);
+        }
+        
+        private void invokeFetchRecommendations() {
+
+            AsyncCallback<List<ArtistRecommendation>> callback = new AsyncCallback<List<ArtistRecommendation>>() {
+
+                public void onFailure(Throwable arg0) {
+                    Window.alert(arg0.toString());
+                }
+
+                public void onSuccess(List<ArtistRecommendation> rec) {
+                    uP.setNewContent(new UserCloudArtistListWidget(musicServer, cdm, ListArToAc(rec),rec));
+                    uP.setWaitIconVisible(false);
+                }
+            };
+
+            uP.setWaitIconVisible(true);
+            
+            try {
+                musicServer.getRecommendations(cdm.getCurrRecTypeName(), 20, callback);
+            } catch (WebException ex) {
+                Window.alert(ex.getMessage());
+            }
+        }
+        
         private void invokeFetchRecentRatedArtist() {
 
             AsyncCallback<List<AttentionItem>> callback = new AsyncCallback<List<AttentionItem>>() {
@@ -353,28 +471,35 @@ public class DashboardSwidget extends Swidget {
         }
     }
 
-    public class UserCloudArtistListWidget extends ArtistListWidget {
+    /**
+     * Extract the ArtistCompacts from a list of artist recommenation
+     * @param aR
+     * @return
+     */
+    public ArtistCompact[] ListArToAc(List<ArtistRecommendation> aR) {
+        ArtistCompact[] aC = new ArtistCompact[aR.size()];
+        for (int i = 0; i < aR.size(); i++) {
+            aC[i] = aR.get(i).getArtist();
+        }
+        return aC;
+    }
+    
+    private class UserCloudArtistListWidget extends ArtistListWidget {
 
-        private Map<String, Double> tagMap;
+        private Map<String, ArtistRecommendation> mapAR;
 
         public UserCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
-                ClientDataManager cdm, ArtistCompact[] aDArray) {
+                ClientDataManager cdm, ArtistCompact[] aDArray, List<ArtistRecommendation> aR) {
 
-            super(musicServer, cdm, aDArray);
-
-            tagMap = new HashMap<String, Double>();
-            if (cdm.getListenerDetails().userTagCloud != null) {
-                for (ItemInfo i : cdm.getListenerDetails().userTagCloud) {
-                    tagMap.put(i.getItemName(), i.getScore());
-                }
+            super(musicServer, cdm, aDArray, false);
+            mapAR = new HashMap<String, ArtistRecommendation>();
+            for (ArtistRecommendation a : aR) {
+                mapAR.put(a.getArtist().getId(), a);
             }
         }
 
         public void openWhyPopup(WhyButton why) {
-            why.showLoad();
-            TagDisplayLib.invokeGetCommonTags(tagMap, why.getId(),
-                    musicServer, cdm, new CommonTagsAsyncCallback(why) {
-            });
+            TagDisplayLib.showTagCloud(mapAR.get(why.getId()).getDescription(), mapAR.get(why.getId()).getExplanation());
         }
     }
 }
