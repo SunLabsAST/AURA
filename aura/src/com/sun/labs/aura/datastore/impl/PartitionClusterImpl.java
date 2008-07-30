@@ -380,15 +380,44 @@ public class PartitionClusterImpl implements PartitionCluster,
         //
         // Use the Process Manager to get a new partition cluster for the "1"
         // sub prefix
+        ProcessManager pMgr = null;
+        PartitionCluster remote = pMgr.createPartitionCluster(remotePrefix);
+        PCSplitStrategy splitStrat =
+                new PCSplitStrategy(strategy, localPrefix,
+                                    remote, remotePrefix);
         
         //
         // Install the split strategy for all requests going forward
+        strategy = splitStrat;
         
         //
         // Start a thread that will read every item from this partition and
         // migrate if necessary.  Ditto for attentions.
+        List<Thread> threads = new ArrayList<Thread>();
+        Thread it = new Thread(new MigrateItems(remote, remotePrefix));
+        it.start();
+        threads.add(it);
+        Thread at = new Thread(new MigrateAttentions(remote, remotePrefix));
+        at.start();
+        threads.add(at);
+        Thread ender = new Thread(new SplitMonitor(threads, localPrefix, remote));
+        ender.start();
     }
 
+    protected void endSplit(DSBitSet newLocalPrefix, PartitionCluster remote) {
+        //
+        // Notify the data store heads that the partition clusters have
+        // changed.  Once that has happened, switch back to a default
+        // strategy and our new prefix
+        try {
+            dataStoreHead.registerPartitionSplit(this, remote);
+            prefixCode = newLocalPrefix;
+        } catch (RemoteException e) {
+            logger.log(Level.WARNING, "Failed to register partition split", e);
+        }
+        
+        strategy = new PCDefaultStrategy(replicant);
+    }
     
     public void start() {
     }
@@ -469,6 +498,34 @@ public class PartitionClusterImpl implements PartitionCluster,
                 logger.log(Level.SEVERE, "Attention Migration failed", e);
             } catch (RemoteException ex) {
                 logger.log(Level.SEVERE, "Attention Migration failed", ex);
+            }
+        }
+    }
+    
+    class SplitMonitor implements Runnable {
+        protected List<Thread> migrateThreads;
+        protected DSBitSet localPrefix;
+        protected PartitionCluster remote;
+        
+        public SplitMonitor(List<Thread> migrateThreads,
+                            DSBitSet newLocalPrefix,
+                            PartitionCluster remote) {
+            this.migrateThreads = migrateThreads;
+            this.localPrefix = newLocalPrefix;
+            this.remote = remote;
+        }
+        
+        public void run() {
+            try {
+                for (Thread t : migrateThreads) {
+                    t.join();
+                }
+                //
+                // Once all our threads finished, we can signal that
+                // migration is done
+                endSplit(localPrefix, remote);
+            } catch (InterruptedException e) {
+                logger.severe("Migration was interrupted");
             }
         }
     }

@@ -32,6 +32,17 @@ public interface DataStore extends ItemStore, ItemSearch, Component, Remote {
     
     public Replicant getReplicant(String prefix)
             throws RemoteException;
+
+    /**
+     * Register that a partition cluster split has occurred.  This will update
+     * the trie with the new partitions.
+     * 
+     * @param zeroChild the new left/zero prefix child
+     * @param oneChild the new right/one prefix child
+     */
+    public void registerPartitionSplit(PartitionCluster zeroChild,
+                                       PartitionCluster oneChild)
+            throws RemoteException;
     
     public List<String> getPrefixes()
             throws RemoteException;

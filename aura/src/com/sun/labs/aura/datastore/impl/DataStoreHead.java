@@ -23,7 +23,6 @@ import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
-import com.sun.labs.minion.WeightedField;
 import com.sun.labs.minion.pipeline.StopWords;
 import com.sun.labs.minion.retrieval.MultiDocumentVectorImpl;
 import com.sun.labs.minion.util.StopWatch;
@@ -1278,6 +1277,15 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             throws RemoteException {
         logger.info("Adding partition cluster: " + pc.getPrefix());
         trie.add(pc, pc.getPrefix());
+    }
+    
+    public void registerPartitionSplit(PartitionCluster zeroChild,
+                                       PartitionCluster oneChild)
+            throws RemoteException {
+        logger.info("Adding split partitions: " + zeroChild.getPrefix() +
+                " and " + oneChild.getPrefix());
+        trie.addPair(zeroChild, zeroChild.getPrefix(),
+                     oneChild, oneChild.getPrefix());
     }
     
     public Replicant getReplicant(String prefix) throws RemoteException {
