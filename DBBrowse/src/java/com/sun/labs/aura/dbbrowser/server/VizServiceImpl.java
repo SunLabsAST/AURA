@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -106,7 +107,27 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         logger.info("Halt PC " + pc.getPrefix());
     }
     
-    
+    public void splitPC(PCInfo pc) {
+        logger.info("Split PC " + pc.getPrefix());
+        try {
+            for (ServiceItem svc : svcs) {
+                if (svc.service instanceof PartitionCluster) {
+                    PartitionCluster part = (PartitionCluster)svc.service;
+                    if (part.getPrefix().toString().equals(pc.getPrefix())) {
+                        part.split();
+                    }
+                }
+            }
+        } catch (RemoteException e) {
+            logger.log(Level.WARNING,
+                    "Failed to initiate split for " + pc.getPrefix(), e);
+            throw new RuntimeException("Split failed to start");
+        } catch (AuraException e) {
+            logger.log(Level.WARNING,
+                    "Failed to initiate split for " + pc.getPrefix(), e);
+            throw new RuntimeException("Split failed to start");
+        }
+    }
     
     /**
      * Factory method for making a DSHInfo from a DSH
@@ -144,9 +165,11 @@ public class VizServiceImpl extends RemoteServiceServlet implements
             }*/
             ret.addRepInfo(newRepInfo(pc.getReplicant()));
         } catch (RemoteException e) {
-            logger.warning("Failed to communicate with partition cluster");
+            logger.log(Level.WARNING, "Failed to communicate with partition cluster", e);
+            return null;
         } catch (AuraException ex) {
             logger.warning("Aura exception: " + ex.getMessage());
+            return null;
         }
         return ret;
     }

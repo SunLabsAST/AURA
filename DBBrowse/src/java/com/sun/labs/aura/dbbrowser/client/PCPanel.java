@@ -42,6 +42,15 @@ public class PCPanel extends HorizontalPanel {
             }
         }, "Really halt Partition Cluster " + pc.getPrefix() + "?");
         myself.add(halt);
+        
+        StyleLabel split = new StyleLabel("Split", "viz-actionLabel");
+        VizUI.addConfDialog(split, new ClickListener() {
+            public void onClick(Widget arg0) {
+                doSplit((StyleLabel)arg0);
+            }
+        }, "Really start split of Partition Cluster " + pc.getPrefix() + "?");
+        myself.add(split);
+        
         replicants = new VerticalPanel();
         add(replicants);
         List reps = pc.getRepInfos();
@@ -68,5 +77,21 @@ public class PCPanel extends HorizontalPanel {
             
         };
         GWTMainEntryPoint.getVizService().haltPC(pc, asyncCallback);
+    }
+    
+    protected void doSplit(final StyleLabel splitButton) {
+        AsyncCallback asyncCallback = new AsyncCallback() {
+            public void onFailure(Throwable arg0) {
+                Window.alert("Communication disruption: " + arg0);
+            }
+
+            public void onSuccess(Object arg0) {
+                // not sure yet
+                splitButton.setText("Splitting...");
+                splitButton.setStylePrimaryName("viz-actionLabelInProgress");
+            }
+            
+        };
+        GWTMainEntryPoint.getVizService().splitPC(pc, asyncCallback);
     }
 }

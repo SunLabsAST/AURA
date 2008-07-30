@@ -22,4 +22,6 @@ public interface VizServiceAsync {
     public void getPCInfo(AsyncCallback asyncCallback);
     
     public void haltPC(PCInfo pc, AsyncCallback asyncCallback);
+    
+    public void splitPC(PCInfo pc, AsyncCallback asyncCallback);
 }

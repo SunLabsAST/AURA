@@ -17,9 +17,23 @@ import java.util.List;
 public interface VizService extends RemoteService{
     public String dump();
     
+    /**
+     * Gets all the DSH info
+     * @gwt.typeArgs <com.sun.labs.aura.dbbrowser.client.DSHInfo>
+     */
     public List getDSHInfo();
     
+    /**
+     * Gets all the PC info
+     * @gwt.typeArgs <com.sun.labs.aura.dbbrowser.client.PCInfo>
+     */
     public List getPCInfo();
 
     public void haltPC(PCInfo pc);
+    
+    /**
+     * Cause a Partition Cluster to split itself into two pieces
+     * @param pc
+     */
+    public void splitPC(PCInfo pc);
 }

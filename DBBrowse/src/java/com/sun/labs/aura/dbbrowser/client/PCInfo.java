@@ -16,7 +16,9 @@ public class PCInfo implements Serializable {
     /** The prefix this pc is responsible for */
     protected String prefix;
     
-    /** A list of the replicants that make up this partition */
+    /** A list of the replicants that make up this partition
+     * @gwt.typeArgs <com.sun.labs.aura.dbbrowser.client.RepInfo>
+     */
     protected List repInfos;
     
     protected long numItems;

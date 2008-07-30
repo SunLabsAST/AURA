@@ -18,6 +18,11 @@ a:visited {
   color: #000; 
 }
 
+.main-SelectorButton {
+    margin-right: 5px;
+    margin-left: 5px;
+}
+
 .db-TableHeader {
   font-weight: bold;
   background: url(gradient.gif) repeat-x top left;
@@ -34,10 +39,6 @@ a:visited {
 .db-topBar {
     border-bottom: 2px solid #000;
     padding-bottom: 5px;
-}
-
-.db-SelectorButton {
-    padding-right: 10px;
 }
 
 .db-DarkRow {
@@ -84,6 +85,15 @@ a:visited {
   padding-right: 4px;
   cursor: pointer;
 }
+
+.viz-actionLabelInProgress {
+  font-size: 10px;
+  color: grey;
+  display: inline;
+  padding-right: 4px;
+  font-style: italic;
+}
+
 
 .gwt-TabPanel {
   margin-top: 4px;

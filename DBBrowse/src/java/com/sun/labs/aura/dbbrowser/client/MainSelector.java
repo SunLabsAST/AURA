@@ -38,7 +38,7 @@ public class MainSelector extends DockPanel {
                 contents.showWidget(idx);
             }
         });
-        b.setStylePrimaryName("db-SelectorButton");
+        b.setStylePrimaryName("main-SelectorButton");
         toolLinks.add(b);
         contents.add(tool);
     }
