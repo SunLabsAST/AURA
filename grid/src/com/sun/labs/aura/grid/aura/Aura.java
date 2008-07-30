@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 public abstract class Aura extends ServiceAdapter {
 
     @ConfigString(defaultValue =
-    "/com/sun/labs/aura/aardvark/resource/replicantSlowDumpConfig.xml")
+    "/com/sun/labs/aura/resource/replicantSlowDumpConfig.xml")
     public static final String PROP_REPLICANT_CONFIG = "replicantConfig";
 
     protected String replicantConfig;
@@ -51,6 +51,10 @@ public abstract class Aura extends ServiceAdapter {
 
     public String getDataStoreHeadName() {
         return "dsHead";
+    }
+    
+    public String getAIOVMName() {
+        return "aiovm";
     }
 
     public String getPartitionName(String prefix) {
@@ -83,6 +87,30 @@ public abstract class Aura extends ServiceAdapter {
 
         return gu.getProcessConfig(cmdLine, getReggieName());
     }
+    
+    protected ProcessConfiguration getAIOVMConfig() throws Exception {
+        String[] cmdLine = new String[]{
+            "-Xmx3g",
+            "-DauraHome=/files/data",
+            "-DauraGroup=" + instance + "-aura",
+            "-DauraDistDir=" + GridUtil.auraDistMntPnt,
+            "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
+            "/classifier/starting.idx",
+            "-jar",
+            GridUtil.auraDistMntPnt + "/dist/grid.jar",
+            "/com/sun/labs/aura/util/resource/exportedAIOVMDSConfig.xml",
+            "aiovm-starter"
+        };
+        
+        FileSystem dsfs = gu.getFS(getAIOVMName());
+        List<FileSystemMountParameters> extraMounts =
+                Collections.singletonList(new FileSystemMountParameters(
+                dsfs.getUUID(),
+                "data"));
+        return gu.getProcessConfig(cmdLine, getAIOVMName(),
+                extraMounts);
+    }
+    
 
     protected ProcessConfiguration getDataStoreHeadConfig() throws Exception {
         String[] cmdLine = new String[]{
@@ -91,7 +119,7 @@ public abstract class Aura extends ServiceAdapter {
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
-            "/com/sun/labs/aura/aardvark/resource/dataStoreHeadConfig.xml",
+            "/com/sun/labs/aura/resource/dataStoreHeadConfig.xml",
             "dataStoreHeadStarter"
         };
 
@@ -107,7 +135,7 @@ public abstract class Aura extends ServiceAdapter {
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
-            "/com/sun/labs/aura/aardvark/resource/dataStoreHeadConfig.xml",
+            "/com/sun/labs/aura/resource/dataStoreHeadConfig.xml",
             "dataStoreHeadStarter"
         };
 
@@ -122,7 +150,7 @@ public abstract class Aura extends ServiceAdapter {
             "-Dprefix=" + prefix,
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
-            "/com/sun/labs/aura/aardvark/resource/partitionClusterConfig.xml",
+            "/com/sun/labs/aura/resource/partitionClusterConfig.xml",
             "partitionClusterStarter"
         };
 
@@ -142,7 +170,7 @@ public abstract class Aura extends ServiceAdapter {
             "-Dprefix=" + prefix,
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
-            "/com/sun/labs/aura/aardvark/resource/partitionClusterConfig.xml",
+            "/com/sun/labs/aura/resource/partitionClusterConfig.xml",
             "partitionClusterStarter"
         };
 
@@ -187,7 +215,7 @@ public abstract class Aura extends ServiceAdapter {
             "-DauraGroup=" + instance + "-aura",
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
-            "/com/sun/labs/aura/aardvark/resource/statServiceConfig.xml",
+            "/com/sun/labs/aura/resource/statServiceConfig.xml",
             "statServiceStarter"
         };
 
