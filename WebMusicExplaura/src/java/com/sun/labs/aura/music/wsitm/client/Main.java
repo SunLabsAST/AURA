@@ -112,7 +112,7 @@ public class Main implements EntryPoint, HistoryListener {
         uP.setMenuItems(menuItems);
 
         Panel footer = new HorizontalPanel();
-        footer.add(new HTML("<hr/> Powered by Sun Microsystems, Last.fm, Spotify, Wikipedia, Flickr, Youtube, Yahoo, Musicbrainz, Upcoming and Amazon"));
+        footer.add(new HTML("<hr/> Powered by Sun Microsystems, Last.fm, Spotify, Wikipedia, Flickr,<br/>Youtube, Yahoo, Musicbrainz, Upcoming and Amazon"));
         footer.setStyleName("footer");
         
         mainPanel.add(footer, DockPanel.SOUTH);
