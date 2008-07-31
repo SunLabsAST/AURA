@@ -292,10 +292,12 @@ public class PageHeaderWidget extends Swidget {
                     ClickListener cL = new ClickListener() {
                         public void onClick(Widget arg0) {
                             instantRecPlayWidget = getInstantRecPlayWidget();
+                            Window.alert("Implement recent played trigger");
                         }
                     };
 
-                    Widget instantPlay = WebLib.getSpotifyListenWidget(aC[itemIndex], 20, cL);
+                    Widget instantPlay = WebLib.getSpotifyListenWidget(aC[itemIndex], 
+                            WebLib.PLAY_ICON_SIZE.SMALL, musicServer, cdm.isLoggedIn(), cL);
                     return instantPlay;
                 }
             }

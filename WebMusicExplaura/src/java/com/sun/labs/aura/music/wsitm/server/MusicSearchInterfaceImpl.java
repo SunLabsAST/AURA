@@ -387,6 +387,38 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    public void addPlayAttention(String artistId) throws WebException {
+
+        String userId = getOpenIdFromSession();
+        logger.info("addPlayAttention :: user:"+userId+", artist:"+artistId);
+
+        try {
+            dm.addItemAttention(userId, artistId, Type.PLAYED);
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
+    public void addNotInterestedAttention(String artistId) throws WebException {
+
+        String userId = getOpenIdFromSession();
+        logger.info("addNotInterestedAttention :: user:"+userId+", artist:"+artistId);
+
+        try {
+            dm.addItemAttention(userId, artistId, Type.VIEWED);
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
     public List<AttentionItem> getLastTaggedArtists(int count) throws WebException {
 
         String userId = getOpenIdFromSession();
@@ -432,20 +464,28 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public List<AttentionItem> getLastRatedArtists(int count) throws WebException {
+        return getLastAttentionArtists(count, Type.RATING);
+    }
+
+    public List<AttentionItem> getLastPlayedArtists(int count) throws WebException {
+        return getLastAttentionArtists(count, Type.PLAYED);
+    }
+
+    public List<AttentionItem> getLastAttentionArtists(int count, Type attentionType) throws WebException {
 
         String userId = getOpenIdFromSession();
-        logger.info("getLastRatedArtists :: user:"+userId);
+        logger.info("getLastPayedArtists :: user:"+userId);
 
         try {
             ArrayList<AttentionItem> aI = new ArrayList<AttentionItem>();
             Set<String> artistIds = new HashSet<String>();
 
-            List<Attention> att = dm.getLastAttentionData(userId, Type.RATING, count * 2);
+            List<Attention> att = dm.getLastAttentionData(userId, attentionType, count * 2);
             for (Attention a : att) {
                 if (!artistIds.contains(a.getTargetKey())) {
                     aI.add(new AttentionItem(getArtistCompact(a.getTargetKey())));
                     artistIds.add(a.getTargetKey());
-                    
+
                     if (artistIds.size() == count) {
                         break;
                     }

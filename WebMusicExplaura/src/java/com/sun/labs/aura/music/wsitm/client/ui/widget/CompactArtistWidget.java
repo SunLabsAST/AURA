@@ -4,10 +4,9 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
-import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.Event;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
+import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.History;
@@ -29,7 +28,6 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
-import com.sun.labs.aura.music.wsitm.client.ui.SharedTagMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedFlowPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import java.util.ArrayList;
@@ -48,12 +46,16 @@ public class CompactArtistWidget extends Composite implements HasListeners {
 
     private StarRatingWidget star;
 
+    private String artistId;
+
     public CompactArtistWidget(ArtistCompact aD, ClientDataManager cdm,
             MusicSearchInterfaceAsync musicServer, WhyButton whyB, 
             int currentRating, Set<String> userTags) {
 
         this.cdm = cdm;
         this.musicServer = musicServer;
+
+        artistId = aD.getId();
 
         HorizontalPanel artistPanel = new HorizontalPanel();
         artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_TOP);
@@ -93,21 +95,24 @@ public class CompactArtistWidget extends Composite implements HasListeners {
                 History.newItem(data);
             }
         });
-        aName.getContextMenu().addItem("View tag cloud", new DualDataEmbededCommand<String, ItemInfo[]>(aD.getName(), aD.getDistinctiveTags()) {
+        aName.getContextMenu().addItem("View tag cloud",
+                new DualDataEmbededCommand<String, ItemInfo[]>(aD.getName(), aD.getDistinctiveTags()) {
 
             public void execute() {
                 TagDisplayLib.showTagCloud("Tag cloud for "+data, sndData);
             }
         });
         //aName.getContextMenu().addSeperator();
-        aName.getContextMenu().addItem("Start new steerable from artist", new DualDataEmbededCommand<String,ClientDataManager>(aD.getId(), cdm) {
+        aName.getContextMenu().addItem("Start new steerable from artist",
+                new DualDataEmbededCommand<String,ClientDataManager>(aD.getId(), cdm) {
 
             public void execute() {
                 sndData.setSteerableReset(true);
                 History.newItem("steering:" + data);
             }
         });
-        aName.getContextMenu().addItem("Add artist's top tags to steerable", new DualDataEmbededCommand<ItemInfo[],ClientDataManager>(aD.getDistinctiveTags(), cdm) {
+        aName.getContextMenu().addItem("Add artist's top tags to steerable",
+                new DualDataEmbededCommand<ItemInfo[],ClientDataManager>(aD.getDistinctiveTags(), cdm) {
 
             public void execute() {
                 sndData.getSteerableTagCloudExternalController().addTags(data);
@@ -118,7 +123,13 @@ public class CompactArtistWidget extends Composite implements HasListeners {
 
         HorizontalPanel buttonPanel = new HorizontalPanel();
         buttonPanel.setSpacing(5);
-        Widget spotify = WebLib.getSpotifyListenWidget(aD, 20, null);
+        Widget spotify = WebLib.getSpotifyListenWidget(aD, WebLib.PLAY_ICON_SIZE.SMALL, 
+                musicServer, cdm.isLoggedIn(), new DualDataEmbededClickListener<String, ClientDataManager>(aD.getId(), cdm) {
+
+            public void onClick(Widget arg0) {
+                sndData.getPlayedListenerManager().triggerOnPlay(data);
+            }
+        });
         spotify.getElement().setAttribute("style", "align : right;");
         buttonPanel.add(spotify);
 
@@ -173,6 +184,10 @@ public class CompactArtistWidget extends Composite implements HasListeners {
 
         initWidget(artistPanel);
         setWidth("300px");
+    }
+
+    public String getArtistId() {
+        return artistId;
     }
 
     public void setSteerableResetTrue() {

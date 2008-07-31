@@ -53,6 +53,7 @@ import com.gwtext.client.data.FieldDef;
 import com.gwtext.client.data.RecordDef;
 import com.gwtext.client.data.Store;
 import com.gwtext.client.data.StringFieldDef;
+import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
@@ -603,7 +604,13 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         cdm.getLoginListenerManager().addListener(artistStar);
 
         HorizontalPanel hP = new HorizontalPanel();
-        Widget spotify = WebLib.getSpotifyListenWidget(artistDetails, 30, null);
+        Widget spotify = WebLib.getSpotifyListenWidget(artistDetails, WebLib.PLAY_ICON_SIZE.MEDIUM, 
+                musicServer, cdm.isLoggedIn(), new DualDataEmbededClickListener<String, ClientDataManager>(artistDetails.getId(), cdm) {
+
+            public void onClick(Widget arg0) {
+                sndData.getPlayedListenerManager().triggerOnPlay(data);
+            }
+        });
         if (spotify!=null) {
             spotify.addStyleName("pointer");
             hP.add(spotify);
