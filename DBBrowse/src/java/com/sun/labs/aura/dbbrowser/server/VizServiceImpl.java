@@ -67,6 +67,12 @@ public class VizServiceImpl extends RemoteServiceServlet implements
     protected void refreshSvcs() {
         ComponentRegistry cr = cm.getComponentRegistry();
         Map<ServiceRegistrar,List<ServiceItem>> reggies = cr.getJiniServices();
+        for (ServiceRegistrar sr : reggies.keySet()) {
+            logger.info("ServiceRegistrar: " + sr);
+            for (ServiceItem i : reggies.get(sr)) {
+                logger.info ("  Service: " + i.toString());
+            }
+        }
         ServiceRegistrar sr = reggies.keySet().iterator().next();
         svcs = reggies.get(sr);
     }

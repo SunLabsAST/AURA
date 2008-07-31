@@ -43,10 +43,10 @@ public class PCPanel extends HorizontalPanel {
         }, "Really halt Partition Cluster " + pc.getPrefix() + "?");
         myself.add(halt);
         
-        StyleLabel split = new StyleLabel("Split", "viz-actionLabel");
+        final StyleLabel split = new StyleLabel("Split", "viz-actionLabel");
         VizUI.addConfDialog(split, new ClickListener() {
             public void onClick(Widget arg0) {
-                doSplit((StyleLabel)arg0);
+                doSplit(split);
             }
         }, "Really start split of Partition Cluster " + pc.getPrefix() + "?");
         myself.add(split);
