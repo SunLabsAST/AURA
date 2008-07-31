@@ -240,6 +240,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         }
         
     }
+
+    public Map<String,FieldDescription> getFieldDescriptions()
+            throws RemoteException {
+        return bdb.getFieldDescriptions();
+    }
     
     /**
      * Get all the instances of a particular type of item from the store

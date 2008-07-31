@@ -89,7 +89,7 @@ public class PCSplitStrategy implements PCStrategy {
         local.defineField(itemType, field, caps, fieldType);
         remote.defineField(itemType, field, caps, fieldType);
     }
-
+    
     public List<Item> getAll(ItemType itemType)
             throws AuraException, RemoteException {
         //

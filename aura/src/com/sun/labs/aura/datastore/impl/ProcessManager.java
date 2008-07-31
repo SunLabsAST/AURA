@@ -2,13 +2,15 @@
 package com.sun.labs.aura.datastore.impl;
 
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.util.props.Component;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 /**
  * A class that handles the creation of processes for the various components
  * of the data store.
  */
-public interface ProcessManager {
+public interface ProcessManager extends Component, Remote {
 
     /**
      * Creates a fully functional new partition cluster.  The cluster will

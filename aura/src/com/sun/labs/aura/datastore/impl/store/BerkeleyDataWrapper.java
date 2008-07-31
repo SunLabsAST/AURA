@@ -365,8 +365,12 @@ public class BerkeleyDataWrapper {
         try {
             txn = dbEnv.beginTransaction(null, null);
             txn.setTxnTimeout(0);
-            EntityIndex index = itemByType.subIndex(type.ordinal());
-            cur = index.entities(txn, CursorConfig.READ_UNCOMMITTED);
+            if (type != null) {
+                EntityIndex index = itemByType.subIndex(type.ordinal());
+                cur = index.entities(txn, CursorConfig.READ_UNCOMMITTED);
+            } else {
+                cur = itemByKey.entities(txn, CursorConfig.READ_UNCOMMITTED);
+            }
         } catch(DatabaseException e) {
             handleCursorException(cur, txn, e);
         }
@@ -994,14 +998,21 @@ public class BerkeleyDataWrapper {
     
     public DBIterator<Attention> getAttentionIterator(AttentionConfig ac)
             throws AuraException {
-        EntityJoin<Long,PersistentAttention> join = getAttentionJoin(ac);
+        EntityJoin<Long,PersistentAttention> join = null;
+        if (!Util.isEmpty(ac)) {
+            join = getAttentionJoin(ac);
+        }
 
         ForwardCursor cur = null;
         Transaction txn = null;
         try {
             txn = dbEnv.beginTransaction(null, null);
             txn.setTxnTimeout(0);
-            cur = join.entities(txn, CursorConfig.READ_UNCOMMITTED);
+            if (!Util.isEmpty(ac)) {
+                cur = join.entities(txn, CursorConfig.READ_UNCOMMITTED);
+            } else {
+                cur = allAttn.entities(txn, CursorConfig.READ_UNCOMMITTED);
+            }
         } catch(DatabaseException e) {
             handleCursorException(cur, txn, e);
         }

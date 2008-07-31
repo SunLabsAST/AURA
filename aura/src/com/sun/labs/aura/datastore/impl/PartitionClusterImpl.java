@@ -12,15 +12,18 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
+import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
+import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
+import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
@@ -28,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,10 +50,20 @@ public class PartitionClusterImpl implements PartitionCluster,
     @ConfigComponent(type=com.sun.labs.aura.datastore.DataStore.class)
     public static final String PROP_DATA_STORE_HEAD = "dataStoreHead";
     
+    @ConfigComponent(type=com.sun.labs.aura.datastore.impl.ProcessManager.class)
+    public static final String PROP_PROC_MGR = "processManager";
+    
+    @ConfigBoolean(defaultValue=false)
+    public static final String PROP_DO_NOT_REGISTER = "doNotRegister";
+    
     private DataStore dataStoreHead;
     
-    protected DSBitSet prefixCode;
+    private ProcessManager processManager;
     
+    private ConfigurationManager cm;
+    
+    protected DSBitSet prefixCode;
+        
     protected boolean closed = false;
 
     //protected List<BerkeleyItemStore> replicants;
@@ -84,6 +98,11 @@ public class PartitionClusterImpl implements PartitionCluster,
         strategy.defineField(itemType, field, caps, fieldType);
     }
     
+    public Map<String,FieldDescription> getFieldDescriptions()
+            throws RemoteException {
+        return replicant.getFieldDescriptions();
+    }
+
     public List<Item> getAll(ItemType itemType)
             throws AuraException, RemoteException {
         return strategy.getAll(itemType);
@@ -339,13 +358,21 @@ public class PartitionClusterImpl implements PartitionCluster,
         logger = ps.getLogger();
         prefixCode = DSBitSet.parse(ps.getString(PROP_PREFIX));
         dataStoreHead = (DataStore) ps.getComponent(PROP_DATA_STORE_HEAD);
-        PartitionCluster exported = (PartitionCluster) ps.getConfigurationManager().getRemote(this, dataStoreHead);
-        try {
-            logger.info("Registering partition cluster: " + exported.getPrefix());
-            dataStoreHead.registerPartitionCluster(exported);
-        } catch (RemoteException rx) {
-            throw new PropertyException(ps.getInstanceName(), PROP_DATA_STORE_HEAD, 
-                    "Unable to add partition cluster to data store");
+        processManager = (ProcessManager)ps.getComponent(PROP_PROC_MGR);
+        if (processManager == null) {
+            logger.info("No ProcessManager was found, splitting will fail");
+        }
+        cm = ps.getConfigurationManager();
+        boolean doNotRegister = ps.getBoolean(PROP_DO_NOT_REGISTER);
+        if (!doNotRegister) {
+            PartitionCluster exported = (PartitionCluster) ps.getConfigurationManager().getRemote(this, dataStoreHead);
+            try {
+                logger.info("Registering partition cluster: " + exported.getPrefix());
+                dataStoreHead.registerPartitionCluster(exported);
+            } catch (RemoteException rx) {
+                throw new PropertyException(ps.getInstanceName(), PROP_DATA_STORE_HEAD, 
+                        "Unable to add partition cluster to data store");
+            }
         }
     }
     
@@ -363,6 +390,13 @@ public class PartitionClusterImpl implements PartitionCluster,
     public Replicant getReplicant() throws RemoteException {
         return replicant;
     }
+    
+    public boolean isReady() {
+        if (replicant != null) {
+            return true;
+        }
+        return false;
+    }
 
     public void split() throws AuraException, RemoteException {
         if (!splitting.compareAndSet(false, true)) {
@@ -376,32 +410,44 @@ public class PartitionClusterImpl implements PartitionCluster,
         localPrefix.addBit(false);
         DSBitSet remotePrefix = (DSBitSet)prefixCode.clone();
         remotePrefix.addBit(true);
+        logger.info("Starting to split " + prefixCode + " into "
+                    + localPrefix + " and " + remotePrefix);
 
         //
         // Use the Process Manager to get a new partition cluster for the "1"
         // sub prefix
-        ProcessManager pMgr = null;
-        PartitionCluster remote = pMgr.createPartitionCluster(remotePrefix);
+        PartitionCluster remote = processManager.createPartitionCluster(remotePrefix);
+        logger.info("Got new partition cluster for " + remote.getPrefix());
+
+        //
+        // Define all fields in the new partition
+        Map<String,FieldDescription> fields = getFieldDescriptions();
+        for (FieldDescription fd : fields.values()) {
+            remote.defineField(null, fd.getName(), fd.getCapabilities(), fd.getType());
+        }
+
         PCSplitStrategy splitStrat =
                 new PCSplitStrategy(strategy, localPrefix,
                                     remote, remotePrefix);
         
-        //
-        // Install the split strategy for all requests going forward
-        strategy = splitStrat;
-        
+                
         //
         // Start a thread that will read every item from this partition and
         // migrate if necessary.  Ditto for attentions.
         List<Thread> threads = new ArrayList<Thread>();
-        Thread it = new Thread(new MigrateItems(remote, remotePrefix));
+        Thread it = new Thread(new MigrateItems(strategy, localPrefix, remote, remotePrefix));
         it.start();
         threads.add(it);
-        Thread at = new Thread(new MigrateAttentions(remote, remotePrefix));
+        Thread at = new Thread(new MigrateAttentions(strategy, localPrefix, remote, remotePrefix));
         at.start();
         threads.add(at);
         Thread ender = new Thread(new SplitMonitor(threads, localPrefix, remote));
         ender.start();
+        logger.info("Started split threads");
+
+        //
+        // Install the split strategy for all requests going forward
+        strategy = splitStrat;
     }
 
     protected void endSplit(DSBitSet newLocalPrefix, PartitionCluster remote) {
@@ -409,13 +455,15 @@ public class PartitionClusterImpl implements PartitionCluster,
         // Notify the data store heads that the partition clusters have
         // changed.  Once that has happened, switch back to a default
         // strategy and our new prefix
+        logger.info("Split finished, registering new partitions");
         try {
-            dataStoreHead.registerPartitionSplit(this, remote);
+            PartitionCluster exported = (PartitionCluster) cm.getRemote(this, dataStoreHead);
             prefixCode = newLocalPrefix;
+            dataStoreHead.registerPartitionSplit(exported, remote);
         } catch (RemoteException e) {
             logger.log(Level.WARNING, "Failed to register partition split", e);
         }
-        
+        splitting.set(false);
         strategy = new PCDefaultStrategy(replicant);
     }
     
@@ -433,9 +481,14 @@ public class PartitionClusterImpl implements PartitionCluster,
     class MigrateItems implements Runnable {
         protected PartitionCluster remote;
         protected DSBitSet remotePrefix;
+        /** the local strategy so we're only reading from this partition */
+        protected PCStrategy local;
+        protected DSBitSet newPrefix;
         
-        public MigrateItems(PartitionCluster remote,
-                                  DSBitSet remotePrefix) {
+        public MigrateItems(PCStrategy local, DSBitSet newPrefix,
+                            PartitionCluster remote, DSBitSet remotePrefix) {
+            this.local = local;
+            this.newPrefix = newPrefix;
             this.remote = remote;
             this.remotePrefix = remotePrefix;
         }
@@ -443,30 +496,46 @@ public class PartitionClusterImpl implements PartitionCluster,
         public void run() {
             //
             // Start reading items and writing them as necessary.
-            try {
-                DBIterator<Item> items = getAllIterator(null);
+        DBIterator<Item> items = null;
+        try {
+                items = local.getAllIterator(null);
                 while (items.hasNext()) {
                     Item i = items.next();
                     if (!Util.keyIsLocal(i.hashCode(),
-                                        prefixCode,
+                                        newPrefix,
                                         remotePrefix)) {
                         remote.putItem(i);
-                        deleteItem(i.getKey());
+                        local.deleteItem(i.getKey());
                     }
                 }
             } catch (AuraException e) {
                 logger.log(Level.SEVERE, "Split/migrate items failed", e);
             } catch (RemoteException ex) {
                 logger.log(Level.SEVERE, "Split/migrate items failed", ex);
+            } finally {
+                try {
+                    if (items != null) {
+                        items.close();
+                    }
+                } catch (RemoteException e) {
+                }
             }
         }
     }
     
     class MigrateAttentions implements Runnable {
+        /** the local strategy so we're only reading from this partition */
+        protected PCStrategy local;
+        protected DSBitSet newPrefix;
         protected PartitionCluster remote;
         protected DSBitSet remotePrefix;
         
-        public MigrateAttentions(PartitionCluster remote, DSBitSet remotePrefix) {
+        public MigrateAttentions(PCStrategy local,
+                                 DSBitSet newPrefix,
+                                 PartitionCluster remote,
+                                 DSBitSet remotePrefix) {
+            this.local = local;
+            this.newPrefix = newPrefix;
             this.remote = remote;
             this.remotePrefix = remotePrefix;
         }
@@ -474,15 +543,15 @@ public class PartitionClusterImpl implements PartitionCluster,
         public void run() {
             //
             // Start reading attentions and writing them as necessary
+            DBIterator<Attention> attns = null;
             try {
                 List<Attention> migrate = new ArrayList<Attention>();
                 List<Long> ids = new ArrayList<Long>();
-                DBIterator<Attention> attns =
-                        getAttentionIterator(new AttentionConfig());
+                attns = local.getAttentionIterator(new AttentionConfig());
                 while (attns.hasNext()) {
                     Attention a = attns.next();
                     if (!Util.keyIsLocal(a.hashCode(),
-                                         prefixCode,
+                                         newPrefix,
                                          remotePrefix)) {
                         migrate.add(a);
                         ids.add(((PersistentAttention)a).getID());
@@ -498,6 +567,13 @@ public class PartitionClusterImpl implements PartitionCluster,
                 logger.log(Level.SEVERE, "Attention Migration failed", e);
             } catch (RemoteException ex) {
                 logger.log(Level.SEVERE, "Attention Migration failed", ex);
+            } finally {
+                try {
+                    if (attns != null) {
+                        attns.close();
+                    }
+                } catch (RemoteException e) {
+                }
             }
         }
     }
