@@ -34,36 +34,78 @@ import java.util.logging.Logger;
  */
 public class ServiceDeployer {
 
+    public final static String baseClasspath =
+        GridUtil.auraDistMntPnt + "/dist/aura.jar:" +
+        GridUtil.auraDistMntPnt + "/dist/aardvark.jar:" +
+        GridUtil.auraDistMntPnt + "/dist/grid.jar";
+    
     Grid grid;
     GridUtil gu;
-    FileSystem logFS;
-    FileSystem auraDistFS;
     Collection<FileSystemMountParameters> mountParams =
             new ArrayList<FileSystemMountParameters>();
     Logger logger = Logger.getLogger("");
 
-    public ServiceDeployer(String instance, URL gridURL, String user,
-            String passwd) throws RemoteException, StorageManagementException, Exception {
-        grid = GridFactory.getGrid(gridURL, user, passwd);
-        logger.info("Got grid: " + grid.getGridURL() + " instance: " + instance);
-        gu = new GridUtil(grid, instance);
-        logFS = gu.getAuraLogFS();
-        auraDistFS = gu.getAuraDistFS();
+    /** ToDo: Write getters and setters for all these */
+    String instanceName = "default-instance-name";
+    String username;
+    String password;
+    URL gridURL;
+    
+    public ServiceDeployer() {
+        this(null, null, null, null);
+    }
+    
+    public ServiceDeployer(String instanceName, URL gridURL, String username, String password) {
+        this.instanceName = instanceName;
+        this.gridURL = gridURL;
+        this.username = username;
+        this.password = password;
     }
 
-    public void addMount(String mountDir) throws RemoteException, StorageManagementException {
-        UUID uuid = gu.getFS(mountDir).getUUID();
+    public GridUtil getGridUtil() throws Exception {
+        if(instanceName == null) {
+            throw new IllegalStateException("Instance name not set before attempting to access grid");
+        }
+
+        if(gu == null) {
+            gu = new GridUtil(getGrid(), instanceName);
+        }
+        return gu;
+    }
+    
+    public Grid getGrid() throws Exception {
+        if(username == null) {
+            throw new IllegalStateException("Username not set before attempting to access grid");
+        }
+        if(password == null) {
+            throw new IllegalStateException("Password not set before attempting to access grid");
+        }
+        if(gridURL == null) {
+            throw new IllegalStateException("Grid URL not set before attempting to access grid");
+        }
+        if(instanceName == null) {
+            throw new IllegalStateException("Instance name not set before attempting to access grid");
+        }
+
+        if(grid == null) {
+            grid = GridFactory.getGrid(gridURL, username, password);
+            logger.info("Got grid: " + grid.getGridURL() + " instance: " + instanceName);
+        }
+        return grid;
+    }
+    
+    public void addMount(String mountDir) throws RemoteException, StorageManagementException, Exception {
+        UUID uuid = getGridUtil().getFS(mountDir).getUUID();
         String mountPoint = new File(mountDir).getName();
         logger.info("Mounting " + uuid + " at " + mountPoint);
         mountParams.add(new FileSystemMountParameters(uuid, mountPoint));
     }
     
-    public void deploy(String jarFile, String[] jvmArgs,
-            String config, String starter, String instance) throws Exception {
-
-        String classpath = GridUtil.auraDistMntPnt + "/dist/aura.jar:" +
-                GridUtil.auraDistMntPnt + "/dist/aardvark.jar:" +
-                GridUtil.auraDistMntPnt + "/dist/grid.jar";
+    /**
+     */
+    public void deploy(String jarFile, String[] jvmArgs, String config, String starter)
+            throws Exception {
+        String classpath = baseClasspath;
         
         if(jarFile != null) {
             classpath = classpath + ":" + jarFile;
@@ -71,9 +113,10 @@ public class ServiceDeployer {
         
         String[] cmd = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
-            "-DauraInstance=" + instance,
+            "-Dinstance=" + instanceName,
+            "-DauraInstance=" + instanceName,
             "-DauraPolicy=" + GridUtil.auraDistMntPnt + "/dist/jsk-all.policy",
-            "-DauraGroup=" + instance + "-aura",
+            "-DauraGroup=" + instanceName + "-aura",
             "-cp",
             classpath,
             "com.sun.labs.aura.AuraServiceStarter",
@@ -88,16 +131,17 @@ public class ServiceDeployer {
             cmd = tmp;
         }
 
-        ProcessConfiguration pc = gu.getProcessConfig(cmd, starter, mountParams);
-        pc.setProcessExitAction(ProcessExitAction.DESTROY);
+        ProcessConfiguration processConfig =
+                getGridUtil().getProcessConfig(cmd, starter, mountParams);
+        processConfig.setProcessExitAction(ProcessExitAction.DESTROY);
 
-        Network network = gu.getNetwork();
+        Network network = getGridUtil().getNetwork();
         if(network == null) {
             throw new IllegalStateException("No network for deployment");
         }
         
-        ProcessRegistration reg = gu.createProcess(starter, pc);
-        gu.startRegistration(reg);
+        ProcessRegistration reg = getGridUtil().createProcess(starter, processConfig);
+        getGridUtil().startRegistration(reg);
     }
 
     public static void main(String[] args) {
@@ -111,10 +155,8 @@ public class ServiceDeployer {
         String flags = "j:a:i:g:u:m:";
         Getopt gopt = new Getopt(args, flags);
 
-        URL gridURL = null;
-        String user = null;
-        String passwd = null;
-        String instance = null;
+        ServiceDeployer deployer = new ServiceDeployer();
+        
         String jarFile = null;
         ArrayList<String> mounts = new ArrayList<String>();
      
@@ -126,12 +168,12 @@ public class ServiceDeployer {
             if(dotCaroline.exists()) {
                 Properties props = new Properties();
                 props.load(new FileInputStream(dotCaroline));
-                gridURL = new URL(props.getProperty("gridURL"));
-                user = props.getProperty("customerID");
-                passwd = props.getProperty("password");
-                instance = props.getProperty("instance");
-                if(instance == null) {
-                    instance = System.getProperty("user.name");
+                deployer.gridURL = new URL(props.getProperty("gridURL"));
+                deployer.username = props.getProperty("customerID");
+                deployer.password = props.getProperty("password");
+                deployer.instanceName = props.getProperty("instance");
+                if(deployer.instanceName == null) {
+                    deployer.instanceName = System.getProperty("user.name");
                 }
             }
         } catch(Exception e) {
@@ -139,20 +181,17 @@ public class ServiceDeployer {
             return;
         }
 
-        if(gridURL == null) {
-
+        if(deployer.gridURL == null) {
             //
             // No .caroline, so we need to set the defaults.
-            gridURL = null;
             try {
-                gridURL = new URL("https://dev.caroline.east.sun.com/");
+                deployer.gridURL = new URL("https://dev.caroline.east.sun.com/");
             } catch(MalformedURLException mue) {
                 logger.severe("Malformed URL?  Weird");
                 return;
             }
-            user = "aura";
-            passwd = "corona";
-            instance = System.getProperty("user.name");
+            deployer.username = "aura";
+            deployer.password = "corona";
         }
 
         List<String> jvmArgs = new ArrayList<String>();
@@ -164,20 +203,20 @@ public class ServiceDeployer {
                     break;
                 case 'g':
                     try {
-                        gridURL = new URL(gopt.optArg);
+                        deployer.gridURL = new URL(gopt.optArg);
                     } catch(MalformedURLException mue) {
                         logger.severe("Malformed grid URL: " + gopt.optArg);
                         return;
                     }
                     break;
                 case 'i':
-                    instance = gopt.optArg;
+                    deployer.instanceName = gopt.optArg;
                     break;
                 case 'j':
                     jarFile = gopt.optArg;
                     break;
                 case 'u':
-                    user = gopt.optArg;
+                    deployer.username = gopt.optArg;
                     break;
                 case 'm':
                     mounts.add(gopt.optArg);
@@ -185,11 +224,11 @@ public class ServiceDeployer {
             }
         }
 
-        if(passwd == null) {
+        if(deployer.password == null) {
             BufferedReader r = new BufferedReader(new InputStreamReader(
                     System.in));
             try {
-                passwd = r.readLine();
+                deployer.password = r.readLine();
             } catch(IOException ex) {
                 logger.severe("Error reading password: " + ex);
                 return;
@@ -206,13 +245,10 @@ public class ServiceDeployer {
         String starter = args[gopt.optInd + 1];
 
         try {
-            ServiceDeployer deployer =
-                    new ServiceDeployer(instance, gridURL, user, passwd);
             for(String mountPoint : mounts) {
                 deployer.addMount(mountPoint);
             }
-            deployer.deploy(jarFile, jvmArgs.toArray(new String[0]), config,
-                    starter, instance);
+            deployer.deploy(jarFile, jvmArgs.toArray(new String[0]), config, starter);
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Error deploying service", ex);
         }

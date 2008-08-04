@@ -143,11 +143,18 @@ public class GridUtil {
     public ProcessRegistration createProcess(String name,
             ProcessConfiguration config) throws Exception {
         ProcessRegistration reg = null;
+        String processName = String.format("%s-%s", instance, name);
         try {
-            reg = grid.createProcessRegistration(String.format("%s-%s", instance, name), config);
+            reg = grid.createProcessRegistration(processName, config);
+            log.info("Created process registration: " + processName);
         } catch(DuplicateNameException dne) {
             log.fine("ProcessRegistration: " + name + " already exists, reusing");
-            reg = grid.getProcessRegistration(name);
+            reg = grid.getProcessRegistration(processName);
+            if(reg == null) {
+                throw new NullPointerException("Failed to retreive existing registration: " + name);
+            } else if(reg.getRunState() != RunState.NONE) {
+                throw new IllegalStateException("Process " + processName + " exists and is running");
+            }
         }
         return reg;
     }
