@@ -1,6 +1,7 @@
 syntax: glob
 
 .cvsignore
+Libraries/nblibraries-private.properties
 genfiles.properties
 dist/
 build/
