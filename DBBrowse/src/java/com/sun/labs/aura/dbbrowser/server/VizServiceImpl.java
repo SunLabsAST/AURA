@@ -41,7 +41,6 @@ import net.jini.core.lookup.ServiceRegistrar;
 public class VizServiceImpl extends RemoteServiceServlet implements
     VizService {
 
-    protected static DataStore store;
     protected ConfigurationManager cm;
     protected static Logger logger = Logger.getLogger("");
     
@@ -50,7 +49,6 @@ public class VizServiceImpl extends RemoteServiceServlet implements
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         ServletContext context = getServletContext();
-        store = (DataStore)context.getAttribute("dataStore");
         cm = (ConfigurationManager)context.getAttribute("configManager");
         refreshSvcs();
     }
@@ -64,7 +62,7 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         return ret;
     }
     
-    protected void refreshSvcs() {
+    public void refreshSvcs() {
         ComponentRegistry cr = cm.getComponentRegistry();
         Map<ServiceRegistrar,List<ServiceItem>> reggies = cr.getJiniServices();
         for (ServiceRegistrar sr : reggies.keySet()) {

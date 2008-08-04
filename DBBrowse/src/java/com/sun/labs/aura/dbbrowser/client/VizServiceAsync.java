@@ -16,6 +16,8 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
  */
 public interface VizServiceAsync {
     public void dump(AsyncCallback callback);
+    
+    public void refreshSvcs(AsyncCallback asyncCallback);
 
     public void getDSHInfo(AsyncCallback asyncCallback);
 

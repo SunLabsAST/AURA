@@ -16,6 +16,11 @@ import java.util.List;
  */
 public interface VizService extends RemoteService{
     public String dump();
+
+    /**
+     * Tell the back end to refresh its list of services
+     */
+    public void refreshSvcs();
     
     /**
      * Gets all the DSH info

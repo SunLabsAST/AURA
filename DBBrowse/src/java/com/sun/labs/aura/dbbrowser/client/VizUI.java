@@ -12,7 +12,6 @@ import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.FocusWidget;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -40,6 +39,22 @@ public class VizUI extends DockPanel {
         // Set up the controls
         controls = new FlowPanel();
         controls.setStylePrimaryName("viz-conrolPanel");
+        final AsyncCallback refresher = new AsyncCallback() {
+            public void onFailure(Throwable t) {
+                alert("Failed to refresh, see the server log for details");
+            }
+
+            public void onSuccess(Object result) {
+                refresh();
+            }
+        };
+
+        Button refreshBtn = new Button("Refresh", new ClickListener() {
+            public void onClick(Widget arg0) {
+                service.refreshSvcs(refresher);
+            }
+        });
+        controls.add(refreshBtn);
         add(controls, NORTH);
         
         //
@@ -56,7 +71,7 @@ public class VizUI extends DockPanel {
         add(leftRight, CENTER);
         
         service = GWTMainEntryPoint.getVizService();
-        refresh();
+        service.refreshSvcs(refresher);
     }
     
     protected void refresh() {
