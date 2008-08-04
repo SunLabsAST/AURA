@@ -39,6 +39,7 @@
     
     <!-- The configuration for a partition cluster. We set import to false because there's no properties. -->
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true" import="false">
+        <property name="logLevel" value="FINER"/>
     </component>
     
     <!-- A service starter for this replicant -->

@@ -383,6 +383,28 @@ public class MusicDatabase {
         return results;
     }
 
+
+
+    /**
+     * Gets the most recent attention that matches the given data
+     * @param srcID the desired src ID (typically a listener ID) (or null for any)
+     * @param targetID the desired target id (or null for any)
+     * @param type the desired attention typ (or null for all types)
+     * @param count the return count
+     * @return a list of the most recent attentions that match the give set of parameters
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<Attention> getRecentAttention(String srcID, String targetID, Attention.Type type, int count) 
+                    throws AuraException, RemoteException{
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(srcID);
+        ac.setTargetKey(targetID);
+        ac.setType(type);
+        return dataStore.getLastAttention(ac, count);
+    }
+
+
     public TagCloud tagCloudCreate(String id, String name) throws AuraException {
         if (getTagCloud(id) == null) {
             Item item = StoreFactory.newItem(ItemType.TAG_CLOUD, id, name);
@@ -486,7 +508,7 @@ public class MusicDatabase {
     }
 
     /**
-     * Searches for artists that matc the given name
+     * Searches for artists that match the given name
      * @param artistName the name to search for
      * @param returnCount the number of artists to return
      * @return a list fo artists scored by how well they match the query
@@ -523,7 +545,7 @@ public class MusicDatabase {
     }
 
     /**
-     * Gets the recommendatin types for the system.
+     * Gets the recommendation types for the system.
      * @return
      */
     public List<RecommendationType> getArtistRecommendationTypes() {

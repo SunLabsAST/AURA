@@ -14,6 +14,7 @@ import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.ReverseScoredComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.aura.util.WordCloud;
@@ -130,6 +131,14 @@ public class PCSplitStrategy implements PCStrategy {
         }
     }
 
+    public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException, RemoteException {
+        List<Scored<Item>> ret = new ArrayList();
+        for(Scored<String> key : keys) {
+            ret.add(new Scored<Item>(getItem(key.getItem()), key));
+        }
+        return ret;
+    }
+
     public User getUserForRandomString(String randStr) throws AuraException, RemoteException {
         //
         // The first 8 characters of the random string are the hash code of
@@ -172,8 +181,8 @@ public class PCSplitStrategy implements PCStrategy {
         }
     }
     
-    public void deleteLocalAttention(List<Long> ids) throws AuraException, RemoteException {
-        local.deleteLocalAttention(ids);
+    public void deleteAttention(List<Long> ids) throws AuraException, RemoteException {
+        local.deleteAttention(ids);
     }
 
     public DBIterator<Item> getItemsAddedSince(ItemType type, Date timeStamp) throws AuraException, RemoteException {
@@ -314,27 +323,25 @@ public class PCSplitStrategy implements PCStrategy {
         l.addAll(r);
         Collections.sort(l);
         Collections.reverse(l);
-        return new ArrayList<FieldFrequency>(l.subList(0, n));
+        return new ArrayList<FieldFrequency>(l.subList(0, Math.min(l.size(), n)));
     }
 
-    public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf) throws AuraException, RemoteException {
-        List<Scored<Item>> l = local.query(query, sort, n, rf);
-        List<Scored<Item>> r = remote.query(query, sort, n, rf);
+    public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf) throws AuraException, RemoteException {
+        List<Scored<String>> l = local.query(query, sort, n, rf);
+        List<Scored<String>> r = remote.query(query, sort, n, rf);
         l.removeAll(r);
         l.addAll(r);
-        Collections.sort(l, ScoredComparator.COMPARATOR);
-        Collections.reverse(l);
-        return new ArrayList<Scored<Item>>(l.subList(0, n));
+        Collections.sort(l, ReverseScoredComparator.COMPARATOR);
+        return new ArrayList<Scored<String>>(l.subList(0, Math.min(l.size(), n)));
     }
 
-    public List<Scored<Item>> getAutotagged(String autotag, int n) throws AuraException, RemoteException {
-        List<Scored<Item>> l = local.getAutotagged(autotag, n);
-        List<Scored<Item>> r = remote.getAutotagged(autotag, n);
+    public List<Scored<String>> getAutotagged(String autotag, int n) throws AuraException, RemoteException {
+        List<Scored<String>> l = local.getAutotagged(autotag, n);
+        List<Scored<String>> r = remote.getAutotagged(autotag, n);
         l.removeAll(r);
         l.addAll(r);
-        Collections.sort(l, ScoredComparator.COMPARATOR);
-        Collections.reverse(l);
-        return new ArrayList<Scored<Item>>(l.subList(0, n));
+        Collections.sort(l, ReverseScoredComparator.COMPARATOR);
+        return new ArrayList<Scored<String>>(l.subList(0, Math.min(l.size(), n)));
     }
 
     public List<Scored<String>> getTopAutotagTerms(String autotag, int n) throws AuraException, RemoteException {
@@ -344,7 +351,7 @@ public class PCSplitStrategy implements PCStrategy {
         l.addAll(r);
         Collections.sort(l, ScoredComparator.COMPARATOR);
         Collections.reverse(l);
-        return new ArrayList<Scored<String>>(l.subList(0, n));
+        return new ArrayList<Scored<String>>(l.subList(0, Math.min(l.size(), n)));
     }
 
     public List<Scored<String>> findSimilarAutotags(String autotag, int n) throws AuraException, RemoteException {
@@ -354,7 +361,7 @@ public class PCSplitStrategy implements PCStrategy {
         l.addAll(r);
         Collections.sort(l, ScoredComparator.COMPARATOR);
         Collections.reverse(l);
-        return new ArrayList<Scored<String>>(l.subList(0, n));
+        return new ArrayList<Scored<String>>(l.subList(0, Math.min(l.size(), n)));
     }
 
     public List<Scored<String>> explainSimilarAutotags(String a1, String a2, int n) throws AuraException, RemoteException {
@@ -362,9 +369,8 @@ public class PCSplitStrategy implements PCStrategy {
         List<Scored<String>> r = remote.explainSimilarAutotags(a1, a2, n);
         l.removeAll(r);
         l.addAll(r);
-        Collections.sort(l, ScoredComparator.COMPARATOR);
-        Collections.reverse(l);
-        return new ArrayList<Scored<String>>(l.subList(0, n));
+        Collections.sort(l, ReverseScoredComparator.COMPARATOR);
+        return new ArrayList<Scored<String>>(l.subList(0, Math.min(l.size(), n)));
     }
 
     public WordCloud getTopTerms(String key, String field, int n) throws AuraException, RemoteException {
@@ -415,14 +421,13 @@ public class PCSplitStrategy implements PCStrategy {
         return local.getDocumentVector(cloud, config);
     }
 
-    public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
-        List<Scored<Item>> l = local.findSimilar(dv, config);
-        List<Scored<Item>> r = remote.findSimilar(dv, config);
+    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
+        List<Scored<String>> l = local.findSimilar(dv, config);
+        List<Scored<String>> r = remote.findSimilar(dv, config);
         l.removeAll(r);
         l.addAll(r);
-        Collections.sort(l, ScoredComparator.COMPARATOR);
-        Collections.reverse(l);
-        return new ArrayList<Scored<Item>>(l.subList(0, config.getN()));        
+        Collections.sort(l, ReverseScoredComparator.COMPARATOR);
+        return new ArrayList<Scored<String>>(l.subList(0, config.getN()));        
     }
 
     public void close() throws AuraException, RemoteException {

@@ -8,6 +8,7 @@ import com.sun.caroline.platform.ProcessRegistrationFilter;
 import com.sun.labs.aura.datastore.impl.DSBitSet;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.util.props.ConfigInteger;
+import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.util.Collections;
@@ -20,6 +21,12 @@ import java.util.regex.Pattern;
  * A base class for Aura setup and teardown.
  */
 public abstract class Aura extends ServiceAdapter {
+
+    @ConfigString(defaultValue =
+    "/com/sun/labs/aura/aardvark/resource/replicantSlowDumpConfig.xml")
+    public static final String PROP_REPLICANT_CONFIG = "replicantConfig";
+
+    protected String replicantConfig;
 
     @ConfigInteger(defaultValue = 4)
     public static final String PROP_N_NODES = "nNodes";
@@ -91,9 +98,45 @@ public abstract class Aura extends ServiceAdapter {
         return gu.getProcessConfig(cmdLine, getDataStoreHeadName());
     }
 
+    protected ProcessConfiguration getDataStoreHeadDebugConfig() throws Exception {
+        String[] cmdLine = new String[]{
+            "-Xmx2G",
+            "-Djava.util.logging.config.file=" + GridUtil.auraDistMntPnt +
+            "/dist/rmilogging.properties",
+            "-DauraGroup=" + instance + "-aura",
+            "-DauraHome=" + GridUtil.auraDistMntPnt,
+            "-jar",
+            GridUtil.auraDistMntPnt + "/dist/grid.jar",
+            "/com/sun/labs/aura/aardvark/resource/dataStoreHeadConfig.xml",
+            "dataStoreHeadStarter"
+        };
+
+        return gu.getProcessConfig(cmdLine, getDataStoreHeadName());
+    }
+
     protected ProcessConfiguration getPartitionClusterConfig(String prefix)
             throws Exception {
         String[] cmdLine = new String[]{
+            "-DauraHome=" + GridUtil.auraDistMntPnt,
+            "-DauraGroup=" + instance + "-aura",
+            "-Dprefix=" + prefix,
+            "-jar",
+            GridUtil.auraDistMntPnt + "/dist/grid.jar",
+            "/com/sun/labs/aura/aardvark/resource/partitionClusterConfig.xml",
+            "partitionClusterStarter"
+        };
+
+        return gu.getProcessConfig(cmdLine, getPartitionName(prefix));
+    }
+
+    protected ProcessConfiguration getPartitionClusterDebugConfig(String prefix)
+            throws Exception {
+        String[] cmdLine = new String[]{
+            "-Djava.util.logging.config.file=" + GridUtil.auraDistMntPnt +
+            "/dist/rmilogging.properties",
+            "-verbose:gc",
+            "-XX:+PrintGCTimeStamps",
+            "-XX:+PrintGCDetails",
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
             "-Dprefix=" + prefix,
@@ -168,5 +211,6 @@ public abstract class Aura extends ServiceAdapter {
             prefixBits.setPrefixLength(numBits);
             prefixCodeList[i] = prefixBits.toString();
         }
+        replicantConfig = ps.getString(PROP_REPLICANT_CONFIG);
     }
 }

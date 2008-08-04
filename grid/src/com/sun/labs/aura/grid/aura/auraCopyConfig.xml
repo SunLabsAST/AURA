@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!--
+    Document   : startAura.xml
+    Created on : May 20, 2008, 10:25 AM
+    Author     : stgreen
+    Description:
+        Configuration for the AuraStart grid script.
+-->
+<config>
+    
+    <property name="auraInstance" value="live"/>
+    
+    <property name="nNodes" value="4"/>
+    
+    <component name="startAura" type="com.sun.labs.aura.grid.aura.StartAura">
+        <property name="nNodes" value="${nNodes}"/>
+        <property name="instance" value="${auraInstance}"/>
+        <property name="replicantConfig" value="/com/sun/labs/aura/aardvark/resource/replicantCopyConfig.xml"/>
+    </component>
+    
+    <component name="stopAura" type="com.sun.labs.aura.grid.aura.StopAura">
+        <property name="nNodes" value="${nNodes}"/>
+        <property name="instance" value="${auraInstance}"/>
+        <property name="replicantConfig" value="/com/sun/labs/aura/aardvark/resource/replicantCopyConfig.xml"/>
+    </component>
+    
+    <component name="start" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>startAura</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+    
+    <component name="stop" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>stopAura</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+</config>

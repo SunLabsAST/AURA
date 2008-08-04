@@ -150,4 +150,18 @@
         <jar jarfile="${dist.dir}/aura-dist.jar" basedir="${dist.dir}" includes="dist/**"/>
         <delete dir="${dist.dir}/dist"/>
     </target>
+
+    <taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask" onerror="report"/>
+
+    <target name="findbugs" depends="jar">
+        <property environment="env" />
+        <findbugs home="${findbugs.home}" output="xml" outputFile="${build.dir}/findbugs_output.xml">
+            <sourcePath path="${src.dir}" />
+            <class location="${build.classes.dir}" />
+        </findbugs>
+	<replaceregexp file="${build.dir}/findbugs_output.xml"
+                       match="sourcepath=&quot;([^&quot;]*)&quot;"
+                       replace="sourcepath=&quot;${application.title}/${src.dir}/\1&quot;"
+                       byline="true"/>
+    </target>
 </project>

@@ -168,18 +168,11 @@
             </and>
         </condition>
         <property name="javadoc.encoding.used" value="${source.encoding}"/>
-        <property name="includes" value="**"/>
-        <property name="excludes" value=""/>
         <condition else="" property="javac.compilerargs.jaxws" value="-Djava.endorsed.dirs='${jaxws.endorsed.dir}'">
             <and>
                 <isset property="jaxws.endorsed.dir"/>
                 <available file="nbproject/jaxws-build.xml"/>
             </and>
-        </condition>
-    </target>
-    <target depends="init" name="-init-cos">
-        <condition property="ensure.built.source.roots" value="${src.dir}">
-            <istrue value="${deploy.on.save}"/>
         </condition>
     </target>
     <target name="-post-init">
@@ -221,12 +214,10 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
             <attribute default="${src.dir}" name="srcdir"/>
             <attribute default="${build.classes.dir}" name="destdir"/>
             <attribute default="${javac.classpath}:${j2ee.platform.classpath}" name="classpath"/>
-            <attribute default="${includes}" name="includes"/>
-            <attribute default="${excludes}" name="excludes"/>
             <attribute default="${javac.debug}" name="debug"/>
             <element name="customize" optional="true"/>
             <sequential>
-                <javac debug="@{debug}" deprecation="${javac.deprecation}" destdir="@{destdir}" encoding="${source.encoding}" excludes="@{excludes}" includeantruntime="false" includes="@{includes}" source="${javac.source}" srcdir="@{srcdir}" target="${javac.target}">
+                <javac debug="@{debug}" deprecation="${javac.deprecation}" destdir="@{destdir}" encoding="${source.encoding}" includeantruntime="false" source="${javac.source}" srcdir="@{srcdir}" target="${javac.target}">
                     <classpath>
                         <path path="@{classpath}"/>
                     </classpath>
@@ -238,15 +229,11 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
     </target>
     <target name="-init-macrodef-junit">
         <macrodef name="junit" uri="http://www.netbeans.org/ns/web-project/2">
-            <attribute default="${includes}" name="includes"/>
-            <attribute default="${excludes}" name="excludes"/>
-            <attribute default="**" name="testincludes"/>
+            <attribute default="**/*Test.java" name="includes"/>
             <sequential>
                 <junit dir="${basedir}" errorproperty="tests.failed" failureproperty="tests.failed" fork="true" showoutput="true">
                     <batchtest todir="${build.test.results.dir}">
-                        <fileset dir="${test.src.dir}" excludes="@{excludes},${excludes}" includes="@{includes}">
-                            <filename name="@{testincludes}"/>
-                        </fileset>
+                        <fileset dir="${test.src.dir}" includes="@{includes}"/>
                     </batchtest>
                     <classpath>
                         <path path="${run.test.classpath}:${j2ee.platform.classpath}"/>
@@ -354,20 +341,38 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
             </sequential>
         </macrodef>
     </target>
-    <target name="-init-taskdefs">
-        <fail unless="libs.CopyLibs.classpath">
-The libs.CopyLibs.classpath property is not set up.
-This property must point to 
-org-netbeans-modules-java-j2seproject-copylibstask.jar file which is part
-of NetBeans IDE installation and is usually located at 
-&lt;netbeans_installation&gt;/java&lt;version&gt;/ant/extra folder.
-Either open the project in the IDE and make sure CopyLibs library
-exists or setup the property manually. For example like this:
- ant -Dlibs.CopyLibs.classpath=a/path/to/org-netbeans-modules-java-j2seproject-copylibstask.jar
-                </fail>
-        <taskdef classpath="${libs.CopyLibs.classpath}" resource="org/netbeans/modules/java/j2seproject/copylibstask/antlib.xml"/>
+    <target name="-init-macrodef-copy-ear-war">
+        <macrodef name="copy-ear-war">
+            <attribute name="file"/>
+            <attribute name="propname"/>
+            <sequential>
+                <basename file="@{file}" property="base_@{propname}"/>
+                <zipfileset id="tld.files_@{propname}" includes="META-INF/*.tld META-INF/tlds/*.tld" src="@{file}"/>
+                <pathconvert property="tld.files.path_@{propname}" refid="tld.files_@{propname}"/>
+                <condition property="hastlds_@{propname}" value="yes">
+                    <contains casesensitive="false" string="${tld.files.path_@{propname}}" substring=".tld"/>
+                </condition>
+                <condition property="copy.to.dir_@{propname}" value="${build.web.dir}/WEB-INF/lib">
+                    <isset property="hastlds_@{propname}"/>
+                </condition>
+                <condition property="copy.to.dir_@{propname}" value="${dist.ear.dir}">
+                    <not>
+                        <isset property="hastlds_@{propname}"/>
+                    </not>
+                </condition>
+                <copy file="@{file}" todir="${copy.to.dir_@{propname}}"/>
+                <condition property="@{propname}" value="${base_@{propname}}">
+                    <not>
+                        <isset property="hastlds_@{propname}"/>
+                    </not>
+                </condition>
+                <condition property="@{propname}" value="">
+                    <isset property="hastlds_@{propname}"/>
+                </condition>
+            </sequential>
+        </macrodef>
     </target>
-    <target depends="-pre-init,-init-private,-init-libraries,-init-user,-init-project,-do-init,-post-init,-init-check,-init-macrodef-property,-init-macrodef-javac,-init-macrodef-junit,-init-macrodef-java,-init-macrodef-nbjpda,-init-macrodef-nbjsdebug,-init-macrodef-debug,-init-taskdefs" name="init"/>
+    <target depends="-pre-init,-init-private,-init-libraries,-init-user,-init-project,-do-init,-post-init,-init-check,-init-macrodef-property,-init-macrodef-javac,-init-macrodef-junit,-init-macrodef-java,-init-macrodef-nbjpda,-init-macrodef-nbjsdebug,-init-macrodef-debug,-init-macrodef-copy-ear-war" name="init"/>
     <!--
                 COMPILATION SECTION
             -->
@@ -389,7 +394,7 @@ exists or setup the property manually. For example like this:
     </target>
     <target name="-copy-webdir">
         <copy todir="${build.web.dir}">
-            <fileset dir="${web.docbase.dir}" excludes="${build.web.excludes},${excludes}" includes="${includes}"/>
+            <fileset dir="${web.docbase.dir}" excludes="${build.web.excludes}"/>
         </copy>
         <copy todir="${build.web.dir}/WEB-INF">
             <fileset dir="${webinf.dir}" excludes="${build.web.excludes}"/>
@@ -399,7 +404,7 @@ exists or setup the property manually. For example like this:
     <target depends="init, deps-jar, -pre-pre-compile, -pre-compile, -copy-manifest, -copy-persistence-xml, -copy-webdir, library-inclusion-in-archive,library-inclusion-in-manifest,-do-ws-compile" if="have.sources" name="-do-compile">
         <webproject2:javac destdir="${build.classes.dir}"/>
         <copy todir="${build.classes.dir}">
-            <fileset dir="${src.dir}" excludes="${build.classes.excludes},${excludes}" includes="${includes}"/>
+            <fileset dir="${src.dir}" excludes="${build.classes.excludes}"/>
         </copy>
     </target>
     <target if="has.custom.manifest" name="-copy-manifest">
@@ -425,9 +430,13 @@ exists or setup the property manually. For example like this:
     </target>
     <target depends="init,deps-jar,-pre-pre-compile" name="-do-compile-single">
         <fail unless="javac.includes">Must select some files in the IDE or set javac.includes</fail>
-        <webproject2:javac excludes="" includes="${javac.includes}"/>
+        <webproject2:javac>
+            <customize>
+                <patternset includes="${javac.includes}"/>
+            </customize>
+        </webproject2:javac>
         <copy todir="${build.classes.dir}">
-            <fileset dir="${src.dir}" excludes="${build.classes.excludes},${excludes}" includes="${includes}"/>
+            <fileset dir="${src.dir}" excludes="${build.classes.excludes}"/>
         </copy>
     </target>
     <target name="-post-compile-single">
@@ -445,8 +454,7 @@ exists or setup the property manually. For example like this:
             <arg value="-die1"/>
             <arg value="-compilerSourceVM ${javac.source}"/>
             <arg value="-compilerTargetVM ${javac.target}"/>
-            <arg value="-javaEncoding ${source.encoding}"/>
-            <classpath path="${java.home}/../lib/tools.jar:${jspctask.classpath}:${jspcompilation.classpath}"/>
+            <classpath path="${java.home}/../lib/tools.jar:${copyfiles.classpath}:${jspcompilation.classpath}"/>
         </java>
         <mkdir dir="${build.generated.dir}/classes"/>
         <webproject2:javac classpath="${j2ee.platform.classpath}:${build.classes.dir}:${jspcompilation.classpath}" destdir="${build.generated.dir}/classes" srcdir="${build.generated.dir}/src"/>
@@ -464,8 +472,7 @@ exists or setup the property manually. For example like this:
             <arg path="${jsp.includes}"/>
             <arg value="-compilerSourceVM ${javac.source}"/>
             <arg value="-compilerTargetVM ${javac.target}"/>
-            <arg value="-javaEncoding ${source.encoding}"/>
-            <classpath path="${java.home}/../lib/tools.jar:${jspctask.classpath}:${jspcompilation.classpath}"/>
+            <classpath path="${java.home}/../lib/tools.jar:${copyfiles.classpath}:${jspcompilation.classpath}"/>
         </java>
         <mkdir dir="${build.generated.dir}/classes"/>
         <webproject2:javac classpath="${j2ee.platform.classpath}:${build.classes.dir}:${jspcompilation.classpath}" destdir="${build.generated.dir}/classes" srcdir="${build.generated.dir}/src">
@@ -515,126 +522,214 @@ exists or setup the property manually. For example like this:
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,-do-dist-with-manifest,-do-dist-without-manifest" name="do-dist"/>
     <target depends="init" if="dist.ear.dir" name="library-inclusion-in-manifest">
-        <copyfiles files="${file.reference.minion.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.minion.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.LabsUtil.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.LabsUtil.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${reference.aura.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.reference.aura.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${reference.sitm.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.reference.sitm.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.browser.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.browser.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.checkconfigurationfile.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.checkconfigurationfile.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.checkser.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.checkser.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.classdep.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.classdep.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.classserver.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.classserver.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.computedigest.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.computedigest.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.computehttpmdcodebase.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.computehttpmdcodebase.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.destroy.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.destroy.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.envcheck.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.envcheck.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.fiddler.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.fiddler.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.group.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.group.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.jarwrapper.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.jarwrapper.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.jini-core.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.jini-core.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.jini-ext.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.jini-ext.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.jsk-debug-policy.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.jsk-debug-policy.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.jsk-lib.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.jsk-lib.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.jsk-platform.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.jsk-platform.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.jsk-resources.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.jsk-resources.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.mahalo.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.mahalo.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.mercury.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.mercury.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.norm.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.norm.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.outrigger-logstore.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.outrigger-logstore.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.outrigger-snaplogstore.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.outrigger-snaplogstore.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.outrigger.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.outrigger.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.phoenix-group.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.phoenix-group.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.phoenix-init.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.phoenix-init.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.phoenix.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.phoenix.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.prebuilt-outrigger-logstore.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.prebuilt-outrigger-logstore.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.preferredlistgen.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.preferredlistgen.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.reggie.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.reggie.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.sharedvm.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.sharedvm.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.start.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.start.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.sun-util.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.sun-util.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.tools.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.tools.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.gwt-dev-mac.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.gwt-dev-mac.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.gwt-servlet.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.gwt-servlet.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.gwt-user.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.gwt-user.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.gxt.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.gxt.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.gwttk-0.2.3.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.gwttk-0.2.3.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.gwt-fx-2.0.0RC2.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.gwt-fx-2.0.0RC2.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.commons-httpclient-3.1.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.commons-httpclient-3.1.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.commons-codec-1.3.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.commons-codec-1.3.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.commons-logging-1.1.1.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.commons-logging-1.1.1.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.openxri-client-1.0.1.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.openxri-client-1.0.1.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.openxri-syntax-1.0.1.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.openxri-syntax-1.0.1.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.jdom.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.jdom.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.xerces.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.xerces.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.htmlparser-1.6.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.htmlparser-1.6.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.xmlsec-1.1.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.xmlsec-1.1.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.xalan.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.xalan.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.java-openid-sxip.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.java-openid-sxip.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${libs.restapi.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.restapi.classpath" todir="${dist.ear.dir}"/>
-        <copyfiles files="${libs.restlib.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.restlib.classpath" todir="${dist.ear.dir}"/>
+        <basename file="${file.reference.gwt-user.jar}" property="included.lib.file.reference.gwt-user.jar"/>
+        <copy-ear-war file="${file.reference.gwt-user.jar}" propname="included.lib.file.reference.gwt-user.jar.X"/>
+        <basename file="${file.reference.minion.jar}" property="included.lib.file.reference.minion.jar"/>
+        <copy-ear-war file="${file.reference.minion.jar}" propname="included.lib.file.reference.minion.jar.X"/>
+        <basename file="${file.reference.LabsUtil.jar}" property="included.lib.file.reference.LabsUtil.jar"/>
+        <copy-ear-war file="${file.reference.LabsUtil.jar}" propname="included.lib.file.reference.LabsUtil.jar.X"/>
+        <basename file="${reference.aura.jar}" property="included.lib.reference.aura.jar"/>
+        <copy-ear-war file="${reference.aura.jar}" propname="included.lib.reference.aura.jar.X"/>
+        <basename file="${reference.sitm.jar}" property="included.lib.reference.sitm.jar"/>
+        <copy-ear-war file="${reference.sitm.jar}" propname="included.lib.reference.sitm.jar.X"/>
+        <basename file="${file.reference.browser.jar}" property="included.lib.file.reference.browser.jar"/>
+        <copy-ear-war file="${file.reference.browser.jar}" propname="included.lib.file.reference.browser.jar.X"/>
+        <basename file="${file.reference.checkconfigurationfile.jar}" property="included.lib.file.reference.checkconfigurationfile.jar"/>
+        <copy-ear-war file="${file.reference.checkconfigurationfile.jar}" propname="included.lib.file.reference.checkconfigurationfile.jar.X"/>
+        <basename file="${file.reference.checkser.jar}" property="included.lib.file.reference.checkser.jar"/>
+        <copy-ear-war file="${file.reference.checkser.jar}" propname="included.lib.file.reference.checkser.jar.X"/>
+        <basename file="${file.reference.classdep.jar}" property="included.lib.file.reference.classdep.jar"/>
+        <copy-ear-war file="${file.reference.classdep.jar}" propname="included.lib.file.reference.classdep.jar.X"/>
+        <basename file="${file.reference.classserver.jar}" property="included.lib.file.reference.classserver.jar"/>
+        <copy-ear-war file="${file.reference.classserver.jar}" propname="included.lib.file.reference.classserver.jar.X"/>
+        <basename file="${file.reference.computedigest.jar}" property="included.lib.file.reference.computedigest.jar"/>
+        <copy-ear-war file="${file.reference.computedigest.jar}" propname="included.lib.file.reference.computedigest.jar.X"/>
+        <basename file="${file.reference.computehttpmdcodebase.jar}" property="included.lib.file.reference.computehttpmdcodebase.jar"/>
+        <copy-ear-war file="${file.reference.computehttpmdcodebase.jar}" propname="included.lib.file.reference.computehttpmdcodebase.jar.X"/>
+        <basename file="${file.reference.destroy.jar}" property="included.lib.file.reference.destroy.jar"/>
+        <copy-ear-war file="${file.reference.destroy.jar}" propname="included.lib.file.reference.destroy.jar.X"/>
+        <basename file="${file.reference.envcheck.jar}" property="included.lib.file.reference.envcheck.jar"/>
+        <copy-ear-war file="${file.reference.envcheck.jar}" propname="included.lib.file.reference.envcheck.jar.X"/>
+        <basename file="${file.reference.fiddler.jar}" property="included.lib.file.reference.fiddler.jar"/>
+        <copy-ear-war file="${file.reference.fiddler.jar}" propname="included.lib.file.reference.fiddler.jar.X"/>
+        <basename file="${file.reference.group.jar}" property="included.lib.file.reference.group.jar"/>
+        <copy-ear-war file="${file.reference.group.jar}" propname="included.lib.file.reference.group.jar.X"/>
+        <basename file="${file.reference.jarwrapper.jar}" property="included.lib.file.reference.jarwrapper.jar"/>
+        <copy-ear-war file="${file.reference.jarwrapper.jar}" propname="included.lib.file.reference.jarwrapper.jar.X"/>
+        <basename file="${file.reference.jini-core.jar}" property="included.lib.file.reference.jini-core.jar"/>
+        <copy-ear-war file="${file.reference.jini-core.jar}" propname="included.lib.file.reference.jini-core.jar.X"/>
+        <basename file="${file.reference.jini-ext.jar}" property="included.lib.file.reference.jini-ext.jar"/>
+        <copy-ear-war file="${file.reference.jini-ext.jar}" propname="included.lib.file.reference.jini-ext.jar.X"/>
+        <basename file="${file.reference.jsk-debug-policy.jar}" property="included.lib.file.reference.jsk-debug-policy.jar"/>
+        <copy-ear-war file="${file.reference.jsk-debug-policy.jar}" propname="included.lib.file.reference.jsk-debug-policy.jar.X"/>
+        <basename file="${file.reference.jsk-lib.jar}" property="included.lib.file.reference.jsk-lib.jar"/>
+        <copy-ear-war file="${file.reference.jsk-lib.jar}" propname="included.lib.file.reference.jsk-lib.jar.X"/>
+        <basename file="${file.reference.jsk-platform.jar}" property="included.lib.file.reference.jsk-platform.jar"/>
+        <copy-ear-war file="${file.reference.jsk-platform.jar}" propname="included.lib.file.reference.jsk-platform.jar.X"/>
+        <basename file="${file.reference.jsk-resources.jar}" property="included.lib.file.reference.jsk-resources.jar"/>
+        <copy-ear-war file="${file.reference.jsk-resources.jar}" propname="included.lib.file.reference.jsk-resources.jar.X"/>
+        <basename file="${file.reference.mahalo.jar}" property="included.lib.file.reference.mahalo.jar"/>
+        <copy-ear-war file="${file.reference.mahalo.jar}" propname="included.lib.file.reference.mahalo.jar.X"/>
+        <basename file="${file.reference.mercury.jar}" property="included.lib.file.reference.mercury.jar"/>
+        <copy-ear-war file="${file.reference.mercury.jar}" propname="included.lib.file.reference.mercury.jar.X"/>
+        <basename file="${file.reference.norm.jar}" property="included.lib.file.reference.norm.jar"/>
+        <copy-ear-war file="${file.reference.norm.jar}" propname="included.lib.file.reference.norm.jar.X"/>
+        <basename file="${file.reference.outrigger-logstore.jar}" property="included.lib.file.reference.outrigger-logstore.jar"/>
+        <copy-ear-war file="${file.reference.outrigger-logstore.jar}" propname="included.lib.file.reference.outrigger-logstore.jar.X"/>
+        <basename file="${file.reference.outrigger-snaplogstore.jar}" property="included.lib.file.reference.outrigger-snaplogstore.jar"/>
+        <copy-ear-war file="${file.reference.outrigger-snaplogstore.jar}" propname="included.lib.file.reference.outrigger-snaplogstore.jar.X"/>
+        <basename file="${file.reference.outrigger.jar}" property="included.lib.file.reference.outrigger.jar"/>
+        <copy-ear-war file="${file.reference.outrigger.jar}" propname="included.lib.file.reference.outrigger.jar.X"/>
+        <basename file="${file.reference.phoenix-group.jar}" property="included.lib.file.reference.phoenix-group.jar"/>
+        <copy-ear-war file="${file.reference.phoenix-group.jar}" propname="included.lib.file.reference.phoenix-group.jar.X"/>
+        <basename file="${file.reference.phoenix-init.jar}" property="included.lib.file.reference.phoenix-init.jar"/>
+        <copy-ear-war file="${file.reference.phoenix-init.jar}" propname="included.lib.file.reference.phoenix-init.jar.X"/>
+        <basename file="${file.reference.phoenix.jar}" property="included.lib.file.reference.phoenix.jar"/>
+        <copy-ear-war file="${file.reference.phoenix.jar}" propname="included.lib.file.reference.phoenix.jar.X"/>
+        <basename file="${file.reference.prebuilt-outrigger-logstore.jar}" property="included.lib.file.reference.prebuilt-outrigger-logstore.jar"/>
+        <copy-ear-war file="${file.reference.prebuilt-outrigger-logstore.jar}" propname="included.lib.file.reference.prebuilt-outrigger-logstore.jar.X"/>
+        <basename file="${file.reference.preferredlistgen.jar}" property="included.lib.file.reference.preferredlistgen.jar"/>
+        <copy-ear-war file="${file.reference.preferredlistgen.jar}" propname="included.lib.file.reference.preferredlistgen.jar.X"/>
+        <basename file="${file.reference.reggie.jar}" property="included.lib.file.reference.reggie.jar"/>
+        <copy-ear-war file="${file.reference.reggie.jar}" propname="included.lib.file.reference.reggie.jar.X"/>
+        <basename file="${file.reference.sharedvm.jar}" property="included.lib.file.reference.sharedvm.jar"/>
+        <copy-ear-war file="${file.reference.sharedvm.jar}" propname="included.lib.file.reference.sharedvm.jar.X"/>
+        <basename file="${file.reference.start.jar}" property="included.lib.file.reference.start.jar"/>
+        <copy-ear-war file="${file.reference.start.jar}" propname="included.lib.file.reference.start.jar.X"/>
+        <basename file="${file.reference.sun-util.jar}" property="included.lib.file.reference.sun-util.jar"/>
+        <copy-ear-war file="${file.reference.sun-util.jar}" propname="included.lib.file.reference.sun-util.jar.X"/>
+        <basename file="${file.reference.tools.jar}" property="included.lib.file.reference.tools.jar"/>
+        <copy-ear-war file="${file.reference.tools.jar}" propname="included.lib.file.reference.tools.jar.X"/>
+        <basename file="${file.reference.gwt-dev-mac.jar}" property="included.lib.file.reference.gwt-dev-mac.jar"/>
+        <copy-ear-war file="${file.reference.gwt-dev-mac.jar}" propname="included.lib.file.reference.gwt-dev-mac.jar.X"/>
+        <basename file="${file.reference.gwt-servlet.jar}" property="included.lib.file.reference.gwt-servlet.jar"/>
+        <copy-ear-war file="${file.reference.gwt-servlet.jar}" propname="included.lib.file.reference.gwt-servlet.jar.X"/>
+        <basename file="${file.reference.gxt.jar}" property="included.lib.file.reference.gxt.jar"/>
+        <copy-ear-war file="${file.reference.gxt.jar}" propname="included.lib.file.reference.gxt.jar.X"/>
+        <basename file="${file.reference.gwttk-0.2.3.jar}" property="included.lib.file.reference.gwttk-0.2.3.jar"/>
+        <copy-ear-war file="${file.reference.gwttk-0.2.3.jar}" propname="included.lib.file.reference.gwttk-0.2.3.jar.X"/>
+        <basename file="${file.reference.gwt-fx-2.0.0RC2.jar}" property="included.lib.file.reference.gwt-fx-2.0.0RC2.jar"/>
+        <copy-ear-war file="${file.reference.gwt-fx-2.0.0RC2.jar}" propname="included.lib.file.reference.gwt-fx-2.0.0RC2.jar.X"/>
+        <basename file="${file.reference.commons-httpclient-3.1.jar}" property="included.lib.file.reference.commons-httpclient-3.1.jar"/>
+        <copy-ear-war file="${file.reference.commons-httpclient-3.1.jar}" propname="included.lib.file.reference.commons-httpclient-3.1.jar.X"/>
+        <basename file="${file.reference.commons-codec-1.3.jar}" property="included.lib.file.reference.commons-codec-1.3.jar"/>
+        <copy-ear-war file="${file.reference.commons-codec-1.3.jar}" propname="included.lib.file.reference.commons-codec-1.3.jar.X"/>
+        <basename file="${file.reference.commons-logging-1.1.1.jar}" property="included.lib.file.reference.commons-logging-1.1.1.jar"/>
+        <copy-ear-war file="${file.reference.commons-logging-1.1.1.jar}" propname="included.lib.file.reference.commons-logging-1.1.1.jar.X"/>
+        <basename file="${file.reference.openxri-client-1.0.1.jar}" property="included.lib.file.reference.openxri-client-1.0.1.jar"/>
+        <copy-ear-war file="${file.reference.openxri-client-1.0.1.jar}" propname="included.lib.file.reference.openxri-client-1.0.1.jar.X"/>
+        <basename file="${file.reference.openxri-syntax-1.0.1.jar}" property="included.lib.file.reference.openxri-syntax-1.0.1.jar"/>
+        <copy-ear-war file="${file.reference.openxri-syntax-1.0.1.jar}" propname="included.lib.file.reference.openxri-syntax-1.0.1.jar.X"/>
+        <basename file="${file.reference.jdom.jar}" property="included.lib.file.reference.jdom.jar"/>
+        <copy-ear-war file="${file.reference.jdom.jar}" propname="included.lib.file.reference.jdom.jar.X"/>
+        <basename file="${file.reference.xerces.jar}" property="included.lib.file.reference.xerces.jar"/>
+        <copy-ear-war file="${file.reference.xerces.jar}" propname="included.lib.file.reference.xerces.jar.X"/>
+        <basename file="${file.reference.htmlparser-1.6.jar}" property="included.lib.file.reference.htmlparser-1.6.jar"/>
+        <copy-ear-war file="${file.reference.htmlparser-1.6.jar}" propname="included.lib.file.reference.htmlparser-1.6.jar.X"/>
+        <basename file="${file.reference.xmlsec-1.1.jar}" property="included.lib.file.reference.xmlsec-1.1.jar"/>
+        <copy-ear-war file="${file.reference.xmlsec-1.1.jar}" propname="included.lib.file.reference.xmlsec-1.1.jar.X"/>
+        <basename file="${file.reference.xalan.jar}" property="included.lib.file.reference.xalan.jar"/>
+        <copy-ear-war file="${file.reference.xalan.jar}" propname="included.lib.file.reference.xalan.jar.X"/>
+        <basename file="${file.reference.java-openid-sxip.jar}" property="included.lib.file.reference.java-openid-sxip.jar"/>
+        <copy-ear-war file="${file.reference.java-openid-sxip.jar}" propname="included.lib.file.reference.java-openid-sxip.jar.X"/>
+        <basename file="${libs.restapi.classpath}" property="included.lib.libs.restapi.classpath"/>
+        <copy-ear-war file="${libs.restapi.classpath}" propname="included.lib.libs.restapi.classpath.X"/>
+        <basename file="${libs.restlib.classpath.libfile.15}" property="included.lib.libs.restlib.classpath.15"/>
+        <basename file="${libs.restlib.classpath.libfile.14}" property="included.lib.libs.restlib.classpath.14"/>
+        <basename file="${libs.restlib.classpath.libfile.13}" property="included.lib.libs.restlib.classpath.13"/>
+        <basename file="${libs.restlib.classpath.libfile.12}" property="included.lib.libs.restlib.classpath.12"/>
+        <basename file="${libs.restlib.classpath.libfile.11}" property="included.lib.libs.restlib.classpath.11"/>
+        <basename file="${libs.restlib.classpath.libfile.10}" property="included.lib.libs.restlib.classpath.10"/>
+        <basename file="${libs.restlib.classpath.libfile.9}" property="included.lib.libs.restlib.classpath.9"/>
+        <basename file="${libs.restlib.classpath.libfile.8}" property="included.lib.libs.restlib.classpath.8"/>
+        <basename file="${libs.restlib.classpath.libfile.7}" property="included.lib.libs.restlib.classpath.7"/>
+        <basename file="${libs.restlib.classpath.libfile.6}" property="included.lib.libs.restlib.classpath.6"/>
+        <basename file="${libs.restlib.classpath.libfile.5}" property="included.lib.libs.restlib.classpath.5"/>
+        <basename file="${libs.restlib.classpath.libfile.4}" property="included.lib.libs.restlib.classpath.4"/>
+        <basename file="${libs.restlib.classpath.libfile.3}" property="included.lib.libs.restlib.classpath.3"/>
+        <basename file="${libs.restlib.classpath.libfile.2}" property="included.lib.libs.restlib.classpath.2"/>
+        <basename file="${libs.restlib.classpath.libfile.1}" property="included.lib.libs.restlib.classpath.1"/>
+        <copy-ear-war file="${libs.restlib.classpath.libfile.15}" propname="included.lib.libs.restlib.classpath.15.X"/>
+        <copy-ear-war file="${libs.restlib.classpath.libfile.14}" propname="included.lib.libs.restlib.classpath.14.X"/>
+        <copy-ear-war file="${libs.restlib.classpath.libfile.13}" propname="included.lib.libs.restlib.classpath.13.X"/>
+        <copy-ear-war file="${libs.restlib.classpath.libfile.12}" propname="included.lib.libs.restlib.classpath.12.X"/>
+        <copy-ear-war file="${libs.restlib.classpath.libfile.11}" propname="included.lib.libs.restlib.classpath.11.X"/>
+        <copy-ear-war file="${libs.restlib.classpath.libfile.10}" propname="included.lib.libs.restlib.classpath.10.X"/>
+        <copy-ear-war file="${libs.restlib.classpath.libfile.9}" propname="included.lib.libs.restlib.classpath.9.X"/>
+        <copy-ear-war file="${libs.restlib.classpath.libfile.8}" propname="included.lib.libs.restlib.classpath.8.X"/>
+        <copy-ear-war file="${libs.restlib.classpath.libfile.7}" propname="included.lib.libs.restlib.classpath.7.X"/>
+        <copy-ear-war file="${libs.restlib.classpath.libfile.6}" propname="included.lib.libs.restlib.classpath.6.X"/>
+        <copy-ear-war file="${libs.restlib.classpath.libfile.5}" propname="included.lib.libs.restlib.classpath.5.X"/>
+        <copy-ear-war file="${libs.restlib.classpath.libfile.4}" propname="included.lib.libs.restlib.classpath.4.X"/>
+        <copy-ear-war file="${libs.restlib.classpath.libfile.3}" propname="included.lib.libs.restlib.classpath.3.X"/>
+        <copy-ear-war file="${libs.restlib.classpath.libfile.2}" propname="included.lib.libs.restlib.classpath.2.X"/>
+        <copy-ear-war file="${libs.restlib.classpath.libfile.1}" propname="included.lib.libs.restlib.classpath.1.X"/>
+        <basename file="${file.reference.gwtext.jar}" property="included.lib.file.reference.gwtext.jar"/>
+        <copy-ear-war file="${file.reference.gwtext.jar}" propname="included.lib.file.reference.gwtext.jar.X"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${manifest.file.reference.minion.jar} ${manifest.file.reference.LabsUtil.jar} ${manifest.reference.aura.jar} ${manifest.reference.sitm.jar} ${manifest.file.reference.browser.jar} ${manifest.file.reference.checkconfigurationfile.jar} ${manifest.file.reference.checkser.jar} ${manifest.file.reference.classdep.jar} ${manifest.file.reference.classserver.jar} ${manifest.file.reference.computedigest.jar} ${manifest.file.reference.computehttpmdcodebase.jar} ${manifest.file.reference.destroy.jar} ${manifest.file.reference.envcheck.jar} ${manifest.file.reference.fiddler.jar} ${manifest.file.reference.group.jar} ${manifest.file.reference.jarwrapper.jar} ${manifest.file.reference.jini-core.jar} ${manifest.file.reference.jini-ext.jar} ${manifest.file.reference.jsk-debug-policy.jar} ${manifest.file.reference.jsk-lib.jar} ${manifest.file.reference.jsk-platform.jar} ${manifest.file.reference.jsk-resources.jar} ${manifest.file.reference.mahalo.jar} ${manifest.file.reference.mercury.jar} ${manifest.file.reference.norm.jar} ${manifest.file.reference.outrigger-logstore.jar} ${manifest.file.reference.outrigger-snaplogstore.jar} ${manifest.file.reference.outrigger.jar} ${manifest.file.reference.phoenix-group.jar} ${manifest.file.reference.phoenix-init.jar} ${manifest.file.reference.phoenix.jar} ${manifest.file.reference.prebuilt-outrigger-logstore.jar} ${manifest.file.reference.preferredlistgen.jar} ${manifest.file.reference.reggie.jar} ${manifest.file.reference.sharedvm.jar} ${manifest.file.reference.start.jar} ${manifest.file.reference.sun-util.jar} ${manifest.file.reference.tools.jar} ${manifest.file.reference.gwt-dev-mac.jar} ${manifest.file.reference.gwt-servlet.jar} ${manifest.file.reference.gwt-user.jar} ${manifest.file.reference.gxt.jar} ${manifest.file.reference.gwttk-0.2.3.jar} ${manifest.file.reference.gwt-fx-2.0.0RC2.jar} ${manifest.file.reference.commons-httpclient-3.1.jar} ${manifest.file.reference.commons-codec-1.3.jar} ${manifest.file.reference.commons-logging-1.1.1.jar} ${manifest.file.reference.openxri-client-1.0.1.jar} ${manifest.file.reference.openxri-syntax-1.0.1.jar} ${manifest.file.reference.jdom.jar} ${manifest.file.reference.xerces.jar} ${manifest.file.reference.htmlparser-1.6.jar} ${manifest.file.reference.xmlsec-1.1.jar} ${manifest.file.reference.xalan.jar} ${manifest.file.reference.java-openid-sxip.jar} ${manifest.libs.restapi.classpath} ${manifest.libs.restlib.classpath} "/>
+            <attribute name="Class-Path" value="${included.lib.file.reference.gwt-user.jar} ${included.lib.file.reference.minion.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.reference.aura.jar} ${included.lib.reference.sitm.jar} ${included.lib.file.reference.browser.jar} ${included.lib.file.reference.checkconfigurationfile.jar} ${included.lib.file.reference.checkser.jar} ${included.lib.file.reference.classdep.jar} ${included.lib.file.reference.classserver.jar} ${included.lib.file.reference.computedigest.jar} ${included.lib.file.reference.computehttpmdcodebase.jar} ${included.lib.file.reference.destroy.jar} ${included.lib.file.reference.envcheck.jar} ${included.lib.file.reference.fiddler.jar} ${included.lib.file.reference.group.jar} ${included.lib.file.reference.jarwrapper.jar} ${included.lib.file.reference.jini-core.jar} ${included.lib.file.reference.jini-ext.jar} ${included.lib.file.reference.jsk-debug-policy.jar} ${included.lib.file.reference.jsk-lib.jar} ${included.lib.file.reference.jsk-platform.jar} ${included.lib.file.reference.jsk-resources.jar} ${included.lib.file.reference.mahalo.jar} ${included.lib.file.reference.mercury.jar} ${included.lib.file.reference.norm.jar} ${included.lib.file.reference.outrigger-logstore.jar} ${included.lib.file.reference.outrigger-snaplogstore.jar} ${included.lib.file.reference.outrigger.jar} ${included.lib.file.reference.phoenix-group.jar} ${included.lib.file.reference.phoenix-init.jar} ${included.lib.file.reference.phoenix.jar} ${included.lib.file.reference.prebuilt-outrigger-logstore.jar} ${included.lib.file.reference.preferredlistgen.jar} ${included.lib.file.reference.reggie.jar} ${included.lib.file.reference.sharedvm.jar} ${included.lib.file.reference.start.jar} ${included.lib.file.reference.sun-util.jar} ${included.lib.file.reference.tools.jar} ${included.lib.file.reference.gwt-dev-mac.jar} ${included.lib.file.reference.gwt-servlet.jar} ${included.lib.file.reference.gxt.jar} ${included.lib.file.reference.gwttk-0.2.3.jar} ${included.lib.file.reference.gwt-fx-2.0.0RC2.jar} ${included.lib.file.reference.commons-httpclient-3.1.jar} ${included.lib.file.reference.commons-codec-1.3.jar} ${included.lib.file.reference.commons-logging-1.1.1.jar} ${included.lib.file.reference.openxri-client-1.0.1.jar} ${included.lib.file.reference.openxri-syntax-1.0.1.jar} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.htmlparser-1.6.jar} ${included.lib.file.reference.xmlsec-1.1.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.java-openid-sxip.jar} ${included.lib.libs.restapi.classpath} ${included.lib.libs.restlib.classpath.1.X} ${included.lib.libs.restlib.classpath.2.X} ${included.lib.libs.restlib.classpath.3.X} ${included.lib.libs.restlib.classpath.4.X} ${included.lib.libs.restlib.classpath.5.X} ${included.lib.libs.restlib.classpath.6.X} ${included.lib.libs.restlib.classpath.7.X} ${included.lib.libs.restlib.classpath.8.X} ${included.lib.libs.restlib.classpath.9.X} ${included.lib.libs.restlib.classpath.10.X} ${included.lib.libs.restlib.classpath.11.X} ${included.lib.libs.restlib.classpath.12.X} ${included.lib.libs.restlib.classpath.13.X} ${included.lib.libs.restlib.classpath.14.X} ${included.lib.libs.restlib.classpath.15.X} ${included.lib.file.reference.gwtext.jar} "/>
         </manifest>
+        <delete dir="${dist.ear.dir}/temp"/>
     </target>
     <target depends="init" name="library-inclusion-in-archive" unless="dist.ear.dir">
-        <copyfiles files="${file.reference.minion.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.LabsUtil.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${reference.aura.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${reference.sitm.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.browser.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.checkconfigurationfile.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.checkser.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.classdep.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.classserver.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.computedigest.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.computehttpmdcodebase.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.destroy.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.envcheck.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.fiddler.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.group.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.jarwrapper.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.jini-core.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.jini-ext.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.jsk-debug-policy.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.jsk-lib.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.jsk-platform.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.jsk-resources.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.mahalo.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.mercury.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.norm.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.outrigger-logstore.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.outrigger-snaplogstore.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.outrigger.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.phoenix-group.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.phoenix-init.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.phoenix.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.prebuilt-outrigger-logstore.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.preferredlistgen.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.reggie.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.sharedvm.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.start.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.sun-util.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.tools.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.gwt-dev-mac.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.gwt-servlet.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.gwt-user.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.gxt.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.gwttk-0.2.3.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.gwt-fx-2.0.0RC2.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.commons-httpclient-3.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.commons-codec-1.3.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.commons-logging-1.1.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.openxri-client-1.0.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.openxri-syntax-1.0.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.jdom.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.xerces.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.htmlparser-1.6.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.xmlsec-1.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.xalan.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.java-openid-sxip.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${libs.restapi.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${libs.restlib.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gwt-user.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.minion.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.LabsUtil.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${reference.aura.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${reference.sitm.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.browser.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.checkconfigurationfile.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.checkser.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.classdep.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.classserver.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.computedigest.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.computehttpmdcodebase.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.destroy.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.envcheck.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.fiddler.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.group.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jarwrapper.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jini-core.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jini-ext.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jsk-debug-policy.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jsk-lib.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jsk-platform.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jsk-resources.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.mahalo.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.mercury.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.norm.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.outrigger-logstore.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.outrigger-snaplogstore.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.outrigger.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.phoenix-group.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.phoenix-init.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.phoenix.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.prebuilt-outrigger-logstore.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.preferredlistgen.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.reggie.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.sharedvm.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.start.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.sun-util.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.tools.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gwt-dev-mac.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gwt-servlet.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gxt.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gwttk-0.2.3.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gwt-fx-2.0.0RC2.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.commons-httpclient-3.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.commons-codec-1.3.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.commons-logging-1.1.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.openxri-client-1.0.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.openxri-syntax-1.0.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jdom.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.xerces.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.htmlparser-1.6.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.xmlsec-1.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.xalan.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.java-openid-sxip.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.restapi.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.gwtext.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>
@@ -648,7 +743,7 @@ exists or setup the property manually. For example like this:
         <!-- You can override this target in the ../build.xml file. -->
     </target>
     <target depends="init,compile,-pre-dist,do-dist,-post-dist" description="Build distribution (WAR)." name="dist"/>
-    <target depends="init,-init-cos,compile,-pre-dist,do-ear-dist,-post-dist" description="Build distribution (WAR) to be packaged into an EAR." name="dist-ear"/>
+    <target depends="init,compile,-pre-dist,do-ear-dist,-post-dist" description="Build distribution (WAR) to be packaged into an EAR." name="dist-ear"/>
     <!--
                 EXECUTION SECTION
             -->
@@ -672,7 +767,7 @@ exists or setup the property manually. For example like this:
     <target name="-run-deploy-am">
         <!-- Task to deploy to the Access Manager runtime. -->
     </target>
-    <target depends="init,-init-cos,compile,compile-jsps,-do-compile-single-jsp,-pre-dist,-do-tmp-dist-with-manifest,-do-tmp-dist-without-manifest,-pre-run-deploy,-pre-nbmodule-run-deploy,-run-deploy-nb,-init-deploy-ant,-deploy-ant,-run-deploy-am,-post-nbmodule-run-deploy,-post-run-deploy" name="run-deploy">
+    <target depends="init,compile,compile-jsps,-do-compile-single-jsp,-pre-dist,-do-tmp-dist-with-manifest,-do-tmp-dist-without-manifest,-pre-run-deploy,-pre-nbmodule-run-deploy,-run-deploy-nb,-init-deploy-ant,-deploy-ant,-run-deploy-am,-post-nbmodule-run-deploy,-post-run-deploy" name="run-deploy">
         <nbjpdaappreloaded/>
     </target>
     <target if="netbeans.home" name="-run-deploy-nb">
@@ -807,9 +902,11 @@ exists or setup the property manually. For example like this:
             <classpath>
                 <path path="${javac.classpath}:${j2ee.platform.classpath}"/>
             </classpath>
-            <fileset dir="${src.dir}" excludes="${excludes}" includes="${includes}">
-                <filename name="**/*.java"/>
-            </fileset>
+            <sourcepath>
+                <pathelement location="${src.dir}"/>
+            </sourcepath>
+            <packageset dir="${src.dir}" includes="*/**"/>
+            <fileset dir="${src.dir}" includes="*.java"/>
         </javadoc>
     </target>
     <target depends="init,javadoc-build" if="netbeans.home" name="javadoc-browse" unless="no.javadoc.preview">
@@ -830,7 +927,7 @@ exists or setup the property manually. For example like this:
     <target depends="init,compile,-pre-pre-compile-test,-pre-compile-test" if="have.tests" name="-do-compile-test">
         <webproject2:javac classpath="${javac.test.classpath}:${j2ee.platform.classpath}" debug="true" destdir="${build.test.classes.dir}" srcdir="${test.src.dir}"/>
         <copy todir="${build.test.classes.dir}">
-            <fileset dir="${test.src.dir}" excludes="${build.classes.excludes},${excludes}" includes="${includes}"/>
+            <fileset dir="${test.src.dir}" excludes="**/*.java"/>
         </copy>
     </target>
     <target name="-post-compile-test">
@@ -844,9 +941,13 @@ exists or setup the property manually. For example like this:
     </target>
     <target depends="init,compile,-pre-pre-compile-test,-pre-compile-test-single" if="have.tests" name="-do-compile-test-single">
         <fail unless="javac.includes">Must select some files in the IDE or set javac.includes</fail>
-        <webproject2:javac classpath="${javac.test.classpath}:${j2ee.platform.classpath}" debug="true" destdir="${build.test.classes.dir}" excludes="" includes="${javac.includes}" srcdir="${test.src.dir}"/>
+        <webproject2:javac classpath="${javac.test.classpath}:${j2ee.platform.classpath}" debug="true" destdir="${build.test.classes.dir}" srcdir="${test.src.dir}">
+            <customize>
+                <patternset includes="${javac.includes}"/>
+            </customize>
+        </webproject2:javac>
         <copy todir="${build.test.classes.dir}">
-            <fileset dir="${test.src.dir}" excludes="${build.classes.excludes},${excludes}" includes="${includes}"/>
+            <fileset dir="${test.src.dir}" excludes="**/*.java"/>
         </copy>
     </target>
     <target name="-post-compile-test-single">
@@ -862,7 +963,7 @@ exists or setup the property manually. For example like this:
         <mkdir dir="${build.test.results.dir}"/>
     </target>
     <target depends="init,compile-test,-pre-test-run" if="have.tests" name="-do-test-run">
-        <webproject2:junit testincludes="**/*Test.java"/>
+        <webproject2:junit/>
     </target>
     <target depends="init,compile-test,-pre-test-run,-do-test-run" if="have.tests" name="-post-test-run">
         <fail if="tests.failed">Some tests failed; see details above.</fail>
@@ -875,7 +976,7 @@ exists or setup the property manually. For example like this:
     </target>
     <target depends="init,compile-test-single,-pre-test-run-single" if="have.tests" name="-do-test-run-single">
         <fail unless="test.includes">Must select some files in the IDE or set test.includes</fail>
-        <webproject2:junit excludes="" includes="${test.includes}"/>
+        <webproject2:junit includes="${test.includes}"/>
     </target>
     <target depends="init,compile-test-single,-pre-test-run-single,-do-test-run-single" if="have.tests" name="-post-test-run-single">
         <fail if="tests.failed">Some tests failed; see details above.</fail>

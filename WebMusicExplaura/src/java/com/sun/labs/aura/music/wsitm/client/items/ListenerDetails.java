@@ -6,6 +6,7 @@
 package com.sun.labs.aura.music.wsitm.client.items;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
+import java.util.Map;
 
 
 /**
@@ -14,7 +15,6 @@ import com.google.gwt.user.client.rpc.IsSerializable;
  */
 public class ListenerDetails implements IsSerializable {
 
-    public ItemInfo[] userTags;
     public ArtistDetails[] favArtistDetails;
 
     public String openID;
@@ -33,4 +33,6 @@ public class ListenerDetails implements IsSerializable {
     public String pandoraUser;
 
     public ArtistCompact[] recommendations;
+    public ItemInfo[] userTagCloud;
+
 }

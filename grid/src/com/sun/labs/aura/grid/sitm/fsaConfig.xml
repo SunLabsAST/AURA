@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<config>
+    
+    <!-- Where the aura data lives -->
+    <property name="auraInstance" value="live"/>
+    
+   <!-- A component registry that will be used to lookup and register components. -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>${auraGroup}</item>
+        </propertylist>
+        <property name="securityPolicy" value="${auraPolicy}"/>
+    </component>
+    
+    <!-- An aardvark system -->
+    <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
+    
+    <component name="fsa" type="com.sun.labs.aura.grid.sitm.FindSimilarArtists">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="dataStore" value="dataStore"/>
+        <property name="artistName" value="weezer"/>
+        <property name="runs" value="100"/>
+    </component>
+    
+    <component name="start-fsa" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>fsa</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+    
+</config>

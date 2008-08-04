@@ -10,7 +10,7 @@
 package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
-import com.sun.labs.aura.music.wsitm.client.AbstractSearchWidget.searchTypes;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 
 /**

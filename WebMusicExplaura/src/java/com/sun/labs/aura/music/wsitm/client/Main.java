@@ -9,6 +9,13 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
+import com.sun.labs.aura.music.wsitm.client.ui.swidget.Swidget;
+import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget;
+import com.sun.labs.aura.music.wsitm.client.ui.swidget.DashboardSwidget;
+import com.sun.labs.aura.music.wsitm.client.ui.swidget.SimpleSearchSwidget;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.PageHeaderWidget;
+import com.sun.labs.aura.music.wsitm.client.ui.swidget.ProfileSwidget;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.core.client.EntryPoint;
@@ -76,7 +83,7 @@ public class Main implements EntryPoint, HistoryListener {
 
         contentPanel = new FlowPanel();
 
-        Swidget userPref = new ProfileWidget(cdm);
+        Swidget userPref = new ProfileSwidget(cdm);
         registerTokenHeaders(userPref);
         cdm.registerSwidget(userPref);
 
@@ -96,7 +103,7 @@ public class Main implements EntryPoint, HistoryListener {
 
         PageHeaderWidget uP = new PageHeaderWidget(cdm);
         cdm.registerSwidget(uP);
-        cdm.setWidgets(uP, (SimpleSearchSwidget)artistSearch);
+        cdm.setWidgets(uP);
         
         mainPanel.add(uP, DockPanel.NORTH);
         mainPanel.add(title, DockPanel.NORTH);
@@ -104,8 +111,11 @@ public class Main implements EntryPoint, HistoryListener {
 
         uP.setMenuItems(menuItems);
 
-        Panel footer = new HorizontalPanel();
-        footer.add(new HTML("<hr/> Powered by Sun Microsystems, Last.fm, Spotify, Wikipedia, Flickr, Youtube, Yahoo, Musicbrainz, Upcoming and Amazon"));
+        Panel footer = new VerticalPanel();
+        footer.add(new HTML("<br/><hr/><center>Powered by Sun Microsystems, Last.fm, Spotify, Wikipedia, Flickr,<br/>Youtube, Yahoo, Musicbrainz, Upcoming and Amazon</center>"));
+        //
+        // Hack to allow opening the spotify link while preventing losing the GWT state
+        footer.add(new HTML("<iframe name=\"spotifyFrame\" height=\"0px\" frameborder=\"0\" />"));
         footer.setStyleName("footer");
         
         mainPanel.add(footer, DockPanel.SOUTH);

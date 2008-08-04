@@ -10,7 +10,6 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.User;
-import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
@@ -21,7 +20,6 @@ import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Interface for a PartitionCluster's implementation strategy.  A strategy
@@ -56,6 +54,11 @@ public interface PCStrategy {
     public Item getItem(String key) throws AuraException, RemoteException;
 
     /**
+     * Gets items associated with a number of keys.
+     */
+    public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException, RemoteException;
+
+    /**
      * Get a user by the random string associated with the user
      */
     public User getUserForRandomString(String randStr)
@@ -76,7 +79,7 @@ public interface PCStrategy {
      * 
      * @param ids
      */
-    public void deleteLocalAttention(List<Long> ids) throws AuraException, RemoteException;
+    public void deleteAttention(List<Long> ids) throws AuraException, RemoteException;
     
     /**
      * Gets the items of a particular type added since a particular time
@@ -201,7 +204,7 @@ public interface PCStrategy {
     /**
      * Run a query with a sort
      */
-    public List<Scored<Item>> query(String query,
+    public List<Scored<String>> query(String query,
                                     String sort,
                                     int n,
                                     ResultsFilter rf) 
@@ -210,7 +213,7 @@ public interface PCStrategy {
     /**
      * Gets items auto-tagged with a particular tag
      */
-    public List<Scored<Item>> getAutotagged(String autotag, int n)
+    public List<Scored<String>> getAutotagged(String autotag, int n)
             throws AuraException, RemoteException;
 
     /**
@@ -262,7 +265,7 @@ public interface PCStrategy {
     /**
      * Find similar items to the provided doc vector
      */
-    public List<Scored<Item>> findSimilar(DocumentVector dv,
+    public List<Scored<String>> findSimilar(DocumentVector dv,
                                           SimilarityConfig config)
             throws AuraException, RemoteException;
 

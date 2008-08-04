@@ -51,8 +51,12 @@ public class PCDefaultStrategy implements PCStrategy {
         return replicant.getItem(key);
     }
 
+    public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException, RemoteException {
+        return replicant.getItems(keys);
+    }
+
     public User getUserForRandomString(String randStr) throws AuraException, RemoteException {
-       return replicant.getUserForRandomString(randStr);
+        return replicant.getUserForRandomString(randStr);
     }
 
     public Item putItem(Item item) throws AuraException, RemoteException {
@@ -63,7 +67,7 @@ public class PCDefaultStrategy implements PCStrategy {
         replicant.deleteItem(itemKey);
     }
 
-    public void deleteLocalAttention(List<Long> ids) throws AuraException, RemoteException {
+    public void deleteAttention(List<Long> ids) throws AuraException, RemoteException {
         replicant.deleteAttention(ids);
     }
     
@@ -139,11 +143,11 @@ public class PCDefaultStrategy implements PCStrategy {
         return replicant.getTopValues(field, n, ignoreCase);
     }
 
-    public List<Scored<Item>> query(String query, String sort, int n, ResultsFilter rf) throws AuraException, RemoteException {
+    public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf) throws AuraException, RemoteException {
         return replicant.query(query, sort, n, rf);
     }
 
-    public List<Scored<Item>> getAutotagged(String autotag, int n) throws AuraException, RemoteException {
+    public List<Scored<String>> getAutotagged(String autotag, int n) throws AuraException, RemoteException {
         return replicant.getAutotagged(autotag, n);
     }
 
@@ -175,7 +179,7 @@ public class PCDefaultStrategy implements PCStrategy {
         return replicant.getDocumentVector(cloud, config);
     }
 
-    public List<Scored<Item>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
+    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
         return replicant.findSimilar(dv, config);
     }
 
