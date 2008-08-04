@@ -94,7 +94,15 @@ public class PartitionClusterImpl implements PartitionCluster,
     }
     
     public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException, RemoteException {
-        return strategy.getItems(keys);
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(
+                    String.format("pc %s gIs start", prefixCode.toString()));
+        }
+        List<Scored<Item>> ret = strategy.getItems(keys);
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("pc %s gIs done", prefixCode.toString()));
+        }
+        return ret;
     }
 
     public User getUser(String key) throws AuraException, RemoteException {
@@ -275,7 +283,14 @@ public class PartitionClusterImpl implements PartitionCluster,
 
     public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf) 
             throws AuraException, RemoteException {
-        return strategy.query(query, sort, n, rf);
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("pc %s query start", prefixCode.toString()));
+        }
+        List<Scored<String>> ret = strategy.query(query, sort, n, rf);
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("pc %s query done", prefixCode.toString()));
+        }
+        return ret;
     }
     
     public List<Scored<String>> getAutotagged(String autotag, int n)
@@ -367,9 +382,13 @@ public class PartitionClusterImpl implements PartitionCluster,
     }
 
     public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
-        logger.finer(String.format("pc %s fs start", prefixCode.toString()));
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("pc %s fs start", prefixCode.toString()));
+        }
         List<Scored<String>> ret = strategy.findSimilar(dv, config);
-        logger.finer(String.format("pc %s fs done", prefixCode.toString()));
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("pc %s fs done", prefixCode.toString()));
+        }
         return ret;
     }
 }
