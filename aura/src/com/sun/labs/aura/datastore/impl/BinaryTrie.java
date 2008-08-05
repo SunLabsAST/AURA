@@ -87,7 +87,30 @@ public class BinaryTrie<E> implements Serializable {
         }
         
     }
-    
+
+    /**
+     * Add a pair of leaf nodes together in one operation.  This is used when
+     * the lock should be obtained a single time to add two items, keeping
+     * the tree "complete" after the lock is released.
+     * 
+     * @param zeroChild the zero/left child to add
+     * @param zeroPrefix the prefix for the zero/left child
+     * @param oneChild the one/right child to add
+     * @param onePrefix the prefix for the one/right child
+     */
+    public void addPair(E zeroChild, DSBitSet zeroPrefix,
+                        E oneChild, DSBitSet onePrefix) {
+        lock.writeLock().lock();
+        try {
+            contents.add(zeroChild);
+            contents.add(oneChild);
+            add(zeroChild, zeroPrefix, root, 0);
+            add(oneChild, onePrefix, root, 0);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
     /**
      * Get an element from the trie matching some bits of the provided prefix
      * 
