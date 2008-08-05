@@ -169,6 +169,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         logger = ps.getLogger();
 
         prefixString = ps.getString(PROP_PREFIX);
+        
+        logger.info("Configuring BerkeleyItemStore for prefix: " + prefixString);
+        
         prefixCode = DSBitSet.parse(prefixString);
         
         boolean copyDir = ps.getBoolean(PROP_COPY_DIR);
@@ -182,7 +185,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         //
         // If we want to copy the data into temp storage, do it now.
         if(copyDir) {
-            logger.info("tmpdir: " + System.getProperty("java.io.tmpdir"));
             String tds = String.format(System.getProperty("java.io.tmpdir") + "/replicant-%s/db/", ps.getString(PROP_PREFIX));
             File td = new File(tds);
             if(!td.mkdirs()) {
@@ -191,16 +193,16 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                         "Unable to make temporary directory for db");
             }
             try {
-                logger.info("Copying bdb into temp dir");
+                logger.info("Copying BDB to temp directory: " + tds);
                 DirCopier dc = new DirCopier(f, td);
                 dc.copy();
-                logger.info("Copying completed");
+                logger.info("Copy to temp directory completed");
                 f = td;
                 dbEnvDir = tds;
             } catch(IOException ex) {
                 throw new PropertyException(ex, ps.getInstanceName(), 
                         PROP_COPY_DIR, 
-                        "Unable to copy db directory");
+                        "Unable to copy DBD to directory: " + tds);
             }
         }
 
@@ -245,6 +247,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                     PROP_PARTITION_CLUSTER, "Unable to add " +
                     "replicant to partition cluster.");
         }
+        logger.info("Finished configuring BerkeleyItemStore for prefix: " + prefixString);
     }
 
     public DSBitSet getPrefix() {
@@ -256,12 +259,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      */
     public void close() throws AuraException {
         closed = true;
-        System.out.println(new Date() + ": Closing BDB...");
+        logger.info("Closing BDB for prefix: " + prefixString);
         bdb.close();
-        System.out.println(new Date() + ": Shutting down search engine...");
+        logger.info("Shutting down search engine");
         searchEngine.getSearchEngine().removeIndexListener(this);
         searchEngine.shutdown();
-        System.out.println(new Date() + ": Done closing search engine");
+        logger.info("Finished closing search engine");
     }
 
     public void defineField(ItemType itemType, String field)
@@ -689,7 +692,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         for(Scored<String> ss : s) {
             Item item = getItem(ss.getItem());
             if(item == null) {
-                logger.info("null item for key: " + ss.getItem());
+                logger.info("Null item for key: " + ss.getItem());
                 continue;
             }
             ret.add(new Scored<Item>(item, ss));
@@ -955,11 +958,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     public void stop() {
         try {
             cm.shutdown();
-            System.out.println(new Date() + ": Closing Berkeley Item Store...");
+            logger.info("Closing BerkeleyItemStore for prefix: " + prefixString);
             close();
-            System.out.println(new Date() + ": Stopped");
+            logger.info("Finished closing BerkeleyItemStore");
         } catch(AuraException ae) {
-            System.out.println("Error closing item store" + ae);
+            logger.severe("Error closing item store" + ae);
             ae.printStackTrace();
         }
     }
