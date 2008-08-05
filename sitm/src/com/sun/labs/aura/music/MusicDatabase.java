@@ -42,6 +42,8 @@ public class MusicDatabase {
     private Artist beatles = null;
     private final String BEATLES_ID = "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
     public final static String DEFAULT_RECOMMENDER = "SimToRecent(2)";
+    
+    private double skimPercent = 1;
 
     public MusicDatabase(DataStore dataStore) throws AuraException {
         this.dataStore = dataStore;
@@ -1061,17 +1063,21 @@ public class MusicDatabase {
             return ItemType.ARTIST;
         }
     }
+    
+    public void setSkimPercent(double skimPercent) {
+        this.skimPercent = skimPercent;
+    }
 
     private SimilarityConfig getFindSimilarConfig(String field, int count, TypeFilter filter) {
         SimilarityConfig fsc = new SimilarityConfig(field, count, filter);
-        fsc.setSkimPercent(1.);
+        fsc.setSkimPercent(skimPercent);
         fsc.setReportPercent(1.);
         return fsc;
     }
 
     private SimilarityConfig getFindSimilarConfig(int count, TypeFilter filter) {
         SimilarityConfig fsc = new SimilarityConfig(count, filter);
-        fsc.setSkimPercent(1.);
+        fsc.setSkimPercent(skimPercent);
         fsc.setReportPercent(1.);
         return fsc;
     }

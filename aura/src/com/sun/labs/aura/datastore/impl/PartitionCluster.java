@@ -3,11 +3,13 @@ package com.sun.labs.aura.datastore.impl;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.impl.store.ItemStore;
 import com.sun.labs.aura.datastore.impl.store.LowLevelSearch;
+import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.Component;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The interface to the Partition Cluster, used for RMI.
@@ -35,6 +37,30 @@ public interface PartitionCluster extends ItemStore, LowLevelSearch, Component, 
      */
     public Replicant getReplicant() throws RemoteException;
 
+    /**
+     * Returns true if this replicant is ready to be used.
+     * @return true if ready
+     */
+    public boolean isReady() throws RemoteException;
+    
+    /**
+     * Gets a map describing the defined fields
+     * 
+     * @return the field descriptions in this partition
+     */
+    public Map<String,FieldDescription> getFieldDescriptions()
+            throws RemoteException;
+
+    /**
+     * Splits the data in this partition cluster.  A new partition cluster
+     * is created and data is migrated to that cluster.  Once all data
+     * has been moved, the data store heads are told of the new configuration.
+     * 
+     * @throws AuraException if an errors occurs or the current state does not
+     * allow a split (the split is already happening)
+     */
+    public void split() throws AuraException, RemoteException;
+    
     public List<Attention> getAttentionForSource(String srcKey,
                                                 Attention.Type type)
             throws AuraException, RemoteException;
@@ -49,5 +75,5 @@ public interface PartitionCluster extends ItemStore, LowLevelSearch, Component, 
      */
     public void removeAttention(String itemKey)
             throws AuraException, RemoteException;
-    
+        
 }

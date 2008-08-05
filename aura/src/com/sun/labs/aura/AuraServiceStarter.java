@@ -112,13 +112,14 @@ public class AuraServiceStarter implements Configurable {
         }
 
         AuraServiceStarter starter = null;
+        String configFile = args[0];
         try {
             //
             // See if we can get a resource for the configuration file first.
             // This is mostly a convenience.
-            URL cu = AuraServiceStarter.class.getResource(args[0]);
+            URL cu = AuraServiceStarter.class.getResource(configFile);
             if(cu == null) {
-                cu = (new File(args[0])).toURI().toURL();
+                cu = (new File(configFile)).toURI().toURL();
             }
             ConfigurationManager cm = new ConfigurationManager(cu);
             starter = (AuraServiceStarter) cm.lookup(args[1]);
@@ -129,11 +130,11 @@ public class AuraServiceStarter implements Configurable {
                 Thread.sleep(Long.MAX_VALUE);
             }
         } catch(IOException ex) {
-            System.err.println("Error parsing configuration file");
+            System.err.println("Error parsing configuration file: " + configFile);
             ex.printStackTrace();
             usage();
         } catch(PropertyException ex) {
-            System.err.println("Error parsing configuration file");
+            System.err.println("Error parsing configuration file: " + configFile);
             ex.printStackTrace();
             usage();
         } catch(InterruptedException ie) {

@@ -8,9 +8,17 @@
         <servlet-name>DBService</servlet-name>
         <servlet-class>com.sun.labs.aura.dbbrowser.server.DBServiceImpl</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>VizService</servlet-name>
+        <servlet-class>com.sun.labs.aura.dbbrowser.server.VizServiceImpl</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>DBService</servlet-name>
         <url-pattern>/com.sun.labs.aura.dbbrowser.GWTMain/dbservice</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>VizService</servlet-name>
+        <url-pattern>/com.sun.labs.aura.dbbrowser.GWTMain/vizservice</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

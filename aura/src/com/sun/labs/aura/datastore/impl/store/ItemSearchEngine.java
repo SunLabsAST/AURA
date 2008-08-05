@@ -100,6 +100,8 @@ public class ItemSearchEngine implements Configurable {
     private double skimPercentage;
 
     private Timer flushTimer;
+    
+    private String indexDir;
 
     public ItemSearchEngine() {
         
@@ -111,6 +113,7 @@ public class ItemSearchEngine implements Configurable {
      * @param config
      */
     public ItemSearchEngine(String indexDir, String config) {
+        this.indexDir = indexDir;
         log = Logger.getLogger(getClass().getName());
         try {
             URL cu = getClass().getResource(config);
@@ -766,6 +769,32 @@ public class ItemSearchEngine implements Configurable {
         }
     }
 
+    /**
+     * Get the size of the index, in bytes
+     * @return the size in bytes
+     */
+    public long getSize() {
+        File top = new File(indexDir);
+        if (top.exists()) {
+            return getSize(top);
+        }
+        return 0;
+    }
+    
+    protected long getSize(File f) {
+        if (f.isFile()) {
+            return f.length();
+        } else if (f.isDirectory()) {
+            long total = 0;
+            File[] children = f.listFiles();
+            for (File c : children) {
+                total += getSize(c);
+            }
+            return total;
+        }
+        return 0;
+    }
+    
     /**
      * A timer task for flushing the engine periodically.
      */

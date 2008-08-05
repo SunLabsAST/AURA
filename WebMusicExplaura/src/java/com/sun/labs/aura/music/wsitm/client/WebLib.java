@@ -7,6 +7,7 @@ package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
@@ -15,6 +16,8 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
+import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
@@ -27,6 +30,25 @@ import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 public abstract class WebLib {
 
     public static final String ICON_WAIT = "ajax-bar.gif";
+
+    public enum PLAY_ICON_SIZE {
+        SMALL, MEDIUM, BIG
+    }
+
+    /**
+     * Convert the play button size enum into the actual size in px
+     * @param size PLAY_ICON_SIZE enum
+     * @return actual size in px
+     */
+    private static int playIconSizeToInt(PLAY_ICON_SIZE size) {
+        if (size == PLAY_ICON_SIZE.SMALL) {
+            return 20;
+        } else if (size == PLAY_ICON_SIZE.MEDIUM) {
+            return 30;
+        } else {
+            return 40;
+        }
+    }
 
     /**
      * Disables the browsers default context menu for the specified element.
@@ -53,33 +75,75 @@ public abstract class WebLib {
     }
     }-*/;
 
-    public static Widget getLastFMListenWidget(final ArtistCompact artistDetails, int size, ClickListener cL) {
-        Image image = new Image("play-lastfm-"+size+".jpg");
-        //image.setSize("22px", "22px");
-        image.setTitle("Play music like " + artistDetails.getName() + " at last.fm");
+    public static Widget getLastFMListenWidget(final ArtistCompact aD, PLAY_ICON_SIZE size,
+            MusicSearchInterfaceAsync musicServer, boolean isLoggedIn, ClickListener cL) {
+        int intSize = playIconSizeToInt(size);
+        Image image = new Image("play-lastfm-"+intSize+".jpg");
+        image.setTitle("Play music like " + aD.getName() + " at last.fm");
         image.addClickListener(new ClickListener() {
 
             public void onClick(Widget sender) {
-                popupSimilarArtistRadio(artistDetails, true);
+                popupSimilarArtistRadio(aD, true);
             }
         });
+        if (isLoggedIn) {
+            image.addClickListener(new DualDataEmbededClickListener<MusicSearchInterfaceAsync, String>(musicServer, aD.getId()) {
+
+                public void onClick(Widget arg0) {
+                    AsyncCallback callback = new AsyncCallback() {
+
+                        public void onSuccess(Object result) {}
+                        public void onFailure(Throwable caught) {
+                            Window.alert("Unable to add your play attention for artist " + sndData + ". " + caught.toString());
+                        }
+                    };
+
+                    try {
+                        data.addPlayAttention(sndData, callback);
+                    } catch (Exception ex) {
+                        Window.alert(ex.getMessage());
+                    }
+                }
+            });
+        }
         if (cL != null) {
             image.addClickListener(cL);
         }
         return image;
     }
 
-    public static Widget getSpotifyListenWidget(final ArtistCompact artistDetails, int size, ClickListener cL) {
-        String musicURL = artistDetails.getSpotifyId();
+    public static Widget getSpotifyListenWidget(final ArtistCompact aD, PLAY_ICON_SIZE size,
+            MusicSearchInterfaceAsync musicServer, boolean isLoggedIn, ClickListener cL) {
+        String musicURL = aD.getSpotifyId();
+        int intSize = playIconSizeToInt(size);
         if (musicURL != null && !musicURL.equals("")) {
-            HTML html = new HTML("<a href=\"" + musicURL + "\"><img src=\"play-spotify-"+size+".jpg\"/></a>");
-            html.setTitle("Play " + artistDetails.getName() + " with Spotify");
+            HTML html = new HTML("<a href=\"" + musicURL + "\" target=\"spotifyFrame\"><img src=\"play-spotify-"+intSize+".jpg\"/></a>");
+            html.setTitle("Play " + aD.getName() + " with Spotify");
+            if (isLoggedIn) {
+                html.addClickListener(new DualDataEmbededClickListener<MusicSearchInterfaceAsync, String>(musicServer, aD.getId()) {
+
+                    public void onClick(Widget arg0) {
+                        AsyncCallback callback = new AsyncCallback() {
+                            public void onSuccess(Object result) {}
+                            public void onFailure(Throwable caught) {
+                                Window.alert("Unable to add your play attention for artist " + sndData + ". " + caught.toString());
+                            }
+                        };
+
+                        try {
+                            data.addPlayAttention(sndData, callback);
+                        } catch (Exception ex) {
+                            Window.alert(ex.getMessage());
+                        }
+                    }
+                });
+            }
             if (cL != null) {
                 html.addClickListener(cL);
             }
             return html;
         } else {
-            return getLastFMListenWidget(artistDetails, size, cL);
+            return getLastFMListenWidget(aD, size, musicServer, isLoggedIn, cL);
         }
     }
 

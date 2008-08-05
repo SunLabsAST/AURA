@@ -9,12 +9,12 @@ import com.sun.labs.aura.music.wsitm.client.event.TaggingListener;
 import com.sun.labs.aura.music.wsitm.client.event.RatingListener;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.Swidget;
-import com.sun.labs.aura.music.wsitm.client.ui.swidget.SimpleSearchSwidget;
 import com.sun.labs.aura.music.wsitm.client.ui.Updatable;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PageHeaderWidget;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.gwtext.client.data.Store;
+import com.sun.labs.aura.music.wsitm.client.event.PlayedListener;
 import com.sun.labs.aura.music.wsitm.client.event.TagCloudListener;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
@@ -54,6 +54,7 @@ public class ClientDataManager {
     private TaggingListenerManager taggingListenerManager;
     private LoginListenerManager loginListenerManager;
     private TagCloudListenerManager tagCloudListenerManager;
+    private PlayedListenerManager playedListenerManager;
     
     private SteerableTagCloudExternalController steerableTagCloudExternalController;
 
@@ -80,6 +81,7 @@ public class ClientDataManager {
         taggingListenerManager = new TaggingListenerManager();
         loginListenerManager = new LoginListenerManager();
         tagCloudListenerManager = new TagCloudListenerManager();
+        playedListenerManager = new PlayedListenerManager();
         steerableTagCloudExternalController = new SteerableTagCloudExternalController();
 
         sharedTagMenu = new SharedTagMenu(this);
@@ -100,6 +102,10 @@ public class ClientDataManager {
     
     public TagCloudListenerManager getTagCloudListenerManager() {
         return tagCloudListenerManager;
+    }
+
+    public PlayedListenerManager getPlayedListenerManager() {
+        return playedListenerManager;
     }
     
     public SteerableTagCloudExternalController getSteerableTagCloudExternalController() {
@@ -404,6 +410,19 @@ public class ClientDataManager {
         public void triggerOnLogout() {
             for (LoginListener lL : listeners) {
                 lL.onLogout();
+            }
+        }
+    }
+
+    public class PlayedListenerManager extends ListenerManager<PlayedListener> {
+
+        public PlayedListenerManager() {
+            super();
+        }
+
+        public void triggerOnPlay(String artistId) {
+            for (PlayedListener pL : listeners) {
+                pL.onPlay(artistId);
             }
         }
 

@@ -30,18 +30,37 @@
     <target depends="-pre-init" name="-init-private">
         <property file="nbproject/private/private.properties"/>
     </target>
-    <target depends="-pre-init,-init-private" name="-init-user">
+    <target depends="-pre-init,-init-private" name="-init-libraries">
+        <property location="../Libraries/nblibraries.properties" name="libraries.1.path"/>
+        <dirname file="${libraries.1.path}" property="libraries.1.dir.nativedirsep"/>
+        <pathconvert dirsep="/" property="libraries.1.dir">
+            <path path="${libraries.1.dir.nativedirsep}"/>
+        </pathconvert>
+        <basename file="${libraries.1.path}" property="libraries.1.basename" suffix=".properties"/>
+        <touch file="${libraries.1.dir}/${libraries.1.basename}-private.properties"/>
+        <loadproperties srcfile="${libraries.1.dir}/${libraries.1.basename}-private.properties">
+            <filterchain>
+                <replacestring from="$${base}" to="${libraries.1.dir}"/>
+            </filterchain>
+        </loadproperties>
+        <loadproperties srcfile="${libraries.1.path}">
+            <filterchain>
+                <replacestring from="$${base}" to="${libraries.1.dir}"/>
+            </filterchain>
+        </loadproperties>
+    </target>
+    <target depends="-pre-init,-init-private,-init-libraries" name="-init-user">
         <property file="${user.properties.file}"/>
         <!-- The two properties below are usually overridden -->
         <!-- by the active platform. Just a fallback. -->
         <property name="default.javac.source" value="1.4"/>
         <property name="default.javac.target" value="1.4"/>
     </target>
-    <target depends="-pre-init,-init-private,-init-user" name="-init-project">
+    <target depends="-pre-init,-init-private,-init-libraries,-init-user" name="-init-project">
         <property file="nbproject/project.properties"/>
     </target>
     <target depends="-pre-init,-init-private,-init-user,-init-project,-init-macrodef-property" if="dist.ear.dir" name="-do-ear-init"/>
-    <target depends="-pre-init,-init-private,-init-user,-init-project,-init-macrodef-property" name="-do-init">
+    <target depends="-pre-init,-init-private,-init-libraries,-init-user,-init-project,-init-macrodef-property" name="-do-init">
         <condition property="have.tests">
             <or>
                 <available file="${test.src.dir}"/>
@@ -172,7 +191,7 @@
         <!-- Empty placeholder for easier customization. -->
         <!-- You can override this target in the ../build.xml file. -->
     </target>
-    <target depends="-pre-init,-init-private,-init-user,-init-project,-do-init" name="-init-check">
+    <target depends="-pre-init,-init-private,-init-libraries,-init-user,-init-project,-do-init" name="-init-check">
         <fail unless="src.dir">Must set src.dir</fail>
         <fail unless="test.src.dir">Must set test.src.dir</fail>
         <fail unless="build.dir">Must set build.dir</fail>
@@ -365,7 +384,7 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
             </sequential>
         </macrodef>
     </target>
-    <target depends="-pre-init,-init-private,-init-user,-init-project,-do-init,-post-init,-init-check,-init-macrodef-property,-init-macrodef-javac,-init-macrodef-junit,-init-macrodef-java,-init-macrodef-nbjpda,-init-macrodef-nbjsdebug,-init-macrodef-debug,-init-macrodef-copy-ear-war" name="init"/>
+    <target depends="-pre-init,-init-private,-init-libraries,-init-user,-init-project,-do-init,-post-init,-init-check,-init-macrodef-property,-init-macrodef-javac,-init-macrodef-junit,-init-macrodef-java,-init-macrodef-nbjpda,-init-macrodef-nbjsdebug,-init-macrodef-debug,-init-macrodef-copy-ear-war" name="init"/>
     <!--
                 COMPILATION SECTION
             -->
@@ -515,22 +534,24 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
     <target depends="init" if="dist.ear.dir" name="library-inclusion-in-manifest">
         <basename file="${reference.aura.jar}" property="included.lib.reference.aura.jar"/>
         <copy-ear-war file="${reference.aura.jar}" propname="included.lib.reference.aura.jar.X"/>
+        <basename file="${libs.SunLabsUtilities.classpath}" property="included.lib.libs.SunLabsUtilities.classpath"/>
+        <copy-ear-war file="${libs.SunLabsUtilities.classpath}" propname="included.lib.libs.SunLabsUtilities.classpath.X"/>
+        <basename file="${libs.JiniCore.classpath.libfile.7}" property="included.lib.libs.JiniCore.classpath.7"/>
+        <basename file="${libs.JiniCore.classpath.libfile.6}" property="included.lib.libs.JiniCore.classpath.6"/>
+        <basename file="${libs.JiniCore.classpath.libfile.5}" property="included.lib.libs.JiniCore.classpath.5"/>
+        <basename file="${libs.JiniCore.classpath.libfile.4}" property="included.lib.libs.JiniCore.classpath.4"/>
+        <basename file="${libs.JiniCore.classpath.libfile.3}" property="included.lib.libs.JiniCore.classpath.3"/>
+        <basename file="${libs.JiniCore.classpath.libfile.2}" property="included.lib.libs.JiniCore.classpath.2"/>
+        <basename file="${libs.JiniCore.classpath.libfile.1}" property="included.lib.libs.JiniCore.classpath.1"/>
+        <copy-ear-war file="${libs.JiniCore.classpath.libfile.7}" propname="included.lib.libs.JiniCore.classpath.7.X"/>
+        <copy-ear-war file="${libs.JiniCore.classpath.libfile.6}" propname="included.lib.libs.JiniCore.classpath.6.X"/>
+        <copy-ear-war file="${libs.JiniCore.classpath.libfile.5}" propname="included.lib.libs.JiniCore.classpath.5.X"/>
+        <copy-ear-war file="${libs.JiniCore.classpath.libfile.4}" propname="included.lib.libs.JiniCore.classpath.4.X"/>
+        <copy-ear-war file="${libs.JiniCore.classpath.libfile.3}" propname="included.lib.libs.JiniCore.classpath.3.X"/>
+        <copy-ear-war file="${libs.JiniCore.classpath.libfile.2}" propname="included.lib.libs.JiniCore.classpath.2.X"/>
+        <copy-ear-war file="${libs.JiniCore.classpath.libfile.1}" propname="included.lib.libs.JiniCore.classpath.1.X"/>
         <basename file="${file.reference.jdom.jar}" property="included.lib.file.reference.jdom.jar"/>
         <copy-ear-war file="${file.reference.jdom.jar}" propname="included.lib.file.reference.jdom.jar.X"/>
-        <basename file="${file.reference.jini-core.jar}" property="included.lib.file.reference.jini-core.jar"/>
-        <copy-ear-war file="${file.reference.jini-core.jar}" propname="included.lib.file.reference.jini-core.jar.X"/>
-        <basename file="${file.reference.jini-ext.jar}" property="included.lib.file.reference.jini-ext.jar"/>
-        <copy-ear-war file="${file.reference.jini-ext.jar}" propname="included.lib.file.reference.jini-ext.jar.X"/>
-        <basename file="${file.reference.jsk-lib.jar}" property="included.lib.file.reference.jsk-lib.jar"/>
-        <copy-ear-war file="${file.reference.jsk-lib.jar}" propname="included.lib.file.reference.jsk-lib.jar.X"/>
-        <basename file="${file.reference.LabsUtil.jar}" property="included.lib.file.reference.LabsUtil.jar"/>
-        <copy-ear-war file="${file.reference.LabsUtil.jar}" propname="included.lib.file.reference.LabsUtil.jar.X"/>
-        <basename file="${file.reference.rome-0.9.jar}" property="included.lib.file.reference.rome-0.9.jar"/>
-        <copy-ear-war file="${file.reference.rome-0.9.jar}" propname="included.lib.file.reference.rome-0.9.jar.X"/>
-        <basename file="${file.reference.sun-util.jar}" property="included.lib.file.reference.sun-util.jar"/>
-        <copy-ear-war file="${file.reference.sun-util.jar}" propname="included.lib.file.reference.sun-util.jar.X"/>
-        <basename file="${file.reference.tools.jar}" property="included.lib.file.reference.tools.jar"/>
-        <copy-ear-war file="${file.reference.tools.jar}" propname="included.lib.file.reference.tools.jar.X"/>
         <basename file="${file.reference.xalan.jar}" property="included.lib.file.reference.xalan.jar"/>
         <copy-ear-war file="${file.reference.xalan.jar}" propname="included.lib.file.reference.xalan.jar.X"/>
         <basename file="${file.reference.xerces.jar}" property="included.lib.file.reference.xerces.jar"/>
@@ -541,30 +562,58 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy-ear-war file="${file.reference.gwt-servlet.jar-1}" propname="included.lib.file.reference.gwt-servlet.jar-1.X"/>
         <basename file="${file.reference.gwt-user.jar}" property="included.lib.file.reference.gwt-user.jar"/>
         <copy-ear-war file="${file.reference.gwt-user.jar}" propname="included.lib.file.reference.gwt-user.jar.X"/>
-        <basename file="${file.reference.minion.jar}" property="included.lib.file.reference.minion.jar"/>
-        <copy-ear-war file="${file.reference.minion.jar}" propname="included.lib.file.reference.minion.jar.X"/>
+        <basename file="${libs.Rome.classpath.libfile.9}" property="included.lib.libs.Rome.classpath.9"/>
+        <basename file="${libs.Rome.classpath.libfile.8}" property="included.lib.libs.Rome.classpath.8"/>
+        <basename file="${libs.Rome.classpath.libfile.7}" property="included.lib.libs.Rome.classpath.7"/>
+        <basename file="${libs.Rome.classpath.libfile.6}" property="included.lib.libs.Rome.classpath.6"/>
+        <basename file="${libs.Rome.classpath.libfile.5}" property="included.lib.libs.Rome.classpath.5"/>
+        <basename file="${libs.Rome.classpath.libfile.4}" property="included.lib.libs.Rome.classpath.4"/>
+        <basename file="${libs.Rome.classpath.libfile.3}" property="included.lib.libs.Rome.classpath.3"/>
+        <basename file="${libs.Rome.classpath.libfile.2}" property="included.lib.libs.Rome.classpath.2"/>
+        <basename file="${libs.Rome.classpath.libfile.1}" property="included.lib.libs.Rome.classpath.1"/>
+        <copy-ear-war file="${libs.Rome.classpath.libfile.9}" propname="included.lib.libs.Rome.classpath.9.X"/>
+        <copy-ear-war file="${libs.Rome.classpath.libfile.8}" propname="included.lib.libs.Rome.classpath.8.X"/>
+        <copy-ear-war file="${libs.Rome.classpath.libfile.7}" propname="included.lib.libs.Rome.classpath.7.X"/>
+        <copy-ear-war file="${libs.Rome.classpath.libfile.6}" propname="included.lib.libs.Rome.classpath.6.X"/>
+        <copy-ear-war file="${libs.Rome.classpath.libfile.5}" propname="included.lib.libs.Rome.classpath.5.X"/>
+        <copy-ear-war file="${libs.Rome.classpath.libfile.4}" propname="included.lib.libs.Rome.classpath.4.X"/>
+        <copy-ear-war file="${libs.Rome.classpath.libfile.3}" propname="included.lib.libs.Rome.classpath.3.X"/>
+        <copy-ear-war file="${libs.Rome.classpath.libfile.2}" propname="included.lib.libs.Rome.classpath.2.X"/>
+        <copy-ear-war file="${libs.Rome.classpath.libfile.1}" propname="included.lib.libs.Rome.classpath.1.X"/>
+        <basename file="${libs.Minion.classpath}" property="included.lib.libs.Minion.classpath"/>
+        <copy-ear-war file="${libs.Minion.classpath}" propname="included.lib.libs.Minion.classpath.X"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${included.lib.reference.aura.jar} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.jini-core.jar} ${included.lib.file.reference.jini-ext.jar} ${included.lib.file.reference.jsk-lib.jar} ${included.lib.file.reference.LabsUtil.jar} ${included.lib.file.reference.rome-0.9.jar} ${included.lib.file.reference.sun-util.jar} ${included.lib.file.reference.tools.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.gwt-dev-linux.jar-1} ${included.lib.file.reference.gwt-servlet.jar-1} ${included.lib.file.reference.gwt-user.jar} ${included.lib.file.reference.minion.jar} "/>
+            <attribute name="Class-Path" value="${included.lib.reference.aura.jar} ${included.lib.libs.SunLabsUtilities.classpath} ${included.lib.libs.JiniCore.classpath.1.X} ${included.lib.libs.JiniCore.classpath.2.X} ${included.lib.libs.JiniCore.classpath.3.X} ${included.lib.libs.JiniCore.classpath.4.X} ${included.lib.libs.JiniCore.classpath.5.X} ${included.lib.libs.JiniCore.classpath.6.X} ${included.lib.libs.JiniCore.classpath.7.X} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.gwt-dev-linux.jar-1} ${included.lib.file.reference.gwt-servlet.jar-1} ${included.lib.file.reference.gwt-user.jar} ${included.lib.libs.Rome.classpath.1.X} ${included.lib.libs.Rome.classpath.2.X} ${included.lib.libs.Rome.classpath.3.X} ${included.lib.libs.Rome.classpath.4.X} ${included.lib.libs.Rome.classpath.5.X} ${included.lib.libs.Rome.classpath.6.X} ${included.lib.libs.Rome.classpath.7.X} ${included.lib.libs.Rome.classpath.8.X} ${included.lib.libs.Rome.classpath.9.X} ${included.lib.libs.Minion.classpath} "/>
         </manifest>
         <delete dir="${dist.ear.dir}/temp"/>
     </target>
     <target depends="init" name="library-inclusion-in-archive" unless="dist.ear.dir">
         <copy file="${reference.aura.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.SunLabsUtilities.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.JiniCore.classpath.libfile.7}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.JiniCore.classpath.libfile.6}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.JiniCore.classpath.libfile.5}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.JiniCore.classpath.libfile.4}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.JiniCore.classpath.libfile.3}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.JiniCore.classpath.libfile.2}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.JiniCore.classpath.libfile.1}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.jdom.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.jini-core.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.jini-ext.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.jsk-lib.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.LabsUtil.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.rome-0.9.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.sun-util.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.tools.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.xalan.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.xerces.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.gwt-dev-linux.jar-1}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.gwt-servlet.jar-1}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.gwt-user.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.minion.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.Rome.classpath.libfile.9}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.Rome.classpath.libfile.8}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.Rome.classpath.libfile.7}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.Rome.classpath.libfile.6}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.Rome.classpath.libfile.5}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.Rome.classpath.libfile.4}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.Rome.classpath.libfile.3}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.Rome.classpath.libfile.2}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.Rome.classpath.libfile.1}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.Minion.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>

@@ -7,6 +7,7 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.DeadlockException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.EnvironmentStats;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.Transaction;
 import com.sleepycat.je.TransactionConfig;
@@ -361,8 +362,12 @@ public class BerkeleyDataWrapper {
             conf.setReadUncommitted(true);
             txn = dbEnv.beginTransaction(null, conf);
             txn.setTxnTimeout(0);
-            EntityIndex index = itemByType.subIndex(type.ordinal());
-            cur = index.entities(txn, CursorConfig.READ_UNCOMMITTED);
+            if (type != null) {
+                EntityIndex index = itemByType.subIndex(type.ordinal());
+                cur = index.entities(txn, CursorConfig.READ_UNCOMMITTED);
+            } else {
+                cur = itemByKey.entities(txn, CursorConfig.READ_UNCOMMITTED);
+            }
         } catch(DatabaseException e) {
             handleCursorException(cur, txn, e);
         }
@@ -460,6 +465,38 @@ public class BerkeleyDataWrapper {
         }
         throw new AuraException("deleteItem failed for " +
                 itemKey + " after " + numRetries + " retries");
+    }
+    
+    public void deleteAttention(List<Long> ids) throws AuraException {
+        int numRetries = 0;
+        while (numRetries < MAX_DEADLOCK_RETRIES) {
+            Transaction txn = null;
+            try {
+                txn = dbEnv.beginTransaction(null, null);
+                for (Long id : ids) {
+                    allAttn.delete(id);
+                }
+                txn.commit();
+                return;
+            } catch (DeadlockException e) {
+                try {
+                    txn.abort();
+                    numRetries++;
+                } catch (DatabaseException ex) {
+                    throw new AuraException("Txn abort failed", ex);
+                }
+            } catch (Exception e) {
+                try {
+                    if (txn != null) {
+                        txn.abort();
+                    }
+                } catch (DatabaseException ex) {
+                }
+                throw new AuraException("deleteItem transaction failed", e);
+            }
+        }
+        throw new AuraException("deleteAttention failed after " +
+                numRetries + " retries");
     }
     
     public DBIterator<ItemImpl> getItemIterator() throws AuraException {
@@ -939,11 +976,10 @@ public class BerkeleyDataWrapper {
     
     public DBIterator<Attention> getAttentionIterator(AttentionConfig ac)
             throws AuraException {
-        if (Util.isEmpty(ac)) {
-            throw new AuraException("At least one constraint must be " +
-                    "specified before calling getAttention(AttentionConfig)");
+        EntityJoin<Long,PersistentAttention> join = null;
+        if (!Util.isEmpty(ac)) {
+            join = getAttentionJoin(ac);
         }
-        EntityJoin<Long,PersistentAttention> join = getAttentionJoin(ac);
 
         ForwardCursor cur = null;
         Transaction txn = null;
@@ -952,7 +988,11 @@ public class BerkeleyDataWrapper {
             conf.setReadUncommitted(true);
             txn = dbEnv.beginTransaction(null, conf);
             txn.setTxnTimeout(0);
-            cur = join.entities(txn, CursorConfig.READ_UNCOMMITTED);
+            if (!Util.isEmpty(ac)) {
+                cur = join.entities(txn, CursorConfig.READ_UNCOMMITTED);
+            } else {
+                cur = allAttn.entities(txn, CursorConfig.READ_UNCOMMITTED);
+            }
         } catch(DatabaseException e) {
             handleCursorException(cur, txn, e);
         }
@@ -1360,6 +1400,21 @@ public class BerkeleyDataWrapper {
             }
         }
 
+    }
+    
+    /**
+     * Gets the size of the database in bytes
+     * 
+     * @return the size in bytes
+     */
+    public long getSize() {
+        try {
+            EnvironmentStats stats = dbEnv.getStats(null);
+            return stats.getTotalLogSize();
+        } catch (DatabaseException e) {
+            log.warning("Failed to get DB stats: " + e.getMessage());
+        }
+        return 0;
     }
     
     protected void handleCursorException(ForwardCursor cur, Transaction txn, Exception cause)

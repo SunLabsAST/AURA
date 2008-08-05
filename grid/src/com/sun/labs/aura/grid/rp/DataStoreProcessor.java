@@ -1,10 +1,12 @@
 package com.sun.labs.aura.grid.rp;
 
+import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.RunState;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.grid.ServiceAdapter;
+import com.sun.labs.aura.grid.ServiceDeployer;
 import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
@@ -12,13 +14,17 @@ import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.ConfigStringList;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.io.File;
 import java.io.IOException;
+import java.rmi.NoSuchObjectException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A class for processing (some of) the contents of a data store on a 
@@ -58,7 +64,8 @@ public class DataStoreProcessor extends ServiceAdapter {
 
     private List<ProcessRegistration> running;
     
-    private String baseCP;
+    /* Given the common functionality, this class should probably extend ServiceDeployer */
+    private String baseCP = ServiceDeployer.baseClasspath;
 
     @Override
     public String serviceName() {
@@ -70,32 +77,45 @@ public class DataStoreProcessor extends ServiceAdapter {
         // This is probably overkill, but we'll extract the classpath from the 
         // grid jar file so that when that changes we won't have to remember
         // to fix the base class here.
-        JarFile jf = new JarFile(GridUtil.auraDistMntPnt + "/dist/grid.jar");
-        String[] cpe = jf.getManifest().getMainAttributes().getValue("Class-Path").split("\\s+");
+        JarFile jarFile = new JarFile(GridUtil.auraDistMntPnt + "/dist/grid.jar");
+        String classpath = jarFile.getManifest().getMainAttributes().getValue("Class-Path");
+        ArrayList<String> jars = new ArrayList(Arrays.asList(classpath.split("\\s+")));
+        jars.add(GridUtil.auraDistMntPnt + "/dist/grid.jar");
         StringBuilder sb = new StringBuilder();
-        for(int i = 0; i < cpe.length; i++) {
-            if(i > 0) {
+        for(String jar : jars) {
+            if(sb.length() > 0) {
                 sb.append(":");
             }
-            sb.append(cpe[i]);
+            if(!jar.startsWith(File.separator)) {
+                sb.append(GridUtil.auraDistMntPnt + File.separator + "dist" + File.separator);
+            }
+            sb.append(jar);
         }
+        baseCP = sb.toString();
     }
-    
 
     public void startProcess(String prefix) throws Exception {
         List<String> cmdLine = new ArrayList<String>();
         cmdLine.add("-DauraHome=" + GridUtil.auraDistMntPnt);
+        cmdLine.add("-Dinstance=" + instance);
         cmdLine.add("-DauraGroup=" + instance + "-aura");
         cmdLine.add("-Dprefix=" + prefix);
-        cmdLine.add("-cp");
-        cmdLine.add(baseCP);
+        if(baseCP != null) {
+            cmdLine.add("-cp");
+            cmdLine.add(baseCP);
+            logger.info("Using classpath: " + baseCP);
+        }
         cmdLine.add("com.sun.labs.aura.AuraServiceStarter");
         cmdLine.add(replicantConfig);
         cmdLine.add(replicantStarter);
-        ProcessConfiguration config = 
-                gu.getProcessConfig(cmdLine.toArray(new String[0]), instance + 
-                "-" + processorName + "-" + prefix );
-        ProcessRegistration reg = gu.createProcess(instance, config);
+        String processName = processorName + "-" + prefix;
+        ProcessConfiguration config =
+                gu.getProcessConfig(cmdLine.toArray(new String[0]), processName);
+        ProcessRegistration reg = gu.createProcess(processName, config);
+        for(FileSystemMountParameters params : config.getFileSystems()) {
+            logger.info("Mounting " + params.getMountPoint() + " on " + params.getUUID());
+        }
+        logger.info("Created registration: " + reg);
         gu.startRegistration(reg);
         running.add(reg);
     }
@@ -115,7 +135,11 @@ public class DataStoreProcessor extends ServiceAdapter {
         
         //
         // Get the data store.
-        dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
+        try {
+            dataStore = (DataStore)ps.getComponent(PROP_DATA_STORE);
+        } catch(NullPointerException ne) {
+            throw new IllegalStateException("Could not access data store");
+        }
         numProcessors = ps.getInt(PROP_NUM_PROCESSORS);
         try {
             prefixes = dataStore.getPrefixes();
@@ -139,8 +163,9 @@ public class DataStoreProcessor extends ServiceAdapter {
                         "Error starting replicant processor for " + prefix, e);
             }
         }
+        logger.info("Started processes: " + running.size());
 
-        while(prefixes.size() > 0) {
+        while(!prefixes.isEmpty() || !running.isEmpty()) {
             try {
                 Thread.sleep(5000);
             } catch(InterruptedException ie) {
@@ -148,41 +173,33 @@ public class DataStoreProcessor extends ServiceAdapter {
             }
             for(Iterator<ProcessRegistration> i = running.iterator(); i.hasNext();) {
                 ProcessRegistration reg = i.next();
-                if(reg.getRunState() == RunState.NONE) {
-                    i.remove();
-                    try {
-                        reg.destroy(100000);
-                    } catch(RemoteException rx) {
-                        logger.log(Level.SEVERE,
-                                "Error destroying replicant processor " + reg,
-                                rx);
+                try {
+                    reg.refresh();
+                    logger.info("Checking: " + reg.getName() + " : " + reg.getRunState().name());
+                    if(reg.getRunState() == RunState.NONE) {
+                        i.remove();
+                        try {
+                            logger.info("Destroying: " + reg.getName());
+                            reg.destroy(100000);
+                            logger.info("Destroyed: " + reg.getName());
+                        } catch(RemoteException rx) {
+                            logger.log(Level.SEVERE,
+                                    "Error destroying replicant processor " + reg,
+                                    rx);
+                        }
+                        if(!prefixes.isEmpty()) {
+                            String prefix = prefixes.remove(0);
+                            try {
+                                startProcess(prefix);
+                            } catch(Exception e) {
+                                logger.log(Level.SEVERE,
+                                        "Error starting replicant processor for " +
+                                        prefix, e);
+                           }
+                        }
                     }
-                    String prefix = prefixes.remove(0);
-                    try {
-                        startProcess(prefix);
-                    } catch(Exception e) {
-                        logger.log(Level.SEVERE,
-                                "Error starting replicant processor for " +
-                                prefix, e);
-                    }
-                }
-            }
-        }
-        
-        //
-        // Wait for running processors to finish.
-        while(running.size() > 0) {
-            for(Iterator<ProcessRegistration> i = running.iterator(); i.hasNext();) {
-                ProcessRegistration reg = i.next();
-                if(reg.getRunState() == RunState.NONE) {
-                    i.remove();
-                    try {
-                        reg.destroy(100000);
-                    } catch(RemoteException rx) {
-                        logger.log(Level.SEVERE,
-                                "Error destroying replicant processor " + reg,
-                                rx);
-                    }
+                } catch (RemoteException ex) {
+                    logger.severe("Error refreshing registration: " + ex.getLocalizedMessage());
                 }
             }
         }

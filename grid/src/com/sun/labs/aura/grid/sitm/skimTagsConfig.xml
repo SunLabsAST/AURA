@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<config>
+    
+    <!-- Where the aura data lives -->
+    <property name="auraInstance" value="live"/>
+    
+   <!-- A component registry that will be used to lookup and register components. -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>${auraGroup}</item>
+        </propertylist>
+        <property name="securityPolicy" value="${auraPolicy}"/>
+    </component>
+    
+    <!-- An aardvark system -->
+    <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
+    
+    <component name="tags" type="com.sun.labs.aura.grid.sitm.SkimTags">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="dataStore" value="dataStore"/>
+        <property name="tagName" value="metal"/>
+        <property name="runs" value="50"/>
+    </component>
+    
+    <component name="start-skim" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>tags</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+    
+</config>

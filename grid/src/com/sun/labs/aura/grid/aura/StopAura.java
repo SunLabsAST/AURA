@@ -4,9 +4,6 @@
  */
 package com.sun.labs.aura.grid.aura;
 
-import com.sun.caroline.platform.ProcessRegistration;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.logging.Level;
 
 /**
@@ -20,7 +17,6 @@ public class StopAura extends Aura {
     
     public void start() {
         logger.info("Stopping registrations");
-        Queue<ProcessRegistration> q = new LinkedList<ProcessRegistration>();
         try {
             gu.stopProcess(getStatServiceName());
             logger.info("Stopped stat service");

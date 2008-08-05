@@ -44,6 +44,9 @@
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true">
     </component>
     
+    <component name="processManager" type="com.sun.labs.aura.datastore.impl.ManualProcessManager" export="true">
+    </component>
+    
     <!--
         Each DataStoreHead is backed by a power of two number of partition
         clusters. For this example, there is the minimum number: 2 - one for 0
@@ -52,10 +55,12 @@
     <component name="partitionCluster0" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true">
         <property name="prefix" value="0"/>
         <property name="dataStoreHead" value="dataStoreHead"/>
+        <property name="processManager" value="processManager"/>
     </component>
     <component name="partitionCluster1" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true">
         <property name="prefix" value="1"/>
         <property name="dataStoreHead" value="dataStoreHead"/>
+        <property name="processManager" value="processManager"/>
     </component>
 
     <!--
@@ -94,6 +99,7 @@
     <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>dataStoreHead</item>
+            <item>processManager</item>
             <item>partitionCluster0</item>
             <item>partitionCluster1</item>
             <item>replicant0</item>

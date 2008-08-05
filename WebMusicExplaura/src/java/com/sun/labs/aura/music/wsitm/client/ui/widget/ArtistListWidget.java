@@ -117,6 +117,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                 vP.add(new DeletableWidget<CompactArtistWidget>(caw, new HorizontalPanel()) {
 
                     public void onDelete() {
+                        invokeAddNotInterested(getWidget().getArtistId());
                         this.getWidget().doRemoveListeners();
                         this.slideOut(Direction.UP,
                                 new DualDataEmbededCommand<VerticalPanel, DeletableWidget>(((VerticalPanel) g.getWidget(0, 0)), this) {
@@ -133,6 +134,23 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         }
 
         return vP;
+    }
+
+    private void invokeAddNotInterested(String artistId) {
+
+        AsyncCallback callback = new AsyncCallback() {
+
+            public void onSuccess(Object result) {}
+            public void onFailure(Throwable caught) {
+                Window.alert("Error adding not interested attention."+caught.toString());
+            }
+        };
+
+        try {
+            musicServer.addNotInterestedAttention(artistId, callback);
+        } catch (WebException ex) {
+            Window.alert(ex.getMessage());
+        }
     }
 
     private void invokeFetchRatings() {

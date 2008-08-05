@@ -678,6 +678,21 @@ public class DataManager implements Configurable {
 
     }
 
+    public void addItemAttention(String userId, String artistId, Type attentionType) throws AuraException, RemoteException {
+        if (attentionType == Type.PLAYED) {
+            try {
+            mdb.addPlayAttention(userId, artistId, 1);
+            } catch (Exception e) {
+                logger.info("exception!! "+e.toString());
+                throw new AuraException(e.toString());
+            }
+        } else if (attentionType == Type.VIEWED) {
+            mdb.addViewedAttention(userId, artistId);
+        } else {
+            throw new AuraException("Attention type not yet implemented ("+attentionType.toString()+")");
+        }
+    }
+
     public List<Attention> getLastAttentionData(String userId, Type type, int count) throws AuraException, RemoteException {
         return mdb.getLastAttentionData(userId, type, count);
     }
