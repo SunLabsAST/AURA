@@ -215,7 +215,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         //
         // Configure and open the environment and entity store
         try {
+            logger.info("Opening BerkeleyDataWrapper: " + dbEnvDir);
             bdb = new BerkeleyDataWrapper(dbEnvDir, logger, overwriteExisting, cacheSizeMemPercentage);
+            logger.info("Finished opening BerkeleyDataWrapper");
         } catch(DatabaseException e) {
             logger.severe("Failed to load the database environment at " +
                     dbEnvDir + ": " + e);

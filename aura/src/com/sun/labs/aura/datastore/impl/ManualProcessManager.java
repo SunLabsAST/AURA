@@ -86,6 +86,7 @@ public class ManualProcessManager implements ProcessManager,
     public void stop() {
         
     }
+    
     protected List<ServiceItem> getServices() {
         ComponentRegistry cr = cm.getComponentRegistry();
         Map<ServiceRegistrar,List<ServiceItem>> reggies = cr.getJiniServices();

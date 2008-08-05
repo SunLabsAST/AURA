@@ -47,10 +47,13 @@
         <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
     
+    <component name="processManager" type="com.sun.labs.aura.datastore.impl.ManualProcessManager" export="true" />
+    
     <!-- The configuration for a partition cluster. -->
     <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true" entries="prefixEntries">
         <property name="prefix" value="${prefix}"/>
         <property name="dataStoreHead" value="dataStoreHead"/>
+        <property name="processManager" value="processManager"/>
     </component>
 
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>

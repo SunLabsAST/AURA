@@ -63,7 +63,7 @@
         <property name="engineLogLevel" value="1"/>
         <property name="flushInterval" value="300000"/>
     </component>
-    
+
     <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" entries="prefixEntries"/>
     
     <!-- A service starter for this replicant -->
