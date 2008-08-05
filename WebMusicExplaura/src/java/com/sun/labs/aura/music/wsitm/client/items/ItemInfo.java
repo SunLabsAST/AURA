@@ -76,7 +76,7 @@ public class ItemInfo implements IsSerializable {
         return new RandomSorter();
     }
 
-    public static List<ItemInfo> arrayToList(ItemInfo[] iIArray) {
+    public static ArrayList<ItemInfo> arrayToList(ItemInfo[] iIArray) {
         ArrayList<ItemInfo> iI = new ArrayList<ItemInfo>();
         for (ItemInfo i : iIArray) {
             iI.add(i);

@@ -20,7 +20,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedTagMenu;
-import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.TagWidgetContainer;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.TagWidgetContainer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -533,13 +533,13 @@ public class ClientDataManager {
         
         public void addTag(ItemInfo tag) {
             if (init) {
-                tagLand.addTag(tag, true);
+                tagLand.addTag(tag, 0, true);
             }
         }
         
-        public boolean containsTag(String tagId) {
+        public boolean containsItem(String itemId) {
             if (init) {
-                return tagLand.containsTag(tagId);
+                return tagLand.containsItem(itemId);
             } else {
                 return false;
             }
