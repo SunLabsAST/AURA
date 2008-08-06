@@ -8,6 +8,7 @@ package com.sun.labs.aura.music.wsitm.client.ui.widget.steerable;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.Random;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
@@ -67,14 +68,14 @@ public abstract class TagWidget extends Composite {
             
             for (String tag : itemTags.keySet()) {
                 // @todo remove lowercase when engine is fixed
-                tag = tag.toLowerCase();
+                String tagLower = tag.toLowerCase();
                 
-                if (tagMap.containsKey(tag)) {
-                    newVal = tagMap.get(tag) + cI.getWeight() * itemTags.get(tag);
+                if (tagMap.containsKey(tagLower)) {
+                    newVal = tagMap.get(tagLower) + cI.getWeight() * itemTags.get(tag);
                 } else {
                     newVal = cI.getWeight() * itemTags.get(tag);
                 }
-                tagMap.put(tag, newVal);
+                tagMap.put(tagLower, newVal);
                 
                 if (newVal > maxVal) {
                     maxVal = newVal;
