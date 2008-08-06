@@ -111,6 +111,8 @@ public class ServiceDeployer {
             classpath = classpath + ":" + jarFile;
         }
         
+        logger.info("Instance: " + instance);
+        
         String[] cmd = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-Dinstance=" + instanceName,

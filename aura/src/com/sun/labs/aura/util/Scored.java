@@ -23,6 +23,8 @@ public class Scored<T> implements Serializable {
     private Serializable[] sortVals;
 
     private boolean[] directions;
+    
+    public double time;
 
     /**
      * Creates a scored item

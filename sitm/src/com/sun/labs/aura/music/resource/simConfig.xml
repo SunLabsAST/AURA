@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!--
+    Document   : simConfig.xml
+    Created on : August 1, 2008, 7:41 AM
+    Author     : stgreen
+    Description:
+        Purpose of the document follows.
+-->
 <config>
-    
-    <!-- Where the aura data lives -->
-    <property name="auraInstance" value="live"/>
-    
    <!-- A component registry that will be used to lookup and register components. -->
     <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
         <propertylist name="groupList">
@@ -12,21 +16,17 @@
         <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
     
-    <!-- An aardvark system -->
     <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
     
-    <component name="tags" type="com.sun.labs.aura.grid.sitm.SimilarTags">
-        <property name="instance" value="${auraInstance}"/>
+    <component name="simRunner" type="com.sun.labs.aura.music.util.SimilarityRunner">
         <property name="dataStore" value="dataStore"/>
-        <property name="tagName" value="metal"/>
-        <property name="runs" value="1"/>
+        <property name="runs" value="100"/>
     </component>
     
-    <component name="start-tags" type="com.sun.labs.aura.AuraServiceStarter">
+    <component name="simStart" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
-            <item>tags</item>
+            <item>simRunner</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
-    </component>
-    
+        </component>
 </config>

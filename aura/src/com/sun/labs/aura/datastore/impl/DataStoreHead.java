@@ -26,7 +26,6 @@ import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.minion.pipeline.StopWords;
 import com.sun.labs.minion.retrieval.MultiDocumentVectorImpl;
 import com.sun.labs.minion.util.NanoWatch;
-import com.sun.labs.minion.util.StopWatch;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
@@ -224,6 +223,37 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         } else {
 
             //
+            // Run the gets in parallel
+//            for(Map.Entry<PartitionCluster, List<Scored<String>>> e : m.entrySet()) {
+//                callers.add(new PCCaller(e.getKey(), e.getValue()) {
+//
+//                    public List<Scored<Item>> call()
+//                            throws AuraException, RemoteException {
+//                        List<Scored<Item>> ret = pc.getItems(keys);
+//                        if(logger.isLoggable(Level.FINER)) {
+//                            logger.finer(String.format("dsh pc %s gis return", pc.getPrefix().
+//                                    toString()));
+//                        }
+//                        return ret;
+//                    }
+//                });
+//            }
+//
+//            try {
+//                List<Future<List<Scored<Item>>>> l = executor.invokeAll(callers);
+//                ret = new ArrayList<Scored<Item>>();
+//                for(Future<List<Scored<Item>>> f : l) {
+//                    ret.addAll(f.get());
+//                }
+//                Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
+//
+//            } catch(InterruptedException ie) {
+//                throw new AuraException("Interrupted while getting items", ie);
+//            } catch(ExecutionException ee) {
+//                throw new AuraException("Error getting items", ee);
+//            }
+        
+            //
             // Run the gets in seriallel (sigh)
             ret = new ArrayList<Scored<Item>>();
             for(Map.Entry<PartitionCluster, List<Scored<String>>> e : m.entrySet()) {
@@ -231,6 +261,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             }
             Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
         }
+        
         nw.stop();
         if(logger.isLoggable(Level.FINER)) {
             logger.finer(String.format("dsh gIs for %d took %.3f",

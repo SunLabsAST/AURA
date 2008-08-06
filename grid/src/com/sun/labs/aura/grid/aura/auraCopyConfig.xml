@@ -11,7 +11,7 @@
     
     <property name="auraInstance" value="live"/>
     
-    <property name="nNodes" value="4"/>
+    <property name="nNodes" value="16"/>
     
     <component name="startAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="nNodes" value="${nNodes}"/>

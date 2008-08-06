@@ -9,6 +9,7 @@ import com.sun.labs.aura.datastore.impl.DSBitSet;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
+import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.util.Collections;
@@ -36,7 +37,7 @@ public abstract class Aura extends ServiceAdapter {
     protected String[] prefixCodeList;
 
     private Map<String, FileSystem> repFSMap = new HashMap<String, FileSystem>();
-
+    
     public void getReplicantFileSystems() throws Exception {
 
         //
@@ -72,6 +73,10 @@ public abstract class Aura extends ServiceAdapter {
     public String getReggieName() {
         return "reggie";
     }
+    
+    public String getProcessManagerName() {
+        return "pm";
+    }
 
     protected ProcessConfiguration getReggieConfig() throws Exception {
         String[] cmdLine = new String[]{
@@ -93,12 +98,12 @@ public abstract class Aura extends ServiceAdapter {
             "-Xmx3g",
             "-DauraHome=/files/data",
             "-DauraGroup=" + instance + "-aura",
-            "-DauraDistDir=" + GridUtil.auraDistMntPnt,
+            "-DauraDistDir=" + GridUtil.auraDistMntPnt +"/dist",
             "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
             "/classifier/starting.idx",
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
-            "/com/sun/labs/aura/util/resource/exportedAIOVMDSConfig.xml",
+            "/com/sun/labs/aura/resource/exportedAIOVMDSConfig.xml",
             "aiovm-starter"
         };
         
@@ -140,6 +145,21 @@ public abstract class Aura extends ServiceAdapter {
         };
 
         return gu.getProcessConfig(cmdLine, getDataStoreHeadName());
+    }
+
+    protected ProcessConfiguration getProcessManagerConfig()
+            throws Exception {
+        String[] cmdLine = new String[]{
+            "-DauraHome=" + GridUtil.auraDistMntPnt,
+            "-DauraGroup=" + instance + "-aura",
+            "-DauraInstance=" + instance,
+            "-jar",
+            GridUtil.auraDistMntPnt + "/dist/grid.jar",
+            "/com/sun/labs/aura/grid/aura/gpmConfig.xml",
+            "gpmStarter"
+        };
+
+        return gu.getProcessConfig(cmdLine, getProcessManagerName());
     }
 
     protected ProcessConfiguration getPartitionClusterConfig(String prefix)
@@ -224,6 +244,7 @@ public abstract class Aura extends ServiceAdapter {
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
+        logger.info("Instance: " + instance);
 
         //
         // Figure out how many nodes are in our data store and create the prefixes.

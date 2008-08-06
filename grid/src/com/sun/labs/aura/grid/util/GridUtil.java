@@ -214,7 +214,7 @@ public class GridUtil {
      * @throws java.lang.Exception
      */
     public ProcessRegistration stopProcess(String name) throws Exception {
-        ProcessRegistration reg = grid.getProcessRegistration(name);
+        ProcessRegistration reg = grid.getProcessRegistration(String.format("%s-%s", instance, name));
         if(reg != null) {
             log.fine("Stopping: " + reg);
             reg.shutdownGently(true, 1000);
@@ -224,7 +224,18 @@ public class GridUtil {
         }
         return reg;
     }
-
+    
+    public void destroyRegistration(String name) throws Exception {
+        ProcessRegistration reg = grid.getProcessRegistration(String.format(
+                "%s-%s", instance, name));
+        if(reg != null) {
+            log.fine("Destroying: " + reg);
+            reg.destroy(100000);
+        } else {
+            log.fine("No registration for " + name + " to destroy");
+        }
+    }
+    
     public void waitForFinish()
             throws Exception {
         waitForFinish(600000);
@@ -246,6 +257,8 @@ public class GridUtil {
                 continue;
             }
 
+            reg.refresh();
+            
             //
             // If it's not done, then put it back on the queue.
             if(reg.getProcessOutcome() == null || reg.getRunState() !=

@@ -313,6 +313,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException {
         NanoWatch nw = new NanoWatch();
         nw.start();
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("rep %s gIs for %d start",
+                    prefixString, keys.size()));
+        }
         List<Scored<Item>> ret = new ArrayList();
         for(Scored<String> key : keys) {
             ret.add(new Scored<Item>(getItem(key.getItem()), key));
@@ -320,6 +324,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         nw.stop();
         if(logger.isLoggable(Level.FINE)) {
             logger.fine(String.format("rep %s gIs for %d took %.3f", prefixString, keys.size(), nw.getTimeMillis()));
+        }
+        if(ret.size() > 0) {
+            ret.get(0).time = nw.getTimeMillis();
         }
         return ret;
     }
