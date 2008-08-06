@@ -19,7 +19,7 @@
         <property name="instance" value="${auraInstance}"/>
         <property name="dataStore" value="dataStore"/>
         <property name="tagName" value="metal"/>
-        <property name="runs" value="50"/>
+        <property name="runs" value="1"/>
     </component>
     
     <component name="start-tags" type="com.sun.labs.aura.AuraServiceStarter">

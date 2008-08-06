@@ -69,6 +69,8 @@ public class ServiceDeployer {
             classpath = classpath + ":" + jarFile;
         }
         
+        logger.info("Instance: " + instance);
+        
         String[] cmd = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraInstance=" + instance,
@@ -132,6 +134,9 @@ public class ServiceDeployer {
                 instance = props.getProperty("instance");
                 if(instance == null) {
                     instance = System.getProperty("user.name");
+                    if(instance == null) {
+                        instance = "live";
+                    }
                 }
             }
         } catch(Exception e) {

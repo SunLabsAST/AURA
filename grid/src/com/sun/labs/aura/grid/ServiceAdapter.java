@@ -12,6 +12,7 @@ import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
+import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.util.logging.Logger;
@@ -33,6 +34,8 @@ public abstract class ServiceAdapter implements Configurable, AuraService {
     
     protected GridUtil gu;
     
+    protected ConfigurationManager cm;
+
     /**
      * Gets the name of this service, suitable for placing in error messages.
      * @return the name of this service.
@@ -53,6 +56,7 @@ public abstract class ServiceAdapter implements Configurable, AuraService {
      */
     public void newProperties(PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
+        cm = ps.getConfigurationManager();
 
         //
         // Get our grid reference. If we're not on grid, then throw an exception.

@@ -32,6 +32,11 @@ public class StartAura extends Aura {
         ProcessRegistration regReg = gu.createProcess(getReggieName(),
                 getReggieConfig());
         gu.startRegistration(regReg);
+        
+        //
+        // Start up a process manager.
+        ProcessRegistration pmReg = gu.createProcess(getProcessManagerName(), getProcessManagerConfig());
+        gu.startRegistration(pmReg);
 
         //
         // Next, get a data store head and start it

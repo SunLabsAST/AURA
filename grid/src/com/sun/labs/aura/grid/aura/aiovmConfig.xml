@@ -11,22 +11,24 @@
     
     <property name="auraInstance" value="live"/>
     
-    <property name="nNodes" value="4"/>
+    <property name="logLevel" value="FINE"/>
     
     <component name="startAIOVM" type="com.sun.labs.aura.grid.aura.StartAIOVM">
+        <property name="instance" value="${auraInstance}"/>
     </component>
     
     <component name="stopAIOVM" type="com.sun.labs.aura.grid.aura.StopAIOVM">
+        <property name="instance" value="${auraInstance}"/>
     </component>
     
-    <component name="start" type="com.sun.labs.aura.AuraServiceStarter">
+    <component name="aiovm-start" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>startAIOVM</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
     
-    <component name="stop" type="com.sun.labs.aura.AuraServiceStarter">
+    <component name="aiovm-stop" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>stopAIOVM</item>
         </propertylist>
