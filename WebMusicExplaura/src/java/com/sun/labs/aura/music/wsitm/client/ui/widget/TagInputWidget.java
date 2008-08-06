@@ -206,7 +206,7 @@ public class TagInputWidget extends Composite implements LoginListener {
 
      private void invokeAddTags(Set<String> tags) {
 
-         DataEmbededAsyncCallback<Set<String>> callback = new DataEmbededAsyncCallback<Set<String>>(tags) {
+         DataEmbededAsyncCallback<Set<String>, Set<String>> callback = new DataEmbededAsyncCallback<Set<String>, Set<String>>(tags) {
 
              public void onFailure(Throwable arg0) {
                  Window.alert(arg0.toString());

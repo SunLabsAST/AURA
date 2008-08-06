@@ -60,7 +60,7 @@ public class CloudTag implements CloudItem {
 
     public HashMap<String, Double> getTagMap() {
         HashMap<String, Double> tagMap = new HashMap<String, Double>();
-        tagMap.put(tagName, tagWeight);
+        tagMap.put(tagName, 1.0);
         return tagMap;
     }
 
@@ -68,6 +68,10 @@ public class CloudTag implements CloudItem {
         return null;
     }
 
+    public Image getIcon() {
+        return new Image("icon-t.jpg");
+    }
+    
     public String getId() {
         return tagId;
     }

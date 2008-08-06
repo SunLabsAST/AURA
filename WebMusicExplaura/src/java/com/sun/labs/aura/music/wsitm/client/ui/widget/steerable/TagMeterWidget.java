@@ -9,8 +9,6 @@ import com.extjs.gxt.ui.client.widget.Info;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.DeletableWidget;
-import com.google.gwt.user.client.Command;
-import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FocusPanel;
@@ -66,7 +64,7 @@ public class TagMeterWidget extends TagWidget {
         }
         return itemsMap;
     }
-
+/*
     public HashMap<String, Double> getTapMap() {
         HashMap<String, Double> tagMap = new HashMap<String, Double>();
 
@@ -95,7 +93,7 @@ public class TagMeterWidget extends TagWidget {
         }
         return tagMap;
     }
-
+*/
     public void removeItem(String itemId) {
         if (tagCloud.containsKey(itemId)) {
             mainTagPanel.remove(tagCloud.get(itemId));
@@ -120,7 +118,6 @@ public class TagMeterWidget extends TagWidget {
             if (limit == 0) {
                 limit = items.size();
             }
-            Info.display("info","adding "+limit+" from list of "+items.size(), new Params());
 
             ArrayList<CloudItem> itemsList = new ArrayList<CloudItem>(items.values());
             Collections.sort(itemsList, new CloudItemWeightSorter());
@@ -137,13 +134,15 @@ public class TagMeterWidget extends TagWidget {
                 }
             }
             updateRecommendations();
-            Info.display("info","added "+cnt,new Params());
         }
     }
 
     @Override
     public void addItem(CloudItem item, boolean updateRecommendations) {
         if (!tagCloud.containsKey(item.getId())) {
+            if (item.getWeight() == 0) {
+                item.setWeight( DEFAULT_TAG_VALUE );
+            }
             CloudItemMeter newCI = new CloudItemMeter(item);
             tagCloud.put(item.getId(), newCI);
             mainTagPanel.add(newCI);
@@ -188,7 +187,7 @@ public class TagMeterWidget extends TagWidget {
                 item.setWeight(MAX_TAG_VALUE);
             }
 
-            mainPanel = new Grid(1, 2);
+            mainPanel = new Grid(1, 3);
             mainPanel.setWidth("100%");
 
             fP = new FocusPanel();
@@ -254,13 +253,15 @@ public class TagMeterWidget extends TagWidget {
                 
             });
 
-            mainPanel.setWidget(0, 0, new DeletableTag(new SpannedLabel(item.getDisplayName())));
-            mainPanel.getCellFormatter().setHorizontalAlignment(0, 0, HorizontalPanel.ALIGN_LEFT);
-            mainPanel.getCellFormatter().setHorizontalAlignment(0, 1, HorizontalPanel.ALIGN_RIGHT);
+            mainPanel.setWidget(0, 0, item.getIcon());
+            mainPanel.getCellFormatter().setWidth(0, 0, "12px");
+            mainPanel.setWidget(0, 1, new DeletableTag(item));
+            mainPanel.getCellFormatter().setHorizontalAlignment(0, 1, HorizontalPanel.ALIGN_LEFT);
+            mainPanel.getCellFormatter().setHorizontalAlignment(0, 2, HorizontalPanel.ALIGN_RIGHT);
 
-            mainPanel.getCellFormatter().setWidth(0, 1, "150px");
+            mainPanel.getCellFormatter().setWidth(0, 2, "150px");
 
-            mainPanel.setWidget(0, 1, fP);
+            mainPanel.setWidget(0, 2, fP);
 
             initWidget(mainPanel);
 
@@ -296,18 +297,19 @@ public class TagMeterWidget extends TagWidget {
 
     private class DeletableTag extends DeletableWidget<Label> {
 
-        private String tag;
+        private CloudItem i;
 
-        public DeletableTag(Label w) {
-            super(w);
-            this.tag = w.getText();
+        public DeletableTag(CloudItem i) {
+            super(new SpannedLabel(i.getDisplayName()));
+            this.i = i;
+            addRemoveButton();
         }
 
         public void onDelete() {
-            this.fadeOut(new DataEmbededCommand<String>(tag) {
+            this.fadeOut(new DataEmbededCommand<String>(i.getId()) {
 
                 public void execute() {
-                    removeItem(ClientDataManager.nameToKey(data));
+                    removeItem(data);
                 }
             });
         }

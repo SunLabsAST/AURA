@@ -45,10 +45,6 @@ public class TagWidgetContainer extends TagWidget {
         return activeTagWidget.getItemsMap();
     }
 
-    public HashMap<String, Double> getTapMap() {
-        return activeTagWidget.getTapMap();
-    }
-
     public void removeItem(String itemId) {
         activeTagWidget.removeItem(itemId);
     }
