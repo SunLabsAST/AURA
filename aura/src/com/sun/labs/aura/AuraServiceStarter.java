@@ -122,7 +122,11 @@ public class AuraServiceStarter implements Configurable {
             }
             ConfigurationManager cm = new ConfigurationManager(cu);
             starter = (AuraServiceStarter) cm.lookup(args[1]);
-
+            
+            if(starter == null) {
+                System.err.println("Unknown starter: " + args[1]);
+            }
+            
             //
             // Block until we're killed if we're supposed to.
             if(starter.blockForShutdown) {
