@@ -52,7 +52,6 @@ public class ServiceDeployer {
     URL gridURL;
     
     public ServiceDeployer() {
-        this(null, null, null, null);
     }
     
     public ServiceDeployer(String instanceName, URL gridURL, String username, String password) {
@@ -110,8 +109,6 @@ public class ServiceDeployer {
         if(jarFile != null) {
             classpath = classpath + ":" + jarFile;
         }
-        
-        logger.info("Instance: " + instance);
         
         String[] cmd = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
