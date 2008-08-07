@@ -128,7 +128,10 @@ public class GridUtil {
         List<UUID> addresses = new ArrayList<UUID>();
         addresses.add(getAddressFor(logName).getUUID());
         pc.setNetworkAddresses(addresses);
-        pc.setProcessExitAction(ProcessExitAction.PARK);
+        
+        //
+        // When things die, we want them to restart!
+        pc.setProcessExitAction(ProcessExitAction.RESTART);
         return pc;
     }
 
@@ -217,10 +220,18 @@ public class GridUtil {
         ProcessRegistration reg = grid.getProcessRegistration(String.format("%s-%s", instance, name));
         if(reg != null) {
             log.fine("Stopping: " + reg);
+            
+            //
+            // We were asked to stop the process, so we can't just shut it down,
+            // because they're set to restart.  So, first we need to change the 
+            // process config to park the process.
+            ProcessConfiguration pc = reg.getIncarnationConfiguration();
+            pc.setProcessExitAction(ProcessExitAction.PARK);
+            reg.changeConfiguration(pc);
             reg.shutdownGently(true, 1000);
             stopped.add(reg);
         } else {
-            log.fine("No registration for " + name + " to stop");
+            log.info("No registration for " + name + " to stop");
         }
         return reg;
     }
