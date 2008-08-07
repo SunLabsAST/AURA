@@ -1,11 +1,9 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
-import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.ClickListener;
-import com.google.gwt.user.client.ui.MouseListener;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Panel;
-import com.google.gwt.user.client.ui.SourcesClickEvents;
 import com.google.gwt.user.client.ui.Widget;
 
 /**
@@ -14,7 +12,7 @@ import com.google.gwt.user.client.ui.Widget;
  */
 public abstract class DeletableWidget <T extends Widget> extends RightMenuWidget<T> {
 
-    protected SwapableImage xB; // close button
+    protected SwapableWidget<Image, Image> xB; // close button
 
     public DeletableWidget(T w) {
         super(w);
@@ -27,12 +25,12 @@ public abstract class DeletableWidget <T extends Widget> extends RightMenuWidget
     }
 
     private void doDefaultXButtonConstruct() {
-        xB = new SwapableImage("green-x.jpg","green-x-hidden.jpg");
-        xB.setImg2();
+        xB = new SwapableWidget<Image, Image>(new Image("green-x.jpg"), new Image("green-x-hidden.jpg"));
+        xB.showWidget(SwapableWidget.LoadableWidget.W2);
         xB.addStyleName("image");
     }
   
-    public DeletableWidget(T w, Panel mainPanel, SwapableImage xButton) {
+    public DeletableWidget(T w, Panel mainPanel, SwapableWidget xButton) {
         super(w, mainPanel);
         this.xB = xButton;
     }
@@ -42,23 +40,23 @@ public abstract class DeletableWidget <T extends Widget> extends RightMenuWidget
      */
     public void addRemoveButton() {
         
-        super.addWidgetToRightMenu(xB, new HoverListener<SwapableImage>(xB) {
+        super.addWidgetToRightMenu(xB, new HoverListener<SwapableWidget>(xB) {
 
             @Override
             void onMouseHover() {
-                data.setImg1();
+                data.showWidget(SwapableWidget.LoadableWidget.W1);
             }
 
             @Override
             void onOutTimer() {
-                data.setImg2();
+                data.showWidget(SwapableWidget.LoadableWidget.W2);
             }
             
             @Override
             void onMouseOut() {}
         });
-        
-        ((SourcesClickEvents)xB).addClickListener(new ClickListener() {
+
+        xB.getWidget1().addClickListener(new ClickListener() {
 
             public void onClick(Widget arg0) {
                 onDelete();

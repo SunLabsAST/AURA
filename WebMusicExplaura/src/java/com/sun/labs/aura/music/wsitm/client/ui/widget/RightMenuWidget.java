@@ -92,8 +92,13 @@ public class RightMenuWidget <T extends Widget> extends AnimatedComposite
      * @param px
      */
     public void setRightMenuHeight(double px) {
-        for (Widget w : rightMenuWidgets) {
-            w.getElement().setAttribute("style", "margin-bottom: "+px+"px;");
+        for (Widget tw : rightMenuWidgets) {
+            if (tw instanceof com.sun.labs.aura.music.wsitm.client.ui.widget.SwapableWidget) {
+                ((SwapableWidget)tw).getWidget1().getElement().setAttribute("style", "margin-bottom: "+px+"px;");
+                ((SwapableWidget)tw).getWidget2().getElement().setAttribute("style", "margin-bottom: "+px+"px;");
+            } else {
+                tw.getElement().setAttribute("style", "margin-bottom: "+px+"px;");
+            }
         }
     }
     

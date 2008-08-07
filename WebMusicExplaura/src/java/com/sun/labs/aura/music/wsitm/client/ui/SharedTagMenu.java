@@ -22,13 +22,13 @@ import com.sun.labs.aura.music.wsitm.client.MusicSearchInterfaceAsync;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededBaseItemListener;
 import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededBaseItemListener;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
-import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.SharedMenu;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.TagDependentSharedMenu;
 
 /**
  *
  * @author mailletf
  */
-public class SharedTagMenu extends Menu implements SharedMenu {
+public class SharedTagMenu extends Menu implements TagDependentSharedMenu {
 
     protected ItemInfo currTag;
     protected MusicSearchInterfaceAsync musicServer;

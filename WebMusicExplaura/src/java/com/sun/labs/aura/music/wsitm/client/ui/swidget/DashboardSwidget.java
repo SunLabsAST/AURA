@@ -11,7 +11,6 @@ import com.sun.labs.aura.music.wsitm.client.event.TaggingListener;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.event.RatingListener;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
-import com.sun.labs.aura.music.wsitm.client.event.CommonTagsAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.CompactArtistWidget;
@@ -29,10 +28,8 @@ import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededChangeListener;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.PlayedListener;
@@ -94,7 +91,6 @@ public class DashboardSwidget extends Swidget {
             RatingListener, TaggingListener, PlayedListener, HasListeners {
 
         private Grid g;
-        private static final int IMG_SIZE = 150;
 
         private Grid featArtist;
         private Grid recentRating;

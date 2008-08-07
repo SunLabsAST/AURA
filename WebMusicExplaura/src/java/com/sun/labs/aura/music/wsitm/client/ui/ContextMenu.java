@@ -16,7 +16,9 @@ import com.gwtext.client.core.EventObject;
 import com.gwtext.client.widgets.menu.BaseItem;
 import com.gwtext.client.widgets.menu.Item;
 import com.gwtext.client.widgets.menu.Menu;
+import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededBaseItemListener;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import java.util.LinkedList;
 
@@ -89,10 +91,24 @@ public class ContextMenu implements EventPreview {
         isVisible = true;
     }
     
-    public void showSharedMenu(Event e, ItemInfo tag) {
-        DOM.addEventPreview(this);
-        ((SharedMenu) menu).showAt(e.getClientX(), e.getClientY(), tag);
-        isVisible = true;
+    public void showSharedMenu(Event e, ItemInfo tag) throws WebException {
+        if (menu instanceof TagDependentSharedMenu) {
+            DOM.addEventPreview(this);
+            ((TagDependentSharedMenu) menu).showAt(e.getClientX(), e.getClientY(), tag);
+            isVisible = true;
+        } else {
+            throw new WebException(WebException.errorMessages.INVALID_MENU_CALLED);
+        }
+    }
+    
+    public void showSharedMenu(Event e, ArtistCompact aC) throws WebException {
+        if (menu instanceof ArtistDependentSharedMenu) {
+            DOM.addEventPreview(this);
+            ((ArtistDependentSharedMenu) menu).showAt(e.getClientX(), e.getClientY(), aC);
+            isVisible = true;
+        } else {
+            throw new WebException(WebException.errorMessages.INVALID_MENU_CALLED);
+        }
     }
 
     public boolean onEventPreview(Event event) {
@@ -130,8 +146,13 @@ public class ContextMenu implements EventPreview {
         public ContextMenu getContextMenu();
     }
     
-    public interface SharedMenu {
+    public interface TagDependentSharedMenu {
         
         public void showAt(int x, int y, ItemInfo currTag);
+    }
+    
+    public interface ArtistDependentSharedMenu {
+        
+        public void showAt(int x, int y, ArtistCompact currTag);
     }
 }

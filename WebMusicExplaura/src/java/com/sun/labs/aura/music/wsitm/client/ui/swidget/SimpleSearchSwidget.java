@@ -615,14 +615,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             spotify.addStyleName("pointer");
             hP.add(spotify);
         }
-        SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.BIG,
-                new DataEmbededClickListener<String>(artistDetails.getId()) {
-
-            public void onClick(Widget arg0) {
-                cdm.setSteerableReset(true);
-                History.newItem("steering:"+data);
-            }
-        });
+        SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.BIG, artistDetails.toArtistCompact(), cdm.getSharedSteeringMenu());
         hP.add(steerButton);
 
         return createMainSection(artistDetails.getName(), html,

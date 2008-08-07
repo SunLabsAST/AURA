@@ -5,17 +5,21 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
-import com.google.gwt.user.client.ui.ClickListener;
-import com.google.gwt.user.client.ui.Grid;
-import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.Event;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.WebException;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
+import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringMenu;
 
 /**
  *
  * @author mailletf
  */
-public class SteeringWheelWidget extends Image {
+public class SteeringWheelWidget extends ContextMenuImage {
 
     private static final String steerImageBig = "steering-30.gif";
     private static final String steerImageSmall = "steering-20.gif";
@@ -26,14 +30,18 @@ public class SteeringWheelWidget extends Image {
     private String steerImage;
     private String steerImageHover;
 
-    private Grid mainImage;
-
+    private ArtistCompact aC;
+  
     public enum wheelSize {
         SMALL,
         BIG
     }
 
-    public SteeringWheelWidget(wheelSize size, ClickListener cL) {
+    public SteeringWheelWidget(wheelSize size, ArtistCompact aC, SharedSteeringMenu steeringMenu) {
+        super("", steeringMenu);
+
+        this.aC = aC;
+
         if (size == wheelSize.SMALL) {
             steerImage = steerImageSmall;
             steerImageHover = steerImageHoverSmall;
@@ -41,9 +49,8 @@ public class SteeringWheelWidget extends Image {
             steerImage = steerImageBig;
             steerImageHover = steerImageHoverBig;
         }
-        addClickListener(cL);
+        
         setUrl(steerImage);
-        setTitle("Get steerable recommendations starting with this artist");
         addStyleName("pointer");
 
         this.addMouseListener(new MouseListener() {
@@ -62,4 +69,18 @@ public class SteeringWheelWidget extends Image {
         });
     }
 
+    @Override
+    public void onBrowserEvent(Event event) {
+        if (event.getTypeInt() == Event.ONCONTEXTMENU ||
+                event.getTypeInt() == Event.ONCLICK) {
+            try {
+                DOM.eventPreventDefault(event);
+                cm.showSharedMenu(event, aC);
+            } catch (WebException ex) {
+                Window.alert(ex.toString());
+            }
+        } else {
+            super.onBrowserEvent(event);
+        }
+    }
 }

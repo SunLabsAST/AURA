@@ -10,6 +10,7 @@ import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.ClickListenerCollection;
 import com.google.gwt.user.client.ui.Image;
+import com.gwtext.client.widgets.menu.Menu;
 import com.sun.labs.aura.music.wsitm.client.event.SourcesRightClickEvents;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
 
@@ -20,7 +21,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
 public class ContextMenuImage extends Image implements SourcesRightClickEvents, HasContextMenu {
     
     private ClickListenerCollection rightClickListeners;
-    private ContextMenu cm;
+    protected ContextMenu cm;
 
     public ContextMenuImage() {
         super();
@@ -33,6 +34,14 @@ public class ContextMenuImage extends Image implements SourcesRightClickEvents, 
 
         sinkEvents(Event.ONCONTEXTMENU);
         rightClickListeners = new ClickListenerCollection();
+    }
+    
+    public ContextMenuImage(String url, Menu sharedMenu) {
+        super(url);
+        cm = new ContextMenu(sharedMenu);
+        
+        sinkEvents(Event.ONCONTEXTMENU);
+        rightClickListeners = new ClickListenerCollection();        
     }
 
     @Override
@@ -59,5 +68,4 @@ public class ContextMenuImage extends Image implements SourcesRightClickEvents, 
     public ContextMenu getContextMenu() {
         return cm;
     }
-
 }
