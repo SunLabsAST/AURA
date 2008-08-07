@@ -7,7 +7,9 @@ package com.sun.labs.aura.music.wsitm.client.ui;
 
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
+import com.google.gwt.user.client.Window;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
+import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 
 /**
@@ -26,8 +28,12 @@ public class ContextMenuTagLabel extends ContextMenuSpannedLabel {
     @Override
     public void onBrowserEvent(Event event) {
         if (event.getTypeInt() == Event.ONCONTEXTMENU) {
-            DOM.eventPreventDefault(event);
-            cm.showSharedMenu(event, tag);
+            try {
+                DOM.eventPreventDefault(event);
+                cm.showSharedMenu(event, tag);
+            } catch (WebException ex) {
+                Window.alert(ex.toString());
+            }
         } else {
             super.onBrowserEvent(event);
         }

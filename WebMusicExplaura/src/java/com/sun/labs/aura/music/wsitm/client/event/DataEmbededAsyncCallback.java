@@ -8,10 +8,11 @@ package com.sun.labs.aura.music.wsitm.client.event;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 /**
- *
+ * @param <T> Type of data to store in object
+ * @param <R> Callback return type
  * @author mailletf
  */
-public abstract class DataEmbededAsyncCallback<T> implements AsyncCallback<T> {
+public abstract class DataEmbededAsyncCallback<T, R> implements AsyncCallback<R> {
 
     protected T data;
 

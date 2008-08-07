@@ -60,6 +60,10 @@ public class DSBitSet extends BitSet {
         prefixLen++;
     }
     
+    public int getBit(int index) {
+        return get(index) ? 1 : 0;
+    }
+    
     /**
      * Determines if two DSBitSet objects are equal.  Only compares bits up
      * to the prefix length.

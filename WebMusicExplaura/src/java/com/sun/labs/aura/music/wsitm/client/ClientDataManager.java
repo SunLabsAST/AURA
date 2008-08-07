@@ -16,11 +16,13 @@ import com.extjs.gxt.ui.client.widget.Info;
 import com.gwtext.client.data.Store;
 import com.sun.labs.aura.music.wsitm.client.event.PlayedListener;
 import com.sun.labs.aura.music.wsitm.client.event.TagCloudListener;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedTagMenu;
-import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.TagWidgetContainer;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.TagWidgetContainer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -72,6 +74,7 @@ public class ClientDataManager {
     private Store tagOracle;
 
     private SharedTagMenu sharedTagMenu;
+    private SharedSteeringMenu sharedSteeringMenu;
 
     public ClientDataManager() {
         lD = new ListenerDetails();
@@ -85,6 +88,7 @@ public class ClientDataManager {
         steerableTagCloudExternalController = new SteerableTagCloudExternalController();
 
         sharedTagMenu = new SharedTagMenu(this);
+        sharedSteeringMenu = new SharedSteeringMenu(this);
 
     }
 
@@ -114,6 +118,10 @@ public class ClientDataManager {
 
     public SharedTagMenu getSharedTagMenu() {
         return sharedTagMenu;
+    }
+    
+    public SharedSteeringMenu getSharedSteeringMenu() {
+        return sharedSteeringMenu;
     }
 
     public Store getTagOracle() {
@@ -552,13 +560,13 @@ public class ClientDataManager {
         
         public void addTag(ItemInfo tag) {
             if (init) {
-                tagLand.addTag(tag, true);
+                tagLand.addTag(tag, 0, true);
             }
         }
         
-        public boolean containsTag(String tagId) {
+        public boolean containsItem(String itemId) {
             if (init) {
-                return tagLand.containsTag(tagId);
+                return tagLand.containsItem(itemId);
             } else {
                 return false;
             }
@@ -567,6 +575,12 @@ public class ClientDataManager {
         public void addTags(ItemInfo[] tags) {
             if (init) {
                 tagLand.addTags(tags, 10);
+            }
+        }
+        
+        public void addArtist(ArtistCompact aC) {
+            if (init) {
+                tagLand.addArtist(aC, 0);
             }
         }
     }

@@ -273,6 +273,23 @@ public class BerkeleyDataWrapper {
                 Long.class,
                 "metaLong");
         
+        //
+        // Did we have our invalid attention item stored to keep all 'columns'
+        // populated with at least one value?
+        PersistentAttention bad = PersistentAttention.INVALID_ATTN;
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(bad.getSourceKey());
+        ac.setTargetKey(bad.getTargetKey());
+        long cnt = getAttentionCount(ac);
+        if (cnt < 1) {
+            try {
+                logger.fine("Storing the all-fields-filled attention");
+                putAttention(bad);
+            } catch (AuraException e) {
+                logger.fine("Storing the-all-fields-filled attention failed!");
+            }
+        }
+        
         log.info("BDB done loading");
     }
 

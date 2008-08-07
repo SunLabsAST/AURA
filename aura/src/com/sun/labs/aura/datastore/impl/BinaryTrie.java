@@ -1,10 +1,10 @@
-
 package com.sun.labs.aura.datastore.impl;
 
 import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -51,6 +51,7 @@ public class BinaryTrie<E> implements Serializable {
      */
     public void add(E newElem, DSBitSet prefix) {
         lock.writeLock().lock();
+        log.info("Adding element to tree for prefix: " + prefix);
         try {
             contents.add(newElem);
             add(newElem, prefix, root, 0);
@@ -59,6 +60,36 @@ public class BinaryTrie<E> implements Serializable {
         }
     }
     
+    protected void add(E newElem, DSBitSet prefix, TrieNode curr, int offset) {
+        //
+        // The base case:
+        if(offset == (prefix.prefixLength() - 1)) {
+            //
+            // We've traversed to where we want to insert.  Insert either to
+            // the left or right depending on the value.  If this is a leaf
+            // node, we lose the leaf object (?)
+            if(curr.getChild(prefix.getBit(offset)) != null) {
+                throw new IllegalStateException("A node already exists" +
+                            " at prefix " + prefix.get(offset));
+            }
+            curr.setChild(prefix.getBit(offset), new TrieNode(newElem));
+            curr.setLeafObject(null);
+            log.info("Set child at: " + prefix.getBit(offset) +
+                     ": Offset: " + offset + ": Complete: " + isComplete());
+        } else {
+            //
+            // We need to keep drilling down.  We'll lose a leaf if it was
+            // in the way
+            log.fine("Descending to add tree node for prefix '" + prefix + "' at offset " + offset);
+            curr.setLeafObject(null);
+            if(curr.getChild(prefix.getBit(offset)) == null) {
+                curr.setChild(prefix.getBit(offset), new TrieNode());
+            }
+            add(newElem, prefix, curr.getChild(prefix.getBit(offset)), offset + 1);
+        }
+        
+    }
+
     /**
      * Add a pair of leaf nodes together in one operation.  This is used when
      * the lock should be obtained a single time to add two items, keeping
@@ -81,51 +112,7 @@ public class BinaryTrie<E> implements Serializable {
             lock.writeLock().unlock();
         }
     }
-    
-    protected void add(E newElem, DSBitSet prefix, TrieNode curr, int offset) {
-        //
-        // The base case:
-        if (offset == (prefix.prefixLength() - 1)) {
-            //
-            // We've traversed to where we want to insert.  Insert either to
-            // the left or right depending on the value.  If this is a leaf
-            // node, we lose the leaf object (?)
-            log.info("Setting child at: " + (prefix.get(offset) ? "1" : "0") +
-                     ": Offset: " + offset);
-            if (prefix.get(offset)) {
-                if (curr.getOne() != null) {
-                    throw new IllegalStateException("A node already exists" +
-                            " at the given prefix");
-                }
-                curr.setOne(new TrieNode(newElem));
-            } else {
-                if (curr.getZero() != null) {
-                    throw new IllegalStateException("A node already exists" +
-                            " at the given prefix");
-                }
-                curr.setZero(new TrieNode(newElem));
-            }
-            curr.setLeafObject(null);
-        } else {
-            //
-            // We need to keep drilling down.  We'll lose a leaf if it was
-            // in the way
-            curr.setLeafObject(null);
-            if (prefix.get(offset)) {
-                if (curr.getOne() == null) {
-                    curr.setOne(new TrieNode());
-                }
-                add(newElem, prefix, curr.getOne(), offset + 1);
-            } else {
-                if (curr.getZero() == null) {
-                    curr.setZero(new TrieNode());
-                }
-                add(newElem, prefix, curr.getZero(), offset + 1);
-            }
-        }
-        
-    }
-    
+
     /**
      * Get an element from the trie matching some bits of the provided prefix
      * 
@@ -133,36 +120,34 @@ public class BinaryTrie<E> implements Serializable {
      * @return the element at the leaf matching the initial bits of the prefix
      */
     public E get(DSBitSet prefix) {
+        log.info("Testing Set: " + prefix + ": Complete: " + isComplete());
         lock.readLock().lock();
         try {
             TrieNode curr = root;
-            for (int i = 0; i < prefix.prefixLength(); i++) {
+            for(int i = 0; i < prefix.prefixLength(); i++) {
+                log.fine("Testing Bit: " + i + ": '" + prefix.getBit(i) + "'");
+                curr = curr.getChild(prefix.getBit(i));
+                if(curr == null) {
+                    String message = "Encountered null child for prefix " +
+                                     prefix + " at offset " + i;
+                    log.severe(message);
+                    throw new IllegalStateException(message);
+                }
                 //
                 // If this is a leaf, then return it
-                if (curr.getLeafObject() != null) {
+                if(curr.getLeafObject() != null) {
                     return curr.getLeafObject();
-                }
-                if (prefix.get(i)) {
-                    curr = curr.getOne();
-                    if (curr == null) {
-                        throw new IllegalStateException("Encountered null child " +
-                                "at prefix " + prefix + " offset " + i);
-                    }
-                } else {
-                    curr = curr.getZero();
-                    if (curr == null) {
-                        throw new IllegalStateException("Encountered null child " +
-                                "at prefix " + prefix + " offset " + i);
-                    }
                 }
             }
         } finally {
             lock.readLock().unlock();
-        }        
+        }
         //
         // If we made it all the way through and didn't
         // find anything, we're probably in trouble.
-        throw new IllegalStateException("Trie too deep!");
+        String message = "No leaf object found for prefix: " + prefix;
+        log.severe(message);
+        throw new IllegalStateException(message);
     }
     
     /**
@@ -208,14 +193,11 @@ public class BinaryTrie<E> implements Serializable {
     }
     
     protected boolean isComplete(TrieNode node) {
-        if (node.getLeafObject() != null) {
-            return true;
-        } else {
-            if (isComplete(node.getZero()) && isComplete(node.getOne())) {
-                return true;
-            }
+        if(node == null) {
+            return false;
         }
-        return false;
+        return node.leafObject != null ||
+               (isComplete(node.getChild(0)) && isComplete(node.getChild(1)));
     }
     
     private void writeObject(ObjectOutputStream oos) throws IOException {
@@ -243,10 +225,7 @@ public class BinaryTrie<E> implements Serializable {
         private E leafObject = null;
         
         /** If this isn't a leaf, the left child */
-        private TrieNode childZero = null;
-        
-        /** If this isn't a leaf, the right child */
-        private TrieNode childOne = null;
+        private TrieNode[] children = (TrieNode[])Array.newInstance(TrieNode.class, 2);
         
         /**
          * Default constructor for no children or leaf objects
@@ -271,29 +250,21 @@ public class BinaryTrie<E> implements Serializable {
          * @throws com.sun.labs.aura.aardvark.util.AuraException
          */
         public void split(TrieNode zero, TrieNode one) throws AuraException {
-            if (leafObject != null) {
-                childZero = zero;
-                childOne = one;
-                leafObject = null;
-            } else {
+            log.info("Splitting node");
+            if(leafObject != null) {
                 throw new AuraException("Attempted to split a non-leaf node");
             }
+            setChild(0, zero);
+            setChild(1, one);
+            leafObject = null;
+        }
+        
+        public void setChild(int index, TrieNode node) {
+            this.children[index] = node;
         }
 
-        public void setZero(TrieNode node) {
-            this.childZero = node;
-        }
-        
-        public void setOne(TrieNode node) {
-           this.childOne = node;
-        }
-        
-        public TrieNode getZero() {
-            return childZero;
-        }
-        
-        public TrieNode getOne() {
-            return childOne;
+        public TrieNode getChild(int index) {
+            return children[index];
         }
         
         public E getLeafObject() {
@@ -301,6 +272,9 @@ public class BinaryTrie<E> implements Serializable {
         }
         
         public void setLeafObject (E element) {
+            if(leafObject != null) {
+                log.severe("Replacing leaf object");
+            }
             leafObject = element;
         }
     }

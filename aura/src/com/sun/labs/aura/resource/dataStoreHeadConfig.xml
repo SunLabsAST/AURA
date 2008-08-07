@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : dataStoreHeadConfig.xml
+    Created on : February 25, 2008, 10:24 AM
+    Author     : stgreen
+    Description:
+        Configuration for a data store head.
+-->
+
+<config>
+    
+    <!-- Where the aura data lives -->
+    <property name="auraHome" value="/aura"/>
+
+    <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
+
+    <property name="auraGroup" value="Aura"/>
+    
+    <!-- Where the aura distribution jar was unpacked. -->
+    <property name="auraDistDir" value="${auraHome}/dist"/>
+    
+    <property name="csPort" value="5500"/>
+    
+    <!-- A component registry that will be used to lookup and register components. -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>${auraGroup}</item>
+        </propertylist>
+        <property name="csDirs" value="${auraDistDir}/lib"/>
+        <property name="csPort" value="${csPort}"/>
+        <propertylist name="codebaseJars">
+            <item>aura.jar</item>
+            <item>minion.jar</item>
+            <item>LabsUtil.jar</item>
+        </propertylist>
+        <property name="securityPolicy" value="${auraPolicy}"/>
+    </component>
+    
+    <!-- The configuration for a partition cluster. We set import to false because there's no properties. -->
+    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true" import="false">
+        <property name="logLevel" value="FINER"/>
+    </component>
+    
+    <!-- A service starter for this replicant -->
+    <component name="dataStoreHeadStarter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>dataStoreHead</item>
+        </propertylist>
+    </component>
+    
+</config>
