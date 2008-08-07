@@ -2,6 +2,8 @@
 package com.sun.labs.aura.datastore.impl;
 
 import com.sun.labs.aura.util.AuraException;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -216,10 +218,27 @@ public class BinaryTrie<E> implements Serializable {
         return false;
     }
     
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+        //
+        // Get a read lock, write myself, release the read lock
+        lock.readLock().lock();
+        try {
+            oos.defaultWriteObject();
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+    
+    private void readObject(java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        lock = new ReentrantReadWriteLock();
+    }
+    
     /**
      * A node in the Trie
      */
-    protected class TrieNode implements Serializable {
+    protected class TrieNode {
         /** If this is a leaf node, the object hanging at the leaf */
         private E leafObject = null;
         

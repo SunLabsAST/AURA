@@ -14,6 +14,7 @@ import com.sun.labs.aura.datastore.Attention.Type;
  */
 @Entity(version=3)
 public class PersistentAttention implements Attention {
+    private static final long serialVersionUID = 3L;
 
     /** The unique ID */
     @PrimaryKey(sequence="Attentions")

@@ -16,6 +16,7 @@ import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.concurrent.DelayQueue;
@@ -229,6 +230,8 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
      */
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
+    @SuppressWarnings(value="IS2_INCONSISTENT_SYNC",
+                      justification="The field is the purpose of the sync blocks")
     protected DataStore dataStore;
     /**
      * the confieurable property for type of item to be managed
@@ -236,20 +239,28 @@ public class ItemSchedulerImpl implements ItemScheduler, Configurable,
     @ConfigEnum(type = com.sun.labs.aura.datastore.Item.ItemType.class, defaultValue =
     "")
     public final static String PROP_ITEM_TYPE = "itemType";
+    @SuppressWarnings(value="IS2_INCONSISTENT_SYNC",
+                      justification="The field is the purpose of the sync blocks")
     private Item.ItemType itemType;
-    private Logger logger;
     /**
      * the configurable property for default processing period (in seconds)
      */
     @ConfigInteger(defaultValue = 60 * 60, range = {1, 60 * 60 * 24 * 365})
     public final static String PROP_DEFAULT_PERIOD = "defaultPeriod";
+    @SuppressWarnings(value="IS2_INCONSISTENT_SYNC",
+                      justification="The field is the purpose of the sync blocks")
     protected int defaultPeriod;
     /**
      * the configurable property for late processing notification tim (in seconds)
      */
     @ConfigInteger(defaultValue = 60, range = {1, 60 * 60 * 24 * 365})
     public final static String PROP_LATE_TIME = "lateTime";
+    @SuppressWarnings(value="IS2_INCONSISTENT_SYNC",
+                      justification="The field is the purpose of the sync blocks")
     private int lateTime;
+
+
+    private Logger logger;
 
     public void start() {
     }

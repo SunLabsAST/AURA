@@ -5,6 +5,7 @@ package com.sun.labs.aura.datastore.impl;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.Set;
@@ -32,7 +33,9 @@ public class MultiNoDupDBIterator<E> extends MultiDBIterator<E> {
     public MultiNoDupDBIterator(Collection<DBIterator<E>> iterators) {
         super(iterators);
     }
-    
+
+    @SuppressWarnings(value="DMI_CALLING_NEXT_FROM_HASNEXT",
+                      justification="hasNext calls next and caches the result")
     public boolean hasNext() throws RemoteException {
         if (currElem != null) {
             return true;

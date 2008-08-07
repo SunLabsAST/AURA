@@ -21,14 +21,14 @@ public class DateFilterEntityIterator extends EntityIterator {
     
     public DateFilterEntityIterator(ForwardCursor<Attention> cursor, Date timeStamp) {
         super(cursor);
-        afterDate = timeStamp;
+        afterDate = (Date)timeStamp.clone();
     }
     
     public DateFilterEntityIterator(ForwardCursor<Attention> cursor,
                                     Transaction txn,
                                     Date timeStamp) {
         super(cursor, txn);
-        afterDate = timeStamp;
+        afterDate = (Date)timeStamp.clone();
     }
     
     @Override

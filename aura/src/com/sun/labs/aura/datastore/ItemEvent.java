@@ -2,6 +2,7 @@ package com.sun.labs.aura.datastore;
 
 import com.sun.labs.aura.util.AuraException;
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * Represents an event as related to an Item.
@@ -23,7 +24,7 @@ public class ItemEvent implements Serializable {
      * @param items the items that this event relates to
      */
     public ItemEvent(Item[] items) {
-        this.items = items;
+        this.items = Arrays.copyOf(items, items.length);
         ct = null;
     }
     
@@ -44,7 +45,7 @@ public class ItemEvent implements Serializable {
      * @return the array of items
      */
     public Item[] getItems() {
-        return items;
+        return Arrays.copyOf(items, items.length);
     }
     
     /**

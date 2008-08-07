@@ -27,6 +27,7 @@ import com.sun.caroline.platform.RunState;
 import com.sun.caroline.platform.StorageManagementException;
 import com.sun.labs.aura.datastore.impl.DSBitSet;
 import com.sun.labs.minion.util.Getopt;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.MalformedURLException;
@@ -52,9 +53,9 @@ import java.util.regex.Pattern;
 public class GridDeploy {
     protected Grid grid = null;
 
-    public static String GRID_URL = "https://dev.caroline.east.sun.com/";
-    public static String CUST_ID  = "aura";
-    public static String CUST_PW  = "corona";
+    private static String GRID_URL = "https://dev.caroline.east.sun.com/";
+    private static String CUST_ID  = "aura";
+    private static String CUST_PW  = "corona";
     
     private HashMap<String,FileSystem> repFSMap;
     private FileSystem auraDist;
@@ -189,7 +190,9 @@ public class GridDeploy {
         }
         
     }
-    
+
+    @SuppressWarnings(value="DM_EXIT",
+                      justification="Stand-alone programs can call system.exit")
     public GridDeploy() {
         repFSMap = new HashMap<String,FileSystem>();
 
@@ -528,6 +531,8 @@ public class GridDeploy {
         startRegistration(reindexReg, false);
     }
 
+    @SuppressWarnings(value="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD",
+                      justification="This is intentional")
     public void createSplitDBProcesses(int numSplits, String targetPart)
             throws Exception {
         if (targetPart != null) {
@@ -1143,6 +1148,8 @@ public class GridDeploy {
         return pc;
     }
     
+    @SuppressWarnings(value="DM_EXIT",
+                      justification="Stand-alone programs can call system.exit")
     protected void createAuraNetwork() throws Exception {
         try {
             // Try to create a customer network for the test
@@ -1235,6 +1242,8 @@ public class GridDeploy {
         return internalAddress;
     }
     
+    @SuppressWarnings(value="DM_EXIT",
+                      justification="Stand-alone programs can call system.exit")
     protected NetworkAddress getExternalAddressFor(String name) throws Exception {
         // Allocate an external address for the virtual service if necessary
         NetworkAddress externalAddress = null;

@@ -4,10 +4,13 @@ import com.sleepycat.persist.model.Persistent;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
 import com.sun.labs.aura.datastore.User;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 /**
  * Provides a user implementation that is persistent in the BDB.
  */
+@SuppressWarnings(value="EQ_DOESNT_OVERRIDE_EQUALS",
+                  justification="Definition of equality is the same")
 @Persistent(version = 2)
 public class UserImpl extends ItemImpl implements User {
 

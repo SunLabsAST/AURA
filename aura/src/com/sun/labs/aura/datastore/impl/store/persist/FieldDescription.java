@@ -3,6 +3,7 @@ package com.sun.labs.aura.datastore.impl.store.persist;
 import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 import com.sun.labs.aura.datastore.Item;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -17,6 +18,8 @@ public class FieldDescription implements Serializable {
     @PrimaryKey
     private String name;
     
+    @SuppressWarnings(value="SE_TRANSIENT_FIELD_NOT_RESTORED",
+                      justification="Used as an in-memory cache of perCaps")
     private transient EnumSet<Item.FieldCapability> caps;
 
     private HashSet<Integer> perCaps;

@@ -108,7 +108,10 @@ public class Sorter<K, V> {
         // If we only had one region, then we're done.  Just rename the blocked
         // file to the sorted file.
         if(regions.size() == 0) {
-           bf.renameTo(sf);
+           if (!bf.renameTo(sf)) {
+                throw new IOException("Failed to rename blocked file "
+                        + bf.getPath() + " to " + sf.getPath());
+           }
            return;
         }
 
@@ -127,7 +130,10 @@ public class Sorter<K, V> {
             kis.close();
         }
         output.close();
-        bf.delete();
+        if (!bf.delete()) {
+            throw new IOException("Failed to delete blocked file "
+                    + bf.getPath());
+        }
     }
     
     private SortedRegion writeSortedRecords(KeyedInputStream<K,V> input, 

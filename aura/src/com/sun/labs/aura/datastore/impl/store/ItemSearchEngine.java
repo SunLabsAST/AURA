@@ -44,6 +44,7 @@ import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -93,6 +94,8 @@ public class ItemSearchEngine implements Configurable {
 
     private int engineLogLevel;
 
+    @SuppressWarnings(value="IS2_INCONSISTENT_SYNC",
+                      justification="The field is the purpose of the sync blocks")
     private boolean shuttingDown;
 
     private long flushCheckInterval;

@@ -16,6 +16,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.clustering.ClusterUtil;
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * A single element in a results cluster.
@@ -23,6 +24,7 @@ import java.io.Serializable;
  * @author Stephen Green <stephen.green@sun.com>
  */
 public class ClusterElement implements Comparable<ClusterElement>, Serializable {
+    private static final long serialVersionUID = 1L;
     
     /**
      * The point in N-space representing this element.
@@ -57,7 +59,7 @@ public class ClusterElement implements Comparable<ClusterElement>, Serializable 
     }
     
     public double[] getPoint() {
-        return point;
+        return Arrays.copyOf(point, point.length);
     }
     
     /**
