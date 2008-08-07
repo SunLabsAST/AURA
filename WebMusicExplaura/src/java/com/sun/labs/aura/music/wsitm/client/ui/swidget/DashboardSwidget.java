@@ -431,7 +431,7 @@ public class DashboardSwidget extends Swidget {
             uP.setWaitIconVisible(true);
             
             try {
-                musicServer.getRecommendations(cdm.getCurrRecTypeName(), 20, callback);
+                musicServer.getRecommendations(cdm.getCurrRecTypeName(), 15, callback);
             } catch (WebException ex) {
                 Window.alert(ex.getMessage());
             }

@@ -34,6 +34,8 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.event.DataEmbededAsyncCallback;
+import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.event.TagCloudListener;
 import com.sun.labs.aura.music.wsitm.client.event.WebListener;
@@ -382,6 +384,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             hP.setStyleName("pageHeader");
             hP.setWidth("185px");
 
+            //
+            // Add buttons
             HorizontalPanel smallMenuPanel = new HorizontalPanel();
             smallMenuPanel.setSpacing(4);
             if (showBackButton) {
@@ -396,6 +400,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 smallMenuPanel.add(backButton);
                 smallMenuPanel.add(new SpannedLabel("   "));
             }
+
             Label addAllButton = new Label("Add top tags");
             addAllButton.setStyleName("headerMenuTinyItem");
             addAllButton.addClickListener(new ClickListener() {
@@ -409,8 +414,22 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 }
             });
             smallMenuPanel.add(addAllButton);
+            smallMenuPanel.add(new SpannedLabel("   "));
+            
+            Label addArtistButton = new Label("Add artist");
+            addArtistButton.setStyleName("headerMenuTinyItem");
+            addArtistButton.addClickListener(new DualDataEmbededClickListener<Label, String>(addArtistButton, iI.getId()) {
+
+                public void onClick(Widget arg0) {
+                    invokeGetArtistCompactService(sndData, data);
+                }
+            });
+            smallMenuPanel.add(addArtistButton);
+            
             hP.add(smallMenuPanel);
 
+            //
+            // Add title
             Label title = new Label("Tags for "+iI.getItemName());
             hP.add(title);
             mainGrid.setWidget(0, 0, hP);
@@ -441,12 +460,37 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             mainGrid.setWidget(1, 0, new Label(""));
         }
 
+        private void invokeGetArtistCompactService(String artistID, Label processingLabel) {
+
+            DataEmbededAsyncCallback<Label, ArtistCompact> callback = new DataEmbededAsyncCallback<Label, ArtistCompact>(processingLabel) {
+                public void onSuccess(ArtistCompact aC) {
+                    if (aC != null) {
+                        tagLand.addArtist(aC, 0);
+                    } else {
+                        Window.alert("Error fetching artist information.");
+                    }
+                    data.setText("Add artist");
+                }
+
+                public void onFailure(Throwable caught) {
+                    Window.alert(caught.getMessage());
+                }
+            };
+
+            processingLabel.setText("Procesing...");
+
+            try {
+                musicServer.getArtistCompact(artistID, callback);
+            } catch (Exception ex) {
+                Window.alert(ex.getMessage());
+
+            }
+        }
+        
         private void invokeGetDistincitveTagsService(String artistID) {
 
-            AsyncCallback callback = new AsyncCallback() {
-
-                public void onSuccess(Object result) {
-                    ItemInfo[] results = (ItemInfo[]) result;
+            AsyncCallback<ItemInfo[]> callback = new AsyncCallback<ItemInfo[]>() {
+                public void onSuccess(ItemInfo[] results) {
                     doRemoveListeners();
                     if (results != null) {
                         if (results.length == 0) {
@@ -734,7 +778,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                             SortableItemInfoList siil = new SortableItemInfoList(results) {
 
                                 protected void onItemClick(ItemInfo i) {
-                                    tagLand.addTag(i, true);
+                                    tagLand.addTag(i, 0, true);
                                 }
                             };
                             listenersContainer = siil;

@@ -183,16 +183,6 @@ public class ResizableTagWidget extends TagWidget {
         WebLib.disableTextSelectInternal(this.getElement(), false);
     }
 
-    public HashMap<String, Double> getTapMap() {
-        HashMap<String, Double> tagMap = new HashMap<String, Double>();
-        // Add the tags normalised by the size of the biggest one
-        for (String tag : tagCloud.keySet()) {
-            // @todo remove lowercase when engine is fixed
-            tagMap.put(tagCloud.get(tag).getWidget().getText().toLowerCase(), tagCloud.get(tag).getWidget().getCurrentSize() / maxSize);
-        }
-        return tagMap;
-    }
-
     /**
      * Add all supplied items
      * @param tag
@@ -248,6 +238,10 @@ public class ResizableTagWidget extends TagWidget {
 
     public void addItem(CloudItem item, boolean updateRecommendations) {
         if (!tagCloud.containsKey(item.getId())) {
+            if (item.getWeight() == 0) {
+                item.setWeight( AVG_SIZE_OF_ADDED_CLOUD );
+            }
+            
             ResizableTag rT = new ResizableTag(item, color[(colorIndex++) % 2]);
             DeletableResizableTag dW = new DeletableResizableTag(rT);
 
@@ -281,6 +275,8 @@ public class ResizableTagWidget extends TagWidget {
 
             hasChanged = true;
             updateRecommendations();
+        } else {
+            Window.alert("Error. '"+itemId+"' not in tag cloud.");
         }
     }
 
@@ -320,8 +316,9 @@ public class ResizableTagWidget extends TagWidget {
 
         public DeletableResizableTag(ResizableTag t) {
             super(t);
-
-            xB.getElement().setAttribute("style", "margin-bottom: " + getXButtonMargin() + "px;");
+            addWidgetToRightMenu(t.getCloudItem().getIcon());
+            addRemoveButton();
+            setXButtonPosition();
         }
 
         private final double getXButtonMargin() {
@@ -329,6 +326,7 @@ public class ResizableTagWidget extends TagWidget {
         }
 
         public void setXButtonPosition() {
+            /*
             String displayAttrib = xB.getElement().getAttribute("style");
             String newStyle = "";
             for (String s : displayAttrib.split(";")) {
@@ -340,13 +338,15 @@ public class ResizableTagWidget extends TagWidget {
                 }
             }
             xB.getElement().setAttribute("style", newStyle);
+             * */
+            setRightMenuHeight(getXButtonMargin());
         }
 
         public void onDelete() {
-            this.fadeOut(new DataEmbededCommand<String>(getWidget().getText()) {
+            this.fadeOut(new DataEmbededCommand<String>(getWidget().getCloudItem().getId()) {
 
                 public void execute() {
-                    removeItem(ClientDataManager.nameToKey(data));
+                    removeItem(data);
                 }
             });
         }

@@ -13,7 +13,7 @@ import java.util.HashSet;
  *
  * @author mailletf
  */
-public class CloudComposite implements CloudItem {
+public abstract class CloudComposite implements CloudItem {
 
     protected String itemId;
     protected String displayName;
@@ -53,17 +53,30 @@ public class CloudComposite implements CloudItem {
     }
 
     public HashMap<String, Double> getTagMap() {
+        double maxVal = 0;
+        double newVal = 0;
         HashMap<String, Double> tagMap = new HashMap<String, Double>();
         for (CloudItem cI : items) {
             HashMap<String, Double> ttM = cI.getTagMap();
             for (String k : ttM.keySet()) {
                 if (tagMap.containsKey(k)) {
-                    tagMap.put(k, tagMap.get(k) + cI.getWeight() * ttM.get(k));
+                    newVal = tagMap.get(k) + cI.getWeight() * ttM.get(k);
                 } else {
-                    tagMap.put(k, ttM.get(k));
+                    newVal = cI.getWeight() * ttM.get(k);
+                }
+                tagMap.put(k, newVal);
+                
+                if (newVal > maxVal) {
+                    maxVal = newVal;
                 }
             }
         }
+        
+        // Normalise all values
+        for (String key : tagMap.keySet()) {
+            tagMap.put(key, tagMap.get(key) / maxVal);
+        }
+        
         return tagMap;
     }
     

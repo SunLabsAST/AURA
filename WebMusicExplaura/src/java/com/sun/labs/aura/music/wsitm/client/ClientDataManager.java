@@ -16,6 +16,7 @@ import com.extjs.gxt.ui.client.widget.Info;
 import com.gwtext.client.data.Store;
 import com.sun.labs.aura.music.wsitm.client.event.PlayedListener;
 import com.sun.labs.aura.music.wsitm.client.event.TagCloudListener;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
@@ -567,6 +568,12 @@ public class ClientDataManager {
         public void addTags(ItemInfo[] tags) {
             if (init) {
                 tagLand.addTags(tags, 10);
+            }
+        }
+        
+        public void addArtist(ArtistCompact aC) {
+            if (init) {
+                tagLand.addArtist(aC, 0);
             }
         }
     }
