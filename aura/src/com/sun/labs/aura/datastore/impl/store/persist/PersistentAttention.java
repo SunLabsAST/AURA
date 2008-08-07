@@ -75,6 +75,18 @@ public class PersistentAttention implements Attention {
      * Maybe add an item type to speed up some queries?
      */
     
+    public static final transient PersistentAttention INVALID_ATTN =
+            new PersistentAttention();
+    
+    static {
+        INVALID_ATTN.sourceKey="will-holcomb-found-a-bug-so-we-need-an-item-with-all-fields-persisted";
+        INVALID_ATTN.targetKey="will-holcomb-found-a-bug-so-we-need-an-item-with-all-fields-persisted";
+        INVALID_ATTN.timeStamp=-1;
+        INVALID_ATTN.type=Integer.MAX_VALUE;
+        INVALID_ATTN.metaString = "a-string-for-the-special-will-holcomb-attn-that-is-kinda-unique";
+        INVALID_ATTN.metaLong = Long.MIN_VALUE;
+    }
+    
     /**
      * Default constructor for BDB to instantiate this object
      */
