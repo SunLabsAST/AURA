@@ -63,10 +63,10 @@ public class PageHeaderWidget extends Swidget {
         super("pageHeader",cdm);
         this.cdm=cdm;
         menuItems = new ArrayList<MenuItem>();
-        initWidget(getWidget());
+        initWidget(getMainWidget());
     }
     
-    public Widget getWidget() {
+    public Widget getMainWidget() {
         
         mainPanel = new Grid(1,3);
         mainPanel.getColumnFormatter().setWidth(0, "33%");

@@ -8,6 +8,7 @@ package com.sun.labs.aura.music.wsitm.client.ui.widget.steerable;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.Random;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
@@ -48,7 +49,6 @@ public abstract class TagWidget extends Composite {
     public abstract void addItem(CloudItem item, boolean updateRecommendations);
     public abstract void addItems(HashMap<String, CloudItem> items, ITEM_WEIGHT_TYPE weightType, int limit);
     public abstract boolean containsItem(String itemId);
-    public abstract HashMap<String, Double> getTapMap();
     public abstract HashMap<String, CloudItem> getItemsMap();
     public abstract void removeItem(String itemId);
     public abstract void removeAllItems(boolean updateRecommendations);
@@ -57,6 +57,40 @@ public abstract class TagWidget extends Composite {
         mainPanel.invokeFetchNewRecommendations();
     }
 
+    public final HashMap<String, Double> getTapMap() {
+        
+        double maxVal = 0;
+        double newVal = 0;
+        HashMap<String, Double> tagMap = new HashMap<String, Double>();
+        
+        for (CloudItem cI : getItemsMap().values()) {
+            HashMap<String, Double> itemTags = cI.getTagMap();
+            
+            for (String tag : itemTags.keySet()) {
+                // @todo remove lowercase when engine is fixed
+                String tagLower = tag.toLowerCase();
+                
+                if (tagMap.containsKey(tagLower)) {
+                    newVal = tagMap.get(tagLower) + cI.getWeight() * itemTags.get(tag);
+                } else {
+                    newVal = cI.getWeight() * itemTags.get(tag);
+                }
+                tagMap.put(tagLower, newVal);
+                
+                if (newVal > maxVal) {
+                    maxVal = newVal;
+                }
+            }
+        }
+        
+        // Normalise all values
+        for (String key : tagMap.keySet()) {
+            tagMap.put(key, tagMap.get(key) / maxVal);
+        }
+
+        return tagMap;
+    }
+    
     /**
      * Add the first 'limit' tags from the hashmap. Tags will not be sorted before
      * picking the first ones

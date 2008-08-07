@@ -114,7 +114,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                         rating, null, this);
                 artistWidgetList.add(caw);
 
-                vP.add(new DeletableWidget<CompactArtistWidget>(caw, new HorizontalPanel()) {
+                DeletableWidget dW = new DeletableWidget<CompactArtistWidget>(caw, new HorizontalPanel()) {
 
                     public void onDelete() {
                         invokeAddNotInterested(getWidget().getArtistId());
@@ -127,7 +127,11 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                             }
                         });
                     }
-                });
+                };
+                if (cdm.isLoggedIn()) {
+                    dW.addRemoveButton();
+                }
+                vP.add(dW);
             }
         } else {
             vP.add(new Label("No artists found."));
@@ -146,10 +150,12 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
             }
         };
 
-        try {
-            musicServer.addNotInterestedAttention(artistId, callback);
-        } catch (WebException ex) {
-            Window.alert(ex.getMessage());
+        if (cdm.isLoggedIn()) {
+            try {
+                musicServer.addNotInterestedAttention(artistId, callback);
+            } catch (WebException ex) {
+                Window.alert(ex.getMessage());
+            }
         }
     }
 

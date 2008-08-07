@@ -30,5 +30,5 @@ public interface CloudItem extends Comparable<CloudItem> {
      * @return
      */
     public Image getImage();
-    
+    public Image getIcon();
 }

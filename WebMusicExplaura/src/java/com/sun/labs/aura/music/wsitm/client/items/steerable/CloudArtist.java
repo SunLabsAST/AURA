@@ -37,6 +37,8 @@ public class CloudArtist extends CloudComposite {
     public Image getImage() {
         return artistImage;
     }
-            
-    
+
+    public Image getIcon() {
+        return new Image("icon-a.jpg");
+    }
 }
