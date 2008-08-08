@@ -122,6 +122,7 @@ public class PersistentAttention implements Attention {
         this.type = type.ordinal();
         this.timeStamp = timeStamp;
         this.sourceAndTime = new StringAndTimeKey(sourceKey, timeStamp);
+        this.targetAndTime = new StringAndTimeKey(targetKey, timeStamp);
     }
 
     public long getID() {

@@ -175,7 +175,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         // Get the database environment, copying it if necessary.
         dbEnvDir = ps.getString(PROP_DB_ENV);
         File f = new File(dbEnvDir);
-        if (!f.mkdirs()) {
+        if (!f.exists() && !f.mkdirs()) {
             throw new PropertyException(ps.getInstanceName(), PROP_DB_ENV,
                     "Unable to create new directory for db");
         }
