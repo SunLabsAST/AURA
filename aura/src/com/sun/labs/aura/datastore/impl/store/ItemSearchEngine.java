@@ -151,7 +151,7 @@ public class ItemSearchEngine implements Configurable {
         log = ps.getLogger();
         Log.setLogger(log);
         Log.setLevel(engineLogLevel);
-        String indexDir = ps.getString(PROP_INDEX_DIR);
+        indexDir = ps.getString(PROP_INDEX_DIR);
         
         boolean copyDir = ps.getBoolean(PROP_COPY_DIR);
         //

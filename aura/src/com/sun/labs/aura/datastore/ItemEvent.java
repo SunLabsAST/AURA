@@ -24,7 +24,9 @@ public class ItemEvent implements Serializable {
      * @param items the items that this event relates to
      */
     public ItemEvent(Item[] items) {
-        this.items = Arrays.copyOf(items, items.length);
+        if (items != null) {
+            this.items = Arrays.copyOf(items, items.length);
+        }
         ct = null;
     }
     
@@ -45,7 +47,11 @@ public class ItemEvent implements Serializable {
      * @return the array of items
      */
     public Item[] getItems() {
-        return Arrays.copyOf(items, items.length);
+        if (items != null) {
+            return Arrays.copyOf(items, items.length);
+        } else {
+            return null;
+        }
     }
     
     /**
