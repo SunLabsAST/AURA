@@ -23,7 +23,7 @@ public class CloudTag implements CloudItem {
     
     private static final ColorConfig[] color = {
         new ColorConfig("#D4C790", "#D49090"),
-        new ColorConfig("#D4C790", "#D49090")
+        new ColorConfig("#ADA376", "#AD7676")
     };
     
     public CloudTag(String tagId, String tagName, double tagWeight) {

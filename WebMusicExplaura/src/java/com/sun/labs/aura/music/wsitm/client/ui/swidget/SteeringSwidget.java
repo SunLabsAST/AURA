@@ -53,6 +53,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.TagWidgetContain
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -118,6 +119,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         private FlowPanel searchBoxContainerPanel;
 
         private FlowPanel refreshingPanel;
+
+        private HashMap<String, Double> currTagMap;
      
         private ListBox listbox;
         private String currLoadedTagWidget = "";
@@ -178,6 +181,21 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 }
             });
             mainNorthMenuPanel.add(resetButton);
+
+            Button viewCloudButton = new Button("View atomic cloud");
+            viewCloudButton.addClickListener(new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    HashMap<String, Double> map = currTagMap;
+                    ItemInfo[] iI = new ItemInfo[map.size()];
+                    int index = 0;
+                    for (String s : map.keySet()) {
+                        iI[index++] = new ItemInfo(ClientDataManager.nameToKey(s), s, map.get(s), map.get(s));
+                    }
+                    TagDisplayLib.showTagCloud("Atomic representation of tag cloud", iI);
+                }
+            });
+            mainNorthMenuPanel.add(viewCloudButton);
 
             HorizontalPanel interfaceSelectPanel = new HorizontalPanel();
             Label interfaceLabel = new SpannedLabel("Interface: ");
@@ -256,7 +274,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             refreshingPanel.setVisible(true);
 
             try {
-                musicServer.getSteerableRecommendations(tagLand.getTapMap(), callback);
+                currTagMap = tagLand.getTagMap();
+                musicServer.getSteerableRecommendations(currTagMap, callback);
             } catch (Exception ex) {
                 Window.alert(ex.getMessage());
             }
@@ -485,6 +504,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 Label addButton = new Label("Add");
                 SwapableWidget sW = new SwapableWidget(addButton, new Image("ajax-loader-small.gif"));
                 addButton.setStyleName("recoTags");
+                addButton.addStyleName("pointer");
                 addButton.getElement().setAttribute("style", "margin-right: 5px");
                 addButton.addClickListener(new DualDataEmbededClickListener<String, SwapableWidget>(item.getId(), sW) {
                   
@@ -876,7 +896,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
         public void openWhyPopup(WhyButton why) {
             why.showLoad();
-            TagDisplayLib.invokeGetCommonTags(tagLand.getTapMap(), why.getId(),
+            TagDisplayLib.invokeGetCommonTags(tagLand.getTagMap(), why.getId(),
                     musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between your cloud and "+why.getName()) {});
         }
     }
