@@ -32,6 +32,7 @@ import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.StringAndTimeKey;
 import com.sun.labs.aura.util.Times;
 import com.sun.labs.minion.util.StopWatch;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -160,7 +161,7 @@ public class BerkeleyDataWrapper {
      */
     public BerkeleyDataWrapper(String dbEnvDir, Logger logger)
             throws DatabaseException {
-        this(dbEnvDir, logger, false, 60);
+        this(dbEnvDir, logger, 60);
     }
 
     /**
@@ -172,8 +173,8 @@ public class BerkeleyDataWrapper {
      * @throws com.sleepycat.je.DatabaseException
      */
     public BerkeleyDataWrapper(String dbEnvDir,
-            Logger logger,
-            boolean overwrite, int cacheSizeMemPercentage)
+                               Logger logger,
+                               int cacheSizeMemPercentage)
             throws DatabaseException {
         this.log = logger;
 
@@ -191,13 +192,9 @@ public class BerkeleyDataWrapper {
 
         File dir = new File(dbEnvDir);
         if(!dir.exists()) {
-            dir.mkdirs();
-        } else if(overwrite) {
-            for(File f : dir.listFiles()) {
-                f.delete();
+            if (!dir.mkdirs()) {
+                log.severe("Failed to make DB home dir!");
             }
-            dir.delete();
-            dir.mkdir();
         }
 
         log.info("BDB opening DB Env...");
@@ -275,6 +272,23 @@ public class BerkeleyDataWrapper {
         attnByNumberVal = store.getSecondaryIndex(allAttn,
                 Long.class,
                 "metaLong");
+        
+        //
+        // Did we have our invalid attention item stored to keep all 'columns'
+        // populated with at least one value?
+        PersistentAttention bad = PersistentAttention.INVALID_ATTN;
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(bad.getSourceKey());
+        ac.setTargetKey(bad.getTargetKey());
+        long cnt = getAttentionCount(ac);
+        if (cnt < 1) {
+            try {
+                logger.fine("Storing the all-fields-filled attention");
+                putAttention(bad);
+            } catch (AuraException e) {
+                logger.fine("Storing the-all-fields-filled attention failed!");
+            }
+        }
         
         log.info("BDB done loading");
     }
@@ -830,6 +844,8 @@ public class BerkeleyDataWrapper {
      * @return the Attentions added since that time
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
+    @SuppressWarnings(value="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE",
+                      justification="Future-proofing isn't bad")
     public DBIterator<Attention> getAttentionAddedSince(long timeStamp)
             throws AuraException {
         EntityCursor c = null;
@@ -1014,7 +1030,7 @@ public class BerkeleyDataWrapper {
                 log.log(Level.WARNING, "Failed to get count of all attentions",
                         e);
             }
-            return new Long(0);
+            return 0L;
         }
         
         //
@@ -1140,6 +1156,8 @@ public class BerkeleyDataWrapper {
         return getAttentionForKeySince(key, false, timeStamp);
     }
     
+    @SuppressWarnings(value="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE",
+                      justification="Future-proofing isn't bad")
     protected DBIterator<Attention> getAttentionForKeySince(String key,
             boolean isSrc, long timeStamp) throws AuraException {
         //

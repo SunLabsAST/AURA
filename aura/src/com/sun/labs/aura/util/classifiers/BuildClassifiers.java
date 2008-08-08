@@ -227,7 +227,7 @@ public class BuildClassifiers implements Runnable {
             public boolean filter(ResultAccessor ra) {
                 nt++;
                 String v = (String) ra.getSingleFieldValue(fooField);
-                boolean ret = v != null && v.toString().length() >= fooChars;
+                boolean ret = v != null && v.length() >= fooChars;
                 if(ret) {
                     np++;
                 }

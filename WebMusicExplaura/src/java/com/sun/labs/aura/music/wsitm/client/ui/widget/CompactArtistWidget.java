@@ -48,28 +48,28 @@ public class CompactArtistWidget extends Composite implements HasListeners {
 
     private String artistId;
 
-    public CompactArtistWidget(ArtistCompact aD, ClientDataManager cdm,
+    public CompactArtistWidget(ArtistCompact aC, ClientDataManager cdm,
             MusicSearchInterfaceAsync musicServer, WhyButton whyB, 
             int currentRating, Set<String> userTags) {
 
         this.cdm = cdm;
         this.musicServer = musicServer;
 
-        artistId = aD.getId();
+        artistId = aC.getId();
 
         HorizontalPanel artistPanel = new HorizontalPanel();
         artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_TOP);
         artistPanel.setStyleName("artistPanel");
         artistPanel.setSpacing(5);
 
-        ClickListener cL = new DataEmbededClickListener<String>("artist:" + aD.getId()) {
+        ClickListener cL = new DataEmbededClickListener<String>("artist:" + aC.getId()) {
 
             public void onClick(Widget arg0) {
                 History.newItem(data);
             }
         };
 
-        ContextMenuImage img = new MouseOverRollImage(aD.getPhotos()); //aD.getBestArtistImage(true);
+        ContextMenuImage img = new MouseOverRollImage(aC.getPhotos()); //aD.getBestArtistImage(true);
         if (img == null) {
             img = new ContextMenuImage("nopic.gif");
         }
@@ -84,35 +84,42 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         HorizontalPanel aNamePanel = new HorizontalPanel();
         aNamePanel.setWidth("210px");
         aNamePanel.setSpacing(5);
-        ContextMenuSpannedLabel aName = new ContextMenuSpannedLabel(aD.getName());
+        ContextMenuSpannedLabel aName = new ContextMenuSpannedLabel(aC.getName());
         aName.addClickListener(cL);
         aName.addStyleName("image");
         //
         //  Create context menu
-        aName.getContextMenu().addItem("View artist details", new DataEmbededCommand<String>("artist:" + aD.getId()) {
+        aName.getContextMenu().addItem("View artist details", new DataEmbededCommand<String>("artist:" + aC.getId()) {
 
             public void execute() {
                 History.newItem(data);
             }
         });
         aName.getContextMenu().addItem("View tag cloud",
-                new DualDataEmbededCommand<String, ItemInfo[]>(aD.getName(), aD.getDistinctiveTags()) {
+                new DualDataEmbededCommand<String, ItemInfo[]>(aC.getName(), aC.getDistinctiveTags()) {
 
             public void execute() {
                 TagDisplayLib.showTagCloud("Tag cloud for "+data, sndData);
             }
         });
         //aName.getContextMenu().addSeperator();
-        aName.getContextMenu().addItem("Start new steerable from artist",
-                new DualDataEmbededCommand<String,ClientDataManager>(aD.getId(), cdm) {
+        aName.getContextMenu().addItem("Start new steerable from artist's top tags",
+                new DualDataEmbededCommand<String,ClientDataManager>(aC.getId(), cdm) {
 
             public void execute() {
                 sndData.setSteerableReset(true);
                 History.newItem("steering:" + data);
             }
         });
+        aName.getContextMenu().addItem("Add artist to steerable",
+                new DualDataEmbededCommand<ArtistCompact,ClientDataManager>(aC, cdm) {
+
+            public void execute() {
+                sndData.getSteerableTagCloudExternalController().addArtist(data);
+            }
+        });
         aName.getContextMenu().addItem("Add artist's top tags to steerable",
-                new DualDataEmbededCommand<ItemInfo[],ClientDataManager>(aD.getDistinctiveTags(), cdm) {
+                new DualDataEmbededCommand<ItemInfo[],ClientDataManager>(aC.getDistinctiveTags(), cdm) {
 
             public void execute() {
                 sndData.getSteerableTagCloudExternalController().addTags(data);
@@ -123,8 +130,8 @@ public class CompactArtistWidget extends Composite implements HasListeners {
 
         HorizontalPanel buttonPanel = new HorizontalPanel();
         buttonPanel.setSpacing(5);
-        Widget spotify = WebLib.getSpotifyListenWidget(aD, WebLib.PLAY_ICON_SIZE.SMALL, 
-                musicServer, cdm.isLoggedIn(), new DualDataEmbededClickListener<String, ClientDataManager>(aD.getId(), cdm) {
+        Widget spotify = WebLib.getSpotifyListenWidget(aC, WebLib.PLAY_ICON_SIZE.SMALL,
+                musicServer, cdm.isLoggedIn(), new DualDataEmbededClickListener<String, ClientDataManager>(aC.getId(), cdm) {
 
             public void onClick(Widget arg0) {
                 sndData.getPlayedListenerManager().triggerOnPlay(data);
@@ -133,14 +140,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         spotify.getElement().setAttribute("style", "align : right;");
         buttonPanel.add(spotify);
 
-        SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL,
-                new DataEmbededClickListener<String>(aD.getId()) {
-
-                    public void onClick(Widget arg0) {
-                        setSteerableResetTrue();
-                        History.newItem("steering:" + data);
-                    }
-                });
+        SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, aC, cdm.getSharedSteeringMenu());
         buttonPanel.add(steerButton);
 
         if (whyB != null) {
@@ -158,14 +158,14 @@ public class CompactArtistWidget extends Composite implements HasListeners {
             txtPanel.add(tagsLabel);
         }
 
-        Panel tagsLabel = getNDistinctiveTags("Tags: ", aD, 4);
+        Panel tagsLabel = getNDistinctiveTags("Tags: ", aC, 4);
         tagsLabel.setStyleName("recoTags");
         txtPanel.add(tagsLabel);
 
-        star = new StarRatingWidget(musicServer, cdm, aD.getId(),
+        star = new StarRatingWidget(musicServer, cdm, aC.getId(),
                 currentRating, StarRatingWidget.Size.SMALL);
 
-        cdm.getRatingListenerManager().addListener(aD.getId(), star);
+        cdm.getRatingListenerManager().addListener(aC.getId(), star);
         cdm.getLoginListenerManager().addListener(star);
 
         Label starLbl = new Label("Your rating: ");
@@ -178,7 +178,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         starHP.add(star);
         txtPanel.add(starHP);
 
-        txtPanel.add(WebLib.getSmallPopularityWidget(aD.getNormPopularity(), true, true));
+        txtPanel.add(WebLib.getSmallPopularityWidget(aC.getNormPopularity(), true, true));
 
         artistPanel.add(txtPanel);
 

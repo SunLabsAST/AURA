@@ -31,7 +31,7 @@ public class ShellUtils {
 
     private StatService statService;
 
-    private Logger logger;
+    private Logger logger = Logger.getLogger("");
 
     private int nHits = 10;
     

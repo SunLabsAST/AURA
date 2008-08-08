@@ -6,6 +6,7 @@ package com.sun.labs.aura.util;
 
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * Items that have a score associated with them, as well as additional sorting
@@ -87,11 +88,11 @@ public class Scored<T> implements Serializable {
     }
     
     public Object[] getSortVals() {
-        return sortVals;
+        return Arrays.copyOf(sortVals, sortVals.length);
     }
     
     public boolean[] getDirections() {
-        return directions;
+        return Arrays.copyOf(directions, directions.length);
     }
 
     public int compareTo(Scored<T> o) {

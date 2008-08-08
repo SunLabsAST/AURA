@@ -3,9 +3,9 @@ package com.sun.labs.aura.datastore;
 import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.minion.WeightedField;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -62,7 +62,7 @@ public class SimilarityConfig implements Serializable {
     }
     
     public SimilarityConfig(WeightedField[] fields) {
-        this.fields = fields;
+        this.fields = Arrays.copyOf(fields, fields.length);
         n = 10;
     }
     
@@ -78,7 +78,7 @@ public class SimilarityConfig implements Serializable {
     }
 
     public SimilarityConfig(WeightedField[] fields, int n, ResultsFilter filter) {
-        this.fields = fields;
+        this.fields = Arrays.copyOf(fields, fields.length);
         this.n = n;
         this.filter = filter;
     }
@@ -112,7 +112,7 @@ public class SimilarityConfig implements Serializable {
     }
     
     public WeightedField[] getFields() {
-        return fields;
+        return Arrays.copyOf(fields, fields.length);
     }
     
     public int getN() {

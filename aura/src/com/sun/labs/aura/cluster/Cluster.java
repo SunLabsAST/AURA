@@ -10,6 +10,7 @@ package com.sun.labs.aura.cluster;
 import com.sun.labs.aura.datastore.Item;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -20,38 +21,38 @@ import java.util.Map;
  */
 public class Cluster implements Comparable<Cluster>, Serializable {
 
-    List<ClusterElement> elements;
+    protected List<ClusterElement> elements;
     
-    String name;
+    protected String name;
 
     /**
      * The most central result in this set.
      */
-    Item mc;
+    protected Item mc;
 
     /**
      * The distance of the most central result from the centroid.
      */
-    double mcDist;
+    protected double mcDist;
 
     /**
      * The map from feature names to index in the point, which we
      * can use later to choose a representative set of words for the
      * cluster.
      */
-    Map<String, Integer> features;
+    protected Map<String, Integer> features;
 
     /**
      * The centroid of the cluster.
      */
-    double[] centroid;
+    protected double[] centroid;
 
     /**
      * Creates a cluster.
      */
     public Cluster(Map<String, Integer> features, double[] centroid) {
         this.features = features;
-        this.centroid = centroid;
+        this.centroid = Arrays.copyOf(centroid, centroid.length);
         mcDist = Double.MAX_VALUE;
         elements = new ArrayList<ClusterElement>();
     }
@@ -133,7 +134,7 @@ public class Cluster implements Comparable<Cluster>, Serializable {
         return elements.size();
     }
 
-    class HE implements Comparable<HE> {
+    static class HE implements Comparable<HE> {
 
         public HE(String name, double weight) {
             this.name = new ArrayList<String>();
@@ -153,7 +154,6 @@ public class Cluster implements Comparable<Cluster>, Serializable {
             return 0;
         }
         List<String> name;
-        int p;
         double weight;
     }
 }

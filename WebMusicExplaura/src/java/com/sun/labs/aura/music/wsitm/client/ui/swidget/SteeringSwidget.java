@@ -45,6 +45,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.SwapableWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.ResizableTagWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.TagMeterWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.TagWidget;
@@ -92,6 +93,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 cdm.setSteerableReset(false);
                 if (historyToken.startsWith("steering:userCloud") && cdm.isLoggedIn()) {
                     mP.loadCloud(cdm.getListenerDetails().userTagCloud);
+                } else if (historyToken.startsWith("steering:art:")) {
+                    mP.loadArtist(historyToken.substring(13));
                 } else {
                     mP.loadArtistCloud(historyToken.substring(9));
                 }
@@ -281,7 +284,38 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 artistId = artistId.substring(artistId.indexOf(":")+1);
             }
             invokeGetDistincitveTagsService(artistId);
-            invokeGetArtistCompactService(artistId);
+            invokeGetArtistCompactService(artistId, new AsyncCallback<ArtistCompact>() {
+
+                public void onSuccess(ArtistCompact aC) {
+                    if (aC != null) {
+                        search.displayArtist(new ItemInfo(aC.getId(), aC.getName(), aC.getNormPopularity(), aC.getNormPopularity()));
+                    }
+                }
+
+                public void onFailure(Throwable caught) {
+                    Window.alert(caught.getMessage());
+                }
+            });
+        }
+        
+        public void loadArtist(String artistId) {
+            tagLand.removeAllItems(false);
+            if (artistId.startsWith("steering:art:")) {
+                artistId = artistId.substring(artistId.indexOf(":")+5);
+            }
+            invokeGetArtistCompactService(artistId, new AsyncCallback<ArtistCompact>() {
+
+                public void onSuccess(ArtistCompact aC) {
+                    if (aC != null) {
+                        tagLand.addArtist(aC, 0);  
+                        search.displayArtist(new ItemInfo(aC.getId(), aC.getName(), aC.getNormPopularity(), aC.getNormPopularity()));
+                    }
+                }
+
+                public void onFailure(Throwable caught) {
+                    Window.alert(caught.getMessage());
+                }
+            });
         }
 
         private void invokeGetDistincitveTagsService(String artistID) {
@@ -314,22 +348,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             }
         }
 
-        private void invokeGetArtistCompactService(String artistId) {
-
-            AsyncCallback callback = new AsyncCallback() {
-
-                public void onSuccess(Object result) {
-                    ArtistCompact aC = (ArtistCompact) result;
-                    if (aC != null) {
-                        search.displayArtist(new ItemInfo(aC.getId(), aC.getName(), aC.getNormPopularity(), aC.getNormPopularity()));
-                    }
-                }
-
-                public void onFailure(Throwable caught) {
-                    Window.alert(caught.getMessage());
-                }
-            };
-
+        private void invokeGetArtistCompactService(String artistId, AsyncCallback<ArtistCompact> callback) {
             try {
                 musicServer.getArtistCompact(artistId, callback);
             } catch (Exception ex) {
@@ -361,7 +380,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             this.tagLand = tagLand;
 
             mainGrid = new Grid(2,1);
-            if (mainItems.length>1) {
+            if (mainItems.length > 1) {
                 displayMainItems();
             } else {
                 displayDetails(mainItems[0], false);
@@ -415,13 +434,28 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             });
             smallMenuPanel.add(addAllButton);
             smallMenuPanel.add(new SpannedLabel("   "));
-            
+
             Label addArtistButton = new Label("Add artist");
             addArtistButton.setStyleName("headerMenuTinyItem");
             addArtistButton.addClickListener(new DualDataEmbededClickListener<Label, String>(addArtistButton, iI.getId()) {
 
                 public void onClick(Widget arg0) {
-                    invokeGetArtistCompactService(sndData, data);
+                    data.setText("Processing...");
+                    invokeGetArtistCompactService(sndData, new DataEmbededAsyncCallback<Label, ArtistCompact>(data) {
+
+                        public void onSuccess(ArtistCompact aC) {
+                            if (aC != null) {
+                                tagLand.addArtist(aC, 0);
+                            } else {
+                                Window.alert("Error fetching artist information.");
+                            }
+                            data.setText("Add artist");
+                        }
+
+                        public void onFailure(Throwable caught) {
+                            Window.alert(caught.getMessage());
+                        }
+                    });
                 }
             });
             smallMenuPanel.add(addArtistButton);
@@ -446,6 +480,33 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             vP.add(explanation);
             
             for (ItemInfo item : mainItems) {
+                HorizontalPanel hP = new HorizontalPanel();
+                
+                Label addButton = new Label("Add");
+                SwapableWidget sW = new SwapableWidget(addButton, new Image("ajax-loader-small.gif"));
+                addButton.setStyleName("recoTags");
+                addButton.getElement().setAttribute("style", "margin-right: 5px");
+                addButton.addClickListener(new DualDataEmbededClickListener<String, SwapableWidget>(item.getId(), sW) {
+                  
+                    public void onClick(Widget sender) {
+                        
+                        sndData.showWidget(SwapableWidget.LoadableWidget.W2);
+                        
+                        invokeGetArtistCompactService(data, new DataEmbededAsyncCallback<SwapableWidget, ArtistCompact>(sndData) {
+
+                            public void onSuccess(ArtistCompact aC) {
+                                tagLand.addArtist(aC, 0);
+                                data.showWidget(SwapableWidget.LoadableWidget.W1);
+                            }
+                            
+                            public void onFailure(Throwable caught) {
+                                Window.alert(caught.getMessage());
+                            }
+                        });
+                    }
+                });
+                hP.add(sW);
+                
                 Label itemName = new Label(item.getItemName());
                 itemName.setStyleName("pointer");
                 itemName.addClickListener(new DataEmbededClickListener<ItemInfo>(item) {
@@ -454,36 +515,18 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                         displayDetails(data, true);
                     }
                 });
-                vP.add(itemName);
+                hP.add(itemName);
+                vP.add(hP);
             }
             mainGrid.setWidget(0, 0, vP);
             mainGrid.setWidget(1, 0, new Label(""));
         }
 
-        private void invokeGetArtistCompactService(String artistID, Label processingLabel) {
-
-            DataEmbededAsyncCallback<Label, ArtistCompact> callback = new DataEmbededAsyncCallback<Label, ArtistCompact>(processingLabel) {
-                public void onSuccess(ArtistCompact aC) {
-                    if (aC != null) {
-                        tagLand.addArtist(aC, 0);
-                    } else {
-                        Window.alert("Error fetching artist information.");
-                    }
-                    data.setText("Add artist");
-                }
-
-                public void onFailure(Throwable caught) {
-                    Window.alert(caught.getMessage());
-                }
-            };
-
-            processingLabel.setText("Procesing...");
-
+        private void invokeGetArtistCompactService(String artistID, AsyncCallback callback) {
             try {
                 musicServer.getArtistCompact(artistID, callback);
             } catch (Exception ex) {
                 Window.alert(ex.getMessage());
-
             }
         }
         

@@ -96,7 +96,7 @@ public class StatServiceImpl implements StatService, AuraService, Configurable {
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
     }
 
-    public class Counter implements Serializable {
+    public static class Counter implements Serializable {
 
         public Counter(String name) {
             this.name = name;

@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 
 import com.sun.labs.aura.AuraServiceStarter;
 import com.sun.labs.aura.datastore.DataStore;
-import com.sun.labs.aura.datastore.impl.DataStoreHead;
 
 /**
  *
@@ -26,8 +25,8 @@ public class DataStoreFactory {
     static final String DATASTORE_KEY ="dataStoreHead";
     static final String STARTER_KEY ="starter";
 
-    public static URL configURI;
-    protected static Map<DataStore,AuraServiceStarter> starters =
+    public final static URL configURI;
+    protected final static Map<DataStore,AuraServiceStarter> starters =
             new HashMap<DataStore,AuraServiceStarter>();
     
     static {

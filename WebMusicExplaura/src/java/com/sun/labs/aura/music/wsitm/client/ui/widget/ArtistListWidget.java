@@ -199,30 +199,25 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         }
     }
 
-    public class WhyButton extends Composite {
+    public class WhyButton extends SwapableWidget<SpannedLabel, Image> {
 
-        private Grid g;
         private SpannedLabel why;
-        private Image load;
 
         private String artistName;
         private String id;
 
         public WhyButton(String id, String artistName) {
 
+            super(new SpannedLabel("why?"), new Image("ajax-loader-small.gif"));
+            
             this.id = id;
             this.artistName = artistName;
 
-            g = new Grid(1,1);
-            g.setWidth("30px");
-            g.getCellFormatter().getElement(0, 0).setAttribute("style", "align: center;");
+            setWidth("30px");
 
-            why = new SpannedLabel("why?");
+            why = getWidget1();
             why.getElement().setAttribute("style", "font-size: 12px");
             why.addStyleName("pointer");
-
-            g.setWidget(0, 0, why);
-            initWidget(g);
 
             why.addClickListener(new DataEmbededClickListener<WhyButton>(this) {
 
@@ -230,8 +225,6 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                     openWhyPopup(data);
                 }
             });
-
-            load = new Image("ajax-loader-small.gif");
         }
 
         public String getId() {
@@ -243,11 +236,11 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         }
 
         public void showWhy() {
-            g.setWidget(0, 0, why);
+            showWidget(LoadableWidget.W1);
         }
 
         public void showLoad() {
-            g.setWidget(0, 0, load);
+            showWidget(LoadableWidget.W2);
         }
     }
 

@@ -85,11 +85,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     
     private String prefixString;
 
-    @ConfigBoolean(defaultValue = false)
-    public final static String PROP_OVERWRITE = "overwrite";
-
-    protected boolean overwriteExisting;
-
     /**
      * The search engine that will store item info
      */
@@ -180,7 +175,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         // Get the database environment, copying it if necessary.
         dbEnvDir = ps.getString(PROP_DB_ENV);
         File f = new File(dbEnvDir);
-        f.mkdirs();
+        if (!f.mkdirs()) {
+            throw new PropertyException(ps.getInstanceName(), PROP_DB_ENV,
+                    "Unable to create new directory for db");
+        }
         
         //
         // If we want to copy the data into temp storage, do it now.
@@ -197,7 +195,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                 DirCopier dc = new DirCopier(f, td);
                 dc.copy();
                 logger.info("Copy to temp directory completed");
-                f = td;
                 dbEnvDir = tds;
             } catch(IOException ex) {
                 throw new PropertyException(ex, ps.getInstanceName(), 
@@ -207,10 +204,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         }
 
 
-        //
-        // See if we should overwrite any existing database at that path
-        overwriteExisting = ps.getBoolean(PROP_OVERWRITE);
-
         // get the cache size memory percentage
         cacheSizeMemPercentage = ps.getInt(PROP_CACHE_SIZE_MEM_PERCENTAGE);
 
@@ -218,7 +211,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         // Configure and open the environment and entity store
         try {
             logger.info("Opening BerkeleyDataWrapper: " + dbEnvDir);
-            bdb = new BerkeleyDataWrapper(dbEnvDir, logger, overwriteExisting, cacheSizeMemPercentage);
+            bdb = new BerkeleyDataWrapper(dbEnvDir, logger, cacheSizeMemPercentage);
             logger.info("Finished opening BerkeleyDataWrapper");
         } catch(DatabaseException e) {
             logger.severe("Failed to load the database environment at " +

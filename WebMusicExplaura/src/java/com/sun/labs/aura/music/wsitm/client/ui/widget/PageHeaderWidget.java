@@ -264,9 +264,9 @@ public class PageHeaderWidget extends Swidget {
                     History.newItem("steering:userCloud");
                 }
             };
-            Image steerable = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, cL);
-            steerable.setTitle("Steerable recommendations starting with your personal tag cloud");
-            hP.add(steerable);
+            //Image steerable = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, cdm.getSharedSteeringMenu());
+            //steerable.setTitle("Steerable recommendations starting with your personal tag cloud");
+            //hP.add(steerable);
 
             // Plays a random recommendation
             instantRecPlayWidget = getInstantRecPlayWidget();

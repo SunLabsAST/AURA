@@ -18,7 +18,8 @@ public class WebException extends Exception implements IsSerializable {
     public static enum errorMessages {
         ITEM_STORE_COMMUNICATION_FAILED,
         RPC_STATUS_CODE_EXCEPTION,
-        MUST_BE_LOGGED_IN
+        MUST_BE_LOGGED_IN,
+        INVALID_MENU_CALLED
     }
 
     public WebException() {
@@ -60,6 +61,8 @@ public class WebException extends Exception implements IsSerializable {
             return "A server problem occured while processing your request.";
         } else if (eM == errorMessages.MUST_BE_LOGGED_IN) {
             return "You must be logged in to perform this action.";
+        } else if (eM == errorMessages.INVALID_MENU_CALLED) {
+            return "The menu that was called is invalid. Invalid class.";
         } else {
             return "Unkonwn error";
         }

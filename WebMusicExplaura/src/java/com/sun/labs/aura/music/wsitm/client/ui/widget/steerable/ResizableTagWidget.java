@@ -160,7 +160,6 @@ public class ResizableTagWidget extends TagWidget {
                 updateRecommendations();
             }
         });
-
     }
 
     @Override
@@ -326,19 +325,6 @@ public class ResizableTagWidget extends TagWidget {
         }
 
         public void setXButtonPosition() {
-            /*
-            String displayAttrib = xB.getElement().getAttribute("style");
-            String newStyle = "";
-            for (String s : displayAttrib.split(";")) {
-                String[] sSplit = s.split(":");
-                if (sSplit[0].trim().equals("margin-bottom")) {
-                    newStyle += "margin-bottom:" + getXButtonMargin() + "px;";
-                } else {
-                    newStyle += s + ";";
-                }
-            }
-            xB.getElement().setAttribute("style", newStyle);
-             * */
             setRightMenuHeight(getXButtonMargin());
         }
 
