@@ -37,16 +37,18 @@
         <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
     
-    <!-- The configuration for a partition cluster. -->
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true">
         <property name="logLevel" value="FINER"/>
     </component>
+    
+    <component name="processManager" type="com.sun.labs.aura.datastore.impl.ManualProcessManager" export="true" import="false"/>
     
     <!-- The configuration for a partition cluster. -->
     <component name="partitionCluster0" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
         <property name="prefix" value="0"/>
         <property name="dataStoreHead" value="dataStoreHead"/>
         <property name="logLevel" value="FINER"/>
+        <property name="processManager" value="processManger"/>
     </component>
 
     <!-- The configuration for a partition cluster. -->
@@ -54,6 +56,7 @@
         <property name="prefix" value="1"/>
         <property name="dataStoreHead" value="dataStoreHead"/>
         <property name="logLevel" value="FINER"/>
+        <property name="processManager" value="processManger"/>
     </component>
 
     <!-- The configuration for a partition cluster. -->
