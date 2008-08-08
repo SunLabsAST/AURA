@@ -88,11 +88,19 @@ public class Scored<T> implements Serializable {
     }
     
     public Object[] getSortVals() {
-        return Arrays.copyOf(sortVals, sortVals.length);
+        if (sortVals != null) {
+            return Arrays.copyOf(sortVals, sortVals.length);
+        } else {
+            return null;
+        }
     }
     
     public boolean[] getDirections() {
-        return Arrays.copyOf(directions, directions.length);
+        if (directions != null) {
+            return Arrays.copyOf(directions, directions.length);
+        } else {
+            return null;
+        }
     }
 
     public int compareTo(Scored<T> o) {
