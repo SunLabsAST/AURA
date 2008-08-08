@@ -1,12 +1,12 @@
 package com.sun.labs.aura.datastore.impl.store.persist;
 
 import com.sleepycat.persist.model.Entity;
+import com.sleepycat.persist.model.NotPersistent;
 import com.sleepycat.persist.model.PrimaryKey;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
-import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -58,7 +58,8 @@ public class ItemImpl implements Item {
      * to serialize it when doing RMI, so we do the serialization of this member
      * by hand.
      */
-    private transient Set<String> modifiedFields;
+    @NotPersistent
+    private Set<String> modifiedFields;
 
     protected static final Logger logger = Logger.getLogger("");
     
@@ -207,25 +208,12 @@ public class ItemImpl implements Item {
      * @param oos
      */
     private void writeObject(ObjectOutputStream oos) throws IOException {
-
-        //
-        // The set of modified fields is transient, because we don't want it to be (eventually) in the
-        // BDB, but we do want to send it over the wire, so we need to serialize
-        // it by hand and read it out on the other end.
-        oos.writeObject(modifiedFields);
         //
         // Try to store the map (storeMap checks to see if it needs storing)
         storeMap();
         oos.defaultWriteObject();
     }
     
-    private void readObject(java.io.ObjectInputStream in)
-            throws IOException, ClassNotFoundException {
-        //
-        // Read our set of modified fields.
-        modifiedFields = (Set<String>) in.readObject();
-        in.defaultReadObject();
-    }
   
     @Override
     public String toString() {
