@@ -4,26 +4,25 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.util.logging.Logger;
 
 /**
  * A base class for keyed streams
  */
 public abstract class KeyedStream {
 
-    protected enum Type {
-        STRING, INTEGER, LONG, FLOAT, DOUBLE, OBJECT
-    };
-
+    protected static Logger logger;
+    
     protected File f;
+    protected boolean sorted = false;
+    protected Record.Type keyType = Record.Type.OBJECT;
+    protected Record.Type valueType = Record.Type.OBJECT;
+    protected RandomAccessFile raf;
 
-    protected boolean sorted;
-
-    protected  Type keyType;
-
-    protected  Type valueType;
-
-    protected  RandomAccessFile raf ; 
-
+    static {
+        logger = Logger.getLogger("com.sun.labs.aura.util.io");
+    }
+    
     public boolean getSorted() {
         return sorted;
     }
@@ -43,29 +42,4 @@ public abstract class KeyedStream {
     public void close() throws IOException {
         raf.close();
     }
-
-    protected Type getType(Object o) {
-        if(o instanceof String) {
-            return Type.STRING;
-        }
-        
-        if(o instanceof Integer) {
-            return Type.INTEGER;
-        }
-        
-        if(o instanceof Long) {
-            return Type.LONG;
-        }
-        
-        if(o instanceof Float) {
-            return Type.FLOAT;
-        }
-        
-        if(o instanceof Double) {
-            return Type.DOUBLE;
-        }
-        
-        return Type.OBJECT;
-    }
-    
 }
