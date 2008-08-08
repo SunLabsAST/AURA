@@ -31,6 +31,7 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.ui.swidget.ServerInfoSwidget;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
@@ -82,6 +83,10 @@ public class Main implements EntryPoint, HistoryListener {
         List<MenuItem> menuItems = new ArrayList<MenuItem>();
 
         contentPanel = new FlowPanel();
+
+        Swidget serverInfo = new ServerInfoSwidget(cdm);
+        registerTokenHeaders(serverInfo);
+        cdm.registerSwidget(serverInfo);
 
         Swidget userPref = new ProfileSwidget(cdm);
         registerTokenHeaders(userPref);
