@@ -121,9 +121,6 @@ public class BinaryTrie<E> implements Serializable {
      * @return the element at the leaf matching the initial bits of the prefix
      */
     public E get(DSBitSet prefix) {
-        if(log.isLoggable(Level.FINE)) {
-            log.fine("Testing Set: " + prefix + ": Complete: " + isComplete());
-        }
         lock.readLock().lock();
         try {
             TrieNode curr = root;
