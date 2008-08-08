@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
@@ -120,12 +121,13 @@ public class BinaryTrie<E> implements Serializable {
      * @return the element at the leaf matching the initial bits of the prefix
      */
     public E get(DSBitSet prefix) {
-        log.info("Testing Set: " + prefix + ": Complete: " + isComplete());
+        if(log.isLoggable(Level.FINE)) {
+            log.fine("Testing Set: " + prefix + ": Complete: " + isComplete());
+        }
         lock.readLock().lock();
         try {
             TrieNode curr = root;
             for(int i = 0; i < prefix.prefixLength(); i++) {
-                log.fine("Testing Bit: " + i + ": '" + prefix.getBit(i) + "'");
                 curr = curr.getChild(prefix.getBit(i));
                 if(curr == null) {
                     String message = "Encountered null child for prefix " +
