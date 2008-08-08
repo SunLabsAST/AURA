@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<config>
+    
+    <!-- Where the aura data lives -->
+    <property name="auraInstance" value="live"/>
+    
+   <!-- A component registry that will be used to lookup and register components. -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>${auraGroup}</item>
+        </propertylist>
+        <property name="securityPolicy" value="${auraPolicy}"/>
+    </component>
+    
+    <component name="rep" type="com.sun.labs.aura.datastore.impl.Replicant"/>
+    
+    <component name="parallel-4-test" type="com.sun.labs.aura.grid.util.RMIParallelTest">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="numReps" value="4"/>
+        <property name="runs" value="1000"/>
+        <property name="onGrid" value="false"/>
+    </component>
+    
+    <component name="parallel-8-test" type="com.sun.labs.aura.grid.util.RMIParallelTest">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="numReps" value="8"/>
+        <property name="runs" value="1000"/>
+        <property name="onGrid" value="false"/>
+    </component>
+    
+    <component name="parallel-16-test" type="com.sun.labs.aura.grid.util.RMIParallelTest">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="numReps" value="16"/>
+        <property name="runs" value="1000"/>
+        <property name="onGrid" value="false"/>
+    </component>
+    
+    <component name="serial-test" type="com.sun.labs.aura.grid.util.RMISerialTest">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="numReps" value="4"/>
+        <property name="runs" value="500"/>
+        <property name="onGrid" value="false"/>
+    </component>
+
+    <component name="start-parallel-4-test" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>parallel-4-test</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+    
+    <component name="start-parallel-8-test" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>parallel-8-test</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+    
+    <component name="start-parallel-16-test" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>parallel-16-test</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+    
+    <component name="start-all-parallel-tests" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>parallel-4-test</item>
+            <item>parallel-8-test</item>
+            <item>parallel-16-test</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component> 
+    
+    <component name="start-serial-test" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>serial-test</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+    
+    <component name="start-all-test" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>serial-test</item>
+            <item>parallel-test</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+    
+</config>
