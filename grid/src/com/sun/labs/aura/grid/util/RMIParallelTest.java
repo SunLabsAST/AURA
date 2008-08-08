@@ -27,7 +27,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  *
@@ -38,9 +37,15 @@ public class RMIParallelTest extends ServiceAdapter {
     public static final String PROP_RUNS = "runs";
     protected int runs;
     
+    @ConfigInteger(defaultValue=16)
+    public static final String PROP_NUM_REPS = "numReps";
+    protected int numReps;
+    
     protected Map<String,List<Scored<String>>> m;
     
     protected Map<Replicant, List<Scored<String>>> repMap;
+    
+    protected double totalTime;
     
     protected ExecutorService executor;
     String[] prefixes = {
@@ -163,41 +168,30 @@ public class RMIParallelTest extends ServiceAdapter {
             return;
         }
         logger.info("Got " + l.size() + " items");
-//        for(Scored<Item> item : l) {
-//            logger.info("key: " + item.getItem().getKey());
-//        }
     }
     
     protected List<Scored<Item>> runGet() {
         NanoWatch nw = new NanoWatch();
         nw.start();
-        logger.info("Pool size: " + ((ThreadPoolExecutor) executor).getPoolSize());
         List<Callable<List<Scored<Item>>>> callers =
                 new ArrayList();
         for(Map.Entry<Replicant,List<Scored<String>>> e : repMap.entrySet()) {
             callers.add(new Getter(e.getValue(), e.getKey()));
+            if(callers.size() >= numReps) {
+                break;
+            }
         }
         List<Scored<Item>> ret = new ArrayList();
         try {
             List<Future<List<Scored<Item>>>> futures = executor.invokeAll(
                     callers);
-            int timesThrough = 0;
-            while(futures.size() > 0) {
-                timesThrough++;
-                for(Iterator<Future<List<Scored<Item>>>> i = futures.iterator(); i.
-                        hasNext();) {
-                    Future<List<Scored<Item>>> f = i.next();
-                    if(f.isCancelled()) {
-                        i.remove();
-                    } else if(f.isDone()) {
-                        ret.addAll(f.get());
-                        i.remove();
-                    }
-                }
+            for(Future<List<Scored<Item>>> f : futures) {
+                ret.addAll(f.get());
             }
             Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
             nw.stop();
-            logger.info(String.format("Parallel get items took %.3f times through loop: %d", nw.getTimeMillis(), timesThrough));
+            logger.info(String.format("Parallel get items took %.3f", nw.getTimeMillis()));
+            totalTime += nw.getTimeMillis();
             return ret;
         } catch (InterruptedException ie) {
             return null;
@@ -212,6 +206,7 @@ public class RMIParallelTest extends ServiceAdapter {
             List<Scored<Item>> items = runGet();
             display(items);
         }
+        logger.info(String.format("Average time to get items: %.3f", totalTime/runs));
     }
 
     public void stop() {
@@ -222,6 +217,7 @@ public class RMIParallelTest extends ServiceAdapter {
         super.newProperties(ps);
         Component[] components = cm.getComponentRegistry().lookup(com.sun.labs.aura.datastore.impl.Replicant.class, Integer.MAX_VALUE);
         runs = ps.getInt(PROP_RUNS);
+        numReps = ps.getInt(PROP_NUM_REPS);
         repMap = new HashMap();
         for(Map.Entry<String,List<Scored<String>>> e : m.entrySet()) {
             for(Component c : components) {

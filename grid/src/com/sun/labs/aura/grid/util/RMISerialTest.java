@@ -44,15 +44,13 @@ public class RMISerialTest extends RMIParallelTest {
             return;
         }
         logger.info("Got " + l.size() + " items");
-//        for(Scored<Item> item : l) {
-//            logger.info("key: " + item.getItem().getKey());
-//        }
     }
     
     protected List<Scored<Item>> runGet() {
         List<Scored<Item>> ret = new ArrayList<Scored<Item>>();
         NanoWatch nw = new NanoWatch();
         nw.start();
+        int nr = 0;
         for(Map.Entry<Replicant,List<Scored<String>>> e : repMap.entrySet()) {
             NanoWatch rnw = new NanoWatch();
             Replicant r = e.getKey(); 
@@ -73,11 +71,15 @@ public class RMISerialTest extends RMIParallelTest {
             } catch (AuraException ax) {
                 logger.severe("Aura exception: " + ax);
             }
+            if(++nr > numReps) {
+                break;
+            }
         }
-            Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
-            nw.stop();
-            logger.info(String.format("Serial get items took %.3f", nw.getTimeMillis()));
-            return ret;
+        Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
+        nw.stop();
+        logger.info(String.format("Serial get items took %.3f",
+                nw.getTimeMillis()));
+        return ret;
     }
 
     public void start() {

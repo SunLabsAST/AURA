@@ -10,6 +10,7 @@ import com.sun.caroline.platform.GridFactory;
 import com.sun.caroline.platform.ProcessContext;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.grid.util.GridUtil;
+import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -25,8 +26,13 @@ public abstract class ServiceAdapter implements Configurable, AuraService {
 
     @ConfigString(defaultValue = "live")
     public static final String PROP_INSTANCE = "instance";
-
+    
     protected String instance;
+    
+    @ConfigBoolean(defaultValue=true)
+    public static final String PROP_ON_GRID = "onGrid";
+
+    private boolean onGrid;
     
     protected Logger logger;
 
@@ -57,21 +63,30 @@ public abstract class ServiceAdapter implements Configurable, AuraService {
     public void newProperties(PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
         cm = ps.getConfigurationManager();
+        onGrid = ps.getBoolean(PROP_ON_GRID);
+        instance = ps.getString(PROP_INSTANCE);
 
         //
-        // Get our grid reference. If we're not on grid, then throw an exception.
+        // Get our grid reference. If we're not on grid, and we're supposed to be,
+        // then throw an exception.
         ProcessContext context = GridFactory.getProcessContext();
         if(context == null) {
-            throw new PropertyException(ps.getInstanceName(),
-                    PROP_INSTANCE, "Cannot run " + serviceName() + " off-grid");
+            if(onGrid) {
+                throw new PropertyException(ps.getInstanceName(),
+                        PROP_INSTANCE, "Cannot run " + serviceName() + " off-grid");
+            }
         }
-        grid = context.getGrid();
-        instance = ps.getString(PROP_INSTANCE);
-        try {
-            gu = new GridUtil(grid, instance);
-        } catch(Exception e) {
-            throw new PropertyException("network", "network",
-                    "Can't create network");
+        
+        //
+        // If we're on grid, get the grid reference.
+        if(context != null) {
+            grid = context.getGrid();
+            try {
+                gu = new GridUtil(grid, instance);
+            } catch(Exception e) {
+                throw new PropertyException("network", "network",
+                        "Can't create network");
+            }
         }
     }
 
