@@ -12,6 +12,10 @@ package com.sun.labs.aura.util.io;
  */
 public class Record<K,V> implements Comparable<Record<K,V>> {
     
+    protected enum Type {
+        STRING, INTEGER, LONG, FLOAT, DOUBLE, OBJECT
+    };
+
     private K key;
     
     private V value;
@@ -34,7 +38,39 @@ public class Record<K,V> implements Comparable<Record<K,V>> {
     }
     
     public String toString() {
-        return String.format("key: %s value: %s", key.toString(), value.toString()); 
+        return String.format("key: '%s' value: '%s'", key.toString(), value.toString()); 
+    }
+
+    public Type getKeyType() {
+        return getType(key);
+    }
+    
+    public Type getValueType() {
+        return getType(value);
+    }
+    
+    public static Type getType(Object o) {
+        if(o instanceof String) {
+            return Type.STRING;
+        }
+        
+        if(o instanceof Integer) {
+            return Type.INTEGER;
+        }
+        
+        if(o instanceof Long) {
+            return Type.LONG;
+        }
+        
+        if(o instanceof Float) {
+            return Type.FLOAT;
+        }
+        
+        if(o instanceof Double) {
+            return Type.DOUBLE;
+        }
+        
+        return Type.OBJECT;
     }
 
 }

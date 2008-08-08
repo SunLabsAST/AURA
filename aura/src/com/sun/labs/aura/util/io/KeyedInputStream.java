@@ -16,16 +16,22 @@ import java.util.logging.Logger;
  * @param K the type of the key for the records.  Must extend Serializable and Comparable
  * @param V the type of the value for the records.  Must extend Serializable.
  */
-public class KeyedInputStream<K, V> extends KeyedStream {
+public class KeyedInputStream<K, V> extends KeyedStream implements RecordStream {
 
     private Sorter.SortedRegion sr;
-
+    
     private int nRead;
 
     public KeyedInputStream(String name) throws java.io.FileNotFoundException, IOException {
         this(name, null);
     }
 
+    public KeyedInputStream(String name, boolean formatInFile)
+            throws java.io.FileNotFoundException, IOException {
+        this(new File(name), (Sorter.SortedRegion)null, formatInFile);
+    }
+
+    
     public KeyedInputStream(File f) throws java.io.FileNotFoundException, IOException {
         this(f, null);
     }
@@ -35,12 +41,19 @@ public class KeyedInputStream<K, V> extends KeyedStream {
     }
 
     public KeyedInputStream(File f, Sorter.SortedRegion sr) throws FileNotFoundException, IOException {
+        this(f, sr, true);
+    }
+
+    public KeyedInputStream(File f, Sorter.SortedRegion sr, boolean formatInFile)
+            throws FileNotFoundException, IOException {
         this.f = f;
         this.sr = sr;
         raf = new RandomAccessFile(f, "rw");
-        sorted = raf.readBoolean();
-        keyType = Type.valueOf(raf.readUTF());
-        valueType = Type.valueOf(raf.readUTF());
+        if(formatInFile) {
+            sorted = raf.readBoolean();
+            keyType = Record.Type.valueOf(raf.readUTF());
+            valueType = Record.Type.valueOf(raf.readUTF());
+        }
         
         //
         // Position the stream, if necessary.
@@ -63,31 +76,30 @@ public class KeyedInputStream<K, V> extends KeyedStream {
     }
 
     public Record<K, V> read() throws IOException {
-
         //
         // If we've read all of the records in our region, then we're done.
         if(sr != null && nRead == sr.size) {
             return null;
         }
         try {
-            K key = (K) read(keyType);
-            V value = (V) read(valueType);
+            logger.info("Reading Key");
+            K key = (K)read(keyType);
+            logger.info("Read Key: " + key);
+            V value = (V)read(valueType);
             nRead++;
             return new Record(key, value);
         } catch(EOFException eof) {
             return null;
         } catch(ClassCastException cce) {
-            Logger.getLogger("com.sun.labs.aura.util.io").severe("Class cast exception reading key value data: " +
-                    cce);
+            logger.severe("Class cast exception reading key value data: " + cce);
             return null;
         } catch(ClassNotFoundException cnfe) {
-            Logger.getLogger("com.sun.labs.aura.util.io").severe("Class not found reading key value data: " +
-                    cnfe);
+            logger.severe("Class not found reading key value data: " + cnfe);
             return null;
         }
     }
     
-    private Object read(Type t) throws IOException, ClassNotFoundException {
+    private Object read(Record.Type t) throws IOException, ClassNotFoundException {
         switch(t) {
             case STRING:
                 return raf.readUTF();
@@ -118,15 +130,19 @@ public class KeyedInputStream<K, V> extends KeyedStream {
     public static void main(String[] args) throws Exception {
         //
         // Use the labs format logging.
-        Logger rl = Logger.getLogger("");
-        for(Handler h : rl.getHandlers()) {
+        for(Handler h : KeyedStream.logger.getHandlers()) {
             h.setFormatter(new SimpleLabsLogFormatter());
         }
 
-        KeyedInputStream<String,Integer> kis = new KeyedInputStream<String, Integer>(args[0]);
+        String inputFile = args[0];
+        KeyedStream.logger.info("Processing: " + inputFile);
+        
+        KeyedInputStream<String,Integer> kis =
+                new KeyedInputStream<String, Integer>(inputFile, false);
+        kis.keyType = Record.Type.STRING;
         Record<String,Integer> rec;
-        while((rec = kis.read()) != null) {
-            System.out.println(rec);
+        for(int lineCount = 0; (rec = kis.read()) != null; lineCount++) {
+            KeyedStream.logger.info(lineCount + ": " + rec);
         }
         kis.close();
     }
