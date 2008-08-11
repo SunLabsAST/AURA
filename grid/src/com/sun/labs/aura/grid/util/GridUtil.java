@@ -85,7 +85,7 @@ public class GridUtil {
     public ProcessConfiguration getProcessConfig(
             String[] cmdLine,
             String logName) throws Exception {
-        return getProcessConfig(cmdLine, logName, null);
+        return getProcessConfig(cmdLine, logName, null, false);
     }
     
     /**
@@ -100,9 +100,27 @@ public class GridUtil {
             String[] cmdLine,
             String logName, 
             Collection<FileSystemMountParameters> extraMounts) throws Exception {
+        return getProcessConfig(cmdLine, logName, extraMounts, false);
+    }
+    
+    /**
+     * 
+     * Gets a basic process configuration 
+     * @param cwd the working directory for the configuration
+     * @param logName the name to log to.
+     * @param extraMounts extra mount points to give to the process configuration.
+     * @param appendOutput if <code>true</code>, then append output to the existing
+     * output files.
+     * @return a process configuration.
+     */
+    public ProcessConfiguration getProcessConfig(
+            String[] cmdLine,
+            String logName, 
+            Collection<FileSystemMountParameters> extraMounts,
+            boolean appendOutput) throws Exception {
         ProcessConfiguration pc = new ProcessConfiguration();
         pc.setSystemSinks(String.format("%s/%s.out", logFSMntPnt,
-                logName), false);
+                logName), appendOutput);
 
         //
         // Every body will get dist, log and cache filesystems.

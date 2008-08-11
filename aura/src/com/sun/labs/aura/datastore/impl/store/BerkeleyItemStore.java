@@ -136,8 +136,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      * Indicates if the item store has been closed.  Once the store is
      * closed, no more operators are permitted.
      */
-    protected boolean closed = false;
-
+    protected boolean closed;
+    
     /**
      * A logger for messages/debug info
      */
@@ -161,66 +161,74 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      * @throws com.sun.labs.util.props.PropertyException
      */
     public void newProperties(PropertySheet ps) throws PropertyException {
-        logger = ps.getLogger();
+        
+        //
+        // We only want to open the database if it's not already open!
+        if(bdb == null) {
+            logger = ps.getLogger();
+            prefixString = ps.getString(PROP_PREFIX);
+            prefixCode = DSBitSet.parse(prefixString);
+            boolean copyDir = ps.getBoolean(PROP_COPY_DIR);
 
-        prefixString = ps.getString(PROP_PREFIX);
-        
-        prefixCode = DSBitSet.parse(prefixString);
-        
-        boolean copyDir = ps.getBoolean(PROP_COPY_DIR);
-        
-        //
-        // Get the database environment, copying it if necessary.
-        dbEnvDir = ps.getString(PROP_DB_ENV);
-        File f = new File(dbEnvDir);
-        if (!f.exists() && !f.mkdirs()) {
-            throw new PropertyException(ps.getInstanceName(), PROP_DB_ENV,
-                    "Unable to create new directory for db");
-        }
-        
-        //
-        // If we want to copy the data into temp storage, do it now.
-        if(copyDir) {
-            String tds = String.format(System.getProperty("java.io.tmpdir") + "/replicant-%s/db/", ps.getString(PROP_PREFIX));
-            File td = new File(tds);
-            if(!td.mkdirs() && !td.exists()) {
-                throw new PropertyException(ps.getInstanceName(), 
-                        PROP_COPY_DIR, 
-                        "Unable to make temporary directory for db");
+            //
+            // Get the database environment, copying it if necessary.
+            dbEnvDir = ps.getString(PROP_DB_ENV);
+            File f = new File(dbEnvDir);
+            if(!f.exists() && !f.mkdirs()) {
+                throw new PropertyException(ps.getInstanceName(), PROP_DB_ENV,
+                        "Unable to create new directory for db");
             }
+
+            //
+            // If we want to copy the data into temp storage, do it now.
+            if(copyDir) {
+                String tds = String.format(
+                        System.getProperty("java.io.tmpdir") +
+                        "/replicant-%s/db/", ps.getString(PROP_PREFIX));
+                File td = new File(tds);
+                if(!td.mkdirs() && !td.exists()) {
+                    throw new PropertyException(ps.getInstanceName(),
+                            PROP_COPY_DIR,
+                            "Unable to make temporary directory for db");
+                }
+                try {
+                    logger.info("Copying BDB to temp directory: " + tds);
+                    DirCopier dc = new DirCopier(f, td);
+                    dc.copy();
+                    logger.info("Copy to temp directory completed");
+                    dbEnvDir = tds;
+                } catch(IOException ex) {
+                    throw new PropertyException(ex, ps.getInstanceName(),
+                            PROP_COPY_DIR,
+                            "Unable to copy DBD to directory: " + tds);
+                }
+            }
+
+
+            // get the cache size memory percentage
+            cacheSizeMemPercentage = ps.getInt(PROP_CACHE_SIZE_MEM_PERCENTAGE);
+
+            //
+            // Configure and open the environment and entity store
             try {
-                logger.info("Copying BDB to temp directory: " + tds);
-                DirCopier dc = new DirCopier(f, td);
-                dc.copy();
-                logger.info("Copy to temp directory completed");
-                dbEnvDir = tds;
-            } catch(IOException ex) {
-                throw new PropertyException(ex, ps.getInstanceName(), 
-                        PROP_COPY_DIR, 
-                        "Unable to copy DBD to directory: " + tds);
+                logger.info("Opening BerkeleyDataWrapper: " + dbEnvDir);
+                bdb = new BerkeleyDataWrapper(dbEnvDir, logger,
+                        cacheSizeMemPercentage);
+                logger.info("Finished opening BerkeleyDataWrapper");
+            } catch(DatabaseException e) {
+                logger.severe("Failed to load the database environment at " +
+                        dbEnvDir + ": " + e);
             }
-        }
 
-
-        // get the cache size memory percentage
-        cacheSizeMemPercentage = ps.getInt(PROP_CACHE_SIZE_MEM_PERCENTAGE);
-
-        //
-        // Configure and open the environment and entity store
-        try {
-            logger.info("Opening BerkeleyDataWrapper: " + dbEnvDir);
-            bdb = new BerkeleyDataWrapper(dbEnvDir, logger, cacheSizeMemPercentage);
-            logger.info("Finished opening BerkeleyDataWrapper");
-        } catch(DatabaseException e) {
-            logger.severe("Failed to load the database environment at " +
-                    dbEnvDir + ": " + e);
+            //
+            // Get the search engine from the config system
+            searchEngine =
+                    (ItemSearchEngine) ps.getComponent(PROP_SEARCH_ENGINE);
+            searchEngine.getSearchEngine().addIndexListener(this);
         }
 
         //
-        // Get the search engine from the config system
-        searchEngine = (ItemSearchEngine) ps.getComponent(PROP_SEARCH_ENGINE);
-        searchEngine.getSearchEngine().addIndexListener(this);
-
+        // We want to do this configuration every time.
         //
         // Get the configuration manager, which we'll use to export things, if
         // necessary.
@@ -238,7 +246,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                     PROP_PARTITION_CLUSTER, "Unable to add " +
                     "replicant to partition cluster.");
         }
-        logger.info("Finished configuring BerkeleyItemStore for prefix: " + prefixString);
     }
 
     public DSBitSet getPrefix() {
@@ -250,12 +257,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      */
     public void close() throws AuraException {
         closed = true;
-        logger.info("Closing BDB for prefix: " + prefixString);
+        logger.fine("Closing BDB for prefix: " + prefixString);
         bdb.close();
-        logger.info("Shutting down search engine");
+        logger.fine("Shutting down search engine");
         searchEngine.getSearchEngine().removeIndexListener(this);
         searchEngine.shutdown();
-        logger.info("Finished closing search engine");
+        logger.fine("Finished closing search engine");
     }
 
     public void defineField(ItemType itemType, String field)

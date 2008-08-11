@@ -174,7 +174,7 @@ public abstract class Aura extends ServiceAdapter {
             "partitionClusterStarter"
         };
 
-        return gu.getProcessConfig(cmdLine, getPartitionName(prefix));
+        return gu.getProcessConfig(cmdLine, getPartitionName(prefix), null, true);
     }
 
     protected ProcessConfiguration getPartitionClusterDebugConfig(String prefix)

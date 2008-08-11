@@ -487,6 +487,12 @@ public class PartitionClusterImpl implements PartitionCluster,
 
     public void stop() {
         try {
+            long t = System.currentTimeMillis();
+            System.out.println(String.format("[%tD %tT:%tL] %s",
+                                       t, 
+                                       t, 
+                                       t,
+                                       "Partition cluster " + prefixCode + " shutting down."));
             close();
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to close properly", e);
