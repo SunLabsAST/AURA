@@ -82,7 +82,12 @@ public abstract class TagDisplayLib {
 
             for (int i = 0; i < tags.length; i++) {
                 int colorId = i % 2;
-                int fontSize = scoreToFontSize(( Math.abs(tags[i].getScore()) - min) / range);
+                int fontSize;
+                if (tags.length == 1 || range == 0) {
+                    fontSize = scoreToFontSize(1);
+                } else {
+                    fontSize = scoreToFontSize(( Math.abs(tags[i].getScore()) - min) / range);
+                }
 
                 ContextMenuTagLabel sL = new ContextMenuTagLabel(tags[i], cdm);
                 sL.getElement().setAttribute("style", "font-size:" + fontSize + "px; color:" + getColor(colorId, tags[i].getScore()) +";");
