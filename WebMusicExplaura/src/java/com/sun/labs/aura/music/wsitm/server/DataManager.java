@@ -39,6 +39,7 @@ import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Tag;
@@ -480,6 +481,19 @@ public class DataManager implements Configurable {
         return artistPhotoArray;
     }
 
+    public ServerInfoItem getServerInfo() {
+
+        ServerInfoItem info = new ServerInfoItem();
+
+        HashMap<String, Integer> cacheInfo = new HashMap<String, Integer>();
+        for (String s : cache.keySet()) {
+            cacheInfo.put(s, cache.get(s).getSize());
+        }
+        info.setCacheStatus(cacheInfo);
+
+        return info;
+    }
+
      /**
       * Gets the details for the given tag (by id)
       * @param id the id of the tag
@@ -516,9 +530,6 @@ public class DataManager implements Configurable {
         } else {
             return details.getSimilarTags();
         }
-
-        
-        
     }
 
     /**
@@ -1108,6 +1119,10 @@ class ExpiringLRUCache {
     public ExpiringLRUCache(int maxSize, int time2live) {
         cache = new LRUCache(maxSize);
         this.time2live = time2live*1000;
+    }
+
+    public int getSize() {
+        return cache.size();
     }
 
     public Object sget(String s) {

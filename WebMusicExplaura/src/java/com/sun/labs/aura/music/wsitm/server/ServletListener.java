@@ -43,14 +43,15 @@ public class ServletListener implements ServletContextListener {
 
                 logger.info("setAttr");
                 context.setAttribute("configManager", cm);
-                
-                // Print out the available components
-                for (String name : cm.getComponentNames()) {
-                    logger.info("available: " + name);
-                }
-                
+
+                logger.info("Fetching datastore...");
                 DataStore dataStore = (DataStore)cm.lookup("dataStoreHead");
                 context.setAttribute("dataStore", dataStore);
+                if (dataStore != null) {
+                    logger.info("Datastore fetch OK");
+                } else {
+                    logger.info("Datastore null!!");
+                }
                 try {
                     context.setAttribute("MusicDatabase", new MusicDatabase(dataStore));
                 } catch (AuraException ex) {

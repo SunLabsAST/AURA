@@ -17,6 +17,7 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
+import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,4 +57,5 @@ public interface MusicSearchInterface extends RemoteService {
     public List<AttentionItem> getLastPlayedArtists(int count) throws WebException;
     public ItemInfo[] getSimilarTags(String tagId) throws WebException;
     public List<ArtistRecommendation> getRecommendations(String recTypeName, int cnt) throws WebException;
+    public ServerInfoItem getServerInfo();
 }
