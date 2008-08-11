@@ -70,8 +70,8 @@ public class BinaryTrie<E> implements Serializable {
             // the left or right depending on the value.  If this is a leaf
             // node, we lose the leaf object (?)
             if(curr.getChild(prefix.getBit(offset)) != null) {
-                throw new IllegalStateException("A node already exists" +
-                            " at prefix " + prefix.get(offset));
+                log.warning("A node already exists" +
+                            " at prefix " + prefix.get(offset) + ", replacing");
             }
             curr.setChild(prefix.getBit(offset), new TrieNode(newElem));
             curr.setLeafObject(null);

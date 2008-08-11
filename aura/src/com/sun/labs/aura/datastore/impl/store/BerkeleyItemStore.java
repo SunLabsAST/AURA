@@ -165,8 +165,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
 
         prefixString = ps.getString(PROP_PREFIX);
         
-        logger.info("Configuring BerkeleyItemStore for prefix: " + prefixString);
-        
         prefixCode = DSBitSet.parse(prefixString);
         
         boolean copyDir = ps.getBoolean(PROP_COPY_DIR);
@@ -185,7 +183,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         if(copyDir) {
             String tds = String.format(System.getProperty("java.io.tmpdir") + "/replicant-%s/db/", ps.getString(PROP_PREFIX));
             File td = new File(tds);
-            if(!td.mkdirs()) {
+            if(!td.mkdirs() && !td.exists()) {
                 throw new PropertyException(ps.getInstanceName(), 
                         PROP_COPY_DIR, 
                         "Unable to make temporary directory for db");
