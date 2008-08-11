@@ -8,12 +8,10 @@ package com.sun.labs.aura.music.wsitm.client.ui;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.CommonTagsAsyncCallback;
-import asquare.gwt.tk.client.ui.SimpleHyperLink;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.DialogBox;
@@ -22,9 +20,7 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Map;
+import java.util.HashMap;
 
 /**
  *
@@ -71,11 +67,13 @@ public abstract class TagDisplayLib {
 
             double max = 0;
             double min = 1;
+            double tempScore;
             for (ItemInfo tag : tags) {
-                if (tag.getScore()>max) {
-                    max = tag.getScore();
-                } else if (tag.getScore()<min) {
-                    min = tag.getScore();
+                tempScore = Math.abs(tag.getScore());
+                if (tempScore > max) {
+                    max = tempScore;
+                } else if (tempScore < min) {
+                    min = tempScore;
                 }
             }
             double range = max - min;
@@ -83,14 +81,12 @@ public abstract class TagDisplayLib {
             tags = ItemInfo.shuffle(tags);
 
             for (int i = 0; i < tags.length; i++) {
-                int color = (i % 2) + 1;
-                int fontSize = scoreToFontSize((tags[i].getScore() - min) / range);
+                int colorId = i % 2;
+                int fontSize = scoreToFontSize(( Math.abs(tags[i].getScore()) - min) / range);
 
-                String s = "<span style='font-size:" + fontSize + "px;'>" + tags[i].getItemName() + " </span>   ";
-                SimpleHyperLink sH = new SimpleHyperLink();
-                sH.setHTML(s);
-                sH.setStyleName("tag"+color);
-                sH.addClickListener(new DataEmbededClickListener<ItemInfo>(tags[i]) {
+                SpannedLabel sL = new SpannedLabel(tags[i].getItemName());
+                sL.getElement().setAttribute("style", "font-size:" + fontSize + "px; color:" + getColor(colorId, tags[i].getScore()) +";");
+                sL.addClickListener(new DataEmbededClickListener<ItemInfo>(tags[i]) {
 
                     public void onClick(Widget arg0) {
                         String tagLink = data.getId();
@@ -101,20 +97,39 @@ public abstract class TagDisplayLib {
                     }
                 });
                 if (d!=null) {
-                    sH.addClickListener(new DataEmbededClickListener<DialogBox>(d) {
+                    sL.addClickListener(new DataEmbededClickListener<DialogBox>(d) {
 
                         public void onClick(Widget arg0) {
                             data.hide();
                         }
                     });
                 }
-
-                p.add(sH);
+                p.add(sL);
+                p.add(new SpannedLabel("    "));
             }
 
             return p;
         } else {
             return null;
+        }
+    }
+
+    private static String getColor(int index, double size) {
+        if (index == 0) {
+            if (size < 0) {
+                return "#D49090";
+            } else {
+                return "#D4C790";
+            }
+        } else if (index == 1) {
+            if (size < 0) {
+                return "#AD7676";
+            } else {
+                return "#ADA376";
+            }
+        } else {
+            Window.alert("Invalid color");
+            return "#000000";
         }
     }
 
@@ -128,7 +143,7 @@ public abstract class TagDisplayLib {
         }
     }
 
-    public static void invokeGetCommonTags(Map<String, Double> tagMap, String artistID,
+    public static void invokeGetCommonTags(HashMap<String, Double> tagMap, String artistID,
             MusicSearchInterfaceAsync musicServer, ClientDataManager cdm, CommonTagsAsyncCallback callback) {
 
         try {

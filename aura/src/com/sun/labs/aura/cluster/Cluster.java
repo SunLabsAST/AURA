@@ -52,7 +52,9 @@ public class Cluster implements Comparable<Cluster>, Serializable {
      */
     public Cluster(Map<String, Integer> features, double[] centroid) {
         this.features = features;
-        this.centroid = Arrays.copyOf(centroid, centroid.length);
+        if (centroid != null) {
+            this.centroid = Arrays.copyOf(centroid, centroid.length);
+        }
         mcDist = Double.MAX_VALUE;
         elements = new ArrayList<ClusterElement>();
     }

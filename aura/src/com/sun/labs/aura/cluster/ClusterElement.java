@@ -59,7 +59,11 @@ public class ClusterElement implements Comparable<ClusterElement>, Serializable 
     }
     
     public double[] getPoint() {
-        return Arrays.copyOf(point, point.length);
+        if (point != null) {
+            return Arrays.copyOf(point, point.length);
+        } else {
+            return null;
+        }
     }
     
     /**

@@ -45,16 +45,20 @@
         <property name="logLevel" value="WARNING"/>
     </component>
     
+    <component name="processManager" type="com.sun.labs.aura.datastore.impl.ManualProcessManager" export="true" />
+    
     <!-- The configuration for a partition cluster. -->
     <component name="partitionCluster0" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
         <property name="prefix" value="0"/>
         <property name="dataStoreHead" value="dataStoreHead"/>
+        <property name="processManager" value="processManager"/>
     </component>
 
     <!-- The configuration for a partition cluster. -->
     <component name="partitionCluster1" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
         <property name="prefix" value="1"/>
         <property name="dataStoreHead" value="dataStoreHead"/>
+        <property name="processManager" value="processManager"/>
     </component>
 
     <!-- The configuration for a partition cluster. -->
@@ -123,6 +127,7 @@
 
     <component name="musicShell" type="com.sun.labs.aura.music.util.MusicShell">
         <property name="dataStore" value="dataStoreHead"/>
+        <property name="artistCrawler" value="artistCrawler"/>
         <property name="tagCrawler" value="tagCrawler"/>
         <property name="listenerCrawler" value="listenerCrawler"/>
         <property name="statService" value="statService"/>
@@ -131,6 +136,7 @@
     <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>dataStoreHead</item>
+            <item>processManager</item>
             <item>partitionCluster0</item>
             <item>partitionCluster1</item>
             <item>replicant0</item>

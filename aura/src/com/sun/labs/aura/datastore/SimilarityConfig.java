@@ -62,7 +62,9 @@ public class SimilarityConfig implements Serializable {
     }
     
     public SimilarityConfig(WeightedField[] fields) {
-        this.fields = Arrays.copyOf(fields, fields.length);
+        if (fields != null) {
+            this.fields = Arrays.copyOf(fields, fields.length);
+        }
         n = 10;
     }
     
@@ -78,7 +80,9 @@ public class SimilarityConfig implements Serializable {
     }
 
     public SimilarityConfig(WeightedField[] fields, int n, ResultsFilter filter) {
-        this.fields = Arrays.copyOf(fields, fields.length);
+        if (fields != null) {
+            this.fields = Arrays.copyOf(fields, fields.length);
+        }
         this.n = n;
         this.filter = filter;
     }
@@ -112,7 +116,11 @@ public class SimilarityConfig implements Serializable {
     }
     
     public WeightedField[] getFields() {
-        return Arrays.copyOf(fields, fields.length);
+        if (fields != null) {
+            return Arrays.copyOf(fields, fields.length);
+        } else {
+            return null;
+        }
     }
     
     public int getN() {

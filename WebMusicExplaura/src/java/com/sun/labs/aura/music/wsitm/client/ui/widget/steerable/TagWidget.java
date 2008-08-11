@@ -57,7 +57,7 @@ public abstract class TagWidget extends Composite {
         mainPanel.invokeFetchNewRecommendations();
     }
 
-    public final HashMap<String, Double> getTapMap() {
+    public final HashMap<String, Double> getTagMap() {
         
         double maxVal = 0;
         double newVal = 0;

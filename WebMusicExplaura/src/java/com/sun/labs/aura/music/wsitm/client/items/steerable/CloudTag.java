@@ -7,6 +7,7 @@ package com.sun.labs.aura.music.wsitm.client.items.steerable;
 
 import com.google.gwt.user.client.ui.Image;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.ui.ColorConfig;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -19,6 +20,11 @@ public class CloudTag implements CloudItem {
     private String tagId;
     private String tagName;
     private double tagWeight;
+    
+    private static final ColorConfig[] color = {
+        new ColorConfig("#D4C790", "#D49090"),
+        new ColorConfig("#ADA376", "#AD7676")
+    };
     
     public CloudTag(String tagId, String tagName, double tagWeight) {
         this.tagId = tagId;
@@ -78,5 +84,9 @@ public class CloudTag implements CloudItem {
 
     public int compareTo(CloudItem o) {
         return new Double(getWeight()).compareTo(o.getWeight());
+    }
+
+    public ColorConfig[] getColorConfig() {
+        return color;
     }
 }
