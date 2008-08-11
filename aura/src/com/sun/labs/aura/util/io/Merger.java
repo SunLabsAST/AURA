@@ -12,12 +12,12 @@ import java.util.logging.Logger;
  */
 public class Merger<K,V> {
     
-    public void merge(List<KeyedInputStream<K,V>> inputs, KeyedOutputStream<K,V> output, Combiner<V> c) throws IOException {
+    public void merge(List<RecordStream<K,V>> inputs, KeyedOutputStream<K,V> output, Combiner<V> c) throws IOException {
         
         //
         // Make a heap of the elements.
         PriorityQueue<HE> q = new PriorityQueue<HE>();
-        for(KeyedInputStream<K,V> input : inputs) {
+        for(RecordStream<K,V> input : inputs) {
             HE h = new HE(input);
             if(h.next()) {
                 q.offer(h);
@@ -72,11 +72,11 @@ public class Merger<K,V> {
      * don't need to worry about buffering here.
      */
     protected class HE implements Comparable<HE> {
-        private KeyedInputStream<K,V> input;
+        private RecordStream<K,V> input;
         
         private Record<K,V> curr;
         
-        public HE(KeyedInputStream<K,V> input) {
+        public HE(RecordStream<K,V> input) {
             this.input = input;
         }
 
@@ -91,7 +91,6 @@ public class Merger<K,V> {
         public boolean next() throws IOException {
             curr = input.read();
             return curr != null;
-            
         }
         
     }

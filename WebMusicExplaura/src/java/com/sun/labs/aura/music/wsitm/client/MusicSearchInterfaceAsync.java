@@ -14,6 +14,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,4 +54,5 @@ public interface MusicSearchInterfaceAsync {
        public void getLastPlayedArtists(int count, AsyncCallback<List<AttentionItem>> callback) throws WebException;
        public void getSimilarTags(String tagId, AsyncCallback<ItemInfo[]> callback) throws WebException;
        public void getRecommendations(String recTypeName, int cnt, AsyncCallback<List<ArtistRecommendation>> callback) throws WebException;
+       public void getServerInfo(AsyncCallback<ServerInfoItem> callback);
 }

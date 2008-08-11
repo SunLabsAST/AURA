@@ -187,7 +187,7 @@ public class TagMeterWidget extends TagWidget {
                 item.setWeight(MAX_TAG_VALUE);
             }
 
-            mainPanel = new Grid(1, 3);
+            mainPanel = new Grid(1, 2);
             mainPanel.setWidth("100%");
 
             fP = new FocusPanel();
@@ -253,15 +253,12 @@ public class TagMeterWidget extends TagWidget {
                 
             });
 
-            mainPanel.setWidget(0, 0, item.getIcon());
-            mainPanel.getCellFormatter().setWidth(0, 0, "12px");
-            mainPanel.setWidget(0, 1, new DeletableTag(item));
-            mainPanel.getCellFormatter().setHorizontalAlignment(0, 1, HorizontalPanel.ALIGN_LEFT);
-            mainPanel.getCellFormatter().setHorizontalAlignment(0, 2, HorizontalPanel.ALIGN_RIGHT);
+            mainPanel.getCellFormatter().setHorizontalAlignment(0, 0, HorizontalPanel.ALIGN_LEFT);
+            mainPanel.setWidget(0, 0, new DeletableTag(item));
 
-            mainPanel.getCellFormatter().setWidth(0, 2, "150px");
-
-            mainPanel.setWidget(0, 2, fP);
+            mainPanel.getCellFormatter().setHorizontalAlignment(0, 1, HorizontalPanel.ALIGN_RIGHT);
+            mainPanel.getCellFormatter().setWidth(0, 1, "150px");
+            mainPanel.setWidget(0, 1, fP);
 
             initWidget(mainPanel);
 
@@ -302,6 +299,7 @@ public class TagMeterWidget extends TagWidget {
         public DeletableTag(CloudItem i) {
             super(new SpannedLabel(i.getDisplayName()));
             this.i = i;
+            this.getElement().setAttribute("style", "color:"+i.getColorConfig()[1].getColor(1)+";");
             addRemoveButton();
         }
 

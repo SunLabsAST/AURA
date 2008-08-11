@@ -40,8 +40,8 @@ public class KeyedOutputStream<K, V> extends KeyedStream {
         //
         // Figure out what to do with the data.
         if(keyType == null) {
-            keyType = getType(key);
-            valueType = getType(value);
+            keyType = Record.getType(key);
+            valueType = Record.getType(value);
             raf.writeUTF(keyType.toString());
             raf.writeUTF(valueType.toString());
         }
@@ -53,7 +53,7 @@ public class KeyedOutputStream<K, V> extends KeyedStream {
         write(rec.getKey(), rec.getValue());
     }
 
-    private void write(Type t, Object o) throws IOException {
+    private void write(Record.Type t, Object o) throws IOException {
         switch(t) {
             case STRING:
                 raf.writeUTF((String) o);

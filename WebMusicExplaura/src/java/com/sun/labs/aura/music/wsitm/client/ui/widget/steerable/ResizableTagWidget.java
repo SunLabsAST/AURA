@@ -19,6 +19,7 @@ import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.DataEmbededCommand;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.WrapsCloudItem;
+import com.sun.labs.aura.music.wsitm.client.ui.ColorConfig;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.DeletableWidget;
@@ -43,7 +44,6 @@ public class ResizableTagWidget extends TagWidget {
     private FlowPanel flowP;
     private int lastY;
     private int colorIndex = 1;
-    private ColorConfig[] color;
 
     public ResizableTagWidget(MainPanel mainPanel, ClientDataManager cdm) {
 
@@ -65,10 +65,6 @@ public class ResizableTagWidget extends TagWidget {
         fP.add(flowP);
         initWidget(fP);
 
-        color = new ColorConfig[2];
-        color[0] = new ColorConfig("#D4C790", "#D49090");
-        color[1] = new ColorConfig("#ADA376", "#AD7676");
-
         tagCloud = new HashMap<String, DeletableResizableTag>();
 
         fP.addMouseListener(new MouseListener() {
@@ -79,8 +75,7 @@ public class ResizableTagWidget extends TagWidget {
                 ((FocusPanel) arg0).setFocus(false);
             }
 
-            public void onMouseEnter(Widget arg0) {
-            }
+            public void onMouseEnter(Widget arg0) {}
 
             public void onMouseLeave(Widget arg0) {
                 boolean wasTrue = false;
@@ -241,7 +236,7 @@ public class ResizableTagWidget extends TagWidget {
                 item.setWeight( AVG_SIZE_OF_ADDED_CLOUD );
             }
             
-            ResizableTag rT = new ResizableTag(item, color[(colorIndex++) % 2]);
+            ResizableTag rT = new ResizableTag(item, item.getColorConfig()[(colorIndex++) % 2]);
             DeletableResizableTag dW = new DeletableResizableTag(rT);
 
             tagCloud.put(item.getId(), dW);
@@ -294,7 +289,7 @@ public class ResizableTagWidget extends TagWidget {
     private void redrawTagCloud() {
         colorIndex = 1;
         for (DeletableWidget<ResizableTag> dW : tagCloud.values()) {
-            dW.getWidget().updateColor(color[(colorIndex++) % 2], true);
+            dW.getWidget().updateColor(dW.getWidget().getCloudItem().getColorConfig()[(colorIndex++) % 2], true);
         }
     }
 
@@ -315,7 +310,7 @@ public class ResizableTagWidget extends TagWidget {
 
         public DeletableResizableTag(ResizableTag t) {
             super(t);
-            addWidgetToRightMenu(t.getCloudItem().getIcon());
+            //addWidgetToRightMenu(t.getCloudItem().getIcon());
             addRemoveButton();
             setXButtonPosition();
         }
@@ -449,30 +444,6 @@ public class ResizableTagWidget extends TagWidget {
 
         public CloudItem getCloudItem() {
             return item;
-        }
-    }
-
-    public class ColorConfig {
-
-        private String positive;
-        private String negative;
-
-        public ColorConfig(String positive, String negative) {
-            this.positive = positive;
-            this.negative = negative;
-        }
-
-        /**
-         * Return the right color based on the current size of the item.
-         * @param size
-         * @return
-         */
-        public final String getColor(double size) {
-            if (size < 0) {
-                return negative;
-            } else {
-                return positive;
-            }
         }
     }
 }
