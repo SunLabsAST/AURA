@@ -16,18 +16,21 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
  *
  * @author mailletf
  */
-public abstract class CommonTagsAsyncCallback implements AsyncCallback {
+public abstract class CommonTagsAsyncCallback implements AsyncCallback<ItemInfo[]> {
 
+    protected ClientDataManager cdm;
     protected WhyButton why;
     protected String title;
 
-    public CommonTagsAsyncCallback(WhyButton why, String title) {
+    public CommonTagsAsyncCallback(WhyButton why, String title, ClientDataManager cdm) {
         this.why = why;
         this.title = title;
+        this.cdm = cdm;
     }
 
-    public CommonTagsAsyncCallback(WhyButton why) {
+    public CommonTagsAsyncCallback(WhyButton why, ClientDataManager cdm) {
         this.why = why;
+        this.cdm = cdm;
         this.title = "Common tags";
     }
 
@@ -39,9 +42,8 @@ public abstract class CommonTagsAsyncCallback implements AsyncCallback {
         why.showWhy();
     }
 
-    public final void onSuccess(Object result) {
-        ItemInfo[] results = (ItemInfo[]) result;
-        TagDisplayLib.showTagCloud(title, results);
+    public final void onSuccess(ItemInfo[] results) {
+        TagDisplayLib.showTagCloud(title, results, cdm);
         onCallback(results);
 
     }

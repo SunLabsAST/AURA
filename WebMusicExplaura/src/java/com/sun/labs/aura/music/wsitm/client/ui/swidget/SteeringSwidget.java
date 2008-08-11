@@ -195,7 +195,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                         for (String s : map.keySet()) {
                             iI[index++] = new ItemInfo(ClientDataManager.nameToKey(s), s, map.get(s), map.get(s));
                         }
-                        TagDisplayLib.showTagCloud("Atomic representation of tag cloud", iI);
+                        TagDisplayLib.showTagCloud("Atomic representation of tag cloud", iI, cdm);
                     }
                 }
             });
@@ -909,7 +909,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public void openWhyPopup(WhyButton why) {
             why.showLoad();
             TagDisplayLib.invokeGetCommonTags(tagLand.getTagMap(), why.getId(),
-                    musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between your cloud and "+why.getName()) {});
+                    musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between your cloud and "+why.getName(), cdm) {});
         }
     }
 }

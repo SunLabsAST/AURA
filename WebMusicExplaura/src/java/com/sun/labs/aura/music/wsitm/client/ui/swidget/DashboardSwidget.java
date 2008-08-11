@@ -183,7 +183,7 @@ public class DashboardSwidget extends Swidget {
             VerticalPanel centerPanel = new VerticalPanel();
             centerPanel.add(titleLbl);
             if (trimTags != null) {
-                centerPanel.add(TagDisplayLib.getTagsInPanel(trimTags));
+                centerPanel.add(TagDisplayLib.getTagsInPanel(trimTags, cdm));
             }
             centerPanel.add(featArtist);
             centerPanel.add(recentRating);
@@ -566,7 +566,7 @@ public class DashboardSwidget extends Swidget {
         }
 
         public void openWhyPopup(WhyButton why) {
-            TagDisplayLib.showTagCloud(mapAR.get(why.getId()).getDescription(), mapAR.get(why.getId()).getExplanation());
+            TagDisplayLib.showTagCloud(mapAR.get(why.getId()).getDescription(), mapAR.get(why.getId()).getExplanation(), cdm);
         }
     }
 }

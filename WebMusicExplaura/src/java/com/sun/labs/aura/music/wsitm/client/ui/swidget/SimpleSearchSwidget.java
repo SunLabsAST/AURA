@@ -747,7 +747,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             cdm.getLoginListenerManager().addListener(tagInputWidget);
             panel.add(tagInputWidget);
             
-            Panel p = TagDisplayLib.getTagsInPanel(tagCloud);
+            Panel p = TagDisplayLib.getTagsInPanel(tagCloud, cdm);
             p.addStyleName("tagCloudMargin");
             panel.add(p);
         }
@@ -811,7 +811,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             l.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
-                    TagDisplayLib.showTagCloud(title, itemInfo);
+                    TagDisplayLib.showTagCloud(title, itemInfo, cdm);
                 }
             });
             titleWidget.setWidget(0, 1, l);
@@ -937,7 +937,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         public void openWhyPopup(WhyButton why) {
             why.showLoad();
             TagDisplayLib.invokeGetCommonTags(currArtistId, why.getId(),
-                    musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between "+currArtistName+" and "+why.getName()) {});
+                    musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between "+currArtistName+" and "+why.getName(), cdm) {});
         }
     }
 
