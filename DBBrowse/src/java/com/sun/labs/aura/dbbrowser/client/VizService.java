@@ -41,4 +41,9 @@ public interface VizService extends RemoteService{
      * @param pc
      */
     public void splitPC(PCInfo pc);
+    
+    /**
+     * Shuts down the whole datastore
+     */
+    public void shutDown();
 }

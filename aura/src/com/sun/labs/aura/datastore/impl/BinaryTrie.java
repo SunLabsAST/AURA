@@ -75,8 +75,7 @@ public class BinaryTrie<E> implements Serializable {
             }
             curr.setChild(prefix.getBit(offset), new TrieNode(newElem));
             curr.setLeafObject(null);
-            log.info("Set child at: " + prefix.getBit(offset) +
-                     ": Offset: " + offset + ": Complete: " + isComplete());
+            log.info("Set leaf at: " + prefix + ": Complete: " + isComplete());
         } else {
             //
             // We need to keep drilling down.  We'll lose a leaf if it was
@@ -272,7 +271,11 @@ public class BinaryTrie<E> implements Serializable {
         
         public void setLeafObject (E element) {
             if(leafObject != null) {
-                log.severe("Replacing leaf object");
+                if (element != null) {
+                    log.fine("Replacing leaf object");
+                } else {
+                    log.fine("Replacing leaf object with null");
+                }
             }
             leafObject = element;
         }
