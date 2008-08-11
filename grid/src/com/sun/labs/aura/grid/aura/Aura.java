@@ -1,15 +1,21 @@
 package com.sun.labs.aura.grid.aura;
 
+import com.sun.caroline.platform.BaseFileSystem;
+import com.sun.caroline.platform.BaseFileSystemConfiguration;
 import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
 import com.sun.labs.aura.datastore.impl.DSBitSet;
+import com.sun.labs.aura.datastore.impl.DataStoreHead;
+import com.sun.labs.aura.datastore.impl.PartitionCluster;
+import com.sun.labs.aura.datastore.impl.ProcessManager;
+import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.grid.ServiceAdapter;
+import com.sun.labs.aura.util.StatService;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
-import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.util.Collections;
@@ -44,14 +50,24 @@ public abstract class Aura extends ServiceAdapter {
         // Set up the file systems for each replicant
         for(String currPrefix : prefixCodeList) {
             logger.info("Making fs for prefix " + currPrefix);
-            repFSMap.put(currPrefix,
-                    gu.getFS(getReplicantName(currPrefix)));
+            FileSystem fs = gu.getFS(getReplicantName(currPrefix));
+            
+            //
+            // Add metadata for the prefix being handled.
+            BaseFileSystemConfiguration fsConfig = ((BaseFileSystem) fs).getConfiguration();
+            Map<String,String> md = fsConfig.getMetadata();
+            logger.info("fs metadata: " + md);
+            md.put("prefix", currPrefix);
+            fsConfig.setMetadata(md);
+            ((BaseFileSystem) fs).changeConfiguration(fsConfig);
+            
+            repFSMap.put(currPrefix, fs);
             logger.info("Made fs for prefix " + currPrefix);
         }
     }
 
-    public String getDataStoreHeadName() {
-        return "dsHead";
+    public String getDataStoreHeadName(int instanceNumber) {
+        return "dsHead-" + instanceNumber;
     }
     
     public String getAIOVMName() {
@@ -77,7 +93,7 @@ public abstract class Aura extends ServiceAdapter {
     public String getProcessManagerName() {
         return "pm";
     }
-
+    
     protected ProcessConfiguration getReggieConfig() throws Exception {
         String[] cmdLine = new String[]{
             "-DauraGroup=" + instance + "-aura",
@@ -90,7 +106,7 @@ public abstract class Aura extends ServiceAdapter {
             GridUtil.auraDistMntPnt + "/jini/nobrowse.config"
         };
 
-        return gu.getProcessConfig(cmdLine, getReggieName());
+        return gu.getProcessConfig("reggie", cmdLine, getReggieName());
     }
     
     protected ProcessConfiguration getAIOVMConfig() throws Exception {
@@ -112,12 +128,16 @@ public abstract class Aura extends ServiceAdapter {
                 Collections.singletonList(new FileSystemMountParameters(
                 dsfs.getUUID(),
                 "data"));
-        return gu.getProcessConfig(cmdLine, getAIOVMName(),
+        return gu.getProcessConfig("AIOVM", cmdLine, getAIOVMName(),
                 extraMounts);
     }
     
 
     protected ProcessConfiguration getDataStoreHeadConfig() throws Exception {
+        return getDataStoreHeadConfig(1);
+    }
+    
+    protected ProcessConfiguration getDataStoreHeadConfig(int instanceNumber) throws Exception {
         String[] cmdLine = new String[]{
             "-Xmx2G",
             "-DauraGroup=" + instance + "-aura",
@@ -128,10 +148,11 @@ public abstract class Aura extends ServiceAdapter {
             "dataStoreHeadStarter"
         };
 
-        return gu.getProcessConfig(cmdLine, getDataStoreHeadName());
+        return gu.getProcessConfig(DataStoreHead.class.getName(), 
+                cmdLine, getDataStoreHeadName(instanceNumber));
     }
 
-    protected ProcessConfiguration getDataStoreHeadDebugConfig() throws Exception {
+    protected ProcessConfiguration getDataStoreHeadDebugConfig(int instanceNumber) throws Exception {
         String[] cmdLine = new String[]{
             "-Xmx2G",
             "-Djava.util.logging.config.file=" + GridUtil.auraDistMntPnt +
@@ -144,7 +165,8 @@ public abstract class Aura extends ServiceAdapter {
             "dataStoreHeadStarter"
         };
 
-        return gu.getProcessConfig(cmdLine, getDataStoreHeadName());
+        return gu.getProcessConfig(DataStoreHead.class.getName(), 
+                cmdLine, getDataStoreHeadName(instanceNumber));
     }
 
     protected ProcessConfiguration getProcessManagerConfig()
@@ -159,7 +181,8 @@ public abstract class Aura extends ServiceAdapter {
             "gpmStarter"
         };
 
-        return gu.getProcessConfig(cmdLine, getProcessManagerName());
+        return gu.getProcessConfig(ProcessManager.class.getName(), 
+                cmdLine, getProcessManagerName());
     }
 
     protected ProcessConfiguration getPartitionClusterConfig(String prefix)
@@ -174,7 +197,11 @@ public abstract class Aura extends ServiceAdapter {
             "partitionClusterStarter"
         };
 
-        return gu.getProcessConfig(cmdLine, getPartitionName(prefix), null, true);
+        ProcessConfiguration pc = gu.getProcessConfig(PartitionCluster.class.getName(), cmdLine, getPartitionName(prefix), null, true);
+        Map<String,String> md = pc.getMetadata();
+        md.put("prefix", prefix);
+        pc.setMetadata(md);
+        return pc;
     }
 
     protected ProcessConfiguration getPartitionClusterDebugConfig(String prefix)
@@ -194,7 +221,13 @@ public abstract class Aura extends ServiceAdapter {
             "partitionClusterStarter"
         };
 
-        return gu.getProcessConfig(cmdLine, getPartitionName(prefix));
+        ProcessConfiguration pc = gu.getProcessConfig(PartitionCluster.class.getName(),
+                cmdLine, getPartitionName(
+                prefix), null, true);
+        Map<String, String> md = pc.getMetadata();
+        md.put("prefix", prefix);
+        pc.setMetadata(md);
+        return pc;
     }
 
     protected ProcessConfiguration getReplicantConfig(String replicantConfig,
@@ -218,14 +251,18 @@ public abstract class Aura extends ServiceAdapter {
                 Collections.singletonList(new FileSystemMountParameters(
                 repFSMap.get(prefix).getUUID(),
                 "data"));
-        ProcessConfiguration pc = gu.getProcessConfig(cmdLine, getReplicantName(
+        ProcessConfiguration pc = gu.getProcessConfig(
+                Replicant.class.getName(),
+                cmdLine, getReplicantName(
                 prefix), extraMounts);
 
         // don't overlap with other replicants
         pc.setLocationConstraint(
                 new ProcessRegistrationFilter.NameMatch(
                 Pattern.compile(instance + ".*-replicant-.*")));
-
+        Map<String,String> md = pc.getMetadata();
+        md.put("prefix", prefix);
+        pc.setMetadata(md);
         return pc;
     }
 
@@ -239,7 +276,8 @@ public abstract class Aura extends ServiceAdapter {
             "statServiceStarter"
         };
 
-        return gu.getProcessConfig(cmdLine, getStatServiceName());
+        return gu.getProcessConfig(StatService.class.getName(), 
+                cmdLine, getStatServiceName());
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {

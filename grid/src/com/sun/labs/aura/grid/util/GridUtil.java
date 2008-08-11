@@ -32,8 +32,10 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -55,13 +57,13 @@ public class GridUtil {
     private Network network;
 
     private Queue<ProcessRegistration> stopped;
-    
+
     protected FileSystem auraDist;
-    
+
     protected FileSystem auraCache;
-    
+
     protected FileSystem auraLogs;
-    
+
     public GridUtil(Grid grid, String instance) throws Exception {
         this.grid = grid;
         this.instance = instance;
@@ -83,11 +85,24 @@ public class GridUtil {
      * @return a process configuration.
      */
     public ProcessConfiguration getProcessConfig(
+            String type,
             String[] cmdLine,
             String logName) throws Exception {
-        return getProcessConfig(cmdLine, logName, null, false);
+        return getProcessConfig(type, cmdLine, logName, null, false);
     }
-    
+
+    /**
+     * Gets a basic process configuration 
+     * @param cwd the working directory for the configuration
+     * @param logName the name to log to.
+     * @return a process configuration.
+     */
+    public ProcessConfiguration getProcessConfig(
+            String[] cmdLine,
+            String logName) throws Exception {
+        return getProcessConfig(null, cmdLine, logName, null, false);
+    }
+
     /**
      * 
      * Gets a basic process configuration 
@@ -97,12 +112,13 @@ public class GridUtil {
      * @return a process configuration.
      */
     public ProcessConfiguration getProcessConfig(
+            String type,
             String[] cmdLine,
-            String logName, 
+            String logName,
             Collection<FileSystemMountParameters> extraMounts) throws Exception {
-        return getProcessConfig(cmdLine, logName, extraMounts, false);
+        return getProcessConfig(type, cmdLine, logName, extraMounts, false);
     }
-    
+
     /**
      * 
      * Gets a basic process configuration 
@@ -114,8 +130,8 @@ public class GridUtil {
      * @return a process configuration.
      */
     public ProcessConfiguration getProcessConfig(
-            String[] cmdLine,
-            String logName, 
+            String type, String[] cmdLine,
+            String logName,
             Collection<FileSystemMountParameters> extraMounts,
             boolean appendOutput) throws Exception {
         ProcessConfiguration pc = new ProcessConfiguration();
@@ -146,11 +162,24 @@ public class GridUtil {
         List<UUID> addresses = new ArrayList<UUID>();
         addresses.add(getAddressFor(logName).getUUID());
         pc.setNetworkAddresses(addresses);
-        
+
+        Map<String, String> md = getMetaData();
+        md.put("name", logName);
+        if(type != null) {
+            md.put("type", type);
+        }
+        pc.setMetadata(md);
+
         //
         // When things die, we want them to restart!
         pc.setProcessExitAction(ProcessExitAction.RESTART);
         return pc;
+    }
+
+    private Map<String, String> getMetaData() {
+        Map<String, String> ret = new HashMap<String, String>();
+        ret.put("instance", instance);
+        return ret;
     }
 
     /**
@@ -172,9 +201,11 @@ public class GridUtil {
             log.fine("ProcessRegistration: " + name + " already exists, reusing");
             reg = grid.getProcessRegistration(processName);
             if(reg == null) {
-                throw new NullPointerException("Failed to retreive existing registration: " + name);
+                throw new NullPointerException("Failed to retreive existing registration: " +
+                        name);
             } else if(reg.getRunState() != RunState.NONE) {
-                throw new IllegalStateException("Process " + processName + " exists and is running");
+                throw new IllegalStateException("Process " + processName +
+                        " exists and is running");
             }
         }
         return reg;
@@ -235,10 +266,11 @@ public class GridUtil {
      * @throws java.lang.Exception
      */
     public ProcessRegistration stopProcess(String name) throws Exception {
-        ProcessRegistration reg = grid.getProcessRegistration(String.format("%s-%s", instance, name));
+        ProcessRegistration reg = grid.getProcessRegistration(String.format(
+                "%s-%s", instance, name));
         if(reg != null) {
             log.fine("Stopping: " + reg);
-            
+
             //
             // We were asked to stop the process, so we can't just shut it down,
             // because they're set to restart.  So, first we need to change the 
@@ -253,7 +285,7 @@ public class GridUtil {
         }
         return reg;
     }
-    
+
     public void destroyRegistration(String name) throws Exception {
         ProcessRegistration reg = grid.getProcessRegistration(String.format(
                 "%s-%s", instance, name));
@@ -264,7 +296,7 @@ public class GridUtil {
             log.fine("No registration for " + name + " to destroy");
         }
     }
-    
+
     public void waitForFinish()
             throws Exception {
         waitForFinish(600000);
@@ -287,7 +319,7 @@ public class GridUtil {
             }
 
             reg.refresh();
-            
+
             //
             // If it's not done, then put it back on the queue.
             if(reg.getProcessOutcome() == null || reg.getRunState() !=
@@ -331,7 +363,7 @@ public class GridUtil {
 
         BaseFileSystemConfiguration fsConfiguration =
                 new BaseFileSystemConfiguration();
-        
+
         fsName = instance + "-" + fsName;
 
         FileSystem fileSystem = grid.getFileSystem(fsName);
@@ -370,7 +402,6 @@ public class GridUtil {
     public FileSystem getAuraLogFS() throws RemoteException, StorageManagementException {
         return getFS("aura.logs");
     }
-    
     /**
      * The mount point for the logs file system in a deployed service.
      */
@@ -387,7 +418,6 @@ public class GridUtil {
     public FileSystem getAuraDistFS() throws RemoteException, StorageManagementException {
         return getFS("aura.dist");
     }
-    
     /**
      * The mount point for the code file system in a deployed service.
      */
@@ -434,7 +464,7 @@ public class GridUtil {
             // Reuse an existing network
             network = grid.getNetwork(instance + "-auraNet");
             log.fine("Network already exists, reusing " + network.getName());
-        } 
+        }
     }
 
     /**
