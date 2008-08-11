@@ -98,19 +98,23 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         VerticalPanel vP = new VerticalPanel();
 
         if (aDArray != null && aDArray.length > 0) {
-            for (ArtistCompact aD : aDArray) {
+            for (ArtistCompact aC : aDArray) {
+
+                // Add artist to oracle
+                cdm.getArtistOracle().add(aC.getName());
+
                 Image img = new Image("not-interested-vert.jpg");
                 img.getElement().setAttribute("style", "vertical-align:top; display:none;");
 
                 int rating;
-                if (ratingMap.containsKey(aD.getId())) {
-                    rating = ratingMap.get(aD.getId());
+                if (ratingMap.containsKey(aC.getId())) {
+                    rating = ratingMap.get(aC.getId());
                 } else {
                     rating = 0;
                 }
 
-                CompactArtistWidget caw = new OverWroteOnClickCompactArtistWidget(aD, cdm,
-                        musicServer, new WhyButton(aD.getId(), aD.getName()), 
+                CompactArtistWidget caw = new OverWroteOnClickCompactArtistWidget(aC, cdm,
+                        musicServer, new WhyButton(aC.getId(), aC.getName()),
                         rating, null, this);
                 artistWidgetList.add(caw);
 

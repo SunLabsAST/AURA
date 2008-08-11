@@ -18,8 +18,6 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.gwtext.client.core.EventObject;
 import com.gwtext.client.data.Record;
-import com.gwtext.client.data.SimpleStore;
-import com.gwtext.client.data.Store;
 import com.gwtext.client.widgets.BoxComponent;
 import com.gwtext.client.widgets.Component;
 import com.gwtext.client.widgets.form.ComboBox;
@@ -74,7 +72,7 @@ public abstract class AbstractSearchWidget extends Composite {
      * Does the actual swapping of the suggest box with the provided oracle
      * @param newOracle
      */
-    private void swapSuggestBox(Store newOracle, Oracles newOracleType) {
+    private void swapSuggestBox(UniqueStore newOracle, Oracles newOracleType) {
 
         String oldTxt;
         if (getSearchBox()!=null) {
@@ -160,7 +158,7 @@ public abstract class AbstractSearchWidget extends Composite {
         }
     }
 
-    protected ComboBox createSuggestBox(Store oracle) {
+    protected ComboBox createSuggestBox(UniqueStore oracle) {
         ComboBox cB = createSuggestBox();
         cB.setStore(oracle);
         return cB;
@@ -243,7 +241,7 @@ public abstract class AbstractSearchWidget extends Composite {
             public void onSuccess(Object result) {
                 List<String> callBackList = (List<String>) result;
                 
-                Store newStore = new SimpleStore("name", callBackList.toArray());
+                UniqueStore newStore = new UniqueStore("name", callBackList.toArray(new String[0]));
                 newStore.load();
                 
                 swapSuggestBox(newStore, this.type);

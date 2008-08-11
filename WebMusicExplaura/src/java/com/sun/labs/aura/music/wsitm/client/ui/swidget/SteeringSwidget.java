@@ -493,7 +493,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         }
 
         public void displayMainItems() {
-
+            UniqueStore uS = cdm.getArtistOracle();
             subItems = null;
             VerticalPanel vP = new VerticalPanel();
 
@@ -503,6 +503,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             vP.add(explanation);
             
             for (ItemInfo item : mainItems) {
+                uS.add(item.getItemName());
                 HorizontalPanel hP = new HorizontalPanel();
                 
                 Label addButton = new Label("Add");
@@ -563,6 +564,13 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                         if (results.length == 0) {
                             mainGrid.setWidget(1, 0, new Label("No tags found"));
                         } else {
+
+                            // Add tags to oracle
+                            UniqueStore uS = cdm.getTagOracle();
+                            for (ItemInfo iI : results) {
+                                uS.add(iI.getItemName());
+                            }
+
                             subItems = results;
                             SortableItemInfoList sIIL = new SortableItemInfoList(results) {
                                 protected void onItemClick(ItemInfo i) {
