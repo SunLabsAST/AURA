@@ -68,6 +68,8 @@ import org.adamtacy.client.ui.effects.impl.Fade;
 public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
     private Widget curResult;
+    private String curResultToken = "";
+
     private DockPanel mainPanel;
     private FlowPanel searchBoxContainerPanel;
     private Label message;
@@ -179,22 +181,24 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
     }
 
     private void setResults(String historyName, Widget result) {
-        if (curResult == result) {
+        if (curResult == result || curResultToken.equals(historyName)) {
             return;
-        }
+        } 
 
         if (!History.getToken().equals(historyName)) {
             History.newItem(historyName);
-            curToken = historyName; //History.getToken();
+            curToken = historyName;
         }
         if (curResult != null) {
             mainPanel.remove(curResult);
             curResult = null;
+            curResultToken = "";
         }
         if (result != null) {
             cdm.setCurrSearchWidgetToken(historyName);
             mainPanel.add(result, DockPanel.CENTER);
             curResult = result;
+            curResultToken = historyName;
         }
     }
 
@@ -278,7 +282,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
     }
 
     public void onHistoryChanged(String historyToken) {
-        if (!historyToken.equals(curToken)) {
+        if (!curResultToken.equals(historyToken)) {
             showResults(historyToken);
         }
     }
