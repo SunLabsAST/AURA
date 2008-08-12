@@ -86,7 +86,6 @@ public class PCPanel extends HorizontalPanel {
             }
 
             public void onSuccess(Object arg0) {
-                // not sure yet
                 splitButton.setText("Splitting...");
                 splitButton.setStylePrimaryName("viz-actionLabelInProgress");
             }

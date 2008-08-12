@@ -133,6 +133,26 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         }
     }
     
+    public void shutDown() {
+        try {
+            for (ServiceItem svc : svcs) {
+                if (svc.service instanceof DataStore) {
+                    DataStore dsh = (DataStore)svc.service;
+                    dsh.close();
+                    break;
+                }
+            }
+        } catch (RemoteException e) {
+            logger.log(Level.WARNING,
+                       "Failed to shut down datastore", e);
+            throw new RuntimeException("Shutdown failed to run");
+        } catch (AuraException e) {
+            logger.log(Level.WARNING,
+                       "Failed to shut down datastore", e);
+            throw new RuntimeException("Shutdown failed to run");
+        }
+    }
+    
     /**
      * Factory method for making a DSHInfo from a DSH
      * @param dsh

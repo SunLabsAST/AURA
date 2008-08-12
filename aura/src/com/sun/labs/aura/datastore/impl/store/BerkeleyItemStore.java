@@ -255,14 +255,16 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     /**
      * Close up the entity store and the database environment.
      */
-    public void close() throws AuraException {
-        closed = true;
-        logger.fine("Closing BDB for prefix: " + prefixString);
-        bdb.close();
-        logger.fine("Shutting down search engine");
-        searchEngine.getSearchEngine().removeIndexListener(this);
-        searchEngine.shutdown();
-        logger.fine("Finished closing search engine");
+    public synchronized void close() throws AuraException {
+        if (!closed) {
+            closed = true;
+            logger.info("Closing BDB for prefix: " + prefixString);
+            bdb.close();
+            logger.info("Shutting down search engine");
+            searchEngine.getSearchEngine().removeIndexListener(this);
+            searchEngine.shutdown();
+            logger.info("Finished closing search engine");
+        }
     }
 
     public void defineField(ItemType itemType, String field)

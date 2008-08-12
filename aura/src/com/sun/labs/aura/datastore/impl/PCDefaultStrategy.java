@@ -186,6 +186,7 @@ public class PCDefaultStrategy implements PCStrategy {
     public void close() throws AuraException, RemoteException {
         //
         // do something here?
+        replicant.close();
     }
 
 }

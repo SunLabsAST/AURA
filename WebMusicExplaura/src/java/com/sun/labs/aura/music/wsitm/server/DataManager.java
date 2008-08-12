@@ -1042,7 +1042,7 @@ public class DataManager implements Configurable {
                 } else {
                     popularity = aT.getPopularity();
                 }
-                tagsArray.add(new ItemInfo(sS.getItem(), sS.getItem(), sS.getScore(),
+                tagsArray.add(new ItemInfo(ArtistTag.nameToKey(sS.getItem()), sS.getItem(), sS.getScore(),
                         popularity));
             } catch (AuraException ex) {
                 Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);

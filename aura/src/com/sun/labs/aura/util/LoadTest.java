@@ -39,7 +39,12 @@ public class LoadTest {
             if(fields.length != 4) {
                 continue;
             }
-
+            User existing = dataStore.getUser(fields[0]);
+            if (existing != null) {
+                System.out.println("Skipping user " + fields[0]);
+                continue;
+            }
+            
             Item artist = StoreFactory.newItem(ItemType.ARTIST, fields[2], fields[1]);
             User user = StoreFactory.newUser(fields[0], fields[0]);
             artist.setField("foo", "bar");

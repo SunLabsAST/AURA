@@ -32,10 +32,12 @@ public class SharedTagMenu extends Menu implements TagDependentSharedMenu {
 
     protected ItemInfo currTag;
     protected MusicSearchInterfaceAsync musicServer;
+    protected ClientDataManager cdm;
 
     public SharedTagMenu(ClientDataManager cdm) {
 
         initRPC();
+        this.cdm = cdm;
 
         addItem(new Item("View tag details", new DataEmbededBaseItemListener<SharedTagMenu>(this) {
 
@@ -68,7 +70,7 @@ public class SharedTagMenu extends Menu implements TagDependentSharedMenu {
 
             public void onSuccess(ItemInfo[] iI) {
                 if (iI != null || iI.length > 0) {
-                    TagDisplayLib.showTagCloud("Similar tags to "+currTag.getItemName(), iI);
+                    TagDisplayLib.showTagCloud("Similar tags to "+currTag.getItemName(), iI, cdm);
                 } else {
                     Window.alert("An error occured while fetching similar tags.");
                 }

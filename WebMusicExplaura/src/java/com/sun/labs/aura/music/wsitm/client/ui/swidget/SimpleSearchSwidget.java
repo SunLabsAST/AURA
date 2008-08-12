@@ -11,7 +11,6 @@ package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.CommonTagsAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.StarRatingWidget;
 import com.sun.labs.aura.music.wsitm.client.*;
@@ -49,10 +48,6 @@ import com.google.gwt.user.client.ui.LoadListener;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.gwtext.client.data.FieldDef;
-import com.gwtext.client.data.RecordDef;
-import com.gwtext.client.data.Store;
-import com.gwtext.client.data.StringFieldDef;
 import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
@@ -489,10 +484,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
     private final void addCompactArtistToOracle(ArtistCompact[] aCArray) {
         for (ArtistCompact aC : aCArray) {
-            RecordDef r = new RecordDef(
-                    new FieldDef[]{
-                       new StringFieldDef("name")});
-            cdm.getArtistOracle().add(r.createRecord(new String[]{aC.getName()}));
+            cdm.getArtistOracle().add(aC.getName());
         }
     }
 
@@ -755,7 +747,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             cdm.getLoginListenerManager().addListener(tagInputWidget);
             panel.add(tagInputWidget);
             
-            Panel p = TagDisplayLib.getTagsInPanel(tagCloud);
+            Panel p = TagDisplayLib.getTagsInPanel(tagCloud, cdm);
             p.addStyleName("tagCloudMargin");
             panel.add(p);
         }
@@ -790,25 +782,14 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         return title + obj;
     }
 
-    private Widget getItemInfoList(final String title, final ItemInfo[] itemInfo, String highlightID, boolean getArtistOnClick, Store oracle) {
+    private Widget getItemInfoList(final String title, final ItemInfo[] itemInfo, String highlightID, boolean getArtistOnClick, UniqueStore oracle) {
 
         Grid artistGrid = new Grid(itemInfo.length, 1);
         for (int i = 0; i < itemInfo.length; i++) {
 
             if (oracle != null) {
-                RecordDef r = new RecordDef(
-                        new FieldDef[]{
-                            new StringFieldDef("name")
-                        });
-                oracle.add(r.createRecord("name", new String[]
-                {
-                    itemInfo[i].getItemName()
-                }
-                ));
+                oracle.add(itemInfo[i].getItemName());
             }
-
-
-        
 
             Label label = new Label(itemInfo[i].getItemName());
             label.addClickListener(new ItemInfoClickListener(itemInfo[i], getArtistOnClick));
@@ -830,7 +811,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             l.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
-                    TagDisplayLib.showTagCloud(title, itemInfo);
+                    TagDisplayLib.showTagCloud(title, itemInfo, cdm);
                 }
             });
             titleWidget.setWidget(0, 1, l);
@@ -956,7 +937,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         public void openWhyPopup(WhyButton why) {
             why.showLoad();
             TagDisplayLib.invokeGetCommonTags(currArtistId, why.getId(),
-                    musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between "+currArtistName+" and "+why.getName()) {});
+                    musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between "+currArtistName+" and "+why.getName(), cdm) {});
         }
     }
 
@@ -1350,7 +1331,6 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                 }
             }
         }
-
     }
 
     private ItemInfo[] alphaSort(ItemInfo[] itemInfo) {
@@ -1371,5 +1351,4 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         });
         return ii;
     }
-
 }

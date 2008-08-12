@@ -13,7 +13,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.Updatable;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PageHeaderWidget;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
-import com.gwtext.client.data.Store;
 import com.sun.labs.aura.music.wsitm.client.event.PlayedListener;
 import com.sun.labs.aura.music.wsitm.client.event.TagCloudListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
@@ -70,8 +69,8 @@ public class ClientDataManager {
 
     private ListenerDetails lD;
 
-    private Store artistOracle;
-    private Store tagOracle;
+    private UniqueStore artistOracle;
+    private UniqueStore tagOracle;
 
     private SharedTagMenu sharedTagMenu;
     private SharedSteeringMenu sharedSteeringMenu;
@@ -124,19 +123,19 @@ public class ClientDataManager {
         return sharedSteeringMenu;
     }
 
-    public Store getTagOracle() {
+    public UniqueStore getTagOracle() {
         return tagOracle;
     }
 
-    public Store getArtistOracle() {
+    public UniqueStore getArtistOracle() {
         return artistOracle;
     }
 
-    public void setTagOracle(Store tagOracle) {
+    public void setTagOracle(UniqueStore tagOracle) {
         this.tagOracle = tagOracle;
     }
 
-    public void setArtistOracle(Store artistOracle) {
+    public void setArtistOracle(UniqueStore artistOracle) {
         this.artistOracle = artistOracle;
     }
 

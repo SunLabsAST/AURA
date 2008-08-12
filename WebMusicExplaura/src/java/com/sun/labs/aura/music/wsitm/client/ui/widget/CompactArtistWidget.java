@@ -96,10 +96,10 @@ public class CompactArtistWidget extends Composite implements HasListeners {
             }
         });
         aName.getContextMenu().addItem("View tag cloud",
-                new DualDataEmbededCommand<String, ItemInfo[]>(aC.getName(), aC.getDistinctiveTags()) {
+                new DualDataEmbededCommand<ArtistCompact, ClientDataManager>(aC, cdm) {
 
             public void execute() {
-                TagDisplayLib.showTagCloud("Tag cloud for "+data, sndData);
+                TagDisplayLib.showTagCloud("Tag cloud for "+data.getName(), data.getDistinctiveTags(), sndData);
             }
         });
         //aName.getContextMenu().addSeperator();

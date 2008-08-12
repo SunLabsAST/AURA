@@ -369,7 +369,7 @@ public class PartitionClusterImpl implements PartitionCluster,
         if (!closed) {
             //
             // do something
-            closed = true;
+            strategy.close();
         }
     }
 
@@ -585,19 +585,33 @@ public class PartitionClusterImpl implements PartitionCluster,
             //
             // Start reading attentions and writing them as necessary
             DBIterator<Attention> attns = null;
+            //
+            // We expect to see a single invalid attention go across here
+            // (the invalid one won't necessarily have the right hashcode
+            // to belong here).  Allow one, but truly fail if there is another
+            long invalid = 0;
             try {
                 List<Attention> migrate = new ArrayList<Attention>();
                 List<Long> ids = new ArrayList<Long>();
                 attns = local.getAttentionIterator(new AttentionConfig());
                 while (attns.hasNext()) {
                     Attention a = attns.next();
-                    if (!Util.keyIsLocal(a.hashCode(),
-                                         newPrefix,
-                                         remotePrefix)) {
+                    boolean isRemote = false;
+                    try {
+                        isRemote = !Util.keyIsLocal(a.hashCode(),
+                                                    newPrefix,
+                                                    remotePrefix);
+                    } catch (AuraException ae) {
+                        invalid++;
+                        if (invalid > 1) {
+                            throw ae;
+                        }
+                    }
+                    if (isRemote) {
                         migrate.add(a);
                         ids.add(((PersistentAttention)a).getID());
                     }
-                    if (migrate.size() >= 100) {
+                    if (migrate.size() >= 2000) {
                         remote.attend(migrate);
                         local.deleteAttention(ids);
                         migrate.clear();
@@ -612,6 +626,7 @@ public class PartitionClusterImpl implements PartitionCluster,
                 try {
                     if (attns != null) {
                         attns.close();
+                        logger.info("Processed a total of numProcessed attentions");
                     }
                 } catch (RemoteException e) {
                 }

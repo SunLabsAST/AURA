@@ -186,13 +186,17 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             viewCloudButton.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
-                    HashMap<String, Double> map = currTagMap;
-                    ItemInfo[] iI = new ItemInfo[map.size()];
-                    int index = 0;
-                    for (String s : map.keySet()) {
-                        iI[index++] = new ItemInfo(ClientDataManager.nameToKey(s), s, map.get(s), map.get(s));
+                    if (currTagMap == null || currTagMap.isEmpty()) {
+                        Info.display("Steerable recommendations", "Cannot display atomic representation; you must add tags in your cloud first.", new Params());
+                    } else {
+                        HashMap<String, Double> map = currTagMap;
+                        ItemInfo[] iI = new ItemInfo[map.size()];
+                        int index = 0;
+                        for (String s : map.keySet()) {
+                            iI[index++] = new ItemInfo(ClientDataManager.nameToKey(s), s, map.get(s), map.get(s));
+                        }
+                        TagDisplayLib.showTagCloud("Atomic representation of tag cloud", iI, cdm);
                     }
-                    TagDisplayLib.showTagCloud("Atomic representation of tag cloud", iI);
                 }
             });
             mainNorthMenuPanel.add(viewCloudButton);
@@ -489,7 +493,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         }
 
         public void displayMainItems() {
-
+            UniqueStore uS = cdm.getArtistOracle();
             subItems = null;
             VerticalPanel vP = new VerticalPanel();
 
@@ -499,6 +503,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             vP.add(explanation);
             
             for (ItemInfo item : mainItems) {
+                uS.add(item.getItemName());
                 HorizontalPanel hP = new HorizontalPanel();
                 
                 Label addButton = new Label("Add");
@@ -559,6 +564,13 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                         if (results.length == 0) {
                             mainGrid.setWidget(1, 0, new Label("No tags found"));
                         } else {
+
+                            // Add tags to oracle
+                            UniqueStore uS = cdm.getTagOracle();
+                            for (ItemInfo iI : results) {
+                                uS.add(iI.getItemName());
+                            }
+
                             subItems = results;
                             SortableItemInfoList sIIL = new SortableItemInfoList(results) {
                                 protected void onItemClick(ItemInfo i) {
@@ -897,7 +909,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public void openWhyPopup(WhyButton why) {
             why.showLoad();
             TagDisplayLib.invokeGetCommonTags(tagLand.getTagMap(), why.getId(),
-                    musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between your cloud and "+why.getName()) {});
+                    musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between your cloud and "+why.getName(), cdm) {});
         }
     }
 }

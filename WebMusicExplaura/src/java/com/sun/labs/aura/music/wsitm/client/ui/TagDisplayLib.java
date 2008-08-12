@@ -28,9 +28,9 @@ import java.util.HashMap;
  */
 public abstract class TagDisplayLib {
 
-    public static void showTagCloud(String title, ItemInfo[] tags) {
+    public static void showTagCloud(String title, ItemInfo[] tags, ClientDataManager cdm) {
         final DialogBox d = Popup.getDialogBox();
-        Panel p = getTagsInPanel(tags, d);
+        Panel p = getTagsInPanel(tags, d, cdm);
         if (p!=null) {
             Popup.showPopup(p,title,d);
         }
@@ -43,8 +43,8 @@ public abstract class TagDisplayLib {
         return (int) Math.round(range * score + min);
     }
 
-    public static Panel getTagsInPanel(ItemInfo[] tags) {
-        return getTagsInPanel(tags,null);
+    public static Panel getTagsInPanel(ItemInfo[] tags, ClientDataManager cdm) {
+        return getTagsInPanel(tags, null, cdm);
     }
 
     /**
@@ -55,7 +55,7 @@ public abstract class TagDisplayLib {
      * @param d
      * @return
      */
-    public static Panel getTagsInPanel(ItemInfo[] tags, DialogBox d) {
+    public static Panel getTagsInPanel(ItemInfo[] tags, DialogBox d, ClientDataManager cdm) {
         Panel p = new FlowPanel();
         if (d!=null) {
             p.setWidth("600px");
@@ -82,10 +82,16 @@ public abstract class TagDisplayLib {
 
             for (int i = 0; i < tags.length; i++) {
                 int colorId = i % 2;
-                int fontSize = scoreToFontSize(( Math.abs(tags[i].getScore()) - min) / range);
+                int fontSize;
+                if (tags.length == 1 || range == 0) {
+                    fontSize = scoreToFontSize(1);
+                } else {
+                    fontSize = scoreToFontSize(( Math.abs(tags[i].getScore()) - min) / range);
+                }
 
-                SpannedLabel sL = new SpannedLabel(tags[i].getItemName());
+                ContextMenuTagLabel sL = new ContextMenuTagLabel(tags[i], cdm);
                 sL.getElement().setAttribute("style", "font-size:" + fontSize + "px; color:" + getColor(colorId, tags[i].getScore()) +";");
+                sL.addStyleName("pointer");
                 sL.addClickListener(new DataEmbededClickListener<ItemInfo>(tags[i]) {
 
                     public void onClick(Widget arg0) {
@@ -107,7 +113,6 @@ public abstract class TagDisplayLib {
                 p.add(sL);
                 p.add(new SpannedLabel("    "));
             }
-
             return p;
         } else {
             return null;
