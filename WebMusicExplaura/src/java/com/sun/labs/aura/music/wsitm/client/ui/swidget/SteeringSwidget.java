@@ -121,6 +121,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         private FlowPanel refreshingPanel;
 
         private HashMap<String, Double> currTagMap;
+        private ArtistCompact[] currRecommendations = null;
      
         private ListBox listbox;
         private String currLoadedTagWidget = "";
@@ -137,6 +138,15 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             hP.setStyleName("h2");
             hP.setWidth("300px");
             hP.add(new SpannedLabel("Recommendations"));
+
+            Image viewTagInfluence = new Image("loupe.gif");
+            viewTagInfluence.addClickListener(new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    displayTagInfluence();
+                }
+            });
+            hP.add(viewTagInfluence);
 
             refreshingPanel = new FlowPanel();
             refreshingPanel.add(new Image("ajax-loader-small.gif "));
@@ -252,13 +262,57 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             }
         }
 
+        /**
+         * Display popup of curr tags' influence on the current recommendations
+         */
+        private void displayTagInfluence() {
+
+            if (currRecommendations == null) {
+                Info.display("Steerable recommendations", "Cannot display tag influence cloud; you must add tags in your cloud first.", new Params());
+                return;
+            }
+
+            // Add every positive-valued tag in tag cloud to influence map so
+            // that tags that have no influence will be shown as negative
+            HashMap<String, Double> tagInfluenceMap = new HashMap<String, Double>();
+            for (String s : currTagMap.keySet()) {
+                if (currTagMap.get(s) > 0) {
+                    tagInfluenceMap.put(s, -0.01);
+                }
+            }
+
+            double maxScore = 0;
+            double newVal = 0;
+            for (ArtistCompact aC : currRecommendations) {
+                for (ItemInfo iI : aC.getDistinctiveTags()) {
+                    // @todo remove lowercase when engine fixed
+                    String name = iI.getItemName().toLowerCase();
+                    if (currTagMap.containsKey(name)) {
+                        newVal = tagInfluenceMap.get(name) + iI.getScore();
+                        tagInfluenceMap.put(name, newVal);
+
+                        if (newVal > maxScore) {
+                            maxScore = newVal;
+                        }
+                    }
+                }
+            }
+
+            ItemInfo[] tagArray = new ItemInfo[tagInfluenceMap.size()];
+            int index = 0;
+            for (String tagName : tagInfluenceMap.keySet()) {
+                double val = tagInfluenceMap.get(tagName) / maxScore * currTagMap.get(tagName);
+                tagArray[index++] = new ItemInfo(ClientDataManager.nameToKey(tagName), tagName, val, val);
+            }
+            TagDisplayLib.showTagCloud("Tags' influence on generated recommendations", tagArray, cdm);
+        }
+
         public void invokeFetchNewRecommendations() {
-            AsyncCallback callback = new AsyncCallback() {
+            AsyncCallback<ArtistCompact[]> callback = new AsyncCallback<ArtistCompact[]>() {
 
-                public void onSuccess(Object result) {
+                public void onSuccess(ArtistCompact[] aCArray) {
 
-                    ArtistCompact[] aCArray = (ArtistCompact[]) result;
-
+                    // Remove listeners if we had an ArtistListWidget previously loaded
                     if (mainArtistListPanel.getWidget(0, 0) != null &&
                             mainArtistListPanel.getWidget(0, 0) instanceof ArtistCloudArtistListWidget) {
                         ((ArtistListWidget)mainArtistListPanel.getWidget(0, 0)).doRemoveListeners();
@@ -267,6 +321,12 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                     mainArtistListPanel.setWidget(0, 0,
                             new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, tagLand));
                     refreshingPanel.setVisible(false);
+
+                    if (aCArray != null && aCArray.length > 0) {
+                        currRecommendations = aCArray;
+                    } else {
+                        currRecommendations = null;
+                    }
 
                 }
 
