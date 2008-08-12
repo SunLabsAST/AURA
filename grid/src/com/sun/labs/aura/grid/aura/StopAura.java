@@ -32,6 +32,13 @@ public class StopAura extends Aura {
             logger.log(Level.SEVERE, "Error stopping Stat Service", e);
         }
 
+        try {
+            gu.stopProcess(getProcessManagerName());
+            logger.info("Stopped process manager");
+        } catch(Exception e) {
+            logger.log(Level.SEVERE, "Error stopping Stat Service", e);
+        }
+
         for(String prefixCode : prefixCodeList) {
             try {
                 gu.stopProcess(getPartitionName(
