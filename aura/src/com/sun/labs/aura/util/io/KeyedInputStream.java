@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  * @param K the type of the key for the records.  Must extend Serializable and Comparable
  * @param V the type of the value for the records.  Must extend Serializable.
  */
-public class KeyedInputStream<K, V> extends KeyedStream implements RecordStream {
+public class KeyedInputStream<K, V> extends KeyedStream implements RecordInputStream {
 
     private Sorter.SortedRegion sr;
     

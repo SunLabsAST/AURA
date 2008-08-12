@@ -11,6 +11,6 @@ import java.io.IOException;
  *
  * @author Will Holcomb <william.holcomb@sun.com>
  */
-public interface RecordStream<K, V> {
+public interface RecordInputStream<K, V> {
     public Record<K, V> read() throws IOException;
 }
