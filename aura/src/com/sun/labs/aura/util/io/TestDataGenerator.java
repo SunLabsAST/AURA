@@ -37,7 +37,7 @@ public class TestDataGenerator {
                 m.put(qe.getName().toString(), qe.getN());
             }
             KeyedOutputStream<String, Integer> output =
-                    new KeyedOutputStream<String, Integer>(String.format("%s-%04d",
+                    new StructuredKeyedOutputStream<String, Integer>(String.format("%s-%04d",
                     args[1], fn++), false);
             for(Map.Entry<String,Integer> ent : m.entrySet()) {
                 output.write(ent.getKey(), ent.getValue());
