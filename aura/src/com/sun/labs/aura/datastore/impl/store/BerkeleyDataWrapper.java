@@ -794,6 +794,13 @@ public class BerkeleyDataWrapper {
                     begin, true,
                     end, true,
                     cc);
+            try {
+                cursor.first();
+                cursor.prev();
+            } catch (IllegalStateException e) {
+                return new EntityIterator();
+            }
+            cursor.prev();
         } catch(DatabaseException e) {
             handleCursorException(cursor, txn, e);
         }
