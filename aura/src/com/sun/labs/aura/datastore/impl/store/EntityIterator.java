@@ -18,6 +18,15 @@ public class EntityIterator<E> implements DBIterator {
     
     private Transaction txn;
     
+    /**
+     * An empty iterator
+     */
+    public EntityIterator() {
+        it = null;
+        cursor = null;
+        txn = null;
+    }
+    
     public EntityIterator(ForwardCursor<E> cursor) {
         this.cursor = cursor;
         it = cursor.iterator();
@@ -29,18 +38,26 @@ public class EntityIterator<E> implements DBIterator {
     }
     
     public boolean hasNext() {
-        return it.hasNext();
+        if (it != null) {
+            return it.hasNext();
+        }
+        return false;
     }
 
     public E next() {
-        return it.next();
+        if (it != null) {
+            return it.next();
+        }
+        return null;
     }
 
     public void close() {
         try {
-            cursor.close();
-            if (txn != null) {
-                txn.commitNoSync();
+            if (cursor != null) {
+                cursor.close();
+                if (txn != null) {
+                    txn.commitNoSync();
+                }
             }
         } catch (DatabaseException e) {
             // ???
