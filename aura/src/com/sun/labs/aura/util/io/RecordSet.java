@@ -6,31 +6,30 @@
 package com.sun.labs.aura.util.io;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
-import java.util.PriorityQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
 
 /**
  *
  * @author Will Holcomb <william.holcomb@sun.com>
  */
 public class RecordSet<K, V> implements Iterable<Record<K, V>>, Iterator<Record<K, V>> {
-    boolean grouped = false;
-    PriorityQueue<Record<K, V>> recordHeap = null;
-    boolean iterated = false;
+    boolean sorted = false;
+    List<Record<K, V>> recordList = null;
     Record<K, V> nextRecord;
     KeyedInputStream<K, V> input;
     
     public RecordSet(KeyedInputStream<K, V> input) {
         this.input = input;
         next(); // queue first record
-        iterated = false; // reset multiple iterators flag
-        grouped = input.isSorted();
+        sorted = input.isSorted();
     }
     
-    public boolean isGrouped() {
-        return grouped;
+    public boolean isSorted() {
+        return sorted;
     }
     
     /**
@@ -38,17 +37,16 @@ public class RecordSet<K, V> implements Iterable<Record<K, V>>, Iterator<Record<
      * 
      * @param grouped
      */
-    public void setGrouped(boolean grouped) {
-        // if coming from a sorted file or already heaped, don't heap
-        if(!this.grouped && grouped) {
-            PriorityQueue<Record<K, V>> recordHeap =
-                    new PriorityQueue<Record<K, V>>();
+    public void setSorted(boolean sorted) {
+        // if coming from a sorted file or already sorted, don't sort
+        if(!this.sorted && sorted) {
+            List<Record<K, V>> recordList = new ArrayList<Record<K, V>>();
             for(Record<K, V> record : this) {
-                recordHeap.add(record);
+                recordList.add(record);
             }
-            this.recordHeap = recordHeap;
-            iterated = false; // reset multiple iterations flag
-            this.grouped = true;
+            Collections.sort(recordList);
+            this.recordList = recordList;
+            this.sorted = true;
         }
     }
     
@@ -58,11 +56,12 @@ public class RecordSet<K, V> implements Iterable<Record<K, V>>, Iterator<Record<
      * @return
      */
     public Iterator<Record<K, V>> iterator() {
-        if(recordHeap != null) {
-            return recordHeap.iterator();
+        if(recordList != null) {
+            return recordList.iterator();
         } else {
             try {
                 input.reset();
+                next();
                 return this;
             } catch (IOException ex) {
                 throw new IllegalStateException("Error resetting input");
@@ -71,25 +70,22 @@ public class RecordSet<K, V> implements Iterable<Record<K, V>>, Iterator<Record<
     }
 
     public boolean hasNext() {
-        if(recordHeap != null) {
-            return !recordHeap.isEmpty();
+        if(recordList != null) {
+            return !recordList.isEmpty();
         } else {
             return nextRecord != null;
-        }
+        }  
     }
 
     public Record<K, V> next() {
-        iterated = true;
-        Record<K, V> returnRecord;
-        if(recordHeap != null) {
-            returnRecord = recordHeap.poll();
-        } else {
-            returnRecord = nextRecord;
-            try {
-                nextRecord = input.read();
-            } catch(IOException ioe) {
-                nextRecord = null;
-            }
+        if(recordList != null) {
+            throw new ConcurrentModificationException("Sorted sets should be accessed through iterator()");
+        }
+        Record<K, V> returnRecord = nextRecord;
+        try {
+            nextRecord = input.read();
+        } catch(IOException ioe) {
+            nextRecord = null;
         }
         return returnRecord;
     }

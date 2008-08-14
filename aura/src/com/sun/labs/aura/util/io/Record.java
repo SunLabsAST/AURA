@@ -1,12 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package com.sun.labs.aura.util.io;
 
 /**
  * A record in a keyed input or output stream.
+ * 
  * @param K the type of the key in the record.  This must extend Comparable and Serializable
  * @param V the value type of the key in the record.  This must extend Serializable.
  */
@@ -33,8 +29,8 @@ public class Record<K,V> implements Comparable<Record<K,V>> {
         return value;
     }
     
-    public int compareTo(Record<K, V> o) {
-        return ((Comparable) key).compareTo(o.key);
+    public int compareTo(Record<K, V> other) {
+        return ((Comparable)key).compareTo(other.key);
     }
     
     public String toString() {

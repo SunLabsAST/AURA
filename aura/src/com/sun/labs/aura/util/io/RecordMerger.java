@@ -1,6 +1,7 @@
 package com.sun.labs.aura.util.io;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -9,6 +10,6 @@ import java.util.List;
  * @param V the type of the value for the files
  */
 public interface RecordMerger<K, V> {
-    public void merge(List<RecordSet<K, V>> inputs,
+    public void merge(Collection<RecordSet<K, V>> inputs,
                       KeyedOutputStream output) throws IOException;
 }
