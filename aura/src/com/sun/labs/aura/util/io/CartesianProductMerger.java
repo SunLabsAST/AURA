@@ -26,7 +26,7 @@ public abstract class CartesianProductMerger<K, V> extends GroupedMerger {
         
         // If I specify this as the type in the signature, the compiler doesn't
         // think the method overrides the abstract method in GroupedMerger even
-        // though the type there is specified as being this.
+        // though the type there is specified the same.
         List<List<Record<K, V>>> castInputs = (List<List<Record<K, V>>>)inputs;
         for(Record<K, V> outer : castInputs.get(0)) {
             for(Record<K, V> inner : castInputs.get(1)) {
