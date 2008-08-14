@@ -780,7 +780,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
     private String getEmbeddedVideo(ArtistVideo video, boolean autoplay) {
         String url = video.getUrl();
         String autostring = autoplay ? "&autoplay=1" : "";
-        url = url.replaceAll("\\?v=", "v/");
+        url = url.replaceAll("\\?v=", "/v/");
         String title = "<span style=\"text-align:center\">" + video.getTitle() + "</span><br/>";
         String obj = "<object width=\"425\" height=\"350\"><param name=\"movie\" value=\"" + url + "\"></param><param name=\"wmode\" value=\"transparent\"></param>" + "<embed src=\"" + url + autostring + "\" type=\"application/x-shockwave-flash\"" + " wmode=\"transparent\" width=\"425\" height=\"350\"></embed></object>";
         return title + obj;
