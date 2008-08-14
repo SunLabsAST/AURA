@@ -2,7 +2,6 @@ package com.sun.labs.aura.util.io;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Merges a number of keyed input files into a single keyed output file.

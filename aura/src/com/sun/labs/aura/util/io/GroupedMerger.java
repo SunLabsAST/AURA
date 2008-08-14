@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Stack;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
 
@@ -56,8 +57,9 @@ public abstract class GroupedMerger<K, V> implements RecordMerger<K, V> {
             
             // Check each iterator and if it has records with the min key then
             // create a list of them
+            Stack<Iterator<Record<K, V>>> finishedIterators =
+                    new Stack<Iterator<Record<K, V>>>();
             for(Iterator<Record<K, V>> iterator : queuedElements.keySet()) {
-                logger.info("Processing: " + minKey + " ?= " + queuedElements.get(iterator).getKey());
                 if(queuedElements.get(iterator).getKey().equals(minKey)) {
                     List<Record<K, V>> elements = new ArrayList<Record<K, V>>();
                     
@@ -75,17 +77,18 @@ public abstract class GroupedMerger<K, V> implements RecordMerger<K, V> {
                             // If the iterator has run out, remove it from
                             // consideration
                             nextRecord = null;
-                            queuedElements.remove(iterator);
+                            finishedIterators.add(iterator);
                         }
                     } while(nextRecord != null && nextRecord.getKey().equals(minKey));
-                    if(nextRecord != null) {
-                        queuedElements.put(iterator, nextRecord);
-                    }
+                    queuedElements.put(iterator, nextRecord);
                     recordSets.add(elements);
-                    logger.info("List: " + elements);
                 }
             }
-            logger.info(minKey + ": Generated " + recordSets.size() + " sets");
+            logger.info(minKey + ": Generated " + recordSets.size() + " sets:" +
+                        " Finished: " + finishedIterators.size());
+            for(Iterator<Record<K, V>> iterator : finishedIterators) {
+                queuedElements.remove(iterator);
+            }
             mergeList(recordSets, output);
         }
     }

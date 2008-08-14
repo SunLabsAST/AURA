@@ -21,11 +21,17 @@ public class RecordSet<K, V> implements Iterable<Record<K, V>>, Iterator<Record<
     List<Record<K, V>> recordList = null;
     Record<K, V> nextRecord;
     KeyedInputStream<K, V> input;
+    String id;
     
     public RecordSet(KeyedInputStream<K, V> input) {
+        this(input, null);
+    }
+    
+    public RecordSet(KeyedInputStream<K, V> input, String id) {
         this.input = input;
         next(); // queue first record
         sorted = input.isSorted();
+        this.id = id;
     }
     
     public boolean isSorted() {
@@ -92,5 +98,12 @@ public class RecordSet<K, V> implements Iterable<Record<K, V>>, Iterator<Record<
 
     public void remove() {
         throw new UnsupportedOperationException("Not supported");
+    }
+    
+    public String getId() {
+        if(id == null) {
+            id = Integer.toString(hashCode());
+        }
+        return id;
     }
 }
