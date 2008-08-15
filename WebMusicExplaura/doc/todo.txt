@@ -1,0 +1,14 @@
+WebMusicExplaura TODO / wishlist
+
+- Move artist's picture up in tag cloud
+- Display most popular tags in steerable tag list (option) ?
+- On delete tag in steerable redraw tags with alternating colors
+- Refactor artist similar artist listing right panel to use new updatable with new listener model
+- Change general types to specific types on client side code (use HashMap instead of Map)
+- Add getTitle() method to swidget to update page title
+- Fixed shacking on click text box
+
+- Album / track level
+- Autotags
+- Musical journey playlisting (tag cloud --> tag cloud)
+- Clustering / MDS
