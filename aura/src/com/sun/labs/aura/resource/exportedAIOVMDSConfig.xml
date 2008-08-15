@@ -29,7 +29,6 @@
         <property name="csDirs" value="${auraDistDir}/lib"/>
         <property name="csPort" value="${csPort}"/>
         <propertylist name="codebaseJars">
-            <item>sitm.jar</item>
             <item>aura.jar</item>
             <item>minion.jar</item>
             <item>LabsUtil.jar</item>
@@ -48,7 +47,7 @@
         <property name="prefix" value="0"/>
         <property name="dataStoreHead" value="dataStoreHead"/>
         <property name="logLevel" value="FINER"/>
-        <property name="processManager" value="processManger"/>
+        <property name="processManager" value="processManager"/>
     </component>
 
     <!-- The configuration for a partition cluster. -->
@@ -56,7 +55,7 @@
         <property name="prefix" value="1"/>
         <property name="dataStoreHead" value="dataStoreHead"/>
         <property name="logLevel" value="FINER"/>
-        <property name="processManager" value="processManger"/>
+        <property name="processManager" value="processManager"/>
     </component>
 
     <!-- The configuration for a partition cluster. -->
@@ -105,6 +104,7 @@
 
     <component name="aiovm-starter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
+            <item>processManager</item>
             <item>dataStoreHead</item>
             <item>partitionCluster0</item>
             <item>partitionCluster1</item>

@@ -108,7 +108,7 @@
     
     <component name="stopwords" type="com.sun.labs.minion.pipeline.StopWords">
         <propertylist name="stopwords_files">
-            <item>/com/sun/labs/aura/aardvark/resource/stopwords</item>
+            <item>/com/sun/labs/aura/resource/stopwords</item>
         </propertylist>
     </component>
     

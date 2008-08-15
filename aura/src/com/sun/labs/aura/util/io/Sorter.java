@@ -61,19 +61,21 @@ public class Sorter<K, V> {
 
     public void sort() throws IOException {
 
-        KeyedInputStream<K, V> input = new KeyedInputStream<K, V>(in);
+        StructuredKeyedInputStream<K, V> input = new StructuredKeyedInputStream<K, V>(in);
         
         //
         // If it's already sorted, we're done!
         if(input.getSorted()) {
-            KeyedOutputStream<K,V> output = new KeyedOutputStream<K, V>(sf, true);
+            StructuredKeyedOutputStream<K,V> output =
+                    new StructuredKeyedOutputStream<K, V>(sf, true);
             ChannelUtil.transferFully(input.getChannel(), output.getChannel());
             input.close();
             output.close();
             return;
         }
         
-        KeyedOutputStream<K, V> output = new KeyedOutputStream<K, V>(bf, false);
+        StructuredKeyedOutputStream<K, V> output =
+                new StructuredKeyedOutputStream<K, V>(bf, false);
 
         Record<K, V> rec;
 
@@ -119,14 +121,15 @@ public class Sorter<K, V> {
         // OK, now the blocked file contains a number of sorted regions.  We want
         // to merge those regions.  We'll just pretend that they're keyed input
         // files and use the merger.
-        List<KeyedInputStream<K,V>> inputs = new ArrayList<KeyedInputStream<K, V>>();
+        List<StructuredKeyedInputStream<K,V>> inputs =
+                new ArrayList<StructuredKeyedInputStream<K, V>>();
         for(SortedRegion sr : regions) {
-            inputs.add(new KeyedInputStream<K, V>(bf, sr));
+            inputs.add(new StructuredKeyedInputStream<K, V>(bf, sr));
         }
         Merger m = new Merger();
-        output = new KeyedOutputStream<K, V>(sf, true);
+        output = new StructuredKeyedOutputStream<K, V>(sf, true);
         m.merge(inputs, output, null);
-        for(KeyedInputStream<K,V> kis : inputs) {
+        for(StructuredKeyedInputStream<K,V> kis : inputs) {
             kis.close();
         }
         output.close();
@@ -136,11 +139,11 @@ public class Sorter<K, V> {
         }
     }
     
-    private SortedRegion writeSortedRecords(KeyedInputStream<K,V> input, 
+    private SortedRegion writeSortedRecords(StructuredKeyedInputStream<K,V> input, 
             SortedRegion cr, 
             List<SortedRegion> regions, 
             List<Record<K,V>> recs, 
-            KeyedOutputStream<K,V> output) throws IOException {
+            StructuredKeyedOutputStream<K,V> output) throws IOException {
         //
         // We've exceeded the buffer size, so sort this block and write
         // it to the output file.

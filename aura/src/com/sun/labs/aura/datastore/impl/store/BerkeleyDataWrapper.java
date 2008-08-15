@@ -416,6 +416,7 @@ public class BerkeleyDataWrapper {
     public ItemImpl putItem(ItemImpl item) throws AuraException {
         ItemImpl ret = null;
         int numRetries = 0;
+        log.info("Item key: " + item.getKey());
         while(numRetries < MAX_DEADLOCK_RETRIES) {
             Transaction txn = null;
             try {
@@ -795,7 +796,7 @@ public class BerkeleyDataWrapper {
                     end, true,
                     cc);
             try {
-                cursor.first();
+                cursor.next();
                 cursor.prev();
             } catch (IllegalStateException e) {
                 return new EntityIterator();

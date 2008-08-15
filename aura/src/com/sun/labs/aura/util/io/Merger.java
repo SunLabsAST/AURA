@@ -3,7 +3,6 @@ package com.sun.labs.aura.util.io;
 import java.io.IOException;
 import java.util.List;
 import java.util.PriorityQueue;
-import java.util.logging.Logger;
 
 /**
  * Merges a number of keyed input files into a single keyed output file.
@@ -12,12 +11,12 @@ import java.util.logging.Logger;
  */
 public class Merger<K,V> {
     
-    public void merge(List<RecordInputStream<K,V>> inputs, KeyedOutputStream<K,V> output, Combiner<V> c) throws IOException {
+    public void merge(List<KeyedInputStream<K,V>> inputs, KeyedOutputStream<K,V> output, Combiner<V> c) throws IOException {
         
         //
         // Make a heap of the elements.
         PriorityQueue<HE> q = new PriorityQueue<HE>();
-        for(RecordInputStream<K,V> input : inputs) {
+        for(KeyedInputStream<K,V> input : inputs) {
             HE h = new HE(input);
             if(h.next()) {
                 q.offer(h);
@@ -72,11 +71,11 @@ public class Merger<K,V> {
      * don't need to worry about buffering here.
      */
     protected class HE implements Comparable<HE> {
-        private RecordInputStream<K,V> input;
+        private KeyedInputStream<K,V> input;
         
         private Record<K,V> curr;
         
-        public HE(RecordInputStream<K,V> input) {
+        public HE(KeyedInputStream<K,V> input) {
             this.input = input;
         }
 
