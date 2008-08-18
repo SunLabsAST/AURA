@@ -12,3 +12,7 @@ WebMusicExplaura TODO / wishlist
 - Autotags
 - Musical journey playlisting (tag cloud --> tag cloud)
 - Clustering / MDS
+- Save user tag cloud
+
+- Use XXX insetad of GWT effects for photos thumbnail fade in
+- Fix exception handling in Main so that 40 exceptions dont popup with html code in windows
