@@ -233,7 +233,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
             //
             // North 2
-            tagLand = new TagWidgetContainer(new ResizableTagWidget(this, cdm), this, cdm);
+            tagLand = new TagWidgetContainer(this, cdm);
+            tagLand.init(new ResizableTagWidget(this, cdm, tagLand.getSharedCloudArtistMenu()));
             currLoadedTagWidget = "Cloud";
             cdm.getSteerableTagCloudExternalController().setTagWidget(tagLand);
             dP.add(tagLand, DockPanel.NORTH);
@@ -253,7 +254,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public void swapTagWidget(String widgetName) {
             if (!currLoadedTagWidget.equals(widgetName)) {
                 if (widgetName.equals("Cloud")) {
-                    tagLand.swapTagWidget(new ResizableTagWidget(this, cdm));
+                    tagLand.swapTagWidget(new ResizableTagWidget(this, cdm, tagLand.getSharedCloudArtistMenu()));
                     currLoadedTagWidget = "Cloud";
                 } else {
                     tagLand.swapTagWidget(new TagMeterWidget(this, cdm));

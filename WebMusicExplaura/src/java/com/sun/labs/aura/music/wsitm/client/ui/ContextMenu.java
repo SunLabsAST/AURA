@@ -20,6 +20,7 @@ import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededBaseItemListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import java.util.LinkedList;
 
 /**
@@ -111,6 +112,16 @@ public class ContextMenu implements EventPreview {
         }
     }
 
+    public void showSharedMenu(Event e, CloudItem cI) throws WebException {
+        if (menu instanceof CloudItemDependentSharedMenu) {
+            DOM.addEventPreview(this);
+            ((CloudItemDependentSharedMenu) menu).showAt(e.getClientX(), e.getClientY(), cI);
+            isVisible = true;
+        } else {
+            throw new WebException(WebException.errorMessages.INVALID_MENU_CALLED);
+        }
+    }
+
     public boolean onEventPreview(Event event) {
 
         if (isVisible) {
@@ -154,5 +165,10 @@ public class ContextMenu implements EventPreview {
     public interface ArtistDependentSharedMenu {
         
         public void showAt(int x, int y, ArtistCompact currTag);
+    }
+
+    public interface CloudItemDependentSharedMenu {
+
+        public void showAt(int x, int y, CloudItem cI);
     }
 }

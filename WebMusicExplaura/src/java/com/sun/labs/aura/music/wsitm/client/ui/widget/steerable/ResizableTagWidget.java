@@ -7,19 +7,24 @@ package com.sun.labs.aura.music.wsitm.client.ui.widget.steerable;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.DeferredCommand;
+import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Widget;
+import com.gwtext.client.widgets.menu.Menu;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.DataEmbededCommand;
+import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.WrapsCloudItem;
 import com.sun.labs.aura.music.wsitm.client.ui.ColorConfig;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.DeletableWidget;
@@ -36,6 +41,7 @@ public class ResizableTagWidget extends TagWidget {
     private static int AVG_SIZE_OF_ADDED_CLOUD = 40;
     
     private ClientDataManager cdm;
+    private Menu sharedArtistMenu;
     private HashMap<String, DeletableResizableTag> tagCloud;
     private boolean hasChanged = false; // did the tagCloud change and recommendations need to be updated
     private double maxSize = 0.1;
@@ -45,11 +51,12 @@ public class ResizableTagWidget extends TagWidget {
     private int lastY;
     private int colorIndex = 1;
 
-    public ResizableTagWidget(MainPanel mainPanel, ClientDataManager cdm) {
+    public ResizableTagWidget(MainPanel mainPanel, ClientDataManager cdm, Menu sharedArtistMenu) {
 
         super(mainPanel);
 
         this.cdm = cdm;
+        this.sharedArtistMenu = sharedArtistMenu;
 
         int panelWidth = 480;
         if (Window.getClientWidth() > 1024) {
@@ -337,7 +344,7 @@ public class ResizableTagWidget extends TagWidget {
         }
     }
 
-    public class ResizableTag extends SpannedLabel implements WrapsCloudItem {
+    public class ResizableTag extends ContextMenuSpannedLabel implements WrapsCloudItem {
 
         private final double DEFAULT_SIZE = 40;
 
@@ -348,7 +355,7 @@ public class ResizableTagWidget extends TagWidget {
         private static final int MAX_SIZE = 175;
 
         public ResizableTag(CloudItem item, ColorConfig color) {
-            super(item.getDisplayName());
+            super(item.getDisplayName(), sharedArtistMenu);
             this.item = item;
 
             if (this.item.getWeight() == 0) {
@@ -374,6 +381,20 @@ public class ResizableTagWidget extends TagWidget {
                 public void onMouseLeave(Widget arg0) {}
                 public void onMouseMove(Widget arg0, int arg1, int arg2) {}
             });
+        }
+
+        @Override
+        public void onBrowserEvent(Event event) {
+            if (event.getTypeInt() == Event.ONCONTEXTMENU) {
+                DOM.eventPreventDefault(event);
+                try {
+                    cm.showSharedMenu(event, item);
+                } catch (WebException ex) {
+                    Window.alert(ex.toString());
+                }
+            } else {
+                super.onBrowserEvent(event);
+            }
         }
 
         private final void resetAttributes() {

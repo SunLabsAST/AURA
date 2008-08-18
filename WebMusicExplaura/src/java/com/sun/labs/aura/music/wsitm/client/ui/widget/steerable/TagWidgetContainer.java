@@ -4,9 +4,13 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.widget.steerable;
 
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Grid;
+import com.gwtext.client.widgets.menu.Menu;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
+import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
+import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringArtistMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import java.util.HashMap;
 
@@ -22,15 +26,36 @@ public class TagWidgetContainer extends TagWidget {
     private TagWidget activeTagWidget;
     private ClientDataManager cdm;
 
-    public TagWidgetContainer(TagWidget tW, MainPanel mainPanel, ClientDataManager cdm) {
+    private Menu sharedCloudArtistMenu;
+
+    private boolean isInit = false;
+
+    public TagWidgetContainer(MainPanel mainPanel, ClientDataManager cdm) {
         super(mainPanel);
 
         this.cdm = cdm;
+
+        sharedCloudArtistMenu = new SharedSteeringArtistMenu(cdm, this);
+
+    }
+
+    public void init(TagWidget tW) {
+
+        if (isInit) {
+            Window.alert("Can only init TagWidgetContainer once!");
+        }
+
+        isInit = true;
+
         this.activeTagWidget = tW;
 
         g = new Grid(1, 1);
         g.setWidget(0, 0, activeTagWidget);
         initWidget(g);
+    }
+
+    public Menu getSharedCloudArtistMenu() {
+        return sharedCloudArtistMenu;
     }
 
     public void swapTagWidget(TagWidget newTagWidget) {
