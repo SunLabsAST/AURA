@@ -1,4 +1,4 @@
-WebMusicExplaura TODO / wishlist
+Web Music Explaura :: TODO / wishlist
 
 - Move artist's picture up in tag cloud
 - Display most popular tags in steerable tag list (option) ?
@@ -14,5 +14,8 @@ WebMusicExplaura TODO / wishlist
 - Clustering / MDS
 - Save user tag cloud
 
-- Use XXX insetad of GWT effects for photos thumbnail fade in
-- Fix exception handling in Main so that 40 exceptions dont popup with html code in windows
+- Use same method as in AnimatedComposite instead of GWT effects for photos thumbnail fade in
+- Fix exception handling in Main so that 40 exceptions dont popup with html code in windows if the server is down
+
+- Let users vote for inappropriate or wrong video or picture.
+- Use shared context menu for artists' name in ArtistListWidget

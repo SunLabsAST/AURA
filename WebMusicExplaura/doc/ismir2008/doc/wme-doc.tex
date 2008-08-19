@@ -57,7 +57,10 @@ In our system for recommending items, each item is
 described by a set of words (tags).  These
 descriptive words may come from text mining the
 web, social annotations, autotagging based upon
-content analysis, expert annotation, etc.
+content analysis, expert annotation, etc. In our current 
+implementation, the most important source for tags 
+is the social music website Last.fm mined using the
+Audioscrobbler web services\footnote{Last.fm's Audioscrobbler web services described at http://www.audioscrobbler.net/data/webservices/.}.
 
 The tags are weighted based upon their descriptive
 content. More descriptive words are given more
@@ -68,13 +71,14 @@ item's "tag cloud", or in a more poetic way, it's aura.
 
 \subsection{Transparency}
 
-A key component of any recommender is the ability to 
-find similar items to an item or a set of items. As we represent items using 
-a tag cloud, we determine the similarity of two artists by computing the 
-cosine distance between their tag clouds.
+As we represent items in our system using 
+a tag cloud, we determine the similarity between two artists as the 
+cosine distance between their respective tag cloud.
 
 As shown in figure \ref{fig:commontags}, this allows us to explain why an item is being recommended 
-by displaying the overlap between two tag clouds. 
+by displaying the overlap between two tag clouds : the base artist's cloud and the recommended artist's cloud. 
+Only tags common to the two clouds are displayed and 
+their weight is determined by the strenght of XXX.
 
 \begin{figure}[ht]
 \begin{center}
