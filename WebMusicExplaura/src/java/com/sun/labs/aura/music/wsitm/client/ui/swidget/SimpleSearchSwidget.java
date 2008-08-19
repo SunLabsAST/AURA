@@ -644,7 +644,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             return new Label("");
         }
     }
-
+/*
     Widget getTastAuraMeterPanel(ArtistDetails aD) {
 
         double currArtistScore = 1; //cdm.computeTastauraMeterScore(aD);
@@ -667,6 +667,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
         return WebLib.createSection("Tast-aura-meter", vPanel);
     }
+    */
 
     Widget getPopularityPanel(ArtistDetails artistDetails) {
 

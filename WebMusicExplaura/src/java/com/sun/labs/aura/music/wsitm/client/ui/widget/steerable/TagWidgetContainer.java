@@ -89,4 +89,9 @@ public class TagWidgetContainer extends TagWidget {
     public void addItem(CloudItem item, boolean updateRecommendations) {
         activeTagWidget.addItem(item, updateRecommendations);
     }
+
+    @Override
+    public double getMaxWeight() {
+        return activeTagWidget.getMaxWeight();
+    }
 }

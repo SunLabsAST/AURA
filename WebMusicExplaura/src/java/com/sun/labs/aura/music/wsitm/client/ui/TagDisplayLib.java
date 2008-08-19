@@ -28,6 +28,17 @@ import java.util.HashMap;
  */
 public abstract class TagDisplayLib {
 
+    public static void showTagCloud(String title, HashMap<String, Double> tags, ClientDataManager cdm) {
+        
+        ItemInfo[] iI = new ItemInfo[tags.size()];
+        int index = 0;
+        for (String name : tags.keySet()) {
+            double val = tags.get(name);
+            iI[index++] = new ItemInfo(ClientDataManager.nameToKey(name), name, val, val);
+        }
+        showTagCloud(title, iI, cdm);
+    }
+    
     public static void showTagCloud(String title, ItemInfo[] tags, ClientDataManager cdm) {
         final DialogBox d = Popup.getDialogBox();
         Panel p = getTagsInPanel(tags, d, cdm);

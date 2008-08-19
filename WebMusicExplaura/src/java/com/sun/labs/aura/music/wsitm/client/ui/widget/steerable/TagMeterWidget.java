@@ -64,36 +64,20 @@ public class TagMeterWidget extends TagWidget {
         }
         return itemsMap;
     }
-/*
-    public HashMap<String, Double> getTapMap() {
-        HashMap<String, Double> tagMap = new HashMap<String, Double>();
 
-        // Find the average score of positive items
-        double maxScore = -100;
-        double sumScorePos = 0;
-        int nbrPos = 0;
-        for (String key : tagCloud.keySet()) {
-            int rating = tagCloud.get(key).getRating();
-            if (rating > maxScore) {
-                maxScore = rating;
-            }
-            if (rating > CloudItemMeter.RED_WIDTH) {
-                sumScorePos += rating;
-                nbrPos++;
+    @Override
+    public double getMaxWeight() {
+        double maxVal = 0;
+        double tempVal = 0;
+        for (CloudItemMeter i : tagCloud.values()) {
+            tempVal = i.getCloudItem().getWeight();
+            if (tempVal > maxVal) {
+                maxVal = tempVal;
             }
         }
-
-        for (String key : tagCloud.keySet()) {
-            double rating = tagCloud.get(key).getRating();
-            if (rating < CloudItemMeter.RED_WIDTH) {
-                rating = -(sumScorePos / nbrPos);
-            }
-            // @todo remove lowercase when funny business in engine is fixed
-            tagMap.put(tagCloud.get(key).getName().toLowerCase(), rating / maxScore);
-        }
-        return tagMap;
+        return maxVal;
     }
-*/
+
     public void removeItem(String itemId) {
         if (tagCloud.containsKey(itemId)) {
             mainTagPanel.remove(tagCloud.get(itemId));

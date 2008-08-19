@@ -21,10 +21,12 @@ import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.DataEmbededCommand;
 import com.sun.labs.aura.music.wsitm.client.WebException;
+import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudArtist;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.WrapsCloudItem;
 import com.sun.labs.aura.music.wsitm.client.ui.ColorConfig;
-import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.DeletableWidget;
@@ -183,6 +185,19 @@ public class ResizableTagWidget extends TagWidget {
         super.onDetach();
         WebLib.disableTextSelectInternal(this.getElement(), false);
     }
+    
+    @Override
+    public double getMaxWeight() {
+        double maxVal = 0;
+        double tempVal = 0;
+        for (DeletableResizableTag dT : tagCloud.values()) {
+            tempVal = dT.getCloudItem().getWeight();
+            if (tempVal > maxVal) {
+                maxVal = tempVal;
+            }
+        }
+        return maxVal;
+    }
 
     /**
      * Add all supplied items
@@ -243,7 +258,7 @@ public class ResizableTagWidget extends TagWidget {
                 item.setWeight( AVG_SIZE_OF_ADDED_CLOUD );
             }
             
-            ResizableTag rT = new ResizableTag(item, item.getColorConfig()[(colorIndex++) % 2]);
+            ResizableTag rT = getNewTagObject(item, item.getColorConfig()[(colorIndex++) % 2]);
             DeletableResizableTag dW = new DeletableResizableTag(rT);
 
             tagCloud.put(item.getId(), dW);
@@ -313,6 +328,21 @@ public class ResizableTagWidget extends TagWidget {
         return itemsMap;
     }
 
+    /**
+     * Determines the type of CloudItem, creates the right type of ResizableTag
+     * returns it
+     * @param item
+     * @param color
+     * @return
+     */
+    private ResizableTag getNewTagObject(CloudItem item, ColorConfig color) {
+        if (item instanceof CloudArtist) {
+            return new ResizableArtistTag(item, color);
+        } else {
+            return new ResizableTag(item, color);
+        }
+    }
+
     public class DeletableResizableTag extends DeletableWidget<ResizableTag> implements WrapsCloudItem {
 
         public DeletableResizableTag(ResizableTag t) {
@@ -344,18 +374,50 @@ public class ResizableTagWidget extends TagWidget {
         }
     }
 
-    public class ResizableTag extends ContextMenuSpannedLabel implements WrapsCloudItem {
+    /**
+     * Resizable tag with the addition of the artist context menu
+     */
+    public class ResizableArtistTag extends ResizableTag implements HasContextMenu {
+        
+        protected ContextMenu cm;
+        
+        public ResizableArtistTag(CloudItem item, ColorConfig color) {
+            super(item, color);
+            this.cm = new ContextMenu(sharedArtistMenu);
+            sinkEvents(Event.ONCONTEXTMENU);
+        }
+        
+        @Override
+        public void onBrowserEvent(Event event) {
+            if (event.getTypeInt() == Event.ONCONTEXTMENU) {
+                DOM.eventPreventDefault(event);
+                try {
+                    cm.showSharedMenu(event, item);
+                } catch (WebException ex) {
+                    Window.alert(ex.toString());
+                }
+            } else {
+                super.onBrowserEvent(event);
+            }
+        }
+
+        public ContextMenu getContextMenu() {
+            return cm;
+        }  
+    }
+
+    public class ResizableTag extends SpannedLabel implements WrapsCloudItem {
 
         private final double DEFAULT_SIZE = 40;
 
         private boolean hasClicked = false;
         private ColorConfig color;
-        private CloudItem item;
+        protected CloudItem item;
         private static final int MIN_SIZE = 4;
         private static final int MAX_SIZE = 175;
 
         public ResizableTag(CloudItem item, ColorConfig color) {
-            super(item.getDisplayName(), sharedArtistMenu);
+            super(item.getDisplayName());
             this.item = item;
 
             if (this.item.getWeight() == 0) {
@@ -382,21 +444,7 @@ public class ResizableTagWidget extends TagWidget {
                 public void onMouseMove(Widget arg0, int arg1, int arg2) {}
             });
         }
-
-        @Override
-        public void onBrowserEvent(Event event) {
-            if (event.getTypeInt() == Event.ONCONTEXTMENU) {
-                DOM.eventPreventDefault(event);
-                try {
-                    cm.showSharedMenu(event, item);
-                } catch (WebException ex) {
-                    Window.alert(ex.toString());
-                }
-            } else {
-                super.onBrowserEvent(event);
-            }
-        }
-
+        
         private final void resetAttributes() {
             getElement().setAttribute("style", "-moz-user-select: none; -khtml-user-select: none; user-select: none; font-size:" + Math.abs(item.getWeight()) + "px; color:" + color.getColor(item.getWeight()) + ";");
         }

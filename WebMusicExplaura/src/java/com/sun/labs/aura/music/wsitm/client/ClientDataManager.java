@@ -46,7 +46,6 @@ public class ClientDataManager {
     private String currRecTypeName;
     private String currSimTypeName;
     
-    private Double maxScore;
     private Map<String, Double> favArtist;
     
     private PageHeaderWidget phw;
@@ -169,10 +168,6 @@ public class ClientDataManager {
 
     public void setSteerableReset(boolean newVal) {
         forceSteerableReset = newVal;
-    }
-
-    public Double getMaxScore() {
-        return maxScore;
     }
 
     public String getLastFmUser() {
@@ -580,6 +575,18 @@ public class ClientDataManager {
         public void addArtist(ArtistCompact aC) {
             if (init) {
                 tagLand.addArtist(aC, 0);
+            }
+        }
+
+        /**
+         * Returns the weight of the maximum weighted item in the tag cloud
+         * @return
+         */
+        public double getMaxWeight() {
+            if (init) {
+                return tagLand.getMaxWeight();
+            } else {
+                return -1;
             }
         }
     }
