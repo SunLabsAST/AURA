@@ -116,11 +116,16 @@ public abstract class AbstractSearchWidget extends Composite {
         }
         return null;
     }
+    
+    public void setText(String text) {
+        if (textBox != null) {
+            textBox.setValue(text);
+        }
+    }
 
     public void setText(String text, searchTypes searchType) {
         if (textBox != null) {
             textBox.setValue(text);
-            //textBox.setText(text);
             for (SearchTypeRadioButton rB : searchButtons) {
                 rB.setChecked(rB.getSearchType() == searchType);
             }

@@ -199,6 +199,8 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             mainPanel.add(result, DockPanel.CENTER);
             curResult = result;
             curResultToken = historyName;
+        } else {
+            search.setText("");
         }
     }
 
