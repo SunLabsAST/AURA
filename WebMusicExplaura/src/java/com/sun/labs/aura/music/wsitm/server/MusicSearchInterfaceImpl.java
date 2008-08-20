@@ -478,7 +478,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public Set<String> fetchUserTagsForItem(String itemId) throws WebException {
+    public HashSet<String> fetchUserTagsForItem(String itemId) throws WebException {
         
         String userId = getOpenIdFromSession();
         logger.info("fetchUserTagForItem :: user:"+userId+", item:"+itemId);
