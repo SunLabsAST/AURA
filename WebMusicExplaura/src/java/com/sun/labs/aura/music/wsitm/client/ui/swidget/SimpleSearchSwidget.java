@@ -416,7 +416,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                     ArtistDetails artistDetails = (ArtistDetails) result;
                     if (artistDetails != null && artistDetails.isOK()) {
                         cdm.setCurrArtistInfo(artistDetails.getId(), artistDetails.getName());
-                        Widget artistPanel = createArtistPanel("Artists", artistDetails);
+                        Widget artistPanel = createArtistPanel(artistDetails);
                         search.setText(artistDetails.getName(), searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
                         search.updateSuggestBox(Oracles.ARTIST);
                         setResults("artist:" + artistDetails.getId(), artistPanel);
@@ -494,7 +494,10 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         }
     }
 
-    private Widget createArtistPanel(String title, ArtistDetails artistDetails) {
+    private Widget createArtistPanel(ArtistDetails artistDetails) {
+
+        ArtistCompact aC = artistDetails.toArtistCompact();
+
         VerticalPanel main = new VerticalPanel();
         main.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
         main.add(getBioWidget(artistDetails));
@@ -517,7 +520,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             if (leftSimList != null) {
                 leftSimList.doRemoveListeners();
             }
-            leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), artistDetails.getName());
+            leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, aC);
             left.add(
                     new Updatable(new HTML("<H2>Similar artists</H2>"), leftSimList, cdm, id) {
 
@@ -525,7 +528,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                             ArtistCompact[] aCArray = aD.getSimilarArtists();
                             addCompactArtistToOracle(aCArray);
                             leftSimList.doRemoveListeners();
-                            leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), cdm.getCurrArtistName());
+                            leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, aD.toArtistCompact());
                             setNewContent(new HTML("<H2>Similar artists</H2>"), leftSimList);
                         }
                     }
@@ -539,7 +542,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             if (leftRecList != null) {
                 leftRecList.doRemoveListeners();
             }
-            leftRecList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), cdm.getCurrArtistName());
+            leftRecList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, aC);
             left.add(WebLib.createSection("Recommendations", leftRecList));
         }
         if (artistDetails.getCollaborations().length > 0) {
@@ -549,7 +552,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             if (leftRelList != null) {
                 leftRelList.doRemoveListeners();
             }
-            leftRelList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, cdm.getCurrArtistID(), cdm.getCurrArtistName());
+            leftRelList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, aC);
             left.add(WebLib.createSection("Related", leftRelList));
         }
         left.add(getMoreInfoWidget(artistDetails));
@@ -930,22 +933,31 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
     public class ArtistCloudArtistListWidget extends ArtistListWidget {
 
-        private String currArtistId;
-        private String currArtistName;
+        private ArtistCompact currArtist;
 
         public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
-            ClientDataManager cdm, ArtistCompact[] aDArray, String currArtistId, String currArtistName) {
+            ClientDataManager cdm, ArtistCompact[] aDArray, ArtistCompact currArtist) {
 
             super(musicServer, cdm, aDArray, cdm.isLoggedIn());
-            this.currArtistId = currArtistId;
-            this.currArtistName = currArtistName;
+            this.currArtist = currArtist;
         }
 
-        public void openWhyPopup(WhyButton why) {
+        public void openWhyPopup(SwapableTxtButton why) {
             why.showLoad();
-            TagDisplayLib.invokeGetCommonTags(currArtistId, why.getId(),
-                    musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between "+currArtistName+" and "+why.getName(), cdm) {});
+            TagDisplayLib.invokeGetCommonTags(currArtist.getId(), why.getId(),
+                    musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between "+currArtist.getName()+" and "+why.getName(), cdm) {});
         }
+
+        @Override
+        public void openDiffPopup(DiffButton diff) {
+            if (diff.getId().equals(currArtist.getId())) {
+                diff.displayIdenticalArtistMsg();
+            } else {
+                TagDisplayLib.showDifferenceCloud("Difference cloud between "+currArtist.getName()+" and "+diff.getName(),
+                    currArtist.getDistinctiveTags(), diff.getDistinctiveTags(), cdm);
+            }
+        }
+
     }
 
     abstract class ScrollWidget extends Composite {

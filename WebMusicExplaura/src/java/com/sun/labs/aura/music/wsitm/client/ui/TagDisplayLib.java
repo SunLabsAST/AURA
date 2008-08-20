@@ -21,6 +21,7 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import java.util.HashMap;
+import java.util.Arrays;
 
 /**
  *
@@ -28,20 +29,81 @@ import java.util.HashMap;
  */
 public abstract class TagDisplayLib {
 
-    public static void showTagCloud(String title, HashMap<String, Double> tags, ClientDataManager cdm) {
+    public enum ORDER {
+        ALPHABETICAL,
+        DESC,
+        SHUFFLE
+    }
+
+    public static void showDifferenceCloud(String title, ItemInfo[] tags1, ItemInfo[] tags2, ClientDataManager cdm) {
         
+        HashMap<String, Double> normTags1 = normaliseItemInfoArray(tags1);
+        HashMap<String, Double> normTags2 = normaliseItemInfoArray(tags2);
+        
+        HashMap<String, Double> subTags = new HashMap<String, Double>();
+        for (String s : normTags1.keySet()) {
+            if (normTags2.containsKey(s)) {
+                subTags.put(s, normTags1.get(s) - normTags2.get(s));
+            } else {
+                subTags.put(s, normTags1.get(s));
+            }
+        }
+        // All tags from normTags2 that are not in subTags are not contained
+        // in normTags1 so we can add them as negative valued tags
+        for (String s : normTags2.keySet()) {
+            if (!subTags.containsKey(s)) {
+                subTags.put(s, -normTags2.get(s));
+            }
+        }
+
+        showTagCloud(title, subTags, ORDER.DESC, cdm);
+    }
+    
+    private static HashMap<String, Double> normaliseItemInfoArray(ItemInfo[] iI) {
+        
+        HashMap<String, Double> normMap = new HashMap<String, Double>();
+        
+        double maxVal = 0;
+        for (ItemInfo i : iI) {
+            if (i.getScore() > maxVal) {
+                maxVal = i.getScore();
+            }
+        }
+        
+        for (ItemInfo i : iI) {
+            normMap.put(i.getItemName(), i.getScore() / maxVal);
+        }
+        
+        return normMap;
+    }
+
+    /**
+     * @deprecated 
+     */
+    public static void showTagCloud(String title, HashMap<String, Double> tags, ClientDataManager cdm) {
+        showTagCloud(title, tags, ORDER.SHUFFLE, cdm);
+    }
+    
+    public static void showTagCloud(String title, HashMap<String, Double> tags, ORDER order, ClientDataManager cdm) {
         ItemInfo[] iI = new ItemInfo[tags.size()];
         int index = 0;
         for (String name : tags.keySet()) {
             double val = tags.get(name);
             iI[index++] = new ItemInfo(ClientDataManager.nameToKey(name), name, val, val);
         }
-        showTagCloud(title, iI, cdm);
+        showTagCloud(title, iI, order, cdm);
     }
     
+    /**
+     * @deprecated 
+     */
     public static void showTagCloud(String title, ItemInfo[] tags, ClientDataManager cdm) {
+        showTagCloud(title, tags, ORDER.SHUFFLE, cdm);
+    }
+    
+    public static void showTagCloud(String title, ItemInfo[] tags, ORDER order, ClientDataManager cdm) {
         final DialogBox d = Popup.getDialogBox();
-        Panel p = getTagsInPanel(tags, d, cdm);
+        Panel p = getTagsInPanel(tags, d, order, cdm);
         if (p!=null) {
             Popup.showPopup(p,title,d);
         }
@@ -54,10 +116,24 @@ public abstract class TagDisplayLib {
         return (int) Math.round(range * score + min);
     }
 
+    /**
+     * @deprecated 
+     */
     public static Panel getTagsInPanel(ItemInfo[] tags, ClientDataManager cdm) {
-        return getTagsInPanel(tags, null, cdm);
+        return getTagsInPanel(tags, null, ORDER.SHUFFLE, cdm);
     }
 
+    public static Panel getTagsInPanel(ItemInfo[] tags, ORDER order, ClientDataManager cdm) {
+        return getTagsInPanel(tags, null, order, cdm);
+    }
+    
+    /**
+     * @deprecated
+     */
+    public static Panel getTagsInPanel(ItemInfo[] tags, DialogBox d, ClientDataManager cdm) {
+        return getTagsInPanel(tags, d, ORDER.SHUFFLE, cdm);
+    }
+    
     /**
      * Return a panel containing the tags cloud passed in parameter. If panel
      * will be used in pop-up, pass the DialogBox that will contain it in d to add
@@ -66,9 +142,9 @@ public abstract class TagDisplayLib {
      * @param d
      * @return
      */
-    public static Panel getTagsInPanel(ItemInfo[] tags, DialogBox d, ClientDataManager cdm) {
+    public static Panel getTagsInPanel(ItemInfo[] tags, DialogBox d, ORDER order, ClientDataManager cdm) {
         Panel p = new FlowPanel();
-        if (d!=null) {
+        if (d != null) {
             p.setWidth("600px");
         }
         HorizontalPanel innerP = new HorizontalPanel();
@@ -89,7 +165,13 @@ public abstract class TagDisplayLib {
             }
             double range = max - min;
 
-            tags = ItemInfo.shuffle(tags);
+            if (order == ORDER.SHUFFLE) {
+                Arrays.sort(tags, ItemInfo.getRandomSorter());
+            } else if (order == ORDER.DESC) {
+                Arrays.sort(tags, ItemInfo.getScoreSorter());
+            } else if (order == ORDER.ALPHABETICAL) {
+                Arrays.sort(tags, ItemInfo.getNameSorter());
+            }
 
             for (int i = 0; i < tags.length; i++) {
                 int colorId = i % 2;
@@ -167,7 +249,6 @@ public abstract class TagDisplayLib {
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }
-
     }
 
     public abstract class AsyncCallbackWithCommand implements AsyncCallback {
@@ -177,7 +258,5 @@ public abstract class TagDisplayLib {
         public AsyncCallbackWithCommand(Command cmd) {
             this.cmd = cmd;
         }
-
     }
-
 }

@@ -267,7 +267,7 @@ public class DashboardSwidget extends Swidget {
                         for (AttentionItem aI : arg0) {
 
                             CompactArtistWidget caw = new CompactArtistWidget((ArtistCompact)aI.getItem(), cdm,
-                                    musicServer, null, aI.getRating(), aI.getTags());
+                                    musicServer, null, null, aI.getRating(), aI.getTags());
                             recentTaggingListeners.add(caw);
                             artists.setWidget(lineIndex, (colIndex++)%2, caw);
 
@@ -310,7 +310,7 @@ public class DashboardSwidget extends Swidget {
                         for (AttentionItem aI : arg0) {
 
                             CompactArtistWidget caw = new CompactArtistWidget((ArtistCompact)aI.getItem(), cdm,
-                                    musicServer, null, aI.getRating(), aI.getTags());
+                                    musicServer, null, null, aI.getRating(), aI.getTags());
                             recentPlayedListeners.add(caw);
                             artists.setWidget(lineIndex, (colIndex++)%2, caw);
 
@@ -419,7 +419,7 @@ public class DashboardSwidget extends Swidget {
                 }
 
                 public void onSuccess(List<ArtistRecommendation> rec) {
-                    uP.setNewContent(new UserCloudArtistListWidget(musicServer, cdm, ListArToAc(rec),rec));
+                    uP.setNewContent(new UserCloudArtistListWidget(musicServer, cdm, ArtistRecToArtistCompact(rec),rec));
                     uP.setWaitIconVisible(false);
                 }
             };
@@ -454,7 +454,7 @@ public class DashboardSwidget extends Swidget {
                         for (AttentionItem aI : arg0) {
 
                             CompactArtistWidget caw = new CompactArtistWidget((ArtistCompact)aI.getItem(), cdm,
-                                    musicServer, null, aI.getRating(), null);
+                                    musicServer, null, null, aI.getRating(), null);
                             recentRatingListeners.add(caw);
                             artists.setWidget(lineIndex, (colIndex++)%2, caw);
 
@@ -543,7 +543,7 @@ public class DashboardSwidget extends Swidget {
      * @param aR
      * @return
      */
-    public ArtistCompact[] ListArToAc(List<ArtistRecommendation> aR) {
+    public ArtistCompact[] ArtistRecToArtistCompact(List<ArtistRecommendation> aR) {
         ArtistCompact[] aC = new ArtistCompact[aR.size()];
         for (int i = 0; i < aR.size(); i++) {
             aC[i] = aR.get(i).getArtist();
@@ -565,8 +565,13 @@ public class DashboardSwidget extends Swidget {
             }
         }
 
-        public void openWhyPopup(WhyButton why) {
-            TagDisplayLib.showTagCloud(mapAR.get(why.getId()).getDescription(), mapAR.get(why.getId()).getExplanation(), cdm);
+        public void openWhyPopup(SwapableTxtButton why) {
+            TagDisplayLib.showTagCloud(mapAR.get(why.getId()).getDescription(), mapAR.get(why.getId()).getExplanation(), TagDisplayLib.ORDER.SHUFFLE, cdm);
+        }
+
+        @Override
+        public void openDiffPopup(DiffButton diff) {
+            throw new UnsupportedOperationException("Not supported yet.");
         }
     }
 }

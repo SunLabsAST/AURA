@@ -66,7 +66,8 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         }
     }
 
-    public abstract void openWhyPopup(WhyButton why);
+    public abstract void openWhyPopup(SwapableTxtButton why);
+    public abstract void openDiffPopup(DiffButton diff);
 
     /**
      * Called on tag click in the CompactArtistWidget. Overwrite to change default
@@ -115,7 +116,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
 
                 CompactArtistWidget caw = new OverWroteOnClickCompactArtistWidget(aC, cdm,
                         musicServer, new WhyButton(aC.getId(), aC.getName()),
-                        rating, null, this);
+                        new DiffButton(aC), rating, null, this);
                 artistWidgetList.add(caw);
 
                 DeletableWidget dW = new DeletableWidget<CompactArtistWidget>(caw, new HorizontalPanel()) {
@@ -203,33 +204,78 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         }
     }
 
-    public class WhyButton extends SwapableWidget<SpannedLabel, Image> {
-
-        private SpannedLabel why;
-
-        private String artistName;
-        private String id;
+    public class WhyButton extends SwapableTxtButton {
 
         public WhyButton(String id, String artistName) {
-
-            super(new SpannedLabel("why?"), new Image("ajax-loader-small.gif"));
+            super("why?", id, artistName);
+        }
+        
+        @Override
+        protected void addClickListener() {
             
-            this.id = id;
-            this.artistName = artistName;
-
-            setWidth("30px");
-
-            why = getWidget1();
-            why.getElement().setAttribute("style", "font-size: 12px");
-            why.addStyleName("pointer");
-
-            why.addClickListener(new DataEmbededClickListener<WhyButton>(this) {
+            button.addClickListener(new DataEmbededClickListener<SwapableTxtButton>(this) {
 
                 public void onClick(Widget arg0) {
                     openWhyPopup(data);
                 }
             });
         }
+    }
+
+    public class DiffButton extends SwapableTxtButton {
+
+        private ArtistCompact aC;
+
+        public DiffButton(ArtistCompact aC) {
+            super("diff", aC.getId(), aC.getName());
+            this.aC = aC;
+        }
+        
+        @Override
+        protected void addClickListener() {
+            
+            button.addClickListener(new DataEmbededClickListener<DiffButton>(this) {
+
+                public void onClick(Widget arg0) {
+                    openDiffPopup(data);
+                }
+            });
+        }
+
+        public ItemInfo[] getDistinctiveTags() {
+            return aC.getDistinctiveTags();
+        }
+        
+        public void displayIdenticalArtistMsg() {
+            Window.alert("Cannot display difference tag cloud between the same artist.");
+        }
+
+    }
+
+    public abstract class SwapableTxtButton extends SwapableWidget<SpannedLabel, Image> {
+
+        protected SpannedLabel button;
+
+        private String artistName;
+        private String id;
+
+        public SwapableTxtButton(String linkName, String id, String artistName) {
+
+            super(new SpannedLabel(linkName), new Image("ajax-loader-small.gif"));
+            
+            this.id = id;
+            this.artistName = artistName;
+
+            setWidth("30px");
+
+            button = getWidget1();
+            button.getElement().setAttribute("style", "font-size: 11px");
+            button.addStyleName("pointer");
+
+            addClickListener();
+        }
+        
+        protected abstract void addClickListener();
 
         public String getId() {
             return id;
@@ -239,7 +285,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
             return artistName;
         }
 
-        public void showWhy() {
+        public void showButton() {
             showWidget(LoadableWidget.W1);
         }
 
@@ -253,9 +299,10 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         private ArtistListWidget aLW;
 
         public OverWroteOnClickCompactArtistWidget(ArtistCompact aD, ClientDataManager cdm,
-                MusicSearchInterfaceAsync musicServer, WhyButton whyB,
-                int currentRating, Set<String> userTags, ArtistListWidget aLW) {
-            super(aD, cdm, musicServer, whyB, currentRating, userTags);
+                MusicSearchInterfaceAsync musicServer, SwapableTxtButton whyB,
+                SwapableTxtButton diffB, int currentRating, Set<String> userTags,
+                ArtistListWidget aLW) {
+            super(aD, cdm, musicServer, whyB, diffB, currentRating, userTags);
             this.aLW = aLW;
         }
 

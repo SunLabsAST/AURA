@@ -305,7 +305,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 double val = tagInfluenceMap.get(tagName) / maxScore * currTagMap.get(tagName);
                 tagArray[index++] = new ItemInfo(ClientDataManager.nameToKey(tagName), tagName, val, val);
             }
-            TagDisplayLib.showTagCloud("Tags' influence on generated recommendations", tagArray, cdm);
+            TagDisplayLib.showTagCloud("Tags' influence on generated recommendations", tagArray, TagDisplayLib.ORDER.SHUFFLE, cdm);
         }
 
         public void invokeFetchNewRecommendations() {
@@ -967,10 +967,20 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             tagLand.addTag(tag, 0, true);
         }
 
-        public void openWhyPopup(WhyButton why) {
+        public void openWhyPopup(SwapableTxtButton why) {
             why.showLoad();
             TagDisplayLib.invokeGetCommonTags(tagLand.getTagMap(), why.getId(),
-                    musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between your cloud and "+why.getName(), cdm) {});
+                    musicServer, cdm,
+                    new CommonTagsAsyncCallback(why, "Common tags between your cloud and "+why.getName(), cdm) {});
+        }
+
+        @Override
+        public void openDiffPopup(DiffButton diff) {
+
+            ItemInfo[] steerTags = ItemInfo.mapToArray(tagLand.getTagMap());
+            TagDisplayLib.showDifferenceCloud("Difference cloud between your tag cloud and "+diff.getName(),
+                    steerTags, diff.getDistinctiveTags(), cdm);
+
         }
     }
 }
