@@ -47,13 +47,20 @@ public abstract class Swidget extends Composite implements HasListeners {
     public abstract List<String> getTokenHeaders();
 
     /**
-     * Returns this sections' title as it should appear in the top menu
-     * @return null if not to appear in to menu
+     * Returns this section's title as it should appear in the top menu
+     * @return null if this swidget should not appear in to menu
      */
-    public final MenuItem getMenuItem() {
+    public final MenuItem getMenuItem() throws WebException {
+        if (menuItem == null) {
+            throw new WebException("Menuitem not initialised in swidget '"+name+"'");
+        }
         return menuItem;
     };
 
+    /**
+     * Called when the swidget is being constructed. Method should create the
+     * menuItem object
+     */
     protected abstract void initMenuItem();
 
     /**
@@ -64,6 +71,10 @@ public abstract class Swidget extends Composite implements HasListeners {
      */
     public void update() {}
 
+    /**
+     * Returns the swidget's name
+     * @return
+     */
     public final String getName() {
         return name;
     }
