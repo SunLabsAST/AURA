@@ -39,7 +39,7 @@ When a widget registers itself with a listener (or contains a widget that does) 
 
 # SteerableTagCloudExternalController
 
-Accessible through the cdm and serves as a bridge between any part of the application and the steerable tag cloud. This is for example used to add tags from context menus not displayed in the steerable swidget.
+Accessible through the cdm and serves as a bridge between any part of the application and the steerable tag cloud. This is for example used to add tags  to the steerable interface from context menus.
 
 
 # Steerable recommendations

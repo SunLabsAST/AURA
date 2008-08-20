@@ -7,6 +7,7 @@ Web Music Explaura :: TODO / wishlist
 - Change general types to specific types on client side code (use HashMap instead of Map)
 - Add getTitle() method to swidget to update page title
 - Fixed shacking on click text box
+- Improve overall look and colors. Chose tag colors that are clearer.
 
 - Album / track level
 - Autotags
