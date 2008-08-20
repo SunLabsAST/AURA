@@ -176,14 +176,15 @@ public class DashboardSwidget extends Swidget {
                 Collections.sort(liI,ItemInfo.getScoreSorter());
                 trimTags = new ItemInfo[max];
                 for (int i=0; i<max; i++) {
-                    trimTags[i] = liI.get(i);//cdm.getListenerDetails().userTagCloud[i];
+                    trimTags[i] = liI.get(i);
                 }
             }
 
             VerticalPanel centerPanel = new VerticalPanel();
             centerPanel.add(titleLbl);
             if (trimTags != null) {
-                centerPanel.add(TagDisplayLib.getTagsInPanel(trimTags, cdm));
+                centerPanel.add(TagDisplayLib.getTagsInPanel(trimTags, 
+                        TagDisplayLib.ORDER.SHUFFLE, cdm));
             }
             centerPanel.add(featArtist);
             centerPanel.add(recentRating);

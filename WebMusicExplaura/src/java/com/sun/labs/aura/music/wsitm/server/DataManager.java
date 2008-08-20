@@ -1051,19 +1051,6 @@ public class DataManager implements Configurable {
         return tagsArray.subList(0,this.getMax(tagsArray,NUMBER_TAGS_TO_SHOW)).toArray(new ItemInfo[0]);
     }
 
-    /**
-     * Extracts the IDs from a list of items and returns them in a list
-     * @param itemIDs list of items
-     * @return list of the items' IDs
-     */
-    private List<String> itemsToIDs(List<Item> itemIDs) {
-        List<String> stringIDs = new ArrayList();
-        for (Item i : itemIDs) {
-            stringIDs.add(i.getKey());
-        }
-        return stringIDs;
-    }
-
     public int getExpiredTimeInDays() {
         return expiredTimeInDays;
     }

@@ -421,61 +421,21 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public List<AttentionItem> getLastTaggedArtists(int count) throws WebException {
-
-        String userId = getOpenIdFromSession();
-        logger.info("getLastRatedArtists :: user:"+userId);
-
-        try {
-
-            ArrayList<AttentionItem> aI = new ArrayList<AttentionItem>();
-            Set<String> artistIds = new HashSet<String>();
-
-            List<Attention> att = dm.getLastAttentionData(userId, Type.TAG, count * 2);
-            for (Attention a : att) {
-                if (!artistIds.contains(a.getTargetKey())) {
-                    AttentionItem newAi = new AttentionItem(getArtistCompact(a.getTargetKey()));
-                    newAi.setTags(fetchUserTagsForItem(a.getTargetKey()));
-                    aI.add(newAi);
-                    artistIds.add(a.getTargetKey());
-
-                    if (artistIds.size() == count) {
-                        break;
-                    }
-                }
-            }
-
-            // Fetch ratings for all songs
-            Map<String,Integer> ratings = dm.fetchUserSongRating(userId, artistIds);
-            for (AttentionItem a : aI) {
-                ArtistCompact aC = (ArtistCompact)a.getItem();
-                if (ratings.containsKey(aC.getId())) {
-                    a.setRating(ratings.get(aC.getId()));
-                }
-            }
-
-            return aI;
-
-        } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
-            throw new WebException(ex.getMessage(), ex);
-        } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
-            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
-        }
+        return getLastAttentionArtists(count, Type.TAG, true);
     }
 
     public List<AttentionItem> getLastRatedArtists(int count) throws WebException {
-        return getLastAttentionArtists(count, Type.RATING);
+        return getLastAttentionArtists(count, Type.RATING, true);
     }
 
     public List<AttentionItem> getLastPlayedArtists(int count) throws WebException {
-        return getLastAttentionArtists(count, Type.PLAYED);
+        return getLastAttentionArtists(count, Type.PLAYED, true);
     }
 
-    public List<AttentionItem> getLastAttentionArtists(int count, Type attentionType) throws WebException {
+    public List<AttentionItem> getLastAttentionArtists(int count, Type attentionType, boolean fetchUserTags) throws WebException {
 
         String userId = getOpenIdFromSession();
-        logger.info("getLastPayedArtists :: user:"+userId);
+        logger.info("getLastAttentionArtists :: user:"+userId+" attention:"+attentionType.toString());
 
         try {
             ArrayList<AttentionItem> aI = new ArrayList<AttentionItem>();
@@ -484,9 +444,13 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             List<Attention> att = dm.getLastAttentionData(userId, attentionType, count * 2);
             for (Attention a : att) {
                 if (!artistIds.contains(a.getTargetKey())) {
-                    aI.add(new AttentionItem(getArtistCompact(a.getTargetKey())));
+                    AttentionItem newAi = new AttentionItem(getArtistCompact(a.getTargetKey()));
+                    if (fetchUserTags) {
+                        newAi.setTags(fetchUserTagsForItem(a.getTargetKey()));
+                    }
+                    aI.add(newAi);
                     artistIds.add(a.getTargetKey());
-
+                    
                     if (artistIds.size() == count) {
                         break;
                     }

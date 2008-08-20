@@ -98,6 +98,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
     }
 
     /** Creates a new instance of SimpleSearchWidget */
+    @Override
     public Widget getWidget() {
 
         searchBoxContainerPanel = new FlowPanel();
@@ -477,10 +478,6 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
         showMessage("Getting info for tag", WebLib.ICON_WAIT);
 
-        // (4) Make the call. Control flow will continue immediately and later
-        // 'callback' will be invoked when the RPC completes.
-        //
-        //  Provide your own name.
         try {
             musicServer.getTagDetails(tagID.substring(tagID.indexOf(":")+1), refresh, cdm.getCurrSimTypeName(), callback);
         } catch (Exception ex) {
@@ -757,7 +754,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             cdm.getLoginListenerManager().addListener(tagInputWidget);
             panel.add(tagInputWidget);
             
-            Panel p = TagDisplayLib.getTagsInPanel(tagCloud, cdm);
+            Panel p = TagDisplayLib.getTagsInPanel(tagCloud, TagDisplayLib.ORDER.SHUFFLE, cdm);
             p.addStyleName("tagCloudMargin");
             panel.add(p);
         }
@@ -772,15 +769,6 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             imgHtml = photos[0].getHtmlWrapper();
         }
         return imgHtml;
-    }
-
-    private ArtistVideo selectRandomVideo(ArtistVideo[] av) {
-        if (av.length > 0) {
-            int index = Random.nextInt(av.length);
-            return av[index];
-        } else {
-            return null;
-        }
     }
 
     private String getEmbeddedVideo(ArtistVideo video, boolean autoplay) {
@@ -821,7 +809,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             l.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
-                    TagDisplayLib.showTagCloud(title, itemInfo, cdm);
+                    TagDisplayLib.showTagCloud(title, itemInfo, TagDisplayLib.ORDER.SHUFFLE, cdm);
                 }
             });
             titleWidget.setWidget(0, 1, l);
@@ -833,39 +821,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         w.setWidth("200px");
         return w;
     }
-/*
-    private Widget getItemInfoList2(ItemInfo[] itemInfo,
-            String highlightID, boolean getArtistOnClick, MultiWordSuggestOracle oracle) {
-        Grid artistGrid = new Grid(itemInfo.length, 2);
-        for (int i = 0; i < itemInfo.length; i++) {
 
-            // Add name to oracle as we only populated it with most popular
-            if (oracle!=null) {
-                oracle.add(itemInfo[i].getItemName());
-            }
-
-            Label label = new Label(itemInfo[i].getItemName());
-            label.addClickListener(new ItemInfoClickListener(itemInfo[i], getArtistOnClick));
-            label.setTitle("Score: " + itemInfo[i].getScore() + " Popularity:" + itemInfo[i].getPopularity());
-            if (highlightID != null && highlightID.equals(itemInfo[i].getId())) {
-                label.setStyleName("itemInfoHighlight");
-            } else {
-                label.setStyleName("itemInfo");
-            }
-            artistGrid.setWidget(i, 0, label);
-            Label why = new Label("why?");
-            why.setStyleName("tinyInfo");
-
-            why.addClickListener(new CommonTagsClickListener(highlightID, itemInfo[i].getId()));
-            artistGrid.setWidget(i, 1, why);
-        }
-        //Widget w = createSection(title, artistGrid);
-        //w.setStyleName("infoList");
-        //w.setWidth("200px");
-        //return w;
-        return artistGrid;
-    }
-*/
     class TimerWithArtist extends Timer {
 
         private String artistID;
@@ -1052,7 +1008,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                 }
             }
 
-            n=Math.abs(n);
+            n = Math.abs(n);
             ArrayList<ScrollItem> sI = new ArrayList<ScrollItem>();
             for (int i=0; i<n; i++) {
                 sI.add(new ScrollItem(items[currIndex].title,
@@ -1350,24 +1306,5 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                 }
             }
         }
-    }
-
-    private ItemInfo[] alphaSort(ItemInfo[] itemInfo) {
-
-        ItemInfo[] ii = new ItemInfo[itemInfo.length];
-
-        for (int i = 0; i < itemInfo.length; i++) {
-            ii[i] = itemInfo[i];
-        }
-
-        Arrays.sort(ii, new Comparator() {
-
-            public int compare(Object o1, Object o2) {
-                ItemInfo i1 = (ItemInfo) o1;
-                ItemInfo i2 = (ItemInfo) o2;
-                return i1.getItemName().compareTo(i2.getItemName());
-            }
-        });
-        return ii;
     }
 }

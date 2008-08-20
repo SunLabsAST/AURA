@@ -197,7 +197,9 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
                 public void onClick(Widget arg0) {
                     if (currTagMap == null || currTagMap.isEmpty()) {
-                        Info.display("Steerable recommendations", "Cannot display atomic representation; you must add tags in your cloud first.", new Params());
+                        Info.display("Steerable recommendations", 
+                                "Cannot display atomic representation; you must " +
+                                "add tags in your cloud first.", new Params());
                     } else {
                         HashMap<String, Double> map = currTagMap;
                         ItemInfo[] iI = new ItemInfo[map.size()];
@@ -205,7 +207,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                         for (String s : map.keySet()) {
                             iI[index++] = new ItemInfo(ClientDataManager.nameToKey(s), s, map.get(s), map.get(s));
                         }
-                        TagDisplayLib.showTagCloud("Atomic representation of tag cloud", iI, cdm);
+                        TagDisplayLib.showTagCloud("Atomic representation of tag cloud",
+                                iI, TagDisplayLib.ORDER.SHUFFLE, cdm);
                     }
                 }
             });

@@ -76,14 +76,7 @@ public abstract class TagDisplayLib {
         
         return normMap;
     }
-
-    /**
-     * @deprecated 
-     */
-    public static void showTagCloud(String title, HashMap<String, Double> tags, ClientDataManager cdm) {
-        showTagCloud(title, tags, ORDER.SHUFFLE, cdm);
-    }
-    
+   
     public static void showTagCloud(String title, HashMap<String, Double> tags, ORDER order, ClientDataManager cdm) {
         ItemInfo[] iI = new ItemInfo[tags.size()];
         int index = 0;
@@ -93,14 +86,7 @@ public abstract class TagDisplayLib {
         }
         showTagCloud(title, iI, order, cdm);
     }
-    
-    /**
-     * @deprecated 
-     */
-    public static void showTagCloud(String title, ItemInfo[] tags, ClientDataManager cdm) {
-        showTagCloud(title, tags, ORDER.SHUFFLE, cdm);
-    }
-    
+        
     public static void showTagCloud(String title, ItemInfo[] tags, ORDER order, ClientDataManager cdm) {
         final DialogBox d = Popup.getDialogBox();
         Panel p = getTagsInPanel(tags, d, order, cdm);
@@ -116,24 +102,10 @@ public abstract class TagDisplayLib {
         return (int) Math.round(range * score + min);
     }
 
-    /**
-     * @deprecated 
-     */
-    public static Panel getTagsInPanel(ItemInfo[] tags, ClientDataManager cdm) {
-        return getTagsInPanel(tags, null, ORDER.SHUFFLE, cdm);
-    }
-
     public static Panel getTagsInPanel(ItemInfo[] tags, ORDER order, ClientDataManager cdm) {
         return getTagsInPanel(tags, null, order, cdm);
     }
-    
-    /**
-     * @deprecated
-     */
-    public static Panel getTagsInPanel(ItemInfo[] tags, DialogBox d, ClientDataManager cdm) {
-        return getTagsInPanel(tags, d, ORDER.SHUFFLE, cdm);
-    }
-    
+       
     /**
      * Return a panel containing the tags cloud passed in parameter. If panel
      * will be used in pop-up, pass the DialogBox that will contain it in d to add

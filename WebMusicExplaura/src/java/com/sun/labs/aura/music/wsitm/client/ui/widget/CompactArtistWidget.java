@@ -157,7 +157,6 @@ public class CompactArtistWidget extends Composite implements HasListeners {
             buttonPanel.add(swapableButtonPanel);
         }
         
-
         aNamePanel.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
         aNamePanel.add(buttonPanel);
 

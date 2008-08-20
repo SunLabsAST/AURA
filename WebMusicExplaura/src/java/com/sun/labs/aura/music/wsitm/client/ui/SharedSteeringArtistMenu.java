@@ -66,7 +66,8 @@ public class SharedSteeringArtistMenu extends Menu implements CloudItemDependent
 
             @Override
             public void onClick(BaseItem bItem, EventObject e) {
-                TagDisplayLib.showTagCloud("Tag cloud for "+cI.getDisplayName(), cI.getTagMap(), cdm);
+                TagDisplayLib.showTagCloud("Tag cloud for "+cI.getDisplayName(), 
+                        cI.getTagMap(), TagDisplayLib.ORDER.SHUFFLE, cdm);
             }
 
         }));

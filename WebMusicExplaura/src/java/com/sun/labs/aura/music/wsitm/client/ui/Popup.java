@@ -28,11 +28,9 @@ public abstract class Popup {
     }
 
     public static void showPopup(Widget w, String title, final DialogBox popup) {
-        //final DialogBox popup = new DialogBox(true);
+
         DockPanel docPanel = new DockPanel();
 
-        //docPanel.setStyleName("borderpopup");
-        //docPanel.addStyleName("cw-DialogBox");
         Label closeButton = new Label("Close");
         closeButton.setStyleName("clickableLabel");
         closeButton.addStyleName("whiteTxt");
@@ -55,5 +53,4 @@ public abstract class Popup {
         popup.setAnimationEnabled(true);
         popup.center();
     }
-
 }
