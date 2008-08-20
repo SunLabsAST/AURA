@@ -6,13 +6,11 @@
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
-import com.sun.labs.aura.music.wsitm.client.ui.widget.DeletableWidget;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FocusListener;
@@ -25,8 +23,6 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -37,7 +33,7 @@ public class TagInputWidget extends Composite implements LoginListener {
     private MusicSearchInterfaceAsync musicServer;
     private ClientDataManager cdm;
 
-    private Map<String, SpannedLabel> userTags;
+    private HashMap<String, SpannedLabel> userTags;
     private FlowPanel tagPanel;
     private TextBox txtBox;
     private Image progressImg;
@@ -102,7 +98,7 @@ public class TagInputWidget extends Composite implements LoginListener {
 
     private void onTagSubmit() {
         if (cdm.isLoggedIn()) {
-            Set<String> tags = new HashSet<String>();
+            HashSet<String> tags = new HashSet<String>();
             for (String newTag : getTextBoxTxt().split(",")) {
                 newTag = newTag.toLowerCase().trim();
                 tags.add(newTag);
@@ -172,14 +168,14 @@ public class TagInputWidget extends Composite implements LoginListener {
 
      private void invokeFetchUserTags() {
         
-         AsyncCallback<Set<String>> callback = new AsyncCallback<Set<String>>() {
+         AsyncCallback<HashSet<String>> callback = new AsyncCallback<HashSet<String>>() {
 
              public void onFailure(Throwable arg0) {
                  Window.alert(arg0.toString());
                  resetTextBox();
              }
 
-             public void onSuccess(Set<String> tags) {
+             public void onSuccess(HashSet<String> tags) {
                  for (String s : tags) {
                      addTag(s);
                  }
@@ -204,16 +200,17 @@ public class TagInputWidget extends Composite implements LoginListener {
          }
     }
 
-     private void invokeAddTags(Set<String> tags) {
+     private void invokeAddTags(HashSet<String> tags) {
 
-         DataEmbededAsyncCallback<Set<String>, Set<String>> callback = new DataEmbededAsyncCallback<Set<String>, Set<String>>(tags) {
+         DataEmbededAsyncCallback<HashSet<String>, HashSet<String>> callback =
+                 new DataEmbededAsyncCallback<HashSet<String>, HashSet<String>>(tags) {
 
              public void onFailure(Throwable arg0) {
                  Window.alert(arg0.toString());
                  resetTextBox();
              }
 
-             public void onSuccess(Set<String> tags) {
+             public void onSuccess(HashSet<String> tags) {
                  for (String s : data) {
                      addTag(s);
                  }

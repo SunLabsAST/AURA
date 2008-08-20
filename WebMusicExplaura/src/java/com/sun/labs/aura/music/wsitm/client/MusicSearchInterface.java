@@ -18,6 +18,8 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,9 +43,9 @@ public interface MusicSearchInterface extends RemoteService {
     public void updateListener(ListenerDetails lD) throws WebException;
     public void updateUserSongRating(int rating, String artistID) throws WebException;
     public Integer fetchUserSongRating(String artistID) throws WebException;
-    public Map<String,Integer> fetchUserSongRating(Set<String> artistID) throws WebException;
+    public HashMap<String,Integer> fetchUserSongRating(Set<String> artistID) throws WebException;
     public void terminateSession();
-    public Map<String, String> getSimTypes() throws WebException;
+    public HashMap<String, String> getSimTypes() throws WebException;
     public Map<String, String> getArtistRecommendationTypes();
     public ItemInfo[] getDistinctiveTags(String artistID, int count) throws WebException;
     public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap) throws WebException;
@@ -56,6 +58,6 @@ public interface MusicSearchInterface extends RemoteService {
     public List<AttentionItem> getLastTaggedArtists(int count) throws WebException;
     public List<AttentionItem> getLastPlayedArtists(int count) throws WebException;
     public ItemInfo[] getSimilarTags(String tagId) throws WebException;
-    public List<ArtistRecommendation> getRecommendations(String recTypeName, int cnt) throws WebException;
+    public ArrayList<ArtistRecommendation> getRecommendations(String recTypeName, int cnt) throws WebException;
     public ServerInfoItem getServerInfo();
 }

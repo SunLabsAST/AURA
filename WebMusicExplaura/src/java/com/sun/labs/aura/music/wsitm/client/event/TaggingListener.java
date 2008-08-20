@@ -5,7 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.client.event;
 
-import java.util.Set;
+import java.util.HashSet;
 
 /**
  *
@@ -13,6 +13,6 @@ import java.util.Set;
  */
 public interface TaggingListener extends WebListener {
 
-    public void onTag(String itemId, Set<String> tags);
+    public void onTag(String itemId, HashSet<String> tags);
 
 }

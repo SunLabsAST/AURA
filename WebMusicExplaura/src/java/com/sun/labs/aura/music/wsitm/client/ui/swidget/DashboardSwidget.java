@@ -46,10 +46,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.UpdatablePanel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.HashSet;
 
 /**
  *
@@ -72,13 +69,15 @@ public class DashboardSwidget extends Swidget {
         initWidget(mP);
     }
 
-    public List<String> getTokenHeaders() {
+    @Override
+    public ArrayList<String> getTokenHeaders() {
         
-        List<String> l = new ArrayList<String>();
+        ArrayList<String> l = new ArrayList<String>();
         l.add("dashboard:");
         return l;
     }
 
+    @Override
     protected void initMenuItem() {
         menuItem = new MenuItem("Dashboard", MenuItem.getDefaultTokenClickListener("dashboard:"), true, 3);
     }
@@ -94,17 +93,17 @@ public class DashboardSwidget extends Swidget {
 
         private Grid featArtist;
         private Grid recentRating;
-        private LinkedList<HasListeners> recentRatingListeners;
+        private ArrayList<HasListeners> recentRatingListeners;
         private Grid recentTagged;
-        private LinkedList<HasListeners> recentTaggingListeners;
+        private ArrayList<HasListeners> recentTaggingListeners;
         private Grid recentPlayed;
-        private LinkedList<HasListeners> recentPlayedListeners;
+        private ArrayList<HasListeners> recentPlayedListeners;
 
         public MainPanel() {
 
-            recentRatingListeners = new LinkedList<HasListeners>();
-            recentTaggingListeners = new LinkedList<HasListeners>();
-            recentPlayedListeners = new LinkedList<HasListeners>();
+            recentRatingListeners = new ArrayList<HasListeners>();
+            recentTaggingListeners = new ArrayList<HasListeners>();
+            recentPlayedListeners = new ArrayList<HasListeners>();
 
             g = new Grid(1,1);
             initWidget(g);
@@ -172,7 +171,7 @@ public class DashboardSwidget extends Swidget {
                 if (max > 20) {
                     max = 20;
                 }
-                List<ItemInfo> liI = ItemInfo.arrayToList(cdm.getListenerDetails().getUserTagCloud());
+                ArrayList<ItemInfo> liI = ItemInfo.arrayToList(cdm.getListenerDetails().getUserTagCloud());
                 Collections.sort(liI,ItemInfo.getScoreSorter());
                 trimTags = new ItemInfo[max];
                 for (int i=0; i<max; i++) {
@@ -249,13 +248,14 @@ public class DashboardSwidget extends Swidget {
 
         private void invokeFetchRecentTagArtist() {
 
-            AsyncCallback<List<AttentionItem>> callback = new AsyncCallback<List<AttentionItem>>() {
+            AsyncCallback<ArrayList<AttentionItem>> callback =
+                    new AsyncCallback<ArrayList<AttentionItem>>() {
 
                 public void onFailure(Throwable arg0) {
                     Window.alert(arg0.toString());
                 }
 
-                public void onSuccess(List<AttentionItem> arg0) {
+                public void onSuccess(ArrayList<AttentionItem> arg0) {
 
                     if (arg0.size() > 0) {
                         int numLines = (int)Math.ceil(arg0.size() / 2.0);
@@ -292,13 +292,14 @@ public class DashboardSwidget extends Swidget {
 
         private void invokeFetchRecentPlayedArtist() {
 
-            AsyncCallback<List<AttentionItem>> callback = new AsyncCallback<List<AttentionItem>>() {
+            AsyncCallback<ArrayList<AttentionItem>> callback =
+                    new AsyncCallback<ArrayList<AttentionItem>>() {
 
                 public void onFailure(Throwable arg0) {
                     Window.alert(arg0.toString());
                 }
 
-                public void onSuccess(List<AttentionItem> arg0) {
+                public void onSuccess(ArrayList<AttentionItem> arg0) {
 
                     if (arg0.size() > 0) {
                         int numLines = (int)Math.ceil(arg0.size() / 2.0);
@@ -392,13 +393,13 @@ public class DashboardSwidget extends Swidget {
 
         private void invokeFetchRecType() {
 
-            AsyncCallback<Map<String, String>> callback = new AsyncCallback<Map<String, String>>() {
+            AsyncCallback<HashMap<String, String>> callback = new AsyncCallback<HashMap<String, String>>() {
 
                 public void onFailure(Throwable arg0) {
                     Window.alert(arg0.toString());
                 }
 
-                public void onSuccess(Map<String, String> recTypes) {
+                public void onSuccess(HashMap<String, String> recTypes) {
                     if (recTypes != null) {
                         cdm.setRecTypes(recTypes);
                         createRecPanel();
@@ -413,14 +414,16 @@ public class DashboardSwidget extends Swidget {
         
         private void invokeFetchRecommendations() {
 
-            AsyncCallback<List<ArtistRecommendation>> callback = new AsyncCallback<List<ArtistRecommendation>>() {
+            AsyncCallback<ArrayList<ArtistRecommendation>> callback =
+                    new AsyncCallback<ArrayList<ArtistRecommendation>>() {
 
                 public void onFailure(Throwable arg0) {
                     Window.alert(arg0.toString());
                 }
 
-                public void onSuccess(List<ArtistRecommendation> rec) {
-                    uP.setNewContent(new UserCloudArtistListWidget(musicServer, cdm, ArtistRecToArtistCompact(rec),rec));
+                public void onSuccess(ArrayList<ArtistRecommendation> rec) {
+                    uP.setNewContent(new UserCloudArtistListWidget(musicServer,
+                            cdm, ArtistRecToArtistCompact(rec),rec));
                     uP.setWaitIconVisible(false);
                 }
             };
@@ -436,13 +439,14 @@ public class DashboardSwidget extends Swidget {
         
         private void invokeFetchRecentRatedArtist() {
 
-            AsyncCallback<List<AttentionItem>> callback = new AsyncCallback<List<AttentionItem>>() {
+            AsyncCallback<ArrayList<AttentionItem>> callback =
+                    new AsyncCallback<ArrayList<AttentionItem>>() {
 
                 public void onFailure(Throwable arg0) {
                     Window.alert(arg0.toString());
                 }
 
-                public void onSuccess(List<AttentionItem> arg0) {
+                public void onSuccess(ArrayList<AttentionItem> arg0) {
 
                     if (arg0.size() > 0) {
                         int numLines = (int)Math.ceil(arg0.size() / 2.0);
@@ -519,13 +523,13 @@ public class DashboardSwidget extends Swidget {
             invokeFetchRecentRatedArtist();
         }
 
-        public void onTag(String itemId, Set<String> tags) {
+        public void onTag(String itemId, HashSet<String> tags) {
             clearListeners(recentTaggingListeners);
             recentTagged.setWidget(1, 0, new Image("ajax-bar.gif"));
             invokeFetchRecentTagArtist();
         }
 
-        private void clearListeners(List<HasListeners> hLL) {
+        private void clearListeners(ArrayList<HasListeners> hLL) {
             for (HasListeners hL : hLL) {
                 hL.doRemoveListeners();
             }
@@ -544,7 +548,7 @@ public class DashboardSwidget extends Swidget {
      * @param aR
      * @return
      */
-    public ArtistCompact[] ArtistRecToArtistCompact(List<ArtistRecommendation> aR) {
+    public ArtistCompact[] ArtistRecToArtistCompact(ArrayList<ArtistRecommendation> aR) {
         ArtistCompact[] aC = new ArtistCompact[aR.size()];
         for (int i = 0; i < aR.size(); i++) {
             aC[i] = aR.get(i).getArtist();
@@ -554,10 +558,10 @@ public class DashboardSwidget extends Swidget {
     
     private class UserCloudArtistListWidget extends ArtistListWidget {
 
-        private Map<String, ArtistRecommendation> mapAR;
+        private HashMap<String, ArtistRecommendation> mapAR;
 
         public UserCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
-                ClientDataManager cdm, ArtistCompact[] aDArray, List<ArtistRecommendation> aR) {
+                ClientDataManager cdm, ArtistCompact[] aDArray, ArrayList<ArtistRecommendation> aR) {
 
             super(musicServer, cdm, aDArray, false);
             mapAR = new HashMap<String, ArtistRecommendation>();

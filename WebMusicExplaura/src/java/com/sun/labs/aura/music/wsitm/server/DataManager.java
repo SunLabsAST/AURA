@@ -720,10 +720,10 @@ public class DataManager implements Configurable {
         return mdb.getLatestRating(userId, artistID);
     }
 
-    public Map<String,Integer> fetchUserSongRating(String userId, Set<String> artistID)
+    public HashMap<String,Integer> fetchUserSongRating(String userId, Set<String> artistID)
             throws AuraException, RemoteException {
 
-        Map<String, Integer> ratingMap = new HashMap<String, Integer>();
+        HashMap<String, Integer> ratingMap = new HashMap<String, Integer>();
 
         logger.info("Fetching rating for artist " + artistID + " for user " + userId);
         for (String aID : artistID) {
@@ -757,9 +757,9 @@ public class DataManager implements Configurable {
         return wC;
     }
 
-    public Set<String> fetchUserTagsForItem(String listenerId, String itemId)
+    public HashSet<String> fetchUserTagsForItem(String listenerId, String itemId)
             throws AuraException, RemoteException {
-        Set<String> tags = new HashSet<String>();
+        HashSet<String> tags = new HashSet<String>();
         tags.addAll(mdb.getTags(listenerId, itemId));
         return tags;
     }
@@ -930,27 +930,27 @@ public class DataManager implements Configurable {
         return artistTagResults;
     }
 
-    public Map<String, String> getSimTypes() {
+    public HashMap<String, String> getSimTypes() {
         logger.info("Getting sim types");
-        Map<String, String> simTypes = new HashMap<String, String>();
-        for (SimType s : mdb.getSimTypes()) {
-            simTypes.put(s.getName(), s.getDescription());
+        HashMap<String, String> storeSimTypes = new HashMap<String, String>();
+        for (SimType s : this.simTypes.values()) {
+            storeSimTypes.put(s.getName(), s.getDescription());
         }
-        return simTypes;
+        return storeSimTypes;
     }
     
-    public Map<String, String> getArtistRecommendationTypes() {
+    public HashMap<String, String> getArtistRecommendationTypes() {
         logger.info("Getting rec types");
-        Map<String, String> recTypeMap = new HashMap<String, String>();
+        HashMap<String, String> recTypeMap = new HashMap<String, String>();
         for (RecommendationType rT : mdb.getArtistRecommendationTypes()) {
             recTypeMap.put(rT.getName(), rT.getDescription());
         }
         return recTypeMap;
     }
 
-    public List<ArtistRecommendation> getRecommendations(String recTypeName, String userId, int cnt) throws AuraException, RemoteException {
+    public ArrayList<ArtistRecommendation> getRecommendations(String recTypeName, String userId, int cnt) throws AuraException, RemoteException {
         logger.info("Getting recommendations for user "+ userId + " using recType:"+recTypeName);
-        List<ArtistRecommendation> aR = new ArrayList<ArtistRecommendation>();
+        ArrayList<ArtistRecommendation> aR = new ArrayList<ArtistRecommendation>();
         
         RecommendationSummary rS = mdb.getArtistRecommendationType(recTypeName).getRecommendations(userId, cnt, new Rp());
         for (Recommendation r : rS.getRecommendations()) {

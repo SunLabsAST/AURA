@@ -27,6 +27,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import com.sun.labs.aura.util.AuraException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -318,7 +319,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public Map<String,Integer> fetchUserSongRating(Set<String> artistID) throws WebException {
+    public HashMap<String,Integer> fetchUserSongRating(Set<String> artistID) throws WebException {
 
         String userId = getOpenIdFromSession();
         logger.info("fetchUserSongRating :: user:"+userId+" and set of artists");
@@ -334,11 +335,11 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public Map<String, String> getSimTypes() {
+    public HashMap<String, String> getSimTypes() {
          return dm.getSimTypes();
     }
     
-    public Map<String, String> getArtistRecommendationTypes() {
+    public HashMap<String, String> getArtistRecommendationTypes() {
         return dm.getArtistRecommendationTypes();
     }
 
@@ -420,19 +421,19 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public List<AttentionItem> getLastTaggedArtists(int count) throws WebException {
+    public ArrayList<AttentionItem> getLastTaggedArtists(int count) throws WebException {
         return getLastAttentionArtists(count, Type.TAG, true);
     }
 
-    public List<AttentionItem> getLastRatedArtists(int count) throws WebException {
+    public ArrayList<AttentionItem> getLastRatedArtists(int count) throws WebException {
         return getLastAttentionArtists(count, Type.RATING, true);
     }
 
-    public List<AttentionItem> getLastPlayedArtists(int count) throws WebException {
+    public ArrayList<AttentionItem> getLastPlayedArtists(int count) throws WebException {
         return getLastAttentionArtists(count, Type.PLAYED, true);
     }
 
-    public List<AttentionItem> getLastAttentionArtists(int count, Type attentionType, boolean fetchUserTags) throws WebException {
+    public ArrayList<AttentionItem> getLastAttentionArtists(int count, Type attentionType, boolean fetchUserTags) throws WebException {
 
         String userId = getOpenIdFromSession();
         logger.info("getLastAttentionArtists :: user:"+userId+" attention:"+attentionType.toString());
@@ -519,7 +520,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
     
-    public List<ArtistRecommendation> getRecommendations(String recTypeName, int cnt) throws WebException {
+    public ArrayList<ArtistRecommendation> getRecommendations(String recTypeName, int cnt) throws WebException {
         String userId = getOpenIdFromSession();
         logger.info("getLastRatedArtists :: user:"+userId);
         try {

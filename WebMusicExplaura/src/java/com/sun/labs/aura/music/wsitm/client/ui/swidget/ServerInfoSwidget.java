@@ -81,8 +81,8 @@ public class ServerInfoSwidget extends Swidget {
     }
 
     @Override
-    public List<String> getTokenHeaders() {
-        List<String> l = new ArrayList<String>();
+    public ArrayList<String> getTokenHeaders() {
+        ArrayList<String> l = new ArrayList<String>();
         l.add("serverinfo:");
         return l;
     }

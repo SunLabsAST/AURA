@@ -75,13 +75,15 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         onHistoryChanged(History.getToken());
     }
 
-    public List<String> getTokenHeaders() {
+    @Override
+    public ArrayList<String> getTokenHeaders() {
 
-        List<String> l = new ArrayList<String>();
+        ArrayList<String> l = new ArrayList<String>();
         l.add("steering:");
         return l;
     }
 
+    @Override
     protected void initMenuItem() {
         menuItem = new MenuItem("Steering",MenuItem.getDefaultTokenClickListener("steering:"),false,1);
     }

@@ -17,7 +17,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.Label;
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  *
@@ -43,7 +43,7 @@ public abstract class Swidget extends Composite implements HasListeners {
      * Returns a list of all the token headers associated with this swidget.
      * @return
      */
-    public abstract List<String> getTokenHeaders();
+    public abstract ArrayList<String> getTokenHeaders();
 
     /**
      * Returns this section's title as it should appear in the top menu

@@ -30,7 +30,6 @@ import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.HistoryListener;
-import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -53,10 +52,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searc
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import org.adamtacy.client.ui.EffectPanel;
 import org.adamtacy.client.ui.effects.impl.Fade;
@@ -209,9 +205,9 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         setResults("home", null);
     }
 
-    public List<String> getTokenHeaders() {
+    public ArrayList<String> getTokenHeaders() {
 
-        List<String> l = new ArrayList<String>();
+        ArrayList<String> l = new ArrayList<String>();
         l.add("artist:");
         l.add("tag:");
         l.add("artistSearch:");

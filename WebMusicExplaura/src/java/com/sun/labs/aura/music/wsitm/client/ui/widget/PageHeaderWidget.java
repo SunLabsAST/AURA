@@ -37,9 +37,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.HashMap;
 
 /**
  *
@@ -50,7 +48,7 @@ public class PageHeaderWidget extends Swidget {
     private Grid mainPanel;
     private TextBox txtbox;
 
-    private List<MenuItem> menuItems;
+    private ArrayList<MenuItem> menuItems;
     private MainMenu mm;
 
     private Widget instantRecPlayWidget;
@@ -104,7 +102,7 @@ public class PageHeaderWidget extends Swidget {
         
     }
 
-    public void setMenuItems(List<MenuItem> mI) {
+    public void setMenuItems(ArrayList<MenuItem> mI) {
         this.menuItems = mI;
         mm.update();
     }
@@ -121,14 +119,15 @@ public class PageHeaderWidget extends Swidget {
     }
 
     private void invokeGetSimTypes() {
-        AsyncCallback callback = new AsyncCallback() {
+        AsyncCallback<HashMap<String, String>> callback =
+                new AsyncCallback<HashMap<String, String>>() {
 
             public void onFailure(Throwable arg0) {
                 Window.alert("Error fetching similarity types.");
             }
 
-            public void onSuccess(Object arg0) {
-                cdm.setSimTypes((Map<String, String>) arg0);
+            public void onSuccess(HashMap<String, String> arg0) {
+                cdm.setSimTypes(arg0);
                 
                 listbox.clear();
                 String[] keyArray = cdm.getSimTypes().keySet().toArray(new String[0]);
@@ -428,8 +427,8 @@ public class PageHeaderWidget extends Swidget {
         }
     }
 
-    public List<String> getTokenHeaders() {
-        return new LinkedList<String>();
+    public ArrayList<String> getTokenHeaders() {
+        return new ArrayList<String>();
     }
 
     protected void initMenuItem() {

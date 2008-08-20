@@ -80,7 +80,7 @@ public class Main implements EntryPoint, HistoryListener {
         });
         title.setStyleName("title");
 
-        List<MenuItem> menuItems = new ArrayList<MenuItem>();
+        ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
 
         contentPanel = new FlowPanel();
 

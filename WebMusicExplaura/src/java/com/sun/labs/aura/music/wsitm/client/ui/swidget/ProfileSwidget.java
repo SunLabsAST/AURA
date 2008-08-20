@@ -26,7 +26,6 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -51,13 +50,15 @@ public class ProfileSwidget extends Swidget implements LoginListener {
         return mainPanel;
     }
 
-    public List<String> getTokenHeaders() {
+    @Override
+    public ArrayList<String> getTokenHeaders() {
 
-        List<String> l = new ArrayList<String>();
+        ArrayList<String> l = new ArrayList<String>();
         l.add("userpref:");
         return l;
     }
 
+    @Override
     protected void initMenuItem() {
         // no menu
         menuItem = new MenuItem();
