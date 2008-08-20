@@ -184,7 +184,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
             }
         };
 
-        if (cdm.getListenerDetails().loggedIn) {
+        if (cdm.getListenerDetails().isLoggedIn()) {
 
             g.setWidget(0, 0, new Image("ajax-loader.gif"));
 

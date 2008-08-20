@@ -52,7 +52,7 @@ public abstract class Swidget extends Composite implements HasListeners {
      */
     public final MenuItem getMenuItem() throws WebException {
         if (menuItem == null) {
-            throw new WebException("Menuitem not initialised in swidget '"+name+"'");
+            throw new WebException("Menuitem not initialised in swidget '" + name + "'");
         }
         return menuItem;
     };

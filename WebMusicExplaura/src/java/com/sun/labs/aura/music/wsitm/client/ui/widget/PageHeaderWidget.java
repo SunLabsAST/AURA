@@ -218,17 +218,17 @@ public class PageHeaderWidget extends Swidget {
      */
     private void updatePanelAfterLogin(ListenerDetails l) {
 
-        if (l!=null && l.loggedIn) {
+        if (l!=null && l.isLoggedIn()) {
 
             cdm.setListenerDetails(l);
 
             String name;
-            if (l.nickName != null) {
-                name = l.nickName;
-            } else if (l.realName != null) {
-                name = l.realName;
+            if (l.getNickName() != null) {
+                name = l.getNickName();
+            } else if (l.getRealName() != null) {
+                name = l.getRealName();
             } else {
-                name = l.openID;
+                name = l.getOpenId();
             }
 
             HorizontalPanel hP = new HorizontalPanel();
@@ -282,7 +282,7 @@ public class PageHeaderWidget extends Swidget {
     }
 
     private Widget getInstantRecPlayWidget() {
-        ArtistCompact[] aC = cdm.getListenerDetails().recommendations;
+        ArtistCompact[] aC = cdm.getListenerDetails().getRecommendations();
         if (aC.length > 0) {
             int itemIndex = Random.nextInt(aC.length);
             int iterations = 0;

@@ -542,36 +542,33 @@ public class DataManager implements Configurable {
     private Listener syncListeners(Listener l, ListenerDetails lD, SimType simType,
             boolean updateRecommendations) throws AuraException, RemoteException {
 
-        if (lD.gender!=null) {
-            if (lD.gender.equals("M")) {
-                l.setGender(Gender.Male);
-            } else if (lD.gender.equals("F")) {
-                l.setGender(Gender.Female);
+        if (lD.getGender() != null) {
+            String gender = lD.getGender().toString();
+            for (Gender g : Gender.values()) {
+                if (g.toString().equals(gender)) {
+                    l.setGender(g);
+                }
             }
         } else if (l.getGender()!=null) {
-            if (l.getGender()==Gender.Female) {
-                lD.gender="F";
-            } else if (l.getGender()==Gender.Male) {
-                lD.gender="M";
-            }
+            lD.setGender(l.getGender().toString());
         }
 
-        if (lD.country!=null) {
-            l.setLocaleCountry(lD.country);
+        if (lD.getCountry()!=null) {
+            l.setLocaleCountry(lD.getCountry());
         } else if (l.getLocaleCountry()!=null) {
-            lD.country=l.getLocaleCountry();
+            lD.setCountry(l.getLocaleCountry());
         }
 
-        if (lD.pandoraUser!=null) {
-            l.setPandoraName(lD.pandoraUser);
+        if (lD.getPandoraUser()!=null) {
+            l.setPandoraName(lD.getPandoraUser());
         } else if (l.getPandoraName()!=null) {
-            lD.pandoraUser=l.getPandoraName();
+            lD.setPandoraUser(l.getPandoraName());
         }
 
-        if (lD.lastfmUser!=null) {
-            l.setLastFmName(lD.lastfmUser);
+        if (lD.getLastFmUser()!=null) {
+            l.setLastFmName(lD.getLastFmUser());
         } else if (l.getLastFmName()!=null) {
-            lD.lastfmUser=l.getLastFmName();
+            lD.setLastFmUser(l.getLastFmName());
         }
 
         if (updateRecommendations) {
@@ -580,7 +577,7 @@ public class DataManager implements Configurable {
             for (Scored<Artist> a : mdb.getRecommendations(l.getKey(), NBR_REC_LISTENER)) {
                 aCompact.add(artistToArtistCompact(a.getItem()));
             }
-            lD.recommendations = aCompact.toArray(new ArtistCompact[0]);
+            lD.setRecommendations(aCompact.toArray(new ArtistCompact[0]));
         }
 
         return l;
@@ -590,23 +587,19 @@ public class DataManager implements Configurable {
             SimType simType, boolean updateRecommendations) throws AuraException, RemoteException {
 
         if (l.getGender()!=null) {
-            if (l.getGender()==Gender.Female) {
-                lD.gender="F";
-            } else if (l.getGender()==Gender.Male) {
-                lD.gender="M";
-            }
+            lD.setGender(l.getGender().toString());
         }
 
         if (l.getLocaleCountry()!=null) {
-            lD.country=l.getLocaleCountry();
+            lD.setCountry(l.getLocaleCountry());
         }
 
         if (l.getPandoraName()!=null) {
-            lD.pandoraUser=l.getPandoraName();
+            lD.setPandoraUser(l.getPandoraName());
         }
 
         if (l.getLastFmName()!=null) {
-            lD.lastfmUser=l.getLastFmName();
+            lD.setLastFmUser(l.getLastFmName());
         }
 
         if (updateRecommendations) {
@@ -615,7 +608,7 @@ public class DataManager implements Configurable {
             for (Scored<Artist> a : mdb.getRecommendations(l.getKey(), NBR_REC_LISTENER)) {
                 aCompact.add(artistToArtistCompact(a.getItem()));
             }
-            lD.recommendations = aCompact.toArray(new ArtistCompact[0]);
+            lD.setRecommendations(aCompact.toArray(new ArtistCompact[0]));
         }
 
         ArrayList<ItemInfo> iI = new ArrayList<ItemInfo>();
@@ -636,7 +629,7 @@ public class DataManager implements Configurable {
                 }
             }
         }
-        lD.userTagCloud = iI.toArray(new ItemInfo[0]);
+        lD.setUserTagCloud(iI.toArray(new ItemInfo[0]));
 
         return lD;
     }
@@ -657,8 +650,8 @@ public class DataManager implements Configurable {
         }
 
         lD = listenerToListenerDetails(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
-        lD.openID = userKey;
-        lD.loggedIn = true;
+        lD.setOpenId(userKey);
+        lD.setIsLoggedIn(true);
         
         return lD;
     }
@@ -673,13 +666,13 @@ public class DataManager implements Configurable {
 
         Listener l = null;
 
-        l = mdb.getListener(lD.openID);
+        l = mdb.getListener(lD.getOpenId());
 
         if (l == null) {
-            logger.info("Creating new user in datastore: " + lD.openID);
-            l = mdb.enrollListener(lD.openID);
+            logger.info("Creating new user in datastore: " + lD.getOpenId());
+            l = mdb.enrollListener(lD.getOpenId());
         } else {
-            logger.info("Retrieved user from datastore: " + lD.openID);
+            logger.info("Retrieved user from datastore: " + lD.getOpenId());
         }
 
         l = syncListeners(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
@@ -709,7 +702,7 @@ public class DataManager implements Configurable {
     }
 
     public void updateUser(ListenerDetails lD) throws AuraException, RemoteException {
-        Listener l = syncListeners(mdb.getListener(lD.openID), lD, null, false);
+        Listener l = syncListeners(mdb.getListener(lD.getOpenId()), lD, null, false);
         mdb.updateListener(l);
     }
 

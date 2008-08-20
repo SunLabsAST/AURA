@@ -167,12 +167,12 @@ public class DashboardSwidget extends Swidget {
             invokeFetchRecentPlayedArtist();
 
             ItemInfo[] trimTags = null;
-            if (cdm.getListenerDetails().userTagCloud != null) {
-                int max = cdm.getListenerDetails().userTagCloud.length;
+            if (cdm.getListenerDetails().getUserTagCloud() != null) {
+                int max = cdm.getListenerDetails().getUserTagCloud().length;
                 if (max > 20) {
                     max = 20;
                 }
-                List<ItemInfo> liI = ItemInfo.arrayToList(cdm.getListenerDetails().userTagCloud);
+                List<ItemInfo> liI = ItemInfo.arrayToList(cdm.getListenerDetails().getUserTagCloud());
                 Collections.sort(liI,ItemInfo.getScoreSorter());
                 trimTags = new ItemInfo[max];
                 for (int i=0; i<max; i++) {
@@ -492,7 +492,7 @@ public class DashboardSwidget extends Swidget {
 
             try {
 
-                ArtistCompact[] aC = cdm.getListenerDetails().recommendations;
+                ArtistCompact[] aC = cdm.getListenerDetails().getRecommendations();
                 if (aC.length > 0) {
                     int itemIndex = Random.nextInt(aC.length);
                     musicServer.getArtistDetails(aC[itemIndex].getId(), false, cdm.getCurrSimTypeName(), callback);

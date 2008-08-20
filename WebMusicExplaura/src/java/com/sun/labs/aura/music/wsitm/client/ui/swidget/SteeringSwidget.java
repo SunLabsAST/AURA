@@ -93,7 +93,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             if (historyToken.length() > 9 && cdm.getSteerableReset()) {
                 cdm.setSteerableReset(false);
                 if (historyToken.startsWith("steering:userCloud") && cdm.isLoggedIn()) {
-                    mP.loadCloud(cdm.getListenerDetails().userTagCloud);
+                    mP.loadCloud(cdm.getListenerDetails().getUserTagCloud());
                 } else if (historyToken.startsWith("steering:art:")) {
                     mP.loadArtist(historyToken.substring(13));
                 } else {

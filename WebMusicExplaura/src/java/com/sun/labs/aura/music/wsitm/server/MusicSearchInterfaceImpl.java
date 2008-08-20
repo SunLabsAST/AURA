@@ -189,9 +189,9 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             ListenerDetails lD = dm.establishNonOpenIdUserConnection(userKey);
             
-            if (lD.loggedIn) {
+            if (lD.isLoggedIn()) {
                 HttpSession session = this.getThreadLocalRequest().getSession();
-                session.setAttribute(OpenIDServlet.openIdCookieName, lD.openID);
+                session.setAttribute(OpenIDServlet.openIdCookieName, lD.getOpenId());
             }
             return lD;
             
@@ -211,35 +211,35 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
 
             HttpSession session = this.getThreadLocalRequest().getSession();
             if (session.getAttribute(OpenIDServlet.openIdCookieName) != null) {
-                lD.openID = (String) session.getAttribute(OpenIDServlet.openIdCookieName);
+                lD.setOpenId( (String) session.getAttribute(OpenIDServlet.openIdCookieName));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_BIRTHDATE) != null) {
-                lD.birthDate = (String) session.getAttribute(OpenIDServlet.ATTR_BIRTHDATE);
+                lD.setBirhtDate( (String) session.getAttribute(OpenIDServlet.ATTR_BIRTHDATE));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_COUNTRY) != null) {
-                lD.country = (String) session.getAttribute(OpenIDServlet.ATTR_COUNTRY);
+                lD.setCountry( (String) session.getAttribute(OpenIDServlet.ATTR_COUNTRY));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_EMAIL) != null) {
-                lD.email = (String) session.getAttribute(OpenIDServlet.ATTR_EMAIL);
+                lD.setEmail( (String) session.getAttribute(OpenIDServlet.ATTR_EMAIL));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_GENDER) != null) {
-                lD.gender = (String) session.getAttribute(OpenIDServlet.ATTR_GENDER);
+                lD.setGender( (String) session.getAttribute(OpenIDServlet.ATTR_GENDER));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_LANGUAGE) != null) {
-                lD.language = (String) session.getAttribute(OpenIDServlet.ATTR_LANGUAGE);
+                lD.setLanguage( (String) session.getAttribute(OpenIDServlet.ATTR_LANGUAGE));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_NICKNAME) != null) {
-                lD.nickName = (String) session.getAttribute(OpenIDServlet.ATTR_NICKNAME);
+                lD.setNickName( (String) session.getAttribute(OpenIDServlet.ATTR_NICKNAME));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_NAME) != null) {
-                lD.realName = (String) session.getAttribute(OpenIDServlet.ATTR_NAME);
+                lD.setRealName( (String) session.getAttribute(OpenIDServlet.ATTR_NAME));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_STATE) != null) {
-                lD.state = (String) session.getAttribute(OpenIDServlet.ATTR_STATE);
+                lD.setState( (String) session.getAttribute(OpenIDServlet.ATTR_STATE));
             }
 
-            if (lD.openID != null && (lD.realName != null || lD.nickName != null)) {
-                lD.loggedIn = true;
+            if (lD.getOpenId() != null && (lD.getRealName() != null || lD.getNickName() != null)) {
+                lD.setIsLoggedIn(true);
                 dm.establishUserConnection(lD);
             }
             return lD;
@@ -274,7 +274,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public void updateListener(ListenerDetails lD) throws WebException {
-        logger.info("UpdateListener :: "+lD.openID);
+        logger.info("UpdateListener :: "+lD.getOpenId());
         try {
             dm.updateUser(lD);
         } catch (AuraException ex) {

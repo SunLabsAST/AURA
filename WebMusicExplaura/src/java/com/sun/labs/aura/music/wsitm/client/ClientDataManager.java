@@ -171,15 +171,15 @@ public class ClientDataManager {
     }
 
     public String getLastFmUser() {
-        return lD.lastfmUser;
+        return lD.getLastFmUser();
     }
 
     public void setListenerDetails(ListenerDetails newlD) {
         //
         // If the logged in state has changed, we need to fire events
-        if (this.lD.loggedIn!=newlD.loggedIn) {
-            this.lD=newlD;
-            if (this.lD.loggedIn) {
+        if (lD.isLoggedIn()!=newlD.isLoggedIn()) {
+            lD=newlD;
+            if (lD.isLoggedIn()) {
                 getLoginListenerManager().triggerOnLogin();
             } else {
                 getLoginListenerManager().triggerOnLogout();
@@ -202,7 +202,7 @@ public class ClientDataManager {
     }
 
     public boolean isLoggedIn() {
-        return lD.loggedIn;
+        return lD.isLoggedIn();
     }
 
     public Map<String, String> getSimTypes() {

@@ -106,14 +106,14 @@ public class ProfileSwidget extends Swidget implements LoginListener {
 
         TextBox lastfmUserBox = new TextBox();
         newSettings.put("lastfmUser", lastfmUserBox);
-        if (cdm.getListenerDetails().lastfmUser!=null) {
-            lastfmUserBox.setText(cdm.getListenerDetails().lastfmUser);
+        if (cdm.getListenerDetails().getLastFmUser()!=null) {
+            lastfmUserBox.setText(cdm.getListenerDetails().getLastFmUser());
         }
 
         TextBox pandoraUserBox = new TextBox();
         newSettings.put("pandoraUser", pandoraUserBox);
-        if (cdm.getListenerDetails().pandoraUser!=null) {
-            pandoraUserBox.setText(cdm.getListenerDetails().pandoraUser);
+        if (cdm.getListenerDetails().getPandoraUser()!=null) {
+            pandoraUserBox.setText(cdm.getListenerDetails().getPandoraUser());
         }
 
         main.add(new HTML("<h2>APML providers</h2>"));
@@ -182,8 +182,8 @@ public class ProfileSwidget extends Swidget implements LoginListener {
 
             ListenerDetails lD = cdm.getListenerDetails();
 
-            lD.lastfmUser = newSettings.get("lastfmUser").getText();
-            lD.pandoraUser = newSettings.get("pandoraUser").getText();
+            lD.setLastFmUser(newSettings.get("lastfmUser").getText());
+            lD.setPandoraUser(newSettings.get("pandoraUser").getText());
 
             invokeUpdateListener(lD);
         }
