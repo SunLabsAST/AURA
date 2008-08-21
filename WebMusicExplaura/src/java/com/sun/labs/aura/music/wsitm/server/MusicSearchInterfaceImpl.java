@@ -534,7 +534,16 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public ServerInfoItem getServerInfo() {
-        return dm.getServerInfo();
+    public ServerInfoItem getServerInfo() throws WebException {
+        logger.info("getServerInfo");
+        try {
+            return dm.getServerInfo();
+         } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
     }
 }

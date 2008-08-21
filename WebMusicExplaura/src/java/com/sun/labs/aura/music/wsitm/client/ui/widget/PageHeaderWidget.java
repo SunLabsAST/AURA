@@ -35,6 +35,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
+import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -85,6 +86,17 @@ public class PageHeaderWidget extends Swidget {
         listbox.addItem("Loading...");
         hP.add(listbox);
 
+        // Add the server info link
+        SpannedLabel sI = new SpannedLabel("SI");
+        sI.setStyleName("headerMenuTinyItem");
+        sI.addClickListener(new ClickListener() {
+
+            public void onClick(Widget sender) {
+                History.newItem("serverinfo:");
+            }
+        });
+        hP.add(sI);
+        
         mainPanel.setWidget(0, 2, hP);
         mainPanel.getCellFormatter().getElement(0, 2).setAttribute("align", "right");
 

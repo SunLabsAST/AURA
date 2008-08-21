@@ -10,7 +10,8 @@ package com.sun.labs.aura.music.wsitm.server;
 
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
-import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Album;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.ArtistTag;
@@ -481,7 +482,7 @@ public class DataManager implements Configurable {
         return artistPhotoArray;
     }
 
-    public ServerInfoItem getServerInfo() {
+    public ServerInfoItem getServerInfo() throws RemoteException, AuraException {
 
         ServerInfoItem info = new ServerInfoItem();
 
@@ -490,6 +491,18 @@ public class DataManager implements Configurable {
             cacheInfo.put(s, cache.get(s).getSize());
         }
         info.setCacheStatus(cacheInfo);
+        
+        DataStore dS = mdb.getDataStore();
+        //info.setDataStoreNbrReplicants(dS.getPrefixes().size());
+
+        HashMap<String, Integer> items = new HashMap<String, Integer>();
+        for (ItemType t : ItemType.values()) {
+            int count = (int) dS.getItemCount(t);
+            if (count > 0) {
+                items.put(t.toString(), count);
+            }
+        }
+        info.setItemCnt(items);
 
         return info;
     }

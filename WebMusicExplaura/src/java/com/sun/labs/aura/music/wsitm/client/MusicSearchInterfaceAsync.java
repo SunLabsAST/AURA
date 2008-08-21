@@ -56,5 +56,5 @@ public interface MusicSearchInterfaceAsync {
        public void getLastPlayedArtists(int count, AsyncCallback<ArrayList<AttentionItem>> callback) throws WebException;
        public void getSimilarTags(String tagId, AsyncCallback<ItemInfo[]> callback) throws WebException;
        public void getRecommendations(String recTypeName, int cnt, AsyncCallback<ArrayList<ArtistRecommendation>> callback) throws WebException;
-       public void getServerInfo(AsyncCallback<ServerInfoItem> callback);
+       public void getServerInfo(AsyncCallback<ServerInfoItem> callback) throws WebException;
 }

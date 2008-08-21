@@ -59,5 +59,5 @@ public interface MusicSearchInterface extends RemoteService {
     public List<AttentionItem> getLastPlayedArtists(int count) throws WebException;
     public ItemInfo[] getSimilarTags(String tagId) throws WebException;
     public ArrayList<ArtistRecommendation> getRecommendations(String recTypeName, int cnt) throws WebException;
-    public ServerInfoItem getServerInfo();
+    public ServerInfoItem getServerInfo() throws WebException;
 }
