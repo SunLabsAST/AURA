@@ -8,6 +8,7 @@ Web Music Explaura :: TODO / wishlist
 - Add getTitle() method to swidget to update page title
 - Fixed shacking on click text box
 - Improve overall look and colors. Chose tag colors that are clearer.
+- Fix CSS for Safari and test on IE
 
 - Album / track level
 - Autotags
