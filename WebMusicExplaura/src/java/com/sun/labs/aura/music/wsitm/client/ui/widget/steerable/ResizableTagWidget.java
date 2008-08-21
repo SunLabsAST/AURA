@@ -260,6 +260,7 @@ public class ResizableTagWidget extends TagWidget {
             
             ResizableTag rT = getNewTagObject(item, item.getColorConfig()[(colorIndex++) % 2]);
             DeletableResizableTag dW = new DeletableResizableTag(rT);
+            dW.addStyleName("pointer");
 
             tagCloud.put(item.getId(), dW);
             flowP.add(dW);
