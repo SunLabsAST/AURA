@@ -92,8 +92,8 @@ public class DataManager implements Configurable {
     private static final String beatlesMDID="b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
     private float beatlesPopularity=-1;
 
-    private List<String> artistOracle;
-    private List<String> tagOracle;
+    private ArrayList<String> artistOracle;
+    private ArrayList<String> tagOracle;
 
     private Map<String, SimType> simTypes;
 
@@ -119,9 +119,9 @@ public class DataManager implements Configurable {
 
         try {
             logger.info("Fetching "+NUMBER_ARTIST_ORACLE+" most popular artists...");
-            artistOracle = mdb.artistGetMostPopularNames(NUMBER_ARTIST_ORACLE);
+            artistOracle.addAll(mdb.artistGetMostPopularNames(NUMBER_ARTIST_ORACLE));
             logger.info("Fetching "+NUMBER_TAGS_ORACLE+" most popular tags...");
-            tagOracle = mdb.artistTagGetMostPopularNames(NUMBER_TAGS_ORACLE);
+            tagOracle.addAll(mdb.artistTagGetMostPopularNames(NUMBER_TAGS_ORACLE));
             logger.info("DONE");
 
             beatlesPopularity=mdb.artistLookup(beatlesMDID).getPopularity();
@@ -137,11 +137,11 @@ public class DataManager implements Configurable {
         logger.info("DataManager ready.");
     }
 
-    public List<String> getArtistOracle() {
+    public ArrayList<String> getArtistOracle() {
         return artistOracle;
     }
 
-    public List<String> getTagOracle() {
+    public ArrayList<String> getTagOracle() {
         return tagOracle;
     }
 

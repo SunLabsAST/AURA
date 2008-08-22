@@ -24,7 +24,7 @@ import com.gwtext.client.widgets.form.ComboBox;
 import com.gwtext.client.widgets.form.Field;
 import com.gwtext.client.widgets.form.event.ComboBoxCallback;
 import com.gwtext.client.widgets.form.event.ComboBoxListener;
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  *
@@ -243,8 +243,8 @@ public abstract class AbstractSearchWidget extends Composite {
 
         AsyncCallbackWithType callback = new AsyncCallbackWithType(type) {
 
-            public void onSuccess(Object result) {
-                List<String> callBackList = (List<String>) result;
+            public void onSuccess(ArrayList<String> result) {
+                ArrayList<String> callBackList = result;
                 
                 UniqueStore newStore = new UniqueStore("name", callBackList.toArray(new String[0]));
                 newStore.load();
@@ -271,7 +271,7 @@ public abstract class AbstractSearchWidget extends Composite {
         }
     }
 
-    abstract class AsyncCallbackWithType implements AsyncCallback {
+    protected abstract class AsyncCallbackWithType implements AsyncCallback<ArrayList<String>> {
 
         public Oracles type;
 
@@ -279,10 +279,6 @@ public abstract class AbstractSearchWidget extends Composite {
             super();
             this.type=type;
         }
-
-        public abstract void onFailure(Throwable arg0);
-        public abstract void onSuccess(Object arg0);
-
     }
 
     public class SearchTypeRadioButton extends RadioButton {

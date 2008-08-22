@@ -55,7 +55,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  *
@@ -675,8 +674,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
     private abstract class SortableItemInfoList extends Composite implements HasListeners {
 
         private Grid mainPanel;
-        private List<ItemInfo> iI;
-        private List<WebListener> webListeners;
+        private ArrayList<ItemInfo> iI;
+        private LinkedList<WebListener> webListeners;
 
         private double maxValue = 0;
 

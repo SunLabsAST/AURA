@@ -8,7 +8,6 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Grid;
 import com.gwtext.client.widgets.menu.Menu;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
-import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringArtistMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;

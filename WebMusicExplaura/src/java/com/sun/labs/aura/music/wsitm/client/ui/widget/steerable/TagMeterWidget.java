@@ -25,7 +25,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Meter cloud manipulation UI
@@ -36,7 +35,7 @@ public class TagMeterWidget extends TagWidget {
     private final static int MAX_TAG_VALUE = CloudItemMeter.TOTAL_WIDTH;
     private final static int DEFAULT_TAG_VALUE = MAX_TAG_VALUE / 2;
     private VerticalPanel mainTagPanel;
-    private Map<String, CloudItemMeter> tagCloud;
+    private HashMap<String, CloudItemMeter> tagCloud;
     private ClientDataManager cdm;
 
     public TagMeterWidget(MainPanel mainPanel, ClientDataManager cdm) {

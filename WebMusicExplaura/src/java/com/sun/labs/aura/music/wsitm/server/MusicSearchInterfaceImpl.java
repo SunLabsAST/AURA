@@ -175,12 +175,12 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         return trace;
     }
 
-    public List<String> getArtistOracle() {
+    public ArrayList<String> getArtistOracle() {
         logger.info("getArtistOracle");
         return dm.getArtistOracle();
     }
     
-    public List<String> getTagOracle() {
+    public ArrayList<String> getTagOracle() {
         logger.info("getTagOracle");
         return dm.getTagOracle();
     }
