@@ -3,17 +3,39 @@
 *******************************
 
 1) Introduction
-2) Application structure
-3) 3rd party GWT libraries
-4) 
+2) Building info
+3) Application structure
+4) 3rd party GWT libraries
+5) Why use specific types?
 
 
 Introduction
 ****************
 State of the application as of end of August 2008. The GWT version used is 1.5RC2.
 
+
+Building info
+****************
+As of Netbeans 6.5Beta, the build on save feature prevents the "Build" option. I have not found a way to disable to build on save feature on a web project as it is possible to do with a normal app. So to build the project, you need to run "ant" without any arguments from the WebMusicExplaura/ folder.
+
+Furthermore, GWT1.5's compiler requires a big heap and you will get a 'Exception in thread "main" java.lang.OutOfMemoryError: Java heap space' error when building if the following isn't added to nbproject/build-gwt.xml.
+
+Replace 
+        <java classpath="${javac.classpath}:${src.dir}" failonerror="true"
+              classname="com.google.gwt.dev.GWTCompiler" fork="true">
+
+by
+        <java classpath="${javac.classpath}:${src.dir}" failonerror="true"
+              classname="com.google.gwt.dev.GWTCompiler" fork="true" maxmemory="1G">
+
+
+You must redo this each time you open the project in NetBeans.
+
+
 Application structure
 ****************
+
+Some notes about the structure...
 
 ## Swidgets
 
@@ -39,12 +61,8 @@ When a widget registers itself with a listener (or contains a widget that does) 
 
 # SteerableTagCloudExternalController
 
-Accessible through the cdm and serves as a bridge between any part of the application and the steerable tag cloud. This is for example used to add tags  to the steerable interface from context menus.
+Accessible through the cdm and serves as a bridge between any part of the application and the steerable tag cloud. This is for example used to add tags to the steerable interface from context menus around the app.
 
-
-# Steerable recommendations
-
-TODO
 
 
 3rd party GWT libraries
@@ -54,3 +72,10 @@ TODO
 - GWT-Ext, http://gwt-ext.com (GNU Lesser General Public Licence (LGPL), v 3.0)
 - gwt-fx, http://code.google.com/p/gwt-fx (Apache License 2.0)
 - gwt-tk, http://code.google.com/p/gwt-tk (Apache License 2.0)
+
+
+Why use specific types
+****************
+"In terms of optimizations for the GWT compiler, it is good to be as specific as possible when specifying the types of your fields in the data object. For example it is common practice to specify java.util.List as a type instead of either ArrayList or Vector. The benefit of using a generalized type is that it allows you to change the underlying implementation without changing the type declaration. The problem is that when you generalize the type it is harder for the GWT compiler to optimize the code, and you often end up with larger JavaScript files. So the rule of thumb it to try to be as specific as possible in your typing."
+
+This was not done in the beginning so there is still a lot of conversion left to do to
