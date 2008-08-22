@@ -69,11 +69,8 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
     private DockPanel mainPanel;
     private FlowPanel searchBoxContainerPanel;
     private Label message;
-    private boolean debug;
     private SearchWidget search;
     private Image icon;
-
-    private String curToken = null;
 
     // Widgets that contain listeners that need to be removed to prevent leaks
     private ArtistListWidget leftRecList;
@@ -103,7 +100,6 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         search.updateSuggestBox(Oracles.ARTIST);
 
         message = new Label();
-        //message.setWidth("100%");
         message.setHeight("20px");
         message.setStyleName("message");
 
@@ -171,26 +167,21 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         icon.setVisible(false);
     }
 
-    private void debugMessage(String msg) {
-        if (debug) {
-            showMessage(msg);
-        }
-    }
-
     private void setResults(String historyName, Widget result) {
         if (curResult == result || curResultToken.equals(historyName)) {
             return;
         } 
 
         if (!History.getToken().equals(historyName)) {
+            curResultToken = historyName;
             History.newItem(historyName);
-            curToken = historyName;
         }
+        
         if (curResult != null) {
             mainPanel.remove(curResult);
             curResult = null;
-            curResultToken = "";
         }
+
         if (result != null) {
             cdm.setCurrSearchWidgetToken(historyName);
             mainPanel.add(result, DockPanel.CENTER);
@@ -202,7 +193,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
     }
 
     private void clearResults() {
-        setResults("home", null);
+        setResults("searchHome", null);
     }
 
     public ArrayList<String> getTokenHeaders() {
@@ -307,7 +298,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                     }
                 } else {
                     if (sr == null) {
-                        showError("Error. Resultset is null. There were probably no tags foud.s");
+                        showError("Error. Resultset is null. There were probably no tags found.");
                         clearResults();
                     } else {
                         showError("Whoops " + sr.getStatus());
@@ -381,16 +372,11 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }
-
     }
 
     private void failureAction(Throwable caught) {
         Window.alert("Whoops! It looks like the server is down. Time to get a spot of tea.");
         showMessage(caught.getMessage());
-    }
-
-    private void debug(String msg) {
-        Window.alert(msg);
     }
 
     private void invokeGetArtistInfo(String artistID, boolean refresh) {
@@ -451,7 +437,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             public void onSuccess(Object result) {
                 TagDetails tagDetails = (TagDetails) result;
                 if (tagDetails != null && tagDetails.isOK()) {
-                    Widget tagPanel = createTagPanel("Tags", tagDetails);
+                    Widget tagPanel = createTagPanel(tagDetails);
                     search.setText(tagDetails.getName(), searchTypes.SEARCH_FOR_TAG_BY_TAG);
                     search.updateSuggestBox(Oracles.TAG);
                     setResults("tag:"+tagDetails.getId(), tagPanel);
@@ -559,7 +545,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         return artistPanel;
     }
 
-    private Widget createTagPanel(String title, TagDetails tagDetails) {
+    private Widget createTagPanel(TagDetails tagDetails) {
         DockPanel main = new DockPanel();
         main.setHorizontalAlignment(VerticalPanel.ALIGN_CENTER);
         main.setWidth("100%");
@@ -589,7 +575,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         return main;
     }
 
-    Widget getBioWidget(ArtistDetails artistDetails) {
+    private Widget getBioWidget(ArtistDetails artistDetails) {
         HTML html = new HTML();
         html.setHTML(artistDetails.getBestArtistImageAsHTML() + artistDetails.getBiographySummary());
         html.setStyleName("bio");
@@ -617,15 +603,14 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                 artistDetails.getDistinctiveTags(), artistStar);
     }
 
-    Widget getTagWidget(TagDetails tagDetails) {
+    private Widget getTagWidget(TagDetails tagDetails) {
         HTML html = new HTML();
         html.setHTML(getBestTagImageAsHTML(tagDetails) + tagDetails.getDescription());
         html.setStyleName("bio");
         return createMainSection(tagDetails.getName(), html, WebLib.getListenWidget(tagDetails));
     }
 
-    Widget getMoreInfoWidget(ArtistDetails artistDetails) {
-        String text = "";
+    private Widget getMoreInfoWidget(ArtistDetails artistDetails) {
         Map urls = artistDetails.getUrls();
 
         if (urls != null && urls.size() > 0) {
@@ -667,7 +652,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
     }
     */
 
-    Widget getPopularityPanel(ArtistDetails artistDetails) {
+    private Widget getPopularityPanel(ArtistDetails artistDetails) {
 
         VerticalPanel vPanel = new VerticalPanel();
         vPanel.add(WebLib.getPopularityWidget("The Beatles",1,true,null));
@@ -677,7 +662,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         return WebLib.createSection("Popularity", vPanel);
     }
 
-    Widget getTastAuraMeterWidget(String name, double normPopularity, boolean log) {
+    private Widget getTastAuraMeterWidget(String name, double normPopularity, boolean log) {
 
         /**
         Widget popWidget = getPopularityWidget(name, normPopularity, log);
@@ -716,18 +701,11 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         return WebLib.createSection("Upcoming Events", widget);
     }
 
-    Widget createMainSectionOld(String title, Widget widget) {
-        Panel panel = new VerticalPanel();
-        panel.add(new HTML("<h1>" + title + "</h1>"));
-        panel.add(widget);
-        return panel;
-    }
-
-    Widget createMainSection(String title, Widget widget, Widget adornment) {
+    private Widget createMainSection(String title, Widget widget, Widget adornment) {
         return createMainSection(title, widget, adornment, null, null);
     }
 
-    Widget createMainSection(String title, Widget widget, Widget adornment, ItemInfo[] tagCloud, StarRatingWidget starWidget) {
+    private Widget createMainSection(String title, Widget widget, Widget adornment, ItemInfo[] tagCloud, StarRatingWidget starWidget) {
         Panel panel = new VerticalPanel();
         DockPanel h = new DockPanel();
         h.add(new Label(title), DockPanel.WEST);
@@ -818,7 +796,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         return w;
     }
 
-    class TimerWithArtist extends Timer {
+    private class TimerWithArtist extends Timer {
 
         private String artistID;
         private boolean refresh;
@@ -836,7 +814,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
     }
 
-    class ItemInfoClickListener implements ClickListener {
+    private class ItemInfoClickListener implements ClickListener {
 
         private ItemInfo info;
         private boolean getArtistOnClick;
@@ -855,35 +833,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         }
     }
 
-    class VideoClickListener implements ClickListener {
-
-        private ArtistVideo video;
-
-        VideoClickListener(ArtistVideo video) {
-            this.video = video;
-        }
-
-        public void onClick(Widget sender) {
-            HTML html = new HTML(getEmbeddedVideo(video, true));
-            Popup.showPopup(html,"WebMusicExplaura :: YouTube Video");
-        }
-    }
-
-    class PhotoClickListener implements ClickListener {
-
-        private ArtistPhoto photo;
-
-        PhotoClickListener(ArtistPhoto photo) {
-            this.photo = photo;
-        }
-
-        public void onClick(Widget sender) {
-            HTML html = new HTML(photo.getRichHtmlWrapper());
-            Popup.showPopup(html,"WebMusicExplaura :: Flickr Photo");
-        }
-    }
-
-    public class ArtistCloudArtistListWidget extends ArtistListWidget {
+    private class ArtistCloudArtistListWidget extends ArtistListWidget {
 
         private ArtistCompact currArtist;
 
@@ -912,7 +862,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
     }
 
-    abstract class ScrollWidget extends Composite {
+    private abstract class ScrollWidget extends Composite {
 
         protected ScrollItem[] items;
 
@@ -1099,7 +1049,6 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             }
         }
 
-
         private class LoadListenerPanelContainer implements LoadListener {
 
             private EffectPanel theEffectPanel;
@@ -1134,7 +1083,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
     }
 
-    class ImageScrollWidget extends ScrollWidget {
+    private class ImageScrollWidget extends ScrollWidget {
 
         private ArtistPhoto[] aP;
 
@@ -1166,7 +1115,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
     }
 
-    class VideoScrollWidget extends ScrollWidget {
+    private class VideoScrollWidget extends ScrollWidget {
 
         private ArtistVideo[] aV;
 
@@ -1195,7 +1144,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
     }
 
-    class AlbumScrollWidget extends ScrollWidget {
+    private class AlbumScrollWidget extends ScrollWidget {
 
         private AlbumDetails[] aD;
 
