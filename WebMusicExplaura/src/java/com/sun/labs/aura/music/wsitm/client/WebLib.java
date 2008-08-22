@@ -205,11 +205,11 @@ public abstract class WebLib {
         Window.open(getTagRadioLink(tagDetails.getName()), "lastfm_popup", "width=400,height=170,menubar=no,toolbar=no,directories=no," + "location=no,resizable=no,scrollbars=no,status=no");
     }
 
-    public static Widget createSection(String title, Widget widget) {
+    public static VerticalPanel createSection(String title, Widget widget) {
         return createSection(new HTML("<h2>" + title + "</h2>"), widget);
     }
 
-    public static Widget createSection(Widget title, Widget widget) {
+    public static VerticalPanel createSection(Widget title, Widget widget) {
         VerticalPanel panel = new VerticalPanel();
         panel.add(title);
         panel.add(widget);
@@ -289,7 +289,16 @@ public abstract class WebLib {
         return hPanel;
     }
 
-    private static Widget getPopularityHisto(double normPopularity, boolean log, int height, int maxWidth) {
+    /**
+     * Returns a populatiry histrogram. To get it wrapped with a title, use other
+     * utility functions getSmallPopularityWidget() or getPopularityWidget()
+     * @param normPopularity popularity as a number between 0 and 1
+     * @param log plot on log scale
+     * @param height maximum size of 15
+     * @param maxWidth
+     * @return
+     */
+    public static HorizontalPanel getPopularityHisto(double normPopularity, boolean log, int height, int maxWidth) {
 
         if (log) {
             normPopularity = Math.log(normPopularity + 1) / Math.log(2); // get the base 2 log

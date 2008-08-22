@@ -754,9 +754,21 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         return title + obj;
     }
 
-    private Widget getItemInfoList(final String title, final ItemInfo[] itemInfo, String highlightID, boolean getArtistOnClick, UniqueStore oracle) {
+    private VerticalPanel getItemInfoList(final String title, final ItemInfo[] itemInfo, String highlightID, boolean getArtistOnClick, UniqueStore oracle) {
 
-        Grid artistGrid = new Grid(itemInfo.length, 1);
+        Grid artistGrid = new Grid(itemInfo.length + 1, 2);
+        artistGrid.setCellSpacing(5);
+        artistGrid.setWidget(0, 0, new HTML("<b>Name</b>"));
+        artistGrid.setWidget(0, 1, new HTML("<b>Popularity</b>"));
+
+        // Find the maximum values for score and popularity
+        double maxPopularity = 0;
+        for (ItemInfo iI : itemInfo) {
+            if (iI.getPopularity() > maxPopularity) {
+                maxPopularity = iI.getPopularity();
+            }
+        }
+
         for (int i = 0; i < itemInfo.length; i++) {
 
             if (oracle != null) {
@@ -771,10 +783,11 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             } else {
                 label.setStyleName("itemInfo");
             }
-            artistGrid.setWidget(i, 0, label);
+            artistGrid.setWidget(i + 1, 0, label);
+            artistGrid.setWidget(i + 1, 1, WebLib.getPopularityHisto( itemInfo[i].getPopularity() / maxPopularity, false, 10, 100));
         }
 
-        Widget w;
+        VerticalPanel w;
         if (!getArtistOnClick) {
             Grid titleWidget = new Grid(1, 2);
             titleWidget.setWidget(0, 0, new HTML("<h2>" + title + "</h2>"));
@@ -792,7 +805,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             w = WebLib.createSection(title, artistGrid);
         }
         w.setStyleName("infoList");
-        w.setWidth("200px");
+        w.setWidth("325px");
         return w;
     }
 
