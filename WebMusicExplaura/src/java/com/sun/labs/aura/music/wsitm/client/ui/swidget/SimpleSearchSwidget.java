@@ -294,7 +294,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                         invokeGetTagInfo(ar.getId(), false);
                     } else {
                         showMessage("Found " + sr.getItemResults().length + " matches");
-                        setResults(sr.toString(), getItemInfoList("Pick one: ", sr.getItemResults(), null, false, cdm.getTagOracle()));
+                        setResults(sr.toString(), getItemInfoList("Pick one: ", sr.getItemResults(), null, false, true, cdm.getTagOracle()));
                     }
                 } else {
                     if (sr == null) {
@@ -341,7 +341,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                         invokeGetArtistInfo(ar.getId(), false);
                     } else {
                         showMessage("Found " + sr.getItemResults().length + " matches");
-                        Widget searchResults = getItemInfoList("Pick one: ", sr.getItemResults(), null, true, cdm.getArtistOracle());
+                        Widget searchResults = getItemInfoList("Pick one: ", sr.getItemResults(), null, true, true, cdm.getArtistOracle());
                         searchResults.setStyleName("searchResults");
                         searchResults.setWidth("300px");
                         setResults(sr.toString(), searchResults);
@@ -553,7 +553,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         VerticalPanel left = new VerticalPanel();
         left.setWidth("150px");
         left.setStyleName("left");
-        Widget w = getItemInfoList(tagDetails.getName() + " artists", tagDetails.getRepresentativeArtists(), null, true, cdm.getTagOracle());
+        Widget w = getItemInfoList(tagDetails.getName() + " artists", tagDetails.getRepresentativeArtists(), null, true, false, cdm.getTagOracle());
         left.add(w);
         main.add(left, DockPanel.WEST);
 
@@ -566,7 +566,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         main.add(v, DockPanel.CENTER);
 
         VerticalPanel right = new VerticalPanel();
-        w = getItemInfoList("Similar tags", tagDetails.getSimilarTags(), tagDetails.getId(), false, cdm.getTagOracle());
+        w = getItemInfoList("Similar tags", tagDetails.getSimilarTags(), tagDetails.getId(), false, false, cdm.getTagOracle());
         w.setStyleName("right");
         right.add(w);
         main.add(right, DockPanel.EAST);
@@ -754,12 +754,19 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         return title + obj;
     }
 
-    private VerticalPanel getItemInfoList(final String title, final ItemInfo[] itemInfo, String highlightID, boolean getArtistOnClick, UniqueStore oracle) {
+    private VerticalPanel getItemInfoList(final String title, final ItemInfo[] itemInfo, 
+            String highlightID, boolean getArtistOnClick, boolean displayPopularity, 
+            UniqueStore oracle) {
 
-        Grid artistGrid = new Grid(itemInfo.length + 1, 2);
-        artistGrid.setCellSpacing(5);
-        artistGrid.setWidget(0, 0, new HTML("<b>Name</b>"));
-        artistGrid.setWidget(0, 1, new HTML("<b>Popularity</b>"));
+        Grid artistGrid;
+        if (displayPopularity) {
+            artistGrid = new Grid(itemInfo.length + 1, 2);
+            artistGrid.setCellSpacing(5);
+            artistGrid.setWidget(0, 0, new HTML("<b>Name</b>"));
+            artistGrid.setWidget(0, 1, new HTML("<b>Popularity</b>"));
+        } else {
+            artistGrid = new Grid(itemInfo.length, 1);
+        }
 
         // Find the maximum values for score and popularity
         double maxPopularity = 0;
@@ -783,8 +790,13 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             } else {
                 label.setStyleName("itemInfo");
             }
-            artistGrid.setWidget(i + 1, 0, label);
-            artistGrid.setWidget(i + 1, 1, WebLib.getPopularityHisto( itemInfo[i].getPopularity() / maxPopularity, false, 10, 100));
+            
+            if (displayPopularity) {
+                artistGrid.setWidget(i + 1, 0, label);
+                artistGrid.setWidget(i + 1, 1, WebLib.getPopularityHisto( itemInfo[i].getPopularity() / maxPopularity, false, 10, 100));
+            } else {
+                artistGrid.setWidget(i, 0, label);
+            }
         }
 
         VerticalPanel w;
@@ -805,7 +817,11 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             w = WebLib.createSection(title, artistGrid);
         }
         w.setStyleName("infoList");
-        w.setWidth("325px");
+        if (displayPopularity) {
+            w.setWidth("325px");
+        } else {
+            w.setWidth("200px");
+        }
         return w;
     }
 
