@@ -57,6 +57,8 @@ public abstract class Aura extends ServiceAdapter {
             BaseFileSystemConfiguration fsConfig = ((BaseFileSystem) fs).getConfiguration();
             Map<String,String> md = fsConfig.getMetadata();
             logger.info("fs metadata: " + md);
+            md.put("instance", instance);
+            md.put("type", "replicant");
             md.put("prefix", currPrefix);
             fsConfig.setMetadata(md);
             ((BaseFileSystem) fs).changeConfiguration(fsConfig);
