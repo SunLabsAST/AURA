@@ -19,6 +19,8 @@ import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
+import com.sun.labs.util.props.Augmentable;
+import com.sun.labs.util.props.Component;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigString;
@@ -30,8 +32,10 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,7 +46,7 @@ import java.util.logging.Logger;
  * key with the prefix for the cluster.
  */
 public class PartitionClusterImpl implements PartitionCluster,
-                                             Configurable, AuraService {
+                                             Configurable, Augmentable, AuraService {
     
     @ConfigString
     public static final String PROP_PREFIX = "prefix";
@@ -56,7 +60,7 @@ public class PartitionClusterImpl implements PartitionCluster,
     @ConfigBoolean(defaultValue=false)
     public static final String PROP_DO_NOT_REGISTER = "doNotRegister";
     
-    private DataStore dataStoreHead;
+    private Set<DataStore> dataStoreHeads;
     
     private ProcessManager processManager;
     
@@ -81,7 +85,7 @@ public class PartitionClusterImpl implements PartitionCluster,
      * @param prefixCode the initial prefix that this cluster represents
      */
     public PartitionClusterImpl() {
-
+        dataStoreHeads = new HashSet();
     }
     
     public DSBitSet getPrefix() {
@@ -372,25 +376,37 @@ public class PartitionClusterImpl implements PartitionCluster,
     public void newProperties(PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
         prefixCode = DSBitSet.parse(ps.getString(PROP_PREFIX));
-        dataStoreHead = (DataStore) ps.getComponent(PROP_DATA_STORE_HEAD);
         processManager = (ProcessManager)ps.getComponent(PROP_PROC_MGR);
         if (processManager == null) {
             logger.info("No ProcessManager was found, splitting will fail");
         }
         cm = ps.getConfigurationManager();
-        boolean doNotRegister = ps.getBoolean(PROP_DO_NOT_REGISTER);
-        if (!doNotRegister) {
-            PartitionCluster exported = (PartitionCluster) ps.getConfigurationManager().getRemote(this, dataStoreHead);
-            try {
-                logger.info("Registering partition cluster: " + exported.getPrefix());
-                dataStoreHead.registerPartitionCluster(exported);
-            } catch (RemoteException rx) {
-                throw new PropertyException(ps.getInstanceName(), PROP_DATA_STORE_HEAD, 
-                        "Unable to add partition cluster to data store");
-            }
+        if (!ps.getBoolean(PROP_DO_NOT_REGISTER)) {
+            register(ps, (DataStore) ps.getComponent(PROP_DATA_STORE_HEAD));
         }
     }
     
+    public void augment(PropertySheet ps, Component c) {
+        if(c instanceof DataStore && !ps.getBoolean(PROP_DO_NOT_REGISTER)) {
+            register(ps, (DataStore) c);
+        }
+    }
+    
+    private void register(PropertySheet ps, DataStore ds) {
+        PartitionCluster exported = (PartitionCluster) 
+                ps.getConfigurationManager().getRemote(this, ds);
+        try {
+            logger.info("Registering partition cluster: " + exported.getPrefix());
+            ds.registerPartitionCluster(exported);
+            dataStoreHeads.add(ds);
+        } catch(RemoteException rx) {
+            throw new PropertyException(ps.getInstanceName(),
+                    PROP_DATA_STORE_HEAD,
+                    "Unable to add partition cluster to data store");
+        }
+        
+    }
+
     public void addReplicant(Replicant replicant) throws RemoteException {
         logger.log(Level.INFO, "Adding replicant with prefix " + replicant.getPrefix());
         if (replicant.getPrefix().equals(prefixCode)) {
@@ -471,12 +487,16 @@ public class PartitionClusterImpl implements PartitionCluster,
         // changed.  Once that has happened, switch back to a default
         // strategy and our new prefix
         logger.info("Split finished, registering new partitions");
-        try {
-            PartitionCluster exported = (PartitionCluster) cm.getRemote(this, dataStoreHead);
+        for(DataStore ds : dataStoreHeads) {
+            PartitionCluster exported =
+                    (PartitionCluster) cm.getRemote(this, ds);
             prefixCode = newLocalPrefix;
-            dataStoreHead.registerPartitionSplit(exported, remote);
-        } catch (RemoteException e) {
-            logger.log(Level.WARNING, "Failed to register partition split", e);
+            try {
+                ds.registerPartitionSplit(exported, remote);
+            } catch(RemoteException e) {
+                logger.log(Level.WARNING, "Failed to register partition split",
+                        e);
+            }
         }
         splitting.set(false);
         strategy = new PCDefaultStrategy(replicant);
@@ -487,6 +507,12 @@ public class PartitionClusterImpl implements PartitionCluster,
 
     public void stop() {
         try {
+            long t = System.currentTimeMillis();
+            System.out.println(String.format("[%tD %tT:%tL] %s",
+                                       t, 
+                                       t, 
+                                       t,
+                                       "Partition cluster " + prefixCode + " shutting down."));
             close();
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to close properly", e);
@@ -635,5 +661,5 @@ public class PartitionClusterImpl implements PartitionCluster,
             }
         }
     }
-    
+
 }

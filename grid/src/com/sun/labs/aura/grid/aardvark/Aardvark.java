@@ -1,24 +1,16 @@
 package com.sun.labs.aura.grid.aardvark;
 
-import com.sun.caroline.platform.FileSystem;
-import com.sun.caroline.platform.FileSystemMountParameters;
-import com.sun.caroline.platform.Network;
 import com.sun.caroline.platform.ProcessConfiguration;
-import com.sun.caroline.platform.ProcessExitAction;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
-import com.sun.caroline.platform.StorageManagementException;
+import com.sun.labs.aura.aardvark.impl.crawler.FeedManager;
+import com.sun.labs.aura.aardvark.impl.crawler.FeedScheduler;
 import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.aura.grid.ServiceAdapter;
+import com.sun.labs.aura.recommender.RecommenderManager;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
-import java.io.File;
-import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
@@ -65,7 +57,7 @@ public abstract class Aardvark extends ServiceAdapter {
         };
 
         // create a configuration and set relevant properties
-        return gu.getProcessConfig(cmdLine, getSchedName());
+        return gu.getProcessConfig(FeedScheduler.class.getName(), cmdLine, getSchedName());
     }
 
     protected ProcessConfiguration getFeedManagerConfig(int n)
@@ -80,7 +72,8 @@ public abstract class Aardvark extends ServiceAdapter {
         };
 
         // create a configuration and set relevant properties
-        ProcessConfiguration pc = gu.getProcessConfig(cmdLine, getFMName(n));
+        ProcessConfiguration pc = gu.getProcessConfig(FeedManager.class.getName(), 
+                cmdLine, getFMName(n));
 
         // don't overlap with other replicants
         pc.setLocationConstraint(
@@ -100,7 +93,8 @@ public abstract class Aardvark extends ServiceAdapter {
             "recommenderManagerStarter"
         };
 
-        return gu.getProcessConfig(cmdLine, getRecName());
+        return gu.getProcessConfig(RecommenderManager.class.getName(), 
+                cmdLine, getRecName());
     }
 
     protected ProcessConfiguration getAardvarkConfig() throws Exception {
@@ -114,7 +108,8 @@ public abstract class Aardvark extends ServiceAdapter {
         };
 
         // create a configuration and set relevant properties
-        return gu.getProcessConfig(cmdLine, getAAName());
+        return gu.getProcessConfig(Aardvark.class.getName(), 
+                cmdLine, getAAName());
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {

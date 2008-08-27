@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!--
+    Document   : startAura.xml
+    Created on : May 20, 2008, 10:25 AM
+    Author     : stgreen
+    Description:
+        Configuration for the AuraStart grid script.
+-->
+<config>
+    
+    <property name="auraInstance" value="live"/>
+    
+    <property name="instanceNumber" value="2"/>
+    
+    <component name="startDSH" type="com.sun.labs.aura.grid.aura.StartDataStore">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="instanceNumber" value="${instanceNumber}"/>
+    </component>
+    
+    <component name="start" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>startDSH</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+    
+</config>
