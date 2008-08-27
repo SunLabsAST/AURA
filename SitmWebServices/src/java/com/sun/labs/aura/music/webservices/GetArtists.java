@@ -2,9 +2,10 @@
  *  Copyright (c) 2008, Sun Microsystems Inc.
  *  See license.txt for license.
  */
+
 package com.sun.labs.aura.music.webservices;
 
-import com.sun.labs.aura.music.ArtistTag;
+import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
@@ -20,9 +21,9 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author plamere
  */
-public class GetTags extends HttpServlet {
+public class GetArtists extends HttpServlet {
 
-    private final static String SERVLET_NAME = "GetTags";
+    private final static String SERVLET_NAME = "GetArtists";
 
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -48,13 +49,13 @@ public class GetTags extends HttpServlet {
                     maxCount = Integer.parseInt(maxCountString);
                 }
 
-                List<ArtistTag> tags = mdb.artistTagGetMostPopular(maxCount);
+                List<Artist> artists = mdb.artistGetMostPopular(maxCount);
 
                 Util.tagOpen(out, SERVLET_NAME);
-                for (ArtistTag tag : tags) {
-                    out.println("    <tag key=\"" + tag.getKey() + "\" name=\"" 
-                            + Util.filter(tag.getName()) + "\"" 
-                            + " popularity=\"" + mdb.artistTagGetNormalizedPopularity(tag) + "\"" + "/>");
+                for (Artist artist : artists) {
+                    out.println("    <artist key=\"" + artist.getKey() + "\" name=\"" 
+                            + Util.filter(artist.getName()) + "\"" 
+                            + " popularity=\"" + mdb.artistGetNormalizedPopularity(artist) + "\"" + "/>");
                 }
 
                 Util.outputOKStatus(out);

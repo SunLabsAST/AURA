@@ -26,6 +26,7 @@
             <li> <a href="ArtistTagSearch?name=alt"> Tag search for 'alt' </a>
             <li> <a href="ArtistSocialTags?name=weezer"> Distinctive tags for weezer</a>
             <li> <a href="ArtistSocialTags?name=weezer&type=frequent"> Frequent tags for weezer</a>
+            <li> <a href="GetArtists?max=100"> Get the 100 most popular artists</a>
             <li> <a href="GetTags?max=100"> Get the 100 most popular tags</a>
             <li> <a href="GetRecommendations?userID=http://paul.lamere.myopenid.com/"> Default Recommendations for lamere </a>
             <li> <a href="GetRecommendations?userID=http://paul.lamere.myopenid.com/&alg=SimToUserTagCloud"> SimToUserTagCloud Recommendations for lamere </a>
