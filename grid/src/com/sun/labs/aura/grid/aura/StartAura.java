@@ -35,15 +35,16 @@ public class StartAura extends Aura {
         
         //
         // Start up a process manager.
-        ProcessRegistration pmReg = gu.createProcess(getProcessManagerName(), getProcessManagerConfig());
+        ProcessRegistration pmReg = gu.createProcess(getProcessManagerName(),
+                getProcessManagerConfig());
         gu.startRegistration(pmReg);
 
         //
         // Next, get a data store head and start it
         ProcessRegistration dsHeadReg = gu.createProcess(
-                getDataStoreHeadName(),
+                getDataStoreHeadName(1),
                 debugRMI ? 
-                    getDataStoreHeadDebugConfig() : 
+                    getDataStoreHeadDebugConfig(1) : 
                     getDataStoreHeadConfig());
         gu.startRegistration(dsHeadReg);
 

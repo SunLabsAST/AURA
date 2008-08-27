@@ -73,6 +73,10 @@
         <servlet-name>GetStats</servlet-name>
         <servlet-class>com.sun.labs.aura.music.webservices.GetStats</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>GetArtists</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.GetArtists</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>FindSimilarArtist</servlet-name>
         <url-pattern>/FindSimilarArtist</url-pattern>
@@ -145,12 +149,13 @@
         <servlet-name>GetStats</servlet-name>
         <url-pattern>/GetStats</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetArtists</servlet-name>
+        <url-pattern>/GetArtists</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>
             30
         </session-timeout>
     </session-config>
-    <welcome-file-list>
-        <welcome-file>index.jsp</welcome-file>
-    </welcome-file-list>
-</web-app>
+    </web-app>

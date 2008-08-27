@@ -31,6 +31,9 @@ public class Util {
             s = s.replaceAll("\\<", "&lt;");
             s = s.replaceAll("\\>", "&gt;");
             s = s.replaceAll("[^\\p{Graph}\\p{Blank}]", "");
+
+            //BUG
+            s = s.replaceAll("\"", "");
         }
         return s;
     }

@@ -32,6 +32,13 @@ public class StopAura extends Aura {
             logger.log(Level.SEVERE, "Error stopping Stat Service", e);
         }
 
+        try {
+            gu.stopProcess(getProcessManagerName());
+            logger.info("Stopped process manager");
+        } catch(Exception e) {
+            logger.log(Level.SEVERE, "Error stopping Stat Service", e);
+        }
+
         for(String prefixCode : prefixCodeList) {
             try {
                 gu.stopProcess(getPartitionName(
@@ -51,7 +58,7 @@ public class StopAura extends Aura {
         }
 
         try {
-            gu.stopProcess(getDataStoreHeadName());
+            gu.stopProcess(getDataStoreHeadName(1));
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Error stopping data store head", e);
         }
@@ -88,7 +95,7 @@ public class StopAura extends Aura {
             }
 
             try {
-                gu.destroyRegistration(getDataStoreHeadName());
+                gu.destroyRegistration(getDataStoreHeadName(1));
             } catch(Exception e) {
                 logger.log(Level.SEVERE, "Error destroying data store head", e);
             }

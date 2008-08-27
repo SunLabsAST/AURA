@@ -37,8 +37,9 @@ public class DSBitSet extends BitSet {
      * 
      * @param prefixLen
      */
-    public void setPrefixLength(int prefixLen) {
+    public DSBitSet setPrefixLength(int prefixLen) {
         this.prefixLen = prefixLen;
+        return this;
     }
     
     /**

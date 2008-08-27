@@ -42,7 +42,6 @@ public class MusicDatabase {
     private Artist beatles = null;
     private final String BEATLES_ID = "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
     public final static String DEFAULT_RECOMMENDER = "SimToRecent(2)";
-    
     private double skimPercent = 1;
 
     public MusicDatabase(DataStore dataStore) throws AuraException {
@@ -385,8 +384,6 @@ public class MusicDatabase {
         return results;
     }
 
-
-
     /**
      * Gets the most recent attention that matches the given data
      * @param srcID the desired src ID (typically a listener ID) (or null for any)
@@ -397,15 +394,14 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public List<Attention> getRecentAttention(String srcID, String targetID, Attention.Type type, int count) 
-                    throws AuraException, RemoteException{
+    public List<Attention> getRecentAttention(String srcID, String targetID, Attention.Type type, int count)
+            throws AuraException, RemoteException {
         AttentionConfig ac = new AttentionConfig();
         ac.setSourceKey(srcID);
         ac.setTargetKey(targetID);
         ac.setType(type);
         return dataStore.getLastAttention(ac, count);
     }
-
 
     public TagCloud tagCloudCreate(String id, String name) throws AuraException {
         if (getTagCloud(id) == null) {
@@ -691,24 +687,28 @@ public class MusicDatabase {
 
     public float artistGetNormalizedPopularity(Artist artist) throws AuraException {
         if (beatles == null) {
-            beatles = artistLookup(ArtistTag.nameToKey(BEATLES_ID));
+            beatles = artistLookup(BEATLES_ID);
         }
         return artist.getPopularity() / beatles.getPopularity();
     }
 
     public List<String> artistGetMostPopularNames(int count) throws AuraException {
+        List<String> artistNames = new ArrayList();
+        for (Artist artist : artistGetMostPopular(count)) {
+            artistNames.add(artist.getName());
+        }
+        return artistNames;
+
+    }
+
+    public List<Artist> artistGetMostPopular(int count) throws AuraException {
         try {
             List<Scored<Item>> items = dataStore.query("aura-type=ARTIST", "-popularity", count, null);
             List<Artist> artists = new ArrayList<Artist>();
             for (Scored<Item> i : items) {
                 artists.add(new Artist(i.getItem()));
             }
-
-            List<String> artistNames = new ArrayList();
-            for (Artist artist : artists) {
-                artistNames.add(artist.getName());
-            }
-            return artistNames;
+            return artists;
 
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
@@ -1063,7 +1063,7 @@ public class MusicDatabase {
             return ItemType.ARTIST;
         }
     }
-    
+
     public void setSkimPercent(double skimPercent) {
         this.skimPercent = skimPercent;
     }

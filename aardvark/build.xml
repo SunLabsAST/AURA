@@ -93,7 +93,7 @@
 
     <target name="findbugs" depends="jar">
         <property environment="env" />
-        <findbugs home="${findbugs.home}" output="xml" outputFile="${build.dir}/findbugs_output.xml">
+        <findbugs home="${findbugs.home}" jvmargs="-Xmx512m" output="xml" outputFile="${build.dir}/findbugs_output.xml">
             <sourcePath path="${src.dir}" />
             <class location="${build.classes.dir}" />
         </findbugs>

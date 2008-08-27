@@ -46,6 +46,7 @@
             <item>LabsUtil.jar</item>
         </propertylist>
         <property name="securityPolicy" value="${auraPolicy}"/>
+        <property name="defaultLeaseTime" value="20000"/>
     </component>
     
     <!-- The configuration for a partition cluster. -->
