@@ -11,7 +11,7 @@ import com.google.gwt.user.client.rpc.IsSerializable;
  *
  * @author mailletf
  */
-public class WebException extends Exception implements IsSerializable {
+public class WebException extends RuntimeException implements IsSerializable {
 
     private errorMessages errorType;
 

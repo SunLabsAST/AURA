@@ -27,6 +27,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import com.sun.labs.aura.util.AuraException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -174,12 +175,12 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         return trace;
     }
 
-    public List<String> getArtistOracle() {
+    public ArrayList<String> getArtistOracle() {
         logger.info("getArtistOracle");
         return dm.getArtistOracle();
     }
     
-    public List<String> getTagOracle() {
+    public ArrayList<String> getTagOracle() {
         logger.info("getTagOracle");
         return dm.getTagOracle();
     }
@@ -189,9 +190,9 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             ListenerDetails lD = dm.establishNonOpenIdUserConnection(userKey);
             
-            if (lD.loggedIn) {
+            if (lD.isLoggedIn()) {
                 HttpSession session = this.getThreadLocalRequest().getSession();
-                session.setAttribute(OpenIDServlet.openIdCookieName, lD.openID);
+                session.setAttribute(OpenIDServlet.openIdCookieName, lD.getOpenId());
             }
             return lD;
             
@@ -211,35 +212,35 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
 
             HttpSession session = this.getThreadLocalRequest().getSession();
             if (session.getAttribute(OpenIDServlet.openIdCookieName) != null) {
-                lD.openID = (String) session.getAttribute(OpenIDServlet.openIdCookieName);
+                lD.setOpenId( (String) session.getAttribute(OpenIDServlet.openIdCookieName));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_BIRTHDATE) != null) {
-                lD.birthDate = (String) session.getAttribute(OpenIDServlet.ATTR_BIRTHDATE);
+                lD.setBirhtDate( (String) session.getAttribute(OpenIDServlet.ATTR_BIRTHDATE));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_COUNTRY) != null) {
-                lD.country = (String) session.getAttribute(OpenIDServlet.ATTR_COUNTRY);
+                lD.setCountry( (String) session.getAttribute(OpenIDServlet.ATTR_COUNTRY));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_EMAIL) != null) {
-                lD.email = (String) session.getAttribute(OpenIDServlet.ATTR_EMAIL);
+                lD.setEmail( (String) session.getAttribute(OpenIDServlet.ATTR_EMAIL));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_GENDER) != null) {
-                lD.gender = (String) session.getAttribute(OpenIDServlet.ATTR_GENDER);
+                lD.setGender( (String) session.getAttribute(OpenIDServlet.ATTR_GENDER));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_LANGUAGE) != null) {
-                lD.language = (String) session.getAttribute(OpenIDServlet.ATTR_LANGUAGE);
+                lD.setLanguage( (String) session.getAttribute(OpenIDServlet.ATTR_LANGUAGE));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_NICKNAME) != null) {
-                lD.nickName = (String) session.getAttribute(OpenIDServlet.ATTR_NICKNAME);
+                lD.setNickName( (String) session.getAttribute(OpenIDServlet.ATTR_NICKNAME));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_NAME) != null) {
-                lD.realName = (String) session.getAttribute(OpenIDServlet.ATTR_NAME);
+                lD.setRealName( (String) session.getAttribute(OpenIDServlet.ATTR_NAME));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_STATE) != null) {
-                lD.state = (String) session.getAttribute(OpenIDServlet.ATTR_STATE);
+                lD.setState( (String) session.getAttribute(OpenIDServlet.ATTR_STATE));
             }
 
-            if (lD.openID != null && (lD.realName != null || lD.nickName != null)) {
-                lD.loggedIn = true;
+            if (lD.getOpenId() != null && (lD.getRealName() != null || lD.getNickName() != null)) {
+                lD.setIsLoggedIn(true);
                 dm.establishUserConnection(lD);
             }
             return lD;
@@ -274,7 +275,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     public void updateListener(ListenerDetails lD) throws WebException {
-        logger.info("UpdateListener :: "+lD.openID);
+        logger.info("UpdateListener :: "+lD.getOpenId());
         try {
             dm.updateUser(lD);
         } catch (AuraException ex) {
@@ -318,7 +319,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public Map<String,Integer> fetchUserSongRating(Set<String> artistID) throws WebException {
+    public HashMap<String,Integer> fetchUserSongRating(Set<String> artistID) throws WebException {
 
         String userId = getOpenIdFromSession();
         logger.info("fetchUserSongRating :: user:"+userId+" and set of artists");
@@ -334,11 +335,11 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public Map<String, String> getSimTypes() {
+    public HashMap<String, String> getSimTypes() {
          return dm.getSimTypes();
     }
     
-    public Map<String, String> getArtistRecommendationTypes() {
+    public HashMap<String, String> getArtistRecommendationTypes() {
         return dm.getArtistRecommendationTypes();
     }
 
@@ -420,62 +421,22 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public List<AttentionItem> getLastTaggedArtists(int count) throws WebException {
+    public ArrayList<AttentionItem> getLastTaggedArtists(int count) throws WebException {
+        return getLastAttentionArtists(count, Type.TAG, true);
+    }
+
+    public ArrayList<AttentionItem> getLastRatedArtists(int count) throws WebException {
+        return getLastAttentionArtists(count, Type.RATING, true);
+    }
+
+    public ArrayList<AttentionItem> getLastPlayedArtists(int count) throws WebException {
+        return getLastAttentionArtists(count, Type.PLAYED, true);
+    }
+
+    public ArrayList<AttentionItem> getLastAttentionArtists(int count, Type attentionType, boolean fetchUserTags) throws WebException {
 
         String userId = getOpenIdFromSession();
-        logger.info("getLastRatedArtists :: user:"+userId);
-
-        try {
-
-            ArrayList<AttentionItem> aI = new ArrayList<AttentionItem>();
-            Set<String> artistIds = new HashSet<String>();
-
-            List<Attention> att = dm.getLastAttentionData(userId, Type.TAG, count * 2);
-            for (Attention a : att) {
-                if (!artistIds.contains(a.getTargetKey())) {
-                    AttentionItem newAi = new AttentionItem(getArtistCompact(a.getTargetKey()));
-                    newAi.setTags(fetchUserTagsForItem(a.getTargetKey()));
-                    aI.add(newAi);
-                    artistIds.add(a.getTargetKey());
-
-                    if (artistIds.size() == count) {
-                        break;
-                    }
-                }
-            }
-
-            // Fetch ratings for all songs
-            Map<String,Integer> ratings = dm.fetchUserSongRating(userId, artistIds);
-            for (AttentionItem a : aI) {
-                ArtistCompact aC = (ArtistCompact)a.getItem();
-                if (ratings.containsKey(aC.getId())) {
-                    a.setRating(ratings.get(aC.getId()));
-                }
-            }
-
-            return aI;
-
-        } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
-            throw new WebException(ex.getMessage(), ex);
-        } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
-            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
-        }
-    }
-
-    public List<AttentionItem> getLastRatedArtists(int count) throws WebException {
-        return getLastAttentionArtists(count, Type.RATING);
-    }
-
-    public List<AttentionItem> getLastPlayedArtists(int count) throws WebException {
-        return getLastAttentionArtists(count, Type.PLAYED);
-    }
-
-    public List<AttentionItem> getLastAttentionArtists(int count, Type attentionType) throws WebException {
-
-        String userId = getOpenIdFromSession();
-        logger.info("getLastPayedArtists :: user:"+userId);
+        logger.info("getLastAttentionArtists :: user:"+userId+" attention:"+attentionType.toString());
 
         try {
             ArrayList<AttentionItem> aI = new ArrayList<AttentionItem>();
@@ -484,9 +445,13 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             List<Attention> att = dm.getLastAttentionData(userId, attentionType, count * 2);
             for (Attention a : att) {
                 if (!artistIds.contains(a.getTargetKey())) {
-                    aI.add(new AttentionItem(getArtistCompact(a.getTargetKey())));
+                    AttentionItem newAi = new AttentionItem(getArtistCompact(a.getTargetKey()));
+                    if (fetchUserTags) {
+                        newAi.setTags(fetchUserTagsForItem(a.getTargetKey()));
+                    }
+                    aI.add(newAi);
                     artistIds.add(a.getTargetKey());
-
+                    
                     if (artistIds.size() == count) {
                         break;
                     }
@@ -513,7 +478,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public Set<String> fetchUserTagsForItem(String itemId) throws WebException {
+    public HashSet<String> fetchUserTagsForItem(String itemId) throws WebException {
         
         String userId = getOpenIdFromSession();
         logger.info("fetchUserTagForItem :: user:"+userId+", item:"+itemId);
@@ -555,7 +520,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
     
-    public List<ArtistRecommendation> getRecommendations(String recTypeName, int cnt) throws WebException {
+    public ArrayList<ArtistRecommendation> getRecommendations(String recTypeName, int cnt) throws WebException {
         String userId = getOpenIdFromSession();
         logger.info("getLastRatedArtists :: user:"+userId);
         try {
@@ -569,7 +534,16 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public ServerInfoItem getServerInfo() {
-        return dm.getServerInfo();
+    public ServerInfoItem getServerInfo() throws WebException {
+        logger.info("getServerInfo");
+        try {
+            return dm.getServerInfo();
+         } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
     }
 }

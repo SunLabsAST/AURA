@@ -25,9 +25,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.TagWidgetContain
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -39,15 +36,14 @@ public class ClientDataManager {
     private String currArtistName;
     private String currSearchWidgetToken = "searchHome:";
 
-    private List<Updatable> updatableWidgets;
+    private LinkedList<Updatable> updatableWidgets;
     
-    private Map<String, String> simTypes;
-    private Map<String, String> recTypes;
+    private HashMap<String, String> simTypes;
+    private HashMap<String, String> recTypes;
     private String currRecTypeName;
     private String currSimTypeName;
     
-    private Double maxScore;
-    private Map<String, Double> favArtist;
+    private HashMap<String, Double> favArtist;
     
     private PageHeaderWidget phw;
 
@@ -65,7 +61,7 @@ public class ClientDataManager {
      */
     private boolean forceSteerableReset = false;
 
-    private Set<Swidget> registeredSwidgets;
+    private HashSet<Swidget> registeredSwidgets;
 
     private ListenerDetails lD;
 
@@ -171,20 +167,16 @@ public class ClientDataManager {
         forceSteerableReset = newVal;
     }
 
-    public Double getMaxScore() {
-        return maxScore;
-    }
-
     public String getLastFmUser() {
-        return lD.lastfmUser;
+        return lD.getLastFmUser();
     }
 
     public void setListenerDetails(ListenerDetails newlD) {
         //
         // If the logged in state has changed, we need to fire events
-        if (this.lD.loggedIn!=newlD.loggedIn) {
-            this.lD=newlD;
-            if (this.lD.loggedIn) {
+        if (lD.isLoggedIn()!=newlD.isLoggedIn()) {
+            lD=newlD;
+            if (lD.isLoggedIn()) {
                 getLoginListenerManager().triggerOnLogin();
             } else {
                 getLoginListenerManager().triggerOnLogout();
@@ -198,7 +190,7 @@ public class ClientDataManager {
         return lD;
     }
 
-    public Map<String, Double> getFavArtist() {
+    public HashMap<String, Double> getFavArtist() {
         return favArtist;
     }
 
@@ -207,15 +199,15 @@ public class ClientDataManager {
     }
 
     public boolean isLoggedIn() {
-        return lD.loggedIn;
+        return lD.isLoggedIn();
     }
 
-    public Map<String, String> getSimTypes() {
+    public HashMap<String, String> getSimTypes() {
         return simTypes;
     }
     
-    public void setSimTypes(Map<String, String> simTypes) {
-        this.simTypes=simTypes;
+    public void setSimTypes(HashMap<String, String> simTypes) {
+        this.simTypes = simTypes;
     }
     
     public String getCurrSimTypeName() {
@@ -226,12 +218,12 @@ public class ClientDataManager {
         this.currSimTypeName=currName;
     }
 
-    public Map<String, String> getRecTypes() {
+    public HashMap<String, String> getRecTypes() {
         return recTypes;
     }
     
-    public void setRecTypes(Map<String, String> recTypes) {
-        this.recTypes=recTypes;
+    public void setRecTypes(HashMap<String, String> recTypes) {
+        this.recTypes = recTypes;
     }
     
     public String getCurrRecTypeName() {
@@ -338,7 +330,7 @@ public class ClientDataManager {
 
     public class ListenerManager <T extends WebListener> {
 
-        protected Set<T> listeners;
+        protected HashSet<T> listeners;
 
         public ListenerManager() {
             listeners = new HashSet<T>();
@@ -367,11 +359,11 @@ public class ClientDataManager {
 
     public class ItemBoundedListenerManager<T extends WebListener> extends ListenerManager<T> {
 
-        protected Map<String, Set<T>> itemIdBoundedListeners;
+        protected HashMap<String, HashSet<T>> itemIdBoundedListeners;
 
         public ItemBoundedListenerManager() {
             super();
-            itemIdBoundedListeners = new HashMap<String, Set<T>>();
+            itemIdBoundedListeners = new HashMap<String, HashSet<T>>();
         }
 
         /**
@@ -459,7 +451,7 @@ public class ClientDataManager {
             super();
         }
 
-        public void triggerOnTag(String itemId, Set<String> tags) {
+        public void triggerOnTag(String itemId, HashSet<String> tags) {
             for (TaggingListener tL : listeners) {
                 tL.onTag(itemId, tags);
             }
@@ -580,6 +572,18 @@ public class ClientDataManager {
         public void addArtist(ArtistCompact aC) {
             if (init) {
                 tagLand.addArtist(aC, 0);
+            }
+        }
+
+        /**
+         * Returns the weight of the maximum weighted item in the tag cloud
+         * @return
+         */
+        public double getMaxWeight() {
+            if (init) {
+                return tagLand.getMaxWeight();
+            } else {
+                return -1;
             }
         }
     }

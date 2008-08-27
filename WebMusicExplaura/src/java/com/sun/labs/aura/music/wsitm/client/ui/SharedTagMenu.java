@@ -70,7 +70,7 @@ public class SharedTagMenu extends Menu implements TagDependentSharedMenu {
 
             public void onSuccess(ItemInfo[] iI) {
                 if (iI != null || iI.length > 0) {
-                    TagDisplayLib.showTagCloud("Similar tags to "+currTag.getItemName(), iI, cdm);
+                    TagDisplayLib.showTagCloud("Similar tags to "+currTag.getItemName(), iI, TagDisplayLib.ORDER.SHUFFLE, cdm);
                 } else {
                     Window.alert("An error occured while fetching similar tags.");
                 }

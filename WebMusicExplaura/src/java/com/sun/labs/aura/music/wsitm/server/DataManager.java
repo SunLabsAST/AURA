@@ -10,7 +10,8 @@ package com.sun.labs.aura.music.wsitm.server;
 
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
-import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Album;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.ArtistTag;
@@ -91,8 +92,8 @@ public class DataManager implements Configurable {
     private static final String beatlesMDID="b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
     private float beatlesPopularity=-1;
 
-    private List<String> artistOracle;
-    private List<String> tagOracle;
+    private ArrayList<String> artistOracle;
+    private ArrayList<String> tagOracle;
 
     private Map<String, SimType> simTypes;
 
@@ -118,9 +119,9 @@ public class DataManager implements Configurable {
 
         try {
             logger.info("Fetching "+NUMBER_ARTIST_ORACLE+" most popular artists...");
-            artistOracle = mdb.artistGetMostPopularNames(NUMBER_ARTIST_ORACLE);
+            artistOracle.addAll(mdb.artistGetMostPopularNames(NUMBER_ARTIST_ORACLE));
             logger.info("Fetching "+NUMBER_TAGS_ORACLE+" most popular tags...");
-            tagOracle = mdb.artistTagGetMostPopularNames(NUMBER_TAGS_ORACLE);
+            tagOracle.addAll(mdb.artistTagGetMostPopularNames(NUMBER_TAGS_ORACLE));
             logger.info("DONE");
 
             beatlesPopularity=mdb.artistLookup(beatlesMDID).getPopularity();
@@ -136,11 +137,11 @@ public class DataManager implements Configurable {
         logger.info("DataManager ready.");
     }
 
-    public List<String> getArtistOracle() {
+    public ArrayList<String> getArtistOracle() {
         return artistOracle;
     }
 
-    public List<String> getTagOracle() {
+    public ArrayList<String> getTagOracle() {
         return tagOracle;
     }
 
@@ -481,7 +482,7 @@ public class DataManager implements Configurable {
         return artistPhotoArray;
     }
 
-    public ServerInfoItem getServerInfo() {
+    public ServerInfoItem getServerInfo() throws RemoteException, AuraException {
 
         ServerInfoItem info = new ServerInfoItem();
 
@@ -490,6 +491,18 @@ public class DataManager implements Configurable {
             cacheInfo.put(s, cache.get(s).getSize());
         }
         info.setCacheStatus(cacheInfo);
+        
+        DataStore dS = mdb.getDataStore();
+        //info.setDataStoreNbrReplicants(dS.getPrefixes().size());
+
+        HashMap<String, Integer> items = new HashMap<String, Integer>();
+        for (ItemType t : ItemType.values()) {
+            int count = (int) dS.getItemCount(t);
+            if (count > 0) {
+                items.put(t.toString(), count);
+            }
+        }
+        info.setItemCnt(items);
 
         return info;
     }
@@ -542,36 +555,33 @@ public class DataManager implements Configurable {
     private Listener syncListeners(Listener l, ListenerDetails lD, SimType simType,
             boolean updateRecommendations) throws AuraException, RemoteException {
 
-        if (lD.gender!=null) {
-            if (lD.gender.equals("M")) {
-                l.setGender(Gender.Male);
-            } else if (lD.gender.equals("F")) {
-                l.setGender(Gender.Female);
+        if (lD.getGender() != null) {
+            String gender = lD.getGender().toString();
+            for (Gender g : Gender.values()) {
+                if (g.toString().equals(gender)) {
+                    l.setGender(g);
+                }
             }
         } else if (l.getGender()!=null) {
-            if (l.getGender()==Gender.Female) {
-                lD.gender="F";
-            } else if (l.getGender()==Gender.Male) {
-                lD.gender="M";
-            }
+            lD.setGender(l.getGender().toString());
         }
 
-        if (lD.country!=null) {
-            l.setLocaleCountry(lD.country);
+        if (lD.getCountry()!=null) {
+            l.setLocaleCountry(lD.getCountry());
         } else if (l.getLocaleCountry()!=null) {
-            lD.country=l.getLocaleCountry();
+            lD.setCountry(l.getLocaleCountry());
         }
 
-        if (lD.pandoraUser!=null) {
-            l.setPandoraName(lD.pandoraUser);
+        if (lD.getPandoraUser()!=null) {
+            l.setPandoraName(lD.getPandoraUser());
         } else if (l.getPandoraName()!=null) {
-            lD.pandoraUser=l.getPandoraName();
+            lD.setPandoraUser(l.getPandoraName());
         }
 
-        if (lD.lastfmUser!=null) {
-            l.setLastFmName(lD.lastfmUser);
+        if (lD.getLastFmUser()!=null) {
+            l.setLastFmName(lD.getLastFmUser());
         } else if (l.getLastFmName()!=null) {
-            lD.lastfmUser=l.getLastFmName();
+            lD.setLastFmUser(l.getLastFmName());
         }
 
         if (updateRecommendations) {
@@ -580,7 +590,7 @@ public class DataManager implements Configurable {
             for (Scored<Artist> a : mdb.getRecommendations(l.getKey(), NBR_REC_LISTENER)) {
                 aCompact.add(artistToArtistCompact(a.getItem()));
             }
-            lD.recommendations = aCompact.toArray(new ArtistCompact[0]);
+            lD.setRecommendations(aCompact.toArray(new ArtistCompact[0]));
         }
 
         return l;
@@ -590,23 +600,19 @@ public class DataManager implements Configurable {
             SimType simType, boolean updateRecommendations) throws AuraException, RemoteException {
 
         if (l.getGender()!=null) {
-            if (l.getGender()==Gender.Female) {
-                lD.gender="F";
-            } else if (l.getGender()==Gender.Male) {
-                lD.gender="M";
-            }
+            lD.setGender(l.getGender().toString());
         }
 
         if (l.getLocaleCountry()!=null) {
-            lD.country=l.getLocaleCountry();
+            lD.setCountry(l.getLocaleCountry());
         }
 
         if (l.getPandoraName()!=null) {
-            lD.pandoraUser=l.getPandoraName();
+            lD.setPandoraUser(l.getPandoraName());
         }
 
         if (l.getLastFmName()!=null) {
-            lD.lastfmUser=l.getLastFmName();
+            lD.setLastFmUser(l.getLastFmName());
         }
 
         if (updateRecommendations) {
@@ -615,7 +621,7 @@ public class DataManager implements Configurable {
             for (Scored<Artist> a : mdb.getRecommendations(l.getKey(), NBR_REC_LISTENER)) {
                 aCompact.add(artistToArtistCompact(a.getItem()));
             }
-            lD.recommendations = aCompact.toArray(new ArtistCompact[0]);
+            lD.setRecommendations(aCompact.toArray(new ArtistCompact[0]));
         }
 
         ArrayList<ItemInfo> iI = new ArrayList<ItemInfo>();
@@ -636,7 +642,7 @@ public class DataManager implements Configurable {
                 }
             }
         }
-        lD.userTagCloud = iI.toArray(new ItemInfo[0]);
+        lD.setUserTagCloud(iI.toArray(new ItemInfo[0]));
 
         return lD;
     }
@@ -657,8 +663,8 @@ public class DataManager implements Configurable {
         }
 
         lD = listenerToListenerDetails(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
-        lD.openID = userKey;
-        lD.loggedIn = true;
+        lD.setOpenId(userKey);
+        lD.setIsLoggedIn(true);
         
         return lD;
     }
@@ -673,13 +679,13 @@ public class DataManager implements Configurable {
 
         Listener l = null;
 
-        l = mdb.getListener(lD.openID);
+        l = mdb.getListener(lD.getOpenId());
 
         if (l == null) {
-            logger.info("Creating new user in datastore: " + lD.openID);
-            l = mdb.enrollListener(lD.openID);
+            logger.info("Creating new user in datastore: " + lD.getOpenId());
+            l = mdb.enrollListener(lD.getOpenId());
         } else {
-            logger.info("Retrieved user from datastore: " + lD.openID);
+            logger.info("Retrieved user from datastore: " + lD.getOpenId());
         }
 
         l = syncListeners(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
@@ -709,7 +715,7 @@ public class DataManager implements Configurable {
     }
 
     public void updateUser(ListenerDetails lD) throws AuraException, RemoteException {
-        Listener l = syncListeners(mdb.getListener(lD.openID), lD, null, false);
+        Listener l = syncListeners(mdb.getListener(lD.getOpenId()), lD, null, false);
         mdb.updateListener(l);
     }
 
@@ -727,10 +733,10 @@ public class DataManager implements Configurable {
         return mdb.getLatestRating(userId, artistID);
     }
 
-    public Map<String,Integer> fetchUserSongRating(String userId, Set<String> artistID)
+    public HashMap<String,Integer> fetchUserSongRating(String userId, Set<String> artistID)
             throws AuraException, RemoteException {
 
-        Map<String, Integer> ratingMap = new HashMap<String, Integer>();
+        HashMap<String, Integer> ratingMap = new HashMap<String, Integer>();
 
         logger.info("Fetching rating for artist " + artistID + " for user " + userId);
         for (String aID : artistID) {
@@ -764,9 +770,9 @@ public class DataManager implements Configurable {
         return wC;
     }
 
-    public Set<String> fetchUserTagsForItem(String listenerId, String itemId)
+    public HashSet<String> fetchUserTagsForItem(String listenerId, String itemId)
             throws AuraException, RemoteException {
-        Set<String> tags = new HashSet<String>();
+        HashSet<String> tags = new HashSet<String>();
         tags.addAll(mdb.getTags(listenerId, itemId));
         return tags;
     }
@@ -937,27 +943,27 @@ public class DataManager implements Configurable {
         return artistTagResults;
     }
 
-    public Map<String, String> getSimTypes() {
+    public HashMap<String, String> getSimTypes() {
         logger.info("Getting sim types");
-        Map<String, String> simTypes = new HashMap<String, String>();
-        for (SimType s : mdb.getSimTypes()) {
-            simTypes.put(s.getName(), s.getDescription());
+        HashMap<String, String> storeSimTypes = new HashMap<String, String>();
+        for (SimType s : this.simTypes.values()) {
+            storeSimTypes.put(s.getName(), s.getDescription());
         }
-        return simTypes;
+        return storeSimTypes;
     }
     
-    public Map<String, String> getArtistRecommendationTypes() {
+    public HashMap<String, String> getArtistRecommendationTypes() {
         logger.info("Getting rec types");
-        Map<String, String> recTypeMap = new HashMap<String, String>();
+        HashMap<String, String> recTypeMap = new HashMap<String, String>();
         for (RecommendationType rT : mdb.getArtistRecommendationTypes()) {
             recTypeMap.put(rT.getName(), rT.getDescription());
         }
         return recTypeMap;
     }
 
-    public List<ArtistRecommendation> getRecommendations(String recTypeName, String userId, int cnt) throws AuraException, RemoteException {
+    public ArrayList<ArtistRecommendation> getRecommendations(String recTypeName, String userId, int cnt) throws AuraException, RemoteException {
         logger.info("Getting recommendations for user "+ userId + " using recType:"+recTypeName);
-        List<ArtistRecommendation> aR = new ArrayList<ArtistRecommendation>();
+        ArrayList<ArtistRecommendation> aR = new ArrayList<ArtistRecommendation>();
         
         RecommendationSummary rS = mdb.getArtistRecommendationType(recTypeName).getRecommendations(userId, cnt, new Rp());
         for (Recommendation r : rS.getRecommendations()) {
@@ -1049,19 +1055,6 @@ public class DataManager implements Configurable {
             }
         }
         return tagsArray.subList(0,this.getMax(tagsArray,NUMBER_TAGS_TO_SHOW)).toArray(new ItemInfo[0]);
-    }
-
-    /**
-     * Extracts the IDs from a list of items and returns them in a list
-     * @param itemIDs list of items
-     * @return list of the items' IDs
-     */
-    private List<String> itemsToIDs(List<Item> itemIDs) {
-        List<String> stringIDs = new ArrayList();
-        for (Item i : itemIDs) {
-            stringIDs.add(i.getKey());
-        }
-        return stringIDs;
     }
 
     public int getExpiredTimeInDays() {

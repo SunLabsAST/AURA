@@ -17,8 +17,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.Widget;
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  *
@@ -41,19 +40,26 @@ public abstract class Swidget extends Composite implements HasListeners {
     }
 
     /**
-     * Returns a list of all the token headers associated with this swidget
+     * Returns a list of all the token headers associated with this swidget.
      * @return
      */
-    public abstract List<String> getTokenHeaders();
+    public abstract ArrayList<String> getTokenHeaders();
 
     /**
-     * Returns this sections' title as it should appear in the top menu
-     * @return null if not to appear in to menu
+     * Returns this section's title as it should appear in the top menu
+     * @return null if this swidget should not appear in the top menu.
      */
-    public final MenuItem getMenuItem() {
+    public final MenuItem getMenuItem() throws WebException {
+        if (menuItem == null) {
+            throw new WebException("Menuitem not initialised in swidget '" + name + "'");
+        }
         return menuItem;
     };
 
+    /**
+     * Called when the swidget is being constructed. Method should create the
+     * menuItem object.
+     */
     protected abstract void initMenuItem();
 
     /**
@@ -64,6 +70,10 @@ public abstract class Swidget extends Composite implements HasListeners {
      */
     public void update() {}
 
+    /**
+     * Returns the swidget's name
+     * @return
+     */
     public final String getName() {
         return name;
     }
@@ -85,7 +95,12 @@ public abstract class Swidget extends Composite implements HasListeners {
         endpoint.setServiceEntryPoint(moduleRelativeURL);
     }
 
-    protected Widget getMustBeLoggedInWidget() {
+    /**
+     * Returns Label with generic message informing the user that he must be logged
+     * in to do what he is trying to do
+     * @return
+     */
+    protected Label getMustBeLoggedInWidget() {
         return new Label("Sorry but you must be logged in to access this page.");
     }
 }

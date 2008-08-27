@@ -7,19 +7,26 @@ package com.sun.labs.aura.music.wsitm.client.ui.widget.steerable;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.DeferredCommand;
+import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Widget;
+import com.gwtext.client.widgets.menu.Menu;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.DataEmbededCommand;
+import com.sun.labs.aura.music.wsitm.client.WebException;
+import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudArtist;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.WrapsCloudItem;
 import com.sun.labs.aura.music.wsitm.client.ui.ColorConfig;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.DeletableWidget;
@@ -36,6 +43,7 @@ public class ResizableTagWidget extends TagWidget {
     private static int AVG_SIZE_OF_ADDED_CLOUD = 40;
     
     private ClientDataManager cdm;
+    private Menu sharedArtistMenu;
     private HashMap<String, DeletableResizableTag> tagCloud;
     private boolean hasChanged = false; // did the tagCloud change and recommendations need to be updated
     private double maxSize = 0.1;
@@ -45,11 +53,12 @@ public class ResizableTagWidget extends TagWidget {
     private int lastY;
     private int colorIndex = 1;
 
-    public ResizableTagWidget(MainPanel mainPanel, ClientDataManager cdm) {
+    public ResizableTagWidget(MainPanel mainPanel, ClientDataManager cdm, Menu sharedArtistMenu) {
 
         super(mainPanel);
 
         this.cdm = cdm;
+        this.sharedArtistMenu = sharedArtistMenu;
 
         int panelWidth = 480;
         if (Window.getClientWidth() > 1024) {
@@ -176,6 +185,19 @@ public class ResizableTagWidget extends TagWidget {
         super.onDetach();
         WebLib.disableTextSelectInternal(this.getElement(), false);
     }
+    
+    @Override
+    public double getMaxWeight() {
+        double maxVal = 0;
+        double tempVal = 0;
+        for (DeletableResizableTag dT : tagCloud.values()) {
+            tempVal = dT.getCloudItem().getWeight();
+            if (tempVal > maxVal) {
+                maxVal = tempVal;
+            }
+        }
+        return maxVal;
+    }
 
     /**
      * Add all supplied items
@@ -236,8 +258,9 @@ public class ResizableTagWidget extends TagWidget {
                 item.setWeight( AVG_SIZE_OF_ADDED_CLOUD );
             }
             
-            ResizableTag rT = new ResizableTag(item, item.getColorConfig()[(colorIndex++) % 2]);
+            ResizableTag rT = getNewTagObject(item, item.getColorConfig()[(colorIndex++) % 2]);
             DeletableResizableTag dW = new DeletableResizableTag(rT);
+            dW.addStyleName("pointer");
 
             tagCloud.put(item.getId(), dW);
             flowP.add(dW);
@@ -306,6 +329,21 @@ public class ResizableTagWidget extends TagWidget {
         return itemsMap;
     }
 
+    /**
+     * Determines the type of CloudItem, creates the right type of ResizableTag
+     * returns it
+     * @param item
+     * @param color
+     * @return
+     */
+    private ResizableTag getNewTagObject(CloudItem item, ColorConfig color) {
+        if (item instanceof CloudArtist) {
+            return new ResizableArtistTag(item, color);
+        } else {
+            return new ResizableTag(item, color);
+        }
+    }
+
     public class DeletableResizableTag extends DeletableWidget<ResizableTag> implements WrapsCloudItem {
 
         public DeletableResizableTag(ResizableTag t) {
@@ -337,13 +375,45 @@ public class ResizableTagWidget extends TagWidget {
         }
     }
 
+    /**
+     * Resizable tag with the addition of the artist context menu
+     */
+    public class ResizableArtistTag extends ResizableTag implements HasContextMenu {
+        
+        protected ContextMenu cm;
+        
+        public ResizableArtistTag(CloudItem item, ColorConfig color) {
+            super(item, color);
+            this.cm = new ContextMenu(sharedArtistMenu);
+            sinkEvents(Event.ONCONTEXTMENU);
+        }
+        
+        @Override
+        public void onBrowserEvent(Event event) {
+            if (event.getTypeInt() == Event.ONCONTEXTMENU) {
+                DOM.eventPreventDefault(event);
+                try {
+                    cm.showSharedMenu(event, item);
+                } catch (WebException ex) {
+                    Window.alert(ex.toString());
+                }
+            } else {
+                super.onBrowserEvent(event);
+            }
+        }
+
+        public ContextMenu getContextMenu() {
+            return cm;
+        }  
+    }
+
     public class ResizableTag extends SpannedLabel implements WrapsCloudItem {
 
         private final double DEFAULT_SIZE = 40;
 
         private boolean hasClicked = false;
         private ColorConfig color;
-        private CloudItem item;
+        protected CloudItem item;
         private static final int MIN_SIZE = 4;
         private static final int MAX_SIZE = 175;
 
@@ -375,7 +445,7 @@ public class ResizableTagWidget extends TagWidget {
                 public void onMouseMove(Widget arg0, int arg1, int arg2) {}
             });
         }
-
+        
         private final void resetAttributes() {
             getElement().setAttribute("style", "-moz-user-select: none; -khtml-user-select: none; user-select: none; font-size:" + Math.abs(item.getWeight()) + "px; color:" + color.getColor(item.getWeight()) + ";");
         }

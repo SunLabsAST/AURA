@@ -11,11 +11,11 @@ package com.sun.labs.aura.music.wsitm.client.items;
 
 import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.rpc.IsSerializable;
+import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
+import java.util.HashMap;
 
 /**
  *
@@ -82,6 +82,22 @@ public class ItemInfo implements IsSerializable {
             iI.add(i);
         }
         return iI;
+    }
+
+    /**
+     * Converts a map of tag names to score to an ItemInfo array
+     * @param map Map of (tag name, score)
+     * @return
+     */
+    public static ItemInfo[] mapToArray(HashMap<String, Double> map) {
+        
+        ItemInfo[] iIArray = new ItemInfo[map.size()];
+        int index = 0;
+        for (String tagName : map.keySet()) {
+            double val = map.get(tagName);
+            iIArray[index++] = new ItemInfo(ClientDataManager.nameToKey(tagName), tagName, val, val);
+        }
+        return iIArray;
     }
 
     public static class PopularitySorter implements Comparator<ItemInfo> {

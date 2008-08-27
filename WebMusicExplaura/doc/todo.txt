@@ -1,0 +1,25 @@
+Web Music Explaura :: TODO / wishlist
+
+- Move artist's picture up in tag cloud when displaying artist details
+- Add option to display most popular tags in right hand side of the steerable so user can chose from them to add tags
+- On delete tag in steerable redraw tags with alternating colors (fix bug. should be doing it now)
+- Refactor artist similar artist listing right panel to use new updatable with new listener model
+- Change general types to specific types in client side code (ie: use HashMap instead of Map)
+- Add getTitle() method to swidget to update page title
+- Fixed shacking on click text box
+- Improve overall look and colors. Chose tag colors that are clearer.
+- Fix CSS for Safari and test on IE
+
+- Album / track level
+- Autotags
+- Musical journey playlisting (tag cloud --> tag cloud)
+- Clustering / MDS
+- Save user tag cloud
+
+- Use same method as in AnimatedComposite instead of GWT effects for photos thumbnail fade in in artist detail view
+- Fix exception handling in Main so that 40 exceptions dont popup with html code in windows if the server is down
+
+- Let users vote for inappropriate or wrong video or picture.
+- Use shared context menu for artists' name in ArtistListWidget
+- Option to display artists with their picture instead if text label in steerable
+- Replace artist/tag search by GWT-Ext's live search (http://www.gwt-ext.com/demo/#liveSearch)

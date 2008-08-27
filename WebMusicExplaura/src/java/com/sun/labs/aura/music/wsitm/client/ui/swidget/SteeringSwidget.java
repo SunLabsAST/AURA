@@ -55,7 +55,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  *
@@ -75,13 +74,15 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         onHistoryChanged(History.getToken());
     }
 
-    public List<String> getTokenHeaders() {
+    @Override
+    public ArrayList<String> getTokenHeaders() {
 
-        List<String> l = new ArrayList<String>();
+        ArrayList<String> l = new ArrayList<String>();
         l.add("steering:");
         return l;
     }
 
+    @Override
     protected void initMenuItem() {
         menuItem = new MenuItem("Steering",MenuItem.getDefaultTokenClickListener("steering:"),false,1);
     }
@@ -93,7 +94,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             if (historyToken.length() > 9 && cdm.getSteerableReset()) {
                 cdm.setSteerableReset(false);
                 if (historyToken.startsWith("steering:userCloud") && cdm.isLoggedIn()) {
-                    mP.loadCloud(cdm.getListenerDetails().userTagCloud);
+                    mP.loadCloud(cdm.getListenerDetails().getUserTagCloud());
                 } else if (historyToken.startsWith("steering:art:")) {
                     mP.loadArtist(historyToken.substring(13));
                 } else {
@@ -197,7 +198,9 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
                 public void onClick(Widget arg0) {
                     if (currTagMap == null || currTagMap.isEmpty()) {
-                        Info.display("Steerable recommendations", "Cannot display atomic representation; you must add tags in your cloud first.", new Params());
+                        Info.display("Steerable recommendations", 
+                                "Cannot display atomic representation; you must " +
+                                "add tags in your cloud first.", new Params());
                     } else {
                         HashMap<String, Double> map = currTagMap;
                         ItemInfo[] iI = new ItemInfo[map.size()];
@@ -205,7 +208,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                         for (String s : map.keySet()) {
                             iI[index++] = new ItemInfo(ClientDataManager.nameToKey(s), s, map.get(s), map.get(s));
                         }
-                        TagDisplayLib.showTagCloud("Atomic representation of tag cloud", iI, cdm);
+                        TagDisplayLib.showTagCloud("Atomic representation of tag cloud",
+                                iI, TagDisplayLib.ORDER.SHUFFLE, cdm);
                     }
                 }
             });
@@ -233,7 +237,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
             //
             // North 2
-            tagLand = new TagWidgetContainer(new ResizableTagWidget(this, cdm), this, cdm);
+            tagLand = new TagWidgetContainer(this, cdm);
+            tagLand.init(new ResizableTagWidget(this, cdm, tagLand.getSharedCloudArtistMenu()));
             currLoadedTagWidget = "Cloud";
             cdm.getSteerableTagCloudExternalController().setTagWidget(tagLand);
             dP.add(tagLand, DockPanel.NORTH);
@@ -253,7 +258,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public void swapTagWidget(String widgetName) {
             if (!currLoadedTagWidget.equals(widgetName)) {
                 if (widgetName.equals("Cloud")) {
-                    tagLand.swapTagWidget(new ResizableTagWidget(this, cdm));
+                    tagLand.swapTagWidget(new ResizableTagWidget(this, cdm, tagLand.getSharedCloudArtistMenu()));
                     currLoadedTagWidget = "Cloud";
                 } else {
                     tagLand.swapTagWidget(new TagMeterWidget(this, cdm));
@@ -304,7 +309,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 double val = tagInfluenceMap.get(tagName) / maxScore * currTagMap.get(tagName);
                 tagArray[index++] = new ItemInfo(ClientDataManager.nameToKey(tagName), tagName, val, val);
             }
-            TagDisplayLib.showTagCloud("Tags' influence on generated recommendations", tagArray, cdm);
+            TagDisplayLib.showTagCloud("Tags' influence on generated recommendations", tagArray, TagDisplayLib.ORDER.SHUFFLE, cdm);
         }
 
         public void invokeFetchNewRecommendations() {
@@ -669,8 +674,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
     private abstract class SortableItemInfoList extends Composite implements HasListeners {
 
         private Grid mainPanel;
-        private List<ItemInfo> iI;
-        private List<WebListener> webListeners;
+        private ArrayList<ItemInfo> iI;
+        private LinkedList<WebListener> webListeners;
 
         private double maxValue = 0;
 
@@ -966,10 +971,20 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             tagLand.addTag(tag, 0, true);
         }
 
-        public void openWhyPopup(WhyButton why) {
+        public void openWhyPopup(SwapableTxtButton why) {
             why.showLoad();
             TagDisplayLib.invokeGetCommonTags(tagLand.getTagMap(), why.getId(),
-                    musicServer, cdm, new CommonTagsAsyncCallback(why, "Common tags between your cloud and "+why.getName(), cdm) {});
+                    musicServer, cdm,
+                    new CommonTagsAsyncCallback(why, "Common tags between your cloud and "+why.getName(), cdm) {});
+        }
+
+        @Override
+        public void openDiffPopup(DiffButton diff) {
+
+            ItemInfo[] steerTags = ItemInfo.mapToArray(tagLand.getTagMap());
+            TagDisplayLib.showDifferenceCloud("Difference cloud between your tag cloud and "+diff.getName(),
+                    steerTags, diff.getDistinctiveTags(), cdm);
+
         }
     }
 }

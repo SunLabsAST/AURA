@@ -21,7 +21,7 @@ import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget.WhyButton;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget.SwapableTxtButton;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistPhoto;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
@@ -49,8 +49,8 @@ public class CompactArtistWidget extends Composite implements HasListeners {
     private String artistId;
 
     public CompactArtistWidget(ArtistCompact aC, ClientDataManager cdm,
-            MusicSearchInterfaceAsync musicServer, WhyButton whyB, 
-            int currentRating, Set<String> userTags) {
+            MusicSearchInterfaceAsync musicServer, SwapableTxtButton whyB,
+            SwapableTxtButton diffB, int currentRating, Set<String> userTags) {
 
         this.cdm = cdm;
         this.musicServer = musicServer;
@@ -78,10 +78,8 @@ public class CompactArtistWidget extends Composite implements HasListeners {
 
         artistPanel.add(img);
 
-        VerticalPanel txtPanel = new VerticalPanel();
-
-
         HorizontalPanel aNamePanel = new HorizontalPanel();
+        aNamePanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
         aNamePanel.setWidth("210px");
         aNamePanel.setSpacing(5);
         ContextMenuSpannedLabel aName = new ContextMenuSpannedLabel(aC.getName());
@@ -99,7 +97,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
                 new DualDataEmbededCommand<ArtistCompact, ClientDataManager>(aC, cdm) {
 
             public void execute() {
-                TagDisplayLib.showTagCloud("Tag cloud for "+data.getName(), data.getDistinctiveTags(), sndData);
+                TagDisplayLib.showTagCloud("Tag cloud for "+data.getName(), data.getDistinctiveTags(), TagDisplayLib.ORDER.SHUFFLE, sndData);
             }
         });
         //aName.getContextMenu().addSeperator();
@@ -129,6 +127,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         aNamePanel.add(aName);
 
         HorizontalPanel buttonPanel = new HorizontalPanel();
+        buttonPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
         buttonPanel.setSpacing(5);
         Widget spotify = WebLib.getSpotifyListenWidget(aC, WebLib.PLAY_ICON_SIZE.SMALL,
                 musicServer, cdm.isLoggedIn(), new DualDataEmbededClickListener<String, ClientDataManager>(aC.getId(), cdm) {
@@ -143,13 +142,25 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, aC, cdm.getSharedSteeringMenu());
         buttonPanel.add(steerButton);
 
+        
+        VerticalPanel swapableButtonPanel = new VerticalPanel();
+        boolean empty = true;
         if (whyB != null) {
-            buttonPanel.add(whyB);
+            swapableButtonPanel.add(whyB);
+            empty = false;
         }
-
+        if (diffB != null) {
+            swapableButtonPanel.add(diffB);
+            empty = false;
+        }
+        if (!empty) {
+            buttonPanel.add(swapableButtonPanel);
+        }
+        
         aNamePanel.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
         aNamePanel.add(buttonPanel);
 
+        VerticalPanel txtPanel = new VerticalPanel();
         txtPanel.add(aNamePanel);
 
         if (userTags != null && userTags.size() > 0) {

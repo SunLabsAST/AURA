@@ -35,11 +35,10 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
+import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.HashMap;
 
 /**
  *
@@ -50,7 +49,7 @@ public class PageHeaderWidget extends Swidget {
     private Grid mainPanel;
     private TextBox txtbox;
 
-    private List<MenuItem> menuItems;
+    private ArrayList<MenuItem> menuItems;
     private MainMenu mm;
 
     private Widget instantRecPlayWidget;
@@ -87,6 +86,17 @@ public class PageHeaderWidget extends Swidget {
         listbox.addItem("Loading...");
         hP.add(listbox);
 
+        // Add the server info link
+        SpannedLabel sI = new SpannedLabel("SI");
+        sI.setStyleName("headerMenuTinyItem");
+        sI.addClickListener(new ClickListener() {
+
+            public void onClick(Widget sender) {
+                History.newItem("serverinfo:");
+            }
+        });
+        hP.add(sI);
+        
         mainPanel.setWidget(0, 2, hP);
         mainPanel.getCellFormatter().getElement(0, 2).setAttribute("align", "right");
 
@@ -104,7 +114,7 @@ public class PageHeaderWidget extends Swidget {
         
     }
 
-    public void setMenuItems(List<MenuItem> mI) {
+    public void setMenuItems(ArrayList<MenuItem> mI) {
         this.menuItems = mI;
         mm.update();
     }
@@ -121,14 +131,15 @@ public class PageHeaderWidget extends Swidget {
     }
 
     private void invokeGetSimTypes() {
-        AsyncCallback callback = new AsyncCallback() {
+        AsyncCallback<HashMap<String, String>> callback =
+                new AsyncCallback<HashMap<String, String>>() {
 
             public void onFailure(Throwable arg0) {
                 Window.alert("Error fetching similarity types.");
             }
 
-            public void onSuccess(Object arg0) {
-                cdm.setSimTypes((Map<String, String>) arg0);
+            public void onSuccess(HashMap<String, String> arg0) {
+                cdm.setSimTypes(arg0);
                 
                 listbox.clear();
                 String[] keyArray = cdm.getSimTypes().keySet().toArray(new String[0]);
@@ -218,17 +229,17 @@ public class PageHeaderWidget extends Swidget {
      */
     private void updatePanelAfterLogin(ListenerDetails l) {
 
-        if (l!=null && l.loggedIn) {
+        if (l!=null && l.isLoggedIn()) {
 
             cdm.setListenerDetails(l);
 
             String name;
-            if (l.nickName != null) {
-                name = l.nickName;
-            } else if (l.realName != null) {
-                name = l.realName;
+            if (l.getNickName() != null) {
+                name = l.getNickName();
+            } else if (l.getRealName() != null) {
+                name = l.getRealName();
             } else {
-                name = l.openID;
+                name = l.getOpenId();
             }
 
             HorizontalPanel hP = new HorizontalPanel();
@@ -282,7 +293,7 @@ public class PageHeaderWidget extends Swidget {
     }
 
     private Widget getInstantRecPlayWidget() {
-        ArtistCompact[] aC = cdm.getListenerDetails().recommendations;
+        ArtistCompact[] aC = cdm.getListenerDetails().getRecommendations();
         if (aC.length > 0) {
             int itemIndex = Random.nextInt(aC.length);
             int iterations = 0;
@@ -428,8 +439,8 @@ public class PageHeaderWidget extends Swidget {
         }
     }
 
-    public List<String> getTokenHeaders() {
-        return new LinkedList<String>();
+    public ArrayList<String> getTokenHeaders() {
+        return new ArrayList<String>();
     }
 
     protected void initMenuItem() {

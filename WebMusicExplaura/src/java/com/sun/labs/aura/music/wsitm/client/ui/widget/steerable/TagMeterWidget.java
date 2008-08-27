@@ -25,7 +25,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Meter cloud manipulation UI
@@ -36,7 +35,7 @@ public class TagMeterWidget extends TagWidget {
     private final static int MAX_TAG_VALUE = CloudItemMeter.TOTAL_WIDTH;
     private final static int DEFAULT_TAG_VALUE = MAX_TAG_VALUE / 2;
     private VerticalPanel mainTagPanel;
-    private Map<String, CloudItemMeter> tagCloud;
+    private HashMap<String, CloudItemMeter> tagCloud;
     private ClientDataManager cdm;
 
     public TagMeterWidget(MainPanel mainPanel, ClientDataManager cdm) {
@@ -64,36 +63,20 @@ public class TagMeterWidget extends TagWidget {
         }
         return itemsMap;
     }
-/*
-    public HashMap<String, Double> getTapMap() {
-        HashMap<String, Double> tagMap = new HashMap<String, Double>();
 
-        // Find the average score of positive items
-        double maxScore = -100;
-        double sumScorePos = 0;
-        int nbrPos = 0;
-        for (String key : tagCloud.keySet()) {
-            int rating = tagCloud.get(key).getRating();
-            if (rating > maxScore) {
-                maxScore = rating;
-            }
-            if (rating > CloudItemMeter.RED_WIDTH) {
-                sumScorePos += rating;
-                nbrPos++;
+    @Override
+    public double getMaxWeight() {
+        double maxVal = 0;
+        double tempVal = 0;
+        for (CloudItemMeter i : tagCloud.values()) {
+            tempVal = i.getCloudItem().getWeight();
+            if (tempVal > maxVal) {
+                maxVal = tempVal;
             }
         }
-
-        for (String key : tagCloud.keySet()) {
-            double rating = tagCloud.get(key).getRating();
-            if (rating < CloudItemMeter.RED_WIDTH) {
-                rating = -(sumScorePos / nbrPos);
-            }
-            // @todo remove lowercase when funny business in engine is fixed
-            tagMap.put(tagCloud.get(key).getName().toLowerCase(), rating / maxScore);
-        }
-        return tagMap;
+        return maxVal;
     }
-*/
+
     public void removeItem(String itemId) {
         if (tagCloud.containsKey(itemId)) {
             mainTagPanel.remove(tagCloud.get(itemId));

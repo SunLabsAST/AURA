@@ -17,7 +17,7 @@ import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 /**
  *
@@ -32,7 +32,8 @@ public class ServerInfoSwidget extends Swidget {
 
         g = new Grid(2,1);
 
-        Label update = new Label("update");
+        Label update = new Label("Update");
+        update.addStyleName("pointer");
         update.addClickListener(new ClickListener() {
 
             public void onClick(Widget arg0) {
@@ -52,17 +53,22 @@ public class ServerInfoSwidget extends Swidget {
             public void onSuccess(ServerInfoItem info) {
 
                 HorizontalPanel hP = new HorizontalPanel();
+                hP.setSpacing(8);
 
-                //
-                // Cache info
-                Grid cachePanel = new Grid(info.getCacheStatus().keySet().size(), 2);
-                int index = 0;
-                for (String s : info.getCacheStatus().keySet()) {
-                    cachePanel.setWidget(index, 0, new Label(s));
-                    cachePanel.setWidget(index, 1, new Label(info.getCacheStatus().get(s).toString()));
-                    index++;
+                // Items info
+                if (info.getItemCnt() != null) {
+                    hP.add(WebLib.createSection("Items", HashMapToGrid(info.getItemCnt())));
                 }
-                hP.add(WebLib.createSection("Cache info", cachePanel));
+
+                // Attentions info
+                if (info.getAttentionCnt() != null) {
+                    hP.add(WebLib.createSection("Attentions", HashMapToGrid(info.getAttentionCnt())));
+                }
+
+                // Cache info
+                if (info.getCacheStatus() != null) {
+                    hP.add(WebLib.createSection("Cache info", HashMapToGrid(info.getCacheStatus())));
+                }
 
                 g.setWidget(1, 0, hP);
 
@@ -80,9 +86,20 @@ public class ServerInfoSwidget extends Swidget {
         }
     }
 
+    private Grid HashMapToGrid(HashMap<String, Integer> map) {
+        Grid cachePanel = new Grid(map.keySet().size(), 2);
+        int index = 0;
+        for (String s : map.keySet()) {
+            cachePanel.setWidget(index, 0, new Label(s));
+            cachePanel.setWidget(index, 1, new Label(map.get(s).toString()));
+            index++;
+        }
+        return cachePanel;
+    }
+
     @Override
-    public List<String> getTokenHeaders() {
-        List<String> l = new ArrayList<String>();
+    public ArrayList<String> getTokenHeaders() {
+        ArrayList<String> l = new ArrayList<String>();
         l.add("serverinfo:");
         return l;
     }

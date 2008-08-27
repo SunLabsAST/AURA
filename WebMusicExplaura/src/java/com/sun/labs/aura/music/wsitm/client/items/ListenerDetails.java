@@ -6,8 +6,6 @@
 package com.sun.labs.aura.music.wsitm.client.items;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
-import java.util.Map;
-
 
 /**
  *
@@ -15,24 +13,161 @@ import java.util.Map;
  */
 public class ListenerDetails implements IsSerializable {
 
-    public ArtistDetails[] favArtistDetails;
+    public enum Gender { Male, Female, Unknown };
+    
+    private ArtistDetails[] favArtistDetails;
 
-    public String openID;
-    public boolean loggedIn=false;
+    private String openID;
+    private boolean loggedIn=false;
 
-    public String realName;
-    public String nickName;
-    public String birthDate;
-    public String email;
-    public String state;
-    public String country;
-    public String gender;
-    public String language;
+    private String realName;
+    private String nickName;
+    private String birthDate;
+    private String email;
+    private String state;
+    private String country;
+    private Gender gender;
+    private String language;
 
-    public String lastfmUser;
-    public String pandoraUser;
+    private String lastfmUser;
+    private String pandoraUser;
 
-    public ArtistCompact[] recommendations;
-    public ItemInfo[] userTagCloud;
+    private ArtistCompact[] recommendations;
+    private ItemInfo[] userTagCloud;
+    
+    public void setArtistDetails(ArtistDetails[] favArtistDetails) {
+        this.favArtistDetails = favArtistDetails;
+    }
+    
+    public ArtistDetails[] getArtistDetails() {
+        return favArtistDetails;
+    }
+    
+    public void setOpenId(String openID) {
+        this.openID = openID;
+    }
+    
+    public String getOpenId() {
+        return openID;
+    }
+    
+    public void setIsLoggedIn(boolean loggedIn) {
+        this.loggedIn = loggedIn;
+    }
+    
+    public boolean isLoggedIn() {
+        return loggedIn;
+    }
 
+    public void setRealName(String realName) {
+        this.realName = realName;
+    }
+    
+    public String getRealName() {
+        return realName;
+    }
+    
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
+    }
+    
+    public String getNickName() {
+        return nickName;
+    }
+    
+    public void setBirhtDate(String birthDate) {
+        this.birthDate = birthDate;
+    }
+    
+    public String getBirthDate() {
+        return birthDate;
+    }
+    
+    public void setEmail(String email) {
+        this.email = email;
+    }
+    
+    public String getEmail() {
+        return email;
+    }
+    
+    public void setState(String state) {
+        this.state = state;
+    }
+    
+    public String getState() {
+        return state;
+    }
+    
+    public void setCountry(String country) {
+        this.country = country;
+    }
+    
+    public String getCountry() {
+        return country;
+    }
+
+    /**
+     * Sets the listener's gender by trying to match a string value to one of the
+     * Gender values
+     * @param gender
+     * @return true if gender matched or false if gender was not set
+     */
+    public boolean setGender(String gender) {
+        for (Gender g : Gender.values()) {
+            if (gender.equals(g.toString())) {
+                this.gender = g;
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
+    
+    public Gender getGender() {
+        return gender;
+    }
+    
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+    
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLastFmUser(String lastfmUser) {
+        this.lastfmUser = lastfmUser;
+    }
+
+    public String getLastFmUser() {
+        return lastfmUser;
+    }
+
+    public void setPandoraUser(String pandoraUser) {
+        this.pandoraUser = pandoraUser;
+    }
+
+    public String getPandoraUser() {
+        return pandoraUser;
+    }
+
+    public void setRecommendations(ArtistCompact[] recommendations) {
+        this.recommendations = recommendations;
+    }
+
+    public ArtistCompact[] getRecommendations() {
+        return recommendations;
+    }
+
+    public void setUserTagCloud(ItemInfo[] userTagCloud) {
+        this.userTagCloud = userTagCloud;
+    }
+
+    public ItemInfo[] getUserTagCloud() {
+        return userTagCloud;
+    }
 }

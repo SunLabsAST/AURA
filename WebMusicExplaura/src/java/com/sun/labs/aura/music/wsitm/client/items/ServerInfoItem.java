@@ -15,11 +15,11 @@ import java.util.HashMap;
 public class ServerInfoItem implements IsSerializable {
 
     private HashMap<String, Integer> cacheStatus;
-
-    private int nbrArtists;
-    private int nbrPhoto;
-    private int nbrVideo;
-    private int nbrEvent;
+    private HashMap<String, Integer> attentionCnt;
+    private HashMap<String, Integer> itemCnt;
+    
+    private int dataStoreNbrReplicants;
+    private String dataStoreStatus;
 
     public ServerInfoItem() {}
 
@@ -31,29 +31,35 @@ public class ServerInfoItem implements IsSerializable {
         return cacheStatus;
     }
 
-    public void setNbrArtists(int nbrArtists) {
-        this.nbrArtists = nbrArtists;
+    public void setAttentionCnt(HashMap<String, Integer> attentionCnt) {
+        this.attentionCnt = attentionCnt;
     }
 
-    public int getNbrArtists() {
-        return nbrArtists;
+    public HashMap<String, Integer> getAttentionCnt() {
+        return attentionCnt;
     }
 
-    public void setNbrPhoto(int nbrPhoto) {
-        this.nbrPhoto = nbrPhoto;
+    public void setItemCnt(HashMap<String, Integer> itemCnt) {
+        this.itemCnt = itemCnt;
     }
 
-    public int getNbrPhoto() {
-        return nbrPhoto;
+    public HashMap<String, Integer> getItemCnt() {
+        return itemCnt;
     }
 
-    public void setNbrEvent(int nbrEvent) {
-        this.nbrEvent = nbrEvent;
+    public String getDataStoreStatus() {
+        return dataStoreStatus;
     }
 
-    public int getNbrEvent() {
-        return nbrEvent;
+    public void setDataStoreStatus(String newStatus) {
+        this.dataStoreStatus = newStatus;
     }
 
+    public void setDataStoreNbrReplicants(int nbrReplicants) {
+        this.dataStoreNbrReplicants = nbrReplicants;
+    }
 
+    public int getDataStoreNbrReplicants() {
+        return dataStoreNbrReplicants;
+    }
 }

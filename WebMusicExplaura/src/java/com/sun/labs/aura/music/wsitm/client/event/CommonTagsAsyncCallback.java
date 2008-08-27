@@ -9,7 +9,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget.WhyButton;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget.SwapableTxtButton;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 
 /**
@@ -19,16 +19,16 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 public abstract class CommonTagsAsyncCallback implements AsyncCallback<ItemInfo[]> {
 
     protected ClientDataManager cdm;
-    protected WhyButton why;
+    protected SwapableTxtButton why;
     protected String title;
 
-    public CommonTagsAsyncCallback(WhyButton why, String title, ClientDataManager cdm) {
+    public CommonTagsAsyncCallback(SwapableTxtButton why, String title, ClientDataManager cdm) {
         this.why = why;
         this.title = title;
         this.cdm = cdm;
     }
 
-    public CommonTagsAsyncCallback(WhyButton why, ClientDataManager cdm) {
+    public CommonTagsAsyncCallback(SwapableTxtButton why, ClientDataManager cdm) {
         this.why = why;
         this.cdm = cdm;
         this.title = "Common tags";
@@ -39,13 +39,12 @@ public abstract class CommonTagsAsyncCallback implements AsyncCallback<ItemInfo[
      * @param results
      */
     public void onCallback(ItemInfo[] results) {
-        why.showWhy();
+        why.showButton();
     }
 
     public final void onSuccess(ItemInfo[] results) {
-        TagDisplayLib.showTagCloud(title, results, cdm);
+        TagDisplayLib.showTagCloud(title, results, TagDisplayLib.ORDER.SHUFFLE, cdm);
         onCallback(results);
-
     }
 
     public void onFailure(Throwable caught) {

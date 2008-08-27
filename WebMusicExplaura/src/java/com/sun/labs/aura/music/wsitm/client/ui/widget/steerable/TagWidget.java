@@ -8,7 +8,6 @@ package com.sun.labs.aura.music.wsitm.client.ui.widget.steerable;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.Random;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
@@ -50,6 +49,7 @@ public abstract class TagWidget extends Composite {
     public abstract void addItems(HashMap<String, CloudItem> items, ITEM_WEIGHT_TYPE weightType, int limit);
     public abstract boolean containsItem(String itemId);
     public abstract HashMap<String, CloudItem> getItemsMap();
+    public abstract double getMaxWeight();
     public abstract void removeItem(String itemId);
     public abstract void removeAllItems(boolean updateRecommendations);
 
