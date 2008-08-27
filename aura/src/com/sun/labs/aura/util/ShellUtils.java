@@ -79,7 +79,7 @@ public class ShellUtils {
                 }
 
                 System.out.printf("  %d Attention Data\n", dataStore.
-                        getAttentionCount());
+                        getAttentionCount(new AttentionConfig()));
                 return "";
             }
 
