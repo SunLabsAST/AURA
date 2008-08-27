@@ -151,7 +151,11 @@ public class LastFM {
 
             String sfreq = XmlUtil.getElementContents(item, "count");
             if (sfreq != null) {
-                freq = Integer.parseInt(sfreq);
+                if (sfreq.length() > 0) {
+                    freq = Integer.parseInt(sfreq);
+                } else {
+                    freq = 0;
+                }
             }
             SocialTag tag = new SocialTag(tagName, freq);
             tags.add(tag);
