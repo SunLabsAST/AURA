@@ -3,6 +3,7 @@ package com.sun.labs.aura.grid.aura;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.RunState;
 import com.sun.labs.util.props.ConfigBoolean;
+import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.util.logging.Level;
@@ -15,6 +16,11 @@ public class StartAura extends Aura {
     @ConfigBoolean(defaultValue=false)
     public static final String PROP_DEBUG_RMI = "debugRMI";
     private boolean debugRMI;
+
+    @ConfigInteger(defaultValue=4)
+    public static final String PROP_NUM_HEADS = "numHeads";
+
+    private int numHeads;
 
     public String serviceName() {
         return "StartAura";
@@ -40,23 +46,23 @@ public class StartAura extends Aura {
         gu.startRegistration(pmReg);
 
         //
-        // Next, get a data store head and start it
-        ProcessRegistration dsHeadReg = gu.createProcess(
-                getDataStoreHeadName(1),
-                debugRMI ? 
-                    getDataStoreHeadDebugConfig(1) : 
-                    getDataStoreHeadConfig());
-        gu.startRegistration(dsHeadReg);
+        // Next, get some data store heads and start them
+        for(int i = 0; i < numHeads; i++) {
+            ProcessRegistration dsHeadReg = gu.createProcess(
+                    getDataStoreHeadName(i),
+                    debugRMI ? getDataStoreHeadDebugConfig(i) : getDataStoreHeadConfig(i));
+            gu.startRegistration(dsHeadReg);
+        }
 
         //
         // Now, start partition clusters for each prefix
         ProcessRegistration lastReg = null;
-        for(int i = 0; i < prefixCodeList.length; i++) {
+        for(String prefix : repFSMap.keySet()) {
             ProcessRegistration pcReg = gu.createProcess( getPartitionName(
-                    prefixCodeList[i]),
+                    prefix),
                     debugRMI ? 
-                        getPartitionClusterDebugConfig(prefixCodeList[i]) : 
-                        getPartitionClusterConfig(prefixCodeList[i]));
+                        getPartitionClusterDebugConfig(prefix) : 
+                        getPartitionClusterConfig(prefix));
             gu.startRegistration(pcReg, false);
             lastReg = pcReg;
         }
@@ -67,10 +73,10 @@ public class StartAura extends Aura {
 
         //
         // Start the replicants for each prefix
-        for(int i = 0; i < prefixCodeList.length; i++) {
+        for(String prefix : repFSMap.keySet()) {
             ProcessRegistration repReg = gu.createProcess( getReplicantName(
-                    prefixCodeList[i]), getReplicantConfig(replicantConfig,
-                    prefixCodeList[i]));
+                    prefix), getReplicantConfig(replicantConfig,
+                    prefix));
             gu.startRegistration(repReg, false);
             lastReg = repReg;
         }
@@ -92,11 +98,17 @@ public class StartAura extends Aura {
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
         debugRMI = ps.getBoolean(PROP_DEBUG_RMI);
+        numHeads = ps.getInt(PROP_NUM_HEADS);
     }
     
     public void start() {
         try {
             getReplicantFileSystems();
+            if(repFSMap.size() == 0) {
+                //
+                // If there's no file systems, then create them!
+                createReplicantFileSystems();
+            }
             createAuraProcesses();
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error starting Aura", e);
