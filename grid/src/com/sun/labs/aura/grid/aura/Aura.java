@@ -234,7 +234,7 @@ public abstract class Aura extends ServiceAdapter {
             "partitionClusterStarter"
         };
 
-        ProcessConfiguration pc = gu.getProcessConfig(PartitionCluster.class.getName(), cmdLine, getPartitionName(prefix), null, true);
+        ProcessConfiguration pc = gu.getProcessConfig(PartitionCluster.class.getName(), cmdLine, getPartitionName(prefix), null, false);
         Map<String,String> md = pc.getMetadata();
         md.put("prefix", prefix);
         pc.setMetadata(md);
