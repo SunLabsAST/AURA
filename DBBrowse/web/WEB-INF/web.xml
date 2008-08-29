@@ -36,10 +36,6 @@
       <web-resource-name>DB Browser</web-resource-name>
       <url-pattern>/*</url-pattern>
     </web-resource-collection>
-    <auth-constraint>
-       <!-- NOTE:  This role is not present in the default users file -->
-       <role-name>aurademo</role-name>
-    </auth-constraint>
   </security-constraint>
 
   <!-- Define the Login Configuration for this Application -->

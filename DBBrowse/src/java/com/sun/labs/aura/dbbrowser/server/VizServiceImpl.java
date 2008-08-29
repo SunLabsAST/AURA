@@ -16,8 +16,10 @@ import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.dbbrowser.client.DSHInfo;
 import com.sun.labs.aura.dbbrowser.client.PCInfo;
 import com.sun.labs.aura.dbbrowser.client.RepInfo;
+import com.sun.labs.aura.dbbrowser.client.RepStats;
 import com.sun.labs.aura.dbbrowser.client.VizService;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.StatService;
 import com.sun.labs.util.props.ComponentRegistry;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.rmi.RemoteException;
@@ -46,6 +48,8 @@ public class VizServiceImpl extends RemoteServiceServlet implements
     
     protected List<ServiceItem> svcs;
     
+    protected StatService statService;
+    
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         ServletContext context = getServletContext();
@@ -73,6 +77,13 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         }
         ServiceRegistrar sr = reggies.keySet().iterator().next();
         svcs = reggies.get(sr);
+        statService = null;
+        for (ServiceItem svc : svcs) {
+            if (svc.service instanceof StatService) {
+                statService = (StatService) svc.service;
+                break;
+            }
+        }
     }
 
     public List getDSHInfo() {
@@ -105,6 +116,38 @@ public class VizServiceImpl extends RemoteServiceServlet implements
             
         });
         return ret;
+    }
+    
+    public RepStats getRepStats(String prefix) {
+        RepStats stats = new RepStats();
+        if (statService != null) {
+            try {
+                stats.setAttentionsPerSec(
+                        statService.getAveragePerSecond(
+                            repStatName(prefix,
+                                Replicant.StatNames.ATTEND.toString())));
+                stats.setNewItemsPerSec(
+                        statService.getAveragePerSecond(
+                            repStatName(prefix,
+                                Replicant.StatNames.NEW_ITEM.toString())));
+                stats.setUpdatedItemsPerSec(
+                        statService.getAveragePerSecond(
+                            repStatName(prefix,
+                                Replicant.StatNames.UPDATE_ITEM.toString())));
+                stats.setGetItemsPerSec(
+                        statService.getAveragePerSecond(
+                            repStatName(prefix,
+                                Replicant.StatNames.GET_ITEM.toString())));
+                stats.setUpdatedItemsPerSec(
+                        statService.getAveragePerSecond(
+                            repStatName(prefix,
+                                Replicant.StatNames.FIND_SIM.toString())));
+            } catch (RemoteException e) {
+                logger.warning("Failed to communicate with stats server");
+                throw new RuntimeException("Failed to load stats");
+            }
+        }
+        return stats;
     }
     
     public void haltPC(PCInfo pc) {
@@ -208,9 +251,14 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         try {
            ret.setDBSize(rep.getDBSize());
            ret.setIndexSize(rep.getIndexSize());
+           ret.setPrefix(rep.getPrefix().toString());
         } catch (RemoteException e) {
             logger.warning("Failed to get rep info: " + e.getMessage());
         }
         return ret;
+    }
+    
+    private static String repStatName(String prefix, String statName) {
+        return "Rep-" + prefix + "-" + statName;
     }
 }

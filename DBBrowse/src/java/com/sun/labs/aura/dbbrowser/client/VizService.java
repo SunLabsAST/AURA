@@ -34,6 +34,11 @@ public interface VizService extends RemoteService{
      */
     public List getPCInfo();
 
+    /**
+     * Gets stats about a replicant
+     */
+    public RepStats getRepStats(String prefix);
+    
     public void haltPC(PCInfo pc);
     
     /**

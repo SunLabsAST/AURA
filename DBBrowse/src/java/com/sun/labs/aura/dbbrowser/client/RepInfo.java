@@ -9,6 +9,7 @@ import java.io.Serializable;
 public class RepInfo implements Serializable {
     protected long dbSize = 0;
     protected long indexSize = 0;
+    protected String prefix;
     
     public RepInfo() {
     }
@@ -27,5 +28,13 @@ public class RepInfo implements Serializable {
     
     public void setIndexSize(long indexSize) {
         this.indexSize = indexSize;
+    }
+    
+    public String getPrefix() {
+        return prefix;
+    }
+    
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
     }
 }
