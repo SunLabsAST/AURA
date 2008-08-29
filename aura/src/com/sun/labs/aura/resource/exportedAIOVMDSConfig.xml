@@ -43,7 +43,7 @@
     <component name="processManager" type="com.sun.labs.aura.datastore.impl.ManualProcessManager" export="true" import="false"/>
     
     <!-- The configuration for a partition cluster. -->
-    <component name="partitionCluster0" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+    <component name="partitionCluster0" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true">
         <property name="prefix" value="0"/>
         <property name="dataStoreHead" value="dataStoreHead"/>
         <property name="logLevel" value="FINER"/>
@@ -51,7 +51,7 @@
     </component>
 
     <!-- The configuration for a partition cluster. -->
-    <component name="partitionCluster1" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+    <component name="partitionCluster1" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true">
         <property name="prefix" value="1"/>
         <property name="dataStoreHead" value="dataStoreHead"/>
         <property name="logLevel" value="FINER"/>
@@ -59,21 +59,23 @@
     </component>
 
     <!-- The configuration for a partition cluster. -->
-    <component name="replicant0" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+    <component name="replicant0" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" export="true">
         <property name="prefix" value="0"/>
         <property name="dbEnv" value="${auraHome}/db/0/db"/>
         <property name="itemSearchEngine" value="itemSearchEngine0"/>
         <property name="partitionCluster" value="partitionCluster0"/>
+        <property name="statService" value="statService"/>
         <property name="cacheSizeMemPercentage" value="30"/>
         <property name="logLevel" value="FINER"/>
     </component>
     
     <!-- The configuration for a partition cluster. -->
-    <component name="replicant1" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+    <component name="replicant1" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" export="true">
         <property name="prefix" value="1"/>
         <property name="dbEnv" value="${auraHome}/db/1/db"/>
         <property name="itemSearchEngine" value="itemSearchEngine1"/>
         <property name="partitionCluster" value="partitionCluster1"/>
+        <property name="statService" value="statService"/>
         <property name="cacheSizeMemPercentage" value="30"/>
         <property name="logLevel" value="FINER"/>
     </component>

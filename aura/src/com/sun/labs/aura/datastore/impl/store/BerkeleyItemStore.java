@@ -20,6 +20,7 @@ import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.StatService;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
@@ -50,7 +51,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -107,6 +111,14 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
 
     private PartitionCluster partitionCluster;
 
+    @ConfigComponent(type = com.sun.labs.aura.util.StatService.class)
+    public static final String PROP_STAT_SERVICE = "statService";
+    protected StatService statService;
+
+    @ConfigInteger(defaultValue = 500)
+    public final static String PROP_STAT_BATCH_SIZE = "statBatchSize";
+    protected int statBatchSize;
+    
     /**
      * ComponentRegistry will be non-null if we're running in a RMI environment
      */
@@ -138,6 +150,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      */
     protected boolean closed;
     
+    protected Timer timer;
+    
     /**
      * A logger for messages/debug info
      */
@@ -150,6 +164,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         listenerMap = new HashMap<ItemType, Set<ItemListener>>();
         changeEvents = new ConcurrentLinkedQueue<ChangeEvent>();
         createEvents = new ConcurrentLinkedQueue<ItemImpl>();
+        timer = new Timer("StatScheduler", true);
+        timer.schedule(new StatSender(), 0, 10 * 1000);
     }
 
     /**
@@ -246,6 +262,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
                     PROP_PARTITION_CLUSTER, "Unable to add " +
                     "replicant to partition cluster.");
         }
+
+        //
+        // Get a handle to the stat service if we got one
+        statService = (StatService)ps.getComponent(PROP_STAT_SERVICE);
+        
+        statBatchSize = ps.getInt(PROP_STAT_BATCH_SIZE);
     }
 
     public DSBitSet getPrefix() {
@@ -307,6 +329,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     }
     
     public Item getItem(String key) throws AuraException {
+        getItemCntr.incrementAndGet();
         return bdb.getItem(key);
     }
     
@@ -326,6 +349,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
             logger.fine(String.format("rep %s gIs for %d took %.3f", prefixString, keys.size(), nw.getTimeMillis()));
         }
         if(ret.size() > 0) {
+            getItemCntr.addAndGet(ret.size());
             ret.get(0).time = nw.getTimeMillis();
         }
         return ret;
@@ -385,8 +409,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
             //
             // Finally, send out relevant events.
             if(existed) {
+                updatedItemCntr.getAndIncrement();
                 itemChanged(itemImpl, ItemEvent.ChangeType.AURA);
             } else {
+                newItemCntr.getAndIncrement();
                 itemCreated(itemImpl);
             }
             return itemImpl;
@@ -522,6 +548,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
 
     public Attention attend(Attention att) throws AuraException {
         //
+        // Handle the stats
+        attentionCntr.getAndIncrement();
+        
+        //
         // Make a persistent attention and give it to the BDB
         if (att instanceof PersistentAttention) {
             bdb.putAttention((PersistentAttention)att);
@@ -534,6 +564,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
     }
 
     public List<Attention> attend(List<Attention> attns) throws AuraException {
+        attentionCntr.addAndGet(attns.size());
+        
         //
         // Make persistent attentions and feed them to the BDB
         List<PersistentAttention> pas = new ArrayList<PersistentAttention>(attns.size());
@@ -664,6 +696,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
      */
     public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config)
             throws AuraException, RemoteException {
+        findSimCntr.incrementAndGet();
         NanoWatch sw = new NanoWatch();
         sw.start();
         List<Scored<String>> fsr = searchEngine.findSimilar(dv, config);
@@ -978,4 +1011,55 @@ public class BerkeleyItemStore implements Replicant, Configurable, AuraService,
         sendCreatedEvents(keys);
         sendChangedEvents(keys);
     }
+    
+    //
+    // All stat variables that are tracked:
+    protected AtomicInteger attentionCntr = new AtomicInteger(0);
+    protected AtomicInteger newItemCntr = new AtomicInteger(0);
+    protected AtomicInteger updatedItemCntr = new AtomicInteger(0);
+    protected AtomicInteger getItemCntr = new AtomicInteger(0);
+    protected AtomicInteger findSimCntr = new AtomicInteger(0);
+    
+    class StatSender extends TimerTask {
+        @Override
+        public void run() {
+            //
+            // Send off our stats to the stat server
+            int num = attentionCntr.getAndSet(0);
+            sendStat(Replicant.StatNames.ATTEND.toString(), num, num);
+            
+            num = newItemCntr.getAndAdd(0);
+            sendStat(Replicant.StatNames.NEW_ITEM.toString(), num, num);
+            
+            num = updatedItemCntr.getAndSet(0);
+            sendStat(Replicant.StatNames.UPDATE_ITEM.toString(), num, num);
+            
+            num = getItemCntr.getAndSet(0);
+            sendStat(Replicant.StatNames.GET_ITEM.toString(), num, num);
+            
+            num = findSimCntr.getAndSet(0);
+            sendStat(Replicant.StatNames.FIND_SIM.toString(), num, num);
+        }
+        
+        /**
+         * Internal method to send an updated stat to the stat server.
+         * Only sends if n > 0.
+         */
+        private void sendStat(String statName, int incr, int n) {
+            if (n <= 0) {
+                return;
+            }
+            
+            if (statService != null) {
+                try {
+                    statService.incr("Rep-" + getPrefix() + "-" + statName,
+                                     incr, n);
+                } catch (RemoteException e) {
+                    logger.finer("Failed to notify stat server for stat "
+                                 + statName);
+                }
+            }
+        }
+    }
+    
 }

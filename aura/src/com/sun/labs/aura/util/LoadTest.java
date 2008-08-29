@@ -40,10 +40,6 @@ public class LoadTest {
                 continue;
             }
             User existing = dataStore.getUser(fields[0]);
-            if (existing != null) {
-                System.out.println("Skipping user " + fields[0]);
-                continue;
-            }
             
             Item artist = StoreFactory.newItem(ItemType.ARTIST, fields[2], fields[1]);
             User user = StoreFactory.newUser(fields[0], fields[0]);
@@ -105,8 +101,10 @@ public class LoadTest {
             if (printCnt > 5000) {
                 printCnt = 0;
                 long secs = sw.getTime() / 1000;
-                System.out.println("Proccessed " + totalCnt + " attentions at "
-                        + (totalCnt / secs) + " attentions/sec");
+                if (secs > 0) {
+                    System.out.println("Proccessed " + totalCnt + " attentions at "
+                            + (totalCnt / secs) + " attentions/sec");
+                }
             }
         }
         input.close();

@@ -16,6 +16,15 @@ import java.util.Map;
  * datastore.
  */
 public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote {
+    public enum StatNames {
+        ATTEND,
+        NEW_ITEM,
+        UPDATE_ITEM,
+        GET_ITEM,
+        FIND_SIM
+    
+    }
+
     /**
      * Get the prefix code for the objects in this partition cluster.
      * 
