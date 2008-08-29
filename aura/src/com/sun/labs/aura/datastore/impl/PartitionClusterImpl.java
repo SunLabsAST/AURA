@@ -23,6 +23,7 @@ import com.sun.labs.util.props.Augmentable;
 import com.sun.labs.util.props.Component;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
+import com.sun.labs.util.props.ConfigComponentList;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -51,8 +52,8 @@ public class PartitionClusterImpl implements PartitionCluster,
     @ConfigString
     public static final String PROP_PREFIX = "prefix";
     
-    @ConfigComponent(type=com.sun.labs.aura.datastore.DataStore.class)
-    public static final String PROP_DATA_STORE_HEAD = "dataStoreHead";
+    @ConfigComponentList(type=com.sun.labs.aura.datastore.DataStore.class)
+    public static final String PROP_DATA_STORE_HEADS = "dataStoreHeads";
     
     @ConfigComponent(type=com.sun.labs.aura.datastore.impl.ProcessManager.class)
     public static final String PROP_PROC_MGR = "processManager";
@@ -382,7 +383,10 @@ public class PartitionClusterImpl implements PartitionCluster,
         }
         cm = ps.getConfigurationManager();
         if (!ps.getBoolean(PROP_DO_NOT_REGISTER)) {
-            register(ps, (DataStore) ps.getComponent(PROP_DATA_STORE_HEAD));
+            List<DataStore> heads = (List<DataStore>) ps.getComponentList(PROP_DATA_STORE_HEADS);
+            for(DataStore head : heads) {
+                register(ps, head);
+            }
         }
     }
     
@@ -401,7 +405,7 @@ public class PartitionClusterImpl implements PartitionCluster,
             dataStoreHeads.add(ds);
         } catch(RemoteException rx) {
             throw new PropertyException(ps.getInstanceName(),
-                    PROP_DATA_STORE_HEAD,
+                    PROP_DATA_STORE_HEADS,
                     "Unable to add partition cluster to data store");
         }
         

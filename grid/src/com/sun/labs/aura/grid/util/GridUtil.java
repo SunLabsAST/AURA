@@ -74,6 +74,10 @@ public class GridUtil {
         auraLogs = getAuraLogFS();
     }
 
+    public Grid getGrid() {
+        return grid;
+    }
+
     public Network getNetwork() {
         return network;
     }

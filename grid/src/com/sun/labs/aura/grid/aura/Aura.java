@@ -14,7 +14,6 @@ import com.sun.labs.aura.datastore.impl.ProcessManager;
 import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.aura.util.StatService;
-import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -35,36 +34,72 @@ public abstract class Aura extends ServiceAdapter {
 
     protected String replicantConfig;
 
-    @ConfigInteger(defaultValue = 4)
-    public static final String PROP_N_NODES = "nNodes";
+    /**
+     * A map from prefixes to the file systems for those prefixes.
+     */
+    protected Map<String, FileSystem> repFSMap = new HashMap<String, FileSystem>();
 
-    private int nNodes;
+    /**
+     * Creates the replicant filesystems in a clean startup.  Initially 16 file
+     * systems are created.  This number may change over time as filesystems are
+     * added by splitting.
+     * @throws java.lang.Exception
+     */
+    public void createReplicantFileSystems() throws Exception {
+        for(int i = 0; i < 16; i++) {
+            String prefix =  DSBitSet.parse(i).setPrefixLength(4).toString();
+            logger.info("Creating replicant fs for " + prefix);
+            FileSystem fs = gu.getFS(getReplicantName(prefix), true);
 
-    protected String[] prefixCodeList;
+            //
+            // Add metadata to taste.
+            BaseFileSystemConfiguration fsConfig = ((BaseFileSystem) fs).getConfiguration();
+            Map<String, String> md = fsConfig.getMetadata();
+            md.put("instance", instance);
+            md.put("type", "replicant");
+            md.put("prefix", prefix);
+            fsConfig.setMetadata(md);
+            ((BaseFileSystem) fs).changeConfiguration(fsConfig);
 
-    private Map<String, FileSystem> repFSMap = new HashMap<String, FileSystem>();
-    
+            repFSMap.put(prefix, fs);
+        }
+        
+    }
+
+    /**
+     * Gets the replicant filesystems that currently exist on the grid.
+     * @throws java.lang.Exception
+     */
     public void getReplicantFileSystems() throws Exception {
 
-        //
-        // Set up the file systems for each replicant
-        for(String currPrefix : prefixCodeList) {
-            logger.info("Making fs for prefix " + currPrefix);
-            FileSystem fs = gu.getFS(getReplicantName(currPrefix));
-            
+        for(FileSystem fs : gu.getGrid().findAllFileSystems()) {
+
+            if(!(fs instanceof BaseFileSystem)) {
+                continue;
+            }
+
             //
             // Add metadata for the prefix being handled.
             BaseFileSystemConfiguration fsConfig = ((BaseFileSystem) fs).getConfiguration();
             Map<String,String> md = fsConfig.getMetadata();
-            logger.info("fs metadata: " + md);
-            md.put("instance", instance);
-            md.put("type", "replicant");
-            md.put("prefix", currPrefix);
-            fsConfig.setMetadata(md);
-            ((BaseFileSystem) fs).changeConfiguration(fsConfig);
             
-            repFSMap.put(currPrefix, fs);
-            logger.info("Made fs for prefix " + currPrefix);
+            String mdv = md.get("instance");
+            if(mdv == null || !mdv.equals(instance)) {
+                continue;
+            }
+            
+            mdv = md.get("type");
+            if(mdv == null || !mdv.equals("replicant")) {
+                continue;
+            }
+            
+            mdv = md.get("prefix");
+            if(mdv == null) {
+                logger.warning("Replicant filesystem with no prefix metadata: " + fs.getName());
+                continue;
+            }
+            
+            repFSMap.put(mdv, fs);
         }
     }
 
@@ -199,7 +234,7 @@ public abstract class Aura extends ServiceAdapter {
             "partitionClusterStarter"
         };
 
-        ProcessConfiguration pc = gu.getProcessConfig(PartitionCluster.class.getName(), cmdLine, getPartitionName(prefix), null, true);
+        ProcessConfiguration pc = gu.getProcessConfig(PartitionCluster.class.getName(), cmdLine, getPartitionName(prefix), null, false);
         Map<String,String> md = pc.getMetadata();
         md.put("prefix", prefix);
         pc.setMetadata(md);
@@ -285,21 +320,6 @@ public abstract class Aura extends ServiceAdapter {
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
         logger.info("Instance: " + instance);
-
-        //
-        // Figure out how many nodes are in our data store and create the prefixes.
-        nNodes = ps.getInt(PROP_N_NODES);
-        if(Integer.highestOneBit(nNodes) != Integer.lowestOneBit(nNodes)) {
-            throw new PropertyException(ps.getInstanceName(), PROP_N_NODES,
-                    "nNodes must be a power of 2");
-        }
-        int numBits = Integer.toString(nNodes, 2).length() - 1;
-        prefixCodeList = new String[nNodes];
-        for(int i = 0; i < nNodes; i++) {
-            DSBitSet prefixBits = DSBitSet.parse(i);
-            prefixBits.setPrefixLength(numBits);
-            prefixCodeList[i] = prefixBits.toString();
-        }
         replicantConfig = ps.getString(PROP_REPLICANT_CONFIG);
     }
 }

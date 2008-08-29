@@ -52,12 +52,12 @@
     <!-- The configuration for a partition cluster. -->
     <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true" entries="prefixEntries">
         <property name="prefix" value="${prefix}"/>
-        <property name="dataStoreHead" value="dataStoreHead"/>
+        <propertylist name="dataStoreHeads">
+            <type>com.sun.labs.aura.datastore.DataStore</type>
+        </propertylist>
         <property name="processManager" value="processManager"/>
     </component>
 
-    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
-    
     <!-- A service starter for this cluster -->
     <component name="partitionClusterStarter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
