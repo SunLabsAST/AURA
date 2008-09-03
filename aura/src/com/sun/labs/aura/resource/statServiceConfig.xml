@@ -44,13 +44,8 @@
         <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
     
-    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl" export="true">
-        <property name="dataStore" value="dataStoreHead"/>
-    </component>
+    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl" export="true"/>
 
-    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
-    
-    <!-- A service starter for this replicant -->
     <component name="statServiceStarter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>statService</item>

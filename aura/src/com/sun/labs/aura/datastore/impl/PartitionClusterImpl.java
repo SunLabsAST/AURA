@@ -404,7 +404,7 @@ public class PartitionClusterImpl implements PartitionCluster,
             ds.registerPartitionCluster(exported);
             dataStoreHeads.add(ds);
         } catch(RemoteException rx) {
-            throw new PropertyException(ps.getInstanceName(),
+            throw new PropertyException(rx, ps.getInstanceName(),
                     PROP_DATA_STORE_HEADS,
                     "Unable to add partition cluster to data store");
         }
