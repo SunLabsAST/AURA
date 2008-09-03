@@ -40,11 +40,20 @@ public class StartAura extends Aura {
         gu.startRegistration(regReg);
         
         //
+        // A stat service
+        ProcessRegistration statSrvReg = gu.createProcess(
+                getStatServiceName(),
+                getStatServiceConfig());
+        gu.startRegistration(statSrvReg);
+
+        //
         // Start up a process manager.
         ProcessRegistration pmReg = gu.createProcess(getProcessManagerName(),
                 getProcessManagerConfig());
         gu.startRegistration(pmReg);
-
+        pmReg.waitForStateChange(100000);
+        Thread.sleep(1000);
+        
         //
         // Next, get some data store heads and start them
         for(int i = 0; i < numHeads; i++) {
@@ -84,13 +93,6 @@ public class StartAura extends Aura {
         while(lastReg.getRunState() != RunState.RUNNING) {
             lastReg.waitForStateChange(1000000L);
         }
-
-        //
-        // And finally start a stat service
-        ProcessRegistration statSrvReg = gu.createProcess(
-                getStatServiceName(),
-                getStatServiceConfig());
-        gu.startRegistration(statSrvReg);
 
     }
 

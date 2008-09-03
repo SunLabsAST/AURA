@@ -185,8 +185,12 @@ public abstract class Aura extends ServiceAdapter {
             "dataStoreHeadStarter"
         };
 
-        return gu.getProcessConfig(DataStoreHead.class.getName(), 
+        ProcessConfiguration pc = gu.getProcessConfig(DataStoreHead.class.getName(), 
                 cmdLine, getDataStoreHeadName(instanceNumber));
+        Map<String, String> md = pc.getMetadata();
+        md.put("monitor", "true");
+        pc.setMetadata(md);
+        return pc;
     }
 
     protected ProcessConfiguration getDataStoreHeadDebugConfig(int instanceNumber) throws Exception {
@@ -237,6 +241,7 @@ public abstract class Aura extends ServiceAdapter {
         ProcessConfiguration pc = gu.getProcessConfig(PartitionCluster.class.getName(), cmdLine, getPartitionName(prefix), null, false);
         Map<String,String> md = pc.getMetadata();
         md.put("prefix", prefix);
+        md.put("monitor", "true");
         pc.setMetadata(md);
         return pc;
     }
@@ -263,6 +268,7 @@ public abstract class Aura extends ServiceAdapter {
                 prefix), null, true);
         Map<String, String> md = pc.getMetadata();
         md.put("prefix", prefix);
+        md.put("monitor", "true");
         pc.setMetadata(md);
         return pc;
     }
@@ -299,6 +305,7 @@ public abstract class Aura extends ServiceAdapter {
                 Pattern.compile(instance + ".*-replicant-.*")));
         Map<String,String> md = pc.getMetadata();
         md.put("prefix", prefix);
+        md.put("monitor", "true");
         pc.setMetadata(md);
         return pc;
     }
