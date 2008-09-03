@@ -5,12 +5,14 @@
 
 package com.sun.labs.aura.grid.aura;
 
+import com.sun.caroline.platform.BaseFileSystem;
 import com.sun.caroline.platform.Event;
 import com.sun.caroline.platform.EventStream;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
 import com.sun.caroline.platform.Resource;
+import com.sun.caroline.platform.ResourceName;
 import com.sun.caroline.platform.RunState;
 import com.sun.caroline.platform.Selector;
 import com.sun.labs.aura.datastore.impl.DSBitSet;
@@ -22,6 +24,7 @@ import com.sun.labs.util.props.Component;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
@@ -63,13 +66,23 @@ public class GridProcessManager extends Aura implements ProcessManager {
             //
             // Now it should be registered with the Jini server, let's look up the partition clusters
             // and get the one with the right prefix.
+            PartitionCluster ret = null;
             Component[] components = cm.getComponentRegistry().lookup(com.sun.labs.aura.datastore.impl.PartitionCluster.class, Integer.MAX_VALUE);
             for(Component c : components) {
                 if(((PartitionCluster) c).getPrefix().equals(prefix)) {
-                    return (PartitionCluster) c;
+                    ret = (PartitionCluster) c;
+                    break;
                 }
             }
-            return null;
+            
+            if(ret != null) {
+                //
+                // Now that we have the partition cluster running, we need a replicant
+                // running underneath it.
+                createReplicant(prefix);
+            }
+            
+            return ret;
         } catch(Exception ex) {
             throw new AuraException("Error getting partition cluster for prefix " +
                     prefix, ex);
@@ -78,10 +91,15 @@ public class GridProcessManager extends Aura implements ProcessManager {
 
     public Replicant createReplicant(DSBitSet prefix) throws AuraException, RemoteException {
         try {
+            String prefixString = prefix.toString();
+            
+            //
+            // Make sure there's a filesystem for this replicant!
+            createReplicantFileSystem(prefixString);
             ProcessConfiguration repConfig = getReplicantConfig(replicantConfig,
-                    prefix.toString());
+                    prefixString);
             ProcessRegistration pcReg = gu.createProcess(getReplicantName(
-                    prefix.toString()), repConfig);
+                    prefixString), repConfig);
             while(pcReg.getRunState() != RunState.RUNNING) {
                 pcReg.waitForStateChange(1000000L);
             }
@@ -117,6 +135,7 @@ public class GridProcessManager extends Aura implements ProcessManager {
             // Get events for newly created resources.
             ArrayList<Resource.Type> r = new ArrayList();
             r.add(Resource.Type.PROCESS_REGISTRATION);
+            r.add(Resource.Type.BASE_FILE_SYSTEM);
             try {
                 s.add(grid.openResourceCreationEventStream(r));
             } catch(RemoteException rx) {
@@ -162,43 +181,63 @@ public class GridProcessManager extends Aura implements ProcessManager {
         }
         
         public void handleEvent(Event e) {
-            ProcessRegistration pr =
-                    (ProcessRegistration) e.getResource();
-            ProcessConfiguration rpc = pr.getRegistrationConfiguration();
-            logger.info(String.format("Handle %s from %s",
-                    e.getType(), pr.getName()));
-            String monitor = rpc == null ? null : rpc.getMetadata().get(
-                    "monitor");
-            if(monitor == null || !monitor.equalsIgnoreCase(
-                    "true")) {
-                return;
-            }
-            if(e.getType().equals(Resource.CREATION)) {
-                ArrayList<Event.Type> p = new ArrayList();
-                p.add(Resource.DESTRUCTION);
-                try {
-                    EventStream es = pr.openEventStream(p);
-                    logger.info(String.format("Got event stream for %s: %s", pr.getName(), es.getEventOrigin()));
-                    s.add(es);
-                } catch (RemoteException rx) {
-                    logger.severe("Error opening event stream for " + pr.getName());
+            if(e.getResource() instanceof BaseFileSystem && e.getType().equals(Resource.CREATION)) {
+                BaseFileSystem fs = (BaseFileSystem) e.getResource();
+                Map<String,String> md = fs.getConfiguration().getMetadata();
+                if(md != null) {
+                    String type = md.get("type");
+                    if(type != null && type.equals("replicant")) {
+                        repFSMap.put(md.get("prefix"), fs);
+                    }
+                }
+            } else if(e.getResource() instanceof ProcessRegistration) {
+                ProcessRegistration pr =
+                        (ProcessRegistration) e.getResource();
+                ProcessConfiguration rpc = pr.getRegistrationConfiguration();
+                String monitor = rpc == null ? null : rpc.getMetadata().get(
+                        "monitor");
+                if(monitor == null || !monitor.equalsIgnoreCase("true")) {
                     return;
                 }
-            } else if(e.getType().equals(Resource.DESTRUCTION)) {
-                //
-                // A destroyed resource is restarted.
-                ProcessConfiguration pc = pr.getRegistrationConfiguration();
-                try {
-                    ProcessRegistration nr = gu.createProcess(
-                            pr.getName(), pc);
-                    logger.info("Got new registration for " + nr.getName());
-                    gu.startRegistration(nr);
-                } catch(Exception ex) {
-                    logger.log(Level.SEVERE,
-                            "Error starting registration for " +
-                            pr.getName(), ex);
+                logger.info(String.format("Handle %s from %s", e.getType(),
+                        pr.getName()));
+                if(e.getType().equals(Resource.CREATION)) {
+                    ArrayList<Event.Type> p = new ArrayList();
+                    p.add(Resource.DESTRUCTION);
+                    try {
+                        EventStream es = pr.openEventStream(p);
+                        s.add(es);
+                    } catch(RemoteException rx) {
+                        logger.severe("Error opening event stream for " + pr.
+                                getName());
+                        return;
+                    }
+                } else if(e.getType().equals(Resource.DESTRUCTION)) {
+                    //
+                    // A destroyed resource is restarted.
+                    ProcessConfiguration pc = pr.getRegistrationConfiguration();
+                    String regName = parseRegName(pr.getName());
+                    try {
+                        ProcessRegistration nr = gu.createProcess(regName, pc);
+                        gu.startRegistration(nr);
+                    } catch(Exception ex) {
+                        logger.log(Level.SEVERE,
+                                "Error starting registration for " +
+                                pr.getName(), ex);
+                    }
                 }
             }
+        }
+        
+        protected String parseRegName(String name) {
+            String csn = ResourceName.getCSName(name);
+            //
+            // Take instance- off the string, since the grid utils will add 
+            // it back on!
+            if(csn.startsWith(instance)) {
+                return csn.substring(instance.length() + 1);
+            }
+            return csn;
         }
     }
 

@@ -47,23 +47,30 @@ public abstract class Aura extends ServiceAdapter {
      */
     public void createReplicantFileSystems() throws Exception {
         for(int i = 0; i < 16; i++) {
-            String prefix =  DSBitSet.parse(i).setPrefixLength(4).toString();
-            logger.info("Creating replicant fs for " + prefix);
-            FileSystem fs = gu.getFS(getReplicantName(prefix), true);
-
-            //
-            // Add metadata to taste.
-            BaseFileSystemConfiguration fsConfig = ((BaseFileSystem) fs).getConfiguration();
-            Map<String, String> md = fsConfig.getMetadata();
-            md.put("instance", instance);
-            md.put("type", "replicant");
-            md.put("prefix", prefix);
-            fsConfig.setMetadata(md);
-            ((BaseFileSystem) fs).changeConfiguration(fsConfig);
-
-            repFSMap.put(prefix, fs);
+            createReplicantFileSystem(DSBitSet.parse(i).setPrefixLength(4).toString());
         }
-        
+    }
+    
+    /**
+     * Creates a replicant file system for a given prefix.
+     * @param prefix
+     * @throws java.lang.Exception
+     */
+    public void createReplicantFileSystem(String prefix) throws Exception {
+        logger.info("Creating replicant fs for " + prefix);
+        FileSystem fs = gu.getFS(getReplicantName(prefix), true);
+
+        //
+        // Add metadata to taste.
+        BaseFileSystemConfiguration fsConfig = ((BaseFileSystem) fs).
+                getConfiguration();
+        Map<String, String> md = fsConfig.getMetadata();
+        md.put("instance", instance);
+        md.put("type", "replicant");
+        md.put("prefix", prefix);
+        fsConfig.setMetadata(md);
+        ((BaseFileSystem) fs).changeConfiguration(fsConfig);
+        repFSMap.put(prefix, fs);
     }
 
     /**
