@@ -1,0 +1,160 @@
+/* 
+    Document   : aardvark
+    Created on : Mar 17, 2008, 8:12:08 PM
+    Author     : ja151348
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+root { 
+    display: block;
+}
+
+body {
+  background: #fff;
+  color: black;
+  font-family: Arial, sans-serif;
+  font-size: small;
+  margin: 0px;
+}
+
+a:link {
+  color: #5382A1;
+  text-decoration: none;
+}
+
+a:visited {
+  color: #5382A1;
+  text-decoration: none;
+}
+
+div.main {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 145px;
+    margin-right: 75px;
+}
+
+div.regularTxt {
+  margin-left: 30px;
+  font-size: medium;
+  line-height: 150%;
+}
+
+div.regularTxt ul, div.regulartxt ul li {
+    list-style: bullet;
+}
+
+div.topCling {
+  height: 16px;
+  font-size: 12px;
+  font-weight: bold;
+  color: black;
+  background: #E76F00;
+  margin-top: 0px;
+  margin-bottom: 5px;
+  padding: 2px 0px 0px 4px;
+}
+
+div.sidebar {
+    margin: 5px;
+    padding: 5px;
+    float: left;
+    margin-top: 100px;
+    width: 125px;
+    border: 1px solid #dddddd;
+}
+
+div.sidebar ul, div.sidebar ul li {
+    list-style: none;
+    padding-left: 7px;
+    line-height: 150%;
+}
+
+div.statusMsg {
+  border: 1px solid;
+  padding: 5px;
+  margin-top: 15px;
+  display: table;
+  text-align: center;
+}
+
+div.table {
+  table-layout: fixed;
+  display: table;
+  padding: 5px;
+}
+
+div.row {
+  display: table-row;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: black;
+}
+
+div.shadedRow {
+  display: table-row;
+  background: #BDBEC0;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: black;
+}
+
+div.attnTypeCol {
+  display: table-cell;
+  float: left;
+  width: 140px;
+}
+
+div.attnTargCol {
+  display: table-cell;
+  float: left;
+  width: 600px;
+}
+
+div.attnTimeCol {
+  display: table-cell;
+  float: left;
+  width: 250px;
+}
+
+.openidField {
+  background: #FFFFFF url('../images/openid-small.gif') no-repeat scroll 0pt 50%;
+  padding-left: 18px;
+}
+
+div.mainTitle {
+  font-size: 48px;
+  font-family: Arial,Helvetica,sans-serif;
+  font-variant: small-caps;
+  font-weight: bold;
+  color: #E76F00;
+  text-align: center;
+  margin-bottom: 20px;
+  margin-top: 15px;
+}
+
+.sectionTitle {
+  color: #E76F00;
+  font-size: X-large;
+  font-weight: bold;
+}
+
+.blueTxt {
+  color: #5382A1;
+}
+
+.smallGreenTxt {
+  color: #B2BC00;
+  font-weight: bold;
+  font-size: small;
+}
+
+.promptTxt {
+  color: #B2BC00;
+}
