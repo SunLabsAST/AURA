@@ -11,22 +11,17 @@
     
     <property name="auraInstance" value="live"/>
     
-    <property name="nNodes" value="16"/>
-    
     <!-- <property name="logLevel" value="FINER"/> -->
     
     <component name="startAura" type="com.sun.labs.aura.grid.aura.StartAura">
-        <property name="nNodes" value="${nNodes}"/>
         <property name="instance" value="${auraInstance}"/>
     </component>
     
     <component name="stopAura" type="com.sun.labs.aura.grid.aura.StopAura">
-        <property name="nNodes" value="${nNodes}"/>
         <property name="instance" value="${auraInstance}"/>
     </component>
     
     <component name="stopAuraAndDestroy" type="com.sun.labs.aura.grid.aura.StopAura">
-        <property name="nNodes" value="${nNodes}"/>
         <property name="instance" value="${auraInstance}"/>
         <property name="destroy" value="true"/>
     </component>

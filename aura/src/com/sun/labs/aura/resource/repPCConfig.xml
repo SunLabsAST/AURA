@@ -50,12 +50,12 @@
     
     <component name="processManager" type="com.sun.labs.aura.datastore.impl.ProcessManager"/>
     
-    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
-    
     <!-- The configuration for a partition cluster. -->
     <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true" entries="prefixEntries">
         <property name="prefix" value="${prefix}"/>
-        <property name="dataStoreHead" value="dataStoreHead"/>
+        <propertylist name="dataStoreHeads">
+            <type>com.sun.labs.aura.datastore.DataStore</type>
+        </propertylist>
         <property name="processManager" value="processManager"/>
     </component>
 

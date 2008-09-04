@@ -67,6 +67,7 @@ public class GridProcessManager extends Aura implements ProcessManager {
             while(pcReg.getRunState() != RunState.RUNNING) {
                 pcReg.waitForStateChange(1000000L);
             }
+            
             //
             // Now it should be registered with the Jini server, let's look up the replicants
             // and get the one with the right prefix.

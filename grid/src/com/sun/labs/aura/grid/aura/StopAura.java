@@ -39,21 +39,21 @@ public class StopAura extends Aura {
             logger.log(Level.SEVERE, "Error stopping Stat Service", e);
         }
 
-        for(String prefixCode : prefixCodeList) {
+        for(String prefix : repFSMap.keySet()) {
             try {
                 gu.stopProcess(getPartitionName(
-                        prefixCode));
+                        prefix));
             } catch(Exception e) {
-                logger.log(Level.SEVERE, "Error stopping partition " + prefixCode, e);
+                logger.log(Level.SEVERE, "Error stopping partition " + prefix, e);
             }
         }
 
-        for(String prefixCode : prefixCodeList) {
+        for(String prefix : repFSMap.keySet()) {
             try {
                 gu.stopProcess(getReplicantName(
-                        prefixCode));
+                        prefix));
             } catch(Exception e) {
-                logger.log(Level.SEVERE, "Error stopping replicant " + prefixCode, e);
+                logger.log(Level.SEVERE, "Error stopping replicant " + prefix, e);
             }
         }
 
@@ -82,15 +82,15 @@ public class StopAura extends Aura {
                 logger.log(Level.SEVERE, "Error destroying stat service", e);
             }
             
-            for(String prefixCode : prefixCodeList) {
+            for(String prefix : repFSMap.keySet()) {
                 try {
                     gu.destroyRegistration(getPartitionName(
-                            prefixCode));
+                            prefix));
                     gu.destroyRegistration(getReplicantName(
-                            prefixCode));
+                            prefix));
                 } catch(Exception e) {
                     logger.log(Level.SEVERE, "Error destroying replicant " +
-                            prefixCode, e);
+                            prefix, e);
                 }
             }
 
