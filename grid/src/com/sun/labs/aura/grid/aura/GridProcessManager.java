@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package com.sun.labs.aura.grid.aura;
 
 import com.sun.caroline.platform.BaseFileSystem;
@@ -60,7 +55,7 @@ public class GridProcessManager extends Aura implements ProcessManager {
             ProcessRegistration pcReg = gu.createProcess(getPartitionName(
                     prefix.toString()), pcConfig);
             while(pcReg.getRunState() != RunState.RUNNING) {
-                pcReg.waitForStateChange(1000000L);
+                pcReg.waitForStateChange(100000L);
             }
             
             //
@@ -80,6 +75,8 @@ public class GridProcessManager extends Aura implements ProcessManager {
                 // Now that we have the partition cluster running, we need a replicant
                 // running underneath it.
                 createReplicant(prefix);
+            } else {
+                logger.warning("Partition for prefix " + prefix.toString() + " not found");
             }
             
             return ret;
@@ -119,6 +116,40 @@ public class GridProcessManager extends Aura implements ProcessManager {
         } catch(Exception ex) {
             throw new AuraException("Error getting partition cluster for prefix " +
                     prefix, ex);
+        }
+    }
+    
+    public void finishSplit(DSBitSet oldPrefix, DSBitSet childPrefix1,
+            DSBitSet childPrefix2) {
+        
+        //
+        // Change the metadata on the old filesystem.
+        BaseFileSystem fs = (BaseFileSystem) repFSMap.get(oldPrefix.toString());
+        if(fs == null) {
+            logger.warning("Unable to find file system for prefix " + oldPrefix + " after split");
+            return;
+        }
+        Map<String,String> md = fs.getConfiguration().getMetadata();
+        md.put("prefix", childPrefix1.toString());
+        fs.getConfiguration().setMetadata(md);
+        
+        //
+        // Belt-and-suspenders: make sure that the child has the right prefix too.
+        fs = (BaseFileSystem) repFSMap.get(childPrefix2.toString());
+        if(fs == null) {
+            logger.warning("Unable to find file system for new child prefix " + childPrefix2 + " after split");
+        }
+        md = fs.getConfiguration().getMetadata();
+        md.put("prefix", childPrefix2.toString());
+        fs.getConfiguration().setMetadata(md);
+    }
+
+    public void snapshot(DSBitSet prefix)
+            throws AuraException, RemoteException {
+        try {
+            gu.snapshot(getReplicantName(prefix.toString()));
+        } catch (Exception e) {
+            throw new AuraException("Unable to create snapshot for " + prefix.toString(), e);
         }
     }
     
@@ -167,6 +198,9 @@ public class GridProcessManager extends Aura implements ProcessManager {
                             while((e = es.read(0)) != null) {
                                 handleEvent(e);
                             }
+                        } catch(java.io.EOFException eof) {
+                            //
+                            // A destroyed service ran out of events.
                         } catch(java.io.IOException ioe) {
                             logger.log(Level.SEVERE,
                                     "Error reading from event stream: " + es.

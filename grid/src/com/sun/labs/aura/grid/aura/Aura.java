@@ -333,7 +333,6 @@ public abstract class Aura extends ServiceAdapter {
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
-        logger.info("Instance: " + instance);
         replicantConfig = ps.getString(PROP_REPLICANT_CONFIG);
     }
 }
