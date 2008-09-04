@@ -490,6 +490,15 @@ public class PartitionClusterImpl implements PartitionCluster,
         // Notify the data store heads that the partition clusters have
         // changed.  Once that has happened, switch back to a default
         // strategy and our new prefix
+        try {
+            processManager.finishSplit(prefixCode, newLocalPrefix, remote.
+                    getPrefix());
+        } catch(RemoteException rx) {
+            logger.log(Level.SEVERE, "Error finishing split", rx);
+        } catch(AuraException ax) {
+            logger.log(Level.SEVERE, "Error finishing split", ax);
+        }            
+        
         logger.info("Split finished, registering new partitions");
         for(DataStore ds : dataStoreHeads) {
             PartitionCluster exported =

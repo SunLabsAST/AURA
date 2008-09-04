@@ -74,6 +74,16 @@ public class ManualProcessManager implements ProcessManager,
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    public void snapshot(DSBitSet prefix)
+            throws AuraException, RemoteException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public void finishSplit(DSBitSet oldPrefix, DSBitSet childPrefix1,
+            DSBitSet childPrefix2) {
+        
+    }
+    
     public void newProperties(PropertySheet ps) throws PropertyException {
         cm = ps.getConfigurationManager();
         logger = ps.getLogger();
