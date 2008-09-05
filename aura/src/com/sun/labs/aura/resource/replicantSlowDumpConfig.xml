@@ -54,6 +54,7 @@
         <property name="dbEnv" value="${dataFS}/db"/>
         <property name="itemSearchEngine" value="itemSearchEngine"/>
         <property name="partitionCluster" value="partitionCluster"/>
+        <property name="statService" value="statService"/>
         <property name="logLevel" value="INFO"/>
     </component>
     
@@ -65,6 +66,7 @@
     </component>
 
     <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" entries="prefixEntries"/>
+    <component name="statService" type="com.sun.labs.aura.util.StatService"/>
     
     <!-- A service starter for this replicant -->
     <component name="replicantStarter" type="com.sun.labs.aura.AuraServiceStarter">

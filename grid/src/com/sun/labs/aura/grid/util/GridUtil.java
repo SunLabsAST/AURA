@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.grid.util;
 
+import com.sun.caroline.platform.BaseFileSystem;
 import com.sun.caroline.platform.BaseFileSystemConfiguration;
 import com.sun.caroline.platform.ConflictingHostNameException;
 import com.sun.caroline.platform.CustomerNetworkConfiguration;
@@ -389,16 +390,30 @@ public class GridUtil {
                 log.fine("Filesystem " + fsName + " not found");
             }
         } else {
-            log.fine("Found existing filesystem " +
-                    fileSystem.getName());
+            log.fine("Found existing filesystem " + fileSystem.getName());
         }
         return fileSystem;
     }
 
+    public FileSystem snapshot(String fsName) throws Exception {
+        FileSystem fs = getFS(fsName, false);
+        if(fs == null) {
+            log.warning("Cannot snapshot non-existent file system " + fsName);
+            return null;
+        }
+        if(!(fs instanceof BaseFileSystem)) {
+            log.warning("Cannot snapshot filesystem " + fsName + " " + fs.
+                    getClass().getName());
+            return null;
+        }
+        BaseFileSystem bfs = (BaseFileSystem) fs;
+        long t = System.currentTimeMillis();
+        return bfs.createSnapshot(String.format("%s-%TF-%TT-%TL", fsName, t, t,
+                t));
+    }
+
     /**
      * Gets the file system where log files should be stored.
-     * @param grid the grid where we should get the file system
-     * @param instance the name of the instance we want the file system for
      * @return the log file system
      * @throws java.rmi.RemoteException
      * @throws com.sun.caroline.platform.StorageManagementException
@@ -461,7 +476,7 @@ public class GridUtil {
     private void createAuraNetwork() throws Exception {
         try {
             // Try to create a customer network for the test
-            network = grid.createNetwork(instance + "-auraNet", 256,
+            network = grid.createNetwork(instance + "-auraNet", 512,
                     new CustomerNetworkConfiguration());
             log.info("Created network " + network.getName());
         } catch(DuplicateNameException e) {

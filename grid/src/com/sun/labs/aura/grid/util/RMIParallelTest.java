@@ -215,7 +215,7 @@ public class RMIParallelTest extends ServiceAdapter {
     @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
-        Component[] components = cm.getComponentRegistry().lookup(com.sun.labs.aura.datastore.impl.Replicant.class, Integer.MAX_VALUE);
+        List<Component> components = cm.lookupAll(com.sun.labs.aura.datastore.impl.Replicant.class, null);
         runs = ps.getInt(PROP_RUNS);
         numReps = ps.getInt(PROP_NUM_REPS);
         repMap = new HashMap();

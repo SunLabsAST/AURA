@@ -47,23 +47,30 @@ public abstract class Aura extends ServiceAdapter {
      */
     public void createReplicantFileSystems() throws Exception {
         for(int i = 0; i < 16; i++) {
-            String prefix =  DSBitSet.parse(i).setPrefixLength(4).toString();
-            logger.info("Creating replicant fs for " + prefix);
-            FileSystem fs = gu.getFS(getReplicantName(prefix), true);
-
-            //
-            // Add metadata to taste.
-            BaseFileSystemConfiguration fsConfig = ((BaseFileSystem) fs).getConfiguration();
-            Map<String, String> md = fsConfig.getMetadata();
-            md.put("instance", instance);
-            md.put("type", "replicant");
-            md.put("prefix", prefix);
-            fsConfig.setMetadata(md);
-            ((BaseFileSystem) fs).changeConfiguration(fsConfig);
-
-            repFSMap.put(prefix, fs);
+            createReplicantFileSystem(DSBitSet.parse(i).setPrefixLength(4).toString());
         }
-        
+    }
+    
+    /**
+     * Creates a replicant file system for a given prefix.
+     * @param prefix
+     * @throws java.lang.Exception
+     */
+    public void createReplicantFileSystem(String prefix) throws Exception {
+        logger.info("Creating replicant fs for " + prefix);
+        FileSystem fs = gu.getFS(getReplicantName(prefix), true);
+
+        //
+        // Add metadata to taste.
+        BaseFileSystemConfiguration fsConfig = ((BaseFileSystem) fs).
+                getConfiguration();
+        Map<String, String> md = fsConfig.getMetadata();
+        md.put("instance", instance);
+        md.put("type", "replicant");
+        md.put("prefix", prefix);
+        fsConfig.setMetadata(md);
+        ((BaseFileSystem) fs).changeConfiguration(fsConfig);
+        repFSMap.put(prefix, fs);
     }
 
     /**
@@ -185,8 +192,12 @@ public abstract class Aura extends ServiceAdapter {
             "dataStoreHeadStarter"
         };
 
-        return gu.getProcessConfig(DataStoreHead.class.getName(), 
+        ProcessConfiguration pc = gu.getProcessConfig(DataStoreHead.class.getName(), 
                 cmdLine, getDataStoreHeadName(instanceNumber));
+        Map<String, String> md = pc.getMetadata();
+        md.put("monitor", "true");
+        pc.setMetadata(md);
+        return pc;
     }
 
     protected ProcessConfiguration getDataStoreHeadDebugConfig(int instanceNumber) throws Exception {
@@ -224,6 +235,11 @@ public abstract class Aura extends ServiceAdapter {
 
     protected ProcessConfiguration getPartitionClusterConfig(String prefix)
             throws Exception {
+        return getPartitionClusterConfig(prefix, true);
+    }
+    
+    protected ProcessConfiguration getPartitionClusterConfig(String prefix, boolean register)
+            throws Exception {
         String[] cmdLine = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
@@ -231,12 +247,13 @@ public abstract class Aura extends ServiceAdapter {
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/resource/partitionClusterConfig.xml",
-            "partitionClusterStarter"
+            register ? "partitionClusterStarter" : "noRegPartitionClusterStarter"
         };
 
         ProcessConfiguration pc = gu.getProcessConfig(PartitionCluster.class.getName(), cmdLine, getPartitionName(prefix), null, false);
         Map<String,String> md = pc.getMetadata();
         md.put("prefix", prefix);
+        md.put("monitor", "true");
         pc.setMetadata(md);
         return pc;
     }
@@ -263,6 +280,7 @@ public abstract class Aura extends ServiceAdapter {
                 prefix), null, true);
         Map<String, String> md = pc.getMetadata();
         md.put("prefix", prefix);
+        md.put("monitor", "true");
         pc.setMetadata(md);
         return pc;
     }
@@ -299,6 +317,7 @@ public abstract class Aura extends ServiceAdapter {
                 Pattern.compile(instance + ".*-replicant-.*")));
         Map<String,String> md = pc.getMetadata();
         md.put("prefix", prefix);
+        md.put("monitor", "true");
         pc.setMetadata(md);
         return pc;
     }
@@ -319,7 +338,6 @@ public abstract class Aura extends ServiceAdapter {
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
-        logger.info("Instance: " + instance);
         replicantConfig = ps.getString(PROP_REPLICANT_CONFIG);
     }
 }
