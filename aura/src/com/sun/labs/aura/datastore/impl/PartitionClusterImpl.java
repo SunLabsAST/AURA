@@ -19,8 +19,8 @@ import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
-import com.sun.labs.util.props.Augmentable;
 import com.sun.labs.util.props.Component;
+import com.sun.labs.util.props.ComponentListener;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigComponentList;
@@ -47,7 +47,7 @@ import java.util.logging.Logger;
  * key with the prefix for the cluster.
  */
 public class PartitionClusterImpl implements PartitionCluster,
-                                             Configurable, Augmentable, AuraService {
+                                             Configurable, ComponentListener, AuraService {
     
     @ConfigString
     public static final String PROP_PREFIX = "prefix";
@@ -58,8 +58,10 @@ public class PartitionClusterImpl implements PartitionCluster,
     @ConfigComponent(type=com.sun.labs.aura.datastore.impl.ProcessManager.class)
     public static final String PROP_PROC_MGR = "processManager";
     
-    @ConfigBoolean(defaultValue=false)
-    public static final String PROP_DO_NOT_REGISTER = "doNotRegister";
+    @ConfigBoolean(defaultValue=true)
+    public static final String PROP_REGISTER = "register";
+    
+    private boolean register;
     
     private Set<DataStore> dataStoreHeads;
     
@@ -377,34 +379,46 @@ public class PartitionClusterImpl implements PartitionCluster,
     public void newProperties(PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
         prefixCode = DSBitSet.parse(ps.getString(PROP_PREFIX));
-        processManager = (ProcessManager)ps.getComponent(PROP_PROC_MGR);
+        processManager = (ProcessManager)ps.getComponent(PROP_PROC_MGR, this);
         if (processManager == null) {
             logger.info("No ProcessManager was found, splitting will fail");
         }
+        register = ps.getBoolean(PROP_REGISTER);
         cm = ps.getConfigurationManager();
-        if (!ps.getBoolean(PROP_DO_NOT_REGISTER)) {
-            List<DataStore> heads = (List<DataStore>) ps.getComponentList(PROP_DATA_STORE_HEADS);
+        if (register) {
+            List<DataStore> heads = (List<DataStore>) ps.getComponentList(PROP_DATA_STORE_HEADS, this);
             for(DataStore head : heads) {
-                register(ps, head);
+                register(head);
             }
         }
     }
     
-    public void augment(PropertySheet ps, Component c) {
-        if(c instanceof DataStore && !ps.getBoolean(PROP_DO_NOT_REGISTER)) {
-            register(ps, (DataStore) c);
+    public void componentAdded(Component c) {
+        if(c instanceof DataStore && register) {
+            register((DataStore) c);
+        } else if(c instanceof ProcessManager) {
+            if(processManager == null) {
+                processManager = (ProcessManager) c;
+            }
         }
     }
-    
-    private void register(PropertySheet ps, DataStore ds) {
-        PartitionCluster exported = (PartitionCluster) 
-                ps.getConfigurationManager().getRemote(this, ds);
+
+    public void componentRemoved(Component c) {
+        if(c instanceof DataStore && register) {
+            dataStoreHeads.remove((DataStore) c);
+        } else if(c instanceof ProcessManager) {
+            processManager = null;
+        }
+    }
+
+    private void register(DataStore ds) {
+        PartitionCluster exported = (PartitionCluster) cm.getRemote(this, ds);
         try {
             logger.info("Registering partition cluster: " + exported.getPrefix());
             ds.registerPartitionCluster(exported);
             dataStoreHeads.add(ds);
         } catch(RemoteException rx) {
-            throw new PropertyException(rx, ps.getInstanceName(),
+            throw new PropertyException(rx, null,
                     PROP_DATA_STORE_HEADS,
                     "Unable to add partition cluster to data store");
         }
