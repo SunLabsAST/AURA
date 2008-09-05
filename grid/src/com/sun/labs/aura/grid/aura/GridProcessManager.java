@@ -16,7 +16,6 @@ import com.sun.labs.aura.datastore.impl.ProcessManager;
 import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.Component;
-import com.sun.labs.util.props.ConfigInteger;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
@@ -105,6 +104,7 @@ public class GridProcessManager extends Aura implements ProcessManager {
                 repReg.waitForStateChange(1000000L);
             }
             
+            Thread.sleep(5000);
             //
             // Now it should be registered with the Jini server, let's look up the replicants
             // and get the one with the right prefix.
