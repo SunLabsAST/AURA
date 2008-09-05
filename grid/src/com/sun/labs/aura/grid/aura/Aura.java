@@ -235,6 +235,11 @@ public abstract class Aura extends ServiceAdapter {
 
     protected ProcessConfiguration getPartitionClusterConfig(String prefix)
             throws Exception {
+        return getPartitionClusterConfig(prefix, true);
+    }
+    
+    protected ProcessConfiguration getPartitionClusterConfig(String prefix, boolean register)
+            throws Exception {
         String[] cmdLine = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
@@ -242,7 +247,7 @@ public abstract class Aura extends ServiceAdapter {
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/resource/partitionClusterConfig.xml",
-            "partitionClusterStarter"
+            register ? "partitionClusterStarter" : "noRegPartitionClusterStarter"
         };
 
         ProcessConfiguration pc = gu.getProcessConfig(PartitionCluster.class.getName(), cmdLine, getPartitionName(prefix), null, false);

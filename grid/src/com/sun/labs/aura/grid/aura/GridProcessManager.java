@@ -51,9 +51,10 @@ public class GridProcessManager extends Aura implements ProcessManager {
     public PartitionCluster createPartitionCluster(DSBitSet prefix) throws AuraException, RemoteException {
         try {
             ProcessConfiguration pcConfig = getPartitionClusterConfig(prefix.
-                    toString());
+                    toString(), false);
             ProcessRegistration pcReg = gu.createProcess(getPartitionName(
                     prefix.toString()), pcConfig);
+            gu.startRegistration(pcReg);
             while(pcReg.getRunState() != RunState.RUNNING) {
                 pcReg.waitForStateChange(100000L);
             }
@@ -62,8 +63,7 @@ public class GridProcessManager extends Aura implements ProcessManager {
             // Now it should be registered with the Jini server, let's look up the partition clusters
             // and get the one with the right prefix.
             PartitionCluster ret = null;
-            Component[] components = cm.getComponentRegistry().lookup(com.sun.labs.aura.datastore.impl.PartitionCluster.class, Integer.MAX_VALUE);
-            for(Component c : components) {
+            for(Component c : cm.lookupAll(com.sun.labs.aura.datastore.impl.PartitionCluster.class, null)) {
                 if(((PartitionCluster) c).getPrefix().equals(prefix)) {
                     ret = (PartitionCluster) c;
                     break;
@@ -95,19 +95,17 @@ public class GridProcessManager extends Aura implements ProcessManager {
             createReplicantFileSystem(prefixString);
             ProcessConfiguration repConfig = getReplicantConfig(replicantConfig,
                     prefixString);
-            ProcessRegistration pcReg = gu.createProcess(getReplicantName(
+            ProcessRegistration repReg = gu.createProcess(getReplicantName(
                     prefixString), repConfig);
-            while(pcReg.getRunState() != RunState.RUNNING) {
-                pcReg.waitForStateChange(1000000L);
+            gu.startRegistration(repReg);
+            while(repReg.getRunState() != RunState.RUNNING) {
+                repReg.waitForStateChange(1000000L);
             }
             
             //
             // Now it should be registered with the Jini server, let's look up the replicants
             // and get the one with the right prefix.
-            Component[] components = cm.getComponentRegistry().lookup(
-                    com.sun.labs.aura.datastore.impl.Replicant.class,
-                    Integer.MAX_VALUE);
-            for(Component c : components) {
+            for(Component c : cm.lookupAll(com.sun.labs.aura.datastore.impl.Replicant.class, null)) {
                 if(((Replicant) c).getPrefix().equals(prefix)) {
                     return (Replicant) c;
                 }
