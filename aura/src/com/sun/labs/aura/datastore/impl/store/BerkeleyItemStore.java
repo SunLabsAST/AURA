@@ -249,17 +249,16 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
 
         //
         // Fetch the partition cluster with this prefix.
-        partitionCluster = (PartitionCluster) ps.getComponent(PROP_PARTITION_CLUSTER);
+        partitionCluster = (PartitionCluster) ps.getComponent(PROP_PARTITION_CLUSTER, this);
         register(partitionCluster);
 
         //
         // Get a handle to the stat service if we got one
-        statService = (StatService) ps.getComponent(PROP_STAT_SERVICE);
+        statService = (StatService) ps.getComponent(PROP_STAT_SERVICE, this);
         statBatchSize = ps.getInt(PROP_STAT_BATCH_SIZE);
     }
 
     public void componentAdded(Component c) {
-        logger.info("Added: " + c);
         if(c instanceof StatService) {
             statService = (StatService) c;
         } else if(c instanceof PartitionCluster) {
