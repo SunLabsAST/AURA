@@ -59,6 +59,8 @@ public class GridProcessManager extends Aura implements ProcessManager {
                 pcReg.waitForStateChange(100000L);
             }
             
+            Thread.sleep(5000);
+            
             //
             // Now it should be registered with the Jini server, let's look up the partition clusters
             // and get the one with the right prefix.
@@ -102,6 +104,7 @@ public class GridProcessManager extends Aura implements ProcessManager {
                 repReg.waitForStateChange(1000000L);
             }
             
+            Thread.sleep(5000);
             //
             // Now it should be registered with the Jini server, let's look up the replicants
             // and get the one with the right prefix.

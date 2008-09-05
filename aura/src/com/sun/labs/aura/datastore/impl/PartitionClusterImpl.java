@@ -448,6 +448,7 @@ public class PartitionClusterImpl implements PartitionCluster,
     }
 
     public void split() throws AuraException, RemoteException {
+        try {
         if (!splitting.compareAndSet(false, true)) {
             //
             // We must already be splitting.
@@ -474,6 +475,8 @@ public class PartitionClusterImpl implements PartitionCluster,
         for (FieldDescription fd : fields.values()) {
             remote.defineField(null, fd.getName(), fd.getCapabilities(), fd.getType());
         }
+        
+        logger.info("Fields defined in " + remote.getPrefix());
 
         PCSplitStrategy splitStrat =
                 new PCSplitStrategy(strategy, localPrefix,
@@ -497,6 +500,15 @@ public class PartitionClusterImpl implements PartitionCluster,
         //
         // Install the split strategy for all requests going forward
         strategy = splitStrat;
+        } catch (AuraException ax) {
+            logger.log(Level.SEVERE, "Aura exception splitting", ax);
+            throw(ax);
+        } catch (RemoteException rx) {
+            logger.log(Level.SEVERE, "Remote exception splitting", rx);
+            throw(rx);
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, "Other exception splitting", ex);
+        }
     }
 
     protected void endSplit(DSBitSet newLocalPrefix, PartitionCluster remote) {
