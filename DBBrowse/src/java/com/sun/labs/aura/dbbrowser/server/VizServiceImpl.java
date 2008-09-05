@@ -150,6 +150,19 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         return stats;
     }
     
+    public void resetRepStats(String prefix) {
+        if (statService != null) {
+            try {
+                for (Replicant.StatNames name : Replicant.StatNames.values()) {
+                   statService.set(repStatName(prefix, name.toString()), 0);
+                }
+            } catch (RemoteException e) {
+                logger.log(Level.WARNING, "Failed to communicate with stats server", e);
+                throw new RuntimeException("Failed to reset stats");
+            }
+        }
+    }
+    
     public void haltPC(PCInfo pc) {
         logger.info("Halt PC " + pc.getPrefix());
     }

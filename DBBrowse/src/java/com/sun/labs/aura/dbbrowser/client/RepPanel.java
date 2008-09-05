@@ -104,12 +104,35 @@ public class RepPanel extends FlowPanel {
                 add(new StyleLabel("Find Similars per sec: " +
                                       statForm.format(stats.getFindSimsPerSec()),
                                    "viz-statLabel"));
+                StyleLabel reset = new StyleLabel("Reset", "viz-actionLabel");
+                final TimerPanel container = this;
+                VizUI.addConfDialog(reset,
+                        new ClickListener() {
+                            public void onClick(Widget arg0) {
+                                resetStats(container);
+                            }
+                        },
+                        "Really reset the stats for this replicant?");
+                add(reset); 
             }
             
         };
         details.add(repStatsPanel);
         repStatsPanel.start();
-        
-        
+    }
+    
+    public void resetStats(final TimerPanel toUpdate) {
+        VizServiceAsync service = GWTMainEntryPoint.getVizService();
+        final AsyncCallback callback = new AsyncCallback() {
+            public void onSuccess(Object result) {
+                toUpdate.redraw();
+            }
+
+            public void onFailure(Throwable caught) {
+                VizUI.alert("Communication failed: " + caught.getMessage());
+            }
+        };
+        service.resetRepStats(rep.getPrefix(), callback);
+       
     }
 }

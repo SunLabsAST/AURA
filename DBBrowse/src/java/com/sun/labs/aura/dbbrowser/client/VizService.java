@@ -39,6 +39,11 @@ public interface VizService extends RemoteService{
      */
     public RepStats getRepStats(String prefix);
     
+    /**
+     * Reset the stats for a replicant
+     */
+    public void resetRepStats(String prefix);
+    
     public void haltPC(PCInfo pc);
     
     /**
