@@ -1,4 +1,4 @@
-\documentclass[a4paper,10pt,twocolumn]{article}
+\documentclass[a4paper,9pt,twocolumn]{article}
 \usepackage{txfonts}
 \usepackage[utf8]{inputenc}
 \usepackage[cyr]{aeguill}
@@ -16,6 +16,7 @@ University of Montreal\\
 \texttt{mailletf@iro.umontreal.ca}
 \and 
 Paul Lamere \\
+Sun Labs\\
 Sun Microsystems Inc.\\
 \texttt{paul.lamere@sun.com}
 }
@@ -33,11 +34,11 @@ Music recommendation systems are increasingly important in the ever
     music recommendations. These type of recommendations lack two aspects 
     that are important for recommendation.  First, they lack transparency 
     - they cannot explain why an item was recommended beyond the trivial 
-    ``Other people who listed to XX also listened to YY". Second, they 
+    ``Other people who listened to XX also listened to YY". Second, they 
     lack steerability - there is no way for a user to interact with the 
     recommender to steer it to more relevant content.
     
-    In this demonstration we show the Sun Labs Music Explaura - a 
+    In this paper we show the Sun Labs Music Explaura - a 
     web-based recommender that provides transparent and steerable 
     recommendations. The Music Explaura can offer a detailed explanation 
     about why a particular item was recommended and will allow a user to 
@@ -47,38 +48,50 @@ Music recommendation systems are increasingly important in the ever
 
 \section{The Aura}
 
-In our system for recommending items, each item is
-described by a set of words (tags).  These
-descriptive words may come from text mining the
-web, social annotations, autotagging based upon
-content analysis, expert annotation, etc. In our current 
-implementation, the most important source for tags 
-is the social music website Last.fm, mined using the
-Audioscrobbler web services\footnote{Last.fm's Audioscrobbler web services described at http://www.audioscrobbler.net/data/webservices/.}.
+In our system for recommending items, each musical artist is annotated
+by a set of descriptive words and phrases.  The source
+of words for an artist can be from text mining the web, from social
+annotations, autotagging based upon content analysis, expert
+annotation, etc.  One significant source of words in our current
+implementation are the social tags from the social music website
+Last.fm, mined using the Audioscrobbler web services\footnote{Last.fm's
+Audioscrobbler web services described at
+http://www.audioscrobbler.net/data/webservices/.}.
 
-The tags provided by Last.fm are weighted by their frequency 
-of application. This weighting does not  XXX as a tag like \textit{rock} 
-will be applied a large number of times to a large number of bands. 
-We hence reweigh the tags based upon their descriptive
-content - more descriptive words are given more
-weight - using a standard text retrieval weighting function,
-TF-IDF. The set of weighted tags for an item is called an
-item's ``tag cloud", or in a more poetic way, it's aura.
+Some words such as \textit{rock} and \textit{alternative} are
+commonly applied to many artist and therefore are not very descriptive,
+while terms such as \textit{shoegaze} and \textit{grindcore} are
+less frequently applied (and thus more discriminating).  To emphasize
+words that are more descriptive, each term is weighted using the
+standard text retrieval weighting function TF-ID\cite{tfidf}. This
+weighting function gives more weight to words that occur more
+frequently for a particular item when compared to the frequency of
+the word across all items.  The set of weighted tags for an item
+is called an item's ``tag cloud'' or in a more poetic way, it's
+\textit{aura}.  We use this ``tag cloud'' as a representation of
+an artist in our system. The distance between two artists is merely
+the cosine distance between the two tag clouds\cite{cosine}.
+
+
 
 \section{Transparency}
+One important key to the success  of a music recommender is to gain the
+trust of its users\cite{trust}.  One way to gain this trust is to provide
+detailed explanations of why an item was recommended.  However,
+most commercial music recommenders rely on collaborative filtering
+techniques to offer recommendations.  These systems cannot offer
+any more detailed explanation of why an item was recommended beyond
+the simplistic "people who liked artist X, also liked artist Y".
+These opaque recommmendations do little to engender trust.
 
-Being able to provide users with transparent recommendations has a lot of advantages. 
-For instance, if a user sees a recommendation that makes no sense to him, he might 
-lose his trust in the recommender system and stop using it. 
-
-As we represent items in our system using a tag cloud, we determine the similarity 
-between two artists as the cosine distance between their respective tag cloud. We chose this 
-metric because it implicitly deals the the difference in popularity that exists between artists. 
-
-We are then able to explain why an item is being recommended 
-by displaying the overlap between two tag clouds, as shown in figure \ref{fig:commontags}.
-Only tags common to the two clouds are displayed and 
-their weight is determined by the strenght of the overlap between the tag clouds.
+Since our recommendations are based upon the similarity between  the tag clouds
+of a preferred item and the recommended item, we can
+offer a more detailed explanation of why an item was recommended
+by showing how the two tag clouds overlap. \ref{fig:commontags} shows
+the overlapping tags for the artists \textit{Radiohead} and \textit{Muse}.
+Only words common to the two artists are displayed. The size of the
+font is determined by the weight and the tags and the strength of the
+overlap.
 
 \begin{figure}[ht]
 \begin{center}
@@ -90,10 +103,9 @@ clouds are weighted by the strength of the overlap between the two clouds.}
 \label{fig:commontags}
 \end{figure}
 
-\section{Steerability}
 \label{section:steerable}
 
-
+\section{Steerability}
 \begin{figure*}
 \begin{center}
 \includegraphics[width=0.95\textwidth]{steerable-withtxt}
