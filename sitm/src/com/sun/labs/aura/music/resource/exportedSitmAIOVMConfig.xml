@@ -50,14 +50,18 @@
     <!-- The configuration for a partition cluster. -->
     <component name="partitionCluster0" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
         <property name="prefix" value="0"/>
-        <property name="dataStoreHead" value="dataStoreHead"/>
+        <propertylist name="dataStoreHeads">
+            <item>dataStoreHead</item>
+        </propertylist>
         <property name="processManager" value="processManager"/>
     </component>
 
     <!-- The configuration for a partition cluster. -->
     <component name="partitionCluster1" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
         <property name="prefix" value="1"/>
-        <property name="dataStoreHead" value="dataStoreHead"/>
+        <propertylist name="dataStoreHeads">
+            <item>dataStoreHead</item>
+        </propertylist>
         <property name="processManager" value="processManager"/>
     </component>
 
@@ -103,7 +107,6 @@
     <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl" export="true">
         <property name="dataStore" value="dataStoreHead"/>
     </component>
-
 
     <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawler">
         <property name="dataStore" value="dataStoreHead"/>
