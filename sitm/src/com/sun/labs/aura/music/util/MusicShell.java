@@ -314,18 +314,6 @@ public class MusicShell implements AuraService, Configurable {
             }
         });
 
-        shell.add("tagDiscover", new CommandInterface() {
-
-            public String execute(CommandInterpreter ci, String[] args) throws Exception {
-                tagCrawler.discoverArtistTags();
-                return "";
-            }
-
-            public String getHelp() {
-                return "crawls the artists for new tags and adds them to the database";
-            }
-        });
-
 
         shell.add("tagUpdate", new CommandInterface() {
 
