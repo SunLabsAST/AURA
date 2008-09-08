@@ -41,7 +41,6 @@ import java.util.logging.Logger;
  * @author plamere
  */
 public class TagCrawler implements AuraService, Configurable {
-
     private Wikipedia wikipedia;
     private Youtube youtube;
     private FlickrManager flickr;
@@ -50,10 +49,7 @@ public class TagCrawler implements AuraService, Configurable {
     private Util util;
     private boolean running = false;
     private Map<String, Map<String, Tag>> tagMap = new HashMap();
-    private final int MIN_ARTISTS = 10;   // make me configurable
-    private final int MIN_ARTIST_POPULARITY = 10;   // make me configurable
     private final long MIN_UPDATE_TIME = 1000L * 60L * 60L * 24L * 7;
-    private final String BEATLES_ID = "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
     static Set skipSet;
     
 
@@ -98,98 +94,24 @@ public class TagCrawler implements AuraService, Configurable {
     public void autoUpdater() {
         try {
             running = true;
-            // start crawling after running for .5 hour
-            Thread.sleep(1000 * 60 * 30);
+            // start crawling after 3 minutes
+            Thread.sleep(1000 * 60 * 3);
             while (running) {
-                discoverArtistTags();
                 updateArtistTags();
                 // BUG: make this configurable
-                // update tags once a day
+                // check for tag updates once a day
                 Thread.sleep(1000 * 60 * 60 * 24);
             }
         } catch (InterruptedException ex) {
-            Logger.getLogger(TagCrawler.class.getName()).log(Level.SEVERE, null, ex);
+            logger.severe("shutdown because of InterruptedException");
         } catch (AuraException ex) {
-            Logger.getLogger(TagCrawler.class.getName()).log(Level.SEVERE, null, ex);
+            logger.severe("shutdown because of AuraException " + ex);
         } catch (RemoteException ex) {
-            Logger.getLogger(TagCrawler.class.getName()).log(Level.SEVERE, null, ex);
+            logger.severe("shutdown because of RemoteException " + ex);
+        } catch (Throwable t) {
+            logger.severe("shutdown because of unexpected exception " + t);
         }
         running = false;
-    }
-
-    /**
-     * Starts discovering artists. When a new artist is encountered it is 
-     * added to the datastore
-     */
-    public void discoverArtistTags() throws AuraException, RemoteException {
-        float normPopularity = getBeatlesPopularity();
-        if (normPopularity > 0) {
-            List<Item> items = dataStore.getAll(ItemType.ARTIST);
-            for (Item item : items) {
-                Artist artist = new Artist(item);
-                float popularity = artist.getPopularity();
-                if (popularity >= MIN_ARTIST_POPULARITY) {
-                    popularity /= normPopularity;
-                    popularity *= 100.0;
-                    if (popularity < 1) {
-                        popularity = 1;
-                    }
-                    logger.info("Crawling tags from artist " + artist.getName());
-                    List<Tag> tags = artist.getSocialTags();
-
-                    for (Tag tag : tags) {
-                        //int normalizedCount = (int) Math.rint(popularity * tag.getCount());
-                        int normalizedCount = tag.getCount();
-                        // System.out.printf("norm count for %s/%s is %d\n", artist.getName(), tag.getName(), normalizedCount);
-                        accumulateTag(tag.getName(), artist.getKey(), normalizedCount);
-                    }
-                }
-            }
-            pruneAndWriteTags();
-        }
-    }
-
-    private float getBeatlesPopularity() throws AuraException, RemoteException {
-        Item beatlesItem = dataStore.getItem(BEATLES_ID);
-        if (beatlesItem != null) {
-            Artist beatles = new Artist(beatlesItem);
-            return beatles.getPopularity();
-        }
-        return .0f;
-    }
-
-    private void accumulateTag(String tagName, String artistMBAID, int count) {
-        Map<String, Tag> artistTagMap = tagMap.get(tagName);
-        if (artistTagMap == null) {
-            artistTagMap = new HashMap();
-            tagMap.put(tagName, artistTagMap);
-        }
-
-        Tag tag = artistTagMap.get(artistMBAID);
-        if (tag == null) {
-            tag = new Tag(artistMBAID, 0);
-            artistTagMap.put(artistMBAID, tag);
-        }
-
-        tag.accum(count);
-    }
-
-    private void pruneAndWriteTags() throws AuraException, RemoteException {
-        for (Map.Entry<String, Map<String, Tag>> entry : tagMap.entrySet()) {
-            if (entry.getValue().size() > MIN_ARTISTS) {
-                ArtistTag artistTag = new ArtistTag(entry.getKey());
-                int sum = 0;
-                for (Tag tag : entry.getValue().values()) {
-                    sum += tag.getCount();
-                    artistTag.addTaggedArtist(tag.getName(), tag.getCount());
-                }
-
-                logger.info("Adding tag " + artistTag.getName() + " key: " + artistTag.getKey() + " artists " + artistTag.getTaggedArtist().size());
-                artistTag.setPopularity(sum);
-                artistTag.flush(dataStore);
-            }
-
-        }
     }
 
     public void updateArtistTags() throws AuraException, RemoteException {
@@ -206,7 +128,6 @@ public class TagCrawler implements AuraService, Configurable {
         for (ArtistTag tag : tags) {
             updateSingleTag(tag);
         }
-
     }
 
     public void updateSingleTag(ArtistTag artistTag) throws AuraException, RemoteException {
@@ -215,7 +136,7 @@ public class TagCrawler implements AuraService, Configurable {
             collectTagInfo(artistTag);
             artistTag.flush(dataStore);
         } else {
-            logger.info("Skipping update for tag " + artistTag.getName());
+            logger.fine("Skipping update for tag " + artistTag.getName());
         }
 
     }

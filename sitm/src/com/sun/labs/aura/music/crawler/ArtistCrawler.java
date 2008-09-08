@@ -55,12 +55,15 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -104,6 +107,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
                     // this thread discovers new artists until
                     // we reach the maxArtists
                     public void run() {
+                        addAllTags();
                         discoverArtists();
                     }
                 };
@@ -188,6 +192,34 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
         threadPool.submit(updater);
     }
 
+    private void addAllTags() {
+        try {
+            Set<String> tagNames = new HashSet<String>(validTagMap.values());
+            createTags(tagNames);
+        } catch (AuraException e) {
+            logger.warning("Can't add all tags " + e);
+        } catch (RemoteException e) {
+            logger.warning("Can't add all tags " + e);
+        }
+    }
+
+    /**
+     * Given a collection of tag names, ensure that they are all added to
+     * the database
+     * @param tagNames the list of tag names
+     */
+    private void createTags(Collection<String> tagNames) throws AuraException, RemoteException {
+        for (String tagName : tagNames) {
+            // make sure the tags are part of the database
+            String id = ArtistTag.nameToKey(tagName);
+            if (dataStore.getItem(id) == null) {
+                Item item = StoreFactory.newItem(ItemType.ARTIST_TAG, id, tagName);
+                dataStore.putItem(item);
+                logger.info("Adding tag " + item.getKey());
+            }
+        }
+    }
+
     public void add(String newID) throws AuraException, RemoteException {
         Item item = dataStore.getItem(newID);
         if (item == null) {
@@ -260,7 +292,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
                     break;
                 }
             } else {
-                logger.info(artist.getName() + " is upto date");
+                logger.fine(artist.getName() + " is up to date");
             }
         }
     }
