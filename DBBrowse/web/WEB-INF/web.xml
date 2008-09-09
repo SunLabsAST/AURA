@@ -32,11 +32,16 @@
 
   <!-- Define a Security Constraint on this Application -->
   <security-constraint>
-    <web-resource-collection>
+        <display-name>DataStore</display-name>
+        <web-resource-collection>
       <web-resource-name>DB Browser</web-resource-name>
       <url-pattern>/*</url-pattern>
     </web-resource-collection>
-  </security-constraint>
+        <auth-constraint>
+            <description>Access to DBBrowser</description>
+            <role-name>datastore</role-name>
+            </auth-constraint>
+        </security-constraint>
 
   <!-- Define the Login Configuration for this Application -->
   <login-config>
@@ -47,8 +52,8 @@
   <!-- Security roles referenced by this web application -->
   <security-role>
     <description>
-      The role that is required to log in to the Aardvark demo
+      The role that is required to browse the datastore
     </description>
-    <role-name>aurademo</role-name>
+    <role-name>datastore</role-name>
   </security-role>
 </web-app>
