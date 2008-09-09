@@ -1,6 +1,7 @@
 package com.sun.labs.aura.grid.aura;
 
 import com.sun.caroline.platform.BaseFileSystem;
+import com.sun.caroline.platform.BaseFileSystemConfiguration;
 import com.sun.caroline.platform.Event;
 import com.sun.caroline.platform.EventStream;
 import com.sun.caroline.platform.ProcessConfiguration;
@@ -130,9 +131,16 @@ public class GridProcessManager extends Aura implements ProcessManager {
             logger.warning("Unable to find file system for prefix " + oldPrefix + " after split");
             return;
         }
-        Map<String,String> md = fs.getConfiguration().getMetadata();
+        BaseFileSystemConfiguration fsc = fs.getConfiguration();
+        Map<String,String> md = fsc.getMetadata();
+        logger.info("Changing old prefix to " + childPrefix1);
         md.put("prefix", childPrefix1.toString());
-        fs.getConfiguration().setMetadata(md);
+        fsc.setMetadata(md);
+        try {
+            fs.changeConfiguration(fsc);
+        } catch (Exception rx) {
+            logger.log(Level.SEVERE, "Error setting file system metadata for " + fs.getName(), rx);
+        }
         
         //
         // Belt-and-suspenders: make sure that the child has the right prefix too.
@@ -140,9 +148,15 @@ public class GridProcessManager extends Aura implements ProcessManager {
         if(fs == null) {
             logger.warning("Unable to find file system for new child prefix " + childPrefix2 + " after split");
         }
-        md = fs.getConfiguration().getMetadata();
+        fsc = fs.getConfiguration();
+        md = fsc.getMetadata();
         md.put("prefix", childPrefix2.toString());
-        fs.getConfiguration().setMetadata(md);
+        fsc.setMetadata(md);
+        try {
+            fs.changeConfiguration(fsc);
+        } catch (Exception rx) {
+            logger.log(Level.SEVERE, "Error setting file system metadata for " + fs.getName(), rx);
+        }
     }
 
     public void snapshot(DSBitSet prefix)
