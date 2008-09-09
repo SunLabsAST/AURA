@@ -212,6 +212,9 @@ public class GridUtil {
                 throw new IllegalStateException("Process " + processName +
                         " exists and is running");
             }
+            //
+            // Make sure this registration is using the config passed in.
+            reg.changeConfiguration(config);
         }
         return reg;
     }
