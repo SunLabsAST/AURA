@@ -105,7 +105,6 @@ public class StartAura extends Aura {
     
     public void start() {
         try {
-            getReplicantFileSystems();
             if(repFSMap.size() == 0) {
                 //
                 // If there's no file systems, then create them!

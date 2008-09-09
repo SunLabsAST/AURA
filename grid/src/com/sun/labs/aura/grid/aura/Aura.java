@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
@@ -104,6 +106,8 @@ public abstract class Aura extends ServiceAdapter {
             if(mdv == null) {
                 logger.warning("Replicant filesystem with no prefix metadata: " + fs.getName());
                 continue;
+            } else {
+                logger.info("Got filesystem with prefix: " + mdv);
             }
             
             repFSMap.put(mdv, fs);
@@ -339,5 +343,10 @@ public abstract class Aura extends ServiceAdapter {
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
         replicantConfig = ps.getString(PROP_REPLICANT_CONFIG);
+        try {
+            getReplicantFileSystems();
+        } catch(Exception ex) {
+            logger.log(Level.SEVERE, "Error getting filesystems", ex);
+        }
     }
 }

@@ -3,5 +3,6 @@
 <tomcat-users>
  <role rolename="manager"/>
  <role rolename="aurademo"/>
- <user username="aura" password="corona" roles="manager,aurademo"/>
+ <role rolename="datastore"/>
+ <user username="aura" password="corona" roles="manager,aurademo,datastore"/>
 </tomcat-users>
