@@ -212,6 +212,9 @@ public class GridUtil {
                 throw new IllegalStateException("Process " + processName +
                         " exists and is running");
             }
+            //
+            // Make sure this registration is using the config passed in.
+            reg.changeConfiguration(config);
         }
         return reg;
     }
@@ -274,21 +277,25 @@ public class GridUtil {
         ProcessRegistration reg = grid.getProcessRegistration(String.format(
                 "%s-%s", instance, name));
         if(reg != null) {
-            log.fine("Stopping: " + reg);
-
-            //
-            // We were asked to stop the process, so we can't just shut it down,
-            // because they're set to restart.  So, first we need to change the 
-            // process config to park the process.
-            ProcessConfiguration pc = reg.getIncarnationConfiguration();
-            pc.setProcessExitAction(ProcessExitAction.PARK);
-            reg.changeConfiguration(pc);
-            reg.shutdownGently(true, 1000);
-            stopped.add(reg);
+            stopProcess(reg);
         } else {
             log.info("No registration for " + name + " to stop");
         }
         return reg;
+    }
+    
+    public void stopProcess(ProcessRegistration reg) throws Exception {
+        log.fine("Stopping: " + reg);
+
+        //
+        // We were asked to stop the process, so we can't just shut it down,
+        // because they're set to restart.  So, first we need to change the 
+        // process config to park the process.
+        ProcessConfiguration pc = reg.getIncarnationConfiguration();
+        pc.setProcessExitAction(ProcessExitAction.PARK);
+        reg.changeConfiguration(pc);
+        reg.shutdownGently(true, 1000);
+        stopped.add(reg);
     }
 
     public void destroyRegistration(String name) throws Exception {
@@ -316,6 +323,7 @@ public class GridUtil {
             throws Exception {
         long finish = timeout + System.currentTimeMillis();
         int n = 0;
+        log.info(String.format("Watiing for %d registrations", stopped.size()));
         while(stopped.size() > 0) {
             ProcessRegistration reg = stopped.poll();
 

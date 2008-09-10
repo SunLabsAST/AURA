@@ -576,8 +576,9 @@ public class PartitionClusterImpl implements PartitionCluster,
         public void run() {
             //
             // Start reading items and writing them as necessary.
-        DBIterator<Item> items = null;
-        try {
+            DBIterator<Item> items = null;
+            long numProcessed = 0;
+            try {
                 items = local.getAllIterator(null);
                 while (items.hasNext()) {
                     Item i = items.next();
@@ -586,6 +587,7 @@ public class PartitionClusterImpl implements PartitionCluster,
                                         remotePrefix)) {
                         remote.putItem(i);
                         local.deleteItem(i.getKey());
+                        numProcessed++;
                     }
                 }
             } catch (AuraException e) {
@@ -596,6 +598,8 @@ public class PartitionClusterImpl implements PartitionCluster,
                 try {
                     if (items != null) {
                         items.close();
+                        logger.info("Migrated a total of "
+                                    + numProcessed + " items");
                     }
                 } catch (RemoteException e) {
                 }
@@ -629,6 +633,7 @@ public class PartitionClusterImpl implements PartitionCluster,
             // (the invalid one won't necessarily have the right hashcode
             // to belong here).  Allow one, but truly fail if there is another
             long invalid = 0;
+            long numProcessed = 0;
             try {
                 List<Attention> migrate = new ArrayList<Attention>();
                 List<Long> ids = new ArrayList<Long>();
@@ -653,9 +658,19 @@ public class PartitionClusterImpl implements PartitionCluster,
                     if (migrate.size() >= 2000) {
                         remote.attend(migrate);
                         local.deleteAttention(ids);
+                        numProcessed += migrate.size();
                         migrate.clear();
                         ids.clear();
                     }
+                }
+                //
+                // If there are any more we didn't get to, finish them now
+                if (!migrate.isEmpty()) {
+                    remote.attend(migrate);
+                    local.deleteAttention(ids);
+                    numProcessed += migrate.size();
+                    migrate.clear();
+                    ids.clear();
                 }
             } catch (AuraException e) {
                 logger.log(Level.SEVERE, "Attention Migration failed", e);
@@ -665,7 +680,8 @@ public class PartitionClusterImpl implements PartitionCluster,
                 try {
                     if (attns != null) {
                         attns.close();
-                        logger.info("Processed a total of numProcessed attentions");
+                        logger.info("Migrated a total of "
+                                    + numProcessed + " attentions");
                     }
                 } catch (RemoteException e) {
                 }
