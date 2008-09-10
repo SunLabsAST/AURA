@@ -140,7 +140,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             hP.setWidth("300px");
             hP.add(new SpannedLabel("Recommendations"));
 
-            Image viewTagInfluence = new Image("loupe.gif");
+            Image viewTagInfluence = new Image("loupe.png");
             viewTagInfluence.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
