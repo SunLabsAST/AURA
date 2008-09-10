@@ -13,7 +13,7 @@
 Fran\c{c}ois Maillet\\
 Sun Microsystems Inc.\\
 University of Montreal\\
-\texttt{mailletf@iro.umontreal.ca}
+\texttt{francois.maillet@umontreal.ca}
 \and 
 Paul Lamere \\
 Sun Labs\\
@@ -63,7 +63,7 @@ commonly applied to many artist and therefore are not very descriptive,
 while terms such as \textit{shoegaze} and \textit{grindcore} are
 less frequently applied (and thus more discriminating).  To emphasize
 words that are more descriptive, each term is weighted using the
-standard text retrieval weighting function TF-ID\cite{tfidf}. This
+standard text retrieval weighting function TF-IDF\cite{tfidf}. This
 weighting function gives more weight to words that occur more
 frequently for a particular item when compared to the frequency of
 the word across all items.  The set of weighted tags for an item
@@ -87,7 +87,7 @@ These opaque recommmendations do little to engender trust.
 Since our recommendations are based upon the similarity between  the tag clouds
 of a preferred item and the recommended item, we can
 offer a more detailed explanation of why an item was recommended
-by showing how the two tag clouds overlap. \ref{fig:commontags} shows
+by showing how the two tag clouds overlap. Figure \ref{fig:commontags} shows
 the overlapping tags for the artists \textit{Radiohead} and \textit{Muse}.
 Only words common to the two artists are displayed. The size of the
 font is determined by the weight and the tags and the strength of the
