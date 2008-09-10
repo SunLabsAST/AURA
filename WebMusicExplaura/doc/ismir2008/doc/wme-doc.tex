@@ -1,4 +1,4 @@
-\documentclass[a4paper,9pt,twocolumn]{article}
+\documentclass[letterpaper,10pt,twocolumn]{article}
 \usepackage{txfonts}
 \usepackage[utf8]{inputenc}
 \usepackage[cyr]{aeguill}
@@ -114,26 +114,33 @@ clouds are weighted by the strength of the overlap between the two clouds.}
 \label{fig:steerable}
 \end{figure*}
 
-As we provide recommendations to a user, he might dislike them because they are not
-based on what he is looking for. For example, he might be looking for a Beatles sounding 
-band, but from the 90s, or a Radiohead-like band with a female vocalist. Searching for 
-music in this manner is not possible with current recommender systems or any search engine.
+As we provide recommendations to a user, he might dislike them
+because they are not based on what he is looking for. For example,
+he might be looking for a Beatles sounding band, but from the 90s,
+or a Radiohead-like band with a female vocalist. Searching for music
+in this manner is not possible with current recommender systems or
+any search engine.
 
-By using our patent-pending interface, a user can construct a tag cloud independent 
-of any particular item and use this as input to the recommender, as shown in figure \ref{fig:steerable}.
-The tag cloud constructed by the user describes the
-parameters and concepts that are important to him. The recommender will find items similar to the user's custom
-tag cloud in the same way it does it when normally finding similar items.
+By using our patent-pending interface, a user can construct a tag
+cloud independent of any particular item and use this as input to
+the recommender, as shown in figure \ref{fig:steerable}.  The tag
+cloud constructed by the user describes the parameters and concepts
+that are important to him. The recommender will find items similar
+to the user's custom tag cloud in the same way it does it when
+normally finding similar items.
 
-The user can dynamically and interactively adjust the tag
-weights, receiving updated
-recommendations in real time after every adjustment. This
-allows the user to steer the recommender toward
-areas that are of most interest to him. It is possible to shrink some tags to a negative weight to use them as a filter, removing 
-any recommended item that contain the negatively weighted tags.
+The user can dynamically and interactively adjust the tag weights,
+receiving updated recommendations in real time after every adjustment.
+This allows the user to steer the recommender toward areas that are
+of most interest to him. It is possible to shrink some tags to a
+negative weight to use them as a filter, removing any recommended
+item that contain the negatively weighted tags.
 
-As mentioned earlier, every item in our system is represented by a tag cloud. Even a single tag can be considered as a tag cloud - a tag cloud of only one tag, itself. 
-Therefore, any item can be used in a user constructed cloud : a tag, an artist or even another user constructed tag cloud. Users can 
-save clouds and reuse them later on, either by themselves or as part of another cloud.
+As mentioned earlier, every item in our system is represented by a
+tag cloud. Even a single tag can be considered as a tag cloud - a
+tag cloud of only one tag, itself.  Therefore, any item can be used
+in a user constructed cloud : a tag, an artist or even another user
+constructed tag cloud. Users can save clouds and reuse them later
+on, either by themselves or as part of another cloud.
 
 \end{document}
