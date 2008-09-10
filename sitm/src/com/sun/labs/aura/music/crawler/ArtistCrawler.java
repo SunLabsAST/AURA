@@ -180,7 +180,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             public void run() {
                 Artist artist = new Artist(item);
                 try {
-                    updateArtist(artist, false, false);
+                    updateArtist(artist, false);
                 } catch (AuraException ex) {
                     logger.warning("Problem updating artist " + item.getKey() + " " + ex);
                 } catch (RemoteException ex) {
@@ -227,7 +227,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             Artist artist = new Artist(item);
             try {
                 addMusicBrainzInfo(artist);
-                updateArtist(artist, true, true);
+                updateArtist(artist, true);
             } catch (IOException ioe) {
                 throw new AuraException("Can't get critical artist info from musicbrainz for " + newID + " " + ioe);
             }
@@ -255,7 +255,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
 
                 // if we've reached maxartists we are done
                 if (dataStore.getItemCount(ItemType.ARTIST) >= maxArtists) {
-                    logger.info("Artist crawler reached max artists, shutting down");
+                    logger.info("Artist discovery crawler reached max artists, shutting down");
                     break;
                 }
 
@@ -285,7 +285,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
         for (Scored<String> sartist : artistsWithPopularity) {
             Artist artist = new Artist(dataStore.getItem(sartist.getItem()));
             if (force || needsUpdate(artist)) {
-                updateArtist(artist, false, false);
+                updateArtist(artist, false);
                 try {
                     Thread.sleep(period);
                 } catch (InterruptedException e) {
@@ -333,7 +333,8 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     }
 
     private boolean needsUpdate(Artist artist) {
-        return (System.currentTimeMillis() - artist.getLastCrawl()) > updateRateInSeconds * 1000L;
+        return (artist.getUpdateCount() == 0L) ||
+                ((System.currentTimeMillis() - artist.getLastCrawl()) > updateRateInSeconds * 1000L);
     }
 
     private boolean worthVisiting(LastArtist lartist) throws AuraException, RemoteException {
@@ -376,15 +377,18 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
                 item = StoreFactory.newItem(ItemType.ARTIST, mbaid, queuedArtist.getArtistName());
                 final Artist artist = new Artist(item);
                 artist.setPopularity(queuedArtist.getPopularity());
-                updateArtist(artist, true, false);
+                updateArtist(artist, true);
                 return artist;
             }
         }
         return null;
     }
 
-    private void updateArtist(final Artist artist, final boolean discoverMode, final boolean skipMusicBrainz) 
+    private void updateArtist(final Artist artist, final boolean discoverMode) 
                 throws AuraException, RemoteException {
+
+        addMusicBrainzInfoIfNecessary(artist);
+
         CommandRunner runner = new CommandRunner(false, logger.isLoggable(Level.FINE));
         runner.add(new Commander("last.fm") {
 
@@ -398,13 +402,10 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             }
         });
 
-        runner.add(new Commander("musicbrainz+wikipedia") {
+        runner.add(new Commander("wikipedia") {
 
             @Override
             public void go() throws Exception {
-                if (skipMusicBrainz) {
-                    addMusicBrainzInfo(artist);
-                }
                 addWikipediaInfo(artist);
             }
         });
@@ -422,6 +423,16 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             @Override
             public void go() throws Exception {
                 addSpotifyInfo(artist);
+            }
+        });
+
+        runner.add(new Commander("amazon") {
+
+            @Override
+            public void go() throws Exception {
+                if (crawlAlbumBlurbs) {
+                    crawlAmazonForBlurbs(artist);
+                }
             }
         });
 
@@ -450,7 +461,28 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             logger.warning("Artist Crawler Exception " + e);
         }
         artist.setLastCrawl();
+        artist.incrementUpdateCount();
         artist.flush(dataStore);
+    }
+
+    private void addMusicBrainzInfoIfNecessary(Artist artist) throws AuraException, RemoteException {
+
+        boolean needsUpdate = false;
+
+        // refresh every 10 refresh periods
+        if (artist.getUpdateCount() % 10 == 0) {
+            needsUpdate = true;
+        }
+        // if an artist has no start year, we probably have not
+        // successfully crawled the MB data for this artist yet
+
+        if (needsUpdate || artist.getBeginYear() == 0) {
+            try {
+                addMusicBrainzInfo(artist);
+            } catch (IOException ex) {
+                logger.info("Trouble getting musicbrainz info for " + artist.getName());
+            }
+        }
     }
 
     private void updateLastFMPopularity(Artist artist) {
@@ -595,18 +627,29 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             } else {
                 album = new Album(albumItem);
             }
-
-            if (crawlAlbumBlurbs) {
-                crawlAlbumBlurbs(artist, album, blurbMap, pages);
-            }
             artist.addAlbum(mbrid);
         }
 
         for (String id : mbai.getCollaborators()) {
             artist.addRelatedArtist(id);
         }
+    }
 
-        if (crawlAlbumBlurbs) {
+    private void crawlAmazonForBlurbs(Artist artist) throws AuraException, RemoteException {
+        Map<String, Integer> blurbMap = new HashMap();
+        int maxAlbums = artist.getAlbums().size();
+        int pages = getNumBlurbPages(artist);
+
+        if (pages > 0) {
+
+            for (String albumID : artist.getAlbums()) {
+                Item albumItem = dataStore.getItem(albumID);
+                if (albumItem != null) {
+                    Album album = new Album(dataStore.getItem(albumID));
+                    crawlAlbumBlurbs(artist, album, blurbMap, pages);
+                }
+            }
+
             int curSize = artist.getBlurbTags().size();
             // if we found more tags than before, replace the
             // old ones with the new ones.
@@ -617,26 +660,54 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
                     }
                 }
             }
-        }
 
-        // some debugging code
-        if (true && crawlAlbumBlurbs) {
-            List<Tag> tags = artist.getBlurbTags();
-            System.out.println("====== Blurbs for " + artist.getName() + " === albums: " + mbai.getAlbums().size());
-            int count = 0;
-            for (Tag tag : tags) {
-                System.out.printf("(%s,%d)", tag.getName(), tag.getCount());
-                if (++count % 10 == 0) {
-                    System.out.println();
+            // some debugging code
+            if (logger.isLoggable(Level.INFO)) {
+                List<Tag> tags = artist.getBlurbTags();
+                logger.info("====== Blurbs for " + artist.getName() + " === albums: " + maxAlbums);
+                for (Tag tag : tags) {
+                    logger.info(String.format("(%s,%d)", tag.getName(), tag.getCount()));
                 }
             }
-            System.out.println();
         }
     }
 
+    /**
+     * Gets the number of blurb pages we should collect for this artist
+     * @param artist the artist of interest
+     * @return the number of blurb pages to crawl per album
+     */
+    private int getNumBlurbPages(Artist artist) {
+        // getting al the blurbs can be expensive, so we do it in phases
+        // first phase - just get one page per album
+        // second phase -  get 5 pages per album
+        // third phase -  get upto 20 pages per album
+        // fourth phase -  only update the full, every 4th update
+
+        int updateCount = artist.getUpdateCount();
+
+        if (updateCount == 0) {
+            return 1;
+        }
+        if (updateCount == 1) {
+            return 5;
+        }
+        if (updateCount == 2) {
+            return 20;
+        }
+        if (updateCount > 2) {
+            if ((updateCount - 2) % 4 == 0) {
+                return 20;
+            }
+        }
+        return 0;
+    }
+
+    // for a particular album of an artist, got to amazon and collect a set
+    // of reviews (there are about 5 reviews per page) and scrape the words for
+    // blurbtags
     private void crawlAlbumBlurbs(Artist artist, Album album, Map<String, Integer> map, int maxPages) {
         try {
-            // System.out.println("Crawling album " + album.getTitle());
             if (album.getAsin() != null && album.getAsin().length() > 0) {
                 List<String> reviews = amazon.lookupReviews(album.getAsin(), maxPages);
                 for (String review : reviews) {
@@ -650,7 +721,6 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
                             if (c == null) {
                                 c = Integer.valueOf(0);
                             }
-                            // System.out.println("   adding " + mappedTag);
                             map.put(mappedTag, c + count);
                         }
                     }
@@ -660,6 +730,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             logger.warning("Trouble collecting reviews from " + album.getTitle() + " for " + artist.getName());
         }
     }
+
 
     private void addSpotifyInfo(Artist artist) throws IOException {
         String id = spotify.getSpotifyIDforArtist(artist.getName());

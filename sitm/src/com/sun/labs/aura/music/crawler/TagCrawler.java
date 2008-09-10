@@ -8,23 +8,26 @@ import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
-import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.Video;
 import com.sun.labs.aura.music.util.CommandRunner;
 import com.sun.labs.aura.music.util.Commander;
 import com.sun.labs.aura.music.web.flickr.FlickrManager;
+import com.sun.labs.aura.music.web.lastfm.LastFM;
+import com.sun.labs.aura.music.web.lastfm.LastItem;
 import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
 import com.sun.labs.aura.music.web.yahoo.SearchResult;
 import com.sun.labs.aura.music.web.yahoo.Yahoo;
 import com.sun.labs.aura.music.web.youtube.Youtube;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Tag;
+import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,10 +44,12 @@ import java.util.logging.Logger;
  * @author plamere
  */
 public class TagCrawler implements AuraService, Configurable {
+
     private Wikipedia wikipedia;
     private Youtube youtube;
     private FlickrManager flickr;
     private Yahoo yahoo;
+    private LastFM lastFM;
     private Logger logger;
     private Util util;
     private boolean running = false;
@@ -77,18 +82,26 @@ public class TagCrawler implements AuraService, Configurable {
     /**
      * Stops the crawler
      */
+    @Override
     public void stop() {
         running = false;
     }
 
+    @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
-        wikipedia = new Wikipedia();
-        youtube = new Youtube();
-        flickr = new FlickrManager();
-        yahoo = new Yahoo();
-        dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
-        util = new Util(dataStore, flickr, youtube);
+        forceCrawl = ps.getBoolean(PROP_FORCE_CRAWL);
+        try {
+            wikipedia = new Wikipedia();
+            youtube = new Youtube();
+            flickr = new FlickrManager();
+            yahoo = new Yahoo();
+            lastFM = new LastFM();
+            dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
+            util = new Util(dataStore, flickr, youtube);
+        } catch (IOException ex) {
+            logger.warning("problem connecting to components" + ex);
+        }
     }
 
     public void autoUpdater() {
@@ -96,11 +109,17 @@ public class TagCrawler implements AuraService, Configurable {
             running = true;
             // start crawling after 3 minutes
             Thread.sleep(1000 * 60 * 3);
+
+            if (forceCrawl) {
+                logger.info("Forced recrawl of artist tags");
+            }
+
             while (running) {
                 updateArtistTags();
                 // BUG: make this configurable
                 // check for tag updates once a day
                 Thread.sleep(1000 * 60 * 60 * 24);
+                forceCrawl = false;
             }
         } catch (InterruptedException ex) {
             logger.severe("shutdown because of InterruptedException");
@@ -130,6 +149,22 @@ public class TagCrawler implements AuraService, Configurable {
         }
     }
 
+    private void addTaggedArtists(ArtistTag artistTag) throws AuraException, RemoteException, IOException {
+        // add the last.fm tags
+        float popularity = 0;
+        LastItem[] lartists = lastFM.getTopArtistsForTag(artistTag.getName());
+        if (lartists.length > 0) {
+            artistTag.clearTaggedArtists();
+            for (LastItem lartist : lartists) {
+                if (dataStore.getItem(lartist.getMBID()) != null) {
+                    artistTag.addTaggedArtist(lartist.getMBID(), lartist.getFreq());
+                }
+                popularity += lartist.getFreq();
+            }
+            artistTag.setPopularity(popularity);
+        }
+    }
+
     public void updateSingleTag(ArtistTag artistTag) throws AuraException, RemoteException {
         if (needsUpdate(artistTag)) {
             logger.info("Collecting info for tag " + artistTag.getName());
@@ -143,8 +178,8 @@ public class TagCrawler implements AuraService, Configurable {
 
     private boolean needsUpdate(ArtistTag artistTag) {
         boolean stale = (System.currentTimeMillis() - artistTag.getLastCrawl() > MIN_UPDATE_TIME);
-        boolean empty = artistTag.getDescription().length() == 0;
-        return stale || empty;
+        boolean empty = artistTag.getDescription().length() == 0 || artistTag.getTaggedArtist().size() == 0;
+        return forceCrawl || stale || empty;
     }
 
     /**
@@ -168,6 +203,14 @@ public class TagCrawler implements AuraService, Configurable {
                     artistTag.addPhoto(photo.getKey());
                 }
 
+            }
+        });
+
+        runner.add(new Commander("lastfm") {
+
+            @Override
+            public void go() throws Exception {
+                addTaggedArtists(artistTag);
             }
         });
 
@@ -234,4 +277,7 @@ public class TagCrawler implements AuraService, Configurable {
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
     private DataStore dataStore;
+    @ConfigBoolean(defaultValue = false)
+    public final static String PROP_FORCE_CRAWL = "forceCrawl";
+    private boolean forceCrawl;
 }

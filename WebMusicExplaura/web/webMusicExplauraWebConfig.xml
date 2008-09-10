@@ -10,6 +10,7 @@
         <propertylist name="groupList">
             <!--<item>live-aura</item> -->
             <item>AuraSitm</item>
+            <item>live-aura</item>
         </propertylist>
         <!-- <property name="securityPolicy" value="/files/working/jsk-all.policy"/> -->
         <property name="securityPolicy" value="/aura/sitm/dist/jsk-all.policy"/> 

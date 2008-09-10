@@ -147,6 +147,10 @@ public class ArtistTag extends ItemAdapter {
         addTag(FIELD_TAGGED_ARTISTS, mbaid, count);
     }
 
+    public void clearTaggedArtists() {
+        clearTagMap(FIELD_TAGGED_ARTISTS);
+    }
+
     /**
      * Adds a video to an ArtistTag
      * @param videoID id of the video

@@ -115,11 +115,13 @@
         <property name="logLevel" value="INFO"/>
         <property name="maxArtists" value="5000"/>
         <property name="updateRateInSeconds" value="345600"/>
+        <property name="crawlAlbumBlurbs" value="false"/>
     </component>
 
     <component name="tagCrawler" type="com.sun.labs.aura.music.crawler.TagCrawler">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="logLevel" value="INFO"/>
+        <property name="forceCrawl" value="true"/>
     </component>    
 
     <component name="listenerCrawler" type="com.sun.labs.aura.music.crawler.ListenerCrawler">
