@@ -156,7 +156,8 @@ public class TagCrawler implements AuraService, Configurable {
         if (lartists.length > 0) {
             artistTag.clearTaggedArtists();
             for (LastItem lartist : lartists) {
-                if (dataStore.getItem(lartist.getMBID()) != null) {
+                // Always add tags, no matter what. we can filter them on the way out
+                if (true || dataStore.getItem(lartist.getMBID()) != null) {
                     artistTag.addTaggedArtist(lartist.getMBID(), lartist.getFreq());
                 }
                 popularity += lartist.getFreq();

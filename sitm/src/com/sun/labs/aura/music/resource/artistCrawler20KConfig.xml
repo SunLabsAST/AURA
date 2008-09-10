@@ -41,6 +41,7 @@
         <property name="crawlerStateDir" value="${cacheDir}/crawler.state"/>
         <property name="logLevel" value="INFO"/>
         <property name="updateRateInSeconds" value="345600"/>
+        <property name="crawlAlbumBlurbs" value="false"/>
     </component>
 
     <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">

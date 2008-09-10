@@ -541,7 +541,9 @@ public class MusicShell implements AuraService, Configurable {
                         Collections.reverse(artistsAsTags);
                         for (Tag tag : artistsAsTags) {
                             Item artist = dataStore.getItem(tag.getName());
-                            System.out.printf("%d %s %s\n", tag.getCount(), tag.getName(), artist.getName());
+                            if (artist != null) {
+                                System.out.printf("%d %s %s\n", tag.getCount(), tag.getName(), artist.getName());
+                            }
                         }
                     }
                 }
