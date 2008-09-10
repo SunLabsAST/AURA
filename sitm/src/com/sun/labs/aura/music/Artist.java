@@ -43,6 +43,7 @@ public class Artist extends ItemAdapter {
     public final static String FIELD_URLS = "urls";
     public final static String FIELD_VIDEOS = "videos";
     public final static String FIELD_LAST_CRAWL = "lastCrawl";
+    public final static String FIELD_UPDATE_COUNT = "updateCount";
 
     public final static Comparator<Artist> POPULARITY = new Comparator<Artist>() {
         public int compare(Artist o1, Artist o2) {
@@ -125,6 +126,7 @@ public class Artist extends ItemAdapter {
             ds.defineField(Item.ItemType.ARTIST, FIELD_VIDEOS);
             ds.defineField(Item.ItemType.ARTIST, FIELD_SPOTIFY);
             ds.defineField(Item.ItemType.ARTIST, FIELD_LAST_CRAWL);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_UPDATE_COUNT);
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }
@@ -192,6 +194,22 @@ public class Artist extends ItemAdapter {
     public void setEndYear(int endYear) {
         setField(FIELD_END_YEAR, endYear);
     }
+
+    /**
+     * Gets the number of times this artist has been updated
+     * @return the number of times this artist has been updated
+     */
+    public int getUpdateCount() {
+        return getFieldAsInt(FIELD_UPDATE_COUNT);
+    }
+
+    /**
+     * Sets the time when this item was last crawled to now.
+     */
+    public void incrementUpdateCount() {
+        setField(FIELD_UPDATE_COUNT, getUpdateCount() + 1);
+    }
+
 
     /**
      * Gets the biography summary of the artist

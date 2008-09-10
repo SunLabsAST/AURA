@@ -136,6 +136,32 @@ public class LastFM {
         return items.toArray(new LastItem[0]);
     }
 
+    public LastItem[] getTopArtistsForTag(String tag) throws IOException {
+        String url = getTopArtistsForTagURL(tag);
+        return getTopArtistForTagFromLastFM(url);
+    }
+
+    private LastItem[] getTopArtistForTagFromLastFM(String url) throws IOException {
+        List<LastItem> items = new ArrayList<LastItem>();
+
+        Document doc = commander.sendCommand(url);
+        Element docElement = doc.getDocumentElement();
+        NodeList itemList = docElement.getElementsByTagName("artist");
+        for (int i = 0; i < itemList.getLength(); i++) {
+            Element artist = (Element) itemList.item(i);
+            String artistName = artist.getAttribute("name");
+            String sfreq = artist.getAttribute("count");
+            int freq = 1;
+            if (sfreq != null) {
+                freq = Integer.parseInt(sfreq);
+            }
+            String mbid = XmlUtil.getElementContents(artist, "mbid");
+            LastItem artistItem = new LastItem(artistName, mbid, freq);
+            items.add(artistItem);
+        }
+        return items.toArray(new LastItem[0]);
+    }
+
     private SocialTag[] getTagsFromLastFM(String url) throws IOException {
         List<SocialTag> tags = new ArrayList<SocialTag>();
 
@@ -163,6 +189,11 @@ public class LastFM {
         Collections.sort(tags, LastItem.FREQ_ORDER);
         Collections.reverse(tags);
         return tags.toArray(new SocialTag[0]);
+    }
+
+    private String getTopArtistsForTagURL(String tag) {
+        String url = "tag/" + encodeName(tag) + "/topartists.xml";
+        return url;
     }
 
     private String getArtistTagURL(String artistName, boolean raw) {
