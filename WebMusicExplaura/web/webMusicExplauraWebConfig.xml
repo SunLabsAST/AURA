@@ -12,8 +12,8 @@
             <item>AuraSitm</item>
             <item>live-aura</item>
         </propertylist>
-        <!-- <property name="securityPolicy" value="/files/working/jsk-all.policy"/> -->
-        <property name="securityPolicy" value="/aura/sitm/dist/jsk-all.policy"/> 
+             <property name="securityPolicy" value="/files/working/jsk-all.policy"/>
+        <!-- <property name="securityPolicy" value="/aura/sitm/dist/jsk-all.policy"/> -->
     </component>
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
 </config>
