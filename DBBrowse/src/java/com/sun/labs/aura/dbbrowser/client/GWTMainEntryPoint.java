@@ -9,6 +9,12 @@
 
 package com.sun.labs.aura.dbbrowser.client;
 
+import com.sun.labs.aura.dbbrowser.client.query.DBServiceAsync;
+import com.sun.labs.aura.dbbrowser.client.query.DBService;
+import com.sun.labs.aura.dbbrowser.client.query.TabbedQueryUI;
+import com.sun.labs.aura.dbbrowser.client.viz.VizUI;
+import com.sun.labs.aura.dbbrowser.client.viz.VizServiceAsync;
+import com.sun.labs.aura.dbbrowser.client.viz.VizService;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;

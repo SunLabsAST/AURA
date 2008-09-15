@@ -13,15 +13,16 @@ import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.impl.PartitionCluster;
 import com.sun.labs.aura.datastore.impl.Replicant;
-import com.sun.labs.aura.dbbrowser.client.DSHInfo;
-import com.sun.labs.aura.dbbrowser.client.PCInfo;
-import com.sun.labs.aura.dbbrowser.client.RepInfo;
-import com.sun.labs.aura.dbbrowser.client.RepStats;
-import com.sun.labs.aura.dbbrowser.client.VizService;
+import com.sun.labs.aura.dbbrowser.client.viz.DSHInfo;
+import com.sun.labs.aura.dbbrowser.client.viz.PCInfo;
+import com.sun.labs.aura.dbbrowser.client.viz.RepInfo;
+import com.sun.labs.aura.dbbrowser.client.viz.RepStats;
+import com.sun.labs.aura.dbbrowser.client.viz.VizService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.StatService;
 import com.sun.labs.util.props.ComponentRegistry;
 import com.sun.labs.util.props.ConfigurationManager;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,6 +34,9 @@ import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import net.jini.core.lookup.ServiceItem;
 import net.jini.core.lookup.ServiceRegistrar;
 
@@ -55,6 +59,26 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         ServletContext context = getServletContext();
         cm = (ConfigurationManager)context.getAttribute("configManager");
         refreshSvcs();
+    }
+
+    /**
+     * Log the user and host when new sessions start
+     * 
+     * @param request the request
+     * @param response the response
+     */
+    @Override
+    public void service(HttpServletRequest request,
+                        HttpServletResponse response)
+            throws ServletException, IOException
+    {
+        HttpSession s = request.getSession();
+        if (s.isNew()) {
+            logger.info("New session started for "
+                    + request.getRemoteUser()
+                    + " from " + request.getRemoteHost());
+        }
+        super.service(request, response);
     }
 
     public String dump() {

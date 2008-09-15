@@ -1,10 +1,10 @@
 
-package com.sun.labs.aura.dbbrowser.client;
+package com.sun.labs.aura.dbbrowser.client.query;
 
 import java.io.Serializable;
 
 /**
- * A description of a type
+ * A description of an item
  */
 public class ItemDesc implements Serializable {
     protected String name;

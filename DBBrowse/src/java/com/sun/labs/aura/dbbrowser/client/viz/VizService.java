@@ -7,7 +7,7 @@
  * and open the template in the editor.
  */
 
-package com.sun.labs.aura.dbbrowser.client;
+package com.sun.labs.aura.dbbrowser.client.viz;
 import com.google.gwt.user.client.rpc.RemoteService;
 import java.util.List;
 
@@ -24,13 +24,13 @@ public interface VizService extends RemoteService{
     
     /**
      * Gets all the DSH info
-     * @gwt.typeArgs <com.sun.labs.aura.dbbrowser.client.DSHInfo>
+     * @gwt.typeArgs <com.sun.labs.aura.dbbrowser.client.viz.DSHInfo>
      */
     public List getDSHInfo();
     
     /**
      * Gets all the PC info
-     * @gwt.typeArgs <com.sun.labs.aura.dbbrowser.client.PCInfo>
+     * @gwt.typeArgs <com.sun.labs.aura.dbbrowser.client.viz.PCInfo>
      */
     public List getPCInfo();
 

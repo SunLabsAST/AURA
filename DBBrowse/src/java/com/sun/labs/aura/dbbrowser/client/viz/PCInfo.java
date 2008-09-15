@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package com.sun.labs.aura.dbbrowser.client;
+package com.sun.labs.aura.dbbrowser.client.viz;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ public class PCInfo implements Serializable {
     protected String prefix;
     
     /** A list of the replicants that make up this partition
-     * @gwt.typeArgs <com.sun.labs.aura.dbbrowser.client.RepInfo>
+     * @gwt.typeArgs <com.sun.labs.aura.dbbrowser.client.viz.RepInfo>
      */
     protected List repInfos;
     

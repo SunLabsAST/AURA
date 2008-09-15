@@ -28,6 +28,13 @@ a:visited {
   background: url(gradient.gif) repeat-x top left;
 }
 
+.db-actionLabel {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+
 .db-SearchPanel {
   padding: 10px;
 }

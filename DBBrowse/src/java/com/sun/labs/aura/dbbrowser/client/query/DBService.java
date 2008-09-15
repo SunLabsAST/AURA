@@ -1,7 +1,7 @@
 
-package com.sun.labs.aura.dbbrowser.client;
+package com.sun.labs.aura.dbbrowser.client.query;
 import com.google.gwt.user.client.rpc.RemoteService;
-import com.sun.labs.aura.dbbrowser.client.ItemDesc;
+import java.util.HashMap;
 
 /**
  *
@@ -18,6 +18,11 @@ public interface DBService extends RemoteService {
     public AttnDesc[] getAttentionForSource(String key);
     
     public AttnDesc[] getAttentionForTarget(String key);
+
+    /**
+     * @gwt.typeArgs <java.lang.String,java.lang.String>
+     */
+    public HashMap getItemInfo(String key);
     
     public AttnDesc[] doTest();
 }

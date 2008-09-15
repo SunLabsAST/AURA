@@ -7,7 +7,7 @@
  * and open the template in the editor.
  */
 
-package com.sun.labs.aura.dbbrowser.client;
+package com.sun.labs.aura.dbbrowser.client.query;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 
@@ -27,6 +27,8 @@ public interface DBServiceAsync {
     public void getAttentionForSource(String key, AsyncCallback asyncCallback);
 
     public void getAttentionForTarget(String key, AsyncCallback asyncCallback);
+    
+    public void getItemInfo(String key, AsyncCallback asyncCallback);
     
     public void doTest(AsyncCallback asyncCallback);
 }

@@ -1,5 +1,5 @@
 
-package com.sun.labs.aura.dbbrowser.client;
+package com.sun.labs.aura.dbbrowser.client.viz;
 
 import java.io.Serializable;
 
