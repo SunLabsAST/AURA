@@ -21,6 +21,7 @@ import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.items.AlbumDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget.SwapableTxtButton;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistPhoto;
@@ -69,7 +70,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
             }
         };
 
-        ContextMenuImage img = new MouseOverRollImage(aC.getPhotos()); //aD.getBestArtistImage(true);
+        ContextMenuImage img = new MouseOverRollImage(aC);
         if (img == null) {
             img = new ContextMenuImage("nopic.gif");
         }
@@ -139,7 +140,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         spotify.getElement().setAttribute("style", "align : right;");
         buttonPanel.add(spotify);
 
-        SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, aC, cdm.getSharedSteeringMenu());
+        SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, aC, cdm.getSharedSteeringMenu(), cdm);
         buttonPanel.add(steerButton);
 
         
@@ -292,40 +293,64 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         private int lastX = 0;
         private int lastY = 0;
 
-        public MouseOverRollImage(ArtistPhoto[] photos) {
+        public MouseOverRollImage(ArtistCompact aC) {
             super();
-            if (photos != null && photos.length > 0) {
 
-                this.photos = photos;
-                index = 0;
+            // @todo improve this
+            // cheaply hardcode the width and height to deal with albums images
+            // being a lot bigger than flickr thumbnails
+            super.setHeight("75px");
+            super.setWidth("75px");
 
-                this.addMouseListener(new MouseListener() {
+            index = 0;
+            ArtistPhoto[] aCphotos = aC.getPhotos();
+            AlbumDetails[] albumDetails = aC.getAlbums();
 
-                    public void onMouseMove(Widget arg0, int arg1, int arg2) {
-                        if (Math.abs(lastX - arg1) + Math.abs(lastY - arg2) > 5) {
-                            showNextImage();
-                            lastX = arg1;
-                            lastY = arg2;
-                        }
+            if (aCphotos != null && aCphotos.length > 0) {
+                photos = aCphotos;
+            } else if (albumDetails != null && albumDetails.length > 0) {
+                for (AlbumDetails aD : albumDetails) {
+                    if (aD.getAlbumArt() != null && aD.getAlbumArt().length() > 0) {
+                        photos = new ArtistPhoto[1];
+                        photos[0] = new ArtistPhoto();
+                        photos[0].setThumbNailImageUrl(aD.getAlbumArt());
                     }
-                    public void onMouseDown(Widget arg0, int arg1, int arg2) {}
-                    public void onMouseEnter(Widget arg0) {}
-                    public void onMouseLeave(Widget arg0) {}
-                    public void onMouseUp(Widget arg0, int arg1, int arg2) {}
-                });
-                showNextImage();
+                }
+                if (photos == null) {
+                    setUrl("nopic.gif");
+                }
             } else {
                 setUrl("nopic.gif");
             }
+
+            this.addMouseListener(new MouseListener() {
+
+                public void onMouseMove(Widget arg0, int arg1, int arg2) {
+                    if (Math.abs(lastX - arg1) + Math.abs(lastY - arg2) > 5) {
+                        showNextImage();
+                        lastX = arg1;
+                        lastY = arg2;
+                    }
+                }
+
+                public void onMouseDown(Widget arg0, int arg1, int arg2) {}
+                public void onMouseEnter(Widget arg0) {}
+                public void onMouseLeave(Widget arg0) {}
+                public void onMouseUp(Widget arg0, int arg1, int arg2) {}
+            });
+            showNextImage();
+
         }
 
         public void showNextImage() {
-            setUrl(photos[index++].getThumbNailImageUrl());
-            if (index >= photos.length) {
-                index = 0;
-                allLoaded = true;
-            } else if (!allLoaded) {
-                Image.prefetch(photos[index].getThumbNailImageUrl());
+            if (photos != null) {
+                setUrl(photos[index++].getThumbNailImageUrl());
+                if (index >= photos.length) {
+                    index = 0;
+                    allLoaded = true;
+                } else if (!allLoaded) {
+                    Image.prefetch(photos[index].getThumbNailImageUrl());
+                }
             }
         }
     }

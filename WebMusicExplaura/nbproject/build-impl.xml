@@ -126,21 +126,12 @@
         <condition property="do.compile.jsps">
             <istrue value="${compile.jsps}"/>
         </condition>
-        <condition property="enable.jsdebugger">
-            <and>
-                <isset property="debug.client.available"/>
-                <istrue value="${debug.client.available}"/>
-            </and>
-        </condition>
         <condition property="do.debug.server">
             <or>
                 <not>
                     <isset property="debug.server"/>
                 </not>
                 <istrue value="${debug.server}"/>
-                <not>
-                    <isset property="enable.jsdebugger"/>
-                </not>
                 <and>
                     <not>
                         <istrue value="${debug.server}"/>
@@ -152,10 +143,7 @@
             </or>
         </condition>
         <condition property="do.debug.client">
-            <and>
-                <istrue value="${debug.client}"/>
-                <isset property="enable.jsdebugger"/>
-            </and>
+            <istrue value="${debug.client}"/>
         </condition>
         <condition property="do.display.browser">
             <istrue value="${display.browser}"/>
@@ -310,7 +298,7 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
             </sequential>
         </macrodef>
     </target>
-    <target if="enable.jsdebugger" name="-init-macrodef-nbjsdebug">
+    <target name="-init-macrodef-nbjsdebug">
         <macrodef name="nbjsdebugstart" uri="http://www.netbeans.org/ns/web-project/1">
             <attribute default="${client.url}" name="webUrl"/>
             <sequential>
