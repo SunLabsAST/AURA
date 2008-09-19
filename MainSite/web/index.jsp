@@ -19,7 +19,7 @@
         <%@include file="/WEB-INF/jspf/header.jspf"%>
         <%@include file="/WEB-INF/jspf/sidebar.jspf"%>
         <div class="main">
-        <div class="mainTitle">TasteKeeper</div>
+        <div class="mainTitle"><img src="images/tklogo.png"></div>
         <span class="sectionTitle">What is TasteKeeper?</span><br/>
         <div class="regularTxt">
             <p>
@@ -56,19 +56,20 @@
         <div class="sectionTitle">Try It Now</div>
         <div class="regularTxt">
             <p>
-            <img src="images/wmelogo.png" align=right>
-            The Web Music Explaura is an example application built using
+            <a href="http://music.tastekeeper.com/><img src="images/wmelogo.png" align=right></a>
+            The <a href="http://music.tastekeeper.com/">Music Explaura</a>
+            is an example application built using
             TasteKeeper as its back end.  It is a musical artist recommendation
             application.  Users can select artists they like, accentuate the
             aspects of those artists they enjoy the most and get
             recommendations for other artists.  Users can steer the recommendations
             by adding terms that describe what they want and see explanations
-            of why particular artists were recommended.  The Web Music Explaura
+            of why particular artists were recommended.  The Music Explaura
             can also import your listening habits from last.fm.
             </p>
             <p>
             See how TasteKeeper can give custom, steerable, on-the-fly
-            recommendations using the Web Music Explaura.
+            recommendations using the <a href="http://music.tastekeeper.com/">Music Explaura</a>.
             </p>
         </div>
         <div class="sectionTitle">Learn More</div>
