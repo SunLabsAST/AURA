@@ -7,8 +7,8 @@ package com.sun.labs.aura.dbbrowser.server;
 
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Item;
-import com.sun.labs.aura.dbbrowser.client.AttnDesc;
-import com.sun.labs.aura.dbbrowser.client.ItemDesc;
+import com.sun.labs.aura.dbbrowser.client.query.AttnDesc;
+import com.sun.labs.aura.dbbrowser.client.query.ItemDesc;
 import java.util.Date;
 
 /**

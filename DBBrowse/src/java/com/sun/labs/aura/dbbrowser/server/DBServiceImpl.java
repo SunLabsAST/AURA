@@ -8,26 +8,33 @@
  */
 
 package com.sun.labs.aura.dbbrowser.server;
-import com.sun.labs.aura.dbbrowser.client.AttnDesc;
-import com.sun.labs.aura.dbbrowser.client.ItemDesc;
+import com.sun.labs.aura.dbbrowser.client.query.AttnDesc;
+import com.sun.labs.aura.dbbrowser.client.query.ItemDesc;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.SimilarityConfig;
-import com.sun.labs.aura.dbbrowser.client.DBService;
+import com.sun.labs.aura.dbbrowser.client.query.DBService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.minion.util.StopWatch;
+import java.io.IOException;
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -42,6 +49,26 @@ public class DBServiceImpl extends RemoteServiceServlet implements
         super.init(config);
         ServletContext context = getServletContext();
         store = (DataStore)context.getAttribute("dataStore");
+    }
+    
+    /**
+     * Log the user and host when new sessions start
+     * 
+     * @param request the request
+     * @param response the response
+     */
+    @Override
+    public void service(HttpServletRequest request,
+                        HttpServletResponse response)
+            throws ServletException, IOException
+    {
+        HttpSession s = request.getSession();
+        if (s.isNew()) {
+            logger.info("New session started for "
+                    + request.getRemoteUser()
+                    + " from " + request.getRemoteHost());
+        }
+        super.service(request, response);
     }
 
     public ItemDesc[] searchItemByKey(String key) {
@@ -174,6 +201,26 @@ public class DBServiceImpl extends RemoteServiceServlet implements
                 results[i++] = Factory.attnDesc(a);
             }
             return results;
+        } catch (AuraException ex) {
+            Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (RemoteException ex) {
+            Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+    
+    public HashMap getItemInfo(String key) {
+        try {
+            HashMap<String,String> result = new HashMap<String,String>();
+            Item i = store.getItem(key);
+            for (Entry<String,Serializable> ent : i) {
+                String name = ent.getKey();
+                Serializable val = ent.getValue();
+                
+                String display = val.toString();
+                result.put(name, display);
+            }
+            return result;
         } catch (AuraException ex) {
             Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
         } catch (RemoteException ex) {

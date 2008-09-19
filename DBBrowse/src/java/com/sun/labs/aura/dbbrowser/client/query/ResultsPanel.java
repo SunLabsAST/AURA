@@ -1,15 +1,23 @@
 
-package com.sun.labs.aura.dbbrowser.client;
+package com.sun.labs.aura.dbbrowser.client.query;
 
+import com.sun.labs.aura.dbbrowser.client.*;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlexTable;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTMLTable.RowFormatter;
+import com.google.gwt.user.client.ui.Hyperlink;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.Widget;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  *
@@ -21,6 +29,8 @@ public class ResultsPanel extends DockPanel {
     private TabbedQueryUI parent;
 
     private DBServiceAsync service;
+    
+    private DialogBox itemInfo;
     
     private static final int TYPE_COL = 0;
     private static final int NAME_COL = 1;
@@ -56,6 +66,8 @@ public class ResultsPanel extends DockPanel {
         });
         add(close, SOUTH);
         
+        itemInfo = new DialogBox(true);
+        
         service = GWTMainEntryPoint.getDBService();
     }
     
@@ -66,7 +78,19 @@ public class ResultsPanel extends DockPanel {
         for (int i = 1; i < items.length; i++) {
             results.setText(row, TYPE_COL, items[i].getType());
             results.setText(row, NAME_COL, items[i].getName());
-            results.setHTML(row, KEY_COL, TabbedQueryUI.getLinkText(items[i].getKey()));
+            
+            //
+            // Make a clickable link for the key to get item info
+            final String key = items[i].getKey();
+            final Label l = new Label(key);
+            l.setStylePrimaryName(".db-actionLabel");
+            l.addClickListener(new ClickListener() {
+                public void onClick(Widget arg0) {
+                    getItemInfo(l, key);
+                }
+            });
+            results.setWidget(row, KEY_COL, l);
+            
             AttnButton srcBtn = new AttnButton(items[i].getKey());
             srcBtn.addClickListener(new ClickListener() {
                 public void onClick(Widget arg0) {
@@ -131,6 +155,67 @@ public class ResultsPanel extends DockPanel {
         }
     }
    
+    protected void getItemInfo(Label l, String key) {
+        //
+        // make the dialog
+        itemInfo.setWidget(new Label("Loading..."));
+        itemInfo.setPopupPosition(l.getAbsoluteLeft(),
+                                  l.getAbsoluteTop());
+        itemInfo.show();
+        
+        //
+        // make the remote call
+        AsyncCallback callback = new AsyncCallback() {
+            public void onFailure(Throwable arg0) {
+                itemInfo.setWidget(new Label("Failed to load: "
+                        + arg0.getMessage()));
+            }
+
+            public void onSuccess(Object arg0) {
+                displayItemInfo((HashMap)arg0);
+            }
+        };
+        service.getItemInfo(key, callback);
+    }
+    
+    protected void displayItemInfo(HashMap results) {
+        if (results == null) {
+            itemInfo.setWidget(new Label("No info"));
+            return;
+        }
+        FlexTable contents = new FlexTable();
+        RowFormatter rf = contents.getRowFormatter();
+        Set names = results.keySet();
+        Iterator nit = names.iterator();
+        int row = 0;
+        boolean lightRow = true;
+        while (nit.hasNext()) {
+            String name = (String)nit.next();
+            contents.setText(row, 0, name);
+            String val = (String)results.get(name);
+            Widget valWidget = null;
+            if (val.startsWith("http")) {
+                valWidget = new Hyperlink(val, val);
+                if (val.endsWith(".jpg") || val.endsWith(".gif") || val.endsWith(".png")) {
+                    FlowPanel both = new FlowPanel();
+                    both.add(valWidget);
+                    both.add(new Image(val));
+                    valWidget = both;
+                }
+            } else {
+                valWidget = new Label(val);
+            }
+            if (lightRow) {
+                rf.addStyleName(row, "db-lightRow");
+            } else {
+                rf.addStyleName(row, "db-darkRow");
+            }
+            lightRow = !lightRow;
+            contents.setWidget(row++, 1, valWidget);
+        }
+        itemInfo.setWidget(contents);
+    }
+    
     public class AttnButton extends Button {
         protected String key;
         public AttnButton(String key) {

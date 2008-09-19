@@ -1,5 +1,5 @@
 
-package com.sun.labs.aura.dbbrowser.client;
+package com.sun.labs.aura.dbbrowser.client.query;
 
 import java.io.Serializable;
 

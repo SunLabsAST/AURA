@@ -7,7 +7,7 @@
  * and open the template in the editor.
  */
 
-package com.sun.labs.aura.dbbrowser.client;
+package com.sun.labs.aura.dbbrowser.client.viz;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 
