@@ -807,8 +807,11 @@ public class DataManager implements Configurable {
         }
 
         // Fetch representative artists
-        List<Scored<Tag>> taggedArtists = sortTag(tag.getTaggedArtist(),TagSorter.sortFields.COUNTorSCORE);
-        details.setRepresentativeArtists(tagToItemInfo(taggedArtists.subList(0, getMax(taggedArtists,NUMBER_TAGS_TO_SHOW)),true));
+        List<Scored<Tag>> taggedArtists = sortTag(
+                filterTaggedArtists(tag.getTaggedArtist()),TagSorter
+                .sortFields.COUNTorSCORE);
+        details.setRepresentativeArtists(tagToItemInfo(
+                taggedArtists.subList(0, getMax(taggedArtists,NUMBER_TAGS_TO_SHOW)),true));
 
         // Fetch similar tags
         List<Scored<ArtistTag>> simTags = mdb.artistTagFindSimilar(id, NUMBER_TAGS_TO_SHOW);
@@ -817,6 +820,19 @@ public class DataManager implements Configurable {
 
         return details;
     }
+
+    
+    private List<Tag> filterTaggedArtists(List<Tag> taggedArtists) throws AuraException {
+        List<Tag> filteredList = new ArrayList<Tag>();
+
+        for (Tag tag : taggedArtists) {
+            if (mdb.artistLookup(tag.getName()) != null) {
+                filteredList.add(tag);
+            }
+        }
+        return filteredList;
+    }
+
 
     /**
      * Returns the maximum between the supplied list's size or the maximum
