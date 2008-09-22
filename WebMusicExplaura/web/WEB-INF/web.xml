@@ -32,20 +32,24 @@
         <welcome-file>welcomeGWT.html</welcome-file>
     </welcome-file-list>
     <security-constraint>
-        <display-name>ApplicationAccess</display-name>
+        <display-name>MusicExplaura</display-name>
         <web-resource-collection>
             <web-resource-name>application</web-resource-name>
             <description>access to the main page</description>
             <url-pattern>/*</url-pattern>
             <http-method>GET</http-method>
         </web-resource-collection>
-    </security-constraint>
+        <auth-constraint>
+            <description>acces to WME</description>
+            <role-name>wme</role-name>
+            </auth-constraint>
+        </security-constraint>
     <login-config>
         <auth-method>BASIC</auth-method>
-        <realm-name>file</realm-name>
+        <realm-name>Music Explaura</realm-name>
     </login-config>
     <security-role>
         <description/>
-        <role-name>appaccess</role-name>
+        <role-name>wme</role-name>
     </security-role>
 </web-app>
