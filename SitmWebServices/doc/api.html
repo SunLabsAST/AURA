@@ -5,7 +5,14 @@
 The API loosely follows REST style conventions
 
 <h2> Encoding </h2>
+Use UTF-8 encoding when sending arguments to API methods.
+
+<h2> General </h2>
+
 <h2> Authentication </h2>
+ The authentication protocol allows you to perform actions on user
+ accounts in a manner that is secure for Last.fm users. All write services
+ require authentication.
 
  Generally speaking, you will send a method parameter expressed as
  'package.method' along with method specific arguments to the root URL. The API
@@ -22,14 +29,10 @@ The API loosely follows REST style conventions
          * several calls per second. See our terms of service for more.
 
          Encoding
-         Use UTF-8 encoding when sending arguments to API methods.
          Request Styles
          You can get more information on how to work with REST requests or XML-RPC
          requests when calling the Last.fm API.
          Authentication
-         The authentication protocol allows you to perform actions on user
-         accounts in a manner that is secure for Last.fm users. All write services
-         require authentication.
          Submissions
          You can use our submissions API to submit listening information to
          Last.fm user profiles (aka 'Scrobbling'). Useful for media players
