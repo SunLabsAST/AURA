@@ -19,6 +19,8 @@ import com.sleepycat.persist.ForwardCursor;
 import com.sleepycat.persist.PrimaryIndex;
 import com.sleepycat.persist.SecondaryIndex;
 import com.sleepycat.persist.StoreConfig;
+import com.sleepycat.persist.model.AnnotationModel;
+import com.sleepycat.persist.model.EntityModel;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.AttentionConfig;
@@ -31,7 +33,6 @@ import com.sun.labs.aura.datastore.impl.store.persist.UserImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.StringAndTimeKey;
 import com.sun.labs.aura.util.Times;
-import com.sun.labs.minion.util.StopWatch;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.File;
 import java.util.ArrayList;
@@ -189,6 +190,16 @@ public class BerkeleyDataWrapper {
         sconf.setTransactional(true);
 
         //econf.setConfigParam("je.txn.dumpLocks", "true");
+        
+        
+        //
+        // Code from Mark Hayes to register persist subclasses -- this is
+        // a potential work-around to our corruption issue.
+        EntityModel model = new AnnotationModel();
+        // register all entity subclasses
+        model.registerClass(UserImpl.class);
+        // set the model and create the store
+        sconf.setModel(model);
 
         File dir = new File(dbEnvDir);
         if(!dir.exists()) {

@@ -412,27 +412,4 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 .x-tab-panel-tbar-noborder .x-toolbar {
     border-width:0;
     border-bottom:1px solid #d0d0d0;
-}.x-border {
-  border: 1px solid #D0D0D0;
-}
-
-.x-layout-popup {
-  background-color: #F0F0F0;
-  border: 1px solid #D0D0D0;
-}.my-info {
-  background: url(../images/gray/info/info-bg.gif) no-repeat;
-}.x-date-right-icon {
-  background-image: url(../images/default/shared/right-btn.gif);
-  margin-right: 2px;
-  text-decoration: none !important;
-}
-
-.x-date-left-icon {
-  background-image: url(../images/default/shared/left-btn.gif);
-  margin-right: 2px;
-  text-decoration: none !important;
-}.my-tbl {
-	border: 1px solid #C6C5C5;
-}.my-treetbl {
-	border: 1px solid #C6C5C5;
 }

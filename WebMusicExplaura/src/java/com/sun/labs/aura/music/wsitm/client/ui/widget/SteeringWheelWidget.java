@@ -7,9 +7,12 @@ package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
+import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
@@ -31,16 +34,19 @@ public class SteeringWheelWidget extends ContextMenuImage {
     private String steerImageHover;
 
     private ArtistCompact aC;
+    private ClientDataManager cdm;
   
     public enum wheelSize {
         SMALL,
         BIG
     }
 
-    public SteeringWheelWidget(wheelSize size, ArtistCompact aC, SharedSteeringMenu steeringMenu) {
+    public SteeringWheelWidget(wheelSize size, ArtistCompact taC,
+            SharedSteeringMenu steeringMenu, ClientDataManager tcdm) {
         super("", steeringMenu);
 
-        this.aC = aC;
+        this.aC = taC;
+        this.cdm = tcdm;
 
         if (size == wheelSize.SMALL) {
             steerImage = steerImageSmall;
@@ -52,6 +58,14 @@ public class SteeringWheelWidget extends ContextMenuImage {
         
         setUrl(steerImage);
         addStyleName("pointer");
+
+        this.addClickListener(new ClickListener() {
+
+            public void onClick(Widget arg0) {
+                cdm.setSteerableReset(true);
+                History.newItem("steering:" + aC.getId());
+            }
+        });
 
         this.addMouseListener(new MouseListener() {
 
@@ -71,8 +85,7 @@ public class SteeringWheelWidget extends ContextMenuImage {
 
     @Override
     public void onBrowserEvent(Event event) {
-        if (event.getTypeInt() == Event.ONCONTEXTMENU ||
-                event.getTypeInt() == Event.ONCLICK) {
+        if (event.getTypeInt() == Event.ONCONTEXTMENU) {
             try {
                 DOM.eventPreventDefault(event);
                 cm.showSharedMenu(event, aC);
