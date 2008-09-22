@@ -81,6 +81,7 @@ public class FindSimilarArtistFromWordCloud extends HttpServlet {
             }
         } catch (AuraException ex) {
             Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Problem accessing data " + ex);
+            ex.printStackTrace(out);
         } finally {
             timer.report(out);
             out.close();
