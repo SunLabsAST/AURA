@@ -4,9 +4,12 @@
  */
 package com.sun.labs.aura.util;
 
+import com.sun.labs.aura.datastore.SimilarityConfig;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,6 +64,23 @@ public class WordCloud implements Serializable, Iterable<Scored<String>> {
     
     public Map<String, Scored<String>> getWords() {
         return words;
+    }
+    
+    /**
+     * Gets the exclusion terms from this world cloud and assigns them into the 
+     * similarity config.
+     * @param config the similarity config that we want to modify.
+     */
+    public void getExcluded(SimilarityConfig config) {
+        Set<String> exc = new HashSet<String>();
+        for(Scored<String> word : words.values()) {
+            if(word.getScore() < 0) {
+                exc.add(word.getItem());
+            }
+        }
+        if(exc.size() > 0) {
+            config.setExclude(exc);
+        }
     }
     
     public void clear() {
