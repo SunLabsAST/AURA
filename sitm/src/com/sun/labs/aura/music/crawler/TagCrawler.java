@@ -24,6 +24,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Tag;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
+import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -54,9 +55,7 @@ public class TagCrawler implements AuraService, Configurable {
     private Util util;
     private boolean running = false;
     private Map<String, Map<String, Tag>> tagMap = new HashMap();
-    private final long MIN_UPDATE_TIME = 1000L * 60L * 60L * 24L * 7;
     static Set skipSet;
-    
 
     static {
         skipSet = new HashSet<String>();
@@ -91,6 +90,7 @@ public class TagCrawler implements AuraService, Configurable {
     public void newProperties(PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
         forceCrawl = ps.getBoolean(PROP_FORCE_CRAWL);
+        updateRateInSeconds = ps.getInt(PROP_UPDATE_RATE);
         try {
             wikipedia = new Wikipedia();
             youtube = new Youtube();
@@ -178,7 +178,7 @@ public class TagCrawler implements AuraService, Configurable {
     }
 
     private boolean needsUpdate(ArtistTag artistTag) {
-        boolean stale = (System.currentTimeMillis() - artistTag.getLastCrawl() > MIN_UPDATE_TIME);
+        boolean stale = (System.currentTimeMillis() - artistTag.getLastCrawl() > (updateRateInSeconds * 1000L));
         boolean empty = artistTag.getDescription().length() == 0 || artistTag.getTaggedArtist().size() == 0;
         return forceCrawl || stale || empty;
     }
@@ -281,4 +281,7 @@ public class TagCrawler implements AuraService, Configurable {
     @ConfigBoolean(defaultValue = false)
     public final static String PROP_FORCE_CRAWL = "forceCrawl";
     private boolean forceCrawl;
+    @ConfigInteger(defaultValue = 60 * 60 * 24 * 7 * 2)
+    public final static String PROP_UPDATE_RATE = "updateRateInSeconds";
+    private int updateRateInSeconds;
 }
