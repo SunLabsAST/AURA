@@ -35,7 +35,7 @@ public class LastFM {
         commander.setRetries(1);
         commander.setTimeout(10000);
         commander.setTraceSends(false);
-        commander.setMinimumCommandPeriod(1000);
+        commander.setMinimumCommandPeriod(500);
     }
 
     public SocialTag[] getArtistTags(String artistName) throws IOException {
