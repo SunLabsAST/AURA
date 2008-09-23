@@ -17,6 +17,7 @@ import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
 import java.rmi.RemoteException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
@@ -56,7 +57,12 @@ public interface PCStrategy {
     /**
      * Gets items associated with a number of keys.
      */
-    public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException, RemoteException;
+    public List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws AuraException, RemoteException;
+
+    /**
+     * Gets items associated with a number of keys.
+     */
+    public Collection<Item> getItems(Collection<String> keys) throws AuraException, RemoteException;
 
     /**
      * Get a user by the random string associated with the user

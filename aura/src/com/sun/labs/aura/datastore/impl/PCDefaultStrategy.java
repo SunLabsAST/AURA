@@ -18,6 +18,7 @@ import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
 import java.rmi.RemoteException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
@@ -51,8 +52,13 @@ public class PCDefaultStrategy implements PCStrategy {
         return replicant.getItem(key);
     }
 
-    public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException, RemoteException {
-        return replicant.getItems(keys);
+    @Override
+    public Collection<Item> getItems(Collection<String> keys) throws AuraException, RemoteException {
+        return (Collection<Item>) replicant.getItems(keys);
+    }
+
+    public List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws AuraException, RemoteException {
+        return replicant.getScoredItems(keys);
     }
 
     public User getUserForRandomString(String randStr) throws AuraException, RemoteException {

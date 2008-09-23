@@ -23,6 +23,7 @@ import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
@@ -131,7 +132,7 @@ public class PCSplitStrategy implements PCStrategy {
         }
     }
 
-    public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException, RemoteException {
+    public List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws AuraException, RemoteException {
         List<Scored<Item>> ret = new ArrayList();
         for(Scored<String> key : keys) {
             ret.add(new Scored<Item>(getItem(key.getItem()), key));
@@ -191,6 +192,15 @@ public class PCSplitStrategy implements PCStrategy {
         its.add(remote.getItemsAddedSince(type, timeStamp));
         return new MultiNoDupDBIterator(its);
         
+    }
+
+    @Override
+    public Collection<Item> getItems(Collection<String> keys) throws AuraException, RemoteException {
+        Collection<Item> l = local.getItems(keys);
+        Collection<Item> r = (List<Item>) remote.getItems(keys);
+        l.removeAll(r);
+        l.addAll(r);
+        return l;
     }
 
     public List<Item> getItems(User user, Type attnType, ItemType itemType) throws AuraException, RemoteException {

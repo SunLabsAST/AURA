@@ -34,6 +34,7 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
@@ -193,7 +194,54 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return item;
     }
 
-    private List<Scored<Item>> getItems(List<Scored<String>> keys) throws RemoteException, AuraException {
+    @Override
+    public Collection<Item> getItems(Collection<String> keys) throws AuraException, RemoteException {
+        NanoWatch nw = new NanoWatch();
+        nw.start();
+        //
+        // Figure out which partitions we need to talk to.
+        Map<PartitionCluster, List<String>> m = new HashMap();
+        for(String key : keys) {
+            PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
+            List<String> l = m.get(pc);
+            if(l == null) {
+                l = new ArrayList<String>();
+                m.put(pc, l);
+            }
+            l.add(key);
+        }
+
+        Collection<Item> ret;
+
+        if(m.size() == 1) {
+            //
+            // A single partition is typical when looking for a particular item
+            Map.Entry<PartitionCluster, List<String>> e = m.entrySet().
+                    iterator().next();
+            ret = e.getKey().getItems(e.getValue());
+        } else {
+
+
+            //
+            // Run the gets in seriallel (sigh)
+            ret = new ArrayList<Item>();
+            for(Map.Entry<PartitionCluster, List<String>> e : m.entrySet()) {
+                ret.addAll(e.getKey().getItems(e.getValue()));
+            }
+        }
+
+        nw.stop();
+        if(logger.isLoggable(Level.FINER)) {
+            logger.finer(String.format("dsh gkIs for %d took %.3f",
+                    keys.size(),
+                    nw.getTimeMillis()));
+        }
+        return ret;
+    }
+    
+    
+
+    private List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws RemoteException, AuraException {
 
         NanoWatch nw = new NanoWatch();
         nw.start();
@@ -219,7 +267,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             //
             // A single partition is typical when looking for a particular item
             Map.Entry<PartitionCluster,List<Scored<String>>> e = m.entrySet().iterator().next();
-            ret = e.getKey().getItems(e.getValue());
+            ret = e.getKey().getScoredItems(e.getValue());
         } else {
 
             //
@@ -257,7 +305,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             // Run the gets in seriallel (sigh)
             ret = new ArrayList<Scored<Item>>();
             for(Map.Entry<PartitionCluster, List<Scored<String>>> e : m.entrySet()) {
-                ret.addAll(e.getKey().getItems(e.getValue()));
+                ret.addAll(e.getKey().getScoredItems(e.getValue()));
             }
             Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
         }
@@ -1396,7 +1444,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         nw.start();
         List<Scored<Item>> ret;
         if(parallelGet) {
-            ret = getItems(l);
+            ret = getScoredItems(l);
         } else {
             ret = new ArrayList<Scored<Item>>(l.size());
             for(Scored<String> ss : l) {

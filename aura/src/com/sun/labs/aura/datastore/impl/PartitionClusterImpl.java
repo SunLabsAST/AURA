@@ -31,6 +31,7 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -124,12 +125,24 @@ public class PartitionClusterImpl implements PartitionCluster,
         return strategy.getItem(key);
     }
     
-    public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException, RemoteException {
+    public List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws AuraException, RemoteException {
         if(logger.isLoggable(Level.FINE)) {
             logger.fine(
                     String.format("pc %s gIs start", prefixCode.toString()));
         }
-        List<Scored<Item>> ret = strategy.getItems(keys);
+        List<Scored<Item>> ret = strategy.getScoredItems(keys);
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("pc %s gIs done", prefixCode.toString()));
+        }
+        return ret;
+    }
+
+    public Collection<Item> getItems(Collection<String> keys) throws AuraException, RemoteException {
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(
+                    String.format("pc %s gIs start", prefixCode.toString()));
+        }
+        Collection<Item> ret = strategy.getItems(keys);
         if(logger.isLoggable(Level.FINE)) {
             logger.fine(String.format("pc %s gIs done", prefixCode.toString()));
         }

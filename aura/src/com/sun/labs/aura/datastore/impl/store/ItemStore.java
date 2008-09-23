@@ -10,6 +10,7 @@ import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.util.Scored;
 import java.rmi.RemoteException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
@@ -82,6 +83,17 @@ public interface ItemStore {
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
     public Item getItem(String key)
+            throws AuraException, RemoteException;
+    
+    /**
+     * Gets a number of items from the store.
+     * 
+     * @param keys the keys of the items to get.  If a key does not occur in the 
+     * data store, it will be ignored
+     * @return the items corresponding to the keys that were provided.  If no
+     * keys occur in the data store, an empty collection will be returned.
+     */
+    public Collection<Item> getItems(Collection<String> keys) 
             throws AuraException, RemoteException;
 
     /**
