@@ -1,0 +1,23 @@
+Paul's cheatsheet for deploying apps.
+
+
+1) stop the grid:
+
+    bin/stopSitm
+    bin/stopAura
+
+2) Using grid accessor tool, destroy registrations (except for the tomcat
+ones)
+
+3) upload the distribution:
+
+    ant upload-dist
+
+4) Start things:
+
+    bin/startAura
+
+    (monitor the start with the grid accessor tool, once everything is
+    going ...)
+
+    bin/startSitm
