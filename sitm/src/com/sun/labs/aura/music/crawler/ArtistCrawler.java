@@ -279,6 +279,8 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
                 logger.warning("Remote Trouble during crawl " + ex);
             } catch (IOException ex) {
                 logger.warning("IO Trouble during crawl " + ex);
+            } catch (Throwable t) {
+                logger.severe("Unexpected error during artist discovery crawl " + t);
             }
         }
     }
@@ -332,6 +334,8 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             logger.warning("trouble in artist updater, shutting down " + ex);
         } catch (InterruptedException ex) {
             logger.info("artist updater, interrupted, shutting down");
+        } catch (Throwable t) {
+            logger.severe("Unexpected error during artist updater crawl, shutting down " + t);
         }
     }
 
