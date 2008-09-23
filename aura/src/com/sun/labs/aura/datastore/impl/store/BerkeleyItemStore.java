@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
@@ -345,12 +346,37 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
         getItemCntr.incrementAndGet();
         return bdb.getItem(key);
     }
-    
-    public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException {
+
+    @Override
+    public Collection<Item> getItems(Collection<String> keys) throws AuraException, RemoteException {
         NanoWatch nw = new NanoWatch();
         nw.start();
         if(logger.isLoggable(Level.FINE)) {
             logger.fine(String.format("rep %s gIs for %d start",
+                    prefixString, keys.size()));
+        }
+        List<Item> ret = new ArrayList();
+        for(String key : keys) {
+            Item i = getItem(key);
+            if(i != null) {
+                ret.add(i);
+            }
+        }
+        nw.stop();
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("rep %s gIs for %d took %.3f", prefixString, keys.size(), nw.getTimeMillis()));
+        }
+        if(ret.size() > 0) {
+            getItemCntr.addAndGet(ret.size());
+        }
+        return ret;
+    }
+    
+    public List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws AuraException {
+        NanoWatch nw = new NanoWatch();
+        nw.start();
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("rep %s gSIs for %d start",
                     prefixString, keys.size()));
         }
         List<Scored<Item>> ret = new ArrayList();

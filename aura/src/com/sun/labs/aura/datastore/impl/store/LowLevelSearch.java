@@ -20,7 +20,7 @@ import java.util.List;
  */
 public interface LowLevelSearch extends Remote {
     
-    public List<Scored<Item>> getItems(List<Scored<String>> keys) throws AuraException, RemoteException;
+    public List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws AuraException, RemoteException;
 
     /**
      * Gets the most frequent values for the named field.
