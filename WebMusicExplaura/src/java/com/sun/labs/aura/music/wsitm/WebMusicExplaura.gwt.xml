@@ -16,6 +16,6 @@
         
          -->
         <!-- <stylesheet name="com.extjs.gxt.themes.public.css.xtheme-slate.css" /> -->
-        <stylesheet src="styles.css"/>
+        <stylesheet src="styles-shared.css"/>
 	<!-- Do not define servlets here, use web.xml -->
 </module>

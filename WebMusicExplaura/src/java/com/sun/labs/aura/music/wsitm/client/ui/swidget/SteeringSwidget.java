@@ -497,7 +497,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             smallMenuPanel.setSpacing(4);
             if (showBackButton) {
                 Label backButton = new Label("Back");
-                backButton.setStyleName("headerMenuTinyItem");
+                backButton.setStyleName("headerMenuTinyItem headerMenuTinyItemC");
                 backButton.addClickListener(new ClickListener() {
 
                     public void onClick(Widget arg0) {
@@ -509,7 +509,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             }
 
             Label addAllButton = new Label("Add top tags");
-            addAllButton.setStyleName("headerMenuTinyItem");
+            addAllButton.setStyleName("headerMenuTinyItem headerMenuTinyItemC");
             addAllButton.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
@@ -524,7 +524,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             smallMenuPanel.add(new SpannedLabel("   "));
 
             Label addArtistButton = new Label("Add artist");
-            addArtistButton.setStyleName("headerMenuTinyItem");
+            addArtistButton.setStyleName("headerMenuTinyItem headerMenuTinyItemC");
             addArtistButton.addClickListener(new DualDataEmbededClickListener<Label, String>(addArtistButton, iI.getId()) {
 
                 public void onClick(Widget arg0) {

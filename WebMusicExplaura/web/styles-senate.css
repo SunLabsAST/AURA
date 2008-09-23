@@ -1,0 +1,99 @@
+.bodyColor {
+  background: #EFF2CA;
+  background-color: #EFF2CA;
+  color: #000000;
+}
+
+.titleC {
+  color: #803030;
+}
+
+.artistPanel:hover {
+  background-color: #e8e0cb;
+  background: #e8e0cb;
+}
+
+.pageHeader {
+    background-color: #9E9A77;
+    background: #9E9A77;
+    color: #000000;
+    padding: 3px;
+}
+
+h1 { 
+    font-size: 1.8em; 
+    color: #803030;
+    margin-bottom: 4px; 
+    border-bottom: medium solid #803030;
+    border-width: thin;
+}
+.h1 {
+    font-weight: bold;
+    font-size: 1.8em;
+    color: #803030;
+    margin-bottom: 4px;
+    border-bottom: medium solid #803030;
+    border-width: thin;
+}
+h2 {
+    font-size: 1.2em;
+    color: #803030;
+    margin-top: 20px;
+    margin-bottom: 4px;
+    border-bottom: medium solid #803030;
+    border-width: thin;
+}
+.h2 {
+    font-weight:bold;
+    font-size: 1.2em;
+    color: #803030;
+    margin-top: 20px;
+    margin-bottom: 4px;
+    border-bottom: medium solid #803030;
+    border-width: thin;
+}
+
+.headerMenuTinyItemC {
+  color: black;
+}
+
+.headerMenuMedC {
+  color: black;
+}
+
+.headerMenuMedItemC {
+  color: black;
+}
+
+.popLeft {
+    border: #000000 solid;
+    color: #E6D9AF;
+    background-color: #E6D9AF;
+    background: #E6D9AF;
+    border-width: 1px 1px 1px 1px;
+}
+.popRight {
+    color: #DBE8B5;
+    background-color: #DBE8B5;
+    background: #DBE8B5;
+}
+.tag1 {
+    color: #eb7f00;
+    text-decoration: none;
+}
+.tag1:hover {
+    color: #B0BFA1;
+    background-color: #D4C790;
+}
+.tag2 {
+    color: #a45900;
+    text-decoration: none;
+}
+.tag2:hover {
+    color: #B0BFA1;
+    background-color: #D4C790;
+}
+
+.tagColorAdded {
+  color : #b6cf9d;
+}

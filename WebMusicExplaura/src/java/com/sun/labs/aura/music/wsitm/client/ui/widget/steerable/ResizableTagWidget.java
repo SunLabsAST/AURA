@@ -28,6 +28,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.ColorConfig;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
+import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.DeletableWidget;
 import java.util.ArrayList;
@@ -448,6 +449,7 @@ public class ResizableTagWidget extends TagWidget {
         
         private final void resetAttributes() {
             getElement().setAttribute("style", "-moz-user-select: none; -khtml-user-select: none; user-select: none; font-size:" + Math.abs(item.getWeight()) + "px; color:" + color.getColor(item.getWeight()) + ";");
+            TagDisplayLib.setColorToElem(this, 0, item.getWeight());
         }
 
         public void updateColor(ColorConfig color, boolean allowSignFlip) {
