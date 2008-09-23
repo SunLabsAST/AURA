@@ -54,7 +54,7 @@ public class PCDefaultStrategy implements PCStrategy {
 
     @Override
     public Collection<Item> getItems(Collection<String> keys) throws AuraException, RemoteException {
-        return (Collection<Item>) replicant.getItems(keys);
+        return replicant.getItems(keys);
     }
 
     public List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws AuraException, RemoteException {

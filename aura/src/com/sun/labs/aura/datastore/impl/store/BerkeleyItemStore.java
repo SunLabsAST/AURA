@@ -385,7 +385,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
         }
         nw.stop();
         if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("rep %s gIs for %d took %.3f", prefixString, keys.size(), nw.getTimeMillis()));
+            logger.fine(String.format("rep %s gSIs for %d took %.3f", prefixString, keys.size(), nw.getTimeMillis()));
         }
         if(ret.size() > 0) {
             getItemCntr.addAndGet(ret.size());
