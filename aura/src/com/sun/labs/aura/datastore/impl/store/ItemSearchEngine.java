@@ -454,17 +454,14 @@ public class ItemSearchEngine implements Configurable {
     public DocumentVector getDocumentVector(WordCloud cloud, SimilarityConfig config) {
         
         //
-        // Get weighted features from the cloud.
+        // Get weighted features from the cloud.  We'll only handle things with 
+        // positive weights.
         List<WeightedFeature> feat = new ArrayList<WeightedFeature>();
-        Set<String> exclude = new HashSet<String>();
         for(Scored<String> s : cloud) {
             if(s.getScore() > 0) {
                 feat.add(new WeightedFeature(s.getItem(), (float) s.getScore()));
-            } else {
-                exclude.add(s.getItem());
             }
         }
-        config.setExclude(exclude);
         if(config.getFields() == null) {
             DocumentVectorImpl dvi = new DocumentVectorImpl(engine, feat.toArray(new WeightedFeature[0]));
             dvi.setField(config.getField());
@@ -496,6 +493,7 @@ public class ItemSearchEngine implements Configurable {
         // See if we need to exclude some terms.
         Set<String> exclude = config.getExclude();
         if(exclude != null && exclude.size() > 0) {
+            log.info("exclude: " + exclude);
             ResultSet exc = ((SearchEngineImpl) engine).anyTerms(exclude,
                     config.getFieldNames());
             sim = sim.difference(exc);
