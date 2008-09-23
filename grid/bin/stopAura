@@ -1,0 +1,1 @@
+java -jar dist/grid.jar /com/sun/labs/aura/grid/aura/auraConfig.xml stop
