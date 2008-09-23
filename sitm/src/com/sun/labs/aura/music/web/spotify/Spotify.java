@@ -6,14 +6,9 @@ import com.sun.labs.aura.music.web.Commander;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-import com.sun.labs.aura.music.web.URLUTF8Encoder;
 import com.sun.labs.aura.music.web.Utilities;
 import com.sun.labs.aura.music.web.XmlUtil;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.URLEncoder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

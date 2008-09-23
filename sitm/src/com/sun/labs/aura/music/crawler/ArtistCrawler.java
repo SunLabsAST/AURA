@@ -20,6 +20,7 @@ import com.sun.labs.aura.music.util.CommandRunner;
 import com.sun.labs.aura.music.util.Commander;
 import com.sun.labs.aura.music.web.Utilities;
 import com.sun.labs.aura.music.web.amazon.Amazon;
+import com.sun.labs.aura.music.web.echonest.EchoNest;
 import com.sun.labs.aura.music.web.flickr.FlickrManager;
 import com.sun.labs.aura.music.web.lastfm.LastArtist;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
@@ -84,6 +85,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     private FlickrManager flickr;
     private Upcoming upcoming;
     private Spotify spotify;
+    private EchoNest echoNest;
     private Amazon amazon;
     private PriorityQueue<QueuedArtist> artistQueue;
     private Logger logger;
@@ -147,6 +149,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             amazon = new Amazon();
             upcoming = new Upcoming();
             spotify = new Spotify();
+            echoNest = new EchoNest();
             artistQueue = new PriorityQueue(1000, QueuedArtist.PRIORITY_ORDER);
             dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
             stateDir = ps.getString(PROP_STATE_DIR);
@@ -423,6 +426,14 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             @Override
             public void go() throws Exception {
                 addSpotifyInfo(artist);
+            }
+        });
+
+        runner.add(new Commander("echonest") {
+
+            @Override
+            public void go() throws Exception {
+                addEchoNestInfo(artist);
             }
         });
 
@@ -735,6 +746,18 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     private void addSpotifyInfo(Artist artist) throws IOException {
         String id = spotify.getSpotifyIDforArtist(artist.getName());
         artist.setSpotifyID(id);
+    }
+
+    private void addEchoNestInfo(Artist artist) throws IOException {
+        List<String> urls = echoNest.getAudio(artist.getKey());
+        for (String url : urls) {
+            artist.addAudio(url);
+        }
+        if (urls.size() == 0) {
+            logger.info("No echonest audio found for " + artist.getName());
+        } else {
+            logger.fine("crawled " + urls.size() + " audio files from echonest for " + artist.getName());
+        }
     }
 
     /**

@@ -44,6 +44,7 @@ public class Artist extends ItemAdapter {
     public final static String FIELD_VIDEOS = "videos";
     public final static String FIELD_LAST_CRAWL = "lastCrawl";
     public final static String FIELD_UPDATE_COUNT = "updateCount";
+    public final static String FIELD_AUDIO = "audio";
 
     public final static Comparator<Artist> POPULARITY = new Comparator<Artist>() {
         public int compare(Artist o1, Artist o2) {
@@ -127,6 +128,7 @@ public class Artist extends ItemAdapter {
             ds.defineField(Item.ItemType.ARTIST, FIELD_SPOTIFY);
             ds.defineField(Item.ItemType.ARTIST, FIELD_LAST_CRAWL);
             ds.defineField(Item.ItemType.ARTIST, FIELD_UPDATE_COUNT);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_AUDIO);
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }
@@ -531,6 +533,32 @@ public class Artist extends ItemAdapter {
      */
     public void clearPhotos() {
         Set<String> set = getFieldAsStringSet(FIELD_PHOTOS);
+        if (set != null) {
+            set.clear();
+        }
+    }
+
+    /**
+     * Get the audio associated with an artist
+     * @return audio map
+     */
+    public Set<String> getAudio() {
+        return getFieldAsStringSet(FIELD_AUDIO);
+    }
+
+    /**
+     * Adds audio  to an artist
+     * @param audio url to audio
+     */
+    public void addAudio(String audio) {
+        appendToField(FIELD_AUDIO, audio);
+    }
+
+    /**
+     * Clears all audio associated with this artist
+     */
+    public void clearAudio() {
+        Set<String> set = getFieldAsStringSet(FIELD_AUDIO);
         if (set != null) {
             set.clear();
         }
