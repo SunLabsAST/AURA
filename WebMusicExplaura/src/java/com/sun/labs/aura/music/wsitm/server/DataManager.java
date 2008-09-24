@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -241,8 +242,8 @@ public class DataManager implements Configurable {
         Set<String> albumSet = a.getAlbums();
         AlbumDetails[] albumDetailsArray = new AlbumDetails[albumSet.size()];
         int index=0;
-        for (String ad : albumSet) {
-            Album storeAlbum = mdb.albumLookup(ad);
+        Collection<Album> albums = mdb.albumLookup(albumSet);
+        for (Album storeAlbum : albums) {
             albumDetailsArray[index] = new AlbumDetails();
             albumDetailsArray[index].setAsin(storeAlbum.getAsin());
             albumDetailsArray[index].setId(storeAlbum.getKey());
@@ -306,8 +307,7 @@ public class DataManager implements Configurable {
         Set<String> albumSet = a.getAlbums();
         AlbumDetails[] albumDetailsArray = new AlbumDetails[albumSet.size()];
         int index=0;
-        for (String ad : albumSet) {
-            Album storeAlbum = mdb.albumLookup(ad);
+        for (Album storeAlbum : mdb.albumLookup(albumSet)) {
             albumDetailsArray[index] = new AlbumDetails();
             albumDetailsArray[index].setAsin(storeAlbum.getAsin());
             albumDetailsArray[index].setId(storeAlbum.getKey());
@@ -319,10 +319,9 @@ public class DataManager implements Configurable {
         // Fetch upcoming events
         Set<String> eventsSet = a.getEvents();
         ArtistEvent[] eventsArray = new ArtistEvent[eventsSet.size()];
-        Event storeEvent;
         index=0;
-        for (String e : eventsSet) {
-            storeEvent = mdb.eventLookup(e);
+
+        for (Event storeEvent : mdb.eventLookup(eventsSet)) {
             eventsArray[index] = new ArtistEvent();
             eventsArray[index].setDate(storeEvent.getDate());
             eventsArray[index].setEventID(storeEvent.getKey());
@@ -336,9 +335,7 @@ public class DataManager implements Configurable {
         Set<String> collSet = a.getRelatedArtists();
         if (collSet!=null && collSet.size()>0) {
             List<ArtistCompact> artistColl = new ArrayList<ArtistCompact>();
-            Artist tempArtist;
-            for (String aID : collSet) {
-                tempArtist = mdb.artistLookup(aID);
+            for (Artist tempArtist : mdb.artistLookup(collSet)) {
                 // If the related artist is not in our database, skip it
                 if (tempArtist==null) {
                     continue;
@@ -446,8 +443,7 @@ public class DataManager implements Configurable {
             throws AuraException, RemoteException {
         ArtistVideo[] artistVideoArray = new ArtistVideo[videoSet.size()];
         int index=0;
-        for (String v : videoSet) {
-            Video dataStoreVideo = mdb.videoLookup(v);
+        for (Video dataStoreVideo : mdb.videoLookup(videoSet)) {
             artistVideoArray[index] = new ArtistVideo();
             artistVideoArray[index].setThumbnail(dataStoreVideo.getThumbnailUrl());
             artistVideoArray[index].setTitle(dataStoreVideo.getName());
@@ -466,12 +462,11 @@ public class DataManager implements Configurable {
             throws AuraException, RemoteException {
         ArtistPhoto[] artistPhotoArray = new ArtistPhoto[photoSet.size()];
         int index=0;
-        for (String p : photoSet) {
-            Photo dataStorePhoto = mdb.photoLookup(p);
+        for (Photo dataStorePhoto : mdb.photoLookup(photoSet)) {
             artistPhotoArray[index] = new ArtistPhoto();
             artistPhotoArray[index].setCreatorRealName(dataStorePhoto.getCreatorRealName());
             artistPhotoArray[index].setCreatorUserName(dataStorePhoto.getCreatorUserName());
-            artistPhotoArray[index].setId(p);
+            artistPhotoArray[index].setId(dataStorePhoto.getKey());
             artistPhotoArray[index].setImageURL(dataStorePhoto.getImgUrl());
             artistPhotoArray[index].setSmallImageUrl(dataStorePhoto.getSmallImgUrl());
             artistPhotoArray[index].setThumbNailImageUrl(dataStorePhoto.getThumbnailUrl());

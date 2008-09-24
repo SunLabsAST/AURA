@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
@@ -43,6 +42,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
+import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.SwapableWidget;
@@ -84,7 +84,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
     @Override
     protected void initMenuItem() {
-        menuItem = new MenuItem("Steering",MenuItem.getDefaultTokenClickListener("steering:"),false,1);
+        menuItem = new MenuItem("Steering", MenuItem.getDefaultTokenClickListener("steering:"), false, 1);
     }
 
     public void onHistoryChanged(String historyToken) {
@@ -118,12 +118,9 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         private VerticalPanel savePanel;
         private SearchWidget search;
         private FlowPanel searchBoxContainerPanel;
-
         private FlowPanel refreshingPanel;
-
         private HashMap<String, Double> currTagMap;
         private ArtistCompact[] currRecommendations = null;
-     
         private ListBox listbox;
         private String currLoadedTagWidget = "";
 
@@ -198,7 +195,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
                 public void onClick(Widget arg0) {
                     if (currTagMap == null || currTagMap.isEmpty()) {
-                        Info.display("Steerable recommendations", 
+                        Info.display("Steerable recommendations",
                                 "Cannot display atomic representation; you must " +
                                 "add tags in your cloud first.", new Params());
                     } else {
@@ -313,14 +310,17 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         }
 
         public void invokeFetchNewRecommendations() {
+            PerformanceTimer.start("newRecommendations");
             AsyncCallback<ArtistCompact[]> callback = new AsyncCallback<ArtistCompact[]>() {
 
                 public void onSuccess(ArtistCompact[] aCArray) {
+                    PerformanceTimer.stop("newRecommendationsGetData");
+                    PerformanceTimer.start("newRecommendationsRedraw");
 
                     // Remove listeners if we had an ArtistListWidget previously loaded
                     if (mainArtistListPanel.getWidget(0, 0) != null &&
                             mainArtistListPanel.getWidget(0, 0) instanceof ArtistCloudArtistListWidget) {
-                        ((ArtistListWidget)mainArtistListPanel.getWidget(0, 0)).doRemoveListeners();
+                        ((ArtistListWidget) mainArtistListPanel.getWidget(0, 0)).doRemoveListeners();
                     }
 
                     mainArtistListPanel.setWidget(0, 0,
@@ -332,10 +332,14 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                     } else {
                         currRecommendations = null;
                     }
+                    PerformanceTimer.stop("newRecommendationsRedraw");
+                    PerformanceTimer.stop("newRecommendations");
 
                 }
 
                 public void onFailure(Throwable caught) {
+                    PerformanceTimer.stop("newRecommendationsGetData");
+                    PerformanceTimer.stop("newRecommendations");
                     Window.alert(caught.getMessage());
                 }
             };
@@ -344,6 +348,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
             try {
                 currTagMap = tagLand.getTagMap();
+                PerformanceTimer.start("newRecommendationsGetData");
                 musicServer.getSteerableRecommendations(currTagMap, callback);
             } catch (Exception ex) {
                 Window.alert(ex.getMessage());
@@ -369,7 +374,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public void loadArtistCloud(String artistId) {
             tagLand.removeAllItems(false);
             if (artistId.startsWith("steering:")) {
-                artistId = artistId.substring(artistId.indexOf(":")+1);
+                artistId = artistId.substring(artistId.indexOf(":") + 1);
             }
             invokeGetDistincitveTagsService(artistId);
             invokeGetArtistCompactService(artistId, new AsyncCallback<ArtistCompact>() {
@@ -385,17 +390,17 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 }
             });
         }
-        
+
         public void loadArtist(String artistId) {
             tagLand.removeAllItems(false);
             if (artistId.startsWith("steering:art:")) {
-                artistId = artistId.substring(artistId.indexOf(":")+5);
+                artistId = artistId.substring(artistId.indexOf(":") + 5);
             }
             invokeGetArtistCompactService(artistId, new AsyncCallback<ArtistCompact>() {
 
                 public void onSuccess(ArtistCompact aC) {
                     if (aC != null) {
-                        tagLand.addArtist(aC, 0);  
+                        tagLand.addArtist(aC, 0);
                         search.displayArtist(new ItemInfo(aC.getId(), aC.getName(), aC.getNormPopularity(), aC.getNormPopularity()));
                     }
                 }
@@ -459,7 +464,6 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         private Grid mainGrid;
         private ItemInfo[] mainItems;
         private ItemInfo[] subItems = null;
-
         private HasListeners listenerContainer;
         private TagWidget tagLand;
 
@@ -467,7 +471,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             mainItems = iI;
             this.tagLand = tagLand;
 
-            mainGrid = new Grid(2,1);
+            mainGrid = new Grid(2, 1);
             if (mainItems.length > 1) {
                 displayMainItems();
             } else {
@@ -547,12 +551,12 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 }
             });
             smallMenuPanel.add(addArtistButton);
-            
+
             hP.add(smallMenuPanel);
 
             //
             // Add title
-            Label title = new Label("Tags for "+iI.getItemName());
+            Label title = new Label("Tags for " + iI.getItemName());
             hP.add(title);
             mainGrid.setWidget(0, 0, hP);
         }
@@ -566,29 +570,29 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             explanation.setStyleName("smallItalicExplanation");
             explanation.getElement().setAttribute("style", "margin-bottom: 5px");
             vP.add(explanation);
-            
+
             for (ItemInfo item : mainItems) {
                 uS.add(item.getItemName());
                 HorizontalPanel hP = new HorizontalPanel();
-                
+
                 Label addButton = new Label("Add");
                 SwapableWidget sW = new SwapableWidget(addButton, new Image("ajax-loader-small.gif"));
                 addButton.setStyleName("recoTags");
                 addButton.addStyleName("pointer");
                 addButton.getElement().setAttribute("style", "margin-right: 5px");
                 addButton.addClickListener(new DualDataEmbededClickListener<String, SwapableWidget>(item.getId(), sW) {
-                  
+
                     public void onClick(Widget sender) {
-                        
+
                         sndData.showWidget(SwapableWidget.LoadableWidget.W2);
-                        
+
                         invokeGetArtistCompactService(data, new DataEmbededAsyncCallback<SwapableWidget, ArtistCompact>(sndData) {
 
                             public void onSuccess(ArtistCompact aC) {
                                 tagLand.addArtist(aC, 0);
                                 data.showWidget(SwapableWidget.LoadableWidget.W1);
                             }
-                            
+
                             public void onFailure(Throwable caught) {
                                 Window.alert(caught.getMessage());
                             }
@@ -596,7 +600,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                     }
                 });
                 hP.add(sW);
-                
+
                 Label itemName = new Label(item.getItemName());
                 itemName.setStyleName("pointer");
                 itemName.addClickListener(new DataEmbededClickListener<ItemInfo>(item) {
@@ -619,10 +623,11 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 Window.alert(ex.getMessage());
             }
         }
-        
+
         private void invokeGetDistincitveTagsService(String artistID) {
 
             AsyncCallback<ItemInfo[]> callback = new AsyncCallback<ItemInfo[]>() {
+
                 public void onSuccess(ItemInfo[] results) {
                     doRemoveListeners();
                     if (results != null) {
@@ -638,6 +643,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
                             subItems = results;
                             SortableItemInfoList sIIL = new SortableItemInfoList(results) {
+
                                 protected void onItemClick(ItemInfo i) {
                                     tagLand.addTag(i, 0, true);
                                 }
@@ -676,11 +682,10 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         private Grid mainPanel;
         private ArrayList<ItemInfo> iI;
         private LinkedList<WebListener> webListeners;
-
         private double maxValue = 0;
 
         public SortableItemInfoList(ItemInfo[] iI) {
-            
+
             webListeners = new LinkedList<WebListener>();
             this.iI = ItemInfo.arrayToList(iI);
 
@@ -693,8 +698,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             nameLbl.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
-                    ((Label)mainPanel.getWidget(0, 0)).setText("Name");
-                    ((Label)mainPanel.getWidget(0, 1)).setText("Popularity*");
+                    ((Label) mainPanel.getWidget(0, 0)).setText("Name");
+                    ((Label) mainPanel.getWidget(0, 1)).setText("Popularity*");
                     populateMainPanel(ItemInfo.getNameSorter());
                 }
             });
@@ -705,8 +710,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             popLbl.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
-                    ((Label)mainPanel.getWidget(0, 0)).setText("Name");
-                    ((Label)mainPanel.getWidget(0, 1)).setText("Popularity*");
+                    ((Label) mainPanel.getWidget(0, 0)).setText("Name");
+                    ((Label) mainPanel.getWidget(0, 1)).setText("Popularity*");
                     populateMainPanel(ItemInfo.getPopularitySorter());
                 }
             });
@@ -741,11 +746,11 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 cdm.getTagCloudListenerManager().addListener(i.getId(), tagLbl);
                 webListeners.add(tagLbl);
                 mainPanel.setWidget(lineIndex, 0, tagLbl);
-                mainPanel.setWidget(lineIndex, 1, WebLib.getSmallPopularityWidget(i.getPopularity()/maxValue, 75, true, false));
+                mainPanel.setWidget(lineIndex, 1, WebLib.getSmallPopularityWidget(i.getPopularity() / maxValue, 75, true, false));
                 lineIndex++;
             }
         }
-        
+
         public void doRemoveListeners() {
             for (WebListener wL : webListeners) {
                 wL.onDelete();
@@ -760,7 +765,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             public TagCloudListeningTag(ItemInfo tag) {
                 super(tag, cdm);
             }
-            
+
             public void onTagAdd(String tagId) {
                 addStyleName("tagColorAdded");
             }
@@ -783,16 +788,15 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
         private Grid mainTagPanel;
         private TagWidget tagLand;
-        
         private HasListeners listenersContainer;
 
         public SearchWidget(MusicSearchInterfaceAsync musicServer,
-            ClientDataManager cdm, Panel searchBoxContainerPanel, Grid mainTagPanel,
-            TagWidget tagLand) {
+                ClientDataManager cdm, Panel searchBoxContainerPanel, Grid mainTagPanel,
+                TagWidget tagLand) {
 
             super(musicServer, cdm, searchBoxContainerPanel);
 
-            searchBoxStyleName="";
+            searchBoxStyleName = "";
 
             this.mainTagPanel = mainTagPanel;
             this.tagLand = tagLand;
@@ -807,11 +811,13 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             searchButtons[0].setChecked(true);
 
             searchButtons[1].addClickListener(new ClickListener() {
+
                 public void onClick(Widget arg0) {
                     updateSuggestBox(Oracles.ARTIST);
                 }
             });
             searchButtons[0].addClickListener(new ClickListener() {
+
                 public void onClick(Widget arg0) {
                     updateSuggestBox(Oracles.TAG);
                 }
@@ -859,7 +865,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public void displayArtist(ItemInfo a) {
             ItemInfo[] aA = new ItemInfo[1];
             aA[0] = a;
-            
+
             doRemoveListeners();
             ItemInfoHierarchyWidget iihw = new ItemInfoHierarchyWidget(aA, tagLand);
             listenersContainer = iihw;
@@ -868,7 +874,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
         private void invokeArtistSearchService(String searchText) {
 
-            AsyncCallback callback = new AsyncCallback()  {
+            AsyncCallback callback = new AsyncCallback() {
 
                 public void onSuccess(Object result) {
                     SearchResults sr = (SearchResults) result;
@@ -905,7 +911,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
         private void invokeTagSearchService(String searchText) {
 
-            AsyncCallback callback = new AsyncCallback()  {
+            AsyncCallback callback = new AsyncCallback() {
 
                 public void onSuccess(Object result) {
                     SearchResults sr = (SearchResults) result;
@@ -975,14 +981,15 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             why.showLoad();
             TagDisplayLib.invokeGetCommonTags(tagLand.getTagMap(), why.getId(),
                     musicServer, cdm,
-                    new CommonTagsAsyncCallback(why, "Common tags between your cloud and "+why.getName(), cdm) {});
+                    new CommonTagsAsyncCallback(why, "Common tags between your cloud and " + why.getName(), cdm) {
+                    });
         }
 
         @Override
         public void openDiffPopup(DiffButton diff) {
 
             ItemInfo[] steerTags = ItemInfo.mapToArray(tagLand.getTagMap());
-            TagDisplayLib.showDifferenceCloud("Difference cloud between your tag cloud and "+diff.getName(),
+            TagDisplayLib.showDifferenceCloud("Difference cloud between your tag cloud and " + diff.getName(),
                     steerTags, diff.getDistinctiveTags(), cdm);
 
         }

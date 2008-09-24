@@ -114,6 +114,16 @@ img {
     border-color: #304427;
     padding:0px;
 }
+
+.performancePopup {
+    background: #ffffff;
+    color: #ffffff;
+    border-color: #aaaaaa;
+    padding: 10px;
+    border-width: 1px;
+    border-color: #111111;
+}
+
 .gwt-DialogBox .Caption {  
         color: #000000; 
         font-size: 1.2em; 

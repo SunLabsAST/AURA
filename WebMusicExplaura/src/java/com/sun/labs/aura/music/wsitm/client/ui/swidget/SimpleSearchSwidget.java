@@ -26,8 +26,6 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistEvent;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistVideo;
-import com.extjs.gxt.ui.client.util.Params;
-import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.Timer;
@@ -50,6 +48,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -380,7 +379,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
     }
 
     private void invokeGetArtistInfo(String artistID, boolean refresh) {
-
+        PerformanceTimer.start("invokeGetArtistInfo");
         //
         // If we are currently fetching the similarity type, we can't fetch the
         // artist's info yet so let's try again in 250ms
@@ -395,15 +394,18 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             AsyncCallback callback = new AsyncCallback() {
 
                 public void onSuccess(Object result) {
+                    PerformanceTimer.stop("getArtistDetails");
                     // do some UI stuff to show success
                     ArtistDetails artistDetails = (ArtistDetails) result;
                     if (artistDetails != null && artistDetails.isOK()) {
+                        PerformanceTimer.start("createArtistPanel");
                         cdm.setCurrArtistInfo(artistDetails.getId(), artistDetails.getName());
                         Widget artistPanel = createArtistPanel(artistDetails);
                         search.setText(artistDetails.getName(), searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
                         search.updateSuggestBox(Oracles.ARTIST);
                         setResults("artist:" + artistDetails.getId(), artistPanel);
                         clearMessage();
+                        PerformanceTimer.stop("createArtistPanel");
                     } else {
                         if (artistDetails == null) {
                             showError("Sorry. The details for the artist don't seem to be in our database.");
@@ -413,20 +415,23 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                             clearResults();
                         }
                     }
+                    PerformanceTimer.stop("invokeGetArtistInfo");
                 }
 
                 public void onFailure(Throwable caught) {
+                    PerformanceTimer.stop("getArtistDetails");
                     failureAction(caught);
+                    PerformanceTimer.stop("invokeGetArtistInfo");
                 }
             };
 
             showMessage("Getting info for artist", WebLib.ICON_WAIT);
 
             try {
+                PerformanceTimer.start("getArtistDetails");
                 musicServer.getArtistDetails(artistID, refresh, cdm.getCurrSimTypeName(), callback);
             } catch (Exception ex) {
                 Window.alert(ex.getMessage());
-
             }
         }
     }
