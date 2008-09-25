@@ -20,6 +20,7 @@ import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -266,16 +267,9 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public List<Artist> getFavoriteArtists(String listenerID, int max) throws AuraException, RemoteException {
+    public Collection<Artist> getFavoriteArtists(String listenerID, int max) throws AuraException, RemoteException {
         Set<String> ids = getFavoriteArtistsAsIDSet(listenerID, max);
-        List<Artist> results = new ArrayList(ids.size());
-        for (String id : ids) {
-            Artist artist = artistLookup(id);
-            if (artist != null) {
-                results.add(artist);
-            }
-        }
-        return results;
+        return artistLookup(ids);
     }
 
     public Set<String> getFavoriteArtistsAsIDSet(String listenerID, int max) throws AuraException, RemoteException {
@@ -422,7 +416,7 @@ public class MusicDatabase {
     }
 
     private Artist getRandomGoodArtistFromListener(String listenerID) throws AuraException, RemoteException {
-        List<Artist> artists = getFavoriteArtists(listenerID, 20);
+        Collection<Artist> artists = getFavoriteArtists(listenerID, 20);
         Artist artist = null;
         if (artists.size() > 0) {
             artist = selectRandom(artists);
@@ -451,10 +445,11 @@ public class MusicDatabase {
         return ids;
     }
 
-    private <T> T selectRandom(List<T> l) {
+    private <T> T selectRandom(Collection<T> l) {
         if (l.size() > 0) {
-            int index = rng.nextInt(l.size());
-            return l.get(index);
+            ArrayList<T> list = new ArrayList<T>(l);
+            int index = rng.nextInt(list.size());
+            return list.get(index);
         } else {
             return null;
         }
@@ -531,6 +526,22 @@ public class MusicDatabase {
             return new Artist(item);
         }
         return null;
+    }
+
+    /**
+     * Looks up a collection of artists by id
+     * @param ids the collection of ids for the artist
+     * @return the collection of artists
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public Collection<Artist> artistLookup(Collection<String> ids) throws AuraException {
+        Collection<Item> items = getItems(ids);
+        Collection<Artist> artists = new ArrayList<Artist>();
+        for (Item item : items) {
+            typeCheck(item, ItemType.ARTIST);
+            artists.add(new Artist(item));
+        }
+        return artists;
     }
 
     /**
@@ -754,6 +765,22 @@ public class MusicDatabase {
         return null;
     }
 
+    /**
+     * Looks up a collection of artistTags by id
+     * @param ids the collection of ids for the artistTags
+     * @return the collection of artists
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public Collection<ArtistTag> artistTagLookup(Collection<String> ids) throws AuraException {
+        Collection<Item> items = getItems(ids);
+        Collection<ArtistTag> results = new ArrayList<ArtistTag>();
+        for (Item item : items) {
+            typeCheck(item, ItemType.ARTIST_TAG);
+            results.add(new ArtistTag(item));
+        }
+        return results;
+    }
+
     public List<Scored<ArtistTag>> artistTagFindSimilar(String id, int count) throws AuraException {
         List<Scored<Item>> simItems = findSimilar(id, ArtistTag.FIELD_TAGGED_ARTISTS, count, ItemType.ARTIST_TAG);
         return convertToScoredArtistTagList(simItems);
@@ -798,6 +825,22 @@ public class MusicDatabase {
         return null;
     }
 
+    /**
+     * Looks up a collection of albums by id
+     * @param ids the collection of ids for the albums
+     * @return the collection of artists
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public Collection<Album> albumLookup(Collection<String> ids) throws AuraException {
+        Collection<Item> items = getItems(ids);
+        Collection<Album> results = new ArrayList<Album>();
+        for (Item item : items) {
+            typeCheck(item, ItemType.ALBUM);
+            results.add(new Album(item));
+        }
+        return results;
+    }
+
     public Event eventLookup(String eventID) throws AuraException {
         Item item = getItem(eventID);
         if (item != null) {
@@ -805,6 +848,22 @@ public class MusicDatabase {
             return new Event(item);
         }
         return null;
+    }
+
+    /**
+     * Looks up a collection of events by id
+     * @param ids the collection of ids for the events
+     * @return the collection of events
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public Collection<Event> eventLookup(Collection<String> ids) throws AuraException {
+        Collection<Item> items = getItems(ids);
+        Collection<Event> results = new ArrayList<Event>();
+        for (Item item : items) {
+            typeCheck(item, ItemType.EVENT);
+            results.add(new Event(item));
+        }
+        return results;
     }
 
     public Photo photoLookup(String photoID) throws AuraException {
@@ -816,6 +875,22 @@ public class MusicDatabase {
         return null;
     }
 
+    /**
+     * Looks up a collection of photos by id
+     * @param ids the collection of ids for the photos
+     * @return the collection of photos
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public Collection<Photo> photoLookup(Collection<String> ids) throws AuraException {
+        Collection<Item> items = getItems(ids);
+        Collection<Photo> results = new ArrayList<Photo>();
+        for (Item item : items) {
+            typeCheck(item, ItemType.PHOTO);
+            results.add(new Photo(item));
+        }
+        return results;
+    }
+
     public Track trackLookup(String trackID) throws AuraException {
         Item item = getItem(trackID);
         if (item != null) {
@@ -823,6 +898,22 @@ public class MusicDatabase {
             return new Track(item);
         }
         return null;
+    }
+
+    /**
+     * Looks up a collection of tracks by id
+     * @param ids the collection of ids for the tracks
+     * @return the collection of tracks
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public Collection<Track> trackLookup(Collection<String> ids) throws AuraException {
+        Collection<Item> items = getItems(ids);
+        Collection<Track> results = new ArrayList<Track>();
+        for (Item item : items) {
+            typeCheck(item, ItemType.TRACK);
+            results.add(new Track(item));
+        }
+        return results;
     }
 
     public Video videoLookup(String videoID) throws AuraException {
@@ -834,9 +925,33 @@ public class MusicDatabase {
         return null;
     }
 
+    /**
+     * Looks up a collection of Video by id
+     * @param ids the collection of ids for the Video
+     * @return the collection of Video
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public Collection<Video> videoLookup(Collection<String> ids) throws AuraException {
+        Collection<Item> items = getItems(ids);
+        Collection<Video> results = new ArrayList<Video>();
+        for (Item item : items) {
+            typeCheck(item, ItemType.VIDEO);
+            results.add(new Video(item));
+        }
+        return results;
+    }
+
     private Item getItem(String id) throws AuraException {
         try {
             return dataStore.getItem(id);
+        } catch (RemoteException ex) {
+            throw new AuraException("Can't talk to the datastore " + ex, ex);
+        }
+    }
+
+    private Collection<Item> getItems(Collection<String> ids) throws AuraException {
+        try {
+            return dataStore.getItems(ids);
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -1036,16 +1151,17 @@ public class MusicDatabase {
 
             sb.append("Similar to recently played artists like ");
 
-            for (Scored<String> seedArtist : artistIDs) {
-                Artist artist = artistLookup(seedArtist.getItem());
+            Collection<String> ids = getIDs(artistIDs);
+            for (Artist artist : artistLookup(ids)) {
                 if (artist != null) {
                     sb.append(artist.getName());
                     sb.append(",");
                     sm.addSeedArtist(artist);
-                    List<Scored<Artist>> simArtists = artistFindSimilar(seedArtist.getItem(), count * 3);
+                    List<Scored<Artist>> simArtists = artistFindSimilar(artist.getKey(), count * 3);
                     for (Scored<Artist> simArtist : simArtists) {
                         if (!skipIDS.contains(simArtist.getItem().getKey())) {
-                            sm.accum(simArtist.getItem(), seedArtist.getItem(), seedArtist.getScore() * simArtist.getScore());
+                            // BUG: this should  include the score of the seed artist.
+                            sm.accum(simArtist.getItem(), artist.getKey(), 1.0 * simArtist.getScore());
                         }
                     }
                 }
@@ -1066,6 +1182,15 @@ public class MusicDatabase {
 
     public void setSkimPercent(double skimPercent) {
         this.skimPercent = skimPercent;
+    }
+    
+
+    private List<String> getIDs(List<Scored<String>> scoredIds) {
+        List<String> results = new ArrayList<String>();
+        for (Scored<String> ss : scoredIds) {
+            results.add(ss.getItem());
+        }
+        return results;
     }
 
     private SimilarityConfig getFindSimilarConfig(String field, int count, TypeFilter filter) {
