@@ -45,7 +45,7 @@ public class GetRecommendations extends HttpServlet {
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Can't connect to the music database");
+                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
             } else {
                 String userID = request.getParameter("userID");
 
@@ -94,7 +94,7 @@ public class GetRecommendations extends HttpServlet {
                                     "can't find userID ");
                         }
                     } catch (AuraException ex) {
-                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Problem accessing data");
+                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Problem accessing data");
                     }
                 } else {
                     Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.NotFound,

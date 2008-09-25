@@ -40,7 +40,7 @@ public class GetItem extends HttpServlet {
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Can't connect to the music database");
+                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
             } else {
                 String itemID = request.getParameter("itemID");
                 if (itemID != null) {
@@ -58,7 +58,7 @@ public class GetItem extends HttpServlet {
                             Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.BadArgument, "Can't find item with id " + itemID);
                         }
                     } catch (AuraException ex) {
-                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Problem accessing data " + ex);
+                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Problem accessing data " + ex);
                     }
                 } else {
                     Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "Missing itemID");

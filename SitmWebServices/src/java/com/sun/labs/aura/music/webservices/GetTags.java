@@ -40,7 +40,7 @@ public class GetTags extends HttpServlet {
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Can't connect to the music database");
+                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
             } else {
                 int maxCount = 100;
                 String maxCountString = request.getParameter("max");
@@ -61,7 +61,7 @@ public class GetTags extends HttpServlet {
                 Util.tagClose(out, SERVLET_NAME);
             }
         } catch (AuraException ex) {
-            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Problem accessing data");
+            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Problem accessing data");
         } finally {
             timer.report(out);
             out.close();

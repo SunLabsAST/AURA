@@ -42,7 +42,7 @@ public class GetAttentionData extends HttpServlet {
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Can't connect to the music database");
+                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
             } else {
                 String src = request.getParameter("src");
                 String target = request.getParameter("tgt");
@@ -83,7 +83,7 @@ public class GetAttentionData extends HttpServlet {
                     }
                     Util.tagClose(out, SERVLET_NAME);
                 } catch (AuraException e) {
-                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, 
+                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, 
                             "Can't get attention data " + e);
                 }
             }

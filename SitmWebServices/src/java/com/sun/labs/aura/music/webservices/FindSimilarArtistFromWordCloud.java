@@ -43,7 +43,7 @@ public class FindSimilarArtistFromWordCloud extends HttpServlet {
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Can't connect to the music database");
+                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
             } else {
                 String wc = request.getParameter("wordCloud");
 
@@ -80,7 +80,7 @@ public class FindSimilarArtistFromWordCloud extends HttpServlet {
                 Util.tagClose(out, SERVLET_NAME);
             }
         } catch (AuraException ex) {
-            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Problem accessing data " + ex);
+            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Problem accessing data " + ex);
             ex.printStackTrace(out);
         } finally {
             timer.report(out);

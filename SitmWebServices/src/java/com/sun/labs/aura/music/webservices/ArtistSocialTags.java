@@ -44,7 +44,7 @@ public class ArtistSocialTags extends HttpServlet {
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Can't connect to the music database");
+                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
             } else {
                 String key = request.getParameter("key");
 
@@ -104,7 +104,7 @@ public class ArtistSocialTags extends HttpServlet {
 
                     }
                 } catch (AuraException ex) {
-                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Problem accessing data:" + ex);
+                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Problem accessing data:" + ex);
                 }
             }
         } finally {

@@ -43,7 +43,7 @@ public class GetStats extends HttpServlet {
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Can't connect to the music database");
+                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
             } else {
                 Util.tagOpen(out, SERVLET_NAME);
                 try {
@@ -67,7 +67,7 @@ public class GetStats extends HttpServlet {
                         }
                     }
                 } catch (AuraException ex) {
-                    Util.outputStatus(out,  Util.ErrorCode.DataStore, "Can't connect to the music database " + ex);
+                    Util.outputStatus(out,  Util.ErrorCode.InternalError, "Can't connect to the music database " + ex);
                 }
                 Util.tagClose(out, SERVLET_NAME);
             }

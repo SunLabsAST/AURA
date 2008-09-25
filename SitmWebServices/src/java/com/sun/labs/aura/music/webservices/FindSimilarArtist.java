@@ -41,7 +41,7 @@ public class FindSimilarArtist extends HttpServlet {
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Can't connect to the music database");
+                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
             } else {
                 String key = request.getParameter("key");
 
@@ -100,7 +100,7 @@ public class FindSimilarArtist extends HttpServlet {
                         Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "need a name or a key");
                     }
                 } catch (AuraException ex) {
-                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Problem accessing data");
+                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Problem accessing data");
                 }
             }
         } finally {

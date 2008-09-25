@@ -45,7 +45,7 @@ public class ArtistSearch extends HttpServlet {
 
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.Configuration, "Can't find the datastore");
+                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't find the datastore");
             } else {
                 Util.tagOpen(out, SERVLET_NAME);
                 if (name != null) {
@@ -57,7 +57,7 @@ public class ArtistSearch extends HttpServlet {
                         }
                         Util.outputOKStatus(out);
                     } catch (AuraException ex) {
-                        Util.outputStatus(out, Util.ErrorCode.DataStore, "problem accessing data, " + ex.getMessage());
+                        Util.outputStatus(out, Util.ErrorCode.InternalError, "problem accessing data, " + ex.getMessage());
                     }
                 } else {
                     Util.outputStatus(out, Util.ErrorCode.MissingArgument, "artist name");

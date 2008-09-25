@@ -46,7 +46,7 @@ public class GetApml extends HttpServlet {
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Can't connect to the music database");
+                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
             } else {
                 int maxCount = 100;
                 String maxCountString = request.getParameter("max");
@@ -79,7 +79,7 @@ public class GetApml extends HttpServlet {
                         apml.addProfile(profile);
                         out.println(apml.toString());
                     } catch (AuraException ex) {
-                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.DataStore, "Problem accessing data " + ex);
+                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Problem accessing data " + ex);
                     }
                 } else {
                     Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "Missing userID");
