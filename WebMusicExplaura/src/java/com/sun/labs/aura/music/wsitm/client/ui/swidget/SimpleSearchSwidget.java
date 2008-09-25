@@ -744,8 +744,13 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             panel.add(tagInputWidget);
             
             Panel p = TagDisplayLib.getTagsInPanel(tagCloud, TagDisplayLib.ORDER.SHUFFLE, cdm);
-            p.addStyleName("tagCloudMargin");
-            panel.add(p);
+            // If there are not tags, this will be null
+            if (p != null) {
+                p.addStyleName("tagCloudMargin");
+                panel.add(p);
+            } else {
+                panel.add(new HTML("<br /<br />"));
+            }
         }
         panel.add(widget);
         return panel;
