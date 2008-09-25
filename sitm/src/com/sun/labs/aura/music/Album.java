@@ -107,6 +107,22 @@ public class Album extends ItemAdapter {
     public void addPhoto(String photoId) {
         appendToField(FIELD_PHOTOS, photoId);
     }
+
+    /**
+     * Gets the album art for the ablum
+     * @return a url to the album art
+     */
+    public String getAlbumArt() {
+         return "http://images.amazon.com/images/P/" + getAsin() + ".01.MZZZZZZZ.jpg";
+    }
+    
+    /**
+     * Gets the  link to the album
+     * @return a url to the album 
+     */
+    public String getAmazonLink() {
+        return "http://www.amazon.com/gp/product/" + getAsin();
+    }
     
    /**
      * Gets the album's tracks
