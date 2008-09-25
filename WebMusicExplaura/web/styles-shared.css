@@ -4,18 +4,6 @@
     cursor: pointer;
 }
 
-body {
-    font-family: "Trebuchet MS", "Times New Roman", serif;
-    font-size: 12px;
-    margin-top: 0px;
-    margin-right: 0px;
-    margin-bottom: 0px;
-    margin-left: 0px;
-    margin: 0px;
-    padding: 0px;
-    line-height: 17px;
-    font-weight: normal;
-}
 .noDrag {
   -moz-user-select: none;
   -khtml-user-select: none;
