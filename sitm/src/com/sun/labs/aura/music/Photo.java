@@ -171,5 +171,13 @@ public class Photo extends ItemAdapter {
     public void setTitle(String title) {
         setName(title);
     }
+
+    public static String idToThumbnail(String id) {
+        if (id.indexOf("_s.jpg") == -1) {
+            return id.replace(".jpg", "_s.jpg");
+        } else {
+            return id;
+        }
+    }
     
 }       
