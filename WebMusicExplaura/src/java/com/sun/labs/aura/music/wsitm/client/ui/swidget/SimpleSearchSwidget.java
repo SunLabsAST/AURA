@@ -50,7 +50,9 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWidget;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -595,9 +597,17 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             spotify.addStyleName("pointer");
             hP.add(spotify);
         }
+        
+        ArtistCompact aC = artistDetails.toArtistCompact();
         SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.BIG, 
-                artistDetails.toArtistCompact(), cdm.getSharedSteeringMenu(), cdm);
-        hP.add(steerButton);
+                new DualDataEmbededClickListener<ClientDataManager, ArtistCompact>(cdm, aC) {
+
+            public void onClick(Widget arg0) {
+                data.setSteerableReset(true);
+                History.newItem("steering:" + sndData.getId());
+            }
+        });
+        hP.add(new ContextMenuSteeringWheelWidget(cdm, steerButton, aC));
 
         return createMainSection(artistDetails.getName(), html,
                 hP,

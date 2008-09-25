@@ -140,10 +140,18 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         spotify.getElement().setAttribute("style", "align : right;");
         buttonPanel.add(spotify);
 
-        SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, aC, cdm.getSharedSteeringMenu(), cdm);
-        buttonPanel.add(steerButton);
 
-        
+        SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, new DualDataEmbededClickListener<ClientDataManager, ArtistCompact>(cdm, aC) {
+
+            public void onClick(Widget arg0) {
+                data.setSteerableReset(true);
+                History.newItem("steering:" + sndData.getId());
+            }
+        });
+        buttonPanel.add(new ContextMenuSteeringWheelWidget(cdm, steerButton, aC));
+
+        //steeringMenu
+                
         VerticalPanel swapableButtonPanel = new VerticalPanel();
         boolean empty = true;
         if (whyB != null) {

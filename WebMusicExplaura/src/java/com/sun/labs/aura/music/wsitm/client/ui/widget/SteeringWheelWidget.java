@@ -5,24 +5,16 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
-import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
-import com.sun.labs.aura.music.wsitm.client.WebException;
-import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
-import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
-import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringMenu;
 
 /**
  *
  * @author mailletf
  */
-public class SteeringWheelWidget extends ContextMenuImage {
+public class SteeringWheelWidget extends Image {
 
     private static final String steerImageBig = "steering-30.gif";
     private static final String steerImageSmall = "steering-20.gif";
@@ -33,20 +25,15 @@ public class SteeringWheelWidget extends ContextMenuImage {
     private String steerImage;
     private String steerImageHover;
 
-    private ArtistCompact aC;
-    private ClientDataManager cdm;
-  
+    private MouseListener mL;
+    private ClickListener cL;
+
     public enum wheelSize {
         SMALL,
         BIG
     }
 
-    public SteeringWheelWidget(wheelSize size, ArtistCompact taC,
-            SharedSteeringMenu steeringMenu, ClientDataManager tcdm) {
-        super("", steeringMenu);
-
-        this.aC = taC;
-        this.cdm = tcdm;
+    public SteeringWheelWidget(wheelSize size, ClickListener cL) {
 
         if (size == wheelSize.SMALL) {
             steerImage = steerImageSmall;
@@ -59,15 +46,10 @@ public class SteeringWheelWidget extends ContextMenuImage {
         setUrl(steerImage);
         addStyleName("pointer");
 
-        this.addClickListener(new ClickListener() {
+        this.cL = cL;
+        this.addClickListener(this.cL);
 
-            public void onClick(Widget arg0) {
-                cdm.setSteerableReset(true);
-                History.newItem("steering:" + aC.getId());
-            }
-        });
-
-        this.addMouseListener(new MouseListener() {
+        mL = new MouseListener() {
 
             public void onMouseEnter(Widget arg0) {
                 setUrl(steerImageHover);
@@ -80,20 +62,15 @@ public class SteeringWheelWidget extends ContextMenuImage {
             public void onMouseDown(Widget arg0, int arg1, int arg2) {}
             public void onMouseMove(Widget arg0, int arg1, int arg2) {}
             public void onMouseUp(Widget arg0, int arg1, int arg2) {}
-        });
+        };
+        this.addMouseListener(mL);
     }
 
-    @Override
-    public void onBrowserEvent(Event event) {
-        if (event.getTypeInt() == Event.ONCONTEXTMENU) {
-            try {
-                DOM.eventPreventDefault(event);
-                cm.showSharedMenu(event, aC);
-            } catch (WebException ex) {
-                Window.alert(ex.toString());
-            }
-        } else {
-            super.onBrowserEvent(event);
-        }
+    public MouseListener getMouseListener() {
+        return this.mL;
+    }
+
+    public ClickListener getClickListener() {
+        return this.cL;
     }
 }

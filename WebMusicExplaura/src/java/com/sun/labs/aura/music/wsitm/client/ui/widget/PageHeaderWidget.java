@@ -269,15 +269,15 @@ public class PageHeaderWidget extends Swidget {
 
             hP.add(vP);
 
-            ClickListener cL = new ClickListener() {
+            Image steerable = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, new ClickListener() {
+
                 public void onClick(Widget arg0) {
                     cdm.setSteerableReset(true);
                     History.newItem("steering:userCloud");
                 }
-            };
-            //Image steerable = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, cdm.getSharedSteeringMenu());
-            //steerable.setTitle("Steerable recommendations starting with your personal tag cloud");
-            //hP.add(steerable);
+            });
+            steerable.setTitle("Steerable recommendations starting with your personal tag cloud");
+            hP.add(steerable);
 
             // Plays a random recommendation
             instantRecPlayWidget = getInstantRecPlayWidget();
