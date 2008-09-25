@@ -85,17 +85,6 @@ public class PageHeaderWidget extends Swidget {
         listbox = new ListBox(false);
         listbox.addItem("Loading...");
         hP.add(listbox);
-
-        // Add the server info link
-        SpannedLabel sI = new SpannedLabel("SI");
-        sI.setStyleName("headerMenuTinyItem headerMenuTinyItemC");
-        sI.addClickListener(new ClickListener() {
-
-            public void onClick(Widget sender) {
-                History.newItem("serverinfo:");
-            }
-        });
-        hP.add(sI);
         
         mainPanel.setWidget(0, 2, hP);
         mainPanel.getCellFormatter().getElement(0, 2).setAttribute("align", "right");

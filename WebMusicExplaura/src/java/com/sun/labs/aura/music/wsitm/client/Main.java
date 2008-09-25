@@ -23,6 +23,7 @@ import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment.HorizontalAlignmentConstant;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RootPanel;
@@ -119,6 +120,10 @@ public class Main implements EntryPoint, HistoryListener {
         // if performance monitoring is enabled, add a button to the footer
         // that will show us the stats
         if (PerformanceTimer.isEnabled()) {
+
+            HorizontalPanel hP = new HorizontalPanel();
+            hP.setSpacing(5);
+
             // Add the server info link
             SpannedLabel perfmon = new SpannedLabel("PerfMon");
             perfmon.addClickListener(new ClickListener() {
@@ -126,7 +131,20 @@ public class Main implements EntryPoint, HistoryListener {
                     PerformanceTimer.showPopup();
                 }
             });
-            footer.add(perfmon);
+            hP.add(perfmon);
+            
+            // Add the server info link
+            SpannedLabel sI = new SpannedLabel("ServerInfo");
+            sI.addClickListener(new ClickListener() {
+
+                public void onClick(Widget sender) {
+                    History.newItem("serverinfo:");
+                }
+            });
+            hP.add(sI);
+
+            footer.add(hP);
+
         }
         //
         // Hack to allow opening the spotify link while preventing losing the GWT state
