@@ -11,12 +11,14 @@ import com.sun.labs.aura.music.wsitm.client.event.CommonTagsAsyncCallback;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
@@ -155,7 +157,9 @@ public abstract class TagDisplayLib {
                 }
 
                 ContextMenuTagLabel sL = new ContextMenuTagLabel(tags[i], cdm);
-                sL.getElement().setAttribute("style", "font-size:" + fontSize + "px; color:" + getColor(colorId, tags[i].getScore()) +";");
+                //sL.getElement().setAttribute("style", "font-size:" + fontSize + "px; color:" + getColor(colorId, tags[i].getScore()) +";");
+                sL.getElement().setAttribute("style", "font-size:" + fontSize + "px;");
+                setColorToElem(sL, colorId, tags[i].getScore());
                 sL.addStyleName("pointer");
                 sL.addClickListener(new DataEmbededClickListener<ItemInfo>(tags[i]) {
 
@@ -184,25 +188,30 @@ public abstract class TagDisplayLib {
         }
     }
 
-    private static String getColor(int index, double size) {
+    /**
+     * Set the right stylesheet to a tag label
+     * @param sL label
+     * @param index {0,1}
+     * @param size Size of label; will determine if colored positive or negative
+     */
+    public static void setColorToElem(Label sL, int index, double size) {
         if (index == 0) {
             if (size < 0) {
-                return "#D49090";
+                sL.addStyleName("tag1neg");
             } else {
-                return "#D4C790";
+                sL.addStyleName("tag1");
             }
         } else if (index == 1) {
             if (size < 0) {
-                return "#AD7676";
+                sL.addStyleName("tag2neg");
             } else {
-                return "#ADA376";
+                sL.addStyleName("tag2");
             }
         } else {
             Window.alert("Invalid color");
-            return "#000000";
-        }
+        }        
     }
-
+    
     public static void invokeGetCommonTags(String artistID1, String artistID2,
             MusicSearchInterfaceAsync musicServer, ClientDataManager cdm, CommonTagsAsyncCallback callback) {
 

@@ -74,6 +74,7 @@ public class Main implements EntryPoint, HistoryListener {
             }
         });
         title.setStyleName("title");
+        title.addStyleName("titleC");
 
         ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
 

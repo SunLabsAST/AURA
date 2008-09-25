@@ -3,11 +3,10 @@
     margin: 20px;
     cursor: pointer;
 }
+
 body {
     font-family: "Trebuchet MS", "Times New Roman", serif;
     font-size: 12px;
-    color: #73885D;
-    background: #f0f8c6;
     margin-top: 0px;
     margin-right: 0px;
     margin-bottom: 0px;
@@ -25,24 +24,14 @@ body {
 .artistPanel {
 
 }
-.artistPanel:hover {
-  background-color: #e8e0cb;
-}
 .inline {
   display:inline;
 }
-.pageHeader {
-    background: #73885D;
-    color: white;
-    padding: 3px;
-}
 
-h1 { font-size: 1.8em; margin-bottom: 4px; border-bottom: medium solid #73885d; border-width: thin;}
-.h1 {font-weight: bold; font-size: 1.8em; margin-bottom: 4px; border-bottom: medium solid #73885d; border-width: thin;}
-h2 { font-size: 1.2em; margin-top: 20px; margin-bottom: 4px; border-bottom: medium solid #73885d; border-width: thin;}
-.h2 { font-weight:bold; font-size: 1.2em; margin-top: 20px; margin-bottom: 4px; border-bottom: medium solid #73885d; border-width: thin;}
 h3 { font-size: 1.0em; margin-top: 1em; margin-bottom: 2px; }
-.center {     margin-left: auto;
+
+.center {
+    margin-left: auto;
     margin-right: auto;
 }
 .bold {
@@ -58,15 +47,19 @@ img {
   font-size: 10px;
   cursor: pointer;
 }
+
 .headerMenuMed {
   color: white;
+  font-size: 14px;
+}
+
+.headerMenuMed {
   font-size: 14px;
 }
 
 .headerMenuMedItem {
   font-size: 14px;
   cursor: pointer;
-  color: white;
 }
 
 .recoTags {
@@ -80,11 +73,13 @@ img {
 .tagCloudMargin {  margin-bottom: 10px; }
 .searchTypeButton { margin-left: 30px; margin-right: 30px; }
 .searchText { font-weight: bold; color : green; font-size: 120%; }
+/* todo is this still used */
 .listen { font-weight: bold; color : green; font-size: 120%; cursor: pointer;}
 .messageNormal { color: green; font-weight: bold; font-size: 120%; }
 .messageError  { color: red;   font-weight: bold; font-size: 120%; }
 .pager { text-align: center;}
 .videos, .photos, .albums, .bio, .rec { vertical-align: top; }
+/* todo is this still used */
 .videow { border: 3px solid blue; }
 .imageArray { vertical-align: middle;}
 .resultpanel {  }
@@ -163,7 +158,6 @@ img {
     border-bottom: 1px solid #87B37F;
     padding: 2px;
     cursor: pointer;
-    cursor: hand;
 }
 
 .gwt-TabBar .gwt-TabBarItem-selected {
@@ -198,39 +192,11 @@ img {
     color: black;
 }
 
-.popLeft {
-    border: #000000 solid;
-    color: #ADCC58;
-    background-color: #ADCC58;
-    border-width: 1px 1px 1px 1px;
-}
-.popRight {
-    color: #DBE8B5;
-    background-color: #DBE8B5;
-}
-.tag1 {
-    color: #D4C790;
-    text-decoration: none;
-}
-.tag4:hover {
-    color: #B0BFA1;
-    background-color: #D4C790;
-}
-.tag2 {
-    color: #ADA376;
-    text-decoration: none;
-}
-.tag3:hover {
-    color: #B0BFA1;
-    background-color: #D4C790;
-}
 .smallTagClick {
   font-size: 11px;
   cursor: pointer;
 }
-.tagColorAdded {
-  color : #b6cf9d;
-}
+
 .smallItalicExplanation {
   font-size: 12px;
   font-style:italic;

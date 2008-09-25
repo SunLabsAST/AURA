@@ -79,7 +79,7 @@ public class PageHeaderWidget extends Swidget {
         // Set the recommendation type toolbar
         HorizontalPanel hP = new HorizontalPanel();
         Label lbl = new Label("Similarity type : ");
-        lbl.setStyleName("headerMenuMed");
+        lbl.setStyleName("headerMenuMed headerMenuMedC");
         hP.add(lbl);
 
         listbox = new ListBox(false);
@@ -88,7 +88,7 @@ public class PageHeaderWidget extends Swidget {
 
         // Add the server info link
         SpannedLabel sI = new SpannedLabel("SI");
-        sI.setStyleName("headerMenuTinyItem");
+        sI.setStyleName("headerMenuTinyItem headerMenuTinyItemC");
         sI.addClickListener(new ClickListener() {
 
             public void onClick(Widget sender) {
@@ -182,7 +182,7 @@ public class PageHeaderWidget extends Swidget {
         h.setWidth("300px");
         h.add(new Image("ajax-ball.gif"));
         Label lbl = new Label("Connecting...");
-        lbl.setStyleName("headerMenuMed");
+        lbl.setStyleName("headerMenuMed headerMenuMedC");
         h.add(lbl);
         mainPanel.setWidget(0, 0, h);
 
@@ -251,7 +251,7 @@ public class PageHeaderWidget extends Swidget {
                     History.newItem("userpref:");
                 }
             });
-            loggedLbl.addStyleName("headerMenuMedItem");
+            loggedLbl.addStyleName("headerMenuMedItem headerMenuMedItemC");
             hP.add(loggedLbl);
 
             VerticalPanel vP = new VerticalPanel();
@@ -264,20 +264,20 @@ public class PageHeaderWidget extends Swidget {
                     invokeTerminateSession();
                 }
             });
-            lnk.setStyleName("headerMenuTinyItem");
+            lnk.setStyleName("headerMenuTinyItem headerMenuTinyItemC");
             vP.add(lnk);
 
             hP.add(vP);
 
-            ClickListener cL = new ClickListener() {
+            Image steerable = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, new ClickListener() {
+
                 public void onClick(Widget arg0) {
                     cdm.setSteerableReset(true);
                     History.newItem("steering:userCloud");
                 }
-            };
-            //Image steerable = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, cdm.getSharedSteeringMenu());
-            //steerable.setTitle("Steerable recommendations starting with your personal tag cloud");
-            //hP.add(steerable);
+            });
+            steerable.setTitle("Steerable recommendations starting with your personal tag cloud");
+            hP.add(steerable);
 
             // Plays a random recommendation
             instantRecPlayWidget = getInstantRecPlayWidget();
@@ -477,7 +477,7 @@ public class PageHeaderWidget extends Swidget {
                     if (!mI.mustBeLoggedIn() || (mI.mustBeLoggedIn() && loggedIn)) {
                         Label sLabel = new Label(mI.getName());
                         sLabel.addClickListener(mI.getClickListener());
-                        sLabel.setStyleName("headerMenuMedItem");
+                        sLabel.setStyleName("headerMenuMedItem headerMenuMedItemC");
                         mI.setLabel(sLabel);
                         hP.add(sLabel);
                     }

@@ -1,0 +1,110 @@
+.bodyColor {
+  color: #73885D;
+  background-color: #f0f8c6;
+  background: #f0f8c6;
+}
+
+.titleC {
+  color: #73885D;
+}
+
+.artistPanel:hover {
+  background-color: #e8e0cb;
+  background: #e8e0cb;
+}
+
+.pageHeader {
+    background-color: #73885D;
+    background: #73885D;
+    color: white;
+    padding: 3px;
+}
+
+h1 { 
+    font-size: 1.8em; 
+    margin-bottom: 4px; 
+    border-bottom: medium solid #73885d; 
+    border-width: thin;
+}
+.h1 {
+    font-weight: bold;
+    font-size: 1.8em;
+    margin-bottom: 4px;
+    border-bottom: medium solid #73885d;
+    border-width: thin;
+}
+h2 {
+    font-size: 1.2em;
+    margin-top: 20px;
+    margin-bottom: 4px;
+    border-bottom: medium solid #73885d;
+    border-width: thin;
+}
+.h2 {
+    font-weight:bold;
+    font-size: 1.2em;
+    margin-top: 20px;
+    margin-bottom: 4px;
+    border-bottom: medium solid #73885d;
+    border-width: thin;
+}
+
+.headerMenuTinyItemC {
+  color: white;
+}
+
+.headerMenuMedC {
+  color: white;
+}
+
+.headerMenuMedItemC {
+  color: white;
+}
+
+.popLeft {
+    border: #000000 solid;
+    color: #ADCC58;
+    background-color: #ADCC58;
+    background: #ADCC58;
+    border-width: 1px 1px 1px 1px;
+}
+.popRight {
+    color: #DBE8B5;
+    background-color: #DBE8B5;
+    background: #DBE8B5;
+}
+.tag1 {
+    color: #D4C790;
+    text-decoration: none;
+}
+
+.tag1neg {
+  color: #D49090;
+  text-decoration: none;  
+}
+
+.tag1:hover {
+    color: #B0BFA1;
+    background-color: #D4C790;
+    background: #D4C790;
+}
+.tag2 {
+    color: #ADA376;
+    text-decoration: none;
+}
+
+.tag2neg {
+  color: #AD7676;
+  text-decoration: none;  
+}
+
+.tag2:hover {
+    color: #B0BFA1;
+    background-color: #D4C790;
+    background: #D4C790;
+}
+
+.tagColorAdded {
+  color : #b6cf9d;
+}
+

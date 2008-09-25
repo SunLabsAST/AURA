@@ -5,11 +5,13 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui;
 
+import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.ClickListenerCollection;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.MouseListener;
 import com.gwtext.client.widgets.menu.Menu;
 import com.sun.labs.aura.music.wsitm.client.event.SourcesRightClickEvents;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
@@ -41,7 +43,24 @@ public class ContextMenuImage extends Image implements SourcesRightClickEvents, 
         cm = new ContextMenu(sharedMenu);
         
         sinkEvents(Event.ONCONTEXTMENU);
-        rightClickListeners = new ClickListenerCollection();        
+        rightClickListeners = new ClickListenerCollection();
+    }
+    
+    public ContextMenuImage(Image img, Menu sharedMenu, ClickListener cL, MouseListener mL) {
+        // is this creating leaks??
+        ImageElement.as(img.getElement());
+        setElement(img.getElement());
+        if (mL != null) {
+            this.addMouseListener(mL);
+        }
+        if (cL != null) {
+            this.addClickListener(cL);
+        }
+
+        cm = new ContextMenu(sharedMenu);
+        
+        sinkEvents(Event.ONCONTEXTMENU);
+        rightClickListeners = new ClickListenerCollection();
     }
 
     @Override
