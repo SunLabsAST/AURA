@@ -10,6 +10,8 @@
 package com.sun.labs.aura.music.wsitm.client.items;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
+import com.google.gwt.user.client.ui.Image;
+import com.sun.labs.aura.music.wsitm.client.WebLib;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +20,8 @@ import java.util.Map;
  * @author plamere
  */
 public class ArtistDetails extends ArtistCompact implements IsSerializable, Details {
+    private final static ArtistPhoto[] EMPTY_ARTIST_PHOTO = new ArtistPhoto[0];
+    private final static AlbumDetails[] EMPTY_ALBUM = new AlbumDetails[0];
     private final static ArtistVideo[] EMPTY_ARTIST_VIDEO = new ArtistVideo[0];
     private final static ArtistEvent[] EMPTY_EVENT = new ArtistEvent[0];
     private final static ArtistCompact[] EMPTY_ARTIST_COMPACT = new ArtistCompact[0];
@@ -33,6 +37,8 @@ public class ArtistDetails extends ArtistCompact implements IsSerializable, Deta
     private ItemInfo[] frequentTags = EMPTY_ITEM_INFO;
     private ArtistVideo[] videos = EMPTY_ARTIST_VIDEO;
     private ArtistEvent[] events = EMPTY_EVENT;
+    protected ArtistPhoto[] photos  = EMPTY_ARTIST_PHOTO;
+    protected AlbumDetails[] albums = EMPTY_ALBUM;
         
     /**
      * Creates a new instance of ArtistDetails
@@ -108,11 +114,30 @@ public class ArtistDetails extends ArtistCompact implements IsSerializable, Deta
     public void setFrequentTags(ItemInfo[] frequentTags) {
         this.frequentTags = frequentTags;
     }
+
+
+    public ArtistPhoto[] getPhotos() {
+        return photos;
+    }
+
+    public void setPhotos(ArtistPhoto[] photos) {
+        this.photos = photos;
+    }
+
+    public AlbumDetails[] getAlbums() {
+        return albums;
+    }
+
+    public void setAlbums(AlbumDetails[] albums) {
+        this.albums = albums;
+    }
+
  
     /**
      * Ensures proper conditiosn (ie no null arrays)
      */      
     public void fixup() {
+        super.fixup();
         if (similarArtists == null) {
             similarArtists = EMPTY_ARTIST_COMPACT;
         }
@@ -150,6 +175,54 @@ public class ArtistDetails extends ArtistCompact implements IsSerializable, Deta
     }
 
     /**
+     * Get the artist's image and use an album cover as a fallback
+     * @param thumbnail return a thumbnail sized image
+     * @return
+     */
+    public Image getBestArtistImage(boolean thumbnail) {
+        Image img = null;
+        if (photos.length > 0) {
+            if (thumbnail) {
+                img = new Image(photos[0].getThumbNailImageUrl());
+            } else {
+                img = new Image(photos[0].getSmallImageUrl());
+            }
+        } else if (albums.length > 0) {
+            img = new Image(albums[0].getAlbumArt());
+            if (thumbnail) {
+                img.setVisibleRect(0, 0, 75, 75);
+            }
+        }
+        return img;
+    }
+
+    /**
+     * Get the artist's image and use an album cover as a fallback, wrapped in HTML
+     * @param thumbnail return a thumbnail sized image
+     * @return
+     */
+    public String getBestArtistImageAsHTML() {
+        String imgHtml = "";
+        if (photos.length > 0) {
+            imgHtml = photos[0].getHtmlWrapper();
+        } else if (albums.length > 0) {
+            AlbumDetails album = albums[0];
+            imgHtml = WebLib.createAnchoredImage(album.getAlbumArt(), album.getAmazonLink(), "margin-right: 10px; margin-bottom: 10px");
+        }
+        return imgHtml;
+    }
+    
+    private String getBestThumbnailImageURL() {
+        if (photos.length > 0) {
+            return photos[0].getThumbNailImageUrl();
+        } else if (albums.length > 0) {
+            return albums[0].getAlbumArt();
+        } else {
+            return "nopic.gif";
+        }
+    }
+
+    /**
      * Create a new ArtistCompact object from this ArtistDetails, discarding the
      * additional information
      * @return new ArtistCompact object
@@ -157,8 +230,7 @@ public class ArtistDetails extends ArtistCompact implements IsSerializable, Deta
     public ArtistCompact toArtistCompact() {
         ArtistCompact aC = new ArtistCompact();
 
-        aC.setAlbums(this.getAlbums());
-        aC.setPhotos(this.getPhotos());
+        aC.setImageURL(getBestThumbnailImageURL());
         aC.setBeginYear(this.getBeginYear());
         aC.setBiographySummary(this.getBiographySummary());
         aC.setDistinctiveTags(this.getDistinctiveTags());

@@ -34,8 +34,7 @@ public class CloudArtist extends CloudComposite {
         for (ItemInfo iI : aC.getDistinctiveTags()) {
             addItem(new CloudTag(iI));
         }
-
-        this.artistImage = aC.getBestArtistImage(false);
+        this.artistImage = null; /// TBD PBL broke this
         this.weight = weight;
     }
     

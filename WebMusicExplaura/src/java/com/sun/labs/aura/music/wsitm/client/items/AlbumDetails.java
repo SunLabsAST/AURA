@@ -55,6 +55,7 @@ public class AlbumDetails implements IsSerializable {
     public String getAmazonLink() {
         return "http://www.amazon.com/gp/product/" + asin;
     }
+
     
     public String getHtmlWrapper() {
        StringBuffer sb = new StringBuffer();

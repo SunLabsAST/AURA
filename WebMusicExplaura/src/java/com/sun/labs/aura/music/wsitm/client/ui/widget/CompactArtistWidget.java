@@ -15,16 +15,12 @@ import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.items.AlbumDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget.SwapableTxtButton;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
-import com.sun.labs.aura.music.wsitm.client.items.ArtistPhoto;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
@@ -70,11 +66,14 @@ public class CompactArtistWidget extends Composite implements HasListeners {
             }
         };
 
-        ContextMenuImage img = new MouseOverRollImage(aC);
+        //ContextMenuImage img = new MouseOverRollImage(aC);
+        ContextMenuImage img = new ContextMenuImage(aC.getImageURL());
         if (img == null) {
             img = new ContextMenuImage("nopic.gif");
         }
         img.setStyleName("image");
+        img.setHeight("75px");
+        img.setWidth("75px");
         img.addClickListener(cL);
 
         artistPanel.add(img);
@@ -285,7 +284,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         return tagPanel;
     }
     
-    private class MouseOverRollImage extends ContextMenuImage {
+    /*private class MouseOverRollImage extends ContextMenuImage {
 
         private ArtistPhoto[] photos;
         private int index = 0;
@@ -353,5 +352,5 @@ public class CompactArtistWidget extends Composite implements HasListeners {
                 }
             }
         }
-    }
+    }*/
 }

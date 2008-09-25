@@ -15,8 +15,6 @@ import com.google.gwt.user.client.ui.Image;
 public class ArtistCompact implements IsSerializable {
 
     protected final static ItemInfo[] EMPTY_ITEM_INFO = new ItemInfo[0];
-    protected final static ArtistPhoto[] EMPTY_ARTIST_PHOTO = new ArtistPhoto[0];
-    protected final static AlbumDetails[] EMPTY_ALBUM = new AlbumDetails[0];
     
     protected String status;
     protected String id;
@@ -31,8 +29,6 @@ public class ArtistCompact implements IsSerializable {
     protected String imageURL;
 
     protected ItemInfo[] distinctiveTags = EMPTY_ITEM_INFO;
-    protected ArtistPhoto[] photos  = EMPTY_ARTIST_PHOTO;
-    protected AlbumDetails[] albums = EMPTY_ALBUM;
 
     public ArtistCompact() {
         setStatus("OK");
@@ -146,21 +142,6 @@ public class ArtistCompact implements IsSerializable {
         this.distinctiveTags = distinctiveTags;
     }
 
-    public ArtistPhoto[] getPhotos() {
-        return photos;
-    }
-
-    public void setPhotos(ArtistPhoto[] photos) {
-        this.photos = photos;
-    }
-
-    public AlbumDetails[] getAlbums() {
-        return albums;
-    }
-
-    public void setAlbums(AlbumDetails[] albums) {
-        this.albums = albums;
-    }
 
     /**
      * Ensures proper conditiosn (ie no null arrays)
@@ -169,49 +150,6 @@ public class ArtistCompact implements IsSerializable {
         if (distinctiveTags == null) {
             distinctiveTags = EMPTY_ITEM_INFO;
         }
-        if (photos == null) {
-            photos = EMPTY_ARTIST_PHOTO;
-        }
-        if (albums == null) {
-            albums = EMPTY_ALBUM;
-        }
     }
 
-    /**
-     * Get the artist's image and use an album cover as a fallback
-     * @param thumbnail return a thumbnail sized image
-     * @return
-     */
-    public Image getBestArtistImage(boolean thumbnail) {
-        Image img = null;
-        if (photos.length > 0) {
-            if (thumbnail) {
-                img = new Image(photos[0].getThumbNailImageUrl());
-            } else {
-                img = new Image(photos[0].getSmallImageUrl());
-            }
-        } else if (albums.length > 0) {
-            img = new Image(albums[0].getAlbumArt());
-            if (thumbnail) {
-                img.setVisibleRect(0, 0, 75, 75);
-            }
-        }
-        return img;
-    }
-
-    /**
-     * Get the artist's image and use an album cover as a fallback, wrapped in HTML
-     * @param thumbnail return a thumbnail sized image
-     * @return
-     */
-    public String getBestArtistImageAsHTML() {
-        String imgHtml = "";
-        if (photos.length > 0) {
-            imgHtml = photos[0].getHtmlWrapper();
-        } else if (albums.length > 0) {
-            AlbumDetails album = albums[0];
-            imgHtml = WebLib.createAnchoredImage(album.getAlbumArt(), album.getAmazonLink(), "margin-right: 10px; margin-bottom: 10px");
-        }
-        return imgHtml;
-    }
 }
