@@ -12,6 +12,7 @@ import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.EventPreview;
+import com.google.gwt.user.client.Window;
 import com.gwtext.client.core.EventObject;
 import com.gwtext.client.widgets.menu.BaseItem;
 import com.gwtext.client.widgets.menu.Item;
@@ -95,7 +96,7 @@ public class ContextMenu implements EventPreview {
     public void showSharedMenu(Event e, ItemInfo tag) throws WebException {
         if (menu instanceof TagDependentSharedMenu) {
             DOM.addEventPreview(this);
-            ((TagDependentSharedMenu) menu).showAt(e.getClientX(), e.getClientY(), tag);
+            ((TagDependentSharedMenu) menu).showAt(e.getClientX() + Window.getScrollLeft(), e.getClientY() + Window.getScrollTop(), tag);
             isVisible = true;
         } else {
             throw new WebException(WebException.errorMessages.INVALID_MENU_CALLED);
@@ -105,7 +106,7 @@ public class ContextMenu implements EventPreview {
     public void showSharedMenu(Event e, ArtistCompact aC) throws WebException {
         if (menu instanceof ArtistDependentSharedMenu) {
             DOM.addEventPreview(this);
-            ((ArtistDependentSharedMenu) menu).showAt(e.getClientX(), e.getClientY(), aC);
+            ((ArtistDependentSharedMenu) menu).showAt(e.getClientX() + Window.getScrollLeft(), e.getClientY() + Window.getScrollTop(), aC);
             isVisible = true;
         } else {
             throw new WebException(WebException.errorMessages.INVALID_MENU_CALLED);
@@ -115,7 +116,7 @@ public class ContextMenu implements EventPreview {
     public void showSharedMenu(Event e, CloudItem cI) throws WebException {
         if (menu instanceof CloudItemDependentSharedMenu) {
             DOM.addEventPreview(this);
-            ((CloudItemDependentSharedMenu) menu).showAt(e.getClientX(), e.getClientY(), cI);
+            ((CloudItemDependentSharedMenu) menu).showAt(e.getClientX() + Window.getScrollLeft(), e.getClientY() + Window.getScrollTop(), cI);
             isVisible = true;
         } else {
             throw new WebException(WebException.errorMessages.INVALID_MENU_CALLED);
