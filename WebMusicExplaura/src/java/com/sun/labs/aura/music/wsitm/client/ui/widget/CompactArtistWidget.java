@@ -4,6 +4,8 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.Event;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
@@ -11,6 +13,7 @@ import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Random;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -26,7 +29,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedFlowPanel;
-import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -82,48 +84,11 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         aNamePanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
         aNamePanel.setWidth("210px");
         aNamePanel.setSpacing(5);
-        ContextMenuSpannedLabel aName = new ContextMenuSpannedLabel(aC.getName());
-        aName.addClickListener(cL);
-        aName.addStyleName("image");
-        //
-        //  Create context menu
-        aName.getContextMenu().addItem("View artist details", new DataEmbededCommand<String>("artist:" + aC.getId()) {
-
-            public void execute() {
-                History.newItem(data);
-            }
-        });
-        aName.getContextMenu().addItem("View tag cloud",
-                new DualDataEmbededCommand<ArtistCompact, ClientDataManager>(aC, cdm) {
-
-            public void execute() {
-                TagDisplayLib.showTagCloud("Tag cloud for "+data.getName(), data.getDistinctiveTags(), TagDisplayLib.ORDER.SHUFFLE, sndData);
-            }
-        });
-        //aName.getContextMenu().addSeperator();
-        aName.getContextMenu().addItem("Start new steerable from artist's top tags",
-                new DualDataEmbededCommand<String,ClientDataManager>(aC.getId(), cdm) {
-
-            public void execute() {
-                sndData.setSteerableReset(true);
-                History.newItem("steering:" + data);
-            }
-        });
-        aName.getContextMenu().addItem("Add artist to steerable",
-                new DualDataEmbededCommand<ArtistCompact,ClientDataManager>(aC, cdm) {
-
-            public void execute() {
-                sndData.getSteerableTagCloudExternalController().addArtist(data);
-            }
-        });
-        aName.getContextMenu().addItem("Add artist's top tags to steerable",
-                new DualDataEmbededCommand<ItemInfo[],ClientDataManager>(aC.getDistinctiveTags(), cdm) {
-
-            public void execute() {
-                sndData.getSteerableTagCloudExternalController().addTags(data);
-            }
-        });
         
+        ContextMenuSpannedLabel aName = new ContextMenuArtistLabel(aC, cdm);
+        aName.addClickListener(cL);
+        aName.addStyleName("image");        
+
         aNamePanel.add(aName);
 
         HorizontalPanel buttonPanel = new HorizontalPanel();
@@ -243,7 +208,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
      * @param n number of tags
      * @return comma seperated string
      */
-    private Panel getNDistinctiveTags(String header, List<ItemInfo> tagList, int n) {
+    private FlowPanel getNDistinctiveTags(String header, List<ItemInfo> tagList, int n) {
 
         Collections.sort(tagList, ItemInfo.getScoreSorter());
 
@@ -361,4 +326,28 @@ public class CompactArtistWidget extends Composite implements HasListeners {
             }
         }
     }*/
+
+    private class ContextMenuArtistLabel extends ContextMenuSpannedLabel {
+
+        protected ArtistCompact aC;
+
+        public ContextMenuArtistLabel(ArtistCompact aC, ClientDataManager cdm) {
+            super(aC.getName(), cdm.getSharedArtistMenu());
+            this.aC = aC;
+        }
+
+        @Override
+        public void onBrowserEvent(Event event) {
+            if (event.getTypeInt() == Event.ONCONTEXTMENU) {
+                try {
+                    DOM.eventPreventDefault(event);
+                    cm.showSharedMenu(event, aC);
+                } catch (WebException ex) {
+                    Window.alert(ex.toString());
+                }
+            } else {
+                super.onBrowserEvent(event);
+            }
+        }
+    }
 }

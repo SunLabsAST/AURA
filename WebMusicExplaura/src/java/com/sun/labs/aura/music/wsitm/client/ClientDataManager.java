@@ -19,6 +19,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.ui.SharedArtistMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedTagMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.TagWidgetContainer;
@@ -70,6 +71,7 @@ public class ClientDataManager {
 
     private SharedTagMenu sharedTagMenu;
     private SharedSteeringMenu sharedSteeringMenu;
+    private SharedArtistMenu sharedArtistMenu;
 
     public ClientDataManager() {
         lD = new ListenerDetails();
@@ -84,6 +86,7 @@ public class ClientDataManager {
 
         sharedTagMenu = new SharedTagMenu(this);
         sharedSteeringMenu = new SharedSteeringMenu(this);
+        sharedArtistMenu = new SharedArtistMenu(this);
 
     }
 
@@ -117,6 +120,10 @@ public class ClientDataManager {
     
     public SharedSteeringMenu getSharedSteeringMenu() {
         return sharedSteeringMenu;
+    }
+
+    public SharedArtistMenu getSharedArtistMenu() {
+        return sharedArtistMenu;
     }
 
     public UniqueStore getTagOracle() {
