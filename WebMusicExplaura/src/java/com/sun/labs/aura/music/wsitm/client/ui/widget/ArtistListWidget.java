@@ -23,6 +23,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -98,6 +99,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
 
         VerticalPanel vP = new VerticalPanel();
 
+        PerformanceTimer.start("  alw - GUP");
         if (aDArray != null && aDArray.length > 0) {
             for (ArtistCompact aC : aDArray) {
 
@@ -114,9 +116,12 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                     rating = 0;
                 }
 
+                PerformanceTimer.start("  alw - single artist widget");
                 CompactArtistWidget caw = new OverWroteOnClickCompactArtistWidget(aC, cdm,
                         musicServer, new WhyButton(aC.getId(), aC.getName()),
                         new DiffButton(aC), rating, null, this);
+                PerformanceTimer.stop("  alw - single artist widget");
+
                 artistWidgetList.add(caw);
 
                 DeletableWidget dW = new DeletableWidget<CompactArtistWidget>(caw, new HorizontalPanel()) {
@@ -142,6 +147,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
             vP.add(new Label("No artists found."));
         }
 
+        PerformanceTimer.stop("  alw - GUP");
         return vP;
     }
 
