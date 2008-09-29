@@ -6,13 +6,12 @@ package com.sun.labs.aura.music.webservices;
 
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.MusicDatabase.Popularity;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.io.*;
 
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
@@ -51,6 +50,14 @@ public class FindSimilarArtist extends HttpServlet {
                     maxCount = Integer.parseInt(maxCountString);
                 }
 
+                Popularity pop = Popularity.ALL;
+                String spop = request.getParameter("popularity");
+                if (spop != null) {
+                    pop = mdb.toPopularity(spop);
+                    if (pop == null) {
+                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.BadArgument, "bad specification for popularity '" + spop + "'");
+                    }
+                } 
 
                 String field = request.getParameter("field");
                 if (field == null) {
@@ -72,9 +79,9 @@ public class FindSimilarArtist extends HttpServlet {
                         if ((artist = mdb.artistLookup(key)) != null) {
                             List<Scored<Artist>> scoredArtists;
                             if ("all".equals(field)) {
-                                scoredArtists = mdb.artistFindSimilar(key, maxCount);
+                                scoredArtists = mdb.artistFindSimilar(key, maxCount, pop);
                             } else {
-                                scoredArtists = mdb.artistFindSimilar(key, field, maxCount);
+                                scoredArtists = mdb.artistFindSimilar(key, field, maxCount, pop);
                             }
 
                             out.println("<FindSimilarArtist key=\"" + key + "\" name=\"" + Util.filter(artist.getName()) + "\">");

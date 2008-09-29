@@ -18,6 +18,11 @@
         <ul>    
             <li> <a href="GetStats"> Gets the system status</a>
             <li> <a href="FindSimilarArtist?name=weezer"> Artists Similar to Weezer </a>
+            <li> <a href="FindSimilarArtist?name=weezer&popularity=HEAD"> Popular artists Similar to Weezer </a>
+            <li> <a href="FindSimilarArtist?name=weezer&popularity=HEAD_MID"> Artists Similar to Weezer (no long tail) </a>
+            <li> <a href="FindSimilarArtist?name=weezer&popularity=MID"> Mid-popular artists Similar to Weezer </a>
+            <li> <a href="FindSimilarArtist?name=weezer&popularity=MID_TAIL"> Unpopular artists Similar to Weezer </a>
+            <li> <a href="FindSimilarArtist?name=weezer&popularity=TAIL"> Long tail artists Similar to Weezer </a>
             <li> <a href="FindSimilarArtist?name=beatles"> Artists Similar to The Beatles </a>
             <li> <a href="FindSimilarArtistFromWordCloud?wordCloud='(indie,1)(punk,1)(emo,.5)'"> Find Artists Similar to Word Cloud (indie, punk, emo)</a>
             <li> <a href="FindSimilarArtistTags?name=metal&max=100"> Similar metal tags </a>

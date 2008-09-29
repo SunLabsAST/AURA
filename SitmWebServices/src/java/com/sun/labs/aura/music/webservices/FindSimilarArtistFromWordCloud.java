@@ -6,6 +6,7 @@ package com.sun.labs.aura.music.webservices;
 
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.MusicDatabase.Popularity;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
@@ -53,6 +54,15 @@ public class FindSimilarArtistFromWordCloud extends HttpServlet {
                     maxCount = Integer.parseInt(maxCountString);
                 }
 
+                Popularity pop = Popularity.ALL;
+                String spop = request.getParameter("popularity");
+                if (spop != null) {
+                    pop = mdb.toPopularity(spop);
+                    if (pop == null) {
+                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.BadArgument, "bad specification for popularity '" + spop + "'");
+                    }
+                } 
+
                 if (wc == null) {
                     Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "Missing paramenter wordCloud");
                     return;
@@ -66,7 +76,7 @@ public class FindSimilarArtistFromWordCloud extends HttpServlet {
                 }
 
 
-                List<Scored<Artist>> scoredArtists = mdb.wordCloudFindSimilarArtists(cloud, maxCount);
+                List<Scored<Artist>> scoredArtists = mdb.wordCloudFindSimilarArtists(cloud, maxCount, pop);
                 Util.tagOpen(out, SERVLET_NAME);
                 for (Scored<Artist> scoredArtist : scoredArtists) {
                     Artist simArtist = scoredArtist.getItem();
