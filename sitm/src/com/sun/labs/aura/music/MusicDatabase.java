@@ -18,6 +18,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
+import com.sun.labs.minion.ResultsFilter;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,22 +29,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  *
  * @author plamere
  */
 public class MusicDatabase {
-
+    public enum Popularity {ALL, HEAD, MID, TAIL, HEAD_MID, MID_TAIL} ;
     private DataStore dataStore;
     private List<SimType> simTypes;
     private Map<String, RecommendationType> recTypeMap;
     private Random rng = new Random();
     private ArtistTag rockTag = null;
-    private Artist beatles = null;
-    private final String BEATLES_ID = "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
+    private Artist mostPopularArtist = null;
     public final static String DEFAULT_RECOMMENDER = "SimToRecent(2)";
     private double skimPercent = 1;
+
+    private Logger logger = Logger.getLogger("com.sun.labs.aura.music.MusicDatabase");
 
     public MusicDatabase(DataStore dataStore) throws AuraException {
         this.dataStore = dataStore;
@@ -60,6 +63,7 @@ public class MusicDatabase {
         initSimTypes();
         initArtistRecommendationTypes();
     }
+
 
     /**
      * Gets the datastore
@@ -421,9 +425,21 @@ public class MusicDatabase {
         if (artists.size() > 0) {
             artist = selectRandom(artists);
         } else {
-            artist = artistLookup(BEATLES_ID);
+            artist = getMostPopularArtist();
         }
         return artist;
+    }
+
+    private Artist getMostPopularArtist() throws AuraException {
+        if (mostPopularArtist == null) {
+            List<Artist> popularList  = artistGetMostPopular(1);
+            if (popularList.size() > 0) {
+                mostPopularArtist = popularList.get(0);
+            } else {
+                throw new AuraException("No artists in database");
+            }
+        }
+        return mostPopularArtist;
     }
 
     private Set<String> getAttendedToArtists(String listenerID) throws AuraException, RemoteException {
@@ -606,6 +622,18 @@ public class MusicDatabase {
     }
 
     /**
+     * Find the most similar artist to a given artist
+     * @param artistID the ID of the seed artist
+     * @param count the number of similar artists to return
+     * @param popularity the popularity of the resulting artists
+     * @return a list of artists scored by their similarity to the seed artist.
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public List<Scored<Artist>> artistFindSimilar(String artistID, int count, Popularity popularity) throws AuraException {
+        List<Scored<Item>> simItems = findSimilar(artistID, Artist.FIELD_SOCIAL_TAGS, count, ItemType.ARTIST, popularity);
+        return convertToScoredArtistList(simItems);
+    }
+    /**
      * Find the most similar artist to a given tagcloud
      * @param tagCloudID the ID of the tag cloud
      * @param count the number of similar artists to return
@@ -624,7 +652,19 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      */
     public List<Scored<Artist>> wordCloudFindSimilarArtists(WordCloud wc, int count) throws AuraException {
-        List<Scored<Item>> simItems = findSimilar(wc, Artist.FIELD_SOCIAL_TAGS, count, ItemType.ARTIST);
+        return wordCloudFindSimilarArtists(wc, count, Popularity.ALL);
+    }
+
+    /**
+     * Find the most similar artist to a given WordCloud
+     * @param tagCloudID the ID of the tag cloud
+     * @param count the number of similar artists to return
+     * @return a list of artists scored by their similarity to the seed artist.
+     * @param popularity the popularity of the resulting artists
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public List<Scored<Artist>> wordCloudFindSimilarArtists(WordCloud wc, int count, Popularity pop) throws AuraException {
+        List<Scored<Item>> simItems = findSimilar(wc, Artist.FIELD_SOCIAL_TAGS, count, ItemType.ARTIST, pop);
         return convertToScoredArtistList(simItems);
     }
 
@@ -662,7 +702,20 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      */
     public List<Scored<Artist>> artistFindSimilar(String artistID, String field, int count) throws AuraException {
-        List<Scored<Item>> simItems = findSimilar(artistID, field, count, ItemType.ARTIST);
+        return artistFindSimilar(artistID, field, count, Popularity.ALL);
+    }
+
+    /**
+     * Find the most similar artist to a given artist
+     * @param artistID the ID of the seed artist
+     * @param field the field to use for similarity
+     * @param count the number of similar artists to return
+     * @param popularity the popularity of the resulting artists
+     * @return a list of artists scored by their similarity to the seed artist.
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public List<Scored<Artist>> artistFindSimilar(String artistID, String field, int count, Popularity popularity) throws AuraException {
+        List<Scored<Item>> simItems = findSimilar(artistID, field, count, ItemType.ARTIST, popularity);
         return convertToScoredArtistList(simItems);
     }
 
@@ -697,10 +750,7 @@ public class MusicDatabase {
     }
 
     public float artistGetNormalizedPopularity(Artist artist) throws AuraException {
-        if (beatles == null) {
-            beatles = artistLookup(BEATLES_ID);
-        }
-        return artist.getPopularity() / beatles.getPopularity();
+        return artist.getPopularity() / getMostPopularArtist().getPopularity();
     }
 
     public List<String> artistGetMostPopularNames(int count) throws AuraException {
@@ -1012,6 +1062,16 @@ public class MusicDatabase {
         }
     }
 
+    private List<Scored<Item>> findSimilar(String id, int count, ItemType type, Popularity pop) throws AuraException {
+        try {
+            List<Scored<Item>> simItems = dataStore.findSimilar(id, getFindSimilarConfig(count, 
+                    new PopularityAndTypeFilter(type, pop, getMostPopularArtist().getPopularity())));
+            return simItems;
+        } catch (RemoteException ex) {
+            throw new AuraException("Can't talk to the datastore " + ex, ex);
+        }
+    }
+
     private List<Scored<Item>> findSimilar(String id, String field, int count, ItemType type) throws AuraException {
         try {
             List<Scored<Item>> simItems = dataStore.findSimilar(id, getFindSimilarConfig(field, count, new TypeFilter(type)));
@@ -1021,9 +1081,29 @@ public class MusicDatabase {
         }
     }
 
+    private List<Scored<Item>> findSimilar(String id, String field, int count, ItemType type, Popularity pop) throws AuraException {
+        try {
+            List<Scored<Item>> simItems = dataStore.findSimilar(id, getFindSimilarConfig(field, count, 
+                    new PopularityAndTypeFilter(type, pop, getMostPopularArtist().getPopularity())));
+            return simItems;
+        } catch (RemoteException ex) {
+            throw new AuraException("Can't talk to the datastore " + ex, ex);
+        }
+    }
+
     private List<Scored<Item>> findSimilar(WordCloud wc, String field, int count, ItemType type) throws AuraException {
         try {
             List<Scored<Item>> simItems = dataStore.findSimilar(wc, getFindSimilarConfig(field, count, new TypeFilter(type)));
+            return simItems;
+        } catch (RemoteException ex) {
+            throw new AuraException("Can't talk to the datastore " + ex, ex);
+        }
+    }
+
+    private List<Scored<Item>> findSimilar(WordCloud wc, String field, int count, ItemType type, Popularity pop) throws AuraException {
+        try {
+            List<Scored<Item>> simItems = dataStore.findSimilar(wc, getFindSimilarConfig(field, count, 
+                    new PopularityAndTypeFilter(type, pop, getMostPopularArtist().getPopularity())));
             return simItems;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
@@ -1193,14 +1273,14 @@ public class MusicDatabase {
         return results;
     }
 
-    private SimilarityConfig getFindSimilarConfig(String field, int count, TypeFilter filter) {
+    private SimilarityConfig getFindSimilarConfig(String field, int count, ResultsFilter filter) {
         SimilarityConfig fsc = new SimilarityConfig(field, count, filter);
         fsc.setSkimPercent(skimPercent);
         fsc.setReportPercent(1.);
         return fsc;
     }
 
-    private SimilarityConfig getFindSimilarConfig(int count, TypeFilter filter) {
+    private SimilarityConfig getFindSimilarConfig(int count, ResultsFilter filter) {
         SimilarityConfig fsc = new SimilarityConfig(count, filter);
         fsc.setSkimPercent(skimPercent);
         fsc.setReportPercent(1.);
@@ -1226,6 +1306,21 @@ public class MusicDatabase {
         }
         return recommendations;
     }
+
+    /**
+     * Converts the string to a Popularity
+     * @param s the string
+     * @return the popularity or none if none can be found
+     */
+    public Popularity toPopularity(String s) {
+        for (Popularity p : Popularity.values()) {
+            if (p.name().equalsIgnoreCase(s)) {
+                return p;
+            }
+        }
+        return null;
+    }
+
 
     private class SimToRecentArtistRecommender2 implements RecommendationType {
 
