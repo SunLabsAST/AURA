@@ -1,0 +1,81 @@
+This is the Music Explaura - a web application that is designed to
+help you discover new music.  Let me show you how it works.
+
+Lately I've been listening to 'Jimi Hendrix' - so let me search for
+Jimi Hendrix in the explaura.  
+
+[search]
+
+Context is important when looking for new music - the more information
+you can find about an artist, the better your chances are for making a
+good decision about whether or not you'll like the artist. The music
+explaura has collected info about Jimi Hendrix from all over the web and
+presents it all in one page.
+
+First there's the tag cloud for Jimi Hendrix - this shows the tags that
+listeners have applied to Jimi Hendrix - tags like emo, alternative, geek
+rock, indie. The Explaura weights the tags so that the most
+discriminating tags are emphasized.  A larger font indicates a tag
+that is more descriptive.
+
+Next is an artist biography from the Wikipedia. If we want more info,
+we can click on this more button which will take us straight to the
+wikipedia.
+
+Next are a set of Youtube videos featuring Jimi Hendrix [play one]
+We have flickr photos of the band.  [show one] Albums released by the band
+[continue to scroll] and upcoming concerts.
+
+[scroll back up to the top]
+
+The Music Explaura also gives me a list of similar artists to Jimi
+Hendrix.  If I like Jimi Hendrix I might like one of these artists.
+Now most music recommenders will use the wisdom of the crowds to
+give you recommendations.  One problem with these types of recommendations
+is that they can't offer any detailed explanation about why something
+was recommended beyond the superficial "people who bought X also
+bought Y".  The Explaura creates recommendations in a different
+way, instead of relying on the wisdom of the crowds, the explaura
+finds similar artists based upon how well their tag clouds overlap.
+Here's a list of artists that are similar to Hendrix based upon how
+well their tag clouds overlap.
+
+One advantage of generating recommendations based on overlapping
+tag clouds is that we can use the overlapping tags to help explain
+why a recommendation was made. For example, because I like Jimi
+Hendrix, I am being recommended 'The Doors'.  A traditional recommender
+would not be able to explain this recommendation beyond saying 'people
+who listen to Jimi Henrix also listen to the doors'.  With the Music
+Explaura we can ask 'why'. When I click on the 'why?' for the Doors the
+music explaura shows a tag cloud  containing the common tags that Jimi
+Hendrix and the doors share.  The larger the tag, the stronger the
+overlap.  Here we see that the tags 'classic rock', 'psychedelic rock'
+and 'blues', and 70s dominate the common tags. 
+
+When we look at the 'why cloud' for a different artist such as Santana, we see
+a different tag cloud. 'Guitar virtuoso' is much more important, while
+'pyschedelic rock' is less important.
+
+By using the overlapping tag clouds to drive artist similarity not only
+do we get good recommendations, we get explainable recommendations. By
+looking at how the tag clouds of two items overlap we can explain why an
+item was recommended.
+
+We can take this idea one step further, we can use the tags not only to
+explain the recommendations, but also to steer the recommendations. Let
+me show you how.
+
+For example, the reason I like Jimi Hendrix is because of his guitar
+playing. I'm actually not a big fan of 60s pyschedelia - so I'd like to
+steer the recommendations more toward guitar virtuosity and away from 60s
+psychedelia.  I can do this with the music explaura. Starting from the
+Jimi Hendrix page, I can click on this 'steering wheel' - this will bring
+us to the 'steering' page.  In the center of the page, we see the top 10
+most discriptive tags for Jimi Hendrix.  On the right we see more tags
+that have been applied to Jimi Hendrix. On the left we see a list of
+artists that best match the tag cloud.  Since I'm interested in
+guitar, I can grab the guitar virtuos tag and grow  it 
+- when I do this the list of recommendations is immediately
+updated to find the artists that best match the tag cloud.   Now our
+recommendations emphasize guitar playing - lets listen to some.  Eric,
+Joe Gary - and Robin Trower.
