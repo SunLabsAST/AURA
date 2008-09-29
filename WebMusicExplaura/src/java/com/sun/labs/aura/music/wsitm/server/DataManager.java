@@ -301,13 +301,16 @@ public class DataManager implements Configurable {
         // Fetch similar artists
         List<Scored<Artist>> scoredArtists = simType.findSimilarArtists(a.getKey(), NUMBER_SIM_ARTISTS);
         // return artists in socred order
-        // sortByArtistPopularity(scoredArtists);
-        ArtistCompact[] simArtist = new ArtistCompact[scoredArtists.size()];
+        sortByArtistPopularity(scoredArtists);
+
+        // collect all of the similar artists, but skip the seed artist
+        List<ArtistCompact> simArtistList = new ArrayList<ArtistCompact>();
         for (int i = 0; i < scoredArtists.size(); i++) {
-            //if (!a.getKey().equals(scoredArtists.get(i).getItem().getKey())) {
-                simArtist[i] = artistToArtistCompact(scoredArtists.get(i).getItem());
-            //}
+            if (!a.getKey().equals(scoredArtists.get(i).getItem().getKey())) {
+                simArtistList.add(artistToArtistCompact(scoredArtists.get(i).getItem()));
+            }
         }
+        ArtistCompact[] simArtist = simArtistList.toArray(new ArtistCompact[simArtistList.size()]);
         details.setSimilarArtists(simArtist);
 
         // Fetch albums
