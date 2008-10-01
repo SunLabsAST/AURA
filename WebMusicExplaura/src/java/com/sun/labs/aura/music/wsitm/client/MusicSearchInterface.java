@@ -48,7 +48,7 @@ public interface MusicSearchInterface extends RemoteService {
     public HashMap<String, String> getSimTypes() throws WebException;
     public Map<String, String> getArtistRecommendationTypes();
     public ItemInfo[] getDistinctiveTags(String artistID, int count) throws WebException;
-    public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap) throws WebException;
+    public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap, String popularity) throws WebException;
     public void addUserTagsForItem(String itemId, Set<String> tag) throws WebException;
     public void addPlayAttention(String artistId) throws WebException;
     public void addNotInterestedAttention(String artistId) throws WebException;

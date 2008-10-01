@@ -45,6 +45,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.SwapableWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.ResizableTagWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.TagMeterWidget;
@@ -121,7 +122,10 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         private FlowPanel refreshingPanel;
         private HashMap<String, Double> currTagMap;
         private ArtistCompact[] currRecommendations = null;
-        private ListBox listbox;
+
+        private PopularitySelect popSelect;
+        
+        private ListBox interfaceListbox;
         private String currLoadedTagWidget = "";
 
         public MainPanel() {
@@ -137,6 +141,15 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             hP.setWidth("300px");
             hP.add(new SpannedLabel("Recommendations"));
 
+            popSelect = new PopularitySelect() {
+
+                @Override
+                public void onSelectionChange(String newPopularity) {
+                    invokeFetchNewRecommendations();
+                }
+            };
+            hP.add(popSelect);
+            
             Image viewTagInfluence = new Image("loupe.png");
             viewTagInfluence.addClickListener(new ClickListener() {
 
@@ -214,17 +227,17 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
             HorizontalPanel interfaceSelectPanel = new HorizontalPanel();
             Label interfaceLabel = new SpannedLabel("Interface: ");
-            listbox = new ListBox(false);
-            listbox.addItem("Cloud");
-            listbox.addItem("Meter");
-            listbox.addChangeListener(new DataEmbededChangeListener<ListBox>(listbox) {
+            interfaceListbox = new ListBox(false);
+            interfaceListbox.addItem("Cloud");
+            interfaceListbox.addItem("Meter");
+            interfaceListbox.addChangeListener(new DataEmbededChangeListener<ListBox>(interfaceListbox) {
 
                 public void onChange(Widget arg0) {
                     swapTagWidget(data.getItemText(data.getSelectedIndex()));
                 }
             });
             interfaceSelectPanel.add(interfaceLabel);
-            interfaceSelectPanel.add(listbox);
+            interfaceSelectPanel.add(interfaceListbox);
             mainNorthMenuPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
             mainNorthMenuPanel.add(interfaceSelectPanel);
 
@@ -349,7 +362,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             try {
                 currTagMap = tagLand.getTagMap();
                 PerformanceTimer.start("newRecommendationsGetData");
-                musicServer.getSteerableRecommendations(currTagMap, callback);
+                musicServer.getSteerableRecommendations(currTagMap, popSelect.getSelectedValue(), callback);
             } catch (Exception ex) {
                 Window.alert(ex.getMessage());
             }

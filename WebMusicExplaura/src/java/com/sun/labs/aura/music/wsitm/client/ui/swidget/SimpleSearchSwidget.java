@@ -51,6 +51,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWidget;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -72,6 +73,8 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
     private SearchWidget search;
     private Image icon;
 
+    private PopularitySelect popSelect;
+    
     // Widgets that contain listeners that need to be removed to prevent leaks
     private ArtistListWidget leftRecList;
     private ArtistListWidget leftSimList;
@@ -506,15 +509,22 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
                 leftSimList.doRemoveListeners();
             }
             leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, aC);
-            left.add(
-                    new Updatable(new HTML("<H2>Similar artists</H2>"), leftSimList, cdm, id) {
+            
+            HorizontalPanel hP = new HorizontalPanel();
+            hP.add(new Label("Similar artists"));
+            popSelect = new PopularitySelectAD(artistDetails);
+            hP.add(popSelect);
+            hP.setStyleName("h2");
 
-                        public void update(ArtistDetails aD) {
+            left.add(
+                    new Updatable(hP, leftSimList, cdm, id) {
+
+                        public void update(ArtistDetails aD, String popularity) {
                             ArtistCompact[] aCArray = aD.getSimilarArtists();
                             addCompactArtistToOracle(aCArray);
                             leftSimList.doRemoveListeners();
                             leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, aD.toArtistCompact());
-                            setNewContent(new HTML("<H2>Similar artists</H2>"), leftSimList);
+                            setNewContent(leftSimList);
                         }
                     }
            );
@@ -1301,4 +1311,18 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             }
         }
     }
+    
+    private class PopularitySelectAD extends PopularitySelect {
+
+        private ArtistDetails aD;
+
+        public PopularitySelectAD(ArtistDetails aD) {
+            this.aD = aD;
+        }
+
+        @Override
+        public void onSelectionChange(String newPopularity) {
+            cdm.updateUpdatableWidgets(aD, newPopularity);
+        }
+    };
 }

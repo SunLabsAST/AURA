@@ -35,7 +35,6 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
-import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -60,7 +59,7 @@ public class PageHeaderWidget extends Swidget {
     
     public PageHeaderWidget(ClientDataManager cdm) {
         super("pageHeader",cdm);
-        this.cdm=cdm;
+        this.cdm = cdm;
         menuItems = new ArrayList<MenuItem>();
         initWidget(getMainWidget());
     }
@@ -410,7 +409,7 @@ public class PageHeaderWidget extends Swidget {
                 // do some UI stuff to show success
                 ArtistDetails artistDetails = (ArtistDetails) result;
                 if (artistDetails != null && artistDetails.isOK()) {
-                    cdm.updateUpdatableWidgets(artistDetails);
+                    cdm.updateUpdatableWidgets(artistDetails, "ALL");
                 } else {
                     Window.alert("An error occured while fetching the new recommendations.");
                 }

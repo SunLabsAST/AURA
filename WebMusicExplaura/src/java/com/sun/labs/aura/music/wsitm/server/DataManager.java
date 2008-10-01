@@ -19,6 +19,7 @@ import com.sun.labs.aura.music.Event;
 import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.Listener.Gender;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.MusicDatabase.Popularity;
 import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.Recommendation;
 import com.sun.labs.aura.music.RecommendationProfile;
@@ -755,10 +756,26 @@ public class DataManager implements Configurable {
         return artistToArtistCompact(mdb.artistLookup(artistId));
     }
 
-    public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap)
+    /**
+     * Converts a string representing a popularity to the corresponding Popularity enum element
+     * @param pop string representation of popularity element
+     * @return popularity element
+     * @throws com.sun.labs.aura.util.AuraException if popularity was not matched
+     */
+    public Popularity stringToPopularity(String pop) throws AuraException {
+        for (Popularity p : Popularity.values()) {
+            if (p.toString().equals(pop)) {
+                return p;
+            }
+        }
+        throw new AuraException("Invalid popularity '"+pop+"'");
+    }
+
+    public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap, String popularity)
             throws AuraException, RemoteException {
 
-        List<Scored<Artist>> lsA = mdb.wordCloudFindSimilarArtists(mapToWordCloud(tagMap), NUMBER_SIM_ARTISTS);
+        List<Scored<Artist>> lsA = mdb.wordCloudFindSimilarArtists(mapToWordCloud(tagMap), 
+                NUMBER_SIM_ARTISTS, stringToPopularity(popularity));
         ArtistCompact[] aCArray = new ArtistCompact[lsA.size()];
         int index = 0;
         for (Scored<Artist> sA : lsA) {

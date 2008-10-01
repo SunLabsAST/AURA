@@ -283,10 +283,11 @@ public class ClientDataManager {
     /**
      * Updates all the registered widgets with the new artist details information
      * @param aD new artist details
+     * @param popularity popularity of requested recommendation
      */
-    public void updateUpdatableWidgets(ArtistDetails aD) {
+    public void updateUpdatableWidgets(ArtistDetails aD, String popularity) {
         for (Updatable u : updatableWidgets) {
-            u.update(aD);
+            u.update(aD, popularity);
         }
     }
     

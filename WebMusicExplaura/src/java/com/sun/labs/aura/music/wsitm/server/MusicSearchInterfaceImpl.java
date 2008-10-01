@@ -352,14 +352,14 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap) throws WebException {
+    public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap, String popularity) throws WebException {
         String stringMap = "";
         for (String key : tagMap.keySet()) {
             stringMap += key+":"+tagMap.get(key)+",";
         }
         logger.info("getSteerableRecommendations for cloud:{"+stringMap+"}");
         try {
-            ArtistCompact[] aC = dm.getSteerableRecommendations(tagMap);
+            ArtistCompact[] aC = dm.getSteerableRecommendations(tagMap, popularity);
             logger.info("returning "+aC.length+" recommendations");
             return aC;
         } catch (AuraException ex) {

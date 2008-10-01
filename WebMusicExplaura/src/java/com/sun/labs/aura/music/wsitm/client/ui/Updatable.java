@@ -40,7 +40,7 @@ public abstract class Updatable extends Composite {
         
         main = new Grid(2, 1);
         main.setWidget(0, 0, title);
-        update(aD);
+        update(aD, "ALL");
         cdm.addUpdatableWidget(this);
         this.initWidget(main);
     }
@@ -59,8 +59,16 @@ public abstract class Updatable extends Composite {
         main.setWidget(0, 0, top);
         main.setWidget(1, 0, bottom);
     }
+
+    /**
+     * Put the given widget as the bottom content
+     * @param bottom
+     */
+    protected void setNewContent(Widget bottom) {
+        main.setWidget(1, 0, bottom);
+    }
     
-    public abstract void update(ArtistDetails aD);
+    public abstract void update(ArtistDetails aD, String popularity);
 
     private class AnimatedUpdatableSection extends AnimatedComposite {
 

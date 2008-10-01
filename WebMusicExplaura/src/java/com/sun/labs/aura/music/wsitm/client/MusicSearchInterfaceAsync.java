@@ -45,7 +45,7 @@ public interface MusicSearchInterfaceAsync {
        public void getSimTypes(AsyncCallback<HashMap<String, String>> callback) throws WebException;
        public void getArtistRecommendationTypes(AsyncCallback<HashMap<String, String>> callback);
        public void getDistinctiveTags(String artistID, int count, AsyncCallback callback) throws WebException;
-       public void getSteerableRecommendations(Map<String, Double> tagMap, AsyncCallback callback) throws WebException;
+       public void getSteerableRecommendations(Map<String, Double> tagMap, String popularity, AsyncCallback callback) throws WebException;
        public void addUserTagsForItem(String itemId, Set<String> tag, AsyncCallback callback) throws WebException;
        public void addPlayAttention(String artistId, AsyncCallback callback) throws WebException;
        public void addNotInterestedAttention(String artistId, AsyncCallback callback) throws WebException;
