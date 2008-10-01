@@ -53,7 +53,10 @@ public class ArtistSearch extends HttpServlet {
                         List<Scored<Artist>> scoredArtists = mdb.artistSearch(name, maxCount);
                         for (Scored<Artist> scoredArtist : scoredArtists) {
                             Artist artist = scoredArtist.getItem();
-                            out.println("    <artist key=\"" + artist.getKey() + "\" " + "score=\"" + scoredArtist.getScore() + "\" " + "popularity=\"" + artist.getPopularity() + "\" " + "name=\"" + Util.filter(artist.getName()) + "\"" + "/>");
+                            out.println("    <artist key=\"" + artist.getKey() +
+                                    "\" " + "score=\"" + scoredArtist.getScore() + "\" " + "popularity=\"" 
+                                    + mdb.artistGetNormalizedPopularity(artist) + "\" " + "name=\"" 
+                                    + Util.filter(artist.getName()) + "\"" + "/>");
                         }
                         Util.outputOKStatus(out);
                     } catch (AuraException ex) {

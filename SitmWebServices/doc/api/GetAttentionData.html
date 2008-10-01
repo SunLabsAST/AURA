@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>GetAttentionData</TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H2 CLASS="western">GetAttentionData</H2>
+Gets attention data from the database.  This method will find all
+of the attention that matches the  given set of parameters.  If a
+parameter is omitted, then that parameter is ignored when looking for
+a match.
+<H3>Params</H3>
+<UL>
+	<LI><B>srcKey</B><SPAN STYLE="font-weight: normal"> – the key
+	of the source of the attention (typically a user/listener).
+	Optional.</SPAN>
+	<LI><B>tgtKey</B><SPAN STYLE="font-weight: normal"> – the key
+	of the target of the attention. Optional.</SPAN>
+	<LI><B>type</B><SPAN STYLE="font-weight: normal"> – the type of
+	the attention.  Optional. May be one of:</SPAN>
+	<UL>
+		<LI><SPAN STYLE="font-weight: normal">DISLIKED – the source
+		doesn't like the target</SPAN>
+		<LI><SPAN STYLE="font-weight: normal">PLAYED – the source
+		played the target</SPAN>
+		<LI><SPAN STYLE="font-weight: normal">LOVED – the source loves
+		the target</SPAN>
+		<LI><SPAN STYLE="font-weight: normal">RATING – the source
+		rated the target</SPAN>
+		<LI><SPAN STYLE="font-weight: normal">TAG – the source tagged
+		the target</SPAN>
+	</UL>
+	<LI><B>value</B><SPAN STYLE="font-weight: normal"> – the
+	context-dependent value associated with the attention. Optional.
+	Only appropriate for attention types RATING, TAG, and PLAYED. For
+	RATING and PLAYED must be an integer, for TAG can be any string.</SPAN>
+</UL>
+<H3>Example</H3>
+<PRE CLASS="code-western">http://www.tastekeeper.com/api/1.0/GetAttentionData
+    ?srcKey=http://paul.lamere.myopenid.com/&amp;tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04
+    &amp;type=tag</PRE>
+<H3> Results</H3>
+<PRE CLASS="code-western" STYLE="font-weight: normal"><FONT SIZE=1 STYLE="font-size: 8pt">&lt;GetAttentionData&gt;</FONT>
+    <FONT SIZE=1 STYLE="font-size: 8pt">&lt;attn&gt;    </FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;src&gt;http://paul.lamere.myopenid.com/&lt;/src&gt;    </FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;tgt&gt;6fe07aa5-fec0-4eca-a456-f29bff451b04&lt;/tgt&gt;    </FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;type&gt;TAG&lt;/type&gt;    </FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;time&gt;1222777726945&lt;/time&gt;    </FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;value&gt;nerd rock&lt;/value&gt;</FONT>
+    <FONT SIZE=1 STYLE="font-size: 8pt">&lt;/attn&gt;</FONT>
+    <FONT SIZE=1 STYLE="font-size: 8pt">&lt;attn&gt;    </FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;src&gt;http://paul.lamere.myopenid.com/&lt;/src&gt;    </FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;tgt&gt;6fe07aa5-fec0-4eca-a456-f29bff451b04&lt;/tgt&gt;    </FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;type&gt;TAG&lt;/type&gt;    </FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;time&gt;1222777682660&lt;/time&gt;    </FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;value&gt;weezercore&lt;/value&gt;</FONT>
+    <FONT SIZE=1 STYLE="font-size: 8pt">&lt;/attn&gt;</FONT>
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;/GetAttentionData&gt;</FONT>
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;!-- output generated in 11 ms --&gt;</FONT></PRE>
+</BODY>
+</HTML>

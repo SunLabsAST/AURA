@@ -33,6 +33,7 @@
             <li> <a href="ArtistSocialTags?name=weezer&type=frequent"> Frequent tags for weezer</a>
             <li> <a href="GetArtists?max=100"> Get the 100 most popular artists</a>
             <li> <a href="GetTags?max=100"> Get the 100 most popular tags</a>
+            <li> <a href="GetRecommendationTypes"> Get supported recommendation types</a>
             <li> <a href="GetRecommendations?userID=http://paul.lamere.myopenid.com/"> Default Recommendations for lamere </a>
             <li> <a href="GetRecommendations?userID=http://paul.lamere.myopenid.com/&alg=SimToUserTagCloud"> SimToUserTagCloud Recommendations for lamere </a>
             <li> <a href="GetRecommendations?userID=http://paul.lamere.myopenid.com/&alg=SimpleArtist"> SimpleArtist Recommendations for lamere </a>

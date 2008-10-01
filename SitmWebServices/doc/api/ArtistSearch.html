@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>ArtistSearch</TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H3>ArtistSearch</H3>
+	Searches the database for an artist with a particular name
+<H3>Params</H3>
+<UL>
+	<LI><B>name</B><SPAN STYLE="font-weight: normal"> – the name of
+	the artist.  Wildcards are allowed. Required argument</SPAN>
+	<LI><B>max – </B><SPAN STYLE="font-weight: normal">the maximum
+	number of results returned. Optional argument, default: 10</SPAN>
+</UL>
+<H3>Example</H3>
+<PRE CLASS="code-western">	http://www.tastekeeper.com/api/1.0/ArtistSearch?name=beat&amp;max=20</PRE>
+<B>	</B>
+<H3>Sample Results</H3>
+<PRE CLASS="code-western">&lt;ArtistSearch&gt;
+    &lt;artist key=&quot;4753fcb7-9270-493a-974d-8daca4e49125&quot; score=&quot;0.85&quot; popularity=&quot;0.00&quot; name=&quot;Volbeat&quot;/&gt;
+    &lt;artist key=&quot;a9c1755a-eb2c-4432-b221-b13c717f2e27&quot; score=&quot;0.85&quot; popularity=&quot;8.22&quot; name=&quot;Sexbeat&quot;/&gt;
+    &lt;artist key=&quot;55c8de21-66df-4285-9b9f-41b8e8673e3c&quot; score=&quot;0.75&quot; popularity=&quot;0.01&quot; name=&quot;Deadbeat&quot;/&gt;
+    &lt;artist key=&quot;6462ab86-e29c-46c2-ae7b-f807b4750ed1&quot; score=&quot;0.75&quot; popularity=&quot;0.00&quot; name=&quot;Beatdrop&quot;/&gt;
+    &lt;artist key=&quot;b0e724fe-6b47-4431-af2a-a0cd1d0c3b2c&quot; score=&quot;0.75&quot; popularity=&quot;9.05E-4&quot; name=&quot;Melbeatz&quot;/&gt;
+    &lt;artist key=&quot;9727e632-c228-47f8-a7ae-398df94f00c7&quot; score=&quot;0.75&quot; popularity=&quot;0.00&quot; name=&quot;The Beat&quot;/&gt;
+    &lt;artist key=&quot;dba7b6f3-8123-4a07-99d6-306acc41b7cd&quot; score=&quot;0.66&quot; popularity=&quot;0.04&quot; name=&quot;Alphabeat&quot;/&gt;
+    &lt;artist key=&quot;0038bcbd-5f12-4a05-9f77-324652334345&quot; score=&quot;0.66&quot; popularity=&quot;0.005&quot; name=&quot;Ultrabeat&quot;/&gt;
+    &lt;artist key=&quot;5eed131e-8f8f-4e97-a459-7ea8b0569b6a&quot; score=&quot;0.66&quot; popularity=&quot;0.004&quot; name=&quot;Deadbeats&quot;/&gt;
+    &lt;artist key=&quot;a9b88ebb-83aa-4ef7-b674-fabeb572c14e&quot; score=&quot;0.60&quot; popularity=&quot;0.070&quot; name=&quot;Beatsteaks&quot;/&gt;
+    &lt;artist key=&quot;058f1b2b-39b6-492c-89e8-24669dbceec5&quot; score=&quot;0.60&quot; popularity=&quot;9.1E-4&quot; name=&quot;Beatfabrik&quot;/&gt;
+    &lt;artist key=&quot;606fab29-6c2d-4fa8-92db-58dee35a1f2d&quot; score=&quot;0.60&quot; popularity=&quot;0.003&quot; name=&quot;Nylon Beat&quot;/&gt;
+    &lt;artist key=&quot;930c86d4-1ed0-4ec0-bcf1-fea7fb7e091a&quot; score=&quot;0.60&quot; popularity=&quot;0.005&quot; name=&quot;Londonbeat&quot;/&gt;
+    &lt;artist key=&quot;8602561b-caa1-4ef7-9501-a4159b3a41c3&quot; score=&quot;0.60&quot; popularity=&quot;0.010&quot; name=&quot;Beatallica&quot;/&gt;
+    &lt;artist key=&quot;c1520b12-fc67-41e4-9cfa-e857e836b827&quot; score=&quot;0.60&quot; popularity=&quot;0.008&quot; name=&quot;BeatFreakz&quot;/&gt;
+    &lt;artist key=&quot;698ff525-ff51-4206-8f08-60a7458aab24&quot; score=&quot;0.54&quot; popularity=&quot;0.005&quot; name=&quot;Swizz Beatz&quot;/&gt;
+    &lt;artist key=&quot;d814810f-6586-4515-a7ee-6a3ae9f345bf&quot; score=&quot;0.54&quot; popularity=&quot;8.6E-4&quot; name=&quot;Anjunabeats&quot;/&gt;
+    &lt;artist key=&quot;63630fb9-5d2b-43a5-8e98-b85bb773b258&quot; score=&quot;0.54&quot; popularity=&quot;0.002&quot; name=&quot;The Upbeats&quot;/&gt;
+    &lt;artist key=&quot;b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d&quot; score=&quot;0.54&quot; popularity=&quot;0.972&quot; name=&quot;The Beatles&quot;/&gt;
+    &lt;artist key=&quot;27acebf2-5440-42a7-9db6-19ad2c9dea38&quot; score=&quot;0.5&quot; popularity=&quot;0.0099&quot; name=&quot;Bronski Beat&quot;/&gt;
+    &lt;Status code='OK'/&gt;
+&lt;/ArtistSearch&gt;
+&lt;!-- output generated in 123 ms →</PRE>
+<H3>Example 2</H3>
+<PRE CLASS="code-western">http://www.tastekeeper.com/api/1.0/ArtistSearch?name=guns*roses&amp;max=20</PRE>
+<H3>Results</H3>
+<PRE CLASS="code-western">&lt;ArtistSearch&gt;
+    &lt;artist key=&quot;eeb1195b-f213-4ce1-b28c-8565211f8e43&quot; score=&quot;0.92&quot; popularity=&quot;0.30&quot; name=&quot;Guns N' Roses&quot;/&gt;
+    &lt;Status code='OK'/&gt;
+&lt;/ArtistSearch&gt;
+&lt;!-- output generated in 27 ms --></PRE>
+
+</BODY>
+</HTML>

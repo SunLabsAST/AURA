@@ -1,19 +1,436 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Unix)">
+	<META NAME="AUTHOR" CONTENT="Paul Lamere">
+	<META NAME="CREATED" CONTENT="20080929;11295200">
+	<META NAME="CHANGEDBY" CONTENT="Paul Lamere">
+	<META NAME="CHANGED" CONTENT="20080930;5322300">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+	<STYLE TYPE="text/css">
+	<!--
+		@page { margin: 0.79in }
+		P { margin-bottom: 0.08in }
+		H1 { margin-bottom: 0.08in }
+		H1.western { font-family: "Arial", sans-serif; font-size: 16pt }
+		H1.cjk { font-family: "MS Mincho"; font-size: 16pt }
+		H1.ctl { font-family: "Tahoma"; font-size: 16pt }
+		PRE.code-western { margin-left: 0.5in; background: #c0c0c0; border: 1px solid #000000; padding: 0.02in; font-size: 9pt; page-break-inside: avoid; page-break-before: auto }
+		PRE.code-cjk { margin-left: 0.5in; background: #c0c0c0; border: 1px solid #000000; padding: 0.02in; page-break-inside: avoid; page-break-before: auto }
+		PRE.code-ctl { margin-left: 0.5in; background: #c0c0c0; border: 1px solid #000000; padding: 0.02in; page-break-inside: avoid; page-break-before: auto }
+		H2 { margin-bottom: 0.08in }
+		H2.western { font-family: "Arial", sans-serif; font-size: 14pt; font-style: italic }
+		H2.cjk { font-family: "MS Mincho"; font-size: 14pt; font-style: italic }
+		H2.ctl { font-size: 14pt; font-style: italic }
+		H3 { margin-bottom: 0.08in }
+		H3.western { font-family: "Arial", sans-serif }
+		H3.cjk { font-family: "MS Mincho" }
+		TD P { margin-bottom: 0in }
+		A:link { so-language: zxx }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1 CLASS="western">Project Aura Web Service</H1>
+<P>The Project Aura music recommendation web service allows anyone to
+build a music service using Project Aura's unique transparent and
+steerable recommendations.</P>
+<H3 CLASS="western">Overview</H3>
+<P>The API loosely follows REST-style conventions. For some of the
+methods, you will need to use an application that you can obtain from
+the here: [[TBD-application-key-registration-site]]. 
+</P>
+<P>The API root URL is <A HREF="http://music.tastekeeper.com/api/1.0/">http://music.tastekeeper.com/api/1.0/</A></P>
+<P>API methods are of the form 
+<A HREF="http://music.tastekeeper.com/api/1.0/method?arg1=value1&amp;arg2=value">http://music.tastekeeper.com/api/1.0/method?arg1=value1&amp;arg2=value</A></P>
+<P><BR><BR>
+</P>
+<H2 CLASS="western">Methods</H2>
+<UL>
+	<LI><P>AddListener</P>
+	<LI><P><B>ArtistSearch</B> – searches for an artist by name</P>
+	<LI><P>ArtistTagSearch</P>
+	<LI><P><B>FindSimilarArtist</B> – finds artists that are similar
+	to a seed artist</P>
+	<LI><P>FindSimilarArtistFromWordCloud</P>
+	<LI><P>FindSimilarArtistTags</P>
+	<LI><P>FindSimilarListener</P>
+	<LI><P>GetApml</P>
+	<LI><P><B>GetArtists</B> – gets the most popular artists</P>
+	<LI><P><B>GetArtistTags – </B><SPAN STYLE="font-weight: normal">Gets
+	the Tags that have been applied to an artist</SPAN></P>
+	<LI><P>GetAttentionData</P>
+	<LI><P>GetItem</P>
+	<LI><P>GetListenerTags</P>
+	<LI><P>GetRecommendations</P>
+	<LI><P>GetStats</P>
+	<LI><P>GetTags</P>
+	<LI><P>TagItem</P>
+</UL>
+<H3 CLASS="western">Encoding</H3>
+<P>Use UTF-8 encoding when sending arguments to the API methods.</P>
+<H3 CLASS="western">Status</H3>
+<P>Status is returned as a &lt;status&gt; element that includes a
+status code and message.  For example:</P>
+<PRE CLASS="code-western">&lt;FindSimilarArtist&gt;
+	&lt;Status code=&quot;MissingArgument&quot;&gt;this method needs a name or a key&lt;/Status&gt;
+&lt;/FindSimilarArtist&gt;</PRE><P>
+<BR><BR>
+</P>
+<P>Possible status codes are:</P>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=546 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=142>
+	<COL WIDTH=386>
+	<TR VALIGN=TOP>
+		<TD WIDTH=142>
+			<P><B>Status Code</B></P>
+		</TD>
+		<TD WIDTH=386>
+			<P><B>Description</B></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=142>
+			<P>OK</P>
+		</TD>
+		<TD WIDTH=386>
+			<P>No Error</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=142>
+			<P>InternalError</P>
+		</TD>
+		<TD WIDTH=386>
+			<P>An internal error occurred</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=142>
+			<P>MissingArgument</P>
+		</TD>
+		<TD WIDTH=386>
+			<P>A required argument is missing</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=142>
+			<P>BadArgument</P>
+		</TD>
+		<TD WIDTH=386>
+			<P>An argument is in an improper format</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=142>
+			<P>NotFound</P>
+		</TD>
+		<TD WIDTH=386>
+			<P>The requested item was not found</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=142>
+			<P>InvalidKey</P>
+		</TD>
+		<TD WIDTH=386>
+			<P>The application key is not valid for the requested operation</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=142>
+			<P>RateLimitExceeded</P>
+		</TD>
+		<TD WIDTH=386>
+			<P>The application has exceeded the allowed rate</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=142>
+			<P>InvalidMethod</P>
+		</TD>
+		<TD WIDTH=386>
+			<P>The requested method is invalid</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=142>
+			<P>Offline</P>
+		</TD>
+		<TD WIDTH=386>
+			<P>The webservice is currently offline</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<H3 CLASS="western">Scores</H3>
+<P>Many results have a <I>score</I> associated with them.  Scores
+range from 0.0 to 1.0. 
+</P>
+<H3 CLASS="western">Popularity</H3>
+<P>Some results have <I>popularity</I><SPAN STYLE="font-style: normal">
+associated with them. Popularity ranges from 0.0 to 1.0.  </SPAN>
+</P>
+<H2 CLASS="western">Methods</H2>
+<P><BR><BR>
+</P>
+<HR>
+<H3 CLASS="western">ArtistSearch</H3>
+<P>	Searches the database for an artist with a particular name</P>
+<H3 CLASS="western">Params</H3>
+<UL>
+	<LI><P><B>Name</B><SPAN STYLE="font-weight: normal"> – the name of
+	the artist.  Wildcards are allowed. Required argument</SPAN></P>
+	<LI><P><B>max – </B><SPAN STYLE="font-weight: normal">the maximum
+	number of results returned. Optional argument, default: 10</SPAN></P>
+</UL>
+<H3 CLASS="western">Example</H3>
+<PRE CLASS="code-western">	http://www.tastekeeper.com/api/1.0/ArtistSearch?name=beat&amp;max=20</PRE><P>
+<B>	</B></P>
+<H3 CLASS="western">Sample Results</H3>
+<PRE CLASS="code-western">&lt;ArtistSearch&gt;
+    &lt;artist key=&quot;4753fcb7-9270-493a-974d-8daca4e49125&quot; score=&quot;0.8571428656578064&quot; popularity=&quot;0.0031635165&quot; name=&quot;Volbeat&quot;/&gt;
+    &lt;artist key=&quot;a9c1755a-eb2c-4432-b221-b13c717f2e27&quot; score=&quot;0.8571428656578064&quot; popularity=&quot;8.2202104E-4&quot; name=&quot;Sexbeat&quot;/&gt;
+    &lt;artist key=&quot;55c8de21-66df-4285-9b9f-41b8e8673e3c&quot; score=&quot;0.75&quot; popularity=&quot;0.010206972&quot; name=&quot;Deadbeat&quot;/&gt;
+    &lt;artist key=&quot;6462ab86-e29c-46c2-ae7b-f807b4750ed1&quot; score=&quot;0.75&quot; popularity=&quot;0.0010231001&quot; name=&quot;Beatdrop&quot;/&gt;
+    &lt;artist key=&quot;b0e724fe-6b47-4431-af2a-a0cd1d0c3b2c&quot; score=&quot;0.75&quot; popularity=&quot;9.048555E-4&quot; name=&quot;Melbeatz&quot;/&gt;
+    &lt;artist key=&quot;9727e632-c228-47f8-a7ae-398df94f00c7&quot; score=&quot;0.75&quot; popularity=&quot;0.0039659357&quot; name=&quot;The Beat&quot;/&gt;
+    &lt;artist key=&quot;dba7b6f3-8123-4a07-99d6-306acc41b7cd&quot; score=&quot;0.6666666865348816&quot; popularity=&quot;0.048878003&quot; name=&quot;Alphabeat&quot;/&gt;
+    &lt;artist key=&quot;0038bcbd-5f12-4a05-9f77-324652334345&quot; score=&quot;0.6666666865348816&quot; popularity=&quot;0.00509906&quot; name=&quot;Ultrabeat&quot;/&gt;
 
+    &lt;artist key=&quot;5eed131e-8f8f-4e97-a459-7ea8b0569b6a&quot; score=&quot;0.6666666865348816&quot; popularity=&quot;0.004062681&quot; name=&quot;Deadbeats&quot;/&gt;
+    &lt;artist key=&quot;a9b88ebb-83aa-4ef7-b674-fabeb572c14e&quot; score=&quot;0.6000000238418579&quot; popularity=&quot;0.0705547&quot; name=&quot;Beatsteaks&quot;/&gt;
+    &lt;artist key=&quot;058f1b2b-39b6-492c-89e8-24669dbceec5&quot; score=&quot;0.6000000238418579&quot; popularity=&quot;9.314131E-4&quot; name=&quot;Beatfabrik&quot;/&gt;
+    &lt;artist key=&quot;606fab29-6c2d-4fa8-92db-58dee35a1f2d&quot; score=&quot;0.6000000238418579&quot; popularity=&quot;0.0031502377&quot; name=&quot;Nylon Beat&quot;/&gt;
+    &lt;artist key=&quot;930c86d4-1ed0-4ec0-bcf1-fea7fb7e091a&quot; score=&quot;0.6000000238418579&quot; popularity=&quot;0.0057465597&quot; name=&quot;Londonbeat&quot;/&gt;
+    &lt;artist key=&quot;8602561b-caa1-4ef7-9501-a4159b3a41c3&quot; score=&quot;0.6000000238418579&quot; popularity=&quot;0.010028657&quot; name=&quot;Beatallica&quot;/&gt;
+    &lt;artist key=&quot;c1520b12-fc67-41e4-9cfa-e857e836b827&quot; score=&quot;0.6000000238418579&quot; popularity=&quot;0.008447215&quot; name=&quot;BeatFreakz&quot;/&gt;
+    &lt;artist key=&quot;698ff525-ff51-4206-8f08-60a7458aab24&quot; score=&quot;0.5454545617103577&quot; popularity=&quot;0.005150278&quot; name=&quot;Swizz Beatz&quot;/&gt;
+    &lt;artist key=&quot;d814810f-6586-4515-a7ee-6a3ae9f345bf&quot; score=&quot;0.5454545617103577&quot; popularity=&quot;8.6438673E-4&quot; name=&quot;Anjunabeats&quot;/&gt;
 
-<h1>Overview</h1>
+    &lt;artist key=&quot;63630fb9-5d2b-43a5-8e98-b85bb773b258&quot; score=&quot;0.5454545617103577&quot; popularity=&quot;0.0024837682&quot; name=&quot;The Upbeats&quot;/&gt;
+    &lt;artist key=&quot;b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d&quot; score=&quot;0.5454545617103577&quot; popularity=&quot;0.97295487&quot; name=&quot;The Beatles&quot;/&gt;
+    &lt;artist key=&quot;27acebf2-5440-42a7-9db6-19ad2c9dea38&quot; score=&quot;0.5&quot; popularity=&quot;0.009998306&quot; name=&quot;Bronski Beat&quot;/&gt;
+    &lt;Status code='OK'/&gt;
+&lt;/ArtistSearch&gt;
+&lt;!-- output generated in 123 ms →</PRE><P>
+<BR><BR>
+</P>
+<H3 CLASS="western">Example 2</H3>
+<PRE CLASS="code-western"><A HREF="http://www.tastekeeper.com/api/1.0/ArtistSearch?name=guns*roses&amp;max=20">http://www.tastekeeper.com/api/1.0/ArtistSearch?name=guns*roses&amp;max=20</A>	</PRE><P>
+<BR><BR>
+</P>
+<H3 CLASS="western">Results</H3>
+<PRE CLASS="code-western">&lt;ArtistSearch&gt;
+    &lt;artist key=&quot;eeb1195b-f213-4ce1-b28c-8565211f8e43&quot; score=&quot;0.9230769276618958&quot; popularity=&quot;0.30358565&quot; name=&quot;Guns N' Roses&quot;/&gt;
+    &lt;Status code='OK'/&gt;
+&lt;/ArtistSearch&gt;
+&lt;!-- output generated in 27 ms →</PRE><P>
+<BR><BR>
+</P>
+<H3 CLASS="western">ArtistTagSearch</H3>
+<P>	Searches the database for an artist tag with a particular name</P>
+<H3 CLASS="western">Params</H3>
+<UL>
+	<LI><P><B>Name</B><SPAN STYLE="font-weight: normal"> – the name of
+	the artisttag.  Wildcards are allowed. Required argument</SPAN></P>
+	<LI><P><B>max – </B><SPAN STYLE="font-weight: normal">the maximum
+	number of results returned. Optional argument, default: 10</SPAN></P>
+</UL>
+<H3 CLASS="western">Example</H3>
+<PRE CLASS="code-western">	http://www.tastekeeper.com/api/1.0/ArtistTagSearch?name=fem*&amp;max=10</PRE><P>
+<B>	</B></P>
+<H3 CLASS="western">Sample Results</H3>
+<PRE CLASS="code-western">&lt;ArtistTagSearch&gt;
+    &lt;artistTag key=&quot;artist-tag:feminist&quot; score=&quot;0.75&quot; popularity=&quot;490.0&quot; name=&quot;feminist&quot;/&gt;
+    &lt;artistTag key=&quot;artist-tag:femalerock&quot; score=&quot;0.5454545617103577&quot; popularity=&quot;687.0&quot; name=&quot;female rock&quot;/&gt;
+    &lt;artistTag key=&quot;artist-tag:frenchfemale&quot; score=&quot;0.4615384638309479&quot; popularity=&quot;391.0&quot; name=&quot;french female&quot;/&gt;
+    &lt;artistTag key=&quot;artist-tag:femalevocalists&quot; score=&quot;0.375&quot; popularity=&quot;98605.0&quot; name=&quot;female vocalists&quot;/&gt;
+    &lt;artistTag key=&quot;artist-tag:femalefrontedrock&quot; score=&quot;0.31578946113586426&quot; popularity=&quot;564.0&quot; name=&quot;female fronted rock&quot;/&gt;
+    &lt;artistTag key=&quot;artist-tag:femaledancevocals&quot; score=&quot;0.31578946113586426&quot; popularity=&quot;199.0&quot; name=&quot;female dance vocals&quot;/&gt;
+    &lt;artistTag key=&quot;artist-tag:femalefrontedmetal&quot; score=&quot;0.30000001192092896&quot; popularity=&quot;21678.0&quot; name=&quot;Female fronted metal&quot;/&gt;
+    &lt;artistTag key=&quot;artist-tag:femalesingersongwriter&quot; score=&quot;0.25&quot; popularity=&quot;1055.0&quot; name=&quot;female singer-songwriter&quot;/&gt;
 
-<h2> General </h2>
-The API loosely follows REST style conventions For some of the
-methods, you will need to use an application key.  You can obtain
-an application key by registering here: [[ url tbd ]].  Use UTF-8
-encoding when sending arguments to API methods. See the [[terms-of-service
-(tbd)]] for information about what we consider to be acceptable
-use.
+    &lt;Status code='OK'/&gt;
+&lt;/ArtistTagSearch&gt;
+&lt;!-- output generated in 95 ms --&gt;</PRE><P>
+<BR><BR>
+</P>
+<HR>
+<P><BR><BR>
+</P>
+<H2 CLASS="western">FindSimilarArtist	</H2>
+<P>	Finds artists that are similar to a seed artist.  
+</P>
+<H3 CLASS="western">Params</H3>
+<UL>
+	<LI><P><B>name</B><SPAN STYLE="font-weight: normal"> – the name of
+	the artist.  Wildcards are allowed. If multiple artists match the
+	name, the best matching artist is used. Required if </SPAN><I><SPAN STYLE="font-weight: normal">key</SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
+	not present.</SPAN></SPAN></P>
+	<LI><P><B>key</B><SPAN STYLE="font-weight: normal"> – the
+	musicbrainz ID for the artist.  Required if </SPAN><I><SPAN STYLE="font-weight: normal">name</SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
+	not present</SPAN></SPAN></P>
+	<LI><P><B>max – </B><SPAN STYLE="font-weight: normal">the maximum
+	number of results returned.  Optional, default is 10.</SPAN></P>
+	<LI><P><B>popularity – </B><SPAN STYLE="font-weight: normal">the
+	desired range of popularity in the results.  Optional, default is
+	'all'.  Value must be one of:</SPAN></P>
+	<UL>
+		<LI><P><B>all</B><SPAN STYLE="font-weight: normal"> – all artists
+		are considered</SPAN></P>
+		<LI><P><B>head</B><SPAN STYLE="font-weight: normal"> – only very
+		popular artists are considered</SPAN></P>
+		<LI><P><B>mid</B><SPAN STYLE="font-weight: normal"> – only
+		moderately popular artists are considered</SPAN></P>
+		<LI><P><B>tail</B><SPAN STYLE="font-weight: normal"> – only long
+		tail artists are considered</SPAN></P>
+		<LI><P><B>head_mid </B><SPAN STYLE="font-weight: normal">– very
+		and moderately popular artists are considered</SPAN></P>
+		<LI><P><B>mid_tail </B><SPAN STYLE="font-weight: normal">– very
+		popular artists are not considered.</SPAN></P>
+	</UL>
+	<LI><P><B>field - </B><SPAN STYLE="font-weight: normal"> the field
+	to use for similarity. Optional, default is 'socialTtags'.  Value
+	must be one of:</SPAN></P>
+	<UL>
+		<LI><P><B>all</B><SPAN STYLE="font-weight: normal"> – consider
+		all fields for similarity</SPAN></P>
+		<LI><P><B>autoTags</B><SPAN STYLE="font-weight: normal"> –
+		consider autotags for similarity </SPAN>
+		</P>
+		<LI><P><B>biographySummary</B><SPAN STYLE="font-weight: normal"> –
+		use the artist biography for similarity</SPAN></P>
+		<LI><P><B>collaborations</B><SPAN STYLE="font-weight: normal"> –
+		use the artist collaborations for similarity</SPAN></P>
+		<LI><P><B>events</B><SPAN STYLE="font-weight: normal"> – use the
+		artist </SPAN>
+		</P>
+		<LI><P><B>followers</B><SPAN STYLE="font-weight: normal"> – use
+		the artist followers for similarity </SPAN>
+		</P>
+		<LI><P><B>influencers</B><SPAN STYLE="font-weight: normal"> – use
+		the aritst influencers for similarity</SPAN></P>
+		<LI><P><B>relatedArtists</B><SPAN STYLE="font-weight: normal"> –
+		use the related artists for similarity</SPAN></P>
+		<LI><P><B>socialTags</B><SPAN STYLE="font-weight: normal">- use the
+		social tags for similarty</SPAN></P>
+		<LI><P><B>bioTags</B><SPAN STYLE="font-weight: normal"> – use bio
+		tags (the artist biography filtered for music-related terms)</SPAN></P>
+		<LI><P><B>blurbTags</B><SPAN STYLE="font-weight: normal"> – use
+		blurb tags (artist reviews filtered for music-related terms)</SPAN></P>
+	</UL>
+</UL>
+<P STYLE="font-weight: normal"><I>For the future – we will allow
+specification of multiple weighed fields for similarity like so:   
+field=(autoTags,1)(socialTags,2)(blurbTags,.5)</I></P>
+<H3 CLASS="western"><B>Example</B></H3>
+<PRE CLASS="code-western"><A HREF="http://www.tastekeeper.com/SitmWebServices/FindSimilarArtist?name=weezer"><B>http://www.tastekeeper.com/api/1.0/FindSimilarArtist?name=weezer&amp;popularity=head</B></A></PRE><P>
+<BR><BR>
+</P>
+<H3 CLASS="western"><B>Results</B></H3>
+<PRE CLASS="code-western">&lt;FindSimilarArtist key=&quot;6fe07aa5-fec0-4eca-a456-f29bff451b04&quot; name=&quot;Weezer&quot;&gt;
+    &lt;artist key=&quot;c0e03a06-f8b9-47ac-a50f-8ae1dbb5bd52&quot; score=&quot;0.5899210572242737&quot; name=&quot;Ozma&quot;/&gt;
+    &lt;artist key=&quot;7509421d-1074-442f-be8f-b526167afcb3&quot; score=&quot;0.5224788784980774&quot; name=&quot;The Presidents of the United States of America&quot;/&gt;
+    &lt;artist key=&quot;86e736b4-93e2-40ff-9e1c-fb7c63fef5f6&quot; score=&quot;0.5222190022468567&quot; name=&quot;Barenaked Ladies&quot;/&gt;
+    &lt;artist key=&quot;b9a2a9a6-7a40-48a6-bcb1-8eff5b89ad5b&quot; score=&quot;0.5214160680770874&quot; name=&quot;Nada Surf&quot;/&gt;
+    &lt;artist key=&quot;b9472588-93f3-4922-a1a2-74082cdf9ce8&quot; score=&quot;0.5085049867630005&quot; name=&quot;Panic at the Disco&quot;/&gt;
+    &lt;artist key=&quot;b267ca80-034e-4dc1-9ed4-ec45f1fed41d&quot; score=&quot;0.5044968724250793&quot; name=&quot;Good Charlotte&quot;/&gt;
+    &lt;artist key=&quot;183d6ef6-e161-47ff-9085-063c8b897e97&quot; score=&quot;0.5006264448165894&quot; name=&quot;They Might Be Giants&quot;/&gt;
+    &lt;artist key=&quot;6cbe1e63-5895-4168-ac7e-f0d2836ba0c1&quot; score=&quot;0.4920063614845276&quot; name=&quot;Guster&quot;/&gt;
 
-<h2> Status Results</h2>
+    &lt;artist key=&quot;e467bdd6-d977-473c-b721-7cc2785933bc&quot; score=&quot;0.47940221428871155&quot; name=&quot;Harry and the Potters&quot;/&gt;
+    &lt;artist key=&quot;36bfa85f-737b-41db-a8fc-b8825850ffc3&quot; score=&quot;0.4789607524871826&quot; name=&quot;Pavement&quot;/&gt;
+    &lt;Status code='OK'/&gt;
+&lt;/FindSimilarArtist&gt;
+&lt;!-- output generated in 104 ms --&gt;</PRE><P>
+<BR><BR>
+</P>
+<HR>
+<H2 CLASS="western">GetArtists</H2>
+<P>	Gets the most popular artists</P>
+<H3 CLASS="western">Params</H3>
+<UL>
+	<LI><P><B>max – </B><SPAN STYLE="font-weight: normal">the maximum
+	number of results returned.  Optional, default is 100.</SPAN></P>
+</UL>
+<H3 CLASS="western"><SPAN STYLE="font-weight: normal">Example</SPAN></H3>
+<PRE CLASS="code-western"><SPAN STYLE="font-weight: normal">http://www.tastekeeper.com/api/1.0/GetArtists?max=10</SPAN></PRE><H3 CLASS="western">
+<SPAN STYLE="font-weight: normal">Results</SPAN></H3>
+<PRE CLASS="code-western"><SPAN STYLE="font-weight: normal">&lt;GetArtists&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;artist key=&quot;a74b1b7f-71a5-4011-9441-d0b5e4122711&quot; name=&quot;Radiohead&quot; popularity=&quot;1.0&quot;/&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;artist key=&quot;b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d&quot; name=&quot;The Beatles&quot; popularity=&quot;0.97295487&quot;/&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;artist key=&quot;cc197bad-dc9c-440d-a5b5-d52ba2e14234&quot; name=&quot;Coldplay&quot; popularity=&quot;0.6686718&quot;/&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;artist key=&quot;83d91898-7763-47d7-b03b-b92132375c47&quot; name=&quot;Pink Floyd&quot; popularity=&quot;0.6377252&quot;/&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;artist key=&quot;65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab&quot; name=&quot;Metallica&quot; popularity=&quot;0.6057081&quot;/&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;artist key=&quot;9c9f1380-2516-4fc9-a3e6-f9f61941d090&quot; name=&quot;Muse&quot; popularity=&quot;0.59941965&quot;/&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;artist key=&quot;8bfac288-ccc5-448d-9573-c33ea2aa5c30&quot; name=&quot;Red Hot Chili Peppers&quot; popularity=&quot;0.59599626&quot;/&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;artist key=&quot;5b11f4ce-a62d-471e-81fc-a69a8278c7da&quot; name=&quot;Nirvana&quot; popularity=&quot;0.5217823&quot;/&gt;</SPAN>
 
-<h2> Methods</h2>
+    <SPAN STYLE="font-weight: normal">&lt;artist key=&quot;678d88b2-87b0-403b-b63d-5da7465aecc3&quot; name=&quot;Led Zeppelin&quot; popularity=&quot;0.5176406&quot;/&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;artist key=&quot;0039c7ae-e1a7-4a7d-9b49-0cbc716821a6&quot; name=&quot;Death Cab for Cutie&quot; popularity=&quot;0.51066667&quot;/&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;Status code='OK'/&gt;</SPAN>
+<SPAN STYLE="font-weight: normal">&lt;/GetArtists&gt;</SPAN>
+<SPAN STYLE="font-weight: normal">&lt;!-- output generated in 61 ms --&gt;</SPAN></PRE><P>
+<BR><BR>
+</P>
+<HR>
+<H2 CLASS="western">GetArtistTags</H2>
+<P>	Gets the tags that have been applied to an artist</P>
+<H3 CLASS="western">Params</H3>
+<UL>
+	<LI><P><B>name</B><SPAN STYLE="font-weight: normal"> – the name of
+	the artist.  Wildcards are allowed. If multiple artists match the
+	name, the best matching artist is used. Required if </SPAN><I><SPAN STYLE="font-weight: normal">key</SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
+	not present.</SPAN></SPAN></P>
+	<LI><P><B>key</B><SPAN STYLE="font-weight: normal"> – the
+	musicbrainz ID for the artist.  Required if </SPAN><I><SPAN STYLE="font-weight: normal">name</SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
+	not present</SPAN></SPAN></P>
+	<LI><P><B>max – </B><SPAN STYLE="font-weight: normal">the maximum
+	number of results returned.  Optional, default is 100.</SPAN></P>
+	<LI><P><B>type – </B><SPAN STYLE="font-weight: normal">the type of
+	tag report – </SPAN><I><SPAN STYLE="font-weight: normal">distinctive
+	</SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">or
+	</SPAN></SPAN><I><SPAN STYLE="font-weight: normal">frequent.
+	</SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">Optional,
+	default is </SPAN></SPAN><I><SPAN STYLE="font-weight: normal">distinctive.
+	 </SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">When
+	type is </SPAN></SPAN><I><SPAN STYLE="font-weight: normal">distinctive</SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">,
+	the highest weighted tags are returned, otherwise, the tags with the
+	highest frequency are returned.</SPAN></SPAN></P>
+	<LI><P><B>field - </B><SPAN STYLE="font-weight: normal"> the field
+	of interest. Optional, default is 'socialTtags'.  Value must be one
+	of: all, autoTags, biographySummary, collaborations, events,
+	followers, influencers, relatedArtists, socialTags, bioTags,
+	blurbTags</SPAN></P>
+</UL>
+<H3 CLASS="western"><SPAN STYLE="font-weight: normal">Example</SPAN></H3>
+<PRE CLASS="code-western"><SPAN STYLE="font-weight: normal">http://www.tastekeeper.com/api/1.0/GetArtistTags?max=10&amp;name=weezer</SPAN></PRE><H3 CLASS="western">
+<SPAN STYLE="font-weight: normal">Results</SPAN></H3>
+<PRE CLASS="code-western"><SPAN STYLE="font-weight: normal">&lt;GetTags&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;ArtistTag key=&quot;90s&quot; score=&quot;0.1224219799041748&quot; /&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;ArtistTag key=&quot;alternative&quot; score=&quot;0.17488433420658112&quot; /&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;ArtistTag key=&quot;american&quot; score=&quot;0.0957566648721695&quot; /&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;ArtistTag key=&quot;emo&quot; score=&quot;0.1692119836807251&quot; /&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;ArtistTag key=&quot;geek rock&quot; score=&quot;0.20964957773685455&quot; /&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;ArtistTag key=&quot;indie&quot; score=&quot;0.15931014716625214&quot; /&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;ArtistTag key=&quot;nerd rock&quot; score=&quot;0.1707993596792221&quot; /&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;ArtistTag key=&quot;pop&quot; score=&quot;0.09425466507673264&quot; /&gt;</SPAN>
 
-<table>
-<tr><th>Name<td>    
-</table>
+    <SPAN STYLE="font-weight: normal">&lt;ArtistTag key=&quot;punk&quot; score=&quot;0.09872012585401535&quot; /&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;ArtistTag key=&quot;rock&quot; score=&quot;0.17458286881446838&quot; /&gt;</SPAN>
+    <SPAN STYLE="font-weight: normal">&lt;Status code='OK'/&gt;</SPAN>
+<SPAN STYLE="font-weight: normal">&lt;/GetTags&gt;</SPAN>
+<SPAN STYLE="font-weight: normal">&lt;!-- output generated in 54 ms --&gt;</SPAN></PRE><P>
+<BR><BR>
+</P>
+</BODY>
+</HTML>

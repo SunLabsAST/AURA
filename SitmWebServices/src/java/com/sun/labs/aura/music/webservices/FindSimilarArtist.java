@@ -79,9 +79,9 @@ public class FindSimilarArtist extends HttpServlet {
                         if ((artist = mdb.artistLookup(key)) != null) {
                             List<Scored<Artist>> scoredArtists;
                             if ("all".equals(field)) {
-                                scoredArtists = mdb.artistFindSimilar(key, maxCount, pop);
+                                scoredArtists = mdb.artistFindSimilar(key, maxCount +1, pop);
                             } else {
-                                scoredArtists = mdb.artistFindSimilar(key, field, maxCount, pop);
+                                scoredArtists = mdb.artistFindSimilar(key, field, maxCount +1, pop);
                             }
 
                             out.println("<FindSimilarArtist key=\"" + key + "\" name=\"" + Util.filter(artist.getName()) + "\">");
