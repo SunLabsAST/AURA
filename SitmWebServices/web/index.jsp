@@ -42,8 +42,11 @@
             <li> <a href="GetApml?userID=http://paul.lamere.myopenid.com/"> Gets the APML for lamere (with MBAIDs)</a>
             <li> <a href="GetApml?userID=http://paul.lamere.myopenid.com/&format=artist"> Gets the APML for lamere (with artistNames)</a>
             <li> <a href="FindSimilarListener?userID=http://paul.lamere.myopenid.com/"> Finds similar listener to lamere</a>
-            <li> <a href="GetItem?itemID=http://paul.lamere.myopenid.com/"> shows listener lamere</a>
-            <li> <a href="GetItem?itemID=6fe07aa5-fec0-4eca-a456-f29bff451b04"> shows artist 'weezer'</a>
+            <li> <a href="GetItem?key=http://paul.lamere.myopenid.com/"> shows listener lamere</a>
+            <li> <a href="GetItem?key=6fe07aa5-fec0-4eca-a456-f29bff451b04"> shows artist 'weezer'</a>
+            <li> <a href="GetItem?format=compact&key=6fe07aa5-fec0-4eca-a456-f29bff451b04,a74b1b7f-71a5-4011-9441-d0b5e4122711,b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d,9c9f1380-2516-4fc9-a3e6-f9f61941d090,b071f9fa-14b0-4217-8e97-eb41da73f598"> shows top artists</a>
+            <li> <a href="GetItem?format=compact&key=6fe07aa5-fec0-4eca-a456-f29bff451b04,1e477f68-c407-4eae-ad01-518528cedc2,ec7c97cc-1d06-4c74-bcb5-6773391f90b,http://static.flickr.com/33/49490624_fecd23a894.jpg,50c213ed-a109-4677-9b7b-d57ef580dd2d,1f8bdf5d-aed1-45aa-bf1f-94af1d7e71c1"> multi-get compact'</a>
+            <li> <a href="GetItem?key=6fe07aa5-fec0-4eca-a456-f29bff451b04&format=compact"> shows compact artist 'weezer'</a>
             <li> <a href="TagItem?userID=http://paul.lamere.myopenid.com/&itemID=6fe07aa5-fec0-4eca-a456-f29bff451b04&tag=weezercore"> apply a tag to weezer</a>
             <li> <a href="GetListenerTags?userID=http://paul.lamere.myopenid.com/&itemID=6fe07aa5-fec0-4eca-a456-f29bff451b04"> get tags applied to 'weezer'</a>
             <li> <a href="GetAttentionData?src=lamere&max=500">Get 500 attention data points for user lamere</a>
