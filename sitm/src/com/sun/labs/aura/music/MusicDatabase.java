@@ -1134,6 +1134,12 @@ public class MusicDatabase {
             return artistFindSimilar(artistID, field, count);
         }
 
+        @Override
+        public List<Scored<Artist>> findSimilarArtists(String artistID, int count, 
+                    MusicDatabase.Popularity pop) throws AuraException {
+            return artistFindSimilar(artistID, field, count, pop);
+        }
+
         public List<Scored<String>> explainSimilarity(String id1, String id2, int count) throws AuraException {
             try {
                 return dataStore.explainSimilarity(id1, id2, new SimilarityConfig(field, count));
@@ -1167,6 +1173,12 @@ public class MusicDatabase {
 
         public List<Scored<Artist>> findSimilarArtists(String artistID, int count) throws AuraException {
             List<Scored<Item>> simItems = findSimilar(artistID, count, ItemType.ARTIST);
+            return convertToScoredArtistList(simItems);
+        }
+
+        public List<Scored<Artist>> findSimilarArtists(String artistID, int count, 
+                    MusicDatabase.Popularity pop) throws AuraException {
+            List<Scored<Item>> simItems = findSimilar(artistID, count, ItemType.ARTIST, pop);
             return convertToScoredArtistList(simItems);
         }
 
