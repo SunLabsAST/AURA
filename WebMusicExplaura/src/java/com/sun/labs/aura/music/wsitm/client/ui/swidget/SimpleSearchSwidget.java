@@ -433,7 +433,8 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
             try {
                 PerformanceTimer.start("getArtistDetails");
-                musicServer.getArtistDetails(artistID, refresh, cdm.getCurrSimTypeName(), callback);
+                musicServer.getArtistDetails(artistID, refresh, cdm.getCurrSimTypeName(), 
+                        cdm.getCurrPopularity(), callback);
             } catch (Exception ex) {
                 Window.alert(ex.getMessage());
             }
@@ -501,37 +502,41 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         left.setSpacing(4);
         left.setWidth("300px");
 
-        if (artistDetails.getSimilarArtists().length > 0) {
-            ArtistCompact[] aCArray = artistDetails.getSimilarArtists();
-            addCompactArtistToOracle(aCArray);
-
-            if (leftSimList != null) {
-                leftSimList.doRemoveListeners();
-            }
-            leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, aC);
-            
-            HorizontalPanel hP = new HorizontalPanel();
-            hP.add(new Label("Similar artists"));
-            popSelect = new PopularitySelectAD(artistDetails);
-            hP.add(popSelect);
-            hP.setStyleName("h2");
-
-            left.add(
-                    new Updatable(hP, leftSimList, cdm, id) {
-
-                        public void update(ArtistDetails aD, String popularity) {
-                            ArtistCompact[] aCArray = aD.getSimilarArtists();
-                            addCompactArtistToOracle(aCArray);
-                            leftSimList.doRemoveListeners();
-                            leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, aD.toArtistCompact());
-                            setNewContent(leftSimList);
-                        }
-                    }
-           );
-        }
         
+        ArtistCompact[] aCArray;
+
+        // Add similar artists
+        aCArray = artistDetails.getSimilarArtists();
+        addCompactArtistToOracle(aCArray);
+
+        if (leftSimList != null) {
+            leftSimList.doRemoveListeners();
+        }
+        leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, aC);
+
+        HorizontalPanel hP = new HorizontalPanel();
+        hP.add(new Label("Similar artists"));
+        hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+        popSelect = new PopularitySelectAD(artistDetails);
+        hP.add(popSelect);
+        hP.setWidth("300px");
+        hP.setStyleName("h2");
+
+        left.add(
+                new Updatable<ArtistDetails>(hP, leftSimList, cdm, artistDetails) {
+
+                    public void update(ArtistCompact[] aC) {
+
+                        addCompactArtistToOracle(aC);
+                        leftSimList.doRemoveListeners();
+                        leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aC, data.toArtistCompact());
+                        setNewContent(leftSimList);
+                    }
+                });
+
+        // Add recommended artists
         if (artistDetails.getRecommendedArtists().length > 0) {
-            ArtistCompact[] aCArray = artistDetails.getRecommendedArtists();
+            aCArray = artistDetails.getRecommendedArtists();
             addCompactArtistToOracle(aCArray);
             
             if (leftRecList != null) {
@@ -540,8 +545,10 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             leftRecList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, aC);
             left.add(WebLib.createSection("Recommendations", leftRecList));
         }
+
+        // Add related artists
         if (artistDetails.getCollaborations().length > 0) {
-            ArtistCompact[] aCArray = artistDetails.getCollaborations();
+            aCArray = artistDetails.getCollaborations();
             addCompactArtistToOracle(aCArray);
 
             if (leftRelList != null) {
@@ -1317,12 +1324,49 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         private ArtistDetails aD;
 
         public PopularitySelectAD(ArtistDetails aD) {
+            super(cdm.getCurrPopularity());
             this.aD = aD;
         }
 
         @Override
         public void onSelectionChange(String newPopularity) {
-            cdm.updateUpdatableWidgets(aD, newPopularity);
+            cdm.setCurrPopularity(newPopularity);
+            cdm.displayWaitIconUpdatableWidgets();
+            invokeGetArtistInfo(aD.getId());
+        }
+
+        /**
+         * Fetch new similar artists. Used when similarity type is updated
+         * @param artistID
+         * @param refresh
+         */
+        private void invokeGetArtistInfo(String artistID) {
+
+            if (artistID.startsWith("artist:")) {
+                artistID = artistID.replaceAll("artist:", "");
+            }
+
+            AsyncCallback<ArtistCompact[]> callback = new AsyncCallback<ArtistCompact[]>() {
+
+                public void onSuccess(ArtistCompact[] aC) {
+                    // do some UI stuff to show success
+                    if (aC != null) {
+                        cdm.updateUpdatableWidgets(aC);
+                    } else {
+                        Window.alert("An error occured while fetching the new recommendations.");
+                    }
+                }
+
+                public void onFailure(Throwable caught) {
+                    Window.alert("An error occured while fetching the new recommendations.");
+                }
+            };
+
+            try {
+                musicServer.getSimilarArtists(artistID, cdm.getCurrSimTypeName(), cdm.getCurrPopularity(), callback);
+            } catch (Exception ex) {
+                Window.alert(ex.getMessage());
+            }
         }
     };
 }

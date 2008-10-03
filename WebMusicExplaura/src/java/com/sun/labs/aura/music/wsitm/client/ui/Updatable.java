@@ -10,20 +10,20 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 
 /**
  *
  * @author mailletf
  */
-public abstract class Updatable extends Composite {
+public abstract class Updatable<T> extends Composite {
 
     private Grid main;
-    protected String extraParam;
+    protected T data;
 
-    public Updatable(Widget title, Widget widget, ClientDataManager cdm, String extraParam) {
+    public Updatable(Widget title, Widget widget, ClientDataManager cdm, T data) {
         this(title, widget, cdm);
-        this.extraParam = extraParam;
+        this.data = data;
     }
         
     public Updatable(Widget title, Widget widget, ClientDataManager cdm) {
@@ -34,13 +34,13 @@ public abstract class Updatable extends Composite {
         this.initWidget(main);
     }
     
-    public Updatable(Widget title, ArtistDetails aD, ClientDataManager cdm, String extraParam) {
+    public Updatable(Widget title, ArtistCompact[] aC, ClientDataManager cdm, T data) {
         
-        this.extraParam=extraParam;
+        this.data = data;
         
         main = new Grid(2, 1);
         main.setWidget(0, 0, title);
-        update(aD, "ALL");
+        update(aC);
         cdm.addUpdatableWidget(this);
         this.initWidget(main);
     }
@@ -68,7 +68,7 @@ public abstract class Updatable extends Composite {
         main.setWidget(1, 0, bottom);
     }
     
-    public abstract void update(ArtistDetails aD, String popularity);
+    public abstract void update(ArtistCompact[] aC);
 
     private class AnimatedUpdatableSection extends AnimatedComposite {
 

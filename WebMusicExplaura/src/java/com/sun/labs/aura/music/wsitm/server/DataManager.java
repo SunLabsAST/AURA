@@ -29,7 +29,6 @@ import com.sun.labs.aura.music.SimType;
 import com.sun.labs.aura.music.Video;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.util.props.ConfigurationManager;
-import com.sun.labs.aura.music.wsitm.client.items.Details;
 import com.sun.labs.aura.music.wsitm.client.items.AlbumDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistEvent;
@@ -82,7 +81,7 @@ public class DataManager implements Configurable {
     private static final int NUMBER_TAGS_ORACLE = 500;
     private Logger logger = Logger.getLogger("");
     ConfigurationManager configMgr;
-    private Map<String, ExpiringLRUCache> cache;
+    private ExpiringLRUCache cache;
     private MusicDatabase mdb;
     private int expiredTimeInDays = 0;
     private static final String beatlesMDID = "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
@@ -102,10 +101,8 @@ public class DataManager implements Configurable {
         logger.info("Instantiating new DataManager with cache size of " + cacheSize);
 
         //int cacheSize = (int)configMgr.lookup(CACHE_SIZE);
-        cache = new HashMap<String, ExpiringLRUCache>();
-        for (SimType s : mdb.getSimTypes()) {
-            cache.put(s.getName(), new ExpiringLRUCache(cacheSize, SEC_TO_LIVE_IN_CACHE));
-        }
+        cache = new ExpiringLRUCache(cacheSize, SEC_TO_LIVE_IN_CACHE);
+        
         this.mdb = mdb;
 
         artistOracle = new ArrayList<String>();
@@ -166,26 +163,52 @@ public class DataManager implements Configurable {
     }
 
     /**
+     * Updates the ArtistDetails object with similar artists based on the given simtype and popularity
+     */
+    private ArtistDetails updateSimilarArtists(ArtistDetails aD, SimType sT, Popularity pop) throws AuraException, RemoteException {
+        
+        aD.setSimilarArtists(getSimilarArtists(aD.getId(), sT, pop));
+        return aD;
+    }
+    
+    public ArtistCompact[] getSimilarArtists(String id, SimType sT, Popularity pop) throws AuraException, RemoteException {
+
+        List<Scored<Artist>> scoredArtists = sT.findSimilarArtists(id, NUMBER_SIM_ARTISTS, pop);
+        // return artists in socred order
+        sortByArtistPopularity(scoredArtists);
+
+        // collect all of the similar artists, but skip the seed artist
+        List<ArtistCompact> simArtistList = new ArrayList<ArtistCompact>();
+        for (int i = 0; i < scoredArtists.size(); i++) {
+            if (id.equals(scoredArtists.get(i).getItem().getKey())) {
+                simArtistList.add(artistToArtistCompact(scoredArtists.get(i).getItem()));
+            }
+        }
+        return simArtistList.toArray(new ArtistCompact[simArtistList.size()]);
+    }
+
+    /**
      * Gets the details for the given artist (by id)
      * @param id  the id of the artist
      * @param refresh if true, ignore cache and load from datastore
      * @param simTypeName name of the symType to use
+     * @param popularity popularity enum element to use
      * @return  the artist details
      */
-    public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName)
+    public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName, String popularity)
             throws AuraException, RemoteException {
         ArtistDetails details = null;
 
-        details = (ArtistDetails) cache.get(simTypeName).sget(id);
+        details = (ArtistDetails) cache.sget(id);
         if (details == null || refresh) {
-            details = (ArtistDetails) loadArtistDetailsFromStore(id, simTypes.get(simTypeName));
+            details = (ArtistDetails) loadArtistDetailsFromStore(id, simTypes.get(simTypeName), stringToPopularity(popularity));
             if (details != null) {
-                cache.get(simTypeName).sput(id, details);
+                cache.sput(id, details);
             } else {
                 return null;
             }
         }
-        return details;
+        return updateSimilarArtists(details, simTypes.get(simTypeName), stringToPopularity(popularity));
     }
 
     /**
@@ -193,14 +216,14 @@ public class DataManager implements Configurable {
      * @param id the artist's id
      * @return the artist's details or null if the details are not in the datastore
      */
-    private ArtistDetails loadArtistDetailsFromStore(String id, SimType simType)
+    private ArtistDetails loadArtistDetailsFromStore(String id, SimType simType, Popularity popularity)
             throws AuraException, RemoteException {
         logger.info("loading artist from store :: " + id);
         Artist a = mdb.artistLookup(id);
         if (a == null) {
             return null;
         } else {
-            return artistToArtistDetails(a, simType);
+            return artistToArtistDetails(a);
         }
     }
 
@@ -270,7 +293,7 @@ public class DataManager implements Configurable {
      * @param simType similarity type to use to find similar artists
      * @return artistdetails object
      */
-    private ArtistDetails artistToArtistDetails(Artist a, SimType simType)
+    private ArtistDetails artistToArtistDetails(Artist a)
             throws AuraException, RemoteException {
 
         ArtistDetails details = new ArtistDetails();
@@ -299,6 +322,7 @@ public class DataManager implements Configurable {
             Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+        /* moving to its own function updateArtistDetails
         // Fetch similar artists
         List<Scored<Artist>> scoredArtists = simType.findSimilarArtists(a.getKey(), NUMBER_SIM_ARTISTS);
         // return artists in socred order
@@ -313,6 +337,7 @@ public class DataManager implements Configurable {
         }
         ArtistCompact[] simArtist = simArtistList.toArray(new ArtistCompact[simArtistList.size()]);
         details.setSimilarArtists(simArtist);
+        */
 
         // Fetch albums
         Set<String> albumSet = a.getAlbums();
@@ -374,9 +399,9 @@ public class DataManager implements Configurable {
     public ItemInfo[] getDistinctiveTags(String artistID, int count) throws AuraException {
         //
         // Look in the cache to see if we already have the artist
-        Details aD = getDetailsInAnyCache(artistID);
+        ArtistDetails aD = (ArtistDetails) cache.sget(artistID);
         if (aD != null) {
-            return ((ArtistDetails) aD).getDistinctiveTags();
+            return aD.getDistinctiveTags();
         } else {
             return WordCloudToIntemInfo(mdb.artistGetDistinctiveTagNames(artistID, count));
         }
@@ -493,9 +518,7 @@ public class DataManager implements Configurable {
         ServerInfoItem info = new ServerInfoItem();
 
         HashMap<String, Integer> cacheInfo = new HashMap<String, Integer>();
-        for (String s : cache.keySet()) {
-            cacheInfo.put(s, cache.get(s).getSize());
-        }
+        cacheInfo.put("ArtistDetails cache", cache.getSize());
         info.setCacheStatus(cacheInfo);
 
         DataStore dS = mdb.getDataStore();
@@ -523,11 +546,11 @@ public class DataManager implements Configurable {
             RemoteException {
         TagDetails details = null;
 
-        details = (TagDetails) getDetailsInAnyCache(id);
+        details = (TagDetails) cache.sget(id);
         if (details == null || refresh) {
             details = (TagDetails) loadTagDetailsFromStore(id);
             if (details != null) {
-                cache.get(simTypeName).sput(id, details);
+                cache.sput(id, details);
             } else {
                 return null;
             }
@@ -539,7 +562,7 @@ public class DataManager implements Configurable {
 
         // Look in cache
         TagDetails details = null;
-        details = (TagDetails) getDetailsInAnyCache(tagId);
+        details = (TagDetails) cache.sget(tagId);
 
         if (details == null) {
             // Fetch similar tags
@@ -770,6 +793,15 @@ public class DataManager implements Configurable {
         }
         throw new AuraException("Invalid popularity '"+pop+"'");
     }
+    
+    public SimType stringToSimType(String sT) throws AuraException {
+        SimType s = simTypes.get(sT);
+        if (s == null) {
+            throw new AuraException("Invalid similarity type '"+sT+"'");
+        } else {
+            return s;
+        }
+    }
 
     public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap, String popularity)
             throws AuraException, RemoteException {
@@ -929,7 +961,7 @@ public class DataManager implements Configurable {
             double popularity = t.getFreq();
             if (isArtist) {
                 // We need to fetch each artist's name. First look in the cache if we have the details
-                aD = (ArtistDetails) getDetailsInAnyCache(t.getName());
+                aD = (ArtistDetails) cache.sget(t.getName());
                 if (aD == null) {
                     a = mdb.artistLookup(t.getName());
                     artistName = a.getName();
@@ -1009,22 +1041,6 @@ public class DataManager implements Configurable {
     }
 
     public class Rp implements RecommendationProfile {
-    }
-
-    /**
-     * Search for a key in all simType caches
-     * @param searchKey the key to search for
-     * @return the details object found, if any
-     */
-    private Details getDetailsInAnyCache(String searchKey) {
-        Details d;
-        for (String k : cache.keySet()) {
-            d = (Details) cache.get(k).sget(searchKey);
-            if (d != null) {
-                return d;
-            }
-        }
-        return null;
     }
 
     /**

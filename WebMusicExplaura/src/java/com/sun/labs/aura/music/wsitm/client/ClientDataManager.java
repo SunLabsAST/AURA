@@ -43,6 +43,7 @@ public class ClientDataManager {
     private HashMap<String, String> recTypes;
     private String currRecTypeName;
     private String currSimTypeName;
+    private String currPopularity = "ALL"; // current popularity used in simple search widget
     
     private HashMap<String, Double> favArtist;
     
@@ -225,6 +226,14 @@ public class ClientDataManager {
         this.currSimTypeName=currName;
     }
 
+    public void setCurrPopularity(String popularity) {
+        this.currPopularity = popularity;
+    }
+    
+    public String getCurrPopularity() {
+        return this.currPopularity;
+    }
+
     public HashMap<String, String> getRecTypes() {
         return recTypes;
     }
@@ -285,9 +294,9 @@ public class ClientDataManager {
      * @param aD new artist details
      * @param popularity popularity of requested recommendation
      */
-    public void updateUpdatableWidgets(ArtistDetails aD, String popularity) {
+    public void updateUpdatableWidgets(ArtistCompact[] aC) {
         for (Updatable u : updatableWidgets) {
-            u.update(aD, popularity);
+            u.update(aC);
         }
     }
     

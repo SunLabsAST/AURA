@@ -19,6 +19,14 @@ public abstract class PopularitySelect extends Composite {
     private ListBox l;
     
     public PopularitySelect() {
+        init("ALL");
+    }
+    
+    public PopularitySelect(String valueToSelect) {
+        init(valueToSelect);
+    }
+    
+    private void init(String itemToSelect) {
         
         l = new ListBox(false);
         l.addItem("All", "ALL");
@@ -26,7 +34,12 @@ public abstract class PopularitySelect extends Composite {
         l.addItem("Mainstream", "HEAD_MID");
         l.addItem("Hipster", "MID_TAIL");
         l.addItem("Rarities", "TAIL");
-        l.setSelectedIndex(0);
+        
+        for (int i = 0; i < l.getItemCount(); i++) {
+            if (l.getValue(i).equals(itemToSelect)) {
+                l.setSelectedIndex(i);
+            }
+        }
 
         l.addChangeListener(new ChangeListener() {
 
@@ -36,7 +49,6 @@ public abstract class PopularitySelect extends Composite {
         });
 
         initWidget(l);
-        
     }
 
     public String getSelectedValue() {

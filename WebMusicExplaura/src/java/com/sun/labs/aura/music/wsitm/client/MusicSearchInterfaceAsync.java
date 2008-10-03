@@ -10,6 +10,7 @@
 package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
@@ -29,7 +30,8 @@ public interface MusicSearchInterfaceAsync {
        public void artistSearch(String searchString, int maxResults, AsyncCallback callback) throws WebException;
        public void artistSearchByTag(String searchString, int maxResults, AsyncCallback callback) throws WebException;
        public void tagSearch(String searchString, int maxResults, AsyncCallback callback) throws WebException;
-       public void getArtistDetails(String id, boolean refresh, String simTypeName, AsyncCallback callback) throws WebException;
+       public void getArtistDetails(String id, boolean refresh, String simTypeName, String popularity, AsyncCallback callback) throws WebException;
+       public void getSimilarArtists(String id, String simTypeName, String popularity, AsyncCallback<ArtistCompact[]> callback) throws WebException;
        public void getTagDetails(String id, boolean refresh, String simTypeName, AsyncCallback callback) throws WebException;
        public void getCommonTags(String artistID1, String artistID2, int num, String simType, AsyncCallback callback) throws WebException;
        public void getCommonTags(Map<String, Double> tagMap, String artistID, int num, AsyncCallback callback) throws WebException;
