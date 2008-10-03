@@ -513,8 +513,10 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             
             HorizontalPanel hP = new HorizontalPanel();
             hP.add(new Label("Similar artists"));
+            hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
             popSelect = new PopularitySelectAD(artistDetails);
             hP.add(popSelect);
+            hP.setWidth("300px");
             hP.setStyleName("h2");
             
             left.add(
