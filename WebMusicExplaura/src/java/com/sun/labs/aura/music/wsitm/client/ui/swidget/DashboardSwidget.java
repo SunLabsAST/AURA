@@ -499,7 +499,7 @@ public class DashboardSwidget extends Swidget {
                 ArtistCompact[] aC = cdm.getListenerDetails().getRecommendations();
                 if (aC.length > 0) {
                     int itemIndex = Random.nextInt(aC.length);
-                    musicServer.getArtistDetails(aC[itemIndex].getId(), false, cdm.getCurrSimTypeName(), callback);
+                    musicServer.getArtistDetails(aC[itemIndex].getId(), false, cdm.getCurrSimTypeName(), cdm.getCurrPopularity(), callback);
                 }
             } catch (WebException ex) {
                 Window.alert(ex.getMessage());

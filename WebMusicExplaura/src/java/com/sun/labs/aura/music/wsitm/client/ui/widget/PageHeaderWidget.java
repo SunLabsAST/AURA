@@ -148,7 +148,7 @@ public class PageHeaderWidget extends Swidget {
 
                             if (!cdm.getCurrArtistID().equals("")) {
                                 cdm.displayWaitIconUpdatableWidgets();
-                                invokeGetArtistInfo(cdm.getCurrArtistID(), false);
+                                invokeGetArtistInfo(cdm.getCurrArtistID());
                             }
                         }
                     }
@@ -393,23 +393,22 @@ public class PageHeaderWidget extends Swidget {
     }
 
     /**
-     * Fetch artist details. Used when similarity type is updated
+     * Fetch new similar artists. Used when similarity type is updated
      * @param artistID
      * @param refresh
      */
-    private void invokeGetArtistInfo(String artistID, boolean refresh) {
+    private void invokeGetArtistInfo(String artistID) {
 
         if (artistID.startsWith("artist:")) {
             artistID = artistID.replaceAll("artist:", "");
         }
 
-        AsyncCallback callback = new AsyncCallback() {
+        AsyncCallback<ArtistCompact[]> callback = new AsyncCallback<ArtistCompact[]>() {
 
-            public void onSuccess(Object result) {
+            public void onSuccess(ArtistCompact[] aC) {
                 // do some UI stuff to show success
-                ArtistDetails artistDetails = (ArtistDetails) result;
-                if (artistDetails != null && artistDetails.isOK()) {
-                    cdm.updateUpdatableWidgets(artistDetails, "ALL");
+                if (aC != null) {
+                    cdm.updateUpdatableWidgets(aC);
                 } else {
                     Window.alert("An error occured while fetching the new recommendations.");
                 }
@@ -421,7 +420,7 @@ public class PageHeaderWidget extends Swidget {
         };
 
         try {
-            musicServer.getArtistDetails(artistID, refresh, cdm.getCurrSimTypeName(), callback);
+            musicServer.getSimilarArtists(artistID, cdm.getCurrSimTypeName(), cdm.getCurrPopularity(), callback);
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
         }

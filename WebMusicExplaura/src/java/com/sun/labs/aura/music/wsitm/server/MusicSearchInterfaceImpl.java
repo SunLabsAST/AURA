@@ -100,10 +100,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }        
     }
 
-    public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName) throws WebException {
+    public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName, String popularity) throws WebException {
         logger.info("getArtistDetails: "+id);
         try {
-            return dm.getArtistDetails(id, false, simTypeName);
+            return dm.getArtistDetails(id, false, simTypeName, popularity);
         } catch (AuraException ex) {
             logger.severe(traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
@@ -539,6 +539,18 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getServerInfo();
          } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
+    public ArtistCompact[] getSimilarArtists(String id, String simTypeName, String popularity) throws WebException {
+        try {
+            return dm.getSimilarArtists(id, dm.stringToSimType(simTypeName), dm.stringToPopularity(popularity));
+        } catch (AuraException ex) {
             logger.severe(traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {

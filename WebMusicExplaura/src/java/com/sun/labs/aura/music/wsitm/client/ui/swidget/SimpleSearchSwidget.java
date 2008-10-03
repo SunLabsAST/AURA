@@ -433,7 +433,8 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
             try {
                 PerformanceTimer.start("getArtistDetails");
-                musicServer.getArtistDetails(artistID, refresh, cdm.getCurrSimTypeName(), callback);
+                musicServer.getArtistDetails(artistID, refresh, cdm.getCurrSimTypeName(), 
+                        cdm.getCurrPopularity(), callback);
             } catch (Exception ex) {
                 Window.alert(ex.getMessage());
             }
@@ -515,15 +516,15 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
             popSelect = new PopularitySelectAD(artistDetails);
             hP.add(popSelect);
             hP.setStyleName("h2");
-
+            
             left.add(
-                    new Updatable(hP, leftSimList, cdm, id) {
+                    new Updatable<ArtistDetails>(hP, leftSimList, cdm, artistDetails) {
 
-                        public void update(ArtistDetails aD, String popularity) {
-                            ArtistCompact[] aCArray = aD.getSimilarArtists();
-                            addCompactArtistToOracle(aCArray);
+                        public void update(ArtistCompact[] aC) {
+                            
+                            addCompactArtistToOracle(aC);
                             leftSimList.doRemoveListeners();
-                            leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, aD.toArtistCompact());
+                            leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aC, data.toArtistCompact());
                             setNewContent(leftSimList);
                         }
                     }
@@ -1322,7 +1323,43 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
         @Override
         public void onSelectionChange(String newPopularity) {
-            cdm.updateUpdatableWidgets(aD, newPopularity);
+            cdm.setCurrPopularity(newPopularity);
+            cdm.displayWaitIconUpdatableWidgets();
+            invokeGetArtistInfo(aD.getId());
+        }
+
+        /**
+         * Fetch new similar artists. Used when similarity type is updated
+         * @param artistID
+         * @param refresh
+         */
+        private void invokeGetArtistInfo(String artistID) {
+
+            if (artistID.startsWith("artist:")) {
+                artistID = artistID.replaceAll("artist:", "");
+            }
+
+            AsyncCallback<ArtistCompact[]> callback = new AsyncCallback<ArtistCompact[]>() {
+
+                public void onSuccess(ArtistCompact[] aC) {
+                    // do some UI stuff to show success
+                    if (aC != null) {
+                        cdm.updateUpdatableWidgets(aC);
+                    } else {
+                        Window.alert("An error occured while fetching the new recommendations.");
+                    }
+                }
+
+                public void onFailure(Throwable caught) {
+                    Window.alert("An error occured while fetching the new recommendations.");
+                }
+            };
+
+            try {
+                musicServer.getSimilarArtists(artistID, cdm.getCurrSimTypeName(), cdm.getCurrPopularity(), callback);
+            } catch (Exception ex) {
+                Window.alert(ex.getMessage());
+            }
         }
     };
 }
