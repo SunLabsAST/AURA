@@ -6,11 +6,10 @@ package com.sun.labs.aura.music.webservices;
 
 import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
-import com.sun.labs.aura.util.Scored;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -24,6 +23,16 @@ import javax.servlet.http.HttpServletResponse;
 public class AddListener extends HttpServlet {
 
     private final static String SERVLET_NAME = "AddListener";
+    private ParameterChecker pc = null;
+
+    public void init() throws ServletException {
+        super.init();
+        pc = new ParameterChecker();
+        pc.addParam("appKey", "the application key");
+        pc.addParam("userID", "the id of the user");
+        pc.addParam("lastfmName", null, "the lastfm name of the user");
+        pc.addParam("pandoraName", null, "the pandora name of the user");
+    }
 
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -32,45 +41,50 @@ public class AddListener extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        ServletContext context = getServletContext();
 
+        Status status = new Status();
+        ServletContext context = getServletContext();
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        Timer timer = Util.getTimer();
 
         try {
+            Util.tagOpen(out, SERVLET_NAME);
+            pc.check(status, request);
+
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
-            } else {
-                String userID = request.getParameter("userID");
-                String lastfmName = request.getParameter("lastfmName");
-                String pandoraName = request.getParameter("pandoraName");
-
-
-                if (mdb.getListener(userID) != null) {
-                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.BadArgument, "userID already exists");
-                    return;
-                }
-
-                Listener listener = mdb.enrollListener(userID);
-
-                if (lastfmName != null) {
-                    listener.setLastFmName(lastfmName);
-                }
-
-                if (pandoraName != null) {
-                    listener.setPandoraName(pandoraName);
-                }
-
-                mdb.updateListener(listener);
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.OK, "Listener added");
+                status.addError(ErrorCode.InternalError, "Can't connect to the music database");
+                return;
             }
+
+            String userID = pc.getParam(status,  request, "userID");
+            String lastfmName = pc.getParam(status, request, "lastfmName");
+            String pandoraName = pc.getParam(status, request, "pandoraName");
+
+
+            if (mdb.getListener(userID) != null) {
+                status.addError(ErrorCode.BadArgument, "userID already exists");
+                return;
+            }
+
+            Listener listener = mdb.enrollListener(userID);
+
+            if (lastfmName != null) {
+                listener.setLastFmName(lastfmName);
+            }
+
+            if (pandoraName != null) {
+                listener.setPandoraName(pandoraName);
+            }
+
+            mdb.updateListener(listener);
         } catch (AuraException ex) {
-            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Problem accessing data");
+            status.addError(ErrorCode.InternalError, "Problem accessing data");
+        } catch (ParameterException ex) {
         } finally {
-            timer.report(out);
+            status.toXML(out);
+            Util.tagClose(out, SERVLET_NAME);
             out.close();
         }
     }

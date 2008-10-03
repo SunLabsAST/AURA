@@ -136,7 +136,7 @@ public class Util {
         return sb.toString();
     }
 
-    private static String toXMLString(Object o) {
+    static String toXMLString(Object o) {
         if (o instanceof Tag) {
             Tag t = (Tag) o;
             return "<tag name=\"" + filter(t.getName()) + "\" freq=\"" + t.getCount() + "\"/>";
@@ -145,7 +145,7 @@ public class Util {
         }
     }
 
-    private static String toXMLString(String tag, Object o) {
+    static String toXMLString(String tag, Object o) {
         if (o instanceof Tag) {
             Tag t = (Tag) o;
             return "<" + tag + " name=\"" + filter(t.getName()) + "\" freq=\"" + t.getCount() + "\"/>";

@@ -10,7 +10,8 @@
 Gets an item from the database
 <H3>Params</H3>
 <UL>
-	<LI><B>key – </B>the key of the item of interest
+	<LI><B>key – </B>the key of the item of interest. Required. This may be either a single key or a list of comma separated keys.
+	<LI><B>format – </B>the format of the output. May be 'compact' or 'full'. Optional, default is 'full'. iF 'compact' is selected, certain items (such as the artist, are output in a compact form).
 </UL>
 <H3 CLASS="western" STYLE="font-weight: normal">Example</H3>
 <PRE CLASS="code-western" STYLE="margin-bottom: 0.2in; font-weight: normal">http://www.tastekeeper.com/api/1.0/GetItem

@@ -8,6 +8,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -23,8 +24,16 @@ import javax.servlet.http.HttpServletResponse;
  * @author plamere
  */
 public class GetItem extends HttpServlet {
-
+    private enum Format { FULL, COMPACT};
     private final static String SERVLET_NAME = "GetItem";
+    private ParameterChecker pc;
+
+    public void init() throws ServletException {
+        super.init();
+        pc = new ParameterChecker();
+        pc.addParam("key", "the key to the item of interest");
+        pc.addParam("format", "full", "the format of the output");
+    }
 
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -33,55 +42,51 @@ public class GetItem extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        Status status = new Status();
         ServletContext context = getServletContext();
-
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        Timer timer = Util.getTimer();
 
         try {
+            Util.tagOpen(out, SERVLET_NAME);
+            pc.check(status, request);
+
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
-            } else {
-                boolean compact = false;
-                String itemID = request.getParameter("key");
-                String format = request.getParameter("format");
-                if (format != null) {
-                    compact = format.equalsIgnoreCase("compact");
-                }
-                if (itemID != null) {
-                    String[] keys = itemID.split(",");
-                    try {
-                        Util.tagOpen(out, SERVLET_NAME);
-                        for (String key : keys) {
-                            key = key.trim();
-                            long fetchStart = System.currentTimeMillis();
-                            Item item = mdb.getDataStore().getItem(key);
-                            long delta = System.currentTimeMillis() - fetchStart;
-                            if (item != null) {
-                                if (compact) {
-                                    out.println(toCompactXML(mdb, item));
-                                } else {
-                                    out.println(Util.toXML(item));
-                                }
-                                out.println("<!-- item fetch in " + delta + " ms -->");
-                            } else {
-                                out.println("<item key=\"" + key + "\" status=\"NotFound\"/>");
-                            }
-                        }
-                        Util.outputOKStatus(out);
-                        Util.tagClose(out, SERVLET_NAME);
-                    } catch (AuraException ex) {
-                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Problem accessing data " + ex);
-                    }
-                } else {
-                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "Missing itemID");
-                }
+                status.addError(ErrorCode.InternalError, "Can't connect to the music database");
+                throw new ParameterException();
             }
+
+            String itemID = pc.getParam(status, request, "key");
+            boolean compact = pc.getParamAsEnum(status, request, "format", Format.values()) == Format.COMPACT;
+
+            String[] keys = itemID.split(",");
+            try {
+                for (String key : keys) {
+                    key = key.trim();
+                    long fetchStart = System.currentTimeMillis();
+                    Item item = mdb.getDataStore().getItem(key);
+                    long delta = System.currentTimeMillis() - fetchStart;
+                    if (item != null) {
+                        if (compact) {
+                            out.println(toCompactXML(mdb, item));
+                        } else {
+                            out.println(Util.toXML(item));
+                        }
+                        out.println("<!-- item fetch in " + delta + " ms -->");
+                    } else {
+                        out.println("<item key=\"" + key + "\" status=\"NotFound\"/>");
+                    }
+                }
+            } catch (AuraException ex) {
+                status.addError(ErrorCode.InternalError, "Problem accessing the data");
+                throw new ParameterException();
+            }
+        } catch (ParameterException ex) {
         } finally {
-            timer.report(out);
+            status.toXML(out);
+            Util.tagClose(out, SERVLET_NAME);
             out.close();
         }
     }
@@ -92,24 +97,24 @@ public class GetItem extends HttpServlet {
             StringBuilder sb = new StringBuilder();
             // TBD finish this
             sb.append(" <item key=\"" + artist.getKey() + "\">");
-            sb.append("<name>" + artist.getName() + "</name>");
+            sb.append("<name>" + Util.toXMLString(artist.getName()) + "</name>");
             sb.append("<popularity>" + mdb.artistGetNormalizedPopularity(artist) + "</popularity>");
             {
                 String photo = selectFromSet(artist.getPhotos());
                 if (photo != null) {
-                    sb.append("<image>" + photo + "</image>");
+                    sb.append("<image>" + Util.toXMLString(photo) + "</image>");
                 }
             }
             {
                 String audio = selectFromSet(artist.getAudio());
                 if (audio != null) {
-                    sb.append("<audio>" + audio + "</audio>");
+                    sb.append("<audio>" + Util.toXMLString(audio) + "</audio>");
                 }
             }
             {
                 String spotify = artist.getSpotifyID();
                 if (spotify != null) {
-                    sb.append("<spotify>" + spotify + "</spotify>");
+                    sb.append("<spotify>" + Util.toXMLString(spotify) + "</spotify>");
                 }
             }
             sb.append("</item>");
@@ -151,6 +156,6 @@ public class GetItem extends HttpServlet {
      * Returns a short description of the servlet.
      */
     public String getServletInfo() {
-        return "Short description";
+        return "Gets an item from the database";
     }// </editor-fold>
 }

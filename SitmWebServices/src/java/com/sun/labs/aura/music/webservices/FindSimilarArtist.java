@@ -7,6 +7,7 @@ package com.sun.labs.aura.music.webservices;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.MusicDatabase.Popularity;
+import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.io.*;
@@ -22,6 +23,17 @@ import javax.servlet.http.*;
 public class FindSimilarArtist extends HttpServlet {
 
     private final static String SERVLET_NAME = "FindSimilarArtist";
+    private ParameterChecker pc;
+
+    public void init() throws ServletException {
+        super.init();
+        pc = new ParameterChecker();
+        pc.addParam("key", null, "the key of the item of interest");
+        pc.addParam("name", null, "the name of the item of interest");
+        pc.addParam("max", "10", "the maxiumum number of artists to return");
+        pc.addParam("popularity", Popularity.ALL.name(), "the popularity filter");
+        pc.addParam("field", Artist.FIELD_SOCIAL_TAGS, "the field to use for similarity");
+    }
 
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -30,88 +42,78 @@ public class FindSimilarArtist extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        Status status = new Status();
         ServletContext context = getServletContext();
 
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        Timer timer = Util.getTimer();
 
         try {
+            Util.tagOpen(out, SERVLET_NAME);
+            pc.check(status, request);
+
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
-            } else {
-                String key = request.getParameter("key");
-
-                int maxCount = 10;
-                String maxCountString = request.getParameter("max");
-                if (maxCountString != null) {
-                    maxCount = Integer.parseInt(maxCountString);
-                }
-
-                Popularity pop = Popularity.ALL;
-                String spop = request.getParameter("popularity");
-                if (spop != null) {
-                    pop = mdb.toPopularity(spop);
-                    if (pop == null) {
-                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.BadArgument, "bad specification for popularity '" + spop + "'");
-                    }
-                } 
-
-                String field = request.getParameter("field");
-                if (field == null) {
-                    field = Artist.FIELD_SOCIAL_TAGS;
-                }
-
-                try {
-                    Artist artist = null;
-                    if (key == null) {
-                        String name = request.getParameter("name");
-                        if (name != null) {
-                            artist = mdb.artistFindBestMatch(name);
-                            if (artist != null) {
-                                key = artist.getKey();
-                            }
-                        }
-                    }
-                    if (key != null) {
-                        if ((artist = mdb.artistLookup(key)) != null) {
-                            List<Scored<Artist>> scoredArtists;
-                            if ("all".equals(field)) {
-                                scoredArtists = mdb.artistFindSimilar(key, maxCount +1, pop);
-                            } else {
-                                scoredArtists = mdb.artistFindSimilar(key, field, maxCount +1, pop);
-                            }
-
-                            out.println("<FindSimilarArtist key=\"" + key + "\" name=\"" + Util.filter(artist.getName()) + "\">");
-                            for (Scored<Artist> scoredArtist : scoredArtists) {
-
-                                if (scoredArtist.getItem().getKey().equals(key)) {
-                                    continue;
-                                }
-
-                                Artist simArtist = scoredArtist.getItem();
-                                out.println("    <artist key=\"" +
-                                        simArtist.getKey() + "\" " +
-                                        "score=\"" + scoredArtist.getScore() + "\" " +
-                                        "name=\"" + Util.filter(simArtist.getName()) + "\"" +
-                                        "/>");
-                            }
-                            Util.outputOKStatus(out);
-                            Util.tagClose(out, SERVLET_NAME);
-                        } else {
-                            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.NotFound, "can't find specified artist");
-                        }
-                    } else {
-                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "need a name or a key");
-                    }
-                } catch (AuraException ex) {
-                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Problem accessing data");
-                }
+                status.addError(ErrorCode.InternalError, "Can't connecto to the music database");
+                throw new ParameterException();
             }
+
+            String key = pc.getParam(status, request, "key");
+            int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
+            Popularity pop = (Popularity) pc.getParamAsEnum(status, request,
+                    "popularity", Popularity.values());
+            String field = pc.getParam(status, request, "field");
+
+
+            try {
+                Artist artist = null;
+                if (key == null) {
+                    String name = pc.getParam(status, request, "name");
+                    if (name != null) {
+                        artist = mdb.artistFindBestMatch(name);
+                        if (artist != null) {
+                            key = artist.getKey();
+                        }
+                    }
+                }
+                if (key == null) {
+                    status.addError(ErrorCode.NotFound, "Can't find artist");
+                    throw new ParameterException();
+                }
+
+                if ((artist = mdb.artistLookup(key)) != null) {
+                    List<Scored<Artist>> scoredArtists;
+                    if ("all".equals(field)) {
+                        scoredArtists = mdb.artistFindSimilar(key, maxCount + 1, pop);
+                    } else {
+                        scoredArtists = mdb.artistFindSimilar(key, field, maxCount + 1, pop);
+                    }
+
+                    out.println("    <SeedArtist key=\"" + key + "\" name=\"" + Util.filter(artist.getName()) + "\"/>");
+                    for (Scored<Artist> scoredArtist : scoredArtists) {
+
+                        if (scoredArtist.getItem().getKey().equals(key)) {
+                            continue;
+                        }
+
+                        Artist simArtist = scoredArtist.getItem();
+                        out.println("    <artist key=\"" +
+                                simArtist.getKey() + "\" " +
+                                "score=\"" + scoredArtist.getScore() + "\" " +
+                                "name=\"" + Util.filter(simArtist.getName()) + "\"" +
+                                "/>");
+                    }
+                } else {
+                    status.addError(Util.ErrorCode.NotFound, "Can't find specified artist");
+                }
+            } catch (AuraException ex) {
+                status.addError(Util.ErrorCode.InternalError, "Problem accessing data");
+            }
+        } catch (ParameterException e) {
         } finally {
-            timer.report(out);
+            status.toXML(out);
+            Util.tagClose(out, SERVLET_NAME);
             out.close();
         }
     }
