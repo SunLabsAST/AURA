@@ -7,7 +7,6 @@ package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
@@ -16,10 +15,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
-import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
-import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 
@@ -30,25 +26,6 @@ import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 public abstract class WebLib {
 
     public static final String ICON_WAIT = "ajax-bar.gif";
-
-    public enum PLAY_ICON_SIZE {
-        SMALL, MEDIUM, BIG
-    }
-
-    /**
-     * Convert the play button size enum into the actual size in px
-     * @param size PLAY_ICON_SIZE enum
-     * @return actual size in px
-     */
-    private static int playIconSizeToInt(PLAY_ICON_SIZE size) {
-        if (size == PLAY_ICON_SIZE.SMALL) {
-            return 20;
-        } else if (size == PLAY_ICON_SIZE.MEDIUM) {
-            return 30;
-        } else {
-            return 40;
-        }
-    }
 
     /**
      * Disables the browsers default context menu for the specified element.
@@ -74,106 +51,6 @@ public abstract class WebLib {
     e.onselectstart = null;
     }
     }-*/;
-
-    public static Widget getLastFMListenWidget(final ArtistCompact aD, PLAY_ICON_SIZE size,
-            MusicSearchInterfaceAsync musicServer, boolean isLoggedIn, ClickListener cL) {
-        int intSize = playIconSizeToInt(size);
-        Image image = new Image("play-lastfm-"+intSize+".jpg");
-        image.setTitle("Play music like " + aD.getName() + " at last.fm");
-        image.addClickListener(new ClickListener() {
-
-            public void onClick(Widget sender) {
-                popupSimilarArtistRadio(aD, true);
-            }
-        });
-        if (isLoggedIn) {
-            image.addClickListener(new DualDataEmbededClickListener<MusicSearchInterfaceAsync, String>(musicServer, aD.getId()) {
-
-                public void onClick(Widget arg0) {
-                    AsyncCallback callback = new AsyncCallback() {
-
-                        public void onSuccess(Object result) {}
-                        public void onFailure(Throwable caught) {
-                            Window.alert("Unable to add your play attention for artist " + sndData + ". " + caught.toString());
-                        }
-                    };
-
-                    try {
-                        data.addPlayAttention(sndData, callback);
-                    } catch (Exception ex) {
-                        Window.alert(ex.getMessage());
-                    }
-                }
-            });
-        }
-        if (cL != null) {
-            image.addClickListener(cL);
-        }
-        return image;
-    }
-
-    public static Widget getSpotifyListenWidget(final ArtistCompact aD, PLAY_ICON_SIZE size,
-            MusicSearchInterfaceAsync musicServer, boolean isLoggedIn, ClickListener cL) {
-        String musicURL = aD.getSpotifyId();
-        int intSize = playIconSizeToInt(size);
-        if (musicURL != null && !musicURL.equals("")) {
-            HTML html = new HTML("<a href=\"" + musicURL + "\" target=\"spotifyFrame\"><img src=\"play-spotify-"+intSize+".jpg\"/></a>");
-            html.setTitle("Play " + aD.getName() + " with Spotify");
-            if (isLoggedIn) {
-                html.addClickListener(new DualDataEmbededClickListener<MusicSearchInterfaceAsync, String>(musicServer, aD.getId()) {
-
-                    public void onClick(Widget arg0) {
-                        AsyncCallback callback = new AsyncCallback() {
-                            public void onSuccess(Object result) {}
-                            public void onFailure(Throwable caught) {
-                                Window.alert("Unable to add your play attention for artist " + sndData + ". " + caught.toString());
-                            }
-                        };
-
-                        try {
-                            data.addPlayAttention(sndData, callback);
-                        } catch (Exception ex) {
-                            Window.alert(ex.getMessage());
-                        }
-                    }
-                });
-            }
-            if (cL != null) {
-                html.addClickListener(cL);
-            }
-            return html;
-        } else {
-            return getLastFMListenWidget(aD, size, musicServer, isLoggedIn, cL);
-        }
-    }
-
-    public static Widget getListenWidget(final TagDetails tagDetails) {
-        Image image = new Image("play-icon30.jpg");
-        image.setTitle("Play music like " + tagDetails.getName() + " at last.fm");
-        image.addClickListener(new ClickListener() {
-
-            public void onClick(Widget sender) {
-                popupTagRadio(tagDetails, true);
-            }
-        });
-        return image;
-    }
-
-    public static Widget getSimilarArtistRadio(ArtistDetails artist) {
-        String embeddedObject = "<object width=\"340\" height=\"123\">" + "<param name=\"movie\" value=\"http://panther1.last.fm/webclient/50/defaultEmbedPlayer.swf\" />" + "<param name=FlashVars value=\"viral=true&lfmMode=radio&amp;radioURL=lastfm://artist/ARTIST_NAME/similarartists&amp;" + "restTitle= ARTIST_NAME’s Similar Artists \" />" + "<param name=\"wmode\" value=\"transparent\" />" + "<embed src=\"http://panther1.last.fm/webclient/50/defaultEmbedPlayer.swf\" width=\"340\" " + "FlashVars=\"viral=true&lfmMode=radio&amp;radioURL=" + "lastfm://artist/ARTIST_NAME/similarartists&amp;restTitle= ARTIST_NAME’s Similar Artists \" height=\"123\" " + "type=\"application/x-shockwave-flash\" wmode=\"transparent\" />" + "</object>";
-        embeddedObject = embeddedObject.replaceAll("ARTIST_NAME", artist.getEncodedName());
-        return new HTML(embeddedObject);
-    }
-
-    public static String getTagRadioLink(String tagName) {
-        tagName = tagName.replaceAll("\\s+", "%20");
-        String link = "http://www.last.fm/webclient/popup/?radioURL=" + "lastfm://globaltags/TAG_REPLACE_ME/&resourceID=undefined" + "&resourceType=undefined&viral=true";
-        return link.replaceAll("TAG_REPLACE_ME", tagName);
-    }
-
-    public static void popupSimilarArtistRadio(ArtistCompact artist, boolean useTags) {
-        Window.open(WebLib.getSimilarArtistRadioLink(artist, useTags), "lastfm_popup", "width=400,height=170,menubar=no,toolbar=no,directories=no," + "location=no,resizable=no,scrollbars=no,status=no");
-    }
     
     public static ItemInfo getBestTag(ArtistCompact artist) {
         ItemInfo tag = null;
@@ -185,24 +62,6 @@ public abstract class WebLib {
             tag = tags[0];
         }
         return tag;
-    }
-
-    public static String getSimilarArtistRadioLink(ArtistCompact artist, boolean useTags) {
-        if (useTags) {
-            ItemInfo tag = getBestTag(artist);
-            if (tag != null) {
-                return getTagRadioLink(tag.getItemName());
-            } else {
-                return getSimilarArtistRadioLink(artist, false);
-            }
-        } else {
-            String link = "http://www.last.fm/webclient/popup/?radioURL=" + "lastfm://artist/ARTIST_REPLACE_ME/similarartists&resourceID=undefined" + "&resourceType=undefined&viral=true";
-            return link.replaceAll("ARTIST_REPLACE_ME", artist.getEncodedName());
-        }
-    }
-
-    public static void popupTagRadio(TagDetails tagDetails, boolean useTags) {
-        Window.open(getTagRadioLink(tagDetails.getName()), "lastfm_popup", "width=400,height=170,menubar=no,toolbar=no,directories=no," + "location=no,resizable=no,scrollbars=no,status=no");
     }
 
     public static VerticalPanel createSection(String title, Widget widget) {
@@ -232,6 +91,24 @@ public abstract class WebLib {
      */
     public static String createAnchor(String text, String url) {
             return "<a href=\"" + url + "\" target=\"window1\">" + text + "</a>";
+    }
+    
+    public static Widget getListenWidget(final TagDetails tagDetails) {
+        Image image = new Image("play-icon30.jpg");
+        image.setTitle("Play music like " + tagDetails.getName() + " at last.fm");
+        image.addClickListener(new ClickListener() {
+
+            public void onClick(Widget sender) {
+                Window.open(getTagRadioLink(tagDetails.getName()), "lastfm_popup", "width=400,height=170,menubar=no,toolbar=no,directories=no," + "location=no,resizable=no,scrollbars=no,status=no");
+            }
+        });
+        return image;
+    }
+    
+    public static String getTagRadioLink(String tagName) {
+        tagName = tagName.replaceAll("\\s+", "%20");
+        String link = "http://www.last.fm/webclient/popup/?radioURL=" + "lastfm://globaltags/TAG_REPLACE_ME/&resourceID=undefined" + "&resourceType=undefined&viral=true";
+        return link.replaceAll("TAG_REPLACE_ME", tagName);
     }
 
     public static Widget getLoadingBarWidget() {

@@ -265,6 +265,10 @@ public class DataManager implements Configurable {
         aC.setImageURL(getThumbnailImageURL(a));
         aC.setPopularity(a.getPopularity());
         aC.setSpotifyId(a.getSpotifyID());
+               
+        HashSet<String> hS = new HashSet<String>();
+        hS.addAll(a.getAudio());
+        aC.setAudio(hS);
 
         if (beatlesPopularity != -1) {
             aC.setNormPopularity(a.getPopularity() / beatlesPopularity);
@@ -308,6 +312,10 @@ public class DataManager implements Configurable {
         details.setVideos(getArtistVideoFromIds(a.getVideos()));
         details.setPopularity(a.getPopularity());
         details.setSpotifyId(a.getSpotifyID());
+
+        HashSet<String> hS = new HashSet<String>();
+        hS.addAll(a.getAudio());
+        details.setAudio(hS);
 
         if (beatlesPopularity != -1) {
             details.setNormPopularity(a.getPopularity() / beatlesPopularity);

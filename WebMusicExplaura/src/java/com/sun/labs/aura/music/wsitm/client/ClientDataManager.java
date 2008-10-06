@@ -13,15 +13,17 @@ import com.sun.labs.aura.music.wsitm.client.ui.Updatable;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PageHeaderWidget;
 import com.extjs.gxt.ui.client.util.Params;
 import com.extjs.gxt.ui.client.widget.Info;
+import com.sun.labs.aura.music.wsitm.client.event.MusicProviderSwitchListener;
 import com.sun.labs.aura.music.wsitm.client.event.PlayedListener;
 import com.sun.labs.aura.music.wsitm.client.event.TagCloudListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
-import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedArtistMenu;
+import com.sun.labs.aura.music.wsitm.client.ui.SharedPlayButtonMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedTagMenu;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton.MusicProviders;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.TagWidgetContainer;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,6 +47,8 @@ public class ClientDataManager {
     private String currSimTypeName;
     private String currPopularity = "ALL"; // current popularity used in simple search widget
     
+    private MusicProviders currPreferedMusicProvider = MusicProviders.SPOTIFY;
+    
     private HashMap<String, Double> favArtist;
     
     private PageHeaderWidget phw;
@@ -54,6 +58,7 @@ public class ClientDataManager {
     private LoginListenerManager loginListenerManager;
     private TagCloudListenerManager tagCloudListenerManager;
     private PlayedListenerManager playedListenerManager;
+    private MusicProviderSwitchListenerManager musicProviderSwitchListenerManager;
     
     private SteerableTagCloudExternalController steerableTagCloudExternalController;
 
@@ -73,6 +78,7 @@ public class ClientDataManager {
     private SharedTagMenu sharedTagMenu;
     private SharedSteeringMenu sharedSteeringMenu;
     private SharedArtistMenu sharedArtistMenu;
+    private SharedPlayButtonMenu sharedPlayButtonMenu;
 
     public ClientDataManager() {
         lD = new ListenerDetails();
@@ -83,14 +89,20 @@ public class ClientDataManager {
         loginListenerManager = new LoginListenerManager();
         tagCloudListenerManager = new TagCloudListenerManager();
         playedListenerManager = new PlayedListenerManager();
+        musicProviderSwitchListenerManager = new MusicProviderSwitchListenerManager();
         steerableTagCloudExternalController = new SteerableTagCloudExternalController();
 
         sharedTagMenu = new SharedTagMenu(this);
         sharedSteeringMenu = new SharedSteeringMenu(this);
         sharedArtistMenu = new SharedArtistMenu(this);
+        sharedPlayButtonMenu = new SharedPlayButtonMenu(this);
 
     }
 
+    public MusicProviderSwitchListenerManager getMusicProviderSwitchListenerManager() {
+        return musicProviderSwitchListenerManager;
+    }
+    
     public RatingListenerManager getRatingListenerManager() {
         return ratingListenerManager;
     }
@@ -113,6 +125,10 @@ public class ClientDataManager {
     
     public SteerableTagCloudExternalController getSteerableTagCloudExternalController() {
         return steerableTagCloudExternalController;
+    }
+    
+    public SharedPlayButtonMenu getSharedPlayButtonMenu() {
+        return sharedPlayButtonMenu;
     }
 
     public SharedTagMenu getSharedTagMenu() {
@@ -143,6 +159,15 @@ public class ClientDataManager {
         this.artistOracle = artistOracle;
     }
 
+    public MusicProviders getCurrPreferedMusicProvider() {
+        return currPreferedMusicProvider;
+    }
+    
+    public void setCurrPreferedMusicProvider(MusicProviders mP) {
+        this.currPreferedMusicProvider = mP;
+        this.musicProviderSwitchListenerManager.triggerOnSwitch(mP);
+    }
+    
     /**
      * Add swidget to the list of swidgets that will be notified of webevents such as login
      * @param s swidget to add
@@ -409,6 +434,19 @@ public class ClientDataManager {
             return itemIdBoundedListeners.size();
         }
 
+    }
+    
+    public class MusicProviderSwitchListenerManager extends ListenerManager<MusicProviderSwitchListener> {
+        
+        public MusicProviderSwitchListenerManager() {
+            super();
+        }
+        
+        public void triggerOnSwitch(MusicProviders newMp) {
+            for (MusicProviderSwitchListener mpsl : listeners) {
+                mpsl.onSwitch(newMp);
+            }
+        }
     }
 
     public class LoginListenerManager extends ListenerManager<LoginListener> {

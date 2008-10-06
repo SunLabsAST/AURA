@@ -46,11 +46,13 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
+import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWidget;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -62,7 +64,7 @@ import org.adamtacy.client.ui.effects.impl.Fade;
  *
  * @author plamere
  */
-public class SimpleSearchSwidget extends Swidget implements HistoryListener {
+public class SimpleSearchSwidget extends Swidget implements HistoryListener, HasListeners {
 
     private Widget curResult;
     private String curResultToken = "";
@@ -81,6 +83,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
     private ArtistListWidget leftRelList;
     private StarRatingWidget artistStar;
     private TagInputWidget tagInputWidget;
+    private PlayButton playButton;
 
     public SimpleSearchSwidget(ClientDataManager cdm) {
         super("Simple Search", cdm);
@@ -238,6 +241,10 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
 
         if (tagInputWidget != null) {
             tagInputWidget.onDelete();
+        }
+        
+        if (playButton != null) {
+            playButton.onDelete();
         }
     }
 
@@ -607,16 +614,12 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener {
         cdm.getLoginListenerManager().addListener(artistStar);
 
         HorizontalPanel hP = new HorizontalPanel();
-        Widget spotify = WebLib.getSpotifyListenWidget(artistDetails, WebLib.PLAY_ICON_SIZE.MEDIUM, 
-                musicServer, cdm.isLoggedIn(), new DualDataEmbededClickListener<String, ClientDataManager>(artistDetails.getId(), cdm) {
-
-            public void onClick(Widget arg0) {
-                sndData.getPlayedListenerManager().triggerOnPlay(data);
-            }
-        });
-        if (spotify!=null) {
-            spotify.addStyleName("pointer");
-            hP.add(spotify);
+        PlayButton playButton = new PlayButton(cdm, artistDetails.toArtistCompact(),
+            PlayButton.PLAY_ICON_SIZE.MEDIUM, musicServer);
+        if (playButton!=null) {
+            cdm.getMusicProviderSwitchListenerManager().addListener(playButton);
+            playButton.addStyleName("pointer");
+            hP.add(playButton);
         }
         
         ArtistCompact aC = artistDetails.toArtistCompact();

@@ -7,6 +7,7 @@ package com.sun.labs.aura.music.wsitm.client.items;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.google.gwt.user.client.rpc.IsSerializable;
 import com.google.gwt.user.client.ui.Image;
+import java.util.HashSet;
 
 /**
  *
@@ -27,6 +28,7 @@ public class ArtistCompact implements IsSerializable {
     protected int endYear;
     protected String biographySummary = "None available";
     protected String imageURL;
+    protected HashSet<String> audio;
 
     protected ItemInfo[] distinctiveTags = EMPTY_ITEM_INFO;
 
@@ -54,6 +56,14 @@ public class ArtistCompact implements IsSerializable {
         return spotifyID;
     }
 
+    public void setAudio(HashSet<String> audio) {
+        this.audio = audio;
+    }
+
+    public HashSet<String> getAudio() {
+        return audio;
+    }
+
     public String getName() {
         return name;
     }
@@ -78,6 +88,7 @@ public class ArtistCompact implements IsSerializable {
         this.status = status;
     }
 
+    @Override
     public String toString() {
         return getName();
     }

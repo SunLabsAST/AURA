@@ -44,6 +44,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
     private MusicSearchInterfaceAsync musicServer;
 
     private StarRatingWidget star;
+    private PlayButton playButton;
 
     private String artistId;
 
@@ -94,16 +95,12 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         HorizontalPanel buttonPanel = new HorizontalPanel();
         buttonPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
         buttonPanel.setSpacing(5);
-        Widget spotify = WebLib.getSpotifyListenWidget(aC, WebLib.PLAY_ICON_SIZE.SMALL,
-                musicServer, cdm.isLoggedIn(), new DualDataEmbededClickListener<String, ClientDataManager>(aC.getId(), cdm) {
-
-            public void onClick(Widget arg0) {
-                sndData.getPlayedListenerManager().triggerOnPlay(data);
-            }
-        });
-        spotify.getElement().setAttribute("style", "align : right;");
-        buttonPanel.add(spotify);
-
+        playButton = new PlayButton(cdm, aC, PlayButton.PLAY_ICON_SIZE.SMALL, musicServer);
+        if (playButton != null) {
+            cdm.getMusicProviderSwitchListenerManager().addListener(playButton);
+            playButton.getElement().setAttribute("style", "align : right;");
+            buttonPanel.add(playButton);
+        }
 
         SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, new DualDataEmbededClickListener<ClientDataManager, ArtistCompact>(cdm, aC) {
 
@@ -183,7 +180,12 @@ public class CompactArtistWidget extends Composite implements HasListeners {
     }
 
     public void doRemoveListeners() {
-        star.onDelete();
+        if (star != null) {
+            star.onDelete();
+        }
+        if (playButton != null) {
+            playButton.onDelete();
+        }
     }
 
     private Panel getNDistinctiveTags(String header, ArtistCompact aD, int n) {
