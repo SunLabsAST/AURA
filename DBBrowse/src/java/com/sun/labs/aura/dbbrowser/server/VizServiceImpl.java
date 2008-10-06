@@ -11,6 +11,7 @@ package com.sun.labs.aura.dbbrowser.server;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DataStore;
+import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.impl.PartitionCluster;
 import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.dbbrowser.client.viz.DSHInfo;
@@ -27,6 +28,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -259,6 +261,11 @@ public class VizServiceImpl extends RemoteServiceServlet implements
             ret.setPrefix(pc.getPrefix().toString());
             ret.setNumItems(pc.getItemCount(null));
             ret.setNumAttention(pc.getAttentionCount(new AttentionConfig()));
+            Map typeToCount = new HashMap();
+            for (Item.ItemType type : Item.ItemType.values()) {
+                typeToCount.put(type.toString(), pc.getItemCount(type));
+            }
+            ret.setTypeToCountMap(typeToCount);
             /*for (ServiceItem svc : svcs) {
                 if (svc.service instanceof Replicant) {
                     Replicant rep = (Replicant)svc.service;
