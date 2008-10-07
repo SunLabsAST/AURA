@@ -3,8 +3,9 @@
 <sun-web-app error-url="">
   <context-root>/DBBrowse</context-root>
   <security-role-mapping>
-    <role-name>aurademo</role-name>
+    <role-name>datastore</role-name>
     <principal-name>aurademo</principal-name>
+    <principal-name>aura</principal-name>
   </security-role-mapping>
   <class-loader delegate="true"/>
   <jsp-config>
