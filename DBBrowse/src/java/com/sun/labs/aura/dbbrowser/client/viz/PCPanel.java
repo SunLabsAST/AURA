@@ -9,13 +9,18 @@ import com.sun.labs.aura.dbbrowser.client.*;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.DisclosurePanel;
+import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.HTMLTable.CellFormatter;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a partition cluster in the UI
@@ -36,6 +41,32 @@ public class PCPanel extends HorizontalPanel {
                                   "viz-statLabel"));
         myself.add(new StyleLabel("Attention: " + pc.getNumAttention(),
                                   "viz-statLabel"));
+
+        DisclosurePanel typeStats = new DisclosurePanel(
+                new StyleLabel("Item Type Stats", "viz-typeStatsLabel"));
+        FlexTable typeTable = new FlexTable();
+        CellFormatter cf = typeTable.getCellFormatter();
+        Map typeToCount = pc.getTypeToCountMap();
+        Set types = typeToCount.keySet();
+        int row=0;
+        for (Iterator typeIt = types.iterator(); typeIt.hasNext();) {
+            String type = (String)typeIt.next();
+            Long count = (Long) typeToCount.get(type);
+            if (count.longValue() != 0L) {
+                typeTable.setWidget(row, 0,
+                        new StyleLabel(type + ":","viz-statLabel"));
+                typeTable.setWidget(row, 1,
+                        new StyleLabel(count.toString(), "viz-statLabel"));
+                cf.setStylePrimaryName(row, 0, "viz-typeStatsTypeCol");
+                cf.setStylePrimaryName(row++, 1, "viz-typeStatsCountCol");
+            }
+        }
+        typeStats.add(typeTable);
+        typeStats.setStylePrimaryName("viz-typeStatsPanel");
+        myself.add(typeStats);
+        
+        //
+        // Add buttons
         StyleLabel halt = new StyleLabel("Halt", "viz-actionLabel");
         VizUI.addConfDialog(halt, new ClickListener() {
             public void onClick(Widget arg0) {
