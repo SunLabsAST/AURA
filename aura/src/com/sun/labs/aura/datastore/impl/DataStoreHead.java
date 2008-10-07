@@ -244,8 +244,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
         NanoWatch nw = new NanoWatch();
         nw.start();
-        List<Callable<List<Scored<Item>>>> callers =
-                new ArrayList();
+        //List<Callable<List<Scored<Item>>>> callers =
+        //        new ArrayList();
         
         //
         // Figure out which partitions we need to talk to.

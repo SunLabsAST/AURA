@@ -87,6 +87,19 @@ public class ClusterElement implements Comparable<ClusterElement>, Serializable 
         return item;
     }
     
+    /**
+     * Returns true if the elements have the same item and position
+     */
+    public boolean equals(Object o) {
+        if (o instanceof ClusterElement) {
+            ClusterElement oc = (ClusterElement)o;
+            if (oc.getItem().equals(item) && Arrays.equals(point, oc.point)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public int compareTo(ClusterElement o) {
         if(dist < o.dist) {
             return -1;

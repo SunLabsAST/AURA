@@ -100,8 +100,6 @@ public class ItemSearchEngine implements Configurable {
 
     private long flushCheckInterval;
 
-    private double skimPercentage;
-
     private Timer flushTimer;
     
     private String indexDir;
@@ -198,8 +196,6 @@ public class ItemSearchEngine implements Configurable {
         flushTimer = new Timer("ItemSearchEngineFlushTimer");
         flushTimer.scheduleAtFixedRate(new FlushTimerTask(), flushCheckInterval,
                 flushCheckInterval);
-
-        skimPercentage = ps.getDouble(PROP_SKIM_PERCENTAGE);
 
     }
 
@@ -801,14 +797,11 @@ public class ItemSearchEngine implements Configurable {
      */
     class FlushTimerTask extends TimerTask {
 
-        private long last = System.currentTimeMillis();
-
         @Override
         public void run() {
             try {
                 long curr = System.currentTimeMillis();
                 engine.flush();
-                last = curr;
             } catch(SearchEngineException ex) {
                 log.log(Level.SEVERE, "Error flushing engine data", ex);
             }
@@ -847,11 +840,5 @@ public class ItemSearchEngine implements Configurable {
      */
     @ConfigInteger(defaultValue = 3000, range = {1, 3000000})
     public static final String PROP_FLUSH_INTERVAL = "flushInterval";
-
-    /**
-     * The skim percentage to use for findSimilar.
-     */
-    @ConfigDouble(defaultValue = 0.25)
-    public static final String PROP_SKIM_PERCENTAGE = "skimPercentage";
 
 }

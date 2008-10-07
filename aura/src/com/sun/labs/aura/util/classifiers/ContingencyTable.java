@@ -157,8 +157,8 @@ public class ContingencyTable implements Comparable<ContingencyTable> {
      */
     public float chisq() {
         if(Float.isNaN(chisq)) {
-            chisq = (N() * (a*d - c*b) * (a*d - c*b)) /
-                    ((a+c) * (b+d) * (a+b) * (c+d));
+            chisq = ((float)N() * (a*d - c*b) * (a*d - c*b)) /
+                    ((float)(a+c) * (b+d) * (a+b) * (c+d));
         }
         return chisq;
     }

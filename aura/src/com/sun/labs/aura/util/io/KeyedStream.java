@@ -11,7 +11,7 @@ import java.util.logging.Logger;
  */
 public abstract class KeyedStream {
 
-    protected static Logger logger;
+    protected static final Logger logger;
     
     protected File f;
     protected boolean sorted = false;

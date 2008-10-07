@@ -126,12 +126,13 @@ public class AuraServiceStarter implements Configurable {
             
             if(starter == null) {
                 System.err.println("Unknown starter: " + args[1]);
-            }
-            
-            //
-            // Block until we're killed if we're supposed to.
-            if(starter.blockForShutdown) {
-                Thread.sleep(Long.MAX_VALUE);
+            } else {
+
+                //
+                // Block until we're killed if we're supposed to.
+                if(starter.blockForShutdown) {
+                    Thread.sleep(Long.MAX_VALUE);
+                }
             }
         } catch(IOException ex) {
             System.err.println("Error parsing configuration file: " + configFile);
