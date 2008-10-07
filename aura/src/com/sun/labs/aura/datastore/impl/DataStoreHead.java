@@ -5,7 +5,6 @@ import com.sun.labs.aura.cluster.Cluster;
 import com.sun.labs.aura.cluster.KMeans;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
-import com.sun.labs.aura.datastore.Attention.Type;
 import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.SimilarityConfig;

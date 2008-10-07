@@ -8,7 +8,6 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
-import com.sun.labs.aura.util.Scored;
 import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.Date;
