@@ -256,7 +256,7 @@ public class RMIParallelTest extends ServiceAdapter {
             NanoWatch nw = new NanoWatch();
             nw.start();
             logger.info(String.format("gIs %s call", prefix));
-            List<Scored<Item>> l = r.getItems(keys);
+            List<Scored<Item>> l = r.getScoredItems(keys);
             nw.stop();
             double overhead = l.size() > 0 ? nw.getTimeMillis() - l.get(0).time : 0;
             logger.info(String.format("gIs %s parallel return overhead: %.3fms", prefix, overhead));

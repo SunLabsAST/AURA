@@ -58,7 +58,7 @@ public class RMISerialTest extends RMIParallelTest {
                 String prefix = r.getPrefix().toString();
                 rnw.start();
                 logger.info(String.format("gIs %s call", prefix));
-                List<Scored<Item>> l = r.getItems(e.getValue());
+                List<Scored<Item>> l = r.getScoredItems(e.getValue());
                 rnw.stop();
                 double overhead = l.size() > 0 ? (rnw.getTimeMillis() -
                         l.get(0).time) : 0;
@@ -136,7 +136,7 @@ public class RMISerialTest extends RMIParallelTest {
             NanoWatch nw = new NanoWatch();
             nw.start();
             logger.info(String.format("gIs %s call", prefix));
-            List<Scored<Item>> l = r.getItems(keys);
+            List<Scored<Item>> l = r.getScoredItems(keys);
             nw.stop();
             double overhead = l.size() > 0 ? nw.getTimeMillis() - l.get(0).time : 0;
             logger.info(String.format("gIs %s return overhead: %.3fms", prefix, overhead));
