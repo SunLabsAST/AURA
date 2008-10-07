@@ -489,62 +489,6 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return ret;
     }
 
-    @Deprecated
-    protected List<Attention> getAttentionFor(final String itemKey,
-                                             final boolean isSrc,
-                                             final Attention.Type type)
-            throws AuraException, RemoteException {
-        //
-        // Ask all the partitions to gather up their attention for this item.
-        // Attentions are stored evenly across all partitions.
-        Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<List<Attention>>> callers =
-                new HashSet<Callable<List<Attention>>>();
-        for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
-                public List<Attention> call()
-                        throws AuraException, RemoteException {
-                    if (isSrc) {
-                        if (type == null) {
-                            return pc.getAttentionForSource(itemKey);
-                        } else {
-                            return pc.getAttentionForSource(itemKey, type);
-                        }
-                    } else {
-                        return pc.getAttentionForTarget(itemKey);
-                    }
-                }
-            });
-        }
-
-        //
-        // Run all the callables and collect up the results
-        List<Attention> ret = new ArrayList<Attention>();
-        try {
-            List<Future<List<Attention>>> results = executor.invokeAll(callers);
-            for (Future<List<Attention>> future : results) {
-                ret.addAll(future.get());
-            }
-        } catch (InterruptedException e) {
-            throw new AuraException("Execution was interrupted", e);
-        } catch (ExecutionException e) {
-            checkAndThrow(e);
-        }
-        Collections.sort(ret, new ReverseAttentionTimeComparator());
-        return ret;
-    }
-
-    @Deprecated
-    public List<Attention> getAttentionForSource(String srcKey)
-            throws AuraException, RemoteException {
-        return getAttentionFor(srcKey, true, null);
-    }
-
-    @Deprecated
-    public List<Attention> getAttentionForTarget(String itemKey)
-            throws AuraException, RemoteException {
-        return getAttentionFor(itemKey, false, null);
-    }
 
     public List<Attention> getAttention(final AttentionConfig ac)
             throws AuraException, RemoteException {
@@ -806,107 +750,6 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         pc.removeAttention(srcKey, targetKey, type);
     }
 
-    public DBIterator<Attention> getAttentionSince(Date timeStamp)
-            throws AuraException, RemoteException {
-        return getAttentionForKeySince(null, false, timeStamp);
-    }
-
-    public DBIterator<Attention> getAttentionForSourceSince(String sourceKey,
-                                                            Date timeStamp)
-            throws AuraException, RemoteException {
-        return getAttentionForKeySince(sourceKey, true, timeStamp);
-    }
-
-    public DBIterator<Attention> getAttentionForTargetSince(String targetKey,
-            Date timeStamp)
-            throws AuraException, RemoteException {
-        return getAttentionForKeySince(targetKey, false, timeStamp);
-    }
-
-    public DBIterator<Attention> getAttentionForKeySince(final String key,
-                                                         final boolean isSrc,
-                                                         final Date timeStamp)
-            throws AuraException, RemoteException {
-        Set<PartitionCluster> cluster = trie.getAll();
-        Set<Callable<DBIterator<Attention>>> callers =
-                new HashSet<Callable<DBIterator<Attention>>>();
-        for (PartitionCluster p : cluster) {
-            callers.add(new PCCaller(p) {
-               public DBIterator<Attention> call()
-                       throws AuraException, RemoteException {
-                   if (key == null) {
-                       return pc.getAttentionSince(timeStamp);
-                   } else {
-                       if (isSrc) {
-                           return pc.getAttentionForSourceSince(key, timeStamp);
-                       } else {
-                           return pc.getAttentionForTargetSince(key, timeStamp);
-                       }
-                   }
-               } 
-            });
-        }
-
-        Set<DBIterator<Attention>> ret = new HashSet<DBIterator<Attention>>();
-        try {
-            List<Future<DBIterator<Attention>>> results =
-                    executor.invokeAll(callers);
-            for (Future<DBIterator<Attention>> future : results) {
-                ret.add(future.get());
-            }
-        } catch (InterruptedException e) {
-            throw new AuraException("Execution was interrupted", e);
-        } catch (ExecutionException e) {
-            checkAndThrow(e);
-        }
-
-        //
-        // Now throw all the DBIterators together into a list so we can
-        // iterate over all of them.  Since no particular ordering is
-        // promised by this method, we'll use a simple composite iterator.
-        MultiDBIterator<Attention> mdbi = new MultiDBIterator<Attention>(ret);
-        return (DBIterator<Attention>) cm.getRemote(mdbi);
-
-    }
-
-    public List<Attention> getLastAttentionForSource(String srcKey,
-                                                         int count)
-            throws AuraException, RemoteException {
-        return getLastAttentionForSource(srcKey, null, count);
-    }
-
-    public List<Attention> getLastAttentionForSource(final String srcKey,
-                                                     final Type type,
-                                                     final int count)
-            throws AuraException, RemoteException {
-        //
-        // Call out to all the clusters to search for attention for this user,
-        // type, and no more than count.  Then we'll combine all the results
-        // and only take the first 'count' of those.
-        Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<List<Attention>>> callers =
-                new HashSet<Callable<List<Attention>>>();
-        for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
-               public List<Attention> call()
-                       throws AuraException, RemoteException {
-                   return pc.getLastAttentionForSource(srcKey, type, count);
-               }
-            });
-        }
-
-        try {
-            List<Future<List<Attention>>> results =
-                    executor.invokeAll(callers);
-            return sortAttention(results, count);
-        } catch (InterruptedException e) {
-            throw new AuraException("Execution was interrupted", e);
-        } catch (ExecutionException e) {
-            checkAndThrow(e);
-        }
-        return new ArrayList<Attention>();
-    }
-
     public void addItemListener(final ItemType itemType,
                                 final ItemListener listener)
             throws AuraException, RemoteException {
@@ -995,34 +838,6 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             checkAndThrow(e);
         }
         return count;
-    }
-
-    public long getAttentionCount() throws AuraException, RemoteException {
-        Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<Long>> callers = new HashSet<Callable<Long>>();
-        for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
-                public Long call() throws AuraException, RemoteException {
-                    return pc.getAttentionCount();
-                }
-            });
-        }
-
-        //
-        // Tally up the counts and return
-        long count = 0;
-        try {
-            List<Future<Long>> results = executor.invokeAll(callers);
-            for (Future<Long> future : results) {
-                count += future.get();
-            }
-        } catch (InterruptedException e) {
-            throw new AuraException("Execution was interrupted", e);
-        } catch (ExecutionException e) {
-            checkAndThrow(e);
-        }
-        return count;
-
     }
 
     /* **********

@@ -98,7 +98,7 @@ public class DBSplitter {
         System.out.println("Done");
         
         DBIterator<Attention> attnIt = bdbRoot.getAttentionAddedSince(0);
-        System.out.print("About to transfer " + bdbRoot.getAttentionCount() +
+        System.out.print("About to transfer " + bdbRoot.getAttentionCount(null) +
                 " attentions.....");
         while (attnIt.hasNext()) {
             Attention attn = attnIt.next();
@@ -116,7 +116,7 @@ public class DBSplitter {
         long numAttns = 0;
         for (BerkeleyDataWrapper bdb : trie.getAll()) {
             numItems += bdb.getItemCount(null);
-            numAttns += bdb.getAttentionCount();
+            numAttns += bdb.getAttentionCount(null);
             bdb.close();
         }
         System.out.println("Accounted for " + numItems + " items and " +

@@ -129,10 +129,6 @@ public class PCDefaultStrategy implements PCStrategy {
         replicant.removeAttention(itemKey);
     }
 
-    public List<Attention> getLastAttentionForSource(String srcKey, Type type, int count) throws AuraException, RemoteException {
-        return replicant.getLastAttentionForSource(srcKey, type, count);
-    }
-
     public void addItemListener(ItemType itemType, ItemListener listener) throws AuraException, RemoteException {
         replicant.addItemListener(itemType, listener);
     }

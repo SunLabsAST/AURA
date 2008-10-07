@@ -32,10 +32,6 @@ public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote 
      */
     public DSBitSet getPrefix() throws RemoteException;
 
-    public List<Attention> getAttentionForSource(String srcKey,
-                                                Attention.Type type)
-            throws AuraException, RemoteException;
-    
     /**
      * Delete the attention that is related to the given item either as a 
      * source or a target.  (Generally: isSrc should be true for users and

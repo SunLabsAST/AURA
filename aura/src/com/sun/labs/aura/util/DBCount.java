@@ -17,7 +17,7 @@ public class DBCount {
         for (String dbEnv : args) {
             BerkeleyDataWrapper bdb = new BerkeleyDataWrapper(dbEnv, logger);
             long currItems = bdb.getItemCount(null);
-            long currAttns = bdb.getAttentionCount();
+            long currAttns = bdb.getAttentionCount(null);
             System.out.println(dbEnv + " has " + currItems + " items and " +
                     currAttns + " attentions.");
             totalItems += currItems;

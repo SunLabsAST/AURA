@@ -173,15 +173,6 @@ public interface PCStrategy {
     
 
     /**
-     * Gets the most recent attention of a particular type for the given
-     * key as a source
-     */
-    public List<Attention> getLastAttentionForSource(String srcKey,
-                                                          Type type,
-                                                          int count)
-            throws AuraException, RemoteException;
-
-    /**
      * Add an item listener
      */
     public void addItemListener(ItemType itemType, ItemListener listener)

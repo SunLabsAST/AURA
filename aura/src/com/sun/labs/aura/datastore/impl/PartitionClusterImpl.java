@@ -229,22 +229,6 @@ public class PartitionClusterImpl implements PartitionCluster,
         return strategy.getLastAttention(ac, count);
     }
     
-    public List<Attention> getAttentionForSource(String srcKey)
-            throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("getAttentionForSource no longer supported");
-    }
-    
-    public List<Attention> getAttentionForSource(String srcKey,
-                                                Attention.Type type)
-            throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("getAttentionForSource no longer supported");
-    }
-    
-    public List<Attention> getAttentionForTarget(String itemKey)
-            throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("getAttentionForTarget no longer supported");
-    }
-
     public Attention attend(Attention att)
             throws AuraException, RemoteException {
         return strategy.attend(att);
@@ -266,33 +250,6 @@ public class PartitionClusterImpl implements PartitionCluster,
         strategy.removeAttention(itemKey);
     }
     
-    public DBIterator<Attention> getAttentionSince(Date timeStamp)
-            throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("getAttentionSince no longer supported");
-    }
-    public DBIterator<Attention> getAttentionForSourceSince(String sourceKey,
-            Date timeStamp) throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("getAttentionForSourceSince no longer supported");
-    }
-    
-    public DBIterator<Attention> getAttentionForTargetSince(String targetKey,
-            Date timeStamp) throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("getAttentionForTargetSince no longer supported");
-    }
-
-    public List<Attention> getLastAttentionForSource(String srcKey,
-                                                          int count)
-            throws AuraException, RemoteException {
-        return getLastAttentionForSource(srcKey, null, count);
-    }
-
-    public List<Attention> getLastAttentionForSource(String srcKey,
-                                                          Type type,
-                                                          int count)
-            throws AuraException, RemoteException {
-        return strategy.getLastAttentionForSource(srcKey, type, count);
-    }
-
     public void addItemListener(ItemType itemType, ItemListener listener)
             throws AuraException, RemoteException {
         //
@@ -310,10 +267,6 @@ public class PartitionClusterImpl implements PartitionCluster,
     public long getItemCount(ItemType itemType)
             throws AuraException, RemoteException {
         return strategy.getItemCount(itemType);
-    }
-
-    public long getAttentionCount() throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("getAttentionCount() no longer supported");
     }
     
     public List<FieldFrequency> getTopValues(String field, int n, boolean ignoreCase) throws AuraException, RemoteException {
