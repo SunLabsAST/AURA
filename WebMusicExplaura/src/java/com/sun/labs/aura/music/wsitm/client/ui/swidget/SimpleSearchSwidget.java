@@ -504,15 +504,12 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         main.add(getEventsWidget(artistDetails));
         main.setStyleName("center");
 
-        String id = artistDetails.getId();
         VerticalPanel left = new VerticalPanel();
         left.setSpacing(4);
         left.setWidth("300px");
-
         
-        ArtistCompact[] aCArray;
-
         // Add similar artists
+        ArtistCompact[] aCArray;
         aCArray = artistDetails.getSimilarArtists();
         addCompactArtistToOracle(aCArray);
 
@@ -576,35 +573,58 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
     }
 
     private Widget createTagPanel(TagDetails tagDetails) {
-        DockPanel main = new DockPanel();
-        main.setHorizontalAlignment(VerticalPanel.ALIGN_CENTER);
-        main.setWidth("100%");
+
+        VerticalPanel main = new VerticalPanel();
+        main.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
+        main.add(getTagHeaderWidget(tagDetails));
+        main.add(WebLib.createSection("Videos", new VideoScrollWidget(tagDetails.getVideos())));
+        main.add(WebLib.createSection("Photos", new ImageScrollWidget(tagDetails.getPhotos())));
+        main.setStyleName("center");
 
         VerticalPanel left = new VerticalPanel();
-        left.setWidth("150px");
-        left.setStyleName("left");
-        Widget w = getItemInfoList(tagDetails.getName() + " artists", tagDetails.getRepresentativeArtists(), null, true, false, cdm.getTagOracle());
-        left.add(w);
-        main.add(left, DockPanel.WEST);
+        left.setSpacing(4);
+        left.setWidth("300px");
+        
+        // Add similar artists
+        ArtistCompact[] aCArray;
+        aCArray = tagDetails.getRepresentativeArtists();
+        addCompactArtistToOracle(aCArray);
 
-        VerticalPanel v = new VerticalPanel();
-        v.add(getTagWidget(tagDetails));
-        v.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
-        v.add(WebLib.createSection("Videos", new VideoScrollWidget(tagDetails.getVideos())));
-        v.add(WebLib.createSection("Photos", new ImageScrollWidget(tagDetails.getPhotos())));
-        v.setStyleName("center");
-        main.add(v, DockPanel.CENTER);
+        if (leftSimList != null) {
+            leftSimList.doRemoveListeners();
+        }
+        leftSimList = new TagCloudArtistListWidget(musicServer, cdm, aCArray);
 
-        VerticalPanel right = new VerticalPanel();
-        w = getItemInfoList("Similar tags", tagDetails.getSimilarTags(), tagDetails.getId(), false, false, cdm.getTagOracle());
-        w.setStyleName("right");
-        right.add(w);
-        main.add(right, DockPanel.EAST);
+        HorizontalPanel hP = new HorizontalPanel();
+        hP.add(new Label("Similar tags"));
+        hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+        hP.setWidth("300px");
+        hP.setStyleName("h2");
 
-        main.setStyleName("resultpanel");
-        return main;
+        left.add(hP);
+        left.add(leftSimList);
+
+        DockPanel artistPanel = new DockPanel();
+        artistPanel.add(main, DockPanel.CENTER);
+        artistPanel.add(left, DockPanel.WEST);
+        artistPanel.setWidth("100%");
+        artistPanel.setStyleName("resultpanel");
+        return artistPanel;
     }
 
+    private Widget getTagHeaderWidget(TagDetails tagDetails) {
+        
+        HTML html = new HTML();
+        html.setHTML(getBestTagImageAsHTML(tagDetails) + tagDetails.getDescription());
+        html.setStyleName("bio");
+
+        HorizontalPanel hP = new HorizontalPanel();
+        hP.add(WebLib.getListenWidget(tagDetails));
+        
+        return createMainSection(tagDetails.getName(), html,
+                hP, tagDetails.getSimilarTags(), null, false);
+    }
+    
     private Widget getBioWidget(ArtistDetails artistDetails) {
         HTML html = new HTML();
         html.setHTML(artistDetails.getBestArtistImageAsHTML() + artistDetails.getBiographySummary());
@@ -614,7 +634,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         cdm.getLoginListenerManager().addListener(artistStar);
 
         HorizontalPanel hP = new HorizontalPanel();
-        PlayButton playButton = new PlayButton(cdm, artistDetails.toArtistCompact(),
+        playButton = new PlayButton(cdm, artistDetails.toArtistCompact(),
             PlayButton.PLAY_ICON_SIZE.MEDIUM, musicServer);
         if (playButton!=null) {
             cdm.getMusicProviderSwitchListenerManager().addListener(playButton);
@@ -634,15 +654,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         hP.add(new ContextMenuSteeringWheelWidget(cdm, steerButton, aC));
 
         return createMainSection(artistDetails.getName(), html,
-                hP,
-                artistDetails.getDistinctiveTags(), artistStar);
-    }
-
-    private Widget getTagWidget(TagDetails tagDetails) {
-        HTML html = new HTML();
-        html.setHTML(getBestTagImageAsHTML(tagDetails) + tagDetails.getDescription());
-        html.setStyleName("bio");
-        return createMainSection(tagDetails.getName(), html, WebLib.getListenWidget(tagDetails));
+                hP, artistDetails.getDistinctiveTags(), artistStar, true);
     }
 
     private Widget getMoreInfoWidget(ArtistDetails artistDetails) {
@@ -736,11 +748,12 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         return WebLib.createSection("Upcoming Events", widget);
     }
 
-    private Widget createMainSection(String title, Widget widget, Widget adornment) {
-        return createMainSection(title, widget, adornment, null, null);
+    private Widget createMainSection(String title, Widget widget, Widget adornment, boolean addTagInputWidget) {
+        return createMainSection(title, widget, adornment, null, null, addTagInputWidget);
     }
 
-    private Widget createMainSection(String title, Widget widget, Widget adornment, ItemInfo[] tagCloud, StarRatingWidget starWidget) {
+    private Widget createMainSection(String title, Widget widget, Widget adornment, 
+            ItemInfo[] tagCloud, StarRatingWidget starWidget, boolean addTagInputWidget) {
         Panel panel = new VerticalPanel();
         DockPanel h = new DockPanel();
         h.add(new Label(title), DockPanel.WEST);
@@ -759,9 +772,11 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
             if (tagInputWidget != null) {
                 tagInputWidget.onDelete();
             }
-            tagInputWidget = new TagInputWidget(musicServer, cdm, "artist", cdm.getCurrArtistID());
-            cdm.getLoginListenerManager().addListener(tagInputWidget);
-            panel.add(tagInputWidget);
+            if (addTagInputWidget) {
+                tagInputWidget = new TagInputWidget(musicServer, cdm, "artist", cdm.getCurrArtistID());
+                cdm.getLoginListenerManager().addListener(tagInputWidget);
+                panel.add(tagInputWidget);
+            }
             
             Panel p = TagDisplayLib.getTagsInPanel(tagCloud, TagDisplayLib.ORDER.SHUFFLE, cdm);
             // If there are not tags, this will be null
@@ -913,6 +928,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
             this.currArtist = currArtist;
         }
 
+        @Override
         public void openWhyPopup(SwapableTxtButton why) {
             why.showLoad();
             TagDisplayLib.invokeGetCommonTags(currArtist.getId(), why.getId(),
@@ -928,7 +944,36 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                     currArtist.getDistinctiveTags(), diff.getDistinctiveTags(), cdm);
             }
         }
+    }
+    
+    private class TagCloudArtistListWidget extends ArtistListWidget {
 
+        private ArtistCompact[] aC;
+
+        public TagCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
+            ClientDataManager cdm, ArtistCompact[] aDArray) {
+            
+            super(musicServer, cdm, aDArray, cdm.isLoggedIn(), false);
+            this.aC = aDArray;
+        }
+
+        @Override
+        public void openWhyPopup(SwapableTxtButton why) {
+
+            for (ArtistCompact t : aC) {
+                if (t.getId().equals(why.getId())) {
+                    TagDisplayLib.showTagCloud(t.getName()+"'s tag cloud",
+                        t.getDistinctiveTags(), TagDisplayLib.ORDER.SHUFFLE, cdm);
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public void openDiffPopup(DiffButton diff) {
+            Window.alert("Not implemented");
+        }
+        
     }
 
     private abstract class ScrollWidget extends Composite {

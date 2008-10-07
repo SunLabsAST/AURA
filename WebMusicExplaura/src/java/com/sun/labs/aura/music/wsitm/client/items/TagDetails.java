@@ -17,6 +17,7 @@ import com.google.gwt.user.client.rpc.IsSerializable;
  */
 public class TagDetails implements IsSerializable, Details {
     private final static ItemInfo[] EMPTY_ITEM_INFO = new ItemInfo[0];
+    private final static ArtistCompact[] EMPTY_ARTIST_COMPACT = new ArtistCompact[0];
     private final static ArtistVideo[] EMPTY_ARTIST_VIDEO = new ArtistVideo[0];
     private final static ArtistPhoto[] EMPTY_ARTIST_PHOTO = new ArtistPhoto[0];
     
@@ -27,7 +28,7 @@ public class TagDetails implements IsSerializable, Details {
     private float popularity;
     private String description = "None available";
     private String imageURL;
-    private ItemInfo[] representativeArtists = getEMPTY_ITEM_INFO();
+    private ArtistCompact[] representativeArtists = getEMPTY_ARTIST_COMPACT();
     private ItemInfo[] similarTags = getEMPTY_ITEM_INFO();
     private ArtistVideo[] videos = getEMPTY_ARTIST_VIDEO();
     private ArtistPhoto[] photos  = getEMPTY_ARTIST_PHOTO();
@@ -94,11 +95,11 @@ public class TagDetails implements IsSerializable, Details {
         this.imageURL = imageURL;
     }
     
-    public ItemInfo[] getRepresentativeArtists() {
+    public ArtistCompact[] getRepresentativeArtists() {
         return representativeArtists;
     }
     
-    public void setRepresentativeArtists(ItemInfo[] representativeArtists) {
+    public void setRepresentativeArtists(ArtistCompact[] representativeArtists) {
         this.representativeArtists = representativeArtists;
     }
     
@@ -119,6 +120,10 @@ public class TagDetails implements IsSerializable, Details {
 
     public static ItemInfo[] getEMPTY_ITEM_INFO() {
         return EMPTY_ITEM_INFO;
+    }
+    
+    public static ArtistCompact[] getEMPTY_ARTIST_COMPACT() {
+        return EMPTY_ARTIST_COMPACT;
     }
 
     public static ArtistVideo[] getEMPTY_ARTIST_VIDEO() {

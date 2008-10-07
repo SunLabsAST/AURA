@@ -45,17 +45,28 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
     private Map<String,Integer> ratingMap;
 
     private List<CompactArtistWidget> artistWidgetList;
+    
+    private boolean displayDiff;
 
     public ArtistListWidget(MusicSearchInterfaceAsync musicServer,
-            ClientDataManager cdm, ArtistCompact[] aDArray, boolean fetchRatings) {
+            ClientDataManager cdm, ArtistCompact[] aDArray,
+            boolean fetchRatings) {
+
+        this(musicServer, cdm, aDArray, fetchRatings, true);
+    }
+
+    public ArtistListWidget(MusicSearchInterfaceAsync musicServer,
+            ClientDataManager cdm, ArtistCompact[] aDArray, 
+            boolean fetchRatings, boolean displayDiff) {
 
         this.musicServer = musicServer;
         this.cdm = cdm;
-
+        this.displayDiff = displayDiff;
+        
         artistWidgetList = new LinkedList<CompactArtistWidget>();
 
         g = new Grid(1,1);
-        this.aDArray=aDArray;
+        this.aDArray = aDArray;
         initWidget(g);
         setWidth("300px");
 
@@ -117,9 +128,15 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                 }
 
                 PerformanceTimer.start("  alw - single artist widget");
+                
+                DiffButton dB = null;
+                if (this.displayDiff) {
+                    dB = new DiffButton(aC);
+                }
+                
                 CompactArtistWidget caw = new OverWroteOnClickCompactArtistWidget(aC, cdm,
                         musicServer, new WhyButton(aC.getId(), aC.getName()),
-                        new DiffButton(aC), rating, null, this);
+                        dB, rating, null, this);
                 PerformanceTimer.stop("  alw - single artist widget");
 
                 artistWidgetList.add(caw);
