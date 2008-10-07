@@ -25,6 +25,7 @@ public class FindSimilarArtist extends HttpServlet {
     private final static String SERVLET_NAME = "FindSimilarArtist";
     private ParameterChecker pc;
 
+    @Override
     public void init() throws ServletException {
         super.init();
         pc = new ParameterChecker();
@@ -56,7 +57,7 @@ public class FindSimilarArtist extends HttpServlet {
 
             if (mdb == null) {
                 status.addError(ErrorCode.InternalError, "Can't connecto to the music database");
-                throw new ParameterException();
+                return;
             }
 
             String key = pc.getParam(status, request, "key");
@@ -79,7 +80,7 @@ public class FindSimilarArtist extends HttpServlet {
                 }
                 if (key == null) {
                     status.addError(ErrorCode.NotFound, "Can't find artist");
-                    throw new ParameterException();
+                    return;
                 }
 
                 if ((artist = mdb.artistLookup(key)) != null) {

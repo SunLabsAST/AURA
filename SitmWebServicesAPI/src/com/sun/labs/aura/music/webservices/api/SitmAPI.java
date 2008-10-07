@@ -198,8 +198,11 @@ public class SitmAPI {
     }
 
     public void checkStatus(String msg, Document doc) throws IOException {
+        if (true) {
+            return;  // until the ws refactor is complete
+        }
         Element docElement = doc.getDocumentElement();
-        NodeList nlist = docElement.getElementsByTagName("Status");
+        NodeList nlist = docElement.getElementsByTagName("status");
         if (nlist.getLength() != 1) {
             throw new IOException(msg + ":" + "Improper status format");
         }

@@ -37,28 +37,6 @@ public class Util {
         return s;
     }
 
-    static void outputStatus(PrintWriter out, ErrorCode code, String message) {
-        if (code == ErrorCode.OK) {
-            out.println("    <Status code='OK'/>");
-        } else {
-            out.println("    <Status code='" + code.toString() + "'>" + message + "</Status>");
-        }
-    }
-
-    static void outputStatus(PrintWriter out, String tag, ErrorCode code, String message) {
-        out.println("<" + tag + ">");
-        outputStatus(out, code, message);
-        out.println("</" + tag + ">");
-    }
-
-    static void outputClosingStatus(PrintWriter out, String tag, ErrorCode code, String message) {
-        outputStatus(out, code, message);
-        out.println("</" + tag + ">");
-    }
-
-    static void outputOKStatus(PrintWriter out) {
-        outputStatus(out, ErrorCode.OK, null);
-    }
 
     static Timer getTimer() {
         return new Timer();

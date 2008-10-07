@@ -7,6 +7,7 @@ package com.sun.labs.aura.music.webservices;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.MusicDatabase.Popularity;
+import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
@@ -26,6 +27,16 @@ import javax.servlet.http.HttpServletResponse;
 public class FindSimilarArtistFromWordCloud extends HttpServlet {
 
     private final static String SERVLET_NAME = "FindSimilarArtistFromWordCloud";
+    private ParameterChecker pc;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        pc = new ParameterChecker();
+        pc.addParam("wordcloud", "the wordcloud");
+        pc.addParam("max", "10", "the maxiumum number of artists to return");
+        pc.addParam("popularity", Popularity.ALL.name(), "the popularity filter");
+    }
 
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -34,71 +45,51 @@ public class FindSimilarArtistFromWordCloud extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        Status status = new Status();
         ServletContext context = getServletContext();
-
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        Timer timer = Util.getTimer();
 
         try {
+            pc.check(status, request);
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
-            } else {
-                String wc = request.getParameter("wordCloud");
+                status.addError(ErrorCode.InternalError, "Can't connect to the music database");
+                return;
+            }
 
-                int maxCount = 10;
-                String maxCountString = request.getParameter("max");
-                if (maxCountString != null) {
-                    maxCount = Integer.parseInt(maxCountString);
-                }
+            String wc = pc.getParam(status, request, "wordCloud");
+            int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
+            Popularity pop = (Popularity) pc.getParamAsEnum(status, request,
+                    "popularity", Popularity.values());
 
-                Popularity pop = Popularity.ALL;
-                String spop = request.getParameter("popularity");
-                if (spop != null) {
-                    pop = mdb.toPopularity(spop);
-                    if (pop == null) {
-                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.BadArgument, "bad specification for popularity '" + spop + "'");
-                    }
-                } 
-
-                if (wc == null) {
-                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "Missing paramenter wordCloud");
-                    return;
-                }
-
-                WordCloud cloud = WordCloud.convertStringToWordCloud(wc);
-                if (cloud == null) {
-                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.BadArgument, "Bad wordcloud format. Should be:" +
-                            "(tag1 name,weight)(tag2 name,weight)");
-                    return;
-                }
+            WordCloud cloud = WordCloud.convertStringToWordCloud(wc);
+            if (cloud == null) {
+                status.addError(ErrorCode.BadArgument, "Bad wordcloud format. Should be:" +
+                        "(tag1 name,weight)(tag2 name,weight)");
+                return;
+            }
 
 
-                List<Scored<Artist>> scoredArtists = mdb.wordCloudFindSimilarArtists(cloud, maxCount, pop);
-                Util.tagOpen(out, SERVLET_NAME);
-                for (Scored<Artist> scoredArtist : scoredArtists) {
-                    Artist simArtist = scoredArtist.getItem();
-                    out.println("    <artist key=\"" +
-                            simArtist.getKey() + "\" " +
-                            "score=\"" + scoredArtist.getScore() + "\" " +
-                            "name=\"" + Util.filter(simArtist.getName()) + "\"" +
-                            "/>");
-                }
-                Util.outputOKStatus(out);
-                Util.tagClose(out, SERVLET_NAME);
+            List<Scored<Artist>> scoredArtists = mdb.wordCloudFindSimilarArtists(cloud, maxCount, pop);
+            for (Scored<Artist> scoredArtist : scoredArtists) {
+                Artist simArtist = scoredArtist.getItem();
+                out.println("    <artist key=\"" +
+                        simArtist.getKey() + "\" " +
+                        "score=\"" + scoredArtist.getScore() + "\" " +
+                        "name=\"" + Util.filter(simArtist.getName()) + "\"" +
+                        "/>");
             }
         } catch (AuraException ex) {
-            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Problem accessing data " + ex);
-            ex.printStackTrace(out);
+            status.addError(ErrorCode.InternalError, "Problem accessing data " + ex);
+        } catch (ParameterException e) {
         } finally {
-            timer.report(out);
+            status.toXML(out);
+            Util.tagClose(out, SERVLET_NAME);
             out.close();
         }
     }
-    
-
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /** 
      * Handles the HTTP <code>GET</code> method.
@@ -126,5 +117,4 @@ public class FindSimilarArtistFromWordCloud extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
-
 }

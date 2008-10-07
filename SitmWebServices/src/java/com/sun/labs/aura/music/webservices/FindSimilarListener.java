@@ -2,11 +2,11 @@
  *  Copyright (c) 2008, Sun Microsystems Inc.
  *  See license.txt for license.
  */
-
 package com.sun.labs.aura.music.webservices;
 
 import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.io.IOException;
@@ -25,97 +25,98 @@ import javax.servlet.http.HttpServletResponse;
 public class FindSimilarListener extends HttpServlet {
 
     private final static String SERVLET_NAME = "FindSimilarListener";
+    private ParameterChecker pc;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        pc = new ParameterChecker();
+        pc.addParam("key", "the key of the item of interest");
+        pc.addParam("max", "10", "the maxiumum number of artists to return");
+        pc.addParam("field", Listener.FIELD_SOCIAL_TAGS, "the field to use for similarity");
+    }
 
     /** 
-    * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
-    * @param request servlet request
-    * @param response servlet response
-    */
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
+     * @param request servlet request
+     * @param response servlet response
+     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-                ServletContext context = getServletContext();
-
+            throws ServletException, IOException {
+        Status status = new Status();
+        ServletContext context = getServletContext();
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        Timer timer = Util.getTimer();
 
         try {
+            Util.tagOpen(out, SERVLET_NAME);
+            pc.check(status, request);
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
-            } else {
-                int maxCount = 100;
-                String maxCountString = request.getParameter("max");
-                if (maxCountString != null) {
-                    maxCount = Integer.parseInt(maxCountString);
-                }
+                status.addError(ErrorCode.InternalError, "Can't connect to the music database");
+                return;
+            }
 
-                String userID = request.getParameter("userID");
-                if (userID != null) {
-                    try {
-                        Listener listener = mdb.getListener(userID);
-                        if (listener != null) {
-                            List<Scored<Listener>> similarListeners = mdb.listenerFindSimilar(userID, maxCount);
-                            out.println("<FindSimilarListener userID=\"" + userID + "\" name=\"" 
-                                    + Util.filter(listener.getName()) + "\">");
-                            for (Scored<Listener> scoredListener : similarListeners) {
+            int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
+            String key = pc.getParam(status, request, "key");
+            String field = pc.getParam(status, request, "field"); //TBD field is not used yet.
+            try {
+                Listener listener = mdb.getListener(key);
+                if (listener != null) {
+                    List<Scored<Listener>> similarListeners = mdb.listenerFindSimilar(key, maxCount);
+                    for (Scored<Listener> scoredListener : similarListeners) {
 
-                                if (scoredListener.getItem().getKey().equals(userID)) {
-                                    continue;
-                                }
-
-                                Listener simListener = scoredListener.getItem();
-                                out.println("    <listener userID=\"" +
-                                        simListener.getKey() + "\" " +
-                                        "score=\"" + scoredListener.getScore() + "\" " +
-                                        "name=\"" + Util.filter(simListener.getName()) + "\"" +
-                                        "/>");
-                            }
-                            Util.outputOKStatus(out);
-                            Util.tagClose(out, SERVLET_NAME);
-                        } else {
-                            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.BadArgument, "Can't find user with id " + userID);
+                        if (scoredListener.getItem().getKey().equals(key)) {
+                            continue;
                         }
-                    } catch (AuraException ex) {
-                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Problem accessing data " + ex);
+
+                        Listener simListener = scoredListener.getItem();
+                        out.println("    <listener key=\"" +
+                                simListener.getKey() + "\" " +
+                                "score=\"" + scoredListener.getScore() + "\" " +
+                                "name=\"" + Util.filter(simListener.getName()) + "\"" +
+                                "/>");
                     }
                 } else {
-                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "Missing userID");
+                    status.addError(ErrorCode.BadArgument, "Can't find user with key " + key);
                 }
+            } catch (AuraException ex) {
+                status.addError(Util.ErrorCode.InternalError, "Problem accessing data " + ex);
             }
+        } catch (ParameterException e) {
         } finally {
-            timer.report(out);
+            status.toXML(out);
+            Util.tagClose(out, SERVLET_NAME);
             out.close();
         }
-    } 
+    }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /** 
-    * Handles the HTTP <code>GET</code> method.
-    * @param request servlet request
-    * @param response servlet response
-    */
+     * Handles the HTTP <code>GET</code> method.
+     * @param request servlet request
+     * @param response servlet response
+     */
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        processRequest(request, response);
-    } 
-
-    /** 
-    * Handles the HTTP <code>POST</code> method.
-    * @param request servlet request
-    * @param response servlet response
-    */
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         processRequest(request, response);
     }
 
     /** 
-    * Returns a short description of the servlet.
-    */
+     * Handles the HTTP <code>POST</code> method.
+     * @param request servlet request
+     * @param response servlet response
+     */
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /** 
+     * Returns a short description of the servlet.
+     */
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
-
 }
