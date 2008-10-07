@@ -231,8 +231,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
 
         nw.stop();
-        if(logger.isLoggable(Level.FINER)) {
-            logger.finer(String.format("dsh gkIs for %d took %.3f",
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("dsh gIs for %d took %.3f",
                     keys.size(),
                     nw.getTimeMillis()));
         }
@@ -312,7 +312,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         
         nw.stop();
         if(logger.isLoggable(Level.FINER)) {
-            logger.finer(String.format("dsh gIs for %d took %.3f",
+            logger.finer(String.format("dsh gSIs for %d took %.3f",
                     keys.size(),
                     nw.getTimeMillis()));
         }
