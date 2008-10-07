@@ -596,7 +596,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         leftSimList = new TagCloudArtistListWidget(musicServer, cdm, aCArray);
 
         HorizontalPanel hP = new HorizontalPanel();
-        hP.add(new Label("Similar tags"));
+        hP.add(new Label("Representative artists"));
         hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
         hP.setWidth("300px");
         hP.setStyleName("h2");

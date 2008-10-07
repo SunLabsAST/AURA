@@ -36,12 +36,12 @@ public class SharedPlayButtonMenu extends Menu implements ArtistDependentSharedM
                 cdm.setCurrPreferedMusicProvider(MusicProviders.SPOTIFY);
             }
         }));
-        addItem(new Item("Play with the EcoNest",
+        addItem(new Item("Play from the Web",
                 new DataEmbededBaseItemListener<SharedPlayButtonMenu>(this) {
 
                     @Override
                     public void onClick(BaseItem item, EventObject e) {
-                        cdm.setCurrPreferedMusicProvider(MusicProviders.ECHONEST);
+                        cdm.setCurrPreferedMusicProvider(MusicProviders.THEWEB);
                     }
                 }));
         addItem(new Item("Play with Last.fm tag radio", new DataEmbededBaseItemListener<SharedPlayButtonMenu>(this) {
