@@ -237,11 +237,12 @@ public class ArtistDetails extends ArtistCompact implements IsSerializable, Deta
         aC.setEncodedName(this.getEncodedName());
         aC.setEndYear(this.getEndYear());
         aC.setId(this.getId());
-        aC.setImageURL(this.getImageURL());
         aC.setName(this.getName());
         aC.setNormPopularity(this.getNormPopularity());
         aC.setPopularity(this.getPopularity());
         aC.setStatus(this.getStatus());
+        aC.setAudio(this.getAudio());
+        aC.setSpotifyId(this.getSpotifyId());
 
         return aC;
     }

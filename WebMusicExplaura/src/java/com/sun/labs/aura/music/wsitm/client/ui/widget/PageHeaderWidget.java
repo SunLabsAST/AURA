@@ -34,7 +34,7 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
-import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
+import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,13 +43,14 @@ import java.util.HashMap;
  *
  * @author mailletf
  */
-public class PageHeaderWidget extends Swidget {
+public class PageHeaderWidget extends Swidget implements HasListeners {
 
     private Grid mainPanel;
     private TextBox txtbox;
 
     private ArrayList<MenuItem> menuItems;
     private MainMenu mm;
+    private PlayButton playButton;
 
     private Widget instantRecPlayWidget;
 
@@ -295,9 +296,12 @@ public class PageHeaderWidget extends Swidget {
                         }
                     };
 
-                    Widget instantPlay = WebLib.getSpotifyListenWidget(aC[itemIndex], 
-                            WebLib.PLAY_ICON_SIZE.SMALL, musicServer, cdm.isLoggedIn(), cL);
-                    return instantPlay;
+                    if (playButton != null) {
+                        playButton.onDelete();
+                    }
+                    playButton = new PlayButton(cdm, aC[itemIndex], PlayButton.PLAY_ICON_SIZE.SMALL, musicServer);
+                    cdm.getMusicProviderSwitchListenerManager().addListener(playButton);
+                    return playButton;
                 }
             }
         }
@@ -358,6 +362,10 @@ public class PageHeaderWidget extends Swidget {
     }
 
     private void populateLoginBox() {
+
+        if (playButton != null) {
+            playButton.onDelete();
+        }
 
         txtbox = new TextBox();
         txtbox.setText(Cookies.getCookie("app-openid-uniqueid"));
@@ -437,6 +445,9 @@ public class PageHeaderWidget extends Swidget {
 
     public void doRemoveListeners() {
         mm.onDelete();
+        if (playButton != null) {
+            cdm.getMusicProviderSwitchListenerManager().removeListener(playButton);
+        }
     }
 
     public class MainMenu extends Composite implements LoginListener {

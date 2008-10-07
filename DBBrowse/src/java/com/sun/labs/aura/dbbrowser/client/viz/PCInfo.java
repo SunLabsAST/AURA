@@ -7,7 +7,9 @@ package com.sun.labs.aura.dbbrowser.client.viz;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * PartitionCluster info
@@ -24,8 +26,15 @@ public class PCInfo implements Serializable {
     protected long numItems;
     protected long numAttention;
     
+    /**
+     * A map of item type names to counts of each type
+     * @gwt.typeArgs <java.lang.String,java.lang.Long>
+     */
+    protected Map typeToCountMap;
+    
     public PCInfo() {
         repInfos = new ArrayList();
+        typeToCountMap = new HashMap();
     }
     
     public String getPrefix() {
@@ -50,6 +59,14 @@ public class PCInfo implements Serializable {
     
     public void setNumAttention(long numAttention) {
         this.numAttention = numAttention;
+    }
+    
+    public Map getTypeToCountMap() {
+        return typeToCountMap;
+    }
+    
+    public void setTypeToCountMap(Map m) {
+        typeToCountMap = m;
     }
     
     public void addRepInfo(RepInfo rep) {

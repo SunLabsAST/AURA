@@ -28,13 +28,6 @@ a:visited {
   background: url(gradient.gif) repeat-x top left;
 }
 
-.db-actionLabel {
-  color: blue;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-
 .db-SearchPanel {
   padding: 10px;
 }
@@ -77,6 +70,23 @@ a:visited {
   margin: 5px;
   border: 1px solid #999999;
   vertical-align: middle;
+}
+
+.viz-typeStatsLabel {
+    font-size: 12px;
+}
+
+.viz-typeStatsPanel {
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+.viz-typeStatsTypeCol {
+    text-align: right;
+}
+
+.viz-typeStatsCountcol {
+    text-align: left;
 }
 
 .viz-repPanel {

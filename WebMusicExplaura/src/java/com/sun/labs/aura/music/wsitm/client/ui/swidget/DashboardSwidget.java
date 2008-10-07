@@ -43,6 +43,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.UpdatablePanel;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -98,6 +99,8 @@ public class DashboardSwidget extends Swidget {
         private ArrayList<HasListeners> recentTaggingListeners;
         private Grid recentPlayed;
         private ArrayList<HasListeners> recentPlayedListeners;
+
+        private PlayButton playButton;
 
         public MainPanel() {
 
@@ -220,13 +223,13 @@ public class DashboardSwidget extends Swidget {
                 featArtTitle.setWidth("100%");
                 featArtTitle.setWidget(0, 0, new Label("Featured artist : " + aD.getName()));
                 //featArtTitle.setWidget(0, 1, new StarRatingWidget(0,StarRatingWidget.Size.MEDIUM));
-                featArtTitle.setWidget(0, 2, WebLib.getSpotifyListenWidget(aD, WebLib.PLAY_ICON_SIZE.MEDIUM, musicServer,
-                        cdm.isLoggedIn(), new DualDataEmbededClickListener<String, ClientDataManager>(aD.getId(), cdm) {
 
-                    public void onClick(Widget arg0) {
-                        sndData.getPlayedListenerManager().triggerOnPlay(data);
-                    }
-                }));
+                if (playButton != null) {
+                    playButton.onDelete();
+                }
+                playButton = new PlayButton(cdm, aD.toArtistCompact(), PlayButton.PLAY_ICON_SIZE.MEDIUM, musicServer);
+                cdm.getMusicProviderSwitchListenerManager().addListener(playButton);
+                featArtTitle.setWidget(0, 2, playButton);
 
                 featArtist.setWidget(0, 0, featArtTitle);
 
@@ -512,6 +515,9 @@ public class DashboardSwidget extends Swidget {
         
         public void doRemoveListeners() {
             onDelete();
+            if (playButton != null) {
+                playButton.onDelete();
+            }
             clearListeners(recentRatingListeners);
             clearListeners(recentTaggingListeners);
             clearListeners(recentPlayedListeners);
