@@ -52,7 +52,8 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
     public enum MusicProviders {
         SPOTIFY,
         LASTFM,
-        ECHONEST
+        THEWEB
+
     }
     
     public PlayButton(ClientDataManager tcdm, ArtistCompact taC,
@@ -90,7 +91,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
             w = tryProviders(preferredMP);
         }
         if (w == null) {
-            w = tryProviders(null);
+            w = tryProviders(cdm.getCurrMusicProvider());
         }
         mainbutton.setWidget(0, 0, w);
         
@@ -113,8 +114,8 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
             }
         }
         
-        if (preferredMP == null || preferredMP == MusicProviders.ECHONEST) {
-            w = getEchonestListenWidget(triggerPlayClickListener);
+        if (preferredMP == null || preferredMP == MusicProviders.THEWEB) {
+            w = getTheWebListenWidget(triggerPlayClickListener);
             if (w != null) {
                 return w;
             }
@@ -163,7 +164,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         return cm;
     }
 
-    private Widget getEchonestListenWidget(ClickListener cL) {
+    private Widget getTheWebListenWidget(ClickListener cL) {
         if (aC.getAudio() == null || aC.getAudio().isEmpty()) {
             return null;
         } else {
