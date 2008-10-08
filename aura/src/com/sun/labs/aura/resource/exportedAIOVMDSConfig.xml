@@ -91,7 +91,6 @@
         <property name="engineLogLevel" value="3"/>
         <property name="flushInterval" value="300000"/>
         <property name="logLevel" value="WARNING"/>
-        <property name="skimPercentage" value="1.0"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
@@ -101,11 +100,9 @@
         <property name="flushInterval" value="300000"/>
         <property name="engineLogLevel" value="3"/>
         <property name="logLevel" value="WARNING"/>
-        <property name="skimPercentage" value="1.0"/>
     </component>
     
     <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl" export="true">
-        <property name="dataStore" value="dataStoreHead"/>
     </component>
 
     <component name="aiovm-starter" type="com.sun.labs.aura.AuraServiceStarter">

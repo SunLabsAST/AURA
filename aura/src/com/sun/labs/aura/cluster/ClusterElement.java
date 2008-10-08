@@ -100,6 +100,10 @@ public class ClusterElement implements Comparable<ClusterElement>, Serializable 
         return false;
     }
     
+    public int hashCode() {
+        return item.hashCode();
+    }
+    
     public int compareTo(ClusterElement o) {
         if(dist < o.dist) {
             return -1;

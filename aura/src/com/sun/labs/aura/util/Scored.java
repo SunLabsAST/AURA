@@ -127,6 +127,10 @@ public class Scored<T> implements Serializable {
         return false;
     }
     
+    public int hashCode() {
+        return item.hashCode();
+    }
+    
     public int compareTo(Scored<T> o) {
         if(sortVals == null) {
             //
