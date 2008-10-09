@@ -103,6 +103,34 @@ public class Scored<T> implements Serializable {
         }
     }
 
+    public boolean equals(Object o) {
+        if (o instanceof Scored) {
+            Scored os = (Scored)o;
+            if (score == os.score
+                    && item.equals(os.item)
+                    && time == os.time) {
+                if (((directions != null) &&
+                        (os.directions != null) &&
+                        Arrays.equals(directions, os.directions))
+                        ||
+                        ((directions == null) && os.directions == null)) {
+                        
+                    if (((sortVals != null) && (os.sortVals != null) &&
+                            Arrays.equals(sortVals, os.sortVals))
+                            ||
+                            ((sortVals == null) && os.sortVals == null)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    public int hashCode() {
+        return item.hashCode();
+    }
+    
     public int compareTo(Scored<T> o) {
         if(sortVals == null) {
             //

@@ -49,7 +49,7 @@
         <property name="itemSearchEngine" value="itemSearchEngine"/>
         <property name="partitionCluster" value="partitionCluster"/>
         <property name="statService" value="statService"/>
-        <property name="logLevel" value="SEVERE"/>
+        <property name="logLevel" value="FINE"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->

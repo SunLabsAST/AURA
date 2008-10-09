@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
@@ -59,13 +61,16 @@ public abstract class GroupedMerger<K, V> implements RecordMerger<K, V> {
             // create a list of them
             Stack<Iterator<Record<K, V>>> finishedIterators =
                     new Stack<Iterator<Record<K, V>>>();
-            for(Iterator<Record<K, V>> iterator : queuedElements.keySet()) {
-                if(queuedElements.get(iterator).getKey().equals(minKey)) {
+            for (Map.Entry<Iterator<Record<K, V>>, Record<K, V>> entry 
+                    : queuedElements.entrySet()) {
+                Iterator<Record<K,V>> iterator = entry.getKey();
+                Record<K,V> currValue = entry.getValue();
+                if (entry.getValue().getKey().equals(minKey)) {
                     List<Record<K, V>> elements = new ArrayList<Record<K, V>>();
                     
                     // Start the process off with the queued record which is
                     // known to match the minKey
-                    Record<K, V> nextRecord = queuedElements.get(iterator);
+                    Record<K, V> nextRecord = currValue;
                     do {
                         elements.add(nextRecord);
                         if(iterator.hasNext()) {

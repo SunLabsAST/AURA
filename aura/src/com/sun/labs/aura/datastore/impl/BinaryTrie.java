@@ -1,6 +1,7 @@
 package com.sun.labs.aura.datastore.impl;
 
 import com.sun.labs.aura.util.AuraException;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -9,7 +10,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
@@ -50,10 +50,12 @@ public class BinaryTrie<E> implements Serializable {
      * @param newElem the element to add
      * @param prefix the prefix describing where the element should be added
      */
+    @SuppressWarnings(value="UL_UNRELEASED_LOCK_EXCEPTION_PATH",
+                      justification="Lock is properly released")
     public void add(E newElem, DSBitSet prefix) {
         lock.writeLock().lock();
-        log.info("Adding element to tree for prefix: " + prefix);
         try {
+            log.info("Adding element to tree for prefix: " + prefix);
             contents.add(newElem);
             add(newElem, prefix, root, 0);
         } finally {

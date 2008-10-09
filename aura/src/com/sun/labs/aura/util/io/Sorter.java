@@ -2,6 +2,7 @@ package com.sun.labs.aura.util.io;
 
 import com.sun.labs.minion.util.ChannelUtil;
 import com.sun.labs.util.SimpleLabsLogFormatter;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -59,6 +60,8 @@ public class Sorter<K, V> {
         this.buffSize = buffSize;
     }
 
+    @SuppressWarnings(value="DLS_DEAD_LOCAL_STORE",
+                      justification="Valid use of local variable")
     public void sort() throws IOException {
 
         StructuredKeyedInputStream<K, V> input = new StructuredKeyedInputStream<K, V>(in);
@@ -147,7 +150,6 @@ public class Sorter<K, V> {
         //
         // We've exceeded the buffer size, so sort this block and write
         // it to the output file.
-        long obp = output.position();
         long pos = input.position();
         cr.setLen(pos - cr.start);
         cr.setSize(recs.size());

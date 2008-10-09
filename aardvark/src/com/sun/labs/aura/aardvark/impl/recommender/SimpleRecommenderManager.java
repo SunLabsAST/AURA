@@ -14,6 +14,7 @@ import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.util.Times;
 import com.sun.labs.aura.recommender.RecommenderManager;
 import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
@@ -65,8 +66,11 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
 
         try {
             // get a set of items that we've recently starred
-            List<Attention> starredAttention = dataStore.getLastAttentionForSource(
-                    user.getKey(), Attention.Type.STARRED, RECENT_STARRED);
+            AttentionConfig ac = new AttentionConfig();
+            ac.setSourceKey(user.getKey());
+            ac.setType(Attention.Type.STARRED);
+            List<Attention> starredAttention =
+                    dataStore.getLastAttention(ac, RECENT_STARRED);
 
             // 
             // A filter that will only pass documents that have not been seen
@@ -197,7 +201,9 @@ public class SimpleRecommenderManager implements RecommenderManager, Configurabl
      * @return the result filter
      */
     private ResultsFilter getRecentItemFilter(User user) throws AuraException, RemoteException {
-        List<Attention> attentions = dataStore.getLastAttentionForSource(user.getKey(), null, MAX_SKIP);
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(user.getKey());
+        List<Attention> attentions = dataStore.getLastAttention(ac, MAX_SKIP);
 
         Set<String> keySkipSet = new HashSet<String>();
         Set<String> titleSkipSet = new HashSet<String>();

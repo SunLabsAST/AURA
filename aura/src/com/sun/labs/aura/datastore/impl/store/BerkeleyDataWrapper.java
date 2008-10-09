@@ -35,6 +35,7 @@ import com.sun.labs.aura.datastore.impl.store.persist.StringAndTimeKey;
 import com.sun.labs.aura.util.Times;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.File;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -834,20 +835,32 @@ public class BerkeleyDataWrapper {
     public List<Item> getItems(
             String userKey,
             Attention.Type attnType,
-            ItemType itemType) {
+            ItemType itemType) throws AuraException {
 
         List<Item> result = new ArrayList<Item>();
         //
         // First get all the attention of the particular type with the
         // particular user
-        List<Attention> attns = getAttentionForSource(userKey, attnType);
-
-        //
-        // Now do the in-memory join, looking up each item as we go
-        for(Attention attn : attns) {
-            ItemImpl item = getItem(attn.getTargetKey());
-            if(item.getType() == itemType) {
-                result.add(item);
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(userKey);
+        ac.setType(attnType);
+        DBIterator<Attention> attn = getAttentionIterator(ac);
+        try {
+            while (attn.hasNext()) {
+                //
+                // Now do the in-memory join, looking up each item as we go
+                Attention a = attn.next();
+                ItemImpl item = getItem(a.getTargetKey());
+                if(item.getType() == itemType) {
+                    result.add(item);
+                }
+            }
+        } catch (RemoteException e) {
+            throw new AuraException("Remote exception on local object!!", e);
+        } finally {
+            try {
+                attn.close();
+            } catch (RemoteException e) {
             }
         }
         return result;
@@ -906,86 +919,6 @@ public class BerkeleyDataWrapper {
         DBIterator<Attention> dbIt = new EntityIterator<Attention>(c, txn);
         return dbIt;
     }
-
-    public List<Attention> getAttentionForSource(String key) {
-        return getAttentionFor(key, true);
-    }
-
-    public List<Attention> getAttentionForTarget(String key) {
-        return getAttentionFor(key, false);
-    }
-
-    protected List<Attention> getAttentionFor(String key,
-            boolean isSrc) {
-        List<Attention> res = new ArrayList<Attention>();
-
-        try {
-            EntityIndex<Long, PersistentAttention> attns = null;
-            if(isSrc) {
-                attns = attnBySourceKey.subIndex(key);
-            } else {
-                attns = attnByTargetKey.subIndex(key);
-            }
-            EntityCursor<PersistentAttention> c = null;
-            Transaction txn = null;
-            try {
-                TransactionConfig conf = new TransactionConfig();
-                conf.setReadUncommitted(true);
-                txn = dbEnv.beginTransaction(null, conf);
-                CursorConfig cc = new CursorConfig();
-                cc.setReadCommitted(true);
-                c = attns.entities(txn, cc);
-                for(PersistentAttention a : c) {
-                    res.add(a);
-                }
-            } finally {
-                if(c != null) {
-                    c.close();
-                }
-                if (txn != null) {
-                    txn.commitNoSync();
-                }
-            }
-        } catch(DatabaseException ex) {
-            log.log(Level.WARNING, "Failed to read attention", ex);
-        }
-        Collections.sort(res, new ReverseAttentionTimeComparator());
-        return res;
-    }
-
-    public List<Attention> getAttentionForSource(String userKey,
-            Attention.Type type) {
-        EntityJoin<Long, PersistentAttention> join = new EntityJoin(allAttn);
-        join.addCondition(attnBySourceKey, userKey);
-        join.addCondition(attnByType, type.ordinal());
-
-        List<Attention> ret = new ArrayList<Attention>();
-
-        try {
-            ForwardCursor<PersistentAttention> cur = null;
-            Transaction txn = null;
-            try {
-                TransactionConfig conf = new TransactionConfig();
-                conf.setReadUncommitted(true);
-                txn = dbEnv.beginTransaction(null, conf);
-                cur = join.entities(txn, CursorConfig.READ_UNCOMMITTED);
-                for(PersistentAttention attn : cur) {
-                    ret.add(attn);
-                }
-            } finally {
-                if(cur != null) {
-                    cur.close();
-                }
-                if (txn != null) {
-                    txn.commitNoSync();
-                }
-            }
-        } catch(DatabaseException e) {
-            log.log(Level.WARNING, "Failed to get attention type " + type +
-                    " for user " + userKey, e);
-        }
-        return ret;
-    }
     
     protected EntityJoin<Long, PersistentAttention> getAttentionJoin(
             AttentionConfig ac) {
@@ -1041,7 +974,7 @@ public class BerkeleyDataWrapper {
      * @return
      */
     public Long getAttentionCount(AttentionConfig ac) {
-        if (Util.isEmpty(ac)) {
+        if (ac == null || Util.isEmpty(ac)) {
             try {
                 return allAttn.count();
             } catch(DatabaseException e) {
@@ -1162,71 +1095,6 @@ public class BerkeleyDataWrapper {
         }
         return ret;
 
-    }
-
-    public DBIterator<Attention> getAttentionForSourceSince(String key,
-            long timeStamp) throws AuraException {
-        return getAttentionForKeySince(key, true, timeStamp);
-    }
-    
-    public DBIterator<Attention> getAttentionForTargetSince(String key,
-            long timeStamp) throws AuraException {
-        return getAttentionForKeySince(key, false, timeStamp);
-    }
-    
-    @SuppressWarnings(value="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE",
-                      justification="Future-proofing isn't bad")
-    protected DBIterator<Attention> getAttentionForKeySince(String key,
-            boolean isSrc, long timeStamp) throws AuraException {
-        //
-        // Set the begin and end times chronologically
-        StringAndTimeKey begin = new StringAndTimeKey(key, timeStamp);
-        StringAndTimeKey end = new StringAndTimeKey(key + '\0',
-                System.currentTimeMillis());
-        EntityCursor c = null;
-        Transaction txn = null;
-        try {
-            TransactionConfig conf = new TransactionConfig();
-            conf.setReadUncommitted(true);
-            txn = dbEnv.beginTransaction(null, conf);
-            //
-            // This transaction is read-only and it is up to the developer
-            // to release it.  Don't time out the transaction.
-            txn.setTxnTimeout(0);
-
-            //
-            // Set Read Committed behavior - this ensures the stability of
-            // the current item being read (puts a read lock on it) but allows
-            // previously read items to change (releases the read lock after
-            // reading).
-            CursorConfig cc = new CursorConfig();
-            cc.setReadCommitted(true);
-            if (isSrc) {
-                c = attnBySourceAndTime.entities(
-                        txn, begin, true, end, false, cc);
-            } else {
-                c = attnByTargetAndTime.entities(
-                        txn, begin, true, end, false, cc);
-            }
-        } catch(DatabaseException e) {
-            try {
-                if(c != null) {
-                    c.close();
-                }
-            } catch(DatabaseException ex) {
-                log.log(Level.WARNING, "Failed to close cursor", ex);
-            }
-            try {
-                if(txn != null) {
-                    txn.abort();
-                }
-            } catch(DatabaseException ex) {
-                log.log(Level.WARNING, "Failed to abort cursor txn", ex);
-            }
-            throw new AuraException("getAttentionForKeySince failed", e);
-        }
-        DBIterator<Attention> dbIt = new EntityIterator<Attention>(c, txn);
-        return dbIt;
     }
 
     /**

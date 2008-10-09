@@ -40,7 +40,7 @@ public class EvaluateClassifiers {
 
     public static void main(String[] args) throws Exception {
 
-        String flags = "a:c:d:e:f:n:o:twh:q:";
+        String flags = "c:d:e:f:n:o:w";
         Getopt gopt = new Getopt(args, flags);
 
         //
@@ -64,18 +64,10 @@ public class EvaluateClassifiers {
         String classDir = null;
         String testDir = null;
         String fieldName = null;
-        String configFile = null;
-        String autoClassField = null;
-        String testField = "test";
-        String testQuery = null;
         int top = -1;
-        boolean sortBySetSize = false;
         boolean wikiOutput = false;
         while((c = gopt.getopt()) != -1) {
             switch(c) {
-                case 'a':
-                    autoClassField = gopt.optArg;
-                    break;
                 case 'c':
                     classes.add(gopt.optArg);
                     break;
@@ -88,23 +80,14 @@ public class EvaluateClassifiers {
                 case 'f':
                     fieldName = gopt.optArg;
                     break;
-                case 'h':
-                    testField = gopt.optArg;
-                    break;
                 case 'n':
                     ignore.add(gopt.optArg);
                     break;
                 case 'o':
                     top = Integer.parseInt(gopt.optArg);
                     break;
-                case 't':
-                    sortBySetSize = true;
-                    break;
                 case 'w':
                     wikiOutput = true;
-                    break;
-                case 'q':
-                    testQuery = gopt.optArg;
                     break;
             }
         }
@@ -129,10 +112,6 @@ public class EvaluateClassifiers {
         }
 
         classes.removeAll(ignore);
-
-        if(autoClassField == null) {
-            autoClassField = "assigned-" + fieldName;
-        }
 
         //
         // Get the number of topics and test documents.

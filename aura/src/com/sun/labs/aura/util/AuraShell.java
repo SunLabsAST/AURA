@@ -12,6 +12,7 @@ import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.util.logging.Logger;
 
 /**
@@ -25,8 +26,10 @@ public class AuraShell implements AuraService, Configurable {
     public final static String PROP_STAT_SERVICE = "statService";
 
     private DataStore dataStore;
-    private CommandInterpreter shell;
+    private CommandInterpreter shell;    
+    @SuppressWarnings(value="URF_UNREAD_FIELD")
     private Logger logger;
+    @SuppressWarnings(value="URF_UNREAD_FIELD")
     private ShellUtils sutils;
     private StatService statService;
 

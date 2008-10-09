@@ -18,6 +18,7 @@ import com.sun.labs.aura.aardvark.impl.crawler.URLForDiscovery;
 import com.sun.labs.aura.recommender.RecommenderManager;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
@@ -168,7 +169,10 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
     }
 
     public List<Attention> getLastAttentionData(User user, Type type, int count) throws AuraException, RemoteException {
-        return dataStore.getLastAttentionForSource(user.getKey(), type, count);
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(user.getKey());
+        ac.setType(type);
+        return dataStore.getLastAttention(ac, count);
     }
 
     /**
@@ -179,7 +183,9 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
      * @throws java.rmi.RemoteException
      */
     public List<Attention> getAttention(User user) throws AuraException, RemoteException {
-        return dataStore.getAttentionForSource(user.getKey());
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(user.getKey());
+        return dataStore.getAttention(ac);
     }
     
     public Set<BlogFeed> getFeeds(User user, Attention.Type type) throws AuraException, RemoteException {
@@ -333,7 +339,7 @@ public class AardvarkImpl implements Configurable, Aardvark, AuraService {
             long numEntries = dataStore.getItemCount(ItemType.BLOGENTRY);
             long numFeeds = dataStore.getItemCount(ItemType.FEED);
             long numUsers = dataStore.getItemCount(ItemType.USER);
-            long numAttentions = dataStore.getAttentionCount();
+            long numAttentions = dataStore.getAttentionCount(null);
             long feedPullCount = statService.get(FeedManager.COUNTER_FEED_PULL_COUNT);
             long feedErrorCount = statService.get(FeedManager.COUNTER_FEED_ERROR_COUNT);
             double entriesPerMin = statService.getAveragePerMinute(FeedManager.COUNTER_ENTRY_PULL_COUNT);

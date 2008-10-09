@@ -203,6 +203,42 @@ public abstract class Aura extends ServiceAdapter {
         pc.setMetadata(md);
         return pc;
     }
+    
+    protected ProcessConfiguration getTSRConfig(String prefix) throws Exception {
+        String[] cmdLine = new String[]{
+            "-Xmx3g",
+            "-DauraHome=" + GridUtil.auraDistMntPnt,
+            "-DauraGroup=" + instance + "-aura",
+            "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
+            "/classifier/starting.idx",
+            "-Dprefix=" + prefix,
+            "-DdataFS=/files/data/" + prefix,
+            "-jar",
+            GridUtil.auraDistMntPnt + "/dist/grid.jar",
+            "/com/sun/labs/aura/util",
+            "replicantStarter"
+        };
+
+        List<FileSystemMountParameters> extraMounts =
+                Collections.singletonList(new FileSystemMountParameters(
+                repFSMap.get(prefix).getUUID(),
+                "data"));
+        ProcessConfiguration pc = gu.getProcessConfig(
+                Replicant.class.getName(),
+                cmdLine, getReplicantName(
+                prefix), extraMounts);
+
+        // don't overlap with other replicants
+        pc.setLocationConstraint(
+                new ProcessRegistrationFilter.NameMatch(
+                Pattern.compile(instance + ".*-replicant-.*")));
+        Map<String, String> md = pc.getMetadata();
+        md.put("prefix", prefix);
+        md.put("monitor", "true");
+        pc.setMetadata(md);
+        return pc;
+        
+    }
 
     protected ProcessConfiguration getDataStoreHeadDebugConfig(int instanceNumber) throws Exception {
         String[] cmdLine = new String[]{
