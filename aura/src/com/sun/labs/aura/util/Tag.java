@@ -54,17 +54,6 @@ public class Tag extends Posting implements Serializable, Comparable {
     public void accum(int count) {
         this.freq += count;
     }
-    
-    public boolean equals(Object o) {
-        if (o instanceof Tag) {
-            return super.equals(o);
-        }
-        return false;
-    }
-    
-    public int hashCode() {
-        return super.hashCode();
-    }
 
     public int compareTo(Object o) {
         Tag other = (Tag) o;
