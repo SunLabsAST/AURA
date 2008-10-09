@@ -18,17 +18,11 @@
   
     <!-- The URL of the webapps directory -->
     <property name="webapps.url" value="${dav.url}/${service.webapps}"/>
-
-    <!-- Remove the ROOT webapp -->
-    <target name="remove-root" description="Remove root web app">
-        <dav:delete url="${webapps.url}/ROOT" verbose="true"
-		userid="${user}" password="${pw}"/>
-    </target>
     
     <!-- Deploy the war file to the webapps directory. -->
-    <target name="deploy-war" description="Copies war file" depends="remove-root">
+    <target name="deploy-war" description="Copies war file">
         <dav:copy url="${war.url}/${war.file}"
-		destination="${webapps.url}/ROOT.war"
+		destination="${webapps.url}/${war.file}"
 		overwrite="true"
 		verbose="true"
 		userid="${user}" password="${pw}"/>

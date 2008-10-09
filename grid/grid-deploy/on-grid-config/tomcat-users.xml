@@ -1,8 +1,16 @@
 <?xml version='1.0' encoding='utf-8'?>
-
 <tomcat-users>
- <role rolename="manager"/>
- <role rolename="aurademo"/>
- <role rolename="datastore"/>
- <user username="aura" password="corona" roles="manager,aurademo,datastore"/>
+  <role rolename="manager"/>
+  <role rolename="aurademo"/>
+  <role rolename="datastore"/>
+  <role rolename="wme"/>
+  <user username="spotify" password="explaura5" roles="wme"/>
+  <user username="mir" password="explaura3" roles="wme"/>
+  <user username="limewire" password="explaura7" roles="wme"/>
+  <user username="aura" password="corona" roles="manager,aurademo,datastore,wme"/>
+  <user username="guest" password="guess" roles="wme"/>
+  <user username="songbird" password="explaura6" roles="wme"/>
+  <user username="bentley" password="explaura2" roles="wme"/>
+  <user username="udem" password="explaura4" roles="wme"/>
+  <user username="sun" password="explaura1" roles="wme"/>
 </tomcat-users>
