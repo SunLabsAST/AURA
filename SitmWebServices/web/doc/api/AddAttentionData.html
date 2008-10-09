@@ -6,7 +6,7 @@
     <link rel="stylesheet" type="text/css" href="styles/main.css">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H2 CLASS="western">AddAttention</H2>
+<H2 CLASS="western">AddAttentionData</H2>
 Adds attention data to the database
 <H3>Params</H3>
 <UL>
@@ -44,24 +44,24 @@ Adds attention data to the database
 </UL>
     <i> <b>Note</b> Perhaps the DISLIKED and LOVED can be replaced with RATING</i>
 <H3>Examples</H3>
-<PRE CLASS="code-western">http://www.tastekeeper.com/api/1.0/AddAttention?srcKey=http://paul.lamere.myopenid.com
+<PRE CLASS="code-western">http://music.tastekeeper.com/api/1.0/AddAttentionData?srcKey=http://paul.lamere.myopenid.com
    &amp;appKey=YOUR_APP_KEY&amp;tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04&amp;type=PLAYED
 
-http://www.tastekeeper.com/api/1.0/AddAttention?srcKey=http://paul.lamere.myopenid.com
+http://music.tastekeeper.com/api/1.0/AddAttentionData?srcKey=http://paul.lamere.myopenid.com
    &amp;appKey=YOUR_APP_KEY&amp;tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04&amp;type=RATING&amp;value=5
 
-http://www.tastekeeper.com/api/1.0/AddAttention?srcKey=http://paul.lamere.myopenid.com
+http://music.tastekeeper.com/api/1.0/AddAttentionData?srcKey=http://paul.lamere.myopenid.com
    &amp;appKey=YOUR_APP_KEY&amp;tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04&amp;type=TAG&amp;value=geek+rock
 
-http://www.tastekeeper.com/api/1.0/AddAttention?srcKey=http://paul.lamere.myopenid.com
+http://music.tastekeeper.com/api/1.0/AddAttentionData?srcKey=http://paul.lamere.myopenid.com
    &amp;appKey=YOUR_APP_KEY&amp;tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04&amp;type=LOVED</PRE>
 
 <H3> Results</H3>
 <P STYLE="font-weight: normal">The format of the results depend upon
 the type of item being retreived
-<PRE CLASS="code-western" STYLE="font-weight: normal"><FONT SIZE=1 STYLE="font-size: 8pt">&lt;AddAttention&gt;</FONT>
+<PRE CLASS="code-western" STYLE="font-weight: normal"><FONT SIZE=1 STYLE="font-size: 8pt">&lt;AddAttentionData&gt;</FONT>
      <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Status code=&quot;OK&quot;/&gt;</FONT>
-<FONT SIZE=1 STYLE="font-size: 8pt">&lt;/AddAttention&gt;</FONT>
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;/AddAttentionData&gt;</FONT>
 <FONT SIZE=1 STYLE="font-size: 8pt">&lt;!-- output generated in 46 ms --&gt;</FONT></PRE>
 <BR><BR>
 

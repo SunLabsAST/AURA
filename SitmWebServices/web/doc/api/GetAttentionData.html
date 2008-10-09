@@ -13,6 +13,7 @@ parameter is omitted, then that parameter is ignored when looking for
 a match.
 <H3>Params</H3>
 <UL>
+	<LI><B>max</B><SPAN STYLE="font-weight: normal"> – the maximum number of attention elements to return
 	<LI><B>srcKey</B><SPAN STYLE="font-weight: normal"> – the key
 	of the source of the attention (typically a user/listener).
 	Optional.</SPAN>
@@ -32,13 +33,15 @@ a match.
 		<LI><SPAN STYLE="font-weight: normal">TAG – the source tagged
 		the target</SPAN>
 	</UL>
-	<LI><B>value</B><SPAN STYLE="font-weight: normal"> – the
-	context-dependent value associated with the attention. Optional.
-	Only appropriate for attention types RATING, TAG, and PLAYED. For
-	RATING and PLAYED must be an integer, for TAG can be any string.</SPAN>
+	<LI><B>svalue</B><SPAN STYLE="font-weight: normal"> – the
+	context-dependent string value associated with the attention. Optional.
+	Only appropriate for attention type TAG.
+	<LI><B>nvalue</B><SPAN STYLE="font-weight: normal"> – the
+	context-dependent integer value associated with the attention. Optional.
+	Only appropriate for attention type RATING or PLAYED.</SPAN>
 </UL>
 <H3>Example</H3>
-<PRE CLASS="code-western">http://www.tastekeeper.com/api/1.0/GetAttentionData
+<PRE CLASS="code-western">http://music.tastekeeper.com/api/1.0/GetAttentionData
     ?srcKey=http://paul.lamere.myopenid.com/&amp;tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04
     &amp;type=tag</PRE>
 <H3> Results</H3>

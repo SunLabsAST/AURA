@@ -30,6 +30,7 @@ public class GetApml extends HttpServlet {
 
     private final static String SERVLET_NAME = "GetApml";
     private ParameterChecker pc;
+
     private enum Format {
 
         Artist, MBaid
@@ -38,8 +39,8 @@ public class GetApml extends HttpServlet {
     @Override
     public void init() throws ServletException {
         super.init();
-        pc = new ParameterChecker();
-        pc.addParam("key", "the key the user of interest");
+        pc = new ParameterChecker(SERVLET_NAME, "gets the APML for a listener");
+        pc.addParam("userKey", "the key the user of interest");
         pc.addParam("max", "10", "the maximum number of concepts returned");
         pc.addParam("format", "artist", "the format of the output");
     }
@@ -51,13 +52,17 @@ public class GetApml extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        Status status = new Status();
+
+        if (pc.processDocumentationRequest(request, response)) {
+            return;
+        }
+
+        Status status = new Status(request);
         ServletContext context = getServletContext();
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
 
         try {
-            Util.tagOpen(out, SERVLET_NAME);
             pc.check(status, request);
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
@@ -66,12 +71,12 @@ public class GetApml extends HttpServlet {
                 return;
             }
 
-            String key = pc.getParam(status, request, "key");
+            String key = pc.getParam(status, request, "userKey");
             int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
             boolean showArtistNames = pc.getParamAsEnum(status, request, "format", Format.values()) == Format.Artist;
 
-            try {
-                Listener listener = mdb.getListener(key);
+            Listener listener = mdb.getListener(key);
+            if (listener != null) {
                 Concept[] explicitConcepts = getArtistNameConcepts(mdb, showArtistNames,
                         listener.getFavoriteArtist(), maxCount);
                 Concept[] implicitConcepts = getConcepts(listener.getSocialTags(), maxCount);
@@ -79,13 +84,18 @@ public class GetApml extends HttpServlet {
                 APML apml = new APML("taste data for user " + listener.getKey());
                 apml.addProfile(profile);
                 out.println(apml.toString());
-            } catch (AuraException ex) {
-                status.addError(ErrorCode.InternalError, "Problem accessing data " + ex);
+            } else {
+                status.addError(ErrorCode.InvalidKey, "Can't find listener with key " + key);
             }
+        } catch (AuraException ex) {
+            status.addError(ErrorCode.InternalError, "Problem accessing data " + ex);
         } catch (ParameterException ex) {
         } finally {
-            status.toXML(out);
-            Util.tagClose(out, SERVLET_NAME);
+            if (!status.isOK()) {
+                Util.tagOpen(out, SERVLET_NAME);
+                status.toXML(out);
+                Util.tagClose(out, SERVLET_NAME);
+            }
             out.close();
         }
     }

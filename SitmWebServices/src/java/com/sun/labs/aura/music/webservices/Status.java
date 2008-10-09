@@ -7,7 +7,9 @@ package com.sun.labs.aura.music.webservices;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  *
@@ -17,9 +19,11 @@ public class Status {
 
     private long startTime;
     private List<ErrorDescription> errorList = new ArrayList<ErrorDescription>();
+    private HttpServletRequest request;
 
-    public Status() {
+    public Status(HttpServletRequest request) {
         startTime = System.currentTimeMillis();
+        this.request = request;
     }
 
     public void addError(Util.ErrorCode error, String text) {
@@ -27,6 +31,21 @@ public class Status {
     }
 
     public void toXML(PrintWriter out) {
+
+        if (request != null) {
+            out.println("<request>");
+            Enumeration e = request.getParameterNames();
+            while (e.hasMoreElements()) {
+                String name = (String) e.nextElement();
+                String value = request.getParameter(name);
+                out.print("    <param name=\"" + name + "\">");
+                if (value != null) {
+                    out.print(Util.filter(value));
+                }
+                out.println("</param>");
+            }
+            out.println("</request>");
+        }
 
         out.println("<results>");
         if (isOK()) {
@@ -38,7 +57,7 @@ public class Status {
         }
         {
             long delta = System.currentTimeMillis() - startTime;
-            out.println("    <time code=\"" + delta + "\"/>");
+            out.println("    <time ms=\"" + delta + "\"/>");
         }
         out.println("</results>");
     }

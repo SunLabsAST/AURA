@@ -4,14 +4,12 @@
  */
 package com.sun.labs.aura.music.webservices;
 
-import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.MusicDatabase.DBOperation;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
-import com.sun.labs.aura.util.Scored;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -22,18 +20,17 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author plamere
  */
-public class FindSimilarListener extends HttpServlet {
+public class AddArtist extends HttpServlet {
 
-    private final static String SERVLET_NAME = "FindSimilarListener";
-    private ParameterChecker pc;
+    private final static String SERVLET_NAME = "AddArtist";
+    private ParameterChecker pc = null;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        pc = new ParameterChecker();
-        pc.addParam("key", "the key of the item of interest");
-        pc.addParam("max", "10", "the maxiumum number of artists to return");
-        pc.addParam("field", Listener.FIELD_SOCIAL_TAGS, "the field to use for similarity");
+        pc = new ParameterChecker(SERVLET_NAME, "Adds an artist to the database");
+        pc.addParam("appKey", "the application key");
+        pc.addParam("mbaid", "the musicbrainz ID of the new artist");
     }
 
     /** 
@@ -43,7 +40,12 @@ public class FindSimilarListener extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        Status status = new Status();
+
+        if (pc.processDocumentationRequest(request, response)) {
+            return;
+        }
+
+        Status status = new Status(request);
         ServletContext context = getServletContext();
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
@@ -51,6 +53,7 @@ public class FindSimilarListener extends HttpServlet {
         try {
             Util.tagOpen(out, SERVLET_NAME);
             pc.check(status, request);
+
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
@@ -58,33 +61,28 @@ public class FindSimilarListener extends HttpServlet {
                 return;
             }
 
-            int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
-            String key = pc.getParam(status, request, "key");
-            String field = pc.getParam(status, request, "field"); //TBD field is not used yet.
-            try {
-                Listener listener = mdb.getListener(key);
-                if (listener != null) {
-                    List<Scored<Listener>> similarListeners = mdb.listenerFindSimilar(key, maxCount);
-                    for (Scored<Listener> scoredListener : similarListeners) {
+            String appKey = pc.getParam(status,  request, "appKey");
+            String mbaid = pc.getParam(status, request, "mbaid");
 
-                        if (scoredListener.getItem().getKey().equals(key)) {
-                            continue;
-                        }
-
-                        Listener simListener = scoredListener.getItem();
-                        out.println("    <listener key=\"" +
-                                simListener.getKey() + "\" " +
-                                "score=\"" + scoredListener.getScore() + "\" " +
-                                "name=\"" + Util.filter(simListener.getName()) + "\"" +
-                                "/>");
-                    }
-                } else {
-                    status.addError(ErrorCode.BadArgument, "Can't find user with key " + key);
-                }
-            } catch (AuraException ex) {
-                status.addError(Util.ErrorCode.InternalError, "Problem accessing data " + ex);
+            if (!mdb.isValidApplication(appKey)) {
+                status.addError(ErrorCode.BadArgument, "not a valid application");
+                return;
             }
-        } catch (ParameterException e) {
+
+            if (!mdb.hasAuthorization(appKey, DBOperation.AddItem)) {
+                status.addError(ErrorCode.NotAuthorized, "application not authorized to add artists");
+                return;
+            }
+            
+            if (mdb.artistLookup(mbaid) != null) {
+                status.addError(ErrorCode.BadArgument, "artist already exists");
+                return;
+            }
+            mdb.addArtist(mbaid);
+
+        } catch (AuraException ex) {
+            status.addError(ErrorCode.InternalError, "Problem adding artist " + ex.getMessage());
+        } catch (ParameterException ex) {
         } finally {
             status.toXML(out);
             Util.tagClose(out, SERVLET_NAME);
@@ -117,6 +115,6 @@ public class FindSimilarListener extends HttpServlet {
      * Returns a short description of the servlet.
      */
     public String getServletInfo() {
-        return "Short description";
+        return "Adds an artist to the database";
     }// </editor-fold>
 }

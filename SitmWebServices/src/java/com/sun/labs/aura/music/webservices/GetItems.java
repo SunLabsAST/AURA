@@ -23,14 +23,14 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author plamere
  */
-public class GetItem extends HttpServlet {
+public class GetItems extends HttpServlet {
     private enum Format { FULL, COMPACT};
-    private final static String SERVLET_NAME = "GetItem";
+    private final static String SERVLET_NAME = "GetItems";
     private ParameterChecker pc;
 
     public void init() throws ServletException {
         super.init();
-        pc = new ParameterChecker();
+        pc = new ParameterChecker(SERVLET_NAME, "get items from the database");
         pc.addParam("key", "the key to the item of interest");
         pc.addParam("format", "full", "the format of the output");
     }
@@ -42,7 +42,12 @@ public class GetItem extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        Status status = new Status();
+
+        if (pc.processDocumentationRequest(request, response)) {
+            return;
+        }
+
+        Status status = new Status(request);
         ServletContext context = getServletContext();
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
@@ -156,6 +161,6 @@ public class GetItem extends HttpServlet {
      * Returns a short description of the servlet.
      */
     public String getServletInfo() {
-        return "Gets an item from the database";
+        return "Get items from the database";
     }// </editor-fold>
 }

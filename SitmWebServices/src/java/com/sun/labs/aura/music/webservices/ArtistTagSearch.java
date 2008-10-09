@@ -30,9 +30,9 @@ public class ArtistTagSearch extends HttpServlet {
     @Override
     public void init() throws ServletException {
         super.init();
-        pc = new ParameterChecker();
+        pc = new ParameterChecker(SERVLET_NAME, "searches the database for an artist tag");
         pc.addParam("name", "the name of the artist tag to search for");
-        pc.addParam("max", "the maximum number of matches to return");
+        pc.addParam("max", "10", "the maximum number of matches to return");
     }
 
     /** 
@@ -42,7 +42,12 @@ public class ArtistTagSearch extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        Status status = new Status();
+
+        if (pc.processDocumentationRequest(request, response)) {
+            return;
+        }
+
+        Status status = new Status(request);
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
 
@@ -61,15 +66,16 @@ public class ArtistTagSearch extends HttpServlet {
                 status.addError(ErrorCode.InternalError, "Can't find the datastore");
                 return;
             }
-            try {
-                List<Scored<ArtistTag>> scoredArtistTags = mdb.artistTagSearch(name, maxCount);
-                for (Scored<ArtistTag> scoredArtistTag : scoredArtistTags) {
-                    ArtistTag artistTag = scoredArtistTag.getItem();
-                    out.println("    <artistTag key=\"" + artistTag.getKey() + "\" " + "score=\"" + scoredArtistTag.getScore() + "\" " + "popularity=\"" + artistTag.getPopularity() + "\" " + "name=\"" + Util.filter(artistTag.getName()) + "\"" + "/>");
-                }
-            } catch (AuraException ex) {
-                status.addError(ErrorCode.InternalError, "problem accessing data, " + ex.getMessage());
+            List<Scored<ArtistTag>> scoredArtistTags = mdb.artistTagSearch(name, maxCount);
+            for (Scored<ArtistTag> scoredArtistTag : scoredArtistTags) {
+                ArtistTag artistTag = scoredArtistTag.getItem();
+                out.println("    <artistTag key=\"" + artistTag.getKey() + "\" " 
+                        + "score=\"" + scoredArtistTag.getScore() + "\" " 
+                        + "popularity=\"" + mdb.artistTagGetNormalizedPopularity(artistTag) + "\" "
+                        + "name=\"" + Util.filter(artistTag.getName()) + "\"" + "/>");
             }
+        } catch (AuraException ex) {
+            status.addError(ErrorCode.InternalError, "problem accessing data, " + ex.getMessage());
         } catch (ParameterException ex) {
         } finally {
             status.toXML(out);
@@ -102,6 +108,6 @@ public class ArtistTagSearch extends HttpServlet {
      * Returns a short description of the servlet.
      */
     public String getServletInfo() {
-        return "Short description";
+        return "Searches the database for an artist tag with a particular name ";
     }// </editor-fold>
 }

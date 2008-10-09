@@ -27,9 +27,9 @@ public class AddListener extends HttpServlet {
 
     public void init() throws ServletException {
         super.init();
-        pc = new ParameterChecker();
+        pc = new ParameterChecker(SERVLET_NAME, "adds a new user/listener to the database");
         pc.addParam("appKey", "the application key");
-        pc.addParam("userID", "the id of the user");
+        pc.addParam("userKey", "the key of the user");
         pc.addParam("lastfmName", null, "the lastfm name of the user");
         pc.addParam("pandoraName", null, "the pandora name of the user");
     }
@@ -42,7 +42,11 @@ public class AddListener extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        Status status = new Status();
+        if (pc.processDocumentationRequest(request, response)) {
+            return;
+        }
+
+        Status status = new Status(request);
         ServletContext context = getServletContext();
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
@@ -58,17 +62,17 @@ public class AddListener extends HttpServlet {
                 return;
             }
 
-            String userID = pc.getParam(status,  request, "userID");
+            String userKey = pc.getParam(status,  request, "userKey");
             String lastfmName = pc.getParam(status, request, "lastfmName");
             String pandoraName = pc.getParam(status, request, "pandoraName");
 
 
-            if (mdb.getListener(userID) != null) {
-                status.addError(ErrorCode.BadArgument, "userID already exists");
+            if (mdb.getListener(userKey) != null) {
+                status.addError(ErrorCode.BadArgument, "userKey already exists");
                 return;
             }
 
-            Listener listener = mdb.enrollListener(userID);
+            Listener listener = mdb.enrollListener(userKey);
 
             if (lastfmName != null) {
                 listener.setLastFmName(lastfmName);

@@ -6,8 +6,8 @@ package com.sun.labs.aura.music.webservices;
 
 import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
-import com.sun.labs.aura.util.Scored;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -21,9 +21,17 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author plamere
  */
-public class GetListenerTags extends HttpServlet {
+public class GetListeners extends HttpServlet {
 
-    private final static String SERVLET_NAME = "GetListenerTags";
+    private final static String SERVLET_NAME = "GetListeners";
+    private ParameterChecker pc;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        pc = new ParameterChecker(SERVLET_NAME, "get listeners from the database");
+        pc.addParam("max", "100", "the maximum number of results returned");
+    }
 
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -32,61 +40,46 @@ public class GetListenerTags extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        if (pc.processDocumentationRequest(request, response)) {
+            return;
+        }
+
+        Status status = new Status(request);
         ServletContext context = getServletContext();
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        Timer timer = Util.getTimer();
 
         try {
+            Util.tagOpen(out, SERVLET_NAME);
+            pc.check(status, request);
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
-            } else {
-                String userID = request.getParameter("userID");
-                String itemID = request.getParameter("itemID");
-
-
-                if (userID == null) {
-                    Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.MissingArgument, "missing userID");
-                    return;
-                }
-
-                Listener listener = mdb.getListener(userID);
-
-                if (itemID == null) {
-                    List<Scored<String>> stags = mdb.getAllTags(listener.getKey());
-                    if (stags != null) {
-                        Util.tagOpen(out, SERVLET_NAME);
-                        for (Scored<String> stag : stags) {
-                            out.println("    <tag key=\"" + stag.getItem() + " score=\"" + stag.getScore() + "\"/>");
-                        }
-                        Util.outputOKStatus(out);
-                        Util.tagClose(out, SERVLET_NAME);
-                    } else {
-                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.NotFound, "can't find tags");
-                    }
-                } else {
-                    List<String> tags = mdb.getTags(listener.getKey(), itemID);
-                    if (tags != null) {
-                        Util.tagOpen(out, SERVLET_NAME);
-                        for (String tag : tags) {
-                            out.println("    <tag key=\"" + tag + "\"/>");
-                        }
-                        Util.outputOKStatus(out);
-                        Util.tagClose(out, SERVLET_NAME);
-                    } else {
-                        Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.NotFound, "can't find tags");
-                    }
-                }
+                status.addError(ErrorCode.InternalError, "Can't connect to the music database");
+                return;
             }
+            int maxCount = pc.getParamAsInt(status, request, "max", 1, 10000);
+
+            List<Listener> listeners = mdb.listenerGetMostActive(maxCount);
+
+            for (Listener listener : listeners) {
+                // TBD add get activity
+                out.println("    <listener key=\"" + listener.getKey() 
+                        + "\" name=\"" + Util.filter(listener.getName()) 
+                        + "\"" + " activity=\"" + 1 +  "\"" + "/>");
+            }
+
         } catch (AuraException ex) {
-            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Problem accessing data");
+            status.addError(ErrorCode.InternalError, "Problem accessing data");
+        } catch (ParameterException ex) {
         } finally {
-            timer.report(out);
+            status.toXML(out);
+            Util.tagClose(out, SERVLET_NAME);
             out.close();
         }
     }
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /** 
      * Handles the HTTP <code>GET</code> method.
@@ -112,6 +105,6 @@ public class GetListenerTags extends HttpServlet {
      * Returns a short description of the servlet.
      */
     public String getServletInfo() {
-        return "Short description";
+        return "Gets the most active listeners";
     }// </editor-fold>
 }

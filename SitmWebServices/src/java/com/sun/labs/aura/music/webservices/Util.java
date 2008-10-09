@@ -20,7 +20,7 @@ import java.util.Map.Entry;
 public class Util {
 
     enum ErrorCode {
-        OK, InternalError, MissingArgument, BadArgument, NotFound, InvalidKey, RateLimitExceeded
+        OK, InternalError, MissingArgument, BadArgument, NotFound, InvalidKey, RateLimitExceeded, NotAuthorized
     };
 
     static String filter(String s) {

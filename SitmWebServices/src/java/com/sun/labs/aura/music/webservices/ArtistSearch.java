@@ -26,9 +26,9 @@ public class ArtistSearch extends HttpServlet {
 
     public void init() throws ServletException {
         super.init();
-        pc = new ParameterChecker();
+        pc = new ParameterChecker(SERVLET_NAME, "searches the database for an artist");
         pc.addParam("name", "the name of the artist to search for");
-        pc.addParam("max", "the maximum number of matches to return");
+        pc.addParam("max", "20", "the maximum number of matches to return");
     }
 
     /** 
@@ -38,7 +38,12 @@ public class ArtistSearch extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        Status status = new Status();
+
+        if (pc.processDocumentationRequest(request, response)) {
+            return;
+        }
+
+        Status status = new Status(request);
 
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
@@ -56,16 +61,14 @@ public class ArtistSearch extends HttpServlet {
                 status.addError(ErrorCode.InternalError, "Can't find the datastore");
                 return;
             }
-            try {
-                List<Scored<Artist>> scoredArtists = mdb.artistSearch(name, maxCount);
-                for (Scored<Artist> scoredArtist : scoredArtists) {
-                    Artist artist = scoredArtist.getItem();
-                    out.println("    <artist key=\"" + artist.getKey() +
-                            "\" " + "score=\"" + scoredArtist.getScore() + "\" " + "popularity=\"" + mdb.artistGetNormalizedPopularity(artist) + "\" " + "name=\"" + Util.filter(artist.getName()) + "\"" + "/>");
-                }
-            } catch (AuraException ex) {
-                status.addError(ErrorCode.InternalError, "problem accessing data, " + ex.getMessage());
+            List<Scored<Artist>> scoredArtists = mdb.artistSearch(name, maxCount);
+            for (Scored<Artist> scoredArtist : scoredArtists) {
+                Artist artist = scoredArtist.getItem();
+                out.println("    <artist key=\"" + artist.getKey() +
+                        "\" " + "score=\"" + scoredArtist.getScore() + "\" " + "popularity=\"" + mdb.artistGetNormalizedPopularity(artist) + "\" " + "name=\"" + Util.filter(artist.getName()) + "\"" + "/>");
             }
+        } catch (AuraException ex) {
+            status.addError(ErrorCode.InternalError, "problem accessing data, " + ex.getMessage());
         } catch (ParameterException ex) {
         } finally {
             status.toXML(out);
@@ -99,7 +102,7 @@ public class ArtistSearch extends HttpServlet {
      * Returns a short description of the servlet.
      */
     public String getServletInfo() {
-        return "search for artists by name";
+        return "Searches the database for an artist with a particular name ";
     }
 // </editor-fold>
 }

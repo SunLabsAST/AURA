@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author plamere
  */
-public class FindSimilarArtistFromWordCloud extends HttpServlet {
+public class FindSimilarArtistsFromWordCloud extends HttpServlet {
 
     private final static String SERVLET_NAME = "FindSimilarArtistFromWordCloud";
     private ParameterChecker pc;
@@ -32,7 +32,7 @@ public class FindSimilarArtistFromWordCloud extends HttpServlet {
     @Override
     public void init() throws ServletException {
         super.init();
-        pc = new ParameterChecker();
+        pc = new ParameterChecker(SERVLET_NAME, "find artists similar to a wordcloud");
         pc.addParam("wordcloud", "the wordcloud");
         pc.addParam("max", "10", "the maxiumum number of artists to return");
         pc.addParam("popularity", Popularity.ALL.name(), "the popularity filter");
@@ -45,12 +45,18 @@ public class FindSimilarArtistFromWordCloud extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        Status status = new Status();
+
+        if (pc.processDocumentationRequest(request, response)) {
+            return;
+        }
+
+        Status status = new Status(request);
         ServletContext context = getServletContext();
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
 
         try {
+            Util.tagOpen(out, SERVLET_NAME);
             pc.check(status, request);
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
@@ -115,6 +121,6 @@ public class FindSimilarArtistFromWordCloud extends HttpServlet {
      * Returns a short description of the servlet.
      */
     public String getServletInfo() {
-        return "Short description";
+        return "Finds artists that are similar to a word cloud ";
     }// </editor-fold>
 }

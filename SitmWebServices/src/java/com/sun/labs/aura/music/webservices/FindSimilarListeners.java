@@ -4,15 +4,14 @@
  */
 package com.sun.labs.aura.music.webservices;
 
-import com.sun.labs.aura.datastore.Attention;
-import com.sun.labs.aura.datastore.AttentionConfig;
-import com.sun.labs.aura.datastore.DataStore;
-import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Scored;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -23,14 +22,19 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author plamere
  */
-public class GetStats extends HttpServlet {
+public class FindSimilarListeners extends HttpServlet {
 
-    private final static String SERVLET_NAME = "GetStats";
-    private ParameterChecker pc = null;
+    private final static String SERVLET_NAME = "FindSimilarListeners";
 
+    private ParameterChecker pc;
+
+    @Override
     public void init() throws ServletException {
         super.init();
-        pc = new ParameterChecker(SERVLET_NAME, "get statistics about the database");
+        pc = new ParameterChecker(SERVLET_NAME, "find listeners similar to a seed listener");
+        pc.addParam("key", "the key of the item of interest");
+        pc.addParam("max", "10", "the maxiumum number of artists to return");
+        pc.addParam("field", Listener.FIELD_SOCIAL_TAGS, "the field to use for similarity");
     }
 
     /** 
@@ -54,34 +58,37 @@ public class GetStats extends HttpServlet {
             Util.tagOpen(out, SERVLET_NAME);
             pc.check(status, request);
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
+
             if (mdb == null) {
                 status.addError(ErrorCode.InternalError, "Can't connect to the music database");
                 return;
             }
-            try {
-                DataStore ds = mdb.getDataStore();
-                // show the number of items of each type
 
-                Util.tag(out, "ready", "" + ds.ready());
-                Util.tag(out, "replicants", Integer.toString(ds.getPrefixes().size()));
-                for (ItemType t : ItemType.values()) {
-                    long count = ds.getItemCount(t);
-                    if (count > 0L) {
-                        Util.tag(out, t.toString(), Long.toString(count));
+            int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
+            String key = pc.getParam(status, request, "key");
+            String field = pc.getParam(status, request, "field"); //TBD field is not used yet.
+            Listener listener = mdb.getListener(key);
+            if (listener != null) {
+                List<Scored<Listener>> similarListeners = mdb.listenerFindSimilar(key, maxCount);
+                for (Scored<Listener> scoredListener : similarListeners) {
+
+                    if (scoredListener.getItem().getKey().equals(key)) {
+                        continue;
                     }
+
+                    Listener simListener = scoredListener.getItem();
+                    out.println("    <listener key=\"" +
+                            simListener.getKey() + "\" " +
+                            "score=\"" + scoredListener.getScore() + "\" " +
+                            "name=\"" + Util.filter(simListener.getName()) + "\"" +
+                            "/>");
                 }
-                for (Attention.Type t : Attention.Type.values()) {
-                    AttentionConfig ac = new AttentionConfig();
-                    ac.setType(t);
-                    long count = ds.getAttentionCount(ac);
-                    if (count > 0L) {
-                        Util.tag(out, t.toString(), Long.toString(count));
-                    }
-                }
-            } catch (AuraException ex) {
-                status.addError(ErrorCode.InternalError, "Can't connect to the music database " + ex);
+            } else {
+                status.addError(ErrorCode.BadArgument, "Can't find user with key " + key);
             }
-        } catch (ParameterException ex) {
+        } catch (AuraException ex) {
+            status.addError(Util.ErrorCode.InternalError, "Problem accessing data " + ex);
+        } catch (ParameterException e) {
         } finally {
             status.toXML(out);
             Util.tagClose(out, SERVLET_NAME);
@@ -114,6 +121,6 @@ public class GetStats extends HttpServlet {
      * Returns a short description of the servlet.
      */
     public String getServletInfo() {
-        return "Short description";
+        return "Finds listeners that are similar to a seed listener. ";
     }// </editor-fold>
 }

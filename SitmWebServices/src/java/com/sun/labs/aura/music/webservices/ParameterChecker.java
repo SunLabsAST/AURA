@@ -5,20 +5,43 @@
 package com.sun.labs.aura.music.webservices;
 
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
  * @author plamere
  */
 public class ParameterChecker {
-
+    private String name;
+    private String description;
     private Map<String, Parameter> allParams = new HashMap<String, Parameter>();
     private Set<String> requiredParams = new HashSet<String>();
+
+    public ParameterChecker(String name, String description) {
+        this.name = name;
+        this.description = description;
+        addParam("showDocumentation", "false", "shows documentation for this web service");
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
 
     public void addParam(String name, String description) {
         addParam(name, true, null, description);
@@ -29,7 +52,7 @@ public class ParameterChecker {
     }
 
     public void addParam(String name, boolean required, String defaultValue, String description) {
-        Parameter p = new Parameter(name, defaultValue, description);
+        Parameter p = new Parameter(name, required, defaultValue, description);
         allParams.put(name.toLowerCase(), p);
         if (required) {
             requiredParams.add(name.toLowerCase());
@@ -72,6 +95,11 @@ public class ParameterChecker {
 
     public Enum getParamAsEnum(Status status, ServletRequest request, String name, Enum[] vals) throws ParameterException {
         String sval = getParam(status, request, name);
+
+        if (sval == null) {
+            return null;
+        }
+
         for (Enum v : vals) {
             if (v.name().equalsIgnoreCase(sval)) {
                 return v;
@@ -114,18 +142,67 @@ public class ParameterChecker {
             throw new ParameterException();
         }
     }
+    
+    public boolean processDocumentationRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String showDoc = request.getParameter("showDocumentation");
+        if (showDoc != null && showDoc.equalsIgnoreCase("true")) {
+            response.setContentType("text/html;charset=UTF-8");
+            PrintWriter out = response.getWriter();
+            out.println("<html>");
+            showHead(out);
+            showBody(out);
+            out.println("</html>");
+            return true;
+        }
+        return false;
+    }
+
+    private void showHead(PrintWriter out) throws IOException {
+        out.println("<head>");
+        out.printf("    <title>%s</title>\n", getName());
+        out.println("</head>");
+    }
+
+    private void showBody(PrintWriter out) throws IOException {
+        out.println("<body>");
+        out.printf("    <h2>%s</h2>\n", getName());
+        out.printf("    <p>%s</p>\n", getDescription());
+        out.printf("    <h3>%s</h2>\n", "Parameters");
+        out.printf("    <table>\n");
+        out.printf("    <tr><th>Parameter<th>Required<th>Default<th>Description\n");
+
+        List<String> keys = new ArrayList<String>(allParams.keySet());
+        Collections.sort(keys);
+        for (String key : keys) {
+            Parameter p = allParams.get(key);
+            String defaultValue = p.getDefaultValue();
+            if (defaultValue == null) {
+                defaultValue = "";
+            }
+            String required = p.isRequired() ? "<b>yes</b>" : "";
+            out.printf("    <tr><td>%s<td>%s<td>%s<td>%s\n", key, required,
+                    defaultValue, p.getDescription());
+        }
+        out.printf("    </table>\n");
+        out.println("</body>");
+    }
 }
 
 class Parameter {
+    private String name;
+    private boolean required;
+    private String defaultValue;
+    private String description;
 
-    String name;
-    String defaultValue;
-    String description;
-
-    public Parameter(String name, String defaultValue, String description) {
+    public Parameter(String name, boolean required, String defaultValue, String description) {
         this.name = name;
+        this.required = required;
         this.defaultValue = defaultValue;
         this.description = description;
+    }
+
+    public boolean isRequired() {
+        return required;
     }
 
     public String getDefaultValue() {

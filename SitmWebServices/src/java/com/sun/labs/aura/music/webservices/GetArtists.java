@@ -29,7 +29,7 @@ public class GetArtists extends HttpServlet {
     @Override
     public void init() throws ServletException {
         super.init();
-        pc = new ParameterChecker();
+        pc = new ParameterChecker(SERVLET_NAME, "gets the most popular artists");
         pc.addParam("max", "100", "the maximum number of results returned");
     }
 
@@ -40,7 +40,12 @@ public class GetArtists extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        Status status = new Status();
+
+        if (pc.processDocumentationRequest(request, response)) {
+            return;
+        }
+
+        Status status = new Status(request);
         ServletContext context = getServletContext();
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
