@@ -3,71 +3,14 @@
     xmlns:dav="antlib:org.apache.webdav.ant"
     xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
 
-  <!-- Get a deployment name and number from the properties passed in. -->
-  <condition property="deployment.name" value="www">
-    <not>
-      <isset property="deployment.name"/>
-    </not>
-  </condition>
+  <import file="common.xml"/>
   
-  <condition property="deployment.number" value="1">
-    <not>
-      <isset property="deployment.number"/>
-    </not>
-  </condition>
-
-  <!-- Where the war file is -->
-  <condition property="war.file" value="WebMusicExplaura.war">
-    <not>
-      <isset property="war.file"/>
-    </not>
-  </condition>
-      
-
-    <!-- Where the libraries are -->
-    <property name="tool.libraries" value="../../ToolLibraries"/>
-
-    <!-- Declare the Caroline tasks -->
-    <taskdef resource="com/sun/caroline/tools/carolant/antlib.xml"
-            uri="antlib:com.sun.caroline.tools.carolant">
-        <classpath>
-            <pathelement location="${tool.libraries}/carolant.jar"/>
-            <pathelement location="${tool.libraries}/caroline.jar"/>
-        </classpath>
-    </taskdef>
-        
-   <!-- Declare the WebDAV tasks -->
-    <taskdef resource="org/apache/webdav/ant/antlib.xml" uri="antlib:org.apache.webdav.ant">
-        <classpath>
-            <pathelement location="${tool.libraries}/jakarta-slide-ant-webdav-2.2pre1.jar"/>
-            <pathelement location="${tool.libraries}/jakarta-slide-webdavlib-2.2pre1.jar"/>
-            <pathelement location="${tool.libraries}/commons-httpclient.jar"/>
-            <pathelement location="${tool.libraries}/commons-logging.jar"/>
-            <pathelement location="${tool.libraries}/jdom-1.0.jar"/>
-        </classpath>
-    </taskdef>
-    
-    <loadproperties srcfile="${user.home}${file.separator}.caroline">
-        <filterchain>
-            <prefixlines prefix="grid."/>
-        </filterchain>
-    </loadproperties>
-
-    <!-- create a grid adapter instance to retrieve a reference the grid -->
-    <caroline:grid/>
-
-    <!-- use implicit properties set by the grid adapter above-->    
-    <property name="user" value="${com.sun.caroline.customerID}"/>
-    <property name="pw" value="${com.sun.caroline.password}"/>
-    <property name="dav.url" value="${com.sun.caroline.gridURL}/${user}"/>
-    <property name="grid.url" value="${com.sun.caroline.gridURL}"/>   
-   
     <!-- The URL of the webapps directory -->
-    <property name="webapps.url" value="${dav.url}/${deployment.name}-${deployment.number}.filesystem/apache-tomcat-6.0.16/webapps/"/>
+    <property name="webapps.url" value="${dav.url}/${service.webapps}"/>
     
     <!-- Deploy the war file to the webapps directory. -->
     <target name="deploy-war" description="Copies war file">
-      <dav:copy url="${dav.url}/${grid.instance}-aura.dist/war/${war.file}"
+      <dav:copy url="${war.url}/${war.file}"
 		destination="${webapps.url}/${war.file}"
 		overwrite="true"
 		verbose="true"
