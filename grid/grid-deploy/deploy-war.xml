@@ -3,17 +3,17 @@
     xmlns:dav="antlib:org.apache.webdav.ant"
     xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
 
-  <import file="common.xml"/>
+    <import file="common.xml"/>
   
     <!-- The URL of the webapps directory -->
     <property name="webapps.url" value="${dav.url}/${service.webapps}"/>
     
     <!-- Deploy the war file to the webapps directory. -->
     <target name="deploy-war" description="Copies war file">
-      <dav:copy url="${war.url}/${war.file}"
+        <dav:copy url="${war.url}/${war.file}"
 		destination="${webapps.url}/${war.file}"
 		overwrite="true"
 		verbose="true"
 		userid="${user}" password="${pw}"/>
-    </target>  
+    </target>
 </project>
