@@ -3,86 +3,73 @@
 	 xmlns:dav="antlib:org.apache.webdav.ant"
 	 xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
 
-  <!-- Get a deployment name and number from the properties passed in. -->
-  <condition property="deployment.name" value="www">
-    <not>
-      <isset property="deployment.name"/>
-    </not>
-  </condition>
-  
-  <condition property="deployment.number" value="1">
-    <not>
-      <isset property="deployment.number"/>
-    </not>
-  </condition>
-
   <!-- Where the war file is -->
-  <condition property="war.dir" value="../../WebMusicExplaura/dist">
-    <not>
-      <isset property="war.dir"/>
-    </not>
-  </condition>
+    <condition property="war.dir" value="../../WebMusicExplaura/dist">
+        <not>
+            <isset property="war.dir"/>
+        </not>
+    </condition>
   
-  <condition property="war.file" value="WebMusicExplaura.war">
-    <not>
-      <isset property="war.file"/>
-    </not>
-  </condition>
+    <condition property="war.file" value="WebMusicExplaura.war">
+        <not>
+            <isset property="war.file"/>
+        </not>
+    </condition>
   
   <!-- Where the libraries are -->
-  <property name="tool.libraries" value="../../ToolLibraries"/>
+    <property name="tool.libraries" value="../../ToolLibraries"/>
 
   <!-- Declare the Caroline tasks -->
-  <taskdef resource="com/sun/caroline/tools/carolant/antlib.xml"
+    <taskdef resource="com/sun/caroline/tools/carolant/antlib.xml"
 	   uri="antlib:com.sun.caroline.tools.carolant">
-    <classpath>
-      <pathelement location="${tool.libraries}/carolant.jar"/>
-      <pathelement location="${tool.libraries}/caroline.jar"/>
-    </classpath>
-  </taskdef>
+        <classpath>
+            <pathelement location="${tool.libraries}/carolant.jar"/>
+            <pathelement location="${tool.libraries}/caroline.jar"/>
+        </classpath>
+    </taskdef>
   
   <!-- Declare the Caroline Ant tasks -->
-  <taskdef resource="org/apache/webdav/ant/antlib.xml" uri="antlib:org.apache.webdav.ant">
-    <classpath>
-      <pathelement location="${tool.libraries}/jakarta-slide-ant-webdav-2.2pre1.jar"/>
-      <pathelement location="${tool.libraries}/jakarta-slide-webdavlib-2.2pre1.jar"/>
-      <pathelement location="${tool.libraries}/commons-httpclient.jar"/>
-      <pathelement location="${tool.libraries}/commons-logging.jar"/>
-      <pathelement location="${tool.libraries}/jdom-1.0.jar"/>
-    </classpath>
-  </taskdef>
+    <taskdef resource="org/apache/webdav/ant/antlib.xml" uri="antlib:org.apache.webdav.ant">
+        <classpath>
+            <pathelement location="${tool.libraries}/jakarta-slide-ant-webdav-2.2pre1.jar"/>
+            <pathelement location="${tool.libraries}/jakarta-slide-webdavlib-2.2pre1.jar"/>
+            <pathelement location="${tool.libraries}/commons-httpclient.jar"/>
+            <pathelement location="${tool.libraries}/commons-logging.jar"/>
+            <pathelement location="${tool.libraries}/jdom-1.0.jar"/>
+        </classpath>
+    </taskdef>
   
-  <loadproperties srcfile="${user.home}${file.separator}.caroline">
-    <filterchain>
-      <prefixlines prefix="grid."/>
-    </filterchain>
-  </loadproperties>
+    <loadproperties srcfile="${user.home}${file.separator}.caroline">
+        <filterchain>
+            <prefixlines prefix="grid."/>
+        </filterchain>
+    </loadproperties>
 
   <!-- create a grid adapter instance to retrieve a reference the grid -->
-  <caroline:grid/>
+    <caroline:grid/>
 
   <!-- use implicit properties set by the grid adapter above-->    
-  <property name="user" value="${com.sun.caroline.customerID}"/>
-  <property name="pw" value="${com.sun.caroline.password}"/>
-  <property name="grid.url" value="${com.sun.caroline.gridURL}"/>   
-  <property name="dav.url" value="${com.sun.caroline.gridURL}/${user}"/>
+    <property name="user" value="${com.sun.caroline.customerID}"/>
+    <property name="pw" value="${com.sun.caroline.password}"/>
+    <property name="grid.url" value="${com.sun.caroline.gridURL}"/>
+    <property name="dav.url" value="${com.sun.caroline.gridURL}/${user}"/>
   
   <!-- Where the Ant libraries are -->
-  <property name="ant.lib" value="${tool.libraries}/ant-lib"/>
+    <property name="ant.lib" value="${tool.libraries}/ant-lib"/>
   
   <!-- properties to hold resource names -->
-  <property name="ant.col" value="sys.packages/org/apache/tools/ant/1.7.0/lib/"/>
-  <property name="dist.filesystem" value="${grid.instance}-aura.dist"/>
-  <property name="war.url" value="${dav.url}/${dist.filesystem}/war"/>
-  <property name="network" value="${grid.instance}-auraNet"/>
-  <property name="packages.filesystem" value="sys.packages"/>   
-  <property name="service.base" value="apache-tomcat-6.0.16"/>
-  <property name="service.conf" value="${www.filesystem}/${service.base}/conf/"/>
-  <property name="service.distribution" value="${service.base}.zip" />
-  <property name="service.lib" value="${www.filesystem}/${service.base}/lib/"/>
-  <property name="service.webapps" value="${www.filesystem}/${service.base}/webapps/"/>
-  <property name="service.working" value="/files/working/${service.base}"/>
-  <property name="unzip.task" value="${deployment.name}.unzip"/>
+    <property name="ant.col" value="sys.packages/org/apache/tools/ant/1.7.0/lib/"/>
+    <property name="dist.filesystem" value="${grid.instance}-aura.dist"/>
+    <property name="war.url" value="${dav.url}/${dist.filesystem}/war"/>
+    <property name="network" value="${grid.instance}-auraNet"/>
+    <property name="packages.filesystem" value="sys.packages"/>
+    <property name="service.base" value="apache-tomcat-6.0.16"/>
+    <property name="service.conf" value="${www.filesystem}/${service.base}/conf/"/>
+    <property name="service.distribution" value="${service.base}.zip" />
+    <property name="service.lib" value="${www.filesystem}/${service.base}/lib/"/>
+    <property name="service.webapps" value="${www.filesystem}/${service.base}/webapps/"/>
+    <property name="service.working" value="/files/working/${service.base}"/>
+    <property name="unzip.task" value="${deployment.name}.unzip"/>
 
     <!-- Upload Resources to Caroline filesystems -->
 
@@ -137,7 +124,7 @@
     <target name="update-config"
         description="updates service configuration">
         <!-- update the configuration files contained in the distribution -->
-       <dav:put url="${dav.url}/${service.conf}" userid="${user}" verbose="true" password="${pw}" lock="false">
+        <dav:put url="${dav.url}/${service.conf}" userid="${user}" verbose="true" password="${pw}" lock="false">
             <!-- upload service configuration files -->
             <fileset dir="${basedir}/on-grid-config">
                 <include name="*"/>
@@ -152,13 +139,13 @@
         depends="upload-distribution, create-packages-filesystem">
 
       <!-- Copy the policy and build files from the distribution -->
-       <dav:copy url="${dav.url}/${dist.filesystem}/war/jsk-all.policy"
+        <dav:copy url="${dav.url}/${dist.filesystem}/war/jsk-all.policy"
 		destination="${dav.url}/${www.filesystem}/jsk-all.policy"
 		verbose="true"
 		overwrite="true"
 		userid="${user}" password="${pw}"/>
 
-       <dav:copy url="${dav.url}/${dist.filesystem}/war/build.xml"
+        <dav:copy url="${dav.url}/${dist.filesystem}/war/build.xml"
 		destination="${dav.url}/${www.filesystem}/build.xml"
 		verbose="true"
 		overwrite="true"
@@ -171,7 +158,7 @@
             duration="task">
             <!-- Filesystems to mount -->
             <caroline:filesystem name="${www.filesystem}" mountpoint="working"/>
-	    <caroline:filesystem name="${dist.filesystem}" mountpoint="dist"/>
+            <caroline:filesystem name="${dist.filesystem}" mountpoint="dist"/>
             <caroline:filesystem name="${packages.filesystem}"
                 mountpoint="sys.packages"/>
             <!-- Set environment variables -->
@@ -181,7 +168,7 @@
             <arg value="-Dservice.distribution=/files/dist/war/${service.distribution}"/>
             <arg value="-jar"/>
             <arg value="/files/${ant.col}/ant-launcher.jar"/>
-	    <arg value="-v"/>
+            <arg value="-v"/>
         </caroline:process>
     </target>
 
@@ -210,6 +197,48 @@
         depends="create-network">
         <!-- create the service internal address-->
         <caroline:intaddress name="${intaddress}" op="create" networkname="${network}"/>
+    </target>
+
+    <!-- Destroy resources -->
+    
+    <!-- destroy service process if it exists -->
+    <target name="destroy-service"
+        description="destroys service process if one exist">
+        <caroline:process name="${service.process}" op="delete" />
+    </target>
+
+   <!-- destroy internal addresses if they exists -->
+    <target name="destroy-intaddress"
+        description="destroys internal addresses if they exists"
+        depends="destroy-service">
+        <caroline:intaddress name="${intaddress}" op="delete" networkname="${network}"/>
+    </target>
+
+    <!-- destroy network if it exists -->
+    <target name="destroy-network"
+        description="destroys networkaddress if one exists"
+        depends="destroy-intaddress">
+        <caroline:network name="${network}" op="delete"/>
+    </target>
+
+    <!-- destroy filesystem if it exists -->
+    <target name="destroy-filesystem"
+        description="destroys filesystem if one exists"
+        depends="destroy-service,destroy-unzip-task">
+        <caroline:filesystem name="${www.filesystem}" op="delete"/>
+    </target>
+
+    <!-- destroys packages filesystem -->
+    <target name="destroy-packages-filesystem"
+        description="Removes packages filesystem"
+        depends="destroy-unzip-task">
+        <caroline:filesystem op="delete" name="${packages.filesystem}"/>
+    </target>
+
+    <!-- destroys unzip process -->
+    <target name="destroy-unzip-task"
+        description="Removes unzip process if it exists">
+        <caroline:process name="${unzip.task}" op="delete"/>
     </target>
 
 </project>

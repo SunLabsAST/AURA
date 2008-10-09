@@ -3,7 +3,13 @@
     xmlns:dav="antlib:org.apache.webdav.ant"
     xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
 
-    <!-- Overwrite the common properties here, since we don't have a deployment number -->
+  <!-- Get a deployment name and number from the properties passed in. -->
+    <condition property="deployment.name" value="www">
+        <not>
+            <isset property="deployment.name"/>
+        </not>
+    </condition>
+
     <property name="www.filesystem" value="${deployment.name}.filesystem"/>
     <property name="intaddress" value="${deployment.name}-int"/>
     <property name="service.process" value="${deployment.name}"/>
@@ -20,39 +26,39 @@
     <!-- create external address if it doesn't exist -->
     <target name="create-extaddress"
         description="creates an external address if it doesn't exist">      
-        <caroline:extaddress name="${extaddress}" op="create"/>    
+        <caroline:extaddress name="${extaddress}" op="create"/>
     </target>
     
     <!-- create external binding if it doesn't exist -->
     <target name="create-extbinding" depends="create-extaddress"
         description="creates an external binding if it doesn't exist">      
-        <caroline:extbinding name="${extbinding}" op="create" 
+        <caroline:extbinding name="${extbinding}" op="create"
             hostname="${deployment.name}">
-            <caroline:extaddress name="${extaddress}"/>    
+            <caroline:extaddress name="${extaddress}"/>
         </caroline:extbinding>
     </target>
     
     <!-- create static nat if it doesn't exist -->
-    <target name="create-staticnat" 
+    <target name="create-staticnat"
         description="creates a static nat if one doesn't exist"
         depends="create-extaddress, create-intaddress">      
         <caroline:staticnat name="${staticnat}" op="create">
             <caroline:extaddress name="${extaddress}"/>
-            <caroline:intaddress 
+            <caroline:intaddress
                 name="${intaddress}" 
                 networkname="${network}"/>
-        </caroline:staticnat>    
+        </caroline:staticnat>
     </target>
     
     <!-- create process registration if it doesn't exist -->
-    <target name="create-service" 
+    <target name="create-service"
         description="creates a service process if one doesn't exist"
         depends="deploy-ant,unzip-distribution,update-config,create-staticnat,create-extbinding">
         
         <caroline:process name="${service.process}"
             op="create" workingdir="/files/working/">                
             <!-- filesystem to mount -->    
-            <caroline:filesystem name="${www.filesystem}" mountpoint="working"/>            
+            <caroline:filesystem name="${www.filesystem}" mountpoint="working"/>
             <!-- assign an internal address -->
             <caroline:intaddress name="${intaddress}" networkname="${network}"/>
             <!-- specify command line arguments -->
@@ -65,9 +71,9 @@
             <arg value="-Dcatalina.home=${service.working}"/>
             <arg value="-Djava.io.tmpdir=${service.working}/temp"/>
             <arg value="org.apache.catalina.startup.Bootstrap"/>
-            <arg value="start"/>             
+            <arg value="start"/>
         </caroline:process>
-    </target>    
+    </target>
     
     <!-- Update resources -->
      
@@ -75,16 +81,10 @@
     <target name="update-service"
         description="updates process registration"
         depends="update-config">
-        <caroline:process name="${service.process}" op="update"/>        
+        <caroline:process name="${service.process}" op="update"/>
     </target>
     
     <!-- Destroy Resources -->
-    
-    <!-- destroy service process if it exists -->
-    <target name="destroy-service" 
-        description="destroys service process if one exist">
-        <caroline:process name="${service.process}" op="delete" />
-    </target>
     
     <!-- destroy static nat if it exists -->
     <target name="destroy-staticnat"
@@ -99,50 +99,16 @@
     </target>
     
     <!-- destroy external address if it exists -->
-    <target name="destroy-extaddress" 
+    <target name="destroy-extaddress"
         description="Destroys external address if one exists"
         depends="destroy-staticnat,destroy-extbinding">
-        <caroline:extaddress name="${extaddress}" op="delete" /> 
+        <caroline:extaddress name="${extaddress}" op="delete" />
     </target>
     
-    <!-- destroy internal addresses if they exists -->
-    <target name="destroy-intaddress" 
-        description="destroys internal addresses if they exists"
-        depends="destroy-staticnat,destroy-service">     
-        <caroline:intaddress name="${intaddress}" op="delete" networkname="${network}"/>        
-    </target>
+    <target name="cleanup"
+	    depends="destroy-service,destroy-unzip-task,destroy-intaddress,destroy-extaddress,destroy-filesystem"/>
 
-    <target name="cleanup" 
-	    depends="destroy-unzip-task,destroy-intaddress,destroy-extaddress,destroy-filesystem"/>
-
-    <!-- destroy network if it exists -->
-    <target name="destroy-network" 
-        description="destroys networkaddress if one exists"
-        depends="destroy-intaddress">
-        <caroline:network name="${network}" op="delete"/> 
-    </target>
-    
-    <!-- destroy filesystem if it exists -->
-    <target name="destroy-filesystem" 
-        description="destroys filesystem if one exists"
-        depends="destroy-service,destroy-unzip-task">
-        <caroline:filesystem name="${www.filesystem}" op="delete"/> 
-    </target>    
-    
-    <!-- destroys packages filesystem -->
-    <target name="destroy-packages-filesystem" 
-        description="Removes packages filesystem"
-        depends="destroy-unzip-task">        
-        <caroline:filesystem op="delete" name="${packages.filesystem}"/>  
-    </target>
-    
-    <!-- destroys unzip process -->
-    <target name="destroy-unzip-task" 
-        description="Removes unzip process if it exists">
-        <caroline:process name="${unzip.task}" op="delete"/>
-    </target>    
-    
-    <target name="destroy-all" 
+    <target name="destroy-all"
         description="Removes packages filesystem"
         depends="destroy-filesystem,destroy-extaddress,destroy-network"/>
         

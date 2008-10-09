@@ -3,76 +3,89 @@
 	 xmlns:dav="antlib:org.apache.webdav.ant"
 	 xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
 
-  <property name="www.filesystem" value="${deployment.name}-${deployment.number}.filesystem"/>
-  <property name="intaddress" value="${deployment.name}-${deployment.number}-int"/>
-  <property name="service.process" value="${deployment.name}-${deployment.number}"/>
+  <!-- Get a deployment name and number from the properties passed in. -->
+    <condition property="deployment.name" value="www">
+        <not>
+            <isset property="deployment.name"/>
+        </not>
+    </condition>
 
-  <import file="common.xml"/>
+    <condition property="deployment.number" value="1">
+        <not>
+            <isset property="deployment.number"/>
+        </not>
+    </condition>
+
+    <property name="www.filesystem" value="${deployment.name}-${deployment.number}.filesystem"/>
+    <property name="intaddress" value="${deployment.name}-${deployment.number}-int"/>
+    <property name="service.process" value="${deployment.name}-${deployment.number}"/>
+
+    <import file="common.xml"/>
   
   <!-- Upload Resources to Caroline filesystems -->
   
   <!-- create a WebDAV collection to upload Ant jars to-->
-  <target name="create-ant-collection" description="creates Ant package" depends="create-packages-filesystem">
-    <dav:mkcol url="${dav.url}/${ant.col}" 
+    <target name="create-ant-collection" description="creates Ant package" depends="create-packages-filesystem">
+        <dav:mkcol url="${dav.url}/${ant.col}"
 	       userid="${user}" password="${pw}"/>            
-  </target>
+    </target>
   
   <!-- create a target to copy Ant jars to Caroline -->
-  <target name="deploy-ant" description="copies Ant libraries" 
+    <target name="deploy-ant" description="copies Ant libraries"
 	  depends="create-ant-collection">
-    <dav:put url="${dav.url}/${ant.col}" 
+        <dav:put url="${dav.url}/${ant.col}"
 	     userid="${user}" password="${pw}" lock="false">
-      <fileset dir="${ant.lib}">
-	<include name="*.jar"/>
-      </fileset>        
-    </dav:put>
-  </target>  
+            <fileset dir="${ant.lib}">
+                <include name="*.jar"/>
+            </fileset>
+        </dav:put>
+    </target>
   
   <!-- upload the service distribution to the dist file system -->
-  <target name="upload-distribution"
+    <target name="upload-distribution"
 	  description="uploads service distribution to Caroline filesystem"
 	  depends="create-filesystem,create-war-collection,create-config-collection">          
-    <dav:put url="${war.url}" 
+        <dav:put url="${war.url}"
 	     userid="${user}" password="${pw}" verbose="true" lock="false">            
-      <fileset dir="${tool.libraries}">
-	<include name="${service.distribution}"/>
-      </fileset>                
+            <fileset dir="${tool.libraries}">
+                <include name="${service.distribution}"/>
+            </fileset>
       <!-- Upload build script to unzip service distribution -->
-      <fileset dir="${basedir}/on-grid-scripts">
-	<include name="build.xml"/>
-      </fileset>
-      <fileset dir="${tool.libraries}">
-	<include name="jsk-all.policy"/>
-      </fileset>
-    </dav:put>    
-  </target>
+            <fileset dir="${basedir}/on-grid-scripts">
+                <include name="build.xml"/>
+            </fileset>
+            <fileset dir="${tool.libraries}">
+                <include name="jsk-all.policy"/>
+            </fileset>
+        </dav:put>
+    </target>
   
   <!-- Update service configuration files -->
-  <target name="update-config"
+    <target name="update-config"
 	  description="updates service configuration">
     <!-- update the configuration files contained in the distribution -->
-    <dav:put url="${dav.url}/${service.conf}" userid="${user}" password="${pw}" lock="false">                
+        <dav:put url="${dav.url}/${service.conf}" userid="${user}" password="${pw}" lock="false">
       <!-- upload service configuration files -->
-      <fileset dir="${basedir}/on-grid-config">
-	<include name="*"/>
-      </fileset>            
-    </dav:put>        
-  </target>
+            <fileset dir="${basedir}/on-grid-config">
+                <include name="*"/>
+            </fileset>
+        </dav:put>
+    </target>
   
   <!-- Tasks -->   
   <!-- unzip service distribution on-grid -->
-  <target name="unzip-distribution"
+    <target name="unzip-distribution"
 	  description="unzips the service distribution"
 	  depends="upload-distribution, create-packages-filesystem">
     
     <!-- Copy the policy and build files from the distribution -->
-    <dav:copy url="${war.url}/jsk-all.policy"
+        <dav:copy url="${war.url}/jsk-all.policy"
 	      destination="${dav.url}/${www.filesystem}/jsk-all.policy"
 	      verbose="true"
 	      overwrite="true"
 	      userid="${user}" password="${pw}"/>
 
-    <dav:copy url="${war.url}/build.xml"
+        <dav:copy url="${war.url}/build.xml"
 	      destination="${dav.url}/${www.filesystem}/build.xml"
 	      verbose="true"
 	      overwrite="true"
@@ -80,90 +93,87 @@
 
     <!-- Creates and starts a Caroline process to unzip service 
 	 distribution -->
-    <caroline:process name="${unzip.task}" op="create" 
+        <caroline:process name="${unzip.task}" op="create"
 		      workingdir="/files/working"
 		      duration="task">    
       <!-- Filesystems to mount -->
-      <caroline:filesystem name="${www.filesystem}" mountpoint="working"/>
-      <caroline:filesystem name="${dist.filesystem}" mountpoint="dist"/>
-      <caroline:filesystem name="${packages.filesystem}" 
+            <caroline:filesystem name="${www.filesystem}" mountpoint="working"/>
+            <caroline:filesystem name="${dist.filesystem}" mountpoint="dist"/>
+            <caroline:filesystem name="${packages.filesystem}"
 			   mountpoint="sys.packages"/>                 
       <!-- Set environment variables -->
-      <env key="ANT_HOME" value="/files/${ant.col}"/>
-      <env key="JAVA_HOME" value="/usr/java"/>            
+            <env key="ANT_HOME" value="/files/${ant.col}"/>
+            <env key="JAVA_HOME" value="/usr/java"/>
       <!-- Specify the command line -->
-      <arg value="-Dservice.distribution=/files/dist/war/${service.distribution}"/>
-      <arg value="-jar"/>
-      <arg value="/files/${ant.col}/ant-launcher.jar"/> 
-      <arg value="-v"/>
-    </caroline:process>               
-  </target> 
+            <arg value="-Dservice.distribution=/files/dist/war/${service.distribution}"/>
+            <arg value="-jar"/>
+            <arg value="/files/${ant.col}/ant-launcher.jar"/>
+            <arg value="-v"/>
+        </caroline:process>
+    </target>
   
   <!-- Create Caroline Resources -->
   
   <!-- create a caroline filesystem to upload the Ant jars to -->
-  <target name="create-packages-filesystem" 
+    <target name="create-packages-filesystem"
 	  description="creates packages filsystem if it doesn't exist">         
-    <caroline:filesystem name="${packages.filesystem}" op="create"/>             
-  </target>
+        <caroline:filesystem name="${packages.filesystem}" op="create"/>
+    </target>
   
   <!-- create a caroline filesystem to upload the service distribution to -->
-  <target name="create-filesystem" 
+    <target name="create-filesystem"
 	  description="creates filesystem if it doesn't exist">      
-    <caroline:filesystem op="create" name="${www.filesystem}"/>    
-  </target>
+        <caroline:filesystem op="create" name="${www.filesystem}"/>
+    </target>
   
-  <target name="create-network" 
+    <target name="create-network"
 	  description="creates a network if it doesn't exist">      
-    <caroline:network name="${network}" op="create" hosts="256"/>    
-  </target>
+        <caroline:network name="${network}" op="create" hosts="256"/>
+    </target>
   
   <!-- create internal addresses if not already present -->
-  <target name="create-intaddress" 
+    <target name="create-intaddress"
 	  description="creates an internal addresses if not already present"
 	  depends="create-network">      
     <!-- create the service internal address-->
-    <caroline:intaddress name="${intaddress}" op="create" networkname="${network}"/>   
-  </target>
+        <caroline:intaddress name="${intaddress}" op="create" networkname="${network}"/>
+    </target>
   
   <!-- create process registration if it doesn't exist -->
-  <target name="create-service" 
+    <target name="create-service"
 	  description="creates a service process if one doesn't exist"
 	  depends="deploy-ant,unzip-distribution,update-config,create-intaddress">
     
-    <caroline:process name="${service.process}"
+        <caroline:process name="${service.process}"
 		      op="create" workingdir="/files/working/">                
       <!-- filesystem to mount -->    
-      <caroline:filesystem name="${www.filesystem}" mountpoint="working"/>            
+            <caroline:filesystem name="${www.filesystem}" mountpoint="working"/>
       <!-- assign an internal address -->
-      <caroline:intaddress name="${intaddress}" networkname="${network}"/>
+            <caroline:intaddress name="${intaddress}" networkname="${network}"/>
       <!-- specify command line arguments -->
-      <arg value="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"/>
-      <arg value="-Djava.util.logging.config.file=${service.working}/conf/logging.properties"/>
-      <arg value="-Djava.endorsed.dirs=${service.working}/endorsed"/>
-      <arg value="-classpath"/>
-      <arg value=":${service.working}/bin/bootstrap.jar:${service.working}/bin/commons-logging-api.jar"/>
-      <arg value="-Dcatalina.base=${service.working}"/>
-      <arg value="-Dcatalina.home=${service.working}"/>
-      <arg value="-Djava.io.tmpdir=${service.working}/temp"/>
-      <arg value="org.apache.catalina.startup.Bootstrap"/>
-      <arg value="start"/>             
-    </caroline:process>
-  </target>    
+            <arg value="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"/>
+            <arg value="-Djava.util.logging.config.file=${service.working}/conf/logging.properties"/>
+            <arg value="-Djava.endorsed.dirs=${service.working}/endorsed"/>
+            <arg value="-classpath"/>
+            <arg value=":${service.working}/bin/bootstrap.jar:${service.working}/bin/commons-logging-api.jar"/>
+            <arg value="-Dcatalina.base=${service.working}"/>
+            <arg value="-Dcatalina.home=${service.working}"/>
+            <arg value="-Djava.io.tmpdir=${service.working}/temp"/>
+            <arg value="org.apache.catalina.startup.Bootstrap"/>
+            <arg value="start"/>
+        </caroline:process>
+    </target>
   
   <!-- Update resources -->
   
   <!-- update service process -->
-  <target name="update-service"
+    <target name="update-service"
 	  description="updates process registration"
 	  depends="update-config">
-    <caroline:process name="${service.process}" op="update"/>        
-  </target>
+        <caroline:process name="${service.process}" op="update"/>
+    </target>
   
-  <!-- destroys unzip process -->
-  <target name="destroy-unzip-task" 
-	  description="Removes unzip process if it exists">
-    <caroline:process name="${unzip.task}" op="delete"/>
-  </target>    
+    <target name="cleanup"
+	    depends="destroy-service,destroy-unzip-task,destroy-intaddress,destroy-filesystem"/>
   
 </project>
