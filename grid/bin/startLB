@@ -1,0 +1,2 @@
+#!/bin/bash
+java -jar dist/grid.jar /com/sun/labs/aura/grid/loadbalance/lbConfig.xml start

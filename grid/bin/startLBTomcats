@@ -1,0 +1,25 @@
+#!/bin/bash
+
+if [ $1 == "-h" ] ; then
+    echo 'startLBTomcats [name] [num]'
+    exit;
+fi;
+
+DIR=`dirname $0`
+
+NAME=$1
+if [ -z $NAME] ; then
+    NAME=www
+fi
+
+NUM=$2
+if [ -z $NUM ] ; then
+    NUM=5
+fi
+
+COUNT=1
+
+for (( COUNT=1 ; COUNT <= $NUM ; COUNT++ )) ; do 
+    echo Deploying $NAME-$COUNT...
+    ant -Ddeployment.name=$NAME -Ddeployment.number=$COUNT -f $DIR/../grid-deploy/tomcat-lb.xml 
+done

@@ -525,8 +525,12 @@ public class GridUtil {
         bindHostName(hnZone, internalAddress, hostName);
         return internalAddress;
     }
-
     public NetworkAddress getExternalAddressFor(String name) throws Exception {
+        return getExternalAddressFor(name, name);
+    }
+
+    public NetworkAddress getExternalAddressFor(String name, String hostName) throws Exception {
+
         // Allocate an external address for the virtual service if necessary
         NetworkAddress externalAddress = null;
         String extName = instance + "-" + name;
@@ -539,7 +543,7 @@ public class GridUtil {
             log.fine("External address exists, reusing");
             externalAddress = grid.getExternalAddress(extName);
         }
-        bindHostName(grid.getExternalHostNameZone(), externalAddress, name);
+        bindHostName(grid.getExternalHostNameZone(), externalAddress, hostName);
         return externalAddress;
     }
 
