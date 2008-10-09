@@ -58,7 +58,6 @@
         <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
         <property name="flushInterval" value="30000"/>
         <property name="logLevel" value="WARNING"/>
-        <property name="skimPercentage" value="1.0"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
@@ -66,7 +65,6 @@
         <property name="indexDir" value="${auraHome}/1/itemIndex.idx"/>
         <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
         <property name="flushInterval" value="30000"/>
-        <property name="skimPercentage" value="1.0"/>
     </component>
 
     <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl">

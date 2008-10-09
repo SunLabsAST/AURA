@@ -9,7 +9,7 @@ import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
-import com.sun.labs.aura.datastore.DBIterator;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
@@ -26,7 +26,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -311,8 +310,9 @@ public class FeedManager implements AuraService, Configurable {
 
             logger.info("Crawling feed " + feed.getKey() + ((syndFeed == null ? " (full)" : "")));
             List<BlogEntry> entries = FeedUtils.processFeed(feed, syndFeed);
-            List<Attention> attentions =
-                    myItemStore.getAttentionForTarget(feed.getKey());
+            AttentionConfig ac = new AttentionConfig();
+            ac.setTargetKey(feed.getKey());
+            List<Attention> attentions = myItemStore.getAttention(ac);
 
             int newEntries = 0;
             for (BlogEntry entry : entries) {
@@ -462,7 +462,9 @@ public class FeedManager implements AuraService, Configurable {
      * @throws java.rmi.RemoteException
      */
     boolean isAlreadyLinked(String srcKey, String targetKey) throws AuraException, RemoteException {
-        for (Attention attn : dataStore.getAttentionForTarget(targetKey)) {
+        AttentionConfig ac = new AttentionConfig();
+        ac.setTargetKey(targetKey);
+        for (Attention attn : dataStore.getAttention(ac)) {
             if (attn.getType() == Attention.Type.LINKS_TO) {
                 if (srcKey.equals(attn.getSourceKey())) {
                     return true;
@@ -482,7 +484,9 @@ public class FeedManager implements AuraService, Configurable {
      * @throws java.rmi.RemoteException
      */
     private void processIncomingLinkAttentionData(DataStore myDataStore, BlogFeed feed) throws AuraException, RemoteException {
-        List<Attention> incoming = myDataStore.getAttentionForTarget(feed.getKey());
+        AttentionConfig ac = new AttentionConfig();
+        ac.setTargetKey(feed.getKey());
+        List<Attention> incoming = myDataStore.getAttention(ac);
         int count = 0;
         if (incoming != null) {
             for (Attention attn : incoming) {

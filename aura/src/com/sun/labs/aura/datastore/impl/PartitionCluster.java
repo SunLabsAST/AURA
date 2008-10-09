@@ -1,6 +1,5 @@
 package com.sun.labs.aura.datastore.impl;
 
-import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.impl.store.ItemStore;
 import com.sun.labs.aura.datastore.impl.store.LowLevelSearch;
 import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
@@ -8,7 +7,6 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.Component;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -61,9 +59,6 @@ public interface PartitionCluster extends ItemStore, LowLevelSearch, Component, 
      */
     public void split() throws AuraException, RemoteException;
     
-    public List<Attention> getAttentionForSource(String srcKey,
-                                                Attention.Type type)
-            throws AuraException, RemoteException;
 
     /**
      * Delete the attention that is related to the given item either as a 

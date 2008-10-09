@@ -38,7 +38,6 @@ import com.sun.labs.minion.util.DirCopier;
 import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.minion.util.Util;
 import com.sun.labs.util.props.ConfigBoolean;
-import com.sun.labs.util.props.ConfigDouble;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
@@ -56,7 +55,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -100,8 +98,6 @@ public class ItemSearchEngine implements Configurable {
 
     private long flushCheckInterval;
 
-    private double skimPercentage;
-
     private Timer flushTimer;
     
     private String indexDir;
@@ -119,7 +115,7 @@ public class ItemSearchEngine implements Configurable {
         this.indexDir = indexDir;
         log = Logger.getLogger(getClass().getName());
         try {
-            URL cu = getClass().getResource(config);
+            URL cu = ItemSearchEngine.class.getResource(config);
 
             //
             // Creates the search engine.  We'll use a full blown fields-and-all
@@ -179,7 +175,7 @@ public class ItemSearchEngine implements Configurable {
        String engineConfig = ps.getString(PROP_ENGINE_CONFIG_FILE);
 
         try {
-            URL config = getClass().getResource(engineConfig);
+            URL config = ItemSearchEngine.class.getResource(engineConfig);
 
             //
             // Creates the search engine.  We'll use a full blown fields-and-all
@@ -198,8 +194,6 @@ public class ItemSearchEngine implements Configurable {
         flushTimer = new Timer("ItemSearchEngineFlushTimer");
         flushTimer.scheduleAtFixedRate(new FlushTimerTask(), flushCheckInterval,
                 flushCheckInterval);
-
-        skimPercentage = ps.getDouble(PROP_SKIM_PERCENTAGE);
 
     }
 
@@ -801,14 +795,11 @@ public class ItemSearchEngine implements Configurable {
      */
     class FlushTimerTask extends TimerTask {
 
-        private long last = System.currentTimeMillis();
-
         @Override
         public void run() {
             try {
                 long curr = System.currentTimeMillis();
                 engine.flush();
-                last = curr;
             } catch(SearchEngineException ex) {
                 log.log(Level.SEVERE, "Error flushing engine data", ex);
             }
@@ -847,11 +838,5 @@ public class ItemSearchEngine implements Configurable {
      */
     @ConfigInteger(defaultValue = 3000, range = {1, 3000000})
     public static final String PROP_FLUSH_INTERVAL = "flushInterval";
-
-    /**
-     * The skim percentage to use for findSimilar.
-     */
-    @ConfigDouble(defaultValue = 0.25)
-    public static final String PROP_SKIM_PERCENTAGE = "skimPercentage";
 
 }

@@ -299,15 +299,6 @@ public class PCSplitStrategy implements PCStrategy {
         remote.removeAttention(itemKey);
     }
 
-    public List<Attention> getLastAttentionForSource(String srcKey, Type type, int count) throws AuraException, RemoteException {
-        List<Attention> l = local.getLastAttentionForSource(srcKey, type, count);
-        List<Attention> r = remote.getLastAttentionForSource(srcKey, type, count);
-        l.removeAll(r);
-        l.addAll(r);
-        Collections.sort(l, new ReverseAttentionTimeComparator());
-        return new ArrayList<Attention>(l.subList(0, count));
-    }
-
     public void addItemListener(ItemType itemType, ItemListener listener) throws AuraException, RemoteException {
         //
         // need to add the listener to both

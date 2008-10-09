@@ -385,7 +385,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
         }
         nw.stop();
         if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("rep %s gIs for %d took %.3f", prefixString, keys.size(), nw.getTimeMillis()));
+            logger.fine(String.format("rep %s gSIs for %d took %.3f", prefixString, keys.size(), nw.getTimeMillis()));
         }
         if(ret.size() > 0) {
             getItemCntr.addAndGet(ret.size());
@@ -569,22 +569,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
         return new ArrayList(attn.subList(0, numReturned));
     }
     
-    public List<Attention> getAttentionForSource(String srcKey)
-            throws AuraException {
-        return bdb.getAttentionForSource(srcKey);
-    }
-
-    public List<Attention> getAttentionForSource(String srcKey,
-                                                Attention.Type type)
-            throws AuraException {
-        return bdb.getAttentionForSource(srcKey, type);
-    }
-
-    public List<Attention> getAttentionForTarget(String itemKey)
-            throws AuraException {
-        return bdb.getAttentionForTarget(itemKey);
-    }
-
     public Attention attend(Attention att) throws AuraException {
         //
         // Handle the stats
@@ -636,33 +620,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
                 bdb.getAttentionAddedSince(timeStamp.getTime());
 
         return (DBIterator<Attention>) cm.getRemote(res);
-    }
-
-    public DBIterator<Attention> getAttentionForSourceSince(String key,
-            Date timeStamp) throws AuraException {
-        DBIterator<Attention> res =
-                bdb.getAttentionForSourceSince(key, timeStamp.getTime());
-        return (DBIterator<Attention>) cm.getRemote(res);
-    }
-    
-    public DBIterator<Attention> getAttentionForTargetSince(String key,
-            Date timeStamp) throws AuraException {
-        DBIterator<Attention> res =
-                bdb.getAttentionForTargetSince(key, timeStamp.getTime());
-        return (DBIterator<Attention>) cm.getRemote(res);
-    }
-
-    public List<Attention> getLastAttentionForSource(String srcKey,
-            int count)
-            throws AuraException, RemoteException {
-        return getLastAttentionForSource(srcKey, null, count);
-    }
-
-    public List<Attention> getLastAttentionForSource(String srcKey,
-            Type type,
-            int count)
-            throws AuraException, RemoteException {
-        return bdb.getLastAttentionForUser(srcKey, type, count);
     }
 
     public List<Scored<String>> query(String query, int n, ResultsFilter rf)
