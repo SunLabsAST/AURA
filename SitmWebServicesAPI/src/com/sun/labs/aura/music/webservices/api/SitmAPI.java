@@ -20,7 +20,7 @@ public class SitmAPI {
     private Commander commander;
 
     public SitmAPI(String host) throws IOException {
-        commander = new Commander("sitm", host + "/SitmWebServices/", "");
+        commander = new Commander("sitm", host + "api/1.0/", "");
         //commander.setTraceSends(true);
         //commander.setTrace(true);
     }
@@ -47,7 +47,7 @@ public class SitmAPI {
     // http://search.east/SitmWebServices/ArtistSocialTags?name=weezer
     public List<Scored<Item>> artistSocialTags(String key, int count) throws IOException {
         List<Scored<Item>> items = new ArrayList<Scored<Item>>();
-        Document doc = commander.sendCommand("ArtistSocialTags?key=" + key + "&max=" + count);
+        Document doc = commander.sendCommand("GetArtistTags?key=" + key + "&max=" + count);
         checkStatus("artistSocialTags", doc);
         Element docElement = doc.getDocumentElement();
         NodeList itemList = docElement.getElementsByTagName("ArtistTag");
@@ -83,7 +83,7 @@ public class SitmAPI {
    
     public List<Scored<Item>> findSimilarArtistsByKey(String key, int count) throws IOException {
         List<Scored<Item>> items = new ArrayList<Scored<Item>>();
-        Document doc = commander.sendCommand("FindSimilarArtist?key=" + key + "&max=" + count);
+        Document doc = commander.sendCommand("FindSimilarArtists?key=" + key + "&max=" + count);
         checkStatus("findSimilarArtistsByKey", doc);
         Element docElement = doc.getDocumentElement();
         NodeList itemList = docElement.getElementsByTagName("artist");
@@ -101,7 +101,7 @@ public class SitmAPI {
 
     public List<Scored<Item>> findSimilarArtistsByName(String name, int count) throws IOException {
         List<Scored<Item>> items = new ArrayList<Scored<Item>>();
-        Document doc = commander.sendCommand("FindSimilarArtist?name=" + name + "&max=" + count);
+        Document doc = commander.sendCommand("FindSimilarArtists?name=" + name + "&max=" + count);
         checkStatus("findSimilarArtist", doc);
         Element docElement = doc.getDocumentElement();
         NodeList itemList = docElement.getElementsByTagName("artist");
@@ -121,7 +121,7 @@ public class SitmAPI {
     public Item getItem(String key, boolean compact) throws IOException {
         List<Scored<Item>> items = new ArrayList<Scored<Item>>();
         String compactArg = compact ? "&format=compact" : "";
-        Document doc = commander.sendCommand("GetItem?key=" + key + compactArg);
+        Document doc = commander.sendCommand("GetItems?key=" + key + compactArg);
         checkStatus("getItem", doc);
         return null;
     }
@@ -135,7 +135,7 @@ public class SitmAPI {
             keyList += ",";
         }
         keyList = keyList.replace(",$", "");
-        Document doc = commander.sendCommand("GetItem?key=" + keyList + compactArg);
+        Document doc = commander.sendCommand("GetItems?key=" + keyList + compactArg);
         checkStatus("getItems", doc);
         return null;
     }
@@ -146,12 +146,14 @@ public class SitmAPI {
         checkStatus("findSimilarArtistTags", doc);
         return null;
     }
+    /*
     public List<Scored<Item>> getTags(int count) throws IOException {
         List<Scored<Item>> items = new ArrayList<Scored<Item>>();
         Document doc = commander.sendCommand("GetTags?max=" + count);
         checkStatus("getTags", doc);
         return null;
     }
+     * */
 
     public List<Item> getArtists(int count) throws IOException {
         List<Item> items = new ArrayList<Item>();
@@ -192,25 +194,22 @@ public class SitmAPI {
 
     // http://search.east/SitmWebServices/FindSimilarArtistFromWordCloud?wordCloud=%27(indie,1)(punk,1)(emo,.5)%27
     public List<Scored<Item>> findSimilarArtistFromWordCloud(String cloud, int count) throws IOException {
-        Document doc = commander.sendCommand("FindSimilarArtistFromWordCloud?wordCloud=" + cloud + "&max=" + count);
+        Document doc = commander.sendCommand("FindSimilarArtistsFromWordCloud?wordCloud=" + cloud + "&max=" + count);
         checkStatus("findSimilarArtistFromWordCloud", doc);
         return null;
     }
 
     public void checkStatus(String msg, Document doc) throws IOException {
-        if (true) {
-            return;  // until the ws refactor is complete
-        }
         Element docElement = doc.getDocumentElement();
-        NodeList nlist = docElement.getElementsByTagName("status");
+        NodeList nlist = docElement.getElementsByTagName("results");
         if (nlist.getLength() != 1) {
-            throw new IOException(msg + ":" + "Improper status format");
+            throw new IOException(msg + ":" + "Improper results format");
         }
-        Element status = (Element) nlist.item(0);
-        String code =  (status.getAttribute("code"));
+        Element results = (Element) nlist.item(0);
+        String code =  (results.getAttribute("status"));
         if (!"OK".equals(code)) {
             Commander.dumpDocument(doc);
-            throw new IOException(msg + " bad status "  + code);
+            throw new IOException(msg + " bad result status status "  + code);
         }
     }
 }
