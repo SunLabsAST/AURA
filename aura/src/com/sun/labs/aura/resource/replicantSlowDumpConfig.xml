@@ -63,6 +63,7 @@
         <property name="indexDir" value="${dataFS}/itemIndex.idx"/>
         <property name="engineLogLevel" value="1"/>
         <property name="flushInterval" value="300000"/>
+        <property name="regenerateTermStats" value="true"/>
     </component>
 
     <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" entries="prefixEntries"/>

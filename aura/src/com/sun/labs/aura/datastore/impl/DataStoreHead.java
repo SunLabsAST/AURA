@@ -75,7 +75,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     public static final String PROP_STOPWORDS = "stopwords";
     protected StopWords stop;
 
-    @ConfigBoolean(defaultValue = true)
+    @ConfigBoolean(defaultValue = false)
     public static final String PROP_PARALLEL_GET = "parallelGet";
 
     private boolean parallelGet;
@@ -219,13 +219,39 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                     iterator().next();
             ret = e.getKey().getItems(e.getValue());
         } else {
+            
+            if(parallelGet) {
+                
+                List<Callable<Collection<Item>>> callers = new ArrayList();
+                //
+                // Run the gets in parallel
+                for(Map.Entry<PartitionCluster, List<String>> e : m.
+                        entrySet()) {
+                    callers.add(new KeyCaller(e.getKey(), e.getValue()));
+                }
 
+                try {
+                    List<Future<Collection<Item>>> l = executor.invokeAll(
+                            callers);
+                    ret = new ArrayList<Item>();
+                    for(Future<Collection<Item>> f : l) {
+                        ret.addAll(f.get());
+                    }
+                } catch(InterruptedException ie) {
+                    throw new AuraException("Interrupted while getting items",
+                            ie);
+                } catch(ExecutionException ee) {
+                    throw new AuraException("Error getting items", ee);
+                }
+                
+            } else {
 
-            //
-            // Run the gets in seriallel (sigh)
-            ret = new ArrayList<Item>();
-            for(Map.Entry<PartitionCluster, List<String>> e : m.entrySet()) {
-                ret.addAll(e.getKey().getItems(e.getValue()));
+                //
+                // Run the gets in seriallel (sigh)
+                ret = new ArrayList<Item>();
+                for(Map.Entry<PartitionCluster, List<String>> e : m.entrySet()) {
+                    ret.addAll(e.getKey().getItems(e.getValue()));
+                }
             }
         }
 
@@ -238,14 +264,10 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         return ret;
     }
     
-    
-
     private List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws RemoteException, AuraException {
 
         NanoWatch nw = new NanoWatch();
         nw.start();
-        //List<Callable<List<Scored<Item>>>> callers =
-        //        new ArrayList();
         
         //
         // Figure out which partitions we need to talk to.
@@ -269,44 +291,55 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             ret = e.getKey().getScoredItems(e.getValue());
         } else {
 
-            //
-            // Run the gets in parallel
-//            for(Map.Entry<PartitionCluster, List<Scored<String>>> e : m.entrySet()) {
-//                callers.add(new PCCaller(e.getKey(), e.getValue()) {
-//
-//                    public List<Scored<Item>> call()
-//                            throws AuraException, RemoteException {
-//                        List<Scored<Item>> ret = pc.getItems(keys);
-//                        if(logger.isLoggable(Level.FINER)) {
-//                            logger.finer(String.format("dsh pc %s gis return", pc.getPrefix().
-//                                    toString()));
-//                        }
-//                        return ret;
-//                    }
-//                });
-//            }
-//
-//            try {
-//                List<Future<List<Scored<Item>>>> l = executor.invokeAll(callers);
-//                ret = new ArrayList<Scored<Item>>();
-//                for(Future<List<Scored<Item>>> f : l) {
-//                    ret.addAll(f.get());
-//                }
-//                Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
-//
-//            } catch(InterruptedException ie) {
-//                throw new AuraException("Interrupted while getting items", ie);
-//            } catch(ExecutionException ee) {
-//                throw new AuraException("Error getting items", ee);
-//            }
+            if(parallelGet) {
+                
+                List<Callable<List<Scored<Item>>>> callers =
+                        new ArrayList();
+                //
+                // Run the gets in parallel
+                for(Map.Entry<PartitionCluster, List<Scored<String>>> e : m.
+                        entrySet()) {
+                    callers.add(new PCCaller(e.getKey(), e.getValue()) {
+
+                        public List<Scored<Item>> call()
+                                throws AuraException, RemoteException {
+                            List<Scored<Item>> ret = pc.getScoredItems(keys);
+                            if(logger.isLoggable(Level.FINER)) {
+                                logger.finer(String.format(
+                                        "dsh pc %s gis return", pc.getPrefix().
+                                        toString()));
+                            }
+                            return ret;
+                        }
+                    });
+                }
+
+                try {
+                    List<Future<List<Scored<Item>>>> l = executor.invokeAll(
+                            callers);
+                    ret = new ArrayList<Scored<Item>>();
+                    for(Future<List<Scored<Item>>> f : l) {
+                        ret.addAll(f.get());
+                    }
+                    Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
+
+                } catch(InterruptedException ie) {
+                    throw new AuraException("Interrupted while getting items",
+                            ie);
+                } catch(ExecutionException ee) {
+                    throw new AuraException("Error getting items", ee);
+                }
+            } else {
         
-            //
-            // Run the gets in seriallel (sigh)
-            ret = new ArrayList<Scored<Item>>();
-            for(Map.Entry<PartitionCluster, List<Scored<String>>> e : m.entrySet()) {
-                ret.addAll(e.getKey().getScoredItems(e.getValue()));
+                //
+                // Run the gets in seriallel (sigh)
+                ret = new ArrayList<Scored<Item>>();
+                for(Map.Entry<PartitionCluster, List<Scored<String>>> e : m.
+                        entrySet()) {
+                    ret.addAll(e.getKey().getScoredItems(e.getValue()));
+                }
+                Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
             }
-            Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
         }
         
         nw.stop();
@@ -1349,8 +1382,26 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             this.pc = pc;
             this.keys = keys;
         }
-
+        
         public abstract V call() throws AuraException, RemoteException;
+    }
+    
+    protected class KeyCaller implements Callable<Collection<Item>> {
+        
+        protected PartitionCluster pc;
+        
+        protected List<String> keys;
+        
+        public KeyCaller(PartitionCluster pc, List<String> keys) {
+            this.pc = pc;
+            this.keys = keys;
+        }
+
+        @Override
+        public Collection<Item> call() throws Exception {
+            return pc.getItems(keys);
+        }
+        
     }
 
     protected static class PCLatch extends CountDownLatch {

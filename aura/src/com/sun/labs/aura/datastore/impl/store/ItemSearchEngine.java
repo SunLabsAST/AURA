@@ -35,6 +35,7 @@ import com.sun.labs.minion.retrieval.FieldTerm;
 import com.sun.labs.minion.retrieval.ResultImpl;
 import com.sun.labs.minion.retrieval.ResultSetImpl;
 import com.sun.labs.minion.util.DirCopier;
+import com.sun.labs.minion.util.FileLockException;
 import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.minion.util.Util;
 import com.sun.labs.util.props.ConfigBoolean;
@@ -139,6 +140,16 @@ public class ItemSearchEngine implements Configurable {
             }
         }
     }
+    
+    public void regenerateTermStats() {
+        try {
+            engine.getPM().recalculateTermStats();
+        } catch(IOException ex) {
+            log.log(Level.SEVERE, "Error regenerating term stats", ex);
+        } catch(FileLockException ex) {
+            log.log(Level.SEVERE, "Error regenerating term stats", ex);
+        }
+    }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         //
@@ -184,6 +195,10 @@ public class ItemSearchEngine implements Configurable {
             engine = SearchEngineFactory.getSearchEngine(indexDir,
                     "aardvark_search_engine",
                     config);
+            
+            if(ps.getBoolean(PROP_REGENERATE_TERM_STATS)) {
+                regenerateTermStats();
+            }
         } catch(SearchEngineException see) {
             log.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
         }
@@ -813,6 +828,11 @@ public class ItemSearchEngine implements Configurable {
      */
     @ConfigString(defaultValue = "itemSearchEngineConfig.xml")
     public static final String PROP_ENGINE_CONFIG_FILE = "engineConfigFile";
+    
+    @ConfigBoolean(defaultValue=false)
+    public static final String PROP_REGENERATE_TERM_STATS = "regenerateTermStats";
+    
+    private boolean regenerateTermStats;
 
     /**
      * The default logging level for the search engine.  Paul likes things nice
