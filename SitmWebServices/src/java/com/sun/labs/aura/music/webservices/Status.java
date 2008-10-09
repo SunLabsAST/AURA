@@ -47,12 +47,12 @@ public class Status {
             out.println("</request>");
         }
 
-        out.println("<results>");
         if (isOK()) {
-            out.println("    <status code=\"OK\"/>");
+            out.println("<results status=\"OK\">");
         } else {
+            out.println("    <results status=\"ERROR\">");
             for (ErrorDescription ed : errorList) {
-                out.println("    <status code=\"" + ed.getError().name() + "\">" + ed.getText() + "</status>");
+                out.println("    <error code=\"" + ed.getError().name() + "\">" + ed.getText() + "</error>");
             }
         }
         {
