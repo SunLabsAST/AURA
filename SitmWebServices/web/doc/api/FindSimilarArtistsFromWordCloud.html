@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>FindSimilarArtistsFromWordCloud </TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H2 CLASS="western">FindSimilarArtistsFromWordCloud</H2>
+Finds artists that are similar to a word cloud
+<H3>Params</H3>
+<UL>
+	<LI><B>wordCloud</B> – <SPAN STYLE="font-weight: normal">t</SPAN><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">he
+	word cloud. Required.  The word cloud is of the form:</SPAN></SPAN>
+	<UL>
+		<LI><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">Simple:<BR>
+		  tag+name+1,tag+name2, ...</SPAN></SPAN>
+		<LI><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">Or
+		with weights<BR>    (tag name 1, weight1)(tag name 2, weight 2) ...</SPAN></SPAN>
+	</UL>
+	<LI><B>max – </B><SPAN STYLE="font-weight: normal">the maximum
+	number of results returned. Optional, default is 10.</SPAN>
+	<LI><B>popularity – </B><SPAN STYLE="font-weight: normal">the
+	desired range of popularity in the results. Optional, default is
+	'all'. Value must be one of:</SPAN>
+	<UL>
+		<LI><B>all</B> – <SPAN STYLE="font-weight: normal">all artists
+		are considered</SPAN>
+		<LI><B>head</B> – <SPAN STYLE="font-weight: normal">only very
+		popular artists are considered</SPAN>
+		<LI><B>mid</B> – <SPAN STYLE="font-weight: normal">only
+		moderately popular artists are considered</SPAN>
+		<LI><B>tail</B> – <SPAN STYLE="font-weight: normal">only long
+		tail artists are considered</SPAN>
+		<LI><B>head_mid </B>– <SPAN STYLE="font-weight: normal">very
+		and moderately popular artists are considered</SPAN>
+		<LI><B>mid_tail </B>– <SPAN STYLE="font-weight: normal">very
+		popular artists are not considered.</SPAN>
+	</UL>
+</UL>
+<H3><B>Example</B></H3>
+<PRE CLASS="code-western">
+http://music.tastekeeper.com/api/1.0/FindSimilarArtistsFromWordCloud
+    ?wordCloud=(indie,1)(punk,1)(emo,.5)&amp;popularity=head
+
+http://music.tastekeeper.com/api/1.0/FindSimilarArtistsFromWordCloud
+    ?wordCloud=jazz,blues,cool,mello,saxophone
+</PRE>
+<H3><B>Results</B></H3>
+<PRE CLASS="code-western">&lt;FindSimilarArtistsFromWordCloud&gt;
+    &lt;artist key=&quot;50549203-9602-451c-b49f-ff031ba8635c&quot; score=&quot;0.33&quot; name=&quot;Dashboard Confessional&quot;/&gt;
+    &lt;artist key=&quot;6fe07aa5-fec0-4eca-a456-f29bff451b04&quot; score=&quot;0.31&quot; name=&quot;Weezer&quot;/&gt;
+    &lt;artist key=&quot;8dacf242-9bf7-44f5-b2eb-18305b904551&quot; score=&quot;0.29&quot; name=&quot;Something Corporate&quot;/&gt;
+    &lt;artist key=&quot;3fa7095b-4447-465e-a784-14b07789d7a1&quot; score=&quot;0.27&quot; name=&quot;hellogoodbye&quot;/&gt;
+    &lt;artist key=&quot;97b1142f-c71e-4971-8736-4a8ceaf6b4c3&quot; score=&quot;0.27&quot; name=&quot;The Decemberists&quot;/&gt;
+    &lt;artist key=&quot;81b07a2a-cdf0-4c5e-a68c-8d910e1f0ea6&quot; score=&quot;0.26&quot; name=&quot;The Format&quot;/&gt;
+    &lt;artist key=&quot;593f8594-83ad-4df4-a9b8-e4d225f55440&quot; score=&quot;0.25&quot; name=&quot;Saves the Day&quot;/&gt;
+    &lt;artist key=&quot;0189c612-39a5-485d-8fc2-eca025b73861&quot; score=&quot;0.25&quot; name=&quot;Cartel&quot;/&gt;
+    &lt;artist key=&quot;9311e2bc-bb3f-44cf-90d8-b1fe6912b60b&quot; score=&quot;0.25&quot; name=&quot;Brand New&quot;/&gt;
+    &lt;artist key=&quot;584c04d2-4acc-491b-8a0a-e63133f4bfc4&quot; score=&quot;0.25&quot; name=&quot;Yeah Yeah Yeahs&quot;/&gt;
+    &lt;Status code='OK'/&gt;
+&lt;/FindSimilarArtistsFromWordCloud&gt;
+&lt;!-- output generated in 83 ms --&gt;</PRE>
+</BODY>
+</HTML>

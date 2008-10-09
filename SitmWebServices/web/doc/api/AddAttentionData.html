@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H2 CLASS="western">AddAttentionData</H2>
+Adds attention data to the database
+<H3>Params</H3>
+<UL>
+	<LI><B>appKey  – </B><SPAN STYLE="font-weight: normal">the
+	application key. Required.</SPAN>
+	<LI><B>srcKey</B><SPAN STYLE="font-weight: normal"> – the key
+	of the source of the attention (typically a user/listener). Required</SPAN>
+	<LI><B>tgtKey</B><SPAN STYLE="font-weight: normal"> – the key
+	of the target of the attention. Required.</SPAN>
+	<LI><B>type</B><SPAN STYLE="font-weight: normal"> – the type of
+	the attention.  Required. May be one of:</SPAN>
+	<UL>
+		<LI><SPAN STYLE="font-weight: normal">DISLIKED – the source
+		doesn't like the target</SPAN>
+		<LI><SPAN STYLE="font-weight: normal">PLAYED – the source
+		played the target</SPAN>
+		<LI><SPAN STYLE="font-weight: normal">LOVED – the source loves
+		the target</SPAN>
+		<LI><SPAN STYLE="font-weight: normal">RATING – the source
+		rated the target</SPAN>
+		<LI><SPAN STYLE="font-weight: normal">TAG – the source tagged
+		the target</SPAN>
+	</UL>  
+	<LI><B>value</B><SPAN STYLE="font-weight: normal"> – the
+	context-dependent value associated with the attention. Required for
+	attention types RATING and TAG, optional for attention type PLAYED</SPAN>
+	<UL>
+		<LI><SPAN STYLE="font-weight: normal">RATING value – a number
+		between 1 (worst) and 5 (best)</SPAN>
+		<LI><SPAN STYLE="font-weight: normal">PLAYED value – the play
+		count. Default is 1.</SPAN>
+		<LI><SPAN STYLE="font-weight: normal">TAG value – the string
+		tag.</SPAN>
+	</UL>
+</UL>
+    <i> <b>Note</b> Perhaps the DISLIKED and LOVED can be replaced with RATING</i>
+<H3>Examples</H3>
+<PRE CLASS="code-western">http://music.tastekeeper.com/api/1.0/AddAttentionData?srcKey=http://paul.lamere.myopenid.com
+   &amp;appKey=YOUR_APP_KEY&amp;tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04&amp;type=PLAYED
+
+http://music.tastekeeper.com/api/1.0/AddAttentionData?srcKey=http://paul.lamere.myopenid.com
+   &amp;appKey=YOUR_APP_KEY&amp;tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04&amp;type=RATING&amp;value=5
+
+http://music.tastekeeper.com/api/1.0/AddAttentionData?srcKey=http://paul.lamere.myopenid.com
+   &amp;appKey=YOUR_APP_KEY&amp;tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04&amp;type=TAG&amp;value=geek+rock
+
+http://music.tastekeeper.com/api/1.0/AddAttentionData?srcKey=http://paul.lamere.myopenid.com
+   &amp;appKey=YOUR_APP_KEY&amp;tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04&amp;type=LOVED</PRE>
+
+<H3> Results</H3>
+<P STYLE="font-weight: normal">The format of the results depend upon
+the type of item being retreived
+<PRE CLASS="code-western" STYLE="font-weight: normal"><FONT SIZE=1 STYLE="font-size: 8pt">&lt;AddAttentionData&gt;</FONT>
+     <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Status code=&quot;OK&quot;/&gt;</FONT>
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;/AddAttentionData&gt;</FONT>
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;!-- output generated in 46 ms --&gt;</FONT></PRE>
+<BR><BR>
+
+</BODY>
+</HTML>

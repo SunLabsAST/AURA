@@ -43,40 +43,54 @@
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true">
     </component>
     
+    <component name="processManager" type="com.sun.labs.aura.datastore.impl.ManualProcessManager" export="true" />
+    
     <!-- The configuration for a partition cluster. -->
-    <component name="partitionCluster0" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+    <component name="partitionCluster0" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true">
         <property name="prefix" value="0"/>
-        <property name="dataStoreHead" value="dataStoreHead"/>
+        <propertylist name="dataStoreHeads">
+            <item>dataStoreHead</item>
+        </propertylist>
+        <property name="processManager" value="processManager"/>
     </component>
 
     <!-- The configuration for a partition cluster. -->
-    <component name="partitionCluster1" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+    <component name="partitionCluster1" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true">
         <property name="prefix" value="1"/>
-        <property name="dataStoreHead" value="dataStoreHead"/>
+        <propertylist name="dataStoreHeads">
+            <item>dataStoreHead</item>
+        </propertylist>
+        <property name="processManager" value="processManager"/>
     </component>
 
     <!-- The configuration for a partition cluster. -->
-    <component name="replicant0" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+    <component name="replicant0" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" export="true">
         <property name="prefix" value="0"/>
         <property name="dbEnv" value="${auraHome}/0/db"/>
         <property name="itemSearchEngine" value="itemSearchEngine0"/>
         <property name="partitionCluster" value="partitionCluster0"/>
+        <property name="cacheSizeMemPercentage" value="30"/>
+        <property name="statService" value="statService"/>
     </component>
     
     <!-- The configuration for a partition cluster. -->
-    <component name="replicant1" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+    <component name="replicant1" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" export="true">
         <property name="prefix" value="1"/>
         <property name="dbEnv" value="${auraHome}/1/db"/>
         <property name="itemSearchEngine" value="itemSearchEngine1"/>
         <property name="partitionCluster" value="partitionCluster1"/>
+        <property name="cacheSizeMemPercentage" value="30"/>
+        <property name="statService" value="statService"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
     <component name="itemSearchEngine0" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
         <property name="indexDir" value="${auraHome}/0/itemIndex.idx"/>
         <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+        <property name="engineLogLevel" value="3"/>
         <property name="flushInterval" value="300000"/>
-        
+        <property name="logLevel" value="WARNING"/>
+        <property name="skimPercentage" value="1.0"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
@@ -84,6 +98,13 @@
         <property name="indexDir" value="${auraHome}/1/itemIndex.idx"/>
         <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
         <property name="flushInterval" value="300000"/>
+        <property name="engineLogLevel" value="3"/>
+        <property name="logLevel" value="WARNING"/>
+        <property name="skimPercentage" value="1.0"/>
+    </component>
+    
+    
+    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl" export="true">
     </component>
     
     <!-- A simple recommender -->
@@ -108,14 +129,6 @@
         <property name="numThreads" value="5"/>
         <property name="numDiscoveryThreads" value="7"/>
         <property name="logLevel" value="FINE"/>
-    </component>
-    
-    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl" export="true">
-        <property name="dataStore" value="dataStoreHead"/>
-    </component>
-
-    <component name="aardvarkStatusReporter" type="com.sun.labs.aura.aardvark.util.AardvarkStatusReporter">
-        <property name="dataStore" value="dataStoreHead"/>
     </component>
     
     <component name="shell" type="com.sun.labs.aura.aardvark.util.AardvarkShell">
@@ -145,6 +158,5 @@
             <item>aardvark</item>
         </propertylist>
     </component>
-
     
 </config>

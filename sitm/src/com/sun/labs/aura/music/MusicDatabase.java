@@ -36,7 +36,16 @@ import java.util.logging.Logger;
  * @author plamere
  */
 public class MusicDatabase {
-    public enum Popularity {ALL, HEAD, MID, TAIL, HEAD_MID, MID_TAIL} ;
+
+    public enum Popularity {
+
+        ALL, HEAD, MID, TAIL, HEAD_MID, MID_TAIL
+    };
+
+    public enum DBOperation {
+
+        ReadOnly, AddAttention, AddItem
+    };
     private DataStore dataStore;
     private List<SimType> simTypes;
     private Map<String, RecommendationType> recTypeMap;
@@ -45,7 +54,6 @@ public class MusicDatabase {
     private Artist mostPopularArtist = null;
     public final static String DEFAULT_RECOMMENDER = "SimToRecent(2)";
     private double skimPercent = 1;
-
     private Logger logger = Logger.getLogger("com.sun.labs.aura.music.MusicDatabase");
 
     public MusicDatabase(DataStore dataStore) throws AuraException {
@@ -63,7 +71,6 @@ public class MusicDatabase {
         initSimTypes();
         initArtistRecommendationTypes();
     }
-
 
     /**
      * Gets the datastore
@@ -210,6 +217,33 @@ public class MusicDatabase {
     }
 
     /**
+     * Adds an artist with the given musicbrainz ID to the database
+     * @param mbaid the musicbrainz ID
+     */
+    public void addArtist(String mbaid) throws AuraException, RemoteException {
+        // TBD write me
+    }
+
+    /**
+     * Determines if the application has authorization to perform the operation
+     * @param appID the application ID
+     * @param operation the operation of interest
+     * @return true if the application has permission to perform the requested operation.
+     */
+    public boolean hasAuthorization(String appID, DBOperation operation) {
+        return true;        // TBD - write me
+    }
+
+    /**
+     * Determines if the appID represents a valid application 
+     * @param appID the application ID
+     * @return true if the application is a valid application
+     */
+    public boolean isValidApplication(String appID) {
+        return true;        // TBD - write me
+    }
+
+    /**
      * Adds a tag for a listener for an item
      * @param listener the listener doing the tagging
      * @param item the item being tagged
@@ -223,6 +257,63 @@ public class MusicDatabase {
                     Attention.Type.TAG, tag);
             dataStore.attend(attention);
         }
+    }
+
+    public void addAttention(String srcKey, String targetKey, Attention.Type type, String value)
+            throws AuraException, RemoteException {
+
+        if (dataStore.getItem(srcKey) == null) {
+            throw new AuraException("attention src does not exist");
+        }
+
+        if (dataStore.getItem(targetKey) == null) {
+            throw new AuraException("attention target does not exist");
+        }
+
+        if (type == Attention.Type.TAG && value == null) {
+            throw new AuraException("tag attention must have a value");
+        }
+
+        Attention attention = null;
+        switch (type) {
+            case PLAYED:
+                if (value == null) {
+                    value = "1";
+                }
+                try {
+                    Long lvalue = Long.parseLong(value);
+                    if (lvalue < 1 || lvalue > 1000) {
+                        throw new AuraException("Playcount out of valid range");
+                    }
+                    attention = StoreFactory.newAttention(srcKey, targetKey, type, lvalue);
+                } catch (NumberFormatException nfe) {
+                    throw new AuraException("value must be numeric");
+                }
+                break;
+            case RATING:
+                if (value == null) {
+                    throw new AuraException("rating attention must have a value");
+                }
+                try {
+                    Long lvalue = Long.parseLong(value);
+                    if (lvalue < 1 || lvalue > 5) {
+                        throw new AuraException("rating out of valid range (1-5)");
+                    }
+                    attention = StoreFactory.newAttention(srcKey, targetKey, type, lvalue);
+                } catch (NumberFormatException nfe) {
+                    throw new AuraException("value must be numeric");
+                }
+                break;
+            case TAG:
+                if (value == null) {
+                    throw new AuraException("tag attention must have a value");
+                }
+                attention = StoreFactory.newAttention(srcKey, targetKey, type, value);
+                break;
+            default:
+                attention = StoreFactory.newAttention(srcKey, targetKey, type);
+        }
+        dataStore.attend(attention);
     }
 
     /**
@@ -242,6 +333,7 @@ public class MusicDatabase {
         for (Attention attn : attns) {
             results.add(attn.getString());
         }
+
         return results;
     }
 
@@ -260,6 +352,7 @@ public class MusicDatabase {
         for (Attention attn : attns) {
             sm.accum(attn.getString(), 1);
         }
+
         return sm.getAll();
     }
 
@@ -286,6 +379,7 @@ public class MusicDatabase {
         for (Attention attn : attns) {
             results.add(attn.getTargetKey());
         }
+
         return results;
     }
 
@@ -301,6 +395,7 @@ public class MusicDatabase {
                 if (score != 0) {
                     sm.accum(attn.getTargetKey(), score);
                 }
+
             }
         }
         return sm.getTopN(max);
@@ -325,6 +420,7 @@ public class MusicDatabase {
             } else if (attentionValue == 1) {
                 score = -100;
             }
+
         }
         return score;
     }
@@ -340,6 +436,7 @@ public class MusicDatabase {
         for (Attention attn : attns) {
             sm.accum(attn.getTargetKey(), 1);
         }
+
         return sm.getTopN(max);
     }
 
@@ -354,10 +451,12 @@ public class MusicDatabase {
                 if (isArtist(attn.getTargetKey())) {
                     sm.accum(attn.getTargetKey(), getAttentionScore(attn));
                 }
+
             }
         } finally {
             attentionIterator.close();
         }
+
         return sm.getAll();
     }
 
@@ -377,6 +476,7 @@ public class MusicDatabase {
                 if (results.size() >= max) {
                     break;
                 }
+
             }
         }
         return results;
@@ -401,22 +501,26 @@ public class MusicDatabase {
         return dataStore.getLastAttention(ac, count);
     }
 
-    public TagCloud tagCloudCreate(String id, String name) throws AuraException {
+    public TagCloud tagCloudCreate(
+            String id, String name) throws AuraException {
         if (getTagCloud(id) == null) {
             Item item = StoreFactory.newItem(ItemType.TAG_CLOUD, id, name);
             return new TagCloud(item);
         } else {
             throw new AuraException("attempting to create duplicate tagcloud " + id);
         }
+
     }
 
-    public TagCloud getTagCloud(String id) throws AuraException {
+    public TagCloud getTagCloud(
+            String id) throws AuraException {
         try {
             Item item = dataStore.getItem(id);
             return new TagCloud(item);
         } catch (RemoteException rx) {
             throw new AuraException("Error communicating with item store", rx);
         }
+
     }
 
     private Artist getRandomGoodArtistFromListener(String listenerID) throws AuraException, RemoteException {
@@ -427,17 +531,19 @@ public class MusicDatabase {
         } else {
             artist = getMostPopularArtist();
         }
+
         return artist;
     }
 
     private Artist getMostPopularArtist() throws AuraException {
         if (mostPopularArtist == null) {
-            List<Artist> popularList  = artistGetMostPopular(1);
+            List<Artist> popularList = artistGetMostPopular(1);
             if (popularList.size() > 0) {
                 mostPopularArtist = popularList.get(0);
             } else {
                 throw new AuraException("No artists in database");
             }
+
         }
         return mostPopularArtist;
     }
@@ -454,10 +560,12 @@ public class MusicDatabase {
                 if (isArtist(attn.getTargetKey())) {
                     ids.add(attn.getTargetKey());
                 }
+
             }
         } finally {
             attentionIterator.close();
         }
+
         return ids;
     }
 
@@ -469,6 +577,7 @@ public class MusicDatabase {
         } else {
             return null;
         }
+
     }
 
     /**
@@ -503,7 +612,8 @@ public class MusicDatabase {
      * @param openID the openID for the listener
      * @return the listener or null if the listener doesn't exist
      */
-    public Listener getListener(String openID) throws AuraException, RemoteException {
+    public Listener getListener(
+            String openID) throws AuraException, RemoteException {
         try {
             User user = dataStore.getUser(openID);
             if (user != null) {
@@ -511,9 +621,11 @@ public class MusicDatabase {
             } else {
                 return null;
             }
+
         } catch (RemoteException rx) {
             throw new AuraException("Error communicating with item store", rx);
         }
+
     }
 
     /**
@@ -535,12 +647,14 @@ public class MusicDatabase {
      * @return the artist or null if the artist could not be found
      * @throws com.sun.labs.aura.util.AuraException
      */
-    public Artist artistLookup(String artistID) throws AuraException {
+    public Artist artistLookup(
+            String artistID) throws AuraException {
         Item item = getItem(artistID);
         if (item != null) {
             typeCheck(item, ItemType.ARTIST);
             return new Artist(item);
         }
+
         return null;
     }
 
@@ -557,6 +671,7 @@ public class MusicDatabase {
             typeCheck(item, ItemType.ARTIST);
             artists.add(new Artist(item));
         }
+
         return artists;
     }
 
@@ -577,8 +692,19 @@ public class MusicDatabase {
         return new ArrayList(recTypeMap.values());
     }
 
-    public RecommendationType getArtistRecommendationType(String recTypeName) {
+    public RecommendationType getArtistRecommendationType(
+            String recTypeName) {
         return recTypeMap.get(recTypeName);
+    }
+
+    public boolean isValidRecommendationType(String name) {
+        for (String rname : recTypeMap.keySet()) {
+            if (rname.equalsIgnoreCase(name)) {
+                return true;
+            }
+
+        }
+        return false;
     }
 
     /**
@@ -587,11 +713,13 @@ public class MusicDatabase {
      * @return the best matching artist or null if no match could be found.
      * @throws com.sun.labs.aura.util.AuraException
      */
-    public Artist artistFindBestMatch(String artistName) throws AuraException {
+    public Artist artistFindBestMatch(
+            String artistName) throws AuraException {
         List<Scored<Artist>> artists = artistSearch(artistName, 1);
         if (artists.size() == 1) {
             return artists.get(0).getItem();
         }
+
         return null;
     }
 
@@ -601,11 +729,13 @@ public class MusicDatabase {
      * @return the best matching artist tag or null if none could be found.
      * @throws com.sun.labs.aura.util.AuraException
      */
-    public ArtistTag artistTagFindBestMatch(String artistTagName) throws AuraException {
+    public ArtistTag artistTagFindBestMatch(
+            String artistTagName) throws AuraException {
         List<Scored<ArtistTag>> artistTags = artistTagSearch(artistTagName, 1);
         if (artistTags.size() == 1) {
             return artistTags.get(0).getItem();
         }
+
         return null;
     }
 
@@ -633,6 +763,7 @@ public class MusicDatabase {
         List<Scored<Item>> simItems = findSimilar(artistID, Artist.FIELD_SOCIAL_TAGS, count, ItemType.ARTIST, popularity);
         return convertToScoredArtistList(simItems);
     }
+
     /**
      * Find the most similar artist to a given tagcloud
      * @param tagCloudID the ID of the tag cloud
@@ -731,6 +862,7 @@ public class MusicDatabase {
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+
     }
 
     public List<Scored<String>> artistExplainSimilarity(WordCloud cloud, String artistID1, int count) throws AuraException {
@@ -739,6 +871,7 @@ public class MusicDatabase {
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+
     }
 
     public List<Scored<String>> artistExplainSimilarity(String artistID1, String artistID2, String field, int count) throws AuraException {
@@ -747,6 +880,7 @@ public class MusicDatabase {
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+
     }
 
     public float artistGetNormalizedPopularity(Artist artist) throws AuraException {
@@ -758,6 +892,7 @@ public class MusicDatabase {
         for (Artist artist : artistGetMostPopular(count)) {
             artistNames.add(artist.getName());
         }
+
         return artistNames;
 
     }
@@ -769,7 +904,23 @@ public class MusicDatabase {
             for (Scored<Item> i : items) {
                 artists.add(new Artist(i.getItem()));
             }
+
             return artists;
+
+        } catch (RemoteException ex) {
+            throw new AuraException("Can't talk to the datastore " + ex, ex);
+        }
+    }
+
+    public List<Listener> listenerGetMostActive(int count) throws AuraException {
+        try {
+            // TBD - activity field has not been added to the listner yet.
+            List<Scored<Item>> items = dataStore.query("aura-type=USER", "-score", count, null);
+            List<Listener> listeners = new ArrayList<Listener>();
+            for (Scored<Item> i : items) {
+                listeners.add(new Listener(i.getItem()));
+            }
+            return listeners;
 
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
@@ -788,6 +939,7 @@ public class MusicDatabase {
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+
     }
 
     public List<String> artistTagGetMostPopularNames(int count) throws AuraException {
@@ -796,6 +948,7 @@ public class MusicDatabase {
         for (ArtistTag artistTag : artistTags) {
             artistTagNames.add(artistTag.getName());
         }
+
         return artistTagNames;
     }
 
@@ -803,15 +956,18 @@ public class MusicDatabase {
         if (rockTag == null) {
             rockTag = artistTagLookup(ArtistTag.nameToKey("rock"));
         }
+
         return aTag.getPopularity() / rockTag.getPopularity();
     }
 
-    public ArtistTag artistTagLookup(String artistTagID) throws AuraException {
+    public ArtistTag artistTagLookup(
+            String artistTagID) throws AuraException {
         Item item = getItem(artistTagID);
         if (item != null) {
             typeCheck(item, ItemType.ARTIST_TAG);
             return new ArtistTag(item);
         }
+
         return null;
     }
 
@@ -828,6 +984,7 @@ public class MusicDatabase {
             typeCheck(item, ItemType.ARTIST_TAG);
             results.add(new ArtistTag(item));
         }
+
         return results;
     }
 
@@ -840,12 +997,14 @@ public class MusicDatabase {
         return artistGetDistinctiveTags(id, Artist.FIELD_SOCIAL_TAGS, count);
     }
 
-    public WordCloud artistGetDistinctiveTagNames(String id, int count) throws AuraException {
+    public WordCloud artistGetDistinctiveTagNames(
+            String id, int count) throws AuraException {
         try {
             return dataStore.getTopTerms(id, Artist.FIELD_SOCIAL_TAGS, count);
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+
     }
 
     private List<Scored<ArtistTag>> artistGetDistinctiveTags(String id, String field, int count) throws AuraException {
@@ -859,19 +1018,23 @@ public class MusicDatabase {
                 if (artistTag != null) {
                     artistTags.add(new Scored<ArtistTag>(artistTag, scoredTagName.getScore()));
                 }
+
             }
             return artistTags;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+
     }
 
-    public Album albumLookup(String albumID) throws AuraException {
+    public Album albumLookup(
+            String albumID) throws AuraException {
         Item item = getItem(albumID);
         if (item != null) {
             typeCheck(item, ItemType.ALBUM);
             return new Album(item);
         }
+
         return null;
     }
 
@@ -888,15 +1051,18 @@ public class MusicDatabase {
             typeCheck(item, ItemType.ALBUM);
             results.add(new Album(item));
         }
+
         return results;
     }
 
-    public Event eventLookup(String eventID) throws AuraException {
+    public Event eventLookup(
+            String eventID) throws AuraException {
         Item item = getItem(eventID);
         if (item != null) {
             typeCheck(item, ItemType.EVENT);
             return new Event(item);
         }
+
         return null;
     }
 
@@ -913,15 +1079,18 @@ public class MusicDatabase {
             typeCheck(item, ItemType.EVENT);
             results.add(new Event(item));
         }
+
         return results;
     }
 
-    public Photo photoLookup(String photoID) throws AuraException {
+    public Photo photoLookup(
+            String photoID) throws AuraException {
         Item item = getItem(photoID);
         if (item != null) {
             typeCheck(item, ItemType.PHOTO);
             return new Photo(item);
         }
+
         return null;
     }
 
@@ -938,15 +1107,18 @@ public class MusicDatabase {
             typeCheck(item, ItemType.PHOTO);
             results.add(new Photo(item));
         }
+
         return results;
     }
 
-    public Track trackLookup(String trackID) throws AuraException {
+    public Track trackLookup(
+            String trackID) throws AuraException {
         Item item = getItem(trackID);
         if (item != null) {
             typeCheck(item, ItemType.TRACK);
             return new Track(item);
         }
+
         return null;
     }
 
@@ -963,15 +1135,18 @@ public class MusicDatabase {
             typeCheck(item, ItemType.TRACK);
             results.add(new Track(item));
         }
+
         return results;
     }
 
-    public Video videoLookup(String videoID) throws AuraException {
+    public Video videoLookup(
+            String videoID) throws AuraException {
         Item item = getItem(videoID);
         if (item != null) {
             typeCheck(item, ItemType.VIDEO);
             return new Video(item);
         }
+
         return null;
     }
 
@@ -988,6 +1163,7 @@ public class MusicDatabase {
             typeCheck(item, ItemType.VIDEO);
             results.add(new Video(item));
         }
+
         return results;
     }
 
@@ -997,6 +1173,7 @@ public class MusicDatabase {
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+
     }
 
     private Collection<Item> getItems(Collection<String> ids) throws AuraException {
@@ -1005,6 +1182,7 @@ public class MusicDatabase {
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+
     }
 
     private List<Scored<Item>> query(String query, int count) throws AuraException {
@@ -1013,12 +1191,14 @@ public class MusicDatabase {
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+
     }
 
     private void typeCheck(Item item, ItemType expected) throws AuraException {
         if (item.getType() != expected) {
             throw new AuraException("Mismatched item type, expected " + expected + ", found " + item.getType());
         }
+
     }
 
     private List<Scored<Artist>> convertToScoredArtistList(List<Scored<Item>> items) {
@@ -1026,6 +1206,7 @@ public class MusicDatabase {
         for (Scored<Item> scoredItem : items) {
             artistList.add(new Scored<Artist>(new Artist(scoredItem.getItem()), scoredItem.getScore()));
         }
+
         return artistList;
     }
 
@@ -1034,6 +1215,7 @@ public class MusicDatabase {
         for (Scored<Item> scoredItem : items) {
             tagCloudList.add(new Scored<TagCloud>(new TagCloud(scoredItem.getItem()), scoredItem.getScore()));
         }
+
         return tagCloudList;
     }
 
@@ -1042,6 +1224,7 @@ public class MusicDatabase {
         for (Scored<Item> scoredItem : items) {
             listenerList.add(new Scored<Listener>(new Listener(scoredItem.getItem()), scoredItem.getScore()));
         }
+
         return listenerList;
     }
 
@@ -1050,6 +1233,7 @@ public class MusicDatabase {
         for (Scored<Item> scoredItem : items) {
             artistTagList.add(new Scored<ArtistTag>(new ArtistTag(scoredItem.getItem()), scoredItem.getScore()));
         }
+
         return artistTagList;
     }
 
@@ -1060,16 +1244,18 @@ public class MusicDatabase {
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+
     }
 
     private List<Scored<Item>> findSimilar(String id, int count, ItemType type, Popularity pop) throws AuraException {
         try {
-            List<Scored<Item>> simItems = dataStore.findSimilar(id, getFindSimilarConfig(count, 
+            List<Scored<Item>> simItems = dataStore.findSimilar(id, getFindSimilarConfig(count,
                     new PopularityAndTypeFilter(type, pop, getMostPopularArtist().getPopularity())));
             return simItems;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+
     }
 
     private List<Scored<Item>> findSimilar(String id, String field, int count, ItemType type) throws AuraException {
@@ -1079,16 +1265,18 @@ public class MusicDatabase {
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+
     }
 
     private List<Scored<Item>> findSimilar(String id, String field, int count, ItemType type, Popularity pop) throws AuraException {
         try {
-            List<Scored<Item>> simItems = dataStore.findSimilar(id, getFindSimilarConfig(field, count, 
+            List<Scored<Item>> simItems = dataStore.findSimilar(id, getFindSimilarConfig(field, count,
                     new PopularityAndTypeFilter(type, pop, getMostPopularArtist().getPopularity())));
             return simItems;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+
     }
 
     private List<Scored<Item>> findSimilar(WordCloud wc, String field, int count, ItemType type) throws AuraException {
@@ -1098,19 +1286,32 @@ public class MusicDatabase {
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+
     }
 
     private List<Scored<Item>> findSimilar(WordCloud wc, String field, int count, ItemType type, Popularity pop) throws AuraException {
         try {
-            List<Scored<Item>> simItems = dataStore.findSimilar(wc, getFindSimilarConfig(field, count, 
+            List<Scored<Item>> simItems = dataStore.findSimilar(wc, getFindSimilarConfig(field, count,
                     new PopularityAndTypeFilter(type, pop, getMostPopularArtist().getPopularity())));
             return simItems;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
+
+
+
+
+
+
+
+
+
+
+
     }
 
-    private class FieldSimType implements SimType {
+    private class FieldSimType
+            implements SimType {
 
         private String name;
         private String description;
@@ -1135,8 +1336,8 @@ public class MusicDatabase {
         }
 
         @Override
-        public List<Scored<Artist>> findSimilarArtists(String artistID, int count, 
-                    MusicDatabase.Popularity pop) throws AuraException {
+        public List<Scored<Artist>> findSimilarArtists(String artistID, int count,
+                MusicDatabase.Popularity pop) throws AuraException {
             return artistFindSimilar(artistID, field, count, pop);
         }
 
@@ -1176,8 +1377,8 @@ public class MusicDatabase {
             return convertToScoredArtistList(simItems);
         }
 
-        public List<Scored<Artist>> findSimilarArtists(String artistID, int count, 
-                    MusicDatabase.Popularity pop) throws AuraException {
+        public List<Scored<Artist>> findSimilarArtists(String artistID, int count,
+                MusicDatabase.Popularity pop) throws AuraException {
             List<Scored<Item>> simItems = findSimilar(artistID, count, ItemType.ARTIST, pop);
             return convertToScoredArtistList(simItems);
         }
@@ -1275,13 +1476,13 @@ public class MusicDatabase {
     public void setSkimPercent(double skimPercent) {
         this.skimPercent = skimPercent;
     }
-    
 
     private List<String> getIDs(List<Scored<String>> scoredIds) {
         List<String> results = new ArrayList<String>();
         for (Scored<String> ss : scoredIds) {
             results.add(ss.getItem());
         }
+
         return results;
     }
 
@@ -1313,6 +1514,7 @@ public class MusicDatabase {
                     if (recommendations.size() >= count) {
                         break;
                     }
+
                 }
             }
         }
@@ -1324,15 +1526,16 @@ public class MusicDatabase {
      * @param s the string
      * @return the popularity or none if none can be found
      */
-    public Popularity toPopularity(String s) {
+    public Popularity toPopularity(
+            String s) {
         for (Popularity p : Popularity.values()) {
             if (p.name().equalsIgnoreCase(s)) {
                 return p;
             }
+
         }
         return null;
     }
-
 
     private class SimToRecentArtistRecommender2 implements RecommendationType {
 

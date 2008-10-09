@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>GetRecommendationTypes</TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H2>GetRecommendationTypes</H2>
+Gets the supported recommendation types
+<H3>Params</H3>
+         <SPAN STYLE="font-weight: normal">(none)</SPAN>
+<H3>Example</H3>
+<PRE CLASS="code-western" STYLE="margin-bottom: 0.2in; font-weight: normal">http://music.tastekeeper.com/api/1.0/GetRecommendationTypes</PRE>
+<H3> Results</H3>
+<PRE CLASS="code-western" STYLE="font-weight: normal"><FONT SIZE=1>&lt;GetRecommendationTypes&gt;</FONT>
+    <FONT SIZE=1>&lt;default&gt; SimToRecent(2)&lt;/default&gt;</FONT>
+    <FONT SIZE=1>&lt;RecommendationType&gt;</FONT>
+        <FONT SIZE=1>&lt;name&gt;SimpleArtist&lt;/name&gt;</FONT>
+        <FONT SIZE=1>&lt;description&gt;a simple recommender that just returns artists that are similar to  a single artist, selected at random, that the listener likes&lt;/description&gt;</FONT>
+        <FONT SIZE=1>&lt;type&gt;ARTIST&lt;/type&gt;</FONT>
+    <FONT SIZE=1>&lt;/RecommendationType&gt;</FONT>
+    <FONT SIZE=1>&lt;RecommendationType&gt;</FONT>
+        <FONT SIZE=1>&lt;name&gt;SimToRecent(2)&lt;/name&gt;</FONT>
+        <FONT SIZE=1>&lt;description&gt;Finds artists that are similar to the recently played artists (version 2)&lt;/description&gt;</FONT>
+        <FONT SIZE=1>&lt;type&gt;ARTIST&lt;/type&gt;</FONT>
+    <FONT SIZE=1>&lt;/RecommendationType&gt;</FONT>
+    <FONT SIZE=1>&lt;RecommendationType&gt;</FONT>
+        <FONT SIZE=1>&lt;name&gt;SimToRecent&lt;/name&gt;</FONT>
+        <FONT SIZE=1>&lt;description&gt;Finds artists that are similar to the recently played artists&lt;/description&gt;</FONT>
+        <FONT SIZE=1>&lt;type&gt;ARTIST&lt;/type&gt;</FONT>
+    <FONT SIZE=1>&lt;/RecommendationType&gt;</FONT>
+    <FONT SIZE=1>&lt;RecommendationType&gt;</FONT>
+        <FONT SIZE=1>&lt;name&gt;SimToUserTagCloud&lt;/name&gt;</FONT>
+        <FONT SIZE=1>&lt;description&gt;Finds artists that are similar to users tag cloud&lt;/description&gt;</FONT>
+        <FONT SIZE=1>&lt;type&gt;ARTIST&lt;/type&gt;</FONT>
+    <FONT SIZE=1>&lt;/RecommendationType&gt;</FONT>
+    <FONT SIZE=1>&lt;RecommendationType&gt;</FONT>
+        <FONT SIZE=1>&lt;name&gt;CollaborativeFilterer&lt;/name&gt;</FONT>
+        <FONT SIZE=1>&lt;description&gt;Finds favorites artists from similar users&lt;/description&gt;</FONT>
+        <FONT SIZE=1>&lt;type&gt;ARTIST&lt;/type&gt;</FONT>
+    <FONT SIZE=1>&lt;/RecommendationType&gt;</FONT>
+    <FONT SIZE=1>&lt;Status code='OK'/&gt;</FONT>
+<FONT SIZE=1>&lt;/GetRecommendationTypes&gt;</FONT>
+<FONT SIZE=1>&lt;!-- output generated in 2 ms --&gt;</FONT></PRE>
+
+</BODY>
+</HTML>

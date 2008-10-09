@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>GetApml</TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H2>GetApml</H2>
+Gets the APML markup for a listener. APML is the Attention Profile Markup Language. Read more at <a href="http://apml.org">apml.org</a>.
+<H3>Params</H3>
+<UL>
+	<LI><B>userKey – </B><SPAN STYLE="font-weight: normal">the key
+	for the user of interest. Required.</SPAN>
+	<LI><B>max</B><SPAN STYLE="font-weight: normal"> – the maximum
+	number of concepts returned. Optional, default is 100.</SPAN>
+	<LI><B>format</B><SPAN STYLE="font-weight: normal"> – the
+	format of the artist concept section, either 'artist' or 'mbaid'.
+	Optional, default is mbaid. </SPAN>
+	
+</UL>
+<H3>Example</H3>
+<PRE CLASS="code-western" STYLE="margin-bottom: 0.2in; font-weight: normal">http://music.tastekeeper.com/SitmWebServices/GetApml?userID=http://paul.lamere.myopenid.com&amp;format=artist&amp;max=5</PRE>
+<H3> Results</H3>
+<PRE CLASS="code-western" STYLE="font-weight: normal"><FONT SIZE=1 STYLE="font-size: 8pt">&lt;?xml version=&quot;1.0&quot;?&gt;</FONT>
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;APML xmlns=&quot;http://www.apml.org/apml-0.6&quot; version=&quot;0.6&quot; &gt;</FONT>
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;Head&gt;</FONT>
+   <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Title&gt;taste data for user http://paul.lamere.myopenid.com&lt;/Title&gt;</FONT>
+   <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Generator&gt;Created by TasteBroker.org &lt;/Generator&gt;</FONT>
+   <FONT SIZE=1 STYLE="font-size: 8pt">&lt;DateCreated&gt;2008-09-30T10:19:04&lt;/DateCreated&gt;</FONT>
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;/Head&gt;</FONT>
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;Body defaultprofile=&quot;music&quot;&gt;</FONT>
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;Profile name=&quot;music&quot;&gt;</FONT>
+  <FONT SIZE=1 STYLE="font-size: 8pt">&lt;ImplicitData&gt;</FONT>
+      <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Concepts&gt;</FONT>
+          <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Concept key=&quot;rock&quot; value=&quot;1.0&quot; from=&quot;tastebroker.org&quot; updated=&quot;2008-09-30T10:19:04&quot; /&gt;</FONT>
+          <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Concept key=&quot;classic rock&quot; value=&quot;0.45240933&quot; from=&quot;tastebroker.org&quot; updated=&quot;2008-09-30T10:19:04&quot; /&gt;</FONT>
+          <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Concept key=&quot;alternative&quot; value=&quot;0.20022&quot; from=&quot;tastebroker.org&quot; updated=&quot;2008-09-30T10:19:04&quot; /&gt;</FONT>
+          <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Concept key=&quot;british&quot; value=&quot;0.089290105&quot; from=&quot;tastebroker.org&quot; updated=&quot;2008-09-30T10:19:04&quot; /&gt;</FONT>
+          <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Concept key=&quot;pop&quot; value=&quot;0.088218786&quot; from=&quot;tastebroker.org&quot; updated=&quot;2008-09-30T10:19:04&quot; /&gt;</FONT>
+      <FONT SIZE=1 STYLE="font-size: 8pt">&lt;/Concepts&gt;</FONT>
+  <FONT SIZE=1 STYLE="font-size: 8pt">&lt;/ImplicitData&gt;</FONT>
+  <FONT SIZE=1 STYLE="font-size: 8pt">&lt;ExplicitData&gt;</FONT>
+      <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Concepts&gt;              </FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;!-- mbaid for The Beatles is b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d --></FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Concept key=&quot;The Beatles&quot; value=&quot;1.0&quot; /&gt;            </FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;!-- mbaid for Breaking Benjamin is 854a1807-025b-42a8-ba8c-2a39717f1d25 --></FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Concept key=&quot;Breaking Benjamin&quot; value=&quot;0.69132686&quot; /&gt;</FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;!-- mbaid for Weezer is 6fe07aa5-fec0-4eca-a456-f29bff451b04 --></FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Concept key=&quot;Weezer&quot; value=&quot;0.5042596&quot; /&gt;</FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;!-- mbaid for Evanescence is f4a31f0a-51dd-4fa7-986d-3095c40c5ed9 --></FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Concept key=&quot;Evanescence&quot; value=&quot;0.24887767&quot; /&gt;</FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;!-- mbaid for Björk is 87c5dedd-371d-4a53-9f7f-80522fb7f3cb --></FONT>
+        <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Concept key=&quot;Bj rk&quot; value=&quot;0.22058326&quot; /&gt;</FONT>
+      <FONT SIZE=1 STYLE="font-size: 8pt">&lt;/Concepts&gt;</FONT>
+  <FONT SIZE=1 STYLE="font-size: 8pt">&lt;/ExplicitData&gt;</FONT>
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;/Profile&gt;</FONT>
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;/Body&gt;</FONT>
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;/APML&gt;</FONT>
+
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;!-- output generated in 41 ms --&gt;</FONT></PRE>
+</BODY>
+</HTML>

@@ -1,0 +1,36 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H2 CLASS="western">AddListener</H2>
+Adds a listener to the database
+<H3>Params</H3>
+<UL>
+	<LI><SPAN STYLE="font-weight: normal">appKey – the application
+	key. Required</SPAN>
+	<LI><SPAN STYLE="font-weight: normal">userKey</SPAN><B> – </B><SPAN STYLE="font-weight: normal">the
+	openID of the user to be added. Required</SPAN>
+	<LI><SPAN STYLE="font-weight: normal">lastfmName – the Last.fm
+	name for the user. Optional</SPAN>
+	<LI><SPAN STYLE="font-weight: normal">pandoraName – the Pandora
+	name for the user. Optional</SPAN>
+</UL>
+<H3>Example</H3>
+<PRE CLASS="code-western" STYLE="margin-bottom: 0.2in; font-weight: normal">http://music.tastekeeper.com/api/1.0/AddListener
+   ?appKey=YOUR_APP_KEY
+   &amp;userKey=http://paul.lamere.myopenid.com
+   &amp;lastfmName=lamere
+</PRE>
+<H3> Results</H3>
+<PRE CLASS="code-western" STYLE="font-weight: normal">&lt;AddListener&gt;
+    &lt;Status code='OK'/&gt;
+&lt;/AddListener&gt;
+&lt;!-- output generated in 84 ms --&gt;</PRE>
+<BR><BR>
+
+</BODY>
+</HTML>

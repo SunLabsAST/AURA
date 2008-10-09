@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>FindSimilarListeners</TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H2>FindSimilarListeners </H2>
+Finds listeners that are similar to a seed listener. 
+<H3>Params</H3>
+<UL>
+	<LI><B>key</B> – <SPAN STYLE="font-weight: normal">the
+	key for the listener. Required.
+	<LI><B>max – </B><SPAN STYLE="font-weight: normal">the maximum
+	number of results returned. Optional, default is 10.</SPAN>
+	<LI><B>field - </B><SPAN STYLE="font-weight: normal">the field to
+	use for similarity. Optional, default is 'socialTags'. Value must
+	be one of:</SPAN>
+	<UL>
+		<LI><B>all</B> – <SPAN STYLE="font-weight: normal">consider
+		all fields for similarity</SPAN>
+		<LI><B>artists</B> – <SPAN STYLE="font-weight: normal">consider
+		artists that the user has a preference for (via plays, ratings, or loved attention) for similarity </SPAN>
+		<LI><B>socialTags</B><SPAN STYLE="font-weight: normal">- use the
+		social tags of the listener for similarty</SPAN>
+	</UL>
+</UL>
+<P STYLE="font-weight: normal"><I>For the future – we will allow
+specification of multiple weighed fields for similarity like so:
+field=(socialTags,1)(artists,2)</I>
+<H3>Example</H3>
+<PRE CLASS="code-western" STYLE="margin-bottom: 0.2in">http://music.tastekeeper.com/api/1.0/FindSimilarListners
+    ?key=http://lamere.myopenid.com
+    &max=5
+</PRE>
+
+<H3><B>Results</B></H3>
+<PRE CLASS="code-western">&lt;FindSimilarListeners key=&quot;http://lamere.myopenid.com&quot;&gt;
+    &lt;listener key=&quot;http://keith.emerson.myopenid.com&quot; score=&quot;0.59&quot; /&gt;
+    &lt;listener key=&quot;http://greg.lake.myopenid.com&quot; score=&quot;0.52&quot; /&gt;
+    &lt;listener key=&quot;http://carl.palmer.myopenid.com&quot; score=&quot;0.52&quot; /&gt;
+    &lt;listener key=&quot;http://pete.sinfield.myopenid.com&quot; score=&quot;0.52&quot; /&gt;
+    &lt;listener key=&quot;http://eddie.orford.myopenid.com&quot; score=&quot;0.50&quot; /&gt;
+    &lt;Status code='OK'/&gt;
+&lt;/FindSimilarListeners&gt;
+&lt;!-- output generated in 104 ms --&gt;</PRE>
+</BODY>
+</HTML>

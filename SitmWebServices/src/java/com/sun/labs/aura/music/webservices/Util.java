@@ -20,7 +20,7 @@ import java.util.Map.Entry;
 public class Util {
 
     enum ErrorCode {
-        OK, InternalError, MissingArgument, BadArgument, NotFound, InvalidKey, RateLimitExceeded
+        OK, InternalError, MissingArgument, BadArgument, NotFound, InvalidKey, RateLimitExceeded, NotAuthorized
     };
 
     static String filter(String s) {
@@ -37,28 +37,6 @@ public class Util {
         return s;
     }
 
-    static void outputStatus(PrintWriter out, ErrorCode code, String message) {
-        if (code == ErrorCode.OK) {
-            out.println("    <Status code='OK'/>");
-        } else {
-            out.println("    <Status code='" + code.toString() + "'>" + message + "</Status>");
-        }
-    }
-
-    static void outputStatus(PrintWriter out, String tag, ErrorCode code, String message) {
-        out.println("<" + tag + ">");
-        outputStatus(out, code, message);
-        out.println("</" + tag + ">");
-    }
-
-    static void outputClosingStatus(PrintWriter out, String tag, ErrorCode code, String message) {
-        outputStatus(out, code, message);
-        out.println("</" + tag + ">");
-    }
-
-    static void outputOKStatus(PrintWriter out) {
-        outputStatus(out, ErrorCode.OK, null);
-    }
 
     static Timer getTimer() {
         return new Timer();
@@ -136,7 +114,7 @@ public class Util {
         return sb.toString();
     }
 
-    private static String toXMLString(Object o) {
+    static String toXMLString(Object o) {
         if (o instanceof Tag) {
             Tag t = (Tag) o;
             return "<tag name=\"" + filter(t.getName()) + "\" freq=\"" + t.getCount() + "\"/>";
@@ -145,7 +123,7 @@ public class Util {
         }
     }
 
-    private static String toXMLString(String tag, Object o) {
+    static String toXMLString(String tag, Object o) {
         if (o instanceof Tag) {
             Tag t = (Tag) o;
             return "<" + tag + " name=\"" + filter(t.getName()) + "\" freq=\"" + t.getCount() + "\"/>";

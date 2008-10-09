@@ -180,7 +180,7 @@ public class DataManager implements Configurable {
         // collect all of the similar artists, but skip the seed artist
         List<ArtistCompact> simArtistList = new ArrayList<ArtistCompact>();
         for (int i = 0; i < scoredArtists.size(); i++) {
-            if (id.equals(scoredArtists.get(i).getItem().getKey())) {
+            if (!id.equals(scoredArtists.get(i).getItem().getKey())) {
                 simArtistList.add(artistToArtistCompact(scoredArtists.get(i).getItem()));
             }
         }

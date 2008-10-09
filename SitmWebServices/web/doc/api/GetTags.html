@@ -1,0 +1,34 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>GetTags</TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H2>GetTags</H2>
+Gets the most popular tags in the database
+<H3>Params</H3>
+<UL>
+	<LI><B>max – </B><SPAN STYLE="font-weight: normal">the maximum
+	number of results returned. Optional, default is 100.</SPAN>
+</UL>
+<H3>Example</H3>
+<PRE CLASS="code-western" STYLE="margin-bottom: 0.2in; font-weight: normal">http://music.tastekeeper.com/api/1.0/GetTags?max=10</PRE>
+<H3> Results</H3>
+<PRE CLASS="code-western" STYLE="font-weight: normal"><FONT SIZE=1 STYLE="font-size: 8pt">&lt;GetTags&gt;</FONT>
+    <FONT SIZE=1 STYLE="font-size: 8pt">&lt;tag key=&quot;artist-tag:rock&quot; name=&quot;rock&quot; popularity=&quot;1.0&quot;/&gt;</FONT>
+    <FONT SIZE=1 STYLE="font-size: 8pt">&lt;tag key=&quot;artist-tag:alternative&quot; name=&quot;alternative&quot; popularity=&quot;0.68&quot;/&gt;</FONT>
+    <FONT SIZE=1 STYLE="font-size: 8pt">&lt;tag key=&quot;artist-tag:indie&quot; name=&quot;indie&quot; popularity=&quot;0.67&quot;/&gt;</FONT>
+    <FONT SIZE=1 STYLE="font-size: 8pt">&lt;tag key=&quot;artist-tag:metal&quot; name=&quot;metal&quot; popularity=&quot;0.54&quot;/&gt;</FONT>
+    <FONT SIZE=1 STYLE="font-size: 8pt">&lt;tag key=&quot;artist-tag:classicrock&quot; name=&quot;classic rock&quot; popularity=&quot;0.51&quot;/&gt;</FONT>
+    <FONT SIZE=1 STYLE="font-size: 8pt">&lt;tag key=&quot;artist-tag:electronic&quot; name=&quot;electronic&quot; popularity=&quot;0.48&quot;/&gt;</FONT>
+    <FONT SIZE=1 STYLE="font-size: 8pt">&lt;tag key=&quot;artist-tag:punk&quot; name=&quot;punk&quot; popularity=&quot;0.38&quot;/&gt;</FONT>
+    <FONT SIZE=1 STYLE="font-size: 8pt">&lt;tag key=&quot;artist-tag:deathmetal&quot; name=&quot;death metal&quot; popularity=&quot;0.37729067&quot;/&gt;</FONT>
+    <FONT SIZE=1 STYLE="font-size: 8pt">&lt;tag key=&quot;artist-tag:blackmetal&quot; name=&quot;black metal&quot; popularity=&quot;0.36&quot;/&gt;</FONT>
+    <FONT SIZE=1 STYLE="font-size: 8pt">&lt;tag key=&quot;artist-tag:femalevocalists&quot; name=&quot;female vocalists&quot; popularity=&quot;0.34&quot;/&gt;</FONT>
+    <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Status code='OK'/&gt;</FONT>
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;/GetTags&gt;</FONT>
+<FONT SIZE=1 STYLE="font-size: 8pt">&lt;!-- output generated in 61 ms --&gt;</FONT></PRE>
+</BODY>
+</HTML>
