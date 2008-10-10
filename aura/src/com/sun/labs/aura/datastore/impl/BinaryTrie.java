@@ -56,7 +56,6 @@ public class BinaryTrie<E> implements Serializable {
         lock.writeLock().lock();
         try {
             log.info("Adding element to tree for prefix: " + prefix);
-            contents.add(newElem);
             add(newElem, prefix, root, 0);
         } finally {
             lock.writeLock().unlock();
@@ -71,10 +70,13 @@ public class BinaryTrie<E> implements Serializable {
             // We've traversed to where we want to insert.  Insert either to
             // the left or right depending on the value.  If this is a leaf
             // node, we lose the leaf object (?)
-            if(curr.getChild(prefix.getBit(offset)) != null) {
+            TrieNode node = curr.getChild(prefix.getBit(offset));
+            if(node != null) {
                 log.warning("A node already exists" +
                             " at prefix " + prefix.get(offset) + ", replacing");
+                contents.remove(node.getLeafObject());
             }
+            contents.add(newElem);
             curr.setChild(prefix.getBit(offset), new TrieNode(newElem));
             curr.setLeafObject(null);
             log.info("Set leaf at: " + prefix + ": Complete: " + isComplete());
