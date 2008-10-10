@@ -47,9 +47,9 @@ public class ClientDataManager {
     private String currRecTypeName;
     private String currSimTypeName;
     private String currPopularity = "ALL"; // current popularity used in simple search widget
-    private PlayButton.MusicProviders currMusicProvider = PlayButton.MusicProviders.SPOTIFY;
+    private PlayButton.MusicProviders currMusicProvider = PlayButton.MusicProviders.LASTFM;
     
-    private MusicProviders currPreferedMusicProvider = MusicProviders.SPOTIFY;
+    private MusicProviders currPreferedMusicProvider = MusicProviders.LASTFM;
     
     private HashMap<String, Double> favArtist;
     

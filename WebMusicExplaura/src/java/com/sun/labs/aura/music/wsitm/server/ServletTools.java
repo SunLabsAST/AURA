@@ -25,20 +25,24 @@ public class ServletTools {
     public static DataManager getDataManager(ServletConfig sc) {
         DataManager dm = (DataManager) sc.getServletContext().getAttribute("DataManager");
         //DataStore ds = (DataStore) sc.getServletContext().getAttribute("dataStore");
-        MusicDatabase mdb = (MusicDatabase) sc.getServletContext().getAttribute("MusicDatabase");
+        MusicDatabase mdb = getMusicDatabase(sc);
         String cacheSizeString = (String) sc.getServletContext().getAttribute("cacheSize");
 
-        int cacheSize;
+        int cacheSize = 500;
         cacheSizeString = sc.getInitParameter("cacheSize");
         if (cacheSizeString != null) {
             cacheSize = Integer.parseInt(cacheSizeString);
         }
         if (dm == null) {
-            dm = new DataManager(mdb, 500);
+            dm = new DataManager(mdb, cacheSize);
             sc.getServletContext().setAttribute("DataManager", dm);
             //@todo fix this
             //dm.getLogger().log("_system_", "startup", "Created datamanager with cache " + cacheSize);
         }
         return dm;
+    }
+
+    public static  MusicDatabase getMusicDatabase(ServletConfig sc) {
+        return (MusicDatabase) sc.getServletContext().getAttribute("MusicDatabase");
     }
 }
