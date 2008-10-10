@@ -6,10 +6,10 @@
     <link rel="stylesheet" type="text/css" href="styles/main.css">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H2>FindSimilarArtists </H2>
+<H1>FindSimilarArtists </H1>
 Finds artists that are similar to a seed artist. 
 
-<H3>Params</H3>
+<H2>Params</H2>
 <UL>
 	<LI><B>name</B> – <SPAN STYLE="font-weight: normal">the name of
 	the artist. Wildcards are allowed. If multiple artists match the
@@ -70,23 +70,40 @@ Finds artists that are similar to a seed artist.
 <P STYLE="font-weight: normal"><I>For the future – we will allow
 specification of multiple weighed fields for similarity like so:
 field=(autoTags,1)(socialTags,2)(blurbTags,.5)</I>
-<H3>Example</H3>
-<PRE CLASS="code-western" STYLE="margin-bottom: 0.2in">http://music.tastekeeper.com/api/1.0/FindSimilarArtists?name=weezer&amp;popularity=head</PRE>
+<H2>Example</H2>
+<H3>Request</H3>
+<PRE CLASS="code-western" STYLE="margin-bottom: 0.2in">http://music.tastekeeper.com/api/FindSimilarArtists?name=weezer&amp;popularity=head</PRE>
 
 <H3><B>Results</B></H3>
-<PRE CLASS="code-western">&lt;FindSimilarArtists key=&quot;6fe07aa5-fec0-4eca-a456-f29bff451b04&quot; name=&quot;Weezer&quot;&gt;
-    &lt;artist key=&quot;c0e03a06-f8b9-47ac-a50f-8ae1dbb5bd52&quot; score=&quot;0.58&quot; name=&quot;Ozma&quot;/&gt;
-    &lt;artist key=&quot;7509421d-1074-442f-be8f-b526167afcb3&quot; score=&quot;0.52&quot; name=&quot;The Presidents of the United States of America&quot;/&gt;
-    &lt;artist key=&quot;86e736b4-93e2-40ff-9e1c-fb7c63fef5f6&quot; score=&quot;0.52&quot; name=&quot;Barenaked Ladies&quot;/&gt;
-    &lt;artist key=&quot;b9a2a9a6-7a40-48a6-bcb1-8eff5b89ad5b&quot; score=&quot;0.52&quot; name=&quot;Nada Surf&quot;/&gt;
-    &lt;artist key=&quot;b9472588-93f3-4922-a1a2-74082cdf9ce8&quot; score=&quot;0.50&quot; name=&quot;Panic at the Disco&quot;/&gt;
-    &lt;artist key=&quot;b267ca80-034e-4dc1-9ed4-ec45f1fed41d&quot; score=&quot;0.50&quot; name=&quot;Good Charlotte&quot;/&gt;
-    &lt;artist key=&quot;183d6ef6-e161-47ff-9085-063c8b897e97&quot; score=&quot;0.50&quot; name=&quot;They Might Be Giants&quot;/&gt;
-    &lt;artist key=&quot;6cbe1e63-5895-4168-ac7e-f0d2836ba0c1&quot; score=&quot;0.49&quot; name=&quot;Guster&quot;/&gt;
-    &lt;artist key=&quot;e467bdd6-d977-473c-b721-7cc2785933bc&quot; score=&quot;0.47&quot; name=&quot;Harry and the Potters&quot;/&gt;
-    &lt;artist key=&quot;36bfa85f-737b-41db-a8fc-b8825850ffc3&quot; score=&quot;0.47&quot; name=&quot;Pavement&quot;/&gt;
-    &lt;Status code='OK'/&gt;
+
+<PRE CLASS="code-western">
+
+&lt;FindSimilarArtists&gt;
+    &lt;seed key=&quot;6fe07aa5-fec0-4eca-a456-f29bff451b04&quot; name=&quot;Weezer&quot;/&gt;
+    &lt;artist key=&quot;ebd2ac91-6249-4e4b-bde1-353a424138c9&quot; score=&quot;0.563&quot; name=&quot;Eve 6&quot;/&gt;
+    &lt;artist key=&quot;09885b8e-f235-4b80-a02a-055539493173&quot; score=&quot;0.478&quot; name=&quot;The All-American Rejects&quot;/&gt;
+    &lt;artist key=&quot;fa7b9055-3703-473a-8a09-adf2fe031a24&quot; score=&quot;0.472&quot; name=&quot;CAKE&quot;/&gt;
+    &lt;artist key=&quot;bbc5b66b-d037-4f26-aecf-0b129e7f876a&quot; score=&quot;0.471&quot; name=&quot;Jimmy Eat World&quot;/&gt;
+    &lt;artist key=&quot;190e78ac-8f44-4bf1-a4ff-95ed9376ad9e&quot; score=&quot;0.461&quot; name=&quot;Motion City Soundtrack&quot;/&gt;
+    &lt;artist key=&quot;593f8594-83ad-4df4-a9b8-e4d225f55440&quot; score=&quot;0.459&quot; name=&quot;Saves the Day&quot;/&gt;
+    &lt;artist key=&quot;86e736b4-93e2-40ff-9e1c-fb7c63fef5f6&quot; score=&quot;0.457&quot; name=&quot;Barenaked Ladies&quot;/&gt;
+    &lt;artist key=&quot;bbc8d6b5-a3e3-4d51-9f4e-565e9ef94967&quot; score=&quot;0.454&quot; name=&quot;Rooney&quot;/&gt;
+    &lt;artist key=&quot;29eb4497-0bd8-4126-abdf-d8007326ee8b&quot; score=&quot;0.453&quot; name=&quot;The Calling&quot;/&gt;
+    &lt;artist key=&quot;766a2b45-441f-4096-af05-dbbca9518c9d&quot; score=&quot;0.434&quot; name=&quot;Phantom Planet&quot;/&gt;
+    &lt;request&gt;
+        &lt;param name=&quot;name&quot;&gt;weezer&lt;/param&gt;
+        &lt;param name=&quot;popularity&quot;&gt;HEAD&lt;/param&gt;
+    &lt;/request&gt;
+    &lt;results status=&quot;OK&quot;&gt;
+        &lt;time ms=&quot;152&quot;/&gt;
+    &lt;/results&gt;
 &lt;/FindSimilarArtists&gt;
-&lt;!-- output generated in 104 ms --&gt;</PRE>
+
+</PRE>
+<!-- START_FOOTER -->
+<div class="footer">
+<a href="index.html">Main</a> | <a href="http://www.sun.com/termsofuse.jsp">Terms of Use</a> | <a href="http://www.sun.com/privacy/">Privacy Policy</a>| <a href="http://www.sun.com/contact/">Contact</a> | <a href="http://www.tastekeeper.com">Project Aura</a>
+</div>
+<!-- END_FOOTER -->
 </BODY>
 </HTML>

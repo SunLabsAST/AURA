@@ -6,9 +6,9 @@
     <link rel="stylesheet" type="text/css" href="styles/main.css">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H2>FindSimilarListeners </H2>
+<H1>FindSimilarListeners </H1>
 Finds listeners that are similar to a seed listener. 
-<H3>Params</H3>
+<H2>Params</H2>
 <UL>
 	<LI><B>key</B> – <SPAN STYLE="font-weight: normal">the
 	key for the listener. Required.
@@ -29,21 +29,35 @@ Finds listeners that are similar to a seed listener.
 <P STYLE="font-weight: normal"><I>For the future – we will allow
 specification of multiple weighed fields for similarity like so:
 field=(socialTags,1)(artists,2)</I>
-<H3>Example</H3>
-<PRE CLASS="code-western" STYLE="margin-bottom: 0.2in">http://music.tastekeeper.com/api/1.0/FindSimilarListners
+<H2>Example</H2>
+<H3>Request</H3>
+<PRE CLASS="code-western" STYLE="margin-bottom: 0.2in">http://music.tastekeeper.com/api/FindSimilarListners
     ?key=http://lamere.myopenid.com
     &max=5
 </PRE>
 
 <H3><B>Results</B></H3>
-<PRE CLASS="code-western">&lt;FindSimilarListeners key=&quot;http://lamere.myopenid.com&quot;&gt;
-    &lt;listener key=&quot;http://keith.emerson.myopenid.com&quot; score=&quot;0.59&quot; /&gt;
-    &lt;listener key=&quot;http://greg.lake.myopenid.com&quot; score=&quot;0.52&quot; /&gt;
-    &lt;listener key=&quot;http://carl.palmer.myopenid.com&quot; score=&quot;0.52&quot; /&gt;
-    &lt;listener key=&quot;http://pete.sinfield.myopenid.com&quot; score=&quot;0.52&quot; /&gt;
-    &lt;listener key=&quot;http://eddie.orford.myopenid.com&quot; score=&quot;0.50&quot; /&gt;
-    &lt;Status code='OK'/&gt;
+<PRE CLASS="code-western">
+
+&lt;FindSimilarListeners&gt;
+    &lt;listener key=&quot;http://paul.lamere.myopenid.com&quot; score=&quot;0.553&quot; name=&quot;http://paul.lamere.myopenid.com&quot;/&gt;
+    &lt;listener key=&quot;http://foo.lamere.myopenid.com&quot; score=&quot;0.348&quot; name=&quot;http://foo.lamere.myopenid.com&quot;/&gt;
+    &lt;listener key=&quot;http://lamere.myopenid.com&quot; score=&quot;0.007&quot; name=&quot;http://lamere.myopenid.com&quot;/&gt;
+    &lt;listener key=&quot;lamere&quot; score=&quot;1.4E-8&quot; name=&quot;lamere&quot;/&gt;
+    &lt;request&gt;
+        &lt;param name=&quot;key&quot;&gt;http://paul.lamere.myopenid.com/&lt;/param&gt;
+    &lt;/request&gt;
+    &lt;results status=&quot;OK&quot;&gt;
+        &lt;time ms=&quot;59&quot;/&gt;
+    &lt;/results&gt;
 &lt;/FindSimilarListeners&gt;
-&lt;!-- output generated in 104 ms --&gt;</PRE>
+
+
+</PRE>
+<!-- START_FOOTER -->
+<div class="footer">
+<a href="index.html">Main</a> | <a href="http://www.sun.com/termsofuse.jsp">Terms of Use</a> | <a href="http://www.sun.com/privacy/">Privacy Policy</a>| <a href="http://www.sun.com/contact/">Contact</a> | <a href="http://www.tastekeeper.com">Project Aura</a>
+</div>
+<!-- END_FOOTER -->
 </BODY>
 </HTML>

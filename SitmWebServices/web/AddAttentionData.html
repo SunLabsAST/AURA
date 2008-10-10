@@ -6,9 +6,9 @@
     <link rel="stylesheet" type="text/css" href="styles/main.css">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H2 CLASS="western">AddAttentionData</H2>
+<H1 CLASS="western">AddAttentionData</H1>
 Adds attention data to the database
-<H3>Params</H3>
+<H2>Params</H2>
 <UL>
 	<LI><B>appKey  – </B><SPAN STYLE="font-weight: normal">the
 	application key. Required.</SPAN>
@@ -43,27 +43,39 @@ Adds attention data to the database
 	</UL>
 </UL>
     <i> <b>Note</b> Perhaps the DISLIKED and LOVED can be replaced with RATING</i>
-<H3>Examples</H3>
-<PRE CLASS="code-western">http://music.tastekeeper.com/api/1.0/AddAttentionData?srcKey=http://paul.lamere.myopenid.com
-   &amp;appKey=YOUR_APP_KEY&amp;tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04&amp;type=PLAYED
-
-http://music.tastekeeper.com/api/1.0/AddAttentionData?srcKey=http://paul.lamere.myopenid.com
-   &amp;appKey=YOUR_APP_KEY&amp;tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04&amp;type=RATING&amp;value=5
-
-http://music.tastekeeper.com/api/1.0/AddAttentionData?srcKey=http://paul.lamere.myopenid.com
-   &amp;appKey=YOUR_APP_KEY&amp;tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04&amp;type=TAG&amp;value=geek+rock
-
-http://music.tastekeeper.com/api/1.0/AddAttentionData?srcKey=http://paul.lamere.myopenid.com
-   &amp;appKey=YOUR_APP_KEY&amp;tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04&amp;type=LOVED</PRE>
+<H2>Examples</H2>
+<h3> Request</h3>
+<PRE CLASS="code-western">
+    http://music.tastekeeper.com/api/AddAttentionData
+        ?appKey=SAMPLE_APP_ID
+        &srcKey=lamere
+        &tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04&type=PLAYED
+</PRE>
 
 <H3> Results</H3>
 <P STYLE="font-weight: normal">The format of the results depend upon
 the type of item being retreived
-<PRE CLASS="code-western" STYLE="font-weight: normal"><FONT SIZE=1 STYLE="font-size: 8pt">&lt;AddAttentionData&gt;</FONT>
-     <FONT SIZE=1 STYLE="font-size: 8pt">&lt;Status code=&quot;OK&quot;/&gt;</FONT>
-<FONT SIZE=1 STYLE="font-size: 8pt">&lt;/AddAttentionData&gt;</FONT>
-<FONT SIZE=1 STYLE="font-size: 8pt">&lt;!-- output generated in 46 ms --&gt;</FONT></PRE>
+<PRE CLASS="code-western" STYLE="font-weight: normal">
+
+&lt;AddAttentionData&gt;
+    &lt;request&gt;
+        &lt;param name=&quot;tgtKey&quot;&gt;6fe07aa5-fec0-4eca-a456-f29bff451b04&lt;/param&gt;
+        &lt;param name=&quot;type&quot;&gt;PLAYED&lt;/param&gt;
+        &lt;param name=&quot;srcKey&quot;&gt;lamere&lt;/param&gt;
+        &lt;param name=&quot;appKey&quot;&gt;SAMPLE_APP_ID&lt;/param&gt;
+    &lt;/request&gt;
+    &lt;results status=&quot;OK&quot;&gt;
+        &lt;time ms=&quot;40&quot;/&gt;
+    &lt;/results&gt;
+&lt;/AddAttentionData&gt;
+
+</PRE>
 <BR><BR>
+<!-- START_FOOTER -->
+<div class="footer">
+<a href="index.html">Main</a> | <a href="http://www.sun.com/termsofuse.jsp">Terms of Use</a> | <a href="http://www.sun.com/privacy/">Privacy Policy</a>| <a href="http://www.sun.com/contact/">Contact</a> | <a href="http://www.tastekeeper.com">Project Aura</a>
+</div>
+<!-- END_FOOTER -->
 
 </BODY>
 </HTML>

@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>GetAttentionData</TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1 CLASS="western">GetAttentionData</H1>
+Gets attention data from the database.  This method will find all
+of the attention that matches the  given set of parameters.  If a
+parameter is omitted, then that parameter is ignored when looking for
+a match.
+<H2>Params</H2>
+<UL>
+	<LI><B>max</B><SPAN STYLE="font-weight: normal"> – the maximum number of attention elements to return
+	<LI><B>srcKey</B><SPAN STYLE="font-weight: normal"> – the key
+	of the source of the attention (typically a user/listener).
+	Optional.</SPAN>
+	<LI><B>tgtKey</B><SPAN STYLE="font-weight: normal"> – the key
+	of the target of the attention. Optional.</SPAN>
+	<LI><B>type</B><SPAN STYLE="font-weight: normal"> – the type of
+	the attention.  Optional. May be one of:</SPAN>
+	<UL>
+		<LI><SPAN STYLE="font-weight: normal">DISLIKED – the source
+		doesn't like the target</SPAN>
+		<LI><SPAN STYLE="font-weight: normal">PLAYED – the source
+		played the target</SPAN>
+		<LI><SPAN STYLE="font-weight: normal">LOVED – the source loves
+		the target</SPAN>
+		<LI><SPAN STYLE="font-weight: normal">RATING – the source
+		rated the target</SPAN>
+		<LI><SPAN STYLE="font-weight: normal">TAG – the source tagged
+		the target</SPAN>
+	</UL>
+	<LI><B>svalue</B><SPAN STYLE="font-weight: normal"> – the
+	context-dependent string value associated with the attention. Optional.
+	Only appropriate for attention type TAG.
+	<LI><B>nvalue</B><SPAN STYLE="font-weight: normal"> – the
+	context-dependent integer value associated with the attention. Optional.
+	Only appropriate for attention type RATING or PLAYED.</SPAN>
+</UL>
+<H2>Example</H2>
+<H3>Request</H3>
+<PRE CLASS="code-western">http://music.tastekeeper.com/api/GetAttentionData
+    ?srcKey=http://paul.lamere.myopenid.com/&amp;tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04
+    &amp;max=5</PRE>
+<H3> Results</H3>
+<PRE CLASS="code-western" STYLE="font-weight: normal">
+
+&lt;GetAttentionData&gt;
+    &lt;attn&gt;
+        &lt;src&gt;http://paul.lamere.myopenid.com/&lt;/src&gt;
+        &lt;tgt&gt;6fe07aa5-fec0-4eca-a456-f29bff451b04&lt;/tgt&gt;
+        &lt;type&gt;PLAYED&lt;/type&gt;
+        &lt;time&gt;1223638204294&lt;/time&gt;
+        &lt;nv&gt;1&lt;/nv&gt;
+    &lt;/attn&gt;
+    &lt;attn&gt;
+        &lt;src&gt;http://paul.lamere.myopenid.com/&lt;/src&gt;
+        &lt;tgt&gt;6fe07aa5-fec0-4eca-a456-f29bff451b04&lt;/tgt&gt;
+        &lt;type&gt;TAG&lt;/type&gt;
+        &lt;time&gt;1223634761930&lt;/time&gt;
+        &lt;sv&gt;nerd core&lt;/sv&gt;
+    &lt;/attn&gt;
+    &lt;attn&gt;
+        &lt;src&gt;http://paul.lamere.myopenid.com/&lt;/src&gt;
+        &lt;tgt&gt;6fe07aa5-fec0-4eca-a456-f29bff451b04&lt;/tgt&gt;
+        &lt;type&gt;TAG&lt;/type&gt;
+        &lt;time&gt;1223581201912&lt;/time&gt;
+        &lt;sv&gt;nerd core&lt;/sv&gt;
+    &lt;/attn&gt;
+    &lt;attn&gt;
+        &lt;src&gt;http://paul.lamere.myopenid.com/&lt;/src&gt;
+        &lt;tgt&gt;6fe07aa5-fec0-4eca-a456-f29bff451b04&lt;/tgt&gt;
+        &lt;type&gt;TAG&lt;/type&gt;
+        &lt;time&gt;1223579975686&lt;/time&gt;
+        &lt;sv&gt;nerd core&lt;/sv&gt;
+    &lt;/attn&gt;
+    &lt;attn&gt;
+        &lt;src&gt;http://paul.lamere.myopenid.com/&lt;/src&gt;
+        &lt;tgt&gt;6fe07aa5-fec0-4eca-a456-f29bff451b04&lt;/tgt&gt;
+        &lt;type&gt;TAG&lt;/type&gt;
+        &lt;time&gt;1223573470156&lt;/time&gt;
+        &lt;sv&gt;nerd core&lt;/sv&gt;
+    &lt;/attn&gt;
+    &lt;request&gt;
+        &lt;param name=&quot;max&quot;&gt;5&lt;/param&gt;
+        &lt;param name=&quot;tgtKey&quot;&gt;6fe07aa5-fec0-4eca-a456-f29bff451b04&lt;/param&gt;
+    &lt;/request&gt;
+        &lt;results status=&quot;OK&quot;&gt;
+        &lt;time ms=&quot;24&quot;/&gt;
+    &lt;/results&gt;
+&lt;/GetAttentionData&gt;
+
+</PRE>
+<!-- START_FOOTER -->
+<div class="footer">
+<a href="index.html">Main</a> | <a href="http://www.sun.com/termsofuse.jsp">Terms of Use</a> | <a href="http://www.sun.com/privacy/">Privacy Policy</a>| <a href="http://www.sun.com/contact/">Contact</a> | <a href="http://www.tastekeeper.com">Project Aura</a>
+</div>
+<!-- END_FOOTER -->
+</BODY>
+</HTML>

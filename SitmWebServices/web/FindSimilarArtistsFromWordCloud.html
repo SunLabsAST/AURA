@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>FindSimilarArtistsFromWordCloud </TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1 CLASS="western">FindSimilarArtistsFromWordCloud</H1>
+Finds artists that are similar to a word cloud
+<H2>Params</H2>
+<UL>
+	<LI><B>wordCloud</B> – <SPAN STYLE="font-weight: normal">t</SPAN><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">he
+	word cloud. Required.  The word cloud is of the form:</SPAN></SPAN>
+	<UL>
+		<LI><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">Simple:<BR>
+		  tag+name+1,tag+name2, ...</SPAN></SPAN>
+		<LI><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">Or
+		with weights<BR>    (tag name 1, weight1)(tag name 2, weight 2) ...</SPAN></SPAN>
+	</UL>
+	<LI><B>max – </B><SPAN STYLE="font-weight: normal">the maximum
+	number of results returned. Optional, default is 10.</SPAN>
+	<LI><B>popularity – </B><SPAN STYLE="font-weight: normal">the
+	desired range of popularity in the results. Optional, default is
+	'all'. Value must be one of:</SPAN>
+	<UL>
+		<LI><B>all</B> – <SPAN STYLE="font-weight: normal">all artists
+		are considered</SPAN>
+		<LI><B>head</B> – <SPAN STYLE="font-weight: normal">only very
+		popular artists are considered</SPAN>
+		<LI><B>mid</B> – <SPAN STYLE="font-weight: normal">only
+		moderately popular artists are considered</SPAN>
+		<LI><B>tail</B> – <SPAN STYLE="font-weight: normal">only long
+		tail artists are considered</SPAN>
+		<LI><B>head_mid </B>– <SPAN STYLE="font-weight: normal">very
+		and moderately popular artists are considered</SPAN>
+		<LI><B>mid_tail </B>– <SPAN STYLE="font-weight: normal">very
+		popular artists are not considered.</SPAN>
+	</UL>
+</UL>
+<H2><B>Example</B></H2>
+<H3><B>Request</B></H3>
+<PRE CLASS="code-western">
+http://music.tastekeeper.com/api/FindSimilarArtistsFromWordCloud
+    ?wordCloud=(indie,1)(punk,1)(emo,.5)&amp;popularity=head
+
+http://music.tastekeeper.com/api/1.0/FindSimilarArtistsFromWordCloud
+    ?wordCloud=jazz,blues,cool,mello,saxophone
+</PRE>
+<H3><B>Results</B></H3>
+<PRE CLASS="code-western">
+
+&lt;FindSimilarArtistFromWordCloud&gt;
+    &lt;artist key=&quot;e3de1bee-95ad-4ef0-9b90-05a0140e0d6d&quot; score=&quot;0.487&quot; name=&quot;Showoff&quot;/&gt;
+    &lt;artist key=&quot;a4fbe3e9-d0f9-42b3-8840-4dd13fb3ef02&quot; score=&quot;0.414&quot; name=&quot;Divit&quot;/&gt;
+    &lt;artist key=&quot;eeacdd55-8e71-4cc1-aeb9-5a140d0fe153&quot; score=&quot;0.413&quot; name=&quot;Weston&quot;/&gt;
+    &lt;artist key=&quot;d2c1110f-827d-4664-aa75-4c4604bf1776&quot; score=&quot;0.386&quot; name=&quot;The Jazz June&quot;/&gt;
+    &lt;artist key=&quot;b92a78c0-ee14-42e3-9c02-479512c79ccc&quot; score=&quot;0.381&quot; name=&quot;Paul Baribeau&quot;/&gt;
+    &lt;artist key=&quot;5ae96b0a-fad9-4060-9ecb-2c1ecb2e5e08&quot; score=&quot;0.376&quot; name=&quot;Desert City Soundtrack&quot;/&gt;
+    &lt;artist key=&quot;5518fb3d-bf01-4c5a-9b1c-6cc8c9616457&quot; score=&quot;0.373&quot; name=&quot;The Slack Republic&quot;/&gt;
+    &lt;artist key=&quot;3a33db96-2207-480b-ae90-0cc5e15aa7a8&quot; score=&quot;0.370&quot; name=&quot;Fairweather&quot;/&gt;
+    &lt;artist key=&quot;2cbab299-ed33-48cb-8a22-cc410a292b43&quot; score=&quot;0.365&quot; name=&quot;Name Taken&quot;/&gt;
+    &lt;artist key=&quot;6cfeb8ab-3916-4004-9750-c809e5e37df5&quot; score=&quot;0.365&quot; name=&quot;Face Tomorrow&quot;/&gt;
+    &lt;request&gt;
+        &lt;param name=&quot;wordCloud&quot;&gt;'(indie,1)(punk,1)(emo,.5)'&lt;/param&gt;
+    &lt;/request&gt;
+    &lt;results status=&quot;OK&quot;&gt;
+        &lt;time ms=&quot;67&quot;/&gt;
+    &lt;/results&gt;
+&lt;/FindSimilarArtistFromWordCloud&gt;
+
+</PRE>
+<!-- START_FOOTER -->
+<div class="footer">
+<a href="index.html">Main</a> | <a href="http://www.sun.com/termsofuse.jsp">Terms of Use</a> | <a href="http://www.sun.com/privacy/">Privacy Policy</a>| <a href="http://www.sun.com/contact/">Contact</a> | <a href="http://www.tastekeeper.com">Project Aura</a>
+</div>
+<!-- END_FOOTER -->
+</BODY>
+</HTML>
