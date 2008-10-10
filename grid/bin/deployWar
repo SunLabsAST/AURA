@@ -1,39 +1,63 @@
 #!/bin/bash
 
-if [ $1 == "-h" ] ; then
-    echo 'deployWar [name] [num] [warfile]'
-    exit;
-fi;
+args=`getopt b:c:hn:w: $*`
+
+if [ $? != 0 ]
+then
+    echo 'Usage: deployWar -b [begin number] -c [count] -h [-n server name] -w [war file]'
+    echo ' server name defaults to www, begin to 1, count to 5, and war file to WME'
+    exit 2
+fi
+
+set -- $args
 
 DIR=`dirname $0`
 
-NAME=$1
-if [ -z $NAME] ; then
-    NAME=www
-fi
+export NAME=www
+export BEGIN=1
+export COUNT=5
+export FILE=$DIR/../../WebMusicExplaura/dist/WebMusicExplaura.war
+export ANT_OPTS="-Xmx512m"
 
-NUM=$2
-if [ -z $NUM ] ; then
-    NUM=5
-fi
 
-FILE=$3
-if [ -z $FILE ] ; then
-   FILE=$DIR/../../WebMusicExplaura/dist/WebMusicExplaura.war
-fi
-export FILE
+for i 
+do
+    case "$i"
+	in
+	-h)
+	    echo 'Usage: deployWar -h [-s server name] [-n num servers] [-w war file]'
+	    echo ' server name defaults to www, begin to 1, count to 5, and war file to WME'
+	    exit;;
+	-b)
+	    BEGIN=$2; shift;
+	    shift;;
+	-c)
+	    COUNT=$2; shift;
+	    shift;;
+	-n)
+	    NAME=$2; shift;
+	    shift;;
+	-w)
+	    FILE=$2; shift;
+	    shift;;
+    esac
+done
 
 WARDIR=`dirname $FILE`
 WARFILE=`basename $FILE`
 
-COUNT=1
-
-export ANT_OPTS="-Xmx512m"
-
 ant -Dwar.dir=$WARDIR -Dwar.file=$WARFILE -f $DIR/../grid-deploy/upload-war.xml 
-for (( COUNT=1 ; COUNT <= $NUM ; COUNT++ )) ; do 
-    echo Deploying $FILE to $NAME-$COUNT...
+
+if [ $? != 0 ] ; then 
+    echo "Error uploading war file"
+    exit 2
+fi
+
+export END=$(( $BEGIN + $COUNT ))
+
+for (( COUNT=$BEGIN ; COUNT < $END ; COUNT++ )) ; do 
+    echo Deploying $FILE to $NAME-$COUNT
     ant -Ddeployment.name=$NAME \
     	-Ddeployment.number=$COUNT -Dwar.file=$WARFILE \
-    	-f $DIR/../grid-deploy/deploy-war.xml 
+    	-f $DIR/../grid-deploy/deploy-lb-war.xml 
 done

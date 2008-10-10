@@ -1000,9 +1000,12 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
                 public List<Scored<String>> call()
                         throws AuraException, RemoteException {
+                    if(logger.isLoggable(Level.FINE)) {
+                        logger.fine(String.format("dsh pc %s fs call", pc.getPrefix().toString()));
+                    }
                     List<Scored<String>> ret = pc.findSimilar(dv, config);
-                    if(logger.isLoggable(Level.FINER)) {
-                        logger.finer(String.format("dsh pc %s fs return", pc.getPrefix().toString()));
+                    if(logger.isLoggable(Level.FINE)) {
+                        logger.fine(String.format("dsh pc %s fs return", pc.getPrefix().toString()));
                     }
                     latch.countDown();
                     return ret;
@@ -1023,8 +1026,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             for(Callable c : callers) {
                 futures.add(executor.submit(c));
             }
-            List<Scored<String>> keys =
-                    sortScored(futures, config.getN(), latch);
+            List<Scored<String>> keys = sortScored(futures, config.getN(), latch);
             fsw.stop();
             List<Scored<Item>> ret = keysToItems(keys);
             allw.stop();
