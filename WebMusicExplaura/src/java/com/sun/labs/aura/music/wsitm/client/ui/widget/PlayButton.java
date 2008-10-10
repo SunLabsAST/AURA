@@ -15,7 +15,6 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.event.MusicProviderSwitchListener;
@@ -77,7 +76,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         }
 
         mainbutton = new Grid(1,1);
-        setNewButton(null);
+        setNewButton(cdm.getCurrPreferedMusicProvider());
         initWidget(mainbutton);
         
         sinkEvents(Event.ONCONTEXTMENU);
@@ -91,7 +90,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
             w = tryProviders(preferredMP);
         }
         if (w == null) {
-            w = tryProviders(cdm.getCurrMusicProvider());
+            w = tryProviders(null);
         }
         mainbutton.setWidget(0, 0, w);
         
@@ -107,13 +106,18 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         Widget w = null;
         
         // Try to get widget for preferred provider
+        if (preferredMP == null || preferredMP == MusicProviders.LASTFM) {
+            w = getLastFMListenWidget(triggerPlayClickListener);
+            if (w != null) {
+                return w;
+            }
+        }
         if (preferredMP == null || preferredMP == MusicProviders.SPOTIFY) {
             w = getSpotifyListenWidget(triggerPlayClickListener);
             if (w != null) {
                 return w;
             }
         }
-        
         if (preferredMP == null || preferredMP == MusicProviders.THEWEB) {
             w = getTheWebListenWidget(triggerPlayClickListener);
             if (w != null) {
@@ -121,13 +125,6 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
             }
         }
         
-        if (preferredMP == null || preferredMP == MusicProviders.LASTFM) {
-            w = getLastFMListenWidget(triggerPlayClickListener);
-            if (w != null) {
-                return w;
-            }
-        }
-
         return null;
     }
     

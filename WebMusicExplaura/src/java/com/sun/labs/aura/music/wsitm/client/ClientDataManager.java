@@ -23,7 +23,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.SharedArtistMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedPlayButtonMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedTagMenu;
-import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton.MusicProviders;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.TagWidgetContainer;
 import java.util.HashMap;
@@ -46,10 +45,8 @@ public class ClientDataManager {
     private HashMap<String, String> recTypes;
     private String currRecTypeName;
     private String currSimTypeName;
-    private String currPopularity = "ALL"; // current popularity used in simple search widget
-    private PlayButton.MusicProviders currMusicProvider = PlayButton.MusicProviders.SPOTIFY;
-    
-    private MusicProviders currPreferedMusicProvider = MusicProviders.SPOTIFY;
+    private String currPopularity = "ALL"; // current popularity used in simple search widget 
+    private MusicProviders currPreferedMusicProvider = MusicProviders.LASTFM;
     
     private HashMap<String, Double> favArtist;
     
@@ -253,14 +250,6 @@ public class ClientDataManager {
         this.currSimTypeName=currName;
     }
 
-    public void setCurrMusicProvider(PlayButton.MusicProviders newMP) {
-        this.currMusicProvider = newMP;
-    }
-
-    public PlayButton.MusicProviders getCurrMusicProvider() {
-        return currMusicProvider;
-    }
-
     public void setCurrPopularity(String popularity) {
         this.currPopularity = popularity;
     }
@@ -453,7 +442,9 @@ public class ClientDataManager {
         }
         
         public void triggerOnSwitch(MusicProviders newMp) {
-            setCurrMusicProvider(newMp);
+            if (getCurrPreferedMusicProvider() != newMp) {
+                setCurrPreferedMusicProvider(newMp);
+            }
             for (MusicProviderSwitchListener mpsl : listeners) {
                 mpsl.onSwitch(newMp);
             }

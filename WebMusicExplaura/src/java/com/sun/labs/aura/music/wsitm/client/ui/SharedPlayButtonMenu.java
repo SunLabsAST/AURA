@@ -29,6 +29,13 @@ public class SharedPlayButtonMenu extends Menu implements ArtistDependentSharedM
 
         this.cdm = tCdm;
 
+        addItem(new Item("Play with Last.fm tag radio", new DataEmbededBaseItemListener<SharedPlayButtonMenu>(this) {
+
+            @Override
+            public void onClick(BaseItem item, EventObject e) {
+                cdm.setCurrPreferedMusicProvider(MusicProviders.LASTFM);
+            }
+        }));
         addItem(new Item("Play with Spotify", new DataEmbededBaseItemListener<SharedPlayButtonMenu>(this) {
 
             @Override
@@ -44,13 +51,6 @@ public class SharedPlayButtonMenu extends Menu implements ArtistDependentSharedM
                         cdm.setCurrPreferedMusicProvider(MusicProviders.THEWEB);
                     }
                 }));
-        addItem(new Item("Play with Last.fm tag radio", new DataEmbededBaseItemListener<SharedPlayButtonMenu>(this) {
-
-            @Override
-            public void onClick(BaseItem item, EventObject e) {
-                cdm.setCurrPreferedMusicProvider(MusicProviders.LASTFM);
-            }
-        }));  
     }
     
     public void showAt(int x, int y, ArtistCompact currArtist) {
