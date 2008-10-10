@@ -52,7 +52,6 @@ public class ArtistTagSearch extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         ServletContext context = getServletContext();
-        MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
         try {
             Util.tagOpen(out, SERVLET_NAME);
@@ -62,6 +61,7 @@ public class ArtistTagSearch extends HttpServlet {
             int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
 
 
+            MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
             if (mdb == null) {
                 status.addError(ErrorCode.InternalError, "Can't find the datastore");
                 return;
