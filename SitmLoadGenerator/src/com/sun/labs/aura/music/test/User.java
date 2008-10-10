@@ -4,8 +4,11 @@
  */
 package com.sun.labs.aura.music.test;
 
+import com.sun.labs.aura.music.webservices.api.Item;
+import com.sun.labs.aura.music.webservices.api.Scored;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Delayed;
@@ -42,7 +45,7 @@ public class User implements Delayed {
             addOperation(new OPTag(), .1);
             addOperation(new OPRate(), .1);
             addOperation(new OPTagItem(), .1);
-        } 
+        }
 
         if (false) {
             addOperation(new OPGetAPML(), .01);
@@ -59,6 +62,7 @@ public class User implements Delayed {
         addOperation(new OPFindSimilarArtistFromWordCloud(), 2);
         addOperation(new OPFindSimilarArtistTags(), 1);
         addOperation(new OPGetItem(), 3);
+        addOperation(new OPShowArtist(), 5);
         addOperation(new OPGetStats(), .001);
 
         calculateNextActivityTime();
@@ -143,9 +147,12 @@ public class User implements Delayed {
     // System.out.println(name + " next activity is in " + nextDelta + " ms");
     }
 
-    private String selectKey() {
+    private String selectRandomArtistKey() {
         return control.getRandomArtistKey();
+    }
 
+    private String selectRandomArtistTagKey() {
+        return control.getRandomArtistTagKey();
     }
 
     private void createUser(String name) {
@@ -213,6 +220,7 @@ public class User implements Delayed {
     }
 
     class OPArtistSearch extends Operation {
+
         int which = 0;
         private String[] searchString = {
             "beatles",
@@ -243,12 +251,41 @@ public class User implements Delayed {
         }
 
         public boolean go() throws IOException {
-            control.getSitm().artistSocialTags(selectKey(), 20);
+            control.getSitm().artistSocialTags(selectRandomArtistKey(), 20);
             return true;
         }
     }
 
+    class OPShowArtist extends Operation {
+        private String curArtistID = selectRandomArtistKey();
+        private final static int MAX_GET = 5;
+
+        OPShowArtist() {
+            super("ShowArtist");
+        }
+
+        public boolean go() throws IOException {
+            List<Scored<Item>> items = control.getSitm().findSimilarArtistsByKey(curArtistID, 15);
+
+            if (items.size() > 0) {
+                Collections.shuffle(items);
+                curArtistID = items.get(0).getItem().getKey();
+                control.getSitm().getItems(scoredItemsToKeyList(items), true);
+            }
+            return true;
+        }
+    }
+
+    private List<String> scoredItemsToKeyList(List<Scored<Item>> items) {
+        List<String> retlist = new ArrayList<String>();
+        for (Scored<Item> sitem : items) {
+            retlist.add(sitem.getItem().getKey());
+        }
+        return retlist;
+    }
+
     class OPArtistTagSearch extends Operation {
+
         private int which = 0;
         private String[] tagSearchStrings = {
             "emo", "punk", "metal", "rock", "female", "wrist", "fast", "trum", "sax"
@@ -271,8 +308,8 @@ public class User implements Delayed {
         }
 
         public boolean go() throws IOException {
-            String key = selectKey();
-            control.getSitm().findSimilarArtists(key, 100);
+            String key = selectRandomArtistKey();
+            control.getSitm().findSimilarArtistsByKey(key, 100);
             return true;
         }
     }
@@ -296,7 +333,7 @@ public class User implements Delayed {
         }
 
         public boolean go() throws IOException {
-            String key = selectKey();
+            String key = selectRandomArtistTagKey();
             control.getSitm().findSimilarArtistTags(key, 100);
             return true;
         }
@@ -344,8 +381,8 @@ public class User implements Delayed {
         }
 
         public boolean go() throws IOException {
-            String key = selectKey();
-            control.getSitm().getItem(key);
+            String key = selectRandomArtistKey();
+            control.getSitm().getItem(key, false);
             return true;
         }
     }

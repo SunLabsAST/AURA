@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>AddArtist</TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY>
+<H1>AddArtist</H1>
+Adds an artist to the database. Note that when the call returns 
+the artist will be added to the database, but it may take some time before
+all data sources have been crawled, indexed and ready for use.
+<H2>Params</H2>
+<UL>
+	<LI>appKey – the application key. Required
+	<LI>mbaid – the musicbrainz ID of the artist to be added. Required</SPAN>
+</UL>
+<h2>Example</H2>
+<h3>Request</H3>
+<p>
+<PRE CLASS="code">
+    http://music.tastekeeper.com/api/AddArtist
+        ?appKey=SAMPLE_APP_ID
+        &mbaid=688d084b-2b22-44bb-ae69-1a41499eb82f
+</pre>
+<p>
+<h3>Results</H3>
+<PRE CLASS="code" STYLE="font-weight: normal">
+
+&lt;AddArtist&gt;
+    &lt;request&gt;
+        &lt;param name=&quot;mbaid&quot;&gt;688d084b-2b22-44bb-ae69-1a41499eb82f&lt;/param&gt;
+    &lt;param name=&quot;appKey&quot;&gt;SAMPLE_APP_ID&lt;/param&gt;
+    &lt;/request&gt;
+    &lt;results status=&quot;OK&quot;&gt;
+        &lt;time ms=&quot;10&quot;/&gt;
+    &lt;/results&gt;
+&lt;/AddArtist&gt;
+</PRE>
+<!-- START_FOOTER -->
+<div class="footer">
+<a href="index.html">Main</a> | <a href="http://www.sun.com/termsofuse.jsp">Terms of Use</a> | <a href="http://www.sun.com/privacy/">Privacy Policy</a>| <a href="http://www.sun.com/contact/">Contact</a> | <a href="http://www.tastekeeper.com">Project Aura</a>
+</div>
+<!-- END_FOOTER -->
+
+</BODY>
+</HTML>

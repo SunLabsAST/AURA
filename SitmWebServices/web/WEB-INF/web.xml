@@ -5,8 +5,8 @@
         <listener-class>com.sun.labs.aura.music.webservices.ServletListener</listener-class>
     </listener>
     <servlet>
-        <servlet-name>FindSimilarArtist</servlet-name>
-        <servlet-class>com.sun.labs.aura.music.webservices.FindSimilarArtist</servlet-class>
+        <servlet-name>FindSimilarArtists</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.FindSimilarArtists</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>AdminDashboard</servlet-name>
@@ -17,12 +17,12 @@
         <servlet-class>com.sun.labs.aura.music.webservices.ArtistSearch</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>ArtistSocialTags</servlet-name>
-        <servlet-class>com.sun.labs.aura.music.webservices.ArtistSocialTags</servlet-class>
-    </servlet>
-    <servlet>
         <servlet-name>ArtistTagSearch</servlet-name>
         <servlet-class>com.sun.labs.aura.music.webservices.ArtistTagSearch</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>GetArtistTags</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.GetArtistTags</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>FindSimilarArtistTags</servlet-name>
@@ -45,25 +45,17 @@
         <servlet-class>com.sun.labs.aura.music.webservices.GetApml</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>FindSimilarListener</servlet-name>
-        <servlet-class>com.sun.labs.aura.music.webservices.FindSimilarListener</servlet-class>
+        <servlet-name>FindSimilarListeners</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.FindSimilarListeners</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>GetItem</servlet-name>
-        <servlet-class>com.sun.labs.aura.music.webservices.GetItem</servlet-class>
+        <servlet-name>GetItems</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.GetItems</servlet-class>
     </servlet>
     <servlet><servlet-name>AddListener</servlet-name><servlet-class>com.sun.labs.aura.music.webservices.AddListener</servlet-class></servlet>
     <servlet>
-        <servlet-name>TagItem</servlet-name>
-        <servlet-class>com.sun.labs.aura.music.webservices.TagItem</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>GetListenerTags</servlet-name>
-        <servlet-class>com.sun.labs.aura.music.webservices.GetListenerTags</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>FindSimilarArtistFromWordCloud</servlet-name>
-        <servlet-class>com.sun.labs.aura.music.webservices.FindSimilarArtistFromWordCloud</servlet-class>
+        <servlet-name>FindSimilarArtistsFromWordCloud</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.FindSimilarArtistsFromWordCloud</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>GetAttentionData</servlet-name>
@@ -78,16 +70,24 @@
         <servlet-class>com.sun.labs.aura.music.webservices.GetArtists</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>AddAttention</servlet-name>
-        <servlet-class>com.sun.labs.aura.music.webservices.AddAttention</servlet-class>
+        <servlet-name>AddAttentionData</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.AddAttentionData</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>GetRecommendationTypes</servlet-name>
         <servlet-class>com.sun.labs.aura.music.webservices.GetRecommendationTypes</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>AddArtist</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.AddArtist</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>GetListeners</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.GetListeners</servlet-class>
+    </servlet>
     <servlet-mapping>
-        <servlet-name>FindSimilarArtist</servlet-name>
-        <url-pattern>/FindSimilarArtist</url-pattern>
+        <servlet-name>FindSimilarArtists</servlet-name>
+        <url-pattern>/FindSimilarArtists</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>AdminDashboard</servlet-name>
@@ -98,12 +98,12 @@
         <url-pattern>/ArtistSearch</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>ArtistSocialTags</servlet-name>
-        <url-pattern>/ArtistSocialTags</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
         <servlet-name>ArtistTagSearch</servlet-name>
         <url-pattern>/ArtistTagSearch</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetArtistTags</servlet-name>
+        <url-pattern>/GetArtistTags</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>FindSimilarArtistTags</servlet-name>
@@ -126,28 +126,20 @@
         <url-pattern>/GetApml</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>FindSimilarListener</servlet-name>
-        <url-pattern>/FindSimilarListener</url-pattern>
+        <servlet-name>FindSimilarListeners</servlet-name>
+        <url-pattern>/FindSimilarListeners</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>GetItem</servlet-name>
-        <url-pattern>/GetItem</url-pattern>
+        <servlet-name>GetItems</servlet-name>
+        <url-pattern>/GetItems</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>AddListener</servlet-name>
         <url-pattern>/AddListener</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>TagItem</servlet-name>
-        <url-pattern>/TagItem</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>GetListenerTags</servlet-name>
-        <url-pattern>/GetListenerTags</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>FindSimilarArtistFromWordCloud</servlet-name>
-        <url-pattern>/FindSimilarArtistFromWordCloud</url-pattern>
+        <servlet-name>FindSimilarArtistsFromWordCloud</servlet-name>
+        <url-pattern>/FindSimilarArtistsFromWordCloud</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>GetAttentionData</servlet-name>
@@ -162,12 +154,97 @@
         <url-pattern>/GetArtists</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>AddAttention</servlet-name>
-        <url-pattern>/AddAttention</url-pattern>
+        <servlet-name>AddAttentionData</servlet-name>
+        <url-pattern>/AddAttentionData</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>GetRecommendationTypes</servlet-name>
         <url-pattern>/GetRecommendationTypes</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AddArtist</servlet-name>
+        <url-pattern>/AddArtist</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetListeners</servlet-name>
+        <url-pattern>/GetListeners</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>FindSimilarArtists</servlet-name>
+        <url-pattern>/1.0/FindSimilarArtists</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ArtistSearch</servlet-name>
+        <url-pattern>/1.0/ArtistSearch</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ArtistTagSearch</servlet-name>
+        <url-pattern>/1.0/ArtistTagSearch</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetArtistTags</servlet-name>
+        <url-pattern>/1.0/GetArtistTags</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>FindSimilarArtistTags</servlet-name>
+        <url-pattern>/1.0/FindSimilarArtistTags</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetTags</servlet-name>
+        <url-pattern>/1.0/GetTags</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetTagsForArtist</servlet-name>
+        <url-pattern>/1.0/GetTagsForArtist</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetRecommendations</servlet-name>
+        <url-pattern>/1.0/GetRecommendations</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetApml</servlet-name>
+        <url-pattern>/1.0/GetApml</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping><servlet-name>FindSimilarListeners</servlet-name><url-pattern>/1.0/FindSimilarListeners</url-pattern></servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetItems</servlet-name>
+        <url-pattern>/1.0/GetItems</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AddListener</servlet-name>
+        <url-pattern>/1.0/AddListener</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>FindSimilarArtistsFromWordCloud</servlet-name>
+        <url-pattern>/1.0/FindSimilarArtistsFromWordCloud</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetAttentionData</servlet-name>
+        <url-pattern>/1.0/GetAttentionData</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetStats</servlet-name>
+        <url-pattern>/1.0/GetStats</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetArtists</servlet-name>
+        <url-pattern>/1.0/GetArtists</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AddAttentionData</servlet-name>
+        <url-pattern>/1.0/AddAttentionData</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetRecommendationTypes</servlet-name>
+        <url-pattern>/1.0/GetRecommendationTypes</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AddArtist</servlet-name>
+        <url-pattern>/1.0/AddArtist</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetListeners</servlet-name>
+        <url-pattern>/1.0/GetListeners</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

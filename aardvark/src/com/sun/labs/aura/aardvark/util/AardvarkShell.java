@@ -14,6 +14,7 @@ import com.sun.labs.aura.aardvark.BlogEntry;
 import com.sun.labs.aura.aardvark.BlogFeed;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
@@ -420,7 +421,9 @@ public class AardvarkShell implements AuraService, Configurable {
         List<Scored<Item>> scoredItems = new ArrayList();
 
         for (Item feed : feedItems) {
-            scoredItems.add(new Scored<Item>(feed, dataStore.getAttentionForTarget(feed.getKey()).size()));
+            AttentionConfig ac = new AttentionConfig();
+            ac.setTargetKey(feed.getKey());
+            scoredItems.add(new Scored<Item>(feed, dataStore.getAttentionCount(ac)));
         }
 
         long numFeeds = 0;
@@ -446,7 +449,9 @@ public class AardvarkShell implements AuraService, Configurable {
         List<Scored<Item>> scoredItems = new ArrayList();
         for (Item feed : feedItems) {
             if (regexp == null || feed.getKey().matches(regexp)) {
-                scoredItems.add(new Scored<Item>(feed, dataStore.getAttentionForTarget(feed.getKey()).size()));
+                AttentionConfig ac = new AttentionConfig();
+                ac.setTargetKey(feed.getKey());
+                scoredItems.add(new Scored<Item>(feed, dataStore.getAttentionCount(ac)));
             }
         }
 
@@ -470,7 +475,9 @@ public class AardvarkShell implements AuraService, Configurable {
         for (Scored<Item> item : scoredItems) {
             Item tgt = item.getItem();
             int actualInputLinks = 0;
-            for (Attention attn : dataStore.getAttentionForTarget(tgt.getKey())) {
+            AttentionConfig ac = new AttentionConfig();
+            ac.setTargetKey(tgt.getKey());
+            for (Attention attn : dataStore.getAttention(ac)) {
                 if (attn.getType() == Attention.Type.LINKS_TO) {
                     Item src = dataStore.getItem(attn.getSourceKey());
                     if (src != null && validKeys.contains(src.getKey())) {
@@ -491,7 +498,9 @@ public class AardvarkShell implements AuraService, Configurable {
 
         for (Scored<Item> item : prunedScoredItems) {
             Item tgt = item.getItem();
-            for (Attention attn : dataStore.getAttentionForTarget(tgt.getKey())) {
+            AttentionConfig ac = new AttentionConfig();
+            ac.setTargetKey(tgt.getKey());
+            for (Attention attn : dataStore.getAttention(ac)) {
                 if (attn.getType() == Attention.Type.LINKS_TO) {
                     Item src = dataStore.getItem(attn.getSourceKey());
                     if (src != null && validKeys.contains(src.getKey())) {
@@ -536,8 +545,10 @@ public class AardvarkShell implements AuraService, Configurable {
         if (item == null) {
             System.out.println("null");
         } else {
-            System.out.printf(" %d %s\n", dataStore.getAttentionForTarget(item.getKey()).
-                    size(), item.getKey());
+            AttentionConfig ac = new AttentionConfig();
+            ac.setTargetKey(item.getKey());
+            System.out.printf(" %d %s\n", dataStore.getAttentionCount(ac),
+                    item.getKey());
         }
     }
 
@@ -556,8 +567,16 @@ public class AardvarkShell implements AuraService, Configurable {
         System.out.println("   Pulls  : " + feed.getNumPulls());
         System.out.println("   Errors : " + feed.getNumErrors());
         System.out.println("   Authority: " + feed.getAuthority());
-        for (Attention attn : dataStore.getAttentionForTarget(feedItem.getKey())) {
-            System.out.println("   " + attn);
+        AttentionConfig ac = new AttentionConfig();
+        ac.setTargetKey(feedItem.getKey());
+        DBIterator<Attention> it = dataStore.getAttentionIterator(ac);
+        try {
+            while (it.hasNext()) {
+                Attention attn = it.next();
+                System.out.println("   " + attn);
+            }
+        } finally {
+            it.close();
         }
     }
 

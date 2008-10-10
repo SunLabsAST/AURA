@@ -123,6 +123,42 @@ public class Cluster implements Comparable<Cluster>, Serializable {
     public int compareTo(Cluster o) {
         return o.elements.size() - elements.size();
     }
+    
+    public int hashCode() {
+        return elements.hashCode();
+    }
+    
+    /**
+     * Returns true if all the elements are the same, the features are the same,
+     * and the centroid is the same
+     * @param o
+     * @return
+     */
+    public boolean equals(Object o) {
+        if (o instanceof Cluster) {
+            Cluster oc = (Cluster)o;
+            //
+            // Same centroid?
+            if (Arrays.equals(centroid, oc.centroid)) {            
+                //
+                // Same number of elements?
+                if (elements.size() == oc.elements.size()) {
+                    List elmns = new ArrayList(elements);
+                    //
+                    // Same exact elements?
+                    elmns.removeAll(oc.elements);
+                    if (elmns.isEmpty()) {
+                        //
+                        // Same features?
+                        if (features.equals(oc.features)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     public double distance(Item item) {
         return 0;
@@ -144,6 +180,29 @@ public class Cluster implements Comparable<Cluster>, Serializable {
             this.weight = weight;
         }
 
+        public boolean equals(Object o) {
+            if (o instanceof HE) {
+                HE ohe = (HE)o;
+                //
+                // Comparing floating point is inexact - they're the same if
+                // they're very close.
+                if (Math.abs(weight - ohe.weight) < .0000001) {
+                    if (name.size() == ohe.name.size()) {
+                        List nm = new ArrayList(name);
+                        nm.removeAll(ohe.name);
+                        if (nm.isEmpty()) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+        
+        public int hashCode() {
+            return name.hashCode();
+        }
+        
         public int compareTo(Cluster.HE o) {
             if(weight < o.weight) {
                 return 1;

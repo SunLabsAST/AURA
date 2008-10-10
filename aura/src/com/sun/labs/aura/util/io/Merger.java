@@ -83,6 +83,18 @@ public class Merger<K,V> {
             return curr.compareTo(o.curr);
         }
         
+        public boolean equals(Object o) {
+            if (o instanceof Merger.HE) {
+                Merger.HE om = (Merger.HE)o;
+                return input.equals(om.input);
+            }
+            return false;
+        }
+        
+        public int hashCode() {
+            return input.hashCode();
+        }
+        
         public Record<K,V> getCurr() {
             return curr;
         }

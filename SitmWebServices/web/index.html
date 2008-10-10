@@ -1,0 +1,247 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>SITM Webservices Page</title>
+        <link rel="stylesheet" type="text/css" href="styles/main.css">
+    </head>
+    <body>
+<H1>Project Aura Web Service</H1>
+The Project Aura music recommendation web service allows anyone to
+build a music service using Project Aura's unique transparent and
+steerable recommendations.
+<H2>Overview</H2>
+The API loosely follows REST-style conventions. For some of the
+methods, you will need to use an <i>application key</i>that you can obtain from
+the <a href=""> Project Aura Application Registration Page</a>.
+<p>
+The API root URL is 
+<A HREF="http://music.tastekeeper.com/api/">http://music.tastekeeper.com/api/</A>.  
+The latest version of the api will always be found at the root URL.  Specific versions
+of the API can be found at <A
+HREF="http://music.tastekeeper.com/api/">http://music.tastekeeper.com/api/X.X</A>.
+Where X.X is the version number. For example Version 1.0 of this API can be found at:
+<A HREF="http://music.tastekeeper.com/api/">http://music.tastekeeper.com/api/1.0</A>.  
+<p>
+API methods are of the form
+<A HREF="http://music.tastekeeper.com/api/1.0/method?arg1=value1&amp;arg2=value">http://music.tastekeeper.com/api/1.0/method?arg1=value1&amp;arg2=value</A>
+<H2 CLASS="western">Methods</H2>
+<UL>
+	<LI><a href="AddArtist.html">AddArtist</a> – Adds an artist to the database
+	<LI><a href="AddAttentionData.html">AddAttentionData</a> – Adds attention data to the database
+	<LI><a href="AddListener.html">AddListener</a> – adds a new listener to the database
+	<LI><a href="ArtistSearch.html">ArtistSearch</a> – searches for an artist by name
+	<LI><a href="ArtistTagSearch.html">ArtistTagSearch</a> – searches for an artist tag by name
+	<LI><a href="FindSimilarArtistTags.html">FindSimilarArtistTags</a> – find artist tags that are similar
+	<LI><a href="FindSimilarArtists.html">FindSimilarArtists</a> – finds artists that are similar to a
+	seed artist
+	<LI><a
+    href="FindSimilarArtistsFromWordCloud.html">FindSimilarArtistsFromWordCloud</a> – finds artists that are
+	similar to a word cloud
+	to a seed tag
+	<LI><a href="FindSimilarListeners.html">FindSimilarListeners</a> - find listeners that are similar to a seed listener
+	<LI><a href="GetApml.html">GetApml</a> – Get APML markup for a listener
+	<LI><a href="GetArtistTags.html">GetArtistTags</a> – Gets the Tags that have been applied to an
+	artist
+	<LI><a href="GetArtists.html">GetArtists</a> – gets the most popular artists
+	<LI><a href="GetAttentionData.html">GetAttentionData</a> – Gets attention data from the database
+	<LI><a href="GetItems.html">GetItems</a> – Get items from the database
+	<LI><a href="GetListeners.html">GetListeners</a> – gets the most active listeners
+	<LI><a href="GetRecommendationTypes.html">GetRecommendationTypes</a> – Get the list of supported recommendation types 
+	<LI><a href="GetRecommendations.html">GetRecommendations</a> – Get Recommendations for a user
+	<LI><a href="GetStats.html">GetStats</a> – Get statistics about the database
+	<LI><a href="GetTags.html">GetTags</a> – Get the most popular tags in the database
+</UL>
+<H3>Encoding</H3>
+Use UTF-8 encoding when sending arguments to the API methods.
+<H3>Status</H3>
+Status is returned as in attribute of  a &lt;results&gt; element. Here's an example of
+a successful result.
+<p>
+<PRE CLASS="code-western">
+
+&lt;FindSimilarArtists&gt;
+    &lt;request&gt;
+            &lt;param name=&quot;name&quot;&gt;weezer&lt;/param&gt;
+            &lt;param name=&quot;popularity&quot;&gt;HEAD&lt;/param&gt;
+    &lt;/request&gt;
+    &lt;results status=&quot;OK&quot;&gt;
+        &lt;time ms=&quot;179&quot;/&gt;
+    &lt;/results&gt;
+&lt;/FindSimilarArtists&gt;
+</PRE>
+<p>
+For results with an "ERROR" status, detailed status codes are available from the
+'error' element. For example:
+<PRE CLASS="code-western">
+&lt;FindSimilarArtists&gt;
+    &lt;request&gt;
+        &lt;param name=&quot;mispelledParameter&quot;&gt;weezer&lt;/param&gt;
+        &lt;param name=&quot;popularity&quot;&gt;HEAD&lt;/param&gt;
+        &lt;param name=&quot;anotherBadParam&quot;&gt;fum&lt;/param&gt;
+    &lt;/request&gt;
+    &lt;results status=&quot;ERROR&quot;&gt;
+        &lt;error code=&quot;BadArgument&quot;&gt;Unknown parameter anotherbadparam&lt;/error&gt;
+        &lt;error code=&quot;BadArgument&quot;&gt;Unknown parameter mispelledparameter&lt;/error&gt;
+    &lt;time ms=&quot;1&quot;/&gt;
+    &lt;/results&gt;
+&lt;/FindSimilarArtists&gt;
+
+</pre>
+<p>
+Possible status codes are:
+<p>
+<TABLE class="table"
+WIDTH=546 BORDER=2 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=177>
+	<COL WIDTH=349>
+	<TR VALIGN=TOP>
+		<TD WIDTH=177>
+			<B>Status Code</B>
+		</TD>
+		<TD WIDTH=349>
+			<B>Description</B>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=177>
+			OK
+		</TD>
+		<TD WIDTH=349>
+			No Error
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=177>
+			InternalError
+		</TD>
+		<TD WIDTH=349>
+			An internal error occurred
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=177>
+			MissingArgument
+		</TD>
+		<TD WIDTH=349>
+			A required argument is missing
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=177>
+			BadArgument
+		</TD>
+		<TD WIDTH=349>
+			An argument is in an improper format
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=177>
+			NotFound
+		</TD>
+		<TD WIDTH=349>
+			The requested item was not found
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=177>
+			InvalidKey
+		</TD>
+		<TD WIDTH=349>
+			The application key is not valid for the requested operation
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=177>
+			RateLimitExceeded
+		</TD>
+		<TD WIDTH=349>
+			The application has exceeded the allowed rate
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=177>
+			InvalidMethod
+		</TD>
+		<TD WIDTH=349>
+			The requested method is invalid
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=177>
+			Offline
+		</TD>
+		<TD WIDTH=349>
+			The webservice is currently offline
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=177>
+			NotAuthorized
+		</TD>
+		<TD WIDTH=349>
+			The application is not authorized to perform the requested operation.
+		</TD>
+	</TR>
+</TABLE>
+<H3>Scores</H3>
+Many results have a <I>score</I> associated with them. Scores
+range from 0.0 to 1.0. 
+<H3>Popularity</H3>
+Some results have <I>popularity</I> <SPAN STYLE="font-style: normal">associated
+with them. Popularity ranges from 0.0 to 1.0. </SPAN>
+        <h2>Examples</h2>
+        <ul>    
+            <li> <a href="GetStats"> Gets the system status</a>
+            <li> <a href="AddArtist?appKey=SAMPLE_APP_ID&mbaid=688d084b-2b22-44bb-ae69-1a41499eb82f"> Adds an artist to the system</a>
+            <li> <a href="AddAttentionData?appKey=SAMPLE_APP_ID&srcKey=lamere&tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04&type=PLAYED"> Adds PLAYED attention to Weezer</a>
+            <li> <a href="AddAttentionData?appKey=SAMPLE_APP_ID&srcKey=lamere&tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04&type=tag&value=nerd+core"> Adds a tag to Weezer</a>
+            <li> <a href="FindSimilarArtists?name=weezer"> Artists Similar to Weezer </a>
+            <li> <a href="FindSimilarArtists?name=weezer&popularity=HEAD"> Popular artists Similar to Weezer </a>
+            <li> <a href="FindSimilarArtists?name=weezer&popularity=HEAD_MID"> Artists Similar to Weezer (no long tail) </a>
+            <li> <a href="FindSimilarArtists?name=weezer&popularity=MID"> Mid-popular artists Similar to Weezer </a>
+            <li> <a href="FindSimilarArtists?name=weezer&popularity=MID_TAIL"> Unpopular artists Similar to Weezer </a>
+            <li> <a href="FindSimilarArtists?name=weezer&popularity=TAIL"> Long tail artists Similar to Weezer </a>
+            <li> <a href="FindSimilarArtists?name=beatles"> Artists Similar to The Beatles </a>
+            <li> <a href="FindSimilarArtistsFromWordCloud?wordCloud='(indie,1)(punk,1)(emo,.5)'"> Find Artists Similar to Word Cloud (indie, punk, emo)</a>
+            <li> <a href="FindSimilarArtistTags?name=metal&max=100"> Similar metal tags </a>
+            <li> <a href="FindSimilarArtists?key=aa7a2827-f74b-473c-bd79-03d065835cf7"> Artists Similar to Franz Ferdinand </a>
+            <li> <a href="ArtistSearch?name=beat"> Artist search for 'beat' </a>
+            <li> <a href="ArtistTagSearch?name=alt"> Tag search for 'alt' </a>
+            <li> <a href="GetArtistTags?name=weezer"> Distinctive tags for weezer</a>
+            <li> <a href="GetArtistTags?name=weezer&type=frequent"> Frequent tags for weezer</a>
+            <li> <a href="GetArtists?max=100"> Get the 100 most popular artists</a>
+            <li> <a href="GetListeners?max=100"> Get the 100 most active listeners</a>
+            <li> <a href="GetTags?max=100"> Get the 100 most popular tags</a>
+            <li> <a href="GetRecommendationTypes"> Get supported recommendation types</a>
+            <li> <a href="GetRecommendations?userKey=http://paul.lamere.myopenid.com/"> Default Recommendations for lamere </a>
+            <li> <a href="GetRecommendations?userKey=http://paul.lamere.myopenid.com/&alg=SimToUserTagCloud"> SimToUserTagCloud Recommendations for lamere </a>
+            <li> <a href="GetRecommendations?userKey=http://paul.lamere.myopenid.com/&alg=SimpleArtist"> SimpleArtist Recommendations for lamere </a>
+            <li> <a href="GetRecommendations?userKey=http://paul.lamere.myopenid.com/&alg=SimToRecent"> SimToRecent Recommendations for lamere </a>
+            <li> <a href="GetRecommendations?userKey=lamere&alg=CollaborativeFilterer"> CF Recommendations for lamere </a>
+            <li> <a href="GetApml?userKey=http://paul.lamere.myopenid.com/"> Gets the APML for lamere (with MBAIDs)</a>
+            <li> <a href="GetApml?userKey=http://paul.lamere.myopenid.com/&format=artist"> Gets the APML for lamere (with artistNames)</a>
+            <li> <a href="FindSimilarListeners?key=http://paul.lamere.myopenid.com/"> Finds similar listener to lamere</a>
+            <li> <a href="GetItems?key=http://paul.lamere.myopenid.com/"> shows listener lamere</a>
+            <li> <a href="GetItems?key=6fe07aa5-fec0-4eca-a456-f29bff451b04"> shows artist 'weezer'</a>
+            <li> <a href="GetItems?format=compact&key=6fe07aa5-fec0-4eca-a456-f29bff451b04,a74b1b7f-71a5-4011-9441-d0b5e4122711,b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d,9c9f1380-2516-4fc9-a3e6-f9f61941d090,b071f9fa-14b0-4217-8e97-eb41da73f598"> shows top artists</a>
+            <li> <a href="GetItems?format=compact&key=6fe07aa5-fec0-4eca-a456-f29bff451b04,1e477f68-c407-4eae-ad01-518528cedc2,ec7c97cc-1d06-4c74-bcb5-6773391f90b,http://static.flickr.com/33/49490624_fecd23a894.jpg,50c213ed-a109-4677-9b7b-d57ef580dd2d,1f8bdf5d-aed1-45aa-bf1f-94af1d7e71c1"> multi-get compact</a>
+            <li> <a href="GetItems?key=6fe07aa5-fec0-4eca-a456-f29bff451b04&format=compact"> shows compact artist 'weezer'</a>
+            <li> <a href="GetAttentionData?tgtKey=6fe07aa5-fec0-4eca-a456-f29bff451b04"> get attention applied to 'weezer'</a>
+            <li> <a href="GetAttentionData?srcKey=lamere&max=500">Get 500 attention data points for user lamere</a>
+      </ul>
+
+<h2> Revision History</h2>
+<ul> 
+<li><b>Version 1.0</b> - October 10, 2008 - Initial Release
+</ul>
+<!-- START_FOOTER -->
+<div class="footer">
+<a href="index.html">Main</a> | <a href="http://www.sun.com/termsofuse.jsp">Terms of Use</a> | <a href="http://www.sun.com/privacy/">Privacy Policy</a>| <a href="http://www.sun.com/contact/">Contact</a> | <a href="http://www.tastekeeper.com">Project Aura</a>
+</div>
+<!-- END_FOOTER -->
+        
+    </body>
+</html>

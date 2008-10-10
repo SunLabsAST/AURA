@@ -163,7 +163,9 @@ public class DBServiceImpl extends RemoteServiceServlet implements
         try {
             StopWatch sw = new StopWatch();
             sw.start();
-            List<Attention> attn = store.getAttentionForSource(key);
+            AttentionConfig ac = new AttentionConfig();
+            ac.setSourceKey(key);
+            List<Attention> attn = store.getAttention(ac);
             sw.stop();
             int numResults = Math.min(attn.size(), 100);
             AttnDesc[] results = new AttnDesc[numResults + 1];
@@ -188,7 +190,9 @@ public class DBServiceImpl extends RemoteServiceServlet implements
         try {
             StopWatch sw = new StopWatch();
             sw.start();
-            List<Attention> attn = store.getAttentionForTarget(key);
+            AttentionConfig ac = new AttentionConfig();
+            ac.setTargetKey(key);
+            List<Attention> attn = store.getAttention(ac);
             sw.stop();
             int numResults = Math.min(attn.size(), 100);
             AttnDesc[] results = new AttnDesc[numResults + 1];

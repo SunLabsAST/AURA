@@ -5,7 +5,6 @@
 
 package com.sun.labs.aura.music.test;
 
-import com.sun.labs.aura.music.webservices.api.SitmAPI;
 import java.io.IOException;
 import java.util.concurrent.DelayQueue;
 import java.util.logging.Level;
@@ -25,10 +24,10 @@ public class LoadGenerator {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
-        int users = 5000;
-        int threads = 200;
-        int time = 300;
-        String host = "http://search.east/";
+        int users = 1000;
+        int threads = 100;
+        int time = 60;
+        String host = "http://www.tastekeeper.com/";
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-users")) {
                 if (i < args.length - 1) {

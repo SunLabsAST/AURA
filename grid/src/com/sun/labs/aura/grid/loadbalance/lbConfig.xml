@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!--
+    Document   : startAura.xml
+    Created on : May 20, 2008, 10:25 AM
+    Author     : stgreen
+    Description:
+        Configuration for the AuraStart grid script.
+-->
+<config>
+    
+    <property name="auraInstance" value="live"/>
+
+    <property name="serviceName" value="www"/>
+
+    <property name="hostName" value="lb"/>
+    
+    <!-- <property name="logLevel" value="FINER"/> -->
+    
+    <component name="startLB" type="com.sun.labs.aura.grid.loadbalance.StartLB">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="serviceName" value="${serviceName}"/>
+        <property name="hostName" value="${hostName}"/>
+    </component>
+    
+    <component name="start" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>startLB</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+    
+</config>

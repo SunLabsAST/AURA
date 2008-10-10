@@ -33,6 +33,19 @@ public class Record<K,V> implements Comparable<Record<K,V>> {
         return ((Comparable)key).compareTo(other.key);
     }
     
+    public boolean equals(Object o) {
+        if (o instanceof Record) {
+            Record or = (Record)o;
+            return (key.equals(or.key) &&
+                    value.equals(or.value));
+        }
+        return false;
+    }
+    
+    public int hashCode() {
+        return key.hashCode();
+    }
+    
     public String toString() {
         return String.format("key: '%s' value: '%s'", key.toString(), value.toString()); 
     }

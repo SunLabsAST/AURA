@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="deploy-war" default="deploy-war" basedir="."
+    xmlns:dav="antlib:org.apache.webdav.ant"
+    xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
+
+  <!-- Get a deployment name and number from the properties passed in. -->
+    <condition property="deployment.name" value="www">
+        <not>
+            <isset property="deployment.name"/>
+        </not>
+    </condition>
+
+    <property name="www.filesystem" value="${deployment.name}.filesystem"/>
+    <property name="intaddress" value="${deployment.name}-int"/>
+    <property name="service.process" value="${deployment.name}"/>
+
+    <import file="common.xml"/>
+  
+    <!-- The URL of the webapps directory -->
+    <property name="webapps.url" value="${dav.url}/${service.webapps}"/>
+    
+    <!-- Deploy the war file to the webapps directory. -->
+    <target name="deploy-war" description="Copies war file">
+        <dav:copy url="${war.url}/${war.file}"
+		destination="${webapps.url}/${war.file}"
+		overwrite="true"
+		verbose="true"
+		userid="${user}" password="${pw}"/>
+    </target>
+</project>

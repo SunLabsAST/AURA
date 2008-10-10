@@ -1,0 +1,182 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>GetRecommendations</TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>GetRecommendations</H1>
+Gets recommendations for a user
+<H2>Params</H2>
+<UL>
+	<LI><B>userKey – </B><SPAN STYLE="font-weight: normal">the key
+	for the user of interest. Required.</SPAN>
+	<LI><B>max</B><SPAN STYLE="font-weight: normal"> – the maximum
+	number of recommendations returned. Optional, default is 10.</SPAN>
+	<LI><B>alg</B><SPAN STYLE="font-weight: normal"> – the name of
+	the algorithm to use. Optional, default is defined in
+	GetRecommendationTypes</SPAN>
+	<LI><B>popularity – </B><SPAN STYLE="font-weight: normal">the
+	desired range of popularity in the results. Optional, default is
+	'all'. Value must be one of:</SPAN>
+	<UL>
+		<LI><B>all</B> – <SPAN STYLE="font-weight: normal">all artists
+		are considered</SPAN>
+		<LI><B>head</B> – <SPAN STYLE="font-weight: normal">only very
+		popular artists are considered</SPAN>
+		<LI><B>mid</B> – <SPAN STYLE="font-weight: normal">only
+		moderately popular artists are considered</SPAN>
+		<LI><B>tail</B> – <SPAN STYLE="font-weight: normal">only long
+		tail artists are considered</SPAN>
+		<LI><B>head_mid </B>– <SPAN STYLE="font-weight: normal">very
+		and moderately popular artists are considered</SPAN>
+		<LI><B>mid_tail </B><SPAN STYLE="font-weight: normal">– very
+		popular artists are not considered.</SPAN>
+	</UL>
+</UL>
+<H2>Example</H2>
+<H3>Request</H3>
+<PRE CLASS="code-western" STYLE="margin-bottom: 0.2in; font-weight: normal">
+
+http://music.tastekeeper.com/api/GetRecommendations
+    ?userKey=http://paul.lamere.myopenid.com/
+    &alg=SimpleArtist&max=5
+</PRE>
+<H3> Results</H3>
+The format of the results depend upon the algorithm used.
+<p>
+<PRE CLASS="code-western" STYLE="font-weight: normal">
+
+&lt;GetRecommendations&gt;
+    &lt;explanation&gt; Artists similarity to Radiohead &lt;/explanation&gt;
+    &lt;recommendations&gt;
+        &lt;recommendation artist=&quot;a74b1b7f-71a5-4011-9441-d0b5e4122711&quot; score=&quot;0.592&quot; name=&quot;Radiohead&quot;&gt;
+            &lt;reason tag=&quot;alternative&quot; score=&quot;0.060&quot;/&gt;
+            &lt;reason tag=&quot;rock&quot; score=&quot;0.054&quot;/&gt;
+            &lt;reason tag=&quot;progressive rock&quot; score=&quot;0.022&quot;/&gt;
+            &lt;reason tag=&quot;british&quot; score=&quot;0.020&quot;/&gt;
+            &lt;reason tag=&quot;overrated&quot; score=&quot;0.017&quot;/&gt;
+            &lt;reason tag=&quot;uk&quot; score=&quot;0.014&quot;/&gt;
+            &lt;reason tag=&quot;experimental&quot; score=&quot;0.014&quot;/&gt;
+            &lt;reason tag=&quot;indie&quot; score=&quot;0.013&quot;/&gt;
+            &lt;reason tag=&quot;experimental rock&quot; score=&quot;0.010&quot;/&gt;
+            &lt;reason tag=&quot;psychedelic&quot; score=&quot;0.010&quot;/&gt;
+            &lt;reason tag=&quot;art rock&quot; score=&quot;0.009&quot;/&gt;
+            &lt;reason tag=&quot;trip-hop&quot; score=&quot;0.007&quot;/&gt;
+            &lt;reason tag=&quot;pop&quot; score=&quot;0.007&quot;/&gt;
+            &lt;reason tag=&quot;progressive&quot; score=&quot;0.006&quot;/&gt;
+            &lt;reason tag=&quot;90s&quot; score=&quot;0.006&quot;/&gt;
+            &lt;reason tag=&quot;melancholic&quot; score=&quot;0.006&quot;/&gt;
+            &lt;reason tag=&quot;electronic&quot; score=&quot;0.006&quot;/&gt;
+            &lt;reason tag=&quot;post-punk&quot; score=&quot;0.005&quot;/&gt;
+            &lt;reason tag=&quot;melancholy&quot; score=&quot;0.005&quot;/&gt;
+            &lt;reason tag=&quot;ambient&quot; score=&quot;0.005&quot;/&gt;
+        &lt;/recommendation&gt;
+        &lt;recommendation artist=&quot;62cfba2f-d6da-4c93-a2e2-a7922fe47d1b&quot; score=&quot;0.536&quot; name=&quot;The Music&quot;&gt;
+            &lt;reason tag=&quot;rock&quot; score=&quot;0.073&quot;/&gt;
+            &lt;reason tag=&quot;alternative&quot; score=&quot;0.070&quot;/&gt;
+            &lt;reason tag=&quot;british&quot; score=&quot;0.027&quot;/&gt;
+            &lt;reason tag=&quot;indie&quot; score=&quot;0.020&quot;/&gt;
+            &lt;reason tag=&quot;psychedelic&quot; score=&quot;0.019&quot;/&gt;
+            &lt;reason tag=&quot;uk&quot; score=&quot;0.015&quot;/&gt;
+            &lt;reason tag=&quot;progressive rock&quot; score=&quot;0.014&quot;/&gt;
+            &lt;reason tag=&quot;post-punk&quot; score=&quot;0.010&quot;/&gt;
+            &lt;reason tag=&quot;alt rock&quot; score=&quot;0.007&quot;/&gt;
+            &lt;reason tag=&quot;electronic&quot; score=&quot;0.006&quot;/&gt;
+            &lt;reason tag=&quot;pop&quot; score=&quot;0.006&quot;/&gt;
+            &lt;reason tag=&quot;ambient&quot; score=&quot;0.006&quot;/&gt;
+            &lt;reason tag=&quot;trip-hop&quot; score=&quot;0.004&quot;/&gt;
+            &lt;reason tag=&quot;psychedelic rock&quot; score=&quot;0.003&quot;/&gt;
+            &lt;reason tag=&quot;post-rock&quot; score=&quot;0.003&quot;/&gt;
+            &lt;reason tag=&quot;new wave&quot; score=&quot;0.003&quot;/&gt;
+            &lt;reason tag=&quot;emo&quot; score=&quot;0.003&quot;/&gt;
+            &lt;reason tag=&quot;indie pop&quot; score=&quot;0.003&quot;/&gt;
+            &lt;reason tag=&quot;classic rock&quot; score=&quot;0.003&quot;/&gt;
+            &lt;reason tag=&quot;chillout&quot; score=&quot;0.003&quot;/&gt;
+        &lt;/recommendation&gt;
+        &lt;recommendation artist=&quot;9b377b95-ee23-4ea8-9a99-3473b96844ab&quot; score=&quot;0.522&quot; name=&quot;Souls Vibrating in the Universe&quot;&gt;
+            &lt;reason tag=&quot;progressive rock&quot; score=&quot;0.053&quot;/&gt;
+            &lt;reason tag=&quot;alternative&quot; score=&quot;0.045&quot;/&gt;
+            &lt;reason tag=&quot;rock&quot; score=&quot;0.033&quot;/&gt;
+            &lt;reason tag=&quot;experimental&quot; score=&quot;0.032&quot;/&gt;
+            &lt;reason tag=&quot;british&quot; score=&quot;0.021&quot;/&gt;
+            &lt;reason tag=&quot;psychedelic&quot; score=&quot;0.018&quot;/&gt;
+            &lt;reason tag=&quot;indie&quot; score=&quot;0.015&quot;/&gt;
+            &lt;reason tag=&quot;experimental rock&quot; score=&quot;0.014&quot;/&gt;
+            &lt;reason tag=&quot;uk&quot; score=&quot;0.014&quot;/&gt;
+            &lt;reason tag=&quot;progressive&quot; score=&quot;0.013&quot;/&gt;
+            &lt;reason tag=&quot;art rock&quot; score=&quot;0.013&quot;/&gt;
+            &lt;reason tag=&quot;electronic&quot; score=&quot;0.007&quot;/&gt;
+            &lt;reason tag=&quot;instrumental&quot; score=&quot;0.005&quot;/&gt;
+            &lt;reason tag=&quot;space rock&quot; score=&quot;0.005&quot;/&gt;
+            &lt;reason tag=&quot;post-rock&quot; score=&quot;0.005&quot;/&gt;
+            &lt;reason tag=&quot;chillout&quot; score=&quot;0.005&quot;/&gt;
+            &lt;reason tag=&quot;metal&quot; score=&quot;0.004&quot;/&gt;
+            &lt;reason tag=&quot;ambient&quot; score=&quot;0.003&quot;/&gt;
+            &lt;reason tag=&quot;atmospheric&quot; score=&quot;0.003&quot;/&gt;
+            &lt;reason tag=&quot;hard rock&quot; score=&quot;0.002&quot;/&gt;
+        &lt;/recommendation&gt;
+        &lt;recommendation artist=&quot;9c9f1380-2516-4fc9-a3e6-f9f61941d090&quot; score=&quot;0.514&quot; name=&quot;Muse&quot;&gt;
+            &lt;reason tag=&quot;rock&quot; score=&quot;0.068&quot;/&gt;
+            &lt;reason tag=&quot;alternative&quot; score=&quot;0.047&quot;/&gt;
+            &lt;reason tag=&quot;progressive rock&quot; score=&quot;0.044&quot;/&gt;
+            &lt;reason tag=&quot;british&quot; score=&quot;0.025&quot;/&gt;
+            &lt;reason tag=&quot;indie&quot; score=&quot;0.017&quot;/&gt;
+            &lt;reason tag=&quot;progressive&quot; score=&quot;0.011&quot;/&gt;
+            &lt;reason tag=&quot;uk&quot; score=&quot;0.010&quot;/&gt;
+            &lt;reason tag=&quot;experimental&quot; score=&quot;0.009&quot;/&gt;
+            &lt;reason tag=&quot;pop&quot; score=&quot;0.006&quot;/&gt;
+            &lt;reason tag=&quot;90s&quot; score=&quot;0.004&quot;/&gt;
+            &lt;reason tag=&quot;male vocalists&quot; score=&quot;0.004&quot;/&gt;
+            &lt;reason tag=&quot;electronic&quot; score=&quot;0.004&quot;/&gt;
+            &lt;reason tag=&quot;emo&quot; score=&quot;0.004&quot;/&gt;
+            &lt;reason tag=&quot;psychedelic&quot; score=&quot;0.003&quot;/&gt;
+            &lt;reason tag=&quot;00s&quot; score=&quot;0.003&quot;/&gt;
+            &lt;reason tag=&quot;space rock&quot; score=&quot;0.003&quot;/&gt;
+            &lt;reason tag=&quot;art rock&quot; score=&quot;0.003&quot;/&gt;
+            &lt;reason tag=&quot;classic rock&quot; score=&quot;0.003&quot;/&gt;
+            &lt;reason tag=&quot;post-punk&quot; score=&quot;0.003&quot;/&gt;
+            &lt;reason tag=&quot;britrock&quot; score=&quot;0.003&quot;/&gt;
+        &lt;/recommendation&gt;
+        &lt;recommendation artist=&quot;8e66ea2b-b57b-47d9-8df0-df4630aeb8e5&quot; score=&quot;0.508&quot; name=&quot;Peter Gabriel&quot;&gt;
+            &lt;reason tag=&quot;progressive rock&quot; score=&quot;0.059&quot;/&gt;
+            &lt;reason tag=&quot;rock&quot; score=&quot;0.058&quot;/&gt;
+            &lt;reason tag=&quot;pop&quot; score=&quot;0.021&quot;/&gt;
+            &lt;reason tag=&quot;british&quot; score=&quot;0.019&quot;/&gt;
+            &lt;reason tag=&quot;progressive&quot; score=&quot;0.018&quot;/&gt;
+            &lt;reason tag=&quot;alternative&quot; score=&quot;0.018&quot;/&gt;
+            &lt;reason tag=&quot;art rock&quot; score=&quot;0.012&quot;/&gt;
+            &lt;reason tag=&quot;experimental&quot; score=&quot;0.010&quot;/&gt;
+            &lt;reason tag=&quot;classic rock&quot; score=&quot;0.008&quot;/&gt;
+            &lt;reason tag=&quot;uk&quot; score=&quot;0.007&quot;/&gt;
+            &lt;reason tag=&quot;experimental rock&quot; score=&quot;0.007&quot;/&gt;
+            &lt;reason tag=&quot;90s&quot; score=&quot;0.007&quot;/&gt;
+            &lt;reason tag=&quot;indie&quot; score=&quot;0.005&quot;/&gt;
+            &lt;reason tag=&quot;ambient&quot; score=&quot;0.005&quot;/&gt;
+            &lt;reason tag=&quot;electronic&quot; score=&quot;0.004&quot;/&gt;
+            &lt;reason tag=&quot;melancholy&quot; score=&quot;0.004&quot;/&gt;
+            &lt;reason tag=&quot;prog rock&quot; score=&quot;0.004&quot;/&gt;
+            &lt;reason tag=&quot;new wave&quot; score=&quot;0.004&quot;/&gt;
+            &lt;reason tag=&quot;psychedelic&quot; score=&quot;0.004&quot;/&gt;
+            &lt;reason tag=&quot;80s&quot; score=&quot;0.003&quot;/&gt;
+        &lt;/recommendation&gt;
+    &lt;/recommendations&gt;
+    &lt;request&gt;
+        &lt;param name=&quot;max&quot;&gt;5&lt;/param&gt;
+        &lt;param name=&quot;userKey&quot;&gt;http://paul.lamere.myopenid.com/&lt;/param&gt;
+        &lt;param name=&quot;alg&quot;&gt;SimpleArtist&lt;/param&gt;
+    &lt;/request&gt;
+    &lt;results status=&quot;OK&quot;&gt;
+        &lt;time ms=&quot;238&quot;/&gt;
+    &lt;/results&gt;
+&lt;/GetRecommendations&gt;
+
+</PRE>
+<!-- START_FOOTER -->
+<div class="footer">
+<a href="index.html">Main</a> | <a href="http://www.sun.com/termsofuse.jsp">Terms of Use</a> | <a href="http://www.sun.com/privacy/">Privacy Policy</a>| <a href="http://www.sun.com/contact/">Contact</a> | <a href="http://www.tastekeeper.com">Project Aura</a>
+</div>
+<!-- END_FOOTER -->
+</BODY>
+</HTML>

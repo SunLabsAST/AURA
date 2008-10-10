@@ -2,11 +2,11 @@
  *  Copyright (c) 2008, Sun Microsystems Inc.
  *  See license.txt for license.
  */
-
 package com.sun.labs.aura.music.webservices;
 
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -24,6 +24,14 @@ import javax.servlet.http.HttpServletResponse;
 public class GetArtists extends HttpServlet {
 
     private final static String SERVLET_NAME = "GetArtists";
+    private ParameterChecker pc;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        pc = new ParameterChecker(SERVLET_NAME, "gets the most popular artists");
+        pc.addParam("max", "100", "the maximum number of results returned");
+    }
 
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -32,39 +40,39 @@ public class GetArtists extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        if (pc.processDocumentationRequest(request, response)) {
+            return;
+        }
+
+        Status status = new Status(request);
         ServletContext context = getServletContext();
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        Timer timer = Util.getTimer();
 
         try {
+            Util.tagOpen(out, SERVLET_NAME);
+            pc.check(status, request);
             MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
 
             if (mdb == null) {
-                Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Can't connect to the music database");
-            } else {
-                int maxCount = 100;
-                String maxCountString = request.getParameter("max");
-                if (maxCountString != null) {
-                    maxCount = Integer.parseInt(maxCountString);
-                }
-
-                List<Artist> artists = mdb.artistGetMostPopular(maxCount);
-
-                Util.tagOpen(out, SERVLET_NAME);
-                for (Artist artist : artists) {
-                    out.println("    <artist key=\"" + artist.getKey() + "\" name=\"" 
-                            + Util.filter(artist.getName()) + "\"" 
-                            + " popularity=\"" + mdb.artistGetNormalizedPopularity(artist) + "\"" + "/>");
-                }
-
-                Util.outputOKStatus(out);
-                Util.tagClose(out, SERVLET_NAME);
+                status.addError(ErrorCode.InternalError, "Can't connect to the music database");
+                return;
             }
+            int maxCount = pc.getParamAsInt(status, request, "max", 1, 10000);
+
+            List<Artist> artists = mdb.artistGetMostPopular(maxCount);
+
+            for (Artist artist : artists) {
+                out.println("    <artist key=\"" + artist.getKey() + "\" name=\"" + Util.filter(artist.getName()) + "\"" + " popularity=\"" + mdb.artistGetNormalizedPopularity(artist) + "\"" + "/>");
+            }
+
         } catch (AuraException ex) {
-            Util.outputStatus(out, SERVLET_NAME, Util.ErrorCode.InternalError, "Problem accessing data");
+            status.addError(ErrorCode.InternalError, "Problem accessing data");
+        } catch (ParameterException ex) {
         } finally {
-            timer.report(out);
+            status.toXML(out);
+            Util.tagClose(out, SERVLET_NAME);
             out.close();
         }
     }

@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>FindSimilarArtists</TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>FindSimilarArtists </H1>
+Finds artists that are similar to a seed artist. 
+
+<H2>Params</H2>
+<UL>
+	<LI><B>name</B> – <SPAN STYLE="font-weight: normal">the name of
+	the artist. Wildcards are allowed. If multiple artists match the
+	name, the best matching artist is used. Required if </SPAN><I><SPAN STYLE="font-weight: normal">key</SPAN></I>
+	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">not
+	present.</SPAN></SPAN>
+	<LI><B>key</B> – <SPAN STYLE="font-weight: normal">the
+	musicbrainz ID for the artist. Required if </SPAN><I><SPAN STYLE="font-weight: normal">name</SPAN></I>
+	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">not
+	present</SPAN></SPAN>
+	<LI><B>max – </B><SPAN STYLE="font-weight: normal">the maximum
+	number of results returned. Optional, default is 10.</SPAN>
+	<LI><B>popularity – </B><SPAN STYLE="font-weight: normal">the
+	desired range of popularity in the results. Optional, default is
+	'all'. Value must be one of:</SPAN>
+	<UL>
+		<LI><B>all</B> – <SPAN STYLE="font-weight: normal">all artists
+		are considered</SPAN>
+		<LI><B>head</B> – <SPAN STYLE="font-weight: normal">only very
+		popular artists are considered</SPAN>
+		<LI><B>mid</B> – <SPAN STYLE="font-weight: normal">only
+		moderately popular artists are considered</SPAN>
+		<LI><B>tail</B> – <SPAN STYLE="font-weight: normal">only long
+		tail artists are considered</SPAN>
+		<LI><B>head_mid </B>– <SPAN STYLE="font-weight: normal">very
+		and moderately popular artists are considered</SPAN>
+		<LI><B>mid_tail </B>– <SPAN STYLE="font-weight: normal">very
+		popular artists are not considered.</SPAN>
+	</UL>
+	<LI><B>field - </B><SPAN STYLE="font-weight: normal">the field to
+	use for similarity. Optional, default is 'socialTags'. Value must
+	be one of:</SPAN>
+	<UL>
+		<LI><B>all</B> – <SPAN STYLE="font-weight: normal">consider
+		all fields for similarity</SPAN>
+		<LI><B>autoTags</B> – <SPAN STYLE="font-weight: normal">consider
+		autotags for similarity </SPAN>
+		<LI><B>biographySummary</B> – <SPAN STYLE="font-weight: normal">use
+		the artist biography for similarity</SPAN>
+		<LI><B>collaborations</B> – <SPAN STYLE="font-weight: normal">use
+		the artist collaborations for similarity</SPAN>
+		<LI><B>events</B> – <SPAN STYLE="font-weight: normal">use the
+		artist </SPAN>
+		<LI><B>followers</B> – <SPAN STYLE="font-weight: normal">use
+		the artist followers for similarity </SPAN>
+		<LI><B>influencers</B> – <SPAN STYLE="font-weight: normal">use
+		the aritst influencers for similarity</SPAN>
+		<LI><B>relatedArtists</B> – <SPAN STYLE="font-weight: normal">use
+		the related artists for similarity</SPAN>
+		<LI><B>socialTags</B><SPAN STYLE="font-weight: normal">- use the
+		social tags for similarty</SPAN>
+		<LI><B>bioTags</B> – <SPAN STYLE="font-weight: normal">use bio
+		tags (the artist biography filtered for music-related terms)</SPAN>
+		<LI><B>blurbTags</B> – <SPAN STYLE="font-weight: normal">use
+		blurb tags (artist reviews filtered for music-related terms)</SPAN>
+	</UL>
+</UL>
+<P STYLE="font-weight: normal"><I>For the future – we will allow
+specification of multiple weighed fields for similarity like so:
+field=(autoTags,1)(socialTags,2)(blurbTags,.5)</I>
+<H2>Example</H2>
+<H3>Request</H3>
+<PRE CLASS="code-western" STYLE="margin-bottom: 0.2in">http://music.tastekeeper.com/api/FindSimilarArtists?name=weezer&amp;popularity=head</PRE>
+
+<H3><B>Results</B></H3>
+
+<PRE CLASS="code-western">
+
+&lt;FindSimilarArtists&gt;
+    &lt;seed key=&quot;6fe07aa5-fec0-4eca-a456-f29bff451b04&quot; name=&quot;Weezer&quot;/&gt;
+    &lt;artist key=&quot;ebd2ac91-6249-4e4b-bde1-353a424138c9&quot; score=&quot;0.563&quot; name=&quot;Eve 6&quot;/&gt;
+    &lt;artist key=&quot;09885b8e-f235-4b80-a02a-055539493173&quot; score=&quot;0.478&quot; name=&quot;The All-American Rejects&quot;/&gt;
+    &lt;artist key=&quot;fa7b9055-3703-473a-8a09-adf2fe031a24&quot; score=&quot;0.472&quot; name=&quot;CAKE&quot;/&gt;
+    &lt;artist key=&quot;bbc5b66b-d037-4f26-aecf-0b129e7f876a&quot; score=&quot;0.471&quot; name=&quot;Jimmy Eat World&quot;/&gt;
+    &lt;artist key=&quot;190e78ac-8f44-4bf1-a4ff-95ed9376ad9e&quot; score=&quot;0.461&quot; name=&quot;Motion City Soundtrack&quot;/&gt;
+    &lt;artist key=&quot;593f8594-83ad-4df4-a9b8-e4d225f55440&quot; score=&quot;0.459&quot; name=&quot;Saves the Day&quot;/&gt;
+    &lt;artist key=&quot;86e736b4-93e2-40ff-9e1c-fb7c63fef5f6&quot; score=&quot;0.457&quot; name=&quot;Barenaked Ladies&quot;/&gt;
+    &lt;artist key=&quot;bbc8d6b5-a3e3-4d51-9f4e-565e9ef94967&quot; score=&quot;0.454&quot; name=&quot;Rooney&quot;/&gt;
+    &lt;artist key=&quot;29eb4497-0bd8-4126-abdf-d8007326ee8b&quot; score=&quot;0.453&quot; name=&quot;The Calling&quot;/&gt;
+    &lt;artist key=&quot;766a2b45-441f-4096-af05-dbbca9518c9d&quot; score=&quot;0.434&quot; name=&quot;Phantom Planet&quot;/&gt;
+    &lt;request&gt;
+        &lt;param name=&quot;name&quot;&gt;weezer&lt;/param&gt;
+        &lt;param name=&quot;popularity&quot;&gt;HEAD&lt;/param&gt;
+    &lt;/request&gt;
+    &lt;results status=&quot;OK&quot;&gt;
+        &lt;time ms=&quot;152&quot;/&gt;
+    &lt;/results&gt;
+&lt;/FindSimilarArtists&gt;
+
+</PRE>
+<!-- START_FOOTER -->
+<div class="footer">
+<a href="index.html">Main</a> | <a href="http://www.sun.com/termsofuse.jsp">Terms of Use</a> | <a href="http://www.sun.com/privacy/">Privacy Policy</a>| <a href="http://www.sun.com/contact/">Contact</a> | <a href="http://www.tastekeeper.com">Project Aura</a>
+</div>
+<!-- END_FOOTER -->
+</BODY>
+</HTML>

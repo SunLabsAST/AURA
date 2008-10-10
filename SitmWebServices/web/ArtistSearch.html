@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>ArtistSearch</TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>ArtistSearch</H1>
+	Searches the database for an artist with a particular name
+<H2>Params</H2>
+<UL>
+	<LI><B>name</B><SPAN STYLE="font-weight: normal"> – the name of
+	the artist.  Wildcards are allowed. Required argument</SPAN>
+	<LI><B>max – </B><SPAN STYLE="font-weight: normal">the maximum
+	number of results returned. Optional argument, default: 10</SPAN>
+</UL>
+<H2>Example</H2>
+<H3>Request</H3>
+<PRE CLASS="code-western">http://music.tastekeeper.com/api/ArtistSearch?name=deer*&amp;max=20</PRE>
+<B>	</B>
+<H3>Results</H3>
+<PRE CLASS="code-western">
+
+&lt;ArtistSearch&gt;
+    &lt;artist key=&quot;ea24ae7b-99e9-4d7c-8dcb-246618478681&quot; score=&quot;1.75&quot; popularity=&quot;0.001&quot; name=&quot;Deer&quot;/&gt;
+    &lt;artist key=&quot;11eabe0c-2638-4808-92f9-1dbd9c453429&quot; score=&quot;0.875&quot; popularity=&quot;0.06&quot; name=&quot;Deerhoof&quot;/&gt;
+    &lt;artist key=&quot;4f416ed7-dda2-45de-a6f1-b986e861cf4b&quot; score=&quot;0.699&quot; popularity=&quot;0.02&quot; name=&quot;Deerhunter&quot;/&gt;
+    &lt;artist key=&quot;8cb0ebc9-db95-4748-81df-8e1e24e70541&quot; score=&quot;0.636&quot; popularity=&quot;0.003&quot; name=&quot;A Balladeer&quot;/&gt;
+    &lt;artist key=&quot;fa6b3377-e287-4d9c-947b-4df412c0ff0f&quot; score=&quot;0.349&quot; popularity=&quot;0.009&quot; name=&quot;The Reindeer Section&quot;/&gt;
+    &lt;request&gt;
+        &lt;param name=&quot;name&quot;&gt;deer*&lt;/param&gt;
+    &lt;/request&gt;
+    &lt;results status=&quot;OK&quot;&gt;
+        &lt;time ms=&quot;32&quot;/&gt;
+    &lt;/results&gt;
+&lt;/ArtistSearch&gt;
+
+</PRE>
+<!-- START_FOOTER -->
+<div class="footer">
+<a href="index.html">Main</a> | <a href="http://www.sun.com/termsofuse.jsp">Terms of Use</a> | <a href="http://www.sun.com/privacy/">Privacy Policy</a>| <a href="http://www.sun.com/contact/">Contact</a> | <a href="http://www.tastekeeper.com">Project Aura</a>
+</div>
+<!-- END_FOOTER -->
+
+</BODY>
+</HTML>

@@ -1,0 +1,85 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>GetItems</TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1 CLASS="western">GetItems</H1>
+Get items from the database
+<H2>Params</H2>
+<UL>
+	<LI><B>key – </B>the key of the item of interest. Required. This may be either a single key or a list of comma separated keys.
+	<LI><B>format – </B>the format of the output. May be 'compact' or 'full'. Optional, default is 'full'. iF 'compact' is selected, certain items (such as the artist, are output in a compact form).
+</UL>
+<H2 CLASS="western" STYLE="font-weight: normal">Example</H2>
+<H3 CLASS="western" STYLE="font-weight: normal">Request</H3>
+<PRE CLASS="code-western" STYLE="margin-bottom: 0.2in; font-weight: normal">
+http://music.tastekeeper.com/api/GetItems
+          ?format=compact &key=6fe07aa5-fec0-4eca-a456-f29bff451b04, \
+              1e477f68-c407-4eae-ad01-518528cedc2, \
+              ec7c97cc-1d06-4c74-bcb5-6773391f90b, \
+              http://static.flickr.com/33/49490624_fecd23a894.jpg, \
+              50c213ed-a109-4677-9b7b-d57ef580dd2d, \
+              1f8bdf5d-aed1-45aa-bf1f-94af1d7e71c1
+</pre>
+<H3>Results</H3>
+<P STYLE="font-weight: normal">The format of the results depend upon
+the type of item being retreived
+<PRE CLASS="code-western" STYLE="font-weight: normal">
+
+&lt;GetItems&gt;
+    &lt;item key=&quot;6fe07aa5-fec0-4eca-a456-f29bff451b04&quot;&gt;
+        &lt;name&gt;Weezer&lt;/name&gt;
+        &lt;popularity&gt;0.36222386&lt;/popularity&gt;
+        &lt;image&gt;
+            http://static.flickr.com/119/301748735_7895d24884.jpg
+        &lt;/image&gt;
+        &lt;audio&gt;
+            http://homepage.mac.com/jatticusryan/.Public/Weezer-Beverly_Hills.mp3
+        &lt;/audio&gt;
+        &lt;spotify&gt;spotify:track:0gOyllwzM7IvfuYZ903zNv&lt;/spotify&gt;
+    &lt;/item&gt;
+    &lt;!-- item fetch in 7 ms --&gt;
+    &lt;item key=&quot;1e477f68-c407-4eae-ad01-518528cedc2&quot; status=&quot;NotFound&quot;/&gt;
+    &lt;item key=&quot;ec7c97cc-1d06-4c74-bcb5-6773391f90b&quot; status=&quot;NotFound&quot;/&gt;
+    &lt;item key=&quot;http://static.flickr.com/33/49490624_fecd23a894.jpg&quot;&gt;
+        &lt;name&gt;Weezer Confetti&lt;/name&gt;
+        &lt;type&gt;PHOTO&lt;/type&gt;
+        &lt;time&gt;Fri Sep 19 12:18:34 EDT 2008&lt;/time&gt;
+        &lt;creatorRealName&gt;joy&lt;/creatorRealName&gt;
+        &lt;creatorUserName&gt;*snapdragon&lt;/creatorUserName&gt;
+        &lt;imgUrl&gt;
+            http://static.flickr.com/33/49490624_fecd23a894.jpg
+        &lt;/imgUrl&gt;
+        &lt;photoPageUrl&gt;http://www.flickr.com/photos/snapdragon/49490624/&lt;/photoPageUrl&gt;
+        &lt;smallImgUrl&gt;
+            http://static.flickr.com/33/49490624_fecd23a894_m.jpg
+        &lt;/smallImgUrl&gt;
+        &lt;thumbnailUrl&gt;
+            http://static.flickr.com/33/49490624_fecd23a894_s.jpg
+        &lt;/thumbnailUrl&gt;
+    &lt;/item&gt;
+    &lt;!-- item fetch in 5 ms --&gt;
+    &lt;item key=&quot;50c213ed-a109-4677-9b7b-d57ef580dd2d&quot; status=&quot;NotFound&quot;/&gt;
+    &lt;item key=&quot;1f8bdf5d-aed1-45aa-bf1f-94af1d7e71c1&quot; status=&quot;NotFound&quot;/&gt;
+    &lt;request&gt;
+    &lt;param name=&quot;key&quot;&gt;
+        6fe07aa5-fec0-4eca-a456-f29bff451b04,1e477f68-c407-4eae-ad01-518528cedc2,ec7c97cc-1d06-4c74-bcb5-6773391f90b,http://static.flickr.com/33/49490624_fecd23a894.jpg,50c213ed-a109-4677-9b7b-d57ef580dd2d,1f8bdf5d-aed1-45aa-bf1f-94af1d7e71c1
+    &lt;/param&gt;
+    &lt;param name=&quot;format&quot;&gt;compact&lt;/param&gt;
+    &lt;/request&gt;
+        &lt;results status=&quot;OK&quot;&gt;
+        &lt;time ms=&quot;39&quot;/&gt;
+    &lt;/results&gt;
+&lt;/GetItems&gt;
+
+</PRE>
+<!-- START_FOOTER -->
+<div class="footer">
+<a href="index.html">Main</a> | <a href="http://www.sun.com/termsofuse.jsp">Terms of Use</a> | <a href="http://www.sun.com/privacy/">Privacy Policy</a>| <a href="http://www.sun.com/contact/">Contact</a> | <a href="http://www.tastekeeper.com">Project Aura</a>
+</div>
+<!-- END_FOOTER -->
+</BODY>
+</HTML>

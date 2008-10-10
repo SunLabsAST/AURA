@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>GetTags</TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>GetTags</H1>
+Gets the most popular tags in the database
+<H2>Params</H2>
+<UL>
+	<LI><B>max – </B><SPAN STYLE="font-weight: normal">the maximum
+	number of results returned. Optional, default is 100.</SPAN>
+</UL>
+<H2>Example</H2>
+<H3>Request</H3>
+<PRE CLASS="code-western" STYLE="margin-bottom: 0.2in; font-weight: normal">http://music.tastekeeper.com/api/1.0/GetTags?max=10</PRE>
+<H3> Results</H3>
+<PRE CLASS="code-western" STYLE="font-weight: normal"><FONT SIZE=1 STYLE="font-size: 8pt">
+
+&lt;GetTags&gt;
+    &lt;tag key=&quot;artist-tag:rock&quot; name=&quot;rock&quot; popularity=&quot;1.0&quot;/&gt;
+    &lt;tag key=&quot;artist-tag:alternative&quot; name=&quot;alternative&quot; popularity=&quot;0.6812582&quot;/&gt;
+    &lt;tag key=&quot;artist-tag:indie&quot; name=&quot;indie&quot; popularity=&quot;0.67476714&quot;/&gt;
+    &lt;tag key=&quot;artist-tag:metal&quot; name=&quot;metal&quot; popularity=&quot;0.54301316&quot;/&gt;
+    &lt;tag key=&quot;artist-tag:classicrock&quot; name=&quot;classic rock&quot; popularity=&quot;0.5214605&quot;/&gt;
+    &lt;tag key=&quot;artist-tag:electronic&quot; name=&quot;electronic&quot; popularity=&quot;0.48672763&quot;/&gt;
+    &lt;tag key=&quot;artist-tag:punk&quot; name=&quot;punk&quot; popularity=&quot;0.3805384&quot;/&gt;
+    &lt;tag key=&quot;artist-tag:deathmetal&quot; name=&quot;death metal&quot; popularity=&quot;0.37697703&quot;/&gt;
+    &lt;tag key=&quot;artist-tag:blackmetal&quot; name=&quot;black metal&quot; popularity=&quot;0.36949232&quot;/&gt;
+    &lt;tag key=&quot;artist-tag:femalevocalists&quot; name=&quot;female vocalists&quot; popularity=&quot;0.34373292&quot;/&gt;
+    &lt;request&gt;
+        &lt;param name=&quot;max&quot;&gt;10&lt;/param&gt;
+    &lt;/request&gt;
+    &lt;results status=&quot;OK&quot;&gt;
+        &lt;time ms=&quot;38&quot;/&gt;
+    &lt;/results&gt;
+&lt;/GetTags&gt;
+
+</PRE>
+<!-- START_FOOTER -->
+<div class="footer">
+<a href="index.html">Main</a> | <a href="http://www.sun.com/termsofuse.jsp">Terms of Use</a> | <a href="http://www.sun.com/privacy/">Privacy Policy</a>| <a href="http://www.sun.com/contact/">Contact</a> | <a href="http://www.tastekeeper.com">Project Aura</a>
+</div>
+<!-- END_FOOTER -->
+
+</BODY>
+</HTML>

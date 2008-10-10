@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1 CLASS="western">AddListener</H1>
+Adds a listener to the database
+<H2>Params</H2>
+<UL>
+	<LI><SPAN STYLE="font-weight: normal">appKey – the application
+	key. Required</SPAN>
+	<LI><SPAN STYLE="font-weight: normal">userKey</SPAN><B> – </B><SPAN STYLE="font-weight: normal">the
+	openID of the user to be added. Required</SPAN>
+	<LI><SPAN STYLE="font-weight: normal">lastfmName – the Last.fm
+	name for the user. Optional</SPAN>
+	<LI><SPAN STYLE="font-weight: normal">pandoraName – the Pandora
+	name for the user. Optional</SPAN>
+</UL>
+<H2>Example</H2>
+<H3>Request</H3>
+
+<PRE CLASS="code-western" STYLE="margin-bottom: 0.2in; font-weight: normal">
+    http://music.tastekeeper.com/api/AddListener
+       ?appKey=YOUR_APP_KEY
+       &amp;userKey=http://paul.lamere.myopenid.com
+       &amp;lastfmName=lamere
+</PRE>
+
+<H3> Results</H3>
+<PRE CLASS="code-western" STYLE="font-weight: normal">
+
+&lt;AddListener&gt;
+    &lt;request&gt;
+        &lt;param name=&quot;userKey&quot;&gt;http://foo.lamere.myopenid.com&lt;/param&gt;
+        &lt;param name=&quot;appKey&quot;&gt;SAMPLE_KEY&lt;/param&gt;
+    &lt;/request&gt;
+    &lt;results status=&quot;OK&quot;&gt;
+        &lt;time ms=&quot;55&quot;/&gt;
+    &lt;/results&gt;
+&lt;/AddListener&gt;
+
+</PRE>
+<BR><BR>
+<!-- START_FOOTER -->
+<div class="footer">
+<a href="index.html">Main</a> | <a href="http://www.sun.com/termsofuse.jsp">Terms of Use</a> | <a href="http://www.sun.com/privacy/">Privacy Policy</a>| <a href="http://www.sun.com/contact/">Contact</a> | <a href="http://www.tastekeeper.com">Project Aura</a>
+</div>
+<!-- END_FOOTER -->
+
+</BODY>
+</HTML>

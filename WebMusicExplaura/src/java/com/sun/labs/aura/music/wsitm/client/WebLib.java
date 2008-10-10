@@ -99,7 +99,8 @@ public abstract class WebLib {
         image.addClickListener(new ClickListener() {
 
             public void onClick(Widget sender) {
-                Window.open(getTagRadioLink(tagDetails.getName()), "lastfm_popup", "width=400,height=170,menubar=no,toolbar=no,directories=no," + "location=no,resizable=no,scrollbars=no,status=no");
+                //Window.open(getTagRadioLink(tagDetails.getName()), "lastfm_popup", "width=300,height=266,menubar=no,toolbar=no,directories=no," + "location=no,resizable=no,scrollbars=no,status=no");
+                Window.open(getTagRadioLink(tagDetails.getName()), "lastfm_popup", "width=310,height=276");
             }
         });
         return image;
@@ -107,8 +108,10 @@ public abstract class WebLib {
     
     public static String getTagRadioLink(String tagName) {
         tagName = tagName.replaceAll("\\s+", "%20");
-        String link = "http://www.last.fm/webclient/popup/?radioURL=" + "lastfm://globaltags/TAG_REPLACE_ME/&resourceID=undefined" + "&resourceType=undefined&viral=true";
-        return link.replaceAll("TAG_REPLACE_ME", tagName);
+        //String link = "http://www.last.fm/webclient/popup/?radioURL=" + "lastfm://globaltags/TAG_REPLACE_ME/&resourceID=undefined" + "&resourceType=undefined&viral=true";
+        //return link.replaceAll("TAG_REPLACE_ME", tagName);
+        String link = "MusicPlayer?type=tag&name=" + tagName;
+        return link;
     }
 
     public static Widget getLoadingBarWidget() {

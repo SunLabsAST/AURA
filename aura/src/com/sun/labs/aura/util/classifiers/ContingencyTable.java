@@ -157,8 +157,8 @@ public class ContingencyTable implements Comparable<ContingencyTable> {
      */
     public float chisq() {
         if(Float.isNaN(chisq)) {
-            chisq = (N() * (a*d - c*b) * (a*d - c*b)) /
-                    ((a+c) * (b+d) * (a+b) * (c+d));
+            chisq = ((float)N() * (a*d - c*b) * (a*d - c*b)) /
+                    ((float)(a+c) * (b+d) * (a+b) * (c+d));
         }
         return chisq;
     }
@@ -176,5 +176,32 @@ public class ContingencyTable implements Comparable<ContingencyTable> {
         }
         
         return 0;
+    }
+    
+    public int hashCode() {
+        if (name != null) {
+            return name.hashCode();
+        } else {
+            return (a * b) + (c * d);
+        }
+    }
+    
+    public boolean equals(Object o) {
+        if (o instanceof ContingencyTable) {
+            ContingencyTable oct = (ContingencyTable)o;
+            if (a == oct.a &&
+                    b == oct.b &&
+                    c == oct.c &&
+                    d == oct.d &&
+                    test == oct.test &&
+                    train == oct.train) {
+                if ((name != null && oct.name != null && name.equals(oct.name))
+                    || (name == null && oct.name == null)) {
+                    return true;
+                }
+            }
+            
+        }
+        return false;
     }
 }

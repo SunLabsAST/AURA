@@ -17,6 +17,10 @@
         <servlet-name>Login</servlet-name>
         <servlet-class>com.sun.labs.aura.music.wsitm.server.OpenIDServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>MusicPlayer</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.wsitm.server.MusicPlayer</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>MusicSearchInterface</servlet-name>
         <url-pattern>/com.sun.labs.aura.music.wsitm.WebMusicExplaura/musicsearch</url-pattern>
@@ -24,6 +28,10 @@
     <servlet-mapping>
         <servlet-name>Login</servlet-name>
         <url-pattern>/Login</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>MusicPlayer</servlet-name>
+        <url-pattern>/MusicPlayer</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>

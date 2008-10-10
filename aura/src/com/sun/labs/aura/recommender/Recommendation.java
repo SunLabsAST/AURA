@@ -31,4 +31,18 @@ public class Recommendation extends Scored<Item> implements Serializable {
     public String getExplanation() {
         return explanation;
     }
+    
+    public int hashCode() {
+        return explanation.hashCode();
+    }
+    
+    public boolean equals(Object o) {
+        if (o instanceof Recommendation) {
+            Recommendation or = (Recommendation)o;
+            if (explanation.equals(or.explanation)) {
+                return super.equals(o);
+            }
+        }
+        return false;
+    }
 }

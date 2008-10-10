@@ -55,7 +55,7 @@
         <property name="itemSearchEngine" value="itemSearchEngine"/>
         <property name="partitionCluster" value="partitionCluster"/>
         <property name="statService" value="statService"/>
-        <property name="logLevel" value="INFO"/>
+        <property name="logLevel" value="FINE"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
@@ -63,6 +63,7 @@
         <property name="indexDir" value="${dataFS}/itemIndex.idx"/>
         <property name="engineLogLevel" value="1"/>
         <property name="flushInterval" value="300000"/>
+        <property name="regenerateTermStats" value="true"/>
     </component>
 
     <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" entries="prefixEntries"/>

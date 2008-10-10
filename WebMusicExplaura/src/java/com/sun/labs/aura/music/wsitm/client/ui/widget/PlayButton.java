@@ -124,7 +124,6 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
                 return w;
             }
         }
-        
         return null;
     }
     
@@ -222,6 +221,11 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
             return link.replaceAll("ARTIST_REPLACE_ME", aC.getEncodedName());
         }
     }
+
+    public String getArtistRadioLink() {
+        String link = "MusicPlayer?name=" +aC.getEncodedName();
+        return link;
+    }
     
     private Widget getSimilarArtistRadio() {
         String embeddedObject = "<object width=\"340\" height=\"123\">" + "<param name=\"movie\" value=\"http://panther1.last.fm/webclient/50/defaultEmbedPlayer.swf\" />" + "<param name=FlashVars value=\"viral=true&lfmMode=radio&amp;radioURL=lastfm://artist/ARTIST_NAME/similarartists&amp;" + "restTitle= ARTIST_NAME’s Similar Artists \" />" + "<param name=\"wmode\" value=\"transparent\" />" + "<embed src=\"http://panther1.last.fm/webclient/50/defaultEmbedPlayer.swf\" width=\"340\" " + "FlashVars=\"viral=true&lfmMode=radio&amp;radioURL=" + "lastfm://artist/ARTIST_NAME/similarartists&amp;restTitle= ARTIST_NAME’s Similar Artists \" height=\"123\" " + "type=\"application/x-shockwave-flash\" wmode=\"transparent\" />" + "</object>";
@@ -229,8 +233,15 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         return new HTML(embeddedObject);
     }
 
+
     private void popupSimilarArtistRadio(boolean useTags) {
         Window.open(getSimilarArtistRadioLink(useTags), "lastfm_popup", "width=400,height=170,menubar=no,toolbar=no,directories=no," + "location=no,resizable=no,scrollbars=no,status=no");
+    }
+
+    private void popupArtistRadio() {
+        //Window.open(getArtistRadioLink(), "lastfm_popup", "width=300,height=266,menubar=no,toolbar=no,directories=no," 
+        //        + "location=no,titlebar=no,dialog=no,resizable=yes,scrollbars=no,status=no");
+        Window.open(getArtistRadioLink(), "lastfm_popup", "width=310,height=276,titlebar=no");
     }
     
     private Widget getLastFMListenWidget(ClickListener cL) {
@@ -240,7 +251,8 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         image.addClickListener(new ClickListener() {
 
             public void onClick(Widget sender) {
-                popupSimilarArtistRadio(true);
+                //popupSimilarArtistRadio(true);
+                popupArtistRadio();
             }
         });
         if (cdm.isLoggedIn()) {

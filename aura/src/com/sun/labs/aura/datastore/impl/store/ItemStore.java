@@ -8,7 +8,6 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
-import com.sun.labs.aura.util.Scored;
 import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.Date;
@@ -195,32 +194,12 @@ public interface ItemStore {
      * @return the set of matching items
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */
+    @Deprecated
     public List<Item> getItems(
             User user,
             Attention.Type attnType,
             ItemType itemType) throws AuraException, RemoteException;
 
-    /**
-     * Get all the attention related to a particular item
-     * 
-     * @param srcKey the source to fetch attention for
-     * @return the set of all attention
-     * @throws com.sun.labs.aura.aardvark.util.AuraException
-     */
-    @Deprecated
-    public List<Attention> getAttentionForSource(String srcKey)
-            throws AuraException, RemoteException;
-
-    /**
-     * Get all the attention related to a particular item
-     * 
-     * @param itemKey the item to fetch attention for
-     * @return the set of all attention
-     * @throws com.sun.labs.aura.aardvark.util.AuraException
-     */
-    @Deprecated
-    public List<Attention> getAttentionForTarget(String itemKey)
-            throws AuraException, RemoteException;
 
     /**
      * Get all the attention matching a particular set of constraints.  Set
@@ -367,73 +346,6 @@ public interface ItemStore {
             throws AuraException, RemoteException;
 
     /**
-     * Gets all the attention that has been added to the store since a
-     * particular date.  Returns an iterator over the attention that must be
-     * closed when reading is done.
-     * 
-     * @param timeStamp the time to search back to
-     * @return the Attentions added since that time
-     * @throws com.sun.labs.aura.aardvark.util.AuraException
-     */
-    @Deprecated
-    public DBIterator<Attention> getAttentionSince(Date timeStamp)
-            throws AuraException, RemoteException;
-
-    /**
-     * Get all the attention for a source since a particular time.  Returns
-     * an iterator over the attention that must be closed when reading is
-     * done.
-     * 
-     * @param sourceKey the key of the source to limit the search to
-     * @param timeStamp the time to search back to
-     * @return the Attentions added for the source since the time
-     * @throws com.sun.labs.aura.util.AuraException
-     */
-    @Deprecated
-    public DBIterator<Attention> getAttentionForSourceSince(String sourceKey,
-            Date timeStamp) throws AuraException, RemoteException;
-
-    /**
-     * Get all the attention for a target since a particular time.  Returns
-     * an iterator over the attention that must be closed when reading is
-     * done.
-     * 
-     * @param targetKey the key of the target to limit the search to
-     * @param timeStamp the time to search back to
-     * @return the Attentions added for the target since the time
-     * @throws com.sun.labs.aura.util.AuraException
-     */
-    @Deprecated
-    public DBIterator<Attention> getAttentionForTargetSince(String targetKey,
-            Date timeStamp) throws AuraException, RemoteException;
-
-    /**
-     * Gets the N most recent attention objects that an attention source
-     * has recorded.
-     * 
-     * @param srcKey the source to examine
-     * @param count the number of attentions to fetch
-     * @return the most recent attentions, sorted by date
-     */
-    public List<Attention> getLastAttentionForSource(String srcKey,
-            int count)
-            throws AuraException, RemoteException;
-
-    /**
-     * Gets the N most recent attention objects of a particular type that
-     * an attention source has recorded.
-     * 
-     * @param srcKey the source to examine
-     * @param type the type of attention
-     * @param count the number of attentions to fetch
-     * @return the most recent attentions, sorted by date
-     */
-    public List<Attention> getLastAttentionForSource(String srcKey,
-            Attention.Type type,
-            int count)
-            throws AuraException, RemoteException;
-
-    /**
      * Adds an ItemListener to this ItemStore.  ItemListeners are sent
      * batches of Item-related events.  The policy for when to send events
      * is left to the ItemStore implementation.  The listener may request
@@ -476,14 +388,6 @@ public interface ItemStore {
      */
     public long getItemCount(ItemType itemType)
             throws AuraException, RemoteException;
-
-    /**
-     * Gets the count of the number of attentions in the data store
-     * 
-     * @return the count
-     */
-    @Deprecated
-    public long getAttentionCount() throws AuraException, RemoteException;
 
     /**
      * Closes the item store cleanly.  This should be called before the
