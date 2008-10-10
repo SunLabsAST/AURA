@@ -48,7 +48,7 @@ public class ArtistSearch extends HttpServlet {
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
         ServletContext context = getServletContext();
-        MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
+
 
         try {
             Util.tagOpen(out, SERVLET_NAME);
@@ -57,10 +57,12 @@ public class ArtistSearch extends HttpServlet {
             String name = pc.getParam(status, request, "name");
             int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
 
+            MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
             if (mdb == null) {
                 status.addError(ErrorCode.InternalError, "Can't find the datastore");
                 return;
             }
+
             List<Scored<Artist>> scoredArtists = mdb.artistSearch(name, maxCount);
             for (Scored<Artist> scoredArtist : scoredArtists) {
                 Artist artist = scoredArtist.getItem();

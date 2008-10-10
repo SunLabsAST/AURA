@@ -58,7 +58,7 @@ public class AddAttentionData extends HttpServlet {
             Util.tagOpen(out, SERVLET_NAME);
             pc.check(status, request);
 
-            MusicDatabase mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
+            MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
 
             if (mdb == null) {
                 status.addError(ErrorCode.InternalError, "Can't connect to the music database");
