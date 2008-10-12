@@ -24,7 +24,6 @@ public class ServletTools {
 
     public static DataManager getDataManager(ServletConfig sc) {
         DataManager dm = (DataManager) sc.getServletContext().getAttribute("DataManager");
-        //DataStore ds = (DataStore) sc.getServletContext().getAttribute("dataStore");
         MusicDatabase mdb = getMusicDatabase(sc);
         String cacheSizeString = (String) sc.getServletContext().getAttribute("cacheSize");
 

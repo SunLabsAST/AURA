@@ -5,7 +5,6 @@
 
 package com.sun.labs.aura.music.wsitm.server;
 
-import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -44,16 +43,8 @@ public class ServletListener implements ServletContextListener {
                 logger.info("setAttr");
                 context.setAttribute("configManager", cm);
 
-                logger.info("Fetching datastore...");
-                DataStore dataStore = (DataStore)cm.lookup("dataStoreHead");
-                context.setAttribute("dataStore", dataStore);
-                if (dataStore != null) {
-                    logger.info("Datastore fetch OK");
-                } else {
-                    logger.info("Datastore null!!");
-                }
                 try {
-                    context.setAttribute("MusicDatabase", new MusicDatabase(dataStore));
+                    context.setAttribute("MusicDatabase", new MusicDatabase(cm, "dataStoreHead"));
                 } catch (AuraException ex) {
                     logger.severe("AuraException : "+ex.getMessage());
                 }
