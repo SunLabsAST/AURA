@@ -35,6 +35,7 @@ import com.sun.labs.aura.music.web.wikipedia.WikiInfo;
 import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
 import com.sun.labs.aura.music.web.youtube.Youtube;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.RemoteComponentManager;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.aura.util.Tag;
@@ -77,7 +78,6 @@ import java.util.regex.Pattern;
  * @author plamere
  */
 public class ArtistCrawler implements AuraService, Configurable, Crawler {
-
     private LastFM lastFM;
     private MusicBrainz musicBrainz;
     private Wikipedia wikipedia;
@@ -89,7 +89,9 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     private Amazon amazon;
     private PriorityQueue<QueuedArtist> artistQueue;
     private Logger logger;
+    private RemoteComponentManager rcm;
     private Util util;
+
     private final static String CRAWLER_STATE_FILE = "crawler.state";
     private final static int FLUSH_COUNT = 10;
     private boolean running = false;
@@ -151,13 +153,13 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             spotify = new Spotify();
             echoNest = new EchoNest();
             artistQueue = new PriorityQueue(1000, QueuedArtist.PRIORITY_ORDER);
-            dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
+            rcm = new RemoteComponentManager(ps.getConfigurationManager());
             stateDir = ps.getString(PROP_STATE_DIR);
             updateRateInSeconds = ps.getInt(PROP_UPDATE_RATE);
             maxArtists = ps.getInt(PROP_MAX_ARTISTS);
             crawlAlbumBlurbs = ps.getBoolean(PROP_CRAWL_ALBUM_BLURBS);
             maxBlurbPages = ps.getInt(PROP_MAX_BLURB_PAGES);
-            util = new Util(dataStore, flickr, youtube);
+            util = new Util(flickr, youtube);
             createStateFileDirectory();
             loadState();
 
@@ -171,7 +173,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     }
 
     public void update(String id) throws AuraException, RemoteException {
-        final Item item = dataStore.getItem(id);
+        final Item item = getDataStore().getItem(id);
         if (item == null) {
             throw new AuraException("can't find item with ID " + id);
         }
@@ -195,6 +197,11 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
         threadPool.submit(updater);
     }
 
+
+    private DataStore getDataStore() throws AuraException {
+        return (DataStore) rcm.getComponent(PROP_DATA_STORE);
+    }
+
     private void addAllTags() {
         try {
             Set<String> tagNames = new HashSet<String>(validTagMap.values());
@@ -215,16 +222,16 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
         for (String tagName : tagNames) {
             // make sure the tags are part of the database
             String id = ArtistTag.nameToKey(tagName);
-            if (dataStore.getItem(id) == null) {
+            if (getDataStore().getItem(id) == null) {
                 Item item = StoreFactory.newItem(ItemType.ARTIST_TAG, id, tagName);
-                dataStore.putItem(item);
+                getDataStore().putItem(item);
                 logger.info("Adding tag " + item.getKey());
             }
         }
     }
 
     public void add(String newID) throws AuraException, RemoteException {
-        Item item = dataStore.getItem(newID);
+        Item item = getDataStore().getItem(newID);
         if (item == null) {
             item = StoreFactory.newItem(ItemType.ARTIST, newID, "(unknown");
             Artist artist = new Artist(item);
@@ -257,7 +264,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             try {
 
                 // if we've reached maxartists we are done
-                if (dataStore.getItemCount(ItemType.ARTIST) >= maxArtists) {
+                if (getDataStore().getItemCount(ItemType.ARTIST) >= maxArtists) {
                     logger.info("Artist discovery crawler reached max artists, shutting down");
                     break;
                 }
@@ -288,7 +295,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     private void updateArtists(boolean force, long period) throws AuraException, RemoteException, InterruptedException {
         List<Scored<String>> artistsWithPopularity = getAllArtistsWithPopularity();
         for (Scored<String> sartist : artistsWithPopularity) {
-            Artist artist = new Artist(dataStore.getItem(sartist.getItem()));
+            Artist artist = new Artist(getDataStore().getItem(sartist.getItem()));
             if (force || needsUpdate(artist)) {
                 updateArtist(artist, false);
                 try {
@@ -305,7 +312,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     private List<Scored<String>> getAllArtistsWithPopularity() throws AuraException, RemoteException {
         List<Scored<String>> artistList = new ArrayList();
 
-        DBIterator iter = dataStore.getAllIterator(ItemType.ARTIST);
+        DBIterator iter = getDataStore().getAllIterator(ItemType.ARTIST);
 
         try {
             while (iter.hasNext()) {
@@ -353,7 +360,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             return false;
         }
 
-        if (dataStore.getItem(lartist.getMbaid()) != null) {
+        if (getDataStore().getItem(lartist.getMbaid()) != null) {
             return false;
         }
         return true;
@@ -378,7 +385,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     private Artist collectArtistInfo(QueuedArtist queuedArtist) throws AuraException, RemoteException, IOException {
         String mbaid = queuedArtist.getMBaid();
         if (mbaid != null && mbaid.length() > 0) {
-            Item item = dataStore.getItem(mbaid);
+            Item item = getDataStore().getItem(mbaid);
             if (item == null) {
 
                 item = StoreFactory.newItem(ItemType.ARTIST, mbaid, queuedArtist.getArtistName());
@@ -477,7 +484,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
         }
         artist.setLastCrawl();
         artist.incrementUpdateCount();
-        artist.flush(dataStore);
+        artist.flush(getDataStore());
     }
 
     private void addMusicBrainzInfoIfNecessary(Artist artist) throws AuraException, RemoteException {
@@ -632,13 +639,13 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
                 pages = 1;
             }
             String mbrid = mbalbum.getId();
-            Item albumItem = dataStore.getItem(mbrid);
+            Item albumItem = getDataStore().getItem(mbrid);
             Album album = null;
             if (albumItem == null) {
                 albumItem = StoreFactory.newItem(ItemType.ALBUM, mbrid, mbalbum.getTitle());
                 album = new Album(albumItem);
                 album.setAsin(mbalbum.getAsin());
-                album.flush(dataStore);
+                album.flush(getDataStore());
             } else {
                 album = new Album(albumItem);
             }
@@ -658,9 +665,9 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
         if (pages > 0) {
 
             for (String albumID : artist.getAlbums()) {
-                Item albumItem = dataStore.getItem(albumID);
+                Item albumItem = getDataStore().getItem(albumID);
                 if (albumItem != null) {
-                    Album album = new Album(dataStore.getItem(albumID));
+                    Album album = new Album(getDataStore().getItem(albumID));
                     crawlAlbumBlurbs(artist, album, blurbMap, pages);
                 }
             }
@@ -806,7 +813,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     }
 
     private void addYoutubeVideos(Artist artist) throws AuraException, RemoteException, IOException {
-        List<Video> videos = util.collectYoutubeVideos(artist.getName(), 24);
+        List<Video> videos = util.collectYoutubeVideos(getDataStore(), artist.getName(), 24);
         artist.clearVideos();
         for (Video video : videos) {
             artist.addVideo(video.getKey());
@@ -814,7 +821,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     }
 
     private void addFlickrPhotos(Artist artist) throws AuraException, RemoteException, IOException {
-        List<Photo> photos = util.collectFlickrPhotos(artist.getName(), 24);
+        List<Photo> photos = util.collectFlickrPhotos(getDataStore(), artist.getName(), 24);
         artist.clearPhotos();
         for (Photo photo : photos) {
             artist.addPhoto(photo.getKey());
@@ -870,7 +877,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             itemEvent.setName(event.getName());
             itemEvent.setDate(event.getDate());
             itemEvent.setVenueName(event.getVenue());
-            itemEvent.flush(dataStore);
+            itemEvent.flush(getDataStore());
             artist.addEvent(itemEvent.getKey());
             if (count++ >= MAX_EVENTS) {
                 break;
@@ -909,7 +916,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
      */
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
-    private DataStore dataStore;
+
     /** the directory for the crawler.state */
     @ConfigString(defaultValue = "artistCrawler")
     public final static String PROP_STATE_DIR = "crawlerStateDir";

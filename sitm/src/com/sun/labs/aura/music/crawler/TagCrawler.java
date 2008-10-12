@@ -21,6 +21,7 @@ import com.sun.labs.aura.music.web.yahoo.SearchResult;
 import com.sun.labs.aura.music.web.yahoo.Yahoo;
 import com.sun.labs.aura.music.web.youtube.Youtube;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.RemoteComponentManager;
 import com.sun.labs.aura.util.Tag;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
@@ -45,7 +46,6 @@ import java.util.logging.Logger;
  * @author plamere
  */
 public class TagCrawler implements AuraService, Configurable {
-
     private Wikipedia wikipedia;
     private Youtube youtube;
     private FlickrManager flickr;
@@ -53,6 +53,7 @@ public class TagCrawler implements AuraService, Configurable {
     private LastFM lastFM;
     private Logger logger;
     private Util util;
+    private RemoteComponentManager rcm;
     private boolean running = false;
     private Map<String, Map<String, Tag>> tagMap = new HashMap();
     static Set skipSet;
@@ -97,8 +98,8 @@ public class TagCrawler implements AuraService, Configurable {
             flickr = new FlickrManager();
             yahoo = new Yahoo();
             lastFM = new LastFM();
-            dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
-            util = new Util(dataStore, flickr, youtube);
+            rcm = new RemoteComponentManager(ps.getConfigurationManager());
+            util = new Util(flickr, youtube);
         } catch (IOException ex) {
             logger.warning("problem connecting to components" + ex);
         }
@@ -134,7 +135,7 @@ public class TagCrawler implements AuraService, Configurable {
     }
 
     public void updateArtistTags() throws AuraException, RemoteException {
-        List<Item> items = dataStore.getAll(ItemType.ARTIST_TAG);
+        List<Item> items = getDataStore().getAll(ItemType.ARTIST_TAG);
         List<ArtistTag> tags = new ArrayList(items.size());
 
         for (Item item : items) {
@@ -157,7 +158,7 @@ public class TagCrawler implements AuraService, Configurable {
             artistTag.clearTaggedArtists();
             for (LastItem lartist : lartists) {
                 // Always add tags, no matter what. we can filter them on the way out
-                if (true || dataStore.getItem(lartist.getMBID()) != null) {
+                if (true || getDataStore().getItem(lartist.getMBID()) != null) {
                     artistTag.addTaggedArtist(lartist.getMBID(), lartist.getFreq());
                 }
                 popularity += lartist.getFreq();
@@ -170,7 +171,7 @@ public class TagCrawler implements AuraService, Configurable {
         if (needsUpdate(artistTag)) {
             logger.info("Collecting info for tag " + artistTag.getName());
             collectTagInfo(artistTag);
-            artistTag.flush(dataStore);
+            artistTag.flush(getDataStore());
         } else {
             logger.fine("Skipping update for tag " + artistTag.getName());
         }
@@ -199,7 +200,7 @@ public class TagCrawler implements AuraService, Configurable {
 
             @Override
             public void go() throws Exception {
-                List<Photo> photos = util.collectFlickrPhotos(artistTag.getName(), 24);
+                List<Photo> photos = util.collectFlickrPhotos(getDataStore(), artistTag.getName(), 24);
                 for (Photo photo : photos) {
                     artistTag.addPhoto(photo.getKey());
                 }
@@ -219,7 +220,7 @@ public class TagCrawler implements AuraService, Configurable {
 
             @Override
             public void go() throws Exception {
-                List<Video> videos = util.collectYoutubeVideos(artistTag.getName(), 24);
+                List<Video> videos = util.collectYoutubeVideos(getDataStore(), artistTag.getName(), 24);
                 for (Video video : videos) {
                     artistTag.addVideo(video.getKey());
                 }
@@ -272,12 +273,15 @@ public class TagCrawler implements AuraService, Configurable {
         }
         return null;
     }
+
+    private DataStore getDataStore() throws AuraException {
+        return (DataStore) rcm.getComponent(PROP_DATA_STORE);
+    }
     /**
      * the configurable property for the itemstore used by this manager
      */
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
-    private DataStore dataStore;
     @ConfigBoolean(defaultValue = false)
     public final static String PROP_FORCE_CRAWL = "forceCrawl";
     private boolean forceCrawl;

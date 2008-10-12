@@ -48,7 +48,6 @@ import java.util.List;
  */
 public class MusicShell implements AuraService, Configurable {
 
-    private DataStore dataStore;
     private TagCrawler tagCrawler;
     private Crawler artistCrawler;
     private ListenerCrawler listenerCrawler;
@@ -69,14 +68,18 @@ public class MusicShell implements AuraService, Configurable {
     public void start() {
         shell = new CommandInterpreter();
         shell.setPrompt("musicsh% ");
-        sutils = new ShellUtils(shell, dataStore, statService);
+        try {
+            sutils = new ShellUtils(shell, musicDatabase.getDataStore(), statService);
+        } catch (AuraException ex) {
+            System.out.println("Can't connect to datastore");
+        }
 
         shell.add("qartist", new CommandInterface() {
 
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
                 String qname = sutils.stuff(args, 1);
                 String query = "(aura-type = artist) <AND> (aura-name <matches> \"*" + qname + "*\")";
-                List<Scored<Item>> items = dataStore.query(query, "-score", sutils.getHits(), null);
+                List<Scored<Item>> items = musicDatabase.getDataStore().query(query, "-score", sutils.getHits(), null);
                 for (Scored<Item> item : items) {
                     System.out.printf("%.3f %s %s\n", item.getScore(), item.getItem().getKey(), item.getItem().getName());
                 }
@@ -96,7 +99,7 @@ public class MusicShell implements AuraService, Configurable {
                 Artist artist = findArtist(qname);
                 if (artist != null) {
                     System.out.println("Finding similar for " + artist.getName());
-                    List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(), 
+                    List<Scored<Item>> simItems = musicDatabase.getDataStore().findSimilar(artist.getKey(),
                             new SimilarityConfig(sutils.getHits(),
                             new TypeFilter(ItemType.ARTIST)));
                     sutils.dumpScoredItems(simItems);
@@ -118,7 +121,7 @@ public class MusicShell implements AuraService, Configurable {
                 Artist artist = findArtist(qname);
                 if (artist != null) {
                     System.out.println("Finding similar for " + artist.getName());
-                    List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(),
+                    List<Scored<Item>> simItems = musicDatabase.getDataStore().findSimilar(artist.getKey(),
                             new SimilarityConfig(Artist.FIELD_SOCIAL_TAGS, sutils.getHits(), new TypeFilter(ItemType.ARTIST)));
                     sutils.dumpScoredItems(simItems);
                     return "";
@@ -151,7 +154,7 @@ public class MusicShell implements AuraService, Configurable {
                 Artist artist = findArtist(qname);
                 if (artist != null) {
                     System.out.println("Finding similar for " + artist.getName());
-                    List<Scored<Item>> simItems = dataStore.findSimilar(artist.getKey(),
+                    List<Scored<Item>> simItems = musicDatabase.getDataStore().findSimilar(artist.getKey(),
                             new SimilarityConfig(Artist.FIELD_BIO_TAGS, sutils.getHits(), new TypeFilter(ItemType.ARTIST)));
                     sutils.dumpScoredItems(simItems);
                     return "";
@@ -171,7 +174,7 @@ public class MusicShell implements AuraService, Configurable {
                 String qname = sutils.stuff(args, 1);
                 Artist artist = findArtist(qname);
                 if (artist != null) {
-                    WordCloud tags = dataStore.getTopTerms(artist.getKey(), Artist.FIELD_SOCIAL_TAGS, sutils.getHits());
+                    WordCloud tags = musicDatabase.getDataStore().getTopTerms(artist.getKey(), Artist.FIELD_SOCIAL_TAGS, sutils.getHits());
                     System.out.println("Distinctive tags for " + artist.getName());
                     sutils.dumpCloud(tags);
                     return "";
@@ -212,7 +215,7 @@ public class MusicShell implements AuraService, Configurable {
                     Artist artist1 = findArtist(args[1]);
                     Artist artist2 = findArtist(args[2]);
                     if (artist1 != null && artist2 != null) {
-                        List<Scored<String>> results = dataStore.explainSimilarity(artist1.getKey(), artist2.getKey(), new SimilarityConfig(sutils.getHits()));
+                        List<Scored<String>> results = musicDatabase.getDataStore().explainSimilarity(artist1.getKey(), artist2.getKey(), new SimilarityConfig(sutils.getHits()));
                         sutils.dumpScored(results);
                         return "";
                     } else {
@@ -397,6 +400,7 @@ public class MusicShell implements AuraService, Configurable {
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
                 if (args.length == 1) {
                     Thread t = new Thread() {
+
                         public void run() {
                             try {
                                 listenerCrawler.crawlAllListeners();
@@ -441,7 +445,7 @@ public class MusicShell implements AuraService, Configurable {
                         return "Can't find listener " + listenerID;
                     }
 
-                    RecommendationSummary rs =  rtype.getRecommendations(listener.getKey(), sutils.getHits(), null);
+                    RecommendationSummary rs = rtype.getRecommendations(listener.getKey(), sutils.getHits(), null);
 
                     System.out.println(rs.getExplanation());
                     for (Recommendation r : rs.getRecommendations()) {
@@ -482,7 +486,7 @@ public class MusicShell implements AuraService, Configurable {
                     String qname = sutils.stuff(args, 1);
                     ArtistTag artistTag = findArtistTag(qname);
                     if (artistTag != null) {
-                        List<Scored<Item>> simItems = dataStore.findSimilar(artistTag.getKey(),
+                        List<Scored<Item>> simItems = musicDatabase.getDataStore().findSimilar(artistTag.getKey(),
                                 new SimilarityConfig(ArtistTag.FIELD_TAGGED_ARTISTS, sutils.getHits(),
                                 new TypeFilter(ItemType.ARTIST_TAG)));
                         sutils.dumpScoredItems(simItems);
@@ -500,7 +504,7 @@ public class MusicShell implements AuraService, Configurable {
 
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
                 if (args.length == 1) {
-                    List<Item> itemTags = dataStore.getAll(ItemType.ARTIST_TAG);
+                    List<Item> itemTags = musicDatabase.getDataStore().getAll(ItemType.ARTIST_TAG);
                     List<ArtistTag> allTags = new ArrayList();
 
                     for (Item item : itemTags) {
@@ -540,7 +544,7 @@ public class MusicShell implements AuraService, Configurable {
                         Collections.sort(artistsAsTags, FREQ_SORT);
                         Collections.reverse(artistsAsTags);
                         for (Tag tag : artistsAsTags) {
-                            Item artist = dataStore.getItem(tag.getName());
+                            Item artist = musicDatabase.getDataStore().getItem(tag.getName());
                             if (artist != null) {
                                 System.out.printf("%d %s %s\n", tag.getCount(), tag.getName(), artist.getName());
                             }
@@ -578,7 +582,7 @@ public class MusicShell implements AuraService, Configurable {
 
     private Artist findArtist(String qname) throws AuraException, RemoteException {
         String query = "(aura-type = artist) <AND> (aura-name <matches> \"*" + qname + "*\")";
-        List<Scored<Item>> items = dataStore.query(query, "-score", sutils.getHits(), null);
+        List<Scored<Item>> items = musicDatabase.getDataStore().query(query, "-score", sutils.getHits(), null);
         if (items.size() > 0) {
             return new Artist(items.get(0).getItem());
         }
@@ -587,7 +591,7 @@ public class MusicShell implements AuraService, Configurable {
 
     private ArtistTag findArtistTag(String qname) throws AuraException, RemoteException {
         String query = "(aura-type = ARTIST_TAG) <AND> (aura-name <matches> \"*" + qname + "*\")";
-        List<Scored<Item>> items = dataStore.query(query, "-score", sutils.getHits(), null);
+        List<Scored<Item>> items = musicDatabase.getDataStore().query(query, "-score", sutils.getHits(), null);
         if (items.size() > 0) {
             return new ArtistTag(items.get(0).getItem());
         }
@@ -595,7 +599,7 @@ public class MusicShell implements AuraService, Configurable {
     }
 
     private void dumpAll(ItemType type) throws AuraException, RemoteException {
-        List<Item> items = dataStore.getAll(type);
+        List<Item> items = musicDatabase.getDataStore().getAll(type);
         int count = 0;
         for (Item item : items) {
             System.out.printf("%d %s %s\n", ++count, item.getKey(), item.getName());
@@ -603,7 +607,7 @@ public class MusicShell implements AuraService, Configurable {
     }
 
     private void fixupArtists() throws AuraException, RemoteException {
-        List<Item> artists = dataStore.getAll(ItemType.ARTIST);
+        List<Item> artists = musicDatabase.getDataStore().getAll(ItemType.ARTIST);
         for (Item item : artists) {
             Artist artist = new Artist(item);
             repairTags(artist);
@@ -619,7 +623,7 @@ public class MusicShell implements AuraService, Configurable {
                 int score = c * c + 1;
                 artist.setSocialTag(tag.getName(), score);
             }
-            artist.flush(dataStore);
+            artist.flush(musicDatabase.getDataStore());
         } else {
             System.out.println("Skipping " + artist.getName());
         }
@@ -640,13 +644,12 @@ public class MusicShell implements AuraService, Configurable {
      * @throws com.sun.labs.util.props.PropertyException
      */
     public void newProperties(PropertySheet ps) throws PropertyException {
-        dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
         tagCrawler = (TagCrawler) ps.getComponent(PROP_TAG_CRAWLER);
         artistCrawler = (Crawler) ps.getComponent(PROP_ARTIST_CRAWLER);
         listenerCrawler = (ListenerCrawler) ps.getComponent(PROP_LISTENER_CRAWLER);
         statService = (StatService) ps.getComponent(PROP_STAT_SERVICE);
         try {
-            musicDatabase = new MusicDatabase(dataStore);
+            musicDatabase = new MusicDatabase(ps.getConfigurationManager(), PROP_DATA_STORE);
         } catch (AuraException ex) {
             throw new PropertyException(ex, "MusicShell", ps.getInstanceName(), "Can't create music database");
         }
@@ -659,7 +662,6 @@ public class MusicShell implements AuraService, Configurable {
         }
         return sb.toString().trim();
     }
-
     /**
      * the configurable property for the itemstore used by this manager
      */

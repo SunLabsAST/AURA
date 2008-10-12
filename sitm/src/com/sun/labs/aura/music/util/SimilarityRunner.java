@@ -28,7 +28,6 @@ public class SimilarityRunner implements Configurable, AuraService {
     @ConfigComponent(type=com.sun.labs.aura.datastore.DataStore.class)
     public static final String PROP_DATA_STORE = "dataStore";
     
-    private DataStore dataStore;
 
     @ConfigString(defaultValue="weezer")
     public static final String PROP_ARTIST_NAME = "artistName";
@@ -103,9 +102,8 @@ public class SimilarityRunner implements Configurable, AuraService {
     public void newProperties(PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
         cm = ps.getConfigurationManager();
-        dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
         try {
-            mdb = new MusicDatabase(dataStore);
+            mdb = new MusicDatabase(ps.getConfigurationManager(), PROP_DATA_STORE);
         } catch(AuraException ex) {
             throw new PropertyException(ex, ps.getInstanceName(),
                     PROP_DATA_STORE, "Error getting music database");

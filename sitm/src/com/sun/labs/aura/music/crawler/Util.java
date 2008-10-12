@@ -25,18 +25,15 @@ import java.util.List;
  * @author plamere
  */
 public class Util {
-
-    DataStore dataStore;
     FlickrManager flickr;
     Youtube youtube;
 
-    Util(DataStore dataStore, FlickrManager flickr, Youtube youtube) {
-        this.dataStore = dataStore;
+    Util(FlickrManager flickr, Youtube youtube) {
         this.flickr = flickr;
         this.youtube = youtube;
     }
 
-    List<Photo> collectFlickrPhotos(String query, int count) throws AuraException, RemoteException, IOException {
+    List<Photo> collectFlickrPhotos(DataStore dataStore, String query, int count) throws AuraException, RemoteException, IOException {
         List<Photo> photos = new ArrayList();
         Image[] images = flickr.getPhotosForArtist(query, count);
         for (Image image : images) {
@@ -60,7 +57,7 @@ public class Util {
         return photos;
     }
 
-    List<Video> collectYoutubeVideos(String query, int count) throws AuraException, RemoteException, IOException {
+    List<Video> collectYoutubeVideos(DataStore dataStore, String query, int count) throws AuraException, RemoteException, IOException {
         List<Video> videos = new ArrayList();
         List<YoutubeVideo> ytvideos = youtube.musicSearch(query, count);
         for (YoutubeVideo ytvideo : ytvideos) {

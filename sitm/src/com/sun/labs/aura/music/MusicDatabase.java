@@ -16,9 +16,11 @@ import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
+import com.sun.labs.aura.util.RemoteComponentManager;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.ResultsFilter;
+import com.sun.labs.util.props.ConfigurationManager;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,7 +48,6 @@ public class MusicDatabase {
 
         ReadOnly, AddAttention, AddItem
     };
-    private DataStore dataStore;
     private List<SimType> simTypes;
     private Map<String, RecommendationType> recTypeMap;
     private Random rng = new Random();
@@ -55,18 +56,21 @@ public class MusicDatabase {
     public final static String DEFAULT_RECOMMENDER = "SimToRecent(2)";
     private double skimPercent = 1;
     private Logger logger = Logger.getLogger("com.sun.labs.aura.music.MusicDatabase");
+    private RemoteComponentManager rcm;
+    private String dataStoreName;
 
-    public MusicDatabase(DataStore dataStore) throws AuraException {
-        this.dataStore = dataStore;
-        new Album().defineFields(dataStore);
-        new Artist().defineFields(dataStore);
-        new ArtistTag().defineFields(dataStore);
-        new Event().defineFields(dataStore);
-        new Photo().defineFields(dataStore);
-        new Track().defineFields(dataStore);
-        new Venue().defineFields(dataStore);
-        new Video().defineFields(dataStore);
-        new Listener().defineFields(dataStore);
+    public MusicDatabase(ConfigurationManager cm, String dataStoreName) throws AuraException {
+        this.dataStoreName = dataStoreName;
+        this.rcm = new RemoteComponentManager(cm);
+        new Album().defineFields(getDataStore());
+        new Artist().defineFields(getDataStore());
+        new ArtistTag().defineFields(getDataStore());
+        new Event().defineFields(getDataStore());
+        new Photo().defineFields(getDataStore());
+        new Track().defineFields(getDataStore());
+        new Venue().defineFields(getDataStore());
+        new Video().defineFields(getDataStore());
+        new Listener().defineFields(getDataStore());
 
         initSimTypes();
         initArtistRecommendationTypes();
@@ -76,13 +80,13 @@ public class MusicDatabase {
      * Gets the datastore
      * @return the datastore
      */
-    public DataStore getDataStore() {
-        return dataStore;
+    public DataStore getDataStore() throws AuraException {
+        return (DataStore) rcm.getComponent(dataStoreName);
     }
 
     public void flush(ItemAdapter itemAdapter) throws AuraException {
         try {
-            itemAdapter.flush(dataStore);
+            itemAdapter.flush(getDataStore());
         } catch (RemoteException rx) {
             throw new AuraException("Error communicating with item store", rx);
         }
@@ -142,7 +146,7 @@ public class MusicDatabase {
      */
     public Listener updateListener(Listener listener) throws AuraException, RemoteException {
         try {
-            return new Listener(dataStore.putUser(listener.getUser()));
+            return new Listener(getDataStore().putUser(listener.getUser()));
         } catch (RemoteException rx) {
             throw new AuraException("Error communicating with item store", rx);
         }
@@ -160,7 +164,7 @@ public class MusicDatabase {
         for (int i = 0; i < playCount; i++) {
             Attention attention = StoreFactory.newAttention(listenerID, artistID,
                     Attention.Type.PLAYED, Long.valueOf(playCount));
-            dataStore.attend(attention);
+            getDataStore().attend(attention);
         }
     }
 
@@ -173,12 +177,12 @@ public class MusicDatabase {
      */
     public void addFavoriteAttention(String listenerID, String artistID) throws AuraException, RemoteException {
         Attention attention = StoreFactory.newAttention(listenerID, artistID, Attention.Type.LOVED);
-        dataStore.attend(attention);
+        getDataStore().attend(attention);
     }
 
     public void addViewedAttention(String listenerID, String artistID) throws AuraException, RemoteException {
         Attention attention = StoreFactory.newAttention(listenerID, artistID, Attention.Type.VIEWED);
-        dataStore.attend(attention);
+        getDataStore().attend(attention);
     }
 
     /**
@@ -195,7 +199,7 @@ public class MusicDatabase {
         }
         Attention attention = StoreFactory.newAttention(listenerID, artistID,
                 Attention.Type.RATING, Long.valueOf(numStars));
-        dataStore.attend(attention);
+        getDataStore().attend(attention);
     }
 
     public int getLatestRating(String listenerID, String artistID) throws AuraException, RemoteException {
@@ -204,7 +208,7 @@ public class MusicDatabase {
         ac.setType(Attention.Type.RATING);
         ac.setSourceKey(listenerID);
         ac.setTargetKey(artistID);
-        List<Attention> attns = dataStore.getLastAttention(ac, 1);
+        List<Attention> attns = getDataStore().getLastAttention(ac, 1);
         if (attns.size() > 0) {
             rating = (int) getNumber(attns.get(0));
         }
@@ -221,7 +225,11 @@ public class MusicDatabase {
      * @param mbaid the musicbrainz ID
      */
     public void addArtist(String mbaid) throws AuraException, RemoteException {
-        // TBD write me
+        if (artistLookup(mbaid) == null) {
+            Item item = StoreFactory.newItem(ItemType.ARTIST, mbaid, "(unknown)");
+            Artist artist = new Artist(item);
+            artist.flush(getDataStore());
+        }
     }
 
     /**
@@ -252,21 +260,21 @@ public class MusicDatabase {
      * @throws java.rmi.RemoteException
      */
     public void addTag(String listenerID, String itemID, String tag) throws AuraException, RemoteException {
-        if (dataStore.getItem(itemID) != null) {
+        if (getDataStore().getItem(itemID) != null) {
             Attention attention = StoreFactory.newAttention(listenerID, itemID,
                     Attention.Type.TAG, tag);
-            dataStore.attend(attention);
+            getDataStore().attend(attention);
         }
     }
 
     public void addAttention(String srcKey, String targetKey, Attention.Type type, String value)
             throws AuraException, RemoteException {
 
-        if (dataStore.getItem(srcKey) == null) {
+        if (getDataStore().getItem(srcKey) == null) {
             throw new AuraException("attention src does not exist");
         }
 
-        if (dataStore.getItem(targetKey) == null) {
+        if (getDataStore().getItem(targetKey) == null) {
             throw new AuraException("attention target does not exist");
         }
 
@@ -313,7 +321,7 @@ public class MusicDatabase {
             default:
                 attention = StoreFactory.newAttention(srcKey, targetKey, type);
         }
-        dataStore.attend(attention);
+        getDataStore().attend(attention);
     }
 
     /**
@@ -328,7 +336,7 @@ public class MusicDatabase {
         ac.setType(Attention.Type.TAG);
         ac.setTargetKey(itemID);
 
-        List<Attention> attns = dataStore.getAttention(ac);
+        List<Attention> attns = getDataStore().getAttention(ac);
         List<String> results = new ArrayList(attns.size());
         for (Attention attn : attns) {
             results.add(attn.getString());
@@ -348,7 +356,7 @@ public class MusicDatabase {
         ac.setSourceKey(listenerID);
         ac.setType(Attention.Type.TAG);
 
-        List<Attention> attns = dataStore.getAttention(ac);
+        List<Attention> attns = getDataStore().getAttention(ac);
         for (Attention attn : attns) {
             sm.accum(attn.getString(), 1);
         }
@@ -374,7 +382,7 @@ public class MusicDatabase {
         ac.setSourceKey(listenerID);
         ac.setType(Attention.Type.LOVED);
 
-        List<Attention> attns = dataStore.getLastAttention(ac, max);
+        List<Attention> attns = getDataStore().getLastAttention(ac, max);
         Set<String> results = new HashSet();
         for (Attention attn : attns) {
             results.add(attn.getTargetKey());
@@ -388,7 +396,7 @@ public class MusicDatabase {
 
         AttentionConfig ac = new AttentionConfig();
         ac.setSourceKey(listenerID);
-        List<Attention> attns = dataStore.getLastAttention(ac, max * 100);
+        List<Attention> attns = getDataStore().getLastAttention(ac, max * 100);
         for (Attention attn : attns) {
             if (isArtist(attn.getTargetKey())) {
                 int score = getAttentionScore(attn);
@@ -432,7 +440,7 @@ public class MusicDatabase {
         ac.setNumberVal(5L);
 
         ScoredManager<String> sm = new ScoredManager();
-        List<Attention> attns = dataStore.getLastAttention(ac, max);
+        List<Attention> attns = getDataStore().getLastAttention(ac, max);
         for (Attention attn : attns) {
             sm.accum(attn.getTargetKey(), 1);
         }
@@ -444,7 +452,7 @@ public class MusicDatabase {
         ScoredManager<String> sm = new ScoredManager();
         AttentionConfig ac = new AttentionConfig();
         ac.setSourceKey(listenerID);
-        DBIterator<Attention> attentionIterator = dataStore.getAttentionIterator(ac);
+        DBIterator<Attention> attentionIterator = getDataStore().getAttentionIterator(ac);
         try {
             while (attentionIterator.hasNext()) {
                 Attention attn = attentionIterator.next();
@@ -498,7 +506,7 @@ public class MusicDatabase {
         ac.setSourceKey(srcID);
         ac.setTargetKey(targetID);
         ac.setType(type);
-        return dataStore.getLastAttention(ac, count);
+        return getDataStore().getLastAttention(ac, count);
     }
 
     public TagCloud tagCloudCreate(
@@ -515,7 +523,7 @@ public class MusicDatabase {
     public TagCloud getTagCloud(
             String id) throws AuraException {
         try {
-            Item item = dataStore.getItem(id);
+            Item item = getDataStore().getItem(id);
             return new TagCloud(item);
         } catch (RemoteException rx) {
             throw new AuraException("Error communicating with item store", rx);
@@ -553,7 +561,7 @@ public class MusicDatabase {
         ac.setSourceKey(listenerID);
 
         Set<String> ids = new HashSet();
-        DBIterator<Attention> attentionIterator = dataStore.getAttentionIterator(ac);
+        DBIterator<Attention> attentionIterator = getDataStore().getAttentionIterator(ac);
         try {
             while (attentionIterator.hasNext()) {
                 Attention attn = attentionIterator.next();
@@ -588,7 +596,7 @@ public class MusicDatabase {
      * @throws java.rmi.RemoteException
      */
     public void deleteListener(String listenerID) throws AuraException, RemoteException {
-        dataStore.deleteUser(listenerID);
+        getDataStore().deleteUser(listenerID);
     }
 
     /**
@@ -604,7 +612,7 @@ public class MusicDatabase {
         AttentionConfig ac = new AttentionConfig();
         ac.setSourceKey(listenerID);
         ac.setType(type);
-        return dataStore.getLastAttention(ac, count);
+        return getDataStore().getLastAttention(ac, count);
     }
 
     /**
@@ -615,7 +623,7 @@ public class MusicDatabase {
     public Listener getListener(
             String openID) throws AuraException, RemoteException {
         try {
-            User user = dataStore.getUser(openID);
+            User user = getDataStore().getUser(openID);
             if (user != null) {
                 return new Listener(user);
             } else {
@@ -858,7 +866,7 @@ public class MusicDatabase {
 
     public List<Scored<String>> artistExplainSimilarity(String artistID1, String artistID2, int count) throws AuraException {
         try {
-            return dataStore.explainSimilarity(artistID1, artistID2, new SimilarityConfig(Artist.FIELD_SOCIAL_TAGS, count));
+            return getDataStore().explainSimilarity(artistID1, artistID2, new SimilarityConfig(Artist.FIELD_SOCIAL_TAGS, count));
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -867,7 +875,7 @@ public class MusicDatabase {
 
     public List<Scored<String>> artistExplainSimilarity(WordCloud cloud, String artistID1, int count) throws AuraException {
         try {
-            return dataStore.explainSimilarity(cloud, artistID1, new SimilarityConfig(Artist.FIELD_SOCIAL_TAGS, count));
+            return getDataStore().explainSimilarity(cloud, artistID1, new SimilarityConfig(Artist.FIELD_SOCIAL_TAGS, count));
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -876,7 +884,7 @@ public class MusicDatabase {
 
     public List<Scored<String>> artistExplainSimilarity(String artistID1, String artistID2, String field, int count) throws AuraException {
         try {
-            return dataStore.explainSimilarity(artistID1, artistID2, new SimilarityConfig(field, count));
+            return getDataStore().explainSimilarity(artistID1, artistID2, new SimilarityConfig(field, count));
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -899,7 +907,7 @@ public class MusicDatabase {
 
     public List<Artist> artistGetMostPopular(int count) throws AuraException {
         try {
-            List<Scored<Item>> items = dataStore.query("aura-type=ARTIST", "-popularity", count, null);
+            List<Scored<Item>> items = getDataStore().query("aura-type=ARTIST", "-popularity", count, null);
             List<Artist> artists = new ArrayList<Artist>();
             for (Scored<Item> i : items) {
                 artists.add(new Artist(i.getItem()));
@@ -915,7 +923,7 @@ public class MusicDatabase {
     public List<Listener> listenerGetMostActive(int count) throws AuraException {
         try {
             // TBD - activity field has not been added to the listner yet.
-            List<Scored<Item>> items = dataStore.query("aura-type=USER", "-score", count, null);
+            List<Scored<Item>> items = getDataStore().query("aura-type=USER", "-score", count, null);
             List<Listener> listeners = new ArrayList<Listener>();
             for (Scored<Item> i : items) {
                 listeners.add(new Listener(i.getItem()));
@@ -929,7 +937,7 @@ public class MusicDatabase {
 
     public List<ArtistTag> artistTagGetMostPopular(int count) throws AuraException {
         try {
-            List<Scored<Item>> items = dataStore.query("aura-type=ARTIST_TAG", "-popularity", count, null);
+            List<Scored<Item>> items = getDataStore().query("aura-type=ARTIST_TAG", "-popularity", count, null);
             List<ArtistTag> artistTags = new ArrayList();
             for (Scored<Item> i : items) {
                 artistTags.add(new ArtistTag(i.getItem()));
@@ -1000,7 +1008,7 @@ public class MusicDatabase {
     public WordCloud artistGetDistinctiveTagNames(
             String id, int count) throws AuraException {
         try {
-            return dataStore.getTopTerms(id, Artist.FIELD_SOCIAL_TAGS, count);
+            return getDataStore().getTopTerms(id, Artist.FIELD_SOCIAL_TAGS, count);
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -1011,7 +1019,7 @@ public class MusicDatabase {
         try {
             List<Scored<ArtistTag>> artistTags = new ArrayList();
 
-            WordCloud tagNames = dataStore.getTopTerms(id, field, count);
+            WordCloud tagNames = getDataStore().getTopTerms(id, field, count);
             for (Scored<String> scoredTagName : tagNames) {
                 ArtistTag artistTag = artistTagLookup(ArtistTag.nameToKey(scoredTagName.getItem()));
                 // not all tags may be in the database yet
@@ -1169,7 +1177,7 @@ public class MusicDatabase {
 
     private Item getItem(String id) throws AuraException {
         try {
-            return dataStore.getItem(id);
+            return getDataStore().getItem(id);
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -1178,7 +1186,7 @@ public class MusicDatabase {
 
     private Collection<Item> getItems(Collection<String> ids) throws AuraException {
         try {
-            return dataStore.getItems(ids);
+            return getDataStore().getItems(ids);
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -1187,7 +1195,7 @@ public class MusicDatabase {
 
     private List<Scored<Item>> query(String query, int count) throws AuraException {
         try {
-            return dataStore.query(query, "-score", count, null);
+            return getDataStore().query(query, "-score", count, null);
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -1239,7 +1247,7 @@ public class MusicDatabase {
 
     private List<Scored<Item>> findSimilar(String id, int count, ItemType type) throws AuraException {
         try {
-            List<Scored<Item>> simItems = dataStore.findSimilar(id, getFindSimilarConfig(count, new TypeFilter(type)));
+            List<Scored<Item>> simItems = getDataStore().findSimilar(id, getFindSimilarConfig(count, new TypeFilter(type)));
             return simItems;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
@@ -1249,7 +1257,7 @@ public class MusicDatabase {
 
     private List<Scored<Item>> findSimilar(String id, int count, ItemType type, Popularity pop) throws AuraException {
         try {
-            List<Scored<Item>> simItems = dataStore.findSimilar(id, getFindSimilarConfig(count,
+            List<Scored<Item>> simItems = getDataStore().findSimilar(id, getFindSimilarConfig(count,
                     new PopularityAndTypeFilter(type, pop, getMostPopularArtist().getPopularity())));
             return simItems;
         } catch (RemoteException ex) {
@@ -1260,7 +1268,7 @@ public class MusicDatabase {
 
     private List<Scored<Item>> findSimilar(String id, String field, int count, ItemType type) throws AuraException {
         try {
-            List<Scored<Item>> simItems = dataStore.findSimilar(id, getFindSimilarConfig(field, count, new TypeFilter(type)));
+            List<Scored<Item>> simItems = getDataStore().findSimilar(id, getFindSimilarConfig(field, count, new TypeFilter(type)));
             return simItems;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
@@ -1270,7 +1278,7 @@ public class MusicDatabase {
 
     private List<Scored<Item>> findSimilar(String id, String field, int count, ItemType type, Popularity pop) throws AuraException {
         try {
-            List<Scored<Item>> simItems = dataStore.findSimilar(id, getFindSimilarConfig(field, count,
+            List<Scored<Item>> simItems = getDataStore().findSimilar(id, getFindSimilarConfig(field, count,
                     new PopularityAndTypeFilter(type, pop, getMostPopularArtist().getPopularity())));
             return simItems;
         } catch (RemoteException ex) {
@@ -1281,7 +1289,7 @@ public class MusicDatabase {
 
     private List<Scored<Item>> findSimilar(WordCloud wc, String field, int count, ItemType type) throws AuraException {
         try {
-            List<Scored<Item>> simItems = dataStore.findSimilar(wc, getFindSimilarConfig(field, count, new TypeFilter(type)));
+            List<Scored<Item>> simItems = getDataStore().findSimilar(wc, getFindSimilarConfig(field, count, new TypeFilter(type)));
             return simItems;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
@@ -1291,7 +1299,7 @@ public class MusicDatabase {
 
     private List<Scored<Item>> findSimilar(WordCloud wc, String field, int count, ItemType type, Popularity pop) throws AuraException {
         try {
-            List<Scored<Item>> simItems = dataStore.findSimilar(wc, getFindSimilarConfig(field, count,
+            List<Scored<Item>> simItems = getDataStore().findSimilar(wc, getFindSimilarConfig(field, count,
                     new PopularityAndTypeFilter(type, pop, getMostPopularArtist().getPopularity())));
             return simItems;
         } catch (RemoteException ex) {
@@ -1343,7 +1351,7 @@ public class MusicDatabase {
 
         public List<Scored<String>> explainSimilarity(String id1, String id2, int count) throws AuraException {
             try {
-                return dataStore.explainSimilarity(id1, id2, new SimilarityConfig(field, count));
+                return getDataStore().explainSimilarity(id1, id2, new SimilarityConfig(field, count));
             } catch (RemoteException ex) {
                 throw new AuraException("Can't talk to the datastore " + ex, ex);
             }
@@ -1572,7 +1580,7 @@ public class MusicDatabase {
 
         public RecommendationSummary getRecommendations(String listenerID, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
-            List<Scored<Item>> items = dataStore.findSimilar(listenerID,
+            List<Scored<Item>> items = getDataStore().findSimilar(listenerID,
                     getFindSimilarConfig(Listener.FIELD_SOCIAL_TAGS,
                     count * 5, new TypeFilter(ItemType.ARTIST)));
             List<Recommendation> results = new ArrayList();
@@ -1580,7 +1588,7 @@ public class MusicDatabase {
 
             for (Scored<Item> item : items) {
                 if (!skipIDS.contains(item.getItem().getKey())) {
-                    List<Scored<String>> reason = dataStore.explainSimilarity(listenerID,
+                    List<Scored<String>> reason = getDataStore().explainSimilarity(listenerID,
                             item.getItem().getKey(), new SimilarityConfig(Listener.FIELD_SOCIAL_TAGS, count));
                     results.add(new Recommendation(item.getItem().getKey(), item.getScore(), reason));
                     if (results.size() >= count) {

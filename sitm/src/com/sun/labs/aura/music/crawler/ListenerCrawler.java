@@ -69,7 +69,7 @@ public class ListenerCrawler extends ItemSchedulerImpl {
         try {
             lastfm = new LastFM();
             pandora = new Pandora();
-            mdb = new MusicDatabase(dataStore);
+            mdb = new MusicDatabase(ps.getConfigurationManager(), PROP_DATA_STORE);
         } catch (AuraException ex) {
             throw new PropertyException(ex, ps.getInstanceName(), "musicDatabase", "problems with the music database");
         } catch (IOException ex) {
@@ -113,7 +113,7 @@ public class ListenerCrawler extends ItemSchedulerImpl {
             updateListenerArtists(listener);
             updateListenerTags(listener);
             listener.setLastCrawl();
-            listener.flush(dataStore);
+            mdb.flush(listener);
         } else {
             logger.info("Skipping listener " + listener.getName());
         }
@@ -129,7 +129,7 @@ public class ListenerCrawler extends ItemSchedulerImpl {
     }
 
     public void crawlAllListeners() throws AuraException, RemoteException, IOException {
-        List<Item> items = dataStore.getAll(ItemType.USER);
+        List<Item> items = mdb.getDataStore().getAll(ItemType.USER);
         for (Item item : items) {
             Listener listener = new Listener(item);
             try {
