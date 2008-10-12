@@ -331,7 +331,14 @@ public class PartitionClusterImpl implements PartitionCluster,
     }
 
     public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
-        return strategy.findSimilar(dv, config);
+        if(logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE, String.format("pc %s fs start", prefixCode));
+        }
+        List<Scored<String>> ret = strategy.findSimilar(dv, config);
+        if(logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE, String.format("pc %s fs stop", prefixCode));
+        }
+        return ret;
     }
 
     public synchronized void close() throws AuraException, RemoteException {

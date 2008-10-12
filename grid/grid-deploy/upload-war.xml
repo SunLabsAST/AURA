@@ -5,21 +5,11 @@
 
   <import file="common.xml"/>
   
-  <!-- Get a deployment name and number from the properties passed in. -->
-    <condition property="deployment.name" value="www">
-        <not>
-            <isset property="deployment.name"/>
-        </not>
-    </condition>
-
-    <property name="www.filesystem" value="${deployment.name}.filesystem"/>
-    <property name="intaddress" value="${deployment.name}-int"/>
-    <property name="service.process" value="${deployment.name}"/>
-
-  <!-- Upload the war file to the collection. -->
+  <!-- Upload the war file to the dist directory. -->
   <target name="upload-war" description="Uploads war file" depends="create-war-collection">
     <dav:put url="${war.url}"
-	     userid="${user}" password="${pw}" lock="false" verbose="true">
+	     userid="${user}" password="${pw}" 
+	     lock="false" verbose="true">
       <fileset dir="${war.dir}">
 	<include name="${war.file}"/>
       </fileset>

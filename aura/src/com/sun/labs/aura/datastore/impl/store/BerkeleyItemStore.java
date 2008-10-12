@@ -695,6 +695,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
         findSimCntr.incrementAndGet();
         NanoWatch sw = new NanoWatch();
         sw.start();
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("rep %s fs %s start", prefixString, dv.getKey()));
+        }
         List<Scored<String>> fsr = searchEngine.findSimilar(dv, config);
         sw.stop();
         if(logger.isLoggable(Level.FINE)) {

@@ -76,7 +76,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         }
 
         mainbutton = new Grid(1,1);
-        setNewButton(null);
+        setNewButton(cdm.getCurrPreferedMusicProvider());
         initWidget(mainbutton);
         
         sinkEvents(Event.ONCONTEXTMENU);
@@ -90,7 +90,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
             w = tryProviders(preferredMP);
         }
         if (w == null) {
-            w = tryProviders(cdm.getCurrMusicProvider());
+            w = tryProviders(null);
         }
         mainbutton.setWidget(0, 0, w);
         
@@ -112,22 +112,18 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
                 return w;
             }
         }
-
         if (preferredMP == null || preferredMP == MusicProviders.SPOTIFY) {
             w = getSpotifyListenWidget(triggerPlayClickListener);
             if (w != null) {
                 return w;
             }
         }
-        
         if (preferredMP == null || preferredMP == MusicProviders.THEWEB) {
             w = getTheWebListenWidget(triggerPlayClickListener);
             if (w != null) {
                 return w;
             }
         }
-        
-
         return null;
     }
     
