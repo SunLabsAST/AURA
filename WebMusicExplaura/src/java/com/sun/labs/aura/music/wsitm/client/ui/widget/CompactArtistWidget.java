@@ -60,7 +60,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         HorizontalPanel artistPanel = new HorizontalPanel();
         artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_TOP);
         artistPanel.setStyleName("artistPanel");
-        artistPanel.setSpacing(5);
+        //artistPanel.setSpacing(5);
 
         ClickListener cL = new DataEmbededClickListener<String>("artist:" + aC.getId()) {
 
@@ -78,13 +78,13 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         img.setHeight("75px");
         img.setWidth("75px");
         img.addClickListener(cL);
+        img.addStyleName("largeMarginRight");
 
         artistPanel.add(img);
 
         HorizontalPanel aNamePanel = new HorizontalPanel();
         aNamePanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
         aNamePanel.setWidth("210px");
-        aNamePanel.setSpacing(5);
         
         ContextMenuSpannedLabel aName = new ContextMenuArtistLabel(aC, cdm);
         aName.addClickListener(cL);
@@ -94,11 +94,11 @@ public class CompactArtistWidget extends Composite implements HasListeners {
 
         HorizontalPanel buttonPanel = new HorizontalPanel();
         buttonPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
-        buttonPanel.setSpacing(5);
         playButton = new PlayButton(cdm, aC, PlayButton.PLAY_ICON_SIZE.SMALL, musicServer);
         if (playButton != null) {
             cdm.getMusicProviderSwitchListenerManager().addListener(playButton);
-            playButton.getElement().setAttribute("style", "align : right;");
+            playButton.getElement().setPropertyString("align", "right");
+            playButton.addStyleName("largeMarginRight");
             buttonPanel.add(playButton);
         }
 
@@ -110,6 +110,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
             }
         });
         steerButton.setTitle("Steerable recommendations starting with "+aC.getName()+"'s tag cloud");
+        steerButton.addStyleName("largeMarginRight");
         buttonPanel.add(new ContextMenuSteeringWheelWidget(cdm, steerButton, aC));
 
         //steeringMenu
@@ -132,6 +133,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         aNamePanel.add(buttonPanel);
 
         VerticalPanel txtPanel = new VerticalPanel();
+        txtPanel.setVerticalAlignment(VerticalPanel.ALIGN_TOP);
         txtPanel.add(aNamePanel);
 
         if (userTags != null && userTags.size() > 0) {
@@ -162,8 +164,10 @@ public class CompactArtistWidget extends Composite implements HasListeners {
 
         txtPanel.add(WebLib.getSmallPopularityWidget(aC.getNormPopularity(), true, true));
 
+        artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_TOP);
+        //txtPanel.getElement().setPropertyString("margin-top", "0px");
         artistPanel.add(txtPanel);
-
+        artistPanel.addStyleName("largeMarginBottom");
         initWidget(artistPanel);
         setWidth("300px");
     }

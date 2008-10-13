@@ -56,6 +56,12 @@ img {
 .marginRight {
   margin-right: 3px;
 }
+.largeMarginRight {
+  margin-right: 5px;
+}
+.largeMarginBottom {
+  margin-bottom: 8px;
+}
 .main { margin: 10px; }
 .searchPanel {  margin: 10px 10px 10px 10px; }
 .tagCloudMargin {  margin-bottom: 10px; }
