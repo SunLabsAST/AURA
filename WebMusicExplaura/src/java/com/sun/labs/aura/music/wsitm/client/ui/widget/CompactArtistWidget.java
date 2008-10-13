@@ -109,6 +109,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
                 History.newItem("steering:" + sndData.getId());
             }
         });
+        steerButton.setTitle("Steerable recommendations starting with "+aC.getName()+"'s tag cloud");
         buttonPanel.add(new ContextMenuSteeringWheelWidget(cdm, steerButton, aC));
 
         //steeringMenu

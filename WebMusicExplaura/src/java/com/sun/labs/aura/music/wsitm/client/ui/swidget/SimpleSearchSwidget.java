@@ -651,6 +651,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                 History.newItem("steering:" + sndData.getId());
             }
         });
+        steerButton.setTitle("Steerable recommendations starting with "+aC.getName()+"'s tag cloud");
         hP.add(new ContextMenuSteeringWheelWidget(cdm, steerButton, aC));
 
         return createMainSection(artistDetails.getName(), html,

@@ -410,7 +410,7 @@ public class ResizableTagWidget extends TagWidget {
 
     public class ResizableTag extends SpannedLabel implements WrapsCloudItem {
 
-        private final double DEFAULT_SIZE = 40;
+        private final static double DEFAULT_SIZE = 40;
 
         private boolean hasClicked = false;
         private ColorConfig color;
@@ -425,6 +425,8 @@ public class ResizableTagWidget extends TagWidget {
             if (this.item.getWeight() == 0) {
                 this.item.setWeight(DEFAULT_SIZE);
             }
+
+            setTitle("Click and drag this tag to change its size");
 
             addStyleName("marginRight");
             addStyleName("hand");
