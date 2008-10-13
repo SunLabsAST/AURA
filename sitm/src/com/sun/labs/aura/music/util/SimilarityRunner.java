@@ -99,11 +99,12 @@ public class SimilarityRunner implements Configurable, AuraService {
         return nw.getTimeMillis();
     }
     
+    @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
         cm = ps.getConfigurationManager();
         try {
-            mdb = new MusicDatabase(ps.getConfigurationManager(), PROP_DATA_STORE);
+            mdb = new MusicDatabase(ps.getConfigurationManager());
         } catch(AuraException ex) {
             throw new PropertyException(ex, ps.getInstanceName(),
                     PROP_DATA_STORE, "Error getting music database");

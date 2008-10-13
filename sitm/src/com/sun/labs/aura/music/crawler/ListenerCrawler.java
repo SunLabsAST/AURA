@@ -4,6 +4,9 @@
  */
 package com.sun.labs.aura.music.crawler;
 
+import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.datastore.DBIterator;
+import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Artist;
@@ -14,23 +17,27 @@ import com.sun.labs.aura.music.web.lastfm.LastItem;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
 import com.sun.labs.aura.music.web.pandora.Pandora;
 import com.sun.labs.aura.util.AuraException;
-import com.sun.labs.aura.util.ItemSchedulerImpl;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Tag;
+import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
+import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.IOException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  *
  * @author plamere
  */
-public class ListenerCrawler extends ItemSchedulerImpl {
+public class ListenerCrawler implements AuraService, Configurable, Crawler {
 
     private LastFM lastfm;
     private Pandora pandora;
@@ -39,16 +46,25 @@ public class ListenerCrawler extends ItemSchedulerImpl {
     private Logger logger;
     private int numThreads;
 
-    @Override
     public void start() {
         if (!running) {
             running = true;
-            for (int i = 0; i < numThreads; i++) {
+            {
                 Thread t = new Thread() {
 
                     @Override
                     public void run() {
-                        scheduledCrawlListeners();
+                        periodicallyCrawlAllListeners();
+                    }
+                };
+                t.start();
+            }
+            {
+                Thread t = new Thread() {
+
+                    @Override
+                    public void run() {
+                        periodicallyCrawlNewListeners();
                     }
                 };
                 t.start();
@@ -62,14 +78,41 @@ public class ListenerCrawler extends ItemSchedulerImpl {
     }
 
     @Override
+    public void update(final String id) throws AuraException, RemoteException {
+        Thread t = new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    Listener listener = mdb.getListener(id);
+                    if (listener != null) {
+                        crawlListener(listener, true);
+                    }
+                } catch (AuraException ex) {
+                    logger.warning("could not crawl listener " + id + " " + ex.getMessage());
+                    Logger.getLogger(ListenerCrawler.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (RemoteException ex) {
+                    logger.warning("could not crawl listener " + id + " " + ex.getMessage());
+                }
+            }
+        };
+        t.start();
+    }
+
+    @Override
+    public void add(String newID) throws AuraException, RemoteException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
         logger = ps.getLogger();
-        numThreads = ps.getInt(PROP_NUM_THREADS);
+        defaultPeriod = ps.getInt(PROP_DEFAULT_PERIOD);
+        newCrawlPeriod = ps.getInt(PROP_NEW_CRAWL_PERIOD);
         try {
             lastfm = new LastFM();
             pandora = new Pandora();
-            mdb = new MusicDatabase(ps.getConfigurationManager(), PROP_DATA_STORE);
+            mdb = new MusicDatabase(ps.getConfigurationManager());
         } catch (AuraException ex) {
             throw new PropertyException(ex, ps.getInstanceName(), "musicDatabase", "problems with the music database");
         } catch (IOException ex) {
@@ -77,34 +120,87 @@ public class ListenerCrawler extends ItemSchedulerImpl {
         }
     }
 
-    private void scheduledCrawlListeners() {
+    private void periodicallyCrawlAllListeners() {
+        FixedPeriod fp = new FixedPeriod(defaultPeriod * 1000);
         while (running) {
-            String userID = null;
             try {
-                userID = getNextItemKey();
-                Listener listener = mdb.getListener(userID);
-                crawlListener(listener);
+                fp.start();
+
+                crawlAllListeners();
+
+                fp.end();
             } catch (InterruptedException ex) {
-                break;
             } catch (AuraException ex) {
-                logger.warning("AuraException while crawling user " + userID + " " + ex);
-            } catch (IOException ex) {
-                logger.warning("IOException while crawling user " + userID + " " + ex);
-            } finally {
-                releaseItem(userID, SCHEDULE_DEFAULT);
+                logger.warning("AuraException while crawling users" + ex);
+            } catch (RemoteException ex) {
+                logger.warning("Remote exception while crawling users" + ex);
             }
         }
     }
 
-    public void crawlListener(Listener listener) throws AuraException, RemoteException {
-        if (needsCrawl(listener)) {
+    private void periodicallyCrawlNewListeners() {
+        long lastCrawl = 0;
+        FixedPeriod fp = new FixedPeriod(newCrawlPeriod * 1000);
+        while (running) {
+            try {
+                fp.start();
+
+                crawlNewListeners(lastCrawl);
+                lastCrawl = System.currentTimeMillis();
+
+                fp.end();
+            } catch (InterruptedException ex) {
+            } catch (AuraException ex) {
+                logger.warning("AuraException while crawling users" + ex);
+            } catch (RemoteException ex) {
+                logger.warning("Remote exception while crawling users" + ex);
+            }
+        }
+    }
+
+    private List<String> getAllListenerIDs() throws AuraException, RemoteException {
+        List<String> listenerList = new ArrayList();
+
+        DBIterator iter = mdb.getDataStore().getAllIterator(ItemType.USER);
+
+        try {
+            while (iter.hasNext()) {
+                Item item = (Item) iter.next();
+                listenerList.add(item.getKey());
+            }
+
+        } finally {
+            iter.close();
+        }
+        return listenerList;
+    }
+
+    private List<String> getNewListenerIDs(long lastCrawl) throws AuraException, RemoteException {
+        List<String> listenerList = new ArrayList();
+
+        DBIterator iter = mdb.getDataStore().getItemsAddedSince(ItemType.USER, new Date(lastCrawl));
+
+        try {
+            while (iter.hasNext()) {
+                Item item = (Item) iter.next();
+                Listener listener = new Listener(item);
+                if (listener.getUpdateCount() == 0) {
+                    listenerList.add(listener.getKey());
+                }
+            }
+        } finally {
+            iter.close();
+        }
+        return listenerList;
+    }
+
+    public void crawlListener(Listener listener, boolean force) throws AuraException, RemoteException {
+        if (force || needsCrawl(listener)) {
             logger.info("Crawling listener " + listener.getName());
-            int state = listener.getState();
+            int updateCount = listener.getUpdateCount();
             if (listener.getLastFmName() != null) {
-                if ((state & Listener.STATE_INITIAL_LASTFM_CRAWL) != Listener.STATE_INITIAL_LASTFM_CRAWL) {
+                if (updateCount == 0) {
                     fullCrawlLastFM(listener);
-                    state |= Listener.STATE_INITIAL_LASTFM_CRAWL;
-                    listener.setState(state);
                 } else {
                     weeklyCrawlLastFM(listener);
                 }
@@ -113,6 +209,7 @@ public class ListenerCrawler extends ItemSchedulerImpl {
             updateListenerArtists(listener);
             updateListenerTags(listener);
             listener.setLastCrawl();
+            listener.incrementUpdateCount();
             mdb.flush(listener);
         } else {
             logger.info("Skipping listener " + listener.getName());
@@ -121,20 +218,29 @@ public class ListenerCrawler extends ItemSchedulerImpl {
 
     private boolean needsCrawl(Listener listener) {
         long delta = System.currentTimeMillis() - listener.getLastCrawl();
-        return delta >= getMinCrawlDelta();
+        return delta >= getMinCrawlDelta() || listener.getUpdateCount() == 0;
     }
 
     private long getMinCrawlDelta() {
         return defaultPeriod * 1000L;
     }
 
-    public void crawlAllListeners() throws AuraException, RemoteException, IOException {
-        List<Item> items = mdb.getDataStore().getAll(ItemType.USER);
-        for (Item item : items) {
-            Listener listener = new Listener(item);
-            try {
-                crawlListener(listener);
-            } catch (IOException ioe) {
+    public void crawlAllListeners() throws AuraException, RemoteException {
+        List<String> listenerIDs = getAllListenerIDs();
+        for (String id : listenerIDs) {
+            Listener listener = mdb.getListener(id);
+            if (listener != null) {
+                crawlListener(listener, false);
+            }
+        }
+    }
+
+    public void crawlNewListeners(long lastCrawl) throws AuraException, RemoteException {
+        List<String> listenerIDs = getNewListenerIDs(lastCrawl);
+        for (String id : listenerIDs) {
+            Listener listener = mdb.getListener(id);
+            if (listener != null) {
+                crawlListener(listener, false);
             }
         }
     }
@@ -239,9 +345,16 @@ public class ListenerCrawler extends ItemSchedulerImpl {
             logger.warning("Problem collecting data from last.fm for user " + listener.getName());
         }
     }
+    @ConfigComponent(type = DataStore.class)
+    public final static String PROP_DATA_STORE = "dataStore";
     /**
-     * the configurable property for the number of threads used by this manager
+     * the configurable property for default processing period (in seconds)
      */
-    @ConfigInteger(defaultValue = 1, range = {0, 1000})
-    public final static String PROP_NUM_THREADS = "numThreads";
+    @ConfigInteger(defaultValue = 7 * 24 * 60 * 60, range = {1, 60 * 60 * 24 * 365})
+    public final static String PROP_DEFAULT_PERIOD = "defaultPeriod";
+    protected int defaultPeriod;
+
+    @ConfigInteger(defaultValue =  5 * 60, range = {1, 60 * 60 * 24 * 365})
+    public final static String PROP_NEW_CRAWL_PERIOD = "newCrawlPeriod";
+    protected int newCrawlPeriod;
 }

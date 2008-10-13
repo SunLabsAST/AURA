@@ -29,11 +29,10 @@ public class Listener extends ItemAdapter {
     public final static String FIELD_ARTIST =           "LISTENER_ARTIST";
     public final static String FIELD_LAST_CRAWL =       "lastCrawl";
     public final static String FIELD_SOCIAL_TAGS =      Artist.FIELD_SOCIAL_TAGS;
+    public final static String FIELD_UPDATE_COUNT = "updateCount";
+
 
     public enum Gender { Male, Female, Unknown };
-
-    public  final static int STATE_INITIAL_LASTFM_CRAWL = 1;
-    public  final static int STATE_INITIAL_PANDORA_CRAWL = 2;
 
     @Override
     public void defineFields(DataStore ds) throws AuraException {
@@ -55,6 +54,7 @@ public class Listener extends ItemAdapter {
                     Item.FieldCapability.SORT),
                     Item.FieldType.INTEGER);
             ds.defineField(Item.ItemType.USER, FIELD_LAST_CRAWL);
+            ds.defineField(Item.ItemType.ARTIST, FIELD_UPDATE_COUNT);
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }
@@ -107,14 +107,6 @@ public class Listener extends ItemAdapter {
 
     public void setLastFmName(String name) {
         setField(FIELD_LAST_FM_NAME, name);
-    }
-
-    public int getState() {
-        return getFieldAsInt(FIELD_STATE);
-    }
-
-    public void setState(int flags) {
-        setField(FIELD_STATE, flags);
     }
 
     public String getPandoraName() {
@@ -193,5 +185,20 @@ public class Listener extends ItemAdapter {
      */
     public void clearSocialTags() {
         clearTagMap(FIELD_SOCIAL_TAGS);
+    }
+
+    /**
+     * Gets the number of times this artist has been updated
+     * @return the number of times this artist has been updated
+     */
+    public int getUpdateCount() {
+        return getFieldAsInt(FIELD_UPDATE_COUNT);
+    }
+
+    /**
+     * Sets the time when this item was last crawled to now.
+     */
+    public void incrementUpdateCount() {
+        setField(FIELD_UPDATE_COUNT, getUpdateCount() + 1);
     }
 }

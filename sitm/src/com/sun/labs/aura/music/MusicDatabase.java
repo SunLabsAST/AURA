@@ -48,6 +48,7 @@ public class MusicDatabase {
 
         ReadOnly, AddAttention, AddItem
     };
+
     private List<SimType> simTypes;
     private Map<String, RecommendationType> recTypeMap;
     private Random rng = new Random();
@@ -55,13 +56,10 @@ public class MusicDatabase {
     private Artist mostPopularArtist = null;
     public final static String DEFAULT_RECOMMENDER = "SimToRecent(2)";
     private double skimPercent = 1;
-    private Logger logger = Logger.getLogger("com.sun.labs.aura.music.MusicDatabase");
     private RemoteComponentManager rcm;
-    private String dataStoreName;
 
-    public MusicDatabase(ConfigurationManager cm, String dataStoreName) throws AuraException {
-        this.dataStoreName = dataStoreName;
-        this.rcm = new RemoteComponentManager(cm);
+    public MusicDatabase(ConfigurationManager cm) throws AuraException {
+        this.rcm = new RemoteComponentManager(cm, DataStore.class);
         new Album().defineFields(getDataStore());
         new Artist().defineFields(getDataStore());
         new ArtistTag().defineFields(getDataStore());
@@ -81,7 +79,7 @@ public class MusicDatabase {
      * @return the datastore
      */
     public DataStore getDataStore() throws AuraException {
-        return (DataStore) rcm.getComponent(dataStoreName);
+        return (DataStore) rcm.getComponent();
     }
 
     public void flush(ItemAdapter itemAdapter) throws AuraException {

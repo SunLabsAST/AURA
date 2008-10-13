@@ -5,7 +5,6 @@
 
 package com.sun.labs.aura.grid.sitm;
 
-import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.MusicDatabase;
@@ -14,8 +13,6 @@ import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.util.props.ConfigComponent;
-import com.sun.labs.util.props.ConfigInteger;
-import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.util.List;
@@ -25,13 +22,11 @@ import java.util.logging.Level;
  *
  */
 public class TestWordCloud extends ServiceAdapter {
-
     @ConfigComponent(type = com.sun.labs.aura.datastore.DataStore.class)
     public static final String PROP_DATA_STORE = "dataStore";
-
-    private DataStore ds;
-    
     public static final String wcs = "(90s,0.6789348446308936)(alternative,1.0)(american,0.5565439078660953)(college rock,0.4512262004440529)(emo,0.8993133596024468)(geek rock,-0.8338539953253963)(indie,0.9100140550161206)(nerd rock,0.887944857185779)(pop,0.5398786998573312)(punk,0.5398805839077495)(rock,0.9864281539412807)";
+
+    private MusicDatabase mdb;
     
     @Override
     public String serviceName() {
@@ -40,8 +35,12 @@ public class TestWordCloud extends ServiceAdapter {
 
     @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        ds = (DataStore) ps.getComponent(PROP_DATA_STORE);
+        try {
+            super.newProperties(ps);
+            mdb = new MusicDatabase(ps.getConfigurationManager(), PROP_DATA_STORE);
+        } catch (AuraException ex) {
+            ps.getLogger().severe("Can't create musicdatabase");
+        }
     }
     
     private double runFindSimilar(MusicDatabase mdb) throws AuraException {
@@ -60,7 +59,6 @@ public class TestWordCloud extends ServiceAdapter {
     
     public void start() {
         try {
-            MusicDatabase mdb = new MusicDatabase(ds);
             runFindSimilar(mdb);
         } catch(AuraException ex) {
             logger.log(Level.SEVERE, "Error finding similar artists", ex);

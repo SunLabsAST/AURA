@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -30,9 +31,8 @@ public class SkimTags extends ServiceAdapter {
 
     @ConfigComponent(type = com.sun.labs.aura.datastore.DataStore.class)
     public static final String PROP_DATA_STORE = "dataStore";
+    MusicDatabase mdb;
 
-    private DataStore ds;
-    
     @ConfigString(defaultValue="metal")
     public static final String PROP_TAG_NAME = "tagName";
     private String tagName;
@@ -50,11 +50,15 @@ public class SkimTags extends ServiceAdapter {
 
     @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        ds = (DataStore) ps.getComponent(PROP_DATA_STORE);
-        tagName = ps.getString(PROP_TAG_NAME);
-        runs = ps.getInt(PROP_RUNS);
-        m = new LinkedHashMap<String, List<Scored<Integer>>>();
+        try {
+            super.newProperties(ps);
+            mdb = new MusicDatabase(ps.getConfigurationManager(), PROP_DATA_STORE);
+            tagName = ps.getString(PROP_TAG_NAME);
+            runs = ps.getInt(PROP_RUNS);
+            m = new LinkedHashMap<String, List<Scored<Integer>>>();
+        } catch (AuraException ex) {
+            Logger.getLogger(SkimTags.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     private double findSimilarTags(MusicDatabase mdb, double skim) throws AuraException {
@@ -81,7 +85,6 @@ public class SkimTags extends ServiceAdapter {
     
     public void start() {
         try {
-            MusicDatabase mdb = new MusicDatabase(ds);
             double skim = 1;
             while(skim >= 0.20) {
                 mdb.setSkimPercent(skim);

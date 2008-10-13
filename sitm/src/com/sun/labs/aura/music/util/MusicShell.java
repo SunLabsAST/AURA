@@ -414,7 +414,7 @@ public class MusicShell implements AuraService, Configurable {
                     String listenerID = args[1];
                     Listener listener = musicDatabase.getListener(listenerID);
                     if (listener != null) {
-                        listenerCrawler.crawlListener(listener);
+                        listenerCrawler.crawlListener(listener, true);
                     } else {
                         System.out.println("Can't find listener " + listenerID);
                     }
@@ -649,7 +649,7 @@ public class MusicShell implements AuraService, Configurable {
         listenerCrawler = (ListenerCrawler) ps.getComponent(PROP_LISTENER_CRAWLER);
         statService = (StatService) ps.getComponent(PROP_STAT_SERVICE);
         try {
-            musicDatabase = new MusicDatabase(ps.getConfigurationManager(), PROP_DATA_STORE);
+            musicDatabase = new MusicDatabase(ps.getConfigurationManager());
         } catch (AuraException ex) {
             throw new PropertyException(ex, "MusicShell", ps.getInstanceName(), "Can't create music database");
         }

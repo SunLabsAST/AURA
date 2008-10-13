@@ -46,6 +46,7 @@ import java.util.logging.Logger;
  * @author plamere
  */
 public class TagCrawler implements AuraService, Configurable {
+
     private Wikipedia wikipedia;
     private Youtube youtube;
     private FlickrManager flickr;
@@ -57,6 +58,7 @@ public class TagCrawler implements AuraService, Configurable {
     private boolean running = false;
     private Map<String, Map<String, Tag>> tagMap = new HashMap();
     static Set skipSet;
+    
 
     static {
         skipSet = new HashSet<String>();
@@ -98,7 +100,7 @@ public class TagCrawler implements AuraService, Configurable {
             flickr = new FlickrManager();
             yahoo = new Yahoo();
             lastFM = new LastFM();
-            rcm = new RemoteComponentManager(ps.getConfigurationManager());
+            rcm = new RemoteComponentManager(ps.getConfigurationManager(), DataStore.class);
             util = new Util(flickr, youtube);
         } catch (IOException ex) {
             logger.warning("problem connecting to components" + ex);
@@ -106,30 +108,34 @@ public class TagCrawler implements AuraService, Configurable {
     }
 
     public void autoUpdater() {
+
         try {
-            running = true;
-            // start crawling after 3 minutes
             Thread.sleep(1000 * 60 * 3);
+        } catch (InterruptedException ex) {
+        }
 
-            if (forceCrawl) {
-                logger.info("Forced recrawl of artist tags");
-            }
+        running = true;
+        while (running) {
+            try {
+                // start crawling after 3 minutes
 
-            while (running) {
+                if (forceCrawl) {
+                    logger.info("Forced recrawl of artist tags");
+                }
+
                 updateArtistTags();
                 // BUG: make this configurable
                 // check for tag updates once a day
                 Thread.sleep(1000 * 60 * 60 * 24);
                 forceCrawl = false;
+            } catch (InterruptedException ex) {
+            } catch (AuraException ex) {
+                logger.warning("Problem crawling tags -  AuraException " + ex);
+            } catch (RemoteException ex) {
+                logger.warning("Problem crawling tags - RemoteException " + ex);
+            } catch (Throwable t) {
+                logger.warning("Problem crawling tags - unexpected exception " + t);
             }
-        } catch (InterruptedException ex) {
-            logger.severe("shutdown because of InterruptedException");
-        } catch (AuraException ex) {
-            logger.severe("shutdown because of AuraException " + ex);
-        } catch (RemoteException ex) {
-            logger.severe("shutdown because of RemoteException " + ex);
-        } catch (Throwable t) {
-            logger.severe("shutdown because of unexpected exception " + t);
         }
         running = false;
     }
@@ -275,7 +281,7 @@ public class TagCrawler implements AuraService, Configurable {
     }
 
     private DataStore getDataStore() throws AuraException {
-        return (DataStore) rcm.getComponent(PROP_DATA_STORE);
+        return (DataStore) rcm.getComponent();
     }
     /**
      * the configurable property for the itemstore used by this manager

@@ -36,7 +36,7 @@ public class DatabaseBroker implements ServletContextListener {
                 ConfigurationManager cm = new ConfigurationManager();
                 cm.addProperties(config);
                 context.setAttribute(ATTRIBUTE_NAME, this);
-                mdb = new MusicDatabase(cm, DATASTORE_NAME);
+                mdb = new MusicDatabase(cm);
             } catch (IOException ioe) {
                 logger.log(Level.SEVERE, "Can't load configuration " + config, ioe);
             }

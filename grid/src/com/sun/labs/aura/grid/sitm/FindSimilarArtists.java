@@ -19,6 +19,7 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -28,8 +29,6 @@ public class FindSimilarArtists extends ServiceAdapter {
     @ConfigComponent(type = com.sun.labs.aura.datastore.DataStore.class)
     public static final String PROP_DATA_STORE = "dataStore";
 
-    private DataStore ds;
-    
     @ConfigString(defaultValue="weezer")
     public static final String PROP_ARTIST_NAME = "artistName";
     private String artistName;
@@ -37,6 +36,7 @@ public class FindSimilarArtists extends ServiceAdapter {
     @ConfigInteger(defaultValue=10)
     public static final String PROP_RUNS = "runs";
     private int runs;
+    private MusicDatabase mdb;
 
     @Override
     public String serviceName() {
@@ -45,13 +45,15 @@ public class FindSimilarArtists extends ServiceAdapter {
 
     @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        logger.info("instance: " + instance);
-        ds = (DataStore) ps.getComponent(PROP_DATA_STORE);
-        artistName = ps.getString(PROP_ARTIST_NAME);
-        runs = ps.getInt(PROP_RUNS);
-        
-        
+        try {
+            super.newProperties(ps);
+            logger.info("instance: " + instance);
+            mdb = new MusicDatabase(ps.getConfigurationManager(), PROP_DATA_STORE);
+            artistName = ps.getString(PROP_ARTIST_NAME);
+            runs = ps.getInt(PROP_RUNS);
+        } catch (AuraException ex) {
+            logger.severe("Can' create musicdatabase");
+        }
     }
     
     private double runFindSimilars(MusicDatabase mdb) throws AuraException {
@@ -70,7 +72,6 @@ public class FindSimilarArtists extends ServiceAdapter {
     
     public void start() {
         try {
-            MusicDatabase mdb = new MusicDatabase(ds);
             double sum = 0;
             for(int i = 0; i < runs; i++) {
                 logger.info("Run: " + (i+1));

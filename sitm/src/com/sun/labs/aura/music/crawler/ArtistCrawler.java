@@ -60,6 +60,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -130,6 +131,18 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
                 };
                 threadPool.submit(updater);
             }
+
+            {
+                Runnable updater = new Runnable() {
+
+                    // this thread keeps all of our artists
+                    // fresh and updated
+                    public void run() {
+                        newArtistUpdater();
+                    }
+                };
+                threadPool.submit(updater);
+            }
         }
     }
 
@@ -140,6 +153,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
         running = false;
     }
 
+    @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
         try {
             logger = ps.getLogger();
@@ -153,9 +167,10 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             spotify = new Spotify();
             echoNest = new EchoNest();
             artistQueue = new PriorityQueue(1000, QueuedArtist.PRIORITY_ORDER);
-            rcm = new RemoteComponentManager(ps.getConfigurationManager());
+            rcm = new RemoteComponentManager(ps.getConfigurationManager(), DataStore.class);
             stateDir = ps.getString(PROP_STATE_DIR);
             updateRateInSeconds = ps.getInt(PROP_UPDATE_RATE);
+            newCrawlPeriod = ps.getInt(PROP_NEW_CRAWL_PERIOD);
             maxArtists = ps.getInt(PROP_MAX_ARTISTS);
             crawlAlbumBlurbs = ps.getBoolean(PROP_CRAWL_ALBUM_BLURBS);
             maxBlurbPages = ps.getInt(PROP_MAX_BLURB_PAGES);
@@ -199,7 +214,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
 
 
     private DataStore getDataStore() throws AuraException {
-        return (DataStore) rcm.getComponent(PROP_DATA_STORE);
+        return (DataStore) rcm.getComponent();
     }
 
     private void addAllTags() {
@@ -344,6 +359,53 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
         } catch (Throwable t) {
             logger.severe("Unexpected error during artist updater crawl, shutting down " + t);
         }
+    }
+
+    private void newArtistUpdater() {
+        long lastCrawl = 0;
+        FixedPeriod fp = new FixedPeriod(newCrawlPeriod * 1000);
+        while (running) {
+
+            try {
+                fp.start();
+                crawlNewArtists(lastCrawl);
+                lastCrawl = System.currentTimeMillis();
+
+                fp.end();
+            } catch (InterruptedException ex) {
+            } catch (AuraException ex) {
+                logger.warning("AuraException while crawling users" + ex);
+            } catch (RemoteException ex) {
+                logger.warning("Remote exception while crawling users" + ex);
+            }
+        }
+    }
+
+    private void crawlNewArtists(long lastCrawl) throws AuraException, RemoteException {
+        List<String> artistIDs = getNewArtistIDs(lastCrawl);
+        for (String id : artistIDs) {
+            Item item = getDataStore().getItem(id);
+            if (item != null) {
+                Artist artist = new Artist(item);
+                updateArtist(artist, false);
+            }
+        }
+    }
+
+    private List<String> getNewArtistIDs(long lastCrawl) throws AuraException, RemoteException {
+        List<String> artistList = new ArrayList();
+
+        DBIterator iter = getDataStore().getItemsAddedSince(ItemType.ARTIST, new Date(lastCrawl));
+        try {
+            while (iter.hasNext()) {
+                Item item = (Item) iter.next();
+                Artist artist = new Artist(item);
+                artistList.add(artist.getKey());
+            }
+        } finally {
+            iter.close();
+        }
+        return artistList;
     }
 
     private boolean needsUpdate(Artist artist) {
@@ -933,6 +995,9 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     @ConfigInteger(defaultValue = 10)
     public final static String PROP_MAX_BLURB_PAGES = "maxBlurbPages";
     private int maxBlurbPages;
+    @ConfigInteger(defaultValue =  5 * 60, range = {1, 60 * 60 * 24 * 365})
+    public final static String PROP_NEW_CRAWL_PERIOD = "newCrawlPeriod";
+    protected int newCrawlPeriod;
 }
 
 /**

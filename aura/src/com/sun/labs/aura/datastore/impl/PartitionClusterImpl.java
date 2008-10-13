@@ -386,6 +386,7 @@ public class PartitionClusterImpl implements PartitionCluster,
 
     private void register(DataStore ds) {
         PartitionCluster exported = (PartitionCluster) cm.getRemote(this, ds);
+
         try {
             logger.info("Registering partition cluster: " + exported.getPrefix());
             ds.registerPartitionCluster(exported);

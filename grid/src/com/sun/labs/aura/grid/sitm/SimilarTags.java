@@ -20,6 +20,7 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -28,8 +29,8 @@ public class SimilarTags extends ServiceAdapter {
 
     @ConfigComponent(type = com.sun.labs.aura.datastore.DataStore.class)
     public static final String PROP_DATA_STORE = "dataStore";
-
-    private DataStore ds;
+    
+    MusicDatabase mdb;
     
     @ConfigString(defaultValue="metal")
     public static final String PROP_TAG_NAME = "tagName";
@@ -46,10 +47,14 @@ public class SimilarTags extends ServiceAdapter {
 
     @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
-        super.newProperties(ps);
-        ds = (DataStore) ps.getComponent(PROP_DATA_STORE);
-        tagName = ps.getString(PROP_TAG_NAME);
-        runs = ps.getInt(PROP_RUNS);
+        try {
+            super.newProperties(ps);
+            mdb = new MusicDatabase(ps.getConfigurationManager(), PROP_DATA_STORE);
+            tagName = ps.getString(PROP_TAG_NAME);
+            runs = ps.getInt(PROP_RUNS);
+        } catch (AuraException ex) {
+            ps.getLogger().severe("Can't create database");
+        }
         
         
     }
@@ -73,7 +78,6 @@ public class SimilarTags extends ServiceAdapter {
     
     public void start() {
         try {
-            MusicDatabase mdb = new MusicDatabase(ds);
             double sum = 0;
             for(int i = 0; i < runs; i++) {
                 logger.info("Run: " + (i+1));

@@ -37,7 +37,6 @@
     <component name="listenerCrawler" type="com.sun.labs.aura.music.crawler.ListenerCrawler">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="logLevel" value="INFO"/>
-        <property name="itemType" value="USER"/>
         <property name="defaultPeriod" value="345600"/>
     </component>
 

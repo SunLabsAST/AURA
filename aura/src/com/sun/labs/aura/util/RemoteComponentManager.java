@@ -8,26 +8,27 @@ import com.sun.labs.util.props.Component;
 import com.sun.labs.util.props.ComponentListener;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 /**
  * Manages connecting a reconnecting to a component
  */
 public class RemoteComponentManager implements ComponentListener {
     private final static long DEFAULT_TIMEOUT =  10 * 60 * 1000L;
+
     private ConfigurationManager cm;
+    private Class clazz;
     private final static long CONNECTION_DELAY = 10000;
-    private Map<String, Component> componentMap;
+    private Component component = null;
 
     /**
      * Creates a RemoteComponentManager
      * @param cm the configuration manager to use to fetch components
      * @param logger the logger to use (or null, in which case an anonymous logger will be used)
      */
-    public RemoteComponentManager(ConfigurationManager cm) {
+    public RemoteComponentManager(ConfigurationManager cm, Class c) {
         this.cm = cm;
-        componentMap = Collections.synchronizedMap(new HashMap<String, Component>());
+        this.clazz = c;
     }
 
     /**
@@ -38,45 +39,50 @@ public class RemoteComponentManager implements ComponentListener {
      * @throws com.sun.labs.aura.util.AuraException if the component could not
      *   be found after tmo milliseconds
      */
-    public Component getComponent(String name, long tmo) throws AuraException {
-        Component component = null;
+    public Component getComponent(long tmo) throws AuraException {
         try {
-            component = componentMap.get(name);
             if (component == null) {
+                Component c = null;
                 long endTime = System.currentTimeMillis() + tmo;
-                while (component == null && System.currentTimeMillis() < endTime) {
-                    component = cm.lookup(name, this);
-                    if (component == null) {
+                while (c == null && System.currentTimeMillis() < endTime) {
+                    c = lookup();
+                    if (c == null) {
                         long remainingTime = endTime - System.currentTimeMillis();
                         long delay = CONNECTION_DELAY > remainingTime ? remainingTime : CONNECTION_DELAY;
                         Thread.sleep(delay);
                     }
                 }
-
-                if (component != null) {
-                    componentMap.put(name, component);
-                }
+                component = c;
             }
-
         } catch (InterruptedException ex) {
         }
 
         if (component == null) {
-            throw new AuraException("Can't connect to " + name);
+            throw new AuraException("Can't connect to component of type " + clazz.getName());
         }
         return component;
     }
 
 
+    private Component lookup() {
+        List<Component> clist = cm.lookupAll(clazz, this);
+        if (clist.size() > 0) {
+            Collections.shuffle(clist);
+            return clist.get(0);
+        } else {
+            return null;
+        }
+    }
+
+
     /**
      * Gets the component with the given name
-     * @param name te name of the component
      * @return the component
      * @throws com.sun.labs.aura.util.AuraException if the component could not
      *   be found after 10 minutes
      */
-    public Component getComponent(String name) throws AuraException {
-        return getComponent(name, DEFAULT_TIMEOUT);
+    public Component getComponent() throws AuraException {
+        return getComponent(DEFAULT_TIMEOUT);
     }
 
 
@@ -86,11 +92,8 @@ public class RemoteComponentManager implements ComponentListener {
 
     @Override
     public void componentRemoved(Component componentToRemove) {
-        for (String key : componentMap.keySet()) {
-            Component c = componentMap.get(key);
-            if (c == componentToRemove) {
-                componentMap.remove(key);
-            }
+        if (component == componentToRemove) {
+            component = null;
         }
     }
 }

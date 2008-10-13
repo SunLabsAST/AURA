@@ -44,7 +44,7 @@ public class ServletListener implements ServletContextListener {
                 context.setAttribute("configManager", cm);
 
                 try {
-                    context.setAttribute("MusicDatabase", new MusicDatabase(cm, "dataStoreHead"));
+                    context.setAttribute("MusicDatabase", new MusicDatabase(cm));
                 } catch (AuraException ex) {
                     logger.severe("AuraException : "+ex.getMessage());
                 }
