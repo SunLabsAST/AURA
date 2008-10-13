@@ -52,7 +52,7 @@ public class SkimTags extends ServiceAdapter {
     public void newProperties(PropertySheet ps) throws PropertyException {
         try {
             super.newProperties(ps);
-            mdb = new MusicDatabase(ps.getConfigurationManager(), PROP_DATA_STORE);
+            mdb = new MusicDatabase(ps.getConfigurationManager());
             tagName = ps.getString(PROP_TAG_NAME);
             runs = ps.getInt(PROP_RUNS);
             m = new LinkedHashMap<String, List<Scored<Integer>>>();

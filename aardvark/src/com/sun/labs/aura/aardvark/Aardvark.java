@@ -9,10 +9,10 @@
 
 package com.sun.labs.aura.aardvark;
 
-import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.Component;
 import com.sun.syndication.feed.synd.SyndFeed;
 import java.rmi.Remote;

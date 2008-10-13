@@ -48,7 +48,7 @@ public class FindSimilarArtists extends ServiceAdapter {
         try {
             super.newProperties(ps);
             logger.info("instance: " + instance);
-            mdb = new MusicDatabase(ps.getConfigurationManager(), PROP_DATA_STORE);
+            mdb = new MusicDatabase(ps.getConfigurationManager());
             artistName = ps.getString(PROP_ARTIST_NAME);
             runs = ps.getInt(PROP_RUNS);
         } catch (AuraException ex) {

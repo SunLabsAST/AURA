@@ -136,7 +136,7 @@
         </dav:put>
     </target>
     
-    <taskdef name="growl" classname="net.slimeslurp.growl.GrowlEcho"/>    
+    <!--<taskdef name="growl" classname="net.slimeslurp.growl.GrowlEcho"/>    -->
     <!-- builds the distribution jar, then uploads the results.-->
     <target name="upload-dist" description="Uploads distribution files" depends="create-dist-collections,make-dist-jar-dir">
         <dav:put url="${dav.url}/${dist.col}" verbose="true" userid="${user}" password="${pw}" lock="false">
@@ -169,6 +169,6 @@
         </dav:put>
         <!-- Redo the jar target so that the service deployer is the main program! -->
         <antcall target="jar"/>
-        <growl message="Grid Upload finished."/> 
+        <!--<growl message="Grid Upload finished."/> -->
     </target>
 </project>
