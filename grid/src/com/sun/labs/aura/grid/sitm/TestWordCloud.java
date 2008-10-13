@@ -37,7 +37,7 @@ public class TestWordCloud extends ServiceAdapter {
     public void newProperties(PropertySheet ps) throws PropertyException {
         try {
             super.newProperties(ps);
-            mdb = new MusicDatabase(ps.getConfigurationManager(), PROP_DATA_STORE);
+            mdb = new MusicDatabase(ps.getConfigurationManager());
         } catch (AuraException ex) {
             ps.getLogger().severe("Can't create musicdatabase");
         }
