@@ -26,10 +26,7 @@ public class ArtistDetails extends ArtistCompact implements IsSerializable, Deta
     private final static ArtistEvent[] EMPTY_EVENT = new ArtistEvent[0];
     private final static ArtistCompact[] EMPTY_ARTIST_COMPACT = new ArtistCompact[0];
     
-    /**
-     *  @gwt.typeArgs <java.lang.String, java.lang.String>
-     */
-    private Map urls = new HashMap();
+    private Map<String, String> urls = new HashMap<String, String>();
     private String musicURL;
     private ArtistCompact[] similarArtists = EMPTY_ARTIST_COMPACT;
     private ArtistCompact[] recommendedArtists = EMPTY_ARTIST_COMPACT;
@@ -63,7 +60,7 @@ public class ArtistDetails extends ArtistCompact implements IsSerializable, Deta
         this.similarArtists = similarArtists;
     }
     
-    public Map getUrls() {
+    public Map<String,String> getUrls() {
         return urls;
     }
 

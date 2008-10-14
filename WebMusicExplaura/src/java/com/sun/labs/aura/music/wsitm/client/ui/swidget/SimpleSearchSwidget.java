@@ -55,7 +55,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWi
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Map;
 import org.adamtacy.client.ui.EffectPanel;
 import org.adamtacy.client.ui.effects.impl.Fade;
@@ -659,14 +658,13 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
     }
 
     private Widget getMoreInfoWidget(ArtistDetails artistDetails) {
-        Map urls = artistDetails.getUrls();
+        Map<String, String> urls = artistDetails.getUrls();
 
         if (urls != null && urls.size() > 0) {
             Grid grid = new Grid(urls.size(), 1);
             int index = 0;
-            for (Iterator i = urls.keySet().iterator(); i.hasNext();) {
-                String key = (String) i.next();
-                String url = (String) urls.get(key);
+            for (String key : urls.keySet()) {
+                String url =  urls.get(key);
                 HTML html = new HTML(WebLib.createAnchor(key, url));
                 grid.setWidget(index++, 0, html);
             }
