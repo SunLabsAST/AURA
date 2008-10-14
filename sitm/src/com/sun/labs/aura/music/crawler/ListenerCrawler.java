@@ -145,8 +145,7 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
             try {
                 fp.start();
 
-                crawlNewListeners(lastCrawl);
-                lastCrawl = System.currentTimeMillis();
+                lastCrawl = crawlNewListeners(lastCrawl);
 
                 fp.end();
             } catch (InterruptedException ex) {
@@ -175,8 +174,8 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
         return listenerList;
     }
 
-    private List<String> getNewListenerIDs(long lastCrawl) throws AuraException, RemoteException {
-        List<String> listenerList = new ArrayList();
+    private List<Listener> getNewListeners(long lastCrawl) throws AuraException, RemoteException {
+        List<Listener> listenerList = new ArrayList<Listener>();
 
         DBIterator iter = mdb.getDataStore().getItemsAddedSince(ItemType.USER, new Date(lastCrawl));
 
@@ -185,7 +184,7 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
                 Item item = (Item) iter.next();
                 Listener listener = new Listener(item);
                 if (listener.getUpdateCount() == 0) {
-                    listenerList.add(listener.getKey());
+                    listenerList.add(listener);
                 }
             }
         } finally {
@@ -235,14 +234,16 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
         }
     }
 
-    public void crawlNewListeners(long lastCrawl) throws AuraException, RemoteException {
-        List<String> listenerIDs = getNewListenerIDs(lastCrawl);
-        for (String id : listenerIDs) {
-            Listener listener = mdb.getListener(id);
-            if (listener != null) {
-                crawlListener(listener, false);
+    public long crawlNewListeners(long lastCrawl) throws AuraException, RemoteException {
+        long maxCrawl = lastCrawl;
+        List<Listener> listeners = getNewListeners(lastCrawl + 1);
+        for (Listener listener : listeners) {
+            if (listener.getItem().getTimeAdded() > maxCrawl)  {
+                maxCrawl = listener.getItem().getTimeAdded();
             }
+            crawlListener(listener, false);
         }
+        return maxCrawl;
     }
 
     private void updateListenerArtists(Listener listener) throws AuraException, RemoteException {
@@ -354,7 +355,7 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
     public final static String PROP_DEFAULT_PERIOD = "defaultPeriod";
     protected int defaultPeriod;
 
-    @ConfigInteger(defaultValue =  5 * 60, range = {1, 60 * 60 * 24 * 365})
+    @ConfigInteger(defaultValue =  1 * 60, range = {1, 60 * 60 * 24 * 365})
     public final static String PROP_NEW_CRAWL_PERIOD = "newCrawlPeriod";
     protected int newCrawlPeriod;
 }
