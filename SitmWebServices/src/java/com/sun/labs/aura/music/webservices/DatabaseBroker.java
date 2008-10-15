@@ -28,7 +28,6 @@ public class DatabaseBroker implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         Logger logger = Logger.getLogger("");
-        logger.warning("Servlet DatabaseBroker is here!");
         try {
             ServletContext context = sce.getServletContext();
             URL config = context.getResource(CONFIG_FILE_NAME);
@@ -60,7 +59,10 @@ public class DatabaseBroker implements ServletContextListener {
     }
 
     @Override
-    public void contextDestroyed(ServletContextEvent arg0) {
-        // TBD remove the lookup listener
+    public void contextDestroyed(ServletContextEvent sce) {
+        MusicDatabase mdb = getMusicDatabase(sce.getServletContext());
+        if(mdb != null) {
+            mdb.shutdown();
+        }
     }
 }
