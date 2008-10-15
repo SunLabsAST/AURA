@@ -364,7 +364,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
 
     private void newArtistUpdater() {
         long lastCrawl = 0;
-        FixedPeriod fp = new FixedPeriod(newCrawlPeriod * 1000);
+        FixedPeriod fp = new FixedPeriod(newCrawlPeriod * 1000L);
         while (running) {
 
             try {

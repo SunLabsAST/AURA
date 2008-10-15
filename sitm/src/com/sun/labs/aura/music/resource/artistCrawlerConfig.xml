@@ -39,7 +39,7 @@
         <property name="dataStore" value="dataStoreHead"/>
         <property name="crawlerStateDir" value="${cacheDir}/crawler.state"/>
         <property name="logLevel" value="INFO"/>
-        <property name="updateRateInSeconds" value="345600"/>
+        <property name="updateRateInSeconds" value="604800"/>
     </component>
 
     <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">

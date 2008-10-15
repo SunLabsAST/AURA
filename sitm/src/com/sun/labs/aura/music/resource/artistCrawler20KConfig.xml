@@ -40,7 +40,7 @@
         <property name="maxArtists" value="20000"/>
         <property name="crawlerStateDir" value="${cacheDir}/crawler.state"/>
         <property name="logLevel" value="INFO"/>
-        <property name="updateRateInSeconds" value="345600"/>
+        <property name="updateRateInSeconds" value="604800"/>
         <property name="crawlAlbumBlurbs" value="false"/>
     </component>
 
