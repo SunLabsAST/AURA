@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function usage {
-    echo 'Usage: startLBTomcats -b [begin number] -c [count] -h [-n server name]'
+    echo 'Usage: getTomcatLogs -b [begin number] -c [count] -h [-n server name]'
     echo ' server_name defaults to www, begin to 1 and count to 5'
 }
 
@@ -42,8 +42,6 @@ done
 export END=$(( $BEGIN + $COUNT ))
 
 for (( COUNT=$BEGIN ; COUNT < $END ; COUNT++ )) ; do 
-    echo Deploying $NAME-$COUNT...
-    ant -Ddeployment.name=$NAME -Ddeployment.number=$COUNT -f $DIR/../grid-deploy/tomcat-lb.xml 
+    ant -Ddeployment.name=$NAME -Ddeployment.number=$COUNT -Dlog.dir=`pwd` -f $DIR/../grid-deploy/tomcat-lb.xml get-log
 done
 
-java -jar $DIR/../dist/grid.jar /com/sun/labs/aura/grid/loadbalance/lbConfig.xml start

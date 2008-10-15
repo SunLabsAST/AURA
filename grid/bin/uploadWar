@@ -1,0 +1,44 @@
+#!/bin/bash
+
+function usage {
+    echo 'Usage: uploadWar -w [war file]'
+    echo ' war file defaults to WME war file'
+}
+
+args=`getopt hw: $*`
+
+if [ $? != 0 ]
+then
+    usage
+    exit 2
+fi
+
+set -- $args
+
+DIR=`dirname $0`
+
+export FILE=$DIR/../../WebMusicExplaura/dist/WebMusicExplaura.war
+export ANT_OPTS="-Xmx512m"
+
+
+for i 
+do
+    case "$i"
+	in
+	-h)
+	    usage
+	    exit;;
+	-w)
+	    FILE=$2; shift;
+	    shift;;
+    esac
+done
+
+WARDIR=`dirname $FILE`
+WARFILE=`basename $FILE`
+
+echo $DIR
+echo $WARDIR
+echo $WARFILE
+
+ant -Dwar.dir=$WARDIR -Dwar.file=$WARFILE -f $DIR/../grid-deploy/upload-war.xml 
