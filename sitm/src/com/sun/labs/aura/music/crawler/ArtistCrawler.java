@@ -239,7 +239,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             if (getDataStore().getItem(id) == null) {
                 Item item = StoreFactory.newItem(ItemType.ARTIST_TAG, id, tagName);
                 getDataStore().putItem(item);
-                logger.info("Adding tag " + item.getKey());
+                logger.fine("Adding tag " + item.getKey());
             }
         }
     }
@@ -311,6 +311,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
         for (Scored<String> sartist : artistsWithPopularity) {
             Artist artist = new Artist(getDataStore().getItem(sartist.getItem()));
             if (force || needsUpdate(artist)) {
+                logger.info("  Updating artist " + artist.getName());
                 updateArtist(artist, false);
                 try {
                     Thread.sleep(period);

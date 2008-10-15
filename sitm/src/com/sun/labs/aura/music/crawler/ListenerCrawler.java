@@ -44,7 +44,6 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
     private MusicDatabase mdb;
     private boolean running = false;
     private Logger logger;
-    private int numThreads;
 
     public void start() {
         if (!running) {
@@ -111,7 +110,7 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
         newCrawlPeriod = ps.getInt(PROP_NEW_CRAWL_PERIOD);
         try {
             lastfm = new LastFM();
-            lastfm.setTrace(true);
+            lastfm.setTrace(false);
 
             pandora = new Pandora();
             mdb = new MusicDatabase(ps.getConfigurationManager());
@@ -202,12 +201,9 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
             logger.info("Crawling listener " + listener.getName());
             int updateCount = listener.getUpdateCount();
             if (listener.getLastFmName() != null) {
-            logger.info("Update count is  " + updateCount);
                 if (updateCount == 0) {
-            logger.info("Full Crawling listener " + listener.getName());
                     fullCrawlLastFM(listener);
                 } else {
-            logger.info("Weekly crawl Crawling listener " + listener.getName());
                     weeklyCrawlLastFM(listener);
                 }
             }
@@ -218,7 +214,7 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
             listener.incrementUpdateCount();
             mdb.flush(listener);
         } else {
-            logger.info("Skipping listener " + listener.getName());
+            logger.fine("Skipping listener " + listener.getName());
         }
     }
 
@@ -245,7 +241,6 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
     public long crawlNewListeners(long lastCrawl) throws AuraException, RemoteException {
         long maxCrawl = lastCrawl;
         List<Listener> listeners = getNewListeners(lastCrawl + 1);
-        logger.info("CrawlNewListeners crawling: " + listeners.size());
         for (Listener listener : listeners) {
             if (listener.getItem().getTimeAdded() > maxCrawl)  {
                 maxCrawl = listener.getItem().getTimeAdded();
@@ -300,9 +295,8 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
 
     private void fullCrawlLastFM(Listener listener) throws AuraException {
         try {
-            logger.info("Full crawl for " + listener.getName());
             LastItem[] artists = lastfm.getTopArtistsForUser(listener.getLastFmName());
-            logger.info(" found lastfm artists." + artists.length);
+            logger.fine(" found lastfm artists." + artists.length);
             for (LastItem artistItem : artists) {
                 if (artistItem.getMBID() != null) {
                     Artist artist = mdb.artistLookup(artistItem.getMBID());
