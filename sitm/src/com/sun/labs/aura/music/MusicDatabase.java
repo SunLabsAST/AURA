@@ -74,6 +74,10 @@ public class MusicDatabase {
         initArtistRecommendationTypes();
     }
 
+    public void shutdown() {
+        rcm.shutdown();
+    }
+
     /**
      * Gets the datastore
      * @return the datastore
