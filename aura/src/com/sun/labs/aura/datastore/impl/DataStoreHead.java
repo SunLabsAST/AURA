@@ -782,6 +782,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         pc.removeAttention(srcKey, targetKey, type);
     }
 
+    @Deprecated
     public void addItemListener(final ItemType itemType,
                                 final ItemListener listener)
             throws AuraException, RemoteException {
@@ -814,6 +815,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
     }
 
+    @Deprecated
     public void removeItemListener(final ItemType itemType,
                                    final ItemListener listener)
             throws AuraException, RemoteException {

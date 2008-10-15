@@ -359,6 +359,7 @@ public interface ItemStore {
      *             for all events
      * @param listener the listener to which events are delivered
      */
+    @Deprecated
     public void addItemListener(ItemType itemType,
             ItemListener listener)
             throws AuraException, RemoteException;
@@ -375,6 +376,7 @@ public interface ItemStore {
      *             for all events
      * @param listener the listener to which events should no longer be sent
      */
+    @Deprecated
     public void removeItemListener(ItemType itemType,
             ItemListener listener)
             throws AuraException, RemoteException;
