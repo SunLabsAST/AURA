@@ -60,7 +60,8 @@ public class ParameterChecker {
     }
 
     public String getParam(Status status, ServletRequest request, String name) throws ParameterException {
-        Parameter p = allParams.get(name.toLowerCase());
+        name = name.toLowerCase();
+        Parameter p = allParams.get(name);
         if (p == null) {
             status.addError(ErrorCode.InternalError, "No parameter configuration for requested param " + name);
             throw new ParameterException();
