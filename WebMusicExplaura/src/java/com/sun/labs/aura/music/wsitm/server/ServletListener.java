@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.sun.labs.aura.music.wsitm.server;
 
 import com.sun.labs.aura.music.MusicDatabase;
@@ -23,7 +22,7 @@ import javax.servlet.ServletContextListener;
 public class ServletListener implements ServletContextListener {
 
     protected Logger logger = Logger.getLogger("");
-    
+
     public void contextInitialized(ServletContextEvent sce) {
         try {
             ServletContext context = sce.getServletContext();
@@ -46,7 +45,7 @@ public class ServletListener implements ServletContextListener {
                 try {
                     context.setAttribute("MusicDatabase", new MusicDatabase(cm));
                 } catch (AuraException ex) {
-                    logger.severe("AuraException : "+ex.getMessage());
+                    logger.severe("AuraException : " + ex.getMessage());
                 }
             } catch (IOException ioe) {
                 logger.log(Level.SEVERE, "Failed to get handle", ioe);
@@ -56,6 +55,11 @@ public class ServletListener implements ServletContextListener {
         }
     }
 
-    public void contextDestroyed(ServletContextEvent arg0) {   
+    public void contextDestroyed(ServletContextEvent sce) {
+        ConfigurationManager cm = (ConfigurationManager) sce.getServletContext().
+                getAttribute("configManager");
+        if (cm != null) {
+            cm.shutdown();
+        }
     }
 }
