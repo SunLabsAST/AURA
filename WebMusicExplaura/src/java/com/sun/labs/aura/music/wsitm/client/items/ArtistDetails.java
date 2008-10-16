@@ -25,13 +25,14 @@ public class ArtistDetails extends ArtistCompact implements IsSerializable, Deta
     private final static ArtistVideo[] EMPTY_ARTIST_VIDEO = new ArtistVideo[0];
     private final static ArtistEvent[] EMPTY_EVENT = new ArtistEvent[0];
     private final static ArtistCompact[] EMPTY_ARTIST_COMPACT = new ArtistCompact[0];
+    private final static HashMap<ArtistCompact, Double> EMPTY_ARTISTCOPACT_MAP = new HashMap<ArtistCompact, Double>();
     
     /**
      *  @gwt.typeArgs <java.lang.String, java.lang.String>
      */
     private Map urls = new HashMap();
     private String musicURL;
-    private ArtistCompact[] similarArtists = EMPTY_ARTIST_COMPACT;
+    private HashMap<ArtistCompact, Double> similarArtists = EMPTY_ARTISTCOPACT_MAP;
     private ArtistCompact[] recommendedArtists = EMPTY_ARTIST_COMPACT;
     private ArtistCompact[] collaborations = EMPTY_ARTIST_COMPACT;
     private ItemInfo[] frequentTags = EMPTY_ITEM_INFO;
@@ -55,11 +56,30 @@ public class ArtistDetails extends ArtistCompact implements IsSerializable, Deta
         this.videos = videos;
     }
 
-    public ArtistCompact[] getSimilarArtists() {
+    public HashMap<ArtistCompact, Double> getSimilarArtists() {
         return similarArtists;
     }
 
-    public void setSimilarArtists(ArtistCompact[] similarArtists) {
+    /**
+     * Converts an HashMap reprensenting a list of artists and their similarity value
+     * to an artist compact array
+     * @param aCMap
+     * @return
+     */
+    public static ArtistCompact[] getSimilarArtistsAsArray(HashMap<ArtistCompact, Double> aCMap) {
+        ArtistCompact[] aCArray = new ArtistCompact[aCMap.size()];
+        int index = 0;
+        for (ArtistCompact aC : aCMap.keySet()) {
+            aCArray[index++] = aC;
+        }
+        return aCArray;
+    }
+
+    public ArtistCompact[] getSimilarArtistsAsArray() {
+        return getSimilarArtistsAsArray(similarArtists);
+    }
+    
+    public void setSimilarArtists(HashMap<ArtistCompact, Double> similarArtists) {
         this.similarArtists = similarArtists;
     }
     
@@ -139,7 +159,7 @@ public class ArtistDetails extends ArtistCompact implements IsSerializable, Deta
     public void fixup() {
         super.fixup();
         if (similarArtists == null) {
-            similarArtists = EMPTY_ARTIST_COMPACT;
+            similarArtists = EMPTY_ARTISTCOPACT_MAP;
         }
         if (recommendedArtists == null) {
             recommendedArtists = EMPTY_ARTIST_COMPACT;

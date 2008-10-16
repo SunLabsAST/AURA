@@ -55,6 +55,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWi
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import org.adamtacy.client.ui.EffectPanel;
@@ -510,13 +511,13 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         
         // Add similar artists
         ArtistCompact[] aCArray;
-        aCArray = artistDetails.getSimilarArtists();
+        aCArray = artistDetails.getSimilarArtistsAsArray();
         addCompactArtistToOracle(aCArray);
 
         if (leftSimList != null) {
             leftSimList.doRemoveListeners();
         }
-        leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, aC);
+        leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, artistDetails.getSimilarArtists(), aC);
 
         HorizontalPanel hP = new HorizontalPanel();
         hP.add(new Label("Similar artists"));
@@ -529,11 +530,17 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         left.add(
                 new Updatable<ArtistDetails>(hP, leftSimList, cdm, artistDetails) {
 
-                    public void update(ArtistCompact[] aC) {
+                    public void update(HashMap<ArtistCompact, Double> aCMap) {
 
-                        addCompactArtistToOracle(aC);
+                        ArtistCompact[] aCArray = new ArtistCompact[aCMap.size()];
+                        int index = 0;
+                        for (ArtistCompact aC : aCMap.keySet()) {
+                            aCArray[index++] = aC;
+                        }
+                        
+                        addCompactArtistToOracle(aCArray);
                         leftSimList.doRemoveListeners();
-                        leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aC, data.toArtistCompact());
+                        leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCMap, data.toArtistCompact());
                         setNewContent(leftSimList);
                     }
                 });
@@ -923,9 +930,17 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         private ArtistCompact currArtist;
 
         public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
-            ClientDataManager cdm, ArtistCompact[] aDArray, ArtistCompact currArtist) {
+            ClientDataManager cdm, HashMap<ArtistCompact, Double> aC, ArtistCompact currArtist) {
 
-            super(musicServer, cdm, aDArray, cdm.isLoggedIn());
+            super(musicServer, cdm, aC, cdm.isLoggedIn(), true);
+            this.currArtist = currArtist;
+            Window.alert("in artistcloudlistwidget got hasmap!!");
+        }
+        
+        public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
+            ClientDataManager cdm, ArtistCompact[] aC, ArtistCompact currArtist) {
+
+            super(musicServer, cdm, aC, cdm.isLoggedIn(), true);
             this.currArtist = currArtist;
         }
 
@@ -1395,9 +1410,9 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                 artistID = artistID.replaceAll("artist:", "");
             }
 
-            AsyncCallback<ArtistCompact[]> callback = new AsyncCallback<ArtistCompact[]>() {
+            AsyncCallback<HashMap<ArtistCompact, Double>> callback = new AsyncCallback<HashMap<ArtistCompact, Double>>() {
 
-                public void onSuccess(ArtistCompact[] aC) {
+                public void onSuccess(HashMap<ArtistCompact, Double> aC) {
                     // do some UI stuff to show success
                     if (aC != null) {
                         cdm.updateUpdatableWidgets(aC);

@@ -11,6 +11,7 @@ import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import java.util.HashMap;
 
 /**
  *
@@ -34,13 +35,13 @@ public abstract class Updatable<T> extends Composite {
         this.initWidget(main);
     }
     
-    public Updatable(Widget title, ArtistCompact[] aC, ClientDataManager cdm, T data) {
+    public Updatable(Widget title, HashMap<ArtistCompact, Double> aCMap, ClientDataManager cdm, T data) {
         
         this.data = data;
         
         main = new Grid(2, 1);
         main.setWidget(0, 0, title);
-        update(aC);
+        update(aCMap);
         cdm.addUpdatableWidget(this);
         this.initWidget(main);
     }
@@ -68,7 +69,7 @@ public abstract class Updatable<T> extends Composite {
         main.setWidget(1, 0, bottom);
     }
     
-    public abstract void update(ArtistCompact[] aC);
+    public abstract void update(HashMap<ArtistCompact, Double> aCMap);
 
     private class AnimatedUpdatableSection extends AnimatedComposite {
 

@@ -49,8 +49,16 @@ public class CompactArtistWidget extends Composite implements HasListeners {
     private String artistId;
 
     public CompactArtistWidget(ArtistCompact aC, ClientDataManager cdm,
+                MusicSearchInterfaceAsync musicServer, SwapableTxtButton whyB,
+                SwapableTxtButton diffB, int currentRating, Set<String> userTags) {
+        
+        this(aC, cdm, musicServer, whyB, diffB, currentRating, userTags, null);
+    }
+    
+    public CompactArtistWidget(ArtistCompact aC, ClientDataManager cdm,
             MusicSearchInterfaceAsync musicServer, SwapableTxtButton whyB,
-            SwapableTxtButton diffB, int currentRating, Set<String> userTags) {
+            SwapableTxtButton diffB, int currentRating, Set<String> userTags,
+            String backgroundColor) {
 
         this.cdm = cdm;
         this.musicServer = musicServer;
@@ -60,7 +68,6 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         HorizontalPanel artistPanel = new HorizontalPanel();
         artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_TOP);
         artistPanel.setStyleName("artistPanel");
-        //artistPanel.setSpacing(5);
 
         ClickListener cL = new DataEmbededClickListener<String>("artist:" + aC.getId()) {
 
@@ -97,7 +104,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         playButton = new PlayButton(cdm, aC, PlayButton.PLAY_ICON_SIZE.SMALL, musicServer);
         if (playButton != null) {
             cdm.getMusicProviderSwitchListenerManager().addListener(playButton);
-            playButton.getElement().setPropertyString("align", "right");
+            playButton.getElement().getStyle().setProperty("align", "right");
             playButton.addStyleName("largeMarginRight");
             buttonPanel.add(playButton);
         }
@@ -165,9 +172,12 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         txtPanel.add(WebLib.getSmallPopularityWidget(aC.getNormPopularity(), true, true));
 
         artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_TOP);
-        //txtPanel.getElement().setPropertyString("margin-top", "0px");
         artistPanel.add(txtPanel);
         artistPanel.addStyleName("largeMarginBottom");
+        if (backgroundColor != null) {
+            artistPanel.getElement().getStyle().setProperty("background", backgroundColor);
+            artistPanel.getElement().getStyle().setProperty("background-color", backgroundColor);
+        }
         initWidget(artistPanel);
         setWidth("300px");
     }

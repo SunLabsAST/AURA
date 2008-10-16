@@ -171,20 +171,20 @@ public class DataManager implements Configurable {
         return aD;
     }
     
-    public ArtistCompact[] getSimilarArtists(String id, SimType sT, Popularity pop) throws AuraException, RemoteException {
+    public HashMap<ArtistCompact, Double> getSimilarArtists(String id, SimType sT, Popularity pop) throws AuraException, RemoteException {
 
         List<Scored<Artist>> scoredArtists = sT.findSimilarArtists(id, NUMBER_SIM_ARTISTS, pop);
         // return artists in socred order
         sortByArtistPopularity(scoredArtists);
 
         // collect all of the similar artists, but skip the seed artist
-        List<ArtistCompact> simArtistList = new ArrayList<ArtistCompact>();
+        HashMap<ArtistCompact, Double> simArtistMap = new HashMap<ArtistCompact, Double>();
         for (int i = 0; i < scoredArtists.size(); i++) {
             if (!id.equals(scoredArtists.get(i).getItem().getKey())) {
-                simArtistList.add(artistToArtistCompact(scoredArtists.get(i).getItem()));
+                simArtistMap.put(artistToArtistCompact(scoredArtists.get(i).getItem()), scoredArtists.get(i).getScore());
             }
         }
-        return simArtistList.toArray(new ArtistCompact[simArtistList.size()]);
+        return simArtistMap;
     }
 
     /**

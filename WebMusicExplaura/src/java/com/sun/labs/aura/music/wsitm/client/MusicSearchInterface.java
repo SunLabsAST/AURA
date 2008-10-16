@@ -40,7 +40,7 @@ public interface MusicSearchInterface extends RemoteService {
     
     public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName, String popularity) throws WebException ;
     public ArtistCompact getArtistCompact(String artistId) throws WebException;
-    public ArtistCompact[] getSimilarArtists(String id, String simTypeName, String popularity) throws WebException;
+    public HashMap<ArtistCompact, Double> getSimilarArtists(String id, String simTypeName, String popularity) throws WebException;
     public TagDetails getTagDetails(String id, boolean refresh, String simTypeName) throws WebException;
     public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num, String simType) throws WebException;
     public ItemInfo[] getCommonTags(Map<String, Double> tagMap, String artistID, int num) throws WebException;

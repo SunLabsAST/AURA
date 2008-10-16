@@ -411,9 +411,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             artistID = artistID.replaceAll("artist:", "");
         }
 
-        AsyncCallback<ArtistCompact[]> callback = new AsyncCallback<ArtistCompact[]>() {
+        AsyncCallback<HashMap<ArtistCompact, Double>> callback = new AsyncCallback<HashMap<ArtistCompact, Double>>() {
 
-            public void onSuccess(ArtistCompact[] aC) {
+            public void onSuccess(HashMap<ArtistCompact, Double> aC) {
                 // do some UI stuff to show success
                 if (aC != null) {
                     cdm.updateUpdatableWidgets(aC);

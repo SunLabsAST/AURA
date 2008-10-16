@@ -547,7 +547,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public ArtistCompact[] getSimilarArtists(String id, String simTypeName, String popularity) throws WebException {
+    public HashMap<ArtistCompact, Double> getSimilarArtists(String id, String simTypeName, String popularity) throws WebException {
         try {
             return dm.getSimilarArtists(id, dm.stringToSimType(simTypeName), dm.stringToPopularity(popularity));
         } catch (AuraException ex) {

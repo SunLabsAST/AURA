@@ -318,9 +318,9 @@ public class ClientDataManager {
      * @param aD new artist details
      * @param popularity popularity of requested recommendation
      */
-    public void updateUpdatableWidgets(ArtistCompact[] aC) {
+    public void updateUpdatableWidgets(HashMap<ArtistCompact, Double> aCMap) {
         for (Updatable u : updatableWidgets) {
-            u.update(aC);
+            u.update(aCMap);
         }
     }
     
