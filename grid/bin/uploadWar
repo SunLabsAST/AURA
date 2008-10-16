@@ -17,9 +17,8 @@ set -- $args
 
 DIR=`dirname $0`
 
-export FILE=$DIR/../../WebMusicExplaura/dist/WebMusicExplaura.war
+export WARFILE=$DIR/../../WebMusicExplaura/dist/WebMusicExplaura.war
 export ANT_OPTS="-Xmx512m"
-
 
 for i 
 do
@@ -29,16 +28,9 @@ do
 	    usage
 	    exit;;
 	-w)
-	    FILE=$2; shift;
+	    WARFILE=$2; shift;
 	    shift;;
     esac
 done
 
-WARDIR=`dirname $FILE`
-WARFILE=`basename $FILE`
-
-echo $DIR
-echo $WARDIR
-echo $WARFILE
-
-ant -Dwar.dir=$WARDIR -Dwar.file=$WARFILE -f $DIR/../grid-deploy/upload-war.xml 
+ant -Dwar.loc=$WARFILE -f $DIR/../grid-deploy/common.xml upload-war

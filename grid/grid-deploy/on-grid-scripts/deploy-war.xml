@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="deploy_war_ongrid" default="deploy" basedir=".">
+    <property name="username" value="aura"/>
+    <property name="password" value="corona"/>
+
+    <property name="url" value="http://${service.process}/manager"/>
+    
+    <!-- Configure the custom Ant tasks for the Manager application -->
+    <taskdef resource="org/apache/catalina/ant/catalina.tasks"/>
+
+    <available property="webapp-dir-exists" file="${service.webapps}/${war.path}"/>
+
+    <target name="delete-webapp-dir" if="webapp-dir-exists">
+        <echo message="delete: ${service.webapps}/${war.path}"/>
+        <delete dir="${service.webapps}/${war.path}"/>
+    </target>
+
+    <target name="deploy" depends="undeploy,delete-webapp-dir" description="Deploy web application">
+        <deploy url="${url}" username="${username}" password="${password}"
+            path="${war.path}" war="${war.file}" update="true" />
+    </target>
+
+    <target name="undeploy" description="Undeploy web application" if="webapp-dir-exists">
+        <undeploy url="${url}" username="${username}" password="${password}"
+              path="${war.path}"/>
+    </target>
+
+  <!-- Webapp lifecycle control -->
+    <target name="start" description="Start web application">
+        <start url="${url}" username="${username}" password="${password}"
+           path="${war.path}"/>
+    </target>
+
+    <target name="reload" description="Reload web application">
+        <reload url="${url}" username="${username}" password="${password}"
+            path="${war.path}"/>
+    </target>
+    
+    <target name="stop" description="Stop web application">
+        <stop url="${url}" username="${username}" password="${password}"
+          path="${war.path}"/>
+    </target>
+</project>
