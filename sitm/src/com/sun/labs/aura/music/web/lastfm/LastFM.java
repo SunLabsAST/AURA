@@ -37,6 +37,7 @@ public class LastFM {
         commander.setTraceSends(false);
         commander.setMinimumCommandPeriod(500);
     }
+    
 
     public SocialTag[] getArtistTags(String artistName) throws IOException {
         String url = getArtistTagURL(artistName, false);
@@ -110,6 +111,10 @@ public class LastFM {
             artistList.add(new LastArtist(artistName, mbaid));
         }
         return artistList.toArray(new LastArtist[0]);
+    }
+
+    public void setTrace(boolean trace) {
+        commander.setTraceSends(true);
     }
 
     private LastItem[] getTopArtistForUserFromLastFM(String url) throws IOException {

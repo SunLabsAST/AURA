@@ -112,4 +112,10 @@
         description="Removes packages filesystem"
         depends="destroy-filesystem,destroy-extaddress,destroy-network"/>
         
+    <target name="get-log">
+        <dav:get url="${dav.url}/${www.filesystem}/${service.process}.out"
+            toFile="${service.process}.out"
+            userid="${user}" password="${pw}">
+        </dav:get>
+    </target>
 </project>

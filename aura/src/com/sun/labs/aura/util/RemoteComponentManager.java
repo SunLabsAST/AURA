@@ -7,18 +7,13 @@ package com.sun.labs.aura.util;
 import com.sun.labs.util.props.Component;
 import com.sun.labs.util.props.ComponentListener;
 import com.sun.labs.util.props.ConfigurationManager;
-import java.util.Collections;
-import java.util.List;
 
 /**
- * Manages connecting a reconnecting to a component
+ * Manages connecting and reconnecting to a component
  */
 public class RemoteComponentManager implements ComponentListener {
-    private final static long DEFAULT_TIMEOUT =  10 * 60 * 1000L;
-
     private ConfigurationManager cm;
     private Class clazz;
-    private final static long CONNECTION_DELAY = 10000;
     private Component component = null;
 
     /**
@@ -31,49 +26,9 @@ public class RemoteComponentManager implements ComponentListener {
         this.clazz = c;
     }
 
-    /**
-     * Gets the component with the given name
-     * @param name te name of the component
-     * @param tmo the amount of time to wait for a component (in ms)
-     * @return the component
-     * @throws com.sun.labs.aura.util.AuraException if the component could not
-     *   be found after tmo milliseconds
-     */
-    public Component getComponent(long tmo) throws AuraException {
-        try {
-            if (component == null) {
-                Component c = null;
-                long endTime = System.currentTimeMillis() + tmo;
-                while (c == null && System.currentTimeMillis() < endTime) {
-                    c = lookup();
-                    if (c == null) {
-                        long remainingTime = endTime - System.currentTimeMillis();
-                        long delay = CONNECTION_DELAY > remainingTime ? remainingTime : CONNECTION_DELAY;
-                        Thread.sleep(delay);
-                    }
-                }
-                component = c;
-            }
-        } catch (InterruptedException ex) {
-        }
-
-        if (component == null) {
-            throw new AuraException("Can't connect to component of type " + clazz.getName());
-        }
-        return component;
-    }
-
-
     private Component lookup() {
-        List<Component> clist = cm.lookupAll(clazz, this);
-        if (clist.size() > 0) {
-            Collections.shuffle(clist);
-            return clist.get(0);
-        } else {
-            return null;
-        }
+        return cm.lookup(clazz, this);
     }
-
 
     /**
      * Gets the component with the given name
@@ -82,7 +37,7 @@ public class RemoteComponentManager implements ComponentListener {
      *   be found after 10 minutes
      */
     public Component getComponent() throws AuraException {
-        return getComponent(DEFAULT_TIMEOUT);
+        return cm.lookup(clazz, this);
     }
 
 
@@ -95,5 +50,9 @@ public class RemoteComponentManager implements ComponentListener {
         if (component == componentToRemove) {
             component = null;
         }
+    }
+
+    public void shutdown() {
+        cm.shutdown();
     }
 }

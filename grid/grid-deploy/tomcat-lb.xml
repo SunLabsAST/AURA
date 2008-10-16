@@ -16,6 +16,12 @@
         </not>
     </condition>
 
+    <condition property="log.dir" value=".">
+        <not>
+            <isset property="log.dir"/>
+        </not>
+    </condition>
+
     <property name="www.filesystem" value="${deployment.name}-${deployment.number}.filesystem"/>
     <property name="intaddress" value="${deployment.name}-${deployment.number}-int"/>
     <property name="service.process" value="${deployment.name}-${deployment.number}"/>
@@ -175,5 +181,14 @@
   
     <target name="cleanup"
 	    depends="destroy-service,destroy-unzip-task,destroy-intaddress,destroy-filesystem"/>
+
+    <target name="get-log">
+        <dav:get url="${dav.url}/${www.filesystem}/${service.process}.out"
+            toFile="${log.dir}/${service.process}.out"
+	    overwrite="true"
+	    verbose="true"
+            userid="${user}" password="${pw}">      
+        </dav:get>
+    </target>
   
 </project>

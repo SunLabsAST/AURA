@@ -44,7 +44,6 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
     private MusicDatabase mdb;
     private boolean running = false;
     private Logger logger;
-    private int numThreads;
 
     public void start() {
         if (!running) {
@@ -111,6 +110,8 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
         newCrawlPeriod = ps.getInt(PROP_NEW_CRAWL_PERIOD);
         try {
             lastfm = new LastFM();
+            lastfm.setTrace(false);
+
             pandora = new Pandora();
             mdb = new MusicDatabase(ps.getConfigurationManager());
         } catch (AuraException ex) {
@@ -121,7 +122,8 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
     }
 
     private void periodicallyCrawlAllListeners() {
-        FixedPeriod fp = new FixedPeriod(defaultPeriod * 1000);
+        FixedPeriod fp = new FixedPeriod(defaultPeriod * 1000L);
+        logger.info("Crawling all listeners with a period of " + defaultPeriod + " secs");
         while (running) {
             try {
                 fp.start();
@@ -140,13 +142,13 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
 
     private void periodicallyCrawlNewListeners() {
         long lastCrawl = 0;
-        FixedPeriod fp = new FixedPeriod(newCrawlPeriod * 1000);
+        logger.info("Crawling new listeners with a period of " + newCrawlPeriod + " secs");
+        FixedPeriod fp = new FixedPeriod(newCrawlPeriod * 1000L);
         while (running) {
             try {
                 fp.start();
 
-                crawlNewListeners(lastCrawl);
-                lastCrawl = System.currentTimeMillis();
+                lastCrawl = crawlNewListeners(lastCrawl);
 
                 fp.end();
             } catch (InterruptedException ex) {
@@ -175,8 +177,8 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
         return listenerList;
     }
 
-    private List<String> getNewListenerIDs(long lastCrawl) throws AuraException, RemoteException {
-        List<String> listenerList = new ArrayList();
+    private List<Listener> getNewListeners(long lastCrawl) throws AuraException, RemoteException {
+        List<Listener> listenerList = new ArrayList<Listener>();
 
         DBIterator iter = mdb.getDataStore().getItemsAddedSince(ItemType.USER, new Date(lastCrawl));
 
@@ -185,7 +187,7 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
                 Item item = (Item) iter.next();
                 Listener listener = new Listener(item);
                 if (listener.getUpdateCount() == 0) {
-                    listenerList.add(listener.getKey());
+                    listenerList.add(listener);
                 }
             }
         } finally {
@@ -212,7 +214,7 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
             listener.incrementUpdateCount();
             mdb.flush(listener);
         } else {
-            logger.info("Skipping listener " + listener.getName());
+            logger.fine("Skipping listener " + listener.getName());
         }
     }
 
@@ -227,6 +229,7 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
 
     public void crawlAllListeners() throws AuraException, RemoteException {
         List<String> listenerIDs = getAllListenerIDs();
+        logger.info("CrawlAllListeners crawling: " + listenerIDs.size());
         for (String id : listenerIDs) {
             Listener listener = mdb.getListener(id);
             if (listener != null) {
@@ -235,14 +238,16 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
         }
     }
 
-    public void crawlNewListeners(long lastCrawl) throws AuraException, RemoteException {
-        List<String> listenerIDs = getNewListenerIDs(lastCrawl);
-        for (String id : listenerIDs) {
-            Listener listener = mdb.getListener(id);
-            if (listener != null) {
-                crawlListener(listener, false);
+    public long crawlNewListeners(long lastCrawl) throws AuraException, RemoteException {
+        long maxCrawl = lastCrawl;
+        List<Listener> listeners = getNewListeners(lastCrawl + 1);
+        for (Listener listener : listeners) {
+            if (listener.getItem().getTimeAdded() > maxCrawl)  {
+                maxCrawl = listener.getItem().getTimeAdded();
             }
+            crawlListener(listener, false);
         }
+        return maxCrawl;
     }
 
     private void updateListenerArtists(Listener listener) throws AuraException, RemoteException {
@@ -290,8 +295,8 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
 
     private void fullCrawlLastFM(Listener listener) throws AuraException {
         try {
-            logger.fine("Full crawl for " + listener.getName());
             LastItem[] artists = lastfm.getTopArtistsForUser(listener.getLastFmName());
+            logger.fine(" found lastfm artists." + artists.length);
             for (LastItem artistItem : artists) {
                 if (artistItem.getMBID() != null) {
                     Artist artist = mdb.artistLookup(artistItem.getMBID());
@@ -354,7 +359,7 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
     public final static String PROP_DEFAULT_PERIOD = "defaultPeriod";
     protected int defaultPeriod;
 
-    @ConfigInteger(defaultValue =  5 * 60, range = {1, 60 * 60 * 24 * 365})
+    @ConfigInteger(defaultValue =  1 * 60, range = {1, 60 * 60 * 24 * 365})
     public final static String PROP_NEW_CRAWL_PERIOD = "newCrawlPeriod";
     protected int newCrawlPeriod;
 }

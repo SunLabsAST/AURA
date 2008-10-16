@@ -53,14 +53,14 @@ public class ParameterChecker {
 
     public void addParam(String name, boolean required, String defaultValue, String description) {
         Parameter p = new Parameter(name, required, defaultValue, description);
-        allParams.put(name.toLowerCase(), p);
+        allParams.put(name, p);
         if (required) {
-            requiredParams.add(name.toLowerCase());
+            requiredParams.add(name);
         }
     }
 
     public String getParam(Status status, ServletRequest request, String name) throws ParameterException {
-        Parameter p = allParams.get(name.toLowerCase());
+        Parameter p = allParams.get(name);
         if (p == null) {
             status.addError(ErrorCode.InternalError, "No parameter configuration for requested param " + name);
             throw new ParameterException();
@@ -123,7 +123,6 @@ public class ParameterChecker {
 
         for (Object okey : keys) {
             String key = (String) okey;
-            key = key.toLowerCase();
             curSet.add(key);
             if (allParams.get(key) == null) {
                 status.addError(ErrorCode.BadArgument, "Unknown parameter " + key);

@@ -438,6 +438,7 @@ public class BerkeleyDataWrapper {
             } catch(DeadlockException e) {
                 try {
                     txn.abort();
+                    log.finest("Deadlock detected in putting " + item.getKey() + ": " + e.getMessage());
                     numRetries++;
                 } catch(DatabaseException ex) {
                     throw new AuraException("Txn abort failed", ex);
@@ -806,13 +807,13 @@ public class BerkeleyDataWrapper {
                     begin, true,
                     end, true,
                     cc);
-            try {
-                cursor.next();
-                cursor.prev();
-            } catch (IllegalStateException e) {
-                return new EntityIterator();
-            }
-            cursor.prev();
+            //try {
+            //    cursor.next();
+            //    cursor.prev();
+            //} catch (IllegalStateException e) {
+            //    return new EntityIterator();
+            //}
+            //cursor.prev();
         } catch(DatabaseException e) {
             handleCursorException(cursor, txn, e);
         }

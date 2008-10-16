@@ -1,11 +1,15 @@
 #!/bin/bash
 
+function usage {
+    echo 'Usage: deployWar -b [begin number] -c [count] -h [-n server name] -w [war file]'
+    echo ' server name defaults to www, begin to 1, count to 5, and war file to WME'
+}
+
 args=`getopt b:c:hn:w: $*`
 
 if [ $? != 0 ]
 then
-    echo 'Usage: deployWar -b [begin number] -c [count] -h [-n server name] -w [war file]'
-    echo ' server name defaults to www, begin to 1, count to 5, and war file to WME'
+    usage
     exit 2
 fi
 
@@ -25,8 +29,7 @@ do
     case "$i"
 	in
 	-h)
-	    echo 'Usage: deployWar -h [-s server name] [-n num servers] [-w war file]'
-	    echo ' server name defaults to www, begin to 1, count to 5, and war file to WME'
+	    usage
 	    exit;;
 	-b)
 	    BEGIN=$2; shift;
@@ -45,6 +48,9 @@ done
 
 WARDIR=`dirname $FILE`
 WARFILE=`basename $FILE`
+
+echo $WARDIR
+echo $WARFILE
 
 ant -Dwar.dir=$WARDIR -Dwar.file=$WARFILE -f $DIR/../grid-deploy/upload-war.xml 
 
