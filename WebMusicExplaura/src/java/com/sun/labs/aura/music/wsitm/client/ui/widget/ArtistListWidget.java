@@ -23,7 +23,9 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -57,7 +59,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
     }
 
     public ArtistListWidget(MusicSearchInterfaceAsync musicServer,
-            ClientDataManager cdm, HashMap<ArtistCompact, Double> aC,
+            ClientDataManager cdm, ArrayList<ScoredC<ArtistCompact>> aC,
             boolean fetchRatings, boolean displayDiff) {
     
         processArtistSimValues(aC);
@@ -93,20 +95,15 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         }
     }
     
-    private void processArtistSimValues(HashMap<ArtistCompact, Double> aCMap) {
-        similarity = new Double[aCMap.size()];
-        aDArray = new ArtistCompact[aCMap.size()];
+    private void processArtistSimValues(ArrayList<ScoredC<ArtistCompact>> aCList) {
+        similarity = new Double[aCList.size()];
+        aDArray = new ArtistCompact[aCList.size()];
         int i = 0;
-        String sims = "";
-        for (ArtistCompact aC : aCMap.keySet()) {
-            aDArray[i] = aC;
-            similarity[i] = aCMap.get(aC);
-            sims += simToColor(aCMap.get(aC))+";";
+        for (ScoredC<ArtistCompact> saC : aCList) {
+            aDArray[i] = saC.getItem();
+            similarity[i] = saC.getScore();
             i++;
         }
-        
-        
-        Window.alert("simList:"+sims);
     }
 
     public abstract void openWhyPopup(SwapableTxtButton why);
@@ -214,15 +211,25 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         
         Integer[] highColor = new Integer[3];
         Integer[] lowColor = new Integer[3];
-        highColor[0] = 111;
+        /* vert clair
+         highColor[0] = 111;
         highColor[1] = 221;
         highColor[2] = 129;
+         * */
+        /** rouge
+        highColor[0] = 255;
+        highColor[1] = 123;
+        highColor[2] = 109;
+         * */
+        highColor[0] = 185;
+        highColor[1] = 255;
+        highColor[2] = 109;
         lowColor[0] = 240;
         lowColor[1] = 248;
         lowColor[2] = 198;
         
         for (int i=0; i<3; i++) {
-            tcol = Integer.toHexString((int)(  (highColor[i]-lowColor[i])*sim + lowColor[i]  ));
+            tcol = Integer.toHexString((int)( (highColor[i]-lowColor[i])*sim + lowColor[i] ));
             if (tcol.length() == 1) {
                 tcol = "0" + tcol;
             } else if (tcol.length() == 0) {

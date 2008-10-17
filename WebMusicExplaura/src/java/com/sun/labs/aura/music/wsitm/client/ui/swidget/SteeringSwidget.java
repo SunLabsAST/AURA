@@ -41,6 +41,7 @@ import com.sun.labs.aura.music.wsitm.client.event.WebListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
@@ -121,7 +122,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         private FlowPanel searchBoxContainerPanel;
         private FlowPanel refreshingPanel;
         private HashMap<String, Double> currTagMap;
-        private ArtistCompact[] currRecommendations = null;
+        private ArrayList<ScoredC<ArtistCompact>> currRecommendations = null;
 
         private PopularitySelect popSelect;
         
@@ -298,8 +299,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
             double maxScore = 0;
             double newVal = 0;
-            for (ArtistCompact aC : currRecommendations) {
-                for (ItemInfo iI : aC.getDistinctiveTags()) {
+            for (ScoredC<ArtistCompact> aC : currRecommendations) {
+                for (ItemInfo iI : aC.getItem().getDistinctiveTags()) {
                     // @todo remove lowercase when engine fixed
                     String name = iI.getItemName().toLowerCase();
                     if (currTagMap.containsKey(name)) {
@@ -324,9 +325,9 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
         public void invokeFetchNewRecommendations() {
             PerformanceTimer.start("newRecommendations");
-            AsyncCallback<ArtistCompact[]> callback = new AsyncCallback<ArtistCompact[]>() {
+            AsyncCallback<ArrayList<ScoredC<ArtistCompact>>> callback = new AsyncCallback<ArrayList<ScoredC<ArtistCompact>>>() {
 
-                public void onSuccess(ArtistCompact[] aCArray) {
+                public void onSuccess(ArrayList<ScoredC<ArtistCompact>> aCList) {
                     PerformanceTimer.stop("newRecommendationsGetData");
                     PerformanceTimer.start("newRecommendationsRedraw");
 
@@ -337,11 +338,11 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                     }
 
                     mainArtistListPanel.setWidget(0, 0,
-                            new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, tagLand));
+                            new ArtistCloudArtistListWidget(musicServer, cdm, aCList, tagLand));
                     refreshingPanel.setVisible(false);
 
-                    if (aCArray != null && aCArray.length > 0) {
-                        currRecommendations = aCArray;
+                    if (aCList != null && aCList.size() > 0) {
+                        currRecommendations = aCList;
                     } else {
                         currRecommendations = null;
                     }
@@ -979,9 +980,16 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         private TagWidget tagLand;
 
         public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
+                ClientDataManager cdm, ArrayList<ScoredC<ArtistCompact>> aCList, TagWidget tagLand) {
+
+            super(musicServer, cdm, aCList, cdm.isLoggedIn(), true);
+            this.tagLand = tagLand;
+        }
+        
+        public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
                 ClientDataManager cdm, ArtistCompact[] aDArray, TagWidget tagLand) {
 
-            super(musicServer, cdm, aDArray, cdm.isLoggedIn());
+            super(musicServer, cdm, aDArray, cdm.isLoggedIn(), true);
             this.tagLand = tagLand;
         }
 

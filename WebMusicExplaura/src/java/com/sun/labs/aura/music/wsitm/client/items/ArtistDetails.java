@@ -12,6 +12,7 @@ package com.sun.labs.aura.music.wsitm.client.items;
 import com.google.gwt.user.client.rpc.IsSerializable;
 import com.google.gwt.user.client.ui.Image;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,11 +26,11 @@ public class ArtistDetails extends ArtistCompact implements IsSerializable, Deta
     private final static ArtistVideo[] EMPTY_ARTIST_VIDEO = new ArtistVideo[0];
     private final static ArtistEvent[] EMPTY_EVENT = new ArtistEvent[0];
     private final static ArtistCompact[] EMPTY_ARTIST_COMPACT = new ArtistCompact[0];
-    private final static HashMap<ArtistCompact, Double> EMPTY_ARTISTCOPACT_MAP = new HashMap<ArtistCompact, Double>();
+    private final static ArrayList<ScoredC<ArtistCompact>> EMPTY_ARTISTCOPACT_MAP = new ArrayList<ScoredC<ArtistCompact>>();
     
     private Map<String, String> urls = new HashMap<String, String>();
     private String musicURL;
-    private HashMap<ArtistCompact, Double> similarArtists = EMPTY_ARTISTCOPACT_MAP;
+    private ArrayList<ScoredC<ArtistCompact>> similarArtists = EMPTY_ARTISTCOPACT_MAP;
     private ArtistCompact[] recommendedArtists = EMPTY_ARTIST_COMPACT;
     private ArtistCompact[] collaborations = EMPTY_ARTIST_COMPACT;
     private ItemInfo[] frequentTags = EMPTY_ITEM_INFO;
@@ -53,7 +54,7 @@ public class ArtistDetails extends ArtistCompact implements IsSerializable, Deta
         this.videos = videos;
     }
 
-    public HashMap<ArtistCompact, Double> getSimilarArtists() {
+    public ArrayList<ScoredC<ArtistCompact>> getSimilarArtists() {
         return similarArtists;
     }
 
@@ -63,11 +64,11 @@ public class ArtistDetails extends ArtistCompact implements IsSerializable, Deta
      * @param aCMap
      * @return
      */
-    public static ArtistCompact[] getSimilarArtistsAsArray(HashMap<ArtistCompact, Double> aCMap) {
-        ArtistCompact[] aCArray = new ArtistCompact[aCMap.size()];
+    public static ArtistCompact[] getSimilarArtistsAsArray(ArrayList<ScoredC<ArtistCompact>> aCList) {
+        ArtistCompact[] aCArray = new ArtistCompact[aCList.size()];
         int index = 0;
-        for (ArtistCompact aC : aCMap.keySet()) {
-            aCArray[index++] = aC;
+        for (ScoredC<ArtistCompact> saC : aCList) {
+            aCArray[index++] = saC.getItem();
         }
         return aCArray;
     }
@@ -76,7 +77,7 @@ public class ArtistDetails extends ArtistCompact implements IsSerializable, Deta
         return getSimilarArtistsAsArray(similarArtists);
     }
     
-    public void setSimilarArtists(HashMap<ArtistCompact, Double> similarArtists) {
+    public void setSimilarArtists(ArrayList<ScoredC<ArtistCompact>> similarArtists) {
         this.similarArtists = similarArtists;
     }
     

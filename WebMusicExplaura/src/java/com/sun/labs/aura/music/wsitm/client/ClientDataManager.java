@@ -19,12 +19,14 @@ import com.sun.labs.aura.music.wsitm.client.event.TagCloudListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedArtistMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedPlayButtonMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedTagMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton.MusicProviders;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.TagWidgetContainer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -318,9 +320,9 @@ public class ClientDataManager {
      * @param aD new artist details
      * @param popularity popularity of requested recommendation
      */
-    public void updateUpdatableWidgets(HashMap<ArtistCompact, Double> aCMap) {
+    public void updateUpdatableWidgets(ArrayList<ScoredC<ArtistCompact>> aCList) {
         for (Updatable u : updatableWidgets) {
-            u.update(aCMap);
+            u.update(aCList);
         }
     }
     

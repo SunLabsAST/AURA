@@ -121,8 +121,8 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         buttonPanel.add(new ContextMenuSteeringWheelWidget(cdm, steerButton, aC));
 
         //steeringMenu
-                
         VerticalPanel swapableButtonPanel = new VerticalPanel();
+        swapableButtonPanel.setStyleName("smallTagClick");
         boolean empty = true;
         if (whyB != null) {
             swapableButtonPanel.add(whyB);

@@ -35,6 +35,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -411,9 +412,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             artistID = artistID.replaceAll("artist:", "");
         }
 
-        AsyncCallback<HashMap<ArtistCompact, Double>> callback = new AsyncCallback<HashMap<ArtistCompact, Double>>() {
+        AsyncCallback<ArrayList<ScoredC<ArtistCompact>>> callback = new AsyncCallback<ArrayList<ScoredC<ArtistCompact>>>() {
 
-            public void onSuccess(HashMap<ArtistCompact, Double> aC) {
+            public void onSuccess(ArrayList<ScoredC<ArtistCompact>> aC) {
                 // do some UI stuff to show success
                 if (aC != null) {
                     cdm.updateUpdatableWidgets(aC);
