@@ -332,23 +332,6 @@ public class DataManager implements Configurable {
             Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        /* moving to its own function updateArtistDetails
-        // Fetch similar artists
-        List<Scored<Artist>> scoredArtists = simType.findSimilarArtists(a.getKey(), NUMBER_SIM_ARTISTS);
-        // return artists in socred order
-        sortByArtistPopularity(scoredArtists);
-
-        // collect all of the similar artists, but skip the seed artist
-        List<ArtistCompact> simArtistList = new ArrayList<ArtistCompact>();
-        for (int i = 0; i < scoredArtists.size(); i++) {
-            if (!a.getKey().equals(scoredArtists.get(i).getItem().getKey())) {
-                simArtistList.add(artistToArtistCompact(scoredArtists.get(i).getItem()));
-            }
-        }
-        ArtistCompact[] simArtist = simArtistList.toArray(new ArtistCompact[simArtistList.size()]);
-        details.setSimilarArtists(simArtist);
-        */
-
         // Fetch albums
         Set<String> albumSet = a.getAlbums();
         AlbumDetails[] albumDetailsArray = new AlbumDetails[albumSet.size()];

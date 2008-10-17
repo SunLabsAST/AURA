@@ -229,7 +229,10 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         lowColor[2] = 198;
         
         for (int i=0; i<3; i++) {
-            tcol = Integer.toHexString((int)( (highColor[i]-lowColor[i])*sim + lowColor[i] ));
+            // linear mapping
+            //tcol = Integer.toHexString((int)( (highColor[i]-lowColor[i])*sim + lowColor[i] ));
+            // exp mapping
+            tcol = Integer.toHexString((int)( (highColor[i]-lowColor[i])*Math.pow((sim+.5)/1.5,3) + lowColor[i] ));
             if (tcol.length() == 1) {
                 tcol = "0" + tcol;
             } else if (tcol.length() == 0) {
