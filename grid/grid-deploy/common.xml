@@ -70,9 +70,11 @@
   <!-- properties to hold resource names -->
     <property name="ant.col" value="sys.packages/org/apache/tools/ant/1.7.0/lib/"/>
     <property name="dist.filesystem" value="${grid.instance}-aura.dist"/>
-    <property name="war.url" value="${dav.url}/${dist.filesystem}/war"/>
+    <property name="web.url" value="${dav.url}/${dist.filesystem}/web"/>
+    <property name="config.url" value="${web.url}/config"/>
     <property name="network" value="${grid.instance}-auraNet"/>
     <property name="packages.filesystem" value="sys.packages"/>
+
     <property name="service.base" value="apache-tomcat-6.0.18"/>
     <property name="service.conf" value="${www.filesystem}/${service.base}/conf/"/>
     <property name="service.distribution" value="${service.base}.zip" />
@@ -85,15 +87,13 @@
 
     <!-- create a WebDAV collection to upload Ant jars to-->
     <target name="create-ant-collection" description="creates Ant package" depends="create-packages-filesystem">
-        <dav:mkcol url="${dav.url}/${ant.col}"
-            userid="${user}" password="${pw}"/>
+        <dav:mkcol url="${dav.url}/${ant.col}" userid="${user}" password="${pw}"/>
     </target>
 
     <!-- create a target to copy Ant jars to Caroline -->
     <target name="deploy-ant" description="copies Ant libraries"
         depends="create-ant-collection">
-        <dav:put url="${dav.url}/${ant.col}"
-            userid="${user}" password="${pw}" verbose="true" lock="false">
+        <dav:put url="${dav.url}/${ant.col}" userid="${user}" password="${pw}" verbose="true" lock="false">
             <fileset dir="${ant.lib}">
                 <include name="*.jar"/>
             </fileset>
@@ -101,21 +101,19 @@
     </target>
 
     <!-- create a WebDAV collection to which we can upload war files -->
-    <target name="create-war-collection" description="Creates war file directory">
-        <dav:mkcol url="${dav.url}/${dist.filesystem}/war"
-		   userid="${user}" password="${pw}" verbose="true"/>
+    <target name="create-web-collection" description="Creates a collection for web related files">
+        <dav:mkcol url="${web.url}" userid="${user}" password="${pw}" verbose="true"/>
     </target>
 
     <target name="create-config-collection" description="Creates war file directory">
-        <dav:mkcol url="${dav.url}/${dist.filesystem}/war/config"
-		   userid="${user}" password="${pw}" verbose="true"/>
+        <dav:mkcol url="${config.url}" userid="${user}" password="${pw}" verbose="true"/>
     </target>
 
-    <!-- upload the service distribution to the dist file system -->
+    <!-- upload the service distribution and config files to the dist file system -->
     <target name="upload-distribution"
         description="uploads service distribution to Caroline filesystem"
-        depends="create-filesystem,create-war-collection,create-config-collection">
-        <dav:put url="${dav.url}/${dist.filesystem}/war/"
+        depends="create-filesystem,create-web-collection,create-config-collection">
+        <dav:put url="${web.url}"
 		 userid="${user}" password="${pw}" verbose="true" lock="false">
             <fileset dir="${tool.libraries}">
                 <include name="${service.distribution}"/>
@@ -148,19 +146,19 @@
     description="Copy the build support files to the grid"
     depends="upload-distribution">
       <!-- Copy the policy and build files from the distribution -->
-        <dav:copy url="${dav.url}/${dist.filesystem}/war/jsk-all.policy"
+        <dav:copy url="${web.url}/jsk-all.policy"
 		destination="${dav.url}/${www.filesystem}/jsk-all.policy"
 		verbose="true"
 		overwrite="true"
 		userid="${user}" password="${pw}"/>
 
-        <dav:copy url="${dav.url}/${dist.filesystem}/war/unzip-tomcat.xml"
+        <dav:copy url="${web.url}/unzip-tomcat.xml"
 		destination="${dav.url}/${www.filesystem}/unzip-tomcat.xml"
 		verbose="true"
 		overwrite="true"
 		userid="${user}" password="${pw}"/>
 
-        <dav:copy url="${dav.url}/${dist.filesystem}/war/deploy-war.xml"
+        <dav:copy url="${web.url}/deploy-war.xml"
 		destination="${dav.url}/${www.filesystem}/deploy-war.xml"
 		verbose="true"
 		overwrite="true"
@@ -168,7 +166,7 @@
     </target>
     
     <!-- unzip service distribution on-grid -->
-    <target name="unzip-distribution"
+    <target name="unzip-distribution" 
         description="unzips the service distribution"
         depends="upload-distribution, create-packages-filesystem, copy-support-files">
 
@@ -185,7 +183,7 @@
             <env key="ANT_HOME" value="/files/${ant.col}"/>
             <env key="JAVA_HOME" value="/usr/java"/>
             <!-- Specify the command line -->
-            <arg value="-Dservice.distribution=/files/dist/war/${service.distribution}"/>
+            <arg value="-Dservice.distribution=/files/dist/web/${service.distribution}"/>
             <arg value="-jar"/>
             <arg value="/files/${ant.col}/ant-launcher.jar"/>
             <arg value="-f"/>
@@ -244,7 +242,7 @@
         <caroline:intaddress name="${intaddress}" op="delete" networkname="${network}"/>
     </target>
 
-   <target name="destroy-intbinding"
+    <target name="destroy-intbinding"
             description="Destroys an internal binding if it doesn't exist">
         <caroline:intbinding name="${intbinding}" op="delete"  hostname="${service.process}"/>
     </target>
@@ -276,7 +274,7 @@
     </target>
 
     <!-- Upload a war file to the dist directory. -->
-    <target name="upload-war" description="Uploads war file" depends="create-war-collection">
+    <target name="upload-war" description="Uploads war file" depends="create-web-collection">
         <dav:put url="${war.url}"
 	     userid="${user}" password="${pw}"
 	     lock="false" verbose="true">
