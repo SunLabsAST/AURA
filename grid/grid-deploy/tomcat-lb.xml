@@ -58,6 +58,6 @@
     </target>
   
     <target name="cleanup"
-	    depends="destroy-service,destroy-unzip-task,destroy-intaddress,destroy-filesystem"/>
+	    depends="destroy-service,destroy-unzip-task,destroy-deploy-task,destroy-intaddress,destroy-filesystem"/>
 
 </project>
