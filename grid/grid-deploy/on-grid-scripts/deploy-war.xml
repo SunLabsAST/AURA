@@ -15,7 +15,7 @@
         <delete dir="${service.webapps}/${war.path}"/>
     </target>
 
-    <target name="deploy" depends="undeploy,delete-webapp-dir" description="Deploy web application">
+    <target name="deploy" description="Deploy web application">
         <deploy url="${url}" username="${username}" password="${password}"
             path="${war.path}" war="${war.file}" update="true" />
     </target>
