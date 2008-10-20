@@ -223,8 +223,7 @@
             description="creates an internal binding if it doesn't exist">
         <caroline:intbinding name="${intbinding}" op="create"
                 hostname="${service.process}">
-            <caroline:intaddress name="${intaddress}"
-                    networkname="${network}"/>
+            <caroline:intaddress name="${intaddress}" networkname="${network}"/>
         </caroline:intbinding>
     </target>
     <!-- Destroy resources -->
@@ -246,6 +245,7 @@
             description="Destroys an internal binding if it doesn't exist">
         <caroline:intbinding name="${intbinding}" op="delete"  hostname="${service.process}"/>
     </target>
+    
     <!-- destroy network if it exists -->
     <target name="destroy-network"
         description="destroys networkaddress if one exists"
@@ -275,7 +275,7 @@
 
     <!-- Upload a war file to the dist directory. -->
     <target name="upload-war" description="Uploads war file" depends="create-web-collection">
-        <dav:put url="${war.url}"
+        <dav:put url="${web.url}"
 	     userid="${user}" password="${pw}"
 	     lock="false" verbose="true">
             <fileset dir="${war.dir}">
@@ -313,7 +313,7 @@
             <env key="JAVA_HOME" value="/usr/java"/>
             <!-- Specify the command line -->
             <arg value="-Dservice.process=${service.process}"/>
-            <arg value="-Dwar.file=/files/dist/war/${war.file}"/>
+            <arg value="-Dwar.file=/files/dist/web/${war.file}"/>
             <arg value="-Dwar.path=${war.path}"/>
             <arg value="-Dservice.webapps=${service.webapps}"/>
             <arg value="-jar"/>
@@ -346,7 +346,7 @@
             <env key="JAVA_HOME" value="/usr/java"/>
             <!-- Specify the command line -->
             <arg value="-Dservice.process=${service.process}"/>
-            <arg value="-Dwar.file=/files/dist/war/${war.file}"/>
+            <arg value="-Dwar.file=/files/dist/web/${war.file}"/>
             <arg value="-Dwar.path=${war.path}"/>
             <arg value="-Dservice.webapps=${service.webapps}"/>
             <arg value="-jar"/>

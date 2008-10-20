@@ -18,6 +18,7 @@
 
     <property name="www.filesystem" value="${deployment.name}-${deployment.number}.filesystem"/>
     <property name="intaddress" value="${deployment.name}-${deployment.number}-int"/>
+    <property name="intbinding" value="${deployment.name}-${deployment.number}.intbinding"/>
     <property name="service.process" value="${deployment.name}-${deployment.number}"/>
 
     <import file="common.xml"/>

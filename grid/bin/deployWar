@@ -46,6 +46,10 @@ do
     esac
 done
 
+if [ ! -e $WARFILE ] ; then
+    echo $WARFILE does not exist!
+fi
+
 ant -Dwar.loc=$WARFILE -f $DIR/../grid-deploy/common.xml upload-war
 
 if [ $? != 0 ] ; then 

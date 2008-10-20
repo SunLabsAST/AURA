@@ -20,7 +20,7 @@
             path="${war.path}" war="${war.file}" update="true" />
     </target>
 
-    <target name="undeploy" description="Undeploy web application" if="webapp-dir-exists">
+    <target name="undeploy" description="Undeploy web application">
         <undeploy url="${url}" username="${username}" password="${password}"
               path="${war.path}"/>
     </target>
