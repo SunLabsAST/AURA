@@ -42,28 +42,8 @@ public class PCPanel extends HorizontalPanel {
         myself.add(new StyleLabel("Attention: " + pc.getNumAttention(),
                                   "viz-statLabel"));
 
-        DisclosurePanel typeStats = new DisclosurePanel(
-                new StyleLabel("Item Type Stats", "viz-typeStatsLabel"));
-        FlexTable typeTable = new FlexTable();
-        CellFormatter cf = typeTable.getCellFormatter();
         Map typeToCount = pc.getTypeToCountMap();
-        Set types = typeToCount.keySet();
-        int row=0;
-        for (Iterator typeIt = types.iterator(); typeIt.hasNext();) {
-            String type = (String)typeIt.next();
-            Long count = (Long) typeToCount.get(type);
-            if (count.longValue() != 0L) {
-                typeTable.setWidget(row, 0,
-                        new StyleLabel(type + ":","viz-statLabel"));
-                typeTable.setWidget(row, 1,
-                        new StyleLabel(count.toString(), "viz-statLabel"));
-                cf.setStylePrimaryName(row, 0, "viz-typeStatsTypeCol");
-                cf.setStylePrimaryName(row++, 1, "viz-typeStatsCountCol");
-            }
-        }
-        typeStats.add(typeTable);
-        typeStats.setStylePrimaryName("viz-typeStatsPanel");
-        myself.add(typeStats);
+        myself.add(Util.getTypeStatsPanel(typeToCount));
         
         //
         // Add buttons
