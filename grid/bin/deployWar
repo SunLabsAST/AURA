@@ -20,7 +20,7 @@ DIR=`dirname $0`
 export NAME=www
 export BEGIN=1
 export COUNT=5
-export FILE=$DIR/../../WebMusicExplaura/dist/WebMusicExplaura.war
+export WARFILE=$DIR/../../WebMusicExplaura/dist/WebMusicExplaura.war
 export ANT_OPTS="-Xmx512m"
 
 
@@ -41,18 +41,16 @@ do
 	    NAME=$2; shift;
 	    shift;;
 	-w)
-	    FILE=$2; shift;
+	    WARFILE=$2; shift;
 	    shift;;
     esac
 done
 
-WARDIR=`dirname $FILE`
-WARFILE=`basename $FILE`
+if [ ! -e $WARFILE ] ; then
+    echo $WARFILE does not exist!
+fi
 
-echo $WARDIR
-echo $WARFILE
-
-ant -Dwar.dir=$WARDIR -Dwar.file=$WARFILE -f $DIR/../grid-deploy/upload-war.xml 
+ant -Dwar.loc=$WARFILE -f $DIR/../grid-deploy/common.xml upload-war
 
 if [ $? != 0 ] ; then 
     echo "Error uploading war file"
@@ -64,6 +62,6 @@ export END=$(( $BEGIN + $COUNT ))
 for (( COUNT=$BEGIN ; COUNT < $END ; COUNT++ )) ; do 
     echo Deploying $FILE to $NAME-$COUNT
     ant -Ddeployment.name=$NAME \
-    	-Ddeployment.number=$COUNT -Dwar.file=$WARFILE \
-    	-f $DIR/../grid-deploy/deploy-lb-war.xml 
+    	-Ddeployment.number=$COUNT -Dwar.loc=$WARFILE \
+    	-f $DIR/../grid-deploy/tomcat-lb.xml deploy-war
 done

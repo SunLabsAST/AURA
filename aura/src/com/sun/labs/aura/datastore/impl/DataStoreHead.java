@@ -1002,15 +1002,21 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
                 public List<Scored<String>> call()
                         throws AuraException, RemoteException {
-                    if(logger.isLoggable(Level.FINE)) {
-                        logger.fine(String.format("dsh pc %s fs call", pc.getPrefix().toString()));
+                    try {
+                        if (logger.isLoggable(Level.FINE)) {
+                            logger.fine(String.format("dsh pc %s fs call", pc.
+                                    getPrefix().toString()));
+                        }
+                        List<Scored<String>> ret = pc.findSimilar(dv, config);
+                        if (logger.isLoggable(Level.FINE)) {
+                            logger.fine(String.format("dsh pc %s fs return", pc.
+                                    getPrefix().toString()));
+                        }
+                        return ret;
+                    } finally {
+                        latch.countDown();
                     }
-                    List<Scored<String>> ret = pc.findSimilar(dv, config);
-                    if(logger.isLoggable(Level.FINE)) {
-                        logger.fine(String.format("dsh pc %s fs return", pc.getPrefix().toString()));
-                    }
-                    latch.countDown();
-                    return ret;
+
                 }
             });
         }
@@ -1131,9 +1137,12 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
                 public List<Scored<String>> call()
                         throws AuraException, RemoteException {
-                    List<Scored<String>> ret = pc.getAutotagged(autotag, n);
-                    latch.countDown();
-                    return ret;
+                    try {
+                        List<Scored<String>> ret = pc.getAutotagged(autotag, n);
+                        return ret;
+                    } finally {
+                        latch.countDown();
+                    }
                 }
             });
         }
@@ -1606,9 +1615,12 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
                 public List<Scored<String>> call()
                         throws AuraException, RemoteException {
-                    List<Scored<String>> ret = pc.query(query, sort, n, rf);
-                    latch.countDown();
-                    return ret;
+                    try {
+                        List<Scored<String>> ret = pc.query(query, sort, n, rf);
+                        return ret;
+                    } finally {
+                        latch.countDown();
+                    }
                 }
             });
         }

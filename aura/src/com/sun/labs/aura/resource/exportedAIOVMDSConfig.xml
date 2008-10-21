@@ -90,7 +90,7 @@
         <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
         <property name="engineLogLevel" value="3"/>
         <property name="flushInterval" value="300000"/>
-        <property name="logLevel" value="WARNING"/>
+        <property name="logLevel" value="FINER"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
@@ -99,7 +99,7 @@
         <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
         <property name="flushInterval" value="300000"/>
         <property name="engineLogLevel" value="3"/>
-        <property name="logLevel" value="WARNING"/>
+        <property name="logLevel" value="FINER"/>
     </component>
     
     <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl" export="true">

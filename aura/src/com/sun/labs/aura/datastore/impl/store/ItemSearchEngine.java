@@ -648,7 +648,7 @@ public class ItemSearchEngine implements Configurable {
      * @throws java.rmi.RemoteException
      */
     public List<Scored<String>> find(String name, String val, int n) throws AuraException, RemoteException {
-        FieldEvaluator fe = new FieldEvaluator(name, FieldTerm.EQUAL, val);
+        FieldEvaluator fe = new FieldEvaluator(name, FieldTerm.Operator.EQUAL, val);
         ResultSet rs = fe.eval(engine);
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         try {
