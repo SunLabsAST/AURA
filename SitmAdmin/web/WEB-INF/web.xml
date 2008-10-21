@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+    <listener>
+        <description>Connect to aardvark/aura</description>
+        <listener-class>com.sun.labs.aura.music.admin.server.ServletListener</listener-class>
+    </listener>
+    <servlet>
+        <servlet-name>AdminService</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.admin.server.AdminServiceImpl</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>VizService</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.admin.server.VizServiceImpl</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminService</servlet-name>
+        <url-pattern>/com.sun.labs.aura.music.admin.GWTMain/adminservice</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>VizService</servlet-name>
+        <url-pattern>/com.sun.labs.aura.music.admin.GWTMain/vizservice</url-pattern>
+    </servlet-mapping>
+    <session-config>
+        <session-timeout>
+            30
+        </session-timeout>
+    </session-config>
+    <welcome-file-list>
+        <welcome-file>welcomeGWT.html</welcome-file>
+        </welcome-file-list>
+<!-- Define reference to the user database for looking up roles -->
+
+  <!-- Define a Security Constraint on this Application -->
+  <security-constraint>
+        <display-name>DataStore</display-name>
+        <web-resource-collection>
+      <web-resource-name>DB Browser</web-resource-name>
+      <url-pattern>/*</url-pattern>
+    </web-resource-collection>
+        <auth-constraint>
+            <description>Access to music.admin</description>
+            <role-name>datastore</role-name>
+            </auth-constraint>
+        </security-constraint>
+
+  <!-- Define the Login Configuration for this Application -->
+  <login-config>
+    <auth-method>BASIC</auth-method>
+    <realm-name>DB Browser</realm-name>
+  </login-config>
+
+  <!-- Security roles referenced by this web application -->
+  <security-role>
+    <description>
+      The role that is required to browse the datastore
+    </description>
+    <role-name>datastore</role-name>
+  </security-role>
+</web-app>

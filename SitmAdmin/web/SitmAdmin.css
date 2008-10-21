@@ -1,0 +1,367 @@
+body, html {
+  height: 100%;
+}
+
+body {
+  background: #fff;
+  color: black;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: small;
+  margin: 8px;
+  margin-top: 3px;
+}
+
+}
+
+a { 
+  color: #000;
+}
+
+a:visited {
+  color: #000; 
+}
+
+.main-SelectorButton {
+    margin-right: 5px;
+    margin-left: 5px;
+}
+
+
+.gwt-TabPanel {
+  margin-top: 4px;
+}
+
+.gwt-TabPanelBottom {
+    
+  background-color: #6cb0e4;
+  border: 2px solid #6cb0e4;
+  /* gradient initial top color #6cb0e4; */
+/* #E8EEF7; */
+}
+
+.gwt-TabBar {
+  padding-top: 2px;
+  border-bottom: 4px solid #6cb0e4;
+  background-color: #fff;
+}
+
+.gwt-TabBar .gwt-TabBarFirst {
+}
+
+.gwt-TabBar .gwt-TabBarRest {
+}
+
+.gwt-TabBar .gwt-TabBarItem {
+  padding: 4px;
+  cursor: pointer;
+  cursor: hand;
+
+  background-color: #e8eef7;
+  border-bottom: 2px solid white;
+  margin-right: 2px;
+}
+
+.gwt-TabBar .gwt-TabBarItem-selected {
+  padding: 4px;
+  font-weight: bold;
+  cursor: default;
+
+  background-color: #6cb0e4;
+  border-bottom: 2px solid #6cb0e4;
+  margin-right: 2px;
+}
+
+.gwt-DialogBox {
+  background-color: white;
+  border-left: 1px solid #666;
+  border-right: 1px solid #666;
+  border-bottom: 1px solid #666;
+}
+
+.gwt-DialogBox .Caption {
+  background: url(gradient.gif) repeat-x top left;
+  font-weight: bold;
+  cursor: default;
+  padding: 5px 10px;
+  border-bottom: 1px solid #666;
+  border-top: 1px solid #666;
+  text-align: left;
+}
+
+.gwt-DialogBox td {
+  text-align: right;
+}
+
+.gwt-DialogBox .gwt-Button {
+  margin: 10px;
+}
+
+.gwt-MenuBar {
+  background: #c3d9ff;
+  cursor: default;
+}
+
+.gwt-MenuItem {
+  font-size: 80%;
+  margin: 1px;
+  cursor: default;
+}
+
+.gwt-MenuItem-selected {
+  background: #e8eef7;
+}
+
+
+.gwt-StackPanel {
+  background: #fff;
+  width: 15em;
+  border-bottom: 1px solid #666;
+}
+
+.gwt-StackPanel .gwt-StackPanelItem {
+  cursor: pointer;
+  cursor: hand;
+}
+
+.gwt-StackPanel .gwt-StackPanelItem-selected {
+  border-bottom: 1px solid #666;
+}
+
+.gwt-StackPanel .lcaption {
+  width: 32px;
+  padding: 0 0 4px 5px;
+}
+
+.gwt-StackPanel .rcaption {
+  padding: 0 0 4px 5px;
+} 
+
+.gwt-StackPanel .box-20 {
+  text-align: right;
+}
+.gwt-DecoratedTabBar {
+}
+
+.gwt-DecoratedTabBar .gwt-TabBarFirst {
+  width: 5px;  /* first tab distance from the left */
+}
+
+.gwt-DecoratedTabBar .gwt-TabBarRest {
+}
+
+.gwt-DecoratedTabBar .gwt-TabBarItem {
+  border-collapse: collapse;
+  margin-left: 6px;
+}
+
+.gwt-DecoratedTabBar .tabTopCenter {
+  padding: 0px;
+  background: #d0e4f6;
+}
+
+.gwt-DecoratedTabBar .tabTopLeft,
+.gwt-DecoratedTabBar .tabTopRight {
+  padding: 0px;
+  zoom: 1;
+}
+
+.gwt-DecoratedTabBar .tabTopLeftInner,
+.gwt-DecoratedTabBar .tabTopRightInner {
+  width: 6px;
+  height: 6px;
+}
+
+.gwt-DecoratedTabBar .tabMiddleLeft,
+.gwt-DecoratedTabBar .tabMiddleRight {
+  width: 6px;
+  padding: 0px;
+  background: #d0e4f6;
+}
+
+.gwt-DecoratedTabBar .tabMiddleLeftInner,
+.gwt-DecoratedTabBar .tabMiddleRightInner {
+  width: 1px;
+  height: 1px;
+}
+
+.gwt-DecoratedTabBar .tabMiddleCenter {
+  padding: 0px 4px 2px 4px;
+  cursor: pointer;
+  cursor: hand;
+  color: black;
+  font-weight: bold;
+  text-align: center;
+  background: #d0e4f6;
+}
+
+.gwt-DecoratedTabBar .gwt-TabBarItem-selected .tabTopCenter {
+  background: #92c1f0;
+}
+
+.gwt-DecoratedTabBar .gwt-TabBarItem-selected .tabMiddleLeft,
+.gwt-DecoratedTabBar .gwt-TabBarItem-selected .tabMiddleRight {
+  background: #92c1f0;
+}
+
+.gwt-DecoratedTabBar .gwt-TabBarItem-selected .tabMiddleCenter {
+  cursor: default;
+  background: #92c1f0;
+}
+
+html>body .gwt-DecoratedTabBar .tabTopLeft {
+  background: url(corner.png) no-repeat 0px -55px;
+}
+
+html>body .gwt-DecoratedTabBar .tabTopRight {
+  background: url(corner.png) no-repeat -6px -55px;
+}
+
+html>body .gwt-DecoratedTabBar .gwt-TabBarItem-selected .tabTopLeft {
+  background-position: 0px -61px;
+}
+
+html>body .gwt-DecoratedTabBar .gwt-TabBarItem-selected .tabTopRight {
+  background-position: -6px -61px;
+}
+
+* html .gwt-DecoratedTabBar .tabTopLeftInner {
+  width: 5px;
+  height: 61px;
+  margin-top: -55px;
+  overflow: hidden;
+  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='corner.png',sizingMethod='crop');
+}
+
+* html .gwt-DecoratedTabBar .tabTopRightInner {
+  width: 12px;
+  height: 61px;
+  margin-top: -55px;
+  margin-left: -6px;
+  overflow: hidden;
+  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='corner.png',sizingMethod='crop');
+}
+
+* html .gwt-DecoratedTabBar .gwt-TabBarItem-selected .tabTopLeftInner {
+  width: 5px;
+  height: 67px;
+  margin-top: -61px;
+  overflow: hidden;
+  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='corner.png',sizingMethod='crop');
+}
+
+* html .gwt-DecoratedTabBar .gwt-TabBarItem-selected .tabTopRightInner {
+  width: 12px;
+  height: 67px;
+  margin-top: -61px;
+  margin-left: -6px;
+  overflow: hidden;
+  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='corner.png',sizingMethod='crop');
+}
+
+.gwt-TabPanel {
+}
+
+.gwt-TabPanelBottom {
+  border-color: #92c1f0;
+  border-style: solid;
+  border-width: 3px 2px 2px;
+  overflow: hidden;
+  padding: 6px;
+}
+
+.frame {
+  border: px solid #82b1e0;
+  padding: 5px;
+}
+
+.gwt-Button { padding: 5px;
+}
+    
+
+.title {
+  padding: 15px;
+  font-size: 18px;
+}
+
+.status {
+  padding: 15px;
+  font-size: 18px;
+  min-width: 200px;
+  min-height: 20px;
+  color: black;
+}
+
+
+.output{
+      font-family:      "Courier New"
+                    Courier
+                    monospace;
+      font-size: 12px;
+      background-color: #eee;
+      color: #000;
+      padding: 10px;
+}
+
+
+.statusError {
+  padding: 15px;
+  font-size: 18px;
+  min-width: 200px;
+  min-height: 20px;
+  color: red;
+}
+
+.workerWidget {
+  background-color: #8cc0f4;
+}
+
+.testPass {
+    color: green;
+    font-weight: bold;
+}
+
+.prompt {
+    padding:5px;
+}
+
+.testNeutral {
+    color: grey;
+    font-weight: normal;
+}
+
+.testFail {
+    color: red;
+    font-weight: bold;
+}
+
+.columnHeaders {
+    font-weight: bold;
+    font-size: large;
+}
+
+.columnHeavy {
+    font-weight: bold;
+    font-size: large;
+}
+
+.columnNormal {
+    font-weight: normal;
+    font-size: medium;
+}
+
+.columnLight {
+    font-weight: normal;
+    font-size: small;
+}
+
+.oddRow {
+  background-color: #8cc0f4;
+}
+
+.evenRow {
+  background-color: #6ca0d4;
+}
+
+.workerTreeItem {
+    cursor: pointer;
+}

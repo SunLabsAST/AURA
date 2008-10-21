@@ -46,7 +46,6 @@ import java.util.logging.Logger;
  * @author plamere
  */
 public class TagCrawler implements AuraService, Configurable {
-
     private Wikipedia wikipedia;
     private Youtube youtube;
     private FlickrManager flickr;
