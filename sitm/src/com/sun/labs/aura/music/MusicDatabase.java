@@ -470,6 +470,28 @@ public class MusicDatabase {
         return sm.getAll();
     }
 
+
+    /**
+     * Gets all of the item keys for items of a particular type
+     * @param type the type of interest
+     * @return a list containing all of the IDs of that type
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<String> getAllItemKeys(ItemType type) throws AuraException, RemoteException {
+        List<String> keys = new ArrayList<String>();
+        DBIterator<Item> itemIterator = getDataStore().getAllIterator(type);
+        try {
+            while (itemIterator.hasNext()) {
+                Item item = itemIterator.next();
+                keys.add(item.getKey());
+            }
+        } finally {
+            itemIterator.close();
+        }
+        return keys;
+    }
+
     private boolean isArtist(String id) {
         // BUG: fix this, but don't be expensive
         return true;
@@ -646,9 +668,16 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      */
     public List<Scored<Artist>> artistSearch(String artistName, int returnCount) throws AuraException {
+        artistName = normalizeTextForQuery(artistName);
         String squery = "(aura-type = artist) <AND> (aura-name <matches> \"*" + artistName + "*\")";
         List<Scored<Item>> scoredItems = query(squery, returnCount);
         return convertToScoredArtistList(scoredItems);
+    }
+
+
+
+    private String normalizeTextForQuery(String text) {
+        return text.replaceAll("\"", "?");
     }
 
     /**
@@ -861,6 +890,7 @@ public class MusicDatabase {
     }
 
     public List<Scored<ArtistTag>> artistTagSearch(String artistTagName, int returnCount) throws AuraException {
+        artistTagName = normalizeTextForQuery(artistTagName);
         String query = "(aura-type = ARTIST_TAG) <AND> (aura-name <matches> \"*" + artistTagName + "*\")";
         List<Scored<Item>> scoredItems = query(query, returnCount);
         return convertToScoredArtistTagList(scoredItems);
@@ -1345,7 +1375,6 @@ public class MusicDatabase {
             return artistFindSimilar(artistID, field, count);
         }
 
-        @Override
         public List<Scored<Artist>> findSimilarArtists(String artistID, int count,
                 MusicDatabase.Popularity pop) throws AuraException {
             return artistFindSimilar(artistID, field, count, pop);

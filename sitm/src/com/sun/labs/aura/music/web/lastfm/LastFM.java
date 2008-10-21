@@ -44,6 +44,11 @@ public class LastFM {
         return getTagsFromLastFM(url);
     }
 
+    public SocialTag[] getAlbumTags(String artistName, String trackName) throws IOException {
+        String url = getAlbumTagURL(artistName, trackName);
+        return getTagsFromLastFM(url);
+    }
+
     public SocialTag[] getTrackTags(String artistName, String trackName) throws IOException {
         String url = getTrackTagURL(artistName, trackName);
         return getTagsFromLastFM(url);
@@ -114,7 +119,7 @@ public class LastFM {
     }
 
     public void setTrace(boolean trace) {
-        commander.setTraceSends(true);
+        commander.setTraceSends(trace);
     }
 
     private LastItem[] getTopArtistForUserFromLastFM(String url) throws IOException {
@@ -240,7 +245,18 @@ public class LastFM {
         // http://ws.audioscrobbler.com/1.0/artist/My+Chemical+Romance/toptags.xml
         // http://ws.audioscrobbler.com/1.0/track/Metallica/enter%20sandman/toptags.xml
 
-        String url = "http://ws.audioscrobbler.com/1.0/track/" + encodedArtistName + "/" + encodedSongName + "/toptags.xml";
+        String url = "track/" + encodedArtistName + "/" + encodedSongName + "/toptags.xml";
+        return url;
+    }
+
+    private String getAlbumTagURL(String artistName, String albumName) {
+        String encodedArtistName = encodeName(artistName);
+        String encodedAlbumName = encodeName(albumName);
+
+        // http://ws.audioscrobbler.com/1.0/artist/My+Chemical+Romance/toptags.xml
+        // http://ws.audioscrobbler.com/1.0/track/Metallica/enter%20sandman/toptags.xml
+
+        String url = "album/" + encodedArtistName + "/" + encodedAlbumName + "/toptags.xml";
         return url;
     }
 
