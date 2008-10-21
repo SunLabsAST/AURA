@@ -28,6 +28,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
+import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedFlowPanel;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -173,13 +174,18 @@ public class CompactArtistWidget extends Composite implements HasListeners {
 
         artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_TOP);
         artistPanel.add(txtPanel);
-        artistPanel.addStyleName("largeMarginBottom");
+        artistPanel.setWidth("298px");
         if (backgroundColor != null) {
             artistPanel.getElement().getStyle().setProperty("background", backgroundColor);
             artistPanel.getElement().getStyle().setProperty("background-color", backgroundColor);
+            RoundedPanel rP = new RoundedPanel(artistPanel);
+            rP.setCornerColor(backgroundColor);
+            rP.addStyleName("largeMarginBottom");
+            initWidget(rP);
+        } else {
+            artistPanel.addStyleName("largeMarginBottom");
+            initWidget(artistPanel);
         }
-        initWidget(artistPanel);
-        setWidth("300px");
     }
 
     public String getArtistId() {

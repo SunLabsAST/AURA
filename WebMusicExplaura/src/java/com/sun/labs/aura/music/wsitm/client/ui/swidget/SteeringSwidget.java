@@ -44,6 +44,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
+import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
@@ -505,9 +506,9 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             mainGrid.setWidget(1, 0, WebLib.getLoadingBarWidget());
             invokeGetDistincitveTagsService(iI.getId());
 
-            VerticalPanel hP = new VerticalPanel();
-            hP.setStyleName("pageHeader");
-            hP.setWidth("185px");
+            VerticalPanel vP = new VerticalPanel();
+            vP.setStyleName("pageHeader");
+            vP.setWidth("185px");
 
             //
             // Add buttons
@@ -566,13 +567,15 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             });
             smallMenuPanel.add(addArtistButton);
 
-            hP.add(smallMenuPanel);
+            vP.add(smallMenuPanel);
 
             //
             // Add title
             Label title = new Label("Tags for " + iI.getItemName());
-            hP.add(title);
-            mainGrid.setWidget(0, 0, hP);
+            vP.add(title);
+            RoundedPanel rP = new RoundedPanel(vP);
+            rP.setCornerStyleName("pageHeaderBackground");
+            mainGrid.setWidget(0, 0, rP);
         }
 
         public void displayMainItems() {
