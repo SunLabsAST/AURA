@@ -34,6 +34,13 @@ body {
   background: #73885D;
 }
 
+.gradientHighColor {
+  background : #b9ff6d;
+}
+.gradientLowColor {
+  background : #f0f8c6;
+}
+
 h1 { 
     font-size: 1.8em; 
     margin-bottom: 4px; 
