@@ -14,6 +14,7 @@ import com.sun.labs.aura.datastore.impl.ProcessManager;
 import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.aura.util.StatService;
+import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -34,6 +35,11 @@ public abstract class Aura extends ServiceAdapter {
     "/com/sun/labs/aura/resource/replicantSlowDumpConfig.xml")
     public static final String PROP_REPLICANT_CONFIG = "replicantConfig";
 
+    @ConfigInteger(defaultValue=16)
+    public static final String PROP_DEFAULT_NUM_REPLICANTS = "defaultNumReplicants";
+
+    private int defaultNumReplicants;
+
     protected String replicantConfig;
 
     /**
@@ -48,7 +54,7 @@ public abstract class Aura extends ServiceAdapter {
      * @throws java.lang.Exception
      */
     public void createReplicantFileSystems() throws Exception {
-        for(int i = 0; i < 16; i++) {
+        for(int i = 0; i < defaultNumReplicants; i++) {
             createReplicantFileSystem(DSBitSet.parse(i).setPrefixLength(4).toString());
         }
     }
@@ -379,6 +385,7 @@ public abstract class Aura extends ServiceAdapter {
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
         replicantConfig = ps.getString(PROP_REPLICANT_CONFIG);
+        defaultNumReplicants = ps.getInt(PROP_DEFAULT_NUM_REPLICANTS);
         try {
             getReplicantFileSystems();
         } catch(Exception ex) {

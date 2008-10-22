@@ -32,6 +32,11 @@ public class StopAura extends Aura {
     
     @ConfigBoolean(defaultValue=false)
     public static final String PROP_DESTROY = "destroy";
+
+    @ConfigBoolean(defaultValue=false)
+    public static final String PROP_STOP_REGGIE = "stopReggie";
+
+    private boolean stopReggie;
     
     private boolean destroy;
     
@@ -89,6 +94,11 @@ public class StopAura extends Aura {
             if(l == null) {
                 continue;
             }
+
+            if(name.equals("reggie") && !stopReggie) {
+                continue;
+            }
+            
             for(ProcessRegistration reg : l) {
                 try {
                     gu.stopProcess(reg);
