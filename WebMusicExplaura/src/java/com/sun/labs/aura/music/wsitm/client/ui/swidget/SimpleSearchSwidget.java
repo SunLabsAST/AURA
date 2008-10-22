@@ -56,7 +56,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWi
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import org.adamtacy.client.ui.EffectPanel;
 import org.adamtacy.client.ui.effects.impl.Fade;
@@ -810,9 +809,10 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         String url = video.getUrl();
         String autostring = autoplay ? "&autoplay=1" : "";
         url = url.replaceAll("\\?v=", "/v/");
-        String title = "<span style=\"text-align:center\">" + video.getTitle() + "</span><br/>";
+        //String title = "<span style=\"text-align:center\">" + video.getTitle() + "</span><br/>";
         String obj = "<object width=\"425\" height=\"350\"><param name=\"movie\" value=\"" + url + "\"></param><param name=\"wmode\" value=\"transparent\"></param>" + "<embed src=\"" + url + autostring + "\" type=\"application/x-shockwave-flash\"" + " wmode=\"transparent\" width=\"425\" height=\"350\"></embed></object>";
-        return title + obj;
+        //return title + obj;
+        return obj;
     }
 
     private VerticalPanel getItemInfoList(final String title, final ItemInfo[] itemInfo, 
@@ -1240,7 +1240,9 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         @Override
         protected void triggerAction(int index) {
             HTML html = new HTML(aP[index].getRichHtmlWrapper());
-            Popup.showPopup(html,"WebMusicExplaura :: Flickr Photo");
+            //Popup.showPopup(html,"WebMusicExplaura :: Flickr Photo");
+            //Popup.showRoundedPopup(html, "WebMusicExplaura :: Flickr Photo");
+            Popup.showRoundedPopup(html, aP[index].getTitle());
         }
 
     }
@@ -1273,7 +1275,9 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
         protected void triggerAction(int index) {
             HTML html = new HTML(getEmbeddedVideo(aV[index], true));
-            Popup.showPopup(html,"WebMusicExplaura :: YouTube Video");
+            //Popup.showPopup(html,"WebMusicExplaura :: YouTube Video");
+            //Popup.showRoundedPopup(html, "WebMusicExplaura :: YouTube Video");
+            Popup.showRoundedPopup(html, aV[index].getTitle());
         }
 
     }

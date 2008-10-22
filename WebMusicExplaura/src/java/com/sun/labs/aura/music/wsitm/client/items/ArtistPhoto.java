@@ -103,8 +103,8 @@ public class ArtistPhoto implements IsSerializable {
         }
         StringBuffer sb = new StringBuffer();
         sb.append("<div>");
-        sb.append("<span style=\"font-size: 1.em; margin-top: 0px;\">" + getTitle() + "</span>\n");
-        sb.append("<br />\n");
+        //sb.append("<span style=\"font-size: 1.em; margin-top: 0px;\">" + getTitle() + "</span>\n");
+        //sb.append("<br />\n");
         sb.append("<a href=\"" +  getPhotoPageURL() + "\" target=\"Window1\">");
         sb.append("   <img style=\"border: 2px solid rgb(0, 0, 0);\" src=\"" + getImageURL() + "\"/>");
         sb.append("</a>");
