@@ -11,6 +11,8 @@ import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
+import java.util.ArrayList;
 
 /**
  *
@@ -34,13 +36,13 @@ public abstract class Updatable<T> extends Composite {
         this.initWidget(main);
     }
     
-    public Updatable(Widget title, ArtistCompact[] aC, ClientDataManager cdm, T data) {
+    public Updatable(Widget title, ArrayList<ScoredC<ArtistCompact>> aCList, ClientDataManager cdm, T data) {
         
         this.data = data;
         
         main = new Grid(2, 1);
         main.setWidget(0, 0, title);
-        update(aC);
+        update(aCList);
         cdm.addUpdatableWidget(this);
         this.initWidget(main);
     }
@@ -68,7 +70,7 @@ public abstract class Updatable<T> extends Composite {
         main.setWidget(1, 0, bottom);
     }
     
-    public abstract void update(ArtistCompact[] aC);
+    public abstract void update(ArrayList<ScoredC<ArtistCompact>> aCList);
 
     private class AnimatedUpdatableSection extends AnimatedComposite {
 

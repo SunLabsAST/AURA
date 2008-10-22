@@ -40,6 +40,7 @@ import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -63,6 +64,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.print.attribute.Size2DSyntax;
 
 /**
  *
@@ -171,20 +173,20 @@ public class DataManager implements Configurable {
         return aD;
     }
     
-    public ArtistCompact[] getSimilarArtists(String id, SimType sT, Popularity pop) throws AuraException, RemoteException {
+    public ArrayList<ScoredC<ArtistCompact>> getSimilarArtists(String id, SimType sT, Popularity pop) throws AuraException, RemoteException {
 
         List<Scored<Artist>> scoredArtists = sT.findSimilarArtists(id, NUMBER_SIM_ARTISTS, pop);
         // return artists in socred order
         sortByArtistPopularity(scoredArtists);
 
         // collect all of the similar artists, but skip the seed artist
-        List<ArtistCompact> simArtistList = new ArrayList<ArtistCompact>();
+        ArrayList<ScoredC<ArtistCompact>> scoredArtistsC = new ArrayList<ScoredC<ArtistCompact>>();
         for (int i = 0; i < scoredArtists.size(); i++) {
             if (!id.equals(scoredArtists.get(i).getItem().getKey())) {
-                simArtistList.add(artistToArtistCompact(scoredArtists.get(i).getItem()));
+                scoredArtistsC.add(new ScoredC<ArtistCompact>(artistToArtistCompact(scoredArtists.get(i).getItem()), scoredArtists.get(i).getScore()));
             }
         }
-        return simArtistList.toArray(new ArtistCompact[simArtistList.size()]);
+        return scoredArtistsC;
     }
 
     /**
@@ -329,23 +331,6 @@ public class DataManager implements Configurable {
             details.setEncodedName("Error converting name");
             Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        /* moving to its own function updateArtistDetails
-        // Fetch similar artists
-        List<Scored<Artist>> scoredArtists = simType.findSimilarArtists(a.getKey(), NUMBER_SIM_ARTISTS);
-        // return artists in socred order
-        sortByArtistPopularity(scoredArtists);
-
-        // collect all of the similar artists, but skip the seed artist
-        List<ArtistCompact> simArtistList = new ArrayList<ArtistCompact>();
-        for (int i = 0; i < scoredArtists.size(); i++) {
-            if (!a.getKey().equals(scoredArtists.get(i).getItem().getKey())) {
-                simArtistList.add(artistToArtistCompact(scoredArtists.get(i).getItem()));
-            }
-        }
-        ArtistCompact[] simArtist = simArtistList.toArray(new ArtistCompact[simArtistList.size()]);
-        details.setSimilarArtists(simArtist);
-        */
 
         // Fetch albums
         Set<String> albumSet = a.getAlbums();
@@ -825,15 +810,16 @@ public class DataManager implements Configurable {
         }
     }
 
-    public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap, String popularity)
+    public ArrayList<ScoredC<ArtistCompact>> getSteerableRecommendations(Map<String, Double> tagMap, String popularity)
             throws AuraException, RemoteException {
 
         List<Scored<Artist>> lsA = mdb.wordCloudFindSimilarArtists(mapToWordCloud(tagMap), 
                 NUMBER_SIM_ARTISTS, stringToPopularity(popularity));
-        ArtistCompact[] aCArray = new ArtistCompact[lsA.size()];
-        int index = 0;
+        ArrayList<ScoredC<ArtistCompact>> aCArray = new ArrayList<ScoredC<ArtistCompact>>();
         for (Scored<Artist> sA : lsA) {
-            aCArray[index++] = artistToArtistCompact(sA.getItem());
+            ArtistDetails aD = artistToArtistDetails(sA.getItem());
+            cache.sput(aD.getId(), aD);
+            aCArray.add(new ScoredC(aD.toArtistCompact(), sA.getScore()));
         }
         return aCArray;
     }

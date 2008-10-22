@@ -29,6 +29,17 @@ body {
     color: white;
     padding: 3px;
 }
+.pageHeaderBackground {
+  background-color: #73885D;
+  background: #73885D;
+}
+
+.gradientHighColor {
+  background : #b9ff6d;
+}
+.gradientLowColor {
+  background : #f0f8c6;
+}
 
 h1 { 
     font-size: 1.8em; 

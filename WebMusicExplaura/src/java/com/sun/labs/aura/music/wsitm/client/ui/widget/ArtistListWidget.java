@@ -23,7 +23,9 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -42,6 +44,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
     private ClientDataManager cdm;
 
     private ArtistCompact[] aDArray;
+    private Double[] similarity;
     private Map<String,Integer> ratingMap;
 
     private List<CompactArtistWidget> artistWidgetList;
@@ -56,9 +59,24 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
     }
 
     public ArtistListWidget(MusicSearchInterfaceAsync musicServer,
+            ClientDataManager cdm, ArrayList<ScoredC<ArtistCompact>> aC,
+            boolean fetchRatings, boolean displayDiff) {
+    
+        processArtistSimValues(aC);
+        doInit(musicServer, cdm, fetchRatings, true);
+    }
+    
+    public ArtistListWidget(MusicSearchInterfaceAsync musicServer,
             ClientDataManager cdm, ArtistCompact[] aDArray, 
             boolean fetchRatings, boolean displayDiff) {
-
+        
+        this.aDArray = aDArray;
+        doInit(musicServer, cdm, fetchRatings, displayDiff);
+    }
+    
+    private void doInit(MusicSearchInterfaceAsync musicServer,
+            ClientDataManager cdm, boolean fetchRatings, boolean displayDiff) {
+        
         this.musicServer = musicServer;
         this.cdm = cdm;
         this.displayDiff = displayDiff;
@@ -66,7 +84,6 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         artistWidgetList = new LinkedList<CompactArtistWidget>();
 
         g = new Grid(1,1);
-        this.aDArray = aDArray;
         initWidget(g);
         setWidth("300px");
 
@@ -75,6 +92,17 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         } else {
             ratingMap = new HashMap<String, Integer>();
             g.setWidget(0, 0, getUpdatedPanel());
+        }
+    }
+    
+    private void processArtistSimValues(ArrayList<ScoredC<ArtistCompact>> aCList) {
+        similarity = new Double[aCList.size()];
+        aDArray = new ArtistCompact[aCList.size()];
+        int i = 0;
+        for (ScoredC<ArtistCompact> saC : aCList) {
+            aDArray[i] = saC.getItem();
+            similarity[i] = saC.getScore();
+            i++;
         }
     }
 
@@ -112,13 +140,15 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
 
         PerformanceTimer.start("  alw - GUP");
         if (aDArray != null && aDArray.length > 0) {
+            int aCIndex = 0;
             for (ArtistCompact aC : aDArray) {
 
                 // Add artist to oracle
                 cdm.getArtistOracle().add(aC.getName());
 
                 Image img = new Image("not-interested-vert.jpg");
-                img.getElement().setAttribute("style", "vertical-align:top; display:none;");
+                img.getElement().getStyle().setProperty("vertical-align", "top");
+                img.getElement().getStyle().setProperty("display", "none");
 
                 int rating;
                 if (ratingMap.containsKey(aC.getId())) {
@@ -133,10 +163,16 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                 if (this.displayDiff) {
                     dB = new DiffButton(aC);
                 }
+
+                // MUST DETERMINE BACKGROUND COLOR AND PASS IT
+                String backColor = null;
+                if (similarity != null && similarity.length >= aCIndex) {
+                    backColor = simToColor(similarity[aCIndex++]);
+                }
                 
                 CompactArtistWidget caw = new OverWroteOnClickCompactArtistWidget(aC, cdm,
                         musicServer, new WhyButton(aC.getId(), aC.getName()),
-                        dB, rating, null, this);
+                        dB, rating, null, this, backColor);
                 PerformanceTimer.stop("  alw - single artist widget");
 
                 artistWidgetList.add(caw);
@@ -166,6 +202,46 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
 
         PerformanceTimer.stop("  alw - GUP");
         return vP;
+    }
+
+    public static String simToColor(double sim) {
+       
+        String col = "";
+        String tcol = "";
+        
+        Integer[] highColor = new Integer[3];
+        Integer[] lowColor = new Integer[3];
+        /* vert clair
+         highColor[0] = 111;
+        highColor[1] = 221;
+        highColor[2] = 129;
+         * */
+        /** rouge
+        highColor[0] = 255;
+        highColor[1] = 123;
+        highColor[2] = 109;
+         * */
+        highColor[0] = 185;
+        highColor[1] = 255;
+        highColor[2] = 109;
+        lowColor[0] = 240;
+        lowColor[1] = 248;
+        lowColor[2] = 198;
+        
+        for (int i=0; i<3; i++) {
+            // linear mapping
+            //tcol = Integer.toHexString((int)( (highColor[i]-lowColor[i])*sim + lowColor[i] ));
+            // exp mapping
+            tcol = Integer.toHexString((int)( (highColor[i]-lowColor[i])*Math.pow((sim+.5)/1.5,3) + lowColor[i] ));
+            if (tcol.length() == 1) {
+                tcol = "0" + tcol;
+            } else if (tcol.length() == 0) {
+                tcol = "00";
+            }
+            col += tcol;
+        }
+        
+        return "#"+col;
     }
 
     private void invokeAddNotInterested(String artistId) {
@@ -292,7 +368,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
             setWidth("30px");
 
             button = getWidget1();
-            button.getElement().setAttribute("style", "font-size: 11px");
+            button.getElement().getStyle().setPropertyPx("font-size", 11);
             button.addStyleName("pointer");
 
             addClickListener();
@@ -324,8 +400,8 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         public OverWroteOnClickCompactArtistWidget(ArtistCompact aD, ClientDataManager cdm,
                 MusicSearchInterfaceAsync musicServer, SwapableTxtButton whyB,
                 SwapableTxtButton diffB, int currentRating, Set<String> userTags,
-                ArtistListWidget aLW) {
-            super(aD, cdm, musicServer, whyB, diffB, currentRating, userTags);
+                ArtistListWidget aLW, String backColor) {
+            super(aD, cdm, musicServer, whyB, diffB, currentRating, userTags, backColor);
             this.aLW = aLW;
         }
 

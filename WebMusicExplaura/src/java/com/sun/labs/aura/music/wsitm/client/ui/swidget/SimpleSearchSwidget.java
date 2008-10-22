@@ -49,12 +49,14 @@ import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import org.adamtacy.client.ui.EffectPanel;
 import org.adamtacy.client.ui.effects.impl.Fade;
@@ -483,6 +485,12 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         }
     }
 
+    private final void addCompactArtistToOracle(ArrayList<ScoredC<ArtistCompact>> aCList) {
+        for (ScoredC<ArtistCompact> aC : aCList) {
+            cdm.getArtistOracle().add(aC.getItem().getName());
+        }
+    }
+    
     private final void addCompactArtistToOracle(ArtistCompact[] aCArray) {
         for (ArtistCompact aC : aCArray) {
             cdm.getArtistOracle().add(aC.getName());
@@ -509,13 +517,13 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         
         // Add similar artists
         ArtistCompact[] aCArray;
-        aCArray = artistDetails.getSimilarArtists();
+        aCArray = artistDetails.getSimilarArtistsAsArray();
         addCompactArtistToOracle(aCArray);
 
         if (leftSimList != null) {
             leftSimList.doRemoveListeners();
         }
-        leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCArray, aC);
+        leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, artistDetails.getSimilarArtists(), aC);
 
         HorizontalPanel hP = new HorizontalPanel();
         hP.add(new Label("Similar artists"));
@@ -528,11 +536,10 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         left.add(
                 new Updatable<ArtistDetails>(hP, leftSimList, cdm, artistDetails) {
 
-                    public void update(ArtistCompact[] aC) {
-
-                        addCompactArtistToOracle(aC);
+                    public void update(ArrayList<ScoredC<ArtistCompact>> aCList) {
+                        addCompactArtistToOracle(aCList);
                         leftSimList.doRemoveListeners();
-                        leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aC, data.toArtistCompact());
+                        leftSimList = new ArtistCloudArtistListWidget(musicServer, cdm, aCList, data.toArtistCompact());
                         setNewContent(leftSimList);
                     }
                 });
@@ -921,9 +928,16 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         private ArtistCompact currArtist;
 
         public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
-            ClientDataManager cdm, ArtistCompact[] aDArray, ArtistCompact currArtist) {
+            ClientDataManager cdm, ArrayList<ScoredC<ArtistCompact>> aC, ArtistCompact currArtist) {
 
-            super(musicServer, cdm, aDArray, cdm.isLoggedIn());
+            super(musicServer, cdm, aC, cdm.isLoggedIn(), true);
+            this.currArtist = currArtist;
+        }
+        
+        public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
+            ClientDataManager cdm, ArtistCompact[] aC, ArtistCompact currArtist) {
+
+            super(musicServer, cdm, aC, cdm.isLoggedIn(), true);
             this.currArtist = currArtist;
         }
 
@@ -1393,9 +1407,9 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                 artistID = artistID.replaceAll("artist:", "");
             }
 
-            AsyncCallback<ArtistCompact[]> callback = new AsyncCallback<ArtistCompact[]>() {
+            AsyncCallback<ArrayList<ScoredC<ArtistCompact>>> callback = new AsyncCallback<ArrayList<ScoredC<ArtistCompact>>>() {
 
-                public void onSuccess(ArtistCompact[] aC) {
+                public void onSuccess(ArrayList<ScoredC<ArtistCompact>> aC) {
                     // do some UI stuff to show success
                     if (aC != null) {
                         cdm.updateUpdatableWidgets(aC);

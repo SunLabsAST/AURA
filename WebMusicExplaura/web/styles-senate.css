@@ -29,7 +29,10 @@ body {
     color: #000000;
     padding: 3px;
 }
-
+.pageHeaderBackground {
+    background-color: #9E9A77;
+    background: #9E9A77;
+}
 h1 { 
     font-size: 1.8em; 
     color: #803030;

@@ -13,6 +13,7 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.List;
 import java.util.logging.Handler;
@@ -109,6 +110,11 @@ public class AuraServiceStarter implements Configurable {
         for(Handler h : rl.getHandlers()) {
             h.setLevel(Level.ALL);
             h.setFormatter(new SimpleLabsLogFormatter());
+            try {
+                h.setEncoding("utf-8");
+            } catch (Exception ex) {
+                rl.severe("Error setting output encoding");
+            }
         }
 
         AuraServiceStarter starter = null;

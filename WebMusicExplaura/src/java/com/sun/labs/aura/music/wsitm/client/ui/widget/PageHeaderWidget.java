@@ -35,6 +35,8 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
+import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,6 +47,7 @@ import java.util.HashMap;
  */
 public class PageHeaderWidget extends Swidget implements HasListeners {
 
+    private RoundedPanel roundedMainPanel;
     private Grid mainPanel;
     private TextBox txtbox;
 
@@ -65,7 +68,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         initWidget(getMainWidget());
     }
     
-    public Widget getMainWidget() {
+    public RoundedPanel getMainWidget() {
         
         mainPanel = new Grid(1,3);
         mainPanel.getColumnFormatter().setWidth(0, "33%");
@@ -99,7 +102,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
         populateMainPanel();
      
-        return mainPanel;
+        roundedMainPanel = new RoundedPanel(mainPanel);
+        roundedMainPanel.setCornerStyleName("pageHeaderBackground");
+        return roundedMainPanel;
         
     }
 
@@ -411,9 +416,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             artistID = artistID.replaceAll("artist:", "");
         }
 
-        AsyncCallback<ArtistCompact[]> callback = new AsyncCallback<ArtistCompact[]>() {
+        AsyncCallback<ArrayList<ScoredC<ArtistCompact>>> callback = new AsyncCallback<ArrayList<ScoredC<ArtistCompact>>>() {
 
-            public void onSuccess(ArtistCompact[] aC) {
+            public void onSuccess(ArrayList<ScoredC<ArtistCompact>> aC) {
                 // do some UI stuff to show success
                 if (aC != null) {
                     cdm.updateUpdatableWidgets(aC);

@@ -23,6 +23,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import com.sun.labs.aura.util.AuraException;
 import java.rmi.RemoteException;
@@ -352,15 +353,15 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public ArtistCompact[] getSteerableRecommendations(Map<String, Double> tagMap, String popularity) throws WebException {
+    public ArrayList<ScoredC<ArtistCompact>> getSteerableRecommendations(Map<String, Double> tagMap, String popularity) throws WebException {
         String stringMap = "";
         for (String key : tagMap.keySet()) {
             stringMap += key+":"+tagMap.get(key)+",";
         }
         logger.info("getSteerableRecommendations for cloud:{"+stringMap+"}");
         try {
-            ArtistCompact[] aC = dm.getSteerableRecommendations(tagMap, popularity);
-            logger.info("returning "+aC.length+" recommendations");
+            ArrayList<ScoredC<ArtistCompact>> aC = dm.getSteerableRecommendations(tagMap, popularity);
+            logger.info("returning "+aC.size()+" recommendations");
             return aC;
         } catch (AuraException ex) {
             logger.severe(traceToString(ex));
@@ -547,7 +548,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public ArtistCompact[] getSimilarArtists(String id, String simTypeName, String popularity) throws WebException {
+    public ArrayList<ScoredC<ArtistCompact>> getSimilarArtists(String id, String simTypeName, String popularity) throws WebException {
         try {
             return dm.getSimilarArtists(id, dm.stringToSimType(simTypeName), dm.stringToPopularity(popularity));
         } catch (AuraException ex) {

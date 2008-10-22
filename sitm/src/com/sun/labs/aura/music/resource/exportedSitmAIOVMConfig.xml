@@ -118,9 +118,9 @@
 
     <component name="tagCrawler" type="com.sun.labs.aura.music.crawler.TagCrawler">
         <property name="dataStore" value="dataStoreHead"/>
-        <property name="logLevel" value="WARNING"/>
+        <property name="logLevel" value="info"/>
         <!-- once a week: 7 * 24 * 60 * 60 == 604800 -->
-        <property name="updateRateInSeconds" value="604800"/>
+        <property name="updateRateInSeconds" value="86400"/>
         <property name="forceCrawl" value="false"/>
     </component>    
 

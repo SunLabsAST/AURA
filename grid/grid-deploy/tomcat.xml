@@ -53,12 +53,13 @@
     <!-- create process registration if it doesn't exist -->
     <target name="create-service"
         description="creates a service process if one doesn't exist"
-        depends="deploy-ant,unzip-distribution,update-config,create-staticnat,create-extbinding">
+        depends="deploy-ant,unzip-distribution,update-config,create-intbinding,create-staticnat,create-extbinding">
         
         <caroline:process name="${service.process}"
             op="create" workingdir="/files/working/">                
             <!-- filesystem to mount -->    
             <caroline:filesystem name="${www.filesystem}" mountpoint="working"/>
+            <caroline:filesystem name="${dist.filesystem}" mountpoint="dist"/>
             <!-- assign an internal address -->
             <caroline:intaddress name="${intaddress}" networkname="${network}"/>
             <!-- specify command line arguments -->
@@ -106,7 +107,7 @@
     </target>
     
     <target name="cleanup"
-	    depends="destroy-service,destroy-unzip-task,destroy-intaddress,destroy-extaddress,destroy-filesystem"/>
+	    depends="destroy-service,destroy-unzip-task,destroy-deploy-task,destroy-staticnat,destroy-intaddress,destroy-extaddress,destroy-filesystem"/>
 
     <target name="destroy-all"
         description="Removes packages filesystem"

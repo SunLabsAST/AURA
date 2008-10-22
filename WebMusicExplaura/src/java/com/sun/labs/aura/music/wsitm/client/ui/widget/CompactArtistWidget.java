@@ -28,6 +28,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
+import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedFlowPanel;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,8 +50,16 @@ public class CompactArtistWidget extends Composite implements HasListeners {
     private String artistId;
 
     public CompactArtistWidget(ArtistCompact aC, ClientDataManager cdm,
+                MusicSearchInterfaceAsync musicServer, SwapableTxtButton whyB,
+                SwapableTxtButton diffB, int currentRating, Set<String> userTags) {
+        
+        this(aC, cdm, musicServer, whyB, diffB, currentRating, userTags, null);
+    }
+    
+    public CompactArtistWidget(ArtistCompact aC, ClientDataManager cdm,
             MusicSearchInterfaceAsync musicServer, SwapableTxtButton whyB,
-            SwapableTxtButton diffB, int currentRating, Set<String> userTags) {
+            SwapableTxtButton diffB, int currentRating, Set<String> userTags,
+            String backgroundColor) {
 
         this.cdm = cdm;
         this.musicServer = musicServer;
@@ -60,7 +69,6 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         HorizontalPanel artistPanel = new HorizontalPanel();
         artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_TOP);
         artistPanel.setStyleName("artistPanel");
-        //artistPanel.setSpacing(5);
 
         ClickListener cL = new DataEmbededClickListener<String>("artist:" + aC.getId()) {
 
@@ -97,7 +105,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         playButton = new PlayButton(cdm, aC, PlayButton.PLAY_ICON_SIZE.SMALL, musicServer);
         if (playButton != null) {
             cdm.getMusicProviderSwitchListenerManager().addListener(playButton);
-            playButton.getElement().setPropertyString("align", "right");
+            playButton.getElement().getStyle().setProperty("align", "right");
             playButton.addStyleName("largeMarginRight");
             buttonPanel.add(playButton);
         }
@@ -114,8 +122,8 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         buttonPanel.add(new ContextMenuSteeringWheelWidget(cdm, steerButton, aC));
 
         //steeringMenu
-                
         VerticalPanel swapableButtonPanel = new VerticalPanel();
+        swapableButtonPanel.setStyleName("smallTagClick");
         boolean empty = true;
         if (whyB != null) {
             swapableButtonPanel.add(whyB);
@@ -165,11 +173,19 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         txtPanel.add(WebLib.getSmallPopularityWidget(aC.getNormPopularity(), true, true));
 
         artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_TOP);
-        //txtPanel.getElement().setPropertyString("margin-top", "0px");
         artistPanel.add(txtPanel);
-        artistPanel.addStyleName("largeMarginBottom");
-        initWidget(artistPanel);
-        setWidth("300px");
+        artistPanel.setWidth("298px");
+        if (backgroundColor != null) {
+            artistPanel.getElement().getStyle().setProperty("background", backgroundColor);
+            artistPanel.getElement().getStyle().setProperty("background-color", backgroundColor);
+            RoundedPanel rP = new RoundedPanel(artistPanel);
+            rP.setCornerColor(backgroundColor);
+            rP.addStyleName("largeMarginBottom");
+            initWidget(rP);
+        } else {
+            artistPanel.addStyleName("largeMarginBottom");
+            initWidget(artistPanel);
+        }
     }
 
     public String getArtistId() {

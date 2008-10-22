@@ -17,8 +17,11 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * The main interface to the visualization tool
@@ -118,6 +121,7 @@ public class VizUI extends DockPanel {
             }
         };
         service.getPCInfo(pccallback);
+        
     }
     
     protected void fillDSH() {
@@ -130,10 +134,36 @@ public class VizUI extends DockPanel {
 
     protected void fillPC() {
         pcColumn.clear();
+        Map typeToTotals = new HashMap();
         for (Iterator pit = pcInfos.iterator(); pit.hasNext();) {
             PCInfo pc = (PCInfo)pit.next();
             pcColumn.add(new PCPanel(pc));
+            
+            //
+            // Update the total type counts
+            Map typeCount = pc.getTypeToCountMap();
+            Iterator entIt = typeCount.entrySet().iterator();
+            while (entIt.hasNext()) {
+                Entry e = (Entry)entIt.next();
+                String type = (String)e.getKey();
+                Long count = (Long)e.getValue();
+                Long currVal = (Long)typeToTotals.get(type);
+                if (currVal != null) {
+                    currVal = new Long(currVal.longValue() + count.longValue());
+                    typeToTotals.put(type, currVal);
+                } else {
+                    typeToTotals.put(type, count);
+                }
+            }
         }
+        insertTypeTotals(typeToTotals);
+    }
+    
+    protected void insertTypeTotals(Map typeTotals) {
+        FlowPanel container = new FlowPanel();
+        container.setStylePrimaryName("viz-clearPanel");
+        container.add(Util.getTypeStatsPanel(typeTotals));
+        dshColumn.insert(container, 0);
     }
     
     protected static void alert(String msg) {
