@@ -10,6 +10,7 @@ pop
 Hip-Hop
 classic rock
 female vocalists, female, female vocalist, female vocals, female artists, female vocal, female singers, female singer, female voice, female fronted, Female Voices
+guitar, guitar virtuoso, Guitar Hero, Guitar Gods, guitar god, Awesome Guitar Jams
 emo
 hardcore
 death metal
@@ -22,7 +23,7 @@ heavy metal
 Progressive rock
 industrial
 metalcore
-80s
+80s, 1980s
 post-rock
 rap
 experimental
@@ -90,7 +91,7 @@ viking metal
 chill
 pop rock
 polish
-60s
+60s, 1960s
 Avant-Garde
 piano
 christian
@@ -101,12 +102,11 @@ goth
 emocore
 Gothic Rock
 visual kei
-70s
+70s, 1970s
 Drum and bass
 Female fronted metal
 norwegian
 noise
-guitar
 Brutal Death Metal
 ska punk
 latin
@@ -197,7 +197,6 @@ Southern Rock
 japan
 melodic hardcore
 italian
-guitar virtuoso
 soft rock
 riot grrrl
 prog
@@ -524,7 +523,6 @@ bitpop
 Hamburger Schule
 nordic
 Faves
-Guitar Hero
 nouvelle scene francaise
 angry
 Melodic Power Metal
@@ -732,7 +730,6 @@ lowlands 2006
 terror ebm
 Atmospheric metal
 nu soul
-Guitar Gods
 spiritual
 psy
 Polski Hip Hop
@@ -909,7 +906,6 @@ Greek
 Brooklyn
 cinematic
 Russia
-guitar god
 choir
 ambience
 groovy
@@ -1042,7 +1038,6 @@ Curious
 Neue Deutsche Haerte
 eno
 jamaican
-1960s
 influential
 Swedish Punk
 acid house
@@ -1090,7 +1085,6 @@ nintendo
 Music to download
 classic jazz
 georgia
-1980s
 deep ambient
 banjo
 florida
@@ -1106,7 +1100,6 @@ lord of the rings
 neurofunk
 Confident
 acoustic guitar
-Awesome Guitar Jams
 Exuberant
 evil
 jazz metal
@@ -1385,7 +1378,6 @@ just a bit of fun
 J-Punk
 norwegian jazz
 dark rock
-mjg2
 brass
 oz
 vgm
@@ -1459,7 +1451,7 @@ gothic doom
 san diego
 Experimental pop
 danceable
-Music From the OC
+the oc, Music From the OC
 frequency 2006
 major
 Philadelphia
@@ -1494,7 +1486,6 @@ latinoamerica
 darkstep
 German Punk
 blackened thrash metal
-the oc
 avant
 fuzz-rock
 trip rock
@@ -1516,7 +1507,6 @@ Grunge Rock
 horror metal
 Boisterous
 euro
-1970s
 asian music
 concert of the dead
 spazzcore
