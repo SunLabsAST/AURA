@@ -40,11 +40,12 @@ public class ArtistSummary extends Worker {
 
             if (full) {
                 if (row++ % 20 == 0) {
-                    result.output(String.format("# %3s %5s %4s %4s %4s %4s %4s %4s %4s %4s %4s %4s %4s %s",
-                            "age", "pop", "pull", "albm", "audi", "atag", "bio", "btag", "blrb", "img", "stag", "url", "vid", "name"));
+                    result.output(String.format("%5s %3s %5s %4s %4s %4s %4s %4s %4s %4s %4s %4s %4s %4s %s",
+                            "#", "age", "pop", "pull", "albm", "audi", "atag", "bio", "btag", "blrb", "img", "stag", "url", "vid", "name"));
                 }
 
-                result.output(String.format("  %3d %5.3f %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %s",
+                result.output(String.format("%5d %3d %5.3f %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %s",
+                        row,
                         ageInDays,
                         pop,
                         artist.getUpdateCount(),
@@ -61,11 +62,12 @@ public class ArtistSummary extends Worker {
                         artist.getName()));
             } else {
                 if (row++ % 20 == 0) {
-                    result.output(String.format("# %3s %5s %4s %4s %4s %4s %4s %4s %s",
-                            "age", "pop", "pull", "albm", "bio",  "img", "stag", "vid", "name"));
+                    result.output(String.format("%5s %3s %5s %4s %4s %4s %4s %4s %4s %s",
+                            "#", "age", "pop", "pull", "albm", "bio",  "img", "stag", "vid", "name"));
                 }
 
-                result.output(String.format("  %3d %5.3f %4d %4d %4d %4d %4d %4d %s",
+                result.output(String.format("%5d %3d %5.3f %4d %4d %4d %4d %4d %4d %s",
+                        row,
                         ageInDays,
                         pop,
                         artist.getUpdateCount(),

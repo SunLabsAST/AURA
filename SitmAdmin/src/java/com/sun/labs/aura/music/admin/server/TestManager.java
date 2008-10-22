@@ -39,6 +39,7 @@ public class TestManager {
         addTest(true, new NormalTagPopularityTest());
         addTest(true, new ArtistScoreTest(100));
         addTest(true, new ArtistSearchTest(100));
+        addTest(true, new ArtistTagSearch(100));
         addTest(true, new DistinctiveTagsTest());
         addTest(true, new FindSimilarExecTime());
         addTest(true, new FindSimilarQuickCheck());
@@ -49,15 +50,20 @@ public class TestManager {
         addTest(true, new ArtistAddedSince());
         addTest(true, new ArtistSelfSimilarity());
         addTest(true, new ArtistSimilarityScore());
+        addTest(true, new ArtistTagSelfSimilarity());
+        addTest(true, new ArtistTagSimilarityScore());
 
         addTest(false, new ArtistScoreTest(1000));
         addTest(false, new ArtistSearchTest(1000));
+        addTest(false, new ArtistTagSearch(1000));
         addTest(false, new FreshArtists(1000));
         addTest(false, new FreshListeners(1000));
         addTest(false, new FreshArtistTags(1000));
         addTest(false, new ArtistAddedSince(1000));
         addTest(false, new ArtistSelfSimilarity(1000));
         addTest(false, new ArtistSimilarityScore(1000));
+        addTest(false, new ArtistTagSelfSimilarity(1000));
+        addTest(false, new ArtistTagSimilarityScore(1000));
         addTest(false, new ItemCountConsistencyTest(ItemType.ARTIST));
         addTest(false, new ItemCountConsistencyTest(ItemType.ARTIST_TAG));
         addTest(false, new ItemCountConsistencyTest(ItemType.EVENT));
@@ -206,7 +212,7 @@ class ArtistScoreTest extends Test {
             double score = results.get(0).getScore();
             double delta = Math.abs(1.0 - results.get(0).getScore());
             if (delta > .01) {
-                ts.fail(String.format("Exact match score is %.3f", score));
+                ts.fail(String.format("Exact match score is %.3f for query %s", score, queryArtist.getName()));
                 return;
             }
         }
@@ -229,15 +235,12 @@ class ArtistSearchTest extends Test {
             Artist queryArtist = selectRandomArtist(mdb);
             System.out.println("query " + queryArtist.getName() + " " + queryArtist.getKey());
             List<Scored<Artist>> results = mdb.artistSearch(queryArtist.getName(), 10);
-            if (results.size() < 1) {
-                ts.fail("No search results for query " + queryArtist.getName());
-                return;
+            for (int j = 0; j < results.size(); j++) {
+                if (results.get(j).getScore() > .97f && results.get(j).getItem().getKey().equals(queryArtist.getKey())) {
+                    return;
+                }
             }
-
-            if (!results.get(0).getItem().getKey().equals(queryArtist.getKey())) {
-                ts.fail("Search Fail for " + queryArtist.getName());
-                return;
-            }
+            ts.fail("Search Fail for " + queryArtist.getName());
         }
     }
 }
@@ -488,7 +491,7 @@ class ArtistAddedSince extends Test {
             Artist artist = selectRandomArtist(mdb);
             long timeAdded = artist.getTimeAdded();
             if (timeAdded <  1000000L) {
-                ts.fail("bad time added");
+                ts.fail("bad time added for " + artist.getName());
             } else {
                 DBIterator<Item> iter = mdb.getDataStore().getItemsAddedSince(ItemType.ARTIST, new Date(timeAdded - 1000000L));
 
@@ -569,7 +572,74 @@ class ArtistSimilarityScore extends Test {
                 double score = artists.get(0).getScore();
                 double delta = Math.abs(1.0 - score);
                 if (delta > .01) {
-                    ts.fail(String.format("Find similarity score is %.3f, should be 1.0", score));
+                    ts.fail(String.format("Find similarity score is %.3f, should be 1.0 for %s", score, artists.get(0).getItem().getName()));
+                    return;
+                }
+            }
+        }
+    }
+}
+
+class ArtistTagSelfSimilarity extends Test {
+
+    private int maxTries = 100;
+
+    ArtistTagSelfSimilarity() {
+        super("Artist Tag Self Similarity");
+    }
+
+    ArtistTagSelfSimilarity(int tries) {
+        super("Artist Tag Self Similarity " + tries);
+        maxTries = tries;
+    }
+
+    @Override
+    protected void go(MusicDatabase mdb, TestStatus ts) throws AuraException, RemoteException {
+        for (int i = 0; i < maxTries; i++) {
+            ArtistTag artistTag = selectRandomArtistTag(mdb);
+            List<Scored<ArtistTag>> artistTags = mdb.artistTagFindSimilar(artistTag.getKey(), 20);
+
+            if (artistTags.size() == 0) {
+                ts.fail("Can't get similar artists for " + artistTag.getName());
+                return;
+            } else {
+                ArtistTag sartistTag = artistTags.get(0).getItem();
+                if (!artistTag.getKey().equals(sartistTag.getKey())) {
+                    ts.fail("No self similarity " +  artistTag.getName() + " <> " + sartistTag.getName());
+                    return;
+                }
+            }
+        }
+    }
+}
+
+class ArtistTagSimilarityScore extends Test {
+
+    private int maxTries = 100;
+
+    ArtistTagSimilarityScore() {
+        super("Artist Tag Similarity Score");
+    }
+
+    ArtistTagSimilarityScore(int tries) {
+        super("Artist Tag Similarity Score" + tries);
+        maxTries = tries;
+    }
+
+    @Override
+    protected void go(MusicDatabase mdb, TestStatus ts) throws AuraException, RemoteException {
+        for (int i = 0; i < maxTries; i++) {
+            ArtistTag artistTag = selectRandomArtistTag(mdb);
+            List<Scored<ArtistTag>> artistTags = mdb.artistTagFindSimilar(artistTag.getKey(), 20);
+
+            if (artistTags.size() == 0) {
+                ts.fail("Can't get similar artistTags for " + artistTag.getName());
+                return;
+            } else {
+                double score = artistTags.get(0).getScore();
+                double delta = Math.abs(1.0 - score);
+                if (delta > .01) {
+                    ts.fail(String.format("Find similarity score is %.3f, should be 1.0 for %s", score, artistTag.getName()));
                     return;
                 }
             }
