@@ -312,7 +312,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             Artist artist = new Artist(getDataStore().getItem(sartist.getItem()));
             if (force || needsUpdate(artist)) {
                 logger.info("  Updating artist " + artist.getName());
-                updateArtist(artist, false);
+                updateArtistWithErrorRecovery(artist, false);
                 try {
                     Thread.sleep(period);
                 } catch (InterruptedException e) {
@@ -345,21 +345,21 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     }
 
     private void artistUpdater() {
-        try {
-            FixedPeriod fixedPeriod = new FixedPeriod(updateRateInSeconds * 1000L);
-            while (running) {
+        FixedPeriod fixedPeriod = new FixedPeriod(updateRateInSeconds * 1000L);
+        while (running) {
+            try {
                 fixedPeriod.start();
                 updateArtists(false, 2000L);
                 fixedPeriod.end();
+            } catch (AuraException ex) {
+                logger.warning("trouble in artist updater, shutting down " + ex);
+            } catch (RemoteException ex) {
+                logger.warning("trouble in artist updater, shutting down " + ex);
+            } catch (InterruptedException ex) {
+                logger.info("artist updater, interrupted, shutting down");
+            } catch (Throwable t) {
+                logger.severe("Unexpected error during artist updater crawl, shutting down " + t);
             }
-        } catch (AuraException ex) {
-            logger.warning("trouble in artist updater, shutting down " + ex);
-        } catch (RemoteException ex) {
-            logger.warning("trouble in artist updater, shutting down " + ex);
-        } catch (InterruptedException ex) {
-            logger.info("artist updater, interrupted, shutting down");
-        } catch (Throwable t) {
-            logger.severe("Unexpected error during artist updater crawl, shutting down " + t);
         }
     }
 
@@ -468,6 +468,30 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             }
         }
         return null;
+    }
+
+    private void updateArtistWithErrorRecovery(Artist artist, boolean discoverMode) {
+        int maxRetries = 5;
+        boolean done = false;
+
+        while (!done && maxRetries-- > 0) {
+            try {
+                updateArtist(artist, discoverMode);
+                done = true;
+            } catch (AuraException ex) {
+                logger.warning("AuraExeption while crawling " + artist.getName() + " retrying. " + ex.getMessage());
+            } catch (RemoteException ex) {
+                logger.warning("RemoteException while crawling " + artist.getName() + " retrying. " + ex.getMessage());
+            } catch (Throwable t) {
+                logger.warning("Unexpected exception  while crawling " + artist.getName() + " retrying. " + t.getMessage());
+            }
+            if (!done) {
+                try {
+                    Thread.sleep(60000);
+                } catch (InterruptedException ex) {
+                }
+            }
+        }
     }
 
     private void updateArtist(final Artist artist, final boolean discoverMode)
