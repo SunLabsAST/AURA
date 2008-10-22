@@ -176,6 +176,7 @@ public class TagCrawler implements AuraService, Configurable {
         if (needsUpdate(artistTag)) {
             logger.info("Collecting info for tag " + artistTag.getName());
             collectTagInfo(artistTag);
+            logger.fine("Done collecting info for tag " + artistTag.getName());
             artistTag.flush(getDataStore());
         } else {
             logger.fine("Skipping update for tag " + artistTag.getName());

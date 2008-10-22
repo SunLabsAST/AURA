@@ -1,0 +1,35 @@
+#!/bin/bash
+
+function usage {
+    echo 'Usage: startTomcat -h [-n server name]'
+    echo ' server_name defaults to www'
+}
+
+args=`getopt hn: $*`
+
+if [ $? != 0 ]
+then
+    usage
+    exit 2
+fi
+
+set -- $args
+
+export NAME=www
+DIR=`dirname $0`
+
+for i 
+do
+    case "$i"
+	in
+	-h)
+	    usage
+	    exit;;
+	-n)
+	    NAME=$2; shift;
+	    shift;;
+    esac
+done
+
+echo Deploying $NAME
+ant -Ddeployment.name=$NAME -f $DIR/../grid-deploy/tomcat.xml 

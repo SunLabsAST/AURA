@@ -1,0 +1,62 @@
+#!/bin/bash
+
+function usage {
+    echo 'Usage: deployLBWar -b [begin number] -c [count] -h [-n server name] -w [war file]'
+    echo ' server name defaults to www, begin to 1, count to 5, and war file to WME'
+}
+
+args=`getopt b:c:hn:w: $*`
+
+if [ $? != 0 ]
+then
+    usage
+    exit 2
+fi
+
+set -- $args
+
+DIR=`dirname $0`
+
+export NAME=www
+export BEGIN=1
+export COUNT=5
+export WARFILE=$DIR/../../WebMusicExplaura/dist/WebMusicExplaura.war
+export ANT_OPTS="-Xmx512m"
+
+
+for i 
+do
+    case "$i"
+	in
+	-h)
+	    usage
+	    exit;;
+	-n)
+	    NAME=$2; shift;
+	    shift;;
+	-w)
+	    WARFILE=$2; shift;
+	    shift;;
+    esac
+done
+
+if [ ! -e $WARFILE ] ; then
+    echo $WARFILE does not exist!
+    exit 2
+fi
+
+ant -Dwar.loc=$WARFILE -f $DIR/../grid-deploy/common.xml upload-war
+
+if [ $? != 0 ] ; then 
+    echo "Error uploading war file"
+    exit 2
+fi
+
+export END=$(( $BEGIN + $COUNT ))
+
+for (( COUNT=$BEGIN ; COUNT < $END ; COUNT++ )) ; do 
+    echo Deploying $FILE to $NAME-$COUNT
+    ant -Ddeployment.name=$NAME \
+    	-Ddeployment.number=$COUNT -Dwar.loc=$WARFILE \
+    	-f $DIR/../grid-deploy/tomcat-lb.xml deploy-war
+done
