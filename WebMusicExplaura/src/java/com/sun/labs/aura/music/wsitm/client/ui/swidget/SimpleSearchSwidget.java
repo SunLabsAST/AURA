@@ -1215,17 +1215,20 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         private ArtistPhoto[] aP;
 
 
-        public ImageScrollWidget(ArtistPhoto[] aP) {
-            this.aP=aP;
+        public ImageScrollWidget(ArtistPhoto[] aPArray) {
+            this.aP = aPArray;
+            ArrayList<ScrollItem> sIList = new ArrayList<ScrollItem>();
+            int i = 0;
+            for (ArtistPhoto a : aPArray) {
+                if (a != null) {
+                    sIList.add(new ScrollItem(a.getTitle(),
+                        a.getSmallImageUrl(), i++));
+                }
+            }
+            items = sIList.toArray(new ScrollItem[0]);
 
             maxImgHeight = 130;
             maxImgWidth = 130;
-
-            items = new ScrollItem[aP.length];
-            for (int i=0; i<aP.length; i++) {
-                items[i] = new ScrollItem(aP[i].getTitle(),
-                        aP[i].getSmallImageUrl(), i);
-            }
 
             initWidget(init());
         }
@@ -1246,13 +1249,17 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
         private ArtistVideo[] aV;
 
-        public VideoScrollWidget(ArtistVideo[] aV) {
-            this.aV=aV;
-            items = new ScrollItem[aV.length];
-            for (int i=0; i<aV.length; i++) {
-                items[i] = new ScrollItem(aV[i].getTitle(),
-                        aV[i].getThumbnail(), i);
+        public VideoScrollWidget(ArtistVideo[] aVArray) {
+            this.aV = aVArray;
+            ArrayList<ScrollItem> sIList = new ArrayList<ScrollItem>();
+            int i = 0;
+            for (ArtistVideo a : aVArray) {
+                if (a != null) {
+                    sIList.add(new ScrollItem(a.getTitle(),
+                        a.getThumbnail(), i++));
+                }
             }
+            items = sIList.toArray(new ScrollItem[0]);
 
             maxImgHeight = 97;
             maxImgWidth = 130;
@@ -1275,18 +1282,21 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
         private AlbumDetails[] aD;
 
-        public AlbumScrollWidget(AlbumDetails[] aD) {
-            this.aD=aD;
-
+        public AlbumScrollWidget(AlbumDetails[] aDArray) {
+            this.aD = aDArray;
+            ArrayList<ScrollItem> sIList = new ArrayList<ScrollItem>();
+            int i = 0;
+            for (AlbumDetails a : aDArray) {
+                if (a != null) {
+                    sIList.add(new ScrollItem(a.getTitle(),
+                        a.getAlbumArt(), i++));
+                }
+            }
+            items = sIList.toArray(new ScrollItem[0]);
+            
             maxImgHeight = 130;
             maxImgWidth = 130;
-
-            items = new ScrollItem[aD.length];
-            for (int i=0; i<aD.length; i++) {
-                items[i] = new ScrollItem(aD[i].getTitle(),
-                        aD[i].getAlbumArt(), i);
-            }
-
+            
             initWidget(init());
         }
 
