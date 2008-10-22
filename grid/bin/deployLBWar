@@ -1,11 +1,11 @@
 #!/bin/bash
 
 function usage {
-    echo 'Usage: deployWar -h [-n server name] -w [war file]'
-    echo ' server name defaults to www and war file to WME'
+    echo 'Usage: deployLBWar -b [begin number] -c [count] -h [-n server name] -w [war file]'
+    echo ' server name defaults to www, begin to 1, count to 5, and war file to WME'
 }
 
-args=`getopt hn:w: $*`
+args=`getopt b:c:hn:w: $*`
 
 if [ $? != 0 ]
 then
@@ -18,6 +18,8 @@ set -- $args
 DIR=`dirname $0`
 
 export NAME=www
+export BEGIN=1
+export COUNT=5
 export WARFILE=$DIR/../../WebMusicExplaura/dist/WebMusicExplaura.war
 export ANT_OPTS="-Xmx512m"
 
@@ -50,7 +52,11 @@ if [ $? != 0 ] ; then
     exit 2
 fi
 
-echo Deploying $FILE to $NAME
-ant -Ddeployment.name=$NAME \
-    -Dwar.loc=$WARFILE \
-    -f $DIR/../grid-deploy/tomcat.xml deploy-war
+export END=$(( $BEGIN + $COUNT ))
+
+for (( COUNT=$BEGIN ; COUNT < $END ; COUNT++ )) ; do 
+    echo Deploying $FILE to $NAME-$COUNT
+    ant -Ddeployment.name=$NAME \
+    	-Ddeployment.number=$COUNT -Dwar.loc=$WARFILE \
+    	-f $DIR/../grid-deploy/tomcat-lb.xml deploy-war
+done
