@@ -1051,7 +1051,8 @@ public class DataManager implements Configurable {
         logger.info("Getting recommendations for user " + userId + " using recType:" + recTypeName);
         ArrayList<ArtistRecommendation> aR = new ArrayList<ArtistRecommendation>();
 
-        RecommendationSummary rS = mdb.getArtistRecommendationType(recTypeName).getRecommendations(userId, cnt, new Rp());
+        RecommendationType recType = mdb.getArtistRecommendationType(recTypeName);
+        RecommendationSummary rS = recType.getRecommendations(userId, cnt, new Rp());
         for (Recommendation r : rS.getRecommendations()) {
             ArtistCompact aC = this.getArtistCompact(r.getId());
             if (aC != null) {
