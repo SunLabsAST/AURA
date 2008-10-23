@@ -175,6 +175,8 @@ public class GridProcessManager extends Aura implements ProcessManager {
         
         protected boolean finished;
 
+        protected Pattern namePattern = Pattern.compile(String.format("%s-(.*)", instance));
+        
         public EventHandler() {
             s = new Selector();
 
@@ -184,7 +186,6 @@ public class GridProcessManager extends Aura implements ProcessManager {
                         Pattern.compile("monitor"), Pattern.compile("true"));
             //
             // And one that will match registrations that match the user name and instance name.
-            Pattern namePattern = Pattern.compile(String.format("%s-(.*)", instance));
             logger.info("namePattern: " + namePattern.toString());
             ProcessRegistrationFilter instanceFilter = new ProcessRegistrationFilter.NameMatch(namePattern);
 
@@ -245,10 +246,11 @@ public class GridProcessManager extends Aura implements ProcessManager {
         
         public void handleEvent(Event e) {
             String name = ResourceName.getCSName(e.getResource().getName());
-            if(!name.startsWith(instance)) {
+            if(!namePattern.matcher(name).matches()) {
                 logger.info(String.format("Ignoring %s from %s", e.getType(), e.getResource().getName()));
                 return;
             }
+            
             if(e.getResource() instanceof BaseFileSystem && e.getType().equals(Resource.CREATION)) {
                 BaseFileSystem fs = (BaseFileSystem) e.getResource();
                 Map<String,String> md = fs.getConfiguration().getMetadata();
