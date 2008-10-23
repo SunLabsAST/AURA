@@ -1011,7 +1011,6 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
         @Override
         public void openDiffPopup(DiffButton diff) {
-
             ItemInfo[] steerTags = ItemInfo.mapToArray(tagLand.getTagMap());
             TagDisplayLib.showDifferenceCloud("Difference cloud between your tag cloud and " + diff.getName(),
                     steerTags, diff.getDistinctiveTags(), cdm);
