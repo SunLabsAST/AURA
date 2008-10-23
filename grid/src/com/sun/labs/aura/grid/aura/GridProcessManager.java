@@ -2,6 +2,7 @@ package com.sun.labs.aura.grid.aura;
 
 import com.sun.caroline.platform.BaseFileSystem;
 import com.sun.caroline.platform.BaseFileSystemConfiguration;
+import com.sun.caroline.platform.DestroyInProgressException;
 import com.sun.caroline.platform.Event;
 import com.sun.caroline.platform.EventStream;
 import com.sun.caroline.platform.ProcessConfiguration;
@@ -49,10 +50,10 @@ public class GridProcessManager extends Aura implements ProcessManager {
         eh.finished = true;
     }
 
-    public PartitionCluster createPartitionCluster(DSBitSet prefix) throws AuraException, RemoteException {
+    public PartitionCluster createPartitionCluster(DSBitSet prefix, DSBitSet owner) throws AuraException, RemoteException {
         try {
             ProcessConfiguration pcConfig = getPartitionClusterConfig(prefix.
-                    toString(), false);
+                    toString(), false, owner.toString());
             ProcessRegistration pcReg = gu.createProcess(getPartitionName(
                     prefix.toString()), pcConfig);
             gu.startRegistration(pcReg);
@@ -77,7 +78,7 @@ public class GridProcessManager extends Aura implements ProcessManager {
                 //
                 // Now that we have the partition cluster running, we need a replicant
                 // running underneath it.
-                createReplicant(prefix);
+                createReplicant(prefix, owner);
             } else {
                 logger.warning("Partition for prefix " + prefix.toString() + " not found");
             }
@@ -89,13 +90,13 @@ public class GridProcessManager extends Aura implements ProcessManager {
         }
     }
 
-    public Replicant createReplicant(DSBitSet prefix) throws AuraException, RemoteException {
+    public Replicant createReplicant(DSBitSet prefix, DSBitSet owner) throws AuraException, RemoteException {
         try {
             String prefixString = prefix.toString();
             
             //
             // Make sure there's a filesystem for this replicant!
-            createReplicantFileSystem(prefixString);
+            createReplicantFileSystem(prefixString, owner.toString());
             ProcessConfiguration repConfig = getReplicantConfig(replicantConfig,
                     prefixString);
             ProcessRegistration repReg = gu.createProcess(getReplicantName(
@@ -143,7 +144,25 @@ public class GridProcessManager extends Aura implements ProcessManager {
         }
         
         //
-        // Belt-and-suspenders: make sure that the child has the right prefix too.
+        // Fix the meta data for the old partition cluster
+        ProcessRegistration oldPart = gu.lookupProcessRegistration(
+                getPartitionName(oldPrefix.toString()));
+        ProcessConfiguration pc = oldPart.getRegistrationConfiguration();
+        md = pc.getMetadata();
+        md.put("prefix", childPrefix1.toString());
+        pc.setMetadata(md);
+        try {
+            oldPart.changeConfiguration(pc);
+        } catch (DestroyInProgressException e) {
+            //
+            // This is fine - if the reg is getting destroyed, we don't care
+            logger.log(Level.FINE, "Failed to update partition prefix since partition is being destroyed: " + oldPrefix.toString());
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error setting process metadata for part " + oldPrefix.toString(), e);
+        }
+        
+        //
+        // Belt-and-suspenders: make sure that the child has the right prefix too and remove the owner
         fs = (BaseFileSystem) repFSMap.get(childPrefix2.toString());
         if(fs == null) {
             logger.warning("Unable to find file system for new child prefix " + childPrefix2 + " after split");
@@ -151,11 +170,31 @@ public class GridProcessManager extends Aura implements ProcessManager {
         fsc = fs.getConfiguration();
         md = fsc.getMetadata();
         md.put("prefix", childPrefix2.toString());
+        md.remove("owner");
         fsc.setMetadata(md);
         try {
             fs.changeConfiguration(fsc);
         } catch (Exception rx) {
             logger.log(Level.SEVERE, "Error setting file system metadata for " + fs.getName(), rx);
+        }
+        
+        //
+        // Remove the owner and check the prefix for the new partition cluster
+        ProcessRegistration newPart = gu.lookupProcessRegistration(
+                getPartitionName(childPrefix2.toString()));
+        pc = newPart.getRegistrationConfiguration();
+        md = pc.getMetadata();
+        md.put("prefix", childPrefix2.toString());
+        md.remove("owner");
+        pc.setMetadata(md);
+        try {
+            newPart.changeConfiguration(pc);
+        } catch (DestroyInProgressException e) {
+            //
+            // This is fine - if the reg is getting destroyed, we don't care
+            logger.log(Level.FINE, "Failed to update partition prefix since partition is being destroyed: " + childPrefix2.toString());
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error setting process metadata for part " + childPrefix2.toString(), e);
         }
     }
 

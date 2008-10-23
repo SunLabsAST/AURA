@@ -43,10 +43,13 @@ public abstract class Aura extends ServiceAdapter {
     protected String replicantConfig;
 
     /**
-     * A map from prefixes to the file systems for those prefixes.
+     * A map from prefixes to the file systems for those prefixes.  This map
+     * stores all the active prefixes/filesystems.
      */
     protected Map<String, FileSystem> repFSMap = new HashMap<String, FileSystem>();
 
+    protected Map<String, FileSystem> ownedFSMap = new HashMap<String, FileSystem>();
+    
     /**
      * Creates the replicant filesystems in a clean startup.  Initially 16 file
      * systems are created.  This number may change over time as filesystems are
@@ -54,8 +57,9 @@ public abstract class Aura extends ServiceAdapter {
      * @throws java.lang.Exception
      */
     public void createReplicantFileSystems() throws Exception {
+        int numBits = Integer.toString(defaultNumReplicants, 2).length() - 1;
         for(int i = 0; i < defaultNumReplicants; i++) {
-            createReplicantFileSystem(DSBitSet.parse(i).setPrefixLength(4).toString());
+            createReplicantFileSystem(DSBitSet.parse(i).setPrefixLength(numBits).toString());
         }
     }
     
@@ -65,6 +69,10 @@ public abstract class Aura extends ServiceAdapter {
      * @throws java.lang.Exception
      */
     public void createReplicantFileSystem(String prefix) throws Exception {
+        createReplicantFileSystem(prefix, null);
+    }
+    
+    public void createReplicantFileSystem(String prefix, String owner) throws Exception {
         logger.info("Creating replicant fs for " + prefix);
         FileSystem fs = gu.getFS(getReplicantName(prefix), true);
 
@@ -76,9 +84,14 @@ public abstract class Aura extends ServiceAdapter {
         md.put("instance", instance);
         md.put("type", "replicant");
         md.put("prefix", prefix);
+        if (owner != null && !owner.isEmpty()) {
+            ownedFSMap.put(prefix, fs);
+            md.put("owner", owner);
+        } else {
+            repFSMap.put(prefix, fs);
+        }
         fsConfig.setMetadata(md);
         ((BaseFileSystem) fs).changeConfiguration(fsConfig);
-        repFSMap.put(prefix, fs);
     }
 
     /**
@@ -108,15 +121,20 @@ public abstract class Aura extends ServiceAdapter {
                 continue;
             }
             
-            mdv = md.get("prefix");
-            if(mdv == null) {
+            String prefix = md.get("prefix");
+            if(prefix == null) {
                 logger.warning("Replicant filesystem with no prefix metadata: " + fs.getName());
                 continue;
             } else {
-                logger.info("Got filesystem with prefix: " + mdv);
+                logger.info("Got filesystem with prefix: " + prefix);
             }
             
-            repFSMap.put(mdv, fs);
+            mdv = md.get("owner");
+            if (mdv == null) {
+                repFSMap.put(prefix, fs);
+            } else {
+                ownedFSMap.put(prefix, fs);
+            }
         }
     }
 
@@ -281,10 +299,15 @@ public abstract class Aura extends ServiceAdapter {
 
     protected ProcessConfiguration getPartitionClusterConfig(String prefix)
             throws Exception {
-        return getPartitionClusterConfig(prefix, true);
+        return getPartitionClusterConfig(prefix, true, null);
     }
     
     protected ProcessConfiguration getPartitionClusterConfig(String prefix, boolean register)
+            throws Exception {
+        return getPartitionClusterConfig(prefix, register, null);
+    }
+    
+    protected ProcessConfiguration getPartitionClusterConfig(String prefix, boolean register, String owner)
             throws Exception {
         String[] cmdLine = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
@@ -300,6 +323,9 @@ public abstract class Aura extends ServiceAdapter {
         Map<String,String> md = pc.getMetadata();
         md.put("prefix", prefix);
         md.put("monitor", "true");
+        if (owner != null && !owner.isEmpty()) {
+            md.put("owner", owner);
+        }
         pc.setMetadata(md);
         return pc;
     }
