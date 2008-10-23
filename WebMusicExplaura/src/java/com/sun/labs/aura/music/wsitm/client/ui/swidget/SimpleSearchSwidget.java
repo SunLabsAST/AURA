@@ -266,11 +266,11 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         } else if (resultName.startsWith("artistSearch:")) {
             search.updateSuggestBox(Oracles.ARTIST);
             String query = resultName.replaceAll("artistSearch:", "");
-            invokeArtistSearchService(query, false, 0);
+            invokeArtistSearchService(query, searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST, 0);
         } else if (resultName.startsWith("artistSearchByTag:")) {
             search.updateSuggestBox(Oracles.TAG);
             String query = resultName.replaceAll("artistSearchByTag:", "");
-            invokeArtistSearchService(query, true, 0);
+            invokeArtistSearchService(query, searchTypes.SEARCH_FOR_ARTIST_BY_TAG, 0);
         } else if (resultName.startsWith("tagSearch:")) {
             search.updateSuggestBox(Oracles.TAG);
             String query = resultName.replaceAll("tagSearch:", "");
@@ -335,7 +335,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         }
     }
 
-    private void invokeArtistSearchService(String searchText, boolean byTag, int page) {
+    private void invokeArtistSearchService(String searchText, searchTypes sT, int page) {
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
@@ -374,10 +374,12 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
         showMessage("Searching for " + searchText,WebLib.ICON_WAIT);
         try {
-            if (byTag) {
+            if (sT == searchTypes.SEARCH_FOR_ARTIST_BY_TAG) {
                 musicServer.artistSearchByTag(searchText, 100, callback);
-            } else {
+            } else if (sT == searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST) {
                 musicServer.artistSearch(searchText, 100, callback);
+            } else {
+                Popup.showInformationPopup("Error. Invalid search type.");
             }
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
@@ -1385,10 +1387,11 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                 Window.alert("Error. Cannot search without the similarity types.");
             } else {
                 String query = textBox.getText().toLowerCase();
-                if (getSearchType() == searchTypes.SEARCH_FOR_TAG_BY_TAG) {
+                searchTypes currST = getSearchType();
+                if (currST == searchTypes.SEARCH_FOR_TAG_BY_TAG) {
                     invokeTagSearchService(query, 0);
                 } else {
-                    invokeArtistSearchService(query, getSearchType() == searchTypes.SEARCH_FOR_ARTIST_BY_TAG, 0);
+                    invokeArtistSearchService(query, currST, 0);
                 }
             }
         }
