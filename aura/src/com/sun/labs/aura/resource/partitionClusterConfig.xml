@@ -24,6 +24,8 @@
     
     <property name="prefix" value="01"/>
     
+    <property name="owner" value=""/>
+    
     <component name="prefixEntries" type="com.sun.labs.util.props.ConfigurationEntries">
         <propertylist name="entries">
             <item>${prefix}</item>
@@ -52,6 +54,7 @@
     <!-- The configuration for a partition cluster. -->
     <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true" entries="prefixEntries">
         <property name="prefix" value="${prefix}"/>
+        <property name="owner" value="${owner}"/>
         <propertylist name="dataStoreHeads">
             <type>com.sun.labs.aura.datastore.DataStore</type>
         </propertylist>

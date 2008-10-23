@@ -62,6 +62,14 @@ public class PartitionClusterImpl implements PartitionCluster,
     @ConfigBoolean(defaultValue=true)
     public static final String PROP_REGISTER = "register";
     
+    @ConfigString
+    public static final String PROP_OWNER = "owner";
+    
+    /**
+     * The prefix of the owner of this partition, used when splitting
+     */
+    private String owner;
+    
     private boolean register;
     
     private Set<DataStore> dataStoreHeads;
@@ -364,6 +372,31 @@ public class PartitionClusterImpl implements PartitionCluster,
                 register(head);
             }
         }
+        owner = ps.getString(PROP_OWNER);
+        if (owner != null && !owner.isEmpty()) {
+            //
+            // Look up the owner partition and call resume split on it.
+            try {
+                //
+                // Get all partition clusters
+                List<Component> pcs = cm.lookupAll(PartitionCluster.class, this);
+                for (Component c : pcs) {
+                    PartitionCluster pc = (PartitionCluster)c;
+                    if (pc.getPrefix().toString().equals(owner)) {
+                        //
+                        // This is the one
+                        pc.resumeSplit((PartitionCluster)cm.getRemote(this));
+                        break;
+                    }
+                }
+            } catch (RemoteException e) {
+                throw new PropertyException(e, null, PROP_OWNER,
+                        "Failed to invoke resumeSplit on owner partition");
+            } catch (AuraException e) {
+                throw new PropertyException(e, null, PROP_OWNER,
+                        "Failed to resume split with partition " + owner);
+            }
+        }
     }
     
     public void componentAdded(Component c) {
@@ -422,7 +455,6 @@ public class PartitionClusterImpl implements PartitionCluster,
     }
 
     public void split() throws AuraException, RemoteException {
-        try {
         if (!splitting.compareAndSet(false, true)) {
             //
             // We must already be splitting.
@@ -439,41 +471,60 @@ public class PartitionClusterImpl implements PartitionCluster,
 
         //
         // Use the Process Manager to get a new partition cluster for the "1"
-        // sub prefix
-        PartitionCluster remote = processManager.createPartitionCluster(remotePrefix);
-        logger.info("Got new partition cluster for " + remote.getPrefix());
-
-        //
-        // Define all fields in the new partition
-        Map<String,FieldDescription> fields = getFieldDescriptions();
-        for (FieldDescription fd : fields.values()) {
-            remote.defineField(null, fd.getName(), fd.getCapabilities(), fd.getType());
+        // sub prefix.  Pass in the current prefix as the owner of the partition.
+        PartitionCluster remote =
+                processManager.createPartitionCluster(remotePrefix, prefixCode);
+        if (remote == null) {
+            throw new AuraException(
+                    "Failed to find remote partition cluster for "
+                    + remotePrefix);
         }
-        
-        logger.info("Fields defined in " + remote.getPrefix());
+        logger.info("Got new partition cluster for " + remote.getPrefix());
+        innerSplit(localPrefix, remotePrefix, remote);
+    }
 
-        PCSplitStrategy splitStrat =
-                new PCSplitStrategy(strategy, localPrefix,
-                                    remote, remotePrefix);
-        
-                
-        //
-        // Start a thread that will read every item from this partition and
-        // migrate if necessary.  Ditto for attentions.
-        List<Thread> threads = new ArrayList<Thread>();
-        Thread it = new Thread(new MigrateItems(strategy, localPrefix, remote, remotePrefix));
-        it.start();
-        threads.add(it);
-        Thread at = new Thread(new MigrateAttentions(strategy, localPrefix, remote, remotePrefix));
-        at.start();
-        threads.add(at);
-        Thread ender = new Thread(new SplitMonitor(threads, localPrefix, remote));
-        ender.start();
-        logger.info("Started split threads");
+    public void resumeSplit(PartitionCluster remote) throws AuraException, RemoteException {
+        DSBitSet localPrefix = (DSBitSet)prefixCode.clone();
+        localPrefix.addBit(false);
+        logger.info("Resuming split from " + prefixCode + " into "
+                    + localPrefix + " and " + remote.getPrefix());
+        innerSplit(localPrefix, remote.getPrefix(), remote);
+    }
+    
+    protected void innerSplit(DSBitSet localPrefix, DSBitSet remotePrefix, PartitionCluster remote)
+            throws AuraException, RemoteException {
+        try {
+            //
+            // Define all fields in the new partition
+            Map<String,FieldDescription> fields = getFieldDescriptions();
+            for (FieldDescription fd : fields.values()) {
+                remote.defineField(null, fd.getName(), fd.getCapabilities(), fd.getType());
+            }
 
-        //
-        // Install the split strategy for all requests going forward
-        strategy = splitStrat;
+            logger.info("Fields defined in " + remote.getPrefix());
+
+            PCSplitStrategy splitStrat =
+                    new PCSplitStrategy(strategy, localPrefix,
+                                        remote, remotePrefix);
+
+
+            //
+            // Start a thread that will read every item from this partition and
+            // migrate if necessary.  Ditto for attentions.
+            List<Thread> threads = new ArrayList<Thread>();
+            Thread it = new Thread(new MigrateItems(strategy, localPrefix, remote, remotePrefix));
+            it.start();
+            threads.add(it);
+            Thread at = new Thread(new MigrateAttentions(strategy, localPrefix, remote, remotePrefix));
+            at.start();
+            threads.add(at);
+            Thread ender = new Thread(new SplitMonitor(threads, localPrefix, remote));
+            ender.start();
+            logger.info("Started split threads");
+
+            //
+            // Install the split strategy for all requests going forward
+            strategy = splitStrat;
         } catch (AuraException ax) {
             logger.log(Level.SEVERE, "Aura exception splitting", ax);
             throw(ax);
