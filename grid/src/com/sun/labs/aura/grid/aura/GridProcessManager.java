@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -178,6 +179,20 @@ public class GridProcessManager extends Aura implements ProcessManager {
             s = new Selector();
 
             //
+            // A filter that will match registrations with the monitor metadata value set to true
+            ProcessRegistrationFilter monitorFilter = new ProcessRegistrationFilter.RegistrationConfigurationMetaMatch(
+                        Pattern.compile("monitor"), Pattern.compile("true"));
+            //
+            // And one that will match registrations that match the user name and instance name.
+            Pattern namePattern = Pattern.compile(String.format("%s-(.*)", instance));
+            logger.info("namePattern: " + namePattern.toString());
+            ProcessRegistrationFilter instanceFilter = new ProcessRegistrationFilter.NameMatch(namePattern);
+
+            //
+            // The composition of these filters.
+            ProcessRegistrationFilter filter = new ProcessRegistrationFilter.And(monitorFilter, instanceFilter);
+
+            //
             // Get events for newly created resources.
             ArrayList<Resource.Type> r = new ArrayList();
             r.add(Resource.Type.PROCESS_REGISTRATION);
@@ -189,12 +204,11 @@ public class GridProcessManager extends Aura implements ProcessManager {
             }
 
             //
-            // Get destruction events for existing registrations.
+            // Sign up for destruction events for existing registrations.
             try {
-                for(ProcessRegistration pr : grid.findProcessRegistrations(new ProcessRegistrationFilter.RegistrationConfigurationMetaMatch(
-                        Pattern.compile("monitor"), Pattern.compile("true")))) {
-                    ArrayList<Event.Type> p = new ArrayList();
+                for(ProcessRegistration pr : grid.findProcessRegistrations(filter)) {
                     logger.info("found registration " + pr.getName());
+                    ArrayList<Event.Type> p = new ArrayList();
                     p.add(Resource.DESTRUCTION);
                     s.add(pr.openEventStream(p));
                 }
@@ -230,6 +244,11 @@ public class GridProcessManager extends Aura implements ProcessManager {
         }
         
         public void handleEvent(Event e) {
+            String name = ResourceName.getCSName(e.getResource().getName());
+            if(!name.startsWith(instance)) {
+                logger.info(String.format("Ignoring %s from %s", e.getType(), e.getResource().getName()));
+                return;
+            }
             if(e.getResource() instanceof BaseFileSystem && e.getType().equals(Resource.CREATION)) {
                 BaseFileSystem fs = (BaseFileSystem) e.getResource();
                 Map<String,String> md = fs.getConfiguration().getMetadata();
@@ -281,7 +300,7 @@ public class GridProcessManager extends Aura implements ProcessManager {
         protected String parseRegName(String name) {
             String csn = ResourceName.getCSName(name);
             //
-            // Take instance- off the string, since the grid utils will add 
+            // Take instance- off the string, since the grid utils will add
             // it back on!
             if(csn.startsWith(instance)) {
                 return csn.substring(instance.length() + 1);
