@@ -8,8 +8,6 @@ package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
 import com.sun.labs.aura.music.wsitm.client.*;
-import com.extjs.gxt.ui.client.util.Params;
-import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
@@ -24,6 +22,7 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -152,7 +151,7 @@ public class ProfileSwidget extends Swidget implements LoginListener {
 
             public void onSuccess(Object result) {
                 // do some UI stuff to show success
-                Info.display("Information","Update sucessfull.", new Params());
+                Popup.showInformationPopup("Update sucessfull.");
                 loadImage.setVisible(false);
             }
 

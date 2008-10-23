@@ -6,14 +6,10 @@
 package com.sun.labs.aura.music.wsitm.client.ui;
 
 import com.extjs.gxt.ui.client.Style.Direction;
-import com.extjs.gxt.ui.client.util.Params;
-import com.extjs.gxt.ui.client.widget.Info;
-import com.google.gwt.user.client.Command;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
-import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Widget;
 

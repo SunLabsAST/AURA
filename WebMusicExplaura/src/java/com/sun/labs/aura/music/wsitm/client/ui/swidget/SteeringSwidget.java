@@ -13,8 +13,6 @@ import com.sun.labs.aura.music.wsitm.client.event.CommonTagsAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget;
-import com.extjs.gxt.ui.client.util.Params;
-import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.Window;
@@ -44,6 +42,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
@@ -210,9 +209,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
                 public void onClick(Widget arg0) {
                     if (currTagMap == null || currTagMap.isEmpty()) {
-                        Info.display("Steerable recommendations",
-                                "Cannot display atomic representation; you must " +
-                                "add tags in your cloud first.", new Params());
+                        Popup.showInformationPopup("Cannot display atomic representation; you must " +
+                                "add tags in your cloud first.");
                     } else {
                         HashMap<String, Double> map = currTagMap;
                         ItemInfo[] iI = new ItemInfo[map.size()];
@@ -285,7 +283,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         private void displayTagInfluence() {
 
             if (currRecommendations == null) {
-                Info.display("Steerable recommendations", "Cannot display tag influence cloud; you must add tags in your cloud first.", new Params());
+                Popup.showInformationPopup("Cannot display tag influence cloud; you must add tags in your cloud first.");
                 return;
             }
 
@@ -381,7 +379,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             if (cloud != null && cloud.length > 0) {
                 tagLand.addTags(cloud, TagWidget.NBR_TOP_TAGS_TO_ADD);
             } else {
-                Info.display("Steerable recommendations", "Your user cloud is empty; no tags to add.", new Params());
+                Popup.showInformationPopup("Your user cloud is empty; no tags to add.");
             }
             History.newItem("steering:");
         }
@@ -535,7 +533,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                     if (subItems != null) {
                         tagLand.addTags(subItems, TagWidget.NBR_TOP_TAGS_TO_ADD);
                     } else {
-                        Info.display("Add all tags", "subitems is null", new Params());
+                        Popup.showInformationPopup("Add all tags - subitems is null");
                     }
                 }
             });

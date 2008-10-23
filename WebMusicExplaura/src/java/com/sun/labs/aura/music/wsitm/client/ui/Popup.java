@@ -5,15 +5,19 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui;
 
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
+import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 
 /**
  *
@@ -90,5 +94,30 @@ public abstract class Popup {
         popup.setAnimationEnabled(true);
         popup.center();
         popup.center();
+    }
+
+    public static void showInformationPopup(HTML html) {
+
+        PopupPanel popup = getPopupPanel();
+
+        Button b = new Button("OK");
+        b.addClickListener(new DataEmbededClickListener<PopupPanel>(popup) {
+
+            public void onClick(Widget sender) {
+                data.hide();
+            }
+        });
+
+        VerticalPanel hP = new VerticalPanel();
+        hP.setSpacing(4);
+        hP.add(html);
+        hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+        hP.add(b);
+
+        showRoundedPopup(hP, "Information", popup);
+    }
+
+    public static void showInformationPopup(String message) {
+        showInformationPopup(new HTML("<p>"+message+"</p>"));
     }
 }

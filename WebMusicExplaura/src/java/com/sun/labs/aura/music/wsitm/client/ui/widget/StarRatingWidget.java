@@ -11,8 +11,6 @@ import com.sun.labs.aura.music.wsitm.client.event.DataEmbededMouseListener;
 import com.sun.labs.aura.music.wsitm.client.event.RatingListener;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
 import com.sun.labs.aura.music.wsitm.client.*;
-import com.extjs.gxt.ui.client.util.Params;
-import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Composite;
