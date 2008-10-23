@@ -426,7 +426,7 @@ public class DataManager implements Configurable {
         ItemInfo[] artistResults = scoredArtistToItemInfo(mdb.artistSearch(searchString, maxResults));
 
         SearchResults sr = new SearchResults(searchString,
-                searchTypes.SEARCH_FOR_ARTIST_BY_TAG, artistResults);
+                searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST, artistResults);
         return sr;
     }
 
@@ -1056,7 +1056,11 @@ public class DataManager implements Configurable {
         for (Recommendation r : rS.getRecommendations()) {
             ArtistCompact aC = this.getArtistCompact(r.getId());
             if (aC != null) {
-                aR.add(new ArtistRecommendation(aC, scoredTagStringToItemInfo(r.getExplanation()), r.getScore(), rS.getExplanation()));
+                if (recType.getType() == ItemType.ARTIST) {
+                    aR.add(new ArtistRecommendation(aC, scoredArtistIdsToItemInfo(r.getExplanation()), r.getScore(), rS.getExplanation()));
+                } else {
+                    aR.add(new ArtistRecommendation(aC, scoredTagStringToItemInfo(r.getExplanation()), r.getScore(), rS.getExplanation()));
+                }
             }
         }
         return aR;
@@ -1127,6 +1131,29 @@ public class DataManager implements Configurable {
             }
         }
         return tagsArray.subList(0, this.getMax(tagsArray, NUMBER_TAGS_TO_SHOW)).toArray(new ItemInfo[0]);
+    }
+
+    /**
+     * Converts a list of scored string representing tag ids to an itemInfo array
+     * @param strList
+     * @return item info array
+     */
+    private ItemInfo[] scoredArtistIdsToItemInfo(List<Scored<String>> strList) throws RemoteException {
+        List<ItemInfo> idsArray = new ArrayList<ItemInfo>();
+        for (Scored<String> sS : strList.subList(0, getMax(strList, NUMBER_TAGS_TO_SHOW))) {
+            try {
+                ArtistCompact aC = this.getArtistCompact(sS.getItem());
+                if (aC == null) {
+                    continue;
+                }
+
+                idsArray.add(new ItemInfo(aC.getId(), sS.getItem(), sS.getScore(),
+                        aC.getPopularity()));
+            } catch (AuraException ex) {
+                Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return idsArray.subList(0, this.getMax(idsArray, NUMBER_TAGS_TO_SHOW)).toArray(new ItemInfo[0]);
     }
 
     public int getExpiredTimeInDays() {

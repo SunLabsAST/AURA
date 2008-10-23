@@ -278,7 +278,6 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
                 hP.add(instantRecPlayWidget);
             }
 
-
             mainPanel.setWidget(0, 0, hP);
         } else {
             populateLoginBox();
@@ -287,7 +286,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
     private Widget getInstantRecPlayWidget() {
         ArtistCompact[] aC = cdm.getListenerDetails().getRecommendations();
-        if (aC.length > 0) {
+        if (aC != null && aC.length > 0) {
             int itemIndex = Random.nextInt(aC.length);
             int iterations = 0;
             while (iterations++ < 2 * aC.length) {
@@ -348,9 +347,13 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
-
-                ListenerDetails l = (ListenerDetails) result;
-                updatePanelAfterLogin(l);
+                if (result == null) {
+                    Window.alert("Error fetching listener information");
+                    populateLoginBox();
+                } else {
+                    ListenerDetails l = (ListenerDetails) result;
+                    updatePanelAfterLogin(l);
+                }
             }
 
             public void onFailure(Throwable caught) {

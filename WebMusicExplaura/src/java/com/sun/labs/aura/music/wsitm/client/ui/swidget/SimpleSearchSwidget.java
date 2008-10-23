@@ -358,7 +358,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                     }
                 } else {
                     if (sr == null) {
-                        showError("Error. Resultset is null. (256)");
+                        showError("Error. Can't find tag specified.");
                         clearResults();
                     } else {
                         showError("Very Whooops " + sr.getStatus());

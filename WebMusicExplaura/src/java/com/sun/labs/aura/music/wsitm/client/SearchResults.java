@@ -61,6 +61,7 @@ public class SearchResults implements IsSerializable {
         return searchType;
     }
     
+    @Override
     public String toString() {
         if (searchType == searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST) {
             return "artistSearch:" + query;
