@@ -61,6 +61,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         this.cdm = tcdm;
         this.aC = taC;
         this.size = size;
+        this.musicServer = musicServer;
         
         if (cm == null) {
             cm = new ContextMenu(cdm.getSharedPlayButtonMenu());

@@ -7,6 +7,7 @@ package com.sun.labs.aura.grid.util;
 
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -33,6 +34,11 @@ public class QueryDataStore extends ServiceAdapter {
     public static final String PROP_QUERIES = "queries";
 
     private List<String> queries;
+
+    @ConfigStringList(defaultList={"e86ab653-bec8-46f3-b4b6-a1a866919ef6"})
+    public static final String PROP_KEYS = "keys";
+
+    private List<String> keys;
     
     @Override
     public String serviceName() {
@@ -46,6 +52,7 @@ public class QueryDataStore extends ServiceAdapter {
         logger.info("dsHead: " + dataStore);
         queries = ps.getStringList(PROP_QUERIES);
         logger.info("queries: " + queries);
+        keys = ps.getStringList(PROP_KEYS);
     }
 
     @Override
@@ -57,7 +64,17 @@ public class QueryDataStore extends ServiceAdapter {
                 logger.info("query: " + query);
                 List<Scored<Item>> r = dataStore.query(query, 10, null);
                 for (Scored<Item> i : r) {
-                    logger.info(String.format("%.2f %s %s\n", i.getScore(), i.getItem().
+                    logger.info(String.format("%.2f %s %s", i.getScore(), i.getItem().
+                            getKey(), i.getItem().getName()));
+                }
+            }
+
+            for(String k : keys) {
+                logger.info("key: " + k);
+                SimilarityConfig config = new SimilarityConfig("socialtags");
+                List<Scored<Item>> r = dataStore.findSimilar(k, config);
+                for (Scored<Item> i : r) {
+                    logger.info(String.format("%.2f %s %s", i.getScore(), i.getItem().
                             getKey(), i.getItem().getName()));
                 }
             }

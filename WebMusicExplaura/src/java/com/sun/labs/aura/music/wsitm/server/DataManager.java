@@ -426,7 +426,7 @@ public class DataManager implements Configurable {
         ItemInfo[] artistResults = scoredArtistToItemInfo(mdb.artistSearch(searchString, maxResults));
 
         SearchResults sr = new SearchResults(searchString,
-                searchTypes.SEARCH_FOR_ARTIST_BY_TAG, artistResults);
+                searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST, artistResults);
         return sr;
     }
 
@@ -649,12 +649,6 @@ public class DataManager implements Configurable {
         ArrayList<ItemInfo> iI = new ArrayList<ItemInfo>();
         List<Tag> lT = l.getSocialTags();
         if (lT != null && lT.size() > 0) {
-            Collections.sort(lT, new Comparator<Tag>() {
-
-                public int compare(Tag o1, Tag o2) {
-                    return new Integer(o1.getFreq()).compareTo(o2.getFreq());
-                }
-            });
             double maxSize = lT.get(0).getFreq();
             int nbr = 0;
             for (Tag t : lT) {
@@ -712,6 +706,21 @@ public class DataManager implements Configurable {
 
         l = syncListeners(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
         mdb.updateListener(l);
+
+        // Get the user tag cloud
+        ArrayList<ItemInfo> iI = new ArrayList<ItemInfo>();
+        List<Tag> lT = l.getSocialTags();
+        if (lT != null && lT.size() > 0) {
+            double maxSize = lT.get(0).getFreq();
+            int nbr = 0;
+            for (Tag t : lT) {
+                iI.add(new ItemInfo(ArtistTag.nameToKey(t.getName()), t.getName(), t.getFreq() / maxSize, t.getFreq() / maxSize));
+                if (nbr++ > 50) {
+                    break;
+                }
+            }
+        }
+        lD.setUserTagCloud(iI.toArray(new ItemInfo[0]));
 
         return lD;
 
@@ -1042,11 +1051,16 @@ public class DataManager implements Configurable {
         logger.info("Getting recommendations for user " + userId + " using recType:" + recTypeName);
         ArrayList<ArtistRecommendation> aR = new ArrayList<ArtistRecommendation>();
 
-        RecommendationSummary rS = mdb.getArtistRecommendationType(recTypeName).getRecommendations(userId, cnt, new Rp());
+        RecommendationType recType = mdb.getArtistRecommendationType(recTypeName);
+        RecommendationSummary rS = recType.getRecommendations(userId, cnt, new Rp());
         for (Recommendation r : rS.getRecommendations()) {
             ArtistCompact aC = this.getArtistCompact(r.getId());
             if (aC != null) {
-                aR.add(new ArtistRecommendation(aC, scoredTagStringToItemInfo(r.getExplanation()), r.getScore(), rS.getExplanation()));
+                if (recType.getType() == ItemType.ARTIST) {
+                    aR.add(new ArtistRecommendation(aC, scoredArtistIdsToItemInfo(r.getExplanation()), r.getScore(), rS.getExplanation()));
+                } else {
+                    aR.add(new ArtistRecommendation(aC, scoredTagStringToItemInfo(r.getExplanation()), r.getScore(), rS.getExplanation()));
+                }
             }
         }
         return aR;
@@ -1117,6 +1131,29 @@ public class DataManager implements Configurable {
             }
         }
         return tagsArray.subList(0, this.getMax(tagsArray, NUMBER_TAGS_TO_SHOW)).toArray(new ItemInfo[0]);
+    }
+
+    /**
+     * Converts a list of scored string representing tag ids to an itemInfo array
+     * @param strList
+     * @return item info array
+     */
+    private ItemInfo[] scoredArtistIdsToItemInfo(List<Scored<String>> strList) throws RemoteException {
+        List<ItemInfo> idsArray = new ArrayList<ItemInfo>();
+        for (Scored<String> sS : strList.subList(0, getMax(strList, NUMBER_TAGS_TO_SHOW))) {
+            try {
+                ArtistCompact aC = this.getArtistCompact(sS.getItem());
+                if (aC == null) {
+                    continue;
+                }
+
+                idsArray.add(new ItemInfo(aC.getId(), sS.getItem(), sS.getScore(),
+                        aC.getPopularity()));
+            } catch (AuraException ex) {
+                Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return idsArray.subList(0, this.getMax(idsArray, NUMBER_TAGS_TO_SHOW)).toArray(new ItemInfo[0]);
     }
 
     public int getExpiredTimeInDays() {

@@ -28,10 +28,10 @@ public class TagDetails implements IsSerializable, Details {
     private float popularity;
     private String description = "None available";
     private String imageURL;
-    private ArtistCompact[] representativeArtists = getEMPTY_ARTIST_COMPACT();
-    private ItemInfo[] similarTags = getEMPTY_ITEM_INFO();
-    private ArtistVideo[] videos = getEMPTY_ARTIST_VIDEO();
-    private ArtistPhoto[] photos  = getEMPTY_ARTIST_PHOTO();
+    private ArtistCompact[] representativeArtists = EMPTY_ARTIST_COMPACT;
+    private ItemInfo[] similarTags = EMPTY_ITEM_INFO;
+    private ArtistVideo[] videos = EMPTY_ARTIST_VIDEO;
+    private ArtistPhoto[] photos  = EMPTY_ARTIST_PHOTO;
     
     
     /** Creates a new instance of TagDetails */
@@ -116,22 +116,6 @@ public class TagDetails implements IsSerializable, Details {
     
     public boolean isOK() {
         return getStatus().equals("OK");
-    }
-
-    public static ItemInfo[] getEMPTY_ITEM_INFO() {
-        return EMPTY_ITEM_INFO;
-    }
-    
-    public static ArtistCompact[] getEMPTY_ARTIST_COMPACT() {
-        return EMPTY_ARTIST_COMPACT;
-    }
-
-    public static ArtistVideo[] getEMPTY_ARTIST_VIDEO() {
-        return EMPTY_ARTIST_VIDEO;
-    }
-
-    public static ArtistPhoto[] getEMPTY_ARTIST_PHOTO() {
-        return EMPTY_ARTIST_PHOTO;
     }
 
     public ArtistVideo[] getVideos() {

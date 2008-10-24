@@ -5,8 +5,6 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
-import com.extjs.gxt.ui.client.util.Params;
-import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Timer;
@@ -18,7 +16,6 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ui.AnimatedComposite;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedFlowPanel;
-import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import java.util.EventListener;
 import java.util.HashSet;
 

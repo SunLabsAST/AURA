@@ -33,6 +33,21 @@ body {
     background-color: #1695A3;
     background: #1695A3;
 }
+.popupColors {
+    background-color: #1695A3;
+    background: #1695A3;
+    color: white;
+}
+.popupTitle {
+    padding-left: 5px;
+    padding-right: 5px;
+    font-weight:bold;
+    font-size: 1.2em;
+    margin-top: 5px;
+    margin-bottom: 4px;
+    border-bottom: medium solid #ffffff;
+    border-width: thin;
+}
 h1 { 
     font-size: 1.8em; 
     color: #225378;

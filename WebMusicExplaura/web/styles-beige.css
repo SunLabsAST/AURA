@@ -33,7 +33,21 @@ body {
   background-color: #73885D;
   background: #73885D;
 }
-
+.popupColors {
+  background-color: #73885D;
+  background: #73885D;
+  color: white;
+}
+.popupTitle {
+    padding-left: 5px;
+    padding-right: 5px;
+    font-weight:bold;
+    font-size: 1.2em;
+    margin-top: 5px;
+    margin-bottom: 4px;
+    border-bottom: medium solid #ffffff;
+    border-width: thin;
+}
 .gradientHighColor {
   background : #b9ff6d;
 }

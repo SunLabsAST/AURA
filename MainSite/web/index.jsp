@@ -81,6 +81,7 @@
                 <li><a href="">Adding TasteKeeper</a> to your application</li>
                 <li><a href="http://aura.kenai.com/">Project AURA</a>, the code for TasteKeeper</li>
                 <li>The <a href="http://www.projectcaroline.net/">platform</a> that supports TasteKeeper</li>
+                <li>Our <a href="http://music.tastekeeper.com/api">API</a> for music</li>
             </ul>
             </p>
         </div>
