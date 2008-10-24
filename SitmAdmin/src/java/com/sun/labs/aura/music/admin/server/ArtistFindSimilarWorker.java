@@ -32,7 +32,7 @@ public class ArtistFindSimilarWorker extends Worker {
         String artistName = getParam(params, "Artist name");
         int count = getParamAsInt(params, "count");
         MusicDatabase.Popularity pop = (MusicDatabase.Popularity) getParamAsEnum(params, "Popularity");
-        Artist artist = lookupByName(mdb, artistName);
+        Artist artist = lookupByNameOrKey(mdb, artistName);
         List<Scored<Artist>> sartists = mdb.artistFindSimilar(artist.getKey(), count, pop);
         dump(mdb, result, sartists);
     }

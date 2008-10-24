@@ -34,13 +34,13 @@ public class ArtistJourney extends Worker {
 
     @Override
     void go(MusicDatabase mdb, Map<String, String> params, WorkbenchResult result) throws AuraException, RemoteException {
-        Artist startingArtist = lookupByName(mdb, getParam(params, "starting artist"));
+        Artist startingArtist = lookupByNameOrKey(mdb, getParam(params, "starting artist"));
 
         if (startingArtist == null) {
             result.fail("Can't find starting artist " + getParam(params, "starting artist"));
         }
 
-        Artist endingArtist = lookupByName(mdb, getParam(params, "ending artist"));
+        Artist endingArtist = lookupByNameOrKey(mdb, getParam(params, "ending artist"));
 
         if (endingArtist == null) {
             result.fail("Can't find ending artist " + getParam(params, "ending artist"));

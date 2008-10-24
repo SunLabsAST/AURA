@@ -30,13 +30,17 @@ public class WorkbenchManager {
 
     private void addWorkers() {
         addWorker(new ArtistFindSimilarWorker());
+        addWorker(new ArtistTagFindSimilar());
         addWorker(new ArtistJourney());
         addWorker(new ArtistSearchWorker());
         addWorker(new ArtistSummary());
         addWorker(new ArtistTagSummary());
         addWorker(new HubFinder());
+        addWorker(new ListenerSummary());
         addWorker(new MissingPhotoWorker());
         addWorker(new OrphanCleanup());
+        addWorker(new ShowItem());
+        addWorker(new ShowRecentAttention());
     }
 
     private void addWorker(Worker w) {

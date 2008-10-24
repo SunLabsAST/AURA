@@ -29,6 +29,8 @@ import java.util.Set;
  */
 public class TestManager {
 
+    final static float MAX_SIMILARITY_ERROR = .1f;
+    final static float MAX_SEARCH_ERROR = .1f;
     private final static TestStatus UNKNOWN_TEST = new TestStatus(false, 0L, "unknown test");
     private Map<String, Test> tests = new LinkedHashMap<String, Test>();
     private List<String> shortTestNames = new ArrayList<String>();
@@ -49,7 +51,6 @@ public class TestManager {
         addTest(true, new FreshArtistTags());
         addTest(true, new ArtistAddedSince());
         addTest(true, new ArtistSelfSimilarity());
-        addTest(true, new ArtistSimilarityScore());
         addTest(true, new ArtistTagSelfSimilarity());
         addTest(true, new ArtistTagSimilarityScore());
 
@@ -61,7 +62,6 @@ public class TestManager {
         addTest(false, new FreshArtistTags(1000));
         addTest(false, new ArtistAddedSince(1000));
         addTest(false, new ArtistSelfSimilarity(1000));
-        addTest(false, new ArtistSimilarityScore(1000));
         addTest(false, new ArtistTagSelfSimilarity(1000));
         addTest(false, new ArtistTagSimilarityScore(1000));
         addTest(false, new ItemCountConsistencyTest(ItemType.ARTIST));
@@ -112,6 +112,7 @@ class PingTest extends Test {
 
     @Override
     protected void go(MusicDatabase mdb, TestStatus ts) throws AuraException, RemoteException {
+        ts.setMostRecentQuery("artistGetMostPopular");
         if (mdb.artistGetMostPopularNames(5).size() != 5) {
             ts.fail("Can't find 5 popular artists");
         }
@@ -182,7 +183,9 @@ class ItemCountConsistencyTest extends Test {
 
     @Override
     protected void go(MusicDatabase mdb, TestStatus ts) throws AuraException, RemoteException {
+        ts.setMostRecentQuery("getAllItemKeys " + type.name());
         List<String> keys = mdb.getAllItemKeys(type);
+        ts.setMostRecentQuery("getItemCount " + type.name());
         long count = mdb.getDataStore().getItemCount(type);
         if (keys.size() != count) {
             ts.fail("Found " + keys.size() + " expected " + count);
@@ -204,6 +207,7 @@ class ArtistScoreTest extends Test {
 
         for (int i = 0; i < numTests; i++) {
             Artist queryArtist = selectRandomArtist(mdb);
+            ts.setMostRecentQuery(queryArtist.getName());
             List<Scored<Artist>> results = mdb.artistSearch(queryArtist.getName(), 10);
             if (results.size() < 1) {
                 ts.fail("No search results for query " + queryArtist.getName());
@@ -211,7 +215,7 @@ class ArtistScoreTest extends Test {
             }
             double score = results.get(0).getScore();
             double delta = Math.abs(1.0 - results.get(0).getScore());
-            if (delta > .01) {
+            if (delta > TestManager.MAX_SEARCH_ERROR) {
                 ts.fail(String.format("Exact match score is %.3f for query %s", score, queryArtist.getName()));
                 return;
             }
@@ -236,7 +240,8 @@ class ArtistSearchTest extends Test {
             System.out.println("query " + queryArtist.getName() + " " + queryArtist.getKey());
             List<Scored<Artist>> results = mdb.artistSearch(queryArtist.getName(), 10);
             for (int j = 0; j < results.size(); j++) {
-                if (results.get(j).getScore() > .97f && results.get(j).getItem().getKey().equals(queryArtist.getKey())) {
+                double delta = Math.abs(1.0 - results.get(j).getScore());
+                if (delta < TestManager.MAX_SEARCH_ERROR && results.get(j).getItem().getKey().equals(queryArtist.getKey())) {
                     return;
                 }
             }
@@ -253,7 +258,7 @@ class DistinctiveTagsTest extends Test {
 
     @Override
     protected void go(MusicDatabase mdb, TestStatus ts) throws AuraException, RemoteException {
-        Artist weezer = lookupByName(mdb, "Weezer");
+        Artist weezer = lookupByNameOrKey(mdb, "Weezer");
         if (weezer != null) {
             List<Scored<ArtistTag>> tags = mdb.artistGetDistinctiveTags(weezer.getKey(), 10);
             if (!hasTag(tags, "geek rock")) {
@@ -282,8 +287,9 @@ class FindSimilarQuickCheck extends Test {
 
     @Override
     protected void go(MusicDatabase mdb, TestStatus ts) throws AuraException, RemoteException {
-        Artist beatles = lookupByName(mdb, "The Beatles");
+        Artist beatles = lookupByNameOrKey(mdb, "The Beatles");
         if (beatles != null) {
+            ts.setMostRecentQuery("artistFindSimilar " + beatles.getKey());
             List<Scored<Artist>> artists = mdb.artistFindSimilar(beatles.getKey(), 100, MusicDatabase.Popularity.HEAD);
             if (!hasArtist(artists, "The Rolling Stones")) {
                 ts.fail("beatles sim missing The Rolling Stones");
@@ -325,6 +331,7 @@ class FindSimilarExecTime extends Test {
         long start = System.currentTimeMillis();
         for (int i = 0; i < maxTries; i++) {
             Artist artist = selectRandomArtist(mdb);
+            ts.setMostRecentQuery("artistFindSimilar " + artist.getKey());
             List<Scored<Artist>> artists = mdb.artistFindSimilar(artist.getKey(), 20);
         }
         long delta = System.currentTimeMillis() - start;
@@ -338,7 +345,6 @@ class FindSimilarExecTime extends Test {
 class FindSimilarSymmetric extends Test {
 
     private int maxTries = 10;
-    private double MAX_ERROR = 0.01;
 
     FindSimilarSymmetric() {
         super("Find Similar Symmetry");
@@ -353,6 +359,7 @@ class FindSimilarSymmetric extends Test {
     protected void go(MusicDatabase mdb, TestStatus ts) throws AuraException, RemoteException {
         for (int i = 0; i < maxTries; i++) {
             Artist artist = selectRandomArtist(mdb);
+            ts.setMostRecentQuery("artistFindSimilar " + artist.getKey());
             List<Scored<Artist>> artists = mdb.artistFindSimilar(artist.getKey(), 5);
 
             if (artists.size() < 1) {
@@ -362,11 +369,13 @@ class FindSimilarSymmetric extends Test {
 
             for (Scored<Artist> simArtist : artists) {
                 double seedScore = simArtist.getScore();
+                ts.setMostRecentQuery("artistFindSimilar " + simArtist.getItem().getKey());
                 List<Scored<Artist>> simArtists = mdb.artistFindSimilar(simArtist.getItem().getKey(), 100);
                 boolean foundMatch = false;
+                double lastScore = 0;
                 for (Scored<Artist> match : simArtists) {
                     if (match.getItem().getKey().equals(artist.getKey())) {
-                        if (Math.abs(seedScore - match.getScore()) > MAX_ERROR) {
+                        if (Math.abs(seedScore - match.getScore()) > TestManager.MAX_SIMILARITY_ERROR) {
                             String s = String.format("asymmetric similarity %.2f <> %.2f %s/%s",
                                     seedScore, match.getScore(), artist.getName(), simArtist.getItem().getName());
                             ts.fail(s);
@@ -376,9 +385,12 @@ class FindSimilarSymmetric extends Test {
                             break;
                         }
                     }
+                    lastScore = match.getScore();
                 }
-                if (!foundMatch) {
-                    ts.fail("no symmetric match found for " + artist.getName());
+                // it is possible for the good match to be beyond item 100. We fail if our last matching score is
+                // less than the seedScore
+                if (!foundMatch && seedScore > lastScore) {
+                    ts.fail("no symmetric match found for " + artist.getName() + " and " + simArtist.getItem().getName());
                 }
             }
         }
@@ -490,9 +502,10 @@ class ArtistAddedSince extends Test {
         for (int i = 0; i < maxTries; i++) {
             Artist artist = selectRandomArtist(mdb);
             long timeAdded = artist.getTimeAdded();
-            if (timeAdded <  1000000L) {
+            if (timeAdded < 1000000L) {
                 ts.fail("bad time added for " + artist.getName());
             } else {
+                ts.setMostRecentQuery("getItemsAddedSince (artist)" + new Date(timeAdded - 1000000L));
                 DBIterator<Item> iter = mdb.getDataStore().getItemsAddedSince(ItemType.ARTIST, new Date(timeAdded - 1000000L));
 
                 try {
@@ -529,51 +542,32 @@ class ArtistSelfSimilarity extends Test {
     @Override
     protected void go(MusicDatabase mdb, TestStatus ts) throws AuraException, RemoteException {
         for (int i = 0; i < maxTries; i++) {
+            boolean foundMatch = false;
             Artist artist = selectRandomArtist(mdb);
-            List<Scored<Artist>> artists = mdb.artistFindSimilar(artist.getKey(), 20);
+            ts.setMostRecentQuery("artistFindSimilar " + artist.getKey());
+            List<Scored<Artist>> simArtists = mdb.artistFindSimilar(artist.getKey(), 20);
 
-            if (artists.size() == 0) {
-                ts.fail("Can't get similar artists for " + artist.getName());
-                return;
-            } else {
-                Artist sartist = artists.get(0).getItem();
-                if (!artist.getKey().equals(sartist.getKey())) {
-                    ts.fail("No self similarity " +  artist.getName() + " <> " + sartist.getName());
+            if (simArtists.size() == 0) {
+                if (artist.getSocialTags().size() > 0) {
+                    ts.fail("Can't get similar artists for " + artist.getName());
                     return;
                 }
-            }
-        }
-    }
-}
-
-class ArtistSimilarityScore extends Test {
-
-    private int maxTries = 100;
-
-    ArtistSimilarityScore() {
-        super("Artist Similarity Score");
-    }
-
-    ArtistSimilarityScore(int tries) {
-        super("Artist Similarity Score" + tries);
-        maxTries = tries;
-    }
-
-    @Override
-    protected void go(MusicDatabase mdb, TestStatus ts) throws AuraException, RemoteException {
-        for (int i = 0; i < maxTries; i++) {
-            Artist artist = selectRandomArtist(mdb);
-            List<Scored<Artist>> artists = mdb.artistFindSimilar(artist.getKey(), 20);
-
-            if (artists.size() == 0) {
-                ts.fail("Can't get similar artists for " + artist.getName());
-                return;
             } else {
-                double score = artists.get(0).getScore();
-                double delta = Math.abs(1.0 - score);
-                if (delta > .01) {
-                    ts.fail(String.format("Find similarity score is %.3f, should be 1.0 for %s", score, artists.get(0).getItem().getName()));
-                    return;
+                for (Scored<Artist> match : simArtists) {
+                    if (match.getItem().getKey().equals(artist.getKey())) {
+                        if (Math.abs(1.0 - match.getScore()) > TestManager.MAX_SIMILARITY_ERROR) {
+                            String s = String.format("self similarity score for %s is %.2f",
+                                    artist.getName(), match.getScore());
+                            ts.fail(s);
+                            return;
+                        } else {
+                            foundMatch = true;
+                            break;
+                        }
+                    }
+                }
+                if (!foundMatch) {
+                    ts.fail("no self similarity match found for " + artist.getName());
                 }
             }
         }
@@ -596,17 +590,30 @@ class ArtistTagSelfSimilarity extends Test {
     @Override
     protected void go(MusicDatabase mdb, TestStatus ts) throws AuraException, RemoteException {
         for (int i = 0; i < maxTries; i++) {
+            boolean foundMatch = false;
             ArtistTag artistTag = selectRandomArtistTag(mdb);
+            ts.setMostRecentQuery("artistTagFindSimilar " + artistTag.getKey());
             List<Scored<ArtistTag>> artistTags = mdb.artistTagFindSimilar(artistTag.getKey(), 20);
 
             if (artistTags.size() == 0) {
-                ts.fail("Can't get similar artists for " + artistTag.getName());
+                ts.fail("Can't get similar artist tags for " + artistTag.getName());
                 return;
             } else {
-                ArtistTag sartistTag = artistTags.get(0).getItem();
-                if (!artistTag.getKey().equals(sartistTag.getKey())) {
-                    ts.fail("No self similarity " +  artistTag.getName() + " <> " + sartistTag.getName());
-                    return;
+                for (Scored<ArtistTag> match : artistTags) {
+                    if (match.getItem().getKey().equals(artistTag.getKey())) {
+                        if (Math.abs(1.0 - match.getScore()) > TestManager.MAX_SIMILARITY_ERROR) {
+                            String s = String.format("self similarity score for %s is %.2f",
+                                    artistTag.getName(), match.getScore());
+                            ts.fail(s);
+                            return;
+                        } else {
+                            foundMatch = true;
+                            break;
+                        }
+                    }
+                }
+                if (!foundMatch && artistTag.getTaggedArtist().size() > 0) {
+                    ts.fail("no self similarity match found for " + artistTag.getName());
                 }
             }
         }
@@ -630,6 +637,7 @@ class ArtistTagSimilarityScore extends Test {
     protected void go(MusicDatabase mdb, TestStatus ts) throws AuraException, RemoteException {
         for (int i = 0; i < maxTries; i++) {
             ArtistTag artistTag = selectRandomArtistTag(mdb);
+            ts.setMostRecentQuery("artistTagFindSimilar " + artistTag.getKey());
             List<Scored<ArtistTag>> artistTags = mdb.artistTagFindSimilar(artistTag.getKey(), 20);
 
             if (artistTags.size() == 0) {
@@ -638,7 +646,7 @@ class ArtistTagSimilarityScore extends Test {
             } else {
                 double score = artistTags.get(0).getScore();
                 double delta = Math.abs(1.0 - score);
-                if (delta > .01) {
+                if (delta > TestManager.MAX_SIMILARITY_ERROR) {
                     ts.fail(String.format("Find similarity score is %.3f, should be 1.0 for %s", score, artistTag.getName()));
                     return;
                 }

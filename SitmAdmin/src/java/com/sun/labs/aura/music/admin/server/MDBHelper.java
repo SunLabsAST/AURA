@@ -52,12 +52,29 @@ public class MDBHelper {
         return mdb.getListener(selectRandomListenerKey(mdb));
     }
 
-    Artist lookupByName(MusicDatabase mdb, String artistName) throws AuraException, RemoteException {
-        List<Scored<Artist>> results = mdb.artistSearch(artistName, 1);
+    Artist lookupByNameOrKey(MusicDatabase mdb, String nameOrKey) throws AuraException, RemoteException {
+        if (isKey(nameOrKey)) {
+            return mdb.artistLookup(nameOrKey);
+        } else {
+            List<Scored<Artist>> results = mdb.artistSearch(nameOrKey, 1);
+            if (results.size() != 1) {
+                throw new AuraException("Can't find artist " + nameOrKey);
+            }
+            return results.get(0).getItem();
+        }
+    }
+
+    ArtistTag lookupArtistTag(MusicDatabase mdb, String name) throws AuraException, RemoteException {
+        List<Scored<ArtistTag>> results = mdb.artistTagSearch(name, 1);
         if (results.size() != 1) {
-            throw new AuraException("Can't find artist " + artistName);
+            throw new AuraException("Can't find artist tag" + name);
         }
         return results.get(0).getItem();
+    }
+
+    boolean isKey(String nameOrKey) {
+        String[] fields = nameOrKey.split("-");
+        return fields.length == 5 && fields[0].length() == 8 && fields[4].length() == 12;
     }
 
     List<String> getArtistIDs(MusicDatabase mdb) throws AuraException, RemoteException {
@@ -112,6 +129,16 @@ public class MDBHelper {
                     sartist.getScore(),
                     mdb.artistGetNormalizedPopularity(sartist.getItem()),
                     sartist.getItem().getName()));
+        }
+    }
+
+    void dumpArtistTags(MusicDatabase mdb, WorkbenchResult result, List<Scored<ArtistTag>> sartistTags) throws AuraException, RemoteException {
+        result.output(String.format("%5s %5s %s", "Score", "Pop", "Name"));
+        for (Scored<ArtistTag> sartistTag : sartistTags) {
+            result.output(String.format("%5.3f %5.3f %s",
+                    sartistTag.getScore(),
+                    mdb.artistTagGetNormalizedPopularity(sartistTag.getItem()),
+                    sartistTag.getItem().getName()));
         }
     }
 }
