@@ -20,9 +20,22 @@
         <property name="dataStore" value="dataStore"/>
     </component>
 
+    <component name="rfs" type="com.sun.labs.aura.grid.util.RunFindSimilars">
+        <property name="onGrid" value="false"/>
+        <property name="instance" value="${auraInstance}"/>
+        <property name="dataStore" value="dataStore"/>
+    </component>
+
     <component name="start-qds" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>qds</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="start-rfs" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>rfs</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
