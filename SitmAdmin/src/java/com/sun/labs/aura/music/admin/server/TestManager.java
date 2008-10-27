@@ -4,9 +4,13 @@
  */
 package com.sun.labs.aura.music.admin.server;
 
+import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.Attention.Type;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.Listener;
@@ -21,6 +25,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -53,6 +58,13 @@ public class TestManager {
         addTest(true, new ArtistSelfSimilarity());
         addTest(true, new ArtistTagSelfSimilarity());
         addTest(true, new ArtistTagSimilarityScore());
+        addTest(true, new AttentionCount(Type.RATING));
+        addTest(true, new AttentionCount(Type.VIEWED));
+        addTest(true, new AttentionCount(Type.LOVED));
+        addTest(true, new AttentionCount(Type.DISLIKED));
+        addTest(true, new RandomAttention(100));
+        addTest(true, new AttentionResolved(100));
+        addTest(true, new AttentionFullTest(100));
 
         addTest(false, new ArtistScoreTest(1000));
         addTest(false, new ArtistSearchTest(1000));
@@ -71,8 +83,13 @@ public class TestManager {
         addTest(false, new ItemCountConsistencyTest(ItemType.TRACK));
         addTest(false, new ItemCountConsistencyTest(ItemType.USER));
         addTest(false, new ItemCountConsistencyTest(ItemType.VENUE));
+        addTest(false, new RandomAttention(1000));
+        addTest(false, new AttentionResolved(1000));
+        addTest(false, new AttentionFullTest(1000));
+
 
         if (false) { // these take too long
+            addTest(false, new AttentionCount(Type.PLAYED));
             addTest(false, new ItemCountConsistencyTest(ItemType.ALBUM));
             addTest(false, new ItemCountConsistencyTest(ItemType.PHOTO));
             addTest(false, new ItemCountConsistencyTest(ItemType.VIDEO));
@@ -629,7 +646,7 @@ class ArtistTagSimilarityScore extends Test {
     }
 
     ArtistTagSimilarityScore(int tries) {
-        super("Artist Tag Similarity Score" + tries);
+        super("Artist Tag Similarity Score " + tries);
         maxTries = tries;
     }
 
@@ -640,7 +657,7 @@ class ArtistTagSimilarityScore extends Test {
             ts.setMostRecentQuery("artistTagFindSimilar " + artistTag.getKey());
             List<Scored<ArtistTag>> artistTags = mdb.artistTagFindSimilar(artistTag.getKey(), 20);
 
-            if (artistTags.size() == 0) {
+            if (artistTags.size() == 0 && artistTag.getTaggedArtist().size() > 0) {
                 ts.fail("Can't get similar artistTags for " + artistTag.getName());
                 return;
             } else {
@@ -654,3 +671,112 @@ class ArtistTagSimilarityScore extends Test {
         }
     }
 }
+
+class AttentionCount extends Test {
+
+    private Type type;
+
+    AttentionCount(Type type) {
+        super("Attention Count " + type.name());
+        this.type = type;
+    }
+
+    @Override
+    protected void go(MusicDatabase mdb, TestStatus ts) throws AuraException, RemoteException {
+        AttentionConfig ac = new AttentionConfig();
+        ac.setType(type);
+        long count = mdb.getDataStore().getAttentionCount(ac);
+        long actualCount = 0;
+
+        DBIterator<Attention> iter = mdb.getDataStore().getAttentionIterator(ac);
+
+        try {
+            while (iter.hasNext()) {
+                Attention attn = iter.next();
+                if (attn.getType() != type) {
+                    ts.fail("Unexpected type retrieved found: " + attn.getType() + " expected " + type);
+                    return;
+                }
+                actualCount++;
+            }
+        } finally {
+            iter.close();
+        }
+        if (actualCount != count) {
+            ts.fail("mismatch in attention, found " + actualCount + " expected " + count);
+        }
+    }
+}
+
+class RandomAttention extends Test {
+
+    private int tries;
+
+    RandomAttention(int count) {
+        super("Random Attention " + count);
+        this.tries = count;
+    }
+
+    @Override
+    protected void go(MusicDatabase mdb, TestStatus ts) throws AuraException, RemoteException {
+        int found = 0;
+
+        for (int i = 0; i < tries; i++) {
+            Listener src = selectRandomListener(mdb);
+            Artist tgt = selectRandomArtist(mdb);
+            AttentionConfig ac = new AttentionConfig();
+            ac.setSourceKey(src.getKey());
+            ac.setTargetKey(tgt.getKey());
+            List<Attention> attns = mdb.getDataStore().getAttention(ac);
+            for (Attention attn : attns) {
+                found++;
+                if (!attn.getSourceKey().equals(src.getKey())) {
+                    ts.fail("source mismatch expected " + src.getKey() + " found " + attn.getSourceKey());
+                    return;
+                }
+                if (!attn.getTargetKey().equals(tgt.getKey())) {
+                    ts.fail("target mismatch expected " + tgt.getKey() + " found " + attn.getTargetKey());
+                    return;
+                }
+                found++;
+            }
+        }
+    }
+}
+
+class AttentionResolved extends Test {
+
+    private int tries;
+    private int depth = 30;
+
+    AttentionResolved(int count) {
+        super("Attention Resolved " + count);
+        this.tries = count;
+    }
+
+    @Override
+    protected void go(MusicDatabase mdb, TestStatus ts) throws AuraException, RemoteException {
+        int found = 0;
+
+        for (int i = 0; i < tries; i++) {
+            Listener src = selectRandomListener(mdb);
+            AttentionConfig ac = new AttentionConfig();
+            ac.setSourceKey(src.getKey());
+            List<Attention> attns = mdb.getDataStore().getLastAttention(ac, depth);
+            for (Attention attn : attns) {
+                found++;
+                if (!attn.getSourceKey().equals(src.getKey())) {
+                    ts.fail("source mismatch expected " + src.getKey() + " found " + attn.getSourceKey());
+                    return;
+                }
+                // see if the target item is really an item
+                Item item = mdb.getDataStore().getItem(attn.getTargetKey());
+                if (item == null) {
+                    ts.fail("Can't find target " + attn.getTargetKey() + " for attn " + attn);
+                    return;
+                }
+            }
+        }
+    }
+}
+

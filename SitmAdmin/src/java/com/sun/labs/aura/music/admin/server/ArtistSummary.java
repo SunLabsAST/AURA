@@ -40,11 +40,11 @@ public class ArtistSummary extends Worker {
 
             if (full) {
                 if (row++ % 20 == 0) {
-                    result.output(String.format("%5s %3s %5s %4s %4s %4s %4s %4s %4s %4s %4s %4s %4s %4s %s",
-                            "#", "age", "pop", "pull", "albm", "audi", "atag", "bio", "btag", "blrb", "img", "stag", "url", "vid", "name"));
+                    result.output(String.format("%5s %3s %5s %4s %4s %4s %4s %4s %4s %4s %4s %4s %4s %4s %4s %4s %s",
+                            "#", "age", "pop", "pull", "albm", "audi", "atag", "bio", "btag", "strt", "end", "blrb", "img", "stag", "url", "vid", "name"));
                 }
 
-                result.output(String.format("%5d %3d %5.3f %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %s",
+                result.output(String.format("%5d %3d %5.3f %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %s",
                         row,
                         ageInDays,
                         pop,
@@ -54,6 +54,8 @@ public class ArtistSummary extends Worker {
                         artist.getAutoTags().size(),
                         artist.getBioSummary().length(),
                         artist.getBioTags().size(),
+                        artist.getBeginYear(),
+                        artist.getEndYear(),
                         artist.getBlurbTags().size(),
                         artist.getPhotos().size(),
                         artist.getSocialTags().size(),

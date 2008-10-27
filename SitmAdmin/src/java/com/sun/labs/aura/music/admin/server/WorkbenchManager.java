@@ -39,6 +39,7 @@ public class WorkbenchManager {
         addWorker(new ListenerSummary());
         addWorker(new MissingPhotoWorker());
         addWorker(new OrphanCleanup());
+        addWorker(new RemoveUser());
         addWorker(new ShowItem());
         addWorker(new ShowRecentAttention());
     }

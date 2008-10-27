@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.music.admin.server;
 
+import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.ArtistTag;
@@ -13,6 +14,8 @@ import com.sun.labs.aura.music.admin.client.WorkbenchResult;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.rmi.RemoteException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -51,6 +54,30 @@ public class MDBHelper {
     Listener selectRandomListener(MusicDatabase mdb) throws AuraException, RemoteException {
         return mdb.getListener(selectRandomListenerKey(mdb));
     }
+    
+
+    void sleep(long ms) {
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException ie) {
+        }
+    }
+    
+    void sortByTimeAdded(List<Attention> attns) {
+        Collections.sort(attns, new Comparator<Attention>() {
+
+            public int compare(Attention o1, Attention o2) {
+                if (o1.getTimeStamp() > o2.getTimeStamp()) {
+                    return 1;
+                } else if (o1.getTimeStamp() < o2.getTimeStamp()) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
+        });
+    }
+
 
     Artist lookupByNameOrKey(MusicDatabase mdb, String nameOrKey) throws AuraException, RemoteException {
         if (isKey(nameOrKey)) {
