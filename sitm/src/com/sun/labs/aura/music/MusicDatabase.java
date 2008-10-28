@@ -48,7 +48,6 @@ public class MusicDatabase {
 
         ReadOnly, AddAttention, AddItem
     };
-
     private List<SimType> simTypes;
     private Map<String, RecommendationType> recTypeMap;
     private Random rng = new Random();
@@ -163,11 +162,9 @@ public class MusicDatabase {
      * @throws java.rmi.RemoteException
      */
     public void addPlayAttention(String listenerID, String artistID, int playCount) throws AuraException, RemoteException {
-        for (int i = 0; i < playCount; i++) {
-            Attention attention = StoreFactory.newAttention(listenerID, artistID,
-                    Attention.Type.PLAYED, Long.valueOf(playCount));
-            getDataStore().attend(attention);
-        }
+        Attention attention = StoreFactory.newAttention(listenerID, artistID,
+                Attention.Type.PLAYED, Long.valueOf(playCount));
+        getDataStore().attend(attention);
     }
 
     /**
@@ -470,7 +467,6 @@ public class MusicDatabase {
         return sm.getAll();
     }
 
-
     /**
      * Gets all of the item keys for items of a particular type
      * @param type the type of interest
@@ -673,8 +669,6 @@ public class MusicDatabase {
         List<Scored<Item>> scoredItems = query(squery, returnCount);
         return convertToScoredArtistList(scoredItems);
     }
-
-
 
     private String normalizeTextForQuery(String text) {
         return text.replaceAll("\"", "?");
@@ -1037,6 +1031,10 @@ public class MusicDatabase {
         return artistGetDistinctiveTags(id, Artist.FIELD_SOCIAL_TAGS, count);
     }
 
+    public List<Scored<ArtistTag>> listenerGetDistinctiveTags(String id, int count) throws AuraException {
+        return listenerGetDistinctiveTags(id, Listener.FIELD_SOCIAL_TAGS, count);
+    }
+
     public WordCloud artistGetDistinctiveTagNames(
             String id, int count) throws AuraException {
         try {
@@ -1065,6 +1063,10 @@ public class MusicDatabase {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
 
+    }
+
+    private List<Scored<ArtistTag>> listenerGetDistinctiveTags(String id, String field, int count) throws AuraException {
+        return artistGetDistinctiveTags(id, field, count);
     }
 
     public Album albumLookup(
