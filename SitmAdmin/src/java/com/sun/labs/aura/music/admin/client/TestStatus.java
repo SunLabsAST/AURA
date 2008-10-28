@@ -15,6 +15,8 @@ public class TestStatus implements IsSerializable {
     private boolean passed = true;
     private long time;
     private String failReason = "";
+    private String stackTrace = null;
+    private String mostRecentQuery;
 
     public TestStatus() {
     }
@@ -49,8 +51,28 @@ public class TestStatus implements IsSerializable {
         this.time = time;
     }
 
+    public String getStackTrace() {
+        return stackTrace;
+    }
+
+    public void setStackTrace(String stackTrace) {
+        this.stackTrace = stackTrace;
+    }
+
+    
+
     public void fail(String failReason) {
         this.passed = false;
         this.failReason = failReason;
     }
+
+    public String getMostRecentQuery() {
+        return mostRecentQuery;
+    }
+
+    public void setMostRecentQuery(String mostRecentQuery) {
+        this.mostRecentQuery = mostRecentQuery;
+    }
+
+    
 }

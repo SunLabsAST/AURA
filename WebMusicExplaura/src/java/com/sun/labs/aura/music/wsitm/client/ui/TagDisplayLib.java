@@ -8,17 +8,15 @@ package com.sun.labs.aura.music.wsitm.client.ui;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.CommonTagsAsyncCallback;
-import com.extjs.gxt.ui.client.util.Params;
-import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import java.util.HashMap;
@@ -89,10 +87,12 @@ public abstract class TagDisplayLib {
     }
         
     public static void showTagCloud(String title, ItemInfo[] tags, ORDER order, ClientDataManager cdm) {
-        final DialogBox d = Popup.getDialogBox();
+        //final DialogBox d = Popup.getDialogBox();
+        final PopupPanel d = Popup.getPopupPanel();
         Panel p = getTagsInPanel(tags, d, order, cdm);
         if (p!=null) {
-            Popup.showPopup(p,title,d);
+        //    Popup.showPopup(p,title,d);
+            Popup.showRoundedPopup(p, title, d);
         }
     }
 
@@ -115,7 +115,7 @@ public abstract class TagDisplayLib {
      * @param d
      * @return
      */
-    public static Panel getTagsInPanel(ItemInfo[] tags, DialogBox d, ORDER order, ClientDataManager cdm) {
+    public static Panel getTagsInPanel(ItemInfo[] tags, PopupPanel d, ORDER order, ClientDataManager cdm) {
         Panel p = new FlowPanel();
         if (d != null) {
             p.setWidth("600px");
@@ -156,7 +156,7 @@ public abstract class TagDisplayLib {
                 }
 
                 ContextMenuTagLabel sL = new ContextMenuTagLabel(tags[i], cdm);
-                //sL.getElement().setAttribute("style", "font-size:" + fontSize + "px; color:" + getColor(colorId, tags[i].getScore()) +";");
+                //sL.getElement().getStyle().setPropertyPx("font-size", fontSize);
                 sL.getElement().setAttribute("style", "font-size:" + fontSize + "px;");
                 setColorToElem(sL, colorId, tags[i].getScore());
                 sL.addStyleName("pointer");
@@ -171,7 +171,7 @@ public abstract class TagDisplayLib {
                     }
                 });
                 if (d!=null) {
-                    sL.addClickListener(new DataEmbededClickListener<DialogBox>(d) {
+                    sL.addClickListener(new DataEmbededClickListener<PopupPanel>(d) {
 
                         public void onClick(Widget arg0) {
                             data.hide();

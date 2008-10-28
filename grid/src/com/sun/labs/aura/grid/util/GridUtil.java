@@ -208,10 +208,8 @@ public class GridUtil {
             if(reg == null) {
                 throw new NullPointerException("Failed to retreive existing registration: " +
                         name);
-            } else if(reg.getRunState() != RunState.NONE) {
-                throw new IllegalStateException("Process " + processName +
-                        " exists and is running");
             }
+            
             //
             // Make sure this registration is using the config passed in.
             reg.changeConfiguration(config);
@@ -225,6 +223,12 @@ public class GridUtil {
 
     public void startRegistration(final ProcessRegistration reg, boolean wait)
             throws Exception {
+
+        if(reg.getRunState() == RunState.RUNNING) {
+            log.fine(String.format("Registration %s is already running", reg.getName()));
+            return;
+        }
+        
         Thread starter = new Thread() {
 
             public void run() {

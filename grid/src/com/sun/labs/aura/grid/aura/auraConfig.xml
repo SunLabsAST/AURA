@@ -29,7 +29,14 @@
         <property name="instance" value="${auraInstance}"/>
         <property name="destroy" value="true"/>
     </component>
-    
+
+    <component name="stopAuraAndDestroyAll" type="com.sun.labs.aura.grid.aura.StopAura">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="stopReggie" value="true"/>
+        <property name="destroy" value="true"/>
+
+    </component>
+
     <component name="create" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>createAura</item>
@@ -54,6 +61,13 @@
     <component name="stopd" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>stopAuraAndDestroy</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="stopad" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>stopAuraAndDestroyAll</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>

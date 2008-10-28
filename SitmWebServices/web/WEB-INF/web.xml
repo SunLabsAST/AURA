@@ -251,4 +251,31 @@
             30
         </session-timeout>
     </session-config>
+    <security-constraint>
+        <display-name>Access to API</display-name>
+        <web-resource-collection>
+            <web-resource-name>Music API</web-resource-name>
+            <description/>
+            <url-pattern>/*</url-pattern>
+            <http-method>GET</http-method>
+            <http-method>POST</http-method>
+            <http-method>HEAD</http-method>
+            <http-method>PUT</http-method>
+            <http-method>OPTIONS</http-method>
+            <http-method>TRACE</http-method>
+            <http-method>DELETE</http-method>
+        </web-resource-collection>
+        <auth-constraint>
+            <description>Limit access to the api to members of the api role</description>
+            <role-name>api</role-name>
+            </auth-constraint>
+        </security-constraint>
+    <login-config>
+        <auth-method>BASIC</auth-method>
+        <realm-name>TasteKeeper.com Music API</realm-name>
+        </login-config>
+    <security-role>
+        <description>Provides access to the web services API for TasteKeeper</description>
+        <role-name>api</role-name>
+    </security-role>
     </web-app>

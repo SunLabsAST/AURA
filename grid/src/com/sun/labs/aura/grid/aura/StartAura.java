@@ -34,7 +34,7 @@ public class StartAura extends Aura {
      */
     public void createAuraProcesses() throws Exception {
         //
-        // Get a reggie started up first thing
+        // Get a reggie started up first thing, if one isn't already running.
         ProcessRegistration regReg = gu.createProcess(getReggieName(),
                 getReggieConfig());
         gu.startRegistration(regReg);

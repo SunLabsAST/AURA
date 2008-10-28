@@ -365,3 +365,15 @@ html>body .gwt-DecoratedTabBar .gwt-TabBarItem-selected .tabTopRight {
 .workerTreeItem {
     cursor: pointer;
 }
+
+.traceButton {
+  font-size: small;
+}
+
+.tracePopup {
+  background-color: #eee;
+  font-size: small;
+  border: 1px solid #6cb0e4;
+  padding: 5px;
+  font-family:  "Courier New" Courier monospace;
+}

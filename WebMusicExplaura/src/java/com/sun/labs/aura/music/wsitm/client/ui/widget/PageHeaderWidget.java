@@ -10,8 +10,6 @@ import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.Swidget;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
-import com.extjs.gxt.ui.client.util.Params;
-import com.extjs.gxt.ui.client.widget.Info;
 import com.extjs.gxt.ui.client.widget.toolbar.TextToolItem;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.Cookies;
@@ -36,6 +34,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -198,7 +197,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
             public void onSuccess(Object result) {
                 // do some UI stuff to show success
-                Info.display("Information", "You are now logged out. Have a nice and productive day.", new Params());
+                Popup.showInformationPopup("You are now logged out. Have a nice and productive day.");
                 populateLoginBox();
             }
 
@@ -279,7 +278,6 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
                 hP.add(instantRecPlayWidget);
             }
 
-
             mainPanel.setWidget(0, 0, hP);
         } else {
             populateLoginBox();
@@ -288,7 +286,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
     private Widget getInstantRecPlayWidget() {
         ArtistCompact[] aC = cdm.getListenerDetails().getRecommendations();
-        if (aC.length > 0) {
+        if (aC != null && aC.length > 0) {
             int itemIndex = Random.nextInt(aC.length);
             int iterations = 0;
             while (iterations++ < 2 * aC.length) {
@@ -349,9 +347,13 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
-
-                ListenerDetails l = (ListenerDetails) result;
-                updatePanelAfterLogin(l);
+                if (result == null) {
+                    Window.alert("Error fetching listener information");
+                    populateLoginBox();
+                } else {
+                    ListenerDetails l = (ListenerDetails) result;
+                    updatePanelAfterLogin(l);
+                }
             }
 
             public void onFailure(Throwable caught) {

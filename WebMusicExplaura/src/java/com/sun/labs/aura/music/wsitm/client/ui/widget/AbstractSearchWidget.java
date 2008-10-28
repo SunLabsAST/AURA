@@ -6,8 +6,6 @@
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
 import com.sun.labs.aura.music.wsitm.client.*;
-import com.extjs.gxt.ui.client.util.Params;
-import com.extjs.gxt.ui.client.widget.Info;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;

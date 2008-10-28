@@ -5,11 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.server;
 
-import com.google.gwt.user.client.Cookies;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.RemoteService;
-
-import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.VerificationResult;
@@ -28,10 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.text.MessageFormat;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.Cookie;
 import org.openid4java.message.AuthSuccess;

@@ -56,7 +56,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWi
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import org.adamtacy.client.ui.EffectPanel;
 import org.adamtacy.client.ui.effects.impl.Fade;
@@ -267,11 +266,11 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         } else if (resultName.startsWith("artistSearch:")) {
             search.updateSuggestBox(Oracles.ARTIST);
             String query = resultName.replaceAll("artistSearch:", "");
-            invokeArtistSearchService(query, false, 0);
+            invokeArtistSearchService(query, searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST, 0);
         } else if (resultName.startsWith("artistSearchByTag:")) {
             search.updateSuggestBox(Oracles.TAG);
             String query = resultName.replaceAll("artistSearchByTag:", "");
-            invokeArtistSearchService(query, true, 0);
+            invokeArtistSearchService(query, searchTypes.SEARCH_FOR_ARTIST_BY_TAG, 0);
         } else if (resultName.startsWith("tagSearch:")) {
             search.updateSuggestBox(Oracles.TAG);
             String query = resultName.replaceAll("tagSearch:", "");
@@ -336,7 +335,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         }
     }
 
-    private void invokeArtistSearchService(String searchText, boolean byTag, int page) {
+    private void invokeArtistSearchService(String searchText, searchTypes sT, int page) {
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
@@ -359,7 +358,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                     }
                 } else {
                     if (sr == null) {
-                        showError("Error. Resultset is null. (256)");
+                        showError("Error. Can't find tag specified.");
                         clearResults();
                     } else {
                         showError("Very Whooops " + sr.getStatus());
@@ -375,10 +374,12 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
         showMessage("Searching for " + searchText,WebLib.ICON_WAIT);
         try {
-            if (byTag) {
+            if (sT == searchTypes.SEARCH_FOR_ARTIST_BY_TAG) {
                 musicServer.artistSearchByTag(searchText, 100, callback);
-            } else {
+            } else if (sT == searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST) {
                 musicServer.artistSearch(searchText, 100, callback);
+            } else {
+                Popup.showInformationPopup("Error. Invalid search type.");
             }
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
@@ -810,9 +811,10 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         String url = video.getUrl();
         String autostring = autoplay ? "&autoplay=1" : "";
         url = url.replaceAll("\\?v=", "/v/");
-        String title = "<span style=\"text-align:center\">" + video.getTitle() + "</span><br/>";
+        //String title = "<span style=\"text-align:center\">" + video.getTitle() + "</span><br/>";
         String obj = "<object width=\"425\" height=\"350\"><param name=\"movie\" value=\"" + url + "\"></param><param name=\"wmode\" value=\"transparent\"></param>" + "<embed src=\"" + url + autostring + "\" type=\"application/x-shockwave-flash\"" + " wmode=\"transparent\" width=\"425\" height=\"350\"></embed></object>";
-        return title + obj;
+        //return title + obj;
+        return obj;
     }
 
     private VerticalPanel getItemInfoList(final String title, final ItemInfo[] itemInfo, 
@@ -1215,17 +1217,20 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         private ArtistPhoto[] aP;
 
 
-        public ImageScrollWidget(ArtistPhoto[] aP) {
-            this.aP=aP;
+        public ImageScrollWidget(ArtistPhoto[] aPArray) {
+            this.aP = aPArray;
+            ArrayList<ScrollItem> sIList = new ArrayList<ScrollItem>();
+            int i = 0;
+            for (ArtistPhoto a : aPArray) {
+                if (a != null) {
+                    sIList.add(new ScrollItem(a.getTitle(),
+                        a.getSmallImageUrl(), i++));
+                }
+            }
+            items = sIList.toArray(new ScrollItem[0]);
 
             maxImgHeight = 130;
             maxImgWidth = 130;
-
-            items = new ScrollItem[aP.length];
-            for (int i=0; i<aP.length; i++) {
-                items[i] = new ScrollItem(aP[i].getTitle(),
-                        aP[i].getSmallImageUrl(), i);
-            }
 
             initWidget(init());
         }
@@ -1237,7 +1242,9 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         @Override
         protected void triggerAction(int index) {
             HTML html = new HTML(aP[index].getRichHtmlWrapper());
-            Popup.showPopup(html,"WebMusicExplaura :: Flickr Photo");
+            //Popup.showPopup(html,"WebMusicExplaura :: Flickr Photo");
+            //Popup.showRoundedPopup(html, "WebMusicExplaura :: Flickr Photo");
+            Popup.showRoundedPopup(html, aP[index].getTitle());
         }
 
     }
@@ -1246,13 +1253,17 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
         private ArtistVideo[] aV;
 
-        public VideoScrollWidget(ArtistVideo[] aV) {
-            this.aV=aV;
-            items = new ScrollItem[aV.length];
-            for (int i=0; i<aV.length; i++) {
-                items[i] = new ScrollItem(aV[i].getTitle(),
-                        aV[i].getThumbnail(), i);
+        public VideoScrollWidget(ArtistVideo[] aVArray) {
+            this.aV = aVArray;
+            ArrayList<ScrollItem> sIList = new ArrayList<ScrollItem>();
+            int i = 0;
+            for (ArtistVideo a : aVArray) {
+                if (a != null) {
+                    sIList.add(new ScrollItem(a.getTitle(),
+                        a.getThumbnail(), i++));
+                }
             }
+            items = sIList.toArray(new ScrollItem[0]);
 
             maxImgHeight = 97;
             maxImgWidth = 130;
@@ -1266,7 +1277,9 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
         protected void triggerAction(int index) {
             HTML html = new HTML(getEmbeddedVideo(aV[index], true));
-            Popup.showPopup(html,"WebMusicExplaura :: YouTube Video");
+            //Popup.showPopup(html,"WebMusicExplaura :: YouTube Video");
+            //Popup.showRoundedPopup(html, "WebMusicExplaura :: YouTube Video");
+            Popup.showRoundedPopup(html, aV[index].getTitle());
         }
 
     }
@@ -1275,18 +1288,21 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
         private AlbumDetails[] aD;
 
-        public AlbumScrollWidget(AlbumDetails[] aD) {
-            this.aD=aD;
-
+        public AlbumScrollWidget(AlbumDetails[] aDArray) {
+            this.aD = aDArray;
+            ArrayList<ScrollItem> sIList = new ArrayList<ScrollItem>();
+            int i = 0;
+            for (AlbumDetails a : aDArray) {
+                if (a != null) {
+                    sIList.add(new ScrollItem(a.getTitle(),
+                        a.getAlbumArt(), i++));
+                }
+            }
+            items = sIList.toArray(new ScrollItem[0]);
+            
             maxImgHeight = 130;
             maxImgWidth = 130;
-
-            items = new ScrollItem[aD.length];
-            for (int i=0; i<aD.length; i++) {
-                items[i] = new ScrollItem(aD[i].getTitle(),
-                        aD[i].getAlbumArt(), i);
-            }
-
+            
             initWidget(init());
         }
 
@@ -1371,10 +1387,11 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                 Window.alert("Error. Cannot search without the similarity types.");
             } else {
                 String query = textBox.getText().toLowerCase();
-                if (getSearchType() == searchTypes.SEARCH_FOR_TAG_BY_TAG) {
+                searchTypes currST = getSearchType();
+                if (currST == searchTypes.SEARCH_FOR_TAG_BY_TAG) {
                     invokeTagSearchService(query, 0);
                 } else {
-                    invokeArtistSearchService(query, getSearchType() == searchTypes.SEARCH_FOR_ARTIST_BY_TAG, 0);
+                    invokeArtistSearchService(query, currST, 0);
                 }
             }
         }
