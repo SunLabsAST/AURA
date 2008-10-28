@@ -59,7 +59,18 @@ public interface PartitionCluster extends ItemStore, LowLevelSearch, Component, 
      */
     public void split() throws AuraException, RemoteException;
     
-
+    /**
+     * Resumes a split operation in the event of a failure.  This method should
+     * be called on the parent in the split -- that is, it should be called
+     * on the partition that is part of the active data store tree.  The
+     * partition that is passed in should be the child, not registered in
+     * the tree.
+     * 
+     * @param remote the partition being split into
+     * @throws AuraException if an error occurs
+     */
+    public void resumeSplit(PartitionCluster remote) throws AuraException, RemoteException;
+    
     /**
      * Delete the attention that is related to the given item either as a 
      * source or a target.

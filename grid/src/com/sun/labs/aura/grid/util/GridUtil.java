@@ -84,6 +84,22 @@ public class GridUtil {
     }
 
     /**
+     * Look up an existing registration by name
+     * 
+     * @param regName the name to find
+     * @return the process registration or null if there is no
+     *         registration with the given name
+     */
+    public ProcessRegistration lookupProcessRegistration(String regName) {
+        String processName = String.format("%s-%s", instance, regName);
+        try {
+            return grid.getProcessRegistration(processName);
+        } catch (RemoteException e) {
+            return null;
+        }
+    }
+    
+    /**
      * Gets a basic process configuration 
      * @param cwd the working directory for the configuration
      * @param logName the name to log to.
