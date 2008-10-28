@@ -127,14 +127,6 @@
         <dav:mkcol url="${dav.url}/${dist.col}" userid="${user}" password="${pw}"/>
         <dav:mkcol url="${dav.url}/${jini.col}" userid="${user}" password="${pw}"/>
     </target>
-    <target name="upload-grid" description="Uploads grid jar file">
-        <dav:put url="${dav.url}/${dist.col}" userid="${user}" password="${pw}" lock="false">            
-            <!-- Distribution jar -->
-            <fileset dir="../dist">
-                <include name="grid.jar"/>
-            </fileset>
-        </dav:put>
-    </target>
     
     <!--<taskdef name="growl" classname="net.slimeslurp.growl.GrowlEcho"/>    -->
     <!-- builds the distribution jar, then uploads the results.-->
