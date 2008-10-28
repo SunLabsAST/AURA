@@ -1,11 +1,15 @@
 package com.sun.labs.aura.grid.aura;
 
+import com.sun.caroline.platform.BaseFileSystem;
+import com.sun.caroline.platform.BaseFileSystemConfiguration;
+import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.RunState;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.util.Map;
 import java.util.logging.Level;
 
 /**
@@ -51,7 +55,9 @@ public class StartAura extends Aura {
         ProcessRegistration pmReg = gu.createProcess(getProcessManagerName(),
                 getProcessManagerConfig());
         gu.startRegistration(pmReg);
-        pmReg.waitForStateChange(100000);
+        while(pmReg.getRunState() != RunState.RUNNING) {
+            pmReg.waitForStateChange(100000);
+        }
         Thread.sleep(1000);
         
         //
@@ -83,6 +89,44 @@ public class StartAura extends Aura {
         //
         // Start the replicants for each prefix
         for(String prefix : repFSMap.keySet()) {
+            ProcessRegistration repReg = gu.createProcess( getReplicantName(
+                    prefix), getReplicantConfig(replicantConfig,
+                    prefix));
+            gu.startRegistration(repReg, false);
+            lastReg = repReg;
+        }
+
+        while(lastReg.getRunState() != RunState.RUNNING) {
+            lastReg.waitForStateChange(1000000L);
+        }
+
+        //
+        // Start the partition clusters for prefixes that were in a splitting
+        // state.
+        for(String prefix : ownedFSMap.keySet()) {
+            ProcessConfiguration pc = null;
+            //
+            // Determine the owner of this partition in order to re-pair
+            // for splitting
+            BaseFileSystem fs = (BaseFileSystem)ownedFSMap.get(prefix);
+            BaseFileSystemConfiguration conf = fs.getConfiguration();
+            Map<String,String> md = conf.getMetadata();
+            String owner = md.get("owner");
+            
+            ProcessRegistration pcReg = gu.createProcess( getPartitionName(
+                    prefix),
+                    getPartitionClusterConfig(prefix, false, owner));
+            gu.startRegistration(pcReg, false);
+            lastReg = pcReg;
+        }
+        
+        while(lastReg.getRunState() != RunState.RUNNING) {
+            lastReg.waitForStateChange(1000000L);
+        }
+
+        //
+        // Start the replicants for each prefix in the owned map
+        for(String prefix : ownedFSMap.keySet()) {
             ProcessRegistration repReg = gu.createProcess( getReplicantName(
                     prefix), getReplicantConfig(replicantConfig,
                     prefix));

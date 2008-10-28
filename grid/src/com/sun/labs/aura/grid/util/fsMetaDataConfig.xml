@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<config>
+    
+    <component name="metaData" type="com.sun.labs.aura.grid.util.FSMetaData">
+    </component>
+    
+    <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>metaData</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+</config>
