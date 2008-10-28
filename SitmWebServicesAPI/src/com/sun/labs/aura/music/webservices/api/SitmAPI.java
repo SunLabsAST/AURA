@@ -20,7 +20,7 @@ public class SitmAPI {
     private Commander commander;
 
     public SitmAPI(String host) throws IOException {
-        commander = new Commander("sitm", host + "api/1.0/", "");
+        commander = new Commander("sitm", host, "");
         //commander.setTraceSends(true);
         //commander.setTrace(true);
     }
