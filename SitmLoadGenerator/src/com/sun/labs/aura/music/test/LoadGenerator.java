@@ -27,7 +27,7 @@ public class LoadGenerator {
         int users = 1000;
         int threads = 100;
         int time = 60;
-        String host = "http://www.tastekeeper.com/";
+        String host = "http://www.tastekeeper.com/api/";
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-users")) {
                 if (i < args.length - 1) {
