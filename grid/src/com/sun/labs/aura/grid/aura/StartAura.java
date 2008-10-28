@@ -55,7 +55,9 @@ public class StartAura extends Aura {
         ProcessRegistration pmReg = gu.createProcess(getProcessManagerName(),
                 getProcessManagerConfig());
         gu.startRegistration(pmReg);
-        pmReg.waitForStateChange(100000);
+        while(pmReg.getRunState() != RunState.RUNNING) {
+            pmReg.waitForStateChange(100000);
+        }
         Thread.sleep(1000);
         
         //

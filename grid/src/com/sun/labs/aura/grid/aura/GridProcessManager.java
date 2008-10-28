@@ -97,6 +97,7 @@ public class GridProcessManager extends Aura implements ProcessManager {
             //
             // Make sure there's a filesystem for this replicant!
             createReplicantFileSystem(prefixString, owner.toString());
+            logger.log(Level.INFO, "Made FS, starting replicant");
             ProcessConfiguration repConfig = getReplicantConfig(replicantConfig,
                     prefixString);
             ProcessRegistration repReg = gu.createProcess(getReplicantName(
@@ -105,6 +106,7 @@ public class GridProcessManager extends Aura implements ProcessManager {
             while(repReg.getRunState() != RunState.RUNNING) {
                 repReg.waitForStateChange(1000000L);
             }
+            logger.log(Level.INFO, "done starting replicant");
             
             Thread.sleep(5000);
             //
@@ -115,10 +117,13 @@ public class GridProcessManager extends Aura implements ProcessManager {
                     return (Replicant) c;
                 }
             }
+            logger.log(Level.INFO, "failed to find replicant");
             return null;
         } catch(Exception ex) {
             throw new AuraException("Error getting partition cluster for prefix " +
                     prefix, ex);
+        } finally {
+            logger.info("Exit createReplicant");
         }
     }
     
@@ -163,7 +168,7 @@ public class GridProcessManager extends Aura implements ProcessManager {
         
         //
         // Belt-and-suspenders: make sure that the child has the right prefix too and remove the owner
-        fs = (BaseFileSystem) repFSMap.get(childPrefix2.toString());
+        fs = (BaseFileSystem) ownedFSMap.get(childPrefix2.toString());
         if(fs == null) {
             logger.warning("Unable to find file system for new child prefix " + childPrefix2 + " after split");
         }
@@ -196,6 +201,12 @@ public class GridProcessManager extends Aura implements ProcessManager {
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error setting process metadata for part " + childPrefix2.toString(), e);
         }
+        
+        //
+        // Move the FS from owned map to regular map
+        repFSMap.put(childPrefix2.toString(), fs);
+        ownedFSMap.remove(childPrefix2.toString());
+        
     }
 
     public void snapshot(DSBitSet prefix)

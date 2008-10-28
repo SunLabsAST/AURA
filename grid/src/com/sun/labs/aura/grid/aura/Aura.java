@@ -313,6 +313,7 @@ public abstract class Aura extends ServiceAdapter {
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
             "-Dprefix=" + prefix,
+            "-Downer=" + ((owner != null && !owner.isEmpty()) ? owner : "\"\""),
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/resource/partitionClusterConfig.xml",
@@ -374,9 +375,13 @@ public abstract class Aura extends ServiceAdapter {
             "replicantStarter"
         };
 
+        FileSystem fs = repFSMap.get(prefix);
+        if (fs == null) {
+            fs = ownedFSMap.get(prefix);
+        }
         List<FileSystemMountParameters> extraMounts =
                 Collections.singletonList(new FileSystemMountParameters(
-                repFSMap.get(prefix).getUUID(),
+                fs.getUUID(),
                 "data"));
         ProcessConfiguration pc = gu.getProcessConfig(
                 Replicant.class.getName(),

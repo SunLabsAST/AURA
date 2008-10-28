@@ -54,7 +54,6 @@
     <!-- The configuration for a partition cluster. -->
     <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true" entries="prefixEntries">
         <property name="prefix" value="${prefix}"/>
-        <property name="owner" value="${owner}"/>
         <propertylist name="dataStoreHeads">
             <type>com.sun.labs.aura.datastore.DataStore</type>
         </propertylist>
@@ -69,6 +68,7 @@
         </propertylist>
         <property name="processManager" value="processManager"/>
         <property name="register" value="false"/>
+        <property name="owner" value="${owner}"/>
     </component>
 
     <!-- A service starter for this cluster -->
