@@ -1031,6 +1031,10 @@ public class MusicDatabase {
         return artistGetDistinctiveTags(id, Artist.FIELD_SOCIAL_TAGS, count);
     }
 
+    public List<Scored<ArtistTag>> listenerGetDistinctiveTags(String id, int count) throws AuraException {
+        return listenerGetDistinctiveTags(id, Listener.FIELD_SOCIAL_TAGS, count);
+    }
+
     public WordCloud artistGetDistinctiveTagNames(
             String id, int count) throws AuraException {
         try {
@@ -1059,6 +1063,10 @@ public class MusicDatabase {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
 
+    }
+
+    private List<Scored<ArtistTag>> listenerGetDistinctiveTags(String id, String field, int count) throws AuraException {
+        return artistGetDistinctiveTags(id, field, count);
     }
 
     public Album albumLookup(
