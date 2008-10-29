@@ -46,6 +46,11 @@ public class Control {
     public Monitor getMonitor() {
         return monitor;
     }
+    
+    public void dump() {
+        getMonitor().dumpAllStats();
+        sitm.showTimeSummary();
+    }
 
     private void fetchArtistKeys() throws IOException {
         List<Item> artists = sitm.getArtists(5000);

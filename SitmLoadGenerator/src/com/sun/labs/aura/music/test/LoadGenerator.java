@@ -72,7 +72,7 @@ public class LoadGenerator {
         createUsers(users);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
-                control.getMonitor().dumpAllStats();
+                control.dump();
             }
         });
     }
