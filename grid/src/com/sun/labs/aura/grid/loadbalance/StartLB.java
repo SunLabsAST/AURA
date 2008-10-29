@@ -2,15 +2,17 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.sun.labs.aura.grid.loadbalance;
 
-import com.sun.caroline.platform.HttpVirtualServiceConfiguration;
+import com.sun.caroline.platform.L4VirtualServiceConfiguration;
 import com.sun.caroline.platform.Network;
 import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.NetworkSetting;
+import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.RealService;
+import com.sun.caroline.platform.Resource;
 import com.sun.caroline.platform.ResourceName;
+import com.sun.caroline.platform.RunState;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
@@ -31,30 +33,24 @@ public class StartLB extends ServiceAdapter {
     /**
      * The (partial) name of the services that we'll be load-balancing.
      */
-    @ConfigString(defaultValue="www")
+    @ConfigString(defaultValue = "www")
     public static final String PROP_SERVICE_NAME = "serviceName";
-
     private String serviceName;
-
     /**
      * The external host name to use.
      */
-    @ConfigString(defaultValue="")
+    @ConfigString(defaultValue = "")
     public static final String PROP_HOST_NAME = "hostName";
-
     private String hostName;
-
-    @ConfigString(defaultValue="http://www.tastekeeper.com/sorry")
+    @ConfigString(defaultValue = "http://www.tastekeeper.com/sorry")
     public static final String PROP_SORRY_PAGE = "sorryPage";
-
     private URI sorryPage;
 
     public String serviceName() {
         return "StartLB";
     }
-
     private Pattern servicePattern;
-    
+
     public void start() {
 
         //
@@ -63,32 +59,47 @@ public class StartLB extends ServiceAdapter {
         // servlet containers that were deployed.
         List<RealService> services = new ArrayList();
         Network network = gu.getNetwork();
-        logger.info("Pattern: " + servicePattern);
         for (NetworkAddress addr : network.findAllAddresses()) {
             String name = ResourceName.getCSName(addr.getName());
             if (servicePattern.matcher(name).matches()) {
-                services.add(new RealService(addr.getUUID(), 80));
+
+                //
+                // See if this network address is associated with a running
+                // process.
+                try {
+                    for (Resource ref : addr.getReferences()) {
+                        if (ref instanceof ProcessRegistration) {
+                            RunState state = ((ProcessRegistration) ref).getRunState();
+                            if (state == RunState.RUNNING ||
+                                    state == RunState.STARTING) {
+                                logger.info("Got service at " + addr.getName());
+                                services.add(new RealService(addr.getUUID(), 80));
+                            }
+                        }
+                    }
+                } catch (RemoteException rx) {
+                    logger.severe("Error checking network references" + rx);
+                }
             }
         }
 
         logger.info("Got " + services.size() + " services to load balance");
 
-        if(services.size() == 0) {
+        if (services.size() == 0) {
             return;
         }
 
         //
         // Now get the configuration.  We'll use the on-grid one if we can.
         NetworkSetting lbns = null;
-        HttpVirtualServiceConfiguration config = null;
+        L4VirtualServiceConfiguration config = null;
         String lbName = instance + "-lb";
 
 
         try {
             lbns = grid.getNetworkSetting(lbName);
-            if(lbns != null) {
-                config =
-                        (HttpVirtualServiceConfiguration) lbns.getConfiguration();
+            if (lbns != null) {
+                config = (L4VirtualServiceConfiguration) lbns.getConfiguration();
             }
         } catch (RemoteException rx) {
             logger.log(Level.SEVERE, "Errory getting network configuration", rx);
@@ -98,7 +109,7 @@ public class StartLB extends ServiceAdapter {
 
         //
         // There isn't one, so make one.
-        if(create) {
+        if (create) {
             NetworkAddress ext;
             try {
                 //
@@ -109,33 +120,16 @@ public class StartLB extends ServiceAdapter {
                         ex);
                 return;
             }
-            config = new HttpVirtualServiceConfiguration();
+            config = new L4VirtualServiceConfiguration();
             config.setExternalNetworkAddress(ext.getUUID());
         }
 
-        
+        //
+        // Set the services to be balanced.
+        config.setRealServices(services);
+
         //
         // Set up the load balancer to balance our servlet containers.
-        HttpVirtualServiceConfiguration.CookieInfo cookie =
-                new HttpVirtualServiceConfiguration.CookieInfo(
-                "auraLBCookie",
-                "tastekeeper.com", null);
-        HttpVirtualServiceConfiguration.ObjectRule.ComponentMatch rule =
-                new HttpVirtualServiceConfiguration.ObjectRule.ComponentMatch(
-                HttpVirtualServiceConfiguration.ObjectRule.URIComponent.URI,
-                "*");
-        HttpVirtualServiceConfiguration.SorrySetting sorry =
-                new HttpVirtualServiceConfiguration.SorrySetting(
-                HttpVirtualServiceConfiguration.SorrySetting.Action.REDIRECT,
-                sorryPage);
-        HttpVirtualServiceConfiguration.RequestPolicy policy =
-                new HttpVirtualServiceConfiguration.RequestPolicy(rule,
-                services, cookie, sorry);
-        List<HttpVirtualServiceConfiguration.RequestPolicy> policies =
-                new ArrayList();
-        policies.add(policy);
-        config.setRequestPolicies(policies);
-
         try {
             if (create) {
                 grid.createNetworkSetting(lbName, config);
@@ -159,7 +153,7 @@ public class StartLB extends ServiceAdapter {
         super.newProperties(ps);
         serviceName = ps.getString(PROP_SERVICE_NAME);
         hostName = ps.getString(PROP_HOST_NAME);
-        if(hostName.trim().length() == 0) {
+        if (hostName.trim().length() == 0) {
             hostName = serviceName;
         }
         servicePattern = Pattern.compile(String.format("%s-[0-9]+-int$", serviceName));
@@ -170,7 +164,4 @@ public class StartLB extends ServiceAdapter {
                     PROP_SORRY_PAGE));
         }
     }
-
-
-
 }
