@@ -351,8 +351,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
     public Collection<Item> getItems(Collection<String> keys) throws AuraException, RemoteException {
         NanoWatch nw = new NanoWatch();
         nw.start();
-        if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("rep %s gIs for %d start",
+        if(logger.isLoggable(Level.FINER)) {
+            logger.finer(String.format("rep %s gIs for %d start",
                     prefixString, keys.size()));
         }
         List<Item> ret = new ArrayList();
@@ -375,13 +375,16 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
     public List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws AuraException {
         NanoWatch nw = new NanoWatch();
         nw.start();
-        if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("rep %s gSIs for %d start",
+        if(logger.isLoggable(Level.FINER)) {
+            logger.finer(String.format("rep %s gSIs for %d start",
                     prefixString, keys.size()));
         }
         List<Scored<Item>> ret = new ArrayList();
         for(Scored<String> key : keys) {
-            ret.add(new Scored<Item>(getItem(key.getItem()), key));
+            Item item = getItem(key.getItem());
+            if(item != null) {
+                ret.add(new Scored<Item>(item, key));
+            }
         }
         nw.stop();
         if(logger.isLoggable(Level.FINE)) {
@@ -476,6 +479,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
      * Deletes just an item from the item store, not touching the attention.
      */
     public void deleteItem(String itemKey) throws AuraException {
+        searchEngine.delete(itemKey);
         bdb.deleteItem(itemKey);
     }
 
@@ -646,8 +650,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
         sw.start();
         List<Scored<String>> res = searchEngine.getAutotagged(autotag, n);
         sw.stop();
-        if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("rep %s gat %s %.3f", prefixString, autotag, sw.
+        if(logger.isLoggable(Level.FINER)) {
+            logger.finer(String.format("rep %s gat %s %.3f", prefixString, autotag, sw.
                     getTimeMillis()));
         }
         return res;
@@ -695,8 +699,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
         findSimCntr.incrementAndGet();
         NanoWatch sw = new NanoWatch();
         sw.start();
-        if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("rep %s fs %s start", prefixString, dv.getKey()));
+        if(logger.isLoggable(Level.FINER)) {
+            logger.finer(String.format("rep %s fs %s start", prefixString, dv.getKey()));
         }
         List<Scored<String>> fsr = searchEngine.findSimilar(dv, config);
         sw.stop();
