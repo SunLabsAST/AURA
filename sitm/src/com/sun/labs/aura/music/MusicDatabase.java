@@ -952,10 +952,11 @@ public class MusicDatabase {
             List<Scored<Item>> items = getDataStore().query("aura-type=USER", "-score", count, null);
             List<Listener> listeners = new ArrayList<Listener>();
             for (Scored<Item> i : items) {
-                listeners.add(new Listener(i.getItem()));
+                if (i.getItem() != null) {
+                    listeners.add(new Listener(i.getItem()));
+                }
             }
             return listeners;
-
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
