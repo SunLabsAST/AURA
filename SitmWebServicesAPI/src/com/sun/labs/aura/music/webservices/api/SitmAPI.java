@@ -17,12 +17,17 @@ import org.w3c.dom.NodeList;
  * @author plamere
  */
 public class SitmAPI {
+
     private Commander commander;
+    private long minTime = Long.MAX_VALUE;
+    private long maxTime = -Long.MAX_VALUE;
+    private long sumTime = 0L;
+    private long timeCount = 0;
 
     public SitmAPI(String host) throws IOException {
         commander = new Commander("sitm", host, "");
-        //commander.setTraceSends(true);
-        //commander.setTrace(true);
+    //commander.setTraceSends(true);
+    //commander.setTrace(true);
     }
 
     public List<Scored<Item>> artistSearch(String searchString) throws IOException {
@@ -80,7 +85,7 @@ public class SitmAPI {
         }
         return items;
     }
-   
+
     public List<Scored<Item>> findSimilarArtistsByKey(String key, int count) throws IOException {
         List<Scored<Item>> items = new ArrayList<Scored<Item>>();
         Document doc = commander.sendCommand("FindSimilarArtists?key=" + key + "&max=" + count);
@@ -148,10 +153,10 @@ public class SitmAPI {
     }
     /*
     public List<Scored<Item>> getTags(int count) throws IOException {
-        List<Scored<Item>> items = new ArrayList<Scored<Item>>();
-        Document doc = commander.sendCommand("GetTags?max=" + count);
-        checkStatus("getTags", doc);
-        return null;
+    List<Scored<Item>> items = new ArrayList<Scored<Item>>();
+    Document doc = commander.sendCommand("GetTags?max=" + count);
+    checkStatus("getTags", doc);
+    return null;
     }
      * */
 
@@ -206,10 +211,39 @@ public class SitmAPI {
             throw new IOException(msg + ":" + "Improper results format");
         }
         Element results = (Element) nlist.item(0);
-        String code =  (results.getAttribute("status"));
+        String code = (results.getAttribute("status"));
         if (!"OK".equals(code)) {
             Commander.dumpDocument(doc);
-            throw new IOException(msg + " bad result status status "  + code);
+            throw new IOException(msg + " bad result status status " + code);
+        }
+        NodeList timeNodes = results.getElementsByTagName("time");
+        if (timeNodes.getLength() != 1) {
+            throw new IOException(msg + ":" + "Improper time format");
+        }
+
+        Element timeNode = (Element) timeNodes.item(0);
+        String ms = (timeNode.getAttribute("ms"));
+        long millis = Long.parseLong(ms);
+        trackTime(millis);
+    }
+
+    private synchronized void trackTime(long millis) {
+        if (millis > maxTime) {
+            maxTime = millis;
+        }
+
+        if (millis < minTime) {
+            minTime = millis;
+        }
+
+        sumTime += millis;
+        timeCount++;
+    }
+
+    public void showTimeSummary() {
+        if (timeCount > 0) {
+            System.out.printf("SitmAPI Time:  total:%d  min:%d max:%d  avg:%d\n",
+                    sumTime, minTime, maxTime, sumTime / timeCount);
         }
     }
 }
