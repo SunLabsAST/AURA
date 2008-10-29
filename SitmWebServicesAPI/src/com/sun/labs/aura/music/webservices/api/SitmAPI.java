@@ -194,7 +194,7 @@ public class SitmAPI {
 
     // http://search.east/SitmWebServices/FindSimilarArtistFromWordCloud?wordCloud=%27(indie,1)(punk,1)(emo,.5)%27
     public List<Scored<Item>> findSimilarArtistFromWordCloud(String cloud, int count) throws IOException {
-        Document doc = commander.sendCommand("FindSimilarArtistsFromWordCloud?wordcloud=" + cloud + "&max=" + count);
+        Document doc = commander.sendCommand("FindSimilarArtistsFromWordCloud?wordCloud=" + cloud + "&max=" + count);
         checkStatus("findSimilarArtistFromWordCloud", doc);
         return null;
     }
