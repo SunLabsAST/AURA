@@ -277,17 +277,13 @@
             <http-method>TRACE</http-method>
             <http-method>DELETE</http-method>
         </web-resource-collection>
-        <auth-constraint>
-            <description>Limit access to the api to members of the api role</description>
-            <role-name>api</role-name>
-            </auth-constraint>
         </security-constraint>
     <login-config>
         <auth-method>BASIC</auth-method>
         <realm-name>TasteKeeper.com Music API</realm-name>
         </login-config>
     <security-role>
-        <description>Provides access to the web services API for TasteKeeper</description>
+        <description/>
         <role-name>api</role-name>
     </security-role>
     </web-app>
