@@ -49,14 +49,14 @@ public class LoadGenerator {
                 }
             }
 
-            if (args[i].equals("-host")) {
+            if (args[i].equals("-url")) {
                 if (i < args.length - 1) {
                     host = args[++i];
                 }
             }
 
             if (args[i].equals("-help")) {
-                System.out.println("Usage: LoadGenerator [-users n] [-threads threads] [-time time] [-host host]");
+                System.out.println("Usage: LoadGenerator [-users n] [-threads threads] [-time time] [-url url-prefix]");
                 System.exit(0);
             }
         }
