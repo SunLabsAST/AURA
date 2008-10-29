@@ -56,6 +56,7 @@ public class MusicDatabase {
     public final static String DEFAULT_RECOMMENDER = "SimToRecent(2)";
     private double skimPercent = 1;
     private RemoteComponentManager rcm;
+    private final static long DEFAULT_FIND_SIMILAR_TIMEOUT = 10000L;
 
     public MusicDatabase(ConfigurationManager cm) throws AuraException {
         this.rcm = new RemoteComponentManager(cm, DataStore.class);
@@ -892,7 +893,7 @@ public class MusicDatabase {
 
     public List<Scored<String>> artistExplainSimilarity(String artistID1, String artistID2, int count) throws AuraException {
         try {
-            return getDataStore().explainSimilarity(artistID1, artistID2, new SimilarityConfig(Artist.FIELD_SOCIAL_TAGS, count));
+            return getDataStore().explainSimilarity(artistID1, artistID2, getFindSimilarConfig(Artist.FIELD_SOCIAL_TAGS, count));
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -901,7 +902,7 @@ public class MusicDatabase {
 
     public List<Scored<String>> artistExplainSimilarity(WordCloud cloud, String artistID1, int count) throws AuraException {
         try {
-            return getDataStore().explainSimilarity(cloud, artistID1, new SimilarityConfig(Artist.FIELD_SOCIAL_TAGS, count));
+            return getDataStore().explainSimilarity(cloud, artistID1, getFindSimilarConfig(Artist.FIELD_SOCIAL_TAGS, count));
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -910,7 +911,7 @@ public class MusicDatabase {
 
     public List<Scored<String>> artistExplainSimilarity(String artistID1, String artistID2, String field, int count) throws AuraException {
         try {
-            return getDataStore().explainSimilarity(artistID1, artistID2, new SimilarityConfig(field, count));
+            return getDataStore().explainSimilarity(artistID1, artistID2, getFindSimilarConfig(field, count));
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
@@ -1385,7 +1386,7 @@ public class MusicDatabase {
 
         public List<Scored<String>> explainSimilarity(String id1, String id2, int count) throws AuraException {
             try {
-                return getDataStore().explainSimilarity(id1, id2, new SimilarityConfig(field, count));
+                return getDataStore().explainSimilarity(id1, id2, getFindSimilarConfig(field, count));
             } catch (RemoteException ex) {
                 throw new AuraException("Can't talk to the datastore " + ex, ex);
             }
@@ -1528,10 +1529,15 @@ public class MusicDatabase {
         return results;
     }
 
+    private SimilarityConfig getFindSimilarConfig(String field, int count) {
+        return getFindSimilarConfig(field, count, null);
+    }
+
     private SimilarityConfig getFindSimilarConfig(String field, int count, ResultsFilter filter) {
         SimilarityConfig fsc = new SimilarityConfig(field, count, filter);
         fsc.setSkimPercent(skimPercent);
         fsc.setReportPercent(1.);
+        fsc.setTimeout(DEFAULT_FIND_SIMILAR_TIMEOUT);
         return fsc;
     }
 
@@ -1539,6 +1545,7 @@ public class MusicDatabase {
         SimilarityConfig fsc = new SimilarityConfig(count, filter);
         fsc.setSkimPercent(skimPercent);
         fsc.setReportPercent(1.);
+        fsc.setTimeout(DEFAULT_FIND_SIMILAR_TIMEOUT);
         return fsc;
     }
 
@@ -1623,7 +1630,7 @@ public class MusicDatabase {
             for (Scored<Item> item : items) {
                 if (!skipIDS.contains(item.getItem().getKey())) {
                     List<Scored<String>> reason = getDataStore().explainSimilarity(listenerID,
-                            item.getItem().getKey(), new SimilarityConfig(Listener.FIELD_SOCIAL_TAGS, count));
+                            item.getItem().getKey(), getFindSimilarConfig(Listener.FIELD_SOCIAL_TAGS, count));
                     results.add(new Recommendation(item.getItem().getKey(), item.getScore(), reason));
                     if (results.size() >= count) {
                         break;
