@@ -4,16 +4,20 @@
  */
 package com.sun.labs.aura.music.webservices;
 
-import com.sun.labs.aura.music.Artist;
+import com.sun.labs.aura.music.ArtistTag;
+import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
-import com.sun.labs.aura.music.MusicDatabase.Popularity;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
-import com.sun.labs.aura.util.WordCloud;
+import com.sun.labs.aura.util.ScoredComparator;
+import com.sun.labs.aura.util.Tag;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -24,18 +28,24 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author plamere
  */
-public class FindSimilarArtistsFromWordCloud extends HttpServlet {
+public class GetListenerTags extends HttpServlet {
 
-    private final static String SERVLET_NAME = "FindSimilarArtistFromWordCloud";
+    private final static String SERVLET_NAME = "GetListenerTags";
+
+    private enum Type {
+
+        Distinctive, Frequent
+    };
     private ParameterChecker pc;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        pc = new ParameterChecker(SERVLET_NAME, "find artists similar to a wordcloud");
-        pc.addParam("wordCloud", "the wordcloud");
-        pc.addParam("max", "10", "the maxiumum number of artists to return");
-        pc.addParam("popularity", Popularity.ALL.name(), "the popularity filter");
+        pc = new ParameterChecker(SERVLET_NAME, "Gets the tags associated with a listener");
+        pc.addParam("key", "the key of the listener of interest");
+        pc.addParam("max", "100", "the maxiumum number of results to return");
+        pc.addParam("type", "distinctive", "the type of tag report - 'distinctive' or 'frequent'");
+        pc.addParam("field", Listener.FIELD_SOCIAL_TAGS, "the field of interest.");
     }
 
     /** 
@@ -45,13 +55,14 @@ public class FindSimilarArtistsFromWordCloud extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        ServletContext context = getServletContext();
 
         if (pc.processDocumentationRequest(request, response)) {
             return;
         }
 
         Status status = new Status(request);
-        ServletContext context = getServletContext();
+
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
 
@@ -65,30 +76,34 @@ public class FindSimilarArtistsFromWordCloud extends HttpServlet {
                 return;
             }
 
-            String wc = pc.getParam(status, request, "wordCloud");
+            String key = pc.getParam(status, request, "key");
             int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
-            Popularity pop = (Popularity) pc.getParamAsEnum(status, request,
-                    "popularity", Popularity.values());
+            String field = pc.getParam(status, request, "field");
+            // TBD Field not used yet.
+            boolean frequent = ((Type) pc.getParamAsEnum(status, request, "type", Type.values())) == Type.Frequent;
 
-            WordCloud cloud = WordCloud.convertStringToWordCloud(wc);
-            if (cloud == null) {
-                status.addError(ErrorCode.BadArgument, "Bad wordcloud format. Should be:" +
-                        "(tag1 name,weight)(tag2 name,weight)");
-                return;
-            }
+            Listener listener = null;
 
-
-            List<Scored<Artist>> scoredArtists = mdb.wordCloudFindSimilarArtists(cloud, maxCount, pop);
-            for (Scored<Artist> scoredArtist : scoredArtists) {
-                Artist simArtist = scoredArtist.getItem();
-                out.println("    <artist key=\"" +
-                        simArtist.getKey() + "\" " +
-                        "score=\"" + scoredArtist.getScore() + "\" " +
-                        "name=\"" + Util.filter(simArtist.getName()) + "\"" +
-                        "/>");
+            if ((listener = mdb.getListener(key)) != null) {
+                if (frequent) {
+                    List<Tag> tags = listener.getSocialTags();
+                    for (Tag tag : tags) {
+                        String tagKey = tag.getName();
+                        out.println("    <ListenerTag key=\"" + tagKey + "\" " + "score=\"" + tag.getCount() + "\" " + "/>");
+                    }
+                } else {
+                    List<Scored<ArtistTag>> artistTags = mdb.listenerGetDistinctiveTags(key, maxCount);
+                    for (Scored<ArtistTag> sartistTag : artistTags) {
+                        ArtistTag artistTag = sartistTag.getItem();
+                        out.println("    <ListenerTag key=\"" + artistTag.getKey() + "\" " +
+                                "score=\"" + sartistTag.getScore() + "\" " + "/>");
+                    }
+                }
+            } else {
+                status.addError(ErrorCode.MissingArgument, "Can't find specified listener");
             }
         } catch (AuraException ex) {
-            status.addError(ErrorCode.InternalError, "Problem accessing data " + ex);
+            status.addError(ErrorCode.InternalError, "Problem accessing data:" + ex);
         } catch (ParameterException e) {
         } finally {
             status.toXML(out);
@@ -96,6 +111,7 @@ public class FindSimilarArtistsFromWordCloud extends HttpServlet {
             out.close();
         }
     }
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /** 
      * Handles the HTTP <code>GET</code> method.
@@ -121,6 +137,6 @@ public class FindSimilarArtistsFromWordCloud extends HttpServlet {
      * Returns a short description of the servlet.
      */
     public String getServletInfo() {
-        return "Finds artists that are similar to a word cloud ";
+        return "Gets the tags that have been applied to an artist";
     }// </editor-fold>
 }

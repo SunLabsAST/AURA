@@ -85,6 +85,10 @@
         <servlet-name>GetListeners</servlet-name>
         <servlet-class>com.sun.labs.aura.music.webservices.GetListeners</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>GetListenerTags</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.GetListenerTags</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>FindSimilarArtists</servlet-name>
         <url-pattern>/FindSimilarArtists</url-pattern>
@@ -245,6 +249,14 @@
     <servlet-mapping>
         <servlet-name>GetListeners</servlet-name>
         <url-pattern>/1.0/GetListeners</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetListenerTags</servlet-name>
+        <url-pattern>/GetListenerTags</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetListenerTags</servlet-name>
+        <url-pattern>/1.0/GetListenerTags</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
