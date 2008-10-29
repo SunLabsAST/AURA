@@ -7,6 +7,7 @@ package com.sun.labs.aura.util;
 import com.sun.labs.util.props.Component;
 import com.sun.labs.util.props.ComponentListener;
 import com.sun.labs.util.props.ConfigurationManager;
+import java.util.logging.Logger;
 
 /**
  * Manages connecting and reconnecting to a component
@@ -37,7 +38,11 @@ public class RemoteComponentManager implements ComponentListener {
      *   be found after 10 minutes
      */
     public Component getComponent() throws AuraException {
-        return cm.lookup(clazz, this);
+        if(component == null) {
+            component = cm.lookup(clazz, this);
+            Logger.getLogger("").info("Got component: " + component);
+        }
+        return component;
     }
 
 
