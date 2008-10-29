@@ -439,6 +439,10 @@ public class ItemSearchEngine implements Configurable {
         return ret;
     }
 
+    public void delete(String key) {
+        engine.delete(key);
+    }
+
     /**
      * Gets the document associated with a given key.
      * @param key the key of the entry that we want the document vector for

@@ -31,6 +31,12 @@ do
 	-h)
 	    usage
 	    exit;;
+	-b)
+	    BEGIN=$2; shift;
+	    shift;;
+	-c)
+	    COUNT=$2; shift;
+	    shift;;
 	-n)
 	    NAME=$2; shift;
 	    shift;;

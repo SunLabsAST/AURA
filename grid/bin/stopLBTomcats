@@ -1,0 +1,49 @@
+#!/bin/bash
+
+function usage {
+    echo 'Usage: startLBTomcats -b [begin number] -c [count] -h [-n server name]'
+    echo ' server_name defaults to www, begin to 1 and count to 5'
+}
+
+args=`getopt b:c:hn: $*`
+
+if [ $? != 0 ]
+then
+    usage
+    exit 2
+fi
+
+set -- $args
+
+export NAME=www
+export BEGIN=1
+export COUNT=5
+DIR=`dirname $0`
+
+for i 
+do
+    case "$i"
+	in
+	-h)
+	    usage
+	    exit;;
+	-b)
+	    BEGIN=$2; shift;
+	    shift;;
+	-c)
+	    COUNT=$2; shift;
+	    shift;;
+	-n)
+	    NAME=$2; shift;
+	    shift;;
+    esac
+done
+
+export END=$(( $BEGIN + $COUNT ))
+
+for (( COUNT=$BEGIN ; COUNT < $END ; COUNT++ )) ; do 
+    echo Deploying $NAME-$COUNT...
+    ant -Ddeployment.name=$NAME -Ddeployment.number=$COUNT -f $DIR/../grid-deploy/tomcat-lb.xml cleanup
+done
+
+java -jar $DIR/../dist/grid.jar /com/sun/labs/aura/grid/loadbalance/lbConfig.xml start

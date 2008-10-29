@@ -138,25 +138,25 @@ public class PartitionClusterImpl implements PartitionCluster,
     }
     
     public List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws AuraException, RemoteException {
-        if(logger.isLoggable(Level.FINE)) {
-            logger.fine(
+        if(logger.isLoggable(Level.FINER)) {
+            logger.finer(
                     String.format("pc %s gIs start", prefixCode.toString()));
         }
         List<Scored<Item>> ret = strategy.getScoredItems(keys);
-        if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("pc %s gIs done", prefixCode.toString()));
+        if(logger.isLoggable(Level.FINER)) {
+            logger.finer(String.format("pc %s gIs done", prefixCode.toString()));
         }
         return ret;
     }
 
     public Collection<Item> getItems(Collection<String> keys) throws AuraException, RemoteException {
-        if(logger.isLoggable(Level.FINE)) {
-            logger.fine(
+        if(logger.isLoggable(Level.FINER)) {
+            logger.finer(
                     String.format("pc %s gIs start", prefixCode.toString()));
         }
         Collection<Item> ret = strategy.getItems(keys);
-        if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("pc %s gIs done", prefixCode.toString()));
+        if(logger.isLoggable(Level.FINER)) {
+            logger.finer(String.format("pc %s gIs done", prefixCode.toString()));
         }
         return ret;
     }
