@@ -59,7 +59,7 @@ public class User implements Delayed {
         addOperation(new OPArtistSocialTags(), 1);
         addOperation(new OPArtistTagSearch(), .05);
         addOperation(new OPFindSimilarArtist(), 1);
-        //addOperation(new OPFindSimilarArtistFromWordCloud(), 2);
+        addOperation(new OPFindSimilarArtistFromWordCloud(), 2);
         addOperation(new OPFindSimilarArtistTags(), 1);
         addOperation(new OPGetItem(), 3);
         addOperation(new OPShowArtist(), 5);
