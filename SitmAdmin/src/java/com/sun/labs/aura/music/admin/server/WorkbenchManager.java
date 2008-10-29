@@ -35,6 +35,7 @@ public class WorkbenchManager {
         addWorker(new ArtistSearchWorker());
         addWorker(new ArtistSummary());
         addWorker(new ArtistTagSummary());
+        addWorker(new GeneralSearch());
         addWorker(new HubFinder());
         addWorker(new ListenerSummary());
         addWorker(new MissingPhotoWorker());
