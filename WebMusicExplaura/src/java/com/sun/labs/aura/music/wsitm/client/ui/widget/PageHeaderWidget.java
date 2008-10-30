@@ -56,8 +56,6 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
     private Widget instantRecPlayWidget;
 
-    TextToolItem recTypeToolItem;
-
     private ListBox listbox;
     
     public PageHeaderWidget(ClientDataManager cdm) {

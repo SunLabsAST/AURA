@@ -17,6 +17,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.Timer;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 
 /**
@@ -61,8 +62,8 @@ public abstract class Popup {
         popup.center();
     }
 
-    public static PopupPanel getPopupPanel() {
-        final PopupPanel popup = new PopupPanel(true);
+    public static PopupPanelAutoClose getPopupPanel(int secTillAutoClose) {
+        final PopupPanelAutoClose popup = new PopupPanelAutoClose(5);
         return popup;
     }
 
@@ -96,9 +97,9 @@ public abstract class Popup {
         popup.center();
     }
 
-    public static void showInformationPopup(HTML html) {
+    public static void showInformationPopup(HTML html, int secTillAutoClose) {
 
-        PopupPanel popup = getPopupPanel();
+        PopupPanel popup = getPopupPanel(true);
 
         Button b = new Button("OK");
         b.addClickListener(new DataEmbededClickListener<PopupPanel>(popup) {
@@ -118,6 +119,47 @@ public abstract class Popup {
     }
 
     public static void showInformationPopup(String message) {
-        showInformationPopup(new HTML("<p>"+message+"</p>"));
+        showInformationPopup(new HTML("<p>"+message+"</p>"), 0);
+    }
+
+    private class PopupPanelAutoClose extends PopupPanel {
+
+        private Timer t;
+        private int secLeftTillClose;
+
+        public PopupPanelAutoClose(int seconds) {
+            super(true);
+            this.secLeftTillClose = seconds;
+
+            if (seconds > 0) {
+                t = new TimerWithPopupPanel(this);
+                t.schedule(1000);
+            }
+        }
+
+        private class TimerWithPopupPanel extends Timer {
+
+            private PopupPanel popup;
+
+            public TimerWithPopupPanel(PopupPanel popup) {
+                this.popup = popup;
+            }
+
+            @Override
+            public void run() {
+                secLeftTillClose--;
+                if (secLeftTillClose==0) {
+                    popup.hide();
+                } else {
+                    doEachSec();
+                }
+            }
+        }
+
+        /**
+         * Will be called at each second. Overwrite to do any action, like update
+         * button label
+         */
+        protected void doEachSec() {}
     }
 }
