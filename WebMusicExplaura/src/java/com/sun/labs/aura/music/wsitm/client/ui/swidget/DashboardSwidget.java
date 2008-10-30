@@ -166,7 +166,7 @@ public class DashboardSwidget extends Swidget {
             invokeFetchRecentPlayedArtist();
 
             ItemInfo[] trimTags = null;
-            if (cdm.getListenerDetails().getUserTagCloud() != null) {
+            if (cdm.getListenerDetails().getUserTagCloud() != null && cdm.getListenerDetails().getUserTagCloud().length > 0) {
                 int max = cdm.getListenerDetails().getUserTagCloud().length;
                 if (max > 20) {
                     max = 20;

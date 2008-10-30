@@ -64,7 +64,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.print.attribute.Size2DSyntax;
 
 /**
  *
@@ -647,15 +646,11 @@ public class DataManager implements Configurable {
         }
 
         ArrayList<ItemInfo> iI = new ArrayList<ItemInfo>();
-        List<Tag> lT = l.getSocialTags();
+        List<Scored<ArtistTag>> lT = mdb.listenerGetDistinctiveTags(l.getKey(), 50);
         if (lT != null && lT.size() > 0) {
-            double maxSize = lT.get(0).getFreq();
-            int nbr = 0;
-            for (Tag t : lT) {
-                iI.add(new ItemInfo(ArtistTag.nameToKey(t.getName()), t.getName(), t.getFreq() / maxSize, t.getFreq() / maxSize));
-                if (nbr++ > 50) {
-                    break;
-                }
+            double maxSize = lT.get(0).getScore();
+            for (Scored<ArtistTag> sAT : lT) {
+                iI.add(new ItemInfo(sAT.getItem().getKey(), sAT.getItem().getName(), sAT.getScore() / maxSize, sAT.getItem().getPopularity()));
             }
         }
         lD.setUserTagCloud(iI.toArray(new ItemInfo[0]));
@@ -709,15 +704,11 @@ public class DataManager implements Configurable {
 
         // Get the user tag cloud
         ArrayList<ItemInfo> iI = new ArrayList<ItemInfo>();
-        List<Tag> lT = l.getSocialTags();
+        List<Scored<ArtistTag>> lT = mdb.listenerGetDistinctiveTags(l.getKey(), 50);
         if (lT != null && lT.size() > 0) {
-            double maxSize = lT.get(0).getFreq();
-            int nbr = 0;
-            for (Tag t : lT) {
-                iI.add(new ItemInfo(ArtistTag.nameToKey(t.getName()), t.getName(), t.getFreq() / maxSize, t.getFreq() / maxSize));
-                if (nbr++ > 50) {
-                    break;
-                }
+            double maxSize = lT.get(0).getScore();
+            for (Scored<ArtistTag> sAT : lT) {
+                iI.add(new ItemInfo(sAT.getItem().getKey(), sAT.getItem().getName(), sAT.getScore() / maxSize, sAT.getItem().getPopularity()));
             }
         }
         lD.setUserTagCloud(iI.toArray(new ItemInfo[0]));

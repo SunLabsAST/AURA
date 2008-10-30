@@ -62,8 +62,10 @@ public abstract class Popup {
         popup.center();
     }
 
-    public static PopupPanelAutoClose getPopupPanel(int secTillAutoClose) {
-        final PopupPanelAutoClose popup = new PopupPanelAutoClose(5);
+    //public static PopupPanel getPopupPanel(int secTillAutoClose) {
+    public static PopupPanel getPopupPanel() {
+        //final PopupPanelAutoClose popup = new PopupPanelAutoClose(5);
+        final PopupPanel popup = new PopupPanel(true);
         return popup;
     }
 
@@ -99,7 +101,7 @@ public abstract class Popup {
 
     public static void showInformationPopup(HTML html, int secTillAutoClose) {
 
-        PopupPanel popup = getPopupPanel(true);
+        PopupPanel popup = getPopupPanel();
 
         Button b = new Button("OK");
         b.addClickListener(new DataEmbededClickListener<PopupPanel>(popup) {
