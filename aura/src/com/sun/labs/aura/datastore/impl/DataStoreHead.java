@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -1018,7 +1019,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                         }
                         return ret;
                     } finally {
-                        latch.countDown();
+                        latch.countDown(pc.getPrefix().toString());
                     }
 
                 }
@@ -1145,7 +1146,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                         List<Scored<String>> ret = pc.getAutotagged(autotag, n);
                         return ret;
                     } finally {
-                        latch.countDown();
+                        latch.countDown(pc.getPrefix().toString());
                     }
                 }
             });
@@ -1492,7 +1493,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             toReport = Collections.synchronizedSet(new HashSet<String>(allPrefixes));
         }
 
-        public void countdown(String prefix) {
+        public void countDown(String prefix) {
             super.countDown();
             toReport.remove(prefix);
         }
@@ -1511,7 +1512,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
 
         public Set<String> getRemaining() {
-            return new HashSet<String>(toReport);
+            return new TreeSet<String>(toReport);
         }
 
         /**
@@ -1659,7 +1660,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                         List<Scored<String>> ret = pc.query(query, sort, n, rf);
                         return ret;
                     } finally {
-                        latch.countDown();
+                        latch.countDown(pc.getPrefix().toString());
                     }
                 }
             });
