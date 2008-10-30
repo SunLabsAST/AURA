@@ -98,7 +98,6 @@ public class GridProcessManager extends Aura implements ProcessManager {
             //
             // Make sure there's a filesystem for this replicant!
             createReplicantFileSystem(prefixString, owner.toString());
-            logger.log(Level.INFO, "Made FS, starting replicant");
             ProcessConfiguration repConfig = getReplicantConfig(replicantConfig,
                     prefixString);
             ProcessRegistration repReg = gu.createProcess(getReplicantName(
@@ -107,7 +106,6 @@ public class GridProcessManager extends Aura implements ProcessManager {
             while(repReg.getRunState() != RunState.RUNNING) {
                 repReg.waitForStateChange(1000000L);
             }
-            logger.log(Level.INFO, "done starting replicant");
             
             Thread.sleep(5000);
             //
@@ -118,13 +116,10 @@ public class GridProcessManager extends Aura implements ProcessManager {
                     return (Replicant) c;
                 }
             }
-            logger.log(Level.INFO, "failed to find replicant");
             return null;
         } catch(Exception ex) {
             throw new AuraException("Error getting partition cluster for prefix " +
                     prefix, ex);
-        } finally {
-            logger.info("Exit createReplicant");
         }
     }
     
@@ -148,16 +143,34 @@ public class GridProcessManager extends Aura implements ProcessManager {
         } catch (Exception rx) {
             logger.log(Level.SEVERE, "Error setting file system metadata for " + fs.getName(), rx);
         }
+
+        //
+        // Update our map with the new prefix
+        repFSMap.put(childPrefix1.toString(), fs);
+        repFSMap.remove(oldPrefix.toString());
         
         //
-        // Fix the meta data for the old partition cluster
+        // Update the process registration for the old replicant to reflect
+        // the new prefix
+        ProcessRegistration oldRep = gu.lookupProcessRegistration(
+                getReplicantName(oldPrefix.toString()));
+        try {
+            ProcessConfiguration repConf =
+                    getReplicantConfig(replicantConfig, childPrefix1.toString());
+            oldRep.changeConfiguration(repConf);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to update replicant "
+                    + oldPrefix.toString() + " registration", e);
+        }
+        
+        //
+        // Replace the config for the old partition too, thereby updating
+        // the command line and the metadata
         ProcessRegistration oldPart = gu.lookupProcessRegistration(
                 getPartitionName(oldPrefix.toString()));
-        ProcessConfiguration pc = oldPart.getRegistrationConfiguration();
-        md = pc.getMetadata();
-        md.put("prefix", childPrefix1.toString());
-        pc.setMetadata(md);
         try {
+            ProcessConfiguration pc =
+                    getPartitionClusterConfig(childPrefix1.toString());
             oldPart.changeConfiguration(pc);
         } catch (DestroyInProgressException e) {
             //
@@ -185,12 +198,11 @@ public class GridProcessManager extends Aura implements ProcessManager {
         }
         
         //
-        // Remove the owner and check the prefix for the new partition cluster
+        // Remove the owner for the new partition cluster
         ProcessRegistration newPart = gu.lookupProcessRegistration(
                 getPartitionName(childPrefix2.toString()));
-        pc = newPart.getRegistrationConfiguration();
+        ProcessConfiguration pc = newPart.getRegistrationConfiguration();
         md = pc.getMetadata();
-        md.put("prefix", childPrefix2.toString());
         md.remove("owner");
         pc.setMetadata(md);
         try {
