@@ -20,13 +20,17 @@ public class Control {
     private SitmAPI sitm;
     private List<String> artistKeys; 
     private List<String> artistTagKeys; 
+    private List<String> artistNames; 
+    private List<String> artistTagNames; 
     private Monitor monitor = new Monitor(true);
     private Random rng = new Random();
+    private long lateSum;
+    private long lateCount;
 
     public Control(String host) throws IOException {
-        sitm = new SitmAPI(host);
-        fetchArtistKeys();
-        fetchArtistTagKeys();
+        sitm = new SitmAPI(host, false);
+        fetchArtists();
+        fetchArtistTags();
     }
     
     public String getRandomArtistKey() {
@@ -34,9 +38,31 @@ public class Control {
        return artistKeys.get(index);
     }
 
+    public String getRandomArtistName() {
+       int index = rng.nextInt(artistNames.size());
+       return artistNames.get(index);
+    }
+
     public String getRandomArtistTagKey() {
        int index = rng.nextInt(artistTagKeys.size());
        return artistTagKeys.get(index);
+    }
+
+    public String getRandomArtistTagName() {
+       int index = rng.nextInt(artistTagNames.size());
+       return artistTagNames.get(index);
+    }
+
+    public String getRandomWordCloud() {
+        int num = rng.nextInt(10) + 1;
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < num; i++) {
+            String tag = getRandomArtistTagName();
+            float weight = rng.nextFloat();
+            sb.append(String.format("(%s,%.3f)", tag, weight));
+        }
+        return sb.toString();
     }
     
     public SitmAPI getSitm() {
@@ -50,22 +76,32 @@ public class Control {
     public void dump() {
         getMonitor().dumpAllStats();
         sitm.showTimeSummary();
+        System.out.printf("Late calls: %d  Total Late delay: %d\n", lateCount, lateSum);
     }
 
-    private void fetchArtistKeys() throws IOException {
+    public synchronized void late(long late) {
+        lateSum += late;
+        lateCount++;
+    }
+
+    private void fetchArtists() throws IOException {
         List<Item> artists = sitm.getArtists(5000);
         artistKeys = new ArrayList<String>();
+        artistNames = new ArrayList<String>();
         for (Item item : artists) {
             artistKeys.add(item.getKey());
+            artistNames.add(item.getName());
         }
         System.out.printf("Using %d artists\n", artistKeys.size());
     }
 
-    private void fetchArtistTagKeys() throws IOException {
+    private void fetchArtistTags() throws IOException {
         List<Item> artistTags = sitm.getArtistTags(1000);
         artistTagKeys = new ArrayList<String>();
+        artistTagNames = new ArrayList<String>();
         for (Item item : artistTags) {
             artistTagKeys.add(item.getKey());
+            artistTagNames.add(item.getName());
         }
         System.out.printf("Using %d tags\n", artistTagKeys.size());
     }
