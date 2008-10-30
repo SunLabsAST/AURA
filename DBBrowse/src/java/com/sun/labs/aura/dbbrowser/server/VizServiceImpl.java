@@ -164,7 +164,7 @@ public class VizServiceImpl extends RemoteServiceServlet implements
                         statService.getAveragePerSecond(
                             repStatName(prefix,
                                 Replicant.StatNames.GET_ITEM.toString())));
-                stats.setUpdatedItemsPerSec(
+                stats.setFindSimsPerSec(
                         statService.getAveragePerSecond(
                             repStatName(prefix,
                                 Replicant.StatNames.FIND_SIM.toString())));
