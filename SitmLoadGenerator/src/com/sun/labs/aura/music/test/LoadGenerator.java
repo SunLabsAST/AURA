@@ -72,17 +72,20 @@ public class LoadGenerator {
     }
 
 
-    public LoadGenerator(int users, int threads, String host, boolean readOnly) throws IOException {
-        control = new Control(host);
+    public LoadGenerator(final int users, final int threads, final String url, boolean readOnly) throws IOException {
+        System.out.println("URL " + url + " users " + users + " threads " + threads);
+        control = new Control(url);
         numThreads = threads;
         this.readOnly = readOnly;
         createUsers(users);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 control.dump();
+                System.out.println("URL " + url + " users " + users + " threads " + threads);
             }
         });
     }
+
 
 
     public void createUsers(int users) {

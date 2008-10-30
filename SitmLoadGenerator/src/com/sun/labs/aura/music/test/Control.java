@@ -22,7 +22,7 @@ public class Control {
     private List<String> artistTagKeys; 
     private List<String> artistNames; 
     private List<String> artistTagNames; 
-    private Monitor monitor = new Monitor(true);
+    private Monitor monitor = new Monitor(false);
     private Random rng = new Random();
     private long lateSum;
     private long lateCount;
@@ -54,7 +54,7 @@ public class Control {
     }
 
     public String getRandomWordCloud() {
-        int num = rng.nextInt(10) + 1;
+        int num = rng.nextInt(10) + 5;
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < num; i++) {
@@ -74,8 +74,8 @@ public class Control {
     }
     
     public void dump() {
+        sitm.showStats();
         getMonitor().dumpAllStats();
-        sitm.showTimeSummary();
         System.out.printf("Late calls: %d  Total Late delay: %d\n", lateCount, lateSum);
     }
 
