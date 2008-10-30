@@ -6,6 +6,7 @@ package com.sun.labs.aura.music.webservices.api;
 
 import com.sun.labs.aura.music.web.Commander;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import org.w3c.dom.Document;
@@ -24,13 +25,13 @@ public class SitmAPI {
     private long sumTime = 0L;
     private long timeCount = 0;
 
-    public SitmAPI(String host) throws IOException {
+    public SitmAPI(String host, boolean traceSends) throws IOException {
         commander = new Commander("sitm", host, "");
-    //commander.setTraceSends(true);
-    //commander.setTrace(true);
+        commander.setTraceSends(traceSends);
     }
 
     public List<Scored<Item>> artistSearch(String searchString) throws IOException {
+        searchString = encode(searchString);
         List<Scored<Item>> items = new ArrayList<Scored<Item>>();
         Document doc = commander.sendCommand("ArtistSearch?name=" + searchString);
         checkStatus("artistSearch", doc);
@@ -68,6 +69,7 @@ public class SitmAPI {
     }
 
     public List<Scored<Item>> tagSearch(String searchString, int count) throws IOException {
+        searchString = encode(searchString);
         List<Scored<Item>> items = new ArrayList<Scored<Item>>();
         Document doc = commander.sendCommand("ArtistTagSearch?max=" + count + "&name=" + searchString);
         checkStatus("tagSearch", doc);
@@ -199,6 +201,7 @@ public class SitmAPI {
 
     // http://search.east/SitmWebServices/FindSimilarArtistFromWordCloud?wordCloud=%27(indie,1)(punk,1)(emo,.5)%27
     public List<Scored<Item>> findSimilarArtistFromWordCloud(String cloud, int count) throws IOException {
+        cloud = encode(cloud);
         Document doc = commander.sendCommand("FindSimilarArtistsFromWordCloud?wordCloud=" + cloud + "&max=" + count);
         checkStatus("findSimilarArtistFromWordCloud", doc);
         return null;
@@ -242,8 +245,16 @@ public class SitmAPI {
 
     public void showTimeSummary() {
         if (timeCount > 0) {
-            System.out.printf("SitmAPI Time:  total:%d  min:%d max:%d  avg:%d\n",
-                    sumTime, minTime, maxTime, sumTime / timeCount);
+            System.out.printf("SitmAPI summary:  calls:%d total:%d  min:%d  max:%d  avg:%d\n",
+                    timeCount, sumTime, minTime, maxTime, sumTime / timeCount);
+        }
+    }
+
+    private String encode(String s) {
+        try {
+            return URLEncoder.encode(s, "UTF-8");
+        } catch (IOException ex) {
+            return s;
         }
     }
 }

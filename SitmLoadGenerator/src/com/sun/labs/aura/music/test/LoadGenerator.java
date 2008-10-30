@@ -19,6 +19,7 @@ public class LoadGenerator {
     private DelayQueue<User> queue = new DelayQueue<User>();
     private long endTime;
     private Control control;
+    private boolean readOnly = true;
 
     /**
      * @param args the command line arguments
@@ -27,6 +28,7 @@ public class LoadGenerator {
         int users = 1000;
         int threads = 100;
         int time = 60;
+        boolean readOnly = true;
         String host = "http://www.tastekeeper.com/api/";
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-users")) {
@@ -55,20 +57,25 @@ public class LoadGenerator {
                 }
             }
 
+            if (args[i].equals("-writeOK")) {
+                readOnly = false;
+            }
+
             if (args[i].equals("-help")) {
-                System.out.println("Usage: LoadGenerator [-users n] [-threads threads] [-time time] [-url url-prefix]");
+                System.out.println("Usage: LoadGenerator [-users n] [-threads threads] [-time time] [-url url-prefix]  -writeOK");
                 System.exit(0);
             }
         }
 
-        LoadGenerator loadGen = new LoadGenerator(users, threads, host);
+        LoadGenerator loadGen = new LoadGenerator(users, threads, host, readOnly);
         loadGen.go(time); 
     }
 
 
-    public LoadGenerator(int users, int threads, String host) throws IOException {
+    public LoadGenerator(int users, int threads, String host, boolean readOnly) throws IOException {
         control = new Control(host);
         numThreads = threads;
+        this.readOnly = readOnly;
         createUsers(users);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
@@ -80,7 +87,7 @@ public class LoadGenerator {
 
     public void createUsers(int users) {
         for (int i = 0; i < users; i++) {
-            enqueueUser(new User("user-" + i, control));
+            enqueueUser(new User("user-" + i, control, readOnly));
         }
     }
 
@@ -99,11 +106,11 @@ public class LoadGenerator {
     }
     
     public void simulate() {
-        System.out.println("starting " + Thread.currentThread().getName());
+        trace("starting " + Thread.currentThread().getName());
         while (System.currentTimeMillis() < endTime ) {
             simulateNextUser();
         }
-        System.out.println("finished " + Thread.currentThread().getName());
+        trace("finished " + Thread.currentThread().getName());
     }
 
     public void simulateNextUser() {
@@ -125,5 +132,11 @@ public class LoadGenerator {
 
     public void enqueueUser(User user) {
         queue.put(user);
+    }
+
+    private void trace(String msg) {
+        if (false) {
+            System.out.println(msg);
+        }
     }
 }
