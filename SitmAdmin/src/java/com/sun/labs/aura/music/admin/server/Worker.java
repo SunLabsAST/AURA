@@ -5,10 +5,11 @@
 package com.sun.labs.aura.music.admin.server;
 
 import com.sun.labs.aura.music.MusicDatabase;
-import com.sun.labs.aura.music.admin.client.ParamDescriptor;
 import com.sun.labs.aura.music.admin.client.WorkbenchDescriptor;
 import com.sun.labs.aura.music.admin.client.WorkbenchResult;
 import com.sun.labs.aura.util.AuraException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,16 +61,10 @@ public abstract class Worker extends MDBHelper {
         long start = System.currentTimeMillis();
         try {
             go(mdb, params, result);
-        } catch (AuraException ex) {
-            result.fail("AuraException " + ex.getMessage());
-            ex.printStackTrace();
-        } catch (RemoteException ex) {
-            result.fail("RemoteException " + ex.getMessage());
-            ex.printStackTrace();
         } catch (Throwable t) {
-            result.fail("Unexpected trouble: " + t.getMessage());
-            t.printStackTrace();
-        }
+            result.fail(getExceptionExplanation(t));
+            captureStackTrace(result, t);
+        } 
         long delta = System.currentTimeMillis() - start;
         result.setTime(delta);
         return result;
@@ -139,5 +134,26 @@ public abstract class Worker extends MDBHelper {
         }
 
         throw new AuraException("Can't find enum for value " + v);
+    }
+
+
+    private String getExceptionExplanation(Throwable t) {
+        String exceptionName = t.getClass().getSimpleName();
+        String msg = t.getMessage();
+        if (t.getCause() != null) {
+            msg = msg + " cause: " + getExceptionExplanation(t.getCause());
+        }
+        return exceptionName + ":" + msg;
+    }
+
+    private void captureStackTrace(WorkbenchResult result, Throwable t) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        t.printStackTrace(pw);
+        pw.close();
+        String trace = sw.toString();
+        if (trace.length() > 0) {
+            result.output(trace);
+        }
     }
 }

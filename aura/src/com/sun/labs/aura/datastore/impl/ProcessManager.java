@@ -17,10 +17,12 @@ public interface ProcessManager extends Component, Remote {
      * returned once the process has started and is ready.
      * 
      * @param prefix the hash code prefix for the new partition
+     * @param owner prefix of the partition managing this new partition
      * @return the fully created partition cluster
      * @throws AuraException if the cluster exists or could not be created
      */
-    public PartitionCluster createPartitionCluster(DSBitSet prefix)
+    public PartitionCluster createPartitionCluster(DSBitSet prefix,
+                                                   DSBitSet owner)
             throws AuraException, RemoteException;
 
     /**
@@ -29,11 +31,13 @@ public interface ProcessManager extends Component, Remote {
      * use within a cluster with the given prefix.
      * 
      * @param prefix the prefix of the cluster this replicant will be used with
+     * @param owner prefix of the partition managing the partition of this replicant
      * @return the fully created replicant.
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public Replicant createReplicant(DSBitSet prefix)
+    public Replicant createReplicant(DSBitSet prefix,
+                                     DSBitSet owner)
             throws AuraException, RemoteException;
 
     /**

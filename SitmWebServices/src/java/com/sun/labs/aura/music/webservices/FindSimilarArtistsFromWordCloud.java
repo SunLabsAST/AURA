@@ -33,7 +33,7 @@ public class FindSimilarArtistsFromWordCloud extends HttpServlet {
     public void init() throws ServletException {
         super.init();
         pc = new ParameterChecker(SERVLET_NAME, "find artists similar to a wordcloud");
-        pc.addParam("wordcloud", "the wordcloud");
+        pc.addParam("wordCloud", "the wordcloud");
         pc.addParam("max", "10", "the maxiumum number of artists to return");
         pc.addParam("popularity", Popularity.ALL.name(), "the popularity filter");
     }

@@ -11,12 +11,12 @@ import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -477,6 +477,7 @@ public class MainSelector extends DockPanel {
 
         void inProcess() {
             g.setWidget(0, ColumnManager.COL_STATUS, running);
+            g.clearCell(0, ColumnManager.COL_TRACE);
             setMessage("");
         }
 
@@ -519,10 +520,21 @@ public class MainSelector extends DockPanel {
             if (ts.isPassed()) {
                 pass();
             } else {
-                fail(ts.getFailReason());
+                fail(getFailureSummary(ts));
+                if (ts.getStackTrace() != null) {
+                    g.setWidget(0, ColumnManager.COL_TRACE, new TraceButton(ts.getStackTrace()));
+                }
             }
             g.setText(0, ColumnManager.COL_TIME, Long.toString(ts.getTime()));
             showCounts();
+        }
+
+        String getFailureSummary(TestStatus ts) {
+            if (ts.getMostRecentQuery() != null) {
+                return ts.getFailReason() + " : " + ts.getMostRecentQuery();
+            } else {
+                return ts.getFailReason();
+            }
         }
 
         void run() {
@@ -598,11 +610,12 @@ class ColumnManager {
     public final static int COL_STATUS = 0;
     public final static int COL_NAME = 1;
     public final static int COL_MESSAGE = 2;
-    public final static int COL_TIME = 3;
-    public final static int COL_COUNT = 4;
-    public final static int COL_FAIL_COUNT = 5;
-    public final static int COL_BUTTON = 6;
-    public final static int COL_MAX = 7;
+    public final static int COL_TRACE = 3;
+    public final static int COL_TIME = 4;
+    public final static int COL_COUNT = 5;
+    public final static int COL_FAIL_COUNT = 6;
+    public final static int COL_BUTTON = 7;
+    public final static int COL_MAX = 8;
 
     public final static String OVERALL_WIDTH = "900px";
 
@@ -613,6 +626,7 @@ class ColumnManager {
         columns[COL_STATUS]     = new Column("Status",   "100px",   "columnHeavy");
         columns[COL_NAME]       = new Column("Test",     "200px",    "columnNormal");
         columns[COL_MESSAGE]    = new Column("Message",  "250px",    "columnLight");
+        columns[COL_TRACE]      = new Column("",  "60px",    "columnLight");
         columns[COL_BUTTON]     = new Column("",  "60px");
         columns[COL_TIME]       = new Column("Time (ms)","80px",     "columnLight");
         columns[COL_COUNT]      = new Column("Count",    "80px",     "columnLight");
@@ -650,5 +664,24 @@ class ColumnManager {
                 row.getCellFormatter().addStyleName(0, i, columns[i].getStyle());
             }
         }
+    }
+}
+
+class TraceButton extends Composite implements ClickListener {
+    private String stackTrace;
+    TraceButton(String stackTrace) {
+        this.stackTrace = stackTrace;
+        Button b = new Button("Trace");
+        b.setStyleName("traceButton");
+        b.addClickListener(this);
+        initWidget(b);
+    }
+
+    public void onClick(Widget arg0) {
+        PopupPanel pp = new PopupPanel(true);
+        pp.setStyleName("tracePopup");
+        pp.setWidget(new Label(stackTrace));
+        pp.setAnimationEnabled(true);
+        pp.center();
     }
 }

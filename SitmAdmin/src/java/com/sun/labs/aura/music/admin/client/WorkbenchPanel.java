@@ -171,7 +171,6 @@ public class WorkbenchPanel extends Composite implements TreeListener {
             initWidget(panel);
         }
 
-
         private Widget getListBoxForParam(ParamDescriptor p) {
             ListBox listBox = new ListBox();
             int defaultIndex = 0;
@@ -209,7 +208,6 @@ public class WorkbenchPanel extends Composite implements TreeListener {
             }
             return p;
         }
-
 
         private String getText(Widget w) {
             if (w instanceof TextBox) {
@@ -261,14 +259,14 @@ public class WorkbenchPanel extends Composite implements TreeListener {
                             status.error(wbr.getFailReason());
                         } else {
                             status.info("OK");
-
-                            StringBuilder sb = new StringBuilder();
-                            for (String msg : wbr.getOutput()) {
-                                sb.append(msg);
-                                sb.append("\n");
-                            }
-                            output.setText(sb.toString());
                         }
+
+                        StringBuilder sb = new StringBuilder();
+                        for (String msg : wbr.getOutput()) {
+                            sb.append(msg);
+                            sb.append("\n");
+                        }
+                        output.setText(sb.toString());
                         isRunning = false;
                     }
                 });

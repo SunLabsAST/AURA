@@ -24,6 +24,8 @@
     
     <property name="prefix" value="01"/>
     
+    <property name="owner" value=""/>
+    
     <component name="prefixEntries" type="com.sun.labs.util.props.ConfigurationEntries">
         <propertylist name="entries">
             <item>${prefix}</item>
@@ -66,6 +68,7 @@
         </propertylist>
         <property name="processManager" value="processManager"/>
         <property name="register" value="false"/>
+        <property name="owner" value="${owner}"/>
     </component>
 
     <!-- A service starter for this cluster -->

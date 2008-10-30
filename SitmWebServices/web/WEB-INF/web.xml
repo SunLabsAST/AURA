@@ -85,6 +85,10 @@
         <servlet-name>GetListeners</servlet-name>
         <servlet-class>com.sun.labs.aura.music.webservices.GetListeners</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>GetListenerTags</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.webservices.GetListenerTags</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>FindSimilarArtists</servlet-name>
         <url-pattern>/FindSimilarArtists</url-pattern>
@@ -246,6 +250,14 @@
         <servlet-name>GetListeners</servlet-name>
         <url-pattern>/1.0/GetListeners</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetListenerTags</servlet-name>
+        <url-pattern>/GetListenerTags</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetListenerTags</servlet-name>
+        <url-pattern>/1.0/GetListenerTags</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>
             30
@@ -265,17 +277,13 @@
             <http-method>TRACE</http-method>
             <http-method>DELETE</http-method>
         </web-resource-collection>
-        <auth-constraint>
-            <description>Limit access to the api to members of the api role</description>
-            <role-name>api</role-name>
-            </auth-constraint>
         </security-constraint>
     <login-config>
         <auth-method>BASIC</auth-method>
         <realm-name>TasteKeeper.com Music API</realm-name>
         </login-config>
     <security-role>
-        <description>Provides access to the web services API for TasteKeeper</description>
+        <description/>
         <role-name>api</role-name>
     </security-role>
     </web-app>

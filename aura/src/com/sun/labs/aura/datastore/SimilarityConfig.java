@@ -40,6 +40,11 @@ public class SimilarityConfig implements Serializable {
      * Defaults to zero, which means that no timeout will be used.
      */
     private long timeout;
+
+    /**
+     * Whether we're happy to get partial results.  Defaults to false.
+     */
+    private boolean allowPartialResults;
     
     /**
      * Generate a default configuration.
@@ -109,6 +114,14 @@ public class SimilarityConfig implements Serializable {
 
     public void setTimeout(long timeout) {
         this.timeout = timeout;
+    }
+
+    public void setAllowPartialResults(boolean allowPartialResults) {
+        this.allowPartialResults = allowPartialResults;
+    }
+
+    public boolean getAllowPartialResults() {
+        return allowPartialResults;
     }
     
     public String getField() {

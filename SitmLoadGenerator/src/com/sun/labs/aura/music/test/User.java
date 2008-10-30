@@ -30,10 +30,13 @@ public class User implements Delayed {
     private List<OpEntry> operations;
     private String name;
     private boolean readOnly = true;
+    private long lateSum = 0;
+    private int lateCount = 0;
 
-    public User(String name, Control control) {
+    public User(String name, Control control, boolean readOnly) {
         this.name = name;
         this.control = control;
+        this.readOnly = true;
 
         operations = new ArrayList<OpEntry>();
         averageActivityTime = randomBetween(2, 150);
@@ -74,6 +77,7 @@ public class User implements Delayed {
             long late = -getDelay(TimeUnit.MILLISECONDS);
             if (late > 100L) {
                 System.out.printf("WARNING - simulator is overloaded, processed user %d ms late\n", late);
+                control.late(late);
             }
             long startTime = control.getMonitor().opStart();
             boolean ok;
@@ -156,7 +160,7 @@ public class User implements Delayed {
     }
 
     private void createUser(String name) {
-        System.out.println("Creating user: " + name + " avg activity time is " + averageActivityTime + " secs");
+        // System.out.println("Creating user: " + name + " avg activity time is " + averageActivityTime + " secs");
     }
 
     private void randomDelay() {
@@ -220,26 +224,13 @@ public class User implements Delayed {
     }
 
     class OPArtistSearch extends Operation {
-
-        int which = 0;
-        private String[] searchString = {
-            "beatles",
-            "britney",
-            "the",
-            "breaking",
-            "weezer",
-            "deerhoof",
-            "the the",
-            "the who",
-            "bj*rk",
-        };
-
         OPArtistSearch() {
             super("ArtistSearch");
         }
 
         public boolean go() throws IOException {
-            control.getSitm().artistSearch(searchString[which++ % searchString.length]);
+            String query = control.getRandomArtistName();
+            control.getSitm().artistSearch(query);
             return true;
         }
     }
@@ -258,15 +249,14 @@ public class User implements Delayed {
 
     class OPShowArtist extends Operation {
         private String curArtistID = selectRandomArtistKey();
-        private final static int MAX_GET = 5;
+        private final static int MAX_GET = 15;
 
         OPShowArtist() {
             super("ShowArtist");
         }
 
         public boolean go() throws IOException {
-            List<Scored<Item>> items = control.getSitm().findSimilarArtistsByKey(curArtistID, 15);
-
+            List<Scored<Item>> items = control.getSitm().findSimilarArtistsByKey(curArtistID, MAX_GET);
             if (items.size() > 0) {
                 Collections.shuffle(items);
                 curArtistID = items.get(0).getItem().getKey();
@@ -285,18 +275,13 @@ public class User implements Delayed {
     }
 
     class OPArtistTagSearch extends Operation {
-
-        private int which = 0;
-        private String[] tagSearchStrings = {
-            "emo", "punk", "metal", "rock", "female", "wrist", "fast", "trum", "sax"
-        };
-
         OPArtistTagSearch() {
             super("ArtistTagSearch");
         }
 
         public boolean go() throws IOException {
-            control.getSitm().tagSearch(tagSearchStrings[which++ % tagSearchStrings.length], 20);
+            String query = control.getRandomArtistTagName();
+            control.getSitm().tagSearch(query, 20);
             return true;
         }
     }
@@ -321,7 +306,8 @@ public class User implements Delayed {
         }
 
         public boolean go() throws IOException {
-            control.getSitm().findSimilarArtistFromWordCloud("emo,punk,metal,rock", 20);
+            String wordCloud = control.getRandomWordCloud();
+            control.getSitm().findSimilarArtistFromWordCloud(wordCloud, 20);
             return true;
         }
     }

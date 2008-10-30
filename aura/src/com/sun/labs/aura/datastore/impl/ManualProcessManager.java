@@ -31,7 +31,8 @@ public class ManualProcessManager implements ProcessManager,
         
     }
 
-    public PartitionCluster createPartitionCluster(DSBitSet prefix)
+    public PartitionCluster createPartitionCluster(DSBitSet prefix,
+                                                   DSBitSet owner)
             throws AuraException, RemoteException {
         //
         // Enter a loop waiting for the requested partition to appear in
@@ -69,7 +70,8 @@ public class ManualProcessManager implements ProcessManager,
         return target;
     }
 
-    public Replicant createReplicant(DSBitSet prefix)
+    public Replicant createReplicant(DSBitSet prefix,
+                                     DSBitSet owner)
             throws AuraException, RemoteException {
         throw new UnsupportedOperationException("Not supported yet.");
     }

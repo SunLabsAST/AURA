@@ -187,7 +187,7 @@ public class Commander {
      * A debuging method ... dumps a domdocument to
      * standard out
      */
-    static void dumpDocument(Document document) {
+    public static void dumpDocument(Document document) {
         try {
             // Prepare the DOM document for writing
             Source source = new DOMSource(document);

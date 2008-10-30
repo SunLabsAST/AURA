@@ -89,7 +89,7 @@ public class ItemSearchEngine implements Configurable {
 
     private SearchEngine engine;
 
-    private Logger log;
+    private Logger logger;
 
     private int engineLogLevel;
 
@@ -114,7 +114,7 @@ public class ItemSearchEngine implements Configurable {
      */
     public ItemSearchEngine(String indexDir, String config) {
         this.indexDir = indexDir;
-        log = Logger.getLogger(getClass().getName());
+        logger = Logger.getLogger(getClass().getName());
         try {
             URL cu = ItemSearchEngine.class.getResource(config);
 
@@ -126,7 +126,7 @@ public class ItemSearchEngine implements Configurable {
                     "aardvark_search_engine",
                     cu);
         } catch(SearchEngineException see) {
-            log.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
+            logger.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
         }
     }
 
@@ -145,9 +145,9 @@ public class ItemSearchEngine implements Configurable {
         try {
             engine.getPM().recalculateTermStats();
         } catch(IOException ex) {
-            log.log(Level.SEVERE, "Error regenerating term stats", ex);
+            logger.log(Level.SEVERE, "Error regenerating term stats", ex);
         } catch(FileLockException ex) {
-            log.log(Level.SEVERE, "Error regenerating term stats", ex);
+            logger.log(Level.SEVERE, "Error regenerating term stats", ex);
         }
     }
 
@@ -155,8 +155,8 @@ public class ItemSearchEngine implements Configurable {
         //
         // Load up the search engine.
         engineLogLevel = ps.getInt(PROP_ENGINE_LOG_LEVEL);
-        log = ps.getLogger();
-        Log.setLogger(log);
+        logger = ps.getLogger();
+        Log.setLogger(logger);
         Log.setLevel(engineLogLevel);
         indexDir = ps.getString(PROP_INDEX_DIR);
         
@@ -172,10 +172,10 @@ public class ItemSearchEngine implements Configurable {
                         "Unable to make temporary directory for search index");
             }
             try {
-                log.info("Copying search index into temp dir");
+                logger.info("Copying search index into temp dir");
                 DirCopier dc = new DirCopier(new File(indexDir), td);
                 dc.copy();
-                log.info("Copying completed");
+                logger.info("Copying completed");
                 indexDir = tds;
             } catch(IOException ex) {
                 throw new PropertyException(ex, ps.getInstanceName(),
@@ -200,7 +200,7 @@ public class ItemSearchEngine implements Configurable {
                 regenerateTermStats();
             }
         } catch(SearchEngineException see) {
-            log.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
+            logger.log(Level.SEVERE, "error opening engine for: " + indexDir, see);
         }
 
         //
@@ -347,7 +347,7 @@ public class ItemSearchEngine implements Configurable {
             engine.index(item.getKey(), im);
             return true;
         } catch(SearchEngineException ex) {
-            log.log(Level.SEVERE, "Exception indexing " + item.getKey(), ex);
+            logger.log(Level.SEVERE, "Exception indexing " + item.getKey(), ex);
         }
         return false;
     }
@@ -439,6 +439,10 @@ public class ItemSearchEngine implements Configurable {
         return ret;
     }
 
+    public void delete(String key) {
+        engine.delete(key);
+    }
+
     /**
      * Gets the document associated with a given key.
      * @param key the key of the entry that we want the document vector for
@@ -502,7 +506,6 @@ public class ItemSearchEngine implements Configurable {
         // See if we need to exclude some terms.
         Set<String> exclude = config.getExclude();
         if(exclude != null && exclude.size() > 0) {
-            log.info("exclude: " + exclude);
             ResultSet exc = ((SearchEngineImpl) engine).anyTerms(exclude,
                     config.getFieldNames());
             sim = sim.difference(exc);
@@ -529,8 +532,8 @@ public class ItemSearchEngine implements Configurable {
             nt = crf.getTested();
             np = crf.getPassed();
         }
-        if(log.isLoggable(Level.FINER)) {
-            log.finer(String.format(
+        if(logger.isLoggable(Level.FINER)) {
+            logger.finer(String.format(
                     "fsgr %s docs: %d test: %d pass: %d gr: %.2f",
                     dv.getKey(),
                     sim.size(),
@@ -623,7 +626,7 @@ public class ItemSearchEngine implements Configurable {
         ClassifierModel cm = ((SearchEngineImpl) engine).getClassifierManager().
                 getClassifier(autoTag);
         if(cm == null || !(cm instanceof ExplainableClassifierModel)) {
-            log.warning("Not an explainable classifier: " + autoTag);
+            logger.warning("Not an explainable classifier: " + autoTag);
             return new ArrayList<Scored<String>>();
         }
 
@@ -756,7 +759,7 @@ public class ItemSearchEngine implements Configurable {
                 getPartition()).getFieldStore().getSavedFieldData(
                 "autotag-score", dke.getID(), true);
         if(autotags.size() != autotagScores.size()) {
-            log.warning("Mismatched autotags and scores: " + autotags + " " +
+            logger.warning("Mismatched autotags and scores: " + autotags + " " +
                     autotagScores);
         }
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
@@ -772,10 +775,10 @@ public class ItemSearchEngine implements Configurable {
             //
             // Stop listening for things and shut down the engine.
             shuttingDown = true;
-            log.log(Level.INFO, "Shutting down search engine");
+            logger.log(Level.INFO, "Shutting down search engine");
             engine.close();
         } catch(SearchEngineException ex) {
-            log.log(Level.WARNING, "Error closing index data engine", ex);
+            logger.log(Level.WARNING, "Error closing index data engine", ex);
         }
     }
 
@@ -816,7 +819,7 @@ public class ItemSearchEngine implements Configurable {
                 long curr = System.currentTimeMillis();
                 engine.flush();
             } catch(SearchEngineException ex) {
-                log.log(Level.SEVERE, "Error flushing engine data", ex);
+                logger.log(Level.SEVERE, "Error flushing engine data", ex);
             }
         }
     }

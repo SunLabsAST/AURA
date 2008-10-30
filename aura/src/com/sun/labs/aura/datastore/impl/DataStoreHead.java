@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -62,6 +63,8 @@ import java.util.logging.Logger;
 public class DataStoreHead implements DataStore, Configurable, AuraService {
 
     protected BinaryTrie<PartitionCluster> trie = null;
+
+    final private Set<String> allPrefixes = new HashSet<String>();
 
     protected ExecutorService executor;
 
@@ -343,8 +346,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         }
         
         nw.stop();
-        if(logger.isLoggable(Level.FINER)) {
-            logger.finer(String.format("dsh gSIs for %d took %.3f",
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("dsh gSIs for %d took %.3f",
                     keys.size(),
                     nw.getTimeMillis()));
         }
@@ -979,7 +982,9 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         int numClusters = Math.min((int) Math.ceil(trie.size() *
                 config.getReportPercent()), trie.size());
 
-        final PCLatch latch = new PCLatch(numClusters, config.getTimeout());
+        final PCLatch latch = new PCLatch(allPrefixes,numClusters,
+                config.getTimeout(),
+                config.getAllowPartialResults());
 
         //
         // What if the key didn't exist?
@@ -987,8 +992,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             return new ArrayList<Scored<Item>>();
         }
 
-        if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("dsh fs start"));
+        if(logger.isLoggable(Level.FINER)) {
+            logger.finer(String.format("dsh fs start"));
         }
 
         Set<PartitionCluster> clusters = trie.getAll();
@@ -1003,18 +1008,18 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                 public List<Scored<String>> call()
                         throws AuraException, RemoteException {
                     try {
-                        if (logger.isLoggable(Level.FINE)) {
-                            logger.fine(String.format("dsh pc %s fs call", pc.
+                        if (logger.isLoggable(Level.FINER)) {
+                            logger.finer(String.format("dsh pc %s fs call", pc.
                                     getPrefix().toString()));
                         }
                         List<Scored<String>> ret = pc.findSimilar(dv, config);
-                        if (logger.isLoggable(Level.FINE)) {
-                            logger.fine(String.format("dsh pc %s fs return", pc.
+                        if (logger.isLoggable(Level.FINER)) {
+                            logger.finer(String.format("dsh pc %s fs return", pc.
                                     getPrefix().toString()));
                         }
                         return ret;
                     } finally {
-                        latch.countDown();
+                        latch.countDown(pc.getPrefix().toString());
                     }
 
                 }
@@ -1034,7 +1039,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             for(Callable c : callers) {
                 futures.add(executor.submit(c));
             }
-            List<Scored<String>> keys = sortScored(futures, config.getN(), latch);
+            List<Scored<String>> keys = sortScored("findSimilar", futures, config.getN(), latch);
             fsw.stop();
             List<Scored<Item>> ret = keysToItems(keys);
             allw.stop();
@@ -1131,7 +1136,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         Set<PartitionCluster> clusters = trie.getAll();
         Set<Callable<List<Scored<String>>>> callers =
                 new HashSet<Callable<List<Scored<String>>>>();
-        final PCLatch latch = new PCLatch(clusters.size());
+        final PCLatch latch = new PCLatch(allPrefixes,clusters.size());
         for(PartitionCluster p : clusters) {
             callers.add(new PCCaller(p) {
 
@@ -1141,7 +1146,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                         List<Scored<String>> ret = pc.getAutotagged(autotag, n);
                         return ret;
                     } finally {
-                        latch.countDown();
+                        latch.countDown(pc.getPrefix().toString());
                     }
                 }
             });
@@ -1149,12 +1154,13 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         try {
             NanoWatch sw = new NanoWatch();
             sw.start();
-            List<Scored<Item>> res = keysToItems(sortScored(executor.invokeAll(
+            List<Scored<Item>> res = keysToItems(sortScored("getAutotagged",
+                    executor.invokeAll(
                     callers),
                     n, latch));
             sw.stop();
-            if(logger.isLoggable(Level.FINE)) {
-                logger.fine(String.format("dsh at %s took %.3f", autotag, sw.
+            if(logger.isLoggable(Level.FINER)) {
+                logger.finer(String.format("dsh at %s took %.3f", autotag, sw.
                         getTimeMillis()));
             }
             return res;
@@ -1228,11 +1234,11 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
      *  Utility and configuration methods
      * 
      */
-    private List<Scored<String>> sortScored(
+    private List<Scored<String>> sortScored(String operation,
             List<Future<List<Scored<String>>>> results,
             int n,
             PCLatch latch)
-            throws InterruptedException, ExecutionException {
+            throws InterruptedException, ExecutionException, AuraException {
 
         PriorityQueue<Scored<String>> sorter =
                 new PriorityQueue<Scored<String>>(n, ScoredComparator.COMPARATOR);
@@ -1240,6 +1246,19 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         // Wait for some, or all, or some time limit for execution to
         // finish.
         latch.await();
+
+        //
+        // If the count is greater than 0 and we're not willing to accept partial
+        // results, then we need to raise an exception.
+        long remCount = latch.getCount();
+        if(remCount > 0 && !latch.allowPartialResults()) {
+            throw new AuraException(String.format("Partial results for %s, %d replicants' data missing, missing replicants: %s",
+                    operation,
+                    remCount, latch.getRemaining()));
+        }
+
+        //
+        // We can collect our results.
         for(Future<List<Scored<String>>> future : results) {
             if(future.isDone() || (!latch.allowPartialResults())) {
                 List<Scored<String>> curr = future.get();
@@ -1309,7 +1328,9 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             ret = new ArrayList<Scored<Item>>(l.size());
             for(Scored<String> ss : l) {
                 Item i = getItem(ss.getItem());
-                ret.add(new Scored<Item>(i, ss));
+                if(i != null) {
+                    ret.add(new Scored<Item>(i, ss));
+                }
             }
         }
         nw.stop();
@@ -1336,6 +1357,9 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
             throws RemoteException {
         logger.info("Adding partition cluster: " + pc.getPrefix());
         trie.add(pc, pc.getPrefix());
+        synchronized(allPrefixes) {
+            allPrefixes.add(pc.getPrefix().toString());
+        }
     }
     
     public void registerPartitionSplit(PartitionCluster zeroChild,
@@ -1345,6 +1369,10 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                 " and " + oneChild.getPrefix());
         trie.addPair(zeroChild, zeroChild.getPrefix(),
                      oneChild, oneChild.getPrefix());
+        synchronized(allPrefixes) {
+            allPrefixes.add(zeroChild.getPrefix().toString());
+            allPrefixes.add(oneChild.getPrefix().toString());
+        }
     }
     
     public Replicant getReplicant(String prefix) throws RemoteException {
@@ -1425,17 +1453,16 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
         protected boolean allowPartialResults;
 
+        protected Set<String> toReport;
+
         /**
          * Construct a standard latch that waits for count elements to finish
          * before continuing.
          * @param count
          * @param partialResults true if partial results are allowed
          */
-        public PCLatch(int count, boolean partialResults) {
-            super(count);
-            initialCount = count;
-            timeout = 0;
-            allowPartialResults = partialResults;
+        public PCLatch(Set<String> allPrefixes, int count, boolean partialResults) {
+            this(allPrefixes, count, 0, partialResults);
         }
 
         /**
@@ -1443,8 +1470,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
          * before continuing.
          * @param count
          */
-        public PCLatch(int count) {
-            this(count, false);
+        public PCLatch(Set<String> allPrefixes, int count) {
+            this(allPrefixes,count, false);
         }
 
         /**
@@ -1454,11 +1481,21 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
          * @param count the initial count of the latch
          * @param timeout the initial time to wait in milliseconds
          */
-        public PCLatch(int count, long timeout) {
+        public PCLatch(Set<String> allPrefixes, int count, long timeout) {
+            this(allPrefixes, count,timeout, true);
+        }
+
+        public PCLatch(Set<String> allPrefixes, int count, long timeout, boolean allowPartialResults) {
             super(count);
             initialCount = count;
             this.timeout = timeout;
-            allowPartialResults = true;
+            this.allowPartialResults = allowPartialResults;
+            toReport = Collections.synchronizedSet(new HashSet<String>(allPrefixes));
+        }
+
+        public void countDown(String prefix) {
+            super.countDown();
+            toReport.remove(prefix);
         }
 
         /**
@@ -1472,6 +1509,10 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
 
         public long getTimeout() {
             return timeout;
+        }
+
+        public Set<String> getRemaining() {
+            return new TreeSet<String>(toReport);
         }
 
         /**
@@ -1609,7 +1650,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         Set<PartitionCluster> clusters = trie.getAll();
         Set<Callable<List<Scored<String>>>> callers =
                 new HashSet<Callable<List<Scored<String>>>>();
-        final PCLatch latch = new PCLatch(clusters.size());
+        final PCLatch latch = new PCLatch(allPrefixes,clusters.size());
         for(PartitionCluster p : clusters) {
             callers.add(new PCCaller(p, rf) {
 
@@ -1619,7 +1660,7 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
                         List<Scored<String>> ret = pc.query(query, sort, n, rf);
                         return ret;
                     } finally {
-                        latch.countDown();
+                        latch.countDown(pc.getPrefix().toString());
                     }
                 }
             });
@@ -1627,8 +1668,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
         try {
             NanoWatch sw = new NanoWatch();
             sw.start();
-            List<Scored<Item>> res = keysToItems(sortScored(executor.invokeAll(
-                    callers), n, latch));
+            List<Scored<Item>> res = keysToItems(sortScored("query",
+                    executor.invokeAll(callers), n, latch));
             sw.stop();
             if(logger.isLoggable(Level.FINE)) {
                 logger.fine(String.format("dsh q %s took %.3f", query, sw.
