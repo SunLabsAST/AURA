@@ -135,9 +135,14 @@ public class VizUI extends DockPanel {
     protected void fillPC() {
         pcColumn.clear();
         Map typeToTotals = new HashMap();
+        long totalItems = 0;
+        long totalAttn = 0;
         for (Iterator pit = pcInfos.iterator(); pit.hasNext();) {
             PCInfo pc = (PCInfo)pit.next();
             pcColumn.add(new PCPanel(pc));
+            
+            totalItems += pc.getNumItems();
+            totalAttn += pc.getNumAttention();
             
             //
             // Update the total type counts
@@ -156,12 +161,14 @@ public class VizUI extends DockPanel {
                 }
             }
         }
-        insertTypeTotals(typeToTotals);
+        insertTotals(totalItems, totalAttn, typeToTotals);
     }
     
-    protected void insertTypeTotals(Map typeTotals) {
+    protected void insertTotals(long totalItems, long totalAttn, Map typeTotals) {
         FlowPanel container = new FlowPanel();
         container.setStylePrimaryName("viz-clearPanel");
+        container.add(new StyleLabel("Total Items: " + totalItems, "viz-statLabel"));
+        container.add(new StyleLabel("Total Attention: " + totalAttn, "viz-statLabel"));
         container.add(Util.getTypeStatsPanel(typeTotals));
         dshColumn.insert(container, 0);
     }
