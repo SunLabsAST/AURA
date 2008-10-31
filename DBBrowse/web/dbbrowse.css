@@ -118,6 +118,10 @@ a:visited {
   font-style: italic;
 }
 
+.viz-closeLabel {
+  float: right;
+}
+
 .viz-subText {
   font-size: 8px;
   font-style: italic;

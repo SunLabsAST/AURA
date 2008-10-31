@@ -31,7 +31,7 @@ public class VizUI extends DockPanel {
     protected HorizontalPanel leftRight;
     protected VerticalPanel dshColumn;
     protected VerticalPanel pcColumn;
-    protected FlowPanel details;
+    protected VerticalPanel detailsColumn;
 
     
     protected List dshInfos;
@@ -73,11 +73,11 @@ public class VizUI extends DockPanel {
         dshColumn.setStylePrimaryName("viz-dshColumn");
         pcColumn = new VerticalPanel();
         pcColumn.setStylePrimaryName("viz-pcColumn");
-        details = new FlowPanel();
-        details.setStylePrimaryName("viz-detailsPanel");
+        detailsColumn = new VerticalPanel();
+        detailsColumn.setStylePrimaryName("viz-detailsColumn");
         leftRight.add(dshColumn);
         leftRight.add(pcColumn);
-        leftRight.add(details);
+        leftRight.add(detailsColumn);
         
         add(leftRight, CENTER);
         
@@ -85,8 +85,8 @@ public class VizUI extends DockPanel {
         service.refreshSvcs(refresher);
     }
     
-    public FlowPanel getDetailsPanel() {
-        return details;
+    public VerticalPanel getDetailsColumn() {
+        return detailsColumn;
     }
     
     public static VizUI getVizUI() {
