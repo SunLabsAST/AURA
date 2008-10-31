@@ -13,6 +13,7 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.ui.WidgetCollection;
 
 /**
  * A UI widget that represents a replicant
@@ -51,12 +52,21 @@ public class RepPanel extends FlowPanel {
     
     public void showStats() {
         //
-        // Before blowing away the current details display, check to see if
-        // it is a timer panel.  If so, stop the timer.
+        // If there isn't already a stats display for us, add one.
         VizUI ui = VizUI.getVizUI();
         final VerticalPanel details = ui.getDetailsColumn();
-
-        TimerPanel repStatsPanel = new TimerPanel(15) {
+        int numDet = details.getWidgetCount();
+        for (int i = 0; i < numDet; i++) {
+            Widget w = details.getWidget(i);
+            if (w instanceof TimerPanel) {
+                TimerPanel t = (TimerPanel)w;
+                if (t.getName().equals("rep" + rep.getPrefix())) {
+                    return;
+                }
+            }
+        }
+        
+        TimerPanel repStatsPanel = new TimerPanel("rep" + rep.getPrefix(), 15) {
             public void redraw() {
                 VizServiceAsync service = GWTMainEntryPoint.getVizService();
                 final AsyncCallback callback = new AsyncCallback() {
