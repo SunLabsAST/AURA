@@ -555,10 +555,10 @@ public class PartitionClusterImpl implements PartitionCluster,
         }            
         
         logger.info("Split finished, registering new partitions");
+        prefixCode = newLocalPrefix;
         for(DataStore ds : dataStoreHeads) {
             PartitionCluster exported =
                     (PartitionCluster) cm.getRemote(this, ds);
-            prefixCode = newLocalPrefix;
             try {
                 ds.registerPartitionSplit(exported, remote);
             } catch(RemoteException e) {

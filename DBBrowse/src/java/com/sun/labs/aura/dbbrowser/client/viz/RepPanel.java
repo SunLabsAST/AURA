@@ -11,8 +11,9 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import java.util.Iterator;
+import com.google.gwt.user.client.ui.WidgetCollection;
 
 /**
  * A UI widget that represents a replicant
@@ -51,25 +52,21 @@ public class RepPanel extends FlowPanel {
     
     public void showStats() {
         //
-        // Before blowing away the current details display, check to see if
-        // it is a timer panel.  If so, stop the timer.
+        // If there isn't already a stats display for us, add one.
         VizUI ui = VizUI.getVizUI();
-        FlowPanel details = ui.getDetailsPanel();
-        Iterator kids = details.iterator();
-        if (kids.hasNext()) {
-            Object kid = kids.next();
-            if (kid instanceof TimerPanel) {
-                TimerPanel tp = (TimerPanel)kid;
-                tp.stop();
+        final VerticalPanel details = ui.getDetailsColumn();
+        int numDet = details.getWidgetCount();
+        for (int i = 0; i < numDet; i++) {
+            Widget w = details.getWidget(i);
+            if (w instanceof TimerPanel) {
+                TimerPanel t = (TimerPanel)w;
+                if (t.getName().equals("rep" + rep.getPrefix())) {
+                    return;
+                }
             }
         }
-        details.setVisible(true);
         
-        //
-        // Clear current details and make a new timer panel to put in
-        details.clear();
-        
-        TimerPanel repStatsPanel = new TimerPanel(15) {
+        TimerPanel repStatsPanel = new TimerPanel("rep" + rep.getPrefix(), 15) {
             public void redraw() {
                 VizServiceAsync service = GWTMainEntryPoint.getVizService();
                 final AsyncCallback callback = new AsyncCallback() {
@@ -105,8 +102,19 @@ public class RepPanel extends FlowPanel {
                 add(new StyleLabel("Find Similars per sec: " +
                                       statForm.format(stats.getFindSimsPerSec()),
                                    "viz-statLabel"));
-                StyleLabel reset = new StyleLabel("Reset", "viz-actionLabel");
+                StyleLabel close = new StyleLabel("Close", "viz-actionLabel");
+                close.addStyleName("viz-closeLabel");
+
                 final TimerPanel container = this;
+                close.addClickListener(new ClickListener() {
+                    public void onClick(Widget arg0) {
+                        container.stop();
+                        container.removeFromParent();
+                    }
+                });
+                add(close);
+
+                StyleLabel reset = new StyleLabel("Reset", "viz-actionLabel");
                 VizUI.addConfDialog(reset,
                         new ClickListener() {
                             public void onClick(Widget arg0) {
@@ -118,6 +126,7 @@ public class RepPanel extends FlowPanel {
             }
             
         };
+        repStatsPanel.setStylePrimaryName("viz-detailsPanel");
         details.add(repStatsPanel);
         repStatsPanel.start();
     }

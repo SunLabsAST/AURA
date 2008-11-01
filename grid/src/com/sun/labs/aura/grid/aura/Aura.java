@@ -368,7 +368,7 @@ public abstract class Aura extends ServiceAdapter {
             "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
             "/classifier/starting.idx",
             "-Dprefix=" + prefix,
-            "-DdataFS=/files/data/" + prefix,
+            "-DdataFS=/files/data",
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             replicantConfig,

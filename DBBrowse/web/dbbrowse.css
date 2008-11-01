@@ -96,6 +96,12 @@ a:visited {
   border: 1px solid #999999;
 }
 
+.viz-clearPanel {
+  padding: 5px;
+  margin: 5px;
+}
+
+
 .viz-statLabel {
   
   font-size: 12px;
@@ -116,6 +122,10 @@ a:visited {
   display: inline;
   padding-right: 4px;
   font-style: italic;
+}
+
+.viz-closeLabel {
+  float: right;
 }
 
 .viz-subText {
