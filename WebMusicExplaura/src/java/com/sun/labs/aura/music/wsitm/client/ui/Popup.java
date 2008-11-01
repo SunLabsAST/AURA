@@ -99,6 +99,32 @@ public abstract class Popup {
         popup.center();
     }
 
+    public static void showRoundedPopup(Widget w, String title, final PopupPanel popup, int x, int y) {
+
+        VerticalPanel vP = new VerticalPanel();
+        if (title != null && title.length() > 0) {
+            Label titleLabel = new Label(title);
+            titleLabel.setStyleName("popupColors");
+            titleLabel.addStyleName("popupTitle");
+            vP.add(titleLabel);
+        }
+        w.getElement().getStyle().setPropertyPx("padding", 5);
+        w.addStyleName("popupColors");
+        vP.add(w);
+
+        Grid fP = new Grid(1,1);
+        fP.setStyleName("popupColors");
+        fP.setHeight("100%");
+        fP.setWidget(0, 0, vP);
+
+        RoundedPanel rp = new RoundedPanel(fP, RoundedPanel.ALL, 5);
+        rp.setCornerStyleName("popupColors");
+        popup.add(rp);
+        popup.setAnimationEnabled(true);
+        popup.setPopupPosition(x, y);
+        popup.show();
+    }
+
     public static void showInformationPopup(HTML html, int secTillAutoClose) {
 
         PopupPanel popup = getPopupPanel();

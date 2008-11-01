@@ -6,6 +6,7 @@
 package com.sun.labs.aura.music.wsitm.client.event;
 
 import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.Widget;
 
 /**
  *
@@ -19,4 +20,6 @@ public abstract class DataEmbededClickListener<T> implements ClickListener {
         super();
         this.data = data;
     }
+
+    public abstract void onClick(Widget sender);
 }

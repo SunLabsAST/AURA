@@ -29,6 +29,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
+import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.PlayedListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
@@ -351,8 +352,9 @@ public class DashboardSwidget extends Swidget {
             ContextMenu cM = new ContextMenu();
             String[] keyArray = cdm.getRecTypes().keySet().toArray(new String[0]);
             for (int i = keyArray.length - 1; i >= 0; i--) {
-                cM.addItem(keyArray[i], new DualDataEmbededCommand<String, Label>(keyArray[i], currShowing) {
-                    public void execute() {
+                cM.addElement(keyArray[i], new DualDataEmbededClickListener<String, Label>(keyArray[i], currShowing) {
+                    @Override
+                    public void onClick(Widget sender) {
                         String newSelectName = data;
 
                         // If the selection has changed
@@ -370,7 +372,7 @@ public class DashboardSwidget extends Swidget {
             // Create click listener
             ClickListener cL = new DataEmbededClickListener<ContextMenu>(cM) {
                 public void onClick(Widget sender) {
-                    data.showMenu(DOM.eventGetCurrentEvent());
+                    data.showAt(DOM.eventGetCurrentEvent());
                 }
             };
             

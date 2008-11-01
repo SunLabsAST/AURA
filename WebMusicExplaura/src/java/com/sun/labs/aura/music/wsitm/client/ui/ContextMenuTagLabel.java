@@ -11,6 +11,7 @@ import com.google.gwt.user.client.Window;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.TagDependentSharedMenu;
 
 /**
  *
@@ -30,7 +31,7 @@ public class ContextMenuTagLabel extends ContextMenuSpannedLabel {
         if (event.getTypeInt() == Event.ONCONTEXTMENU) {
             try {
                 DOM.eventPreventDefault(event);
-                cm.showSharedMenu(event, tag);
+                ((TagDependentSharedMenu)cm).showAt(event, tag);
             } catch (WebException ex) {
                 Window.alert(ex.toString());
             }

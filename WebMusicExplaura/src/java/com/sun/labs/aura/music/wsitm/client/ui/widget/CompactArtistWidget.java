@@ -18,6 +18,7 @@ import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -25,7 +26,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget.SwapableTxtButton;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
-import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.ArtistDependentSharedMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
@@ -78,9 +79,9 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         };
 
         //ContextMenuImage img = new MouseOverRollImage(aC);
-        ContextMenuImage img = new ContextMenuImage(aC.getImageURL());
+        Image img = new Image(aC.getImageURL());
         if (img == null) {
-            img = new ContextMenuImage("nopic.gif");
+            img = new Image("nopic.gif");
         }
         img.setStyleName("image");
         img.setHeight("75px");
@@ -364,7 +365,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
             if (event.getTypeInt() == Event.ONCONTEXTMENU) {
                 try {
                     DOM.eventPreventDefault(event);
-                    cm.showSharedMenu(event, aC);
+                    ((ArtistDependentSharedMenu)cm).showAt(event, aC);
                 } catch (WebException ex) {
                     Window.alert(ex.toString());
                 }

@@ -9,7 +9,6 @@ import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.ClickListenerCollection;
-import com.gwtext.client.widgets.menu.Menu;
 import com.sun.labs.aura.music.wsitm.client.event.SourcesRightClickEvents;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
 
@@ -27,9 +26,9 @@ public class ContextMenuSpannedLabel extends SpannedLabel implements SourcesRigh
      * @param txt
      * @param sharedMenu
      */
-    public ContextMenuSpannedLabel(String txt, Menu sharedMenu) {
+    public ContextMenuSpannedLabel(String txt, ContextMenu sharedMenu) {
         super(txt);
-        this.cm = new ContextMenu(sharedMenu);
+        this.cm = sharedMenu;
         init();
     }
     
@@ -48,7 +47,7 @@ public class ContextMenuSpannedLabel extends SpannedLabel implements SourcesRigh
     public void onBrowserEvent(Event event) {
         if (event.getTypeInt() == Event.ONCONTEXTMENU) {
             DOM.eventPreventDefault(event);
-            cm.showMenu(event);
+            cm.showAt(event);
             rightClickListeners.fireClick(this);
         } else {
             super.onBrowserEvent(event);
