@@ -63,7 +63,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
             boolean fetchRatings, boolean displayDiff) {
     
         processArtistSimValues(aC);
-        doInit(musicServer, cdm, fetchRatings, true);
+        doInit(musicServer, cdm, fetchRatings, displayDiff);
     }
     
     public ArtistListWidget(MusicSearchInterfaceAsync musicServer,

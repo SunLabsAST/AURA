@@ -983,14 +983,14 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
                 ClientDataManager cdm, ArrayList<ScoredC<ArtistCompact>> aCList, TagWidget tagLand) {
 
-            super(musicServer, cdm, aCList, cdm.isLoggedIn(), true);
+            super(musicServer, cdm, aCList, cdm.isLoggedIn(), false);
             this.tagLand = tagLand;
         }
         
         public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
                 ClientDataManager cdm, ArtistCompact[] aDArray, TagWidget tagLand) {
 
-            super(musicServer, cdm, aDArray, cdm.isLoggedIn(), true);
+            super(musicServer, cdm, aDArray, cdm.isLoggedIn(), false);
             this.tagLand = tagLand;
         }
 
