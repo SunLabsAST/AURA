@@ -361,12 +361,14 @@ public class ResizableTagWidget extends TagWidget {
         }
 
         public void onDelete() {
-            this.fadeOut(new DataEmbededCommand<String>(getWidget().getCloudItem().getId()) {
+            /*this.fadeOut(new DataEmbededCommand<String>(getWidget().getCloudItem().getId()) {
 
                 public void execute() {
                     removeItem(data);
                 }
             });
+            */
+            removeItem(getWidget().getCloudItem().getId());
         }
 
         public CloudItem getCloudItem() {

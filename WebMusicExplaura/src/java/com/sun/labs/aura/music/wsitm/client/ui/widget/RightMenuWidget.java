@@ -8,6 +8,7 @@ package com.sun.labs.aura.music.wsitm.client.ui.widget;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.MouseListenerCollection;
 import com.google.gwt.user.client.ui.Panel;
@@ -23,7 +24,8 @@ import java.util.HashSet;
  *
  * @author mailletf
  */
-public class RightMenuWidget <T extends Widget> extends AnimatedComposite 
+//public class RightMenuWidget <T extends Widget> extends AnimatedComposite
+public class RightMenuWidget <T extends Widget> extends Composite
         implements SourcesMouseEvents {
 
     private Panel mainPanel; // panel containing the main widget and right menu

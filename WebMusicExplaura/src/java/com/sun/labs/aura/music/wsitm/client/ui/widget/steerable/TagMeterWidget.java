@@ -285,12 +285,15 @@ public class TagMeterWidget extends TagWidget {
         }
 
         public void onDelete() {
-            this.fadeOut(new DataEmbededCommand<String>(i.getId()) {
+            /*
+             this.fadeOut(new DataEmbededCommand<String>(i.getId()) {
 
                 public void execute() {
                     removeItem(data);
                 }
             });
+            */
+            removeItem(i.getId());
         }
     }
 }
