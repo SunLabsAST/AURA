@@ -62,7 +62,7 @@ public class AddAttentionData extends HttpServlet {
 
             if (mdb == null) {
                 status.addError(ErrorCode.InternalError, "Can't connect to the music database");
-                throw new ParameterException();
+                return;
             }
 
             String appKey = pc.getParam(status, request, "appKey");
@@ -82,7 +82,7 @@ public class AddAttentionData extends HttpServlet {
             }
             mdb.addAttention(srcKey, destKey, type, value);
         } catch (AuraException ex) {
-            status.addError(ErrorCode.InternalError, "Problem adding attention data " + ex.getMessage());
+            status.addError(ErrorCode.InternalError, "Problem adding attention data " + ex.getMessage(), ex);
         } catch (ParameterException ex) {
         } finally {
             status.toXML(out);

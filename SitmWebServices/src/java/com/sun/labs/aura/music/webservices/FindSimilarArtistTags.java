@@ -102,7 +102,7 @@ public class FindSimilarArtistTags extends HttpServlet {
                     status.addError(ErrorCode.MissingArgument, "need a name or a key");
                 }
             } catch (AuraException ex) {
-                status.addError(ErrorCode.InternalError, "Problem accessing data");
+                status.addError(ErrorCode.InternalError, "Problem accessing data", ex);
             }
         } catch (ParameterException e) {
         } finally {

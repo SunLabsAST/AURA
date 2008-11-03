@@ -5,17 +5,15 @@
 package com.sun.labs.aura.music.webservices;
 
 import com.sun.labs.aura.music.Artist;
+import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
-import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.aura.util.Tag;
-import com.sun.labs.aura.util.WordCloud;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletContext;
@@ -28,9 +26,9 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author plamere
  */
-public class GetArtistTags extends HttpServlet {
+public class GetAllTagData extends HttpServlet {
 
-    private final static String SERVLET_NAME = "GetArtistTags";
+    private final static String SERVLET_NAME = "GetAllTagData";
 
     private enum Type {
 
@@ -41,12 +39,10 @@ public class GetArtistTags extends HttpServlet {
     @Override
     public void init() throws ServletException {
         super.init();
-        pc = new ParameterChecker(SERVLET_NAME, "Gets the tags associated with an artist");
-        pc.addParam("name", null, "the name of the item of interest");
-        pc.addParam("key", null, "the key of the item of interest");
-        pc.addParam("max", "100", "the maxiumum number of results to return");
+        pc = new ParameterChecker(SERVLET_NAME, "Gets bulk tag data for a batch of artists");
+        pc.addParam("artistMax", "1000", "the maximum number of artists to return");
+        pc.addParam("tagMax", "500", "the maximum number of tags to return");
         pc.addParam("type", "distinctive", "the type of tag report - 'distinctive' or 'frequent'");
-        pc.addParam("field", Artist.FIELD_SOCIAL_TAGS, "the field of interest.");
     }
 
     /** 
@@ -64,11 +60,10 @@ public class GetArtistTags extends HttpServlet {
 
         Status status = new Status(request);
 
-        response.setContentType("text/xml;charset=UTF-8");
+        response.setContentType("text/plain;charset=UTF-8");
         PrintWriter out = response.getWriter();
 
         try {
-            Util.tagOpen(out, SERVLET_NAME);
             pc.check(status, request);
             MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
 
@@ -77,52 +72,59 @@ public class GetArtistTags extends HttpServlet {
                 return;
             }
 
-            String key = pc.getParam(status, request, "key");
-            int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
-            String field = pc.getParam(status, request, "field");
-            // TBD Field not used yet.
+            int artistMax = pc.getParamAsInt(status, request, "artistMax", 1, 100000);
+            int tagMax = pc.getParamAsInt(status, request, "tagMax", 1, 10000);
             boolean frequent = ((Type) pc.getParamAsEnum(status, request, "type", Type.values())) == Type.Frequent;
 
-            Artist artist = null;
-            if (key == null) {
-                String name = pc.getParam(status, request, "name");
-                if (name != null) {
-                    artist = mdb.artistFindBestMatch(name);
-                    if (artist != null) {
-                        key = artist.getKey();
-                    }
-                }
+            List<Artist> artists = mdb.artistGetMostPopular(artistMax);
+            List<ArtistTag> tags = mdb.artistTagGetMostPopular(tagMax);
+            Map<String, Integer> tagIndexMap = new HashMap<String, Integer>();
+
+            for (int i = 0; i < tags.size(); i++) {
+                ArtistTag artistTag = tags.get(i);
+                float popularity = mdb.artistTagGetNormalizedPopularity(artistTag);
+                tagIndexMap.put(artistTag.getName(), i);
+                out.printf("tag %d %.4f %s\n", i + 1, popularity, artistTag.getName());
             }
 
-            if (key != null) {
-                if ((artist = mdb.artistLookup(key)) != null) {
-                    if (frequent) {
-                        List<Tag> tags = artist.getSocialTags();
-                        for (Tag tag : tags) {
-                            String tagKey = tag.getName();
-                            out.println("    <ArtistTag key=\"" + tagKey + "\" " + "score=\"" + tag.getCount() + "\" " +
-                                    "/>");
-                        }
-                    } else {
-                        WordCloud tags = mdb.artistGetDistinctiveTagNames(key, maxCount);
-                        Map<String, Scored<String>> words = tags.getWords();
-                        List<Scored<String>> vals = new ArrayList<Scored<String>>(words.values());
-                        Collections.sort(vals, ScoredComparator.COMPARATOR);
-                        Collections.reverse(vals);
+            for (int i = 0; i < artists.size(); i++) {
+                Artist artist = artists.get(i);
+                float popularity = mdb.artistGetNormalizedPopularity(artist);
+                out.printf("artist %d %.4f %s %s\n", i + 1, popularity, artist.getKey(), artist.getName());
+            }
 
-                        for (Scored<String> scoredTag : vals) {
-                            String tagKey = scoredTag.getItem();
-                            out.println("    <ArtistTag key=\"" + tagKey + "\" " +
-                                    "score=\"" + scoredTag.getScore() + "\" " + "/>");
+            int missedTags = 0;
+            for (int i = 0; i < artists.size(); i++) {
+                double[] scores = new double[tags.size()];
+                Artist artist = artists.get(i);
+                if (frequent) {
+                    List<Tag> tagList = artist.getSocialTags();
+                    for (Tag tag : tagList) {
+                        Integer index = tagIndexMap.get(tag.getName());
+                        if (index == null) {
+                            missedTags++;
+                        } else {
+                            scores[index] = tag.getCount();
                         }
                     }
                 } else {
-                    status.addError(ErrorCode.MissingArgument, "Can't find specified artist");
+                    List<Scored<ArtistTag>> artistTags = mdb.artistGetDistinctiveTags(artist.getKey(), tags.size());
+                    for (Scored<ArtistTag> sartistTag : artistTags) {
+                        Integer index = tagIndexMap.get(sartistTag.getItem().getName());
+                        if (index == null) {
+                            missedTags++;
+                        } else {
+                            scores[index] = sartistTag.getScore();
+                        }
+                    }
                 }
-            } else {
-                status.addError(ErrorCode.MissingArgument, "need an artist  name or a key");
 
+                for (int j = 0; j < scores.length; j++) {
+                    out.printf("%.3f ", scores[j]);
+                }
+                out.println();
             }
+            out.println("# Missed tags: " + missedTags);
         } catch (AuraException ex) {
             status.addError(ErrorCode.InternalError, "Problem accessing data:" + ex, ex);
         } catch (ParameterException e) {
@@ -132,7 +134,6 @@ public class GetArtistTags extends HttpServlet {
             out.close();
         }
     }
-
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /** 
      * Handles the HTTP <code>GET</code> method.
@@ -158,6 +159,6 @@ public class GetArtistTags extends HttpServlet {
      * Returns a short description of the servlet.
      */
     public String getServletInfo() {
-        return "Gets the tags that have been applied to an artist";
+        return "Short description";
     }// </editor-fold>
 }

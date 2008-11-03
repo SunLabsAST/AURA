@@ -75,7 +75,7 @@ public class ArtistTagSearch extends HttpServlet {
                         + "name=\"" + Util.filter(artistTag.getName()) + "\"" + "/>");
             }
         } catch (AuraException ex) {
-            status.addError(ErrorCode.InternalError, "problem accessing data, " + ex.getMessage());
+            status.addError(ErrorCode.InternalError, "problem accessing data, " + ex.getMessage(), ex);
         } catch (ParameterException ex) {
         } finally {
             status.toXML(out);

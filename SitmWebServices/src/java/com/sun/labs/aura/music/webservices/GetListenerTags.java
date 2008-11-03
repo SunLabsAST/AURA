@@ -103,7 +103,7 @@ public class GetListenerTags extends HttpServlet {
                 status.addError(ErrorCode.MissingArgument, "Can't find specified listener");
             }
         } catch (AuraException ex) {
-            status.addError(ErrorCode.InternalError, "Problem accessing data:" + ex);
+            status.addError(ErrorCode.InternalError, "Problem accessing data:" + ex, ex);
         } catch (ParameterException e) {
         } finally {
             status.toXML(out);

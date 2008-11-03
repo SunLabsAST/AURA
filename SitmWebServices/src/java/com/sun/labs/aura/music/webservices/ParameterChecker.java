@@ -33,6 +33,7 @@ public class ParameterChecker {
         this.name = name;
         this.description = description;
         addParam("showDocumentation", "false", "shows documentation for this web service");
+        addParam("debug", "false", "adds exception stack traces to the results to aid debugging");
     }
 
     public String getName() {

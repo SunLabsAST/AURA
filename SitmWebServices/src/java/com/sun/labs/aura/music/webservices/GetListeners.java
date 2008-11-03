@@ -71,7 +71,7 @@ public class GetListeners extends HttpServlet {
             }
 
         } catch (AuraException ex) {
-            status.addError(ErrorCode.InternalError, "Problem accessing data");
+            status.addError(ErrorCode.InternalError, "Problem accessing data", ex);
         } catch (ParameterException ex) {
         } finally {
             status.toXML(out);

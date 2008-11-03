@@ -79,7 +79,7 @@ public class GetStats extends HttpServlet {
                     }
                 }
             } catch (AuraException ex) {
-                status.addError(ErrorCode.InternalError, "Can't connect to the music database " + ex);
+                status.addError(ErrorCode.InternalError, "Can't connect to the music database " + ex, ex);
             }
         } catch (ParameterException ex) {
         } finally {

@@ -70,7 +70,7 @@ public class ArtistSearch extends HttpServlet {
                         "\" " + "score=\"" + scoredArtist.getScore() + "\" " + "popularity=\"" + mdb.artistGetNormalizedPopularity(artist) + "\" " + "name=\"" + Util.filter(artist.getName()) + "\"" + "/>");
             }
         } catch (AuraException ex) {
-            status.addError(ErrorCode.InternalError, "problem accessing data, " + ex.getMessage());
+            status.addError(ErrorCode.InternalError, "problem accessing data, " + ex.getMessage(), ex);
         } catch (ParameterException ex) {
         } finally {
             status.toXML(out);

@@ -80,7 +80,7 @@ public class AddArtist extends HttpServlet {
             mdb.addArtist(mbaid);
 
         } catch (AuraException ex) {
-            status.addError(ErrorCode.InternalError, "Problem adding artist " + ex.getMessage());
+            status.addError(ErrorCode.InternalError, "Problem adding artist " + ex.getMessage(), ex);
         } catch (ParameterException ex) {
         } finally {
             status.toXML(out);

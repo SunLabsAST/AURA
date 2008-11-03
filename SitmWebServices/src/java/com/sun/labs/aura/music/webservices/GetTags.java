@@ -66,7 +66,7 @@ public class GetTags extends HttpServlet {
                 out.println("    <tag key=\"" + tag.getKey() + "\" name=\"" + Util.filter(tag.getName()) + "\"" + " popularity=\"" + mdb.artistTagGetNormalizedPopularity(tag) + "\"" + "/>");
             }
         } catch (AuraException ex) {
-            status.addError(ErrorCode.InternalError, "Problem accessing data");
+            status.addError(ErrorCode.InternalError, "Problem accessing data", ex);
         } catch (ParameterException ex) {
         } finally {
             status.toXML(out);

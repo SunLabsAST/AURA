@@ -112,7 +112,7 @@ public class FindSimilarArtists extends HttpServlet {
                 status.addError(Util.ErrorCode.NotFound, "Can't find specified artist");
             }
         } catch (AuraException ex) {
-            status.addError(Util.ErrorCode.InternalError, "Problem accessing data");
+            status.addError(Util.ErrorCode.InternalError, "Problem accessing data", ex);
         } catch (ParameterException e) {
         } finally {
             status.toXML(out);

@@ -87,7 +87,7 @@ public class FindSimilarListeners extends HttpServlet {
                 status.addError(ErrorCode.BadArgument, "Can't find user with key " + key);
             }
         } catch (AuraException ex) {
-            status.addError(Util.ErrorCode.InternalError, "Problem accessing data " + ex);
+            status.addError(Util.ErrorCode.InternalError, "Problem accessing data " + ex, ex);
         } catch (ParameterException e) {
         } finally {
             status.toXML(out);

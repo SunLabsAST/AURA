@@ -106,7 +106,7 @@ public class GetRecommendations extends HttpServlet {
                 status.addError(ErrorCode.NotFound, "can't find userID ");
             }
         } catch (AuraException ex) {
-            status.addError(ErrorCode.InternalError, "Problem accessing data");
+            status.addError(ErrorCode.InternalError, "Problem accessing data", ex);
         } catch (ParameterException ex) {
         } finally {
             status.toXML(out);

@@ -98,7 +98,7 @@ public class GetAttentionData extends HttpServlet {
                 }
             } catch (AuraException e) {
                 status.addError(Util.ErrorCode.InternalError,
-                        "Can't get attention data " + e);
+                        "Can't get attention data " + e, e);
             }
         } catch (ParameterException ex) {
         } finally {

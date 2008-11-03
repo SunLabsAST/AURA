@@ -88,7 +88,7 @@ public class FindSimilarArtistsFromWordCloud extends HttpServlet {
                         "/>");
             }
         } catch (AuraException ex) {
-            status.addError(ErrorCode.InternalError, "Problem accessing data " + ex);
+            status.addError(ErrorCode.InternalError, "Problem accessing data " + ex, ex);
         } catch (ParameterException e) {
         } finally {
             status.toXML(out);

@@ -60,7 +60,7 @@ public class GetItems extends HttpServlet {
 
             if (mdb == null) {
                 status.addError(ErrorCode.InternalError, "Can't connect to the music database");
-                throw new ParameterException();
+                return;
             }
 
             String itemID = pc.getParam(status, request, "key");
@@ -85,8 +85,7 @@ public class GetItems extends HttpServlet {
                     }
                 }
             } catch (AuraException ex) {
-                status.addError(ErrorCode.InternalError, "Problem accessing the data");
-                throw new ParameterException();
+                status.addError(ErrorCode.InternalError, "Problem accessing the data", ex);
             }
         } catch (ParameterException ex) {
         } finally {

@@ -6,6 +6,7 @@ package com.sun.labs.aura.music.webservices;
 
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -20,6 +21,7 @@ public class Status {
     private long startTime;
     private List<ErrorDescription> errorList = new ArrayList<ErrorDescription>();
     private HttpServletRequest request;
+    private Throwable throwable;
 
     public Status(HttpServletRequest request) {
         startTime = System.currentTimeMillis();
@@ -28,6 +30,11 @@ public class Status {
 
     public void addError(Util.ErrorCode error, String text) {
         errorList.add(new ErrorDescription(error, text));
+    }
+
+    public void addError(Util.ErrorCode error, String text, Throwable t) {
+        errorList.add(new ErrorDescription(error, text));
+        throwable = t;
     }
 
     public void toXML(PrintWriter out) {
@@ -59,11 +66,30 @@ public class Status {
             long delta = System.currentTimeMillis() - startTime;
             out.println("    <time ms=\"" + delta + "\"/>");
         }
+        {
+            String stackTrace = getStackTrace();
+            if (stackTrace != null) {
+                out.println(stackTrace);
+            }
+        }
         out.println("</results>");
     }
 
     public boolean isOK() {
         return errorList.size() == 0;
+    }
+
+    private String getStackTrace() {
+        if (throwable != null) {
+            StringWriter sw = new StringWriter();
+            PrintWriter out = new PrintWriter(sw);
+            throwable.printStackTrace(out);
+            out.flush();
+            out.close();
+            return "<stack>" + Util.filter(sw.toString()) + "</stack>";
+        } else {
+            return null;
+        }
     }
 }
 
