@@ -28,6 +28,11 @@ public class SitmAPI {
         monitor = new Monitor(false, true);
     }
 
+
+    public void resetStats() {
+        monitor.reset();
+    }
+
     public List<Scored<Item>> artistSearch(String searchString) throws IOException {
         try {
             long start = monitor.opStart();

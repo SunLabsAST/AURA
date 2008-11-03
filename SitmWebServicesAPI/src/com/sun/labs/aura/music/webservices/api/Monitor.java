@@ -15,16 +15,30 @@ import java.util.Map;
  * @author plamere
  */
 public class Monitor {
-
     private boolean trace;
     private boolean periodicDump;
     private Map<String, Stats> statsMap = Collections.synchronizedMap(new HashMap<String, Stats>());
     private final static long DUMP_DELTA_MS = 20000L;
     private long nextDump = 0;
+    private long startupTime;
+    private long totalCalls;
+    private long periodTime;
+    private long periodCalls;
 
     public Monitor(boolean trace, boolean periodicDump) {
         this.trace = trace;
         this.periodicDump = periodicDump;
+        reset();
+    }
+
+    public void reset() {
+        statsMap.clear();
+        startupTime = System.currentTimeMillis();
+        totalCalls = 0;
+        nextDump = 0;
+        
+        periodCalls = 0;
+        periodTime = System.currentTimeMillis();
     }
 
     public long opStart() {
@@ -46,7 +60,8 @@ public class Monitor {
                 System.out.printf("ERROR %s\n", name);
             }
         }
-
+        totalCalls++;
+        periodCalls++;
         checkForPeriodicDump();
     }
 
@@ -99,6 +114,8 @@ public class Monitor {
     }
 
     public void dumpAllStats() {
+        long now = System.currentTimeMillis();
+
         List<String> keys = new ArrayList<String>(statsMap.keySet());
         Collections.sort(keys);
         System.out.printf("%8s %8s %8s %8s %8s %s\n",
@@ -113,6 +130,18 @@ public class Monitor {
                         stats.errors, key);
             }
         }
+
+        long totalPeriodTime = now - periodTime;
+        float periodCallsPerSecond = periodCalls / (totalPeriodTime / 1000.f);
+        System.out.printf("Period Runtime: %d  Calls: %d  Avg Calls/second: %.3f\n",
+                totalPeriodTime, periodCalls, periodCallsPerSecond);
+
+        long totalTime = now - startupTime;
+        float callsPerSecond = totalCalls / (totalTime / 1000.f);
+        System.out.printf(" Total Runtime: %d  Calls: %d  Avg Calls/second: %.3f\n",
+                totalTime, totalCalls, callsPerSecond);
+        periodCalls = 0;
+        periodTime = System.currentTimeMillis();
     }
 }
 
