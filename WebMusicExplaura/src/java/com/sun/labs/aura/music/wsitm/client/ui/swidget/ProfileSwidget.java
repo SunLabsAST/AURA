@@ -40,10 +40,10 @@ public class ProfileSwidget extends Swidget implements LoginListener {
         super("User preferences", cdm);
         mainPanel = new FlowPanel();
         
-        initWidget(getWidget());
+        initWidget(getMainWidget());
     }
 
-    public Widget getWidget() {
+    public Widget getMainWidget() {
         mainPanel.clear();
         updateMainPanel();
         return mainPanel;

@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.servlet.http.Cookie;
+import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.message.AuthSuccess;
 import org.openid4java.message.ax.AxMessage;
 import org.openid4java.message.ax.FetchRequest;
@@ -224,8 +225,9 @@ public class OpenIDServlet extends HttpServlet implements RemoteService {
 
             // redirect to OpenID for authentication
             response.sendRedirect(authReq.getDestinationUrl(true));
-        }
-        catch (OpenIDException e) {
+        } catch (DiscoveryException de) {
+            response.sendRedirect("./#loginMsg:username");
+        } catch (OpenIDException e) {
             throw new ServletException("Login string probably caused an error. loginString = " + loginString, e);
         }
     }

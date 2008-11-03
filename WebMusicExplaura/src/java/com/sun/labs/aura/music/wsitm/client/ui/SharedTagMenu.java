@@ -6,19 +6,17 @@
 package com.sun.labs.aura.music.wsitm.client.ui;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
-import com.gwtext.client.core.EventObject;
-import com.gwtext.client.widgets.menu.BaseItem;
-import com.gwtext.client.widgets.menu.Item;
-import com.gwtext.client.widgets.menu.Menu;
+import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.MusicSearchInterface;
 import com.sun.labs.aura.music.wsitm.client.MusicSearchInterfaceAsync;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededBaseItemListener;
-import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededBaseItemListener;
+import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
+import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.TagDependentSharedMenu;
 
@@ -26,7 +24,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.TagDependentSharedMen
  *
  * @author mailletf
  */
-public class SharedTagMenu extends Menu implements TagDependentSharedMenu {
+public class SharedTagMenu extends ContextMenu implements TagDependentSharedMenu {
 
     protected ItemInfo currTag;
     protected MusicSearchInterfaceAsync musicServer;
@@ -34,32 +32,33 @@ public class SharedTagMenu extends Menu implements TagDependentSharedMenu {
 
     public SharedTagMenu(ClientDataManager cdm) {
 
+        super();
         initRPC();
         this.cdm = cdm;
 
-        addItem(new Item("View tag details", new DataEmbededBaseItemListener<SharedTagMenu>(this) {
+        addElement("View tag details", new DataEmbededClickListener<SharedTagMenu>(this) {
 
             @Override
-            public void onClick(BaseItem item, EventObject e) {
+            public void onClick(Widget sender) {
                 History.newItem("tag:" + data.currTag.getId());
             }
-        }));
-        addItem(new Item("Add tag to current steerable tag cloud",
-                new DualDataEmbededBaseItemListener<ClientDataManager, SharedTagMenu>(cdm, this) {
+        });
+        addElement("Add tag to current steerable tag cloud",
+                new DualDataEmbededClickListener<ClientDataManager, SharedTagMenu>(cdm, this) {
 
                     @Override
-                    public void onClick(BaseItem item, EventObject e) {
+                    public void onClick(Widget sender) {
                         data.getSteerableTagCloudExternalController().addTag(sndData.currTag);
                     }
-                }));
-        addItem(new Item("View similar tags",
-                new DataEmbededBaseItemListener<SharedTagMenu>(this) {
+                });
+        addElement("View similar tags",
+                new DataEmbededClickListener<SharedTagMenu>(this) {
 
                     @Override
-                    public void onClick(BaseItem item, EventObject e) {
+                    public void onClick(Widget sender) {
                         invokeSimTagService(currTag.getId());
                     }
-                }));
+                });
     }
     
     private void invokeSimTagService(String tagId) {
@@ -86,32 +85,11 @@ public class SharedTagMenu extends Menu implements TagDependentSharedMenu {
         }
     }
 
-    public void showAt(int x, int y, ItemInfo currTag) {
+    public void showAt(Event e, ItemInfo currTag) {
         this.currTag = currTag;
-        int[] xyPosition = new int[]{x, y};
-        super.showAt(xyPosition);
+        super.showAt(e);
     }
 
-    @Override
-    public void show(String id) {
-        Window.alert("This method cannot be called directly.");
-    }
-
-    @Override
-    public void showAt(int x, int y) {
-        Window.alert("This method cannot be called directly.");
-    }
-
-    @Override
-    public void showAt(int[] xy) {
-        Window.alert("This method cannot be called directly.");
-    }
-
-    @Override
-    public void showAt(int x, int y, Menu parentMenu) {
-        Window.alert("This method cannot be called directly.");
-    }
-    
     private final void initRPC() {
         musicServer = (MusicSearchInterfaceAsync) GWT.create(MusicSearchInterface.class);
         ServiceDefTarget endpoint = (ServiceDefTarget) musicServer;

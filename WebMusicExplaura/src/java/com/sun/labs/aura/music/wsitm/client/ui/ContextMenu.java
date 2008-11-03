@@ -5,149 +5,74 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui;
 
-import com.google.gwt.user.client.Command;
-import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.EventPreview;
 import com.google.gwt.user.client.Window;
-import com.gwtext.client.core.EventObject;
-import com.gwtext.client.widgets.menu.BaseItem;
-import com.gwtext.client.widgets.menu.Item;
-import com.gwtext.client.widgets.menu.Menu;
-import com.sun.labs.aura.music.wsitm.client.WebException;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededBaseItemListener;
+import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.PopupPanel;
+import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
-import java.util.LinkedList;
 
 /**
  *
  * @author mailletf
  */
-public class ContextMenu implements EventPreview {
+public class ContextMenu {
 
-    private Menu menu;
-    private boolean isVisible = false;
+    private PopupPanel pp;
+    protected VerticalPanel vP;
 
-    private LinkedList<Item> itemList;
+    private ClickListener hideOnClickListener;
+
+    private boolean newPopup = true;
   
     public ContextMenu() {
-        menu = null;
-        itemList = new LinkedList<Item>();
-    }
-    
-    public ContextMenu(Menu menu) {
-        this.menu = menu;
-        itemList = new LinkedList<Item>();
-    }
+        pp = Popup.getPopupPanel();
+        vP = new VerticalPanel();
 
-    /**
-     * Add a new item to the context menu
-     * @param name Name to display
-     * @param cmd Command to execute on click
-     * @return the new item, to add it to another menu if necessary
-     */
-    public Item addItem(String name, Command cmd) {
-        Item newItem = new Item(name, new DataEmbededBaseItemListener<Command>(cmd) {
-            @Override
-            public void onClick(BaseItem item, EventObject e) {
-                data.execute();
+        hideOnClickListener = new ClickListener() {
+
+            public void onClick(Widget sender) {
+                hideMenu();
             }
-        });
-        //menu.addItem(newItem);
-        itemList.add(newItem);
-        return newItem;
-    }
-
-    public void addItem(Item item) {
-        //menu.addItem(item);
-        itemList.add(item);
-    }
-
-    public void addSeperator() {
-        menu.addSeparator();
+        };
     }
 
     public boolean isVisible() {
-        return isVisible;
+        return pp.isVisible();
     }
 
     public void hideMenu() {
-        DOM.removeEventPreview(this);
-        menu.hide();
-        isVisible = false;
+        if (pp != null) {
+            pp.hide();
+        }
     }
 
-    public void showMenu(Event e) {
-        
-        if (menu == null) {
-            initMenu();
-        }
-        
-        DOM.addEventPreview(this);
-        menu.showAt(e.getClientX(), e.getClientY());
-        isVisible = true;
+    public void addElement(String label, ClickListener cL) {
+        Label l = new Label(label);
+        l.addClickListener(cL);
+        l.addClickListener(hideOnClickListener);
+        l.addStyleName("contextMenuItem");
+        l.addStyleName("contextMenuItem:hover");
+        vP.add(l);
     }
     
-    public void showSharedMenu(Event e, ItemInfo tag) throws WebException {
-        if (menu instanceof TagDependentSharedMenu) {
-            DOM.addEventPreview(this);
-            ((TagDependentSharedMenu) menu).showAt(e.getClientX() + Window.getScrollLeft(), e.getClientY() + Window.getScrollTop(), tag);
-            isVisible = true;
-        } else {
-            throw new WebException(WebException.errorMessages.INVALID_MENU_CALLED);
-        }
-    }
-    
-    public void showSharedMenu(Event e, ArtistCompact aC) throws WebException {
-        if (menu instanceof ArtistDependentSharedMenu) {
-            DOM.addEventPreview(this);
-            ((ArtistDependentSharedMenu) menu).showAt(e.getClientX() + Window.getScrollLeft(), e.getClientY() + Window.getScrollTop(), aC);
-            isVisible = true;
-        } else {
-            throw new WebException(WebException.errorMessages.INVALID_MENU_CALLED);
-        }
-    }
-
-    public void showSharedMenu(Event e, CloudItem cI) throws WebException {
-        if (menu instanceof CloudItemDependentSharedMenu) {
-            DOM.addEventPreview(this);
-            ((CloudItemDependentSharedMenu) menu).showAt(e.getClientX() + Window.getScrollLeft(), e.getClientY() + Window.getScrollTop(), cI);
-            isVisible = true;
-        } else {
-            throw new WebException(WebException.errorMessages.INVALID_MENU_CALLED);
-        }
-    }
-
-    public boolean onEventPreview(Event event) {
-
-        if (isVisible) {
-            Element target = DOM.eventGetTarget(event);
-
-            if (DOM.getCaptureElement() != null) {
-                return true;
+    public void showAt(Event e) {
+        if (vP != null) {
+            int x = e.getClientX() + Window.getScrollLeft();
+            int y = e.getClientY() + Window.getScrollTop();
+            if (newPopup) {
+                Popup.showRoundedPopup(vP, null, pp, x, y);
+                newPopup = false;
+            } else {
+                pp.setPopupPosition(x, y);
+                pp.show();
             }
-
-            boolean eventTargetsPopup = (target != null) && DOM.isOrHasChild(menu.getElement(), target);
-
-            if (DOM.eventGetType(event) == Event.ONMOUSEDOWN) {
-                if (!eventTargetsPopup) {
-                    hideMenu();
-                }
-            }
-        }
-        return true;    
-    }
-     
-    private void initMenu() {
-        if (menu == null) {
-            menu = new Menu();
-
-            for (Item i : itemList) {
-                menu.addItem(i);
-            }
+        } else {
+            Popup.showInformationPopup("Error. Contextmenu is empty.");
         }
     }
     
@@ -158,16 +83,16 @@ public class ContextMenu implements EventPreview {
     
     public interface TagDependentSharedMenu {
         
-        public void showAt(int x, int y, ItemInfo currTag);
+        public void showAt(Event e, ItemInfo currTag);
     }
     
     public interface ArtistDependentSharedMenu {
         
-        public void showAt(int x, int y, ArtistCompact currTag);
+        public void showAt(Event e, ArtistCompact currTag);
     }
 
     public interface CloudItemDependentSharedMenu {
 
-        public void showAt(int x, int y, CloudItem cI);
+        public void showAt(Event e, CloudItem cI);
     }
 }

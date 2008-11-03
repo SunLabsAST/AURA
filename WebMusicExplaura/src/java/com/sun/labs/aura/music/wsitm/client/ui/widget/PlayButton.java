@@ -26,6 +26,7 @@ import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.MusicSearchInterfaceAsync;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.ui.SharedPlayButtonMenu;
 
 /**
  *
@@ -34,7 +35,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 public class PlayButton extends Composite implements MusicProviderSwitchListener, 
         SourcesRightClickEvents, HasContextMenu {
 
-    private static ContextMenu cm;
+    private static SharedPlayButtonMenu cm;
     private MusicSearchInterfaceAsync musicServer;
     private ClickListenerCollection rightClickListeners;
     private ClientDataManager cdm;
@@ -64,7 +65,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         this.musicServer = musicServer;
         
         if (cm == null) {
-            cm = new ContextMenu(cdm.getSharedPlayButtonMenu());
+            cm = cdm.getSharedPlayButtonMenu();
         }
         
         if (triggerPlayClickListener == null) {
@@ -140,7 +141,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
     public void onBrowserEvent(Event event) {
         if (event.getTypeInt() == Event.ONCONTEXTMENU) {
             DOM.eventPreventDefault(event);
-            cm.showSharedMenu(event, aC);
+            cm.showAt(event, aC);
             rightClickListeners.fireClick(this);
         } else {
             super.onBrowserEvent(event);

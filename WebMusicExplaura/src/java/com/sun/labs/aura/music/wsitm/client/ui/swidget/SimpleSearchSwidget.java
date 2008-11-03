@@ -57,7 +57,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
 import java.util.ArrayList;
 import java.util.Map;
-import org.adamtacy.client.ui.EffectPanel;
+import org.adamtacy.client.ui.NEffectPanel;
 import org.adamtacy.client.ui.effects.impl.Fade;
 
 /**
@@ -1125,7 +1125,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                 g.getCellFormatter().getElement(0, 0).setAttribute("align", "center");
                 g.setTitle(i.title);
 
-                EffectPanel theEffectPanel = new EffectPanel();
+                NEffectPanel theEffectPanel = new NEffectPanel();
                 Fade f = new Fade();
                 f.getProperties().setStartOpacity(0);
                 f.getProperties().setEndOpacity(100);
@@ -1180,12 +1180,12 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
         private class LoadListenerPanelContainer implements LoadListener {
 
-            private EffectPanel theEffectPanel;
+            private NEffectPanel theEffectPanel;
 
             /**
              * @param w widget we want the effect applied to
              */
-            public LoadListenerPanelContainer(EffectPanel theEffectPanel) {
+            public LoadListenerPanelContainer(NEffectPanel theEffectPanel) {
                 super();
                 this.theEffectPanel=theEffectPanel;
             }
@@ -1194,7 +1194,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
             }
 
             public void onLoad(Widget arg0) {
-                theEffectPanel.startEffects();
+                theEffectPanel.playEffects();
             }
         }
 

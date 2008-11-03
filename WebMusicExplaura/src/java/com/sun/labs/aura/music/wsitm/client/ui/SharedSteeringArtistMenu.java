@@ -5,13 +5,10 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui;
 
-import com.google.gwt.user.client.Window;
-import com.gwtext.client.core.EventObject;
-import com.gwtext.client.widgets.menu.Menu;
-import com.gwtext.client.widgets.menu.BaseItem;
-import com.gwtext.client.widgets.menu.Item;
+import com.google.gwt.user.client.Event;
+import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededBaseItemListener;
+import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.CloudItemDependentSharedMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.TagWidget;
@@ -22,21 +19,22 @@ import java.util.HashMap;
  *
  * @author mailletf
  */
-public class SharedSteeringArtistMenu extends Menu implements CloudItemDependentSharedMenu {
+public class SharedSteeringArtistMenu extends ContextMenu implements CloudItemDependentSharedMenu {
 
     protected CloudItem cI;
     protected ClientDataManager cdm;
     protected TagWidgetContainer twc;
 
     public SharedSteeringArtistMenu(ClientDataManager tCdm, TagWidgetContainer tTwc) {
-        
+
+        super();
         this.cdm = tCdm;
         this.twc = tTwc;
 
-        addItem(new Item("Expand artist", new DataEmbededBaseItemListener<SharedSteeringArtistMenu>(this) {
+        addElement("Expand artist", new DataEmbededClickListener<SharedSteeringArtistMenu>(this) {
 
             @Override
-            public void onClick(BaseItem bItem, EventObject e) {
+            public void onClick(Widget sender) {
 
                 HashMap<String, CloudItem> itemsMap = new HashMap<String, CloudItem>();
 
@@ -55,42 +53,22 @@ public class SharedSteeringArtistMenu extends Menu implements CloudItemDependent
                 twc.addItems(itemsMap, TagWidget.ITEM_WEIGHT_TYPE.ABSOLUTE);
                 twc.removeItem(cI.getId());
             }
-        }));
+        });
         
-        addItem(new Item("View tag cloud", new DataEmbededBaseItemListener<SharedSteeringArtistMenu>(this) {
+        addElement("View tag cloud", new DataEmbededClickListener<SharedSteeringArtistMenu>(this) {
 
             @Override
-            public void onClick(BaseItem bItem, EventObject e) {
+            public void onClick(Widget sender) {
                 TagDisplayLib.showTagCloud("Tag cloud for "+cI.getDisplayName(), 
                         cI.getTagMap(), TagDisplayLib.ORDER.SHUFFLE, cdm);
             }
 
-        }));
+        });
     }
 
-    public void showAt(int x, int y, CloudItem cI) {
+    public void showAt(Event e, CloudItem cI) {
         this.cI = cI;
-        int[] xyPosition = new int[]{x, y};
-        super.showAt(xyPosition);
+        super.showAt(e);
     }
 
-    @Override
-    public void show(String id) {
-        Window.alert("This method cannot be called directly.");
-    }
-
-    @Override
-    public void showAt(int x, int y) {
-        Window.alert("This method cannot be called directly.");
-    }
-
-    @Override
-    public void showAt(int[] xy) {
-        Window.alert("This method cannot be called directly.");
-    }
-
-    @Override
-    public void showAt(int x, int y, Menu parentMenu) {
-        Window.alert("This method cannot be called directly.");
-    }
 }
