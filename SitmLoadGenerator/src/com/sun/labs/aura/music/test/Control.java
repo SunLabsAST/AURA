@@ -26,11 +26,19 @@ public class Control {
     private Random rng = new Random();
     private long lateSum;
     private long lateCount;
+    private long lastLateCount;
 
     public Control(String host) throws IOException {
         sitm = new SitmAPI(host, false);
         fetchArtists();
         fetchArtistTags();
+        reset();
+    }
+
+
+    public void reset() {
+        sitm.resetStats();
+        monitor.reset();
     }
     
     public String getRandomArtistKey() {
@@ -77,6 +85,10 @@ public class Control {
         sitm.showStats();
         getMonitor().dumpAllStats();
         System.out.printf("Late calls: %d  Total Late delay: %d\n", lateCount, lateSum);
+        if (lateCount > lastLateCount) {
+            System.out.printf("WARNING - simulator is overloaded\n");
+            lastLateCount = lateCount;
+        }
     }
 
     public synchronized void late(long late) {

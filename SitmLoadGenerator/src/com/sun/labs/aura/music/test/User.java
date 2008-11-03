@@ -76,7 +76,6 @@ public class User implements Delayed {
         if (nextOperation != null) {
             long late = -getDelay(TimeUnit.MILLISECONDS);
             if (late > 100L) {
-                System.out.printf("WARNING - simulator is overloaded, processed user %d ms late\n", late);
                 control.late(late);
             }
             long startTime = control.getMonitor().opStart();

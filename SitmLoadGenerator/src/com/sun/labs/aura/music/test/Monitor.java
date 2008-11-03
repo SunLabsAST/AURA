@@ -23,6 +23,10 @@ public class Monitor {
         this.trace = trace;
     }
 
+    public void reset() {
+        statsMap.clear();
+    }
+
     public long opStart() {
         return System.currentTimeMillis();
     }

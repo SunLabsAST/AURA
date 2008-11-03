@@ -1,0 +1,396 @@
+
+Description
+----------------
+The tests involve simulating the activity of a number of users.
+Each simulated user performs an activity after a random delay (the
+delay can be between 2 and 150 seconds). The activity performed by the user
+includes searching for artists, searching for tags, finding similar artists, 
+finding similar tags, finding artists similar to an every changing word
+cloud, etc.  A user activity such as an artist search is converted to a web
+service API call that is made to one of the instances of the web service
+that is running on tastekeeper.com.  The XML result returned is parsed,
+and checked for errors.  The XML result also contains timing data that
+indicates how long it took to process the request on the server. This allows
+us to separate transport and network delays from actual processing time.
+Some user activity may generate  multiple requests to tastekeeper so there
+isn't necesssarily a one-to-one correspondence between user activity and API
+calls.
+
+A single instance of a test involves simulating the activity of a large
+number of users. Our laptops can support the simulated activity of about
+2,000 users before the simulator can no longer keep up.  2,000 users generate 
+about 60 aura requests per second.
+
+There are a number of factors that affect these tests:
+
+  - test client speed - a test client can only support a certain number of
+    usrs.  A desktop class machine (our workstations and laptops) can each
+    simulate about 2,000 users while search to east can simulate about 6,000
+    users. In our tests, we are using lur, zoidburg, bobism, search, and a
+    number of laptops as test clients.
+
+  - network latency - the time it takes to ping the web server. Ping times
+    from SWAN to the grid are about 60 ms.
+
+  - network bandwidth - the amount of data that can be shipped over the
+    network per second. The bandwidth needed and used is unknown, but is
+    assumed to be sufficient.
+
+  -  Tomcat instances - each tomcat instance seems to be able to support
+     around 2K to 3K users.  There may be some configuration changes
+     that we could make to increase this number.  We have implemented and
+     deployed a loadbalancer - but curretly the loadbalancer imposes an
+     unacceptably high overhead (175ms for a single tomcat  vs. 875ms for a
+     loadbalanced tomcat)
+
+  -  Aura configuration - we are currently running with a 16-way datastore
+     with 20K artists.
+
+Our performance goal for the 16-way datastore is to be able to support
+10,000 active users.  We consider the test to be a success if we have less
+than a 500ms average time (including transport and processing) for the 10K users.
+
+We've performed the tests in a number of different configuration, varying the
+number of users, the number of test clients and the number of web servers
+instances used.  The following table summarizes the tests. TotAvgTime shows
+the average total roundtrip time for all web API calls. TotProcTime shows the
+average time processing on the server.
+
+#Users  #Clients    #WebServers     TotAvgTime  TotProcTime
+10      1           1               155         55
+50      1           1               124         53
+100     1           1               122         53
+500     1           1               122         53
+1000    1           1               136         56
+1500    1           1               157         61
+1500    1           1               157         61
+2000    1           1               174         59
+2500    1           1               180         62
+3000    1           1               207         66
+4000    1           1               254         73
+5000    1           1               305         80
+5000    1           2               204         70
+6000    2           2               258         91
+7000    5           7               182         85
+9000    1           3               302         120
+10000   3           4               250         107
+12000   5           6               350         180
+14000   5           6               469         247
+16000   6           7               638         277
+
+
+The tests show that with a 16 way datastore with 4 web servers we can support 
+more than  10K users.  With 10K users the datastore is handling nearly 
+400 requests per second.
+
+Thu Oct 30 14:40:19 EDT 2008
+
+Using the load generator
+
+Date:       Thu Oct 30 14:41:28 EDT 2008
+Users:      1000
+Threads:    100
+Hosts:      1
+TestHost:   Paul's Laptop
+Target:     www.tastekeeper.com
+Note:       Baseline
+Command:    java -jar dist/SitmLoadGenerator.jar -time 1000 -url http://www.tastekeeper.com/SitmWebServices
+
+AvgAllStats 152
+Count       15050
+User Avg    209
+Avg overhead 90
+
+   Count  AvgTime      Min      Max     Errs Operation
+   15050      152       70    16277        0 AllStats
+   15050       61        2    15751        0 AllStats-svlt
+     210      113       71     1019        0 artistSearch
+     210       20        5      783        0 artistSearch-svlt
+     832       93       71      741        0 artistSocialTags
+     832        5        4       15        0 artistSocialTags-svlt
+    1650      143       79     1048        0 findSimilarArtistFromWordCloud
+    1650       54       12      620        0 findSimilarArtistFromWordCloud-svlt
+     810      318      249      897        0 findSimilarArtistTags
+     810      217      179      706        0 findSimilarArtistTags-svlt
+    4992      182      103     3500        0 findSimilarArtistsByKey
+    4992       89       36     3432        0 findSimilarArtistsByKey-svlt
+       1     2193     2193     2193        0 getArtistTags
+       1     2031     2031     2031        0 getArtistTags-svlt
+       1    16277    16277    16277        0 getArtists
+       1    15751    15751    15751        0 getArtists-svlt
+    2385      104       70     1145        0 getItem
+    2385        5        2      415        0 getItem-svlt
+    4139      125       96      755        0 getItems
+    4139       41       28      474        0 getItems-svlt
+       1     1519     1519     1519        0 getStats
+       1     1380     1380     1380        0 getStats-svlt
+      29      104       73      283        0 tagSearch
+      29       12        8       49        0 tagSearch-svlt
+
+
+Date:       Thu Oct 30 14:46:28 EDT 2008
+Users:      1000
+Threads:    100
+Hosts:      1
+TestHost:   Paul's Laptop
+Target:     lt1.tastekeeper.com
+Command:    java -jar dist/SitmLoadGenerator.jar -time 1000 -url http://lt1.tastekeeper.com/SitmWebServices/
+
+Note:       Against a different tomcat
+
+
+AvgAllStats 152
+Count       15338
+User Avg    210
+Avg overhead 90
+
+   Count  AvgTime      Min      Max     Errs Operation
+   15618      153       69    16503        0 AllStats
+   15618       62        2    15967        0 AllStats-svlt
+     219      108       74      846        0 artistSearch
+     219       20        7      778        0 artistSearch-svlt
+     807       93       71      462        0 artistSocialTags
+     807        7        4      318        0 artistSocialTags-svlt
+    1676      146      105     1160        0 findSimilarArtistFromWordCloud
+    1676       55       39      479        0 findSimilarArtistFromWordCloud-svlt
+     855      320      247     1341        0 findSimilarArtistTags
+     855      217      180      897        0 findSimilarArtistTags-svlt
+    5209      180       77     1388        0 findSimilarArtistsByKey
+    5209       88       12      890        0 findSimilarArtistsByKey-svlt
+       1     2061     2061     2061        0 getArtistTags
+       1     1979     1979     1979        0 getArtistTags-svlt
+       1    16503    16503    16503        0 getArtists
+       1    15967    15967    15967        0 getArtists-svlt
+    2501      106       69     1194        0 getItem
+    2501        5        2      465        0 getItem-svlt
+    4312      127       97      761        0 getItems
+    4312       43       28      518        0 getItems-svlt
+       2     1478     1461     1496        0 getStats
+       2     1401     1388     1414        0 getStats-svlt
+      35       98       73      190        0 tagSearch
+
+Date:       Thu Oct 30 14:55:43 EDT 2008
+Users:      1000
+Threads:    100
+Hosts:      1
+TestHost:   Paul's Laptop
+Target:     lb.tastekeeper.com
+Command:    java -jar dist/SitmLoadGenerator.jar -time 1000 -url http://lb.tastekeeper.com/SitmWebServices/
+
+Note:       Against the loadbalancer. Simulator was overloaded
+
+AvgAllStats 410
+Count       14715
+User Avg    560
+Avg overhead 300
+
+   Count  AvgTime      Min      Max     Errs Operation
+   14715      410       68    25274        0 AllStats
+   14715       94        2    15803        0 AllStats-svlt
+     237      383       73     6800        0 artistSearch
+     237       28        5      757        0 artistSearch-svlt
+     837      343       70     8226        0 artistSocialTags
+     837        7        4      463        0 artistSocialTags-svlt
+    1608      513      107     8887        0 findSimilarArtistFromWordCloud
+    1608      112       40     4535        0 findSimilarArtistFromWordCloud-svlt
+     829      611      248     7548        0 findSimilarArtistTags
+     829      281      181     1896        0 findSimilarArtistTags-svlt
+    4808      518      103     9033        0 findSimilarArtistsByKey
+    4808      143       35     5082        0 findSimilarArtistsByKey-svlt
+       1    25274    25274    25274        0 getArtistTags
+       1     2106     2106     2106        0 getArtistTags-svlt
+       1    16691    16691    16691        0 getArtists
+       1    15803    15803    15803        0 getArtists-svlt
+    2351      374       68    10072        0 getItem
+    2351        6        2      461        0 getItem-svlt
+    3997      224       95     8877        0 getItems
+    3997       59       29     4126        0 getItems-svlt
+      46      419       73     7487        0 tagSearch
+      46      136        8     4473        0 tagSearch-svlt
+
+Late calls: 361  Total Late delay: 723362
+
+Date:       Thu Oct 30 14:55:43 EDT 2008
+Users:      1000
+Threads:    100
+Hosts:      1
+TestHost:   bobism.east
+Target:     www.tastekeeper.com
+Command:    java -jar dist/SitmLoadGenerator.jar -time 1000 -url http://www.tastekeeper.com/SitmWebServices/
+
+Note:      Simulator overloaded 
+
+AvgAllStats 152
+Count       19068
+User Avg    209
+Avg overhead 90
+
+   Count  AvgTime      Min      Max     Errs Operation
+   19068      152       68    12298        0 AllStats
+   19068       61        2    11788        0 AllStats-svlt
+     325      106       70      821        0 artistSearch
+     325       20        6      756        0 artistSearch-svlt
+    1044       94       69      765        0 artistSocialTags
+    1044        6        4      412        0 artistSocialTags-svlt
+    2102      146       79      892        0 findSimilarArtistFromWordCloud
+    2102       57       11      520        0 findSimilarArtistFromWordCloud-svlt
+    1028      323      247     1156        0 findSimilarArtistTags
+    1028      221      181      822        0 findSimilarArtistTags-svlt
+    6277      180      101     1267        0 findSimilarArtistsByKey
+    6277       89       36     1065        0 findSimilarArtistsByKey-svlt
+       1     2268     2268     2268        0 getArtistTags
+       1     2055     2055     2055        0 getArtistTags-svlt
+       1    12298    12298    12298        0 getArtists
+       1    11788    11788    11788        0 getArtists-svlt
+    2990      107       68      940        0 getItem
+    2990        5        2      457        0 getItem-svlt
+    5250      126       96      864        0 getItems
+    5250       42       28      466        0 getItems-svlt
+      50       98       73      304        0 tagSearch
+      50       21        7      237        0 tagSearch-svlt
+
+
+   Count  AvgTime      Min      Max     Errs Operation
+   14715      410       68    25274        0 AllStats
+   14715       94        2    15803        0 AllStats-svlt
+     237      383       73     6800        0 artistSearch
+     237       28        5      757        0 artistSearch-svlt
+     837      343       70     8226        0 artistSocialTags
+     837        7        4      463        0 artistSocialTags-svlt
+    1608      513      107     8887        0 findSimilarArtistFromWordCloud
+    1608      112       40     4535        0 findSimilarArtistFromWordCloud-svlt
+     829      611      248     7548        0 findSimilarArtistTags
+     829      281      181     1896        0 findSimilarArtistTags-svlt
+    4808      518      103     9033        0 findSimilarArtistsByKey
+    4808      143       35     5082        0 findSimilarArtistsByKey-svlt
+       1    25274    25274    25274        0 getArtistTags
+       1     2106     2106     2106        0 getArtistTags-svlt
+       1    16691    16691    16691        0 getArtists
+       1    15803    15803    15803        0 getArtists-svlt
+    2351      374       68    10072        0 getItem
+    2351        6        2      461        0 getItem-svlt
+    3997      224       95     8877        0 getItems
+    3997       59       29     4126        0 getItems-svlt
+      46      419       73     7487        0 tagSearch
+      46      136        8     4473        0 tagSearch-svlt
+
+Late calls: 361  Total Late delay: 723362
+
+
+Load test # 1
+
+Hosts: search 1000, bobism 1000, lur 1000, zoidberg 1000, paul's laptop 1000
+
+Average time: 194
+
+^C   Count  AvgTime      Min      Max     Errs Operation
+   14842      194       69    12852        0 AllStats
+   14842       93        2    12362        0 AllStats-svlt
+     252      148       73     1316        0 artistSearch
+     252       60        5     1248        0 artistSearch-svlt
+     818      106       70      746        0 artistSocialTags
+     818        9        4      429        0 artistSocialTags-svlt
+    1527      198      108     1841        0 findSimilarArtistFromWordCloud
+    1527       97       11      924        0 findSimilarArtistFromWordCloud-svlt
+     794      441      257     1855        0 findSimilarArtistTags
+     794      324      187     1722        0 findSimilarArtistTags-svlt
+    4879      244      104     2475        0 findSimilarArtistsByKey
+    4879      142       37     2275        0 findSimilarArtistsByKey-svlt
+       1     2383     2383     2383        0 getArtistTags
+       1     2288     2288     2288        0 getArtistTags-svlt
+       1    12852    12852    12852        0 getArtists
+       1    12362    12362    12362        0 getArtists-svlt
+    2466      116       69     1165        0 getItem
+    2466        7        2      535        0 getItem-svlt
+    4061      148       97     1629        0 getItems
+    4061       57       29     1496        0 getItems-svlt
+      44      131       73      496        0 tagSearch
+      44       36        7      385        0 tagSearch-svlt
+
+
+Load test # 2
+
+Hosts: search-lt1 2000, bobism 1000, lur 2000, zoidberg 2000, search-lt2 2000 paul's laptop 1000
+
+   Count  AvgTime      Min      Max     Errs Operation
+   37949      298       69    18811        0 AllStats
+   37949      175        2    18291        0 AllStats-svlt
+     654      207       72     3155        0 artistSearch
+     654       96        6     3088        0 artistSearch-svlt
+    2044      126       70     1613        0 artistSocialTags
+    2044       13        4     1070        0 artistSocialTags-svlt
+    4112      328      107     3019        0 findSimilarArtistFromWordCloud
+    4112      211       12     2847        0 findSimilarArtistFromWordCloud-svlt
+    2156      718      260     3852        0 findSimilarArtistTags
+    2156      567      192     3648        0 findSimilarArtistTags-svlt
+   12452      413       80     5073        0 findSimilarArtistsByKey
+   12452      285       14     4875        0 findSimilarArtistsByKey-svlt
+       1     2939     2939     2939        0 getArtistTags
+       1     2808     2808     2808        0 getArtistTags-svlt
+       1    18811    18811    18811        0 getArtists
+       1    18291    18291    18291        0 getArtists-svlt
+    6155      144       69     1948        0 getItem
+    6155       10        2     1167        0 getItem-svlt
+   10259      188       97     2057        0 getItems
+   10259       81       29     1817        0 getItems-svlt
+       1     2202     2202     2202        0 getStats
+       1     2045     2045     2045        0 getStats-svlt
+     114      196       74     1118        0 tagSearch
+     114       72        8      947        0 tagSearch-svlt
+   Count  AvgTime      Min      Max     Errs Operation
+   27688      407       69     5073        0 AllStats
+    4112      329      108     3020        0 ArtistFindSimilarArtistFromWordCloud
+     654      207       72     3155        0 ArtistSearch
+    2044      126       70     1613        0 ArtistSocialTags
+     114      196       74     1118        0 ArtistTagSearch
+    2170      761      245     5073        0 FindSimilarArtist
+    2156      719      260     3852        0 FindSimilarArtistTags
+    6155      144       69     1948        0 GetItem
+       1     2202     2202     2202        0 GetStats
+   10282      528       80     3497        0 ShowArtist
+
+
+Load test # 3
+
+13,000 simultaneous users
+
+Hosts: search-lt1 2000, bobism 1000, lur 2000, zoidberg 2000, search-lt5 2000 paul's laptop 2000, Jeff's laptop 2000
+
+   Count  AvgTime      Min      Max     Errs Operation
+   27429      339       69    16869        0 AllStats
+   27429      214        2    16365        0 AllStats-svlt
+     490      246       74     4500        0 artistSearch
+     490      136        7     4434        0 artistSearch-svlt
+    1434      132       70     2412        0 artistSocialTags
+    1434       16        4     1021        0 artistSocialTags-svlt
+    3010      400      110     4304        0 findSimilarArtistFromWordCloud
+    3010      279       41     4236        0 findSimilarArtistFromWordCloud-svlt
+    1516      855      265     5148        0 findSimilarArtistTags
+    1516      693      198     5016        0 findSimilarArtistTags-svlt
+    8939      485       78     5301        0 findSimilarArtistsByKey
+    8939      355       12     5038        0 findSimilarArtistsByKey-svlt
+       1     3344     3344     3344        0 getArtistTags
+       1     3211     3211     3211        0 getArtistTags-svlt
+       1    16869    16869    16869        0 getArtists
+       1    16365    16365    16365        0 getArtists-svlt
+    4491      146       69     2316        0 getItem
+    4491       10        2      862        0 getItem-svlt
+    7466      193       96     3864        0 getItems
+    7466       84       30     3731        0 getItems-svlt
+       4     2896     1934     4587        0 getStats
+       4     2766     1868     4353        0 getStats-svlt
+      77      241       76     1671        0 tagSearch
+      77      107        8      775        0 tagSearch-svlt
+   Count  AvgTime      Min      Max     Errs Operation
+   19960      465       69     5301        0 AllStats
+    3010      401      111     4305        0 ArtistFindSimilarArtistFromWordCloud
+     490      246       74     4500        0 ArtistSearch
+    1434      132       70     2412        0 ArtistSocialTags
+      77      241       76     1671        0 ArtistTagSearch
+    1450      873      260     5301        0 FindSimilarArtist
+    1516      855      265     5148        0 FindSimilarArtistTags
+    4492      146       69     2316        0 GetItem
+       4     2896     1934     4587        0 GetStats
+    7487      602       78     4804        0 ShowArtist
+Late calls: 0  Total Late delay: 0
+

@@ -1,0 +1,53 @@
+# Against lt1
+# users allstat-avg allsta-svlt all-stat-user   pr  tr  late-calls late-delay ping tomcat
+#
+# lt1 ping time - 61 ms
+#
+10      155     55  205 .5   .3   0   0   61  1 lt1
+50      124     53  175 4   3   0   0   61      1 lt1
+100     122     53  168 23  19  0   0   61      1   lt1
+500     122     53  168 23  19  0   0   61      1   lt1
+1000    136     56  186 44  36  0   0   61      1   lt1
+1500    157     61  218 65  49  0   0   61      1   lt1
+2000    174     59  240 70  60  0   0   61      1   lt1
+2500    180     62  248 131  80  0   0   61     1   lt1
+3000    207     65  285 126  101  0   0   61    1   lt1
+4000    254     73  350 155  123  0   0   61    1   lt1
+5000    305     80  418 198  162  0   0   61    1   lt1 
+5000    251     86  248 200  161  0   0   61    2   lt1 lt1
+5000    204     70  205 200  160  0   0   61    2   lt1 lt2
+7000    182     85  252 285  220  0   0   61  7   lt1 lt2 z-lt3 l-lt4 b-lt5 www music
+6000    258     91  369 252  203  0   0   61    2   lt1 lt2
+9000    302     120  414 350  295  0   0   61    3   lt1 lt2 lt3
+10000   250     107  350 400  325  0   0   61    4   lt1 lt2 z-lt3 l-lt4
+10000   250     107  350 400  325  0   0   61    5   lt1 lt2 z-lt3 l-lt4 b-lt5
+10000   250     107  350 400  325  0   0   61    5   3-lt1 zl-lt2 b-lt3 
+12000   350     180  450 450  400  0   0   61    5   lt1 lt2 z-lt3 l-lt4 b-lt5 www
+14000   469     480  644 500  390  32   6704   61    6   lt1 lt2 z-lt3 l-lt4 b-lt5 www
+16000   638     277  879 560  454  1450   200000   61    7   lt1 lt2 z-lt3 l-lt4 b-lt5 www music
+
+
+12000   700     210  538 350  295  0   0   61    4   lt1 lt2 lt3 lt4
+6000    overloaded
+
+
+Note  - the www tomcat was yielding very poor times (2862 ms avgtime) - but when it was restarted, it worked fine.
+
+the lb wbserver has very poor performance:
+
+2000    875     109  1199  65  60  598   1465295   61      1   lb
+
+
+
+
+
+#long term study
+
+20  201 61 
+40  235 69 
+60  334 94 
+80  385 105
+100  386 101
+200  380 99
+1000  383 95
+2000  380 93
