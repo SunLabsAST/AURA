@@ -3,19 +3,11 @@
         <!--  <inherits name="com.google.gwt.core.Core"/> -->
         <inherits name='org.adamtacy.GWTEffects'/>
         <inherits name='asquare.gwt.tk.Tk'/>
-        <inherits name='com.extjs.gxt.themes.Themes' />
-        <inherits name='com.extjs.gxt.ui.GXT'/>
-        <inherits name='com.gwtext.GwtExt'/>
         <inherits name='com.google.gwt.user.User'/>
         <!-- <inherits name="com.google.gwt.user.theme.standard.Standard"/> -->
     
 	<entry-point class="com.sun.labs.aura.music.wsitm.client.Main"/>
         
-        <!-- Internationalization support. -->
-	<!-- <extend-property name="locale" values="en"/>
-        
-         -->
-        <!-- <stylesheet name="com.extjs.gxt.themes.public.css.xtheme-slate.css" /> -->
         <stylesheet src="styles-shared.css"/>
 	<!-- Do not define servlets here, use web.xml -->
 </module>
