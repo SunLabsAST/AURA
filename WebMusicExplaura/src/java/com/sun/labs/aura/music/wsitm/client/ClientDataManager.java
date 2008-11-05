@@ -5,6 +5,7 @@
 package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.sun.labs.aura.music.wsitm.client.event.WebListener;
 import com.sun.labs.aura.music.wsitm.client.event.TaggingListener;
 import com.sun.labs.aura.music.wsitm.client.event.RatingListener;
@@ -72,8 +73,8 @@ public class ClientDataManager {
 
     private ListenerDetails lD;
 
-    private UniqueStore artistOracle;
-    private UniqueStore tagOracle;
+    private MultiWordSuggestOracle artistOracle;
+    private MultiWordSuggestOracle tagOracle;
 
     private SharedTagMenu sharedTagMenu;
     private SharedSteeringMenu sharedSteeringMenu;
@@ -143,19 +144,19 @@ public class ClientDataManager {
         return sharedArtistMenu;
     }
 
-    public UniqueStore getTagOracle() {
+    public MultiWordSuggestOracle getTagOracle() {
         return tagOracle;
     }
 
-    public UniqueStore getArtistOracle() {
+    public MultiWordSuggestOracle getArtistOracle() {
         return artistOracle;
     }
 
-    public void setTagOracle(UniqueStore tagOracle) {
+    public void setTagOracle(MultiWordSuggestOracle tagOracle) {
         this.tagOracle = tagOracle;
     }
 
-    public void setArtistOracle(UniqueStore artistOracle) {
+    public void setArtistOracle(MultiWordSuggestOracle artistOracle) {
         this.artistOracle = artistOracle;
     }
 
