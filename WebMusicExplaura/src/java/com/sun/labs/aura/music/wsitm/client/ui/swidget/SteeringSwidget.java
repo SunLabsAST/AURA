@@ -578,7 +578,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         }
 
         public void displayMainItems() {
-            MultiWordSuggestOracle uS = cdm.getArtistOracle();
+            PopSortedMultiWordSuggestOracle uS = cdm.getArtistOracle();
             subItems = null;
             VerticalPanel vP = new VerticalPanel();
 
@@ -588,7 +588,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             vP.add(explanation);
 
             for (ItemInfo item : mainItems) {
-                uS.add(item.getItemName());
+                uS.add(item.getItemName(), item.getPopularity());
                 HorizontalPanel hP = new HorizontalPanel();
 
                 Label addButton = new Label("Add");
@@ -652,9 +652,9 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                         } else {
 
                             // Add tags to oracle
-                            MultiWordSuggestOracle uS = cdm.getTagOracle();
+                            PopSortedMultiWordSuggestOracle uS = cdm.getTagOracle();
                             for (ItemInfo iI : results) {
-                                uS.add(iI.getItemName());
+                                uS.add(iI.getItemName(), iI.getPopularity());
                             }
 
                             subItems = results;

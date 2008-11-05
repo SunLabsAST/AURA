@@ -144,7 +144,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
             for (ArtistCompact aC : aDArray) {
 
                 // Add artist to oracle
-                cdm.getArtistOracle().add(aC.getName());
+                cdm.getArtistOracle().add(aC.getName(), aC.getPopularity());
 
                 Image img = new Image("not-interested-vert.jpg");
                 img.getElement().getStyle().setProperty("vertical-align", "top");

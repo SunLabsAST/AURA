@@ -5,16 +5,18 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.KeyboardListener;
-import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.SuggestBox;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import java.util.ArrayList;
 
 /**
@@ -53,20 +55,26 @@ public abstract class AbstractSearchWidget extends Composite {
         this.cdm = cdm;
         this.searchBoxContainerPanel = searchBoxContainerPanel;
         
-        sB = getNewSuggestBox(new MultiWordSuggestOracle());
+        sB = getNewSuggestBox(new PopSortedMultiWordSuggestOracle());
         updateSuggestBox(type);
     }
 
     public abstract void search();
 
-    private SuggestBox getNewSuggestBox(MultiWordSuggestOracle oracle) {
+    private SuggestBox getNewSuggestBox(PopSortedMultiWordSuggestOracle oracle) {
         SuggestBox box = new SuggestBox(oracle);
+        box.setLimit(15);
         box.addKeyboardListener(new KeyboardListener() {
 
             public void onKeyPress(Widget sender, char keyCode, int modifiers) {
                 // If enter key pressed, submit the form
                 if (keyCode == 13) {
-                    search();
+                    DeferredCommand.addCommand(new Command() {
+
+                        public void execute() {
+                            search();
+                        }
+                    });
                 }
             }
 
@@ -80,7 +88,7 @@ public abstract class AbstractSearchWidget extends Composite {
      * Does the actual swapping of the suggest box with the provided oracle
      * @param newOracle
      */
-    private void swapSuggestBox(MultiWordSuggestOracle newOracle, Oracles newOracleType) {
+    private void swapSuggestBox(PopSortedMultiWordSuggestOracle newOracle, Oracles newOracleType) {
 
         String oldTxt;
         if (getSearchBox() != null) {
@@ -176,11 +184,12 @@ public abstract class AbstractSearchWidget extends Composite {
 
         AsyncCallbackWithType callback = new AsyncCallbackWithType(type) {
 
-            public void onSuccess(ArrayList<String> result) {
-                ArrayList<String> callBackList = result;
+            public void onSuccess(ArrayList<ScoredC<String>> callBackList) {
 
-                MultiWordSuggestOracle newOracle = new MultiWordSuggestOracle();
-                newOracle.addAll(callBackList);
+                PopSortedMultiWordSuggestOracle newOracle = new PopSortedMultiWordSuggestOracle();
+                for (ScoredC<String> item : callBackList) {
+                    newOracle.add(item.getItem(), item.getScore());
+                }
                 swapSuggestBox(newOracle, this.type);
             }
 
@@ -203,7 +212,7 @@ public abstract class AbstractSearchWidget extends Composite {
         }
     }
 
-    protected abstract class AsyncCallbackWithType implements AsyncCallback<ArrayList<String>> {
+    protected abstract class AsyncCallbackWithType implements AsyncCallback<ArrayList<ScoredC<String>>> {
 
         public Oracles type;
 

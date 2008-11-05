@@ -73,8 +73,8 @@ public class ClientDataManager {
 
     private ListenerDetails lD;
 
-    private MultiWordSuggestOracle artistOracle;
-    private MultiWordSuggestOracle tagOracle;
+    private PopSortedMultiWordSuggestOracle artistOracle;
+    private PopSortedMultiWordSuggestOracle tagOracle;
 
     private SharedTagMenu sharedTagMenu;
     private SharedSteeringMenu sharedSteeringMenu;
@@ -144,19 +144,19 @@ public class ClientDataManager {
         return sharedArtistMenu;
     }
 
-    public MultiWordSuggestOracle getTagOracle() {
+    public PopSortedMultiWordSuggestOracle getTagOracle() {
         return tagOracle;
     }
 
-    public MultiWordSuggestOracle getArtistOracle() {
+    public PopSortedMultiWordSuggestOracle getArtistOracle() {
         return artistOracle;
     }
 
-    public void setTagOracle(MultiWordSuggestOracle tagOracle) {
+    public void setTagOracle(PopSortedMultiWordSuggestOracle tagOracle) {
         this.tagOracle = tagOracle;
     }
 
-    public void setArtistOracle(MultiWordSuggestOracle artistOracle) {
+    public void setArtistOracle(PopSortedMultiWordSuggestOracle artistOracle) {
         this.artistOracle = artistOracle;
     }
 

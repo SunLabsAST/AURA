@@ -489,13 +489,13 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
     private final void addCompactArtistToOracle(ArrayList<ScoredC<ArtistCompact>> aCList) {
         for (ScoredC<ArtistCompact> aC : aCList) {
-            cdm.getArtistOracle().add(aC.getItem().getName());
+            cdm.getArtistOracle().add(aC.getItem().getName(), aC.getItem().getPopularity());
         }
     }
     
     private final void addCompactArtistToOracle(ArtistCompact[] aCArray) {
         for (ArtistCompact aC : aCArray) {
-            cdm.getArtistOracle().add(aC.getName());
+            cdm.getArtistOracle().add(aC.getName(), aC.getPopularity());
         }
     }
 
@@ -820,7 +820,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
     private VerticalPanel getItemInfoList(final String title, final ItemInfo[] itemInfo, 
             String highlightID, boolean getArtistOnClick, boolean displayPopularity, 
-            MultiWordSuggestOracle oracle) {
+            PopSortedMultiWordSuggestOracle oracle) {
 
         Grid artistGrid;
         if (displayPopularity) {
@@ -843,7 +843,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         for (int i = 0; i < itemInfo.length; i++) {
 
             if (oracle != null) {
-                oracle.add(itemInfo[i].getItemName());
+                oracle.add(itemInfo[i].getItemName(), itemInfo[i].getPopularity());
             }
 
             Label label = new Label(itemInfo[i].getItemName());
