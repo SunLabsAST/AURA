@@ -26,7 +26,7 @@ public class DSHPanel extends FlowPanel {
         add(new Label(dsh.getName()));
         add(new StyleLabel("Status: " + (dsh.isReady() ? "ready" : "not ready"),
                            "viz-statLabel"));
-
+        add(new StyleLabel("IP: " + dsh.getIP(), "viz-statLabel"));
         StyleLabel shutDown = new StyleLabel("Shutdown", "viz-actionLabel");
         VizUI.addConfDialog(shutDown, new ClickListener() {
             public void onClick(Widget arg0) {

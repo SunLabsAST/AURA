@@ -14,6 +14,7 @@ public class DSHInfo implements Serializable {
     protected boolean isReady = true;
     
     protected String name;
+    protected String ip;
     
     public DSHInfo() {
     }
@@ -24,6 +25,14 @@ public class DSHInfo implements Serializable {
     
     public void setName(String name) {
         this.name = name;
+    }
+    
+    public String getIP() {
+        return ip;
+    }
+    
+    public void setIP(String ip) {
+        this.ip = ip;
     }
     
     public boolean isReady() {
