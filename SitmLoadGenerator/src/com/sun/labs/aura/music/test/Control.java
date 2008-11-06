@@ -29,7 +29,7 @@ public class Control {
     private long lastLateCount;
 
     public Control(String host) throws IOException {
-        sitm = new SitmAPI(host, false);
+        sitm = new SitmAPI(host, false, true);
         fetchArtists();
         fetchArtistTags();
         reset();
