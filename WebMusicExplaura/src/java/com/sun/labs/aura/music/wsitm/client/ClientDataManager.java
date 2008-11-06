@@ -4,6 +4,8 @@
  */
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.sun.labs.aura.music.wsitm.client.event.WebListener;
 import com.sun.labs.aura.music.wsitm.client.event.TaggingListener;
 import com.sun.labs.aura.music.wsitm.client.event.RatingListener;
@@ -18,7 +20,6 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
-import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedArtistMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedPlayButtonMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringMenu;
@@ -72,8 +73,8 @@ public class ClientDataManager {
 
     private ListenerDetails lD;
 
-    private UniqueStore artistOracle;
-    private UniqueStore tagOracle;
+    private PopSortedMultiWordSuggestOracle artistOracle;
+    private PopSortedMultiWordSuggestOracle tagOracle;
 
     private SharedTagMenu sharedTagMenu;
     private SharedSteeringMenu sharedSteeringMenu;
@@ -143,19 +144,19 @@ public class ClientDataManager {
         return sharedArtistMenu;
     }
 
-    public UniqueStore getTagOracle() {
+    public PopSortedMultiWordSuggestOracle getTagOracle() {
         return tagOracle;
     }
 
-    public UniqueStore getArtistOracle() {
+    public PopSortedMultiWordSuggestOracle getArtistOracle() {
         return artistOracle;
     }
 
-    public void setTagOracle(UniqueStore tagOracle) {
+    public void setTagOracle(PopSortedMultiWordSuggestOracle tagOracle) {
         this.tagOracle = tagOracle;
     }
 
-    public void setArtistOracle(UniqueStore artistOracle) {
+    public void setArtistOracle(PopSortedMultiWordSuggestOracle artistOracle) {
         this.artistOracle = artistOracle;
     }
 
@@ -211,6 +212,9 @@ public class ClientDataManager {
             lD=newlD;
             if (lD.isLoggedIn()) {
                 getLoginListenerManager().triggerOnLogin();
+
+                // Redirect user to their dashboard
+                History.newItem("dashboard:");
             } else {
                 getLoginListenerManager().triggerOnLogout();
             }

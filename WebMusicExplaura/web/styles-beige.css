@@ -143,3 +143,12 @@ h2 {
   color : #b6cf9d;
 }
 
+.contextMenuItem {
+    cursor: pointer;
+}
+.contextMenuItem:hover {
+    cursor: pointer;
+    border-top: medium solid #ffffff;
+    border-bottom: medium solid #ffffff;
+    border-width: thin;
+}

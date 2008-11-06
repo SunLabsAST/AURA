@@ -117,7 +117,16 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         for (ServiceItem svc : svcs) {
             if (svc.service instanceof DataStore) {
                 DataStore dsh = (DataStore)svc.service;
-                DSHInfo info = newDSHInfo(dsh);
+                //
+                // I can't seem to get the IP of the remote client
+                // programmatically, but I can get it out of the string... as
+                // long as the string doesn't change.
+                String desc = svc.toString();
+                String start = "endpoint:[";
+                String ip = desc.substring(desc.indexOf(start) + start.length(),
+                                           desc.length());
+                ip = ip.substring(0, ip.indexOf(":"));
+                DSHInfo info = newDSHInfo(dsh, ip);
                 ret.add(info);
             }
         }
@@ -164,7 +173,7 @@ public class VizServiceImpl extends RemoteServiceServlet implements
                         statService.getAveragePerSecond(
                             repStatName(prefix,
                                 Replicant.StatNames.GET_ITEM.toString())));
-                stats.setUpdatedItemsPerSec(
+                stats.setFindSimsPerSec(
                         statService.getAveragePerSecond(
                             repStatName(prefix,
                                 Replicant.StatNames.FIND_SIM.toString())));
@@ -240,10 +249,11 @@ public class VizServiceImpl extends RemoteServiceServlet implements
      * @param dsh
      * @return
      */
-    protected DSHInfo newDSHInfo(DataStore dsh) {
+    protected DSHInfo newDSHInfo(DataStore dsh, String ip) {
         DSHInfo ret = new DSHInfo();
         try {
             ret.setIsReady(dsh.ready());
+            ret.setIP(ip);
         } catch (RemoteException e) {
             logger.warning("Failed to communicate with DataStoreHead");
         }

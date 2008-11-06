@@ -64,7 +64,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.print.attribute.Size2DSyntax;
 
 /**
  *
@@ -88,8 +87,8 @@ public class DataManager implements Configurable {
     private int expiredTimeInDays = 0;
     private static final String beatlesMDID = "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
     private float beatlesPopularity = -1;
-    private ArrayList<String> artistOracle;
-    private ArrayList<String> tagOracle;
+    private ArrayList<ScoredC<String>> artistOracle;
+    private ArrayList<ScoredC<String>> tagOracle;
     private Map<String, SimType> simTypes;
 
     /**
@@ -98,7 +97,7 @@ public class DataManager implements Configurable {
      * @param cacheSize  the size of the cache
      * @throws java.io.IOException
      */
-    public DataManager(MusicDatabase mdb, int cacheSize) {
+    public DataManager(MusicDatabase mdb, int cacheSize) throws RemoteException {
 
         logger.info("Instantiating new DataManager with cache size of " + cacheSize);
 
@@ -107,14 +106,21 @@ public class DataManager implements Configurable {
         
         this.mdb = mdb;
 
-        artistOracle = new ArrayList<String>();
-        tagOracle = new ArrayList<String>();
+        artistOracle = new ArrayList<ScoredC<String>>();
+        tagOracle = new ArrayList<ScoredC<String>>();
 
         try {
             logger.info("Fetching " + NUMBER_ARTIST_ORACLE + " most popular artists...");
-            artistOracle.addAll(mdb.artistGetMostPopularNames(NUMBER_ARTIST_ORACLE));
+            for (Artist a : mdb.artistGetMostPopular(NUMBER_ARTIST_ORACLE)) {
+                artistOracle.add(new ScoredC<String>(a.getName(), a.getPopularity()));
+            }
+            //artistOracle.addAll(mdb.artistGetMostPopularNames(NUMBER_ARTIST_ORACLE));
+            for (ArtistTag aT : mdb.artistTagGetMostPopular(NUMBER_ARTIST_ORACLE)) {
+                tagOracle.add(new ScoredC<String>(aT.getName(), aT.getPopularity()));
+            }
             logger.info("Fetching " + NUMBER_TAGS_ORACLE + " most popular tags...");
-            tagOracle.addAll(mdb.artistTagGetMostPopularNames(NUMBER_TAGS_ORACLE));
+
+            //tagOracle.addAll(mdb.artistTagGetMostPopularNames(NUMBER_TAGS_ORACLE));
             logger.info("DONE");
 
             beatlesPopularity = mdb.artistLookup(beatlesMDID).getPopularity();
@@ -130,11 +136,11 @@ public class DataManager implements Configurable {
         logger.info("DataManager ready.");
     }
 
-    public ArrayList<String> getArtistOracle() {
+    public ArrayList<ScoredC<String>> getArtistOracle() {
         return artistOracle;
     }
 
-    public ArrayList<String> getTagOracle() {
+    public ArrayList<ScoredC<String>> getTagOracle() {
         return tagOracle;
     }
 
@@ -647,15 +653,11 @@ public class DataManager implements Configurable {
         }
 
         ArrayList<ItemInfo> iI = new ArrayList<ItemInfo>();
-        List<Tag> lT = l.getSocialTags();
+        List<Scored<ArtistTag>> lT = mdb.listenerGetDistinctiveTags(l.getKey(), 50);
         if (lT != null && lT.size() > 0) {
-            double maxSize = lT.get(0).getFreq();
-            int nbr = 0;
-            for (Tag t : lT) {
-                iI.add(new ItemInfo(ArtistTag.nameToKey(t.getName()), t.getName(), t.getFreq() / maxSize, t.getFreq() / maxSize));
-                if (nbr++ > 50) {
-                    break;
-                }
+            double maxSize = lT.get(0).getScore();
+            for (Scored<ArtistTag> sAT : lT) {
+                iI.add(new ItemInfo(sAT.getItem().getKey(), sAT.getItem().getName(), sAT.getScore() / maxSize, sAT.getItem().getPopularity()));
             }
         }
         lD.setUserTagCloud(iI.toArray(new ItemInfo[0]));
@@ -709,15 +711,11 @@ public class DataManager implements Configurable {
 
         // Get the user tag cloud
         ArrayList<ItemInfo> iI = new ArrayList<ItemInfo>();
-        List<Tag> lT = l.getSocialTags();
+        List<Scored<ArtistTag>> lT = mdb.listenerGetDistinctiveTags(l.getKey(), 50);
         if (lT != null && lT.size() > 0) {
-            double maxSize = lT.get(0).getFreq();
-            int nbr = 0;
-            for (Tag t : lT) {
-                iI.add(new ItemInfo(ArtistTag.nameToKey(t.getName()), t.getName(), t.getFreq() / maxSize, t.getFreq() / maxSize));
-                if (nbr++ > 50) {
-                    break;
-                }
+            double maxSize = lT.get(0).getScore();
+            for (Scored<ArtistTag> sAT : lT) {
+                iI.add(new ItemInfo(sAT.getItem().getKey(), sAT.getItem().getName(), sAT.getScore() / maxSize, sAT.getItem().getPopularity()));
             }
         }
         lD.setUserTagCloud(iI.toArray(new ItemInfo[0]));

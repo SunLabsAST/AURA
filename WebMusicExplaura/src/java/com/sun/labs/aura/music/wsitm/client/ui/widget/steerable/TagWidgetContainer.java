@@ -6,7 +6,6 @@ package com.sun.labs.aura.music.wsitm.client.ui.widget.steerable;
 
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Grid;
-import com.gwtext.client.widgets.menu.Menu;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringArtistMenu;
@@ -25,7 +24,7 @@ public class TagWidgetContainer extends TagWidget {
     private TagWidget activeTagWidget;
     private ClientDataManager cdm;
 
-    private Menu sharedCloudArtistMenu;
+    private SharedSteeringArtistMenu sharedCloudArtistMenu;
 
     private boolean isInit = false;
 
@@ -53,7 +52,7 @@ public class TagWidgetContainer extends TagWidget {
         initWidget(g);
     }
 
-    public Menu getSharedCloudArtistMenu() {
+    public SharedSteeringArtistMenu getSharedCloudArtistMenu() {
         return sharedCloudArtistMenu;
     }
 

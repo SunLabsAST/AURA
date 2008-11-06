@@ -18,11 +18,11 @@ import com.sun.labs.aura.music.wsitm.client.ui.swidget.ProfileSwidget;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.HistoryListener;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment.HorizontalAlignmentConstant;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
@@ -30,6 +30,7 @@ import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.ServerInfoSwidget;
 import java.util.ArrayList;
@@ -48,8 +49,12 @@ public class Main implements EntryPoint, HistoryListener {
     private Swidget curSwidget;
     private Panel contentPanel;
 
+    private HashMap<String, String> loginMsg;
+
     /** Creates a new instance of Main */
     public Main() {
+        loginMsg = new HashMap<String, String>();
+        loginMsg.put("loginMsg:username", "Login error, username not found.");
     }
 
     public void onModuleLoad() {
@@ -189,6 +194,11 @@ public class Main implements EntryPoint, HistoryListener {
             s.getMenuItem().setSelected();
             setResults(resultName, s);
         } else {
+            // Check to see if we want to display a login message
+            if (loginMsg.containsKey(resultName)) {
+                Popup.showInformationPopup(loginMsg.get(resultName));
+            }
+
             Swidget s = tokenHeadersMap.get("searchHome:");
             s.getMenuItem().setSelected();
             setResults("searchHome:", s);

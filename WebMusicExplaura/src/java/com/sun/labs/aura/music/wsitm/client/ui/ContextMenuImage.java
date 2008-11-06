@@ -12,7 +12,6 @@ import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.ClickListenerCollection;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.MouseListener;
-import com.gwtext.client.widgets.menu.Menu;
 import com.sun.labs.aura.music.wsitm.client.event.SourcesRightClickEvents;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
 
@@ -38,15 +37,15 @@ public class ContextMenuImage extends Image implements SourcesRightClickEvents, 
         rightClickListeners = new ClickListenerCollection();
     }
     
-    public ContextMenuImage(String url, Menu sharedMenu) {
+    public ContextMenuImage(String url, ContextMenu sharedMenu) {
         super(url);
-        cm = new ContextMenu(sharedMenu);
+        cm = sharedMenu;
         
         sinkEvents(Event.ONCONTEXTMENU);
         rightClickListeners = new ClickListenerCollection();
     }
     
-    public ContextMenuImage(Image img, Menu sharedMenu, ClickListener cL, MouseListener mL) {
+    public ContextMenuImage(Image img, ContextMenu sharedMenu, ClickListener cL, MouseListener mL) {
         // is this creating leaks??
         ImageElement.as(img.getElement());
         setElement(img.getElement());
@@ -57,7 +56,7 @@ public class ContextMenuImage extends Image implements SourcesRightClickEvents, 
             this.addClickListener(cL);
         }
 
-        cm = new ContextMenu(sharedMenu);
+        cm = sharedMenu;
         
         sinkEvents(Event.ONCONTEXTMENU);
         rightClickListeners = new ClickListenerCollection();
@@ -67,7 +66,7 @@ public class ContextMenuImage extends Image implements SourcesRightClickEvents, 
     public void onBrowserEvent(Event event) {
         if (event.getTypeInt() == Event.ONCONTEXTMENU) {
             DOM.eventPreventDefault(event);
-            cm.showMenu(event);
+            cm.showAt(event);
             rightClickListeners.fireClick(this);
         } else {
             super.onBrowserEvent(event);

@@ -27,6 +27,7 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -577,7 +578,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         }
 
         public void displayMainItems() {
-            UniqueStore uS = cdm.getArtistOracle();
+            PopSortedMultiWordSuggestOracle uS = cdm.getArtistOracle();
             subItems = null;
             VerticalPanel vP = new VerticalPanel();
 
@@ -587,7 +588,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             vP.add(explanation);
 
             for (ItemInfo item : mainItems) {
-                uS.add(item.getItemName());
+                uS.add(item.getItemName(), item.getPopularity());
                 HorizontalPanel hP = new HorizontalPanel();
 
                 Label addButton = new Label("Add");
@@ -651,9 +652,9 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                         } else {
 
                             // Add tags to oracle
-                            UniqueStore uS = cdm.getTagOracle();
+                            PopSortedMultiWordSuggestOracle uS = cdm.getTagOracle();
                             for (ItemInfo iI : results) {
-                                uS.add(iI.getItemName());
+                                uS.add(iI.getItemName(), iI.getPopularity());
                             }
 
                             subItems = results;
@@ -809,7 +810,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 ClientDataManager cdm, Panel searchBoxContainerPanel, Grid mainTagPanel,
                 TagWidget tagLand) {
 
-            super(musicServer, cdm, searchBoxContainerPanel);
+            super(musicServer, cdm, searchBoxContainerPanel, Oracles.TAG);
 
             searchBoxStyleName = "";
 
@@ -838,7 +839,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 }
             });
 
-            updateSuggestBox(Oracles.TAG);
+            //updateSuggestBox(Oracles.TAG); -- done in constructor
             setText("", searchTypes.SEARCH_FOR_TAG_BY_TAG);
             setSuggestBoxWidth(180);
 
@@ -867,9 +868,9 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public void search() {
             mainTagPanel.setWidget(1, 0, WebLib.getLoadingBarWidget());
             if (getCurrLoadedOracle() == Oracles.TAG) {
-                invokeTagSearchService(textBox.getText().toLowerCase());
+                invokeTagSearchService(getSearchBox().getText().toLowerCase());
             } else {
-                invokeArtistSearchService(textBox.getText().toLowerCase());
+                invokeArtistSearchService(getSearchBox().getText().toLowerCase());
             }
         }
 
@@ -983,14 +984,14 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
                 ClientDataManager cdm, ArrayList<ScoredC<ArtistCompact>> aCList, TagWidget tagLand) {
 
-            super(musicServer, cdm, aCList, cdm.isLoggedIn(), true);
+            super(musicServer, cdm, aCList, cdm.isLoggedIn(), false);
             this.tagLand = tagLand;
         }
         
         public ArtistCloudArtistListWidget(MusicSearchInterfaceAsync musicServer,
                 ClientDataManager cdm, ArtistCompact[] aDArray, TagWidget tagLand) {
 
-            super(musicServer, cdm, aDArray, cdm.isLoggedIn(), true);
+            super(musicServer, cdm, aDArray, cdm.isLoggedIn(), false);
             this.tagLand = tagLand;
         }
 

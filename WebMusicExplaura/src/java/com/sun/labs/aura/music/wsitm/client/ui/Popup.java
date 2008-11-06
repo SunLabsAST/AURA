@@ -17,6 +17,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.Timer;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 
 /**
@@ -61,7 +62,9 @@ public abstract class Popup {
         popup.center();
     }
 
+    //public static PopupPanel getPopupPanel(int secTillAutoClose) {
     public static PopupPanel getPopupPanel() {
+        //final PopupPanelAutoClose popup = new PopupPanelAutoClose(5);
         final PopupPanel popup = new PopupPanel(true);
         return popup;
     }
@@ -96,7 +99,33 @@ public abstract class Popup {
         popup.center();
     }
 
-    public static void showInformationPopup(HTML html) {
+    public static void showRoundedPopup(Widget w, String title, final PopupPanel popup, int x, int y) {
+
+        VerticalPanel vP = new VerticalPanel();
+        if (title != null && title.length() > 0) {
+            Label titleLabel = new Label(title);
+            titleLabel.setStyleName("popupColors");
+            titleLabel.addStyleName("popupTitle");
+            vP.add(titleLabel);
+        }
+        w.getElement().getStyle().setPropertyPx("padding", 5);
+        w.addStyleName("popupColors");
+        vP.add(w);
+
+        Grid fP = new Grid(1,1);
+        fP.setStyleName("popupColors");
+        fP.setHeight("100%");
+        fP.setWidget(0, 0, vP);
+
+        RoundedPanel rp = new RoundedPanel(fP, RoundedPanel.ALL, 5);
+        rp.setCornerStyleName("popupColors");
+        popup.add(rp);
+        popup.setAnimationEnabled(true);
+        popup.setPopupPosition(x, y);
+        popup.show();
+    }
+
+    public static void showInformationPopup(HTML html, int secTillAutoClose) {
 
         PopupPanel popup = getPopupPanel();
 
@@ -118,6 +147,47 @@ public abstract class Popup {
     }
 
     public static void showInformationPopup(String message) {
-        showInformationPopup(new HTML("<p>"+message+"</p>"));
+        showInformationPopup(new HTML("<p>"+message+"</p>"), 0);
+    }
+
+    private class PopupPanelAutoClose extends PopupPanel {
+
+        private Timer t;
+        private int secLeftTillClose;
+
+        public PopupPanelAutoClose(int seconds) {
+            super(true);
+            this.secLeftTillClose = seconds;
+
+            if (seconds > 0) {
+                t = new TimerWithPopupPanel(this);
+                t.schedule(1000);
+            }
+        }
+
+        private class TimerWithPopupPanel extends Timer {
+
+            private PopupPanel popup;
+
+            public TimerWithPopupPanel(PopupPanel popup) {
+                this.popup = popup;
+            }
+
+            @Override
+            public void run() {
+                secLeftTillClose--;
+                if (secLeftTillClose==0) {
+                    popup.hide();
+                } else {
+                    doEachSec();
+                }
+            }
+        }
+
+        /**
+         * Will be called at each second. Overwrite to do any action, like update
+         * button label
+         */
+        protected void doEachSec() {}
     }
 }

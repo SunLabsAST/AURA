@@ -5,23 +5,18 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
-import com.sun.labs.aura.music.wsitm.client.*;
-import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
+import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RadioButton;
-import com.gwtext.client.core.EventObject;
-import com.gwtext.client.data.Record;
-import com.gwtext.client.widgets.BoxComponent;
-import com.gwtext.client.widgets.Component;
-import com.gwtext.client.widgets.form.ComboBox;
-import com.gwtext.client.widgets.form.Field;
-import com.gwtext.client.widgets.form.event.ComboBoxCallback;
-import com.gwtext.client.widgets.form.event.ComboBoxListener;
+import com.google.gwt.user.client.ui.SuggestBox;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import java.util.ArrayList;
 
 /**
@@ -42,54 +37,73 @@ public abstract class AbstractSearchWidget extends Composite {
     }
 
     private Oracles currLoadedOracle;
-    private Oracles fetchOracle;    // Oracle we are currently fetching
 
     private MusicSearchInterfaceAsync musicServer;
     private ClientDataManager cdm;
 
     private Panel searchBoxContainerPanel; // panel that will contain the searchbox
 
-    protected ComboBox textBox;
+    private SuggestBox sB;
     protected SearchTypeRadioButton[] searchButtons;
 
     protected String searchBoxStyleName = ""; //searchText";
     protected int searchBoxWidth = 0;
 
     public AbstractSearchWidget(MusicSearchInterfaceAsync musicServer, 
-            ClientDataManager cdm, Panel searchBoxContainerPanel) {
+            ClientDataManager cdm, Panel searchBoxContainerPanel, Oracles type) {
         this.musicServer = musicServer;
         this.cdm = cdm;
         this.searchBoxContainerPanel = searchBoxContainerPanel;
-
-        textBox = createSuggestBox();
+        
+        sB = getNewSuggestBox(new PopSortedMultiWordSuggestOracle());
+        updateSuggestBox(type);
     }
 
     public abstract void search();
+
+    private SuggestBox getNewSuggestBox(PopSortedMultiWordSuggestOracle oracle) {
+        SuggestBox box = new SuggestBox(oracle);
+        box.setLimit(15);
+        box.addKeyboardListener(new KeyboardListener() {
+
+            public void onKeyPress(Widget sender, char keyCode, int modifiers) {
+                // If enter key pressed, submit the form
+                if (keyCode == 13) {
+                    DeferredCommand.addCommand(new Command() {
+
+                        public void execute() {
+                            search();
+                        }
+                    });
+                }
+            }
+
+            public void onKeyDown(Widget sender, char keyCode, int modifiers) {}
+            public void onKeyUp(Widget sender, char keyCode, int modifiers) {}
+        });
+        return box;
+    }
 
     /**
      * Does the actual swapping of the suggest box with the provided oracle
      * @param newOracle
      */
-    private void swapSuggestBox(UniqueStore newOracle, Oracles newOracleType) {
+    private void swapSuggestBox(PopSortedMultiWordSuggestOracle newOracle, Oracles newOracleType) {
 
         String oldTxt;
-        if (getSearchBox()!=null) {
+        if (getSearchBox() != null) {
             oldTxt = getSearchBox().getText();
         } else {
-            oldTxt="";
+            oldTxt = "";
         }
 
         searchBoxContainerPanel.clear();
 
-        if (textBox == null) {
-            textBox = createSuggestBox(newOracle);
-        } else {
-            textBox.setStore(newOracle);
-        }
-        textBox.setValue(oldTxt);
+        sB = getNewSuggestBox(newOracle);
+        sB.setText(oldTxt);
         searchBoxContainerPanel.add(getSearchBox());
 
-        if (newOracleType==Oracles.ARTIST) {
+        if (newOracleType == Oracles.ARTIST) {
             cdm.setArtistOracle(newOracle);
             currLoadedOracle = Oracles.ARTIST;
         } else {
@@ -98,12 +112,12 @@ public abstract class AbstractSearchWidget extends Composite {
         }
     }
 
-    public void setSearchBox(ComboBox box) {
-        this.textBox = box;
+    public void setSearchBox(SuggestBox box) {
+        this.sB = box;
     }
 
-    public ComboBox getSearchBox() {
-        return textBox;
+    public SuggestBox getSearchBox() {
+        return sB;
     }
 
     protected searchTypes getSearchType() {
@@ -116,14 +130,14 @@ public abstract class AbstractSearchWidget extends Composite {
     }
     
     public void setText(String text) {
-        if (textBox != null) {
-            textBox.setValue(text);
+        if (sB != null) {
+            sB.setText(text);
         }
     }
 
     public void setText(String text, searchTypes searchType) {
-        if (textBox != null) {
-            textBox.setValue(text);
+        if (sB != null) {
+            sB.setText(text);
             for (SearchTypeRadioButton rB : searchButtons) {
                 rB.setChecked(rB.getSearchType() == searchType);
             }
@@ -148,92 +162,21 @@ public abstract class AbstractSearchWidget extends Composite {
                     invokeOracleFetchService(Oracles.ARTIST);
                 } else {
                     swapSuggestBox(cdm.getArtistOracle(), Oracles.ARTIST);
-                    fetchOracle = null;
                 }
             } else {
                 if (cdm.getTagOracle() == null) {
                     invokeOracleFetchService(Oracles.TAG);
                 } else {
                     swapSuggestBox(cdm.getTagOracle(), Oracles.TAG);
-                    fetchOracle = null;
                 }
             }
         }
-    }
-
-    protected ComboBox createSuggestBox(UniqueStore oracle) {
-        ComboBox cB = createSuggestBox();
-        cB.setStore(oracle);
-        return cB;
-    }
-
-    protected ComboBox createSuggestBox() {
-        
-        ComboBox cb = new ComboBox();  
-        cb.setMinChars(1);  
-        cb.setFieldLabel("");
-        cb.setDisplayField("name");  
-        cb.setMode(ComboBox.LOCAL);
-        cb.setEmptyText("Search here");  
-        cb.setLoadingText("Searching...");  
-        cb.setTypeAhead(true);  
-        cb.setSelectOnFocus(true);  
-        cb.setWidth(200);  
-        //do not show drop fown icon  
-        cb.setHideTrigger(true);  
-        
-        if (searchBoxStyleName != null && searchBoxStyleName.length()>0) {
-            cb.setStyleName(searchBoxStyleName);
-        }
-        if (searchBoxWidth>0) {
-            this.textBox.getElement().setAttribute("style", "width: "+searchBoxWidth+"px;");
-        }
-
-        cb.addListener(new ComboBoxListener() {
-
-            public void onSpecialKey(Field field, EventObject e) {
-                // If user pressed enter key
-                if (e.getKey() == 13) {
-                    DeferredCommand.addCommand(new Command(){ public void execute(){
-                            search();
-                        }});
-                }
-            }
-            public boolean doBeforeQuery(ComboBox arg0, ComboBoxCallback arg1) { return true; }
-            public boolean doBeforeSelect(ComboBox arg0, Record arg1, int arg2) { return true; }
-            public void onCollapse(ComboBox arg0) {}
-            public void onExpand(ComboBox arg0) {}
-            public void onSelect(ComboBox arg0, Record arg1, int arg2) {}
-            public void onBlur(Field arg0) {}
-            public void onChange(Field arg0, Object arg1, Object arg2) {}
-            public void onFocus(Field arg0) {}
-            public void onInvalid(Field arg0, String arg1) {}
-            public void onValid(Field arg0) {}
-            public void onMove(BoxComponent arg0, int arg1, int arg2) {}
-            public void onResize(BoxComponent arg0, int arg1, int arg2, int arg3, int arg4) {}
-            public boolean doBeforeDestroy(Component arg0) { return true; }
-            public boolean doBeforeHide(Component arg0) { return true;}
-            public boolean doBeforeRender(Component arg0) { return true;}
-            public boolean doBeforeShow(Component arg0) { return true;}
-            public boolean doBeforeStateRestore(Component arg0, JavaScriptObject arg1) { return true;}
-            public boolean doBeforeStateSave(Component arg0, JavaScriptObject arg1) { return true; }
-            public void onDestroy(Component arg0) {}
-            public void onDisable(Component arg0) {}
-            public void onEnable(Component arg0) {}
-            public void onHide(Component arg0) {}
-            public void onRender(Component arg0) {}
-            public void onShow(Component arg0) {}
-            public void onStateRestore(Component arg0, JavaScriptObject arg1) {}
-            public void onStateSave(Component arg0, JavaScriptObject arg1) {}
-        });
-        
-        return cb;
     }
 
     public void setSuggestBoxWidth(int width) {
         this.searchBoxWidth = width;
         if (searchBoxWidth>0) {
-            this.textBox.setWidth(searchBoxWidth+"px");
+            this.sB.setWidth(searchBoxWidth+"px");
         }
     }
 
@@ -241,13 +184,13 @@ public abstract class AbstractSearchWidget extends Composite {
 
         AsyncCallbackWithType callback = new AsyncCallbackWithType(type) {
 
-            public void onSuccess(ArrayList<String> result) {
-                ArrayList<String> callBackList = result;
-                
-                UniqueStore newStore = new UniqueStore("name", callBackList.toArray(new String[0]));
-                newStore.load();
-                
-                swapSuggestBox(newStore, this.type);
+            public void onSuccess(ArrayList<ScoredC<String>> callBackList) {
+
+                PopSortedMultiWordSuggestOracle newOracle = new PopSortedMultiWordSuggestOracle();
+                for (ScoredC<String> item : callBackList) {
+                    newOracle.add(item.getItem(), item.getScore());
+                }
+                swapSuggestBox(newOracle, this.type);
             }
 
             public void onFailure(Throwable caught) {
@@ -269,7 +212,7 @@ public abstract class AbstractSearchWidget extends Composite {
         }
     }
 
-    protected abstract class AsyncCallbackWithType implements AsyncCallback<ArrayList<String>> {
+    protected abstract class AsyncCallbackWithType implements AsyncCallback<ArrayList<ScoredC<String>>> {
 
         public Oracles type;
 

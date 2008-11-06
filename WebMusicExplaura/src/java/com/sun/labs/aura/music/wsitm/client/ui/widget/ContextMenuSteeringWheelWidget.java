@@ -11,6 +11,7 @@ import com.google.gwt.user.client.Window;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.ArtistDependentSharedMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
 
 /**
@@ -31,7 +32,7 @@ public class ContextMenuSteeringWheelWidget extends ContextMenuImage {
         if (event.getTypeInt() == Event.ONCONTEXTMENU) {
             try {
                 DOM.eventPreventDefault(event);
-                cm.showSharedMenu(event, aC);
+                ((ArtistDependentSharedMenu)cm).showAt(event, aC);
             } catch (WebException ex) {
                 Window.alert(ex.toString());
             }

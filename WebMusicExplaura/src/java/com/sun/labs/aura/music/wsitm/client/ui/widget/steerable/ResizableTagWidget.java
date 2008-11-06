@@ -14,7 +14,6 @@ import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Widget;
-import com.gwtext.client.widgets.menu.Menu;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.DataEmbededCommand;
@@ -25,6 +24,7 @@ import com.sun.labs.aura.music.wsitm.client.items.steerable.WrapsCloudItem;
 import com.sun.labs.aura.music.wsitm.client.ui.ColorConfig;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
+import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringArtistMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
@@ -42,7 +42,7 @@ public class ResizableTagWidget extends TagWidget {
     private static int AVG_SIZE_OF_ADDED_CLOUD = 40;
     
     private ClientDataManager cdm;
-    private Menu sharedArtistMenu;
+    private SharedSteeringArtistMenu sharedArtistMenu;
     private HashMap<String, DeletableResizableTag> tagCloud;
     private boolean hasChanged = false; // did the tagCloud change and recommendations need to be updated
     private double maxSize = 0.1;
@@ -52,7 +52,7 @@ public class ResizableTagWidget extends TagWidget {
     private int lastY;
     private int colorIndex = 1;
 
-    public ResizableTagWidget(MainPanel mainPanel, ClientDataManager cdm, Menu sharedArtistMenu) {
+    public ResizableTagWidget(MainPanel mainPanel, ClientDataManager cdm, SharedSteeringArtistMenu sharedArtistMenu) {
 
         super(mainPanel);
 
@@ -361,12 +361,14 @@ public class ResizableTagWidget extends TagWidget {
         }
 
         public void onDelete() {
-            this.fadeOut(new DataEmbededCommand<String>(getWidget().getCloudItem().getId()) {
+            /*this.fadeOut(new DataEmbededCommand<String>(getWidget().getCloudItem().getId()) {
 
                 public void execute() {
                     removeItem(data);
                 }
             });
+            */
+            removeItem(getWidget().getCloudItem().getId());
         }
 
         public CloudItem getCloudItem() {
@@ -379,11 +381,11 @@ public class ResizableTagWidget extends TagWidget {
      */
     public class ResizableArtistTag extends ResizableTag implements HasContextMenu {
         
-        protected ContextMenu cm;
+        protected SharedSteeringArtistMenu cm;
         
         public ResizableArtistTag(CloudItem item, ColorConfig color) {
             super(item, color);
-            this.cm = new ContextMenu(sharedArtistMenu);
+            this.cm = sharedArtistMenu;
             sinkEvents(Event.ONCONTEXTMENU);
         }
         
@@ -392,7 +394,7 @@ public class ResizableTagWidget extends TagWidget {
             if (event.getTypeInt() == Event.ONCONTEXTMENU) {
                 DOM.eventPreventDefault(event);
                 try {
-                    cm.showSharedMenu(event, item);
+                    cm.showAt(event, item);
                 } catch (WebException ex) {
                     Window.alert(ex.toString());
                 }

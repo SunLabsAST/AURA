@@ -17,13 +17,16 @@ public abstract class TimerPanel extends FlowPanel {
     
     protected Timer timer;
     
+    protected String name;
+    
     /**
      * Create a panel with a refresh rate
      * 
      * @param refreshRate the number of seconds between refreshes
      */
-    public TimerPanel(int refreshRate) {
+    public TimerPanel(String name, int refreshRate) {
         this.refreshRate = refreshRate;
+        this.name = name;
         timer = new Timer() {
             public void run() {
                 redraw();
@@ -40,5 +43,9 @@ public abstract class TimerPanel extends FlowPanel {
     
     public void stop() {
         timer.cancel();
+    }
+    
+    public String getName() {
+        return name;
     }
 }

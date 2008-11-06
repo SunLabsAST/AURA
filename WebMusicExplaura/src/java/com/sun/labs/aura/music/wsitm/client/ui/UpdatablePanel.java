@@ -5,7 +5,6 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui;
 
-import com.extjs.gxt.ui.client.Style.Direction;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;

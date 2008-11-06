@@ -42,6 +42,7 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.LoadListener;
+import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -57,7 +58,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
 import java.util.ArrayList;
 import java.util.Map;
-import org.adamtacy.client.ui.EffectPanel;
+import org.adamtacy.client.ui.NEffectPanel;
 import org.adamtacy.client.ui.effects.impl.Fade;
 
 /**
@@ -339,7 +340,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
-                // do some UI stuff to show success
+
                 SearchResults sr = (SearchResults) result;
                 if (sr != null && sr.isOK()) {
                     ItemInfo[] results = sr.getItemResults();
@@ -488,13 +489,13 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
     private final void addCompactArtistToOracle(ArrayList<ScoredC<ArtistCompact>> aCList) {
         for (ScoredC<ArtistCompact> aC : aCList) {
-            cdm.getArtistOracle().add(aC.getItem().getName());
+            cdm.getArtistOracle().add(aC.getItem().getName(), aC.getItem().getPopularity());
         }
     }
     
     private final void addCompactArtistToOracle(ArtistCompact[] aCArray) {
         for (ArtistCompact aC : aCArray) {
-            cdm.getArtistOracle().add(aC.getName());
+            cdm.getArtistOracle().add(aC.getName(), aC.getPopularity());
         }
     }
 
@@ -819,7 +820,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
     private VerticalPanel getItemInfoList(final String title, final ItemInfo[] itemInfo, 
             String highlightID, boolean getArtistOnClick, boolean displayPopularity, 
-            UniqueStore oracle) {
+            PopSortedMultiWordSuggestOracle oracle) {
 
         Grid artistGrid;
         if (displayPopularity) {
@@ -842,7 +843,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         for (int i = 0; i < itemInfo.length; i++) {
 
             if (oracle != null) {
-                oracle.add(itemInfo[i].getItemName());
+                oracle.add(itemInfo[i].getItemName(), itemInfo[i].getPopularity());
             }
 
             Label label = new Label(itemInfo[i].getItemName());
@@ -1125,7 +1126,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                 g.getCellFormatter().getElement(0, 0).setAttribute("align", "center");
                 g.setTitle(i.title);
 
-                EffectPanel theEffectPanel = new EffectPanel();
+                NEffectPanel theEffectPanel = new NEffectPanel();
                 Fade f = new Fade();
                 f.getProperties().setStartOpacity(0);
                 f.getProperties().setEndOpacity(100);
@@ -1180,12 +1181,12 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
         private class LoadListenerPanelContainer implements LoadListener {
 
-            private EffectPanel theEffectPanel;
+            private NEffectPanel theEffectPanel;
 
             /**
              * @param w widget we want the effect applied to
              */
-            public LoadListenerPanelContainer(EffectPanel theEffectPanel) {
+            public LoadListenerPanelContainer(NEffectPanel theEffectPanel) {
                 super();
                 this.theEffectPanel=theEffectPanel;
             }
@@ -1194,7 +1195,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
             }
 
             public void onLoad(Widget arg0) {
-                theEffectPanel.startEffects();
+                theEffectPanel.playEffects();
             }
         }
 
@@ -1321,7 +1322,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         public SearchWidget(MusicSearchInterfaceAsync musicServer,
             ClientDataManager cdm, Panel searchBoxContainerPanel) {
 
-            super(musicServer, cdm, searchBoxContainerPanel);
+            super(musicServer, cdm, searchBoxContainerPanel, Oracles.ARTIST);
 
             searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
 
@@ -1347,7 +1348,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                 }
             });
 
-            updateSuggestBox(Oracles.ARTIST);
+            //updateSuggestBox(Oracles.ARTIST);  -- done in constructor
             setText("", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
 
             for (int i = 0; i < searchButtons.length; i++) {
@@ -1386,7 +1387,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
             if (cdm.getCurrSimTypeName() == null || cdm.getCurrSimTypeName().equals("")) {
                 Window.alert("Error. Cannot search without the similarity types.");
             } else {
-                String query = textBox.getText().toLowerCase();
+                String query = getSearchBox().getText().toLowerCase();
                 searchTypes currST = getSearchType();
                 if (currST == searchTypes.SEARCH_FOR_TAG_BY_TAG) {
                     invokeTagSearchService(query, 0);

@@ -9,7 +9,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.*;
-import com.extjs.gxt.ui.client.Style.Direction;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -24,6 +23,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
+import com.sun.labs.aura.music.wsitm.client.ui.AnimatedComposite;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,7 +63,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
             boolean fetchRatings, boolean displayDiff) {
     
         processArtistSimValues(aC);
-        doInit(musicServer, cdm, fetchRatings, true);
+        doInit(musicServer, cdm, fetchRatings, displayDiff);
     }
     
     public ArtistListWidget(MusicSearchInterfaceAsync musicServer,
@@ -144,7 +144,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
             for (ArtistCompact aC : aDArray) {
 
                 // Add artist to oracle
-                cdm.getArtistOracle().add(aC.getName());
+                cdm.getArtistOracle().add(aC.getName(), aC.getPopularity());
 
                 Image img = new Image("not-interested-vert.jpg");
                 img.getElement().getStyle().setProperty("vertical-align", "top");
@@ -182,13 +182,16 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                     public void onDelete() {
                         invokeAddNotInterested(getWidget().getArtistId());
                         this.getWidget().doRemoveListeners();
-                        this.slideOut(Direction.UP,
+                        /*
+                        this.slideOut(AnimatedComposite.SlideDirection.UP,
                                 new DualDataEmbededCommand<VerticalPanel, DeletableWidget>(((VerticalPanel) g.getWidget(0, 0)), this) {
 
                             public void execute() {
                                 data.remove(sndData);
                             }
                         });
+                        */
+                        ((VerticalPanel) g.getWidget(0, 0)).remove(this);
                     }
                 };
                 if (cdm.isLoggedIn()) {

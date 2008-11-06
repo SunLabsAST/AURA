@@ -31,8 +31,8 @@ import java.util.Set;
  */
 public interface MusicSearchInterface extends RemoteService {
     
-    public ArrayList<String> getArtistOracle() throws WebException;
-    public ArrayList<String> getTagOracle() throws WebException;
+    public ArrayList<ScoredC<String>> getArtistOracle() throws WebException;
+    public ArrayList<ScoredC<String>> getTagOracle() throws WebException;
     public HashMap<String, String> getSimTypes() throws WebException;
     
     public SearchResults artistSearch(String searchString, int maxResults) throws WebException;

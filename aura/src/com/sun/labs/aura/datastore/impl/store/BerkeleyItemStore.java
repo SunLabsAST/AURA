@@ -190,6 +190,39 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
         // Get the database environment, copying it if necessary.
         dbEnvDir = ps.getString(PROP_DB_ENV);
         File f = new File(dbEnvDir);
+        
+        //
+        // Since we've changed the default dir, see if we need to relocate
+        // an existing db already on disk.  This code should get cleaned out
+        // once it is run once on our live system.
+        if (!f.exists()) {
+            if (!dbEnvDir.contains(prefixString)) {
+                String oldPath =
+                        dbEnvDir.replaceFirst("db$", prefixString + "/db");
+                if (!oldPath.equals(dbEnvDir)) {
+                    File of = new File(oldPath);
+                    if (of.exists()) {
+                        if (!of.renameTo(f)) {
+                            logger.info("Failed to move "
+                                    + oldPath + " to " + dbEnvDir);
+                        }
+                    }
+                    oldPath = dbEnvDir.replaceFirst("db$",
+                            prefixString + "/itemIndex.idx");
+                    of = new File(oldPath);
+                    File nf = new File(
+                            dbEnvDir.replaceFirst("db$", "itemIndex.idx"));
+                    if (of.exists()) {
+                        if (!of.renameTo(nf)) {
+                            logger.info("Failed to move "
+                                    + of.getPath() + " to " + nf.getPath());
+                        }
+                    }
+                }
+            }
+        }
+        // end of code for patching directory structure
+        
         if(!f.exists() && !f.mkdirs()) {
             throw new PropertyException(ps.getInstanceName(), PROP_DB_ENV,
                     "Unable to create new directory for db");
