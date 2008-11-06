@@ -21,9 +21,11 @@ public class SitmAPI {
 
     private Commander commander;
     private Monitor monitor;
+    private boolean debug;
 
-    public SitmAPI(String host, boolean traceSends) throws IOException {
-        commander = new Commander("sitm", host, "");
+    public SitmAPI(String host, boolean traceSends, boolean debug) throws IOException {
+        String suffix = debug  ? "&debug=true" : "";
+        commander = new Commander("sitm", host, suffix);
         commander.setTraceSends(traceSends);
         monitor = new Monitor(false, true);
     }
@@ -46,7 +48,6 @@ public class SitmAPI {
                 Element artistElement = (Element) itemList.item(i);
                 String key = artistElement.getAttribute("key");
                 String sscore = artistElement.getAttribute("score");
-                String popularity = artistElement.getAttribute("popularity");
                 String name = artistElement.getAttribute("name");
                 double score = Double.parseDouble(sscore);
                 Item item = new Item(key, name);
@@ -68,13 +69,14 @@ public class SitmAPI {
             Document doc = commander.sendCommand("GetArtistTags?key=" + key + "&max=" + count);
             long servletTime = checkStatus("artistSocialTags", doc);
             Element docElement = doc.getDocumentElement();
-            NodeList itemList = docElement.getElementsByTagName("ArtistTag");
+            NodeList itemList = docElement.getElementsByTagName("artist_tag");
             for (int i = 0; i < itemList.getLength(); i++) {
                 Element artistElement = (Element) itemList.item(i);
                 String skey = artistElement.getAttribute("key");
+                String name = artistElement.getAttribute("name");
                 String sscore = artistElement.getAttribute("score");
                 float score = Float.parseFloat(sscore);
-                Item item = new Item(skey, skey);
+                Item item = new Item(skey, name);
                 items.add(new Scored<Item>(item, score));
             }
             monitor.opFinish("artistSocialTags", start, servletTime);
@@ -93,12 +95,11 @@ public class SitmAPI {
             Document doc = commander.sendCommand("ArtistTagSearch?max=" + count + "&name=" + searchString);
             long servletTime = checkStatus("tagSearch", doc);
             Element docElement = doc.getDocumentElement();
-            NodeList itemList = docElement.getElementsByTagName("artistTag");
+            NodeList itemList = docElement.getElementsByTagName("artist_tag");
             for (int i = 0; i < itemList.getLength(); i++) {
                 Element artistElement = (Element) itemList.item(i);
                 String key = artistElement.getAttribute("key");
                 String sscore = artistElement.getAttribute("score");
-                String popularity = artistElement.getAttribute("popularity");
                 String name = artistElement.getAttribute("name");
                 double score = Double.parseDouble(sscore);
                 Item item = new Item(key, name);
@@ -167,7 +168,7 @@ public class SitmAPI {
         try {
             long start = monitor.opStart();
             List<Scored<Item>> items = new ArrayList<Scored<Item>>();
-            String compactArg = compact ? "&format=compact" : "";
+            String compactArg = compact ? "&outputType=small" : "&outputType=full";
             Document doc = commander.sendCommand("GetItems?key=" + key + compactArg);
             long servletTime = checkStatus("getItem", doc);
             monitor.opFinish("getItem", start, servletTime);
@@ -181,8 +182,7 @@ public class SitmAPI {
     public List<Item> getItems(List<String> keys, boolean compact) throws IOException {
         try {
             long start = monitor.opStart();
-            List<Scored<Item>> items = new ArrayList<Scored<Item>>();
-            String compactArg = compact ? "&format=compact" : "";
+            String compactArg = compact ? "&outputType=small" : "&outputType=full";
             String keyList = "";
             for (String key : keys) {
                 keyList += key;
@@ -251,7 +251,7 @@ public class SitmAPI {
             Document doc = commander.sendCommand("GetTags?max=" + count);
             long servletTime = checkStatus("getArtistTags", doc);
             Element docElement = doc.getDocumentElement();
-            NodeList itemList = docElement.getElementsByTagName("tag");
+            NodeList itemList = docElement.getElementsByTagName("artist_tag");
             for (int i = 0; i < itemList.getLength(); i++) {
                 Element artistElement = (Element) itemList.item(i);
                 String key = artistElement.getAttribute("key");
