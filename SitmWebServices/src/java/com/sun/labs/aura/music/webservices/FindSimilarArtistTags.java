@@ -4,8 +4,10 @@
  */
 package com.sun.labs.aura.music.webservices;
 
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.webservices.ItemFormatter.OutputType;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -34,6 +36,7 @@ public class FindSimilarArtistTags extends HttpServlet {
         pc.addParam("key", null, "the key of the item of interest");
         pc.addParam("name", null, "the name of the item of interest");
         pc.addParam("max", "10", "the maxiumum number of artists to return");
+        pc.addParam("outputType", OutputType.Tiny.name(), "the type of output");
     }
 
     /** 
@@ -58,13 +61,15 @@ public class FindSimilarArtistTags extends HttpServlet {
             Util.tagOpen(out, SERVLET_NAME);
             pc.check(status, request);
             MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
+            ItemFormatterManager formatter = DatabaseBroker.getItemFormatterManager(context);
 
-            if (mdb == null) {
+            if (mdb == null || formatter == null) {
                 status.addError(ErrorCode.InternalError, "Can't connect to the music database");
                 return;
             }
             String key = pc.getParam(status, request, "key");
             int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
+            OutputType outputType = (OutputType) pc.getParamAsEnum(status, request, "outputType", OutputType.values());
 
             try {
                 ArtistTag artistTag = null;
@@ -88,12 +93,7 @@ public class FindSimilarArtistTags extends HttpServlet {
                                 continue;
                             }
 
-                            ArtistTag simArtistTag = scoredArtistTag.getItem();
-                            out.println("    <artistTag key=\"" +
-                                    simArtistTag.getKey() + "\" " +
-                                    "score=\"" + scoredArtistTag.getScore() + "\" " +
-                                    "name=\"" + Util.filter(simArtistTag.getName()) + "\"" +
-                                    "/>");
+                            out.println(formatter.toXML(scoredArtistTag.getItem().getItem(), outputType, scoredArtistTag.getScore()));
                         }
                     } else {
                         status.addError(ErrorCode.NotFound, "can't find specified artist");

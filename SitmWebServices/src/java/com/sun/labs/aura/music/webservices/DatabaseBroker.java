@@ -24,6 +24,7 @@ public class DatabaseBroker implements ServletContextListener {
     private final static String ATTRIBUTE_NAME = "databaseBroker";
     private final static String DATASTORE_NAME = "dataStoreHead";
     private MusicDatabase mdb = null;
+    private ItemFormatterManager ifm;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -36,6 +37,7 @@ public class DatabaseBroker implements ServletContextListener {
                 cm.addProperties(config);
                 context.setAttribute(ATTRIBUTE_NAME, this);
                 mdb = new MusicDatabase(cm);
+                ifm = new ItemFormatterManager(mdb);
             } catch (IOException ioe) {
                 logger.log(Level.SEVERE, "Can't load configuration " + config, ioe);
             }
@@ -50,6 +52,10 @@ public class DatabaseBroker implements ServletContextListener {
         return mdb;
     }
 
+    private ItemFormatterManager getItemFormatterManager() {
+        return ifm;
+    }
+
     public static MusicDatabase getMusicDatabase(ServletContext sc) {
         DatabaseBroker sl = (DatabaseBroker) sc.getAttribute(ATTRIBUTE_NAME);
         if (sl != null) {
@@ -57,6 +63,19 @@ public class DatabaseBroker implements ServletContextListener {
         }
         return null;
     }
+
+    public static DatabaseBroker getDatabaseBroker(ServletContext sc) {
+        return (DatabaseBroker) sc.getAttribute(ATTRIBUTE_NAME);
+    }
+
+    public static ItemFormatterManager getItemFormatterManager(ServletContext sc) {
+        DatabaseBroker sl = (DatabaseBroker) sc.getAttribute(ATTRIBUTE_NAME);
+        if (sl != null) {
+            return sl.getItemFormatterManager();
+        }
+        return null;
+    }
+
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {

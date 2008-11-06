@@ -4,8 +4,11 @@
  */
 package com.sun.labs.aura.music.webservices;
 
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Artist;
+import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.webservices.ItemFormatter.OutputType;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -47,6 +50,7 @@ public class GetArtistTags extends HttpServlet {
         pc.addParam("max", "100", "the maxiumum number of results to return");
         pc.addParam("type", "distinctive", "the type of tag report - 'distinctive' or 'frequent'");
         pc.addParam("field", Artist.FIELD_SOCIAL_TAGS, "the field of interest.");
+        pc.addParam("outputType", OutputType.Tiny.name(), "the type of output");
     }
 
     /** 
@@ -71,8 +75,9 @@ public class GetArtistTags extends HttpServlet {
             Util.tagOpen(out, SERVLET_NAME);
             pc.check(status, request);
             MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
+            ItemFormatterManager formatter = DatabaseBroker.getItemFormatterManager(context);
 
-            if (mdb == null) {
+            if (mdb == null || formatter == null) {
                 status.addError(ErrorCode.InternalError, "Can't connect to the music database");
                 return;
             }
@@ -82,6 +87,7 @@ public class GetArtistTags extends HttpServlet {
             String field = pc.getParam(status, request, "field");
             // TBD Field not used yet.
             boolean frequent = ((Type) pc.getParamAsEnum(status, request, "type", Type.values())) == Type.Frequent;
+            OutputType outputType = (OutputType) pc.getParamAsEnum(status, request, "outputType", OutputType.values());
 
             Artist artist = null;
             if (key == null) {
@@ -99,9 +105,11 @@ public class GetArtistTags extends HttpServlet {
                     if (frequent) {
                         List<Tag> tags = artist.getSocialTags();
                         for (Tag tag : tags) {
-                            String tagKey = tag.getName();
-                            out.println("    <ArtistTag key=\"" + tagKey + "\" " + "score=\"" + tag.getCount() + "\" " +
-                                    "/>");
+                            String tagName = tag.getName();
+                            ArtistTag artistTag = mdb.artistTagLookup(ArtistTag.nameToKey(tagName));
+                            if (artistTag != null) {
+                                out.println(formatter.toXML(artistTag.getItem(), outputType, (double) tag.getFreq()));
+                            }
                         }
                     } else {
                         WordCloud tags = mdb.artistGetDistinctiveTagNames(key, maxCount);
@@ -111,9 +119,11 @@ public class GetArtistTags extends HttpServlet {
                         Collections.reverse(vals);
 
                         for (Scored<String> scoredTag : vals) {
-                            String tagKey = scoredTag.getItem();
-                            out.println("    <ArtistTag key=\"" + tagKey + "\" " +
-                                    "score=\"" + scoredTag.getScore() + "\" " + "/>");
+                            String tagName = scoredTag.getItem();
+                            ArtistTag artistTag = mdb.artistTagLookup(ArtistTag.nameToKey(tagName));
+                            if (artistTag != null) {
+                                out.println(formatter.toXML(artistTag.getItem(), outputType, (double) scoredTag.getScore()));
+                            }
                         }
                     }
                 } else {

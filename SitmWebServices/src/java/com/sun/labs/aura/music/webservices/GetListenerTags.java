@@ -4,20 +4,18 @@
  */
 package com.sun.labs.aura.music.webservices;
 
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.webservices.ItemFormatter.OutputType;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
-import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.aura.util.Tag;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -46,6 +44,7 @@ public class GetListenerTags extends HttpServlet {
         pc.addParam("max", "100", "the maxiumum number of results to return");
         pc.addParam("type", "distinctive", "the type of tag report - 'distinctive' or 'frequent'");
         pc.addParam("field", Listener.FIELD_SOCIAL_TAGS, "the field of interest.");
+        pc.addParam("outputType", OutputType.Tiny.name(), "the type of output");
     }
 
     /** 
@@ -70,8 +69,9 @@ public class GetListenerTags extends HttpServlet {
             Util.tagOpen(out, SERVLET_NAME);
             pc.check(status, request);
             MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
+            ItemFormatterManager formatter = DatabaseBroker.getItemFormatterManager(context);
 
-            if (mdb == null) {
+            if (mdb == null || formatter == null) {
                 status.addError(ErrorCode.InternalError, "Can't connect to the music database");
                 return;
             }
@@ -81,6 +81,7 @@ public class GetListenerTags extends HttpServlet {
             String field = pc.getParam(status, request, "field");
             // TBD Field not used yet.
             boolean frequent = ((Type) pc.getParamAsEnum(status, request, "type", Type.values())) == Type.Frequent;
+            OutputType outputType = (OutputType) pc.getParamAsEnum(status, request, "outputType", OutputType.values());
 
             Listener listener = null;
 
@@ -88,8 +89,11 @@ public class GetListenerTags extends HttpServlet {
                 if (frequent) {
                     List<Tag> tags = listener.getSocialTags();
                     for (Tag tag : tags) {
-                        String tagKey = tag.getName();
-                        out.println("    <ListenerTag key=\"" + tagKey + "\" " + "score=\"" + tag.getCount() + "\" " + "/>");
+                        String tagName = tag.getName();
+                        ArtistTag artistTag = mdb.artistTagLookup(ArtistTag.nameToKey(tagName));
+                        if (artistTag != null) {
+                            out.println(formatter.toXML(artistTag.getItem(), outputType, (double) tag.getFreq()));
+                        }
                     }
                 } else {
                     List<Scored<ArtistTag>> artistTags = mdb.listenerGetDistinctiveTags(key, maxCount);
@@ -97,6 +101,7 @@ public class GetListenerTags extends HttpServlet {
                         ArtistTag artistTag = sartistTag.getItem();
                         out.println("    <ListenerTag key=\"" + artistTag.getKey() + "\" " +
                                 "score=\"" + sartistTag.getScore() + "\" " + "/>");
+                        out.println(formatter.toXML(artistTag.getItem(), outputType, sartistTag.getScore()));
                     }
                 }
             } else {

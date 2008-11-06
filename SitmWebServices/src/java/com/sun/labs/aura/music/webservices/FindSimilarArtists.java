@@ -4,15 +4,21 @@
  */
 package com.sun.labs.aura.music.webservices;
 
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.MusicDatabase.Popularity;
+import com.sun.labs.aura.music.webservices.ItemFormatter.OutputType;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.io.*;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
@@ -34,6 +40,7 @@ public class FindSimilarArtists extends HttpServlet {
         pc.addParam("max", "10", "the maxiumum number of artists to return");
         pc.addParam("popularity", Popularity.ALL.name(), "the popularity filter");
         pc.addParam("field", Artist.FIELD_SOCIAL_TAGS, "the field to use for similarity");
+        pc.addParam("outputType", OutputType.Tiny.name(), "the type of output");
     }
 
     /** 
@@ -59,57 +66,40 @@ public class FindSimilarArtists extends HttpServlet {
             pc.check(status, request);
 
             MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
+            ItemFormatterManager formatter = DatabaseBroker.getItemFormatterManager(context);
 
-            if (mdb == null) {
-                status.addError(ErrorCode.InternalError, "Can't connecto to the music database");
+            if (mdb == null || formatter == null) {
+                status.addError(ErrorCode.InternalError, "Can't connect to the music database");
                 return;
             }
 
-            String key = pc.getParam(status, request, "key");
+            Set<Artist> artists = getArtistsFromRequest(mdb, status, request);
+            List<String> keys = getKeyList(artists);
             int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
             Popularity pop = (Popularity) pc.getParamAsEnum(status, request,
                     "popularity", Popularity.values());
             String field = pc.getParam(status, request, "field");
+            OutputType outputType = (OutputType) pc.getParamAsEnum(status, request, "outputType", OutputType.values());
+                    
 
-            Artist artist = null;
-            if (key == null) {
-                String name = pc.getParam(status, request, "name");
-                if (name != null) {
-                    artist = mdb.artistFindBestMatch(name);
-                    if (artist != null) {
-                        key = artist.getKey();
-                    }
-                }
-            }
-            if (key == null) {
-                status.addError(ErrorCode.NotFound, "Can't find artist");
-                return;
-            }
-
-            if ((artist = mdb.artistLookup(key)) != null) {
-                List<Scored<Artist>> scoredArtists;
-                if ("all".equals(field)) {
-                    scoredArtists = mdb.artistFindSimilar(key, maxCount + 1, pop);
-                } else {
-                    scoredArtists = mdb.artistFindSimilar(key, field, maxCount + 1, pop);
-                }
-
-                out.println("    <seed key=\"" + key + "\" name=\"" + Util.filter(artist.getName()) + "\"/>");
-                for (Scored<Artist> scoredArtist : scoredArtists) {
-
-                    if (scoredArtist.getItem().getKey().equals(key)) {
-                        continue;
-                    }
-
-                    Artist simArtist = scoredArtist.getItem();
-                    out.println("    <artist key=\"" +
-                            simArtist.getKey() + "\" " +
-                            "score=\"" + scoredArtist.getScore() + "\" " +
-                            "name=\"" + Util.filter(simArtist.getName()) + "\"" +
-                            "/>");
-                }
+            List<Scored<Artist>> scoredArtists;
+            if ("all".equals(field)) {
+                scoredArtists = mdb.artistFindSimilar(keys, maxCount + keys.size(), pop);
             } else {
-                status.addError(Util.ErrorCode.NotFound, "Can't find specified artist");
+                scoredArtists = mdb.artistFindSimilar(keys, field, maxCount + keys.size(), pop);
+            }
+            for (Artist artist : artists) {
+                out.println("    <seed key=\"" + artist.getKey() + "\" name=\"" + Util.filter(artist.getName()) + "\"/>");
+            }
+
+            for (Scored<Artist> scoredArtist : scoredArtists) {
+
+                if (keys.contains(scoredArtist.getItem().getKey())) {
+                    continue;
+                }
+
+                Artist simArtist = scoredArtist.getItem();
+                out.println(formatter.toXML(simArtist.getItem(), outputType, scoredArtist.getScore()));
             }
         } catch (AuraException ex) {
             status.addError(Util.ErrorCode.InternalError, "Problem accessing data", ex);
@@ -119,6 +109,60 @@ public class FindSimilarArtists extends HttpServlet {
             Util.tagClose(out, SERVLET_NAME);
             out.close();
         }
+    }
+
+    Set<Artist> getArtistsFromRequest(MusicDatabase mdb, Status status, HttpServletRequest request) throws AuraException, ParameterException {
+        Set<Artist> artists = new HashSet<Artist>();
+        StringBuilder errorMessage = new StringBuilder();
+
+        String[] pkeys = request.getParameterValues("key");
+
+        if (pkeys != null) {
+            for (String key : pkeys) {
+                Artist artist = mdb.artistLookup(key);
+                if (artist != null) {
+                    artists.add(artist);
+                } else {
+                    addMessage(errorMessage, "bad key: " + key);
+                }
+            }
+        }
+        String[] names = request.getParameterValues("name");
+        if (names != null) {
+            for (String name : names) {
+                Artist artist = mdb.artistFindBestMatch(name);
+                if (artist != null) {
+                    artists.add(artist);
+                } else {
+                    addMessage(errorMessage, "bad name: " + name);
+                }
+            }
+        }
+
+        if (errorMessage.length() > 0) {
+            status.addError(ErrorCode.BadArgument, errorMessage.toString());
+            throw new ParameterException();
+        }
+        if (artists.size() == 0) {
+            status.addError(ErrorCode.MissingArgument, "Need at least one key or name");
+            throw new ParameterException();
+        }
+        return artists;
+    }
+
+    List<String> getKeyList(Collection<Artist> artists) {
+        List<String> keys = new ArrayList<String>();
+        for (Artist artist : artists) {
+            keys.add(artist.getKey());
+        }
+        return keys;
+    }
+
+    private void addMessage(StringBuilder sb, String msg) {
+        if (sb.length() > 0) {
+            sb.append(", ");
+        }
+        sb.append(msg);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

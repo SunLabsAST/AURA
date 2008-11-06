@@ -22,6 +22,7 @@ public class Status {
     private List<ErrorDescription> errorList = new ArrayList<ErrorDescription>();
     private HttpServletRequest request;
     private Throwable throwable;
+    private boolean debug = false;
 
     public Status(HttpServletRequest request) {
         startTime = System.currentTimeMillis();
@@ -35,6 +36,10 @@ public class Status {
     public void addError(Util.ErrorCode error, String text, Throwable t) {
         errorList.add(new ErrorDescription(error, text));
         throwable = t;
+    }
+    
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 
     public void toXML(PrintWriter out) {
@@ -66,12 +71,14 @@ public class Status {
             long delta = System.currentTimeMillis() - startTime;
             out.println("    <time ms=\"" + delta + "\"/>");
         }
-        {
+
+        if (debug) {
             String stackTrace = getStackTrace();
             if (stackTrace != null) {
                 out.println(stackTrace);
             }
         }
+
         out.println("</results>");
     }
 

@@ -4,8 +4,10 @@
  */
 package com.sun.labs.aura.music.webservices;
 
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.webservices.ItemFormatter.OutputType;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -24,11 +26,13 @@ public class ArtistSearch extends HttpServlet {
     private final static String SERVLET_NAME = "ArtistSearch";
     private ParameterChecker pc = null;
 
+    @Override
     public void init() throws ServletException {
         super.init();
         pc = new ParameterChecker(SERVLET_NAME, "searches the database for an artist");
         pc.addParam("name", "the name of the artist to search for");
         pc.addParam("max", "20", "the maximum number of matches to return");
+        pc.addParam("outputType", OutputType.Tiny.name(), "the type of output");
     }
 
     /** 
@@ -56,18 +60,19 @@ public class ArtistSearch extends HttpServlet {
 
             String name = pc.getParam(status, request, "name");
             int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
+            OutputType outputType = (OutputType) pc.getParamAsEnum(status, request, "outputType", OutputType.values());
 
             MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
-            if (mdb == null) {
+            ItemFormatterManager formatter = DatabaseBroker.getItemFormatterManager(context);
+
+            if (mdb == null || formatter == null) {
                 status.addError(ErrorCode.InternalError, "Can't find the datastore");
                 return;
             }
 
             List<Scored<Artist>> scoredArtists = mdb.artistSearch(name, maxCount);
             for (Scored<Artist> scoredArtist : scoredArtists) {
-                Artist artist = scoredArtist.getItem();
-                out.println("    <artist key=\"" + artist.getKey() +
-                        "\" " + "score=\"" + scoredArtist.getScore() + "\" " + "popularity=\"" + mdb.artistGetNormalizedPopularity(artist) + "\" " + "name=\"" + Util.filter(artist.getName()) + "\"" + "/>");
+                out.println(formatter.toXML(scoredArtist.getItem().getItem(), outputType, scoredArtist.getScore()));
             }
         } catch (AuraException ex) {
             status.addError(ErrorCode.InternalError, "problem accessing data, " + ex.getMessage(), ex);

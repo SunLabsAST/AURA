@@ -4,8 +4,10 @@
  */
 package com.sun.labs.aura.music.webservices;
 
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.webservices.ItemFormatter.OutputType;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
@@ -31,6 +33,7 @@ public class GetListeners extends HttpServlet {
         super.init();
         pc = new ParameterChecker(SERVLET_NAME, "get listeners from the database");
         pc.addParam("max", "100", "the maximum number of results returned");
+        pc.addParam("outputType", OutputType.Tiny.name(), "the type of output");
     }
 
     /** 
@@ -54,12 +57,14 @@ public class GetListeners extends HttpServlet {
             Util.tagOpen(out, SERVLET_NAME);
             pc.check(status, request);
             MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
+            ItemFormatterManager formatter = DatabaseBroker.getItemFormatterManager(context);
 
-            if (mdb == null) {
+            if (mdb == null || formatter == null) {
                 status.addError(ErrorCode.InternalError, "Can't connect to the music database");
                 return;
             }
             int maxCount = pc.getParamAsInt(status, request, "max", 1, 10000);
+            OutputType outputType = (OutputType) pc.getParamAsEnum(status, request, "outputType", OutputType.values());
 
             List<Listener> listeners = mdb.listenerGetMostActive(maxCount);
 
@@ -68,6 +73,7 @@ public class GetListeners extends HttpServlet {
                 out.println("    <listener key=\"" + listener.getKey() 
                         + "\" name=\"" + Util.filter(listener.getName()) 
                         + "\"" + " activity=\"" + 1 +  "\"" + "/>");
+                out.println(formatter.toXML(listener.getItem(), outputType));
             }
 
         } catch (AuraException ex) {

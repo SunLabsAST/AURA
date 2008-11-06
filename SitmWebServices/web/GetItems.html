@@ -11,13 +11,14 @@ Get items from the database
 <H2>Params</H2>
 <UL>
 	<LI><B>key – </B>the key of the item of interest. Required. This may be either a single key or a list of comma separated keys.
-	<LI><B>format – </B>the format of the output. May be 'compact' or 'full'. Optional, default is 'full'. iF 'compact' is selected, certain items (such as the artist, are output in a compact form).
+	<LI><B>outputType - </B><SPAN STYLE="font-weight: normal">the level of output detail.
+	Optional, default is 'tiny'. Value must be one of: 'tiny', 'small', 'medium', 'large' or 'full'</SPAN>
 </UL>
 <H2 CLASS="western" STYLE="font-weight: normal">Example</H2>
 <H3 CLASS="western" STYLE="font-weight: normal">Request</H3>
 <PRE CLASS="code-western" STYLE="margin-bottom: 0.2in; font-weight: normal">
 http://music.tastekeeper.com/api/GetItems
-          ?format=compact &key=6fe07aa5-fec0-4eca-a456-f29bff451b04, \
+          ?outputType=small&key=6fe07aa5-fec0-4eca-a456-f29bff451b04, \
               1e477f68-c407-4eae-ad01-518528cedc2, \
               ec7c97cc-1d06-4c74-bcb5-6773391f90b, \
               http://static.flickr.com/33/49490624_fecd23a894.jpg, \
@@ -68,7 +69,7 @@ the type of item being retreived
     &lt;param name=&quot;key&quot;&gt;
         6fe07aa5-fec0-4eca-a456-f29bff451b04,1e477f68-c407-4eae-ad01-518528cedc2,ec7c97cc-1d06-4c74-bcb5-6773391f90b,http://static.flickr.com/33/49490624_fecd23a894.jpg,50c213ed-a109-4677-9b7b-d57ef580dd2d,1f8bdf5d-aed1-45aa-bf1f-94af1d7e71c1
     &lt;/param&gt;
-    &lt;param name=&quot;format&quot;&gt;compact&lt;/param&gt;
+    &lt;param name=&quot;oututType&quot;&gt;small&lt;/param&gt;
     &lt;/request&gt;
         &lt;results status=&quot;OK&quot;&gt;
         &lt;time ms=&quot;39&quot;/&gt;

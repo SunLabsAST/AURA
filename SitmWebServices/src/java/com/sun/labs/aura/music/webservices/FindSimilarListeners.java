@@ -4,8 +4,10 @@
  */
 package com.sun.labs.aura.music.webservices;
 
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.webservices.ItemFormatter.OutputType;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -35,6 +37,7 @@ public class FindSimilarListeners extends HttpServlet {
         pc.addParam("key", "the key of the item of interest");
         pc.addParam("max", "10", "the maxiumum number of artists to return");
         pc.addParam("field", Listener.FIELD_SOCIAL_TAGS, "the field to use for similarity");
+        pc.addParam("outputType", OutputType.Tiny.name(), "the type of output");
     }
 
     /** 
@@ -58,8 +61,9 @@ public class FindSimilarListeners extends HttpServlet {
             Util.tagOpen(out, SERVLET_NAME);
             pc.check(status, request);
             MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
+            ItemFormatterManager formatter = DatabaseBroker.getItemFormatterManager(context);
 
-            if (mdb == null) {
+            if (mdb == null || formatter == null) {
                 status.addError(ErrorCode.InternalError, "Can't connect to the music database");
                 return;
             }
@@ -67,6 +71,7 @@ public class FindSimilarListeners extends HttpServlet {
             int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
             String key = pc.getParam(status, request, "key");
             String field = pc.getParam(status, request, "field"); //TBD field is not used yet.
+            OutputType outputType = (OutputType) pc.getParamAsEnum(status, request, "outputType", OutputType.values());
             Listener listener = mdb.getListener(key);
             if (listener != null) {
                 List<Scored<Listener>> similarListeners = mdb.listenerFindSimilar(key, maxCount);
@@ -76,12 +81,7 @@ public class FindSimilarListeners extends HttpServlet {
                         continue;
                     }
 
-                    Listener simListener = scoredListener.getItem();
-                    out.println("    <listener key=\"" +
-                            simListener.getKey() + "\" " +
-                            "score=\"" + scoredListener.getScore() + "\" " +
-                            "name=\"" + Util.filter(simListener.getName()) + "\"" +
-                            "/>");
+                    out.println(formatter.toXML(scoredListener.getItem().getItem(), outputType, scoredListener.getScore()));
                 }
             } else {
                 status.addError(ErrorCode.BadArgument, "Can't find user with key " + key);

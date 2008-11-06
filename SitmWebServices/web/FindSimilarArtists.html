@@ -12,14 +12,14 @@ Finds artists that are similar to a seed artist.
 <H2>Params</H2>
 <UL>
 	<LI><B>name</B> – <SPAN STYLE="font-weight: normal">the name of
-	the artist. Wildcards are allowed. If multiple artists match the
+	the artist. Wildcards are allowed. Multiples are allowed. If multiple artists match the
 	name, the best matching artist is used. Required if </SPAN><I><SPAN STYLE="font-weight: normal">key</SPAN></I>
 	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">not
 	present.</SPAN></SPAN>
 	<LI><B>key</B> – <SPAN STYLE="font-weight: normal">the
 	musicbrainz ID for the artist. Required if </SPAN><I><SPAN STYLE="font-weight: normal">name</SPAN></I>
 	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">not
-	present</SPAN></SPAN>
+	present. Multiples are allowed.</SPAN></SPAN>
 	<LI><B>max – </B><SPAN STYLE="font-weight: normal">the maximum
 	number of results returned. Optional, default is 10.</SPAN>
 	<LI><B>popularity – </B><SPAN STYLE="font-weight: normal">the
@@ -66,6 +66,8 @@ Finds artists that are similar to a seed artist.
 		<LI><B>blurbTags</B> – <SPAN STYLE="font-weight: normal">use
 		blurb tags (artist reviews filtered for music-related terms)</SPAN>
 	</UL>
+	<LI><B>outputType - </B><SPAN STYLE="font-weight: normal">the level of output detail.
+	Optional, default is 'tiny'. Value must be one of: 'tiny', 'small', 'medium', 'large' or 'full'</SPAN>
 </UL>
 <P STYLE="font-weight: normal"><I>For the future – we will allow
 specification of multiple weighed fields for similarity like so:

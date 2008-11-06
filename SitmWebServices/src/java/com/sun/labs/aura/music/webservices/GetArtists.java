@@ -4,8 +4,10 @@
  */
 package com.sun.labs.aura.music.webservices;
 
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.webservices.ItemFormatter.OutputType;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
@@ -31,6 +33,7 @@ public class GetArtists extends HttpServlet {
         super.init();
         pc = new ParameterChecker(SERVLET_NAME, "gets the most popular artists");
         pc.addParam("max", "100", "the maximum number of results returned");
+        pc.addParam("outputType", OutputType.Tiny.name(), "the type of output");
     }
 
     /** 
@@ -54,17 +57,19 @@ public class GetArtists extends HttpServlet {
             Util.tagOpen(out, SERVLET_NAME);
             pc.check(status, request);
             MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
+            ItemFormatterManager formatter = DatabaseBroker.getItemFormatterManager(context);
 
-            if (mdb == null) {
+            if (mdb == null || formatter == null) {
                 status.addError(ErrorCode.InternalError, "Can't connect to the music database");
                 return;
             }
             int maxCount = pc.getParamAsInt(status, request, "max", 1, 10000);
+            OutputType outputType = (OutputType) pc.getParamAsEnum(status, request, "outputType", OutputType.values());
 
             List<Artist> artists = mdb.artistGetMostPopular(maxCount);
 
             for (Artist artist : artists) {
-                out.println("    <artist key=\"" + artist.getKey() + "\" name=\"" + Util.filter(artist.getName()) + "\"" + " popularity=\"" + mdb.artistGetNormalizedPopularity(artist) + "\"" + "/>");
+                out.println(formatter.toXML(artist.getItem(), outputType, (double) mdb.artistGetNormalizedPopularity(artist)));
             }
 
         } catch (AuraException ex) {

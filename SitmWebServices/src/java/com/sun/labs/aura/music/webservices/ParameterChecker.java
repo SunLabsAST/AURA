@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
  * @author plamere
  */
 public class ParameterChecker {
+    public enum BoolEnum {FALSE, TRUE };
     private String name;
     private String description;
     private Map<String, Parameter> allParams = new HashMap<String, Parameter>();
@@ -115,8 +116,14 @@ public class ParameterChecker {
         throw new ParameterException();
     }
 
+    public boolean getParamAsBoolean(Status status, ServletRequest request, String name) throws ParameterException {
+        return getParamAsEnum(status, request, name, BoolEnum.values()) == BoolEnum.TRUE;
+    }
+
     public void check(Status status, ServletRequest request) throws ParameterException {
         Set<String> curSet = new HashSet<String>();
+
+        status.setDebug(getParamAsBoolean(status, request, "debug"));
 
         Set keys = request.getParameterMap().keySet();
 

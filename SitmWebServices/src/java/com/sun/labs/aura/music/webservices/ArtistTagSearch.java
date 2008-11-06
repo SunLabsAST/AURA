@@ -4,8 +4,10 @@
  */
 package com.sun.labs.aura.music.webservices;
 
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.webservices.ItemFormatter.OutputType;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -33,6 +35,7 @@ public class ArtistTagSearch extends HttpServlet {
         pc = new ParameterChecker(SERVLET_NAME, "searches the database for an artist tag");
         pc.addParam("name", "the name of the artist tag to search for");
         pc.addParam("max", "10", "the maximum number of matches to return");
+        pc.addParam("outputType", OutputType.Tiny.name(), "the type of output");
     }
 
     /** 
@@ -59,20 +62,18 @@ public class ArtistTagSearch extends HttpServlet {
 
             String name = pc.getParam(status, request, "name");
             int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
+            OutputType outputType = (OutputType) pc.getParamAsEnum(status, request, "outputType", OutputType.values());
 
 
             MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
-            if (mdb == null) {
+            ItemFormatterManager formatter = DatabaseBroker.getItemFormatterManager(context);
+            if (mdb == null || formatter == null) {
                 status.addError(ErrorCode.InternalError, "Can't find the datastore");
                 return;
             }
             List<Scored<ArtistTag>> scoredArtistTags = mdb.artistTagSearch(name, maxCount);
             for (Scored<ArtistTag> scoredArtistTag : scoredArtistTags) {
-                ArtistTag artistTag = scoredArtistTag.getItem();
-                out.println("    <artistTag key=\"" + artistTag.getKey() + "\" " 
-                        + "score=\"" + scoredArtistTag.getScore() + "\" " 
-                        + "popularity=\"" + mdb.artistTagGetNormalizedPopularity(artistTag) + "\" "
-                        + "name=\"" + Util.filter(artistTag.getName()) + "\"" + "/>");
+                out.println(formatter.toXML(scoredArtistTag.getItem().getItem(), outputType, scoredArtistTag.getScore()));
             }
         } catch (AuraException ex) {
             status.addError(ErrorCode.InternalError, "problem accessing data, " + ex.getMessage(), ex);

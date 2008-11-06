@@ -4,9 +4,11 @@
  */
 package com.sun.labs.aura.music.webservices;
 
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.MusicDatabase.Popularity;
+import com.sun.labs.aura.music.webservices.ItemFormatter.OutputType;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -36,6 +38,7 @@ public class FindSimilarArtistsFromWordCloud extends HttpServlet {
         pc.addParam("wordCloud", "the wordcloud");
         pc.addParam("max", "10", "the maxiumum number of artists to return");
         pc.addParam("popularity", Popularity.ALL.name(), "the popularity filter");
+        pc.addParam("outputType", OutputType.Tiny.name(), "the type of output");
     }
 
     /** 
@@ -59,8 +62,9 @@ public class FindSimilarArtistsFromWordCloud extends HttpServlet {
             Util.tagOpen(out, SERVLET_NAME);
             pc.check(status, request);
             MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
+            ItemFormatterManager formatter = DatabaseBroker.getItemFormatterManager(context);
 
-            if (mdb == null) {
+            if (mdb == null || formatter == null) {
                 status.addError(ErrorCode.InternalError, "Can't connect to the music database");
                 return;
             }
@@ -76,16 +80,12 @@ public class FindSimilarArtistsFromWordCloud extends HttpServlet {
                         "(tag1 name,weight)(tag2 name,weight)");
                 return;
             }
+            OutputType outputType = (OutputType) pc.getParamAsEnum(status, request, "outputType", OutputType.values());
 
 
             List<Scored<Artist>> scoredArtists = mdb.wordCloudFindSimilarArtists(cloud, maxCount, pop);
             for (Scored<Artist> scoredArtist : scoredArtists) {
-                Artist simArtist = scoredArtist.getItem();
-                out.println("    <artist key=\"" +
-                        simArtist.getKey() + "\" " +
-                        "score=\"" + scoredArtist.getScore() + "\" " +
-                        "name=\"" + Util.filter(simArtist.getName()) + "\"" +
-                        "/>");
+                out.println(formatter.toXML(scoredArtist.getItem().getItem(), outputType, scoredArtist.getScore()));
             }
         } catch (AuraException ex) {
             status.addError(ErrorCode.InternalError, "Problem accessing data " + ex, ex);
