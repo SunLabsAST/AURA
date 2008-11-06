@@ -799,6 +799,19 @@ public class MusicDatabase {
     }
 
     /**
+     * Find the most similar artist to a given list of artists
+     * @param artistID the ID of the seed artist
+     * @param count the number of similar artists to return
+     * @param popularity the popularity of the resulting artists
+     * @return a list of artists scored by their similarity to the seed artist.
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public List<Scored<Artist>> artistFindSimilar(List<String> keys, int count, Popularity popularity) throws AuraException {
+        List<Scored<Item>> simItems = findSimilar(keys, Artist.FIELD_SOCIAL_TAGS, count, ItemType.ARTIST, popularity);
+        return convertToScoredArtistList(simItems);
+    }
+
+    /**
      * Find the most similar artist to a given tagcloud
      * @param tagCloudID the ID of the tag cloud
      * @param count the number of similar artists to return
@@ -881,6 +894,20 @@ public class MusicDatabase {
      */
     public List<Scored<Artist>> artistFindSimilar(String artistID, String field, int count, Popularity popularity) throws AuraException {
         List<Scored<Item>> simItems = findSimilar(artistID, field, count, ItemType.ARTIST, popularity);
+        return convertToScoredArtistList(simItems);
+    }
+
+    /**
+     * Find the most similar artist to a set of artists
+     * @param keys the list of artist keys
+     * @param field the field to use for similarity
+     * @param count the number of similar artists to return
+     * @param popularity the popularity of the resulting artists
+     * @return a list of artists scored by their similarity to the seed artist.
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public List<Scored<Artist>> artistFindSimilar(List<String> keys, String field, int count, Popularity popularity) throws AuraException {
+        List<Scored<Item>> simItems = findSimilar(keys, field, count, ItemType.ARTIST, popularity);
         return convertToScoredArtistList(simItems);
     }
 
@@ -1309,12 +1336,23 @@ public class MusicDatabase {
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
-
     }
+
 
     private List<Scored<Item>> findSimilar(String id, String field, int count, ItemType type, Popularity pop) throws AuraException {
         try {
             List<Scored<Item>> simItems = getDataStore().findSimilar(id, getFindSimilarConfig(field, count,
+                    new PopularityAndTypeFilter(type, pop, getMostPopularArtist().getPopularity())));
+            return simItems;
+        } catch (RemoteException ex) {
+            throw new AuraException("Can't talk to the datastore " + ex, ex);
+        }
+
+    }
+
+    private List<Scored<Item>> findSimilar(List<String> keys, String field, int count, ItemType type, Popularity pop) throws AuraException {
+        try {
+            List<Scored<Item>> simItems = getDataStore().findSimilar(keys, getFindSimilarConfig(field, count,
                     new PopularityAndTypeFilter(type, pop, getMostPopularArtist().getPopularity())));
             return simItems;
         } catch (RemoteException ex) {
