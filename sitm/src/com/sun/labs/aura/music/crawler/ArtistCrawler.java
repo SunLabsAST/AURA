@@ -307,8 +307,8 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     }
 
     private void updateArtists(boolean force, long period) throws AuraException, RemoteException, InterruptedException {
-        List<Scored<String>> artistsWithPopularity = getAllArtistsWithPopularity();
-        for (Scored<String> sartist : artistsWithPopularity) {
+        List<Scored<String>> scoredArtists = getAllArtistsSortedByLastCrawl();
+        for (Scored<String> sartist : scoredArtists) {
             Artist artist = new Artist(getDataStore().getItem(sartist.getItem()));
             if (force || needsUpdate(artist)) {
                 logger.info("  Updating artist " + artist.getName());
@@ -341,6 +341,25 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
         }
         Collections.sort(artistList, ScoredComparator.COMPARATOR);
         Collections.reverse(artistList);
+        return artistList;
+    }
+
+    private List<Scored<String>> getAllArtistsSortedByLastCrawl() throws AuraException, RemoteException {
+        List<Scored<String>> artistList = new ArrayList();
+
+        DBIterator iter = getDataStore().getAllIterator(ItemType.ARTIST);
+
+        try {
+            while (iter.hasNext()) {
+                Item item = (Item) iter.next();
+                Artist artist = new Artist(item);
+                artistList.add(new Scored<String>(artist.getKey(), artist.getLastCrawl()));
+            }
+
+        } finally {
+            iter.close();
+        }
+        Collections.sort(artistList, ScoredComparator.COMPARATOR);
         return artistList;
     }
 
