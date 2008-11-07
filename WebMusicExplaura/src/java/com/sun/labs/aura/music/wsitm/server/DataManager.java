@@ -97,7 +97,7 @@ public class DataManager implements Configurable {
      * @param cacheSize  the size of the cache
      * @throws java.io.IOException
      */
-    public DataManager(MusicDatabase mdb, int cacheSize) throws RemoteException {
+    public DataManager(MusicDatabase mdb, int cacheSize) {
 
         logger.info("Instantiating new DataManager with cache size of " + cacheSize);
 
@@ -126,7 +126,7 @@ public class DataManager implements Configurable {
             beatlesPopularity = mdb.artistLookup(beatlesMDID).getPopularity();
         } catch (AuraException ex) {
             Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        } 
 
         simTypes = new HashMap<String, SimType>();
         for (SimType s : mdb.getSimTypes()) {
