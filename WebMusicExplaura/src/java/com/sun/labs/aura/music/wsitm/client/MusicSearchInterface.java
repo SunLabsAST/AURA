@@ -45,6 +45,8 @@ public interface MusicSearchInterface extends RemoteService {
     public TagDetails getTagDetails(String id, boolean refresh, String simTypeName) throws WebException;
     public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num, String simType) throws WebException;
     public ItemInfo[] getCommonTags(Map<String, Double> tagMap, String artistID, int num) throws WebException;
+    public ItemInfo[] getComboTagCloud(String artistID1, String artistID2, int num, String simType)  throws WebException;
+
     public Map<String, String> getArtistRecommendationTypes();
     public ItemInfo[] getDistinctiveTags(String artistID, int count) throws WebException;
     public ArrayList<ScoredC<ArtistCompact>> getSteerableRecommendations(Map<String, Double> tagMap, String popularity) throws WebException;    

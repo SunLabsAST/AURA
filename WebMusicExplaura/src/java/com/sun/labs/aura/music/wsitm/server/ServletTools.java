@@ -6,10 +6,10 @@
  * To change this template, choose Tools | Template Manager
  * and open the template in the editor.
  */
-
 package com.sun.labs.aura.music.wsitm.server;
 
 import com.sun.labs.aura.music.MusicDatabase;
+import java.rmi.RemoteException;
 import javax.servlet.ServletConfig;
 
 /**
@@ -17,7 +17,7 @@ import javax.servlet.ServletConfig;
  * @author plamere
  */
 public class ServletTools {
- 
+
     /** Creates a new instance of ServletTools */
     private ServletTools() {
     }
@@ -35,13 +35,13 @@ public class ServletTools {
         if (dm == null) {
             dm = new DataManager(mdb, cacheSize);
             sc.getServletContext().setAttribute("DataManager", dm);
-            //@todo fix this
-            //dm.getLogger().log("_system_", "startup", "Created datamanager with cache " + cacheSize);
+        //@todo fix this
+        //dm.getLogger().log("_system_", "startup", "Created datamanager with cache " + cacheSize);
         }
         return dm;
     }
 
-    public static  MusicDatabase getMusicDatabase(ServletConfig sc) {
+    public static MusicDatabase getMusicDatabase(ServletConfig sc) {
         return (MusicDatabase) sc.getServletContext().getAttribute("MusicDatabase");
     }
 }
