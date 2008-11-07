@@ -15,13 +15,36 @@ import java.util.Map;
  * datastore.
  */
 public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote {
-    public enum StatNames {
+    public enum StatName {
         ATTEND,
-        NEW_ITEM,
-        UPDATE_ITEM,
+        EXPLAIN_SIM,
+        FIND_SIM,
+        FIND_SIM_AUTOTAGS,
+        GET_ALL,
+        GET_ALL_ITR,
+        GET_ATTN,
+        GET_ATTN_CNT,
+        GET_ATTN_ITR,
+        GET_ATTN_SINCE,
+        GET_ATTN_SINCE_CNT,
+        GET_ATTN_SINCE_ITR,
+        GET_AUTOTAGGED,
+        GET_DV_KEY,
+        GET_DV_CLOUD,
+        GET_EXPLAIN,
         GET_ITEM,
-        FIND_SIM
-    
+        GET_ITEMS,
+        GET_ITEMS_SINCE,
+        GET_LAST_ATTN,
+        GET_SCORED_ITEMS,
+        GET_TOP_AUTOTAG_TERMS,
+        GET_TOP_TERMS,
+        GET_TOP_VALUES,
+        GET_USER,
+        NEW_ITEM,
+        PUT_ITEM,
+        UPDATE_ITEM,
+        QUERY
     }
 
     /**

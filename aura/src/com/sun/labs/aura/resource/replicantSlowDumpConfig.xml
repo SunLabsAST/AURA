@@ -56,6 +56,12 @@
         <property name="partitionCluster" value="partitionCluster"/>
         <property name="statService" value="statService"/>
         <property name="logLevel" value="FINE"/>
+        <propertylist name="logMethods">
+            <item>FIND_SIM</item>
+            <item>GET_ITEM</item>
+            <item>GET_ITEMS</item>
+            <item>QUERY</item>
+        </propertylist>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
