@@ -28,6 +28,8 @@ import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import com.sun.labs.aura.util.AuraException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -142,6 +144,103 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
+
+    /**
+     * Gets the combination tag cloud for the two artists. 
+     * @param artistID1
+     * @param artistID2
+     * @param num
+     * @param simType
+     * @return
+     * @throws com.sun.labs.aura.music.wsitm.client.WebException
+     */
+    public ItemInfo[] getComboTagCloud(String artistID1, String artistID2, int num, String simType) 
+            throws WebException {
+        logger.info("getCommonTags for "+artistID1+" and "+artistID2);
+        try {
+            ItemInfo[] a1Tags = normalize(dm.getDistinctiveTags(artistID1, num));
+            ItemInfo[] combo =  normalize(dm.getCommonTags(artistID1, artistID2, num / 2, simType));
+            ItemInfo[] a2Tags = normalize(dm.getDistinctiveTags(artistID2, num));
+
+            Set<String> commonNames = getNameSet(combo);
+            List<ItemInfo> infos = new ArrayList<ItemInfo>();
+
+            List<ItemInfo> head = negative(getTopUniqueInfo(a1Tags, commonNames, num /2));
+            infos.addAll(head);
+
+            combo = ItemInfo.shuffle(combo);
+            for (ItemInfo ii : combo) {
+                infos.add(ii);
+            }
+            
+            List<ItemInfo> tail = negative(getTopUniqueInfo(a2Tags, commonNames, num /2));
+            Collections.reverse(tail);
+            infos.addAll(tail);
+
+            return infos.toArray(new ItemInfo[0]);
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
+    private List<ItemInfo> getTopUniqueInfo(ItemInfo[] infos, Set<String> names, int maxSize) {
+        Arrays.sort(infos, ItemInfo.getScoreSorter());
+
+        List<ItemInfo> list = new ArrayList<ItemInfo>();
+        for (ItemInfo ii : infos) {
+            if (!names.contains(ii.getItemName())) {
+                list.add(ii);
+            }
+        }
+        if (list.size() > maxSize) {
+            list = list.subList(0, maxSize);
+        }
+        return list;
+    }
+
+    private ItemInfo[] normalize(ItemInfo[] itemInfo) {
+        ItemInfo[] retItemInfo = new ItemInfo[itemInfo.length];
+        double max = findMax(itemInfo);
+        for (int i = 0; i < itemInfo.length; i++) {
+            retItemInfo[i] = new ItemInfo(itemInfo[i].getId(), itemInfo[i].getItemName(), 
+                    itemInfo[i].getScore() / max, itemInfo[i].getPopularity());
+        }
+        return retItemInfo;
+    }
+
+    private List<ItemInfo> negative(List<ItemInfo> infos) {
+        List<ItemInfo> retList = new ArrayList<ItemInfo>();
+        for (ItemInfo ii : infos) {
+            retList.add(new ItemInfo(ii.getId(), ii.getItemName(), 
+                    -ii.getScore(), ii.getPopularity()));
+        }
+        return retList;
+    }
+    
+    private double findMax(ItemInfo[] itemInfos) {
+        double max = -Double.MAX_VALUE;
+
+        for (ItemInfo ii : itemInfos) {
+            if (ii.getScore() > max) {
+                max = ii.getScore();
+            }
+        }
+        return max;
+    }
+
+    private Set<String> getNameSet(ItemInfo[] itemInfo) {
+        Set<String> set = new HashSet<String>();
+        for (int i = 0; i < itemInfo.length; i++) {
+            set.add(itemInfo[i].getItemName());
+        }
+        return set;
+    }
+
+
 
     public ItemInfo[] getCommonTags(Map<String, Double> tagMap, String artistID, int num) throws WebException {
         String stringMap = "";
