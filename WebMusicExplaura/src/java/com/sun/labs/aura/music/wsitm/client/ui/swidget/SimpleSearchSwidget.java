@@ -42,7 +42,6 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.LoadListener;
-import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -1321,8 +1320,10 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
     public class SearchWidget extends AbstractSearchWidget {
 
+        private SearchTypeRadioButton[] searchButtons;
+
         public SearchWidget(MusicSearchInterfaceAsync musicServer,
-            ClientDataManager cdm, Panel searchBoxContainerPanel) {
+            ClientDataManager cdm, FlowPanel searchBoxContainerPanel) {
 
             super(musicServer, cdm, searchBoxContainerPanel, Oracles.ARTIST);
 
@@ -1396,6 +1397,23 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                 } else {
                     invokeArtistSearchService(query, currST, 0);
                 }
+            }
+        }
+
+        @Override
+        protected searchTypes getSearchType() {
+            for (SearchTypeRadioButton rB : searchButtons) {
+                if (rB.isChecked()) {
+                    return rB.getSearchType();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public void setSearchType(searchTypes searchType) {
+            for (SearchTypeRadioButton rB : searchButtons) {
+                rB.setChecked(rB.getSearchType() == searchType);
             }
         }
     }

@@ -21,12 +21,14 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -35,6 +37,7 @@ import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,6 +58,8 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
     private Widget instantRecPlayWidget;
 
+    private SearchWidget search;
+    private FlowPanel searchBoxContainerPanel;
     private ListBox listbox;
     
     public PageHeaderWidget(ClientDataManager cdm) {
@@ -77,13 +82,20 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         //
         // Set the recommendation type toolbar
         HorizontalPanel hP = new HorizontalPanel();
+
+        searchBoxContainerPanel = new FlowPanel();
+        search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel);
+        search.updateSuggestBox(Oracles.ARTIST);
+        hP.add(search);
+        /** SIMILARITY THAT NEEDS TO BE PUT SOMEWHER ELSE
         Label lbl = new Label("Similarity type : ");
         lbl.setStyleName("headerMenuMed headerMenuMedC");
         hP.add(lbl);
-
+*/
         listbox = new ListBox(false);
-        listbox.addItem("Loading...");
-        hP.add(listbox);
+        //listbox.addItem("Loading...");
+        //hP.add(listbox);
+        
         
         mainPanel.setWidget(0, 2, hP);
         mainPanel.getCellFormatter().getElement(0, 2).setAttribute("align", "right");
@@ -465,6 +477,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             initWidget(p);
         }
 
+        @Override
         public Widget getWidget() {
             return p;
         }
@@ -500,6 +513,94 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
         public void onDelete() {
             cdm.getLoginListenerManager().removeListener(this);
+        }
+    }
+
+    public class SearchWidget extends AbstractSearchWidget {
+
+        private ListBox searchSelection;
+
+        public SearchWidget(MusicSearchInterfaceAsync musicServer,
+            ClientDataManager cdm, FlowPanel searchBoxContainerPanel) {
+
+            super(musicServer, cdm, searchBoxContainerPanel, Oracles.ARTIST);
+
+            searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
+
+            searchSelection = new ListBox();
+            searchSelection.addItem("For artist", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST.toString());
+            searchSelection.addItem("By Tag", searchTypes.SEARCH_FOR_ARTIST_BY_TAG.toString());
+            searchSelection.addItem("For Tag", searchTypes.SEARCH_FOR_TAG_BY_TAG.toString());
+
+            searchSelection.addChangeListener(new ChangeListener() {
+
+                public void onChange(Widget sender) {
+                    if (getSearchType() == searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST) {
+                        updateSuggestBox(Oracles.ARTIST);
+                    } else {
+                        updateSuggestBox(Oracles.TAG);
+                    }
+                }
+            });
+
+            //updateSuggestBox(Oracles.ARTIST);  -- done in constructor
+            setText("", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
+
+            HorizontalPanel searchPanel = new HorizontalPanel();
+            searchPanel.setStyleName("searchPanel");
+            searchPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
+            searchPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+
+            Button searchButton = new Button("Search", new ClickListener() {
+                public void onClick(Widget sender) {
+                    search();
+                }
+            });
+            searchButton.setTabIndex(2);
+
+            searchPanel.add(searchBoxContainerPanel);
+            searchPanel.add(searchSelection);
+            searchPanel.add(searchButton);
+            this.initWidget(searchPanel);
+        }
+
+        public void search() {
+            if (cdm.getCurrSimTypeName() == null || cdm.getCurrSimTypeName().equals("")) {
+                Window.alert("Error. Cannot search without the similarity types.");
+            } else {
+                String query = getSearchBox().getText().toLowerCase();
+                searchTypes currST = getSearchType();
+                if (currST == searchTypes.SEARCH_FOR_TAG_BY_TAG) {
+                    History.newItem("tagSearch:"+query);
+                } else if (currST == searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST) {
+                    History.newItem("artistSearch:"+query);
+                } else {
+                    History.newItem("artistSearchByTag::"+query);
+                }
+            }
+        }
+
+        @Override
+        protected searchTypes getSearchType() {
+            int index = searchSelection.getSelectedIndex();
+            if (index==0) {
+                return searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST;
+            } else if (index==1) {
+                return searchTypes.SEARCH_FOR_ARTIST_BY_TAG;
+            } else {
+                return searchTypes.SEARCH_FOR_TAG_BY_TAG;
+            }
+        }
+
+        @Override
+        public void setSearchType(searchTypes searchType) {
+            if (searchType == searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST) {
+                searchSelection.setSelectedIndex(0);
+            } else if (searchType == searchTypes.SEARCH_FOR_ARTIST_BY_TAG) {
+                searchSelection.setSelectedIndex(1);
+            } else {
+                searchSelection.setSelectedIndex(2);
+            }
         }
     }
 
