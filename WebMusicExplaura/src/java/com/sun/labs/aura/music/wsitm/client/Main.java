@@ -18,13 +18,11 @@ import com.sun.labs.aura.music.wsitm.client.ui.swidget.ProfileSwidget;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.HistoryListener;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -32,6 +30,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
+import com.sun.labs.aura.music.wsitm.client.ui.swidget.HomeSwidget;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.ServerInfoSwidget;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -101,6 +100,9 @@ public class Main implements EntryPoint, HistoryListener {
         PageHeaderWidget uP = new PageHeaderWidget(cdm);
         cdm.registerSwidget(uP);
         cdm.setWidgets(uP);
+
+        Swidget homePage = new HomeSwidget(cdm);
+        registerTokenHeaders(homePage);
 
         mainPanel.add(uP, DockPanel.NORTH);
         mainPanel.add(contentPanel, DockPanel.CENTER);
