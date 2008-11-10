@@ -873,7 +873,7 @@ public class GridDeploy {
                 " -DdataFS=/files/data/" + prefix +
                 " -cp " + auraDistMntPnt + "/dist/aardvark.jar" +
                 ":" + auraDistMntPnt + "/dist/lib/ktsearch.jar" +
-                ":" + auraDistMntPnt + "/dist/lib/LabsUtil.jar" +
+                ":" + auraDistMntPnt + "/dist/lib/slcut.jar" +
                 " com.sun.labs.aura.util.Reindexer" +
                 " -d /files/data/" + prefix + "/reindex.idx" +
                 " -b /files/data/" + prefix + "/db" +
