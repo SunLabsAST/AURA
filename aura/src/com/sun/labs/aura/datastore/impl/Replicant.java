@@ -7,6 +7,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.Component;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -96,4 +97,15 @@ public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote 
      */
     public Map<String,FieldDescription> getFieldDescriptions()
             throws RemoteException;
+    
+    /**
+     * Returns an enumset containing the currently logged stat names
+     * @return
+     */
+    public EnumSet<StatName> getLoggedStats() throws RemoteException;
+    
+    /**
+     * Sets the logged stat names
+     */
+    public void setLoggedStats(EnumSet<StatName> loggedStats) throws RemoteException;
 }

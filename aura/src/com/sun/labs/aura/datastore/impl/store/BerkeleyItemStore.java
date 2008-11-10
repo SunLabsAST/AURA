@@ -119,11 +119,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
     public static final String PROP_STAT_SERVICE = "statService";
     protected StatService statService;
 
-    @ConfigInteger(defaultValue = 500)
-    public final static String PROP_STAT_BATCH_SIZE = "statBatchSize";
-    protected int statBatchSize;
-    
-    @ConfigStringList(mandatory = false)
+    @ConfigStringList(mandatory = false, defaultList={})
     public static final String PROP_LOG_METHODS = "logMethods";
     protected EnumSet<StatName> toLog;
     
@@ -318,7 +314,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
         //
         // Get a handle to the stat service if we got one
         statService = (StatService) ps.getComponent(PROP_STAT_SERVICE, this);
-        statBatchSize = ps.getInt(PROP_STAT_BATCH_SIZE);
     }
 
     @Override
@@ -1220,6 +1215,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
         }
     }
 
+    @Override
     public void partitionAdded(SearchEngine e, Set<Object> keys) {
         sendCreatedEvents(keys);
         sendChangedEvents(keys);
@@ -1284,6 +1280,16 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
         StatName name;
     }
     
+    @Override
+    public EnumSet<StatName> getLoggedStats() {
+        return EnumSet.copyOf(toLog);
+    }
+
+    @Override
+    public void setLoggedStats(EnumSet<StatName> loggedStats) {
+        toLog = EnumSet.copyOf(loggedStats);
+    }
+    
     
     class StatSender extends TimerTask {
         @Override
@@ -1316,5 +1322,5 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
             }
         }
     }
-    
+
 }
