@@ -10,6 +10,10 @@
                     <file>${reference.aura.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
+                <library files="3">
+                    <file>${libs.GWT1.5.0.classpath}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
                 <library files="1">
                     <file>${libs.SunLabsUtilities.classpath}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
@@ -28,18 +32,6 @@
                 </library>
                 <library files="1">
                     <file>${file.reference.xerces.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
-                    <file>${file.reference.gwt-dev-linux.jar-1}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
-                    <file>${file.reference.gwt-servlet.jar-1}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library files="1">
-                    <file>${file.reference.gwt-user.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library files="9">

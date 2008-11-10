@@ -19,10 +19,7 @@ public interface DBService extends RemoteService {
     
     public AttnDesc[] getAttentionForTarget(String key);
 
-    /**
-     * @gwt.typeArgs <java.lang.String,java.lang.String>
-     */
-    public HashMap getItemInfo(String key);
+    public HashMap<String,String> getItemInfo(String key);
     
     public AttnDesc[] doTest();
 }
