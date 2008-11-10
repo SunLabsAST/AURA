@@ -26,7 +26,7 @@ body {
 .pageHeader {
     background-color: #1695A3;
     background: #1695A3;
-    color: white;
+    color: #ffffff;
     padding: 3px;
 }
 .pageHeaderBackground {
@@ -47,6 +47,12 @@ body {
     margin-bottom: 4px;
     border-bottom: medium solid #ffffff;
     border-width: thin;
+}
+.pageConfigHeader {
+    font-size : 10px;
+    color : #ffffff;
+    background-color: #1695A3;
+    background: #1695A3;
 }
 h1 { 
     font-size: 1.8em; 

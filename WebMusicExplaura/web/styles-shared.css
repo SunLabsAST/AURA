@@ -37,11 +37,6 @@ img {
 }
 
 .headerMenuMed {
-  color: white;
-  font-size: 14px;
-}
-
-.headerMenuMed {
   font-size: 14px;
 }
 
@@ -195,4 +190,15 @@ img {
   font-size: 12px;
   font-style:italic;
   font-weight:normal;
+}
+
+.pageConfigMargin {
+    margin-left : 25px;
+}
+.subMenuMargin {
+    margin-left : 10px;
+}
+.somePadding {
+    margin : 0px;
+    padding: 2px;
 }

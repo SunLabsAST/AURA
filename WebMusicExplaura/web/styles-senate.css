@@ -48,6 +48,12 @@ body {
     border-bottom: medium solid #000000;
     border-width: thin;
 }
+.pageConfigHeader {
+    font-size : 10px;
+    color : #000000;
+    background-color: #9E9A77;
+    background: #9E9A77;
+}
 h1 { 
     font-size: 1.8em; 
     color: #803030;

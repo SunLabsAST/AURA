@@ -48,6 +48,12 @@ import java.util.HashMap;
  */
 public class PageHeaderWidget extends Swidget implements HasListeners {
 
+    private enum SubHeaderPanels {
+        CONFIG,
+        NONE
+    }
+    private SubHeaderPanels currSubHeaderPanel = SubHeaderPanels.NONE;
+
     private RoundedPanel roundedMainPanel;
     private Grid mainPanel;
     private TextBox txtbox;
@@ -60,15 +66,113 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
     private SearchWidget search;
     private FlowPanel searchBoxContainerPanel;
+
+    private FlowPanel configSubHeaderPanel;
     private ListBox listbox;
+
+    private FlowPanel activeSubHeaderPanel;
     
     public PageHeaderWidget(ClientDataManager cdm) {
         super("pageHeader",cdm);
         this.cdm = cdm;
         menuItems = new ArrayList<MenuItem>();
-        initWidget(getMainWidget());
+
+        VerticalPanel vP = new VerticalPanel();
+        vP.setWidth("100%");
+
+        Label title = new Label("Search Inside the Music - The Music Explaura");
+        title.addClickListener(new ClickListener() {
+
+            public void onClick(Widget arg0) {
+                History.newItem("searchHome:");
+            }
+        });
+        title.setStyleName("title");
+        title.addStyleName("titleC");
+        vP.add(title);
+        vP.add(getMainWidget());
+
+        activeSubHeaderPanel = new FlowPanel();
+        activeSubHeaderPanel.setWidth("100%");
+        activeSubHeaderPanel.setVisible(false);
+        vP.add(activeSubHeaderPanel);
+
+
+        Label l = new Label("Config");
+        l.addStyleName("pointer");
+        l.addClickListener(new ClickListener() {
+
+            public void onClick(Widget sender) {
+                setSubHeaderPanel(SubHeaderPanels.CONFIG);
+            }
+        });
+        HorizontalPanel hP = new HorizontalPanel();
+        hP.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
+        hP.setStyleName("pageConfigHeader");
+        hP.setWidth("100%");
+        hP.add(l);
+
+        RoundedPanel rp = new RoundedPanel(hP, RoundedPanel.BOTTOM, 2);
+        rp.setCornerStyleName("popupColors");
+
+        FlowPanel fP = new FlowPanel();
+        fP.setStyleName("pageConfigMargin");
+        fP.setWidth("40px");
+        fP.add(rp);
+        
+        vP.add(fP);
+
+        createConfigSubHeaderPanel();
+        
+        initWidget(vP);
+
     }
-    
+
+    private void createConfigSubHeaderPanel() {
+        
+        HorizontalPanel hP = new HorizontalPanel();
+        hP.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
+        hP.setStyleName("pageConfigHeader");
+        hP.addStyleName("somePadding");
+        hP.setWidth("100%");
+
+        Label simLbl = new Label("Similarity type : ");
+        simLbl.setStyleName("headerMenuMed headerMenuMedC");
+        hP.add(simLbl);
+
+        listbox = new ListBox(false);
+        invokeGetSimTypes();
+        listbox.addItem("Loading...");
+        hP.add(listbox);
+
+        RoundedPanel rp = new RoundedPanel(hP, RoundedPanel.BOTTOM, 2);
+        rp.setCornerStyleName("popupColors");
+
+        configSubHeaderPanel = new FlowPanel();
+        configSubHeaderPanel.setStyleName("subMenuMargin");
+        configSubHeaderPanel.setWidth("225px");
+        configSubHeaderPanel.add(rp);
+    }
+
+    /**
+     * Display or hide the requested subheaderpanel
+     * @param p
+     */
+    private void setSubHeaderPanel(SubHeaderPanels p) {
+        // If we want to hide the panel
+        if (p == currSubHeaderPanel || p == SubHeaderPanels.NONE) {
+            activeSubHeaderPanel.setVisible(false);
+            currSubHeaderPanel = SubHeaderPanels.NONE;
+        } else {
+            if (p == SubHeaderPanels.CONFIG) {
+                activeSubHeaderPanel.clear();
+                activeSubHeaderPanel.add(configSubHeaderPanel);
+            }
+            activeSubHeaderPanel.setVisible(true);
+            currSubHeaderPanel = p;
+        }
+    }
+
     public RoundedPanel getMainWidget() {
         
         mainPanel = new Grid(1,3);
@@ -86,21 +190,10 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         searchBoxContainerPanel = new FlowPanel();
         search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel);
         search.updateSuggestBox(Oracles.ARTIST);
-        hP.add(search);
-        /** SIMILARITY THAT NEEDS TO BE PUT SOMEWHER ELSE
-        Label lbl = new Label("Similarity type : ");
-        lbl.setStyleName("headerMenuMed headerMenuMedC");
-        hP.add(lbl);
-*/
-        listbox = new ListBox(false);
-        //listbox.addItem("Loading...");
-        //hP.add(listbox);
-        
+        hP.add(search);        
         
         mainPanel.setWidget(0, 2, hP);
         mainPanel.getCellFormatter().getElement(0, 2).setAttribute("align", "right");
-
-        invokeGetSimTypes();
 
         //
         // Set the section menu

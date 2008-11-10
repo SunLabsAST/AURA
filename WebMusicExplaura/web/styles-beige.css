@@ -48,6 +48,12 @@ body {
     border-bottom: medium solid #ffffff;
     border-width: thin;
 }
+.pageConfigHeader {
+    font-size : 10px;
+    color : #ffffff;
+    background-color: #73885D;
+    background: #73885D;
+}
 .gradientHighColor {
   background : #b9ff6d;
 }

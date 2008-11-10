@@ -72,16 +72,6 @@ public class Main implements EntryPoint, HistoryListener {
         mainPanel.setHorizontalAlignment(VerticalPanel.ALIGN_CENTER);
         mainPanel.setWidth("95%");
 
-        Label title = new Label("Search Inside the Music - The Music Explaura");
-        title.addClickListener(new ClickListener() {
-
-            public void onClick(Widget arg0) {
-                History.newItem("searchHome:");
-            }
-        });
-        title.setStyleName("title");
-        title.addStyleName("titleC");
-
         ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
 
         contentPanel = new FlowPanel();
@@ -113,7 +103,6 @@ public class Main implements EntryPoint, HistoryListener {
         cdm.setWidgets(uP);
 
         mainPanel.add(uP, DockPanel.NORTH);
-        mainPanel.add(title, DockPanel.NORTH);
         mainPanel.add(contentPanel, DockPanel.CENTER);
 
         uP.setMenuItems(menuItems);
