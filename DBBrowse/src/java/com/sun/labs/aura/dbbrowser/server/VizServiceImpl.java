@@ -28,6 +28,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,9 @@ public class VizServiceImpl extends RemoteServiceServlet implements
     protected List<ServiceItem> svcs;
     
     protected StatService statService;
+    
+    protected HashMap<String,Replicant> prefixToRep =
+            new HashMap<String,Replicant>();
     
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
@@ -135,6 +139,7 @@ public class VizServiceImpl extends RemoteServiceServlet implements
     
     public List getPCInfo() {
         List ret = new ArrayList();
+        prefixToRep = new HashMap<String,Replicant>();
         for (ServiceItem svc : svcs) {
             if (svc.service instanceof PartitionCluster) {
                 PartitionCluster pc = (PartitionCluster)svc.service;
@@ -160,23 +165,23 @@ public class VizServiceImpl extends RemoteServiceServlet implements
                 stats.setAttentionsPerSec(
                         statService.getAveragePerSecond(
                             repStatName(prefix,
-                                Replicant.StatNames.ATTEND.toString())));
+                                Replicant.StatName.ATTEND.toString())));
                 stats.setNewItemsPerSec(
                         statService.getAveragePerSecond(
                             repStatName(prefix,
-                                Replicant.StatNames.NEW_ITEM.toString())));
+                                Replicant.StatName.NEW_ITEM.toString())));
                 stats.setUpdatedItemsPerSec(
                         statService.getAveragePerSecond(
                             repStatName(prefix,
-                                Replicant.StatNames.UPDATE_ITEM.toString())));
+                                Replicant.StatName.UPDATE_ITEM.toString())));
                 stats.setGetItemsPerSec(
                         statService.getAveragePerSecond(
                             repStatName(prefix,
-                                Replicant.StatNames.GET_ITEM.toString())));
+                                Replicant.StatName.GET_ITEM.toString())));
                 stats.setFindSimsPerSec(
                         statService.getAveragePerSecond(
                             repStatName(prefix,
-                                Replicant.StatNames.FIND_SIM.toString())));
+                                Replicant.StatName.FIND_SIM.toString())));
             } catch (RemoteException e) {
                 logger.warning("Failed to communicate with stats server");
                 throw new RuntimeException("Failed to load stats");
@@ -188,13 +193,62 @@ public class VizServiceImpl extends RemoteServiceServlet implements
     public void resetRepStats(String prefix) {
         if (statService != null) {
             try {
-                for (Replicant.StatNames name : Replicant.StatNames.values()) {
+                for (Replicant.StatName name : Replicant.StatName.values()) {
                    statService.set(repStatName(prefix, name.toString()), 0);
                 }
             } catch (RemoteException e) {
                 logger.log(Level.WARNING, "Failed to communicate with stats server", e);
                 throw new RuntimeException("Failed to reset stats");
             }
+        }
+    }
+
+    /**
+     * Gets a list of all the available log names for methods in the replicant
+     * 
+     * @return the list of names
+     */
+    public List<String> getRepLogNames() {
+        ArrayList<String> result = new ArrayList<String>();
+        for (Replicant.StatName name : Replicant.StatName.values()) {
+            result.add(name.toString());
+        }
+        return result;
+    }
+    
+    public List<String> getRepSelectedLogNames(String prefix) {
+        Replicant rep = prefixToRep.get(prefix);
+        try {
+            EnumSet<Replicant.StatName> curr = rep.getLoggedStats();
+            ArrayList<String> result = new ArrayList<String>();
+            for (Replicant.StatName name : curr) {
+                result.add(name.toString());
+            }
+            return result;
+        } catch (RemoteException e) {
+            logger.log(Level.INFO, "Failed to get selected names", e);
+            throw new RuntimeException("Failed to get selected names");
+        }
+    }
+    
+    public void setRepSelectedLogNames(String prefix, List<String> selected) {
+        EnumSet<Replicant.StatName> names = EnumSet.noneOf(Replicant.StatName.class);
+        for (String val : selected) {
+            names.add(Replicant.StatName.valueOf(val));
+        }
+
+        try {
+            if (prefix != null && !prefix.isEmpty()) {
+                Replicant rep = prefixToRep.get(prefix);
+                rep.setLoggedStats(names);
+            } else {
+                for (Replicant rep : prefixToRep.values()) {
+                    rep.setLoggedStats(names);
+                }
+            }
+        } catch (RemoteException e) {
+            logger.log(Level.INFO, "Failed to set selected names", e);
+            throw new RuntimeException("Failed to set selected names");
         }
     }
     
@@ -305,7 +359,10 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         try {
            ret.setDBSize(rep.getDBSize());
            ret.setIndexSize(rep.getIndexSize());
-           ret.setPrefix(rep.getPrefix().toString());
+           String prefix = rep.getPrefix().toString();
+           ret.setPrefix(prefix);
+           
+           prefixToRep.put(prefix, rep);
         } catch (RemoteException e) {
             logger.warning("Failed to get rep info: " + e.getMessage());
         }
