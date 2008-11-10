@@ -131,3 +131,11 @@ h2 {
 .tagColorAdded {
   color : #b6cf9d;
 }
+.contextMenuItem {
+    cursor: pointer;
+}
+.contextMenuItemHover {
+    background: #6B6B6B;
+    background-color: #6B6B6B;
+    color: #D1D1D1;
+}
