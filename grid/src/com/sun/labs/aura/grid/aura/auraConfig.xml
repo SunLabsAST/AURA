@@ -16,7 +16,13 @@
     <component name="startAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="instance" value="${auraInstance}"/>
     </component>
-    
+
+    <component name="startSmallAura" type="com.sun.labs.aura.grid.aura.StartAura">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="numHeads" value="1"/>
+        <property name="defaultNumReplicants" value="2"/>
+    </component>
+
     <component name="createAura" type="com.sun.labs.aura.grid.aura.CreateAura">
         <property name="instance" value="${auraInstance}"/>
     </component>
@@ -50,7 +56,14 @@
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
-    
+
+    <component name="start-small" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>startSmallAura</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
     <component name="stop" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>stopAura</item>
