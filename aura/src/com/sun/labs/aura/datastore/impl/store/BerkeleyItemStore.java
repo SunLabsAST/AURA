@@ -37,6 +37,7 @@ import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.ConfigStringList;
 import com.sun.labs.util.props.Configurable;
+import com.sun.labs.util.props.ConfigurableMXBean;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -66,7 +67,7 @@ import java.util.logging.Logger;
  * An implementation of the item store using the berkeley database as a back
  * end.
  */
-public class BerkeleyItemStore implements Replicant, Configurable, ComponentListener, AuraService,
+public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableMXBean, ComponentListener, AuraService,
         IndexListener {
     
     /**
@@ -163,6 +164,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
 
     protected AtomicInteger[] statInvocationCounts;
     
+    private String[] properties;
+
     /**
      * Constructs an empty item store, ready to be configured.
      */
@@ -193,7 +196,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
      */
     @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
-        
+
+        properties = new String[] {"logLevel"};
         logger = ps.getLogger();
         prefixString = ps.getString(PROP_PREFIX);
         prefixCode = DSBitSet.parse(prefixString);
@@ -317,6 +321,42 @@ public class BerkeleyItemStore implements Replicant, Configurable, ComponentList
     }
 
     @Override
+    public String[] getProperties() {
+        return properties.clone();
+    }
+
+    @Override
+    public String getValue(String property) {
+        if(property.equals("logLevel")) {
+            return logger.getLevel().toString();
+        }
+        return null;
+    }
+
+    @Override
+    public String[] getValues(String arg0) {
+        return null;
+    }
+
+    @Override
+    public boolean setValue(String property, String value) {
+        if(property.equals("logLevel")) {
+            try {
+            Level l = Level.parse(value);
+            logger.setLevel(l);
+            } catch (IllegalArgumentException ex) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean setValues(String property, String[] values) {
+       return false;
+    }
+
     public void componentAdded(Component c) {
         if(c instanceof StatService) {
             statService = (StatService) c;
