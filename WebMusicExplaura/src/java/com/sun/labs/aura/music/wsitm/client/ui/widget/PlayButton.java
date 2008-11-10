@@ -73,6 +73,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
 
                 public void onClick(Widget arg0) {
                     cdm.getPlayedListenerManager().triggerOnPlay(aC.getId());
+                    WebLib.trackPageLoad("play", aC.getId(), aC.getEncodedName());
                 }
             };
         }
@@ -243,7 +244,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
     private void popupArtistRadio() {
         //Window.open(getArtistRadioLink(), "lastfm_popup", "width=300,height=266,menubar=no,toolbar=no,directories=no," 
         //        + "location=no,titlebar=no,dialog=no,resizable=yes,scrollbars=no,status=no");
-        Window.open(getArtistRadioLink(), "lastfm_popup", "width=310,height=276,titlebar=no");
+        Window.open(getArtistRadioLink(), "lastfm_popup", "width=330,height=296,titlebar=no");
     }
     
     private Widget getLastFMListenWidget(ClickListener cL) {
