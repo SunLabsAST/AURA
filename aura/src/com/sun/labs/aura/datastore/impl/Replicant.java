@@ -7,6 +7,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.Component;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -15,13 +16,36 @@ import java.util.Map;
  * datastore.
  */
 public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote {
-    public enum StatNames {
+    public enum StatName {
         ATTEND,
-        NEW_ITEM,
-        UPDATE_ITEM,
+        EXPLAIN_SIM,
+        FIND_SIM,
+        FIND_SIM_AUTOTAGS,
+        GET_ALL,
+        GET_ALL_ITR,
+        GET_ATTN,
+        GET_ATTN_CNT,
+        GET_ATTN_ITR,
+        GET_ATTN_SINCE,
+        GET_ATTN_SINCE_CNT,
+        GET_ATTN_SINCE_ITR,
+        GET_AUTOTAGGED,
+        GET_DV_KEY,
+        GET_DV_CLOUD,
+        GET_EXPLAIN,
         GET_ITEM,
-        FIND_SIM
-    
+        GET_ITEMS,
+        GET_ITEMS_SINCE,
+        GET_LAST_ATTN,
+        GET_SCORED_ITEMS,
+        GET_TOP_AUTOTAG_TERMS,
+        GET_TOP_TERMS,
+        GET_TOP_VALUES,
+        GET_USER,
+        NEW_ITEM,
+        PUT_ITEM,
+        UPDATE_ITEM,
+        QUERY
     }
 
     /**
@@ -73,4 +97,15 @@ public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote 
      */
     public Map<String,FieldDescription> getFieldDescriptions()
             throws RemoteException;
+    
+    /**
+     * Returns an enumset containing the currently logged stat names
+     * @return
+     */
+    public EnumSet<StatName> getLoggedStats() throws RemoteException;
+    
+    /**
+     * Sets the logged stat names
+     */
+    public void setLoggedStats(EnumSet<StatName> loggedStats) throws RemoteException;
 }

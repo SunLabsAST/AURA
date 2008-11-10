@@ -171,8 +171,10 @@ public class Main implements EntryPoint, HistoryListener {
         }
     }
 
+
     public void onHistoryChanged(String historyToken) {
         if (!historyToken.equals(curToken)) {
+            WebLib.trackPageLoad(historyToken);
             showResults(historyToken);
         }
     }

@@ -348,7 +348,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                     }
                     PerformanceTimer.stop("newRecommendationsRedraw");
                     PerformanceTimer.stop("newRecommendations");
-
+                    WebLib.trackPageLoad("steerUpdate");
                 }
 
                 public void onFailure(Throwable caught) {

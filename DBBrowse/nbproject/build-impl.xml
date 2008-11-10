@@ -534,6 +534,12 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
     <target depends="init" if="dist.ear.dir" name="library-inclusion-in-manifest">
         <basename file="${reference.aura.jar}" property="included.lib.reference.aura.jar"/>
         <copy-ear-war file="${reference.aura.jar}" propname="included.lib.reference.aura.jar.X"/>
+        <basename file="${libs.GWT1.5.0.classpath.libfile.3}" property="included.lib.libs.GWT1.5.0.classpath.3"/>
+        <basename file="${libs.GWT1.5.0.classpath.libfile.2}" property="included.lib.libs.GWT1.5.0.classpath.2"/>
+        <basename file="${libs.GWT1.5.0.classpath.libfile.1}" property="included.lib.libs.GWT1.5.0.classpath.1"/>
+        <copy-ear-war file="${libs.GWT1.5.0.classpath.libfile.3}" propname="included.lib.libs.GWT1.5.0.classpath.3.X"/>
+        <copy-ear-war file="${libs.GWT1.5.0.classpath.libfile.2}" propname="included.lib.libs.GWT1.5.0.classpath.2.X"/>
+        <copy-ear-war file="${libs.GWT1.5.0.classpath.libfile.1}" propname="included.lib.libs.GWT1.5.0.classpath.1.X"/>
         <basename file="${libs.SunLabsUtilities.classpath}" property="included.lib.libs.SunLabsUtilities.classpath"/>
         <copy-ear-war file="${libs.SunLabsUtilities.classpath}" propname="included.lib.libs.SunLabsUtilities.classpath.X"/>
         <basename file="${libs.JiniCore.classpath.libfile.7}" property="included.lib.libs.JiniCore.classpath.7"/>
@@ -556,12 +562,6 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy-ear-war file="${file.reference.xalan.jar}" propname="included.lib.file.reference.xalan.jar.X"/>
         <basename file="${file.reference.xerces.jar}" property="included.lib.file.reference.xerces.jar"/>
         <copy-ear-war file="${file.reference.xerces.jar}" propname="included.lib.file.reference.xerces.jar.X"/>
-        <basename file="${file.reference.gwt-dev-linux.jar-1}" property="included.lib.file.reference.gwt-dev-linux.jar-1"/>
-        <copy-ear-war file="${file.reference.gwt-dev-linux.jar-1}" propname="included.lib.file.reference.gwt-dev-linux.jar-1.X"/>
-        <basename file="${file.reference.gwt-servlet.jar-1}" property="included.lib.file.reference.gwt-servlet.jar-1"/>
-        <copy-ear-war file="${file.reference.gwt-servlet.jar-1}" propname="included.lib.file.reference.gwt-servlet.jar-1.X"/>
-        <basename file="${file.reference.gwt-user.jar}" property="included.lib.file.reference.gwt-user.jar"/>
-        <copy-ear-war file="${file.reference.gwt-user.jar}" propname="included.lib.file.reference.gwt-user.jar.X"/>
         <basename file="${libs.Rome.classpath.libfile.9}" property="included.lib.libs.Rome.classpath.9"/>
         <basename file="${libs.Rome.classpath.libfile.8}" property="included.lib.libs.Rome.classpath.8"/>
         <basename file="${libs.Rome.classpath.libfile.7}" property="included.lib.libs.Rome.classpath.7"/>
@@ -584,12 +584,15 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy-ear-war file="${libs.Minion.classpath}" propname="included.lib.libs.Minion.classpath.X"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${included.lib.reference.aura.jar} ${included.lib.libs.SunLabsUtilities.classpath} ${included.lib.libs.JiniCore.classpath.1.X} ${included.lib.libs.JiniCore.classpath.2.X} ${included.lib.libs.JiniCore.classpath.3.X} ${included.lib.libs.JiniCore.classpath.4.X} ${included.lib.libs.JiniCore.classpath.5.X} ${included.lib.libs.JiniCore.classpath.6.X} ${included.lib.libs.JiniCore.classpath.7.X} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.file.reference.gwt-dev-linux.jar-1} ${included.lib.file.reference.gwt-servlet.jar-1} ${included.lib.file.reference.gwt-user.jar} ${included.lib.libs.Rome.classpath.1.X} ${included.lib.libs.Rome.classpath.2.X} ${included.lib.libs.Rome.classpath.3.X} ${included.lib.libs.Rome.classpath.4.X} ${included.lib.libs.Rome.classpath.5.X} ${included.lib.libs.Rome.classpath.6.X} ${included.lib.libs.Rome.classpath.7.X} ${included.lib.libs.Rome.classpath.8.X} ${included.lib.libs.Rome.classpath.9.X} ${included.lib.libs.Minion.classpath} "/>
+            <attribute name="Class-Path" value="${included.lib.reference.aura.jar} ${included.lib.libs.GWT1.5.0.classpath.1.X} ${included.lib.libs.GWT1.5.0.classpath.2.X} ${included.lib.libs.GWT1.5.0.classpath.3.X} ${included.lib.libs.SunLabsUtilities.classpath} ${included.lib.libs.JiniCore.classpath.1.X} ${included.lib.libs.JiniCore.classpath.2.X} ${included.lib.libs.JiniCore.classpath.3.X} ${included.lib.libs.JiniCore.classpath.4.X} ${included.lib.libs.JiniCore.classpath.5.X} ${included.lib.libs.JiniCore.classpath.6.X} ${included.lib.libs.JiniCore.classpath.7.X} ${included.lib.file.reference.jdom.jar} ${included.lib.file.reference.xalan.jar} ${included.lib.file.reference.xerces.jar} ${included.lib.libs.Rome.classpath.1.X} ${included.lib.libs.Rome.classpath.2.X} ${included.lib.libs.Rome.classpath.3.X} ${included.lib.libs.Rome.classpath.4.X} ${included.lib.libs.Rome.classpath.5.X} ${included.lib.libs.Rome.classpath.6.X} ${included.lib.libs.Rome.classpath.7.X} ${included.lib.libs.Rome.classpath.8.X} ${included.lib.libs.Rome.classpath.9.X} ${included.lib.libs.Minion.classpath} "/>
         </manifest>
         <delete dir="${dist.ear.dir}/temp"/>
     </target>
     <target depends="init" name="library-inclusion-in-archive" unless="dist.ear.dir">
         <copy file="${reference.aura.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.GWT1.5.0.classpath.libfile.3}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.GWT1.5.0.classpath.libfile.2}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.GWT1.5.0.classpath.libfile.1}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${libs.SunLabsUtilities.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${libs.JiniCore.classpath.libfile.7}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${libs.JiniCore.classpath.libfile.6}" todir="${build.web.dir}/WEB-INF/lib"/>
@@ -601,9 +604,6 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy file="${file.reference.jdom.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.xalan.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.xerces.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.gwt-dev-linux.jar-1}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.gwt-servlet.jar-1}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.gwt-user.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${libs.Rome.classpath.libfile.9}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${libs.Rome.classpath.libfile.8}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${libs.Rome.classpath.libfile.7}" todir="${build.web.dir}/WEB-INF/lib"/>

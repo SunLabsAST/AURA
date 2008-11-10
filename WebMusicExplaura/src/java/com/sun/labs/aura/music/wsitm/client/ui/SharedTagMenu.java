@@ -15,6 +15,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.MusicSearchInterface;
 import com.sun.labs.aura.music.wsitm.client.MusicSearchInterfaceAsync;
+import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;

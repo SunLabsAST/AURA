@@ -19,18 +19,16 @@ public class PCInfo implements Serializable {
     protected String prefix;
     
     /** A list of the replicants that make up this partition
-     * @gwt.typeArgs <com.sun.labs.aura.dbbrowser.client.viz.RepInfo>
      */
-    protected List repInfos;
+    protected List<RepInfo> repInfos;
     
     protected long numItems;
     protected long numAttention;
     
     /**
      * A map of item type names to counts of each type
-     * @gwt.typeArgs <java.lang.String,java.lang.Long>
      */
-    protected Map typeToCountMap;
+    protected Map<String,Long> typeToCountMap;
     
     public PCInfo() {
         repInfos = new ArrayList();

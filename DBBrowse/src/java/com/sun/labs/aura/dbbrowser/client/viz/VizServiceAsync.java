@@ -9,6 +9,7 @@
 
 package com.sun.labs.aura.dbbrowser.client.viz;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import java.util.List;
 
 
 /**
@@ -26,6 +27,12 @@ public interface VizServiceAsync {
     public void getRepStats(String prefix, AsyncCallback asyncCallback);
     
     public void resetRepStats(String prefix, AsyncCallback asyncCallback);
+
+    public void getRepLogNames(AsyncCallback asyncCallback);
+
+    public void getRepSelectedLogNames(String prefix, AsyncCallback asyncCallback);
+
+    public void setRepSelectedLogNames(String prefix, List<String> selected, AsyncCallback asyncCallback);
     
     public void haltPC(PCInfo pc, AsyncCallback asyncCallback);
     

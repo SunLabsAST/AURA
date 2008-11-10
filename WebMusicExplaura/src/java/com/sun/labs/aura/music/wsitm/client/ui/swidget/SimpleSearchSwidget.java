@@ -301,6 +301,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                         showError("No Match for " + sr.getQuery());
                         clearResults();
                     } else if (results.length == 1) {
+                        WebLib.trackPageLoad("#tagSearch:" + sr.getQuery());
                         ItemInfo ar = results[0];
                         invokeGetTagInfo(ar.getId(), false);
                     } else {
@@ -349,6 +350,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                         clearResults();
                     } else if (results.length == 1) {
                         ItemInfo ar = results[0];
+                        WebLib.trackPageLoad("#artistSearch:" + sr.getQuery());
                         invokeGetArtistInfo(ar.getId(), false);
                     } else {
                         showMessage("Found " + sr.getItemResults().length + " matches");
