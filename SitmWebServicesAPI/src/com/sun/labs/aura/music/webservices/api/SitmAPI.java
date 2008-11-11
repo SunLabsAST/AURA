@@ -23,11 +23,11 @@ public class SitmAPI {
     private Monitor monitor;
     private boolean debug;
 
-    public SitmAPI(String host, boolean traceSends, boolean debug) throws IOException {
+    public SitmAPI(String host, boolean traceSends, boolean debug, boolean periodicDump) throws IOException {
         String suffix = debug  ? "&debug=true" : "";
         commander = new Commander("sitm", host, suffix);
         commander.setTraceSends(traceSends);
-        monitor = new Monitor(false, true);
+        monitor = new Monitor(false, periodicDump);
     }
 
 

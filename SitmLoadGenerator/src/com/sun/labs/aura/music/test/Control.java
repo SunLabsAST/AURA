@@ -28,8 +28,8 @@ public class Control {
     private long lateCount;
     private long lastLateCount;
 
-    public Control(String host) throws IOException {
-        sitm = new SitmAPI(host, false, true);
+    public Control(String host, boolean periodicDump) throws IOException {
+        sitm = new SitmAPI(host, false, true, periodicDump);
         fetchArtists();
         fetchArtistTags();
         reset();
@@ -104,7 +104,7 @@ public class Control {
             artistKeys.add(item.getKey());
             artistNames.add(item.getName());
         }
-        System.out.printf("Using %d artists\n", artistKeys.size());
+        //System.out.printf("Using %d artists\n", artistKeys.size());
     }
 
     private void fetchArtistTags() throws IOException {
@@ -115,6 +115,6 @@ public class Control {
             artistTagKeys.add(item.getKey());
             artistTagNames.add(item.getName());
         }
-        System.out.printf("Using %d tags\n", artistTagKeys.size());
+        //System.out.printf("Using %d tags\n", artistTagKeys.size());
     }
 }
