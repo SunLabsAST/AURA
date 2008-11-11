@@ -44,7 +44,6 @@ public abstract class AbstractSearchWidget extends Composite {
     private Panel searchBoxContainerPanel; // panel that will contain the searchbox
 
     private SuggestBox sB;
-    protected SearchTypeRadioButton[] searchButtons;
 
     protected String searchBoxStyleName = ""; //searchText";
     protected int searchBoxWidth = 0;
@@ -59,6 +58,8 @@ public abstract class AbstractSearchWidget extends Composite {
         updateSuggestBox(type);
     }
 
+    protected abstract searchTypes getSearchType();
+    public abstract void setSearchType(searchTypes searchType);
     public abstract void search();
 
     private SuggestBox getNewSuggestBox(PopSortedMultiWordSuggestOracle oracle) {
@@ -119,15 +120,6 @@ public abstract class AbstractSearchWidget extends Composite {
     public SuggestBox getSearchBox() {
         return sB;
     }
-
-    protected searchTypes getSearchType() {
-        for (SearchTypeRadioButton rB : searchButtons) {
-            if (rB.isChecked()) {
-                return rB.getSearchType();
-            }
-        }
-        return null;
-    }
     
     public void setText(String text) {
         if (sB != null) {
@@ -138,9 +130,7 @@ public abstract class AbstractSearchWidget extends Composite {
     public void setText(String text, searchTypes searchType) {
         if (sB != null) {
             sB.setText(text);
-            for (SearchTypeRadioButton rB : searchButtons) {
-                rB.setChecked(rB.getSearchType() == searchType);
-            }
+            setSearchType(searchType);
         }
     }
 

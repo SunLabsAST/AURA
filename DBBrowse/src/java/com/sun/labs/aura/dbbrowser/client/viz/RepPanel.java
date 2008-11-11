@@ -13,7 +13,7 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.google.gwt.user.client.ui.WidgetCollection;
+import java.util.List;
 
 /**
  * A UI widget that represents a replicant
@@ -37,6 +37,7 @@ public class RepPanel extends FlowPanel {
         add(new StyleLabel("Index Size:  " + indexSize + "MB",
                            "viz-statLabel"));
         add(new StyleLabel("Halt", "viz-actionLabel"));
+        
         StyleLabel stats = new StyleLabel("Stats", "viz-actionLabel");
         stats.addClickListener(new ClickListener() {
             public void onClick(Widget arg0) {
@@ -44,6 +45,14 @@ public class RepPanel extends FlowPanel {
             }
         });
         add(stats);
+        
+        StyleLabel logConfig = new StyleLabel("LogMod", "viz-actionLabel");
+        logConfig.addClickListener(new ClickListener() {
+            public void onClick(Widget w) {
+                doLogDialog();
+            }
+        });
+        add(logConfig);
     }
     
     public RepInfo getRepInfo() {
@@ -143,6 +152,33 @@ public class RepPanel extends FlowPanel {
             }
         };
         service.resetRepStats(rep.getPrefix(), callback);
-       
+    }
+
+    public void doLogDialog() {
+        VizServiceAsync service = GWTMainEntryPoint.getVizService();
+        final AsyncCallback callback = new AsyncCallback() {
+            public void onSuccess(Object result) {
+                doLogDialog2((List<String>)result);
+            }
+
+            public void onFailure(Throwable caught) {
+                VizUI.alert("Communication failed: " + caught.getMessage());
+            }
+        };
+        service.getRepLogNames(callback);
+    }
+    
+    public void doLogDialog2(final List<String> allNames) {
+        VizServiceAsync service = GWTMainEntryPoint.getVizService();
+        final AsyncCallback callback = new AsyncCallback() {
+            public void onSuccess(Object result) {
+                new RepLogDialog(rep.getPrefix(), allNames, (List<String>)result).show();
+            }
+
+            public void onFailure(Throwable caught) {
+                VizUI.alert("Communication failed: " + caught.getMessage());
+            }
+        };
+        service.getRepSelectedLogNames(rep.getPrefix(), callback);
     }
 }

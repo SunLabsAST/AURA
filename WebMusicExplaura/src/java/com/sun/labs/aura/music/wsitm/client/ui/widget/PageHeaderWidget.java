@@ -21,12 +21,14 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -35,6 +37,7 @@ import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,6 +47,12 @@ import java.util.HashMap;
  * @author mailletf
  */
 public class PageHeaderWidget extends Swidget implements HasListeners {
+
+    private enum SubHeaderPanels {
+        CONFIG,
+        NONE
+    }
+    private SubHeaderPanels currSubHeaderPanel = SubHeaderPanels.NONE;
 
     private RoundedPanel roundedMainPanel;
     private Grid mainPanel;
@@ -55,15 +64,115 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
     private Widget instantRecPlayWidget;
 
+    private SearchWidget search;
+    private FlowPanel searchBoxContainerPanel;
+
+    private FlowPanel configSubHeaderPanel;
     private ListBox listbox;
+
+    private FlowPanel activeSubHeaderPanel;
     
     public PageHeaderWidget(ClientDataManager cdm) {
         super("pageHeader",cdm);
         this.cdm = cdm;
         menuItems = new ArrayList<MenuItem>();
-        initWidget(getMainWidget());
+
+        VerticalPanel vP = new VerticalPanel();
+        vP.setWidth("100%");
+
+        Label title = new Label("Search Inside the Music - The Music Explaura");
+        title.addClickListener(new ClickListener() {
+
+            public void onClick(Widget arg0) {
+                History.newItem("searchHome:");
+            }
+        });
+        title.setStyleName("title");
+        title.addStyleName("titleC");
+        vP.add(title);
+        vP.add(getMainWidget());
+
+        activeSubHeaderPanel = new FlowPanel();
+        activeSubHeaderPanel.setWidth("100%");
+        activeSubHeaderPanel.setVisible(false);
+        vP.add(activeSubHeaderPanel);
+
+
+        Label l = new Label("Config");
+        l.addStyleName("pointer");
+        l.addClickListener(new ClickListener() {
+
+            public void onClick(Widget sender) {
+                setSubHeaderPanel(SubHeaderPanels.CONFIG);
+            }
+        });
+        HorizontalPanel hP = new HorizontalPanel();
+        hP.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
+        hP.setStyleName("pageConfigHeader");
+        hP.setWidth("100%");
+        hP.add(l);
+
+        RoundedPanel rp = new RoundedPanel(hP, RoundedPanel.BOTTOM, 2);
+        rp.setCornerStyleName("popupColors");
+
+        FlowPanel fP = new FlowPanel();
+        fP.setStyleName("pageConfigMargin");
+        fP.setWidth("40px");
+        fP.add(rp);
+        
+        vP.add(fP);
+
+        createConfigSubHeaderPanel();
+        
+        initWidget(vP);
+
     }
-    
+
+    private void createConfigSubHeaderPanel() {
+        
+        HorizontalPanel hP = new HorizontalPanel();
+        hP.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
+        hP.setStyleName("pageConfigHeader");
+        hP.addStyleName("somePadding");
+        hP.setWidth("100%");
+
+        Label simLbl = new Label("Similarity type : ");
+        simLbl.setStyleName("headerMenuMed headerMenuMedC");
+        hP.add(simLbl);
+
+        listbox = new ListBox(false);
+        invokeGetSimTypes();
+        listbox.addItem("Loading...");
+        hP.add(listbox);
+
+        RoundedPanel rp = new RoundedPanel(hP, RoundedPanel.BOTTOM, 2);
+        rp.setCornerStyleName("popupColors");
+
+        configSubHeaderPanel = new FlowPanel();
+        configSubHeaderPanel.setStyleName("subMenuMargin");
+        configSubHeaderPanel.setWidth("225px");
+        configSubHeaderPanel.add(rp);
+    }
+
+    /**
+     * Display or hide the requested subheaderpanel
+     * @param p
+     */
+    private void setSubHeaderPanel(SubHeaderPanels p) {
+        // If we want to hide the panel
+        if (p == currSubHeaderPanel || p == SubHeaderPanels.NONE) {
+            activeSubHeaderPanel.setVisible(false);
+            currSubHeaderPanel = SubHeaderPanels.NONE;
+        } else {
+            if (p == SubHeaderPanels.CONFIG) {
+                activeSubHeaderPanel.clear();
+                activeSubHeaderPanel.add(configSubHeaderPanel);
+            }
+            activeSubHeaderPanel.setVisible(true);
+            currSubHeaderPanel = p;
+        }
+    }
+
     public RoundedPanel getMainWidget() {
         
         mainPanel = new Grid(1,3);
@@ -77,18 +186,14 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         //
         // Set the recommendation type toolbar
         HorizontalPanel hP = new HorizontalPanel();
-        Label lbl = new Label("Similarity type : ");
-        lbl.setStyleName("headerMenuMed headerMenuMedC");
-        hP.add(lbl);
 
-        listbox = new ListBox(false);
-        listbox.addItem("Loading...");
-        hP.add(listbox);
+        searchBoxContainerPanel = new FlowPanel();
+        search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel);
+        search.updateSuggestBox(Oracles.ARTIST);
+        hP.add(search);        
         
         mainPanel.setWidget(0, 2, hP);
         mainPanel.getCellFormatter().getElement(0, 2).setAttribute("align", "right");
-
-        invokeGetSimTypes();
 
         //
         // Set the section menu
@@ -465,6 +570,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             initWidget(p);
         }
 
+        @Override
         public Widget getWidget() {
             return p;
         }
@@ -500,6 +606,94 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
         public void onDelete() {
             cdm.getLoginListenerManager().removeListener(this);
+        }
+    }
+
+    public class SearchWidget extends AbstractSearchWidget {
+
+        private ListBox searchSelection;
+
+        public SearchWidget(MusicSearchInterfaceAsync musicServer,
+            ClientDataManager cdm, FlowPanel searchBoxContainerPanel) {
+
+            super(musicServer, cdm, searchBoxContainerPanel, Oracles.ARTIST);
+
+            searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
+
+            searchSelection = new ListBox();
+            searchSelection.addItem("For artist", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST.toString());
+            searchSelection.addItem("By Tag", searchTypes.SEARCH_FOR_ARTIST_BY_TAG.toString());
+            searchSelection.addItem("For Tag", searchTypes.SEARCH_FOR_TAG_BY_TAG.toString());
+
+            searchSelection.addChangeListener(new ChangeListener() {
+
+                public void onChange(Widget sender) {
+                    if (getSearchType() == searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST) {
+                        updateSuggestBox(Oracles.ARTIST);
+                    } else {
+                        updateSuggestBox(Oracles.TAG);
+                    }
+                }
+            });
+
+            //updateSuggestBox(Oracles.ARTIST);  -- done in constructor
+            setText("", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
+
+            HorizontalPanel searchPanel = new HorizontalPanel();
+            searchPanel.setStyleName("searchPanel");
+            searchPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
+            searchPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+
+            Button searchButton = new Button("Search", new ClickListener() {
+                public void onClick(Widget sender) {
+                    search();
+                }
+            });
+            searchButton.setTabIndex(2);
+
+            searchPanel.add(searchBoxContainerPanel);
+            searchPanel.add(searchSelection);
+            searchPanel.add(searchButton);
+            this.initWidget(searchPanel);
+        }
+
+        public void search() {
+            if (cdm.getCurrSimTypeName() == null || cdm.getCurrSimTypeName().equals("")) {
+                Window.alert("Error. Cannot search without the similarity types.");
+            } else {
+                String query = getSearchBox().getText().toLowerCase();
+                searchTypes currST = getSearchType();
+                if (currST == searchTypes.SEARCH_FOR_TAG_BY_TAG) {
+                    History.newItem("tagSearch:"+query);
+                } else if (currST == searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST) {
+                    History.newItem("artistSearch:"+query);
+                } else {
+                    History.newItem("artistSearchByTag::"+query);
+                }
+            }
+        }
+
+        @Override
+        protected searchTypes getSearchType() {
+            int index = searchSelection.getSelectedIndex();
+            if (index==0) {
+                return searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST;
+            } else if (index==1) {
+                return searchTypes.SEARCH_FOR_ARTIST_BY_TAG;
+            } else {
+                return searchTypes.SEARCH_FOR_TAG_BY_TAG;
+            }
+        }
+
+        @Override
+        public void setSearchType(searchTypes searchType) {
+            if (searchType == searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST) {
+                searchSelection.setSelectedIndex(0);
+            } else if (searchType == searchTypes.SEARCH_FOR_ARTIST_BY_TAG) {
+                searchSelection.setSelectedIndex(1);
+            } else {
+                searchSelection.setSelectedIndex(2);
+            }
         }
     }
 

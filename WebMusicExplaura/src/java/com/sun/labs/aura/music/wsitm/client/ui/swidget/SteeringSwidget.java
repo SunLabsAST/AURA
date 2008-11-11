@@ -348,7 +348,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                     }
                     PerformanceTimer.stop("newRecommendationsRedraw");
                     PerformanceTimer.stop("newRecommendations");
-
+                    WebLib.trackPageLoad("steerUpdate");
                 }
 
                 public void onFailure(Throwable caught) {
@@ -805,6 +805,7 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         private Grid mainTagPanel;
         private TagWidget tagLand;
         private HasListeners listenersContainer;
+        private SearchTypeRadioButton[] searchButtons;
 
         public SearchWidget(MusicSearchInterfaceAsync musicServer,
                 ClientDataManager cdm, Panel searchBoxContainerPanel, Grid mainTagPanel,
@@ -973,6 +974,23 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             if (listenersContainer != null) {
                 listenersContainer.doRemoveListeners();
                 listenersContainer = null;
+            }
+        }
+
+        @Override
+        protected searchTypes getSearchType() {
+            for (SearchTypeRadioButton rB : searchButtons) {
+                if (rB.isChecked()) {
+                    return rB.getSearchType();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public void setSearchType(searchTypes searchType) {
+            for (SearchTypeRadioButton rB : searchButtons) {
+                rB.setChecked(rB.getSearchType() == searchType);
             }
         }
     }

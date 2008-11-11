@@ -42,7 +42,6 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.LoadListener;
-import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -71,9 +70,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
     private String curResultToken = "";
 
     private DockPanel mainPanel;
-    private FlowPanel searchBoxContainerPanel;
     private Label message;
-    private SearchWidget search;
     private Image icon;
 
     private PopularitySelect popSelect;
@@ -101,10 +98,10 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
     @Override
     public Widget getWidget() {
 
-        searchBoxContainerPanel = new FlowPanel();
+        //searchBoxContainerPanel = new FlowPanel();
         
-        search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel);
-        search.updateSuggestBox(Oracles.ARTIST);
+        //search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel);
+        //search.updateSuggestBox(Oracles.ARTIST);
 
         message = new Label();
         message.setHeight("20px");
@@ -128,7 +125,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         topPanel.setWidth("100%");
         topPanel.setHorizontalAlignment(VerticalPanel.ALIGN_CENTER);
 
-        topPanel.add(search);
+        //topPanel.add(search);
         topPanel.add(msgPanel);
 
         mainPanel = new DockPanel();
@@ -194,9 +191,9 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
             mainPanel.add(result, DockPanel.CENTER);
             curResult = result;
             curResultToken = historyName;
-        } else {
-            search.setText("");
-        }
+        }// else {
+        //    search.setText("");
+        //}
     }
 
     private void clearResults() {
@@ -211,12 +208,11 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         l.add("artistSearch:");
         l.add("artistSearchByTag:");
         l.add("tagSearch:");
-        l.add("searchHome:");
         return l;
     }
 
     protected void initMenuItem() {
-        menuItem = new MenuItem("Search",new ClickListener() {
+        menuItem = new MenuItem("Exploration",new ClickListener() {
 
                 public void onClick(Widget arg0) {
                     History.newItem(cdm.getCurrSearchWidgetToken());
@@ -259,21 +255,21 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
         //  resultName = URL.decodeComponent(resultName);
         if (resultName.startsWith("artist:")) {
-            search.updateSuggestBox(Oracles.ARTIST);
+            //search.updateSuggestBox(Oracles.ARTIST);
             invokeGetArtistInfo(resultName, false);
         } else if (resultName.startsWith("tag:")) {
-            search.updateSuggestBox(Oracles.TAG);
+            //search.updateSuggestBox(Oracles.TAG);
             invokeGetTagInfo(resultName, false);
         } else if (resultName.startsWith("artistSearch:")) {
-            search.updateSuggestBox(Oracles.ARTIST);
+            //search.updateSuggestBox(Oracles.ARTIST);
             String query = resultName.replaceAll("artistSearch:", "");
             invokeArtistSearchService(query, searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST, 0);
         } else if (resultName.startsWith("artistSearchByTag:")) {
-            search.updateSuggestBox(Oracles.TAG);
+            //search.updateSuggestBox(Oracles.TAG);
             String query = resultName.replaceAll("artistSearchByTag:", "");
             invokeArtistSearchService(query, searchTypes.SEARCH_FOR_ARTIST_BY_TAG, 0);
         } else if (resultName.startsWith("tagSearch:")) {
-            search.updateSuggestBox(Oracles.TAG);
+            //search.updateSuggestBox(Oracles.TAG);
             String query = resultName.replaceAll("tagSearch:", "");
             invokeTagSearchService(query, 0);
         } else if (resultName.startsWith("searchHome:")) {
@@ -301,6 +297,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                         showError("No Match for " + sr.getQuery());
                         clearResults();
                     } else if (results.length == 1) {
+                        WebLib.trackPageLoad("#tagSearch:" + sr.getQuery());
                         ItemInfo ar = results[0];
                         invokeGetTagInfo(ar.getId(), false);
                     } else {
@@ -349,6 +346,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                         clearResults();
                     } else if (results.length == 1) {
                         ItemInfo ar = results[0];
+                        WebLib.trackPageLoad("#artistSearch:" + sr.getQuery());
                         invokeGetArtistInfo(ar.getId(), false);
                     } else {
                         showMessage("Found " + sr.getItemResults().length + " matches");
@@ -415,8 +413,8 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                         PerformanceTimer.start("createArtistPanel");
                         cdm.setCurrArtistInfo(artistDetails.getId(), artistDetails.getName());
                         Widget artistPanel = createArtistPanel(artistDetails);
-                        search.setText(artistDetails.getName(), searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
-                        search.updateSuggestBox(Oracles.ARTIST);
+                        //search.setText(artistDetails.getName(), searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
+                        //search.updateSuggestBox(Oracles.ARTIST);
                         setResults("artist:" + artistDetails.getId(), artistPanel);
                         clearMessage();
                         PerformanceTimer.stop("createArtistPanel");
@@ -458,8 +456,8 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
                 TagDetails tagDetails = (TagDetails) result;
                 if (tagDetails != null && tagDetails.isOK()) {
                     Widget tagPanel = createTagPanel(tagDetails);
-                    search.setText(tagDetails.getName(), searchTypes.SEARCH_FOR_TAG_BY_TAG);
-                    search.updateSuggestBox(Oracles.TAG);
+                    //search.setText(tagDetails.getName(), searchTypes.SEARCH_FOR_TAG_BY_TAG);
+                    //search.updateSuggestBox(Oracles.TAG);
                     setResults("tag:"+tagDetails.getId(), tagPanel);
                     clearMessage();
                 } else {
@@ -1315,87 +1313,6 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
             return "albums";
         }
 
-    }
-
-    public class SearchWidget extends AbstractSearchWidget {
-
-        public SearchWidget(MusicSearchInterfaceAsync musicServer,
-            ClientDataManager cdm, Panel searchBoxContainerPanel) {
-
-            super(musicServer, cdm, searchBoxContainerPanel, Oracles.ARTIST);
-
-            searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
-
-            Panel searchType = new VerticalPanel();
-            searchButtons = new SearchTypeRadioButton[3];
-            searchButtons[0] = new SearchTypeRadioButton("searchType", "For Artist", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
-            searchButtons[1] = new SearchTypeRadioButton("searchType", "By Tag", searchTypes.SEARCH_FOR_ARTIST_BY_TAG);
-            searchButtons[2] = new SearchTypeRadioButton("searchType", "For Tag", searchTypes.SEARCH_FOR_TAG_BY_TAG);
-
-            searchButtons[0].addClickListener(new ClickListener() {
-                public void onClick(Widget arg0) {
-                    updateSuggestBox(Oracles.ARTIST);
-                }
-            });
-            searchButtons[1].addClickListener(new ClickListener() {
-                public void onClick(Widget arg0) {
-                    updateSuggestBox(Oracles.TAG);
-                }
-            });
-            searchButtons[2].addClickListener(new ClickListener() {
-                public void onClick(Widget arg0) {
-                    updateSuggestBox(Oracles.TAG);
-                }
-            });
-
-            //updateSuggestBox(Oracles.ARTIST);  -- done in constructor
-            setText("", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
-
-            for (int i = 0; i < searchButtons.length; i++) {
-                searchType.add(searchButtons[i]);
-                searchButtons[i].setStyleName("searchTypeButton");
-            }
-            searchType.setWidth("100%");
-            searchType.setStyleName("searchPanel");
-
-            HorizontalPanel searchPanel = new HorizontalPanel();
-            searchPanel.setStyleName("searchPanel");
-            searchPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
-            searchPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
-
-            Button searchButton = new Button("Search", new ClickListener() {
-                public void onClick(Widget sender) {
-                    search();
-                }
-            });
-            searchButton.addStyleName("main");
-            searchButton.setTabIndex(2);
-
-            VerticalPanel leftP = new VerticalPanel();
-            leftP.setHeight("100%");
-            leftP.setWidth("100%");
-            leftP.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
-            leftP.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
-            leftP.add(searchBoxContainerPanel);
-            leftP.add(searchButton);
-            searchPanel.add(leftP);
-            searchPanel.add(searchType);
-            this.initWidget(searchPanel);
-        }
-
-        public void search() {
-            if (cdm.getCurrSimTypeName() == null || cdm.getCurrSimTypeName().equals("")) {
-                Window.alert("Error. Cannot search without the similarity types.");
-            } else {
-                String query = getSearchBox().getText().toLowerCase();
-                searchTypes currST = getSearchType();
-                if (currST == searchTypes.SEARCH_FOR_TAG_BY_TAG) {
-                    invokeTagSearchService(query, 0);
-                } else {
-                    invokeArtistSearchService(query, currST, 0);
-                }
-            }
-        }
     }
     
     private class PopularitySelectAD extends PopularitySelect {

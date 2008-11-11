@@ -103,8 +103,8 @@ public class TagInputWidget extends Composite implements LoginListener {
                 newTag = newTag.toLowerCase().trim();
                 tags.add(newTag);
             }
-            invokeAddTags(tags);
             clearTextBoxTxt();
+            invokeAddTags(tags);
         } else {
             Window.alert("Message from the happy tag : you must be logged in to access this feature. I should redirect you to another page so you can create an account, but I'd rather keep you here and give you a big happy tag hug!");
         }
@@ -214,9 +214,12 @@ public class TagInputWidget extends Composite implements LoginListener {
                  for (String s : data) {
                      addTag(s);
                  }
-                 resetTextBox();
 
                  cdm.getTaggingListenerManager().triggerOnTag(itemId, tags);
+
+                 txtBox.setEnabled(true);
+                 progressImg.setVisible(false);
+                 txtBox.getElement().setAttribute("style", "margin-left: 5px;");
              }
 
              public void resetTextBox() {

@@ -211,4 +211,21 @@ public abstract class WebLib {
 
         return table;
     }
+
+    public static void trackPageLoad(String operation, String item, String detail) {
+        trackPageLoad(operation + "/" + item + "/" + detail);
+    }
+
+    public static void trackPageLoad(String operation, String item) {
+        trackPageLoad(operation + "/" + item);
+    }
+
+    public static void trackPageLoad(String page) {
+        trackPageLoadNative("/" + page);
+    }
+
+    public static native void trackPageLoadNative(String page) /*-{
+          $wnd.pageTracker._trackPageview(page);
+}-*/;
+
 }
