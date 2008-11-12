@@ -162,29 +162,19 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         RepStats stats = new RepStats();
         if (statService != null) {
             try {
-                stats.setAttentionsPerSec(
-                        statService.getAveragePerSecond(
-                            repStatName(prefix,
-                                Replicant.StatName.ATTEND.toString())));
-                stats.setNewItemsPerSec(
-                        statService.getAveragePerSecond(
-                            repStatName(prefix,
-                                Replicant.StatName.NEW_ITEM.toString())));
-                stats.setUpdatedItemsPerSec(
-                        statService.getAveragePerSecond(
-                            repStatName(prefix,
-                                Replicant.StatName.UPDATE_ITEM.toString())));
-                stats.setGetItemsPerSec(
-                        statService.getAveragePerSecond(
-                            repStatName(prefix,
-                                Replicant.StatName.GET_ITEM.toString())));
-                stats.setFindSimsPerSec(
-                        statService.getAveragePerSecond(
-                            repStatName(prefix,
-                                Replicant.StatName.FIND_SIM.toString())));
+                for (Replicant.StatName name : Replicant.StatName.values()) {
+                    stats.putRate(name.toString(),
+                            statService.getAveragePerSecond(
+                                repStatName(prefix, name.toString())));
+                    Double d = statService.getDouble(repStatName(prefix, name.toString()) + "-time");
+                    if (d == null || d.isNaN() || d.isInfinite()) {
+                        d = new Double(0);
+                    }
+                    stats.putTime(name.toString(), d);
+                }
             } catch (RemoteException e) {
-                logger.warning("Failed to communicate with stats server");
-                throw new RuntimeException("Failed to load stats");
+                logger.log(Level.WARNING, "Failed to communicate with stats server", e);
+                throw new RuntimeException("Failed to load stats", e);
             }
         }
         return stats;

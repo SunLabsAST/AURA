@@ -2,54 +2,30 @@
 package com.sun.labs.aura.dbbrowser.client.viz;
 
 import java.io.Serializable;
+import java.util.HashMap;
 
 /**
- *
+ * A holder for the stats from a particular replicant.
  */
 public class RepStats implements Serializable {
-    protected double attentionsPerSec;
-    protected double newItemsPerSec;
-    protected double updatedItemsPerSec;
-    protected double getItemsPerSec;
-    protected double findSimsPerSec;
 
-    public double getAttentionsPerSec() {
-        return attentionsPerSec;
+    protected HashMap<String,Double> callsPerSec = new HashMap<String,Double>();
+    protected HashMap<String,Double> avgCallTime = new HashMap<String,Double>();
+    
+    public void putRate(String name, Double cps) {
+        callsPerSec.put(name, cps);
+    }
+    
+    public Double getRate(String name) {
+        return callsPerSec.get(name);
+    }
+    
+    public void putTime(String name, Double time) {
+        avgCallTime.put(name, time);
+    }
+    
+    public Double getTime(String name) {
+        return avgCallTime.get(name);
     }
 
-    public void setAttentionsPerSec(double attentionsPerSec) {
-        this.attentionsPerSec = attentionsPerSec;
-    }
-
-    public double getNewItemsPerSec() {
-        return newItemsPerSec;
-    }
-
-    public void setNewItemsPerSec(double newItemsPerSec) {
-        this.newItemsPerSec = newItemsPerSec;
-    }
-
-    public double getUpdatedItemsPerSec() {
-        return updatedItemsPerSec;
-    }
-
-    public void setUpdatedItemsPerSec(double updatedItemsPerSec) {
-        this.updatedItemsPerSec = updatedItemsPerSec;
-    }
-
-    public double getGetItemsPerSec() {
-        return getItemsPerSec;
-    }
-
-    public void setGetItemsPerSec(double getItemsPerSec) {
-        this.getItemsPerSec = getItemsPerSec;
-    }
-
-    public double getFindSimsPerSec() {
-        return findSimsPerSec;
-    }
-
-    public void setFindSimsPerSec(double findSimsPerSec) {
-        this.findSimsPerSec = findSimsPerSec;
-    }
 }
