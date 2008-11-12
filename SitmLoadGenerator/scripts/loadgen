@@ -1,0 +1,35 @@
+JAVA_HOME=/usr/jdk/jdk1.6.0_06
+export JAVA_HOME
+PATH=$JAVA_HOME/bin:/usr/local/bin:/usr/bin:/opt/sfw/bin
+export PATH
+#recipients=Paul.Lamere@sun.com
+recipients=auratech@sun.com
+
+workArea=/lab/mir/loadgen/
+cd $workArea
+
+java -jar dist/SitmLoadGenerator.jar -users 2000 -threads 100 -url http://www.tastekeeper.com/SitmWebServices/ -time 300 -summary > output.txt
+#java -jar dist/SitmLoadGenerator.jar -users 2000 -threads 100 -url http://www.tastekeeper.com/SitmWebServices/ -time 10 -summary > output.txt
+echo "=======================" >> loadgen.log
+date >> loadgen.log
+cat output.txt >> loadgen.log
+
+
+echo "<body>" > report.html
+echo "<pre>" >> report.html
+echo "<img src='performance.png'/>" >> report.html
+cat output.txt >> report.html
+echo "</pre>" >> report.html
+echo "</body>" >> report.html
+
+cp report.html /home/plamere/public_html
+
+echo "Full performance report at http://labeast.east/~plamere/report.html" > mail.txt
+echo "" >> mail.txt
+cat output.txt >> mail.txt
+
+grep AllStats$ loadgen.log > AllStats.dat
+grep AllStats-svlt$ loadgen.log > AllStats-svlt.dat
+gnuplot genplot.gpl
+mailx -s "Tastekeeper load test report" $recipients  < mail.txt
+

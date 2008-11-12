@@ -1,0 +1,26 @@
+#!/opt/sfw/bin/gnuplot -persist
+#
+#    
+#    	G N U P L O T
+#    	Version 3.7 patchlevel 3
+#    	last modified Thu Dec 12 13:00:00 GMT 2002
+#    	System: SunOS 5.10
+#    
+#    	Copyright(C) 1986 - 1993, 1998 - 2002
+#    	Thomas Williams, Colin Kelley and many others
+#    
+#    	Type `help` to access the on-line reference manual
+#    	The gnuplot FAQ is available from
+#    	http://www.gnuplot.info/gnuplot-faq.html
+#    
+#    	Send comments and requests for help to <info-gnuplot@dartmouth.edu>
+#    	Send bugs, suggestions and mods to <bug-gnuplot@dartmouth.edu>
+#    
+set terminal png  small color
+set output '/home/plamere/public_html/performance.png'
+set data style lines
+set title "Tastekeeper Performance" 
+set xlabel "Test Run"
+set ylabel "Milliseconds"
+plot 174 title "Expected Total Time", 500 title "Maximum Total Time", "AllStats.dat" using 2 title "Total Time","AllStats-svlt.dat" using 2 title "Servlet time"
+#    EOF

@@ -29,6 +29,7 @@ public class LoadGenerator {
         int threads = 100;
         int time = 60;
         boolean readOnly = true;
+        boolean summary = false;
         String host = "http://www.tastekeeper.com/api/";
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-users")) {
@@ -61,20 +62,24 @@ public class LoadGenerator {
                 readOnly = false;
             }
 
+            if (args[i].equals("-summary")) {
+                summary = true;
+            }
+
             if (args[i].equals("-help")) {
-                System.out.println("Usage: LoadGenerator [-users n] [-threads threads] [-time time] [-url url-prefix]  -writeOK");
+                System.out.println("Usage: LoadGenerator [-users n] [-threads threads] [-time time] [-url url-prefix] [-summary]  [-writeOK]");
                 System.exit(0);
             }
         }
 
-        LoadGenerator loadGen = new LoadGenerator(users, threads, host, readOnly);
+        LoadGenerator loadGen= new LoadGenerator(users, threads, host, readOnly, summary);
         loadGen.go(time); 
     }
 
 
-    public LoadGenerator(final int users, final int threads, final String url, boolean readOnly) throws IOException {
+    public LoadGenerator(final int users, final int threads, final String url, boolean readOnly, boolean summary) throws IOException {
         System.out.println("URL " + url + " users " + users + " threads " + threads);
-        control = new Control(url);
+        control = new Control(url, !summary);
         numThreads = threads;
         this.readOnly = readOnly;
         createUsers(users);

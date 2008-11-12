@@ -34,7 +34,7 @@ public class Monitor {
     public void opFinish(String who, String name, long startTime, boolean ok) {
 
         Stats stats = getStats(name);
-        Stats gstats = getStats("AllStats");
+        Stats gstats = getStats("AllSummaryStats");
         stats.count++;
         gstats.count++;
 

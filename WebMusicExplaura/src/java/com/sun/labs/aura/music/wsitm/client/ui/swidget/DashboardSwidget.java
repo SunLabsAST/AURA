@@ -15,6 +15,7 @@ import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.CompactArtistWidget;
 import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -42,6 +43,8 @@ import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.UpdatablePanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.StarRatingWidget;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.SteeringWheelWidget;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -225,9 +228,31 @@ public class DashboardSwidget extends Swidget {
                 if (playButton != null) {
                     playButton.onDelete();
                 }
-                playButton = new PlayButton(cdm, aD.toArtistCompact(), PlayButton.PLAY_ICON_SIZE.MEDIUM, musicServer);
+
+                StarRatingWidget srw = new StarRatingWidget(musicServer, cdm, aD.getId(), StarRatingWidget.Size.MEDIUM);
+                featArtTitle.setWidget(0, 1, srw);
+
+                HorizontalPanel hP = new HorizontalPanel();
+                hP.setWidth("100%");
+                hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+
+                ArtistCompact aC = aD.toArtistCompact();
+                playButton = new PlayButton(cdm, aC, PlayButton.PLAY_ICON_SIZE.MEDIUM, musicServer);
                 cdm.getMusicProviderSwitchListenerManager().addListener(playButton);
-                featArtTitle.setWidget(0, 2, playButton);
+                hP.add(playButton);
+
+                SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.BIG,
+                        new DualDataEmbededClickListener<ClientDataManager, ArtistCompact>(cdm, aC) {
+
+                    public void onClick(Widget arg0) {
+                        data.setSteerableReset(true);
+                        History.newItem("steering:" + sndData.getId());
+                    }
+                });
+                steerButton.setTitle("Steerable recommendations starting with "+aC.getName()+"'s tag cloud");
+                hP.add(steerButton);
+
+                featArtTitle.setWidget(0, 2, hP);
 
                 featArtist.setWidget(0, 0, featArtTitle);
 
@@ -238,6 +263,7 @@ public class DashboardSwidget extends Swidget {
                 VerticalPanel featVp = new VerticalPanel();
                 featVp.setSpacing(4);
                 featVp.add(new HTML(aD.getBiographySummary().substring(0, 300) + " [...]"));
+                //featVp.add(TagDisplayLib.getTagsInPanel(aD.getDistinctiveTags(), TagDisplayLib.ORDER.SHUFFLE, cdm));
                 featVp.add(new HTML("<b>Tags</b> : "+getNDistinctiveTags(aD, 10)));
 
                 featHp.add(featVp);

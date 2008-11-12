@@ -12,6 +12,8 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
+import com.sun.labs.aura.music.wsitm.client.event.DataEmbededMouseListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
@@ -56,7 +58,19 @@ public class ContextMenu {
         l.addClickListener(cL);
         l.addClickListener(hideOnClickListener);
         l.addStyleName("contextMenuItem");
-        l.addStyleName("contextMenuItem:hover");
+        l.addMouseListener(new DataEmbededMouseListener<Label>(l) {
+
+            public void onMouseEnter(Widget sender) {
+                data.addStyleName("contextMenuItemHover");
+            }
+
+            public void onMouseLeave(Widget sender) {
+                data.removeStyleName("contextMenuItemHover");
+            }
+            public void onMouseDown(Widget sender, int x, int y) {}
+            public void onMouseMove(Widget sender, int x, int y) {}
+            public void onMouseUp(Widget sender, int x, int y) {}
+        });
         vP.add(l);
     }
     

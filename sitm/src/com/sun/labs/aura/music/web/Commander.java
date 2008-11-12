@@ -124,7 +124,7 @@ public class Commander {
 
     private InputStream sendCommandRaw(String command) throws IOException {
         try {
-            String fullCommand = prefix + command + suffix;
+            String fullCommand = prefix + command + fixSuffix(command, suffix);
 
             long curGap = System.currentTimeMillis() - lastCommandTime;
             long delayTime = minimumCommandPeriod - curGap;
@@ -170,6 +170,20 @@ public class Commander {
         } catch (URISyntaxException ex) {
             throw new IOException("bad uri " + ex);
         }
+    }
+
+    // the suffix maybe a param that needs to start with & or ? depending
+    // on whether or not this is the only parameter for the command. If the suffix
+    // starts with a '&' then it is assumed to be a param, if the command doesn't have
+    // any params (i.e. there's no  '?' in the command), then we replace the '&' with a '?'
+    private String fixSuffix(String command, String suffix) {
+        if (suffix.startsWith("&")) {
+            if (command.indexOf("?") == -1) {
+                suffix = suffix.replaceFirst("\\&", "?");
+            }
+        }
+        return suffix;
+
     }
 
     private void delay(long time) {
