@@ -20,7 +20,11 @@ import com.sun.labs.aura.datastore.impl.PartitionCluster;
 import com.sun.labs.aura.datastore.impl.ProcessManager;
 import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.util.TimeSpec;
 import com.sun.labs.util.props.Component;
+import com.sun.labs.util.props.ConfigStringList;
+import com.sun.labs.util.props.PropertyException;
+import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +40,15 @@ import java.util.regex.Pattern;
  */
 public class GridProcessManager extends Aura implements ProcessManager {
 
+    @ConfigStringList(defaultList={"1h", "1d"})
+    public static final String PROP_SNAP_INTERVALS = "snapIntervals";
+
+    @ConfigStringList(defaultList={"hourly", "daily"})
+    public static final String PROP_SNAP_TAGS = "snapTags";
+
+    @ConfigStringList(defaultList={"24", "7"})
+    public static final String PROP_SNAP_COUNTS = "snapCounts";
+    
     @Override
     public String serviceName() {
         return "GridProcessManager";
@@ -46,56 +59,16 @@ public class GridProcessManager extends Aura implements ProcessManager {
     EventHandler eh;
 
     Timer timer;
-    
-    private Map<String, List<SnapshotFileSystem>> hourly;
 
-    private Map<String, List<SnapshotFileSystem>> daily;
+    public GridProcessManager() {
+        timer = new Timer("snapshotter", true);
+    }
 
     public void start() {
         eh = new EventHandler();
         Thread t = new Thread(eh);
         t.setDaemon(true);
         t.start();
-        hourly = new HashMap<String, List<SnapshotFileSystem>>();
-        daily = new HashMap<String, List<SnapshotFileSystem>>();
-
-        //
-        // Discover the snapshots.
-        try {
-            for(FileSystem fs : gu.getGrid().findAllFileSystems()) {
-                if(fs instanceof SnapshotFileSystem) {
-                    Map<String, String> mdm = ((SnapshotFileSystem) fs).
-                            getConfiguration().getMetadata();
-                    if(mdm != null) {
-                        String prefix = mdm.get("prefix");
-                        if(mdm.get("hourly") != null) {
-                            mp(hourly, prefix, (SnapshotFileSystem) fs);
-                        }
-                        if(mdm.get("daily") != null) {
-                            mp(daily, prefix, (SnapshotFileSystem) fs);
-                        }
-                    }
-                }
-            }
-            logger.info(String.format("hourly: %s", hourly));
-            logger.info(String.format("daily: %s", daily));
-
-            //
-            // Kickoff the snapshotting timer task.
-            timer = new Timer("snapshotter", true);
-            timer.scheduleAtFixedRate(new Snapshotter(), 0, 6000);
-        } catch (Exception ex) {
-            logger.log(Level.SEVERE, "Error getting file systems!", ex);
-        }
-    }
-
-    private void mp(Map<String,List<SnapshotFileSystem>> m, String prefix, SnapshotFileSystem sfs) {
-        List<SnapshotFileSystem> l = m.get(prefix);
-        if(l == null) {
-            l = new ArrayList<SnapshotFileSystem>();
-            m.put(prefix, l);
-        }
-        l.add(sfs);
     }
 
     public void stop() {
@@ -281,6 +254,36 @@ public class GridProcessManager extends Aura implements ProcessManager {
             throw new AuraException("Unable to create snapshot for " + prefix.toString(), e);
         }
     }
+
+    @Override
+    public void newProperties(PropertySheet ps) throws PropertyException {
+        super.newProperties(ps);
+        List<String> intervals = ps.getStringList(PROP_SNAP_INTERVALS);
+        List<String> tags = ps.getStringList(PROP_SNAP_TAGS);
+        List<String> counts = ps.getStringList(PROP_SNAP_COUNTS);
+        if(!(intervals.size() == tags.size() && intervals.size() == counts.size())) {
+            throw new PropertyException(ps.getInstanceName(), PROP_SNAP_INTERVALS,
+                    PROP_SNAP_INTERVALS + ", " + PROP_SNAP_TAGS +
+                    ", and " + PROP_SNAP_COUNTS + 
+                    " must be the same length");
+        }
+        for(int i = 0; i < intervals.size(); i++) {
+            try {
+                Snapshotter shot =
+                        new Snapshotter(intervals.get(i), tags.get(i), counts.
+                        get(i));
+            } catch (NumberFormatException ex) {
+                throw new PropertyException(ps.getInstanceName(), PROP_SNAP_COUNTS,
+                        "Bad snapshot count: " + counts.get(i));
+            } catch (IllegalArgumentException ex) {
+                throw new PropertyException(ps.getInstanceName(), PROP_SNAP_INTERVALS,
+                        "Bad snapshot interval: " + intervals.get(i));
+            }
+
+        }
+    }
+
+
     
     protected class EventHandler implements Runnable {
         
@@ -424,11 +427,57 @@ public class GridProcessManager extends Aura implements ProcessManager {
         }
     }
 
+    /**
+     * A task for taking snapshots at pre-defined intervals.
+     */
     class Snapshotter extends TimerTask {
 
-        public int nh;
+        private long interval;
 
-        public int nd;
+        private String tag;
+
+        private int count;
+
+        private Map<String,List<SnapshotFileSystem>> snaps;
+
+        public Snapshotter(String interval, String tag, String count)
+                throws IllegalArgumentException, NumberFormatException {
+            this.interval = TimeSpec.parse(interval);
+            logger.info(String.format("%s interval %d", tag, this.interval));
+            this.tag = tag;
+            this.count = Integer.parseInt(count);
+            snaps = new HashMap<String, List<SnapshotFileSystem>>();
+
+            //
+            // Discover any existing snapshots for this interval/tag.
+            try {
+                for(FileSystem fs : gu.getGrid().findAllFileSystems()) {
+                    if(fs instanceof SnapshotFileSystem) {
+                        Map<String, String> mdm = ((SnapshotFileSystem) fs).
+                                getConfiguration().getMetadata();
+                        if(mdm != null) {
+                            String prefix = mdm.get("prefix");
+                            if(prefix != null && mdm.get(tag) != null) {
+                                mp(prefix, (SnapshotFileSystem) fs);
+                            }
+                        }
+                    }
+                }
+            } catch (RemoteException rx) {
+                logger.severe("Error getting snapshots for " + tag);
+            }
+            timer.scheduleAtFixedRate(this, 0, this.interval);
+        }
+
+        private List<SnapshotFileSystem> mp(String prefix, SnapshotFileSystem fs) {
+            List<SnapshotFileSystem> l = snaps.get(prefix);
+            if(l == null) {
+                l = new ArrayList<SnapshotFileSystem>();
+                snaps.put(prefix, l);
+            }
+            l.add(fs);
+            return l;
+        }
 
         @Override
         public void run() {
@@ -438,62 +487,37 @@ public class GridProcessManager extends Aura implements ProcessManager {
                 try {
                     String prefix = e.getKey();
                     FileSystem fs = e.getValue();
-                    String sname = String.format("%s-hourly-%TF-%TT",
-                            ResourceName.getCSName(fs.getName()), t, t, t);
+                    String sname = String.format("%s-%s-%TF-%TT",
+                            ResourceName.getCSName(fs.getName()), tag, t, t, t);
 
                     //
-                    // Hourly snapshot.
-                    SnapshotFileSystem sfs = getSnap(fs, sname, prefix, "hourly");
-                    mp(hourly, prefix, sfs);
-                    logger.info(String.format("hourly: " + sname));
-                    List<SnapshotFileSystem> l = hourly.get(prefix);
-                    if(l.size() > 24) {
+                    // Make the snapshot and set up the metadata.
+                    SnapshotFileSystem sfs = ((BaseFileSystem) fs).
+                            createSnapshot(sname);
+                    SnapshotFileSystemConfiguration sfsc =
+                            sfs.getConfiguration();
+                    Map<String, String> md = sfsc.getMetadata();
+                    if(md == null) {
+                        md = new HashMap<String, String>();
+                    }
+                    md.put(tag, "true");
+                    md.put("prefix", prefix);
+                    sfsc.setMetadata(md);
+                    sfs.changeConfiguration(sfsc);
+
+                    //
+                    // Add it to the map, and remove old ones.
+                    List<SnapshotFileSystem> l = mp(prefix, sfs);
+                    while(l.size() > count) {
                         SnapshotFileSystem ofs = l.remove(0);
-                        logger.info(String.format("destroying hourly: " + ofs.getName()));
+                        logger.info(String.format("destroying %s", ofs.getName()));
                         ofs.destroy();
                     }
-
-                    //
-                    // Daily snapshot.
-                    if(nh == 23) {
-                        sname = String.format("%s-daily-%TF-%TT",
-                                ResourceName.getCSName(fs.getName()), t, t, t);
-                        logger.info(String.format("daily: " + sname));
-                        sfs = getSnap(fs, sname, prefix, "daily");
-                        mp(daily, prefix, sfs);
-                        logger.info(String.format("daily: " + sname));
-                        l = daily.get(prefix);
-                        if(l.size() > 7) {
-                            SnapshotFileSystem ofs = l.remove(0);
-                            logger.info(String.format("destroying daily: " + ofs.
-                                    getName()));
-                            ofs.destroy();
-                        }
-                   }
 
                 } catch (Exception ex) {
                     logger.log(Level.SEVERE, String.format("Error snapshotting %s", e.getValue().getName()), ex);
                 }
             }
-            
-            nh = (nh + 1) % 24;
-            nd = (nd + 1) % 7;
         }
-
-        private SnapshotFileSystem getSnap(FileSystem fs, String sname, String prefix, String tag) throws Exception {
-            SnapshotFileSystem sfs = ((BaseFileSystem) fs).createSnapshot(sname);
-            SnapshotFileSystemConfiguration sfsc = sfs.getConfiguration();
-            Map<String, String> md = sfsc.getMetadata();
-            if(md == null) {
-                md = new HashMap<String, String>();
-            }
-            md.put(tag, "true");
-            md.put("prefix", prefix);
-            sfsc.setMetadata(md);
-            sfs.changeConfiguration(sfsc);
-            return sfs;
-        }
-        
     }
-
 }
