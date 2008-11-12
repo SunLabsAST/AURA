@@ -28,6 +28,7 @@ import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
+import com.sun.labs.util.props.ConfigurableMXBean;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -60,7 +61,8 @@ import java.util.logging.Logger;
  * Each head can distribute data 
  * 
  */
-public class DataStoreHead implements DataStore, Configurable, AuraService {
+public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBean,
+        AuraService {
 
     protected BinaryTrie<PartitionCluster> trie = null;
 
@@ -73,6 +75,8 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     protected boolean closed = false;
 
     protected Logger logger;
+
+    private String[] properties;
     
     @ConfigComponent(type=com.sun.labs.minion.pipeline.StopWords.class,mandatory=false)
     public static final String PROP_STOPWORDS = "stopwords";
@@ -1341,10 +1345,48 @@ public class DataStoreHead implements DataStore, Configurable, AuraService {
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
+        properties = new String[] {"logLevel"};
         cm = ps.getConfigurationManager();
         logger = ps.getLogger();
         stop = (StopWords) ps.getComponent(PROP_STOPWORDS);
         parallelGet = ps.getBoolean(PROP_PARALLEL_GET);
+    }
+
+    @Override
+    public String[] getProperties() {
+        return properties.clone();
+    }
+
+    @Override
+    public String getValue(String property) {
+        if(property.equals("logLevel")) {
+            return logger.getLevel().toString();
+        }
+        return null;
+    }
+
+    @Override
+    public String[] getValues(String arg0) {
+        return null;
+    }
+
+    @Override
+    public boolean setValue(String property, String value) {
+        if(property.equals("logLevel")) {
+            try {
+                Level l = Level.parse(value);
+                logger.setLevel(l);
+            } catch(IllegalArgumentException ex) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean setValues(String property, String[] values) {
+        return false;
     }
 
     public boolean ready() throws RemoteException {

@@ -26,6 +26,7 @@ import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigComponentList;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
+import com.sun.labs.util.props.ConfigurableMXBean;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -48,7 +49,8 @@ import java.util.logging.Logger;
  * key with the prefix for the cluster.
  */
 public class PartitionClusterImpl implements PartitionCluster,
-                                             Configurable, ComponentListener, AuraService {
+                                             Configurable, ConfigurableMXBean,
+                                             ComponentListener, AuraService {
     
     @ConfigString
     public static final String PROP_PREFIX = "prefix";
@@ -88,6 +90,8 @@ public class PartitionClusterImpl implements PartitionCluster,
     protected PCStrategy strategy;
     
     protected Logger logger;
+
+    private String[] properties;
     
     protected AtomicBoolean splitting = new AtomicBoolean(false);
     
@@ -362,6 +366,7 @@ public class PartitionClusterImpl implements PartitionCluster,
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {
+        properties = new String[] {"logLevel"};
         logger = ps.getLogger();
         prefixCode = DSBitSet.parse(ps.getString(PROP_PREFIX));
         processManager = (ProcessManager)ps.getComponent(PROP_PROC_MGR, this);
@@ -379,6 +384,45 @@ public class PartitionClusterImpl implements PartitionCluster,
         owner = ps.getString(PROP_OWNER);
     }
     
+    @Override
+    public String[] getProperties() {
+        return properties.clone();
+    }
+
+    @Override
+    public String getValue(String property) {
+        logger.info(String.format("getValue: %s", property));
+        if(property.equals("logLevel")) {
+            logger.info("level: " + logger.getLevel());
+            return logger.getLevel().toString();
+        }
+        return null;
+    }
+
+    @Override
+    public String[] getValues(String arg0) {
+        return null;
+    }
+
+    @Override
+    public boolean setValue(String property, String value) {
+        if(property.equals("logLevel")) {
+            try {
+                Level l = Level.parse(value);
+                logger.setLevel(l);
+            } catch(IllegalArgumentException ex) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean setValues(String property, String[] values) {
+        return false;
+    }
+
     public void componentAdded(Component c) {
         if(c instanceof DataStore && register) {
             register((DataStore) c);

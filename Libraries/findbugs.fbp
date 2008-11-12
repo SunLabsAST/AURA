@@ -5,7 +5,7 @@
   <AuxClasspathEntry>lib/jaxen-jdom.jar</AuxClasspathEntry>
   <AuxClasspathEntry>lib/jdom.jar</AuxClasspathEntry>
   <AuxClasspathEntry>lib/ktsearch.jar</AuxClasspathEntry>
-  <AuxClasspathEntry>lib/LabsUtil.jar</AuxClasspathEntry>
+  <AuxClasspathEntry>lib/slcut.jar</AuxClasspathEntry>
   <AuxClasspathEntry>lib/rome-0.9.jar</AuxClasspathEntry>
   <AuxClasspathEntry>lib/rome-fetcher-0.9.jar</AuxClasspathEntry>
   <AuxClasspathEntry>lib/saxpath.jar</AuxClasspathEntry>

@@ -35,7 +35,7 @@
         <propertylist name="codebaseJars">
             <item>aura.jar</item>
             <item>minion.jar</item>
-            <item>LabsUtil.jar</item>
+            <item>slcut.jar</item>
         </propertylist>
         <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
