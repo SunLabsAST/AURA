@@ -5,7 +5,7 @@ function usage {
     echo ' server name defaults to www and war file to WME'
 }
 
-args=`getopt hn:w: $*`
+args=`getopt hn:p:w: $*`
 
 if [ $? != 0 ]
 then
@@ -32,6 +32,9 @@ do
 	-n)
 	    NAME=$2; shift;
 	    shift;;
+	-p)
+	    WARPATH=$2; shift;
+	    shift;;
 	-w)
 	    WARFILE=$2; shift;
 	    shift;;
@@ -43,7 +46,7 @@ if [ ! -e $WARFILE ] ; then
     exit 2
 fi
 
-ant -Dwar.loc=$WARFILE -f $DIR/../grid-deploy/common.xml upload-war
+ant -Ddeployment.name=$NAME -Dwar.loc=$WARFILE -f $DIR/../grid-deploy/tomcat.xml upload-war
 
 if [ $? != 0 ] ; then 
     echo "Error uploading war file"
@@ -51,6 +54,14 @@ if [ $? != 0 ] ; then
 fi
 
 echo Deploying $FILE to $NAME
-ant -Ddeployment.name=$NAME \
-    -Dwar.loc=$WARFILE \
-    -f $DIR/../grid-deploy/tomcat.xml deploy-war
+
+if [ ! -z "$WARPATH" ] ; then
+    ant -Ddeployment.name=$NAME \
+	-Dwar.loc=$WARFILE \
+	-Dwar.path=$WARPATH \
+	-f $DIR/../grid-deploy/tomcat.xml deploy-war
+else 
+    ant -Ddeployment.name=$NAME \
+	-Dwar.loc=$WARFILE \
+	-f $DIR/../grid-deploy/tomcat.xml deploy-war
+fi
