@@ -70,7 +70,7 @@
   <!-- properties to hold resource names -->
     <property name="ant.col" value="sys.packages/org/apache/tools/ant/1.7.0/lib/"/>
     <property name="dist.filesystem" value="${grid.instance}-aura.dist"/>
-    <property name="web.url" value="${dav.url}/${dist.filesystem}/web"/>
+    <property name="web.url" value="${dav.url}/${dist.filesystem}/web/${deployment.name}/"/>
     <property name="config.url" value="${web.url}/config"/>
     <property name="network" value="${grid.instance}-auraNet"/>
     <property name="packages.filesystem" value="sys.packages"/>
@@ -102,6 +102,7 @@
 
     <!-- create a WebDAV collection to which we can upload war files -->
     <target name="create-web-collection" description="Creates a collection for web related files">
+        <echo message="web coll: ${web.url}"/>
         <dav:mkcol url="${web.url}" userid="${user}" password="${pw}" verbose="true"/>
     </target>
 

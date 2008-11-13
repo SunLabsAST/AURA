@@ -1,0 +1,42 @@
+How to deploy a war file
+========================
+
+Here's an example of deploying DBBrowse to www.tastekeeper.com:
+
+cd <aura-checkout>/grid/bin
+./deployWar -n www -w ../../DBBrowse/dist/DBBrowse.war
+
+Here's an exampe of deploying the web services to
+music.tastekeeper.com:
+
+cd <aura-checkout>/grid/bin
+./deployWar -n music -w ../../SitmWebServices/dist/SitmWebServices.war
+
+Because of the way that tomcat wants to reference the files, you
+must run these scripts from the bin directory so that the relative
+paths work correctly.
+
+Also note that the tomcat instances now mount the distribution file
+system as /files/dist, so you can use the local deployment option of
+tomcat if you want to redeploy the same war file.
+
+How to deploy a war file to a different path
+============================================
+
+Using the script, it's easy to deploy a war file to a different path.
+For example, to deploy The Explaura as the root Web app on
+music.tastekeeper.com, you can say:
+
+cd <aura-checkout>/grid/bin
+./deployWar -n music -p / -w ../../WebMusicExplaura/dist/ROOT.war
+
+You can use any path as the value of the -p argument, for example:
+
+cd <aura-checkout>/grid/bin
+./deployWar -n sjg -p /foo -w ../../DBBrowse/dist/DBBrowse.war
+
+will deploy the db browser so that it's accessible at:
+
+http://sjg.tastekeeper.com/foo
+
+

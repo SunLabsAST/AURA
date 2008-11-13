@@ -1,0 +1,56 @@
+How to start a tomcat server on-grid
+====================================
+
+You can start a non-load-balanced tomcat in the following way:
+
+cd <aura-checkout>/grid/bin
+./startTomcat -n foo
+
+where "foo" is the name of the tomcat that you want to start.  This
+shell script (and the ant script that it calls) will take care of
+uploading tomcat to the grid, making the appropriate file systems,
+network settings, and processes for the web server.
+
+The result is a tomcat instance listening on port 80 on a host called
+foo.tastekeeper.com.
+
+The grid instance that's used is taken from your .caroline file, and
+that affects the on-grid network that will be used for this deployment
+and therefore the data store that any Web apps will be able to connect
+to.
+
+You can start a set of load-balanced tomcat in the following way:
+
+cd <aura-checkout>/grid/bin
+./startLBTomcats -b <start number> -c <count> -n <name>
+
+Load-balanced tomcats are numbered.  This script can be used to start
+up an initial set of load-balanced tomcats or to add a number of
+tomcat instances to a load-balanced set.  For example, to start a set
+of load-balanced tomcats, you can say:
+
+cd <aura-checkout>/grid/bin
+./startLBTomcats -b 1 -c 5 -n www
+
+which will start tomcats numbered 1 through 5.  The instances will be
+called www-1 through www-5.  These names will be used internally to
+the grid only.  None of the instances is exposed to the external
+network. 
+
+Once the tomcat instances have started, the load balancer
+configuration is modified so that it's load balancing those
+instances.  Currently, the load balancer is tied to an external name
+binding so that lb.tastekeeper.com points to the load-balanced
+tomcats.
+
+You could add more tomcats using an invocation like the following:
+
+cd <aura-checkout>/grid/bin
+./startLBTomcats -b 6 -c 3 -n <name>
+
+which will add tomcats named www-6 through www-8 to the load-balanced
+set.
+
+
+
+
