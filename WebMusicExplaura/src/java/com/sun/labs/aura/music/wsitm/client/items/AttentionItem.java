@@ -13,9 +13,9 @@ import java.util.Set;
  *
  * @author mailletf
  */
-public class AttentionItem implements IsSerializable {
+public class AttentionItem<T extends IsSerializable> implements IsSerializable {
 
-    private IsSerializable item;
+    private T item;
     private int rating;
     private Set<String> tags;
 
@@ -23,13 +23,13 @@ public class AttentionItem implements IsSerializable {
 
     }
 
-    public AttentionItem(IsSerializable item) {
+    public AttentionItem(T item) {
         this.item = item;
         this.rating = 0;
         this.tags = new HashSet<String>();
     }
 
-    public void setItem(IsSerializable item) {
+    public void setItem(T item) {
         this.item = item;
     }
 
@@ -49,7 +49,7 @@ public class AttentionItem implements IsSerializable {
         return tags;
     }
 
-    public IsSerializable getItem() {
+    public T getItem() {
         return item;
     }
 

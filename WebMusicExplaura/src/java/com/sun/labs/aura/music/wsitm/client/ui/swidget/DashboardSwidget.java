@@ -30,6 +30,7 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.event.DataEmbededAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.PlayedListener;
@@ -41,7 +42,6 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
-import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.UpdatablePanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
@@ -56,21 +56,28 @@ import java.util.HashSet;
  *
  * @author mailletf
  */
-public class DashboardSwidget extends Swidget {
+public class DashboardSwidget extends Swidget implements LoginListener {
 
+    private enum AttentionType {
+        PLAYED,
+        TAGGED,
+        RATED
+    }
+
+    private Grid dashBoardWindow;
     private MainPanel mP;
     
     private Grid recPanel;
     private UpdatablePanel uP;
 
+    private String currHistoryToken="";
+
     public DashboardSwidget(ClientDataManager cdm) {
         super("Dashboard", cdm);
-        mP = new MainPanel();
-        cdm.getRatingListenerManager().addListener(mP);
-        cdm.getTaggingListenerManager().addListener(mP);
-        cdm.getLoginListenerManager().addListener(mP);
-        cdm.getPlayedListenerManager().addListener(mP);
-        initWidget(mP);
+        dashBoardWindow = new Grid(1,1);
+        dashBoardWindow.setWidget(0, 0, new Label(""));
+        cdm.getLoginListenerManager().addListener(this);
+        initWidget(dashBoardWindow);
     }
 
     @Override
@@ -91,17 +98,114 @@ public class DashboardSwidget extends Swidget {
 
     @Override
     public void update(String historyToken) {
-        mP.update();
+        if (cdm.isLoggedIn()) {
+            if (historyToken.equals("dashboard:")) {
+                if (mP==null) {
+                    mP = new MainPanel();
+                }
+                dashBoardWindow.setWidget(0, 0, mP);
+            }
+        } else {
+            dashBoardWindow.setWidget(0, 0, getMustBeLoggedInWidget());
+        }
+        currHistoryToken = historyToken;
+    }
+
+    public void onLogin(ListenerDetails lD) {
+        update(currHistoryToken);
+    }
+
+    public void onLogout() {
+        if (mP != null) {
+            mP.doRemoveListeners();
+            mP=null;
+        }
+        update(currHistoryToken);
     }
 
     public void doRemoveListeners() {
-        mP.onDelete();
+        onDelete();
     }
 
-    private class MainPanel extends Composite implements LoginListener, 
-            RatingListener, TaggingListener, PlayedListener, HasListeners {
+    public void onDelete() {
+        if (mP!=null) {
+            mP.doRemoveListeners();
+            mP=null;
+        }
+    }
 
-        private Grid g;
+    private class RecentPlayedList extends ListPanel implements PlayedListener {
+
+        public RecentPlayedList() {
+            super();
+            cdm.getPlayedListenerManager().addListener(this);
+        }
+
+        public void onPlay(String artistId) {
+            invokeFetchArtistCompact(artistId);
+        }
+
+        public void onDelete() {
+            cdm.getPlayedListenerManager().removeListener(this);
+        }
+
+
+    }
+
+    private abstract class ListPanel extends Composite implements HasListeners {
+
+        private VerticalPanel mainList;
+
+        public ListPanel() {
+            mainList = new VerticalPanel();
+            initWidget(mainList);
+        }
+
+        protected void initElements(ArrayList<AttentionItem<ArtistCompact>> aIL) {
+
+            for (AttentionItem<ArtistCompact> i : aIL) {
+                HorizontalPanel hP = new HorizontalPanel();
+                hP.add(new Label(i.getItem().getName()));
+                mainList.add(hP);
+            }
+
+        }
+
+        protected void addElement(ArtistCompact aC) {
+            mainList.add(new Label(aC.getName()));
+        }
+
+
+        protected void invokeFetchArtistCompact(String id) {
+
+            AsyncCallback callback = new AsyncCallback() {
+
+                public void onFailure(Throwable arg0) {
+                    Window.alert(arg0.toString());
+                }
+
+                public void onSuccess(Object arg0) {
+                    addElement((ArtistCompact)arg0);
+                }
+            };
+
+            try {
+                musicServer.getArtistCompact(id, callback);
+            } catch (WebException ex) {
+                Window.alert(ex.getMessage());
+            }
+        }
+
+        public void doRemoveListeners() {
+            onDelete();
+        }
+
+        public abstract void onDelete();
+
+    }
+
+    private class MainPanel extends Composite implements RatingListener,
+            TaggingListener, PlayedListener, HasListeners {
 
         private Grid featArtist;
         private Grid recentRating;
@@ -115,30 +219,15 @@ public class DashboardSwidget extends Swidget {
 
         public MainPanel() {
 
+            cdm.getRatingListenerManager().addListener(this);
+            cdm.getTaggingListenerManager().addListener(this);
+            cdm.getPlayedListenerManager().addListener(this);
+
             recentRatingListeners = new ArrayList<HasListeners>();
             recentTaggingListeners = new ArrayList<HasListeners>();
             recentPlayedListeners = new ArrayList<HasListeners>();
 
-            g = new Grid(1,1);
-            initWidget(g);
-            update();
-        }
-
-        public void onLogin(ListenerDetails lD) {
-            update();
-        }
-
-        public void onLogout() {
-            update();
-        }
-
-        public void update() {
-            if (cdm.isLoggedIn()) {
-                Popup.showInformationPopup(History.getToken());
-                g.setWidget(0, 0, getDashboard());
-            } else {
-                g.setWidget(0, 0, getMustBeLoggedInWidget());
-            }
+            initWidget(getDashboard());
         }
 
         private void formatRecentBox(Grid g, String title, ClickListener cL) {
@@ -170,7 +259,6 @@ public class DashboardSwidget extends Swidget {
 
             Label titleLbl = new Label("Dashboard");
             titleLbl.setStyleName("h1");
-            //dP.add(titleLbl, DockPanel.NORTH);
 
             //
             // Featured artist
@@ -186,7 +274,7 @@ public class DashboardSwidget extends Swidget {
                     History.newItem("viewRecentRated:");
                 }
             });
-            invokeFetchRecentRatedArtist();
+            invokeFetchRecentAttentions(AttentionType.RATED);
 
             recentTagged = new Grid(2,1);
             formatRecentBox(recentTagged, "Recently tagged artists", new ClickListener() {
@@ -195,7 +283,7 @@ public class DashboardSwidget extends Swidget {
                     History.newItem("viewRecentTagged:");
                 }
             });
-            invokeFetchRecentTagArtist();
+            invokeFetchRecentAttentions(AttentionType.TAGGED);
 
             recentPlayed = new Grid(2,1);
             formatRecentBox(recentPlayed, "Recently played artists", new ClickListener() {
@@ -204,7 +292,7 @@ public class DashboardSwidget extends Swidget {
                     History.newItem("viewRecentPlayed:");
                 }
             });
-            invokeFetchRecentPlayedArtist();
+            invokeFetchRecentAttentions(AttentionType.PLAYED);
 
             ItemInfo[] trimTags = null;
             if (cdm.getListenerDetails().getUserTagCloud() != null && cdm.getListenerDetails().getUserTagCloud().length > 0) {
@@ -310,16 +398,30 @@ public class DashboardSwidget extends Swidget {
             }
         }
 
-        private void invokeFetchRecentTagArtist() {
+        private void invokeFetchRecentAttentions(AttentionType aT) {
 
-            AsyncCallback<ArrayList<AttentionItem>> callback =
-                    new AsyncCallback<ArrayList<AttentionItem>>() {
+            DataEmbededAsyncCallback<AttentionType, ArrayList<AttentionItem<ArtistCompact>>> callback =
+                    new DataEmbededAsyncCallback<AttentionType, ArrayList<AttentionItem<ArtistCompact>>>(aT) {
 
                 public void onFailure(Throwable arg0) {
                     Window.alert(arg0.toString());
                 }
 
-                public void onSuccess(ArrayList<AttentionItem> arg0) {
+                public void onSuccess(ArrayList<AttentionItem<ArtistCompact>> arg0) {
+
+                    Grid sucessGrid = null;
+                    ArrayList<HasListeners> sucessAL = null;
+
+                    if (data == AttentionType.PLAYED) {
+                        sucessGrid = recentPlayed;
+                        sucessAL = recentPlayedListeners;
+                    } else if (data == AttentionType.RATED) {
+                        sucessGrid = recentRating;
+                        sucessAL = recentRatingListeners;
+                    } else {
+                        sucessGrid = recentTagged;
+                        sucessAL = recentTaggingListeners;
+                    }
 
                     if (arg0.size() > 0) {
                         int numLines = (int)Math.ceil(arg0.size() / 2.0);
@@ -329,73 +431,36 @@ public class DashboardSwidget extends Swidget {
                         int colIndex = 0;
 
 
-                        for (AttentionItem aI : arg0) {
+                        for (AttentionItem<ArtistCompact> aI : arg0) {
 
-                            CompactArtistWidget caw = new CompactArtistWidget((ArtistCompact)aI.getItem(), cdm,
+                            CompactArtistWidget caw = new CompactArtistWidget(aI.getItem(), cdm,
                                     musicServer, null, null, aI.getRating(), aI.getTags());
-                            recentTaggingListeners.add(caw);
+                            sucessAL.add(caw);
                             artists.setWidget(lineIndex, (colIndex++)%2, caw);
 
                             if (colIndex%2 == 0) {
                                 lineIndex++;
                             }
                         }
-                        recentTagged.setWidget(1, 0, artists);
+                        sucessGrid.setWidget(1, 0, artists);
                     } else {
-                        recentTagged.setWidget(1, 0, new Label("No recent activity"));
+                        sucessGrid.setWidget(1, 0, new Label("No recent activity"));
                     }
                 }
             };
 
             try {
-                musicServer.getLastTaggedArtists(6, true, callback);
+                if (aT == AttentionType.PLAYED) {
+                    musicServer.getLastPlayedArtists(6, true, callback);
+                } else if (aT == AttentionType.RATED) {
+                    musicServer.getLastRatedArtists(6, true, callback);
+                } else {
+                    musicServer.getLastTaggedArtists(6, true, callback);
+                }
             } catch (WebException ex) {
                 Window.alert(ex.getMessage());
             }
-        }
 
-        private void invokeFetchRecentPlayedArtist() {
-
-            AsyncCallback<ArrayList<AttentionItem>> callback =
-                    new AsyncCallback<ArrayList<AttentionItem>>() {
-
-                public void onFailure(Throwable arg0) {
-                    Window.alert(arg0.toString());
-                }
-
-                public void onSuccess(ArrayList<AttentionItem> arg0) {
-
-                    if (arg0.size() > 0) {
-                        int numLines = (int)Math.ceil(arg0.size() / 2.0);
-                        Grid artists = new Grid(numLines, 2);
-
-                        int lineIndex = 0;
-                        int colIndex = 0;
-
-
-                        for (AttentionItem aI : arg0) {
-
-                            CompactArtistWidget caw = new CompactArtistWidget((ArtistCompact)aI.getItem(), cdm,
-                                    musicServer, null, null, aI.getRating(), aI.getTags());
-                            recentPlayedListeners.add(caw);
-                            artists.setWidget(lineIndex, (colIndex++)%2, caw);
-
-                            if (colIndex%2 == 0) {
-                                lineIndex++;
-                            }
-                        }
-                        recentPlayed.setWidget(1, 0, artists);
-                    } else {
-                        recentPlayed.setWidget(1, 0, new Label("No recent activity"));
-                    }
-                }
-            };
-
-            try {
-                musicServer.getLastPlayedArtists(6, true, callback);
-            } catch (WebException ex) {
-                Window.alert(ex.getMessage());
-            }
         }
 
         /**
@@ -502,50 +567,6 @@ public class DashboardSwidget extends Swidget {
             }
         }
         
-        private void invokeFetchRecentRatedArtist() {
-
-            AsyncCallback<ArrayList<AttentionItem>> callback =
-                    new AsyncCallback<ArrayList<AttentionItem>>() {
-
-                public void onFailure(Throwable arg0) {
-                    Window.alert(arg0.toString());
-                }
-
-                public void onSuccess(ArrayList<AttentionItem> arg0) {
-
-                    if (arg0.size() > 0) {
-                        int numLines = (int)Math.ceil(arg0.size() / 2.0);
-                        Grid artists = new Grid(numLines, 2);
-
-                        int lineIndex = 0;
-                        int colIndex = 0;
-
-
-                        for (AttentionItem aI : arg0) {
-
-                            CompactArtistWidget caw = new CompactArtistWidget((ArtistCompact)aI.getItem(), cdm,
-                                    musicServer, null, null, aI.getRating(), null);
-                            recentRatingListeners.add(caw);
-                            artists.setWidget(lineIndex, (colIndex++)%2, caw);
-
-                            if (colIndex%2 == 0) {
-                                lineIndex++;
-                            }
-                        }
-                        recentRating.setWidget(1, 0, artists);
-                    } else {
-                        recentRating.setWidget(1, 0, new Label("No recent activity"));
-                    }
-                }
-            };
-
-            try {
-                musicServer.getLastRatedArtists(6, true, callback);
-            } catch (WebException ex) {
-                Window.alert(ex.getMessage());
-            }
-        }
-
         private void invokeFetchFeaturedArtist() {
 
             AsyncCallback callback = new AsyncCallback() {
@@ -571,9 +592,7 @@ public class DashboardSwidget extends Swidget {
             }
         }
 
-        public void onDelete() {
-            cdm.getLoginListenerManager().removeListener(this);
-        }
+        public void onDelete() {}
         
         public void doRemoveListeners() {
             onDelete();
@@ -588,13 +607,13 @@ public class DashboardSwidget extends Swidget {
         public void onRate(String itemId, int rating) {
             clearListeners(recentRatingListeners);
             recentRating.setWidget(1, 0, new Image("ajax-bar.gif"));
-            invokeFetchRecentRatedArtist();
+            invokeFetchRecentAttentions(AttentionType.RATED);
         }
 
         public void onTag(String itemId, HashSet<String> tags) {
             clearListeners(recentTaggingListeners);
             recentTagged.setWidget(1, 0, new Image("ajax-bar.gif"));
-            invokeFetchRecentTagArtist();
+            invokeFetchRecentAttentions(AttentionType.TAGGED);
         }
 
         private void clearListeners(ArrayList<HasListeners> hLL) {
@@ -607,7 +626,7 @@ public class DashboardSwidget extends Swidget {
         public void onPlay(String artistId) {
             clearListeners(recentPlayedListeners);
             recentPlayed.setWidget(1, 0, new Image("ajax-bar.gif"));
-            invokeFetchRecentPlayedArtist();
+            invokeFetchRecentAttentions(AttentionType.PLAYED);
         }
 
     }

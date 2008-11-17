@@ -521,25 +521,25 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public ArrayList<AttentionItem> getLastTaggedArtists(int count, boolean returnDistinct) throws WebException {
+    public ArrayList<AttentionItem<ArtistCompact>> getLastTaggedArtists(int count, boolean returnDistinct) throws WebException {
         return getLastAttentionArtists(count, Type.TAG, true, returnDistinct);
     }
 
-    public ArrayList<AttentionItem> getLastRatedArtists(int count, boolean returnDistinct) throws WebException {
+    public ArrayList<AttentionItem<ArtistCompact>> getLastRatedArtists(int count, boolean returnDistinct) throws WebException {
         return getLastAttentionArtists(count, Type.RATING, true, returnDistinct);
     }
 
-    public ArrayList<AttentionItem> getLastPlayedArtists(int count, boolean returnDistinct) throws WebException {
+    public ArrayList<AttentionItem<ArtistCompact>> getLastPlayedArtists(int count, boolean returnDistinct) throws WebException {
         return getLastAttentionArtists(count, Type.PLAYED, true, returnDistinct);
     }
 
-    public ArrayList<AttentionItem> getLastAttentionArtists(int count, Type attentionType, boolean fetchUserTags, boolean returnDistinct) throws WebException {
+    public ArrayList<AttentionItem<ArtistCompact>> getLastAttentionArtists(int count, Type attentionType, boolean fetchUserTags, boolean returnDistinct) throws WebException {
 
         String userId = getOpenIdFromSession();
         logger.info("getLastAttentionArtists :: user:"+userId+" attention:"+attentionType.toString());
 
         try {
-            ArrayList<AttentionItem> aI = new ArrayList<AttentionItem>();
+            ArrayList<AttentionItem<ArtistCompact>> aI = new ArrayList<AttentionItem<ArtistCompact>>();
             Set<String> artistIds = new HashSet<String>();
 
             int mult = 1;
