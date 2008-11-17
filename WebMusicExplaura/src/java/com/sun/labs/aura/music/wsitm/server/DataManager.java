@@ -26,6 +26,7 @@ import com.sun.labs.aura.music.RecommendationProfile;
 import com.sun.labs.aura.music.RecommendationSummary;
 import com.sun.labs.aura.music.RecommendationType;
 import com.sun.labs.aura.music.SimType;
+import com.sun.labs.aura.music.TagCloud;
 import com.sun.labs.aura.music.Video;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -404,6 +405,13 @@ public class DataManager implements Configurable {
         } else {
             return WordCloudToIntemInfo(mdb.artistGetDistinctiveTagNames(artistID, count));
         }
+    }
+
+    public void saveTagCloud() throws AuraException {
+
+        //TagCloud tC = mdb.tagCloudCreate(MDB_KEY, MDB_KEY);
+        //mdb.tag
+
     }
 
     /**

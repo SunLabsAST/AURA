@@ -20,6 +20,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
@@ -27,8 +28,8 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.Panel;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -114,11 +115,13 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
     public class MainPanel extends Composite implements LoginListener, HasListeners {
 
+        private dialogContainer savePanel;
+        private dialogContainer loadPanel;
+
         private DockPanel dP;
         private Grid mainTagPanel;
         private Grid mainArtistListPanel;
         private TagWidgetContainer tagLand;
-        private VerticalPanel savePanel;
         private SearchWidget search;
         private FlowPanel searchBoxContainerPanel;
         private FlowPanel refreshingPanel;
@@ -174,27 +177,27 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             mainTagPanel = new Grid(2, 1);
             dP.add(WebLib.createSection("Add tag", mainTagPanel), DockPanel.EAST);
 
-            // Save panel
-            savePanel = new VerticalPanel();
-            HorizontalPanel saveNamePanel = new HorizontalPanel();
-            saveNamePanel.add(new Label("Name:"));
-            saveNamePanel.add(new TextBox());
-            savePanel.add(saveNamePanel);
-            //savePanel.add(new TagInputWidget("tag cloud"));
-            savePanel.setVisible(false);
-
             // North
             HorizontalPanel mainNorthMenuPanel = new HorizontalPanel();
             mainNorthMenuPanel.setSpacing(5);
 
-            Button saveButton = new Button("Save this cloud");
+            Button saveButton = new Button("Save");
             saveButton.addClickListener(new ClickListener() {
 
                 public void onClick(Widget arg0) {
-                    savePanel.setVisible(!savePanel.isVisible());
+                    showSaveDialog();
                 }
             });
             mainNorthMenuPanel.add(saveButton);
+
+            Button loadButton = new Button("Load");
+            loadButton.addClickListener(new ClickListener() {
+
+                public void onClick(Widget arg0) {
+                    showLoadDialog();
+                }
+            });
+            mainNorthMenuPanel.add(loadButton);
 
             Button resetButton = new Button("Erase all tags");
             resetButton.addClickListener(new ClickListener() {
@@ -244,7 +247,6 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
 
 
             dP.add(mainNorthMenuPanel, DockPanel.NORTH);
-            dP.add(savePanel, DockPanel.NORTH);
 
             //
             // North 2
@@ -274,6 +276,66 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
                 } else {
                     tagLand.swapTagWidget(new TagMeterWidget(this, cdm));
                     currLoadedTagWidget = "Meter";
+                }
+            }
+        }
+
+        public void showLoadDialog() {
+
+            if (loadPanel==null) {
+
+                PopupPanel popup = Popup.getPopupPanel();
+
+                loadPanel = new dialogContainer(new Label("Your saved tag clouds will soon be listed here."), popup);
+                Popup.showRoundedPopup(loadPanel.getWidget(), "Load tag cloud", loadPanel.getPopupPanel());
+            } else {
+                loadPanel.getPopupPanel().show();
+            }
+            
+
+        }
+
+        public void showSaveDialog() {
+
+            if (currTagMap==null || currTagMap.isEmpty()) {
+                Popup.showInformationPopup("Sorry. You cannot save an empty tag cloud.");
+            } else {
+
+                if (savePanel==null) {
+
+                    PopupPanel popup = Popup.getPopupPanel();
+
+                    Grid g = new Grid(2,2);
+                    g.setWidth("100%");
+                    g.addStyleName("popupColors");
+                    g.setWidget(0, 0, new Label("Tag cloud name : "));
+                    TextBox tb = new TextBox();
+                    g.setWidget(0, 1, tb);
+
+                    g.setWidget(1, 0, new Label("Visibility : "));
+                    ListBox visLb = new ListBox();
+                    visLb.addItem("Public");
+                    visLb.addItem("Private");
+                    g.setWidget(1, 1, visLb);
+
+                    VerticalPanel vP = new VerticalPanel();
+                    vP.add(g);
+
+                    Button b = new Button();
+                    b.setText("Save");
+                    b.addClickListener(new DataEmbededClickListener<PopupPanel>(popup) {
+
+                        public void onClick(Widget sender) {
+                            // save cloud
+                            data.hide();
+                        }
+                    });
+                    vP.add(b);
+
+                    savePanel = new dialogContainer(vP, popup);
+                    Popup.showRoundedPopup(savePanel.getWidget(), "Save tag cloud", savePanel.getPopupPanel());
+                } else {
+                    savePanel.getPopupPanel().show();
                 }
             }
         }
@@ -471,6 +533,29 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
             onDelete();
             search.doRemoveListeners();
         }
+    }
+
+    /**
+     * Class containing dialog dialogs
+     */
+    private class dialogContainer {
+
+        private Widget w;
+        private PopupPanel popup;
+
+        public dialogContainer(Widget w, PopupPanel popup) {
+            this.w = w;
+            this.popup = popup;
+        }
+
+        public Widget getWidget() {
+            return w;
+        }
+
+        public PopupPanel getPopupPanel() {
+            return popup;
+        }
+
     }
 
     private class ItemInfoHierarchyWidget extends Composite implements HasListeners {
