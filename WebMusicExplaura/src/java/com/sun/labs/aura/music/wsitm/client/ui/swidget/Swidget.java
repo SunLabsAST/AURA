@@ -66,7 +66,7 @@ public abstract class Swidget extends Composite implements HasListeners {
      * not logged in and still have that cached when he returns and might have
      * logged in.
      */
-    public void update() {}
+    public void update(String historyToken) {}
 
     /**
      * Returns the swidget's name

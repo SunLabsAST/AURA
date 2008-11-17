@@ -18,7 +18,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.TagInputWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.Updatable;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.SteeringWheelWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget;
-import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistPhoto;
 import com.sun.labs.aura.music.wsitm.client.items.AlbumDetails;
@@ -31,11 +30,9 @@ import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
-import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -51,7 +48,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searc
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
-import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
@@ -64,7 +60,7 @@ import org.adamtacy.client.ui.effects.impl.Fade;
  *
  * @author plamere
  */
-public class SimpleSearchSwidget extends Swidget implements HistoryListener, HasListeners {
+public class SimpleSearchSwidget extends Swidget implements HasListeners {
 
     private Widget curResult;
     private String curResultToken = "";
@@ -86,7 +82,6 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
     public SimpleSearchSwidget(ClientDataManager cdm) {
         super("Simple Search", cdm);
         try {
-            History.addHistoryListener(this);
             initWidget(getWidget());
             showResults(History.getToken());
         } catch (Exception e) {
@@ -278,7 +273,8 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         }
     }
 
-    public void onHistoryChanged(String historyToken) {
+    @Override
+    public void update(String historyToken) {
         if (!curResultToken.equals(historyToken)) {
             showResults(historyToken);
         }

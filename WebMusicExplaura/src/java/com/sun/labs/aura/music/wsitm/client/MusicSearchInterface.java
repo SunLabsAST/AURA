@@ -62,9 +62,9 @@ public interface MusicSearchInterface extends RemoteService {
     public void addNotInterestedAttention(String artistId) throws WebException;    
     public Set<String> fetchUserTagsForItem(String itemId) throws WebException;
     public void addUserTagsForItem(String itemId, Set<String> tag) throws WebException;
-    public List<AttentionItem> getLastRatedArtists(int count) throws WebException;
-    public List<AttentionItem> getLastTaggedArtists(int count) throws WebException;
-    public List<AttentionItem> getLastPlayedArtists(int count) throws WebException;
+    public List<AttentionItem> getLastRatedArtists(int count, boolean returnDistinct) throws WebException;
+    public List<AttentionItem> getLastTaggedArtists(int count, boolean returnDistinct) throws WebException;
+    public List<AttentionItem> getLastPlayedArtists(int count, boolean returnDistinct) throws WebException;
     public ItemInfo[] getSimilarTags(String tagId) throws WebException;
     public ArrayList<ArtistRecommendation> getRecommendations(String recTypeName, int cnt) throws WebException;
     public ServerInfoItem getServerInfo() throws WebException;

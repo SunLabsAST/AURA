@@ -200,7 +200,7 @@ public class Main implements EntryPoint, HistoryListener {
 
     private void setResults(String historyName, Swidget newSwidget) {
         if (curSwidget == newSwidget) {
-            return;
+            curSwidget.update(historyName);
         }
 
         if (!History.getToken().equals(historyName)) {
@@ -217,7 +217,7 @@ public class Main implements EntryPoint, HistoryListener {
         }
 
         if (newSwidget != null) {
-            newSwidget.update();
+            newSwidget.update(historyName);
             contentPanel.add(newSwidget);
             cdm.registerSwidget(newSwidget);
             curSwidget = newSwidget;

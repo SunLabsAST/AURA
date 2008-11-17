@@ -521,19 +521,19 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public ArrayList<AttentionItem> getLastTaggedArtists(int count) throws WebException {
-        return getLastAttentionArtists(count, Type.TAG, true);
+    public ArrayList<AttentionItem> getLastTaggedArtists(int count, boolean returnDistinct) throws WebException {
+        return getLastAttentionArtists(count, Type.TAG, true, returnDistinct);
     }
 
-    public ArrayList<AttentionItem> getLastRatedArtists(int count) throws WebException {
-        return getLastAttentionArtists(count, Type.RATING, true);
+    public ArrayList<AttentionItem> getLastRatedArtists(int count, boolean returnDistinct) throws WebException {
+        return getLastAttentionArtists(count, Type.RATING, true, returnDistinct);
     }
 
-    public ArrayList<AttentionItem> getLastPlayedArtists(int count) throws WebException {
-        return getLastAttentionArtists(count, Type.PLAYED, true);
+    public ArrayList<AttentionItem> getLastPlayedArtists(int count, boolean returnDistinct) throws WebException {
+        return getLastAttentionArtists(count, Type.PLAYED, true, returnDistinct);
     }
 
-    public ArrayList<AttentionItem> getLastAttentionArtists(int count, Type attentionType, boolean fetchUserTags) throws WebException {
+    public ArrayList<AttentionItem> getLastAttentionArtists(int count, Type attentionType, boolean fetchUserTags, boolean returnDistinct) throws WebException {
 
         String userId = getOpenIdFromSession();
         logger.info("getLastAttentionArtists :: user:"+userId+" attention:"+attentionType.toString());
@@ -542,9 +542,15 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             ArrayList<AttentionItem> aI = new ArrayList<AttentionItem>();
             Set<String> artistIds = new HashSet<String>();
 
-            List<Attention> att = dm.getLastAttentionData(userId, attentionType, count * 2);
+            int mult = 1;
+            // If we want distinct results, fetch more in case we have to throw away some
+            if (returnDistinct) {
+                mult = 2;
+            }
+
+            List<Attention> att = dm.getLastAttentionData(userId, attentionType, count * mult);
             for (Attention a : att) {
-                if (!artistIds.contains(a.getTargetKey())) {
+                if (!returnDistinct || (returnDistinct && !artistIds.contains(a.getTargetKey()))) {
                     AttentionItem newAi = new AttentionItem(getArtistCompact(a.getTargetKey()));
                     if (fetchUserTags) {
                         newAi.setTags(fetchUserTagsForItem(a.getTargetKey()));

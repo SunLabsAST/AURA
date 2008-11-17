@@ -16,6 +16,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.CompactArtistWidget;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -40,6 +41,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.UpdatablePanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
@@ -76,12 +78,20 @@ public class DashboardSwidget extends Swidget {
         
         ArrayList<String> l = new ArrayList<String>();
         l.add("dashboard:");
+        l.add("viewRecentTagged:");
+        l.add("viewRecentRated:");
+        l.add("viewRecentPlayed:");
         return l;
     }
 
     @Override
     protected void initMenuItem() {
         menuItem = new MenuItem("Dashboard", MenuItem.getDefaultTokenClickListener("dashboard:"), true, 3);
+    }
+
+    @Override
+    public void update(String historyToken) {
+        mP.update();
     }
 
     public void doRemoveListeners() {
@@ -124,10 +134,25 @@ public class DashboardSwidget extends Swidget {
 
         public void update() {
             if (cdm.isLoggedIn()) {
+                Popup.showInformationPopup(History.getToken());
                 g.setWidget(0, 0, getDashboard());
             } else {
                 g.setWidget(0, 0, getMustBeLoggedInWidget());
             }
+        }
+
+        private void formatRecentBox(Grid g, String title, ClickListener cL) {
+            HorizontalPanel rateHp = new HorizontalPanel();
+            rateHp.setWidth("100%");
+            rateHp.setStyleName("h2");
+            rateHp.add(new Label(title));
+            rateHp.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+            Label featMore = new Label("See more");
+            featMore.addStyleName("headerMenuMedItem");
+            featMore.addClickListener(cL);
+            rateHp.add(featMore);
+            g.setWidget(0, 0, rateHp);
+            g.setWidget(1, 0, new Image("ajax-bar.gif"));
         }
 
         private Widget getDashboard() {
@@ -155,18 +180,30 @@ public class DashboardSwidget extends Swidget {
             invokeFetchFeaturedArtist();
 
             recentRating = new Grid(2,1);
-            recentRating.setWidget(0, 0, new HTML("<h2>Recently rated artists</h2>"));
-            recentRating.setWidget(1, 0, new Image("ajax-bar.gif"));
+            formatRecentBox(recentRating, "Recently rated artists", new ClickListener() {
+
+                public void onClick(Widget sender) {
+                    History.newItem("viewRecentRated:");
+                }
+            });
             invokeFetchRecentRatedArtist();
 
             recentTagged = new Grid(2,1);
-            recentTagged.setWidget(0, 0, new HTML("<h2>Recently tagged artists</h2>"));
-            recentTagged.setWidget(1, 0, new Image("ajax-bar.gif"));
+            formatRecentBox(recentTagged, "Recently tagged artists", new ClickListener() {
+
+                public void onClick(Widget sender) {
+                    History.newItem("viewRecentTagged:");
+                }
+            });
             invokeFetchRecentTagArtist();
 
             recentPlayed = new Grid(2,1);
-            recentPlayed.setWidget(0, 0, new HTML("<h2>Recently played artists</h2>"));
-            recentPlayed.setWidget(1, 0, new Image("ajax-bar.gif"));
+            formatRecentBox(recentPlayed, "Recently played artists", new ClickListener() {
+
+                public void onClick(Widget sender) {
+                    History.newItem("viewRecentPlayed:");
+                }
+            });
             invokeFetchRecentPlayedArtist();
 
             ItemInfo[] trimTags = null;
@@ -311,7 +348,7 @@ public class DashboardSwidget extends Swidget {
             };
 
             try {
-                musicServer.getLastTaggedArtists(6, callback);
+                musicServer.getLastTaggedArtists(6, true, callback);
             } catch (WebException ex) {
                 Window.alert(ex.getMessage());
             }
@@ -355,7 +392,7 @@ public class DashboardSwidget extends Swidget {
             };
 
             try {
-                musicServer.getLastPlayedArtists(6, callback);
+                musicServer.getLastPlayedArtists(6, true, callback);
             } catch (WebException ex) {
                 Window.alert(ex.getMessage());
             }
@@ -503,7 +540,7 @@ public class DashboardSwidget extends Swidget {
             };
 
             try {
-                musicServer.getLastRatedArtists(6, callback);
+                musicServer.getLastRatedArtists(6, true, callback);
             } catch (WebException ex) {
                 Window.alert(ex.getMessage());
             }
@@ -572,6 +609,7 @@ public class DashboardSwidget extends Swidget {
             recentPlayed.setWidget(1, 0, new Image("ajax-bar.gif"));
             invokeFetchRecentPlayedArtist();
         }
+
     }
 
     /**

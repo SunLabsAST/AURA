@@ -76,11 +76,11 @@ public class ProfileSwidget extends Swidget implements LoginListener {
     }
 
     public void onLogin(ListenerDetails lD) {
-        update();
+        update("");
     }
 
     public void onLogout() {
-        update();
+        update("");
     }
 
     public void onDelete() {
@@ -88,7 +88,7 @@ public class ProfileSwidget extends Swidget implements LoginListener {
     }
 
     @Override
-    public void update() {
+    public void update(String historyToken) {
         //
         // We need to update in case the user has logged in or logged off since his last
         // visit to this page

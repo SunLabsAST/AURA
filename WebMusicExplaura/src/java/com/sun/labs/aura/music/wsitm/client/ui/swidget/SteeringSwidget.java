@@ -20,7 +20,6 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
@@ -64,18 +63,17 @@ import java.util.LinkedList;
  *
  * @author mailletf
  */
-public class SteeringSwidget extends Swidget implements HistoryListener {
+public class SteeringSwidget extends Swidget {
 
     private MainPanel mP;
 
     public SteeringSwidget(ClientDataManager cdm) {
         super("Steering", cdm);
-        History.addHistoryListener(this);
         mP = new MainPanel();
         cdm.getLoginListenerManager().addListener(mP);
         initWidget(mP);
         cdm.setSteerableReset(true);
-        onHistoryChanged(History.getToken());
+        update(History.getToken());
     }
 
     @Override
@@ -91,7 +89,8 @@ public class SteeringSwidget extends Swidget implements HistoryListener {
         menuItem = new MenuItem("Steering", MenuItem.getDefaultTokenClickListener("steering:"), false, 1);
     }
 
-    public void onHistoryChanged(String historyToken) {
+    @Override
+    public void update(String historyToken) {
         if (historyToken.startsWith("steering:")) {
             //
             // Only reset if artist id is in querystring and we aksed
