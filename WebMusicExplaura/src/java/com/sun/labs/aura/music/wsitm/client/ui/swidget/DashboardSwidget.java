@@ -16,7 +16,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.CompactArtistWidget;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -66,6 +65,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
 
     private Grid dashBoardWindow;
     private MainPanel mP;
+    private RecentPlayedList rpl;
     
     private Grid recPanel;
     private UpdatablePanel uP;
@@ -99,11 +99,17 @@ public class DashboardSwidget extends Swidget implements LoginListener {
     @Override
     public void update(String historyToken) {
         if (cdm.isLoggedIn()) {
+            if (mP == null) {
+                mP = new MainPanel();
+            }
+            dashBoardWindow.setWidget(0, 0, mP);
             if (historyToken.equals("dashboard:")) {
-                if (mP==null) {
-                    mP = new MainPanel();
+                mP.setCenterWidget();
+            } else if (historyToken.equals("viewRecentPlayed:")) {
+                if (rpl==null) {
+                    rpl = new RecentPlayedList();
                 }
-                dashBoardWindow.setWidget(0, 0, mP);
+                mP.setCenterWidget(rpl);
             }
         } else {
             dashBoardWindow.setWidget(0, 0, getMustBeLoggedInWidget());
@@ -116,10 +122,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
     }
 
     public void onLogout() {
-        if (mP != null) {
-            mP.doRemoveListeners();
-            mP=null;
-        }
+        onDelete();
         update(currHistoryToken);
     }
 
@@ -128,9 +131,13 @@ public class DashboardSwidget extends Swidget implements LoginListener {
     }
 
     public void onDelete() {
-        if (mP!=null) {
+        if (mP != null) {
             mP.doRemoveListeners();
-            mP=null;
+            mP = null;
+        }
+        if (rpl != null) {
+            rpl.doRemoveListeners();
+            rpl = null;
         }
     }
 
@@ -139,6 +146,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
         public RecentPlayedList() {
             super();
             cdm.getPlayedListenerManager().addListener(this);
+            super.invokeFetchRecentAttentions(AttentionType.RATED);
         }
 
         public void onPlay(String artistId) {
@@ -158,6 +166,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
 
         public ListPanel() {
             mainList = new VerticalPanel();
+            mainList.setWidth("100%");
             initWidget(mainList);
         }
 
@@ -166,13 +175,13 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             for (AttentionItem<ArtistCompact> i : aIL) {
                 HorizontalPanel hP = new HorizontalPanel();
                 hP.add(new Label(i.getItem().getName()));
+                hP.add(new Label(i.getDate().toString()));
                 mainList.add(hP);
             }
-
         }
 
         protected void addElement(ArtistCompact aC) {
-            mainList.add(new Label(aC.getName()));
+            mainList.insert(new Label(aC.getName()), 0);
         }
 
 
@@ -202,11 +211,46 @@ public class DashboardSwidget extends Swidget implements LoginListener {
 
         public abstract void onDelete();
 
+
+        protected void invokeFetchRecentAttentions(AttentionType aT) {
+
+            DataEmbededAsyncCallback<AttentionType, ArrayList<AttentionItem<ArtistCompact>>> callback =
+                    new DataEmbededAsyncCallback<AttentionType, ArrayList<AttentionItem<ArtistCompact>>>(aT) {
+
+                public void onFailure(Throwable arg0) {
+                    Window.alert(arg0.toString());
+                }
+
+                public void onSuccess(ArrayList<AttentionItem<ArtistCompact>> arg0) {
+
+                    if (arg0.size() > 0) {
+                        initElements(arg0);
+                    } else {
+                        mainList.add(new Label("No activity"));
+                    }
+                }
+            };
+
+            try {
+                if (aT == AttentionType.PLAYED) {
+                    musicServer.getLastPlayedArtists(100, false, callback);
+                } else if (aT == AttentionType.RATED) {
+                    musicServer.getLastRatedArtists(100, true, callback);
+                } else {
+                    musicServer.getLastTaggedArtists(100, false, callback);
+                }
+            } catch (WebException ex) {
+                Window.alert(ex.getMessage());
+            }
+        }
+
     }
 
     private class MainPanel extends Composite implements RatingListener,
             TaggingListener, PlayedListener, HasListeners {
 
+        private Grid centerWidget;
+        private Grid defaultCenter = null;
         private Grid featArtist;
         private Grid recentRating;
         private ArrayList<HasListeners> recentRatingListeners;
@@ -227,6 +271,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             recentTaggingListeners = new ArrayList<HasListeners>();
             recentPlayedListeners = new ArrayList<HasListeners>();
 
+            centerWidget = new Grid(1,1);
             initWidget(getDashboard());
         }
 
@@ -244,6 +289,18 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             g.setWidget(1, 0, new Image("ajax-bar.gif"));
         }
 
+        public void setCenterWidget(Widget w) {
+            centerWidget.setWidget(0, 0, w);
+        }
+
+        public void setCenterWidget() {
+            if (defaultCenter == null) {
+                defaultCenter = new Grid(1,1);
+                defaultCenter.setWidget(0, 0, getMainPagePanel());
+            }
+            centerWidget.setWidget(0, 0, defaultCenter);
+        }
+
         private Widget getDashboard() {
 
             DockPanel dP = new DockPanel();
@@ -257,8 +314,16 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             }           
             dP.add(recPanel, DockPanel.WEST);
 
+            centerWidget.setWidget(0, 0, getMainPagePanel());
             Label titleLbl = new Label("Dashboard");
             titleLbl.setStyleName("h1");
+
+            dP.add(titleLbl, DockPanel.NORTH);
+            dP.add(centerWidget, DockPanel.NORTH);
+            return dP;
+        }
+
+        private Widget getMainPagePanel() {
 
             //
             // Featured artist
@@ -309,17 +374,16 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             }
 
             VerticalPanel centerPanel = new VerticalPanel();
-            centerPanel.add(titleLbl);
+
             if (trimTags != null) {
-                centerPanel.add(TagDisplayLib.getTagsInPanel(trimTags, 
+                centerPanel.add(TagDisplayLib.getTagsInPanel(trimTags,
                         TagDisplayLib.ORDER.SHUFFLE, cdm));
             }
             centerPanel.add(featArtist);
             centerPanel.add(recentRating);
             centerPanel.add(recentTagged);
             centerPanel.add(recentPlayed);
-            dP.add(centerPanel, DockPanel.NORTH);
-            return dP;
+            return centerPanel;
         }
 
         /**
@@ -430,7 +494,6 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                         int lineIndex = 0;
                         int colIndex = 0;
 
-
                         for (AttentionItem<ArtistCompact> aI : arg0) {
 
                             CompactArtistWidget caw = new CompactArtistWidget(aI.getItem(), cdm,
@@ -460,7 +523,6 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             } catch (WebException ex) {
                 Window.alert(ex.getMessage());
             }
-
         }
 
         /**
@@ -592,7 +654,9 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             }
         }
 
-        public void onDelete() {}
+        public void onDelete() {
+            defaultCenter = null;
+        }
         
         public void doRemoveListeners() {
             onDelete();

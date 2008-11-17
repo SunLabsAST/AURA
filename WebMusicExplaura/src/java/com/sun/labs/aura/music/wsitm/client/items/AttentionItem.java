@@ -6,6 +6,7 @@
 package com.sun.labs.aura.music.wsitm.client.items;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,6 +18,7 @@ public class AttentionItem<T extends IsSerializable> implements IsSerializable {
 
     private T item;
     private int rating;
+    private Date date;
     private Set<String> tags;
 
     public AttentionItem() {
@@ -53,5 +55,16 @@ public class AttentionItem<T extends IsSerializable> implements IsSerializable {
         return item;
     }
 
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(long timestamp) {
+        this.date = new Date(timestamp);
+    }
+
+    public void setDate(Date d) {
+        this.date = d;
+    }
 
 }

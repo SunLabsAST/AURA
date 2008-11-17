@@ -555,6 +555,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
                     if (fetchUserTags) {
                         newAi.setTags(fetchUserTagsForItem(a.getTargetKey()));
                     }
+                    newAi.setDate(a.getTimeStamp());
                     aI.add(newAi);
                     artistIds.add(a.getTargetKey());
                     
