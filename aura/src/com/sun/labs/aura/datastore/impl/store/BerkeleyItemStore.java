@@ -53,6 +53,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -162,10 +163,25 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      */
     protected Logger logger;
 
+    /**
+     * Tracks the number of times each method/stat is invoked
+     */
     protected AtomicInteger[] statInvocationCounts;
     
     private String[] properties;
 
+    /**
+     * An array of bounded linked lists of the time histories for each stat
+     */
+    protected LinkedList<Double>[] statTimeHistory;
+    
+    /**
+     * An array of the total times of the last N method time stats
+     */
+    protected double[] statTimeTotals;
+    
+    protected static final int STAT_TIME_HISTORY = 20;
+    
     /**
      * Constructs an empty item store, ready to be configured.
      */
@@ -175,13 +191,16 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         createEvents = new ConcurrentLinkedQueue<ItemImpl>();
         
         //
-        // Set up the array of stat invocation to have one atomic integer per
-        // stat
+        // Set up all our stat tracking arrays
         statInvocationCounts = new AtomicInteger[StatName.values().length];
+        statTimeHistory = new LinkedList[StatName.values().length];
+        statTimeTotals = new double[StatName.values().length];
         for (StatName name : StatName.values()) {
             statInvocationCounts[name.ordinal()] = new AtomicInteger(0);
+            statTimeHistory[name.ordinal()] = new LinkedList<Double>();
+            statTimeTotals[name.ordinal()] = 0;
         }
-
+        
         timer = new Timer("StatScheduler", true);
         timer.schedule(new StatSender(), 0, 10 * 1000);
     }
@@ -1303,15 +1322,24 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      */
     protected void exit(StatState state, String extra) {
         state.timer.stop();
+        double time = state.timer.getTimeMillis();
         if (logger.isLoggable(Level.FINE) && toLog.contains(state.name)) {
             logger.fine(String.format("rep %s T%s exit %s after %.3f %s",
                                       prefixString,
                                       Thread.currentThread().getId(),
                                       state.name,
-                                      state.timer.getTimeMillis(),
+                                      time,
                                       extra));
         }
-        statInvocationCounts[state.name.ordinal()].addAndGet(state.count);
+        int idx = state.name.ordinal();
+        statInvocationCounts[idx].addAndGet(state.count);
+        synchronized (statTimeHistory[idx]) {
+            statTimeTotals[idx] += time;
+            statTimeHistory[idx].offer(time);
+            if (statTimeHistory[idx].size() > STAT_TIME_HISTORY) {
+                statTimeTotals[idx] -= statTimeHistory[idx].poll();
+            }
+        }
     }
     
     protected class StatState {
@@ -1337,8 +1365,14 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             //
             // Send each stat
             for (StatName name : StatName.values()) {
-                int num = statInvocationCounts[name.ordinal()].getAndSet(0);
+                int idx = name.ordinal();
+                int num = statInvocationCounts[idx].getAndSet(0);
                 sendStat(name.toString(), num, num);
+                double avg = 0;
+                synchronized(statTimeHistory[idx]) {
+                    avg = statTimeTotals[idx] / statTimeHistory[idx].size();
+                }
+                sendTime(name.toString(), avg);
             }
         }
         
@@ -1361,6 +1395,22 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
                 }
             }
         }
+        
+        private void sendTime(String statName, double averageTime) {
+            if (averageTime == 0 || averageTime == Double.NaN) {
+                return;
+            }
+            
+            if (statService != null) {
+                try {
+                    statService.setDouble("Rep-" + getPrefix() + "-"
+                            + statName + "-time", averageTime);
+                } catch (RemoteException e) {
+                    logger.finer("Failed to notify stat server "
+                            + "for timing of stat " + statName);
+                }
+            }
+        }
     }
-
+    
 }

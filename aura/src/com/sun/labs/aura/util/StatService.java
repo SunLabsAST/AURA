@@ -11,6 +11,17 @@ import java.rmi.RemoteException;
 public interface StatService extends Serializable, Remote, Component {
     
     /**
+     * Sets a double value that can be retrieved later
+     */
+    public void setDouble(String name, double value) throws RemoteException;
+
+    /**
+     * Gets a double value that was previously set.  Will return 0 if
+     * invoked for a value that doesn't exist.
+     */
+    public double getDouble(String name) throws RemoteException;
+    
+    /**
      * Creates a counter, initializes its value to zero and records the time
      * at which the counter was started.
      * 

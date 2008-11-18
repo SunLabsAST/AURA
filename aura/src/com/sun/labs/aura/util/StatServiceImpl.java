@@ -17,10 +17,27 @@ public class StatServiceImpl implements StatService, AuraService, Configurable {
 
     private Map<String, Counter> counters;
 
+    private Map<String, Double> doubleValues;
+    
     public StatServiceImpl() {
         counters = new HashMap<String, Counter>();
+        doubleValues = new HashMap<String, Double>();
     }
 
+    @Override
+    public void setDouble(String name, double value) throws RemoteException {
+        doubleValues.put(name, value);
+    }
+    
+    @Override
+    public double getDouble(String name) throws RemoteException {
+        Double d = doubleValues.get(name);
+        if (d != null) {
+            return d;
+        }
+        return 0;
+    }
+    
     private Counter getCounter(String counterName) {
         Counter c = counters.get(counterName);
         if (c == null) {
