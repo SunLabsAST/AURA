@@ -13,9 +13,9 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.List;
+import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -85,7 +85,7 @@ public class AuraServiceStarter implements Configurable {
 
     public static void usage() {
         System.err.println(
-                "Usage: com.sun.labs.aura.AuraServiceStarter <config> <component name>");
+                "Usage: com.sun.labs.aura.AuraServiceStarter <config> <component name> [<file handler pattern>]");
         System.err.println(
                 "  Some useful global properties are auraHome and auraDistDir");
         System.err.println("  auraHome defaults to /aura.");
@@ -104,9 +104,32 @@ public class AuraServiceStarter implements Configurable {
             return;
         }
 
+        Logger rl = Logger.getLogger("");
+        if(args.length > 2) {
+            
+            //
+            // If a file handler pattern was specified, then use that to startup,
+            // removing all of the other handlers.
+            try {
+                FileHandler fh =
+                        new FileHandler(args[2], 10000000, 5, true);
+                for(Handler h : rl.getHandlers()) {
+                    rl.removeHandler(h);
+                }
+                rl.addHandler(fh);
+            } catch(IOException ex) {
+                System.err.format("Error opening log file handler: " + ex);
+                usage();
+                return;
+            } catch(SecurityException ex) {
+                System.err.format("Error opening log file handler: " + ex);
+                usage();
+                return;
+            }
+        }
+
         //
         // Use the labs format logging.
-        Logger rl = Logger.getLogger("");
         for(Handler h : rl.getHandlers()) {
             h.setLevel(Level.ALL);
             h.setFormatter(new SimpleLabsLogFormatter());
