@@ -201,7 +201,7 @@
     <target name="upload-jar" description="Upload just the SITM jar file" depends="jar">
         <echo message="jar: ${dist.jar}"/>
         <dav:put url="${dav.url}/${dist.col}" verbose="true" userid="${user}" password="${pw}" lock="false">
-            <fileset dir="..">
+            <fileset dir=".">
                 <include name="${dist.jar}"/>
             </fileset>
         </dav:put>
