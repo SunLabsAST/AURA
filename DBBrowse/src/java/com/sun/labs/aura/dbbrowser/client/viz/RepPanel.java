@@ -97,31 +97,19 @@ public class RepPanel extends FlowPanel {
                 clear();
                 add(new Label("Stats for Replicant " + rep.getPrefix()));
                 add(new StyleLabel("Refreshes every 15 seconds", "viz-subText"));
-                add(new StyleLabel("Attentions per sec: " +
-                                      statForm.format(stats.getRate(
-                                      "ATTEND")) +
-                                      " (Avg: " + statForm.format(stats.getTime("ATTEND")) + "ms)",
-                                   "viz-statLabel"));
-                add(new StyleLabel("New Items per sec: " +
-                                      statForm.format(stats.getRate(
-                                      "NEW_ITEM")) +
-                                      " (Avg: " + statForm.format(stats.getTime("NEW_ITEM")) + "ms)",
-                                  "viz-statLabel"));
-                add(new StyleLabel("Updated Items per sec: " +
-                                      statForm.format(stats.getRate(
-                                      "UPDATE_ITEM")) +
-                                      " (Avg: " + statForm.format(stats.getTime("UPDATE_ITEM")) + "ms)",
-                                  "viz-statLabel"));
-                add(new StyleLabel("Items from getItem per sec: " +
-                                      statForm.format(stats.getRate(
-                                      "GET_ITEM")) +
-                                      " (Avg: " + statForm.format(stats.getTime("GET_ITEM")) + "ms)",
-                                   "viz-statLabel"));
-                add(new StyleLabel("Find Similars per sec: " +
-                                      statForm.format(stats.getRate(
-                                      "FIND_SIM")) +
-                                      " (Avg: " + statForm.format(stats.getTime("FIND_SIM")) + "ms)",
-                                   "viz-statLabel"));
+                
+                //
+                // Only display the stats selected by the user
+                String[] toDisplay = Util.getStatDisplayCodes();
+                for (String code : toDisplay) {
+                    if (stats.contains(code)) {
+                        add(new StyleLabel(Util.logCodeToDisplay(code) + " per sec: " +
+                                statForm.format(stats.getRate(code)) + " (Avg: " +
+                                statForm.format(stats.getTime(code)) + "ms)",
+                                "viz-statLabel"));
+                    }
+                }
+
                 StyleLabel close = new StyleLabel("Close", "viz-actionLabel");
                 close.addStyleName("viz-closeLabel");
 
