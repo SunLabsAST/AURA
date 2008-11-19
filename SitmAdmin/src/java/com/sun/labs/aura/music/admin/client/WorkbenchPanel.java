@@ -6,10 +6,12 @@ package com.sun.labs.aura.music.admin.client;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.Grid;
+import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextArea;
@@ -143,6 +145,14 @@ public class WorkbenchPanel extends Composite implements TreeListener {
                     TextBox box = new TextBox();
                     box.setText(p.getDefaultValue());
                     box.setTitle(p.getDescription());
+                    box.addKeyboardListener(new KeyboardListenerAdapter() {
+                        @Override
+                        public void onKeyDown(Widget sender, char keyCode, int modifiers) {
+                            if (keyCode == KEY_ENTER) {
+                                run();
+                            }
+                        }
+                    });
                     w = box;
                 }
                 grid.setWidget(row, col + 1, w);
