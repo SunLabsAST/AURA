@@ -4,4 +4,5 @@
   <role rolename="aurademo"/>
   <role rolename="datastore"/>
   <role rolename="wme"/>
+  <role rolename="api"/>
 </tomcat-users>
