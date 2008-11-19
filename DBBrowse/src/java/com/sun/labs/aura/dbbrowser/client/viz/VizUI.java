@@ -62,7 +62,25 @@ public class VizUI extends DockPanel {
                 service.refreshSvcs(refresher);
             }
         });
+        refreshBtn.setStylePrimaryName("main-selectorButton");
         controls.add(refreshBtn);
+        
+        Button settingsBtn = new Button("Settings", new ClickListener() {
+            public void onClick(Widget w) {
+                final AsyncCallback getCodes = new AsyncCallback() {
+                    public void onFailure(Throwable t) {
+                        alert("Failed to get log codes, see the server log for details");
+                    }
+
+                    public void onSuccess(Object result) {
+                        new SettingsDialog((List<String>)result).show();
+                    }
+                };
+                service.getRepLogNames(getCodes);
+            }
+        });
+        settingsBtn.setStylePrimaryName("main-selectorButton");
+        controls.add(settingsBtn);
         add(controls, NORTH);
         
         //

@@ -5,7 +5,6 @@
 
 package com.sun.labs.aura.dbbrowser.client.viz;
 
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.ClickListener;
@@ -13,41 +12,43 @@ import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTMLTable;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.dbbrowser.client.GWTMainEntryPoint;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
- *
+ * Configure UI settings for the Viz UI
  */
-public class RepLogDialog extends DialogBox {
-    protected List<String> logNames;
-    
-    protected List<String> selected;
-    
-    protected String prefix;
+public class SettingsDialog extends DialogBox {
+
+    protected List<String> logCodes;
     
     protected List<CheckBox> checks;
-    
-    public RepLogDialog(String prefix, List<String> logNames, List<String> selected) {
+        
+    public SettingsDialog(List<String> logCodes) {
         super(false);
-        this.prefix = prefix;
-        this.logNames = logNames;
-        this.selected = selected;
-        setText("Change Log Settings");
+        this.logCodes = logCodes;
+        String[] selectedCodes = Util.getStatDisplayCodes();
+        List<String> selected = Arrays.asList(selectedCodes);
+        
+        setText("Edit Settings");
         
         FlowPanel mainPanel = new FlowPanel();
+        FlowPanel repStatPanel = new FlowPanel();
+        repStatPanel.setStylePrimaryName("viz-settingsGroup");
+        repStatPanel.add(new Label("Show these Replicant Stats:"));
         checks = new ArrayList<CheckBox>();
-        int numColumns = logNames.size() / 15;
-        if (logNames.size() % 15 > 0) {
+        int numColumns = logCodes.size() / 15;
+        if (logCodes.size() % 15 > 0) {
             numColumns++;
         }
         Grid grid = new Grid(15, numColumns);
         int currCol = 0;
         int currRow = 0;
         HTMLTable.CellFormatter fmt = grid.getCellFormatter();
-        for (String currName : logNames) {
+        for (String currName : logCodes) {
             CheckBox cb = new CheckBox(currName);
             cb.setName(currName);
             String dispName = Util.logCodeToDisplay(currName);
@@ -65,7 +66,8 @@ public class RepLogDialog extends DialogBox {
                 currCol++;
             }
         }
-        mainPanel.add(grid);
+        repStatPanel.add(grid);
+        mainPanel.add(repStatPanel);
         
         Button cancel = new Button("Cancel");
         cancel.addClickListener(new ClickListener() {
@@ -75,44 +77,28 @@ public class RepLogDialog extends DialogBox {
         });
         mainPanel.add(cancel);
         
-        Button changeMe = new Button("Change " + prefix);
-        changeMe.addClickListener(new ClickListener() {
-            public void onClick(Widget w) {
-                doChange(false);
-            }
-        });
-        mainPanel.add(changeMe);
 
-        Button changeAll = new Button("Change All");
-        changeAll.addClickListener(new ClickListener() {
+        Button save = new Button("Save");
+        save.addClickListener(new ClickListener() {
             public void onClick(Widget w) {
-                doChange(true);
+                doSave();
+                hide();
             }
         });
-        mainPanel.add(changeAll);
+        mainPanel.add(save);
+        
         setWidget(mainPanel);
         setPopupPosition(30,30);
     }
     
-    public void doChange(boolean all) {
-        selected = new ArrayList<String>();
-        for (CheckBox cb : checks) {
-            if (cb.isChecked()) {
-                selected.add(cb.getName());
+    protected void doSave() {
+        ArrayList<String> list = new ArrayList<String>();
+        for (CheckBox check : checks) {
+            if (check.isChecked()) {
+                list.add(check.getName());
             }
         }
-        
-        VizServiceAsync service = GWTMainEntryPoint.getVizService();
-        final AsyncCallback callback = new AsyncCallback() {
-            public void onSuccess(Object result) {
-                hide();
-            }
-
-            public void onFailure(Throwable caught) {
-                VizUI.alert("Communication failed: " + caught.getMessage());
-            }
-        };
-        
-        service.setRepSelectedLogNames(all ? null : prefix, selected, callback);
+        Util.setStatDisplayCodes(list);
     }
+    
 }
