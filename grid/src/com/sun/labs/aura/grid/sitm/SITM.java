@@ -9,6 +9,7 @@ import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.io.File;
 
 /**
  * A base class for starting and stopping the SITM services.
@@ -36,7 +37,8 @@ public abstract class SITM extends ServiceAdapter {
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/music/resource/artistCrawler20KConfig.xml",
-            "starter"
+            "starter",
+            String.format("%s/sitm/artistCrawler.%%g.out", GridUtil.logFSMntPnt)
         };
 
         return gu.getProcessConfig(cmdLine, getArtistCrawlerName());
@@ -51,7 +53,8 @@ public abstract class SITM extends ServiceAdapter {
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/music/resource/listenerCrawlerConfig.xml",
-            "starter"
+            "starter",
+            String.format("%s/sitm/listenerCrawler.%%g.out", GridUtil.logFSMntPnt)
         };
 
         return gu.getProcessConfig(cmdLine, getListenerCrawlerName());
@@ -66,7 +69,8 @@ public abstract class SITM extends ServiceAdapter {
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/music/resource/tagCrawlerConfig.xml",
-            "starter"
+            "starter",
+            String.format("%s/sitm/tagCrawler.%%g.out", GridUtil.logFSMntPnt)
         };
 
         return gu.getProcessConfig(cmdLine, getTagCrawlerName());
@@ -79,5 +83,12 @@ public abstract class SITM extends ServiceAdapter {
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
+
+        //
+        // Make grid directories that we'll need.
+        for(String dir : new String[]{"sitm", "other"}) {
+            (new File(GridUtil.logFSMntPnt + "/" + dir)).mkdir();
+        }
+
     }
 }
