@@ -203,6 +203,7 @@
         <dav:put url="${dav.url}/${dist.col}" verbose="true" userid="${user}" password="${pw}" lock="false">
             <fileset dir=".">
                 <include name="${dist.jar}"/>
+                <include name="dist/flickrapi-1.1.pbl.jar"/>
             </fileset>
         </dav:put>
     </target>
