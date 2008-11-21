@@ -12,11 +12,13 @@
     <!-- We're going to use a synchronous dumper so that when an entry is
     indexed, when control is returned to the caller the data is available for
     searching. -->
+    <property name="auraHome" value=""/>
+    
     <property name="dumper" value="sync_dumper"/>
     
     <property name="num_pipelines" value="1"/>
     
-    <property name="startingDataDir" value="/starting.idx"/>
+    <property name="startingDataDir" value="${auraHome}/starting.idx"/>
 
     <!-- A search engine that can be used to do classification -->
     <component name="aardvark_search_engine" inherit="search_engine">

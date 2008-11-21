@@ -89,6 +89,8 @@ public class ItemSearchEngine implements Configurable {
 
     private SearchEngine engine;
 
+    private boolean engineWasIntialized;
+
     private Logger logger;
 
     private int engineLogLevel;
@@ -159,6 +161,10 @@ public class ItemSearchEngine implements Configurable {
         Log.setLogger(logger);
         Log.setLevel(engineLogLevel);
         indexDir = ps.getString(PROP_INDEX_DIR);
+
+        //
+        // If the index directory doesn't exist, then we needed to initialize it.
+        engineWasIntialized = !(new File(indexDir).exists());
         
         boolean copyDir = ps.getBoolean(PROP_COPY_DIR);
         //
@@ -214,6 +220,10 @@ public class ItemSearchEngine implements Configurable {
 
     public SearchEngine getSearchEngine() {
         return engine;
+    }
+
+    public boolean engineWasInitialized() {
+        return engineWasIntialized;
     }
 
     public void defineField(ItemType itemType, String field,
