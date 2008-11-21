@@ -302,6 +302,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             steerButton.addStyleName("largeMarginRight");
 
             HorizontalPanel buttonsPanel = new HorizontalPanel();
+            buttonsPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
             buttonsPanel.add(pB);
             buttonsPanel.add(new ContextMenuSteeringWheelWidget(cdm, steerButton, aC));
 

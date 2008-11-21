@@ -28,7 +28,6 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -364,6 +363,8 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
             hP.add(vP);
 
+            HorizontalPanel buttonsPanel = new HorizontalPanel();
+            buttonsPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
             Image steerable = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, new ClickListener() {
 
                 public void onClick(Widget arg0) {
@@ -372,14 +373,15 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
                 }
             });
             steerable.setTitle("Steerable recommendations starting with your personal tag cloud");
-            hP.add(steerable);
+            buttonsPanel.add(steerable);
 
             // Plays a random recommendation
             instantRecPlayWidget = getInstantRecPlayWidget();
             if (instantRecPlayWidget != null) {
-                hP.add(instantRecPlayWidget);
+                buttonsPanel.add(instantRecPlayWidget);
             }
 
+            hP.add(buttonsPanel);
             mainPanel.setWidget(0, 0, hP);
         } else {
             populateLoginBox();
