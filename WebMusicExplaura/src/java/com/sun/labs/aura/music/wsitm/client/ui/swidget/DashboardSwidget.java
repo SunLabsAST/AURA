@@ -41,13 +41,17 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
+import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.UpdatablePanel;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuArtistLabel;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.StarRatingWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.SteeringWheelWidget;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -66,6 +70,8 @@ public class DashboardSwidget extends Swidget implements LoginListener {
     private Grid dashBoardWindow;
     private MainPanel mP;
     private RecentPlayedList rpl;
+    private RecentRatedList rrl;
+    private RecentTaggedList rtl;
     
     private Grid recPanel;
     private UpdatablePanel uP;
@@ -75,6 +81,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
     public DashboardSwidget(ClientDataManager cdm) {
         super("Dashboard", cdm);
         dashBoardWindow = new Grid(1,1);
+        dashBoardWindow.getCellFormatter().setVerticalAlignment(0, 0, VerticalPanel.ALIGN_TOP);
         dashBoardWindow.setWidget(0, 0, new Label(""));
         cdm.getLoginListenerManager().addListener(this);
         initWidget(dashBoardWindow);
@@ -110,6 +117,16 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                     rpl = new RecentPlayedList();
                 }
                 mP.setCenterWidget(rpl);
+            } else if (historyToken.equals("viewRecentRated:")) {
+                if (rrl==null) {
+                    rrl = new RecentRatedList();
+                }
+                mP.setCenterWidget(rrl);
+            } else if (historyToken.equals("viewRecentTagged:")) {
+                if (rtl==null) {
+                    rtl = new RecentTaggedList();
+                }
+                mP.setCenterWidget(rtl);
             }
         } else {
             dashBoardWindow.setWidget(0, 0, getMustBeLoggedInWidget());
@@ -139,14 +156,22 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             rpl.doRemoveListeners();
             rpl = null;
         }
+        if (rrl != null) {
+            rrl.doRemoveListeners();
+            rrl = null;
+        }
+        if (rtl != null) {
+            rtl.doRemoveListeners();
+            rtl = null;
+        }
     }
 
     private class RecentPlayedList extends ListPanel implements PlayedListener {
 
         public RecentPlayedList() {
-            super();
+            super("Recently played artists");
             cdm.getPlayedListenerManager().addListener(this);
-            super.invokeFetchRecentAttentions(AttentionType.RATED);
+            super.invokeFetchRecentAttentions(AttentionType.PLAYED);
         }
 
         public void onPlay(String artistId) {
@@ -155,35 +180,143 @@ public class DashboardSwidget extends Swidget implements LoginListener {
 
         public void onDelete() {
             cdm.getPlayedListenerManager().removeListener(this);
+            deleteSuperElems();
         }
 
+    }
+
+    private class RecentRatedList extends ListPanel implements RatingListener {
+
+        public RecentRatedList() {
+            super("Recently rated artists");
+            cdm.getRatingListenerManager().addListener(this);
+            super.invokeFetchRecentAttentions(AttentionType.RATED);
+        }
+
+        public void onDelete() {
+            cdm.getRatingListenerManager().removeListener(this);
+            deleteSuperElems();
+        }
+
+        public void onRate(String itemId, int rating) {
+            invokeFetchArtistCompact(itemId);
+        }
+
+    }
+
+    private class RecentTaggedList extends ListPanel implements TaggingListener {
+
+        public RecentTaggedList() {
+            super("Recently tagged artists");
+            cdm.getTaggingListenerManager().addListener(this);
+            super.invokeFetchRecentAttentions(AttentionType.TAGGED);
+        }
+
+        @Override
+        public void onDelete() {
+            cdm.getTaggingListenerManager().removeListener(this);
+            deleteSuperElems();
+        }
+
+        public void onTag(String itemId, HashSet<String> tags) {
+            invokeFetchArtistCompact(itemId);
+        }
 
     }
 
     private abstract class ListPanel extends Composite implements HasListeners {
 
         private VerticalPanel mainList;
+        private ArrayList<PlayButton> playList;
+        private ArrayList<StarRatingWidget> starList;
 
-        public ListPanel() {
+        public ListPanel(String title) {
+
+            playList = new ArrayList<PlayButton>();
+            starList = new ArrayList<StarRatingWidget>();
+
             mainList = new VerticalPanel();
             mainList.setWidth("100%");
-            initWidget(mainList);
+
+            HorizontalPanel rateHp = new HorizontalPanel();
+            rateHp.setWidth("100%");
+            rateHp.setStyleName("h2");
+            rateHp.add(new Label(title));
+            rateHp.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+            Label featMore = new Label("Back to dashboard");
+            featMore.addStyleName("headerMenuMedItem");
+            featMore.addClickListener(new ClickListener() {
+
+                public void onClick(Widget sender) {
+                    History.newItem("dashboard:");
+                }
+            });
+            rateHp.add(featMore);
+
+            Grid g = new Grid(2,1);
+            g.setWidget(0, 0, rateHp);
+            g.getCellFormatter().setVerticalAlignment(1, 0, VerticalPanel.ALIGN_TOP);
+            g.setWidget(1, 0, mainList);
+
+            initWidget(g);
+        }
+
+        protected void deleteSuperElems() {
+            for (PlayButton pB : playList) {
+                pB.onDelete();
+            }
+            for (StarRatingWidget srw : starList) {
+                srw.onDelete();
+            }
+            playList = null;
+            starList = null;
         }
 
         protected void initElements(ArrayList<AttentionItem<ArtistCompact>> aIL) {
-
             for (AttentionItem<ArtistCompact> i : aIL) {
-                HorizontalPanel hP = new HorizontalPanel();
-                hP.add(new Label(i.getItem().getName()));
-                hP.add(new Label(i.getDate().toString()));
-                mainList.add(hP);
+                addElement(i.getItem(), i.getDate(), false);
             }
         }
 
-        protected void addElement(ArtistCompact aC) {
-            mainList.insert(new Label(aC.getName()), 0);
-        }
+        protected void addElement(ArtistCompact aC, Date date, boolean onTopOfList) {
+            PlayButton pB = new PlayButton(cdm, aC,
+                    PlayButton.PLAY_ICON_SIZE.SMALL, musicServer);
+            playList.add(pB);
 
+            StarRatingWidget srw = new StarRatingWidget(musicServer, cdm,
+                    aC.getId(), StarRatingWidget.Size.SMALL);
+            starList.add(srw);
+
+            Grid g = new Grid(1, 4);
+            g.setWidth("600px");
+            g.addStyleName("headerMenuMed");
+
+            SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, new DualDataEmbededClickListener<ClientDataManager, ArtistCompact>(cdm, aC) {
+
+                public void onClick(Widget arg0) {
+                    data.setSteerableReset(true);
+                    History.newItem("steering:" + sndData.getId());
+                }
+            });
+            steerButton.setTitle("Steerable recommendations starting with " + aC.getName() + "'s tag cloud");
+            steerButton.addStyleName("largeMarginRight");
+
+            HorizontalPanel buttonsPanel = new HorizontalPanel();
+            buttonsPanel.add(pB);
+            buttonsPanel.add(new ContextMenuSteeringWheelWidget(cdm, steerButton, aC));
+
+            g.setWidget(0, 0, buttonsPanel);
+            g.setWidget(0, 1, new ContextMenuArtistLabel(aC, cdm));
+            g.getColumnFormatter().setWidth(1, "200px");
+            g.setWidget(0, 2, srw);
+            g.getCellFormatter().setHorizontalAlignment(0, 3, HorizontalPanel.ALIGN_RIGHT);
+            g.setWidget(0, 3, new Label(date.toString().substring(0, 16)));
+            if (onTopOfList) {
+                mainList.insert(g, 0);
+            } else {
+                mainList.add(g);
+            }
+        }
 
         protected void invokeFetchArtistCompact(String id) {
 
@@ -194,7 +327,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                 }
 
                 public void onSuccess(Object arg0) {
-                    addElement((ArtistCompact)arg0);
+                    addElement((ArtistCompact)arg0, new Date(), true);
                 }
             };
 
@@ -272,6 +405,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             recentPlayedListeners = new ArrayList<HasListeners>();
 
             centerWidget = new Grid(1,1);
+            centerWidget.getCellFormatter().setVerticalAlignment(0, 0, VerticalPanel.ALIGN_TOP);
             initWidget(getDashboard());
         }
 
