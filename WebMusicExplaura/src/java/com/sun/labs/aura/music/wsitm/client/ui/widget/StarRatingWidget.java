@@ -71,14 +71,6 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
         R0,R1,R2,R3,R4,R5,FETCH,DISPLAY_LOAD
     }
 
-    /**
-     *
-     * @param musicServer
-     * @param cdm
-     * @param artistID
-     * @param size
-     * @param fetchRating If false, the stars will be a loading image and the setNbrStars function will need to be called
-     */
     public StarRatingWidget(MusicSearchInterfaceAsync musicServer, ClientDataManager cdm,
             String artistID, InitialRating rating, Size size) {
 
@@ -252,6 +244,7 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
 
             public void onSuccess(Object result) {
                 nbrSelectedStars = (Integer) result;
+                cdm.setRatingInCache(artistID, nbrSelectedStars);
                 drawRatingWidget();
             }
 
@@ -260,10 +253,15 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
             }
         };
 
-        try {
-            musicServer.fetchUserSongRating(artistID, callback);
-        } catch (WebException ex) {
-            Window.alert(ex.getMessage());
+        int rating = cdm.getRatingFromCache(artistID);
+        if (rating == -1) {
+            try {
+                musicServer.fetchUserSongRating(artistID, callback);
+            } catch (WebException ex) {
+                Window.alert(ex.getMessage());
+            }
+        } else {
+            callback.onSuccess(rating);
         }
     }
 

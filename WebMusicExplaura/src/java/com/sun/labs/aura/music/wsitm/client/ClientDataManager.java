@@ -5,7 +5,6 @@
 package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.sun.labs.aura.music.wsitm.client.event.WebListener;
 import com.sun.labs.aura.music.wsitm.client.event.TaggingListener;
 import com.sun.labs.aura.music.wsitm.client.event.RatingListener;
@@ -42,7 +41,9 @@ public class ClientDataManager {
     private String currSearchWidgetToken = "searchHome:";
 
     private LinkedList<Updatable> updatableWidgets;
-    
+
+    private HashMap<String, Integer> ratingCache;
+
     private HashMap<String, String> simTypes;
     private HashMap<String, String> recTypes;
     private String currRecTypeName;
@@ -279,6 +280,21 @@ public class ClientDataManager {
         this.currRecTypeName=currName;
     }
 
+    public void setRatingInCache(String artistId, int rating) {
+        ratingCache.put(artistId, rating);
+    }
+
+    public void setRatingInCache(HashMap<String,Integer> ratingMap) {
+        ratingCache.putAll(ratingMap);
+    }
+
+    public int getRatingFromCache(String artistId) {
+        if (ratingCache != null && ratingCache.containsKey(artistId)) {
+            return ratingCache.get(artistId);
+        } else {
+            return -1;
+        }
+    }
     
     public static String nameToKey(String name) {
         return "artist-tag:" + normalizeKey(name);
@@ -466,12 +482,14 @@ public class ClientDataManager {
             for (LoginListener lL : listeners) {
                 lL.onLogin(lD);
             }
+            ratingCache = new HashMap<String, Integer>();
         }
 
         public void triggerOnLogout() {
             for (LoginListener lL : listeners) {
                 lL.onLogout();
             }
+            ratingCache = null;
         }
     }
 
@@ -504,6 +522,9 @@ public class ClientDataManager {
                     rL.onRate(itemId, rating);
                 }
             }
+
+            // Add rating to cache
+            ratingCache.put(itemId, rating);
         }
     }
 

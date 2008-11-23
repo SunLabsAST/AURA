@@ -273,6 +273,19 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
 
             public void onSuccess(Object result) {
                 HashMap<String,Integer> map = (HashMap<String,Integer>)result;
+                cdm.setRatingInCache(map);
+
+                for (CompactArtistWidget caw : artistWidgetMap.values()) {
+                    if (map.containsKey(caw.getArtistId())) {
+                        caw.setNbrStarsSelected(map.get(caw.getArtistId()));
+                    // If it wasn't returned, we don't have a rating for it so
+                    // set it to zero in the cache
+                    } else {
+                        caw.setNbrStarsSelected(0);
+                        cdm.setRatingInCache(caw.getArtistId(), 0);
+                    }
+                }
+
                 for (String aId : map.keySet()) {
                     if (artistWidgetMap.containsKey(aId)) {
                         artistWidgetMap.get(aId).setNbrStarsSelected(map.get(aId));
@@ -288,13 +301,22 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
 
         if (cdm.getListenerDetails().isLoggedIn()) {
 
-            Set<String> artistIDs = new HashSet<String>();
+            HashSet<String> artistIDs = new HashSet<String>();
             for (ArtistCompact aC : aDArray) {
-                artistIDs.add(aC.getId());
+                int rating = cdm.getRatingFromCache(aC.getId());
+                // If we have artist rating in cache
+                if (rating > -1) {
+                    artistWidgetMap.get(aC.getId()).setNbrStarsSelected(rating);
+                // If not, we need to fetch it
+                } else {
+                    artistIDs.add(aC.getId());
+                }
             }
 
             try {
-                musicServer.fetchUserSongRating(artistIDs, callback);
+                if (!artistIDs.isEmpty()) {
+                    musicServer.fetchUserSongRating(artistIDs, callback);
+                }
             } catch (WebException ex) {
                 Window.alert(ex.getMessage());
             }
