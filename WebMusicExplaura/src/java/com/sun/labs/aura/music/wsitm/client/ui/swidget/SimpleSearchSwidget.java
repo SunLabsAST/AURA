@@ -26,7 +26,6 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistEvent;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistVideo;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -632,7 +631,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         html.setHTML(artistDetails.getBestArtistImageAsHTML() + artistDetails.getBiographySummary());
         html.setStyleName("bio");
 
-        artistStar = new StarRatingWidget(musicServer, cdm, artistDetails.getId(), StarRatingWidget.Size.MEDIUM);
+        artistStar = new StarRatingWidget(musicServer, cdm, artistDetails.getId(), StarRatingWidget.InitialRating.FETCH, StarRatingWidget.Size.MEDIUM);
         cdm.getLoginListenerManager().addListener(artistStar);
 
         HorizontalPanel hP = new HorizontalPanel();

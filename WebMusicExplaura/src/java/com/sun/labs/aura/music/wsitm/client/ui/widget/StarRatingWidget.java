@@ -31,9 +31,14 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
     private ClientDataManager cdm;
     private String artistID;
 
-    private int nbrStars = 5;
+    private final int NBR_STARS = 5;
     private int nbrSelectedStars = 0;
     private int oldNbrSelectedStars = nbrSelectedStars; // save to revert in case RPC call fails
+
+    /**
+     * If false, we are either displaying a loading image or nothing at all so we need to construct the whole widget
+     */
+    private boolean isInit = false;
 
     private String STAR_LID = "";
     private String STAR_NOTLID = "";
@@ -62,29 +67,36 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
         MEDIUM
     }
 
+    public enum InitialRating {
+        R0,R1,R2,R3,R4,R5,FETCH,DISPLAY_LOAD
+    }
+
+    /**
+     *
+     * @param musicServer
+     * @param cdm
+     * @param artistID
+     * @param size
+     * @param fetchRating If false, the stars will be a loading image and the setNbrStars function will need to be called
+     */
     public StarRatingWidget(MusicSearchInterfaceAsync musicServer, ClientDataManager cdm,
-            String artistID, Size size) {
+            String artistID, InitialRating rating, Size size) {
 
         g = new Grid(1, 1);
         initWidget(g);
 
         initializeRatingWidget(musicServer, cdm, artistID, -1, size);
-        if (cdm.isLoggedIn()) {
+        if (rating == InitialRating.FETCH && cdm.isLoggedIn()) {
+            drawWaitWidget();
             invokeFetchRating();
         } else {
-            drawRatingWidget();
+            if (rating == InitialRating.DISPLAY_LOAD) {
+                drawWaitWidget();
+            } else {
+                nbrSelectedStars = ratingEnumToInt(rating);
+                drawRatingWidget();
+            }
         }
-
-    }
-
-    public StarRatingWidget(MusicSearchInterfaceAsync musicServer, ClientDataManager cdm,
-            String artistID, int initialSelection, Size size) {
-
-        g = new Grid(1, 1);
-        initWidget(g);
-
-        initializeRatingWidget(musicServer, cdm, artistID, initialSelection, size);
-        drawRatingWidget();
     }
 
     private void initializeRatingWidget(MusicSearchInterfaceAsync musicServer, ClientDataManager cdm,
@@ -117,12 +129,18 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
         cdm.getLoginListenerManager().removeListener(this);
     }
 
+    private void drawWaitWidget() {
+        isInit = false;
+        g.setWidget(0, 0, new Image("ajax-loader-small.gif"));
+    }
+
     private void drawRatingWidget() {
 
+        isInit = true;
         FlowPanel p = new FlowPanel();
 
-        images = new Image[nbrStars];
-        for (int i=0; i<nbrStars; i++) {
+        images = new Image[NBR_STARS];
+        for (int i=0; i<NBR_STARS; i++) {
             if (i<=nbrSelectedStars-1) {
                 images[i] = new Image(STAR_NOTLID);
             } else {
@@ -204,8 +222,22 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
 
     }
 
+    public void setNbrSelectedStarsWithNoDbUpdate(int nbrSelected) {
+        if (nbrSelected > NBR_STARS) {
+            nbrSelected = NBR_STARS;
+        }
+
+        oldNbrSelectedStars = nbrSelectedStars;
+        nbrSelectedStars = nbrSelected;
+        if (isInit) {
+            redrawStars();
+        } else {
+            drawRatingWidget();
+        }
+    }
+
     private void redrawStars() {
-        for (int i = 0; i < nbrStars; i++) {
+        for (int i = 0; i < NBR_STARS; i++) {
             if (i <= nbrSelectedStars - 1) {
                 images[i].setUrl(STAR_NOTLID);
             } else {
@@ -247,5 +279,41 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
     public void onRate(String itemId, int rating) {
         nbrSelectedStars = rating;
         drawRatingWidget();
+    }
+
+    public static int ratingEnumToInt(InitialRating iR) {
+        if (iR == InitialRating.R0) {
+            return 0;
+        } else if (iR == InitialRating.R1) {
+            return 1;
+        } else if (iR == InitialRating.R2) {
+            return 2;
+        } else if (iR == InitialRating.R3) {
+            return 3;
+        } else if (iR == InitialRating.R4) {
+            return 4;
+        } else if (iR == InitialRating.R5) {
+            return 5;
+        } else {
+            return -1;
+        }
+    }
+
+    public static InitialRating intToRatingEnum(int rating) {
+        if (rating==0) {
+            return InitialRating.R0;
+        } else if (rating==1) {
+            return InitialRating.R1;
+        } else if (rating==2) {
+            return InitialRating.R2;
+        } else if (rating==3) {
+            return InitialRating.R3;
+        } else if (rating==4) {
+            return InitialRating.R4;
+        } else if (rating==5) {
+            return InitialRating.R4;
+        } else {
+            return InitialRating.FETCH;
+        }
     }
 }

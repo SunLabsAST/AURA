@@ -23,14 +23,11 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
-import com.sun.labs.aura.music.wsitm.client.ui.AnimatedComposite;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.StarRatingWidget.InitialRating;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -43,11 +40,10 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
     private MusicSearchInterfaceAsync musicServer;
     private ClientDataManager cdm;
 
+    private HashMap<String, CompactArtistWidget> artistWidgetMap;
+
     private ArtistCompact[] aDArray;
     private Double[] similarity;
-    private Map<String,Integer> ratingMap;
-
-    private List<CompactArtistWidget> artistWidgetList;
     
     private boolean displayDiff;
 
@@ -79,19 +75,20 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         
         this.musicServer = musicServer;
         this.cdm = cdm;
+        
         this.displayDiff = displayDiff;
         
-        artistWidgetList = new LinkedList<CompactArtistWidget>();
+        artistWidgetMap = new HashMap<String, CompactArtistWidget>();
 
         g = new Grid(1,1);
         initWidget(g);
         setWidth("300px");
 
         if (fetchRatings) {
+            g.setWidget(0, 0, getUpdatedPanel(null));
             invokeFetchRatings();
         } else {
-            ratingMap = new HashMap<String, Integer>();
-            g.setWidget(0, 0, getUpdatedPanel());
+            g.setWidget(0, 0, getUpdatedPanel(new HashMap<String, Integer>()));
         }
     }
     
@@ -126,13 +123,13 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
     }
 
     public void doRemoveListeners() {
-        for (CompactArtistWidget caw : artistWidgetList) {
+        for (CompactArtistWidget caw : artistWidgetMap.values()) {
             caw.doRemoveListeners();
         }
-        artistWidgetList.clear();
+        artistWidgetMap.clear();
     }
 
-    private Panel getUpdatedPanel() {
+    private Panel getUpdatedPanel(HashMap<String, Integer> ratingMap) {
 
         doRemoveListeners();
 
@@ -150,11 +147,15 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                 img.getElement().getStyle().setProperty("vertical-align", "top");
                 img.getElement().getStyle().setProperty("display", "none");
 
-                int rating;
-                if (ratingMap.containsKey(aC.getId())) {
-                    rating = ratingMap.get(aC.getId());
+                InitialRating rating;
+                if (ratingMap == null) {
+                    rating = InitialRating.DISPLAY_LOAD;
                 } else {
-                    rating = 0;
+                    if (ratingMap.containsKey(aC.getId())) {
+                        rating = StarRatingWidget.intToRatingEnum(ratingMap.get(aC.getId()));
+                    } else {
+                        rating = InitialRating.R0;
+                    }
                 }
 
                 PerformanceTimer.start("  alw - single artist widget");
@@ -175,7 +176,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                         dB, rating, null, this, backColor);
                 PerformanceTimer.stop("  alw - single artist widget");
 
-                artistWidgetList.add(caw);
+                artistWidgetMap.put(aC.getId(), caw);
 
                 DeletableWidget dW = new DeletableWidget<CompactArtistWidget>(caw, new HorizontalPanel()) {
 
@@ -271,13 +272,12 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
-                Map<String,Integer> map = (Map<String,Integer>)result;
-                if (map!=null) {
-                   ratingMap = map;
-                } else {
-                   ratingMap = new HashMap<String, Integer>();
+                HashMap<String,Integer> map = (HashMap<String,Integer>)result;
+                for (String aId : map.keySet()) {
+                    if (artistWidgetMap.containsKey(aId)) {
+                        artistWidgetMap.get(aId).setNbrStarsSelected(map.get(aId));
+                    }
                 }
-                g.setWidget(0, 0, getUpdatedPanel());
             }
 
             public void onFailure(Throwable caught) {
@@ -287,8 +287,6 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         };
 
         if (cdm.getListenerDetails().isLoggedIn()) {
-
-            g.setWidget(0, 0, new Image("ajax-loader.gif"));
 
             Set<String> artistIDs = new HashSet<String>();
             for (ArtistCompact aC : aDArray) {
@@ -301,8 +299,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                 Window.alert(ex.getMessage());
             }
         } else {
-            ratingMap = new HashMap<String, Integer>();
-            g.setWidget(0, 0, getUpdatedPanel());
+            g.setWidget(0, 0, getUpdatedPanel(new HashMap<String, Integer>()));
         }
     }
 
@@ -402,9 +399,9 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
 
         public OverWroteOnClickCompactArtistWidget(ArtistCompact aD, ClientDataManager cdm,
                 MusicSearchInterfaceAsync musicServer, SwapableTxtButton whyB,
-                SwapableTxtButton diffB, int currentRating, Set<String> userTags,
+                SwapableTxtButton diffB, InitialRating iR, Set<String> userTags,
                 ArtistListWidget aLW, String backColor) {
-            super(aD, cdm, musicServer, whyB, diffB, currentRating, userTags, backColor);
+            super(aD, cdm, musicServer, whyB, diffB, iR, userTags, backColor);
             this.aLW = aLW;
         }
 

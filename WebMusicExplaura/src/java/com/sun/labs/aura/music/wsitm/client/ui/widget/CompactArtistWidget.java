@@ -27,6 +27,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedFlowPanel;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.StarRatingWidget.InitialRating;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,14 +49,14 @@ public class CompactArtistWidget extends Composite implements HasListeners {
 
     public CompactArtistWidget(ArtistCompact aC, ClientDataManager cdm,
                 MusicSearchInterfaceAsync musicServer, SwapableTxtButton whyB,
-                SwapableTxtButton diffB, int currentRating, Set<String> userTags) {
+                SwapableTxtButton diffB, InitialRating iR, Set<String> userTags) {
         
-        this(aC, cdm, musicServer, whyB, diffB, currentRating, userTags, null);
+        this(aC, cdm, musicServer, whyB, diffB, iR, userTags, null);
     }
     
     public CompactArtistWidget(ArtistCompact aC, ClientDataManager cdm,
             MusicSearchInterfaceAsync musicServer, SwapableTxtButton whyB,
-            SwapableTxtButton diffB, int currentRating, Set<String> userTags,
+            SwapableTxtButton diffB, InitialRating iR, Set<String> userTags,
             String backgroundColor) {
 
         this.cdm = cdm;
@@ -103,7 +104,9 @@ public class CompactArtistWidget extends Composite implements HasListeners {
             buttonPanel.add(playButton);
         }
 
-        SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, new DualDataEmbededClickListener<ClientDataManager, ArtistCompact>(cdm, aC) {
+        SteeringWheelWidget steerButton = 
+                new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL,
+                new DualDataEmbededClickListener<ClientDataManager, ArtistCompact>(cdm, aC) {
 
             public void onClick(Widget arg0) {
                 data.setSteerableReset(true);
@@ -148,7 +151,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         txtPanel.add(tagsLabel);
 
         star = new StarRatingWidget(musicServer, cdm, aC.getId(),
-                currentRating, StarRatingWidget.Size.SMALL);
+                iR, StarRatingWidget.Size.SMALL);
 
         cdm.getRatingListenerManager().addListener(aC.getId(), star);
         cdm.getLoginListenerManager().addListener(star);
@@ -179,6 +182,10 @@ public class CompactArtistWidget extends Composite implements HasListeners {
             artistPanel.addStyleName("largeMarginBottom");
             initWidget(artistPanel);
         }
+    }
+
+    public void setNbrStarsSelected(int nbrStars) {
+        star.setNbrSelectedStarsWithNoDbUpdate(nbrStars);
     }
 
     public String getArtistId() {

@@ -284,7 +284,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             playList.add(pB);
 
             StarRatingWidget srw = new StarRatingWidget(musicServer, cdm,
-                    aC.getId(), StarRatingWidget.Size.SMALL);
+                    aC.getId(), StarRatingWidget.InitialRating.FETCH, StarRatingWidget.Size.SMALL);
             starList.add(srw);
 
             Grid g = new Grid(1, 4);
@@ -553,7 +553,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                     playButton.onDelete();
                 }
 
-                StarRatingWidget srw = new StarRatingWidget(musicServer, cdm, aD.getId(), StarRatingWidget.Size.MEDIUM);
+                StarRatingWidget srw = new StarRatingWidget(musicServer, cdm, aD.getId(), StarRatingWidget.InitialRating.FETCH, StarRatingWidget.Size.MEDIUM);
                 featArtTitle.setWidget(0, 1, srw);
 
                 HorizontalPanel hP = new HorizontalPanel();
@@ -632,7 +632,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                         for (AttentionItem<ArtistCompact> aI : arg0) {
 
                             CompactArtistWidget caw = new CompactArtistWidget(aI.getItem(), cdm,
-                                    musicServer, null, null, aI.getRating(), aI.getTags());
+                                    musicServer, null, null, StarRatingWidget.intToRatingEnum(aI.getRating()), aI.getTags());
                             sucessAL.add(caw);
                             artists.setWidget(lineIndex, (colIndex++)%2, caw);
 
