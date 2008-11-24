@@ -156,7 +156,7 @@ public class GridUtil {
             Collection<FileSystemMountParameters> extraMounts,
             boolean appendOutput) throws Exception {
         ProcessConfiguration pc = new ProcessConfiguration();
-        pc.setSystemSinks(String.format("%s/%s.out", logFSMntPnt,
+        pc.setSystemSinks(String.format("%s/other/%s.out", logFSMntPnt,
                 logName), appendOutput);
 
         //

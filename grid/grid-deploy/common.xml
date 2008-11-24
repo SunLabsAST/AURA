@@ -184,7 +184,7 @@
             <env key="ANT_HOME" value="/files/${ant.col}"/>
             <env key="JAVA_HOME" value="/usr/java"/>
             <!-- Specify the command line -->
-            <arg value="-Dservice.distribution=/files/dist/web/${service.distribution}"/>
+            <arg value="-Dservice.distribution=/files/dist/web/${deployment.name}/${service.distribution}"/>
             <arg value="-jar"/>
             <arg value="/files/${ant.col}/ant-launcher.jar"/>
             <arg value="-f"/>
@@ -314,7 +314,7 @@
             <env key="JAVA_HOME" value="/usr/java"/>
             <!-- Specify the command line -->
             <arg value="-Dservice.process=${service.process}"/>
-            <arg value="-Dwar.file=/files/dist/web/${war.file}"/>
+            <arg value="-Dwar.file=/files/dist/web/${deployment.name}/${war.file}"/>
             <arg value="-Dwar.path=${war.path}"/>
             <arg value="-Dservice.webapps=${service.webapps}"/>
             <arg value="-jar"/>
@@ -347,7 +347,7 @@
             <env key="JAVA_HOME" value="/usr/java"/>
             <!-- Specify the command line -->
             <arg value="-Dservice.process=${service.process}"/>
-            <arg value="-Dwar.file=/files/dist/web/${war.file}"/>
+            <arg value="-Dwar.file=/files/dist/web/${deployment.name}/${war.file}"/>
             <arg value="-Dwar.path=${war.path}"/>
             <arg value="-Dservice.webapps=${service.webapps}"/>
             <arg value="-jar"/>

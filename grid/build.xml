@@ -163,4 +163,14 @@
         <antcall target="jar"/>
         <!--<growl message="Grid Upload finished."/> -->
     </target>
+
+    <target name="upload-grid-jar" description="Uploads distribution files" depends="create-dist-collections,do-dist-jar-with-libraries">
+        <dav:put url="${dav.url}/${dist.col}" verbose="true" userid="${user}" password="${pw}" lock="false">
+            <!-- Distribution jar -->
+            <fileset dir="dist">
+                <include name="grid.jar"/>
+            </fileset>
+        </dav:put>
+        <!--<growl message="Grid Upload finished."/> -->
+    </target>
 </project>

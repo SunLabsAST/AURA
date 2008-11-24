@@ -13,7 +13,7 @@ import com.sun.labs.minion.engine.SearchEngineImpl;
 import com.sun.labs.minion.indexer.entry.DocKeyEntry;
 import com.sun.labs.minion.indexer.partition.InvFileDiskPartition;
 import com.sun.labs.minion.util.Getopt;
-import com.sun.labs.minion.util.StopWatch;
+import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.util.SimpleLabsLogFormatter;
 import java.io.File;
 import java.io.Serializable;
@@ -35,16 +35,23 @@ public class Reindexer implements IndexListener {
 
     private BerkeleyDataWrapper bdw;
 
-    public Reindexer(ItemSearchEngine engine) {
+    public Reindexer(ItemSearchEngine engine, boolean addAutoTags) {
         this.engine = engine;
-        this.engine.getSearchEngine().addIndexListener(this);
+        if(addAutoTags) {
+            this.engine.getSearchEngine().addIndexListener(this);
+        }
         logger = Logger.getLogger("");
     }
 
     public void reindex(String db) throws Exception {
         bdw = new BerkeleyDataWrapper(db, logger);
+        reindex(db, bdw);
+        bdw.close();
+    }
+
+    public void reindex(String db, BerkeleyDataWrapper bdw) throws Exception {
+        logger.info("Reindexing " + db);
         engine.redefineFields(bdw);
-        logger.info("Opened: " + db);
         for(ItemType type : ItemType.values()) {
             int count = 0;
             long total = bdw.getItemCount(type);
@@ -66,7 +73,6 @@ public class Reindexer implements IndexListener {
 
         }
         engine.getSearchEngine().flush();
-        bdw.close();
     }
 
     public void partitionAdded(SearchEngine e, Set<Object> keys) {
@@ -131,14 +137,17 @@ public class Reindexer implements IndexListener {
 
     public static void main(String[] args) throws Exception {
 
-        String flags = "d:b:o:";
+        String flags = "ad:b:o:";
         Getopt gopt = new Getopt(args, flags);
         List<String> dbs = new ArrayList<String>();
         String indexDir = null;
         String oldDir = null;
+        boolean addAutoTags = false;
         int c;
         while((c = gopt.getopt()) != -1) {
             switch(c) {
+                case 'a':
+                    addAutoTags = true;
                 case 'd':
                     indexDir = gopt.optArg;
                     break;
@@ -153,7 +162,7 @@ public class Reindexer implements IndexListener {
 
         if(indexDir == null || dbs.size() == 0) {
             System.err.println(
-                    "Usage:  Reindexer -d <index dir> -b <bdb dir> [-b <bdb dir>] [-o <old dir>]...");
+                    "Usage:  Reindexer -a -d <index dir> -b <bdb dir> [-b <bdb dir>] [-o <old dir>]...");
             return;
         }
         //
@@ -165,12 +174,12 @@ public class Reindexer implements IndexListener {
 
         Log.setLogger(logger);
         Log.setLevel(3);
-        StopWatch sw = new StopWatch();
+        NanoWatch sw = new NanoWatch();
         sw.start();
 
         ItemSearchEngine engine = new ItemSearchEngine(indexDir,
                 "/com/sun/labs/aura/util/resource/reindexConfig.xml");
-        Reindexer re = new Reindexer(engine);
+        Reindexer re = new Reindexer(engine, addAutoTags);
         for(String db : dbs) {
             re.reindex(db);
         }
@@ -178,7 +187,7 @@ public class Reindexer implements IndexListener {
         engine.shutdown();
 
         sw.stop();
-        logger.info(String.format("Reindex took: %.2fs", sw.getTime() / 1000.0));
+        logger.info(String.format("Reindex took: %.2fs", sw.getTimeMillis() / 1000));
         if(oldDir == null) {
             return;
         }

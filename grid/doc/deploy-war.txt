@@ -28,7 +28,7 @@ For example, to deploy The Explaura as the root Web app on
 music.tastekeeper.com, you can say:
 
 cd <aura-checkout>/grid/bin
-./deployWar -n music -p / -w ../../WebMusicExplaura/dist/ROOT.war
+./deployWar -n music -p / -w ../../WebMusicExplaura/dist/WebMusicExplaura.war
 
 You can use any path as the value of the -p argument, for example:
 

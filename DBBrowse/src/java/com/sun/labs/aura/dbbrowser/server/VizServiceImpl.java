@@ -185,6 +185,7 @@ public class VizServiceImpl extends RemoteServiceServlet implements
             try {
                 for (Replicant.StatName name : Replicant.StatName.values()) {
                    statService.set(repStatName(prefix, name.toString()), 0);
+                   statService.setDouble(repStatName(prefix, name.toString()) + "-time", 0);
                 }
             } catch (RemoteException e) {
                 logger.log(Level.WARNING, "Failed to communicate with stats server", e);

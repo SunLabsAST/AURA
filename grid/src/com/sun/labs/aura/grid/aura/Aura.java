@@ -18,6 +18,7 @@ import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -216,8 +217,11 @@ public abstract class Aura extends ServiceAdapter {
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/resource/dataStoreHeadConfig.xml",
-            "dataStoreHeadStarter"
+            "dataStoreHeadStarter",
+            String.format("%s/dshead/dshead-%d.%%g.out", GridUtil.logFSMntPnt, instanceNumber)
         };
+
+        (new File(GridUtil.logFSMntPnt + "/dshead")).mkdir();
 
         ProcessConfiguration pc = gu.getProcessConfig(DataStoreHead.class.getName(), 
                 cmdLine, getDataStoreHeadName(instanceNumber));
@@ -239,7 +243,8 @@ public abstract class Aura extends ServiceAdapter {
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/util",
-            "replicantStarter"
+            "replicantStarter",
+            String.format("%s/rep/rep-%s.%%g.out", GridUtil.logFSMntPnt, prefix)
         };
 
         List<FileSystemMountParameters> extraMounts =
@@ -273,7 +278,8 @@ public abstract class Aura extends ServiceAdapter {
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/resource/dataStoreHeadConfig.xml",
-            "dataStoreHeadStarter"
+            "dataStoreHeadStarter",
+            String.format("%s/dshead/dshead-%d.%%g.out", GridUtil.logFSMntPnt, instanceNumber)
         };
 
         return gu.getProcessConfig(DataStoreHead.class.getName(), 
@@ -289,7 +295,8 @@ public abstract class Aura extends ServiceAdapter {
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/grid/aura/gpmConfig.xml",
-            "gpmStarter"
+            "gpmStarter",
+            String.format("%s/pm/pm.%%g.out", GridUtil.logFSMntPnt)
         };
 
         return gu.getProcessConfig(ProcessManager.class.getName(), 
@@ -316,7 +323,8 @@ public abstract class Aura extends ServiceAdapter {
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/resource/partitionClusterConfig.xml",
-            register ? "partitionClusterStarter" : "noRegPartitionClusterStarter"
+            register ? "partitionClusterStarter" : "noRegPartitionClusterStarter",
+            String.format("%s/pc/part-%s.%%g.out", GridUtil.logFSMntPnt, prefix),
         };
 
         ProcessConfiguration pc = gu.getProcessConfig(PartitionCluster.class.getName(), cmdLine, getPartitionName(prefix), null, false);
@@ -344,9 +352,10 @@ public abstract class Aura extends ServiceAdapter {
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/resource/partitionClusterConfig.xml",
-            "partitionClusterStarter"
+            "partitionClusterStarter",
+            String.format("%s/pc/part-%s.%%g.out", GridUtil.logFSMntPnt, prefix)
         };
-
+        
         ProcessConfiguration pc = gu.getProcessConfig(PartitionCluster.class.getName(),
                 cmdLine, getPartitionName(
                 prefix), null, true);
@@ -371,7 +380,8 @@ public abstract class Aura extends ServiceAdapter {
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             replicantConfig,
-            "replicantStarter"
+            "replicantStarter",
+            String.format("%s/rep/rep-%s.%%g.out", GridUtil.logFSMntPnt, prefix)
         };
 
         FileSystem fs = repFSMap.get(prefix);
@@ -405,7 +415,8 @@ public abstract class Aura extends ServiceAdapter {
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/resource/statServiceConfig.xml",
-            "statServiceStarter"
+            "statServiceStarter",
+            String.format("%s/other/stats.%%g.out", GridUtil.logFSMntPnt)
         };
 
         return gu.getProcessConfig(StatService.class.getName(), 
@@ -420,6 +431,12 @@ public abstract class Aura extends ServiceAdapter {
             getReplicantFileSystems();
         } catch(Exception ex) {
             logger.log(Level.SEVERE, "Error getting filesystems", ex);
+        }
+
+        //
+        // Make grid directories that we'll need.
+        for(String dir : new String[] {"dshead", "rep", "pc", "pm", "other"}) {
+            (new File(GridUtil.logFSMntPnt + "/" + dir)).mkdir();
         }
     }
 }
