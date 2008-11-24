@@ -1054,10 +1054,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         return bdb.getItemCount(type);
     }
 
-    public long getAttentionCount() {
-        return bdb.getAttentionCount();
-    }
-
     @Override
     public long getDBSize() {
         return bdb.getSize();
