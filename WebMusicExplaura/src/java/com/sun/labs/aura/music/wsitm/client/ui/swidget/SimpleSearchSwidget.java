@@ -172,7 +172,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
 
         if (!History.getToken().equals(historyName)) {
             curResultToken = historyName;
-            History.newItem(historyName);
+            History.newItem(historyName, false);
         }
         
         if (curResult != null) {
@@ -191,7 +191,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
     }
 
     private void clearResults() {
-        setResults("searchHome", null);
+        setResults("artist:",new Label(""));
     }
 
     public ArrayList<String> getTokenHeaders() {
@@ -268,12 +268,14 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             invokeTagSearchService(query, 0);
         } else if (resultName.startsWith("searchHome:")) {
             cdm.setCurrSearchWidgetToken("searchHome:");
-            setResults("searchHome", null);
+            History.newItem("searchHome:");
         }
     }
 
     @Override
     public void update(String historyToken) {
+        // Only update results if the history token is different than the
+        // currently loaded page
         if (!curResultToken.equals(historyToken)) {
             showResults(historyToken);
         }
@@ -493,7 +495,6 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
     }
 
     private Widget createArtistPanel(ArtistDetails artistDetails) {
-
         ArtistCompact aC = artistDetails.toArtistCompact();
 
         VerticalPanel main = new VerticalPanel();
@@ -895,9 +896,8 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
 
         @Override
         public void run() {
-            invokeGetArtistInfo(artistID, refresh);
+            History.newItem("artist:"+artistID);
         }
-
     }
 
     private class ItemInfoClickListener implements ClickListener {
@@ -912,9 +912,9 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
 
         public void onClick(Widget sender) {
             if (getArtistOnClick) {
-                invokeGetArtistInfo(info.getId(), false);
+                History.newItem("artist:"+info.getId());
             } else {
-                invokeGetTagInfo(info.getId(), false);
+                History.newItem("tag:"+info.getId());
             }
         }
     }

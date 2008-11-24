@@ -20,10 +20,12 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.event.DataEmbededAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.StarRatingWidget.InitialRating;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,7 +74,6 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
     
     private void doInit(MusicSearchInterfaceAsync musicServer,
             ClientDataManager cdm, boolean fetchRatings, boolean displayDiff) {
-        
         this.musicServer = musicServer;
         this.cdm = cdm;
         
@@ -113,13 +114,6 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
      */
     public void onTagClick(ItemInfo tag) {
         History.newItem("tag:"+tag.getId());
-    }
-
-    public void updateWidget(ArtistCompact[] aDArray) {
-        if (this.aDArray!=aDArray) {
-            this.aDArray = aDArray;
-        }
-        invokeFetchRatings();
     }
 
     public void doRemoveListeners() {
@@ -176,12 +170,13 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                         dB, rating, null, this, backColor);
                 PerformanceTimer.stop("  alw - single artist widget");
 
-                artistWidgetMap.put(aC.getId(), caw);
+                artistWidgetMap.put(caw.getArtistId(), caw);
 
                 DeletableWidget dW = new DeletableWidget<CompactArtistWidget>(caw, new HorizontalPanel()) {
 
                     public void onDelete() {
                         invokeAddNotInterested(getWidget().getArtistId());
+                        artistWidgetMap.remove(this.w.getArtistId());
                         this.getWidget().doRemoveListeners();
                         /*
                         this.slideOut(AnimatedComposite.SlideDirection.UP,
@@ -269,36 +264,6 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
 
     private void invokeFetchRatings() {
 
-        AsyncCallback callback = new AsyncCallback() {
-
-            public void onSuccess(Object result) {
-                HashMap<String,Integer> map = (HashMap<String,Integer>)result;
-                cdm.setRatingInCache(map);
-
-                for (CompactArtistWidget caw : artistWidgetMap.values()) {
-                    if (map.containsKey(caw.getArtistId())) {
-                        caw.setNbrStarsSelected(map.get(caw.getArtistId()));
-                    // If it wasn't returned, we don't have a rating for it so
-                    // set it to zero in the cache
-                    } else {
-                        caw.setNbrStarsSelected(0);
-                        cdm.setRatingInCache(caw.getArtistId(), 0);
-                    }
-                }
-
-                for (String aId : map.keySet()) {
-                    if (artistWidgetMap.containsKey(aId)) {
-                        artistWidgetMap.get(aId).setNbrStarsSelected(map.get(aId));
-                    }
-                }
-            }
-
-            public void onFailure(Throwable caught) {
-                Window.alert(caught.toString());
-                Window.alert("Error fetching ratings.");
-            }
-        };
-
         if (cdm.getListenerDetails().isLoggedIn()) {
 
             HashSet<String> artistIDs = new HashSet<String>();
@@ -313,6 +278,33 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                 }
             }
 
+            DataEmbededAsyncCallback<HashSet<String>, HashMap<String, Integer>> callback =
+                    new DataEmbededAsyncCallback<HashSet<String>, HashMap<String, Integer>>(artistIDs) {
+
+                public void onSuccess(HashMap<String, Integer> map) {
+
+                    cdm.setRatingInCache(map);
+
+                    // Go through list of ids we asked to get a rating for. If
+                    // nothing got returned, we don't have a rating for the artist
+                    for (String id : data) {
+                        if (map.containsKey(id)) {
+                            artistWidgetMap.get(id).setNbrStarsSelected(map.get(id));
+                        // If it wasn't returned, we don't have a rating for it so
+                        // set it to zero in the cache
+                        } else {
+                            artistWidgetMap.get(id).setNbrStarsSelected(0);
+                            cdm.setRatingInCache(id, 0);
+                        }
+                    }
+                }
+
+                public void onFailure(Throwable caught) {
+                    Window.alert(caught.toString());
+                    Window.alert("Error fetching ratings.");
+                }
+            };
+
             try {
                 if (!artistIDs.isEmpty()) {
                     musicServer.fetchUserSongRating(artistIDs, callback);
@@ -320,6 +312,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
             } catch (WebException ex) {
                 Window.alert(ex.getMessage());
             }
+
         } else {
             g.setWidget(0, 0, getUpdatedPanel(new HashMap<String, Integer>()));
         }

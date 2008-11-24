@@ -185,7 +185,9 @@ public class CompactArtistWidget extends Composite implements HasListeners {
     }
 
     public void setNbrStarsSelected(int nbrStars) {
-        star.setNbrSelectedStarsWithNoDbUpdate(nbrStars);
+        if (star != null) {
+            star.setNbrSelectedStarsWithNoDbUpdate(nbrStars);
+        }
     }
 
     public String getArtistId() {

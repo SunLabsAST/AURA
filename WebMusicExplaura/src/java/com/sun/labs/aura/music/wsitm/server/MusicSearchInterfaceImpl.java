@@ -419,7 +419,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public HashMap<String,Integer> fetchUserSongRating(Set<String> artistID) throws WebException {
+    public HashMap<String, Integer> fetchUserSongRating(HashSet<String> artistID) throws WebException {
 
         String userId = getOpenIdFromSession();
         logger.info("fetchUserSongRating :: user:"+userId+" and set of artists");

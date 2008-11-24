@@ -44,7 +44,7 @@ public interface MusicSearchInterfaceAsync {
        public void updateListener(ListenerDetails lD, AsyncCallback callback) throws WebException;
        public void updateUserSongRating(int rating, String artistID, AsyncCallback callback) throws WebException;
        public void fetchUserSongRating(String artistID, AsyncCallback callback) throws WebException;
-       public void fetchUserSongRating(Set<String> artistID, AsyncCallback<HashMap<String,Integer>> callback) throws WebException;
+       public void fetchUserSongRating(HashSet<String> artistID, AsyncCallback<HashMap<String,Integer>> callback) throws WebException;
        public void terminateSession(AsyncCallback callback);
        public void getSimTypes(AsyncCallback<HashMap<String, String>> callback) throws WebException;
        public void getArtistRecommendationTypes(AsyncCallback<HashMap<String, String>> callback);
