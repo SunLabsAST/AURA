@@ -44,7 +44,7 @@ public interface MusicSearchInterfaceAsync {
        public void updateListener(ListenerDetails lD, AsyncCallback callback) throws WebException;
        public void updateUserSongRating(int rating, String artistID, AsyncCallback callback) throws WebException;
        public void fetchUserSongRating(String artistID, AsyncCallback callback) throws WebException;
-       public void fetchUserSongRating(Set<String> artistID, AsyncCallback<HashMap<String,Integer>> callback) throws WebException;
+       public void fetchUserSongRating(HashSet<String> artistID, AsyncCallback<HashMap<String,Integer>> callback) throws WebException;
        public void terminateSession(AsyncCallback callback);
        public void getSimTypes(AsyncCallback<HashMap<String, String>> callback) throws WebException;
        public void getArtistRecommendationTypes(AsyncCallback<HashMap<String, String>> callback);
@@ -55,9 +55,9 @@ public interface MusicSearchInterfaceAsync {
        public void addNotInterestedAttention(String artistId, AsyncCallback callback) throws WebException;
        public void fetchUserTagsForItem(String itemId, AsyncCallback<HashSet<String>> callback) throws WebException;
        public void getArtistCompact(String artistId, AsyncCallback callback) throws WebException;
-       public void getLastRatedArtists(int count, AsyncCallback<ArrayList<AttentionItem>> callback) throws WebException;
-       public void getLastTaggedArtists(int count, AsyncCallback<ArrayList<AttentionItem>> callback) throws WebException;
-       public void getLastPlayedArtists(int count, AsyncCallback<ArrayList<AttentionItem>> callback) throws WebException;
+       public void getLastRatedArtists(int count, boolean returnDistinct, AsyncCallback<ArrayList<AttentionItem<ArtistCompact>>> callback) throws WebException;
+       public void getLastTaggedArtists(int count, boolean returnDistinct, AsyncCallback<ArrayList<AttentionItem<ArtistCompact>>> callback) throws WebException;
+       public void getLastPlayedArtists(int count, boolean returnDistinct, AsyncCallback<ArrayList<AttentionItem<ArtistCompact>>> callback) throws WebException;
        public void getSimilarTags(String tagId, AsyncCallback<ItemInfo[]> callback) throws WebException;
        public void getRecommendations(String recTypeName, int cnt, AsyncCallback<ArrayList<ArtistRecommendation>> callback) throws WebException;
        public void getServerInfo(AsyncCallback<ServerInfoItem> callback) throws WebException;

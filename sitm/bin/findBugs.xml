@@ -14,7 +14,7 @@
     <AuxClasspathEntry>Libraries/jaxen-jdom.jar</AuxClasspathEntry>
     <AuxClasspathEntry>Libraries/jdom.jar</AuxClasspathEntry>
     <AuxClasspathEntry>Libraries/je-3.2.44.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>Libraries/LabsUtil.jar</AuxClasspathEntry>
+    <AuxClasspathEntry>Libraries/slcut.jar</AuxClasspathEntry>
     <AuxClasspathEntry>Libraries/minion.jar</AuxClasspathEntry>
     <AuxClasspathEntry>Libraries/rome-0.9.jar</AuxClasspathEntry>
     <AuxClasspathEntry>Libraries/rome-fetcher-0.9.jar</AuxClasspathEntry>

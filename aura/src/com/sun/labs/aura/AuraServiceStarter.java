@@ -112,7 +112,7 @@ public class AuraServiceStarter implements Configurable {
             // removing all of the other handlers.
             try {
                 FileHandler fh =
-                        new FileHandler(args[2], 10000000, 5, true);
+                        new FileHandler(args[2], 30000000, 5, true);
                 for(Handler h : rl.getHandlers()) {
                     rl.removeHandler(h);
                 }

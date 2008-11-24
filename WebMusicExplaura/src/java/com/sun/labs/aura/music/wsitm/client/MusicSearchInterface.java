@@ -21,7 +21,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,7 +51,7 @@ public interface MusicSearchInterface extends RemoteService {
     public ItemInfo[] getDistinctiveTags(String artistID, int count) throws WebException;
     public ArrayList<ScoredC<ArtistCompact>> getSteerableRecommendations(Map<String, Double> tagMap, String popularity) throws WebException;    
     
-    public HashMap<String,Integer> fetchUserSongRating(Set<String> artistID) throws WebException;
+    public HashMap<String,Integer> fetchUserSongRating(HashSet<String> artistID) throws WebException;
     public void terminateSession();
     public ListenerDetails getLogInDetails() throws WebException;
     public ListenerDetails getNonOpenIdLogInDetails(String userKey) throws WebException;
@@ -62,9 +62,9 @@ public interface MusicSearchInterface extends RemoteService {
     public void addNotInterestedAttention(String artistId) throws WebException;    
     public Set<String> fetchUserTagsForItem(String itemId) throws WebException;
     public void addUserTagsForItem(String itemId, Set<String> tag) throws WebException;
-    public List<AttentionItem> getLastRatedArtists(int count) throws WebException;
-    public List<AttentionItem> getLastTaggedArtists(int count) throws WebException;
-    public List<AttentionItem> getLastPlayedArtists(int count) throws WebException;
+    public ArrayList<AttentionItem<ArtistCompact>> getLastRatedArtists(int count, boolean returnDistinct) throws WebException;
+    public ArrayList<AttentionItem<ArtistCompact>> getLastTaggedArtists(int count, boolean returnDistinct) throws WebException;
+    public ArrayList<AttentionItem<ArtistCompact>> getLastPlayedArtists(int count, boolean returnDistinct) throws WebException;
     public ItemInfo[] getSimilarTags(String tagId) throws WebException;
     public ArrayList<ArtistRecommendation> getRecommendations(String recTypeName, int cnt) throws WebException;
     public ServerInfoItem getServerInfo() throws WebException;

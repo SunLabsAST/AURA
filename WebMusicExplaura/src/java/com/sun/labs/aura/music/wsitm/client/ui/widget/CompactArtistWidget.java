@@ -4,8 +4,6 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
-import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.Event;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
@@ -13,7 +11,6 @@ import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Random;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -26,11 +23,11 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget.SwapableTxtButton;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
-import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.ArtistDependentSharedMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedFlowPanel;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.StarRatingWidget.InitialRating;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,14 +49,14 @@ public class CompactArtistWidget extends Composite implements HasListeners {
 
     public CompactArtistWidget(ArtistCompact aC, ClientDataManager cdm,
                 MusicSearchInterfaceAsync musicServer, SwapableTxtButton whyB,
-                SwapableTxtButton diffB, int currentRating, Set<String> userTags) {
+                SwapableTxtButton diffB, InitialRating iR, Set<String> userTags) {
         
-        this(aC, cdm, musicServer, whyB, diffB, currentRating, userTags, null);
+        this(aC, cdm, musicServer, whyB, diffB, iR, userTags, null);
     }
     
     public CompactArtistWidget(ArtistCompact aC, ClientDataManager cdm,
             MusicSearchInterfaceAsync musicServer, SwapableTxtButton whyB,
-            SwapableTxtButton diffB, int currentRating, Set<String> userTags,
+            SwapableTxtButton diffB, InitialRating iR, Set<String> userTags,
             String backgroundColor) {
 
         this.cdm = cdm;
@@ -95,11 +92,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         aNamePanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
         aNamePanel.setWidth("210px");
         
-        ContextMenuSpannedLabel aName = new ContextMenuArtistLabel(aC, cdm);
-        aName.addClickListener(cL);
-        aName.addStyleName("image");        
-
-        aNamePanel.add(aName);
+        aNamePanel.add(new ContextMenuArtistLabel(aC, cdm));
 
         HorizontalPanel buttonPanel = new HorizontalPanel();
         buttonPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
@@ -111,7 +104,9 @@ public class CompactArtistWidget extends Composite implements HasListeners {
             buttonPanel.add(playButton);
         }
 
-        SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, new DualDataEmbededClickListener<ClientDataManager, ArtistCompact>(cdm, aC) {
+        SteeringWheelWidget steerButton = 
+                new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL,
+                new DualDataEmbededClickListener<ClientDataManager, ArtistCompact>(cdm, aC) {
 
             public void onClick(Widget arg0) {
                 data.setSteerableReset(true);
@@ -156,7 +151,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         txtPanel.add(tagsLabel);
 
         star = new StarRatingWidget(musicServer, cdm, aC.getId(),
-                currentRating, StarRatingWidget.Size.SMALL);
+                iR, StarRatingWidget.Size.SMALL);
 
         cdm.getRatingListenerManager().addListener(aC.getId(), star);
         cdm.getLoginListenerManager().addListener(star);
@@ -186,6 +181,12 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         } else {
             artistPanel.addStyleName("largeMarginBottom");
             initWidget(artistPanel);
+        }
+    }
+
+    public void setNbrStarsSelected(int nbrStars) {
+        if (star != null) {
+            star.setNbrSelectedStarsWithNoDbUpdate(nbrStars);
         }
     }
 
@@ -351,27 +352,4 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         }
     }*/
 
-    private class ContextMenuArtistLabel extends ContextMenuSpannedLabel {
-
-        protected ArtistCompact aC;
-
-        public ContextMenuArtistLabel(ArtistCompact aC, ClientDataManager cdm) {
-            super(aC.getName(), cdm.getSharedArtistMenu());
-            this.aC = aC;
-        }
-
-        @Override
-        public void onBrowserEvent(Event event) {
-            if (event.getTypeInt() == Event.ONCONTEXTMENU) {
-                try {
-                    DOM.eventPreventDefault(event);
-                    ((ArtistDependentSharedMenu)cm).showAt(event, aC);
-                } catch (WebException ex) {
-                    Window.alert(ex.toString());
-                }
-            } else {
-                super.onBrowserEvent(event);
-            }
-        }
-    }
 }

@@ -199,25 +199,31 @@ public class Main implements EntryPoint, HistoryListener {
     }
 
     private void setResults(String historyName, Swidget newSwidget) {
+
+        // If we are loading the same swidget, just notify it that a new history
+        // event occurent in case it needs to change its internal state
         if (curSwidget == newSwidget) {
+            curSwidget.update(historyName);
             return;
         }
 
         if (!History.getToken().equals(historyName)) {
-            History.newItem(historyName);
+            History.newItem(historyName, false);
             curToken = historyName;
         } else if (newSwidget.getTokenHeaders().contains(getResultNameHeader(historyName))) {
             curToken = historyName;
         }
 
+        // Unload current swidget
         if (curSwidget != null) {
             contentPanel.remove(curSwidget);
             cdm.unregisterSwidget(curSwidget);
             curSwidget = null;
         }
 
+        // Load new swidget
         if (newSwidget != null) {
-            newSwidget.update();
+            newSwidget.update(historyName);
             contentPanel.add(newSwidget);
             cdm.registerSwidget(newSwidget);
             curSwidget = newSwidget;

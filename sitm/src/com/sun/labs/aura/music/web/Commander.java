@@ -46,6 +46,7 @@ public class Commander {
     private int commandsSent = 0;
     private int timeout = -1;
     private int tryCount = 5;
+    private final int DEFAULT_TIMEOUT = 60 * 1000;
 
     public Commander(String name, String prefix, String suffix) throws IOException {
         this.name = name;
@@ -71,6 +72,7 @@ public class Commander {
                 System.err.println("Can't open " + logname);
             }
         }
+        setTimeout(DEFAULT_TIMEOUT);
     }
 
     public void setTraceSends(boolean traceSends) {

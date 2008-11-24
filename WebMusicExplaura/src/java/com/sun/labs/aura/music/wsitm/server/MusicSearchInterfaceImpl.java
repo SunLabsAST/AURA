@@ -419,7 +419,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public HashMap<String,Integer> fetchUserSongRating(Set<String> artistID) throws WebException {
+    public HashMap<String, Integer> fetchUserSongRating(HashSet<String> artistID) throws WebException {
 
         String userId = getOpenIdFromSession();
         logger.info("fetchUserSongRating :: user:"+userId+" and set of artists");
@@ -521,34 +521,41 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
-    public ArrayList<AttentionItem> getLastTaggedArtists(int count) throws WebException {
-        return getLastAttentionArtists(count, Type.TAG, true);
+    public ArrayList<AttentionItem<ArtistCompact>> getLastTaggedArtists(int count, boolean returnDistinct) throws WebException {
+        return getLastAttentionArtists(count, Type.TAG, true, returnDistinct);
     }
 
-    public ArrayList<AttentionItem> getLastRatedArtists(int count) throws WebException {
-        return getLastAttentionArtists(count, Type.RATING, true);
+    public ArrayList<AttentionItem<ArtistCompact>> getLastRatedArtists(int count, boolean returnDistinct) throws WebException {
+        return getLastAttentionArtists(count, Type.RATING, true, returnDistinct);
     }
 
-    public ArrayList<AttentionItem> getLastPlayedArtists(int count) throws WebException {
-        return getLastAttentionArtists(count, Type.PLAYED, true);
+    public ArrayList<AttentionItem<ArtistCompact>> getLastPlayedArtists(int count, boolean returnDistinct) throws WebException {
+        return getLastAttentionArtists(count, Type.PLAYED, true, returnDistinct);
     }
 
-    public ArrayList<AttentionItem> getLastAttentionArtists(int count, Type attentionType, boolean fetchUserTags) throws WebException {
+    public ArrayList<AttentionItem<ArtistCompact>> getLastAttentionArtists(int count, Type attentionType, boolean fetchUserTags, boolean returnDistinct) throws WebException {
 
         String userId = getOpenIdFromSession();
         logger.info("getLastAttentionArtists :: user:"+userId+" attention:"+attentionType.toString());
 
         try {
-            ArrayList<AttentionItem> aI = new ArrayList<AttentionItem>();
+            ArrayList<AttentionItem<ArtistCompact>> aI = new ArrayList<AttentionItem<ArtistCompact>>();
             Set<String> artistIds = new HashSet<String>();
 
-            List<Attention> att = dm.getLastAttentionData(userId, attentionType, count * 2);
+            int mult = 1;
+            // If we want distinct results, fetch more in case we have to throw away some
+            if (returnDistinct) {
+                mult = 2;
+            }
+
+            List<Attention> att = dm.getLastAttentionData(userId, attentionType, count * mult);
             for (Attention a : att) {
-                if (!artistIds.contains(a.getTargetKey())) {
+                if (!returnDistinct || (returnDistinct && !artistIds.contains(a.getTargetKey()))) {
                     AttentionItem newAi = new AttentionItem(getArtistCompact(a.getTargetKey()));
                     if (fetchUserTags) {
                         newAi.setTags(fetchUserTagsForItem(a.getTargetKey()));
                     }
+                    newAi.setDate(a.getTimeStamp());
                     aI.add(newAi);
                     artistIds.add(a.getTargetKey());
                     

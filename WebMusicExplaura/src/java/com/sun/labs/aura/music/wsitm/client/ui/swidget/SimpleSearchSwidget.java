@@ -18,7 +18,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.TagInputWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.Updatable;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.SteeringWheelWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget;
-import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistPhoto;
 import com.sun.labs.aura.music.wsitm.client.items.AlbumDetails;
@@ -27,15 +26,12 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistEvent;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistVideo;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
-import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -51,7 +47,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searc
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
-import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
@@ -64,7 +59,7 @@ import org.adamtacy.client.ui.effects.impl.Fade;
  *
  * @author plamere
  */
-public class SimpleSearchSwidget extends Swidget implements HistoryListener, HasListeners {
+public class SimpleSearchSwidget extends Swidget implements HasListeners {
 
     private Widget curResult;
     private String curResultToken = "";
@@ -86,7 +81,6 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
     public SimpleSearchSwidget(ClientDataManager cdm) {
         super("Simple Search", cdm);
         try {
-            History.addHistoryListener(this);
             initWidget(getWidget());
             showResults(History.getToken());
         } catch (Exception e) {
@@ -178,7 +172,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
         if (!History.getToken().equals(historyName)) {
             curResultToken = historyName;
-            History.newItem(historyName);
+            History.newItem(historyName, false);
         }
         
         if (curResult != null) {
@@ -197,7 +191,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
     }
 
     private void clearResults() {
-        setResults("searchHome", null);
+        setResults("artist:",new Label(""));
     }
 
     public ArrayList<String> getTokenHeaders() {
@@ -274,11 +268,14 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
             invokeTagSearchService(query, 0);
         } else if (resultName.startsWith("searchHome:")) {
             cdm.setCurrSearchWidgetToken("searchHome:");
-            setResults("searchHome", null);
+            History.newItem("searchHome:");
         }
     }
 
-    public void onHistoryChanged(String historyToken) {
+    @Override
+    public void update(String historyToken) {
+        // Only update results if the history token is different than the
+        // currently loaded page
         if (!curResultToken.equals(historyToken)) {
             showResults(historyToken);
         }
@@ -498,7 +495,6 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
     }
 
     private Widget createArtistPanel(ArtistDetails artistDetails) {
-
         ArtistCompact aC = artistDetails.toArtistCompact();
 
         VerticalPanel main = new VerticalPanel();
@@ -636,7 +632,7 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
         html.setHTML(artistDetails.getBestArtistImageAsHTML() + artistDetails.getBiographySummary());
         html.setStyleName("bio");
 
-        artistStar = new StarRatingWidget(musicServer, cdm, artistDetails.getId(), StarRatingWidget.Size.MEDIUM);
+        artistStar = new StarRatingWidget(musicServer, cdm, artistDetails.getId(), StarRatingWidget.InitialRating.FETCH, StarRatingWidget.Size.MEDIUM);
         cdm.getLoginListenerManager().addListener(artistStar);
 
         HorizontalPanel hP = new HorizontalPanel();
@@ -900,9 +896,8 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
         @Override
         public void run() {
-            invokeGetArtistInfo(artistID, refresh);
+            History.newItem("artist:"+artistID);
         }
-
     }
 
     private class ItemInfoClickListener implements ClickListener {
@@ -917,9 +912,9 @@ public class SimpleSearchSwidget extends Swidget implements HistoryListener, Has
 
         public void onClick(Widget sender) {
             if (getArtistOnClick) {
-                invokeGetArtistInfo(info.getId(), false);
+                History.newItem("artist:"+info.getId());
             } else {
-                invokeGetTagInfo(info.getId(), false);
+                History.newItem("tag:"+info.getId());
             }
         }
     }

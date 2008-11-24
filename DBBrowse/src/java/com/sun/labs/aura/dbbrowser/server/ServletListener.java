@@ -51,6 +51,8 @@ public class ServletListener implements ServletContextListener {
             ServletContext context = sce.getServletContext();
         ConfigurationManager cm =
                 (ConfigurationManager) context.getAttribute("configManager");
-        cm.shutdown();
+        if(cm != null) {
+            cm.shutdown();
+        }
     }
 }
