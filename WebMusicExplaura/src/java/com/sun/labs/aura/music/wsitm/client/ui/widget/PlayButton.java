@@ -15,6 +15,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.SourcesClickEvents;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.event.MusicProviderSwitchListener;
@@ -33,11 +34,14 @@ import com.sun.labs.aura.music.wsitm.client.ui.SharedPlayButtonMenu;
  * @author mailletf
  */
 public class PlayButton extends Composite implements MusicProviderSwitchListener, 
-        SourcesRightClickEvents, HasContextMenu {
+        SourcesClickEvents, SourcesRightClickEvents, HasContextMenu {
 
     private static SharedPlayButtonMenu cm;
     private MusicSearchInterfaceAsync musicServer;
+
+    private ClickListenerCollection clickListeners;
     private ClickListenerCollection rightClickListeners;
+
     private ClientDataManager cdm;
     private ArtistCompact aC;
     private PLAY_ICON_SIZE size;
@@ -82,7 +86,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         setNewButton(cdm.getCurrPreferedMusicProvider());
         initWidget(mainbutton);
         
-        sinkEvents(Event.ONCONTEXTMENU);
+        sinkEvents(Event.ONCLICK | Event.ONCONTEXTMENU);
         rightClickListeners = new ClickListenerCollection();
     }
     
@@ -145,6 +149,12 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
             cm.showAt(event, aC);
             rightClickListeners.fireClick(this);
         } else {
+            // Fire our own click listeners if we have any and then pass on event
+            if (event.getTypeInt() == Event.ONCLICK) {
+                if (clickListeners != null) {
+                    clickListeners.fireClick(this);
+                }
+            }
             super.onBrowserEvent(event);
         }
     }
@@ -158,7 +168,21 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
             rightClickListeners.remove(listener);
         }
     }
-    
+
+    public void addClickListener(ClickListener listener) {
+        if (clickListeners == null) {
+            clickListeners = new ClickListenerCollection();
+        }
+        clickListeners.add(listener);
+    }
+
+    public void removeClickListener(ClickListener listener) {
+        if (clickListeners != null) {
+            clickListeners.remove(listener);
+        }
+    }
+
+
     public ContextMenu getContextMenu() {
         return cm;
     }

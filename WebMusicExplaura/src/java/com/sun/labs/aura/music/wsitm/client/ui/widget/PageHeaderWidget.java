@@ -23,6 +23,7 @@ import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
+import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListener;
@@ -31,6 +32,8 @@ import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
+import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
@@ -40,6 +43,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracl
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  *
@@ -61,7 +65,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
     private MainMenu mm;
     private PlayButton playButton;
 
-    private Widget instantRecPlayWidget;
+    private InstantRecPlayWidget instantRecPlayWidget;
 
     private SearchWidget search;
     private FlowPanel searchBoxContainerPanel;
@@ -376,7 +380,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             buttonsPanel.add(steerable);
 
             // Plays a random recommendation
-            instantRecPlayWidget = getInstantRecPlayWidget();
+            instantRecPlayWidget = new InstantRecPlayWidget();
             if (instantRecPlayWidget != null) {
                 buttonsPanel.add(instantRecPlayWidget);
             }
@@ -386,33 +390,6 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         } else {
             populateLoginBox();
         }
-    }
-
-    private Widget getInstantRecPlayWidget() {
-        ArtistCompact[] aC = cdm.getListenerDetails().getRecommendations();
-        if (aC != null && aC.length > 0) {
-            int itemIndex = Random.nextInt(aC.length);
-            int iterations = 0;
-            while (iterations++ < 2 * aC.length) {
-                if (aC[itemIndex].getSpotifyId() != null && aC[itemIndex].getSpotifyId().length() > 0) {
-
-                    ClickListener cL = new ClickListener() {
-                        public void onClick(Widget arg0) {
-                            instantRecPlayWidget = getInstantRecPlayWidget();
-                            Window.alert("Implement recent played trigger");
-                        }
-                    };
-
-                    if (playButton != null) {
-                        playButton.onDelete();
-                    }
-                    playButton = new PlayButton(cdm, aC[itemIndex], PlayButton.PLAY_ICON_SIZE.SMALL, musicServer);
-                    cdm.getMusicProviderSwitchListenerManager().addListener(playButton);
-                    return playButton;
-                }
-            }
-        }
-        return null;
     }
 
     /**
@@ -561,6 +538,55 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         }
     }
 
+    private class InstantRecPlayWidget extends Composite implements HasListeners {
+
+        private ArrayList<ArtistCompact> aCList;
+        private Grid g;
+        private int currIndex = 0;
+
+        public InstantRecPlayWidget() {
+
+            // Insert recommendations in list in random order
+            aCList = new ArrayList<ArtistCompact>();
+            int l = 0;
+            for (ArtistCompact aC : cdm.getListenerDetails().getRecommendations()) {
+                aCList.add(Random.nextInt(l++), aC);
+            }
+
+            g = new Grid(1,1);
+            setNextRec(this);
+            initWidget(g);
+        }
+
+        private void setNextRec(InstantRecPlayWidget w) {
+
+            if (currIndex>=aCList.size()) {
+                g.setWidget(0, 0, new Label(""));
+            } else {
+                PlayButton pB = new PlayButton(cdm, aCList.get(currIndex++),
+                        PlayButton.PLAY_ICON_SIZE.SMALL, musicServer);
+                cdm.getMusicProviderSwitchListenerManager().addListener(pB);
+                // Add click listener that will change recommendation on click
+                pB.addClickListener(new DataEmbededClickListener<InstantRecPlayWidget>(w) {
+
+                    public void onClick(Widget sender) {
+                        data.setNextRec(data);
+                    }
+                });
+                doRemoveListeners();
+                g.setWidget(0, 0, pB);
+            }
+        }
+
+        public void doRemoveListeners() {
+            Widget w = g.getWidget(0, 0);
+            if (w instanceof PlayButton) {
+                ((PlayButton)w).onDelete();
+            }
+        }
+
+    }
+
     public class MainMenu extends Composite implements LoginListener {
 
         private Grid p;
@@ -603,6 +629,11 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
         public void onLogout() {
             loggedIn = false;
+
+            if (instantRecPlayWidget != null) {
+                instantRecPlayWidget.doRemoveListeners();
+            }
+
             update();
         }
 
