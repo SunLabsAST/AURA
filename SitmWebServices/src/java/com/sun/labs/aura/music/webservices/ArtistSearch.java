@@ -4,7 +4,6 @@
  */
 package com.sun.labs.aura.music.webservices;
 
-import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.webservices.ItemFormatter.OutputType;
@@ -13,26 +12,21 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.io.*;
 
+import java.rmi.RemoteException;
 import java.util.List;
-import javax.servlet.*;
 import javax.servlet.http.*;
 
 /**
  *
  * @author plamere
  */
-public class ArtistSearch extends HttpServlet {
-
-    private final static String SERVLET_NAME = "ArtistSearch";
-    private ParameterChecker pc = null;
+public class ArtistSearch extends StandardService {
 
     @Override
-    public void init() throws ServletException {
-        super.init();
-        pc = new ParameterChecker(SERVLET_NAME, "searches the database for an artist");
-        pc.addParam("name", "the name of the artist to search for");
-        pc.addParam("max", "20", "the maximum number of matches to return");
-        pc.addParam("outputType", OutputType.Tiny.name(), "the type of output");
+    public void initParams() {
+        addParam("name", "the name of the artist to search for");
+        addParam("max", "20", "the maximum number of matches to return");
+        addParam("outputType", OutputType.Tiny.name(), "the type of output");
     }
 
     /** 
@@ -40,76 +34,24 @@ public class ArtistSearch extends HttpServlet {
      * @param request servlet request
      * @param response servlet response
      */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        if (pc.processDocumentationRequest(request, response)) {
-            return;
+    @Override
+    protected void go(HttpServletRequest request, PrintWriter out, MusicDatabase mdb)
+            throws AuraException, ParameterException, RemoteException {
+        String name = getParam(request, "name");
+        int maxCount = getParamAsInt(request, "max", 1, 250);
+        OutputType outputType = (OutputType) getParamAsEnum(request, "outputType", OutputType.values());
+        ItemFormatterManager formatter = getItemFormatterManager();
+        List<Scored<Artist>> scoredArtists = mdb.artistSearch(name, maxCount);
+        for (Scored<Artist> scoredArtist : scoredArtists) {
+            out.println(formatter.toXML(scoredArtist.getItem().getItem(), outputType, scoredArtist.getScore()));
         }
-
-        Status status = new Status(request);
-
-        response.setContentType("text/xml;charset=UTF-8");
-        PrintWriter out = response.getWriter();
-        ServletContext context = getServletContext();
-
-
-        try {
-            Util.tagOpen(out, SERVLET_NAME);
-            pc.check(status, request);
-
-            String name = pc.getParam(status, request, "name");
-            int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
-            OutputType outputType = (OutputType) pc.getParamAsEnum(status, request, "outputType", OutputType.values());
-
-            MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
-            ItemFormatterManager formatter = DatabaseBroker.getItemFormatterManager(context);
-
-            if (mdb == null || formatter == null) {
-                status.addError(ErrorCode.InternalError, "Can't find the datastore");
-                return;
-            }
-
-            List<Scored<Artist>> scoredArtists = mdb.artistSearch(name, maxCount);
-            for (Scored<Artist> scoredArtist : scoredArtists) {
-                out.println(formatter.toXML(scoredArtist.getItem().getItem(), outputType, scoredArtist.getScore()));
-            }
-        } catch (AuraException ex) {
-            status.addError(ErrorCode.InternalError, "problem accessing data, " + ex.getMessage(), ex);
-        } catch (ParameterException ex) {
-        } finally {
-            status.toXML(out);
-            Util.tagClose(out, SERVLET_NAME);
-            out.close();
-        }
-    }
-
-// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /** 
-     * Handles the HTTP <code>GET</code> method.
-     * @param request servlet request
-     * @param response servlet response
-     */
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
-
-    /** 
-     * Handles the HTTP <code>POST</code> method.
-     * @param request servlet request
-     * @param response servlet response
-     */
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
     }
 
     /** 
      * Returns a short description of the servlet.
      */
+    @Override
     public String getServletInfo() {
         return "Searches the database for an artist with a particular name ";
     }
-// </editor-fold>
 }

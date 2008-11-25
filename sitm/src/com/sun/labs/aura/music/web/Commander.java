@@ -12,6 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -226,6 +227,33 @@ public class Commander {
         } catch (TransformerException e) {
             System.out.println("TransformerException: " + e);
         }
+    }
+
+    public static String convertToString(Document document) {
+        StringWriter sw = new StringWriter();
+        try {
+            // Prepare the DOM document for writing
+            Source source = new DOMSource(document);
+            Result result = new StreamResult(sw);
+
+            // Write the DOM document to the file
+            // Get Transformer
+            Transformer xformer =
+                    TransformerFactory.newInstance().newTransformer();
+            // Write to a file
+
+            xformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            xformer.setOutputProperty(OutputKeys.METHOD, "xml");
+            xformer.setOutputProperty(
+                    "{http://xml.apache.org/xalan}indent-amount", "4");
+
+            xformer.transform(source, result);
+        } catch (TransformerConfigurationException e) {
+            System.out.println("TransformerConfigurationException: " + e);
+        } catch (TransformerException e) {
+            System.out.println("TransformerException: " + e);
+        }
+        return sw.toString();
     }
 
     public int getTimeout() {
