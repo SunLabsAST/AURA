@@ -532,15 +532,45 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <basename file="${libs.jstl11.classpath.libfile.1}" property="included.lib.libs.jstl11.classpath.1"/>
         <copy-ear-war file="${libs.jstl11.classpath.libfile.2}" propname="included.lib.libs.jstl11.classpath.2.X"/>
         <copy-ear-war file="${libs.jstl11.classpath.libfile.1}" propname="included.lib.libs.jstl11.classpath.1.X"/>
+        <basename file="${libs.SunLabsUtilities.classpath}" property="included.lib.libs.SunLabsUtilities.classpath"/>
+        <copy-ear-war file="${libs.SunLabsUtilities.classpath}" propname="included.lib.libs.SunLabsUtilities.classpath.X"/>
+        <basename file="${file.reference.aura.jar}" property="included.lib.file.reference.aura.jar"/>
+        <copy-ear-war file="${file.reference.aura.jar}" propname="included.lib.file.reference.aura.jar.X"/>
+        <basename file="${libs.JiniCore.classpath.libfile.7}" property="included.lib.libs.JiniCore.classpath.7"/>
+        <basename file="${libs.JiniCore.classpath.libfile.6}" property="included.lib.libs.JiniCore.classpath.6"/>
+        <basename file="${libs.JiniCore.classpath.libfile.5}" property="included.lib.libs.JiniCore.classpath.5"/>
+        <basename file="${libs.JiniCore.classpath.libfile.4}" property="included.lib.libs.JiniCore.classpath.4"/>
+        <basename file="${libs.JiniCore.classpath.libfile.3}" property="included.lib.libs.JiniCore.classpath.3"/>
+        <basename file="${libs.JiniCore.classpath.libfile.2}" property="included.lib.libs.JiniCore.classpath.2"/>
+        <basename file="${libs.JiniCore.classpath.libfile.1}" property="included.lib.libs.JiniCore.classpath.1"/>
+        <copy-ear-war file="${libs.JiniCore.classpath.libfile.7}" propname="included.lib.libs.JiniCore.classpath.7.X"/>
+        <copy-ear-war file="${libs.JiniCore.classpath.libfile.6}" propname="included.lib.libs.JiniCore.classpath.6.X"/>
+        <copy-ear-war file="${libs.JiniCore.classpath.libfile.5}" propname="included.lib.libs.JiniCore.classpath.5.X"/>
+        <copy-ear-war file="${libs.JiniCore.classpath.libfile.4}" propname="included.lib.libs.JiniCore.classpath.4.X"/>
+        <copy-ear-war file="${libs.JiniCore.classpath.libfile.3}" propname="included.lib.libs.JiniCore.classpath.3.X"/>
+        <copy-ear-war file="${libs.JiniCore.classpath.libfile.2}" propname="included.lib.libs.JiniCore.classpath.2.X"/>
+        <copy-ear-war file="${libs.JiniCore.classpath.libfile.1}" propname="included.lib.libs.JiniCore.classpath.1.X"/>
+        <basename file="${libs.Minion.classpath}" property="included.lib.libs.Minion.classpath"/>
+        <copy-ear-war file="${libs.Minion.classpath}" propname="included.lib.libs.Minion.classpath.X"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${included.lib.libs.jstl11.classpath.1.X} ${included.lib.libs.jstl11.classpath.2.X} "/>
+            <attribute name="Class-Path" value="${included.lib.libs.jstl11.classpath.1.X} ${included.lib.libs.jstl11.classpath.2.X} ${included.lib.libs.SunLabsUtilities.classpath} ${included.lib.file.reference.aura.jar} ${included.lib.libs.JiniCore.classpath.1.X} ${included.lib.libs.JiniCore.classpath.2.X} ${included.lib.libs.JiniCore.classpath.3.X} ${included.lib.libs.JiniCore.classpath.4.X} ${included.lib.libs.JiniCore.classpath.5.X} ${included.lib.libs.JiniCore.classpath.6.X} ${included.lib.libs.JiniCore.classpath.7.X} ${included.lib.libs.Minion.classpath} "/>
         </manifest>
         <delete dir="${dist.ear.dir}/temp"/>
     </target>
     <target depends="init" name="library-inclusion-in-archive" unless="dist.ear.dir">
         <copy file="${libs.jstl11.classpath.libfile.2}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${libs.jstl11.classpath.libfile.1}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.SunLabsUtilities.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.aura.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.JiniCore.classpath.libfile.7}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.JiniCore.classpath.libfile.6}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.JiniCore.classpath.libfile.5}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.JiniCore.classpath.libfile.4}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.JiniCore.classpath.libfile.3}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.JiniCore.classpath.libfile.2}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.JiniCore.classpath.libfile.1}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${libs.Minion.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>
