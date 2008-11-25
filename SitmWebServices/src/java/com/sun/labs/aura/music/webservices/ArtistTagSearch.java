@@ -4,19 +4,16 @@
  */
 package com.sun.labs.aura.music.webservices;
 
-import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.webservices.ItemFormatter.OutputType;
-import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.rmi.RemoteException;
 import java.util.List;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -24,18 +21,13 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author plamere
  */
-public class ArtistTagSearch extends HttpServlet {
-
-    private final static String SERVLET_NAME = "ArtistTagSearch";
-    private ParameterChecker pc = null;
+public class ArtistTagSearch extends StandardService {
 
     @Override
-    public void init() throws ServletException {
-        super.init();
-        pc = new ParameterChecker(SERVLET_NAME, "searches the database for an artist tag");
-        pc.addParam("name", "the name of the artist tag to search for");
-        pc.addParam("max", "10", "the maximum number of matches to return");
-        pc.addParam("outputType", OutputType.Tiny.name(), "the type of output");
+    public void initParams() {
+        addParam("name", "the name of the artist tag to search for");
+        addParam("max", "10", "the maximum number of matches to return");
+        addParam("outputType", OutputType.Tiny.name(), "the type of output");
     }
 
     /** 
@@ -43,72 +35,25 @@ public class ArtistTagSearch extends HttpServlet {
      * @param request servlet request
      * @param response servlet response
      */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    @Override
+    protected void go(HttpServletRequest request, PrintWriter out, MusicDatabase mdb)
+            throws AuraException, ParameterException, RemoteException {
+        String name = getParam(request, "name");
+        int maxCount = getParamAsInt(request, "max", 1, 250);
+        OutputType outputType = (OutputType) getParamAsEnum(request, "outputType", OutputType.values());
+        ItemFormatterManager formatter = getItemFormatterManager();
 
-        if (pc.processDocumentationRequest(request, response)) {
-            return;
+        List<Scored<ArtistTag>> scoredArtistTags = mdb.artistTagSearch(name, maxCount);
+        for (Scored<ArtistTag> scoredArtistTag : scoredArtistTags) {
+            out.println(formatter.toXML(scoredArtistTag.getItem().getItem(), outputType, scoredArtistTag.getScore()));
         }
-
-        Status status = new Status(request);
-        response.setContentType("text/xml;charset=UTF-8");
-        PrintWriter out = response.getWriter();
-
-        ServletContext context = getServletContext();
-
-        try {
-            Util.tagOpen(out, SERVLET_NAME);
-            pc.check(status, request);
-
-            String name = pc.getParam(status, request, "name");
-            int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
-            OutputType outputType = (OutputType) pc.getParamAsEnum(status, request, "outputType", OutputType.values());
-
-
-            MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
-            ItemFormatterManager formatter = DatabaseBroker.getItemFormatterManager(context);
-            if (mdb == null || formatter == null) {
-                status.addError(ErrorCode.InternalError, "Can't find the datastore");
-                return;
-            }
-            List<Scored<ArtistTag>> scoredArtistTags = mdb.artistTagSearch(name, maxCount);
-            for (Scored<ArtistTag> scoredArtistTag : scoredArtistTags) {
-                out.println(formatter.toXML(scoredArtistTag.getItem().getItem(), outputType, scoredArtistTag.getScore()));
-            }
-        } catch (AuraException ex) {
-            status.addError(ErrorCode.InternalError, "problem accessing data, " + ex.getMessage(), ex);
-        } catch (ParameterException ex) {
-        } finally {
-            status.toXML(out);
-            Util.tagClose(out, SERVLET_NAME);
-            out.close();
-        }
-    }
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /** 
-     * Handles the HTTP <code>GET</code> method.
-     * @param request servlet request
-     * @param response servlet response
-     */
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
-
-    /** 
-     * Handles the HTTP <code>POST</code> method.
-     * @param request servlet request
-     * @param response servlet response
-     */
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
     }
 
     /** 
      * Returns a short description of the servlet.
      */
+    @Override
     public String getServletInfo() {
         return "Searches the database for an artist tag with a particular name ";
-    }// </editor-fold>
+    }
 }

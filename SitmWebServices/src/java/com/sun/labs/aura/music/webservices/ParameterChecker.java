@@ -61,11 +61,10 @@ public class ParameterChecker {
         }
     }
 
-    public String getParam(Status status, ServletRequest request, String name) throws ParameterException {
+    public String getParam(ServletRequest request, String name) throws ParameterException {
         Parameter p = allParams.get(name);
         if (p == null) {
-            status.addError(ErrorCode.InternalError, "No parameter configuration for requested param " + name);
-            throw new ParameterException();
+            throw new ParameterException(ErrorCode.InternalError, "No parameter configuration for requested param " + name);
         } else {
             String value = request.getParameter(name);
             if (value == null) {
@@ -75,28 +74,26 @@ public class ParameterChecker {
         }
     }
 
-    public int getParamAsInt(Status status, ServletRequest request, String name) throws ParameterException {
-        String sval = getParam(status, request, name);
+    public int getParamAsInt(ServletRequest request, String name) throws ParameterException {
+        String sval = getParam(request, name);
         try {
             int val = Integer.parseInt(sval);
             return val;
         } catch (NumberFormatException ex) {
-            status.addError(ErrorCode.BadArgument, "bad number format for " + name);
-            throw new ParameterException();
+            throw new ParameterException(ErrorCode.BadArgument, "bad number format for " + name);
         }
     }
 
-    public int getParamAsInt(Status status, ServletRequest request, String name, int min, int max) throws ParameterException {
-        int val = getParamAsInt(status, request, name);
+    public int getParamAsInt(ServletRequest request, String name, int min, int max) throws ParameterException {
+        int val = getParamAsInt(request, name);
         if (val < min || val > max) {
-            status.addError(ErrorCode.BadArgument, name + " out of range: " + min + " to " + max);
-            throw new ParameterException();
+            throw new ParameterException(ErrorCode.BadArgument, name + " out of range: " + min + " to " + max);
         }
         return val;
     }
 
-    public Enum getParamAsEnum(Status status, ServletRequest request, String name, Enum[] vals) throws ParameterException {
-        String sval = getParam(status, request, name);
+    public Enum getParamAsEnum(ServletRequest request, String name, Enum[] vals) throws ParameterException {
+        String sval = getParam(request, name);
 
         if (sval == null) {
             return null;
@@ -112,18 +109,17 @@ public class ParameterChecker {
             sb.append(v.name());
             sb.append(" ");
         }
-        status.addError(ErrorCode.BadArgument, sb.toString());
-        throw new ParameterException();
+        throw new ParameterException(ErrorCode.BadArgument, sb.toString());
     }
 
-    public boolean getParamAsBoolean(Status status, ServletRequest request, String name) throws ParameterException {
-        return getParamAsEnum(status, request, name, BoolEnum.values()) == BoolEnum.TRUE;
+    public boolean getParamAsBoolean(ServletRequest request, String name) throws ParameterException {
+        return getParamAsEnum(request, name, BoolEnum.values()) == BoolEnum.TRUE;
     }
 
-    public void check(Status status, ServletRequest request) throws ParameterException {
+    public void check(ServletRequest request) throws ParameterException {
+        ParameterException pe = new ParameterException();
         Set<String> curSet = new HashSet<String>();
 
-        status.setDebug(getParamAsBoolean(status, request, "debug"));
 
         Set keys = request.getParameterMap().keySet();
 
@@ -133,7 +129,7 @@ public class ParameterChecker {
             String key = (String) okey;
             curSet.add(key);
             if (allParams.get(key) == null) {
-                status.addError(ErrorCode.BadArgument, "Unknown parameter " + key);
+                pe.addError(ErrorCode.BadArgument, "Unknown parameter " + key);
             }
         }
 
@@ -141,14 +137,15 @@ public class ParameterChecker {
 
         for (String rparam : requiredParams) {
             if (!curSet.contains(rparam)) {
-                status.addError(ErrorCode.MissingArgument, "missing " + rparam);
+                pe.addError(ErrorCode.MissingArgument, "missing " + rparam);
             }
         }
 
-        if (!status.isOK()) {
-            throw new ParameterException();
+        if (pe.getErrors().size() > 0) {
+            throw pe;
         }
     }
+
     
     public boolean processDocumentationRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String showDoc = request.getParameter("showDocumentation");

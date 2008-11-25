@@ -24,26 +24,29 @@ public class Status {
     private Throwable throwable;
     private boolean debug = false;
 
-    public Status(HttpServletRequest request) {
+    Status(HttpServletRequest request) {
         startTime = System.currentTimeMillis();
         this.request = request;
     }
 
-    public void addError(Util.ErrorCode error, String text) {
+    void addError(Util.ErrorCode error, String text) {
         errorList.add(new ErrorDescription(error, text));
     }
 
-    public void addError(Util.ErrorCode error, String text, Throwable t) {
+    void addErrors(List<ErrorDescription> errors) {
+        errorList.addAll(errors);
+    }
+
+    void addError(Util.ErrorCode error, String text, Throwable t) {
         errorList.add(new ErrorDescription(error, text));
         throwable = t;
     }
     
-    public void setDebug(boolean debug) {
+    void setDebug(boolean debug) {
         this.debug = debug;
     }
 
-    public void toXML(PrintWriter out) {
-
+    void toXML(PrintWriter out) {
         if (request != null) {
             out.println("<request>");
             Enumeration e = request.getParameterNames();
@@ -82,8 +85,12 @@ public class Status {
         out.println("</results>");
     }
 
-    public boolean isOK() {
+    boolean isOK() {
         return errorList.size() == 0;
+    }
+
+    int getTime() {
+        return (int) (System.currentTimeMillis() - startTime);
     }
 
     private String getStackTrace() {
