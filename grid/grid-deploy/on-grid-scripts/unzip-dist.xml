@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="unzip_distribution_ongrid" default="default" basedir=".">
+    <target
+        name="default"
+        description="Unzips the application server distribution on-grid">
+        <unzip src="${service.distribution}" dest="." overwrite="false"/>
+    </target>      
+</project>
