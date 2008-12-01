@@ -28,16 +28,26 @@ public class ScoredManager<T> {
 
 
     public List<Scored<T>> getAll() {
+        return getAll(true);
+    }
+
+    public List<Scored<T>> getAll(boolean prune) {
         List<Scored<T>> results = new ArrayList();
         for (Map.Entry<T, Double> entry : map.entrySet()) {
             Scored<T> s = new Scored<T>(entry.getKey(), entry.getValue());
-            results.add(s);
+            if (!prune || s.getScore() > 0) {
+                results.add(s);
+            }
         }
         return results;
     }
 
     public List<Scored<T>> getTopN(int n) {
-        List<Scored<T>> results = getAll();
+        return getTopN(n, true);
+    }
+
+    public List<Scored<T>> getTopN(int n, boolean prune) {
+        List<Scored<T>> results = getAll(prune);
         results = results.size() > n ? results.subList(0, n) : results;
         return results;
     }

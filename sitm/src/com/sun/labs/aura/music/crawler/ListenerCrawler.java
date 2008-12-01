@@ -5,6 +5,8 @@
 package com.sun.labs.aura.music.crawler;
 
 import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
@@ -29,7 +31,6 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -313,17 +314,23 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
         }
     }
 
+    /**
+     * Performs the 'weekly' crawl of pandora.  Collects the pandora set of favorite
+     * artists for the user and adds 'five star' ratings for the artists if we haven't
+     * already rated them.
+     * @param listener the listener of interest
+     * @throws com.sun.labs.aura.util.AuraException
+     */
     private void weeklyCrawlPandora(Listener listener) throws AuraException {
         if (listener.getPandoraName() != null) {
             try {
                 logger.fine("Pandora crawl for " + listener.getName());
-                Set<String> favs = mdb.getFavoriteArtistsAsIDSet(listener.getKey(), 100000);
                 List<String> artists = pandora.getFavoriteArtistNamesForUser(listener.getPandoraName());
                 for (String artistName : artists) {
                     Artist artist = mdb.artistFindBestMatch(artistName);
-                    if (artist != null && !favs.contains(artist.getKey())) {
-                        mdb.addFavoriteAttention(listener.getKey(), artist.getKey());
-                        logger.fine("pandora crawl, added play attention for artist " + artist.getName());
+                    if (artist != null && !hasRating(listener, artist))  {
+                        mdb.addRating(listener.getKey(), artistName, 5);
+                        logger.fine("pandora crawl, added rating attention for artist " + artist.getName());
                     } else {
                         logger.fine("pandora crawl, skipping artist " + artistName);
                     }
@@ -332,6 +339,22 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
                 logger.warning("Problem collecting data from pandora for user " + listener.getName());
             }
         }
+    }
+
+    /**
+     * Determines if the given listener has applied a rating to the given artist
+     * @param listener the listener of interest
+     * @param artist the artist of interest
+     * @return true if the artist has been rted
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    private boolean hasRating(Listener listener, Artist artist) throws AuraException, RemoteException {
+        AttentionConfig ac = new AttentionConfig();
+        ac.setSourceKey(listener.getKey());
+        ac.setTargetKey(artist.getKey());
+        ac.setType(Attention.Type.RATING);
+        return mdb.getDataStore().getAttention(ac).size() > 0;
     }
 
     private void weeklyCrawlLastFM(Listener listener) throws AuraException {
