@@ -6,8 +6,20 @@
             <!--<item>live-aura</item> -->
             <item>live-aura</item>
         </propertylist>
-             <property name="securityPolicy" value="/files/working/jsk-all.policy"/>
+        <property name="securityPolicy" value="/files/working/jsk-all.policy"/>
         <!-- <property name="securityPolicy" value="/aura/sitm/dist/jsk-all.policy"/> -->
+
+    <!--
+        <property name="csDirs" value="/files/working/apache-tomcat-6.0.18/webapps/WebMusicExplaura/WEB-INF/lib/"/>
+        <property name="csPort" value="8765"/>
+        <propertylist name="codebaseJars">
+            <item>sitm.jar</item>
+            <item>aura.jar</item>
+            <item>minion.jar</item>
+            <item>slcut.jar</item>
+        </propertylist>
+     -->
+
     </component>
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
 </config>
