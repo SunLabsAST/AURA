@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="tomcat-deploy" default="create-service" basedir="."
+    xmlns:dav="antlib:org.apache.webdav.ant"
+    xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
+
+    <import file="gf-common.xml"/>
+                          
+    <!-- create process registration if it doesn't exist -->
+    <target name="create-service"
+        description="creates a service process if one doesn't exist"
+        depends="deploy-ant,unzip-distribution,update-config,create-intbinding,create-staticnat,create-extbinding">
+        
+        <caroline:process name="${service.process}"
+            op="create" workingdir="/files/working/">                
+            <!-- filesystem to mount -->    
+            <caroline:filesystem name="${www.filesystem}" mountpoint="working"/>
+            <caroline:filesystem name="${dist.filesystem}" mountpoint="dist"/>
+            <!-- assign an internal address -->
+            <caroline:intaddress name="${intaddress}" networkname="${network}"/>
+            <!-- specify command line arguments -->
+            <arg value="-cp"/>
+            <arg value="${service.working}/glassfish/modules/glassfish.jar"/>
+	    <arg value="-XX:+UnlockDiagnosticVMOptions"/>
+	    <arg value="-XX:NewRatio=2"/>
+	    <arg value="-XX:+LogVMOutput"/>
+	    <arg value="-XX:LogFile=${service.working}/glassfish/domains/domain1/logs/jvm.log"/>
+	    <arg value="-Xmx1g"/>
+	    <arg value="-Dcom.sun.aas.installRoot=${service.working}/glassfish"/>
+	    <arg value="-Djdbc.drivers=org.apache.derby.jdbc.ClientDriver"/>
+	    <arg value="-Djavax.net.ssl.trustStore=${service.working}/glassfish/domains/domain1/config/cacerts.jks"/>
+	    <arg value="-Djavax.net.ssl.keyStore=${service.working}/glassfish/domains/domain1/config/keystore.jks"/>
+	    <arg value="-Dcom.sun.aas.instanceRoot=${service.working}/glassfish/domains/domain1"/>
+	    <arg value="-Dcom.sun.enterprise.config.config_environment_factory_class=com.sun.enterprise.config.serverbeans.AppserverConfigEnvironmentFactory"/>
+	    <arg value="-Djava.security.auth.login.config=${service.working}/glassfish/domains/domain1/config/login.conf"/>
+	    <arg value="-Djava.endorsed.dirs=${service.working}/glassfish/lib/endorsed"/>
+	    <arg value="-Djava.ext.dirs=${service.working}/glassfish/domains/domain1/lib/ext:${service.working}/javadb/lib"/>
+	    <arg value="com.sun.enterprise.glassfish.bootstrap.ASMain"/>
+	    <arg value="-domainname"/>
+	    <arg value="domain1"/>
+	    <arg value="-instancename"/>
+	    <arg value="server"/>
+	    <arg value="-verbose"/>
+	    <arg value="false"/>
+	    <arg value="-debug"/>
+	    <arg value="false"/>
+	    <arg value="-domaindir"/>
+	    <arg value="${service.working}/glassfish/domains/domain1"/>
+        </caroline:process>
+    </target>
+    
+    <!-- Update resources -->
+     
+    <!-- update service process -->
+    <target name="update-service" description="updates process registration" depends="update-config">
+        <caroline:process name="${service.process}" op="update"/>
+    </target>
+    
+
+</project>
