@@ -21,6 +21,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -106,7 +107,8 @@ public class TagInputWidget extends Composite implements LoginListener {
             clearTextBoxTxt();
             invokeAddTags(tags);
         } else {
-            Window.alert("Message from the happy tag : you must be logged in to access this feature. I should redirect you to another page so you can create an account, but I'd rather keep you here and give you a big happy tag hug!");
+            //Window.alert("Message from the happy tag : you must be logged in to access this feature. I should redirect you to another page so you can create an account, but I'd rather keep you here and give you a big happy tag hug!");
+            Popup.showLoginPopup();
         }
     }
 

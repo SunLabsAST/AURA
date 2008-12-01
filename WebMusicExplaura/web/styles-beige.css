@@ -36,7 +36,7 @@ body {
 .popupColors {
   background-color: #73885D;
   background: #73885D;
-  color: white;
+  color: #FFFFFF;
 }
 .popupTitle {
     padding-left: 5px;
@@ -88,6 +88,11 @@ h2 {
     margin-bottom: 4px;
     border-bottom: medium solid #73885d;
     border-width: thin;
+}
+
+.alternateHTitle {
+    color: #cccccc;
+    border-bottom: thin solid #cccccc;
 }
 
 .headerMenuTinyItemC {
