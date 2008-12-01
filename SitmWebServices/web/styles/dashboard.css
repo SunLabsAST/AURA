@@ -1,0 +1,31 @@
+body {
+  background: #8aa;
+  color: black;
+  font-family: Arial, sans-serif;
+  font-size: small;
+  margin: 10px;
+}
+
+th {
+  padding-right: 8px;
+}
+
+td {
+    padding-right: 8px;
+}
+
+table {
+    background: #88b2aa;
+}
+
+h1 {
+    color: #242;
+}
+
+h2 {
+    color: #242;
+}
+
+h3 {
+    color: #242;
+}

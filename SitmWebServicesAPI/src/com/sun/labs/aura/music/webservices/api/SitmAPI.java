@@ -21,12 +21,13 @@ public class SitmAPI {
 
     private Commander commander;
     private Monitor monitor;
-    private boolean debug;
+    private boolean trace;
 
-    public SitmAPI(String host, boolean traceSends, boolean debug, boolean periodicDump) throws IOException {
+    public SitmAPI(String host, boolean trace, boolean debug, boolean periodicDump) throws IOException {
+        this.trace = trace;
         String suffix = debug  ? "&debug=true" : "";
         commander = new Commander("sitm", host, suffix);
-        commander.setTraceSends(traceSends);
+        commander.setTraceSends(trace);
         monitor = new Monitor(false, periodicDump);
     }
 
@@ -181,6 +182,7 @@ public class SitmAPI {
 
     public List<Item> getItems(List<String> keys, boolean compact) throws IOException {
         try {
+            List<Item> items = new ArrayList<Item>();
             long start = monitor.opStart();
             String compactArg = compact ? "&outputType=small" : "&outputType=full";
             String keyList = "";
@@ -190,9 +192,18 @@ public class SitmAPI {
             }
             keyList = keyList.replace(",$", "");
             Document doc = commander.sendCommand("GetItems?key=" + keyList + compactArg);
+            Element docElement = doc.getDocumentElement();
+            NodeList itemList = docElement.getElementsByTagName("artist");
+            for (int i = 0; i < itemList.getLength(); i++) {
+                Element artistElement = (Element) itemList.item(i);
+                String skey = artistElement.getAttribute("key");
+                String sname = artistElement.getAttribute("name");
+                Item item = new Item(skey, sname);
+                items.add(item);
+            }
             long servletTime = checkStatus("getItems", doc);
             monitor.opFinish("getItems", start, servletTime);
-            return null;
+            return items;
         } catch (IOException ex) {
             monitor.opError("getItems");
             throw ex;
@@ -307,8 +318,11 @@ public class SitmAPI {
         Element results = (Element) nlist.item(0);
         String code = (results.getAttribute("status"));
         if (!"OK".equals(code)) {
-            Commander.dumpDocument(doc);
-            throw new IOException(msg + " bad result status status " + code);
+            if (trace) {
+                Commander.dumpDocument(doc);
+            }
+            throw new IOException(msg + " bad result status status " + code
+                    + "\n\nreturned XML is:\n\n" + Commander.convertToString(doc));
         }
         NodeList timeNodes = results.getElementsByTagName("time");
         if (timeNodes.getLength() != 1) {
@@ -318,6 +332,7 @@ public class SitmAPI {
         Element timeNode = (Element) timeNodes.item(0);
         String ms = (timeNode.getAttribute("ms"));
         long millis = Long.parseLong(ms);
+
         return millis;
     }
 

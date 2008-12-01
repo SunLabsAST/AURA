@@ -33,14 +33,21 @@ public interface Attention extends Serializable, Comparable<Attention> {
 
         /** an item such as a feed or an entry can link to another */
         LINKS_TO,
+        
         /** Played by a user */
         PLAYED,
+        
         /** Loved by a user */
         LOVED,
-        /** * a rating */
+        
+        /** a rating - should have a number arg */
         RATING,
-        /** * a tag */
+        
+        /** a tag - should have a string arg*/
         TAG,
+        
+        /** a search was performed - should have a string arg*/
+        SEARCH,
     };
     
     /**
