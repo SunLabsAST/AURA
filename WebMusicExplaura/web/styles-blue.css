@@ -87,6 +87,11 @@ h2 {
     border-width: thin;
 }
 
+.alternateHTitle {
+    color: #225378;
+    border-bottom: thin solid #225378;
+}
+
 .headerMenuTinyItemC {
   color: white;
 }

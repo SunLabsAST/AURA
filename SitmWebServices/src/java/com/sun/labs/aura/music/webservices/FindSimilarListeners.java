@@ -4,40 +4,29 @@
  */
 package com.sun.labs.aura.music.webservices;
 
-import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.webservices.ItemFormatter.OutputType;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
-import java.io.IOException;
 import java.io.PrintWriter;
+import java.rmi.RemoteException;
 import java.util.List;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  *
  * @author plamere
  */
-public class FindSimilarListeners extends HttpServlet {
-
-    private final static String SERVLET_NAME = "FindSimilarListeners";
-
-    private ParameterChecker pc;
+public class FindSimilarListeners extends StandardService {
 
     @Override
-    public void init() throws ServletException {
-        super.init();
-        pc = new ParameterChecker(SERVLET_NAME, "find listeners similar to a seed listener");
-        pc.addParam("key", "the key of the item of interest");
-        pc.addParam("max", "10", "the maxiumum number of artists to return");
-        pc.addParam("field", Listener.FIELD_SOCIAL_TAGS, "the field to use for similarity");
-        pc.addParam("outputType", OutputType.Tiny.name(), "the type of output");
+    public void initParams() {
+        addParam("key", "the key of the item of interest");
+        addParam("max", "10", "the maxiumum number of artists to return");
+        addParam("field", Listener.FIELD_SOCIAL_TAGS, "the field to use for similarity");
+        addParam("outputType", OutputType.Tiny.name(), "the type of output");
     }
 
     /** 
@@ -45,82 +34,35 @@ public class FindSimilarListeners extends HttpServlet {
      * @param request servlet request
      * @param response servlet response
      */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    @Override
+    protected void go(HttpServletRequest request, PrintWriter out, MusicDatabase mdb)
+            throws AuraException, ParameterException, RemoteException {
+        ItemFormatterManager formatter = getItemFormatterManager();
+        int maxCount = getParamAsInt(request, "max", 1, 250);
+        String key = getParam(request, "key");
+        String field = getParam(request, "field"); //TBD field is not used yet.
+        OutputType outputType = (OutputType) getParamAsEnum(request, "outputType", OutputType.values());
+        Listener listener = mdb.getListener(key);
+        if (listener != null) {
+            List<Scored<Listener>> similarListeners = mdb.listenerFindSimilar(key, maxCount);
+            for (Scored<Listener> scoredListener : similarListeners) {
 
-        if (pc.processDocumentationRequest(request, response)) {
-            return;
-        }
-
-        Status status = new Status(request);
-        ServletContext context = getServletContext();
-        response.setContentType("text/xml;charset=UTF-8");
-        PrintWriter out = response.getWriter();
-
-        try {
-            Util.tagOpen(out, SERVLET_NAME);
-            pc.check(status, request);
-            MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
-            ItemFormatterManager formatter = DatabaseBroker.getItemFormatterManager(context);
-
-            if (mdb == null || formatter == null) {
-                status.addError(ErrorCode.InternalError, "Can't connect to the music database");
-                return;
-            }
-
-            int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
-            String key = pc.getParam(status, request, "key");
-            String field = pc.getParam(status, request, "field"); //TBD field is not used yet.
-            OutputType outputType = (OutputType) pc.getParamAsEnum(status, request, "outputType", OutputType.values());
-            Listener listener = mdb.getListener(key);
-            if (listener != null) {
-                List<Scored<Listener>> similarListeners = mdb.listenerFindSimilar(key, maxCount);
-                for (Scored<Listener> scoredListener : similarListeners) {
-
-                    if (scoredListener.getItem().getKey().equals(key)) {
-                        continue;
-                    }
-
-                    out.println(formatter.toXML(scoredListener.getItem().getItem(), outputType, scoredListener.getScore()));
+                if (scoredListener.getItem().getKey().equals(key)) {
+                    continue;
                 }
-            } else {
-                status.addError(ErrorCode.BadArgument, "Can't find user with key " + key);
+
+                out.println(formatter.toXML(scoredListener.getItem().getItem(), outputType, scoredListener.getScore()));
             }
-        } catch (AuraException ex) {
-            status.addError(Util.ErrorCode.InternalError, "Problem accessing data " + ex, ex);
-        } catch (ParameterException e) {
-        } finally {
-            status.toXML(out);
-            Util.tagClose(out, SERVLET_NAME);
-            out.close();
+        } else {
+            throw new ParameterException(ErrorCode.BadArgument, "Can't find user with key " + key);
         }
-    }
-
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /** 
-     * Handles the HTTP <code>GET</code> method.
-     * @param request servlet request
-     * @param response servlet response
-     */
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
-
-    /** 
-     * Handles the HTTP <code>POST</code> method.
-     * @param request servlet request
-     * @param response servlet response
-     */
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
     }
 
     /** 
      * Returns a short description of the servlet.
      */
+    @Override
     public String getServletInfo() {
         return "Finds listeners that are similar to a seed listener. ";
-    }// </editor-fold>
+    }
 }
