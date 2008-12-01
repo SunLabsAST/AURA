@@ -205,7 +205,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         String musicURL = aC.getSpotifyId();
         int intSize = playIconSizeToInt(size);
         if (musicURL != null && !musicURL.equals("")) {
-            HTML html = new HTML("<a href=\"" + musicURL + "\" target=\"spotifyFrame\"><img src=\"play-spotify-"+intSize+".jpg\"/></a>");
+            HTML html = new HTML("<a href=\"" + musicURL + "\" target=\"spotifyFrame\"><img src=\"play-spotify-"+intSize+".png\"/></a>");
             html.setTitle("Play " + aC.getName() + " with Spotify");
             if (cdm.isLoggedIn()) {
                 html.addClickListener(new ClickListener() {
@@ -273,7 +273,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
     
     private Widget getLastFMListenWidget(ClickListener cL) {
         int intSize = playIconSizeToInt(size);
-        Image image = new Image("play-lastfm-"+intSize+".jpg");
+        Image image = new Image("play-lastfm-"+intSize+".png");
         image.setTitle("Play music like " + aC.getName() + " at last.fm");
         image.addClickListener(new ClickListener() {
 
