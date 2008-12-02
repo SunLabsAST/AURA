@@ -67,7 +67,7 @@
         <property name="flushInterval" value="30000"/>
     </component>
 
-    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl">
+    <component name="statService" type="com.sun.labs.aura.service.StatServiceImpl">
         <property name="dataStore" value="dataStoreHead"/>
     </component>
     

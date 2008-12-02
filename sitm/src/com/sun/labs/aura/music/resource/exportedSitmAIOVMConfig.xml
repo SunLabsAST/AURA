@@ -104,7 +104,7 @@
     </component>
     
     
-    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl" export="true">
+    <component name="statService" type="com.sun.labs.aura.service.StatServiceImpl" export="true">
     </component>
 
     <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawler">
