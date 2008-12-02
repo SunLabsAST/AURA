@@ -20,7 +20,7 @@ import com.sun.labs.aura.dbbrowser.client.viz.RepInfo;
 import com.sun.labs.aura.dbbrowser.client.viz.RepStats;
 import com.sun.labs.aura.dbbrowser.client.viz.VizService;
 import com.sun.labs.aura.util.AuraException;
-import com.sun.labs.aura.util.StatService;
+import com.sun.labs.aura.service.StatService;
 import com.sun.labs.util.props.ComponentRegistry;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.io.IOException;
