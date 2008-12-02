@@ -14,7 +14,7 @@ import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
-import com.sun.labs.aura.util.StatService;
+import com.sun.labs.aura.service.StatService;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.Configurable;
@@ -534,7 +534,7 @@ public class FeedManager implements AuraService, Configurable {
     /**
      * The statistics service that we'll use to count things.
      */
-    @ConfigComponent(type = com.sun.labs.aura.util.StatService.class)
+    @ConfigComponent(type = com.sun.labs.aura.service.StatService.class)
     public static final String PROP_STAT_SERVICE = "statService";
     private StatService statService;
     public static final String COUNTER_ENTRY_PULL_COUNT = "fm.entryPullCount";

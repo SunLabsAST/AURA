@@ -53,7 +53,7 @@
         <property name="logLevel" value="FINE"/>
     </component>
     
-    <component name="statService" type="com.sun.labs.aura.util.StatService"/>
+    <component name="statService" type="com.sun.labs.aura.service.StatService"/>
 
     <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
 

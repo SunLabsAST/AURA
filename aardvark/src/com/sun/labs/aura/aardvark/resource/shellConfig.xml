@@ -47,7 +47,7 @@
     
     <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
     
-    <component name="statService" type="com.sun.labs.aura.util.StatService"/>
+    <component name="statService" type="com.sun.labs.aura.service.StatService"/>
     
      <component name="shellStarter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
