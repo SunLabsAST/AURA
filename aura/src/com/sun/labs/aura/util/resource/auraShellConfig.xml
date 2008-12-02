@@ -11,8 +11,6 @@
     <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
         <propertylist name="groupList">
             <item>Aura</item>
-            <item>AuraJeff</item>
-            <item>AuraHome</item>
         </propertylist>
         <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
@@ -21,7 +19,7 @@
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
 
     <!-- Find an existing stat service -->
-    <component name="statService" type="com.sun.labs.aura.util.StatService"/>
+    <component name="statService" type="com.sun.labs.aura.service.StatService"/>
     
     <!-- Use them as parameters to the shell service -->
     <component name="auraShell" type="com.sun.labs.aura.util.AuraShell">

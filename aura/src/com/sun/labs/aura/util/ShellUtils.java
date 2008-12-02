@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.util;
 
+import com.sun.labs.aura.service.StatService;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DataStore;
@@ -677,8 +678,8 @@ public class ShellUtils {
                         return "<autotag> <key> explain the classification of key into autotag";
                     }
                 });
-    }
-
+                        }
+                        
     public void dumpAllUsers() throws AuraException, RemoteException {
         for(Item item : dataStore.getAll(ItemType.USER)) {
             dumpUser((User) item);

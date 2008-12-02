@@ -545,13 +545,13 @@
     </Method>
   </BugInstance>
   <BugInstance type="SE_INNER_CLASS" priority="2" abbrev="Se" category="BAD_PRACTICE">
-    <Class classname="com.sun.labs.aura.util.StatServiceImpl$Counter">
-      <SourceLine classname="com.sun.labs.aura.util.StatServiceImpl$Counter" sourcefile="StatServiceImpl.java" sourcepath="com/sun/labs/aura/util/StatServiceImpl.java"/>
+    <Class classname="com.sun.labs.aura.service.StatServiceImpl$Counter">
+      <SourceLine classname="com.sun.labs.aura.service.StatServiceImpl$Counter" sourcefile="StatServiceImpl.java" sourcepath="com/sun/labs/aura/util/StatServiceImpl.java"/>
     </Class>
   </BugInstance>
   <BugInstance type="SIC_INNER_SHOULD_BE_STATIC" priority="2" abbrev="SIC" category="PERFORMANCE">
-    <Class classname="com.sun.labs.aura.util.StatServiceImpl$Counter">
-      <SourceLine classname="com.sun.labs.aura.util.StatServiceImpl$Counter" sourcefile="StatServiceImpl.java" sourcepath="com/sun/labs/aura/util/StatServiceImpl.java"/>
+    <Class classname="com.sun.labs.aura.service.StatServiceImpl$Counter">
+      <SourceLine classname="com.sun.labs.aura.service.StatServiceImpl$Counter" sourcefile="StatServiceImpl.java" sourcepath="com/sun/labs/aura/util/StatServiceImpl.java"/>
     </Class>
   </BugInstance>
   <BugInstance type="EQ_COMPARETO_USE_OBJECT_EQUALS" priority="2" abbrev="Eq" category="BAD_PRACTICE">
@@ -787,9 +787,9 @@
       <ClassStats class="com.sun.labs.aura.util.PersistentStringSet$1" sourceFile="PersistentStringSet.java" interface="false" size="7" bugs="0"/>
       <ClassStats class="com.sun.labs.aura.util.Reindexer" sourceFile="Reindexer.java" interface="false" size="113" bugs="0"/>
       <ClassStats class="com.sun.labs.aura.util.Scored" sourceFile="Scored.java" interface="false" size="54" bugs="3" priority_2="3"/>
-      <ClassStats class="com.sun.labs.aura.util.StatService" sourceFile="StatService.java" interface="true" size="11" bugs="0"/>
-      <ClassStats class="com.sun.labs.aura.util.StatServiceImpl" sourceFile="StatServiceImpl.java" interface="false" size="54" bugs="0"/>
-      <ClassStats class="com.sun.labs.aura.util.StatServiceImpl$Counter" sourceFile="StatServiceImpl.java" interface="false" size="22" bugs="2" priority_2="2"/>
+      <ClassStats class="com.sun.labs.aura.service.StatService" sourceFile="StatService.java" interface="true" size="11" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.service.StatServiceImpl" sourceFile="StatServiceImpl.java" interface="false" size="54" bugs="0"/>
+      <ClassStats class="com.sun.labs.aura.service.StatServiceImpl$Counter" sourceFile="StatServiceImpl.java" interface="false" size="22" bugs="2" priority_2="2"/>
       <ClassStats class="com.sun.labs.aura.util.Tag" sourceFile="Tag.java" interface="false" size="17" bugs="1" priority_2="1"/>
       <ClassStats class="com.sun.labs.aura.util.Times" sourceFile="Times.java" interface="false" size="14" bugs="0"/>
     </PackageStats>

@@ -1,4 +1,4 @@
-package com.sun.labs.aura.util;
+package com.sun.labs.aura.service;
 
 import com.sun.labs.util.props.Component;
 import java.io.Serializable;

@@ -21,7 +21,7 @@ import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.util.Reindexer;
 import com.sun.labs.aura.util.Scored;
-import com.sun.labs.aura.util.StatService;
+import com.sun.labs.aura.service.StatService;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
@@ -117,7 +117,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
 
     private PartitionCluster partitionCluster;
 
-    @ConfigComponent(type = com.sun.labs.aura.util.StatService.class)
+    @ConfigComponent(type = com.sun.labs.aura.service.StatService.class)
     public static final String PROP_STAT_SERVICE = "statService";
     protected StatService statService;
 
