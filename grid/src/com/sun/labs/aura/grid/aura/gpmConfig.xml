@@ -32,6 +32,15 @@
     
     <component name="gpm" type="com.sun.labs.aura.grid.aura.GridProcessManager" export="true">
         <property name="instance" value="${auraInstance}"/>
+        <propertylist name="snapIntervals">
+            <item>1d</item>
+        </propertylist>
+        <propertylist name="snapTags">
+            <item>daily</item>
+        </propertylist>
+        <propertylist name="snapCounts">
+            <item>2</item>
+        </propertylist>
     </component>
     
     <component name="gpmStarter" type="com.sun.labs.aura.AuraServiceStarter">
