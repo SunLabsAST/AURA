@@ -24,6 +24,7 @@ import java.util.Set;
  * @author plamere
  */
 public class RecommendationManager {
+
     private MusicDatabase mdb;
     private Map<String, RecommendationType> recTypeMap;
     private final static String DEFAULT_RECOMMENDER = "Quickomendation";
@@ -109,7 +110,6 @@ public class RecommendationManager {
         return artist;
     }
 
-
     private class SimpleArtistRecommendationType implements RecommendationType {
 
         @Override
@@ -129,16 +129,13 @@ public class RecommendationManager {
             Set<String> skipIDS = getAttendedToArtists(listenerID);
             Artist artist = getRandomGoodArtistFromListener(listenerID);
             List<Recommendation> results = new ArrayList();
-            List<Scored<Artist>> simArtists = mdb.artistFindSimilar(artist.getKey(), count * 5);
+            List<Scored<Artist>> simArtists = mdb.artistFindSimilar(artist.getKey(), count * 5, skipIDS, Popularity.ALL);
             for (Scored<Artist> sartist : simArtists) {
-                if (!skipIDS.contains(sartist.getItem().getKey())) {
-                    skipIDS.add(sartist.getItem().getKey());
-                    List<Scored<String>> reason = mdb.artistExplainSimilarity(artist.getKey(), sartist.getItem().getKey(), 20);
-                    results.add(new Recommendation(sartist.getItem().getKey(),
-                            sartist.getScore(), reason));
-                    if (results.size() >= count) {
-                        break;
-                    }
+                List<Scored<String>> reason = mdb.artistExplainSimilarity(artist.getKey(), sartist.getItem().getKey(), 20);
+                results.add(new Recommendation(sartist.getItem().getKey(),
+                        sartist.getScore(), reason));
+                if (results.size() >= count) {
+                    break;
                 }
             }
             String reason = "Artists similarity to " + artist.getName();
@@ -178,12 +175,9 @@ public class RecommendationManager {
                     sb.append(artist.getName());
                     sb.append(",");
                     sm.addSeedArtist(artist);
-                    List<Scored<Artist>> simArtists = mdb.artistFindSimilar(artist.getKey(), count * 3);
+                    List<Scored<Artist>> simArtists = mdb.artistFindSimilar(artist.getKey(), count, skipIDS, Popularity.ALL);
                     for (Scored<Artist> simArtist : simArtists) {
-                        if (!skipIDS.contains(simArtist.getItem().getKey())) {
-                            // BUG: this should  include the score of the seed artist.
-                            sm.accum(simArtist.getItem(), artist.getKey(), 1.0 * simArtist.getScore());
-                        }
+                        sm.accum(simArtist.getItem(), artist.getKey(), 1.0 * simArtist.getScore());
                     }
                 }
             }
