@@ -48,6 +48,10 @@ public abstract class Worker extends MDBHelper {
         enumMap.put(name, values);
     }
 
+    protected void param(String name, String description, String[] values, String defaultValue) {
+        descriptor.addParam(name, description, values, defaultValue);
+    }
+
     private String[] getNames(Enum[] values) {
         String[] names = new String[values.length];
         for (int i = 0; i < values.length; i++) {

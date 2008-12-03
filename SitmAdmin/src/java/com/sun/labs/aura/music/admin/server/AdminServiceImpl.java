@@ -46,12 +46,14 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     protected static Logger logger = Logger.getLogger("");
     private Random rng = new Random();
     private TestManager testManager = new TestManager();
-    private WorkbenchManager workbenchManager = new WorkbenchManager();
+    private WorkbenchManager workbenchManager;
+
 
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         ServletContext context = getServletContext();
         mdb = (MusicDatabase) context.getAttribute("MusicDatabase");
+        workbenchManager = new WorkbenchManager(mdb);
     }
 
     /**
