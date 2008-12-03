@@ -11,6 +11,7 @@ import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigStringList;
 import com.sun.labs.util.props.PropertyException;
@@ -49,9 +50,8 @@ public class QueryDataStore extends ServiceAdapter {
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
         dataStore = (DataStore) ps.getComponent(PROP_DATA_STORE);
-        logger.info("dsHead: " + dataStore);
+        logger.info(String.format("ds: %s", dataStore));
         queries = ps.getStringList(PROP_QUERIES);
-        logger.info("queries: " + queries);
         keys = ps.getStringList(PROP_KEYS);
     }
 
@@ -72,9 +72,11 @@ public class QueryDataStore extends ServiceAdapter {
             for(String k : keys) {
                 logger.info("key: " + k);
                 SimilarityConfig config = new SimilarityConfig("socialtags");
+                config.setSkimPercent(1);
+                config.setReportPercent(1);
                 List<Scored<Item>> r = dataStore.findSimilar(k, config);
                 for (Scored<Item> i : r) {
-                    logger.info(String.format("%.2f %s %s", i.getScore(), i.getItem().
+                    logger.info(String.format("%6.3f %s %s", i.getScore(), i.getItem().
                             getKey(), i.getItem().getName()));
                 }
             }
