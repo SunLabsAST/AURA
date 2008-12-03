@@ -155,7 +155,26 @@ public class DataManager implements Configurable {
     public ItemInfo[] getCommonTags(String id1, String id2, int num, String simType)
             throws AuraException, RemoteException {
         List<Scored<String>> simList = simTypes.get(simType).explainSimilarity(id1, id2, num);
-        return scoredTagStringToItemInfo(simList);
+
+        // If the similarity type is related, we're getting artist ids so we must replace them with the artist's name
+        if (simType.equals("Related")) {
+
+            ArrayList<ItemInfo> artistResult = new ArrayList<ItemInfo>();
+
+            for (Scored<String> ss : simList) {
+                ArtistCompact aC = this.getArtistCompact(ss.getItem());
+                if (aC != null) {
+                    double score = ss.getScore();
+                    double popularity = aC.getPopularity();
+                    artistResult.add(new ItemInfo(aC.getId(), aC.getName(), score, popularity));
+                }
+            }
+            return artistResult.toArray(new ItemInfo[0]);
+
+        } else {
+            return scoredTagStringToItemInfo(simList);
+        }
+        
     }
 
     /**
@@ -783,6 +802,9 @@ public class DataManager implements Configurable {
         return ratingMap;
     }
 
+    /**
+     * Load an artist compact from the cache or from the store
+     */
     public ArtistCompact getArtistCompact(String artistId) throws AuraException, RemoteException {
         
         ArtistDetails details = null;

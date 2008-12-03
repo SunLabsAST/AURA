@@ -133,7 +133,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     
     public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num, String simType) 
             throws WebException {
-        logger.info("getCommonTags for "+artistID1+" and "+artistID2);
+        logger.info("getCommonTags for "+artistID1+" and "+artistID2+" (sim:"+simType+")");
         try {
             return dm.getCommonTags(artistID1, artistID2, num, simType);
         } catch (AuraException ex) {
