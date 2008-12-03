@@ -1263,20 +1263,6 @@ public class BerkeleyDataWrapper {
     }
 
     /**
-     * Gets the number of attentions that are in the attention index
-     * 
-     * @return the number of instances of attention in the index
-     */
-    public long getAttentionCount() {
-        try {
-            return allAttn.count();
-        } catch(DatabaseException e) {
-            log.log(Level.WARNING, "Failed to get count of attentions");
-        }
-        return 0;
-    }
-
-    /**
      * Get the number of user entities in the entity store
      * 
      * @return the number of users or -1 if there was an error

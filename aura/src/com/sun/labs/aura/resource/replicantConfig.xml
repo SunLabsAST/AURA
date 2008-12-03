@@ -58,7 +58,7 @@
         <property name="engineLogLevel" value="1"/>
     </component>
     <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" entries="prefixEntries"/>
-    <component name="statService" type="com.sun.labs.aura.util.StatService"/>
+    <component name="statService" type="com.sun.labs.aura.service.StatService"/>
     
     <!-- A service starter for this replicant -->
     <component name="replicantStarter" type="com.sun.labs.aura.AuraServiceStarter">
