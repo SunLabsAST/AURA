@@ -4,9 +4,6 @@
  */
 package com.sun.labs.aura.music;
 
-import com.sun.labs.aura.datastore.Attention;
-import com.sun.labs.aura.datastore.AttentionConfig;
-import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.MusicDatabase.Popularity;
@@ -18,7 +15,6 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,10 +24,10 @@ import java.util.Set;
  * @author plamere
  */
 public class RecommendationManager {
-
     private MusicDatabase mdb;
     private Map<String, RecommendationType> recTypeMap;
     private final static String DEFAULT_RECOMMENDER = "Quickomendation";
+    private final static int MAX_ARTIST_SET_SIZE = 5000;
 
     RecommendationManager(MusicDatabase mdb) {
         this.mdb = mdb;
@@ -89,23 +85,7 @@ public class RecommendationManager {
     }
 
     private Set<String> getAttendedToArtists(String listenerID) throws AuraException, RemoteException {
-        AttentionConfig ac = new AttentionConfig();
-        ac.setSourceKey(listenerID);
-
-        Set<String> ids = new HashSet();
-        DBIterator<Attention> attentionIterator = mdb.getDataStore().getAttentionIterator(ac);
-        try {
-            while (attentionIterator.hasNext()) {
-                Attention attn = attentionIterator.next();
-                if (mdb.isArtist(attn.getTargetKey())) {
-                    ids.add(attn.getTargetKey());
-                }
-
-            }
-        } finally {
-            attentionIterator.close();
-        }
-        return ids;
+        return mdb.getAttendedToArtists(listenerID, MAX_ARTIST_SET_SIZE);
     }
 
     private List<String> getKeyListFromScoredKeyList(List<Scored<String>> scoredIds) {
@@ -129,38 +109,21 @@ public class RecommendationManager {
         return artist;
     }
 
-    private List<Recommendation> getSimilarArtists(List<Scored<String>> seedArtists, Set<String> skipArtists, int count)
-            throws AuraException {
-        List<Recommendation> recommendations = new ArrayList();
-        for (Scored<String> seedArtist : seedArtists) {
-            List<Scored<Artist>> simArtists = mdb.artistFindSimilar(seedArtist.getItem(), count);
-            for (Scored<Artist> sa : simArtists) {
-                if (!skipArtists.contains(sa.getItem().getKey())) {
-                    skipArtists.add(sa.getItem().getKey());
-                    List<Scored<String>> reason = new ArrayList();
-                    reason.add(new Scored<String>(seedArtist.getItem(), sa.getScore()));
-                    recommendations.add(new Recommendation(sa.getItem().getKey(), sa.getScore(), reason));
-                    if (recommendations.size() >= count) {
-                        break;
-                    }
-
-                }
-            }
-        }
-        return recommendations;
-    }
 
     private class SimpleArtistRecommendationType implements RecommendationType {
 
+        @Override
         public String getName() {
             return "SimpleArtist";
         }
 
+        @Override
         public String getDescription() {
             return "a simple recommender that just returns artists that are similar to " +
                     " a single artist, selected at random, that the listener likes";
         }
 
+        @Override
         public RecommendationSummary getRecommendations(String listenerID, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
             Set<String> skipIDS = getAttendedToArtists(listenerID);
@@ -182,6 +145,7 @@ public class RecommendationManager {
             return new RecommendationSummary(reason, results);
         }
 
+        @Override
         public ItemType getType() {
             return ItemType.ARTIST;
         }
@@ -189,14 +153,17 @@ public class RecommendationManager {
 
     private class SimToRecentArtistRecommender implements RecommendationType {
 
+        @Override
         public String getName() {
             return "SimToRecent";
         }
 
+        @Override
         public String getDescription() {
             return "Finds artists that are similar to the recently played artists";
         }
 
+        @Override
         public RecommendationSummary getRecommendations(String listenerID, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
             ArtistScoreManager sm = new ArtistScoreManager(true);
@@ -229,6 +196,7 @@ public class RecommendationManager {
             return new RecommendationSummary(sb.toString(), results);
         }
 
+        @Override
         public ItemType getType() {
             return ItemType.ARTIST;
         }
@@ -236,14 +204,17 @@ public class RecommendationManager {
 
     private class SimToRecentArtistRecommender2 implements RecommendationType {
 
+        @Override
         public String getName() {
             return "SimToRecent(2)";
         }
 
+        @Override
         public String getDescription() {
             return "Finds artists that are similar to the recently played artists (version 2)";
         }
 
+        @Override
         public RecommendationSummary getRecommendations(String listenerID, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
             Set<String> keys = mdb.getFavoriteArtistKeys(listenerID, count / 2);
@@ -260,6 +231,7 @@ public class RecommendationManager {
             return new RecommendationSummary("similarity to recent artists", results);
         }
 
+        @Override
         public ItemType getType() {
             return ItemType.ARTIST;
         }
@@ -267,14 +239,17 @@ public class RecommendationManager {
 
     private class SimToUserTagCloud implements RecommendationType {
 
+        @Override
         public String getName() {
             return "SimToUserTagCloud";
         }
 
+        @Override
         public String getDescription() {
             return "Finds artists that are similar to users tag cloud";
         }
 
+        @Override
         public RecommendationSummary getRecommendations(String listenerID, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
             Set<String> skipIDS = getAttendedToArtists(listenerID);
@@ -294,6 +269,7 @@ public class RecommendationManager {
             return new RecommendationSummary("Similarity to your personal tag cloud", results);
         }
 
+        @Override
         public ItemType getType() {
             return ItemType.ARTIST;
         }
@@ -303,14 +279,17 @@ public class RecommendationManager {
 
         private final static int MAX_LISTENERS = 10;
 
+        @Override
         public String getName() {
             return "CollaborativeFilterer";
         }
 
+        @Override
         public String getDescription() {
             return "Finds favorites artists from similar users";
         }
 
+        @Override
         public RecommendationSummary getRecommendations(String listenerID, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
 
@@ -318,15 +297,16 @@ public class RecommendationManager {
             List<Scored<Listener>> simListeners = mdb.listenerFindSimilar(listenerID, MAX_LISTENERS);
             ArtistScoreManager sm = new ArtistScoreManager(true);
             for (Scored<Listener> sl : simListeners) {
-                if (sl.getItem().getKey().equals(listenerID)) {
+                String otherListenerID = sl.getItem().getKey();
+                if (otherListenerID.equals(listenerID)) {
                     continue;
                 }
-                List<Scored<String>> scoredKeys = mdb.getAllArtistsAsIDs(listenerID, count);
+                List<Scored<String>> scoredKeys = mdb.getAllArtistsAsIDs(otherListenerID, count);
                 for (Scored<String> scoredKey : scoredKeys) {
                     if (!skipIDs.contains(scoredKey.getItem())) {
                         Artist artist = mdb.artistLookup(scoredKey.getItem());
                         if (artist != null) {
-                            sm.accum(artist, listenerID, sl.getScore() * scoredKey.getScore());
+                            sm.accum(artist, otherListenerID, sl.getScore() * scoredKey.getScore());
                         }
                     }
                 }
@@ -340,6 +320,7 @@ public class RecommendationManager {
             return new RecommendationSummary("Favorite Artists from similar listeners", results);
         }
 
+        @Override
         public ItemType getType() {
             return ItemType.ARTIST;
         }
@@ -347,14 +328,17 @@ public class RecommendationManager {
 
     private class QuickRecommendation implements RecommendationType {
 
+        @Override
         public String getName() {
             return "Quickomendation";
         }
 
+        @Override
         public String getDescription() {
             return "Find music similar to your favorites";
         }
 
+        @Override
         public RecommendationSummary getRecommendations(String listenerID, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
             Set<String> skipIDs = getAttendedToArtists(listenerID);
@@ -366,9 +350,10 @@ public class RecommendationManager {
                 recommendation.addReason(artistKey, sartist.getScore());
                 results.add(recommendation);
             }
-            return new RecommendationSummary("Favorite Artists from similar listeners", results);
+            return new RecommendationSummary("Quick recommendations", results);
         }
 
+        @Override
         public ItemType getType() {
             return ItemType.ARTIST;
         }

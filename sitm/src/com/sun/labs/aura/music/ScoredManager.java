@@ -6,7 +6,9 @@
 package com.sun.labs.aura.music;
 
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.ScoredComparator;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +41,8 @@ public class ScoredManager<T> {
                 results.add(s);
             }
         }
+        Collections.sort(results, ScoredComparator.COMPARATOR);
+        Collections.reverse(results);
         return results;
     }
 
