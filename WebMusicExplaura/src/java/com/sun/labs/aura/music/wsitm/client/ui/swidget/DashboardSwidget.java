@@ -547,7 +547,6 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                 featArtTitle.setStyleName("h2");
                 featArtTitle.setWidth("100%");
                 featArtTitle.setWidget(0, 0, new Label("Featured artist : " + aD.getName()));
-                //featArtTitle.setWidget(0, 1, new StarRatingWidget(0,StarRatingWidget.Size.MEDIUM));
 
                 if (playButton != null) {
                     playButton.onDelete();
@@ -559,6 +558,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                 HorizontalPanel hP = new HorizontalPanel();
                 hP.setWidth("100%");
                 hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+                hP.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
 
                 ArtistCompact aC = aD.toArtistCompact();
                 playButton = new PlayButton(cdm, aC, PlayButton.PLAY_ICON_SIZE.MEDIUM, musicServer);
