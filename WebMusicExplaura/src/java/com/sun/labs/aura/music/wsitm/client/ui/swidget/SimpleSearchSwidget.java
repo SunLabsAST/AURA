@@ -636,6 +636,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         cdm.getLoginListenerManager().addListener(artistStar);
 
         HorizontalPanel hP = new HorizontalPanel();
+        hP.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
         playButton = new PlayButton(cdm, artistDetails.toArtistCompact(),
             PlayButton.PLAY_ICON_SIZE.MEDIUM, musicServer);
         if (playButton!=null) {

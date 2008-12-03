@@ -22,9 +22,9 @@ import javax.servlet.ServletContextListener;
 public class DatabaseBroker implements ServletContextListener {
     private final static String CONFIG_FILE_NAME = "/sitmWebConfig.xml";
     private final static String ATTRIBUTE_NAME = "databaseBroker";
-    private final static String DATASTORE_NAME = "dataStoreHead";
     private MusicDatabase mdb = null;
     private ItemFormatterManager ifm;
+    private StatsManager statsManager;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -38,6 +38,7 @@ public class DatabaseBroker implements ServletContextListener {
                 context.setAttribute(ATTRIBUTE_NAME, this);
                 mdb = new MusicDatabase(cm);
                 ifm = new ItemFormatterManager(mdb);
+                statsManager = new StatsManager();
             } catch (IOException ioe) {
                 logger.log(Level.SEVERE, "Can't load configuration " + config, ioe);
             }
@@ -56,6 +57,10 @@ public class DatabaseBroker implements ServletContextListener {
         return ifm;
     }
 
+    private StatsManager getStatsManager() {
+        return statsManager;
+    }
+
     public static MusicDatabase getMusicDatabase(ServletContext sc) {
         DatabaseBroker sl = (DatabaseBroker) sc.getAttribute(ATTRIBUTE_NAME);
         if (sl != null) {
@@ -72,6 +77,14 @@ public class DatabaseBroker implements ServletContextListener {
         DatabaseBroker sl = (DatabaseBroker) sc.getAttribute(ATTRIBUTE_NAME);
         if (sl != null) {
             return sl.getItemFormatterManager();
+        }
+        return null;
+    }
+
+    public static StatsManager getStatsManager(ServletContext sc) {
+        DatabaseBroker databaseBroker = (DatabaseBroker) sc.getAttribute(ATTRIBUTE_NAME);
+        if (databaseBroker != null) {
+            return databaseBroker.getStatsManager();
         }
         return null;
     }

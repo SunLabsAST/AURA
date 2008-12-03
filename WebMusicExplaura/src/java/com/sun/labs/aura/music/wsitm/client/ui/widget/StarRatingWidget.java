@@ -20,6 +20,7 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 
 /**
  *
@@ -185,7 +186,8 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
     private void invokeSaveRating(int index) {
 
         if (!cdm.isLoggedIn()) {
-            Window.alert("Message from the happy tag : you must be logged in to access this feature. I should redirect you to another page so you can create an account, but I'd rather keep you here so we can be friends.");
+            //Window.alert("Message from the happy tag : you must be logged in to access this feature. I should redirect you to another page so you can create an account, but I'd rather keep you here so we can be friends.");
+            Popup.showLoginPopup();
             return;
         }
 

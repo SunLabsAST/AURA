@@ -4,39 +4,29 @@
  */
 package com.sun.labs.aura.music.webservices;
 
-import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.webservices.ItemFormatter.OutputType;
 import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
-import java.io.IOException;
 import java.io.PrintWriter;
+import java.rmi.RemoteException;
 import java.util.List;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  *
  * @author plamere
  */
-public class FindSimilarArtistTags extends HttpServlet {
-
-    private final static String SERVLET_NAME = "FindSimilarArtistTags";
-    private ParameterChecker pc;
+public class FindSimilarArtistTags extends StandardService {
 
     @Override
-    public void init() throws ServletException {
-        super.init();
-        pc = new ParameterChecker(SERVLET_NAME, "find artist tags similar to a seed artist tag");
-        pc.addParam("key", null, "the key of the item of interest");
-        pc.addParam("name", null, "the name of the item of interest");
-        pc.addParam("max", "10", "the maxiumum number of artists to return");
-        pc.addParam("outputType", OutputType.Tiny.name(), "the type of output");
+    public void initParams() {
+        addParam("key", null, "the key of the item of interest");
+        addParam("name", null, "the name of the item of interest");
+        addParam("max", "10", "the maxiumum number of artists to return");
+        addParam("outputType", OutputType.Tiny.name(), "the type of output");
     }
 
     /** 
@@ -44,99 +34,51 @@ public class FindSimilarArtistTags extends HttpServlet {
      * @param request servlet request
      * @param response servlet response
      */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    @Override
+    protected void go(HttpServletRequest request, PrintWriter out, MusicDatabase mdb)
+            throws AuraException, ParameterException, RemoteException {
 
-        if (pc.processDocumentationRequest(request, response)) {
-            return;
+        ItemFormatterManager formatter = getItemFormatterManager();
+        String key = getParam(request, "key");
+        int maxCount = getParamAsInt(request, "max", 1, 250);
+        OutputType outputType = (OutputType) getParamAsEnum(request, "outputType", OutputType.values());
+
+        ArtistTag artistTag = null;
+        if (key == null) {
+            String name = getParam(request, "name");
+            if (name != null) {
+                artistTag = mdb.artistTagFindBestMatch(name);
+                if (artistTag != null) {
+                    key = artistTag.getKey();
+                }
+            }
         }
+        if (key != null) {
+            if ((artistTag = mdb.artistTagLookup(key)) != null) {
+                List<Scored<ArtistTag>> scoredArtistTags = mdb.artistTagFindSimilar(key, maxCount);
 
-        Status status = new Status(request);
-        ServletContext context = getServletContext();
+                out.println("   <seed key=\"" + key + "\" name=\"" + Util.filter(artistTag.getName()) + "\"/>");
+                for (Scored<ArtistTag> scoredArtistTag : scoredArtistTags) {
 
-        response.setContentType("text/xml;charset=UTF-8");
-        PrintWriter out = response.getWriter();
-
-        try {
-            Util.tagOpen(out, SERVLET_NAME);
-            pc.check(status, request);
-            MusicDatabase mdb = DatabaseBroker.getMusicDatabase(context);
-            ItemFormatterManager formatter = DatabaseBroker.getItemFormatterManager(context);
-
-            if (mdb == null || formatter == null) {
-                status.addError(ErrorCode.InternalError, "Can't connect to the music database");
-                return;
-            }
-            String key = pc.getParam(status, request, "key");
-            int maxCount = pc.getParamAsInt(status, request, "max", 1, 250);
-            OutputType outputType = (OutputType) pc.getParamAsEnum(status, request, "outputType", OutputType.values());
-
-            try {
-                ArtistTag artistTag = null;
-                if (key == null) {
-                    String name = pc.getParam(status, request, "name");
-                    if (name != null) {
-                        artistTag = mdb.artistTagFindBestMatch(name);
-                        if (artistTag != null) {
-                            key = artistTag.getKey();
-                        }
+                    if (scoredArtistTag.getItem().getKey().equals(key)) {
+                        continue;
                     }
+
+                    out.println(formatter.toXML(scoredArtistTag.getItem().getItem(), outputType, scoredArtistTag.getScore()));
                 }
-                if (key != null) {
-                    if ((artistTag = mdb.artistTagLookup(key)) != null) {
-                        List<Scored<ArtistTag>> scoredArtistTags = mdb.artistTagFindSimilar(key, maxCount);
-
-                        out.println("   <seed key=\"" + key + "\" name=\"" + Util.filter(artistTag.getName()) + "\"/>");
-                        for (Scored<ArtistTag> scoredArtistTag : scoredArtistTags) {
-
-                            if (scoredArtistTag.getItem().getKey().equals(key)) {
-                                continue;
-                            }
-
-                            out.println(formatter.toXML(scoredArtistTag.getItem().getItem(), outputType, scoredArtistTag.getScore()));
-                        }
-                    } else {
-                        status.addError(ErrorCode.NotFound, "can't find specified artist");
-                    }
-                } else {
-                    status.addError(ErrorCode.MissingArgument, "need a name or a key");
-                }
-            } catch (AuraException ex) {
-                status.addError(ErrorCode.InternalError, "Problem accessing data", ex);
+            } else {
+                throw new ParameterException(ErrorCode.NotFound, "can't find specified artist");
             }
-        } catch (ParameterException e) {
-        } finally {
-            status.toXML(out);
-            Util.tagClose(out, SERVLET_NAME);
-            out.close();
+        } else {
+            throw new ParameterException(ErrorCode.MissingArgument, "need a name or a key");
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /** 
-     * Handles the HTTP <code>GET</code> method.
-     * @param request servlet request
-     * @param response servlet response
-     */
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
-
-    /** 
-     * Handles the HTTP <code>POST</code> method.
-     * @param request servlet request
-     * @param response servlet response
-     */
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
-
-    /** 
+    /**
      * Returns a short description of the servlet.
      */
+    @Override
     public String getServletInfo() {
         return "Finds artist tags that are similar to a seed tag ";
-    }// </editor-fold>
+    }
 }

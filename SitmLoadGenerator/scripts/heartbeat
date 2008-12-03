@@ -1,0 +1,2 @@
+java -cp dist/SitmLoadGenerator.jar com.sun.labs.aura.music.test.Heartbeat -email Paul.Lamere@sun.com | tee heartbeat.log
+

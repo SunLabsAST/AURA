@@ -12,7 +12,6 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededMouseListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
@@ -79,7 +78,7 @@ public class ContextMenu {
             int x = e.getClientX() + Window.getScrollLeft();
             int y = e.getClientY() + Window.getScrollTop();
             if (newPopup) {
-                Popup.showRoundedPopup(vP, null, pp, x, y);
+                Popup.showRoundedPopup(vP, "", pp, x, y);
                 newPopup = false;
             } else {
                 pp.setPopupPosition(x, y);

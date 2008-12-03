@@ -5,6 +5,9 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui;
 
+import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.Cookies;
+import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.DialogBox;
@@ -18,6 +21,10 @@ import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.KeyboardListener;
+import com.google.gwt.user.client.ui.TextBox;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 
 /**
@@ -74,40 +81,34 @@ public abstract class Popup {
     }
     
     public static void showRoundedPopup(Widget w, String title, final PopupPanel popup) {
-
-        VerticalPanel vP = new VerticalPanel();
-        if (title != null && title.length() > 0) {
-            Label titleLabel = new Label(title);
-            titleLabel.setStyleName("popupColors");
-            titleLabel.addStyleName("popupTitle");
-            vP.add(titleLabel);
-        }
-        w.getElement().getStyle().setPropertyPx("padding", 5);
-        w.addStyleName("popupColors");
-        vP.add(w);
-        
-        Grid fP = new Grid(1,1);
-        fP.setStyleName("popupColors");
-        fP.setHeight("100%");
-        fP.setWidget(0, 0, vP);
-        
-        RoundedPanel rp = new RoundedPanel(fP, RoundedPanel.ALL, 5);
-        rp.setCornerStyleName("popupColors");
-        popup.add(rp);
-        popup.setAnimationEnabled(true);
-        popup.center();
-        popup.center();
+        showRoundedPopup(w, title, popup, -1, -1);
     }
 
     public static void showRoundedPopup(Widget w, String title, final PopupPanel popup, int x, int y) {
-
-        VerticalPanel vP = new VerticalPanel();
+        Label titleLabel = null;
         if (title != null && title.length() > 0) {
-            Label titleLabel = new Label(title);
+            titleLabel = new Label(title);
             titleLabel.setStyleName("popupColors");
             titleLabel.addStyleName("popupTitle");
-            vP.add(titleLabel);
         }
+        showRoundedPopup(w, titleLabel, popup, x, y);
+    }
+
+    /**
+     * Display a rounded popup window
+     * @param w Content widget
+     * @param title Title widget. Use alternate method signature to pass in string
+     * @param popup Popup returned by getPopupPanel()
+     * @param x Position. Set to -1 to center it
+     * @param y Position. Set to -1 to center it
+     */
+    public static void showRoundedPopup(Widget w, Widget title, final PopupPanel popup, int x, int y) {
+
+        VerticalPanel vP = new VerticalPanel();
+        if (title != null) {
+            vP.add(title);
+        }
+
         w.getElement().getStyle().setPropertyPx("padding", 5);
         w.addStyleName("popupColors");
         vP.add(w);
@@ -121,8 +122,14 @@ public abstract class Popup {
         rp.setCornerStyleName("popupColors");
         popup.add(rp);
         popup.setAnimationEnabled(true);
-        popup.setPopupPosition(x, y);
-        popup.show();
+
+        if (x==-1 && y==-1) {
+            popup.center();
+        } else {
+            popup.setPopupPosition(x, y);
+            popup.show();
+        }
+
     }
 
     public static void showInformationPopup(HTML html, int secTillAutoClose) {
@@ -148,6 +155,111 @@ public abstract class Popup {
 
     public static void showInformationPopup(String message) {
         showInformationPopup(new HTML("<p>"+message+"</p>"), 0);
+    }
+
+    /**
+     * Display login popup dialog
+     */
+    public static void showLoginPopup() {
+
+        VerticalPanel vP = new VerticalPanel();
+        vP.setStyleName("popupColors");
+        vP.setWidth("600px");
+
+        // Login / create new panel
+        Grid hP = new Grid(1,2);
+        hP.setWidth("100%");
+
+        // Login VP
+        VerticalPanel loginVP = new VerticalPanel();
+        loginVP.setVerticalAlignment(HorizontalPanel.ALIGN_TOP);
+        loginVP.setWidth("275px");
+        Label loginTitle = new Label("Login to an existing account");
+        loginTitle.addStyleName("h2");
+        loginTitle.addStyleName("alternateHTitle");
+
+        HorizontalPanel loginHP = new HorizontalPanel();
+        loginHP.getElement().getStyle().setPropertyPx("marginTop", 12);
+        loginHP.setWidth("100%");
+        loginHP.add(new HTML("<br />"));
+        Label oiL = new Label("OpenID: ");
+        oiL.setStyleName("popupColors");
+        loginHP.add(oiL);
+        loginHP.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
+        final TextBox loginTb = new TextBox();
+
+        final Command loginCmd = new Command() {
+            public void execute() {
+                Window.Location.assign("./Login?app-openid-auth=true&app-openid-name=" + loginTb.getText());
+            }
+        };
+
+        loginTb.setText(Cookies.getCookie("app-openid-uniqueid"));
+        loginTb.addKeyboardListener(new KeyboardListener() {
+
+            public void onKeyDown(Widget sender, char keyCode, int modifiers) {
+                if (keyCode == KEY_ENTER) {
+                    DeferredCommand.addCommand(loginCmd);
+                }
+            }
+
+            public void onKeyPress(Widget sender, char keyCode, int modifiers) {}
+            public void onKeyUp(Widget sender, char keyCode, int modifiers) {}
+        });
+
+        loginHP.add(loginTb);
+        loginHP.add(new HTML("<br />"));
+        Button loginButton = new Button();
+        loginButton.getElement().getStyle().setPropertyPx("marginTop", 8);
+        loginButton.setText("Login with your OpenID");
+        loginButton.addClickListener(new ClickListener() {
+
+            @Override
+            public void onClick(Widget sender) {
+                DeferredCommand.addCommand(loginCmd);
+            }
+        });
+
+        loginVP.add(loginTitle);
+        loginVP.add(loginHP);
+        loginVP.add(loginButton);
+        hP.setWidget(0, 0, loginVP);
+        hP.getCellFormatter().setVerticalAlignment(0, 0, VerticalPanel.ALIGN_TOP);
+
+        // Create new account VP
+        VerticalPanel createVP = new VerticalPanel();
+        createVP.setWidth("275px");
+        Label createTitle = new Label("Create a new account");
+        createTitle.addStyleName("h2");
+        createTitle.addStyleName("alternateHTitle");
+
+        HTML createTxt = new HTML("<p>OpenID is an open, decentralised single " +
+                "sign-on standard, allowing users to log onto many services " +
+                "with the same digital identity.</p><p>Some free OpenID " +
+                "providers : <a href=\"https://www.myopenid.com\">myOpenID</a></p>");
+        createTxt.setStyleName("popupColors");
+
+        createVP.add(createTitle);
+        createVP.add(createTxt);
+        hP.setWidget(0, 1, createVP);
+        hP.getCellFormatter().setVerticalAlignment(0, 1, VerticalPanel.ALIGN_TOP);
+
+        vP.add(hP);
+
+        Grid titlePanel = new Grid(1,2);
+        titlePanel.setWidth("100%");
+        titlePanel.setStyleName("popupColors");
+        titlePanel.addStyleName("popupTitle");
+        Image openIdImage = new Image("320px-OpenID_logo.svg.png");
+        openIdImage.setHeight("60px");
+        openIdImage.setWidth("160px");
+        titlePanel.setWidget(0, 0, openIdImage);
+        titlePanel.getColumnFormatter().setWidth(0, "85px");
+        titlePanel.setWidget(0, 1, new Label("Login required"));
+        titlePanel.getCellFormatter().setHorizontalAlignment(0, 1, HorizontalPanel.ALIGN_LEFT);
+        titlePanel.getCellFormatter().setVerticalAlignment(0, 1, VerticalPanel.ALIGN_BOTTOM);
+
+        showRoundedPopup(vP, titlePanel, getPopupPanel(), -1, -1);
     }
 
     private class PopupPanelAutoClose extends PopupPanel {
