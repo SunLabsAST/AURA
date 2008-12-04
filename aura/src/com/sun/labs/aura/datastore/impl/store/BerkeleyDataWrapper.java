@@ -1233,7 +1233,6 @@ public class BerkeleyDataWrapper {
 
     public boolean isEmpty() {
         try {
-            log.info(String.format("counts: %d %d %d", itemByKey.count(), allAttn.count(), allUsers.count()));
             return itemByKey.count() + allAttn.count() + allUsers.count() == 0;
         } catch (DatabaseException e) {
             log.log(Level.WARNING, "Failed to test for empty!", e);
