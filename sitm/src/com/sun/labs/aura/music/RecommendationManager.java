@@ -286,7 +286,6 @@ public class RecommendationManager {
         @Override
         public RecommendationSummary getRecommendations(String listenerID, int count, RecommendationProfile rp)
                 throws AuraException, RemoteException {
-
             Set<String> skipIDs = getAttendedToArtists(listenerID);
             List<Scored<Listener>> simListeners = mdb.listenerFindSimilar(listenerID, MAX_LISTENERS);
             ArtistScoreManager sm = new ArtistScoreManager(true);

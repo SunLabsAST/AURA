@@ -1346,12 +1346,16 @@ public class MusicDatabase {
                 filter.addFilter(new KeyResultsFilter(skipSet));
             }
 
-            List<Scored<Item>> simItems = getDataStore().findSimilar(keys, getFindSimilarConfig(field, count, filter));
+            List<Scored<Item>> simItems;
+            if (keys.size() == 1) {
+                simItems = getDataStore().findSimilar(keys.get(0), getFindSimilarConfig(field, count, filter));
+            } else {
+                simItems = getDataStore().findSimilar(keys, getFindSimilarConfig(field, count, filter));
+            }
             return simItems;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
-
     }
 
     /*
