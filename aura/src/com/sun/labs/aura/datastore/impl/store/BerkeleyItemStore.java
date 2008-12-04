@@ -167,7 +167,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      * Tracks the number of times each method/stat is invoked
      */
     protected AtomicInteger[] statInvocationCounts;
-    
+
+    /**
+     * Properties used to provide the MXBean getProperties method
+     */
     private String[] properties;
 
     /**
@@ -215,8 +218,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      */
     @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
-
+        //
+        // Set the MXBean properties - logLevel can be configured
         properties = new String[] {"logLevel"};
+        
         logger = ps.getLogger();
         prefixString = ps.getString(PROP_PREFIX);
         prefixCode = DSBitSet.parse(prefixString);
