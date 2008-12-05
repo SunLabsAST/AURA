@@ -71,7 +71,7 @@ public class QueryDataStore extends ServiceAdapter {
 
             for(String k : keys) {
                 logger.info("key: " + k);
-                SimilarityConfig config = new SimilarityConfig("socialtags");
+                SimilarityConfig config = new SimilarityConfig("socialTags");
                 config.setSkimPercent(1);
                 config.setReportPercent(1);
                 List<Scored<Item>> r = dataStore.findSimilar(k, config);
