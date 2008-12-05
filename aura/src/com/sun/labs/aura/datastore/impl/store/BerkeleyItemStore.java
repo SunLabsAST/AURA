@@ -326,12 +326,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         // is data in the BDB, but the search engine was created from scratch.
         if(!bdb.isEmpty() && searchEngine.engineWasInitialized()) {
             Reindexer reindexer = new Reindexer(searchEngine, false);
-            logger.fine("Reindexg database from " + dbEnvDir);
             try {
                 reindexer.reindex(dbEnvDir, bdb);
             } catch (Exception ex) {
                 logger.log(Level.SEVERE, "Unable to re-index database", ex);
-
             }
         }
 
