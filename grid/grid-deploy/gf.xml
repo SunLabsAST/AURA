@@ -5,7 +5,7 @@
 
   <import file="gf-common.xml"/>
 
-  <property name="domain.dir" value="${service.working}/glassfish/domains/domain1"/>
+  <property name="domain.dir" value="${service.working}/glassfish/domains/aura"/>
   
   <!-- create process registration if it doesn't exist -->
   <target name="create-service"
