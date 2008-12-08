@@ -4,9 +4,17 @@
         <servlet-name>Props</servlet-name>
         <servlet-class>com.sun.labs.aura.simple.Props</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>Timer</servlet-name>
+        <servlet-class>com.sun.labs.aura.simple.Timer</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>Props</servlet-name>
         <url-pattern>/Props</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Timer</servlet-name>
+        <url-pattern>/Timer</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
