@@ -1,22 +1,31 @@
 
 package com.sun.labs.aura.service;
 
+import com.sleepycat.je.CursorConfig;
 import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.DeadlockException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.LockMode;
+import com.sleepycat.je.Transaction;
+import com.sleepycat.je.TransactionConfig;
+import com.sleepycat.persist.EntityJoin;
 import com.sleepycat.persist.EntityStore;
+import com.sleepycat.persist.ForwardCursor;
 import com.sleepycat.persist.PrimaryIndex;
 import com.sleepycat.persist.SecondaryIndex;
 import com.sleepycat.persist.StoreConfig;
 import com.sun.labs.aura.AuraService;
-import com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper;
 import com.sun.labs.aura.service.persist.SessionKey;
+import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
 import java.rmi.RemoteException;
+import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -138,19 +147,144 @@ public class LoginServiceImpl implements LoginService, AuraService, Configurable
     }
 
     @Override
-    public SessionKey newUserSessionKey(String userKey, String appKey) throws RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public SessionKey newUserSessionKey(String userKey, String appKey)
+            throws RemoteException, AuraException {
+        SessionKey existing = getSK(userKey, appKey);
+        if (existing != null) {
+            if (existing.isExpired()) {
+                deleteSK(existing);
+            } else {
+                throw new AuraException("Key already exists for user/app combo");
+            }
+        }
+        SessionKey newKey = new SessionKey(userKey, appKey);
+        newKey = putSK(newKey);
+        return newKey;
     }
 
     @Override
     public SessionKey getUserSessionKey(String userKey, String appKey) throws RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return getSK(userKey, appKey);
     }
 
     @Override
     public SessionKey getUserSessionKey(String sessionKey) throws RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return getSK(sessionKey);
     }
 
+    protected SessionKey getSK(String userKey, String appKey) {
+        EntityJoin<String, SessionKey> join = new EntityJoin(sessionKeyByKey);
+        join.addCondition(sessionKeyByUserKey, userKey);
+        join.addCondition(sessionKeyByAppKey, appKey);
 
+        try {
+            ForwardCursor<SessionKey> cur = null;
+            Transaction txn = null;
+            try {
+                TransactionConfig conf = new TransactionConfig();
+                conf.setReadUncommitted(true);
+                txn = dbEnv.beginTransaction(null, conf);
+                cur = join.entities(txn, CursorConfig.READ_UNCOMMITTED);
+                Iterator<SessionKey> it = cur.iterator();
+                if (it.hasNext()) {
+                    return it.next();
+                } else {
+                    return null;
+                }
+            } finally {
+                if(cur != null) {
+                    cur.close();
+                }
+                if (txn != null) {
+                    txn.commitNoSync();
+                }
+            }
+        } catch (DatabaseException e) {
+            logger.log(Level.WARNING, "Failed to look up session key for " + userKey + ", " + appKey, e);
+        }
+        return null;
+    }
+
+    protected SessionKey getSK(String sessionKey) {
+        SessionKey ret = null;
+        try {
+            Transaction txn = null;
+            try {
+                TransactionConfig conf = new TransactionConfig();
+                conf.setReadUncommitted(true);
+                txn = dbEnv.beginTransaction(null, conf);
+                ret = sessionKeyByKey.get(txn, sessionKey, LockMode.READ_UNCOMMITTED);
+            } finally {
+                if (txn != null) {
+                    txn.commitNoSync();
+                }
+            }
+        } catch (DatabaseException e) {
+            logger.log(Level.WARNING, "Failed to look up session key " + sessionKey, e);
+        }
+        return ret;
+    }
+
+    protected SessionKey putSK(SessionKey newKey) throws AuraException {
+        SessionKey ret = null;
+        int numRetries = 0;
+        while(numRetries < MAX_DEADLOCK_RETRIES) {
+            Transaction txn = null;
+            try {
+                txn = dbEnv.beginTransaction(null, null);
+                ret = sessionKeyByKey.put(txn, newKey);
+                txn.commit();
+                return ret;
+            } catch(DeadlockException e) {
+                try {
+                    txn.abort();
+                    logger.finest("Deadlock detected in putting " + newKey.getSessionKey() + ": " + e.getMessage());
+                    numRetries++;
+                } catch(DatabaseException ex) {
+                    throw new AuraException("Txn abort failed", ex);
+                }
+            } catch(Exception e) {
+                try {
+                    if(txn != null) {
+                        txn.abort();
+                    }
+                } catch(DatabaseException ex) {
+                }
+                throw new AuraException("putItem transaction failed", e);
+            }
+        }
+        throw new AuraException("putItem failed for " +
+                newKey.getUserKey() + ":" + newKey.getAppKey() +
+                " after " + numRetries + " retries");
+    }
+
+    protected void deleteSK(SessionKey sk) throws AuraException {
+        int numRetries = 0;
+        while (numRetries < MAX_DEADLOCK_RETRIES) {
+            Transaction txn = null;
+            try {
+                txn = dbEnv.beginTransaction(null, null);
+                sessionKeyByKey.delete(sk.getSessionKey());
+                txn.commit();
+                return;
+            } catch (DeadlockException e) {
+                try {
+                    txn.abort();
+                    numRetries++;
+                } catch (DatabaseException ex) {
+                    throw new AuraException("Txn abort failed", ex);
+                }
+            } catch (Exception e) {
+                try {
+                    if (txn != null) {
+                        txn.abort();
+                    }
+                } catch (DatabaseException ex) {
+                }
+                throw new AuraException("deleteSK transaction failed", e);
+            }
+        }
+        throw new AuraException("delete SessionKey failed for " +
+                sk + " after " + numRetries + " retries");
+    }
 }

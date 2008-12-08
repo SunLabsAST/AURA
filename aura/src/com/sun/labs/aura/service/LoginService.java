@@ -2,6 +2,7 @@
 package com.sun.labs.aura.service;
 
 import com.sun.labs.aura.service.persist.SessionKey;
+import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.Component;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -21,7 +22,7 @@ public interface LoginService extends Remote, Component {
      * @return a new session key
      */
     public SessionKey newUserSessionKey(String userKey, String appKey)
-            throws RemoteException;
+            throws RemoteException, AuraException;
 
     /**
      * Gets a session key for a user using a particular app if one exists.

@@ -85,4 +85,8 @@ public class SessionKey implements Serializable {
         }
         return false;
     }
+
+    public String toString() {
+        return userKey + " : " + appKey + " (" + sessionKey + ")";
+    }
 }
