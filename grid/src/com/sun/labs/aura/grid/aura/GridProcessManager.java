@@ -22,6 +22,7 @@ import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.TimeSpec;
 import com.sun.labs.util.props.Component;
+import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigStringList;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -39,6 +40,9 @@ import java.util.regex.Pattern;
  *
  */
 public class GridProcessManager extends Aura implements ProcessManager {
+
+    @ConfigBoolean(defaultValue=true)
+    public static final String PROP_TAKE_SNAPS = "takeSnaps";
 
     @ConfigStringList(defaultList={"1h", "1d"})
     public static final String PROP_SNAP_INTERVALS = "snapIntervals";
@@ -258,28 +262,37 @@ public class GridProcessManager extends Aura implements ProcessManager {
     @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
-        List<String> intervals = ps.getStringList(PROP_SNAP_INTERVALS);
-        List<String> tags = ps.getStringList(PROP_SNAP_TAGS);
-        List<String> counts = ps.getStringList(PROP_SNAP_COUNTS);
-        if(!(intervals.size() == tags.size() && intervals.size() == counts.size())) {
-            throw new PropertyException(ps.getInstanceName(), PROP_SNAP_INTERVALS,
-                    PROP_SNAP_INTERVALS + ", " + PROP_SNAP_TAGS +
-                    ", and " + PROP_SNAP_COUNTS + 
-                    " must be the same length");
-        }
-        for(int i = 0; i < intervals.size(); i++) {
-            try {
-                Snapshotter shot =
-                        new Snapshotter(intervals.get(i), tags.get(i), counts.
-                        get(i));
-            } catch (NumberFormatException ex) {
-                throw new PropertyException(ps.getInstanceName(), PROP_SNAP_COUNTS,
-                        "Bad snapshot count: " + counts.get(i));
-            } catch (IllegalArgumentException ex) {
-                throw new PropertyException(ps.getInstanceName(), PROP_SNAP_INTERVALS,
-                        "Bad snapshot interval: " + intervals.get(i));
-            }
 
+        //
+        // Set things up if we're supposed to take snapshots.
+        if(ps.getBoolean(PROP_TAKE_SNAPS)) {
+            List<String> intervals = ps.getStringList(PROP_SNAP_INTERVALS);
+            List<String> tags = ps.getStringList(PROP_SNAP_TAGS);
+            List<String> counts = ps.getStringList(PROP_SNAP_COUNTS);
+            if(!(intervals.size() == tags.size() && intervals.size() == counts.
+                    size())) {
+                throw new PropertyException(ps.getInstanceName(),
+                        PROP_SNAP_INTERVALS,
+                        PROP_SNAP_INTERVALS + ", " + PROP_SNAP_TAGS +
+                        ", and " + PROP_SNAP_COUNTS +
+                        " must be the same length");
+            }
+            for(int i = 0; i < intervals.size(); i++) {
+                try {
+                    Snapshotter shot =
+                            new Snapshotter(intervals.get(i), tags.get(i),
+                            counts.get(i));
+                } catch(NumberFormatException ex) {
+                    throw new PropertyException(ps.getInstanceName(),
+                            PROP_SNAP_COUNTS,
+                            "Bad snapshot count: " + counts.get(i));
+                } catch(IllegalArgumentException ex) {
+                    throw new PropertyException(ps.getInstanceName(),
+                            PROP_SNAP_INTERVALS,
+                            "Bad snapshot interval: " + intervals.get(i));
+                }
+
+            }
         }
     }
 
@@ -466,7 +479,7 @@ public class GridProcessManager extends Aura implements ProcessManager {
             } catch (RemoteException rx) {
                 logger.severe("Error getting snapshots for " + tag);
             }
-            timer.scheduleAtFixedRate(this, 0, this.interval);
+            timer.scheduleAtFixedRate(this, this.interval, this.interval);
         }
 
         private List<SnapshotFileSystem> mp(String prefix, SnapshotFileSystem fs) {

@@ -1271,7 +1271,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
                         if(sorter.size() < n) {
                             sorter.offer(item);
                         } else {
-                            if(item.compareTo(sorter.peek()) > 0) {
+                            if(ScoredComparator.COMPARATOR.compare(item, sorter.peek()) > 0) {
                                 sorter.poll();
                                 sorter.offer(item);
                             }

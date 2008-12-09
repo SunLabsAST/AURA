@@ -138,7 +138,13 @@
 	     userid="${user}" password="${pw}" verbose="true" lock="false">
       <!-- Upload build script to unzip service distribution -->
       <fileset dir="${basedir}/on-grid-scripts">
-	<include name="*.xml"/>
+	<include name="*"/>
+      </fileset>
+      <fileset dir="${basedir}/on-grid-config">
+	<include name="asadmin.pass"/>
+      </fileset>
+      <fileset dir="${basedir}/on-grid-config">
+	<include name="keyfile"/>
       </fileset>
       <fileset dir="${tool.libraries}">
 	<include name="jsk-all.policy"/>

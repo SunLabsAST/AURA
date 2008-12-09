@@ -330,10 +330,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
                 reindexer.reindex(dbEnvDir, bdb);
             } catch (Exception ex) {
                 logger.log(Level.SEVERE, "Unable to re-index database", ex);
-
             }
-        } else {
-            logger.info("Looks like everything is hunky.  Also, dory.");
         }
 
         searchEngine.getSearchEngine().addIndexListener(this);

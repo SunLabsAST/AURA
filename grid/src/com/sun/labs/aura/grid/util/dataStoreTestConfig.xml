@@ -20,6 +20,16 @@
         <property name="dataStore" value="dataStore"/>
     </component>
 
+    <component name="qds-fs" type="com.sun.labs.aura.grid.util.QueryDataStore">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="dataStore" value="dataStore"/>
+        <propertylist name="keys">
+            <item>e86ab653-bec8-46f3-b4b6-a1a866919ef6</item>
+            <item>6fe07aa5-fec0-4eca-a456-f29bff451b04</item>
+        </propertylist>
+        <propertylist name="queries"/>
+    </component>
+
     <component name="rfs" type="com.sun.labs.aura.grid.util.RunFindSimilars">
         <property name="onGrid" value="false"/>
         <property name="instance" value="${auraInstance}"/>
@@ -29,6 +39,13 @@
     <component name="start-qds" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>qds</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="start-qds-fs" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>qds-fs</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>

@@ -3,87 +3,98 @@
 	 xmlns:dav="antlib:org.apache.webdav.ant"
 	 xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
 
-    <property name="service.base" value="glassfish"/>
+  <property name="service.base" value="glassfishv3-prelude"/>
 
-    <import file="web-common.xml"/>
+  <import file="web-common.xml"/>
 
-    <property name="service.conf" value="${www.filesystem}/${service.base}/domains/domain1/config/"/>
-    <property name="service.webapps" value="${service.working}/webapps/"/>
+  <property name="service.conf" value="${www.filesystem}/${service.base}/glassfish/domains/aura/config/"/>
 
-    <!-- This target is empty for glassfish, as it was configured beforehand -->
-    <target name="copy-support-files" description="Copy the build support files to the grid" depends="upload-distribution">
-        <dav:copy url="${config.url}/unzip-dist.xml"
-		destination="${dav.url}/${www.filesystem}/unzip-dist.xml"
-		verbose="true"
-		overwrite="true"
-		userid="${user}" password="${pw}"/>
-    </target>
+  <!-- We only need to copy the ant build file to unzip the distribution -->
+  <target name="copy-support-files" description="Copy the build support files from the dist directory into the www filesystem" depends="upload-distribution,update-config">
+    <dav:copy url="${config.url}/unzip-dist.xml"
+	      destination="${dav.url}/${www.filesystem}/unzip-dist.xml"
+	      verbose="true"
+	      overwrite="true"
+	      userid="${user}" password="${pw}"/>
+    <dav:copy url="${config.url}/asadmin.pass"
+	      destination="${dav.url}/${www.filesystem}/asadmin.pass"
+	      verbose="true"
+	      overwrite="true"
+	      userid="${user}" password="${pw}"/>
+  </target>
 
-    
-    <!-- Deploy a war file on-grid -->
-    <target name="deploy-war"
-        description="Deploys a war file on the grid"
-        depends="upload-war,create-deploy-intaddress,copy-support-files">
+  <target name="update-config" description="updates service configuration">
+    <dav:mkcol url="${dav.url}/${www.filesystem}/${service.base}/glassfish/domains/aura/config"
+	      verbose="true"
+	      userid="${user}" password="${pw}"/>
+  </target>
 
-        <!-- Creates and starts a Caroline process to run ant and have it deploy
-            the war file -->
-        <caroline:process name="deploy-task" op="create"
-            workingdir="/files/working"
-            duration="task">
-            <!-- Filesystems to mount -->
-            <caroline:filesystem name="${www.filesystem}" mountpoint="working"/>
-            <caroline:filesystem name="${dist.filesystem}" mountpoint="dist"/>
-            <caroline:filesystem name="${packages.filesystem}" mountpoint="sys.packages"/>
-            <!-- An address, since we need to talk to the servers -->
-            <caroline:intaddress name="deploy-int" networkname="${network}"/>
-            <!-- Set environment variables -->
-            <env key="ANT_HOME" value="/files/${ant.col}"/>
-            <env key="JAVA_HOME" value="/usr/java"/>
-            <!-- Specify the command line -->
-            <arg value="-Dservice.process=${service.process}"/>
-            <arg value="-Dwar.file=/files/dist/web/${deployment.name}/${war.file}"/>
-            <arg value="-Dwar.path=${war.path}"/>
-            <arg value="-Dservice.webapps=${service.webapps}"/>
-            <arg value="-jar"/>
-            <arg value="/files/${ant.col}/ant-launcher.jar"/>
-            <arg value="-f"/>
-            <arg value="deploy-war.xml"/>
-            <arg value="-v"/>
-            <arg value="deploy"/>
-        </caroline:process>
-    </target>
-    
-    <!-- Undeploy a war file on-grid -->
-    <target name="undeploy-war"
-        description="Deploys a war file on the grid"
-        depends="create-deploy-intaddress">
+  <!-- Deploy a war file on-grid -->
+  <target name="deploy-war"
+	  description="Deploys a war file on the grid"
+	  depends="upload-war,create-deploy-intaddress,copy-support-files">
 
-        <!-- Creates and starts a Caroline process to run ant and have it deploy
-            the war file -->
-        <caroline:process name="deploy-task" op="create"
-            workingdir="/files/working"
-            duration="task">
-            <!-- Filesystems to mount -->
-            <caroline:filesystem name="${www.filesystem}" mountpoint="working"/>
-            <caroline:filesystem name="${dist.filesystem}" mountpoint="dist"/>
-            <caroline:filesystem name="${packages.filesystem}" mountpoint="sys.packages"/>
-            <!-- An address, since we need to talk to the servers -->
-            <caroline:intaddress name="deploy-int" networkname="${network}"/>
-            <!-- Set environment variables -->
-            <env key="ANT_HOME" value="/files/${ant.col}"/>
-            <env key="JAVA_HOME" value="/usr/java"/>
-            <!-- Specify the command line -->
-            <arg value="-Dservice.process=${service.process}"/>
-            <arg value="-Dwar.file=/files/dist/web/${deployment.name}/${war.file}"/>
-            <arg value="-Dwar.path=${war.path}"/>
-            <arg value="-Dservice.webapps=${service.webapps}"/>
-            <arg value="-jar"/>
-            <arg value="/files/${ant.col}/ant-launcher.jar"/>
-            <arg value="-f"/>
-            <arg value="deploy-war.xml"/>
-            <arg value="-v"/>
-            <arg value="undeploy"/>
-        </caroline:process>
-    </target>
+    <!-- Creates and starts a Caroline process to run ant and have it deploy
+	 the war file -->
+    <caroline:process name="deploy-task" op="create"
+		      workingdir="/files/working"
+		      duration="task">
+      <!-- Filesystems to mount -->
+      <caroline:filesystem name="${www.filesystem}" mountpoint="working"/>
+      <caroline:filesystem name="${dist.filesystem}" mountpoint="dist"/>
+      <caroline:filesystem name="${packages.filesystem}" mountpoint="sys.packages"/>
+      <!-- An address, since we need to talk to the servers -->
+      <caroline:intaddress name="deploy-int" networkname="${network}"/>
+      <!-- Set environment variables -->
+      <env key="AS_INSTALL" value="/files/working/glassfish"/>
+      <env key="AS_INSTALL_LIB" value="/files/working/glassfish/modules"/>
+      <!-- Specify the command line -->
+      <arg value="-jar"/>
+      <arg value="/files/working/${service.base}/glassfish/modules/admin-cli.jar"/>
+      <arg value="deploy"/>
+      <arg value="--host"/>
+      <arg value="${service.process}"/>
+      <arg value="--user"/>
+      <arg value="admin"/>
+      <arg value="--passwordfile"/>
+      <arg value="/files/working/asadmin.pass"/>
+      <arg value="--contextroot"/>
+      <arg value="${war.path}"/>
+      <arg value="--force"/>
+      <arg value="true"/>
+      <arg value="/files/dist/web/${deployment.name}/${war.file}"/>
+    </caroline:process>
+  </target>
+  
+  <!-- Undeploy a war file on-grid -->
+  <target name="undeploy-war"
+	  description="Deploys a war file on the grid"
+	  depends="create-deploy-intaddress">
+
+    <!-- Creates and starts a Caroline process to run ant and have it deploy
+	 the war file -->
+    <caroline:process name="deploy-task" op="create"
+		      workingdir="/files/working"
+		      duration="task">
+      <!-- Filesystems to mount -->
+      <caroline:filesystem name="${www.filesystem}" mountpoint="working"/>
+      <caroline:filesystem name="${dist.filesystem}" mountpoint="dist"/>
+      <caroline:filesystem name="${packages.filesystem}" mountpoint="sys.packages"/>
+      <!-- An address, since we need to talk to the servers -->
+      <caroline:intaddress name="deploy-int" networkname="${network}"/>
+      <!-- Set environment variables -->
+      <env key="AS_INSTALL" value="/files/working/glassfish"/>
+      <env key="AS_INSTALL_LIB" value="/files/working/glassfish/modules"/>
+      <!-- Specify the command line -->
+      <arg value="-jar"/>
+      <arg value="/files/working/${service.base}/glassfish/modules/admin-cli.jar"/>
+      <arg value="undeploy"/>
+      <arg value="--user"/>
+      <arg value="admin"/>
+      <arg value="--passwordfile"/>
+      <arg value="/files/working/asadmin.pass"/>
+      <arg value="${war.path}"/>
+    </caroline:process>
+  </target>
 
 </project>

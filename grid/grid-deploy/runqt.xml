@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="runqt" default="run-querytest" basedir="."
+	 xmlns:dav="antlib:org.apache.webdav.ant"
+	 xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
+
+  <!-- Where the libraries are -->
+  <property name="tool.libraries" value="../../ToolLibraries"/>
+
+  <!-- Declare the Caroline tasks -->
+  <taskdef resource="com/sun/caroline/tools/carolant/antlib.xml"
+	   uri="antlib:com.sun.caroline.tools.carolant">
+    <classpath>
+      <pathelement location="${tool.libraries}/carolant.jar"/>
+      <pathelement location="${tool.libraries}/caroline.jar"/>
+    </classpath>
+  </taskdef>
+  
+  <!-- Declare the Caroline Ant tasks -->
+  <taskdef resource="org/apache/webdav/ant/antlib.xml" uri="antlib:org.apache.webdav.ant">
+    <classpath>
+      <pathelement location="${tool.libraries}/jakarta-slide-ant-webdav-2.2pre1.jar"/>
+      <pathelement location="${tool.libraries}/jakarta-slide-webdavlib-2.2pre1.jar"/>
+      <pathelement location="${tool.libraries}/commons-httpclient.jar"/>
+      <pathelement location="${tool.libraries}/commons-logging.jar"/>
+      <pathelement location="${tool.libraries}/jdom-1.0.jar"/>
+    </classpath>
+  </taskdef>
+  
+  <loadproperties srcfile="${user.home}${file.separator}.caroline">
+    <filterchain>
+      <prefixlines prefix="grid."/>
+    </filterchain>
+  </loadproperties>
+
+  <!-- create a grid adapter instance to retrieve a reference the grid -->
+  <caroline:grid/>
+
+  <!-- use implicit properties set by the grid adapter above-->    
+  <property name="user" value="${com.sun.caroline.customerID}"/>
+  <property name="pw" value="${com.sun.caroline.password}"/>
+  <property name="grid.url" value="${com.sun.caroline.gridURL}"/>
+  <property name="dav.url" value="${com.sun.caroline.gridURL}/${user}"/>
+  
+  <!-- create process registration if it doesn't exist -->
+  <target name="run-querytest" description="Runs query test on a couple of indices">
+    
+    <!-- Weezer -->
+    <caroline:process name="run-qt" op="create" workingdir="/files/test/" duration="task">                
+      <!-- filesystem to mount -->    
+      <caroline:filesystem name="steve-test" mountpoint="test"/>
+      <caroline:filesystem name="live-replicant-0011" mountpoint="0011"/>
+      <!-- specify command line arguments -->
+      <arg value="-Xmx1g"/>
+      <arg value="-jar"/>
+      <arg value="/files/test/dist/minion.jar"/>
+      <arg value="-d"/>
+      <arg value="/files/0011/itemIndex.idx"/>
+      <arg value="-f"/>
+      <arg value="0011.in"/>
+      <arg value="-o"/>
+      <arg value="0011.out"/>
+    </caroline:process>
+
+    <!-- The Tragically Hip -->
+    <caroline:process name="run-qt" op="create" workingdir="/files/test/" duration="task">                
+      <!-- filesystem to mount -->    
+      <caroline:filesystem name="steve-test" mountpoint="test"/>
+      <caroline:filesystem name="live-replicant-1100" mountpoint="1100"/>
+      <!-- assign an internal address -->
+      <arg value="-Xmx1g"/>
+      <arg value="-jar"/>
+      <arg value="/files/test/dist/minion.jar"/>
+      <arg value="-d"/>
+      <arg value="/files/1100/itemIndex.idx"/>
+      <arg value="-f"/>
+      <arg value="1100.in"/>
+      <arg value="-o"/>
+      <arg value="1100.out"/>
+    </caroline:process>
+  </target>
+  
+  <target name="cleanup">
+    <caroline:process name="run-qt" op="delete"/>
+    <caroline:intaddress name="steve-test" op="delete"/>
+  </target>
+
+</project>
