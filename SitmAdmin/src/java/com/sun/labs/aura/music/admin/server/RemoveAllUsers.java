@@ -23,14 +23,12 @@ public class RemoveAllUsers extends Worker {
 
     public RemoveAllUsers() {
         super("Remove All Users", "Removes all users and their associated attention data");
-        param("Erase all data", "If true, also erase all associated attention data", Bool.values(), Bool.TRUE);
         param("Dry Run", "If true, show what would happen but don't actually do the deed.", Bool.values(), Bool.TRUE);
         param("maxCount", "The maximum number of users to remove (zero for all)", 100);
     }
 
     @Override
-    void go( MusicDatabase mdb, Map<String, String> params, WorkbenchResult result) throws AuraException, RemoteException {
-        boolean eraseAll = getParamAsEnum(params, "Erase all data") == Bool.TRUE;
+    void go(MusicDatabase mdb, Map<String, String> params, WorkbenchResult result) throws AuraException, RemoteException {
         boolean dryRun = getParamAsEnum(params, "Dry Run") == Bool.TRUE;
         int maxCount = getParamAsInt(params, "maxCount");
 
@@ -39,47 +37,17 @@ public class RemoveAllUsers extends Worker {
         int curCount = 0;
 
         for (String key : allKeys) {
-
-            if (curCount++ >= maxCount && maxCount != 0) {
-                break;
-            }
-
             Listener listener = mdb.getListener(key);
-
-            if (listener == null) {
-                result.fail("Listener " + key + " doesn't exisit");
-                return;
-            }
-
-            result.output("Erasing listener " + listener.getName() + " key: " + listener.getKey());
-
-            AttentionConfig ac = new AttentionConfig();
-            ac.setSourceKey(key);
-
-            List<Attention> attns = null;
-            if (eraseAll) {
-                attns = mdb.getDataStore().getAttention(ac);
-                result.output("Erasing " + attns.size() + " attention data");
-            }
-
-
-            if (!dryRun) {
-                if (attns != null) {
-                    for (Attention attn : attns) {
-                        mdb.getDataStore().removeAttention(attn.getSourceKey(), attn.getTargetKey(), attn.getType());
-                    }
-
-                    List<Attention> leftoverAttns = mdb.getDataStore().getAttention(ac);
-                    if (leftoverAttns.size() > 0) {
-                        result.fail("Attention delete failed after deleting user, " + leftoverAttns.size() + " attention remain.");
-                        return;
-                    } else {
-                        result.output("All attention data removed or " + listener.getKey());
-                    }
+            if (listener != null) {
+                result.output("Erasing listener " + listener.getName() + " key: " + listener.getKey());
+                if (!dryRun) {
+                    mdb.getDataStore().deleteUser(listener.getKey());
+                } else {
+                    result.output("Dry run, nothing erased");
                 }
-                mdb.getDataStore().deleteUser(listener.getKey());
-            } else {
-                result.output("Dry run, nothing erased");
+                if (++curCount >= maxCount && maxCount != 0) {
+                    break;
+                }
             }
         }
     }

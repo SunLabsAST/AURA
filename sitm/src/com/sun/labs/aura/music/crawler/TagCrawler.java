@@ -55,7 +55,6 @@ public class TagCrawler implements AuraService, Configurable {
     private Util util;
     private RemoteComponentManager rcm;
     private boolean running = false;
-    private Map<String, Map<String, Tag>> tagMap = new HashMap();
     static Set skipSet;
     
 
@@ -163,7 +162,7 @@ public class TagCrawler implements AuraService, Configurable {
             artistTag.clearTaggedArtists();
             for (LastItem lartist : lartists) {
                 // Always add tags, no matter what. we can filter them on the way out
-                if (true || getDataStore().getItem(lartist.getMBID()) != null) {
+                if (lartist.getMBID() != null && lartist.getMBID().length() > 0) {
                     artistTag.addTaggedArtist(lartist.getMBID(), lartist.getFreq());
                 }
                 popularity += lartist.getFreq();

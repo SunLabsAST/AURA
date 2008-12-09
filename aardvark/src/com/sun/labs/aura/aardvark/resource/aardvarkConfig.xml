@@ -47,7 +47,7 @@
     </component>
     
     <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
-    <component name="statService" type="com.sun.labs.aura.util.StatService"/>
+    <component name="statService" type="com.sun.labs.aura.service.StatService"/>
     <component name="feedScheduler" type="com.sun.labs.aura.aardvark.impl.crawler.FeedScheduler"/>
     <component name="recommenderManager" type="com.sun.labs.aura.recommender.RecommenderManager"/>
     

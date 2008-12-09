@@ -36,6 +36,7 @@ public class ListenerSummary extends Worker {
 
         String header = String.format("%4s %32s %4s %4s %4s %6s %8s %s",
                 "#", "key", "age", "pull", "yob", "attn", "sex", "fav");
+        int row = 1;
         for (int i = 0; i < count && i < ids.size(); i++) {
             Listener listener = mdb.getListener(ids.get(i));
             if (listener != null) {
@@ -50,12 +51,12 @@ public class ListenerSummary extends Worker {
                 }
 
 
-                if (i % 24 == 0) {
+                if (row % 24 == 0) {
                     result.output(header);
                 }
 
                 String s = String.format("%4d %32s %4d %4d %4d %6d %8s %s",
-                        i + 1, listener.getKey(),
+                        row++, listener.getKey(),
                         ageInDays, listener.getUpdateCount(), listener.getYearOfBirth(), attns, listener.getGender().name(), favArtistName);
                 result.output(s);
             }

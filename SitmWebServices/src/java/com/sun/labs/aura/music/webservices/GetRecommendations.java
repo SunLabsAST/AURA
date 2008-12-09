@@ -46,7 +46,7 @@ public class GetRecommendations extends StandardService {
                 "popularity", Popularity.values());
         String alg = getParam(request, "alg");
         if (alg == null) {
-            alg = MusicDatabase.DEFAULT_RECOMMENDER;
+            alg = mdb.getDefaultArtistRecommendationType().getName();
         }
 
         Listener listener = mdb.getListener(userID);

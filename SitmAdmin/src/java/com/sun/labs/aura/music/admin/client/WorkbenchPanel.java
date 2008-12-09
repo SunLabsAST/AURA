@@ -6,7 +6,6 @@ package com.sun.labs.aura.music.admin.client;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
@@ -24,6 +23,7 @@ import com.google.gwt.user.client.ui.Widget;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import sun.font.TextLabel;
 
 /**
  *
@@ -39,6 +39,7 @@ public class WorkbenchPanel extends Composite implements TreeListener {
     Widget curWorkerPanel = null;
     Button goButton;
     Map<String, Widget> widgetCache = new HashMap<String, Widget>();
+    Label timeInfo = new Label();
 
     WorkbenchPanel(AdminServiceAsync service) {
         this.service = service;
@@ -179,6 +180,7 @@ public class WorkbenchPanel extends Composite implements TreeListener {
             panel.add(output);
             panel.addStyleName("workerWidget");
             initWidget(panel);
+            panel.add(timeInfo);
         }
 
         private Widget getListBoxForParam(ParamDescriptor p) {
@@ -232,6 +234,7 @@ public class WorkbenchPanel extends Composite implements TreeListener {
         }
 
         void processing(boolean state) {
+            timeInfo.setText("");
             goButton.setEnabled(!state);
             if (state) {
                 output.setText("");
@@ -277,6 +280,7 @@ public class WorkbenchPanel extends Composite implements TreeListener {
                             sb.append("\n");
                         }
                         output.setText(sb.toString());
+                        timeInfo.setText(wbr.getTime() + " ms");
                         isRunning = false;
                     }
                 });

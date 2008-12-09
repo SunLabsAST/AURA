@@ -24,7 +24,7 @@ import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.aura.util.ShellUtils;
-import com.sun.labs.aura.util.StatService;
+import com.sun.labs.aura.service.StatService;
 import com.sun.labs.aura.util.Tag;
 import com.sun.labs.util.command.CommandInterface;
 import com.sun.labs.util.command.CommandInterpreter;

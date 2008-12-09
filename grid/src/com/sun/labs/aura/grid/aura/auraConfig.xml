@@ -15,6 +15,7 @@
     
     <component name="startAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="instance" value="${auraInstance}"/>
+        <property name="defaultNumReplicants" value="16"/>
     </component>
 
     <component name="startSmallAura" type="com.sun.labs.aura.grid.aura.StartAura">
