@@ -427,6 +427,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         return prefixCode;
     }
 
+    public void setPrefix(DSBitSet prefixCode) {
+        this.prefixCode = prefixCode;
+        prefixString = prefixCode.toString();
+    }
+
     /**
      * Close up the entity store and the database environment.
      */
