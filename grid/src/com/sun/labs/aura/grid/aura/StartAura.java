@@ -51,6 +51,13 @@ public class StartAura extends Aura {
         gu.startRegistration(statSrvReg);
 
         //
+        // A login service
+        ProcessRegistration loginSrvReg = gu.createProcess(
+                getLoginServiceName(),
+                getLoginServiceConfig());
+        gu.startRegistration(loginSrvReg);
+
+        //
         // Start up a process manager.
         ProcessRegistration pmReg = gu.createProcess(getProcessManagerName(),
                 getProcessManagerConfig());
@@ -154,6 +161,7 @@ public class StartAura extends Aura {
                 // If there's no file systems, then create them!
                 createReplicantFileSystems();
             }
+            createLoginSvcFileSystem(instance);
             createAuraProcesses();
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error starting Aura", e);
