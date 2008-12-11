@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- You may freely edit this file. See commented blocks below for -->
+<!-- some examples of how to customize the build. -->
+<!-- (If you delete it and reopen the project it will be recreated.) -->
+<project name="upload"
+	 xmlns:dav="antlib:org.apache.webdav.ant"
+	 xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
+  
+  <description>Uploads a file or directory to the grid.</description>
+  
+  <!-- Declare the Caroline tasks -->
+  <taskdef resource="com/sun/caroline/tools/carolant/antlib.xml"
+	   uri="antlib:com.sun.caroline.tools.carolant">
+    <classpath>
+      <pathelement location="carolant.jar"/>
+      <pathelement location="caroline.jar"/>
+    </classpath>
+  </taskdef>
+  
+  <!-- Declare the Caroline Ant tasks -->
+  <taskdef resource="org/apache/webdav/ant/antlib.xml" uri="antlib:org.apache.webdav.ant">
+    <classpath>
+      <pathelement location="jakarta-slide-ant-webdav-2.2pre1.jar"/>
+      <pathelement location="jakarta-slide-webdavlib-2.2pre1.jar"/>
+      <pathelement location="commons-httpclient.jar"/>
+      <pathelement location="commons-logging.jar"/>
+      <pathelement location="jdom-1.0.jar"/>
+    </classpath>
+  </taskdef>
+
+  <!-- create a grid adapter instance to retrieve a reference the grid -->
+  <caroline:grid/>
+
+  <!-- use implicit properties set by the grid adapter above-->
+  <property name="user" value="${com.sun.caroline.customerID}"/>
+  <property name="pw" value="${com.sun.caroline.password}"/>
+  <property name="grid.url" value="${com.sun.caroline.gridURL}"/>
+  <property name="dav.url" value="${grid.url}/${user}"/>
+  
+  <condition property="fs" value="www.filesystem">
+    <not>
+      <isset property="fs"/>
+    </not>
+  </condition>
+
+  <condition property="fsdir" value="/">
+    <not>
+      <isset property="fsdir"/>
+    </not>
+  </condition>
+
+  <!-- A webdav URL for the dist filesystem. -->
+  <property name="fs.url" value="${dav.url}/${fs}/${fsdir}"/>
+
+  <target name="create-collection">
+    <dav:mkcol url="${fs.url}" userid="${user}" password="${pw}"/>
+  </target>
+
+  <target name="upload-file" description="Uploads a file to the grid" depends="create-collection">
+    <dav:put url="${fs.url}" userid="${user}" password="${pw}" verbose="true" lock="false" file="${file}"/>            
+  </target>
+
+  <target name="upload-dir" description="Uploads a file to the grid" depends="create-collection">
+    <dav:put url="${fs.url}" userid="${user}" password="${pw}" verbose="true" lock="false">            
+      <fileset dir="${dir}">
+	<include name="**/*"/>
+      </fileset>
+    </dav:put>
+  </target>
+</project>

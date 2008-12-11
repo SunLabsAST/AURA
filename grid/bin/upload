@@ -1,1 +1,54 @@
-ant upload-dist
+#!/bin/bash
+
+function usage {
+    echo 'Usage: upload -s <filesystem> -d <directory where upload should go> -u <file or dir to upload>'
+    echo ' filesystem defaults to www.filesystem, directory to /'
+}
+
+args=`getopt hd:s:u: $*`
+
+if [ $? != 0 ]
+then
+    usage
+    exit 2
+fi
+
+set -- $args
+
+export FS=www.filesystem
+export DIR=/
+EXDIR=`dirname $0`
+
+
+for i 
+do
+    case "$i"
+	in
+	-h)
+	    usage
+	    exit;;
+	-d)
+	    DIR=$2; shift;
+	    shift;;
+	-s)
+	    FS=$2; shift;
+	    shift;;
+	-u)
+	    UP=$2; shift;
+	    shift;;
+    esac
+done
+
+if [ -z "$UP" ]; then 
+    echo 'Need to specify file or directory to upload'
+    usage
+    exit 2
+fi
+
+#
+# Ant can't make the distinction betwen files and directories, so we'll use two different build files.
+if [ -f $UP ]; then
+    ant -Dfs=$FS -Dfsdir=$DIR -Dfile=$UP -f $EXDIR/../grid-deploy/upload.xml upload-file
+elif [ -d $UP ]; then 
+    ant -Dfs=$FS -Dfsdir=$DIR -Ddir=$UP -f $EXDIR/../grid-deploy/upload.xml upload-dir
+fi
