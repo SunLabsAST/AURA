@@ -35,6 +35,7 @@ import com.sun.labs.aura.datastore.impl.store.persist.StringAndTimeKey;
 import com.sun.labs.aura.util.Times;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.File;
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,6 +45,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -772,7 +774,7 @@ public class BerkeleyDataWrapper {
      * @param itemType the type of item to retrieve
      * @param timeStamp the time from which to search (to the present time
      * @return an iterator over the added items
-     * @throws com.sun.labs.aura.aardvark.util.AuraException 
+     * @throws com.sun.labs.aura.util.AuraException 
      */
     public DBIterator<Item> getItemsAddedSince(ItemType itemType,
             long timeStamp) throws AuraException {
@@ -874,7 +876,7 @@ public class BerkeleyDataWrapper {
      * 
      * @param timeStamp the time to search back to
      * @return the Attentions added since that time
-     * @throws com.sun.labs.aura.aardvark.util.AuraException
+     * @throws com.sun.labs.aura.util.AuraException
      */
     @SuppressWarnings(value="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE",
                       justification="Future-proofing isn't bad")

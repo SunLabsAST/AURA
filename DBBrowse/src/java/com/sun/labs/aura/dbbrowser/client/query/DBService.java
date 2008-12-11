@@ -20,6 +20,8 @@ public interface DBService extends RemoteService {
     public AttnDesc[] getAttentionForTarget(String key);
 
     public HashMap<String,String> getItemInfo(String key);
-    
+
+    public void deleteItem(String key);
+
     public AttnDesc[] doTest();
 }

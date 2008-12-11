@@ -56,6 +56,14 @@ public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote 
     public DSBitSet getPrefix() throws RemoteException;
 
     /**
+     * Sets the prefix code for this replicant.  This should be used after
+     * a split.
+     * 
+     * @param newPrefix the prefix code
+     */
+    public void setPrefix(DSBitSet newPrefix) throws RemoteException;
+
+    /**
      * Delete the attention that is related to the given item either as a 
      * source or a target.  (Generally: isSrc should be true for users and
      * otherwise false)
