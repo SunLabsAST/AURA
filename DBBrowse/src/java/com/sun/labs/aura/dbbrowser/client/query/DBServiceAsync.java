@@ -29,6 +29,8 @@ public interface DBServiceAsync {
     public void getAttentionForTarget(String key, AsyncCallback asyncCallback);
     
     public void getItemInfo(String key, AsyncCallback asyncCallback);
-    
+
+    public void deleteItem(String key, AsyncCallback asyncCallback);
+
     public void doTest(AsyncCallback asyncCallback);
 }
