@@ -27,10 +27,10 @@ public class SessionKey implements Serializable {
     @PrimaryKey
     protected String sessionKey;
 
-    @SecondaryKey(relate=Relationship.ONE_TO_MANY)
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     protected String userKey;
 
-    @SecondaryKey(relate=Relationship.ONE_TO_MANY)
+    @SecondaryKey(relate=Relationship.MANY_TO_ONE)
     protected String appKey;
 
     @SecondaryKey(relate=Relationship.MANY_TO_ONE)

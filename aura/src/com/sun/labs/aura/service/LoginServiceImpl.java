@@ -20,6 +20,7 @@ import com.sun.labs.aura.service.persist.SessionKey;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
+import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
@@ -40,6 +41,8 @@ public class LoginServiceImpl implements LoginService, AuraService, Configurable
     @ConfigString(defaultValue = "/tmp/aura")
     public final static String PROP_DB_ENV = "dbEnv";
     protected String dbEnvDir;
+
+    ConfigurationManager cm = null;
 
     /**
      * A logger for messages/debug info
@@ -93,13 +96,15 @@ public class LoginServiceImpl implements LoginService, AuraService, Configurable
 
     @Override
     public void stop() {
-        
+        cm.shutdown();
+        logger.info("Login Service Stopped");
     }
 
     @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
         logger = ps.getLogger();
-
+        cm = ps.getConfigurationManager();
+        
         //
         // Get or create the database environment
         dbEnvDir = ps.getString(PROP_DB_ENV);
@@ -158,7 +163,7 @@ public class LoginServiceImpl implements LoginService, AuraService, Configurable
             }
         }
         SessionKey newKey = new SessionKey(userKey, appKey);
-        newKey = putSK(newKey);
+        putSK(newKey);
         return newKey;
     }
 
@@ -250,7 +255,7 @@ public class LoginServiceImpl implements LoginService, AuraService, Configurable
                     }
                 } catch(DatabaseException ex) {
                 }
-                throw new AuraException("putItem transaction failed", e);
+                throw new AuraException("putSK transaction failed", e);
             }
         }
         throw new AuraException("putItem failed for " +
