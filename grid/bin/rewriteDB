@@ -1,0 +1,1 @@
+java -jar dist/grid.jar -a -Drep=$REP /com/sun/labs/aura/grid/aura/rewriteConfig.xml rewrite
