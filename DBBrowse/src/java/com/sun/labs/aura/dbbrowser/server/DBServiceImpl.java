@@ -224,6 +224,9 @@ public class DBServiceImpl extends RemoteServiceServlet implements
                 String display = val.toString();
                 result.put(name, display);
             }
+            if (result.isEmpty()) {
+                return null;
+            }
             return result;
         } catch (AuraException ex) {
             Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
@@ -232,7 +235,17 @@ public class DBServiceImpl extends RemoteServiceServlet implements
         }
         return null;
     }
-    
+
+    public void deleteItem(String key) {
+        try {
+            store.deleteItem(key);
+        } catch (AuraException ex) {
+            Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (RemoteException ex) {
+            Logger.getLogger(DBServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     public AttnDesc[] doTest() {
         try {
             StopWatch sw = new StopWatch();

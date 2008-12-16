@@ -37,6 +37,7 @@ public class ResultsPanel extends DockPanel {
     private static final int KEY_COL = 2;
     private static final int SRC_ATTN_COL = 3;
     private static final int TRG_ATTN_COL = 4;
+    private static final int DELETE_COL = 5;
     
     public ResultsPanel(ItemDesc[] items, final TabbedQueryUI parent) {
         this.items = items;
@@ -51,6 +52,7 @@ public class ResultsPanel extends DockPanel {
         results.setText(0, TYPE_COL, "Type");
         results.setText(0, SRC_ATTN_COL, "Attn For Source");
         results.setText(0, TRG_ATTN_COL, "Attn for Target");
+        results.setText(0, DELETE_COL, "Delete?");
         RowFormatter rf = results.getRowFormatter();
         rf.setStylePrimaryName(0, "db-TableHeader");
         fillItems();
@@ -91,11 +93,11 @@ public class ResultsPanel extends DockPanel {
             });
             results.setWidget(row, KEY_COL, l);
             
-            AttnButton srcBtn = new AttnButton(items[i].getKey());
+            KeyButton srcBtn = new KeyButton("Attention", items[i].getKey());
             srcBtn.addClickListener(new ClickListener() {
                 public void onClick(Widget arg0) {
                     service.getAttentionForSource(
-                            ((AttnButton)arg0).getKey(),
+                            ((KeyButton)arg0).getKey(),
                             new AsyncCallback() {
 
                         public void onFailure(Throwable ex) {
@@ -116,11 +118,11 @@ public class ResultsPanel extends DockPanel {
                     });
                 }
             });
-            AttnButton trgBtn = new AttnButton(items[i].getKey());
+            KeyButton trgBtn = new KeyButton("Attention", items[i].getKey());
             trgBtn.addClickListener(new ClickListener() {
                 public void onClick(Widget arg0) {
                     service.getAttentionForTarget(
-                            ((AttnButton)arg0).getKey(),
+                            ((KeyButton)arg0).getKey(),
                             new AsyncCallback() {
 
                         public void onFailure(Throwable ex) {
@@ -143,6 +145,27 @@ public class ResultsPanel extends DockPanel {
             });
             results.setWidget(row, SRC_ATTN_COL, srcBtn);
             results.setWidget(row, TRG_ATTN_COL, trgBtn);
+
+            KeyButton delBtn = new KeyButton("Delete", items[i].getKey());
+            delBtn.addClickListener(new ClickListener() {
+                public void onClick(Widget sender) {
+                    service.deleteItem(
+                            ((KeyButton)sender).getKey(),
+                            new AsyncCallback() {
+
+                        public void onFailure(Throwable ex) {
+                            parent.showError(ex.getMessage());
+                        }
+
+                        public void onSuccess(Object result) {
+                            parent.showError("Done!");
+                        }
+
+                    });
+                }
+            });
+            results.setWidget(row, DELETE_COL, delBtn);
+            
             //
             // Stylize the row
             if (lightRow) {
@@ -216,10 +239,10 @@ public class ResultsPanel extends DockPanel {
         itemInfo.setWidget(contents);
     }
     
-    public class AttnButton extends Button {
+    public class KeyButton extends Button {
         protected String key;
-        public AttnButton(String key) {
-            super("Attention");
+        public KeyButton(String name, String key) {
+            super(name);
             this.key = key;
         }
         
@@ -227,4 +250,5 @@ public class ResultsPanel extends DockPanel {
             return key;
         }
     }
+
 }

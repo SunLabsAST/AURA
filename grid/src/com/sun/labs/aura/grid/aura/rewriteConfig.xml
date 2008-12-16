@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<config>
+
+    <property name="auraInstance" value="live"/>
+    <property name="rep" value=""/>
+
+    <!-- <property name="logLevel" value="FINER"/> -->
+
+    <component name="rewriteDB" type="com.sun.labs.aura.grid.aura.RewriteBDB">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="replicant" value="${rep}"/>
+    </component>
+
+    <component name="rewrite" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>rewriteDB</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+</config>
