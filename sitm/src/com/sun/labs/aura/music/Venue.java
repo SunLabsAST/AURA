@@ -48,18 +48,10 @@ public class Venue extends ItemAdapter {
 
   public void defineFields(DataStore ds) throws AuraException {
         try {
-            ds.defineField(Item.ItemType.VENUE, FIELD_ADDRESS,
-                    EnumSet.of(Item.FieldCapability.SEARCH),
-                    Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.VENUE, FIELD_CITY,
-                    EnumSet.of(Item.FieldCapability.SEARCH),
-                    Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.VENUE, FIELD_COUNTRY,
-                    EnumSet.of(Item.FieldCapability.SEARCH),
-                    Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.VENUE, FIELD_STATE,
-                    EnumSet.of(Item.FieldCapability.SEARCH),
-                    Item.FieldType.STRING);
+            ds.defineField(FIELD_ADDRESS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_CITY, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_COUNTRY, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_STATE, true, Item.FieldType.STRING);
         } catch(RemoteException rx) {
             throw new AuraException("Error defining fields for Venue", rx);
         }

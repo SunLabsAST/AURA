@@ -32,7 +32,7 @@ public class LoadTest {
         FileReader fr = new FileReader(lastFMData);
         BufferedReader input = new BufferedReader(fr);
         StopWatch sw = new StopWatch();
-        dataStore.defineField(ItemType.ARTIST, "foo");
+        dataStore.defineField("foo");
         String line = null;
         while((line = input.readLine()) != null) {
             String[] fields = line.split("<sep>");
@@ -74,7 +74,7 @@ public class LoadTest {
         FileReader fr = new FileReader(lastFMData);
         BufferedReader input = new BufferedReader(fr);
         StopWatch sw = new StopWatch();
-        dataStore.defineField(ItemType.ARTIST, "foo");
+        dataStore.defineField("foo");
         String line = null;
         while((line = input.readLine()) != null) {
             String[] fields = line.split("<sep>");

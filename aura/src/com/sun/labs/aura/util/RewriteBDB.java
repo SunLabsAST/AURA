@@ -63,8 +63,8 @@ public class RewriteBDB {
         // Migrate field definitions
         Map<String,FieldDescription> fds = source.getFieldDescriptions();
         for (FieldDescription fd : fds.values()) {
-            destination.defineField(null, fd.getName(),
-                    fd.getCapabilities(), fd.getType());
+            destination.defineField(fd.getName(),
+                    fd.getIndexed(), fd.getType());
         }
         logger.info("Migrated field descriptions");
     }

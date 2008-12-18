@@ -60,28 +60,15 @@ public class BlogEntry extends ItemAdapter {
         EnumSet<Item.FieldCapability> ss = EnumSet.of(Item.FieldCapability.SIMILARITY,
                 Item.FieldCapability.SEARCH);
         try {
-            store.defineField(Item.ItemType.BLOGENTRY, FIELD_FEED_KEY, 
-                    EnumSet.of(Item.FieldCapability.MATCH), 
-                    Item.FieldType.STRING);
-            store.defineField(Item.ItemType.BLOGENTRY, FIELD_TAG,
-                    ss, Item.FieldType.STRING);
-            store.defineField(Item.ItemType.BLOGENTRY, FIELD_CONTENT,
-                    ss, Item.FieldType.STRING);
-            store.defineField(Item.ItemType.BLOGENTRY, FIELD_SYND_ENTRY);
-            store.defineField(Item.ItemType.BLOGENTRY, FIELD_TAG,
-                    ss, Item.FieldType.STRING);
-            store.defineField(Item.ItemType.BLOGENTRY, FIELD_AUTHOR,
-                EnumSet.of(Item.FieldCapability.SEARCH), 
-                Item.FieldType.STRING);
-            store.defineField(Item.ItemType.BLOGENTRY, FIELD_AUTHORITY,
-                    EnumSet.of(Item.FieldCapability.SORT, 
-                    Item.FieldCapability.FILTER),
-                    Item.FieldType.INTEGER);
-            store.defineField(Item.ItemType.BLOGENTRY, FIELD_PUBLISH_DATE,
-                    EnumSet.of(Item.FieldCapability.SORT, 
-                    Item.FieldCapability.FILTER), Item.FieldType.DATE);
-            store.defineField(Item.ItemType.BLOGENTRY, FIELD_AUTOTAG,
-                    EnumSet.of(Item.FieldCapability.SIMILARITY), null);
+            store.defineField(FIELD_FEED_KEY, true, Item.FieldType.STRING);
+            store.defineField(FIELD_TAG, true, Item.FieldType.STRING);
+            store.defineField(FIELD_CONTENT, true, Item.FieldType.STRING);
+            store.defineField(FIELD_SYND_ENTRY);
+            store.defineField(FIELD_TAG, true, Item.FieldType.STRING);
+            store.defineField(FIELD_AUTHOR, true, Item.FieldType.STRING);
+            store.defineField(FIELD_AUTHORITY, true, Item.FieldType.INTEGER);
+            store.defineField(FIELD_PUBLISH_DATE, true, Item.FieldType.DATE);
+            store.defineField(FIELD_AUTOTAG, true, Item.FieldType.STRING);
         } catch(RemoteException rx) {
             throw new AuraException("Error defining fields for BlogEntry", rx);
         }

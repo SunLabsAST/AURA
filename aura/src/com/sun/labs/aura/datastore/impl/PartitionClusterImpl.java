@@ -112,14 +112,14 @@ public class PartitionClusterImpl implements PartitionCluster,
         return prefixCode;
     }
     
-    public void defineField(ItemType itemType, String field)
+    public void defineField(String fieldName)
             throws AuraException, RemoteException {
-        defineField(itemType, field, null, null);
+        defineField(fieldName, false, null);
     }
 
-    public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
+    public void defineField(String fieldName, boolean indexed,
             Item.FieldType fieldType) throws AuraException, RemoteException {
-        strategy.defineField(itemType, field, caps, fieldType);
+        strategy.defineField(fieldName, indexed, fieldType);
     }
     
     public Map<String,FieldDescription> getFieldDescriptions()
@@ -543,7 +543,7 @@ public class PartitionClusterImpl implements PartitionCluster,
             // Define all fields in the new partition
             Map<String,FieldDescription> fields = getFieldDescriptions();
             for (FieldDescription fd : fields.values()) {
-                remote.defineField(null, fd.getName(), fd.getCapabilities(), fd.getType());
+                remote.defineField(fd.getName(), fd.getIndexed(), fd.getType());
             }
 
             logger.info("Fields defined in " + remote.getPrefix());

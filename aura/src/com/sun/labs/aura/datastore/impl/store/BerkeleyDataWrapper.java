@@ -35,7 +35,6 @@ import com.sun.labs.aura.datastore.impl.store.persist.StringAndTimeKey;
 import com.sun.labs.aura.util.Times;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.File;
-import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,7 +44,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -307,15 +305,14 @@ public class BerkeleyDataWrapper {
         log.info("BDB done loading");
     }
 
-    public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
-            Item.FieldType fieldType) throws AuraException {
+    public void defineField(String fieldName, boolean indexed, Item.FieldType fieldType) throws AuraException {
         try {
             FieldDescription fd =
-                    new FieldDescription(field, caps, fieldType);
-            FieldDescription prev = fieldByName.get(field);
+                    new FieldDescription(fieldName, indexed, fieldType);
+            FieldDescription prev = fieldByName.get(fieldName);
             if(prev != null) {
                 if(!prev.equals(fd)) {
-                    throw new AuraException("Attempt to redefined field " + field +
+                    throw new AuraException("Attempt to redefined field " + fieldName +
                             " using different capabilities or type prev: " +
                             prev.getCapabilities() + " " + prev.getType() +
                             " new: " + fd.getCapabilities() + " " + fd.getType());
@@ -346,7 +343,7 @@ public class BerkeleyDataWrapper {
                         throw new AuraException("putItem transaction failed", e);
                     }
                 }
-                throw new AuraException("defineField failed for " + field);
+                throw new AuraException("defineField failed for " + fieldName);
             }
         } catch(DatabaseException ex) {
             throw new AuraException("defineField failed getting field description", ex);

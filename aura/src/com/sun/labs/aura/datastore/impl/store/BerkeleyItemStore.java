@@ -304,15 +304,15 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         if (bdb.getNumUsers() == 0) {
             try {
                 logger.info("Defining user fields");
-                defineField(ItemType.USER, "nickname", saved, FieldType.STRING);
-                defineField(ItemType.USER, "fullname", saved, FieldType.STRING);
-                defineField(ItemType.USER, "email", saved, FieldType.STRING);
-                defineField(ItemType.USER, "dob", saved, FieldType.DATE);
-                defineField(ItemType.USER, "gender", saved, FieldType.STRING);
-                defineField(ItemType.USER, "postcode", saved, FieldType.STRING);
-                defineField(ItemType.USER, "country", saved, FieldType.STRING);
-                defineField(ItemType.USER, "language", saved, FieldType.STRING);
-                defineField(ItemType.USER, "timezone", saved, FieldType.STRING);
+                defineField("nickname", true, FieldType.STRING);
+                defineField("fullname", true, FieldType.STRING);
+                defineField("email", true, FieldType.STRING);
+                defineField("dob", true, FieldType.DATE);
+                defineField("gender", true, FieldType.STRING);
+                defineField("postcode", true, FieldType.STRING);
+                defineField("country", true, FieldType.STRING);
+                defineField("language", true, FieldType.STRING);
+                defineField("timezone", true, FieldType.STRING);
             } catch (Exception e) {
                 logger.log(Level.INFO, "Failed to define User fields", e);
                 throw new PropertyException(ps.getInstanceName(), "userfields",
@@ -440,23 +440,22 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     }
 
     @Override
-    public void defineField(ItemType itemType, String field)
+    public void defineField(String field)
             throws AuraException, RemoteException {
-        defineField(itemType, field, null, null);
+        defineField(field, false, null);
     }
 
     @Override
-    public void defineField(ItemType itemType, String field, EnumSet<Item.FieldCapability> caps, 
+    public void defineField(String fieldName, boolean indexed, 
             Item.FieldType fieldType) throws AuraException, RemoteException {
-        bdb.defineField(itemType, field, caps, fieldType);
+        bdb.defineField(fieldName, indexed, fieldType);
         
         //
         // If this field is going to be dealt with by the search engine, then
         // send it there.
-        if(caps != null && caps.size() > 0) {
-            searchEngine.defineField(itemType, field, caps, fieldType);
+        if(indexed) {
+            searchEngine.defineField(fieldName, fieldType);
         }
-        
     }
 
     @Override

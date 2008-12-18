@@ -23,18 +23,15 @@ public interface ItemStore {
 
     /**
      * Defines a particular field for a given item type.  A field defined this 
-     * way will only be stored in the index and can be retrieved from the item, 
+     * way will only be stored in the database and can be retrieved from the item,
      * but cannot be searched for.
      * 
-     * @param itemType the type of the item with which this field is assoiciated.
-     * @param field the name of the field that we want to define
-     * @throws AuraException if the given field name has already been defined and the 
-     * provided capabilities and type for the field are not an exact match for those
-     * already provided.  This exception will also be thrown when a field type
-     * is supplied with a set of attributes that do not require a field type or
-     * when a field type is not supplied when one is required.
+     * @param fieldName the name of the field that we want to define
+     * @throws AuraException if the given field name has already been defined with
+     * different attributes (e.g., if it was previously defined to be indexed).
+     * @see defineField(String,boolean,Item.FieldType)
      */
-    public void defineField(ItemType itemType, String field)
+    public void defineField(String fieldName)
             throws AuraException, RemoteException;
 
     /**
@@ -42,23 +39,20 @@ public interface ItemStore {
      * a field multiple times if the same capabilities and type are provided each
      * time that the field is defined.
      * 
-     * @param itemType the type of the item with which this field is assoiciated.
-     * @param field the name of the field that we want to define
-     * @param caps a set of the capapbilities that the field should have.  If this
-     * set is empty (or null), then the value of the field will be stored and can be retrieved,
-     * but it cannot be used for similarity or query operations on items
+     * @param fieldName the name of the field that we want to define
+     * @param indexed if true, the value of the field will be indexed into the search
+     * engine and be available for querying.
      * @param fieldType the type of the value in the field for this item type.
-     * The value should be non-<code>null</code> if the {@link Item.FieldCapabilities.SEARCH},
-     * {@link Item.FieldCapabilities.FILTER}, or {@link Item.FieldCapabilities.SORT}
-     * capabilities are provided.
-     * @throws AuraException if the given field name has already been defined and the 
-     * provided capabilities and type for the field are not an exact match for those
+     * The value should be non-<code>null</code> if <code>indexed</code> is
+     * <code>true</code>.
+     * @throws AuraException if the given field name has already been defined and indexing
+     * status and type for the field are not an exact match for those
      * already provided.  This exception will also be thrown when a field type
      * is supplied with a set of attributes that do not require a field type or
      * when a field type is not supplied when one is required.
      */
-    public void defineField(ItemType itemType, String field,
-            EnumSet<Item.FieldCapability> caps,
+    public void defineField(String fieldName,
+            boolean indexed,
             Item.FieldType fieldType) throws AuraException, RemoteException;
 
     /**

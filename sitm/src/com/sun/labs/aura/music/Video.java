@@ -46,8 +46,8 @@ public class Video extends ItemAdapter {
     
    public void defineFields(DataStore ds) throws AuraException {
         try {
-            ds.defineField(Item.ItemType.VIDEO, FIELD_THUMBNAIL);
-            ds.defineField(Item.ItemType.VIDEO, FIELD_URL);
+            ds.defineField(FIELD_THUMBNAIL);
+            ds.defineField(FIELD_URL);
         } catch(RemoteException rx) {
             throw new AuraException("Error defining fields for Video", rx);
         }

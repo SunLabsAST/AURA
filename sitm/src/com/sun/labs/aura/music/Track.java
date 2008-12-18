@@ -51,19 +51,10 @@ public class Track extends ItemAdapter {
    
   public void defineFields(DataStore ds) throws AuraException {
         try {
-            ds.defineField(Item.ItemType.TRACK, FIELD_ARTISTS_ID,
-                    EnumSet.of(Item.FieldCapability.MATCH),
-                    Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.TRACK, FIELD_LYRICS,
-                    EnumSet.of(Item.FieldCapability.SEARCH,
-                    Item.FieldCapability.SIMILARITY),
-                    Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.TRACK, FIELD_MD5,
-                    EnumSet.of(Item.FieldCapability.MATCH),
-                    Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.TRACK, FIELD_SECS,
-                    EnumSet.of(Item.FieldCapability.MATCH),
-                    Item.FieldType.INTEGER);
+            ds.defineField(FIELD_ARTISTS_ID, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_LYRICS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_MD5, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_SECS, true, Item.FieldType.INTEGER);
         } catch(RemoteException rx) {
             throw new AuraException("Error defining fields for Track", rx);
         }
