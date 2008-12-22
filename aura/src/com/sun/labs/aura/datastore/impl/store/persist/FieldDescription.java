@@ -11,9 +11,9 @@ import java.util.HashSet;
 /**
  * An encapsulation of the description of a particular field.
  */
-@Entity(version = 1)
+@Entity(version = 2)
 public class FieldDescription implements Serializable {
-    private static final long serialVersionUID = 1;
+    private static final long serialVersionUID = 2;
 
     @PrimaryKey
     private String name;
@@ -95,7 +95,6 @@ public class FieldDescription implements Serializable {
             return true;
         }
         return name.equals(fd.name) &&
-                perCaps.equals(fd.perCaps) &&
                 type == fd.type;
     }
 
