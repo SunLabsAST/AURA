@@ -1,0 +1,23 @@
+#!/usr/bin/perl
+use FileHandle;
+
+$adminpw = shift;
+while(<>) {
+  chop;
+  ($user,$pw,$roles) = split;
+  $roles =~ s/,/:/g;
+  $fh = new FileHandle(">/tmp/aspw");
+  print $fh "AS_ADMIN_PASSWORD=$adminpw\nAS_ADMIN_USERPASSWORD=$pw\n";
+  $fh->close;
+  @gfcmd = ("bin/asadmin",
+	    "create-file-user",
+	    "--user=admin",
+	    "--passwordfile=/tmp/aspw",
+	    "--groups=$roles",
+	    $user);
+  print "@gfcmd\n";
+  $ret = system @gfcmd;
+  print " ret: $ret\n";
+}
+  
+ 

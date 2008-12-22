@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+
+    <!-- Where the aura data lives -->
+    <property name="auraHome" value="/aura"/>
+
+    <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
+
+    <property name="auraGroup" value="Aura"/>
+
+    <!-- Where the aura distribution jar was unpacked. -->
+    <property name="auraDistDir" value="${auraHome}/dist"/>
+
+    <property name="dataFS" value="${auraHome}/loginDB"/>
+
+    <property name="csPort" value="5500"/>
+
+    <component name="prefixEntries" type="com.sun.labs.util.props.ConfigurationEntries">
+        <propertylist name="entries">
+            <item>${prefix}</item>
+        </propertylist>
+    </component>
+
+    <!-- A component registry that will be used to lookup and register components. -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>${auraGroup}</item>
+        </propertylist>
+        <property name="csDirs" value="${auraDistDir}/lib"/>
+        <property name="csPort" value="${csPort}"/>
+        <propertylist name="codebaseJars">
+            <item>aura.jar</item>
+            <item>minion.jar</item>
+            <item>slcut.jar</item>
+        </propertylist>
+        <property name="securityPolicy" value="${auraPolicy}"/>
+    </component>
+
+    <component name="loginService" type="com.sun.labs.aura.service.LoginServiceImpl" export="true">
+        <property name="dbEnv" value="${dataFS}"/>
+    </component>
+
+    <component name="loginServiceStarter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>loginService</item>
+        </propertylist>
+    </component>
+
+</config>

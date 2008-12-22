@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project name="www" default="upload-dist" basedir="."
-    xmlns:dav="antlib:org.apache.webdav.ant"
-    xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
-                          
-    
-</project>

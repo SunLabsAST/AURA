@@ -23,12 +23,12 @@ import java.util.Map;
 public class WorkbenchManager {
     private Map<String, Worker> workers;
 
-    WorkbenchManager() {
+    WorkbenchManager(MusicDatabase mdb) {
         workers = new LinkedHashMap<String, Worker>();
-        addWorkers();
+        addWorkers(mdb);
     }
 
-    private void addWorkers() {
+    private void addWorkers(MusicDatabase mdb) {
         addWorker(new ArtistFindSimilarWorker());
         addWorker(new ArtistTagFindSimilar());
         addWorker(new ArtistJourney());
@@ -37,9 +37,11 @@ public class WorkbenchManager {
         addWorker(new ArtistTagSummary());
         addWorker(new GeneralSearch());
         addWorker(new HubFinder());
+        addWorker(new ListenerGetAttended());
         addWorker(new ListenerSummary());
         addWorker(new MissingPhotoWorker());
         addWorker(new OrphanCleanup());
+        addWorker(new RecommendationWorker(mdb));
         addWorker(new RemoveUser());
         addWorker(new RemoveAllUsers());
         addWorker(new ShowItem());

@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.util;
 
+import com.sun.labs.aura.service.StatService;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.util.command.CommandInterpreter;

@@ -7,6 +7,7 @@ package com.sun.labs.aura.music;
 
 import com.sun.labs.aura.util.Scored;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,6 +28,10 @@ public class Recommendation implements Serializable {
         this.explanation = explanation;
     }
 
+    public Recommendation(String id, double score) {
+        this(id, score, new ArrayList<Scored<String>>());
+    }
+
     public String getId() {
         return id;
     }
@@ -38,5 +43,13 @@ public class Recommendation implements Serializable {
 
     public double getScore() {
         return score;
+    }
+
+    void addReason(Scored<String> reason) {
+        explanation.add(reason);
+    }
+
+    void addReason(String id, double score) {
+        explanation.add(new Scored<String>(id, score));
     }
 }

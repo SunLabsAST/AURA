@@ -26,7 +26,7 @@ import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.recommender.Recommendation;
 import com.sun.labs.aura.util.AuraException;
-import com.sun.labs.aura.util.StatService;
+import com.sun.labs.aura.service.StatService;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;

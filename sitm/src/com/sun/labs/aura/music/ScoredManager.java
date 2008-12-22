@@ -6,7 +6,9 @@
 package com.sun.labs.aura.music;
 
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.aura.util.ScoredComparator;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,16 +30,28 @@ public class ScoredManager<T> {
 
 
     public List<Scored<T>> getAll() {
+        return getAll(true);
+    }
+
+    public List<Scored<T>> getAll(boolean prune) {
         List<Scored<T>> results = new ArrayList();
         for (Map.Entry<T, Double> entry : map.entrySet()) {
             Scored<T> s = new Scored<T>(entry.getKey(), entry.getValue());
-            results.add(s);
+            if (!prune || s.getScore() > 0) {
+                results.add(s);
+            }
         }
+        Collections.sort(results, ScoredComparator.COMPARATOR);
+        Collections.reverse(results);
         return results;
     }
 
     public List<Scored<T>> getTopN(int n) {
-        List<Scored<T>> results = getAll();
+        return getTopN(n, true);
+    }
+
+    public List<Scored<T>> getTopN(int n, boolean prune) {
+        List<Scored<T>> results = getAll(prune);
         results = results.size() > n ? results.subList(0, n) : results;
         return results;
     }

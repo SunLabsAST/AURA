@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+
+    <!-- Where the aura data lives -->
+    <property name="auraHome" value="/aura"/>
+    
+    <!-- Where the aura distribution jar was unpacked. -->
+    <property name="auraDistDir" value="${auraHome}/dist"/>
+    
+    <!-- A component registry that will be used to lookup and register components. -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>live-aura</item>
+            <item>jeff-aura</item>
+            <item>AuraZoid</item>
+        </propertylist>
+        <property name="securityPolicy" value="/files/working/jsk-all.policy"/>
+    </component>
+    
+    <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
+    <component name="loginService" type="com.sun.labs.aura.service.LoginService"/>
+</config>

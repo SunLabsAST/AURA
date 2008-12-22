@@ -37,7 +37,6 @@ public class LastFM {
         commander.setTraceSends(false);
         commander.setMinimumCommandPeriod(500);
     }
-    
 
     public SocialTag[] getArtistTags(String artistName) throws IOException {
         String url = getArtistTagURL(artistName, false);
@@ -57,6 +56,16 @@ public class LastFM {
     public SocialTag[] getArtistTags(String artistName, boolean raw) throws IOException {
         String url = getArtistTagURL(artistName, raw);
         return getTagsFromLastFM(url);
+    }
+
+    public LastItem[] getArtistFans(String artistName) throws IOException {
+        String url = getArtistFanURL(artistName);
+        return getFansFromLastFM(url);
+    }
+
+    public LastUser getUser(String userName) throws IOException {
+        String url = getUserURL(userName);
+        return getFanFromLastFM(url);
     }
 
     public int getPopularity(String artistName) throws IOException {
@@ -146,6 +155,47 @@ public class LastFM {
         return items.toArray(new LastItem[0]);
     }
 
+    public LastUser getFanFromLastFM(String url) throws IOException {
+        LastUser lastUser = new LastUser();
+        Document doc = commander.sendCommand(url);
+        Element docElement = doc.getDocumentElement();
+
+        String name = docElement.getAttribute("username");
+        lastUser.setName(name);
+
+        String realname = XmlUtil.getElementContents(docElement, "realname");
+        if (realname != null && realname.length() > 0) {
+            lastUser.setRealName(realname);
+        }
+
+        String country = XmlUtil.getElementContents(docElement, "country");
+        if (country != null && country.length() > 0) {
+            lastUser.setCountry(country);
+        }
+
+        String sage = XmlUtil.getElementContents(docElement, "age");
+        if (sage != null && sage.length() > 0) {
+            int age = Integer.parseInt(sage);
+            lastUser.setAge(age);
+        }
+
+        String spc = XmlUtil.getElementContents(docElement, "playcount");
+        if (spc != null && spc.length() > 0) {
+            int playcount = Integer.parseInt(spc);
+            lastUser.setPlayCount(playcount);
+        }
+
+        String sgender = XmlUtil.getElementContents(docElement, "gender");
+        if (sgender != null) {
+            if (sgender.equals("f")) {
+                lastUser.setGender(LastUser.Gender.Female);
+            } else if (sgender.equals("m")) {
+                lastUser.setGender(LastUser.Gender.Male);
+            }
+        }
+        return lastUser;
+    }
+
     public LastItem[] getTopArtistsForTag(String tag) throws IOException {
         String url = getTopArtistsForTagURL(tag);
         return getTopArtistForTagFromLastFM(url);
@@ -201,6 +251,31 @@ public class LastFM {
         return tags.toArray(new SocialTag[0]);
     }
 
+    private LastItem[] getFansFromLastFM(String url) throws IOException {
+        List<LastItem> tags = new ArrayList<LastItem>();
+        Document doc = commander.sendCommand(url);
+        Element docElement = doc.getDocumentElement();
+        NodeList itemList = docElement.getElementsByTagName("user");
+        for (int i = 0; i < itemList.getLength(); i++) {
+            Element item = (Element) itemList.item(i);
+            String userName = item.getAttribute("username");
+            String sweight = XmlUtil.getElementContents(item, "weight");
+            int weight = 0;
+            if (sweight != null) {
+                if (sweight.length() > 0) {
+                    weight = Integer.parseInt(sweight);
+                } else {
+                    weight = 0;
+                }
+            }
+            LastItem tag = new LastItem(userName, weight);
+            tags.add(tag);
+        }
+        Collections.sort(tags, LastItem.FREQ_ORDER);
+        Collections.reverse(tags);
+        return tags.toArray(new LastItem[0]);
+    }
+
     private String getTopArtistsForTagURL(String tag) {
         String url = "tag/" + encodeName(tag) + "/topartists.xml";
         return url;
@@ -212,6 +287,18 @@ public class LastFM {
         if (raw) {
             url += "?alt";
         }
+        return url;
+    }
+
+    private String getArtistFanURL(String artistName) {
+        String encodedArtistName = encodeName(artistName);
+        String url = "artist/" + encodedArtistName + "/fans.xml";
+        return url;
+    }
+
+    private String getUserURL(String userName) {
+        String encodedName = encodeName(userName);
+        String url = "user/" + encodedName + "/profile.xml";
         return url;
     }
 
@@ -278,6 +365,31 @@ public class LastFM {
         }
     }
 
+    void dumpArtistFans(String artistName) throws IOException {
+        System.out.printf("Fans for %s\n", artistName);
+        LastItem[] fans = getArtistFans(artistName);
+        float sumAge = 0;
+        int ageCount = 0;
+        for (LastItem fan : fans) {
+            LastUser user = getUser(fan.getName());
+            System.out.println("  " + user);
+            if (user.getAge() != 0) {
+                ageCount++;
+                sumAge += user.getAge();
+            }
+        }
+        if (ageCount > 0) {
+            System.out.printf("==== count: %d  avg: %.2f\n", ageCount, sumAge / ageCount);
+        }
+
+    }
+
+    LastUser dumpUser(String userName) throws IOException {
+        LastUser user = getUser(userName);
+        System.out.println("  " + user);
+        return user;
+    }
+
     void dumpFavoriteArtists(String user) throws IOException {
         System.out.printf("Artists for %s\n", user);
         LastItem[] items = getTopArtistsForUser(user);
@@ -298,7 +410,34 @@ public class LastFM {
         }
     }
 
+    public static void main3(String[] args) {
+        try {
+            LastFM lastfm = new LastFM();
+            lastfm.dumpUser("rj");
+            lastfm.dumpUser("lamere");
+            lastfm.dumpUser("musicmobs");
+        } catch (IOException ex) {
+            Logger.getLogger("global").log(Level.SEVERE, null, ex);
+        }
+    }
+
     public static void main(String[] args) {
+        try {
+            LastFM lastfm = new LastFM();
+            lastfm.dumpArtistFans("weezer");
+            lastfm.dumpArtistFans("deerhoof");
+            lastfm.dumpArtistFans("Hannah Montanta");
+            lastfm.dumpArtistFans("elvis presley");
+            lastfm.dumpArtistFans("the beatles");
+            lastfm.dumpArtistFans("Björk");
+            lastfm.dumpArtistFans("Mötley Crüe");
+
+        } catch (IOException ex) {
+            Logger.getLogger("global").log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public static void main2(String[] args) {
         try {
             LastFM lastfm = new com.sun.labs.aura.music.web.lastfm.LastFM();
             showSimilarArtists(lastfm, "AC/DC");

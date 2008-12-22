@@ -8,6 +8,8 @@ import com.sun.labs.aura.datastore.Attention.Type;
 import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.Item.FieldCapability;
+import com.sun.labs.aura.datastore.Item.FieldType;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemEvent;
 import com.sun.labs.aura.datastore.ItemListener;
@@ -21,7 +23,7 @@ import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.util.Reindexer;
 import com.sun.labs.aura.util.Scored;
-import com.sun.labs.aura.util.StatService;
+import com.sun.labs.aura.service.StatService;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
@@ -117,7 +119,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
 
     private PartitionCluster partitionCluster;
 
-    @ConfigComponent(type = com.sun.labs.aura.util.StatService.class)
+    @ConfigComponent(type = com.sun.labs.aura.service.StatService.class)
     public static final String PROP_STAT_SERVICE = "statService";
     protected StatService statService;
 
@@ -167,7 +169,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      * Tracks the number of times each method/stat is invoked
      */
     protected AtomicInteger[] statInvocationCounts;
-    
+
+    /**
+     * Properties used to provide the MXBean getProperties method
+     */
     private String[] properties;
 
     /**
@@ -215,8 +220,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      */
     @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
-
+        //
+        // Set the MXBean properties - logLevel can be configured
         properties = new String[] {"logLevel"};
+        
         logger = ps.getLogger();
         prefixString = ps.getString(PROP_PREFIX);
         prefixCode = DSBitSet.parse(prefixString);
@@ -239,38 +246,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         dbEnvDir = ps.getString(PROP_DB_ENV);
         File f = new File(dbEnvDir);
         
-        //
-        // Since we've changed the default dir, see if we need to relocate
-        // an existing db already on disk.  This code should get cleaned out
-        // once it is run once on our live system.
-//        if (!f.exists()) {
-//            if (!dbEnvDir.contains(prefixString)) {
-//                String oldPath =
-//                        dbEnvDir.replaceFirst("db$", prefixString + "/db");
-//                if (!oldPath.equals(dbEnvDir)) {
-//                    File of = new File(oldPath);
-//                    if (of.exists()) {
-//                        if (!of.renameTo(f)) {
-//                            logger.info("Failed to move "
-//                                    + oldPath + " to " + dbEnvDir);
-//                        }
-//                    }
-//                    oldPath = dbEnvDir.replaceFirst("db$",
-//                            prefixString + "/itemIndex.idx");
-//                    of = new File(oldPath);
-//                    File nf = new File(
-//                            dbEnvDir.replaceFirst("db$", "itemIndex.idx"));
-//                    if (of.exists()) {
-//                        if (!of.renameTo(nf)) {
-//                            logger.info("Failed to move "
-//                                    + of.getPath() + " to " + nf.getPath());
-//                        }
-//                    }
-//                }
-//            }
-//        }
-        // end of code for patching directory structure
-        
+
         if(!f.exists() && !f.mkdirs()) {
             throw new PropertyException(ps.getInstanceName(), PROP_DB_ENV,
                     "Unable to create new directory for db");
@@ -322,6 +298,29 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         searchEngine = (ItemSearchEngine) ps.getComponent(PROP_SEARCH_ENGINE);
         
         //
+        // Define the fields in the User items
+        EnumSet<FieldCapability> saved = EnumSet.of(FieldCapability.MATCH);
+        logger.info("num users is " + bdb.getNumUsers());
+        if (bdb.getNumUsers() == 0) {
+            try {
+                logger.info("Defining user fields");
+                defineField(ItemType.USER, "nickname", saved, FieldType.STRING);
+                defineField(ItemType.USER, "fullname", saved, FieldType.STRING);
+                defineField(ItemType.USER, "email", saved, FieldType.STRING);
+                defineField(ItemType.USER, "dob", saved, FieldType.DATE);
+                defineField(ItemType.USER, "gender", saved, FieldType.STRING);
+                defineField(ItemType.USER, "postcode", saved, FieldType.STRING);
+                defineField(ItemType.USER, "country", saved, FieldType.STRING);
+                defineField(ItemType.USER, "language", saved, FieldType.STRING);
+                defineField(ItemType.USER, "timezone", saved, FieldType.STRING);
+            } catch (Exception e) {
+                logger.log(Level.INFO, "Failed to define User fields", e);
+                throw new PropertyException(ps.getInstanceName(), "userfields",
+                        "Failed to define User fields");
+            }
+        }
+
+        //
         // See if we need to re-index the data.  We need to do this if there
         // is data in the BDB, but the search engine was created from scratch.
         if(!bdb.isEmpty() && searchEngine.engineWasInitialized()) {
@@ -330,10 +329,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
                 reindexer.reindex(dbEnvDir, bdb);
             } catch (Exception ex) {
                 logger.log(Level.SEVERE, "Unable to re-index database", ex);
-
             }
-        } else {
-            logger.info("Looks like everything is hunky.  Also, dory.");
         }
 
         searchEngine.getSearchEngine().addIndexListener(this);
@@ -420,6 +416,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     @Override
     public DSBitSet getPrefix() {
         return prefixCode;
+    }
+
+    public void setPrefix(DSBitSet prefixCode) {
+        this.prefixCode = prefixCode;
+        prefixString = prefixCode.toString();
     }
 
     /**
@@ -1052,10 +1053,6 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     @Override
     public long getItemCount(ItemType type) {
         return bdb.getItemCount(type);
-    }
-
-    public long getAttentionCount() {
-        return bdb.getAttentionCount();
     }
 
     @Override

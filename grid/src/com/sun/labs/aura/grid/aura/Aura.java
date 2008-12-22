@@ -13,7 +13,8 @@ import com.sun.labs.aura.datastore.impl.PartitionCluster;
 import com.sun.labs.aura.datastore.impl.ProcessManager;
 import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.grid.ServiceAdapter;
-import com.sun.labs.aura.util.StatService;
+import com.sun.labs.aura.service.LoginService;
+import com.sun.labs.aura.service.StatService;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
@@ -49,7 +50,14 @@ public abstract class Aura extends ServiceAdapter {
     protected Map<String, FileSystem> repFSMap = new HashMap<String, FileSystem>();
 
     protected Map<String, FileSystem> ownedFSMap = new HashMap<String, FileSystem>();
-    
+
+    protected FileSystem loginSvcFS = null;
+
+    public void createLoginSvcFileSystem(String owner) throws Exception {
+        logger.info("Creating LoginService fs");
+        loginSvcFS = gu.getFS(getLoginServiceName(), true);
+    }
+
     /**
      * Creates the replicant filesystems in a clean startup.  Initially 16 file
      * systems are created.  This number may change over time as filesystems are
@@ -156,6 +164,10 @@ public abstract class Aura extends ServiceAdapter {
 
     public String getStatServiceName() {
         return "statSrv";
+    }
+
+    public String getLoginServiceName() {
+        return "loginSvc";
     }
 
     public String getReggieName() {
@@ -421,6 +433,30 @@ public abstract class Aura extends ServiceAdapter {
 
         return gu.getProcessConfig(StatService.class.getName(), 
                 cmdLine, getStatServiceName());
+    }
+
+    protected ProcessConfiguration getLoginServiceConfig() throws Exception {
+        String[] cmdLine = new String[]{
+            "-DauraHome=" + GridUtil.auraDistMntPnt,
+            "-DauraGroup=" + instance + "-aura",
+            "-DdataFS=/files/data",
+            "-jar",
+            GridUtil.auraDistMntPnt + "/dist/grid.jar",
+            "/com/sun/labs/aura/resource/loginServiceConfig.xml",
+            "loginServiceStarter",
+            String.format("%s/other/login.%%g.out", GridUtil.logFSMntPnt)
+        };
+
+        List<FileSystemMountParameters> extraMounts =
+                Collections.singletonList(new FileSystemMountParameters(
+                loginSvcFS.getUUID(),
+                "data"));
+        ProcessConfiguration pc = gu.getProcessConfig(
+                LoginService.class.getName(),
+                cmdLine, getLoginServiceName(),
+                extraMounts);
+
+        return pc;
     }
 
     public void newProperties(PropertySheet ps) throws PropertyException {

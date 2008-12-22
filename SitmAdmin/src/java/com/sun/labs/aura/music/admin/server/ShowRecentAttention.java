@@ -6,11 +6,13 @@ package com.sun.labs.aura.music.admin.server;
 
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.AttentionConfig;
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.admin.client.Constants.Bool;
 import com.sun.labs.aura.music.admin.client.WorkbenchResult;
 import com.sun.labs.aura.util.AuraException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -28,10 +30,11 @@ public class ShowRecentAttention extends Worker {
         param("constrain type", "If true, constrain the type", Bool.values(), Bool.TRUE);
         param("type", "the type of attention", Attention.Type.values(), Attention.Type.VIEWED);
         param("count", "number of attentions to return", 1000);
+        param("use iterator", "If true, use the iterator", Bool.values(), Bool.FALSE);
     }
 
     @Override
-    void go( MusicDatabase mdb, Map<String, String> params, WorkbenchResult result) throws AuraException, RemoteException {
+    void go(MusicDatabase mdb, Map<String, String> params, WorkbenchResult result) throws AuraException, RemoteException {
         AttentionConfig ac = new AttentionConfig();
         int count = getParamAsInt(params, "count");
         String src = getParam(params, "src");
@@ -51,8 +54,23 @@ public class ShowRecentAttention extends Worker {
             ac.setType(type);
         }
 
-        List<Attention> attns = mdb.getDataStore().getLastAttention(ac, count);
+        boolean useIterator = getParamAsEnum(params, "use iterator") == Bool.TRUE;
 
+        List<Attention> attns;
+        if (useIterator) {
+            attns = new ArrayList<Attention>();
+            DBIterator<Attention> dbIterator = mdb.getDataStore().getAttentionIterator(ac);
+            try {
+                while (dbIterator.hasNext()) {
+                    Attention attn = dbIterator.next();
+                    attns.add(attn);
+                }
+            } finally {
+                dbIterator.close();
+            }
+        } else {
+            attns = mdb.getDataStore().getLastAttention(ac, count);
+        }
         int row = 0;
         for (Attention attn : attns) {
             Long val = attn.getNumber();

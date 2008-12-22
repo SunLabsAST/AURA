@@ -27,13 +27,13 @@ public class SimilarityConfig implements Serializable {
      * The percentage of terms that should be used when doing find similars using
      * this config.
      */
-    private double skimPercent = 0.25;
+    private double skimPercent = 1;
     
     /**
      * The percentage of clusters that need to report results before the result
      * set will be used.  Defaults to 0.75.
      */
-    private double reportPercent = 0.75;
+    private double reportPercent = 1;
     
     /**
      * The timeout (in ms) after which we will stop waiting for more results.

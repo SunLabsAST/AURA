@@ -31,7 +31,7 @@ public class GetRecommendationTypes extends StandardService {
     protected void go(HttpServletRequest request, PrintWriter out, MusicDatabase mdb)
             throws AuraException, ParameterException, RemoteException {
         List<RecommendationType> rtypes = mdb.getArtistRecommendationTypes();
-        Util.tag(out, "default", MusicDatabase.DEFAULT_RECOMMENDER);
+        Util.tag(out, "default", mdb.getDefaultArtistRecommendationType().getName());
         for (RecommendationType rtype : rtypes) {
             out.println("    <RecommendationType>");
             out.println("        <name>" + rtype.getName() + "</name>");

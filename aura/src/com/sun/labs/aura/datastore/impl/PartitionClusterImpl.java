@@ -592,6 +592,7 @@ public class PartitionClusterImpl implements PartitionCluster,
         try {
             processManager.finishSplit(prefixCode, newLocalPrefix, remote.
                     getPrefix());
+            replicant.setPrefix(prefixCode);
         } catch(RemoteException rx) {
             logger.log(Level.SEVERE, "Error finishing split", rx);
         } catch(AuraException ax) {

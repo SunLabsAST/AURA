@@ -29,7 +29,7 @@ public class MDBHelper {
     static List<String> listenerIDs;
     static List<String> artistTagIDs;
     static Random rng = new Random();
-    static Object lock = new Object();
+    static final Object lock = new Object();
     // some test helper methods
     String selectRandomArtistKey(MusicDatabase mdb) throws AuraException, RemoteException {
         return getArtistIDs(mdb).get(rng.nextInt(artistIDs.size()));
@@ -66,6 +66,7 @@ public class MDBHelper {
     void sortByTimeAdded(List<Attention> attns) {
         Collections.sort(attns, new Comparator<Attention>() {
 
+            @Override
             public int compare(Attention o1, Attention o2) {
                 if (o1.getTimeStamp() > o2.getTimeStamp()) {
                     return 1;

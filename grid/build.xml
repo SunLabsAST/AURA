@@ -164,6 +164,33 @@
         <!--<growl message="Grid Upload finished."/> -->
     </target>
 
+    <target name="upload-some" description="Uploads distribution files" depends="create-dist-collections,make-dist-jar-dir">
+        <dav:put url="${dav.url}/${dist.col}" verbose="true" userid="${user}" password="${pw}" lock="false">
+            <!-- Distribution jar -->
+            <fileset dir="dist">
+                <include name="grid.jar"/>
+            </fileset>
+            <fileset dir="../aura/dist">
+                <include name="aura.jar"/>
+            </fileset>
+        </dav:put>
+        <dav:put url="${dav.url}/${dist.col}/lib" verbose="true" userid="${user}" password="${pw}" lock="false">
+            <!-- Distribution jar -->
+            <fileset dir="dist">
+                <include name="grid.jar"/>
+            </fileset>
+            <fileset dir="../aura/dist">
+                <include name="aura.jar"/>
+            </fileset>
+            <fileset dir="../../../minion/minion/dist/">
+                <include name="minion.jar"/>
+            </fileset>
+        </dav:put>
+        <!-- Redo the jar target so that the service deployer is the main program! -->
+        <antcall target="jar"/>
+        <!--<growl message="Grid Upload finished."/> -->
+    </target>
+
     <target name="upload-grid-jar" description="Uploads distribution files" depends="create-dist-collections,do-dist-jar-with-libraries">
         <dav:put url="${dav.url}/${dist.col}" verbose="true" userid="${user}" password="${pw}" lock="false">
             <!-- Distribution jar -->
@@ -172,5 +199,6 @@
             </fileset>
         </dav:put>
         <!--<growl message="Grid Upload finished."/> -->
+        <antcall target="jar"/>
     </target>
 </project>

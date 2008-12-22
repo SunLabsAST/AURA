@@ -27,5 +27,4 @@ public class RecommendationSummary {
     public List<Recommendation> getRecommendations() {
         return recommendations;
     }
-
 }

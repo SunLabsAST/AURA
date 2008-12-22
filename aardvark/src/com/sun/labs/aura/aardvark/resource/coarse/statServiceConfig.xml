@@ -44,7 +44,7 @@
         <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
     
-    <component name="statService" type="com.sun.labs.aura.util.StatServiceImpl" export="true">
+    <component name="statService" type="com.sun.labs.aura.service.StatServiceImpl" export="true">
         <property name="dataStore" value="dataStoreHead"/>
     </component>
 

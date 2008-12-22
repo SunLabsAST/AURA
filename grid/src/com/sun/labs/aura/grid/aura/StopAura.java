@@ -11,7 +11,8 @@ import com.sun.labs.aura.datastore.impl.DataStoreHead;
 import com.sun.labs.aura.datastore.impl.PartitionCluster;
 import com.sun.labs.aura.datastore.impl.ProcessManager;
 import com.sun.labs.aura.datastore.impl.Replicant;
-import com.sun.labs.aura.util.StatService;
+import com.sun.labs.aura.service.LoginService;
+import com.sun.labs.aura.service.StatService;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -45,6 +46,7 @@ public class StopAura extends Aura {
         PartitionCluster.class.getName(),
         DataStoreHead.class.getName(),
         StatService.class.getName(),
+        LoginService.class.getName(),
         "reggie",
         "other"
     };
