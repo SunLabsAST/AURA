@@ -49,12 +49,12 @@ public class Photo extends ItemAdapter {
     
    public void defineFields(DataStore ds) throws AuraException {
         try {
-            ds.defineField(Item.ItemType.PHOTO, FIELD_CREATOR_USER_NAME);
-            ds.defineField(Item.ItemType.PHOTO, FIELD_CREATOR_REAL_NAME);
-            ds.defineField(Item.ItemType.PHOTO, FIELD_IMG_URL);
-            ds.defineField(Item.ItemType.PHOTO, FIELD_SMALL_IMG_URL);
-            ds.defineField(Item.ItemType.PHOTO, FIELD_THUMBNAIL_URL);
-            ds.defineField(Item.ItemType.PHOTO, FIELD_PHOTO_PAGE_URL);
+            ds.defineField(FIELD_CREATOR_USER_NAME);
+            ds.defineField(FIELD_CREATOR_REAL_NAME);
+            ds.defineField(FIELD_IMG_URL);
+            ds.defineField(FIELD_SMALL_IMG_URL);
+            ds.defineField(FIELD_THUMBNAIL_URL);
+            ds.defineField(FIELD_PHOTO_PAGE_URL);
         } catch(RemoteException rx) {
             throw new AuraException("Error defining fields for Photo", rx);
         }

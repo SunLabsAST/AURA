@@ -74,22 +74,14 @@ public class PCSplitStrategy implements PCStrategy {
     protected boolean keyIsLocal(int hashCode) throws AuraException {
         return Util.keyIsLocal(hashCode, localPrefix, remotePrefix);
     }
-    
-    
-    /*
-     * Strategy implementation methods
-     */
-    
-    
-    public void defineField(ItemType itemType,
-                            String field,
-                            EnumSet<FieldCapability> caps,
-                            FieldType fieldType)
-            throws AuraException, RemoteException {
+
+    @Override
+    public void defineField(String fieldName, boolean indexed,
+            FieldType fieldType) throws AuraException, RemoteException {
         //
         // Define a field in both copies... easy!
-        local.defineField(itemType, field, caps, fieldType);
-        remote.defineField(itemType, field, caps, fieldType);
+        local.defineField(fieldName, indexed, fieldType);
+        remote.defineField(fieldName, indexed, fieldType);
     }
     
     public List<Item> getAll(ItemType itemType)

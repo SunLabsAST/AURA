@@ -67,17 +67,12 @@ public class ArtistTag extends ItemAdapter {
 
     public void defineFields(DataStore ds) throws AuraException {
         try {
-            ds.defineField(Item.ItemType.ARTIST_TAG, FIELD_DESCRIPTION,
-                    EnumSet.of(Item.FieldCapability.SEARCH, Item.FieldCapability.SIMILARITY), 
-                    Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.ARTIST_TAG, FIELD_PHOTOS);
-            ds.defineField(Item.ItemType.ARTIST_TAG, FIELD_POPULARITY, 
-                    EnumSet.of(Item.FieldCapability.SORT), Item.FieldType.FLOAT);
-            ds.defineField(Item.ItemType.ARTIST_TAG, FIELD_TAGGED_ARTISTS, 
-                    EnumSet.of(Item.FieldCapability.MATCH, Item.FieldCapability.SIMILARITY),
-                    Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.ARTIST_TAG, FIELD_VIDEOS);
-            ds.defineField(Item.ItemType.ARTIST_TAG, FIELD_LAST_CRAWL);
+            ds.defineField(FIELD_DESCRIPTION, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_PHOTOS);
+            ds.defineField(FIELD_POPULARITY, true, Item.FieldType.FLOAT);
+            ds.defineField(FIELD_TAGGED_ARTISTS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_VIDEOS);
+            ds.defineField(FIELD_LAST_CRAWL);
         } catch(RemoteException rx) {
             throw new AuraException("Error defining fields for ArtistTag", rx);
         }

@@ -11,9 +11,9 @@ import java.util.HashSet;
 /**
  * An encapsulation of the description of a particular field.
  */
-@Entity(version = 1)
+@Entity(version = 2)
 public class FieldDescription implements Serializable {
-    private static final long serialVersionUID = 1;
+    private static final long serialVersionUID = 2;
 
     @PrimaryKey
     private String name;
@@ -24,10 +24,18 @@ public class FieldDescription implements Serializable {
 
     private HashSet<Integer> perCaps;
 
+    private boolean indexed;
+
     private Item.FieldType type;
     
     public FieldDescription() {
         
+    }
+
+    public FieldDescription(String name, boolean indexed, Item.FieldType type) {
+        this.name = name;
+        this.indexed = indexed;
+        this.type = type;
     }
 
     public FieldDescription(String name, EnumSet<Item.FieldCapability> caps,
@@ -70,9 +78,13 @@ public class FieldDescription implements Serializable {
      * @return <code>true</code> if this field must be indexed.
      */
     public boolean mustIndex() {
-        return perCaps.size() > 0;
+        return indexed;
     }
 
+    public boolean getIndexed() {
+        return indexed;
+    }
+    
     public boolean equals(Object o) {
         if(!(o instanceof FieldDescription)) {
             return false;
@@ -83,7 +95,6 @@ public class FieldDescription implements Serializable {
             return true;
         }
         return name.equals(fd.name) &&
-                perCaps.equals(fd.perCaps) &&
                 type == fd.type;
     }
 

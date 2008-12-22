@@ -135,10 +135,9 @@ public class ItemSearchEngine implements Configurable {
     public void redefineFields(BerkeleyDataWrapper bdw) throws AuraException {
         Map<String, FieldDescription> fields = bdw.getFieldDescriptions();
         for(Map.Entry<String, FieldDescription> e : fields.entrySet()) {
-            EnumSet<Item.FieldCapability> caps = e.getValue().getCapabilities();
-            if(caps != null && caps.size() > 0) {
-                defineField(null, e.getKey(), e.getValue().getCapabilities(), e.
-                        getValue().getType());
+            FieldDescription desc = e.getValue();
+            if(desc.getIndexed()) {
+                defineField(e.getKey(), desc.getType());
             }
         }
     }
@@ -226,52 +225,28 @@ public class ItemSearchEngine implements Configurable {
         return engineWasIntialized;
     }
 
-    public void defineField(ItemType itemType, String field,
-            EnumSet<Item.FieldCapability> caps,
+    public void defineField(String fieldName,
             Item.FieldType fieldType) throws AuraException {
-        EnumSet<FieldInfo.Attribute> attr = EnumSet.noneOf(
-                FieldInfo.Attribute.class);
-        for(Item.FieldCapability fc : caps) {
-            switch(fc) {
-                case FILTER:
-                    attr.add(FieldInfo.Attribute.SAVED);
-                    break;
-                case MATCH:
-                    attr.add(FieldInfo.Attribute.SAVED);
-                    break;
-                case SEARCH:
-                    attr.add(FieldInfo.Attribute.INDEXED);
-                    attr.add(FieldInfo.Attribute.TOKENIZED);
-                    break;
-                case SIMILARITY:
-                    attr.add(FieldInfo.Attribute.INDEXED);
-                    attr.add(FieldInfo.Attribute.VECTORED);
-                    break;
-                case SORT:
-                    attr.add(FieldInfo.Attribute.SAVED);
-                    break;
-            }
-        }
+        EnumSet<FieldInfo.Attribute> attr = 
+                EnumSet.of(
+                FieldInfo.Attribute.SAVED,
+                    FieldInfo.Attribute.INDEXED,
+                    FieldInfo.Attribute.TOKENIZED,
+                    FieldInfo.Attribute.VECTORED);
 
         if(attr.contains(FieldInfo.Attribute.SAVED) && fieldType == null) {
-            throw new IllegalArgumentException("Field " + field +
-                    " with capabilities " + caps +
+            throw new IllegalArgumentException("Indexed field " + fieldName +
                     " requires field type to be specified.");
         }
 
         //
         // We may have been passed a type when it's not necessary, so we'll 
         // just hide that from the engine.
-        FieldInfo.Type defineType = FieldInfo.Type.NONE;
-        if(fieldType != null) {
-            if(attr.contains(FieldInfo.Attribute.SAVED)) {
-                defineType = FieldInfo.Type.valueOf(fieldType.toString());
-            }
-        }
+        FieldInfo.Type defineType = FieldInfo.Type.valueOf(fieldType.toString());
         try {
-            engine.defineField(new FieldInfo(field, attr, defineType));
+            engine.defineField(new FieldInfo(fieldName, attr, defineType));
         } catch(SearchEngineException ex) {
-            throw new AuraException("Error defining field " + field, ex);
+            throw new AuraException("Error defining field " + fieldName, ex);
         }
     }
 

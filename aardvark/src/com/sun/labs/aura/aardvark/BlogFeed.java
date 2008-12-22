@@ -60,27 +60,21 @@ public class BlogFeed extends ItemAdapter implements Serializable {
     }
 
     public void defineFields(DataStore store) throws AuraException {
-        EnumSet<Item.FieldCapability> ss = EnumSet.of(
-                Item.FieldCapability.SIMILARITY,
-                Item.FieldCapability.SEARCH);
         try {
-        store.defineField(Item.ItemType.FEED, FIELD_DESCRIPTION, 
-                ss, Item.FieldType.STRING);
-        store.defineField(Item.ItemType.FEED, FIELD_IMAGE);
-        store.defineField(Item.ItemType.FEED, FIELD_AUTHOR,
-                EnumSet.of(Item.FieldCapability.SEARCH), Item.FieldType.STRING);
-        store.defineField(Item.ItemType.FEED, FIELD_TAG, 
-                ss, Item.FieldType.STRING);
-        store.defineField(Item.ItemType.FEED, FIELD_LINK);
-        store.defineField(Item.ItemType.FEED, FIELD_LAST_PULL_TIME);
-        store.defineField(Item.ItemType.FEED, FIELD_NUM_PULLS);
-        store.defineField(Item.ItemType.FEED, FIELD_NUM_ERRORS);
-        store.defineField(Item.ItemType.FEED, FIELD_NUM_INCOMING_LINKS,
-                EnumSet.of(Item.FieldCapability.SORT), Item.FieldType.INTEGER);
-        store.defineField(Item.ItemType.FEED, FIELD_NUM_CONSECUTIVE_ERRORS);
-        store.defineField(Item.ItemType.FEED, FIELD_NUM_STARRED_ENTRIES, 
-                EnumSet.of(Item.FieldCapability.SORT), Item.FieldType.INTEGER);
-        } catch (RemoteException rx) {
+            store.defineField(FIELD_DESCRIPTION, true, Item.FieldType.STRING);
+            store.defineField(FIELD_IMAGE);
+            store.defineField(FIELD_AUTHOR, true, Item.FieldType.STRING);
+            store.defineField(FIELD_TAG, true, Item.FieldType.STRING);
+            store.defineField(FIELD_LINK);
+            store.defineField(FIELD_LAST_PULL_TIME);
+            store.defineField(FIELD_NUM_PULLS);
+            store.defineField(FIELD_NUM_ERRORS);
+            store.defineField(FIELD_NUM_INCOMING_LINKS, true,
+                    Item.FieldType.INTEGER);
+            store.defineField(FIELD_NUM_CONSECUTIVE_ERRORS);
+            store.defineField(FIELD_NUM_STARRED_ENTRIES, true,
+                    Item.FieldType.INTEGER);
+        } catch(RemoteException rx) {
             throw new AuraException("Error defining fields for BlogFeed", rx);
         }
     }

@@ -83,52 +83,27 @@ public class Artist extends ItemAdapter {
 
     public void defineFields(DataStore ds) throws AuraException {
         try {
-            EnumSet<Item.FieldCapability> ms = EnumSet.of(
-                    Item.FieldCapability.MATCH, Item.FieldCapability.SIMILARITY);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_ALBUM,
-                    EnumSet.of(Item.FieldCapability.MATCH), Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_AUTO_TAGS,
-                    EnumSet.of(Item.FieldCapability.SEARCH,
-                    Item.FieldCapability.SIMILARITY),  Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_BEGIN_YEAR,
-                    EnumSet.of(Item.FieldCapability.MATCH,
-                    Item.FieldCapability.SORT),
-                    Item.FieldType.INTEGER);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_BIOGRAPHY_SUMMARY,
-                    EnumSet.of(Item.FieldCapability.SIMILARITY,
-                    Item.FieldCapability.SEARCH), Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_COLLABORATIONS,
-                    ms, Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_END_YEAR,
-                    EnumSet.of(Item.FieldCapability.MATCH,
-                    Item.FieldCapability.SORT),
-                    Item.FieldType.INTEGER);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_EVENTS, ms,
-                    Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_FOLLOWERS, ms,
-                    Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_INFLUENCERS, ms,
-                    Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_PHOTOS);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_POPULARITY, EnumSet.of(
-                    Item.FieldCapability.SORT), Item.FieldType.FLOAT);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_RELATED_ARTISTS, ms,
-                    Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_SOCIAL_TAGS, EnumSet.of(
-                    Item.FieldCapability.SEARCH,
-                    Item.FieldCapability.SIMILARITY), Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_BIO_TAGS, EnumSet.of(
-                    Item.FieldCapability.SEARCH,
-                    Item.FieldCapability.SIMILARITY), Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_BLURB_TAGS, EnumSet.of(
-                    Item.FieldCapability.SEARCH,
-                    Item.FieldCapability.SIMILARITY), Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_URLS);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_VIDEOS);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_SPOTIFY);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_LAST_CRAWL);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_UPDATE_COUNT);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_AUDIO);
+            ds.defineField(FIELD_ALBUM, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_AUTO_TAGS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_BEGIN_YEAR, true, Item.FieldType.INTEGER);
+            ds.defineField(FIELD_BIOGRAPHY_SUMMARY, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_COLLABORATIONS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_END_YEAR, true, Item.FieldType.INTEGER);
+            ds.defineField(FIELD_EVENTS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_FOLLOWERS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_INFLUENCERS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_PHOTOS);
+            ds.defineField(FIELD_POPULARITY, true, Item.FieldType.FLOAT);
+            ds.defineField(FIELD_RELATED_ARTISTS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_SOCIAL_TAGS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_BIO_TAGS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_BLURB_TAGS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_URLS);
+            ds.defineField(FIELD_VIDEOS);
+            ds.defineField(FIELD_SPOTIFY);
+            ds.defineField(FIELD_LAST_CRAWL);
+            ds.defineField(FIELD_UPDATE_COUNT);
+            ds.defineField(FIELD_AUDIO);
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }

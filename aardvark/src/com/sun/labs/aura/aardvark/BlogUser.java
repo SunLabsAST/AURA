@@ -55,16 +55,15 @@ public class BlogUser extends ItemAdapter {
 
     public void defineFields(DataStore store) throws AuraException {
         try {
-            store.defineField(Item.ItemType.USER, FIELD_DOB);
-            store.defineField(Item.ItemType.USER, FIELD_EMAIL_ADDRESS);
-            store.defineField(Item.ItemType.USER, FIELD_NICKNAME);
-            store.defineField(Item.ItemType.USER, FIELD_FULLNAME);
-            store.defineField(Item.ItemType.USER, FIELD_DOB);
-            store.defineField(Item.ItemType.USER, FIELD_GENDER);
-            store.defineField(Item.ItemType.USER, FIELD_POSTCODE);
-            store.defineField(Item.ItemType.USER, FIELD_COUNTRY);
-            store.defineField(Item.ItemType.USER, FIELD_LANGUAGE);
-            store.defineField(Item.ItemType.USER, FIELD_TIMEZONE);
+            store.defineField(FIELD_DOB);
+            store.defineField(FIELD_EMAIL_ADDRESS);
+            store.defineField(FIELD_NICKNAME);
+            store.defineField(FIELD_FULLNAME);
+            store.defineField(FIELD_GENDER);
+            store.defineField(FIELD_POSTCODE);
+            store.defineField(FIELD_COUNTRY, true, Item.FieldType.STRING);
+            store.defineField(FIELD_LANGUAGE);
+            store.defineField(FIELD_TIMEZONE);
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for BlogUser", ex);
         }

@@ -37,24 +37,16 @@ public class Listener extends ItemAdapter {
     @Override
     public void defineFields(DataStore ds) throws AuraException {
         try {
-            ds.defineField(Item.ItemType.USER, FIELD_GENDER);
-            ds.defineField(Item.ItemType.USER, FIELD_STATE);
-            ds.defineField(Item.ItemType.USER, FIELD_LAST_FM_NAME);
-            ds.defineField(Item.ItemType.USER, FIELD_PANDORA_NAME);
-            ds.defineField(Item.ItemType.USER, FIELD_LOCALE_COUNTRY);
-            ds.defineField(Item.ItemType.USER, FIELD_SOCIAL_TAGS, EnumSet.of(
-                    Item.FieldCapability.SEARCH,
-                    Item.FieldCapability.SIMILARITY), Item.FieldType.STRING);
-            ds.defineField(Item.ItemType.USER, FIELD_ARTIST, 
-                    EnumSet.of(Item.FieldCapability.MATCH, Item.FieldCapability.SIMILARITY),
-                    Item.FieldType.STRING);
-
-            ds.defineField(Item.ItemType.USER, FIELD_YOB,
-                    EnumSet.of(Item.FieldCapability.MATCH,
-                    Item.FieldCapability.SORT),
-                    Item.FieldType.INTEGER);
-            ds.defineField(Item.ItemType.USER, FIELD_LAST_CRAWL);
-            ds.defineField(Item.ItemType.ARTIST, FIELD_UPDATE_COUNT);
+            ds.defineField(FIELD_GENDER);
+            ds.defineField(FIELD_STATE);
+            ds.defineField(FIELD_LAST_FM_NAME);
+            ds.defineField(FIELD_PANDORA_NAME);
+            ds.defineField(FIELD_LOCALE_COUNTRY);
+            ds.defineField(FIELD_SOCIAL_TAGS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_ARTIST, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_YOB, true, Item.FieldType.INTEGER);
+            ds.defineField(FIELD_LAST_CRAWL);
+            ds.defineField(FIELD_UPDATE_COUNT);
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }

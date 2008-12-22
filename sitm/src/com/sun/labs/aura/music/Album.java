@@ -52,9 +52,9 @@ public class Album extends ItemAdapter {
     
     public void defineFields(DataStore ds) throws AuraException {
         try {
-            ds.defineField(Item.ItemType.ALBUM, FIELD_ASIN);
-            ds.defineField(Item.ItemType.ALBUM, FIELD_PHOTOS);
-            ds.defineField(Item.ItemType.ALBUM, FIELD_TRACKS);
+            ds.defineField(FIELD_ASIN);
+            ds.defineField(FIELD_PHOTOS);
+            ds.defineField(FIELD_TRACKS);
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }
