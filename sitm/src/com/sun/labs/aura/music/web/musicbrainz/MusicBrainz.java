@@ -41,6 +41,10 @@ public class MusicBrainz {
         mbCommander.setMinimumCommandPeriod(1000L);
     }
     
+    public void setTrace(boolean trace) {
+        mbCommander.setTraceSends(trace);
+    }
+
     public static void main(String[] args) throws IOException {
         MusicBrainz mb = new MusicBrainz();
         List<MusicBrainzArtistInfo> infos = mb.artistSearch("weezer");
