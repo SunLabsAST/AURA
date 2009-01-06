@@ -4,7 +4,6 @@
  * Created on September 6, 2006, 4:24 PM
  *
  */
-
 package com.sun.labs.aura.music.web;
 
 import java.io.IOException;
@@ -16,15 +15,28 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class XmlUtil {
+
     public static String getElementContents(Element element, String elementName) throws IOException {
         Element first = getFirstElement(element, elementName);
         if (first != null) {
-            return first.getTextContent();
+            return first.getTextContent().trim();
         } else {
             return null;
         }
     }
-    
+
+    public static int getElementContentsAsInteger(Element element, String elementName) throws IOException {
+        int results = 0;
+        Element first = getFirstElement(element, elementName);
+        if (first != null) {
+            try {
+                results = Integer.parseInt(first.getTextContent());
+            } catch (NumberFormatException ex) {
+            }
+        }
+        return results;
+    }
+
     public static Element getFirstElement(Element element, String elementName) throws IOException {
         NodeList list = element.getElementsByTagName(elementName);
         if (list.getLength() >= 1) {
@@ -34,18 +46,18 @@ public class XmlUtil {
             return null;
         }
     }
-    
+
     public static Node getDescendent(Node node, String nodeName) throws IOException {
         NodeList children = node.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
             if (child.getNodeName().equals(nodeName)) {
-                return  child;
+                return child;
             }
         }
         return null;
     }
-    
+
     public static List<Node> getDescendents(Node node, String nodeName) throws IOException {
         List<Node> childList = new ArrayList<Node>();
         NodeList children = node.getChildNodes();
@@ -57,7 +69,7 @@ public class XmlUtil {
         }
         return childList;
     }
-    
+
     public static void dump(Node node) {
         System.out.println("Node: " + node.getNodeName());
         NamedNodeMap nnm = node.getAttributes();
@@ -68,12 +80,11 @@ public class XmlUtil {
             }
         }
     }
-    
-    
+
     public static String getDescendentText(Node node, String name) throws IOException {
         Node d = getDescendent(node, name);
         if (d != null) {
-            return d. getTextContent();
+            return d.getTextContent().trim();
         }
         return null;
     }
