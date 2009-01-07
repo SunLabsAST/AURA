@@ -61,19 +61,19 @@ public class BlogFeed extends ItemAdapter implements Serializable {
 
     public void defineFields(DataStore store) throws AuraException {
         try {
-            store.defineField(FIELD_DESCRIPTION, true, Item.FieldType.STRING);
+            store.defineField(FIELD_DESCRIPTION, Item.FieldType.STRING, StoreFactory.INDEXED_TOKENIZED);
             store.defineField(FIELD_IMAGE);
-            store.defineField(FIELD_AUTHOR, true, Item.FieldType.STRING);
-            store.defineField(FIELD_TAG, true, Item.FieldType.STRING);
+            store.defineField(FIELD_AUTHOR, Item.FieldType.STRING, StoreFactory.INDEXED_TOKENIZED);
+            store.defineField(FIELD_TAG, Item.FieldType.STRING, StoreFactory.INDEXED);
             store.defineField(FIELD_LINK);
             store.defineField(FIELD_LAST_PULL_TIME);
             store.defineField(FIELD_NUM_PULLS);
             store.defineField(FIELD_NUM_ERRORS);
-            store.defineField(FIELD_NUM_INCOMING_LINKS, true,
-                    Item.FieldType.INTEGER);
+            store.defineField(FIELD_NUM_INCOMING_LINKS, 
+                    Item.FieldType.INTEGER, StoreFactory.INDEXED);
             store.defineField(FIELD_NUM_CONSECUTIVE_ERRORS);
-            store.defineField(FIELD_NUM_STARRED_ENTRIES, true,
-                    Item.FieldType.INTEGER);
+            store.defineField(FIELD_NUM_STARRED_ENTRIES, 
+                    Item.FieldType.INTEGER, StoreFactory.INDEXED);
         } catch(RemoteException rx) {
             throw new AuraException("Error defining fields for BlogFeed", rx);
         }

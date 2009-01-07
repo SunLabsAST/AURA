@@ -43,20 +43,14 @@ public interface ItemStore {
      * @param fieldType the type of the value in the field for this item type.
      * The value should be non-<code>null</code> if <code>indexed</code> is
      * <code>true</code>.
-     * @param indexed if true, the value of the field will be indexed into the search
-     * engine and be available for querying.
-     * @param tokenized if <code>true</code> then the value of this field will
-     * be tokenized if it is being indexed by the search engine.  A warning will
-     * be issued if this flag is <code>true</code> and <code>indexed</code> is
-     * <code>false</code>, but the definition will be permitted.
-     * @throws AuraException if the given field name has already been defined and indexing
-     * status and type for the field are not an exact match for those
-     * already provided.  This exception will also be thrown when a field type is
+     * @param caps a set of field capabilities that describe how the field should
+     * be treated by the search engine.
+     * @throws AuraException if the given field name has already been defined and the capabilities are
+     * not a match.  This exception will also be thrown when a field type is
      * not supplied when one is required.
      */
     public void defineField(String fieldName,
-            Item.FieldType fieldType, boolean indexed,
-            boolean tokenized) throws AuraException, RemoteException;
+            Item.FieldType fieldType, EnumSet<Item.FieldCapability> caps) throws AuraException, RemoteException;
 
     /**
      * Gets all of the items in the store that are of the given type.  This

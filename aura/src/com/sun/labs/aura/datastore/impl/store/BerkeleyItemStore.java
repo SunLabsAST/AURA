@@ -14,6 +14,7 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemEvent;
 import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.SimilarityConfig;
+import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.DSBitSet;
 import com.sun.labs.aura.datastore.impl.PartitionCluster;
@@ -304,15 +305,15 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         if (bdb.getNumUsers() == 0) {
             try {
                 logger.info("Defining user fields");
-                defineField("nickname", FieldType.STRING,true,false);
-                defineField("fullname", FieldType.STRING,true,false);
-                defineField("email", FieldType.STRING,true,false);
-                defineField("dob", FieldType.DATE,true,false);
-                defineField("gender", FieldType.STRING,true,false);
-                defineField("postcode", FieldType.STRING,true,false);
-                defineField("country", FieldType.STRING,true,false);
-                defineField("language", FieldType.STRING,true,false);
-                defineField("timezone", FieldType.STRING,true,false);
+                defineField("nickname", FieldType.STRING, StoreFactory.INDEXED);
+                defineField("fullname", FieldType.STRING, StoreFactory.INDEXED);
+                defineField("email", FieldType.STRING, StoreFactory.INDEXED);
+                defineField("dob", FieldType.DATE, StoreFactory.INDEXED);
+                defineField("gender", FieldType.STRING, StoreFactory.INDEXED);
+                defineField("postcode", FieldType.STRING, StoreFactory.INDEXED);
+                defineField("country", FieldType.STRING, StoreFactory.INDEXED);
+                defineField("language", FieldType.STRING, StoreFactory.INDEXED);
+                defineField("timezone", FieldType.STRING, StoreFactory.INDEXED);
             } catch (Exception e) {
                 logger.log(Level.INFO, "Failed to define User fields", e);
                 throw new PropertyException(ps.getInstanceName(), "userfields",
@@ -442,18 +443,18 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     @Override
     public void defineField(String field)
             throws AuraException, RemoteException {
-        defineField(field, null,false,false);
+        defineField(field, null, null);
     }
 
     @Override
     public void defineField(String fieldName, 
-            Item.FieldType fieldType,boolean indexed,boolean tokenized) throws AuraException, RemoteException {
-        bdb.defineField(fieldName, indexed, fieldType);
+            Item.FieldType fieldType, EnumSet<Item.FieldCapability> caps) throws AuraException, RemoteException {
+        bdb.defineField(fieldName, fieldType, caps);
         
         //
         // If this field is going to be dealt with by the search engine, then
         // send it there.
-        if(indexed) {
+        if(caps.contains(Item.FieldCapability.INDEXED)) {
             searchEngine.defineField(fieldName, fieldType);
         }
     }

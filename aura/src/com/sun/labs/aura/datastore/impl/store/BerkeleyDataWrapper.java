@@ -305,10 +305,10 @@ public class BerkeleyDataWrapper {
         log.info("BDB done loading");
     }
 
-    public void defineField(String fieldName, boolean indexed, Item.FieldType fieldType) throws AuraException {
+    public void defineField(String fieldName, Item.FieldType fieldType, EnumSet<Item.FieldCapability> caps) throws AuraException {
         try {
             FieldDescription fd =
-                    new FieldDescription(fieldName, fieldType, indexed);
+                    new FieldDescription(fieldName, fieldType, caps);
             FieldDescription prev = fieldByName.get(fieldName);
             if(prev != null) {
                 if(!prev.equals(fd)) {

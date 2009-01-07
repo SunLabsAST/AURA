@@ -57,18 +57,15 @@ public class BlogEntry extends ItemAdapter {
     }
     
     public void defineFields(DataStore store) throws AuraException {
-        EnumSet<Item.FieldCapability> ss = EnumSet.of(Item.FieldCapability.SIMILARITY,
-                Item.FieldCapability.SEARCH);
         try {
-            store.defineField(FIELD_FEED_KEY, true, Item.FieldType.STRING);
-            store.defineField(FIELD_TAG, true, Item.FieldType.STRING);
-            store.defineField(FIELD_CONTENT, true, Item.FieldType.STRING);
+            store.defineField(FIELD_FEED_KEY, Item.FieldType.STRING, StoreFactory.INDEXED);
+            store.defineField(FIELD_TAG, Item.FieldType.STRING, StoreFactory.INDEXED);
+            store.defineField(FIELD_CONTENT, Item.FieldType.STRING, StoreFactory.INDEXED_TOKENIZED);
             store.defineField(FIELD_SYND_ENTRY);
-            store.defineField(FIELD_TAG, true, Item.FieldType.STRING);
-            store.defineField(FIELD_AUTHOR, true, Item.FieldType.STRING);
-            store.defineField(FIELD_AUTHORITY, true, Item.FieldType.INTEGER);
-            store.defineField(FIELD_PUBLISH_DATE, true, Item.FieldType.DATE);
-            store.defineField(FIELD_AUTOTAG, true, Item.FieldType.STRING);
+            store.defineField(FIELD_AUTHOR, Item.FieldType.STRING, StoreFactory.INDEXED);
+            store.defineField(FIELD_AUTHORITY, Item.FieldType.INTEGER, StoreFactory.INDEXED);
+            store.defineField(FIELD_PUBLISH_DATE, Item.FieldType.DATE, StoreFactory.INDEXED);
+            store.defineField(FIELD_AUTOTAG, Item.FieldType.STRING, StoreFactory.INDEXED);
         } catch(RemoteException rx) {
             throw new AuraException("Error defining fields for BlogEntry", rx);
         }
