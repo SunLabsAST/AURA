@@ -67,10 +67,11 @@ public class ArtistTag extends ItemAdapter {
 
     public void defineFields(DataStore ds) throws AuraException {
         try {
-            ds.defineField(FIELD_DESCRIPTION, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_DESCRIPTION, Item.FieldType.STRING, true, true);
             ds.defineField(FIELD_PHOTOS);
-            ds.defineField(FIELD_POPULARITY, true, Item.FieldType.FLOAT);
-            ds.defineField(FIELD_TAGGED_ARTISTS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_POPULARITY, Item.FieldType.FLOAT, true, false);
+            ds.defineField(FIELD_TAGGED_ARTISTS, Item.FieldType.STRING, true,
+                    false);
             ds.defineField(FIELD_VIDEOS);
             ds.defineField(FIELD_LAST_CRAWL);
         } catch(RemoteException rx) {

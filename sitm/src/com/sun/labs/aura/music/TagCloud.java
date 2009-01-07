@@ -48,8 +48,8 @@ public class TagCloud extends ItemAdapter {
     public void defineFields(DataStore ds) throws AuraException {
         try {
             ds.defineField(FIELD_WORLD_CLOUD);
-            ds.defineField(FIELD_DESCRIPTION, true, Item.FieldType.STRING);
-            ds.defineField(FIELD_CREATOR, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_DESCRIPTION, Item.FieldType.STRING, true, true);
+            ds.defineField(FIELD_CREATOR, Item.FieldType.STRING, true, false);
         } catch (RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }

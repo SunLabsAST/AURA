@@ -42,9 +42,9 @@ public class Listener extends ItemAdapter {
             ds.defineField(FIELD_LAST_FM_NAME);
             ds.defineField(FIELD_PANDORA_NAME);
             ds.defineField(FIELD_LOCALE_COUNTRY);
-            ds.defineField(FIELD_SOCIAL_TAGS, true, Item.FieldType.STRING);
-            ds.defineField(FIELD_ARTIST, true, Item.FieldType.STRING);
-            ds.defineField(FIELD_YOB, true, Item.FieldType.INTEGER);
+            ds.defineField(FIELD_SOCIAL_TAGS, Item.FieldType.STRING, true, false);
+            ds.defineField(FIELD_ARTIST, Item.FieldType.STRING, true, false);
+            ds.defineField(FIELD_YOB, Item.FieldType.INTEGER, true, false);
             ds.defineField(FIELD_LAST_CRAWL);
             ds.defineField(FIELD_UPDATE_COUNT);
         } catch(RemoteException ex) {

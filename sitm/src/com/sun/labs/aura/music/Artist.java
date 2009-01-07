@@ -83,21 +83,24 @@ public class Artist extends ItemAdapter {
 
     public void defineFields(DataStore ds) throws AuraException {
         try {
-            ds.defineField(FIELD_ALBUM, true, Item.FieldType.STRING);
-            ds.defineField(FIELD_AUTO_TAGS, true, Item.FieldType.STRING);
-            ds.defineField(FIELD_BEGIN_YEAR, true, Item.FieldType.INTEGER);
-            ds.defineField(FIELD_BIOGRAPHY_SUMMARY, true, Item.FieldType.STRING);
-            ds.defineField(FIELD_COLLABORATIONS, true, Item.FieldType.STRING);
-            ds.defineField(FIELD_END_YEAR, true, Item.FieldType.INTEGER);
-            ds.defineField(FIELD_EVENTS, true, Item.FieldType.STRING);
-            ds.defineField(FIELD_FOLLOWERS, true, Item.FieldType.STRING);
-            ds.defineField(FIELD_INFLUENCERS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_ALBUM, Item.FieldType.STRING, true, false);
+            ds.defineField(FIELD_AUTO_TAGS, Item.FieldType.STRING, true, false);
+            ds.defineField(FIELD_BEGIN_YEAR, Item.FieldType.INTEGER, true, false);
+            ds.defineField(FIELD_BIOGRAPHY_SUMMARY, Item.FieldType.STRING, true,
+                    true);
+            ds.defineField(FIELD_COLLABORATIONS, Item.FieldType.STRING, true,
+                    false);
+            ds.defineField(FIELD_END_YEAR, Item.FieldType.INTEGER, true, false);
+            ds.defineField(FIELD_EVENTS, Item.FieldType.STRING, true, false);
+            ds.defineField(FIELD_FOLLOWERS, Item.FieldType.STRING, true, false);
+            ds.defineField(FIELD_INFLUENCERS, Item.FieldType.STRING, true, false);
             ds.defineField(FIELD_PHOTOS);
-            ds.defineField(FIELD_POPULARITY, true, Item.FieldType.FLOAT);
-            ds.defineField(FIELD_RELATED_ARTISTS, true, Item.FieldType.STRING);
-            ds.defineField(FIELD_SOCIAL_TAGS, true, Item.FieldType.STRING);
-            ds.defineField(FIELD_BIO_TAGS, true, Item.FieldType.STRING);
-            ds.defineField(FIELD_BLURB_TAGS, true, Item.FieldType.STRING);
+            ds.defineField(FIELD_POPULARITY, Item.FieldType.FLOAT, true, false);
+            ds.defineField(FIELD_RELATED_ARTISTS, Item.FieldType.STRING, true,
+                    false);
+            ds.defineField(FIELD_SOCIAL_TAGS, Item.FieldType.STRING, true, false);
+            ds.defineField(FIELD_BIO_TAGS, Item.FieldType.STRING, true, false);
+            ds.defineField(FIELD_BLURB_TAGS, Item.FieldType.STRING, true, false);
             ds.defineField(FIELD_URLS);
             ds.defineField(FIELD_VIDEOS);
             ds.defineField(FIELD_SPOTIFY);
