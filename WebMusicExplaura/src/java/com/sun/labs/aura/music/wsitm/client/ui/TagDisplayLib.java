@@ -93,6 +93,8 @@ public abstract class TagDisplayLib {
         if (p!=null) {
         //    Popup.showPopup(p,title,d);
             Popup.showRoundedPopup(p, title, d);
+        } else {
+            Popup.showRoundedPopup(new Label("Sorry, no tags to display"), title, d);
         }
     }
 
