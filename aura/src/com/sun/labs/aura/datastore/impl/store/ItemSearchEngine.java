@@ -136,12 +136,8 @@ public class ItemSearchEngine implements Configurable {
         Map<String, FieldDescription> fields = bdw.getFieldDescriptions();
         for(Map.Entry<String, FieldDescription> e : fields.entrySet()) {
             FieldDescription desc = e.getValue();
-            EnumSet<Item.FieldCapability> caps = desc.getCapabilities();
-            //
-            // This code is to upgrade from the old capabilities to the new ones.
-            EnumSet<Item.FieldCapability> newCaps = EnumSet.noneOf(Item.FieldCapability.class);
             if(desc.isIndexed()) {
-                defineField(e.getKey(), desc.getType());
+                defineField(e.getKey(), desc.getType(), desc.getCapabilities());
             }
         }
     }
@@ -230,13 +226,16 @@ public class ItemSearchEngine implements Configurable {
     }
 
     public void defineField(String fieldName,
-            Item.FieldType fieldType) throws AuraException {
+            Item.FieldType fieldType,
+            EnumSet<Item.FieldCapability> caps) throws AuraException {
         EnumSet<FieldInfo.Attribute> attr = 
                 EnumSet.of(
                 FieldInfo.Attribute.SAVED,
                     FieldInfo.Attribute.INDEXED,
-                    FieldInfo.Attribute.TOKENIZED,
                     FieldInfo.Attribute.VECTORED);
+        if(caps.contains(Item.FieldCapability.TOKENIZED)) {
+            attr.add(FieldInfo.Attribute.TOKENIZED);
+        }
 
         if(attr.contains(FieldInfo.Attribute.SAVED) && fieldType == null) {
             throw new IllegalArgumentException("Indexed field " + fieldName +

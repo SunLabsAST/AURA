@@ -455,7 +455,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         // If this field is going to be dealt with by the search engine, then
         // send it there.
         if(caps != null && caps.contains(Item.FieldCapability.INDEXED)) {
-            searchEngine.defineField(fieldName, fieldType);
+            searchEngine.defineField(fieldName, fieldType, caps);
         }
     }
 

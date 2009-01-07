@@ -79,7 +79,7 @@ public class FieldDescription implements Serializable {
                 for(Integer fc : perCaps) {
                     caps.add(FieldCapability.coerce(vals[fc]));
                 }
-            } else {
+            } else if(perCapNames != null) {
                 for(String name : perCapNames) {
                     caps.add(FieldCapability.coerce(FieldCapability.valueOf(name)));
                 }
@@ -115,11 +115,14 @@ public class FieldDescription implements Serializable {
             return true;
         }
         return name.equals(fd.name) &&
-                perCaps.equals(fd.perCaps) &&
-                type == fd.type;
+               type == fd.type;
     }
 
     public int hashCode() {
         return name.hashCode();
+    }
+
+    public String toString() {
+        return String.format("name: %s type: %s caps: %s", name, type, caps);
     }
 }
