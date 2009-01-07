@@ -5,6 +5,8 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.Swidget;
@@ -354,9 +356,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             VerticalPanel vP = new VerticalPanel();
 
             Label lnk = new Label("Logout");
-            lnk.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            lnk.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     cdm.resetUser();
                     invokeTerminateSession();
                 }
@@ -368,9 +370,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
             HorizontalPanel buttonsPanel = new HorizontalPanel();
             buttonsPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
-            Image steerable = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            Image steerable = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     cdm.setSteerableReset(true);
                     History.newItem("steering:userCloud");
                 }
@@ -611,7 +613,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
                 for (MenuItem mI : menuItems) {
                     if (!mI.mustBeLoggedIn() || (mI.mustBeLoggedIn() && loggedIn)) {
                         Label sLabel = new Label(mI.getName());
-                        sLabel.addClickListener(mI.getClickListener());
+                        sLabel.addClickHandler(mI.getClickHandler());
                         sLabel.setStyleName("headerMenuMedItem headerMenuMedItemC");
                         mI.setLabel(sLabel);
                         hP.add(sLabel);

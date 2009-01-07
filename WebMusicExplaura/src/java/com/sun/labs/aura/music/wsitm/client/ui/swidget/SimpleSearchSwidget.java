@@ -8,6 +8,8 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
@@ -29,7 +31,6 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.Grid;
@@ -41,7 +42,7 @@ import com.google.gwt.user.client.ui.LoadListener;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
+import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
@@ -194,6 +195,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         setResults("artist:",new Label(""));
     }
 
+    @Override
     public ArrayList<String> getTokenHeaders() {
 
         ArrayList<String> l = new ArrayList<String>();
@@ -205,15 +207,17 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         return l;
     }
 
+    @Override
     protected void initMenuItem() {
-        menuItem = new MenuItem("Exploration",new ClickListener() {
-
-                public void onClick(Widget arg0) {
+        menuItem = new MenuItem("Exploration",new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     History.newItem(cdm.getCurrSearchWidgetToken());
                 }
             },false,0);
     }
 
+    @Override
     public void doRemoveListeners() {
 
         if (leftRelList != null) {
@@ -647,9 +651,10 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         
         ArtistCompact aC = artistDetails.toArtistCompact();
         SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.BIG, 
-                new DualDataEmbededClickListener<ClientDataManager, ArtistCompact>(cdm, aC) {
+                new DDEClickHandler<ClientDataManager, ArtistCompact>(cdm, aC) {
 
-            public void onClick(Widget arg0) {
+            @Override
+            public void onClick(ClickEvent ce) {
                 data.setSteerableReset(true);
                 History.newItem("steering:" + sndData.getId());
             }
@@ -842,7 +847,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             }
 
             Label label = new Label(itemInfo[i].getItemName());
-            label.addClickListener(new ItemInfoClickListener(itemInfo[i], getArtistOnClick));
+            label.addClickHandler(new ItemInfoClickHandler(itemInfo[i], getArtistOnClick));
             label.setTitle("Score: " + itemInfo[i].getScore() + " Popularity:" + itemInfo[i].getPopularity());
             if (highlightID != null && highlightID.equals(itemInfo[i].getId())) {
                 label.setStyleName("itemInfoHighlight");
@@ -864,9 +869,9 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             titleWidget.setWidget(0, 0, new HTML("<h2>" + title + "</h2>"));
             Label l = new Label(" Cloud");
             l.setStyleName("tinyInfo");
-            l.addClickListener(new ClickListener() {
+            l.addClickHandler(new ClickHandler() {
 
-                public void onClick(Widget arg0) {
+                public void onClick(ClickEvent ce) {
                     TagDisplayLib.showTagCloud(title, itemInfo, TagDisplayLib.ORDER.SHUFFLE, cdm);
                 }
             });
@@ -901,17 +906,18 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         }
     }
 
-    private class ItemInfoClickListener implements ClickListener {
+    private class ItemInfoClickHandler implements ClickHandler {
 
         private ItemInfo info;
         private boolean getArtistOnClick;
 
-        ItemInfoClickListener(ItemInfo info, boolean getArtistOnClick) {
+        ItemInfoClickHandler(ItemInfo info, boolean getArtistOnClick) {
             this.info = info;
             this.getArtistOnClick = getArtistOnClick;
         }
 
-        public void onClick(Widget sender) {
+        @Override
+        public void onClick(ClickEvent ce) {
             if (getArtistOnClick) {
                 History.newItem("artist:"+info.getId());
             } else {
@@ -1028,17 +1034,17 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             topPanel.setCellPadding(4);
 
             Image prev = new Image("Prev_Button.jpg");
-            prev.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            prev.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     setPreviewPanel(getNextElements(-NBR_ITEM_ON_PREVIEW));
                 }
             });
 
             Image next = new Image("Next_Button.jpg");
-            next.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            next.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     setPreviewPanel(getNextElements(NBR_ITEM_ON_PREVIEW));
                 }
             });
@@ -1131,7 +1137,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                 theEffectPanel.add(img);
                 img.setVisible(false);
                 img.addLoadListener(new LoadListenerPanelContainer(theEffectPanel));
-                img.addClickListener(new IndexClickListener(i.index));
+                img.addClickHandler(new IndexClickHandler(i.index));
 
                 // Crop if necessary
                 if (maxImgHeight>0 && maxImgWidth>0) {
@@ -1160,16 +1166,17 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             mainPanel.setWidget(1, 0, nextPreview);
         }
 
-        protected class IndexClickListener implements ClickListener {
+        protected class IndexClickHandler implements ClickHandler {
+            
             protected int index;
 
-            public IndexClickListener(int index) {
+            public IndexClickHandler(int index) {
                 super();
                 this.index=index;
             }
 
-            public void onClick(Widget arg0) {
-                        triggerAction(index);
+            public void onClick(ClickEvent ce) {
+                triggerAction(index);
             }
         }
 

@@ -20,7 +20,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededAsyncCallback;
+import com.sun.labs.aura.music.wsitm.client.event.DEAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
@@ -282,8 +282,8 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                 }
             }
 
-            DataEmbededAsyncCallback<HashSet<String>, HashMap<String, Integer>> callback =
-                    new DataEmbededAsyncCallback<HashSet<String>, HashMap<String, Integer>>(artistIDs) {
+            DEAsyncCallback<HashSet<String>, HashMap<String, Integer>> callback =
+                    new DEAsyncCallback<HashSet<String>, HashMap<String, Integer>>(artistIDs) {
 
                 @Override
                 public void onSuccess(HashMap<String, Integer> map) {

@@ -11,6 +11,7 @@ import com.google.gwt.user.client.ui.Widget;
 /**
  *
  * @author mailletf
+ * @deprecated Use DEClickHandler instead
  */
 public abstract class DataEmbededClickListener<T> implements ClickListener {
 
@@ -21,5 +22,8 @@ public abstract class DataEmbededClickListener<T> implements ClickListener {
         this.data = data;
     }
 
+    /**
+     * @deprecated
+     */
     public abstract void onClick(Widget sender);
 }

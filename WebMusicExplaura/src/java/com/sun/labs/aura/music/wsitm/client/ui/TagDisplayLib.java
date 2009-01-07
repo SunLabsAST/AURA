@@ -5,8 +5,8 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui;
 
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.sun.labs.aura.music.wsitm.client.*;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.CommonTagsAsyncCallback;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.History;
@@ -17,7 +17,7 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.PopupPanel;
-import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import java.util.HashMap;
 import java.util.Arrays;
@@ -162,9 +162,10 @@ public abstract class TagDisplayLib {
                 sL.getElement().setAttribute("style", "font-size:" + fontSize + "px;");
                 setColorToElem(sL, colorId, tags[i].getScore());
                 sL.addStyleName("pointer");
-                sL.addClickListener(new DataEmbededClickListener<ItemInfo>(tags[i]) {
-
-                    public void onClick(Widget arg0) {
+                sL.addClickHandler(new DEClickHandler<ItemInfo>(tags[i]) {
+                    
+                    @Override
+                    public void onClick(ClickEvent event) {
                         String tagLink = data.getId();
                         if (!tagLink.startsWith("artist-tag:")) {
                             tagLink = ClientDataManager.nameToKey(tagLink);
@@ -173,9 +174,10 @@ public abstract class TagDisplayLib {
                     }
                 });
                 if (d!=null) {
-                    sL.addClickListener(new DataEmbededClickListener<PopupPanel>(d) {
+                    sL.addClickHandler(new DEClickHandler<PopupPanel>(d) {
 
-                        public void onClick(Widget arg0) {
+                        @Override
+                        public void onClick(ClickEvent event) {
                             data.hide();
                         }
                     });

@@ -8,13 +8,12 @@ package com.sun.labs.aura.music.wsitm.client.event;
 /**
  *
  * @author mailletf
- * @deprecated 
  */
-public abstract class DualDataEmbededClickListener<T, V> extends DataEmbededClickListener<T> {
+public abstract class DDEClickHandler<T, V> extends DEClickHandler<T> {
 
     protected V sndData;
 
-    public DualDataEmbededClickListener(T data, V sndData) {
+    public DDEClickHandler(T data, V sndData) {
         super(data);
         this.sndData = sndData;
     }

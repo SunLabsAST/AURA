@@ -5,11 +5,11 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui;
 
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import java.util.Comparator;
 
 /**
@@ -19,7 +19,7 @@ import java.util.Comparator;
 public class MenuItem {
 
     private String name;
-    private ClickListener cL;
+    private ClickHandler cH;
     private boolean mustBeLoggedIn;
     private int order;
     private boolean displayInMenu;
@@ -28,15 +28,16 @@ public class MenuItem {
 
     public MenuItem() {
         this.displayInMenu = false;
-        this.cL = new ClickListener() {
-            public void onClick(Widget arg0) {}
+        this.cH = new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {}
         };
         this.order = 5000;  // big value
     }
 
-    public MenuItem(String name, ClickListener cL, boolean mustBeLoggedIn, int order) {
+    public MenuItem(String name, ClickHandler cH, boolean mustBeLoggedIn, int order) {
         this.name = name;
-        this.cL = cL;
+        this.cH = cH;
         this.mustBeLoggedIn = mustBeLoggedIn;
         this.order = order;
         this.displayInMenu = true;
@@ -46,8 +47,8 @@ public class MenuItem {
         return name;
     }
 
-    public ClickListener getClickListener() {
-        return cL;
+    public ClickHandler getClickHandler() {
+        return cH;
     }
 
     public boolean mustBeLoggedIn() {
@@ -79,14 +80,14 @@ public class MenuItem {
     }
 
     /**
-     * Returns a click listener that will add the supplied token to the history
+     * Returns a click handler that will add the supplied token to the history
      * @param token
      * @return
      */
-    public static ClickListener getDefaultTokenClickListener(String token) {
-        return new DataEmbededClickListener<String>(token) {
-
-                public void onClick(Widget arg0) {
+    public static ClickHandler getDefaultTokenClickHandler(String token) {
+        return new DEClickHandler<String>(token) {
+                @Override
+                public void onClick(ClickEvent event) {
                     History.newItem(data);
                 }
             };
@@ -94,6 +95,7 @@ public class MenuItem {
 
     private static class MenuItemComparator implements Comparator<MenuItem> {
 
+        @Override
         public int compare(MenuItem o1, MenuItem o2) {
             return new Integer(o1.getOrder()).compareTo(o2.getOrder());
         }

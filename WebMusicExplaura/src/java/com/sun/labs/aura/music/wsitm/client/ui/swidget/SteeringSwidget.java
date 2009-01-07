@@ -4,9 +4,10 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededChangeListener;
 import com.sun.labs.aura.music.wsitm.client.event.CommonTagsAsyncCallback;
@@ -17,7 +18,6 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -31,8 +31,9 @@ import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededAsyncCallback;
-import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
+import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
+import com.sun.labs.aura.music.wsitm.client.event.DEAsyncCallback;
+import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.event.TagCloudListener;
 import com.sun.labs.aura.music.wsitm.client.event.WebListener;
@@ -85,7 +86,7 @@ public class SteeringSwidget extends Swidget {
 
     @Override
     protected void initMenuItem() {
-        menuItem = new MenuItem("Steering", MenuItem.getDefaultTokenClickListener("steering:"), false, 1);
+        menuItem = new MenuItem("Steering", MenuItem.getDefaultTokenClickHandler("steering:"), false, 1);
     }
 
     @Override
@@ -106,6 +107,7 @@ public class SteeringSwidget extends Swidget {
         }
     }
 
+    @Override
     public void doRemoveListeners() {
         mP.doRemoveListeners();
         mP.onDelete();
@@ -154,9 +156,9 @@ public class SteeringSwidget extends Swidget {
             hP.add(popSelect);
             
             Image viewTagInfluence = new Image("loupe.png");
-            viewTagInfluence.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            viewTagInfluence.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     displayTagInfluence();
                 }
             });
@@ -180,36 +182,36 @@ public class SteeringSwidget extends Swidget {
             mainNorthMenuPanel.setSpacing(5);
 
             Button saveButton = new Button("Save");
-            saveButton.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            saveButton.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     showSaveDialog();
                 }
             });
             mainNorthMenuPanel.add(saveButton);
 
             Button loadButton = new Button("Load");
-            loadButton.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            loadButton.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     showLoadDialog();
                 }
             });
             mainNorthMenuPanel.add(loadButton);
 
             Button resetButton = new Button("Erase all tags");
-            resetButton.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            resetButton.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     tagLand.removeAllItems(true);
                 }
             });
             mainNorthMenuPanel.add(resetButton);
 
             Button viewCloudButton = new Button("View atomic cloud");
-            viewCloudButton.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            viewCloudButton.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     if (currTagMap == null || currTagMap.isEmpty()) {
                         Popup.showInformationPopup("Cannot display atomic representation; you must " +
                                 "add tags in your cloud first.");
@@ -321,9 +323,9 @@ public class SteeringSwidget extends Swidget {
 
                     Button b = new Button();
                     b.setText("Save");
-                    b.addClickListener(new DataEmbededClickListener<PopupPanel>(popup) {
-
-                        public void onClick(Widget sender) {
+                    b.addClickHandler(new DEClickHandler<PopupPanel>(popup) {
+                        @Override
+                        public void onClick(ClickEvent event) {
                             // save cloud
                             data.hide();
                         }
@@ -599,9 +601,9 @@ public class SteeringSwidget extends Swidget {
             if (showBackButton) {
                 Label backButton = new Label("Back");
                 backButton.setStyleName("headerMenuTinyItem headerMenuTinyItemC");
-                backButton.addClickListener(new ClickListener() {
-
-                    public void onClick(Widget arg0) {
+                backButton.addClickHandler(new ClickHandler() {
+                    @Override
+                    public void onClick(ClickEvent event) {
                         displayMainItems();
                     }
                 });
@@ -611,9 +613,9 @@ public class SteeringSwidget extends Swidget {
 
             Label addAllButton = new Label("Add top tags");
             addAllButton.setStyleName("headerMenuTinyItem headerMenuTinyItemC");
-            addAllButton.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            addAllButton.addClickHandler(new ClickHandler() {
+                    @Override
+                    public void onClick(ClickEvent event) {
                     if (subItems != null) {
                         tagLand.addTags(subItems, TagWidget.NBR_TOP_TAGS_TO_ADD);
                     } else {
@@ -626,12 +628,14 @@ public class SteeringSwidget extends Swidget {
 
             Label addArtistButton = new Label("Add artist");
             addArtistButton.setStyleName("headerMenuTinyItem headerMenuTinyItemC");
-            addArtistButton.addClickListener(new DualDataEmbededClickListener<Label, String>(addArtistButton, iI.getId()) {
-
-                public void onClick(Widget arg0) {
+            addArtistButton.addClickHandler(new DDEClickHandler<Label, String>(addArtistButton, iI.getId()) {
+                @Override
+                public void onClick(ClickEvent event) {
+                
                     data.setText("Processing...");
-                    invokeGetArtistCompactService(sndData, new DataEmbededAsyncCallback<Label, ArtistCompact>(data) {
+                    invokeGetArtistCompactService(sndData, new DEAsyncCallback<Label, ArtistCompact>(data) {
 
+                        @Override
                         public void onSuccess(ArtistCompact aC) {
                             if (aC != null) {
                                 tagLand.addArtist(aC, 0);
@@ -641,6 +645,7 @@ public class SteeringSwidget extends Swidget {
                             data.setText("Add artist");
                         }
 
+                        @Override
                         public void onFailure(Throwable caught) {
                             Window.alert(caught.getMessage());
                         }
@@ -679,13 +684,13 @@ public class SteeringSwidget extends Swidget {
                 addButton.setStyleName("recoTags");
                 addButton.addStyleName("pointer");
                 addButton.getElement().setAttribute("style", "margin-right: 5px");
-                addButton.addClickListener(new DualDataEmbededClickListener<String, SwapableWidget>(item.getId(), sW) {
-
-                    public void onClick(Widget sender) {
+                addButton.addClickHandler(new DDEClickHandler<String, SwapableWidget>(item.getId(), sW) {
+                    @Override
+                    public void onClick(ClickEvent event) {
 
                         sndData.showWidget(SwapableWidget.LoadableWidget.W2);
 
-                        invokeGetArtistCompactService(data, new DataEmbededAsyncCallback<SwapableWidget, ArtistCompact>(sndData) {
+                        invokeGetArtistCompactService(data, new DEAsyncCallback<SwapableWidget, ArtistCompact>(sndData) {
 
                             public void onSuccess(ArtistCompact aC) {
                                 tagLand.addArtist(aC, 0);
@@ -702,9 +707,10 @@ public class SteeringSwidget extends Swidget {
 
                 Label itemName = new Label(item.getItemName());
                 itemName.setStyleName("pointer");
-                itemName.addClickListener(new DataEmbededClickListener<ItemInfo>(item) {
+                itemName.addClickHandler(new DEClickHandler<ItemInfo>(item) {
+                        @Override
+                        public void onClick(ClickEvent event) {
 
-                    public void onClick(Widget arg0) {
                         displayDetails(data, true);
                     }
                 });
@@ -794,9 +800,9 @@ public class SteeringSwidget extends Swidget {
             // Add the title line
             Label nameLbl = new Label("Name");
             nameLbl.addStyleName("pointer");
-            nameLbl.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            nameLbl.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     ((Label) mainPanel.getWidget(0, 0)).setText("Name");
                     ((Label) mainPanel.getWidget(0, 1)).setText("Popularity*");
                     populateMainPanel(ItemInfo.getNameSorter());
@@ -806,9 +812,9 @@ public class SteeringSwidget extends Swidget {
 
             Label popLbl = new Label("Popularity*");
             popLbl.addStyleName("pointer");
-            popLbl.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            popLbl.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     ((Label) mainPanel.getWidget(0, 0)).setText("Name");
                     ((Label) mainPanel.getWidget(0, 1)).setText("Popularity*");
                     populateMainPanel(ItemInfo.getPopularitySorter());
@@ -832,9 +838,9 @@ public class SteeringSwidget extends Swidget {
             }
             for (ItemInfo i : iI) {
                 TagCloudListeningTag tagLbl = new TagCloudListeningTag(i);
-                tagLbl.addClickListener(new DataEmbededClickListener<ItemInfo>(i) {
-
-                    public void onClick(Widget arg0) {
+                tagLbl.addClickHandler(new DEClickHandler<ItemInfo>(i) {
+                    @Override
+                    public void onClick(ClickEvent event) {
                         onItemClick(data);
                     }
                 });
@@ -910,15 +916,15 @@ public class SteeringSwidget extends Swidget {
             searchButtons[1] = new SearchTypeRadioButton("searchType", "By Artist", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
             searchButtons[0].setChecked(true);
 
-            searchButtons[1].addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            searchButtons[1].addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     updateSuggestBox(Oracles.ARTIST);
                 }
             });
-            searchButtons[0].addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            searchButtons[0].addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     updateSuggestBox(Oracles.TAG);
                 }
             });
@@ -949,6 +955,7 @@ public class SteeringSwidget extends Swidget {
             this.setWidth("185px");
         }
 
+        @Override
         public void search() {
             mainTagPanel.setWidget(1, 0, WebLib.getLoadingBarWidget());
             if (getCurrLoadedOracle() == Oracles.TAG) {
