@@ -111,6 +111,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
                 Runnable discoverer = new Runnable() {
                     // this thread discovers new artists until
                     // we reach the maxArtists
+
                     public void run() {
                         addAllTags();
                         discoverArtists();
@@ -365,20 +366,24 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
 
     private void artistUpdater() {
         FixedPeriod fixedPeriod = new FixedPeriod(updateRateInSeconds * 1000L);
-        while (running) {
-            try {
+        try {
+            while (running) {
                 fixedPeriod.start();
-                updateArtists(false, 2000L);
+                try {
+                    updateArtists(false, 2000L);
+                } catch (AuraException ex) {
+                    logger.warning("trouble in artist updater, retrying in a while" + ex);
+                } catch (RemoteException ex) {
+                    logger.warning("trouble in artist updater, retrying in a while " + ex);
+                } catch (InterruptedException ex) {
+                    logger.info("artist updater, interrupted, retrying in a while");
+                } catch (Throwable t) {
+                    logger.severe("Unexpected error during artist updater crawl, retrying in a while" + t);
+                }
                 fixedPeriod.end();
-            } catch (AuraException ex) {
-                logger.warning("trouble in artist updater, shutting down " + ex);
-            } catch (RemoteException ex) {
-                logger.warning("trouble in artist updater, shutting down " + ex);
-            } catch (InterruptedException ex) {
-                logger.info("artist updater, interrupted, shutting down");
-            } catch (Throwable t) {
-                logger.severe("Unexpected error during artist updater crawl, shutting down " + t);
             }
+        } catch (InterruptedException ex) {
+            logger.info("artist updater interrupted, shutting down.");
         }
     }
 
