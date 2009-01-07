@@ -26,7 +26,6 @@ import com.sun.labs.aura.music.RecommendationProfile;
 import com.sun.labs.aura.music.RecommendationSummary;
 import com.sun.labs.aura.music.RecommendationType;
 import com.sun.labs.aura.music.SimType;
-import com.sun.labs.aura.music.TagCloud;
 import com.sun.labs.aura.music.Video;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -162,6 +161,7 @@ public class DataManager implements Configurable {
             ArrayList<ItemInfo> artistResult = new ArrayList<ItemInfo>();
 
             for (Scored<String> ss : simList) {
+                logger.info("rel:"+ss.getItem());
                 ArtistCompact aC = this.getArtistCompact(ss.getItem());
                 if (aC != null) {
                     double score = ss.getScore();
@@ -607,7 +607,7 @@ public class DataManager implements Configurable {
      * @param lD
      * @return updated listener
      */
-    private Listener syncListeners(Listener l, ListenerDetails lD, SimType simType,
+    private Listener syncListeners(Listener l, ListenerDetails lD,
             boolean updateRecommendations) throws AuraException, RemoteException {
 
         if (lD.getGender() != null) {
@@ -652,7 +652,7 @@ public class DataManager implements Configurable {
     }
 
     private ListenerDetails listenerToListenerDetails(Listener l, ListenerDetails lD,
-            SimType simType, boolean updateRecommendations) throws AuraException, RemoteException {
+            boolean updateRecommendations) throws AuraException, RemoteException {
 
         if (l.getGender() != null) {
             lD.setGender(l.getGender().toString());
@@ -707,7 +707,7 @@ public class DataManager implements Configurable {
             logger.info("Non openID user '" + userKey + "' fetched.");
         }
 
-        lD = listenerToListenerDetails(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
+        lD = listenerToListenerDetails(l, lD, true);
         lD.setOpenId(userKey);
         lD.setIsLoggedIn(true);
 
@@ -733,7 +733,7 @@ public class DataManager implements Configurable {
             logger.info("Retrieved user from datastore: " + lD.getOpenId());
         }
 
-        l = syncListeners(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
+        l = syncListeners(l, lD, true);
         mdb.updateListener(l);
 
         // Get the user tag cloud
@@ -771,7 +771,7 @@ public class DataManager implements Configurable {
     }
 
     public void updateUser(ListenerDetails lD) throws AuraException, RemoteException {
-        Listener l = syncListeners(mdb.getListener(lD.getOpenId()), lD, null, false);
+        Listener l = syncListeners(mdb.getListener(lD.getOpenId()), lD, false);
         mdb.updateListener(l);
     }
 

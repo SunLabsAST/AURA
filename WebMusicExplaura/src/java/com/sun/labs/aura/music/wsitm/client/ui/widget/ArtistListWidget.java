@@ -116,6 +116,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         History.newItem("tag:"+tag.getId());
     }
 
+    @Override
     public void doRemoveListeners() {
         for (CompactArtistWidget caw : artistWidgetMap.values()) {
             caw.doRemoveListeners();
@@ -174,6 +175,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
 
                 DeletableWidget dW = new DeletableWidget<CompactArtistWidget>(caw, new HorizontalPanel()) {
 
+                    @Override
                     public void onDelete() {
                         invokeAddNotInterested(getWidget().getArtistId());
                         artistWidgetMap.remove(this.w.getArtistId());
@@ -247,7 +249,9 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
 
         AsyncCallback callback = new AsyncCallback() {
 
+            @Override
             public void onSuccess(Object result) {}
+            @Override
             public void onFailure(Throwable caught) {
                 Window.alert("Error adding not interested attention."+caught.toString());
             }
@@ -281,6 +285,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
             DataEmbededAsyncCallback<HashSet<String>, HashMap<String, Integer>> callback =
                     new DataEmbededAsyncCallback<HashSet<String>, HashMap<String, Integer>>(artistIDs) {
 
+                @Override
                 public void onSuccess(HashMap<String, Integer> map) {
 
                     cdm.setRatingInCache(map);
@@ -299,6 +304,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                     }
                 }
 
+                @Override
                 public void onFailure(Throwable caught) {
                     Window.alert(caught.toString());
                     Window.alert("Error fetching ratings.");
