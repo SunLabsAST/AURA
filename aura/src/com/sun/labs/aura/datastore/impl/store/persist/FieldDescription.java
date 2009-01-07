@@ -12,10 +12,10 @@ import java.util.HashSet;
 /**
  * An encapsulation of the description of a particular field.
  */
-@Entity(version = 1)
+@Entity(version = 2)
 public class FieldDescription implements Serializable {
 
-    private static final long serialVersionUID = 1;
+    private static final long serialVersionUID = 2;
 
     @PrimaryKey
     private String name;
@@ -25,6 +25,8 @@ public class FieldDescription implements Serializable {
     private transient EnumSet<FieldCapability> caps;
 
     private HashSet<Integer> perCaps;
+
+    private HashSet<String> perCapNames;
 
     private Item.FieldType type;
 
@@ -36,15 +38,27 @@ public class FieldDescription implements Serializable {
     }
 
     public FieldDescription(String name,
-            Item.FieldType type, EnumSet<FieldCapability> caps) {
+            Item.FieldType type,
+            EnumSet<FieldCapability> caps) {
         this.name = name;
-        if(caps == null) {
-            this.caps = EnumSet.noneOf(FieldCapability.class);
-        } else {
-            this.caps = EnumSet.copyOf(caps);
+
+        //
+        // Make the in-memory set of capabilities.
+        this.caps = EnumSet.noneOf(FieldCapability.class);
+        if(caps != null) {
+            for(FieldCapability cap : caps) {
+                //
+                // Upgrade old caps to new.
+                this.caps.add(FieldCapability.coerce(cap));
+            }
         }
+
+        //
+        // Make the sets that will persist.
         perCaps = new HashSet<Integer>();
+        perCapNames = new HashSet<String>();
         for(FieldCapability fc : this.caps) {
+            perCapNames.add(fc.name());
             perCaps.add(fc.ordinal());
         }
         this.type = type;
@@ -56,10 +70,19 @@ public class FieldDescription implements Serializable {
 
     public EnumSet<FieldCapability> getCapabilities() {
         if(caps == null) {
-            caps = EnumSet.noneOf(FieldCapability.class);
-            FieldCapability[] vals = FieldCapability.values();
-            for(Integer fc : perCaps) {
-                caps.add(vals[fc]);
+            caps = EnumSet.noneOf(Item.FieldCapability.class);
+            //
+            // Upgrade code we'll remove this once we go to the strings set.
+            // We'll coerce all of the old values into the INDEXED attribute.
+            if(perCaps != null && perCaps.size() > 0) {
+                Item.FieldCapability[] vals = Item.FieldCapability.values();
+                for(Integer fc : perCaps) {
+                    caps.add(FieldCapability.coerce(vals[fc]));
+                }
+            } else {
+                for(String name : perCapNames) {
+                    caps.add(FieldCapability.coerce(FieldCapability.valueOf(name)));
+                }
             }
         }
         return EnumSet.copyOf(caps);
@@ -75,11 +98,11 @@ public class FieldDescription implements Serializable {
      * @return <code>true</code> if this field must be indexed.
      */
     public boolean isIndexed() {
-        return caps.contains(FieldCapability.INDEXED);
+        return caps != null && caps.contains(FieldCapability.INDEXED);
     }
 
     public boolean isTokenized() {
-        return caps.contains(FieldCapability.TOKENIZED);
+        return caps != null && caps.contains(FieldCapability.TOKENIZED);
     }
 
     public boolean equals(Object o) {

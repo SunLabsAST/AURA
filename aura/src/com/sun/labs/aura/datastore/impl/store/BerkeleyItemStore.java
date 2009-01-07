@@ -448,13 +448,13 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
 
     @Override
     public void defineField(String fieldName, 
-            Item.FieldType fieldType, EnumSet<Item.FieldCapability> caps) throws AuraException, RemoteException {
+            Item .FieldType fieldType, EnumSet<Item.FieldCapability> caps) throws AuraException, RemoteException {
         bdb.defineField(fieldName, fieldType, caps);
         
         //
         // If this field is going to be dealt with by the search engine, then
         // send it there.
-        if(caps.contains(Item.FieldCapability.INDEXED)) {
+        if(caps != null && caps.contains(Item.FieldCapability.INDEXED)) {
             searchEngine.defineField(fieldName, fieldType);
         }
     }

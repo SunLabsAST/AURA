@@ -72,7 +72,24 @@ public interface Item extends Serializable, Iterable<Map.Entry<String,Serializab
          * <code>INDEXED</code> capability set, then it doesn't make much sense
          * to set this capability, but it will be allowed.
          */
-        TOKENIZED
+        TOKENIZED;
+
+        /**
+         * Coerces one of the old values to one of the new ones.  This will
+         * go away eventually.
+         * @param fc the capability to coerce.
+         * @return the coerced capability
+         */
+        public static FieldCapability coerce(FieldCapability fc) {
+            if(fc != null) {
+                if(fc != TOKENIZED) {
+                    return INDEXED;
+                } else {
+                    return TOKENIZED;
+                }
+            }
+            return null;
+        }
     }
     
     /**

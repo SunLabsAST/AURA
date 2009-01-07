@@ -136,6 +136,10 @@ public class ItemSearchEngine implements Configurable {
         Map<String, FieldDescription> fields = bdw.getFieldDescriptions();
         for(Map.Entry<String, FieldDescription> e : fields.entrySet()) {
             FieldDescription desc = e.getValue();
+            EnumSet<Item.FieldCapability> caps = desc.getCapabilities();
+            //
+            // This code is to upgrade from the old capabilities to the new ones.
+            EnumSet<Item.FieldCapability> newCaps = EnumSet.noneOf(Item.FieldCapability.class);
             if(desc.isIndexed()) {
                 defineField(e.getKey(), desc.getType());
             }

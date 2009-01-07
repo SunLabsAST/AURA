@@ -305,7 +305,9 @@ public class BerkeleyDataWrapper {
         log.info("BDB done loading");
     }
 
-    public void defineField(String fieldName, Item.FieldType fieldType, EnumSet<Item.FieldCapability> caps) throws AuraException {
+    public void defineField(String fieldName,
+            Item.FieldType fieldType,
+            EnumSet<Item.FieldCapability> caps) throws AuraException {
         try {
             FieldDescription fd =
                     new FieldDescription(fieldName, fieldType, caps);
