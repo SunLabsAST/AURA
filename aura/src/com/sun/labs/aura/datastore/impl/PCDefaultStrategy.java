@@ -39,7 +39,7 @@ public class PCDefaultStrategy implements PCStrategy {
     @Override
     public void defineField(String fieldName, boolean indexed,
             FieldType fieldType) throws AuraException, RemoteException {
-        replicant.defineField(fieldName, indexed, fieldType);
+        replicant.defineField(fieldName, fieldType, indexed,false);
     }
 
     public List<Item> getAll(ItemType itemType) throws AuraException, RemoteException {

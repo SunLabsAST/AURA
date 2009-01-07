@@ -81,7 +81,7 @@ public class PCSplitStrategy implements PCStrategy {
         //
         // Define a field in both copies... easy!
         local.defineField(fieldName, indexed, fieldType);
-        remote.defineField(fieldName, indexed, fieldType);
+        remote.defineField(fieldName, fieldType, indexed,false);
     }
     
     public List<Item> getAll(ItemType itemType)

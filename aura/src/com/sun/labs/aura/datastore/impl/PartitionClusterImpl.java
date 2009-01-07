@@ -114,11 +114,11 @@ public class PartitionClusterImpl implements PartitionCluster,
     
     public void defineField(String fieldName)
             throws AuraException, RemoteException {
-        defineField(fieldName, false, null);
+        defineField(fieldName, null,false,false);
     }
 
-    public void defineField(String fieldName, boolean indexed,
-            Item.FieldType fieldType) throws AuraException, RemoteException {
+    public void defineField(String fieldName,
+            Item.FieldType fieldType,boolean indexed,boolean tokenized) throws AuraException, RemoteException {
         strategy.defineField(fieldName, indexed, fieldType);
     }
     
@@ -543,7 +543,7 @@ public class PartitionClusterImpl implements PartitionCluster,
             // Define all fields in the new partition
             Map<String,FieldDescription> fields = getFieldDescriptions();
             for (FieldDescription fd : fields.values()) {
-                remote.defineField(fd.getName(), fd.isIndexed(), fd.getType());
+                remote.defineField(fd.getName(), fd.getType(), fd.isIndexed(),false);
             }
 
             logger.info("Fields defined in " + remote.getPrefix());

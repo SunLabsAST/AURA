@@ -304,15 +304,15 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         if (bdb.getNumUsers() == 0) {
             try {
                 logger.info("Defining user fields");
-                defineField("nickname", true, FieldType.STRING);
-                defineField("fullname", true, FieldType.STRING);
-                defineField("email", true, FieldType.STRING);
-                defineField("dob", true, FieldType.DATE);
-                defineField("gender", true, FieldType.STRING);
-                defineField("postcode", true, FieldType.STRING);
-                defineField("country", true, FieldType.STRING);
-                defineField("language", true, FieldType.STRING);
-                defineField("timezone", true, FieldType.STRING);
+                defineField("nickname", FieldType.STRING,true,false);
+                defineField("fullname", FieldType.STRING,true,false);
+                defineField("email", FieldType.STRING,true,false);
+                defineField("dob", FieldType.DATE,true,false);
+                defineField("gender", FieldType.STRING,true,false);
+                defineField("postcode", FieldType.STRING,true,false);
+                defineField("country", FieldType.STRING,true,false);
+                defineField("language", FieldType.STRING,true,false);
+                defineField("timezone", FieldType.STRING,true,false);
             } catch (Exception e) {
                 logger.log(Level.INFO, "Failed to define User fields", e);
                 throw new PropertyException(ps.getInstanceName(), "userfields",
@@ -442,12 +442,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     @Override
     public void defineField(String field)
             throws AuraException, RemoteException {
-        defineField(field, false, null);
+        defineField(field, null,false,false);
     }
 
     @Override
-    public void defineField(String fieldName, boolean indexed, 
-            Item.FieldType fieldType) throws AuraException, RemoteException {
+    public void defineField(String fieldName, 
+            Item.FieldType fieldType,boolean indexed,boolean tokenized) throws AuraException, RemoteException {
         bdb.defineField(fieldName, indexed, fieldType);
         
         //

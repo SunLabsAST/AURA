@@ -36,24 +36,27 @@ public interface ItemStore {
 
     /**
      * Defines a particular field for a given item type.  It is acceptable to define
-     * a field multiple times if the same capabilities and type are provided each
+     * a field multiple times if the same type and indexed flags are provided each
      * time that the field is defined.
      * 
      * @param fieldName the name of the field that we want to define
-     * @param indexed if true, the value of the field will be indexed into the search
-     * engine and be available for querying.
      * @param fieldType the type of the value in the field for this item type.
      * The value should be non-<code>null</code> if <code>indexed</code> is
      * <code>true</code>.
+     * @param indexed if true, the value of the field will be indexed into the search
+     * engine and be available for querying.
+     * @param tokenized if <code>true</code> then the value of this field will
+     * be tokenized if it is being indexed by the search engine.  A warning will
+     * be issued if this flag is <code>true</code> and <code>indexed</code> is
+     * <code>false</code>, but the definition will be permitted.
      * @throws AuraException if the given field name has already been defined and indexing
      * status and type for the field are not an exact match for those
-     * already provided.  This exception will also be thrown when a field type
-     * is supplied with a set of attributes that do not require a field type or
-     * when a field type is not supplied when one is required.
+     * already provided.  This exception will also be thrown when a field type is
+     * not supplied when one is required.
      */
     public void defineField(String fieldName,
-            boolean indexed,
-            Item.FieldType fieldType) throws AuraException, RemoteException;
+            Item.FieldType fieldType, boolean indexed,
+            boolean tokenized) throws AuraException, RemoteException;
 
     /**
      * Gets all of the items in the store that are of the given type.  This

@@ -94,16 +94,15 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
 
     public void defineField(String fieldName)
             throws AuraException, RemoteException {
-        defineField(fieldName, false, null);
+        defineField(fieldName, null,false,false);
     }
 
     public void defineField(String fieldName,
-            boolean indexed,
-            Item.FieldType fieldType) throws AuraException, RemoteException {
+            Item.FieldType fieldType,boolean indexed,boolean tokenized) throws AuraException, RemoteException {
 
         Set<PartitionCluster> clusters = trie.getAll();
         for(PartitionCluster pc : clusters) {
-            pc.defineField(fieldName, indexed, fieldType);
+            pc.defineField(fieldName, fieldType, indexed,false);
         }
     }
 
