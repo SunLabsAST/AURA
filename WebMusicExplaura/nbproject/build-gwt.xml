@@ -11,8 +11,8 @@
         <property name="gwt.compiler.logLevel" value="WARN"/>
         
         <java classpath="${javac.classpath}:${src.dir}" failonerror="true"
-              classname="com.google.gwt.dev.GWTCompiler" maxmemory="1g" fork="true">
-            <arg value="-out"/>
+              classname="com.google.gwt.dev.Compiler" fork="true" maxmemory="1G">
+            <arg value="-war"/>
             <arg path="${build.web.dir}/"/>
             <arg value="-style"/>
             <arg value="${gwt.compiler.output.style}"/>
