@@ -136,7 +136,7 @@ public class ItemSearchEngine implements Configurable {
         Map<String, FieldDescription> fields = bdw.getFieldDescriptions();
         for(Map.Entry<String, FieldDescription> e : fields.entrySet()) {
             FieldDescription desc = e.getValue();
-            if(desc.getIndexed()) {
+            if(desc.isIndexed()) {
                 defineField(e.getKey(), desc.getType());
             }
         }

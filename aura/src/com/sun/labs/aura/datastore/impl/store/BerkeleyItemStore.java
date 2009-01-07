@@ -584,7 +584,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
                     throw new AuraException("Item " + item.getKey() + 
                             " contains unknown field " + e.getKey());
                 }
-                if(fd.mustIndex() && setFields.contains(e.getKey())) {
+                if(fd.isIndexed() && setFields.contains(e.getKey())) {
                     mustIndex = true;
                 }
             }

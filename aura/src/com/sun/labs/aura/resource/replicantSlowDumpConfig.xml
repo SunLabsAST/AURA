@@ -55,7 +55,7 @@
         <property name="itemSearchEngine" value="itemSearchEngine"/>
         <property name="partitionCluster" value="partitionCluster"/>
         <property name="statService" value="statService"/>
-        <property name="logLevel" value="FINE"/>
+        <property name="logLevel" value="FINER"/>
         <propertylist name="logMethods">
             <item>FIND_SIM</item>
             <item>GET_ITEM</item>
@@ -67,7 +67,7 @@
     <!-- The configuration for the search engine associated with this replicant -->
     <component name="itemSearchEngine" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
         <property name="indexDir" value="${dataFS}/itemIndex.idx"/>
-        <property name="engineLogLevel" value="1"/>
+        <property name="engineLogLevel" value="3"/>
         <property name="flushInterval" value="300000"/>
     </component>
 

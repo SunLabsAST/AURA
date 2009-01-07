@@ -543,7 +543,7 @@ public class PartitionClusterImpl implements PartitionCluster,
             // Define all fields in the new partition
             Map<String,FieldDescription> fields = getFieldDescriptions();
             for (FieldDescription fd : fields.values()) {
-                remote.defineField(fd.getName(), fd.getIndexed(), fd.getType());
+                remote.defineField(fd.getName(), fd.isIndexed(), fd.getType());
             }
 
             logger.info("Fields defined in " + remote.getPrefix());

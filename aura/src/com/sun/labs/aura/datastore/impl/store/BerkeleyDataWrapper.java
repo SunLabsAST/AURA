@@ -308,7 +308,7 @@ public class BerkeleyDataWrapper {
     public void defineField(String fieldName, boolean indexed, Item.FieldType fieldType) throws AuraException {
         try {
             FieldDescription fd =
-                    new FieldDescription(fieldName, indexed, fieldType);
+                    new FieldDescription(fieldName, fieldType, indexed);
             FieldDescription prev = fieldByName.get(fieldName);
             if(prev != null) {
                 if(!prev.equals(fd)) {
