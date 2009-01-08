@@ -16,8 +16,6 @@ import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.util.AuraException;
 import java.rmi.RemoteException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -61,7 +59,7 @@ public class BlogUser extends ItemAdapter {
             store.defineField(FIELD_FULLNAME);
             store.defineField(FIELD_GENDER);
             store.defineField(FIELD_POSTCODE);
-            store.defineField(FIELD_COUNTRY, true, Item.FieldType.STRING);
+            store.defineField(FIELD_COUNTRY, Item.FieldType.STRING, StoreFactory.INDEXED);
             store.defineField(FIELD_LANGUAGE);
             store.defineField(FIELD_TIMEZONE);
         } catch(RemoteException ex) {

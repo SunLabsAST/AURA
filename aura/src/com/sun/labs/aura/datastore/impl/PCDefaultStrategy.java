@@ -37,9 +37,9 @@ public class PCDefaultStrategy implements PCStrategy {
     }
 
     @Override
-    public void defineField(String fieldName, boolean indexed,
-            FieldType fieldType) throws AuraException, RemoteException {
-        replicant.defineField(fieldName, indexed, fieldType);
+    public void defineField(String fieldName, 
+            FieldType fieldType, EnumSet<Item.FieldCapability> caps) throws AuraException, RemoteException {
+        replicant.defineField(fieldName, fieldType, caps);
     }
 
     public List<Item> getAll(ItemType itemType) throws AuraException, RemoteException {

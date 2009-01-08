@@ -7,8 +7,8 @@ import com.sun.labs.aura.datastore.impl.store.persist.UserImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.util.AuraException;
+import java.util.EnumSet;
 import java.util.Random;
-import java.util.logging.Logger;
 
 
 /**
@@ -17,6 +17,12 @@ import java.util.logging.Logger;
 public class StoreFactory {
     
     protected static final Random random = new Random();
+
+    public static EnumSet<Item.FieldCapability> INDEXED_TOKENIZED =
+            EnumSet.of(Item.FieldCapability.INDEXED, Item.FieldCapability.TOKENIZED);
+
+    public static EnumSet<Item.FieldCapability> INDEXED =
+            EnumSet.of(Item.FieldCapability.INDEXED);
     
     /**
      * Constructs an item with the given attributes.

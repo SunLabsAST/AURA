@@ -76,12 +76,13 @@ public class PCSplitStrategy implements PCStrategy {
     }
 
     @Override
-    public void defineField(String fieldName, boolean indexed,
-            FieldType fieldType) throws AuraException, RemoteException {
+    public void defineField(String fieldName, 
+            FieldType fieldType,
+            EnumSet<Item.FieldCapability> caps) throws AuraException, RemoteException {
         //
         // Define a field in both copies... easy!
-        local.defineField(fieldName, indexed, fieldType);
-        remote.defineField(fieldName, indexed, fieldType);
+        local.defineField(fieldName, fieldType, caps);
+        remote.defineField(fieldName, fieldType, caps);
     }
     
     public List<Item> getAll(ItemType itemType)

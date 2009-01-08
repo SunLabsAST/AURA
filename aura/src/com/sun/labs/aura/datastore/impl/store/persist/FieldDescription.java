@@ -3,6 +3,7 @@ package com.sun.labs.aura.datastore.impl.store.persist;
 import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.Item.FieldCapability;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.Serializable;
 import java.util.EnumSet;
@@ -13,41 +14,51 @@ import java.util.HashSet;
  */
 @Entity(version = 2)
 public class FieldDescription implements Serializable {
+
     private static final long serialVersionUID = 2;
 
     @PrimaryKey
     private String name;
-    
-    @SuppressWarnings(value="SE_TRANSIENT_FIELD_NOT_RESTORED",
-                      justification="Used as an in-memory cache of perCaps")
-    private transient EnumSet<Item.FieldCapability> caps;
+
+    @SuppressWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED",
+    justification = "Used as an in-memory cache of perCaps")
+    private transient EnumSet<FieldCapability> caps;
 
     private HashSet<Integer> perCaps;
 
-    private boolean indexed;
+    private HashSet<String> perCapNames;
 
     private Item.FieldType type;
-    
+
     public FieldDescription() {
-        
     }
 
-    public FieldDescription(String name, boolean indexed, Item.FieldType type) {
-        this.name = name;
-        this.indexed = indexed;
-        this.type = type;
+    public FieldDescription(String name) {
+        this(name, null, null);
     }
 
-    public FieldDescription(String name, EnumSet<Item.FieldCapability> caps,
-            Item.FieldType type) {
+    public FieldDescription(String name,
+            Item.FieldType type,
+            EnumSet<FieldCapability> caps) {
         this.name = name;
-        if(caps == null) {
-            this.caps = EnumSet.noneOf(Item.FieldCapability.class);
-        } else {
-            this.caps = EnumSet.copyOf(caps);
+
+        //
+        // Make the in-memory set of capabilities.
+        this.caps = EnumSet.noneOf(FieldCapability.class);
+        if(caps != null) {
+            for(FieldCapability cap : caps) {
+                //
+                // Upgrade old caps to new.
+                this.caps.add(FieldCapability.coerce(cap));
+            }
         }
+
+        //
+        // Make the sets that will persist.
         perCaps = new HashSet<Integer>();
-        for(Item.FieldCapability fc : this.caps) {
+        perCapNames = new HashSet<String>();
+        for(FieldCapability fc : this.caps) {
+            perCapNames.add(fc.name());
             perCaps.add(fc.ordinal());
         }
         this.type = type;
@@ -57,34 +68,57 @@ public class FieldDescription implements Serializable {
         return name;
     }
 
-    public EnumSet<Item.FieldCapability> getCapabilities() {
+    public EnumSet<FieldCapability> getCapabilities() {
+        unpackCaps();
+        return EnumSet.copyOf(caps);
+    }
+
+    /**
+     * Unpacks our internal enum set of capabilities from
+     * the persisted version(s).
+     * 
+     * @return the capabilities.
+     */
+    private void unpackCaps() {
         if(caps == null) {
             caps = EnumSet.noneOf(Item.FieldCapability.class);
-            Item.FieldCapability[] vals = Item.FieldCapability.values();
-            for(Integer fc : perCaps) {
-                caps.add(vals[fc]);
+            
+            //
+            // Upgrade code we'll remove this once we go to the strings set.
+            // We'll coerce all of the old values into the INDEXED attribute.
+            if(perCaps != null && perCaps.size() > 0) {
+                Item.FieldCapability[] vals = Item.FieldCapability.values();
+                for(Integer fc : perCaps) {
+                    caps.add(FieldCapability.coerce(vals[fc]));
+                }
+            } else if(perCapNames != null) {
+                for(String name : perCapNames) {
+                    caps.add(FieldCapability.coerce(
+                            FieldCapability.valueOf(name)));
+                }
             }
         }
-        return EnumSet.copyOf(caps);
     }
 
     public Item.FieldType getType() {
         return type;
     }
-    
+
     /**
      * Indicates whether this field is one that must be indexed by a search 
      * engine.
      * @return <code>true</code> if this field must be indexed.
      */
-    public boolean mustIndex() {
-        return indexed;
+    public boolean isIndexed() {
+        unpackCaps();
+        return caps.contains(FieldCapability.INDEXED);
     }
 
-    public boolean getIndexed() {
-        return indexed;
+    public boolean isTokenized() {
+        unpackCaps();
+        return caps.contains(FieldCapability.TOKENIZED);
     }
-    
+
     public boolean equals(Object o) {
         if(!(o instanceof FieldDescription)) {
             return false;
@@ -95,10 +129,15 @@ public class FieldDescription implements Serializable {
             return true;
         }
         return name.equals(fd.name) &&
-                type == fd.type;
+               type == fd.type;
     }
 
     public int hashCode() {
         return name.hashCode();
+    }
+
+    public String toString() {
+        unpackCaps();
+        return String.format("name: %s type: %s caps: %s", name, type, caps);
     }
 }

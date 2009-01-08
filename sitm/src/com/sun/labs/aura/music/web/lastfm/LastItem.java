@@ -9,14 +9,14 @@
 
 package com.sun.labs.aura.music.web.lastfm;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
  *
  * @author plamere
  */
-public class LastItem /*implements Comparable<LastItem>*/ {
-
+public class LastItem implements Serializable {
     private String name;
     private String mbid;
     private int frequency;

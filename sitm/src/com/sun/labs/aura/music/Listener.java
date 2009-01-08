@@ -7,12 +7,12 @@ package com.sun.labs.aura.music;
 
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.Tag;
 import java.rmi.RemoteException;
-import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -42,9 +42,9 @@ public class Listener extends ItemAdapter {
             ds.defineField(FIELD_LAST_FM_NAME);
             ds.defineField(FIELD_PANDORA_NAME);
             ds.defineField(FIELD_LOCALE_COUNTRY);
-            ds.defineField(FIELD_SOCIAL_TAGS, true, Item.FieldType.STRING);
-            ds.defineField(FIELD_ARTIST, true, Item.FieldType.STRING);
-            ds.defineField(FIELD_YOB, true, Item.FieldType.INTEGER);
+            ds.defineField(FIELD_SOCIAL_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
+            ds.defineField(FIELD_ARTIST, Item.FieldType.STRING, StoreFactory.INDEXED);
+            ds.defineField(FIELD_YOB, Item.FieldType.INTEGER, StoreFactory.INDEXED);
             ds.defineField(FIELD_LAST_CRAWL);
             ds.defineField(FIELD_UPDATE_COUNT);
         } catch(RemoteException ex) {

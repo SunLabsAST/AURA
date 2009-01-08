@@ -46,7 +46,7 @@ public class Event extends ItemAdapter {
 
    public void defineFields(DataStore ds) throws AuraException {
         try {
-            ds.defineField(FIELD_DATE, true, Item.FieldType.DATE);
+            ds.defineField(FIELD_DATE, Item.FieldType.DATE, StoreFactory.INDEXED);
             ds.defineField(FIELD_VENUE_NAME);
         } catch(RemoteException rx) {
             throw new AuraException("Error defining fields for ArtistTag", rx);

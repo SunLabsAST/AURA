@@ -32,8 +32,8 @@ public interface PCStrategy {
      * Define a field to the search engine
      */
     public void defineField(String fieldName,
-                            boolean indexed,
-                            Item.FieldType fieldType)
+                            Item.FieldType fieldType,
+                            EnumSet<Item.FieldCapability> caps)
             throws AuraException, RemoteException;
     
     /**

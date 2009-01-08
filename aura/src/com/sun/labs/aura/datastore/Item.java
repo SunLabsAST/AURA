@@ -1,7 +1,6 @@
 
 package com.sun.labs.aura.datastore;
 
-import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.datastore.impl.store.ItemStore;
 import java.io.Serializable;
 import java.util.Map;
@@ -35,6 +34,7 @@ public interface Item extends Serializable, Iterable<Map.Entry<String,Serializab
      * @see ItemStore#defineField
      */
     public enum FieldCapability {
+
         /**
          * The field will be used for textual similarity operations.
          */
@@ -59,7 +59,37 @@ public interface Item extends Serializable, Iterable<Map.Entry<String,Serializab
         /**
          * The field will be used to sort results from queries to the data store.
          */
-        SORT
+        SORT,
+
+        /**
+         * Whether the values of the field should be indexed by the search engine.
+         */
+        INDEXED,
+        
+        /**
+         * Whether the values of the field should be tokenized, if they are
+         * being indexed by the search engine.  If the field does not have the
+         * <code>INDEXED</code> capability set, then it doesn't make much sense
+         * to set this capability, but it will be allowed.
+         */
+        TOKENIZED;
+
+        /**
+         * Coerces one of the old values to one of the new ones.  This will
+         * go away eventually.
+         * @param fc the capability to coerce.
+         * @return the coerced capability
+         */
+        public static FieldCapability coerce(FieldCapability fc) {
+            if(fc != null) {
+                if(fc != TOKENIZED) {
+                    return INDEXED;
+                } else {
+                    return TOKENIZED;
+                }
+            }
+            return null;
+        }
     }
     
     /**
