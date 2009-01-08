@@ -12,7 +12,6 @@ import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.Tag;
 import java.rmi.RemoteException;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
