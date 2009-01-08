@@ -9,11 +9,9 @@ import java.net.URL;
  */
 public class Fetch {
 
-    public static void main(String[] args) throws Exception {
-        URL u = new URL(args[0]);
+    public static int fetch(String url) throws Exception {
+        URL u = new URL(url);
         byte[] b = new byte[8192];
-        NanoWatch nw = new NanoWatch();
-        nw.start();
         InputStream us = u.openStream();
         int n = us.read(b);
         int read = n;
@@ -21,8 +19,22 @@ public class Fetch {
             n = us.read(b);
             read += n;
         }
-        nw.stop();
-        System.out.println(String.format("Read %d bytes in %.3fms", read, nw.getTimeMillis()));
+        return read;
+    }
+
+    public static void main(String[] args) throws Exception {
+        for(String fetch : args) {
+            NanoWatch nw = new NanoWatch();
+            int n = 0;
+            for(int i = 0; i < 10; i++) {
+                nw.start();
+                n = fetch(fetch);
+                nw.stop();
+
+            }
+            System.out.println(String.format("Read %d bytes in an avg %.3fms from %s", n,
+                    nw.getAvgTimeMillis(), fetch));
+        }
     }
 
 }

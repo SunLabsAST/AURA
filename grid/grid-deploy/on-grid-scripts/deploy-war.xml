@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="deploy_war_ongrid" default="deploy" basedir=".">
     <property name="username" value="aura"/>
-    <property name="password" value="XplaurA42"/>
+    <property name="password" value="corona"/>
 
     <property name="url" value="http://${service.process}/manager"/>
     
