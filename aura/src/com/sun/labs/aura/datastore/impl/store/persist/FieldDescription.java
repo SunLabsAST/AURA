@@ -69,8 +69,20 @@ public class FieldDescription implements Serializable {
     }
 
     public EnumSet<FieldCapability> getCapabilities() {
+        unpackCaps();
+        return EnumSet.copyOf(caps);
+    }
+
+    /**
+     * Unpacks our internal enum set of capabilities from
+     * the persisted version(s).
+     * 
+     * @return the capabilities.
+     */
+    private void unpackCaps() {
         if(caps == null) {
             caps = EnumSet.noneOf(Item.FieldCapability.class);
+            
             //
             // Upgrade code we'll remove this once we go to the strings set.
             // We'll coerce all of the old values into the INDEXED attribute.
@@ -81,11 +93,11 @@ public class FieldDescription implements Serializable {
                 }
             } else if(perCapNames != null) {
                 for(String name : perCapNames) {
-                    caps.add(FieldCapability.coerce(FieldCapability.valueOf(name)));
+                    caps.add(FieldCapability.coerce(
+                            FieldCapability.valueOf(name)));
                 }
             }
         }
-        return EnumSet.copyOf(caps);
     }
 
     public Item.FieldType getType() {
@@ -98,11 +110,13 @@ public class FieldDescription implements Serializable {
      * @return <code>true</code> if this field must be indexed.
      */
     public boolean isIndexed() {
-        return caps != null && caps.contains(FieldCapability.INDEXED);
+        unpackCaps();
+        return caps.contains(FieldCapability.INDEXED);
     }
 
     public boolean isTokenized() {
-        return caps != null && caps.contains(FieldCapability.TOKENIZED);
+        unpackCaps();
+        return caps.contains(FieldCapability.TOKENIZED);
     }
 
     public boolean equals(Object o) {
@@ -123,6 +137,7 @@ public class FieldDescription implements Serializable {
     }
 
     public String toString() {
+        unpackCaps();
         return String.format("name: %s type: %s caps: %s", name, type, caps);
     }
 }
