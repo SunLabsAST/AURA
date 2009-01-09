@@ -1,0 +1,49 @@
+#!/bin/bash
+
+function usage {
+    echo 'Usage: prepareForRelease -h -r release_name [-i instance_name]'
+    echo ' instance_name defaults to live'
+}
+
+args=`getopt hr:i: $*`
+
+if [ $? != 0 ]
+then
+    usage
+    exit 2
+fi
+
+set -- $args
+
+DIR=`dirname $0`
+
+export INSTANCE=live
+export RELNAME=""
+
+for i 
+do
+    case "$i"
+	in
+	-h)
+	    usage
+	    exit;;
+	-i)
+	    INSTANCE=$2; shift;
+	    shift;;
+	-r)
+	    RELNAME=$2; shift;
+	    shift;;
+    esac
+done
+
+if [ -z "$RELNAME" ] ; then
+    echo Release name must be specified.
+    usage
+    exit 2
+fi
+
+CPD=$DIR/../..
+export CP=$CPD/aura/dist/aura.jar:$CPD/grid/dist/grid.jar:$CPD/Libraries/caroline.jar:$CPD/Libraries/carolineutil.jar
+java -cp $CP -DauraInstance=$INSTANCE -DrelName=$RELNAME \
+    com.sun.labs.aura.AuraServiceStarter \
+    /com/sun/labs/aura/grid/aura/prepare.xml prepare
