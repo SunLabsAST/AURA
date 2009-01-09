@@ -57,7 +57,10 @@ public class StopAura extends Aura {
     
     public void start() {
         Collection<ProcessRegistration> regs;
-        String ourName = GridFactory.getProcessContext().getProcessRegistrationName();
+        String ourName = "";
+        if(onGrid) {
+            ourName = GridFactory.getProcessContext().getProcessRegistrationName();
+        }
         try {
              regs = gu.getGrid().
                     findProcessRegistrations(new ProcessRegistrationFilter.IncarnationMetaMatch(
