@@ -8,6 +8,7 @@ package com.sun.labs.aura.grid;
 import com.sun.caroline.platform.Grid;
 import com.sun.caroline.platform.GridFactory;
 import com.sun.caroline.platform.ProcessContext;
+import com.sun.caroline.util.GridFinder;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.util.props.ConfigBoolean;
@@ -32,7 +33,7 @@ public abstract class ServiceAdapter implements Configurable, AuraService {
     @ConfigBoolean(defaultValue=true)
     public static final String PROP_ON_GRID = "onGrid";
 
-    private boolean onGrid;
+    protected boolean onGrid;
     
     protected Logger logger;
 
@@ -81,11 +82,23 @@ public abstract class ServiceAdapter implements Configurable, AuraService {
         // If we're on grid, get the grid reference.
         if(context != null) {
             grid = context.getGrid();
+        } else {
+            try {
+                //
+                // Can we get a grid from a local config?
+                GridFinder gf = new GridFinder(null);
+                grid = gf.findGrid(0);
+            } catch(Exception ex) {
+                grid = null;
+            }
+        }
+
+        if(grid != null) {
             try {
                 gu = new GridUtil(grid, instance);
             } catch(Exception e) {
-                throw new PropertyException("network", "network",
-                        "Can't create network");
+                throw new PropertyException(e, "grid", "grid",
+                        "Can't get grid");
             }
         }
     }

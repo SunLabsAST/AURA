@@ -424,20 +424,35 @@ public class GridUtil {
     }
 
     public FileSystem snapshot(String fsName) throws Exception {
+        return snapshot(fsName, null);
+    }
+    
+    public FileSystem snapshot(String fsName, String snapPostfix) throws Exception {
         FileSystem fs = getFS(fsName, false);
         if(fs == null) {
             log.warning("Cannot snapshot non-existent file system " + fsName);
             return null;
         }
+        String snapName;
+        if(snapPostfix == null) {
+            long t = System.currentTimeMillis();
+            snapName = String.format("%s-%TF-%TT-%TL", fsName, t, t, t);
+        } else {
+            snapName = String.format("%s-%s", fsName, snapPostfix);
+        }
+        return snapshot(fs, snapName);
+    }
+
+    public FileSystem snapshot(FileSystem fs, String snapName) throws Exception {
         if(!(fs instanceof BaseFileSystem)) {
-            log.warning("Cannot snapshot filesystem " + fsName + " " + fs.
+            log.warning("Cannot snapshot filesystem " + fs.getName() + " " + fs.
                     getClass().getName());
             return null;
         }
         BaseFileSystem bfs = (BaseFileSystem) fs;
-        long t = System.currentTimeMillis();
-        return bfs.createSnapshot(String.format("%s-%TF-%TT-%TL", fsName, t, t,
-                t));
+        FileSystem ret = bfs.createSnapshot(snapName);
+        log.fine("Created snapshot: " + ret);
+        return ret;
     }
 
     /**
