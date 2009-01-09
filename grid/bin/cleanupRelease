@@ -46,4 +46,4 @@ CPD=$DIR/../..
 export CP=$CPD/aura/dist/aura.jar:$CPD/grid/dist/grid.jar:$CPD/Libraries/caroline.jar:$CPD/Libraries/carolineutil.jar
 java -cp $CP -DauraInstance=$INSTANCE -DrelName=$RELNAME \
     com.sun.labs.aura.AuraServiceStarter \
-    /com/sun/labs/aura/grid/aura/release.xml prepare
+    /com/sun/labs/aura/grid/aura/release.xml cleanup
