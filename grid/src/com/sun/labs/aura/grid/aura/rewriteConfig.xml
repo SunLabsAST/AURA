@@ -12,9 +12,21 @@
         <property name="replicant" value="${rep}"/>
     </component>
 
+    <component name="rewriteAllDBs" type="com.sun.labs.aura.grid.aura.RewriteBDB">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="replicant" value="all"/>
+    </component>
+
     <component name="rewrite" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>rewriteDB</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="rewriteAll" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>rewriteAllDBs</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
