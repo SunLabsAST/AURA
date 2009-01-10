@@ -547,16 +547,22 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
         public InstantRecPlayWidget() {
 
-            // Insert recommendations in list in random order
-            aCList = new ArrayList<ArtistCompact>();
-            int l = 0;
-            for (ArtistCompact aC : cdm.getListenerDetails().getRecommendations()) {
-                aCList.add(Random.nextInt(l++), aC);
-            }
+            ArtistCompact[] recs = cdm.getListenerDetails().getRecommendations();
 
-            g = new Grid(1,1);
-            setNextRec(this);
-            initWidget(g);
+            if (recs!=null && recs.length>0) {
+                // Insert recommendations in list in random order
+                aCList = new ArrayList<ArtistCompact>();
+                int l = 0;
+                for (ArtistCompact aC : recs) {
+                    aCList.add(Random.nextInt(l++), aC);
+                }
+
+                g = new Grid(1,1);
+                setNextRec(this);
+                initWidget(g);
+            } else {
+                initWidget(new Label(""));
+            }
         }
 
         private void setNextRec(InstantRecPlayWidget w) {

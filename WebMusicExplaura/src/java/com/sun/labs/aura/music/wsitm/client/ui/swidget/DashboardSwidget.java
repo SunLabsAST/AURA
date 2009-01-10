@@ -783,7 +783,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             try {
 
                 ArtistCompact[] aC = cdm.getListenerDetails().getRecommendations();
-                if (aC.length > 0) {
+                if (aC!=null && aC.length > 0) {
                     int itemIndex = Random.nextInt(aC.length);
                     musicServer.getArtistDetails(aC[itemIndex].getId(), false, cdm.getCurrSimTypeName(), cdm.getCurrPopularity(), callback);
                 }
