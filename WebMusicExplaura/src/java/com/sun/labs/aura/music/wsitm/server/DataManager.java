@@ -642,10 +642,15 @@ public class DataManager implements Configurable {
         if (updateRecommendations) {
             // Fetch info for recommended artists
             ArrayList<ArtistCompact> aCompact = new ArrayList<ArtistCompact>();
-            for (Scored<Artist> a : mdb.getRecommendations(l.getKey(), NBR_REC_LISTENER)) {
-                aCompact.add(artistToArtistCompact(a.getItem()));
+            try {
+                for (Scored<Artist> a : mdb.getRecommendations(l.getKey(), NBR_REC_LISTENER)) {
+                    aCompact.add(artistToArtistCompact(a.getItem()));
+                }
+                lD.setRecommendations(aCompact.toArray(new ArtistCompact[0]));
+            } catch (NullPointerException e) {
+                // @todo remove this when fixed on server
+                logger.info("null pointer exception on get recommendations!!!!!! fix this!!!");
             }
-            lD.setRecommendations(aCompact.toArray(new ArtistCompact[0]));
         }
 
         return l;
