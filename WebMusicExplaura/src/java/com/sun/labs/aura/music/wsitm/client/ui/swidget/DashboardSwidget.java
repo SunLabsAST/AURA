@@ -6,6 +6,7 @@
 package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.event.TaggingListener;
@@ -43,7 +44,6 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
-import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.UpdatablePanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuArtistLabel;
@@ -247,9 +247,9 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             rateHp.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
             Label featMore = new Label("Back to dashboard");
             featMore.addStyleName("headerMenuMedItem");
-            featMore.addClickListener(new ClickListener() {
-
-                public void onClick(Widget sender) {
+            featMore.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     History.newItem("dashboard:");
                 }
             });
