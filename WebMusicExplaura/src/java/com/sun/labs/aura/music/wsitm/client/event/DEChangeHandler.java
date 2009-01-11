@@ -5,18 +5,19 @@
 
 package com.sun.labs.aura.music.wsitm.client.event;
 
-import com.google.gwt.user.client.ui.ChangeListener;
+import com.google.gwt.event.dom.client.ChangeHandler;
 
 /**
  *
  * @author mailletf
  */
-public abstract class DataEmbededChangeListener <T> implements ChangeListener {
+public abstract class DEChangeHandler<T> implements ChangeHandler {
 
     protected T data;
 
-    public DataEmbededChangeListener(T data) {
+    public DEChangeHandler(T data) {
         super();
         this.data = data;
     }
+
 }

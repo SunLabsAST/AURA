@@ -4,12 +4,12 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 
+import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededChangeListener;
 import com.sun.labs.aura.music.wsitm.client.event.CommonTagsAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.*;
@@ -33,6 +33,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.event.DEAsyncCallback;
+import com.sun.labs.aura.music.wsitm.client.event.DEChangeHandler;
 import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.event.TagCloudListener;
@@ -286,9 +287,9 @@ public class SteeringSwidget extends Swidget {
             interfaceListbox = new ListBox(false);
             interfaceListbox.addItem("Cloud");
             interfaceListbox.addItem("Meter");
-            interfaceListbox.addChangeListener(new DataEmbededChangeListener<ListBox>(interfaceListbox) {
-
-                public void onChange(Widget arg0) {
+            interfaceListbox.addChangeHandler(new DEChangeHandler<ListBox>(interfaceListbox) {
+                @Override
+                public void onChange(ChangeEvent event) {
                     swapTagWidget(data.getItemText(data.getSelectedIndex()));
                 }
             });
