@@ -97,6 +97,9 @@ public class SteeringSwidget extends Swidget {
             if (historyToken.length() > 9 && cdm.getSteerableReset()) {
                 cdm.setSteerableReset(false);
                 if (historyToken.startsWith("steering:userCloud") && cdm.isLoggedIn()) {
+                    // Display all the user's tags in the right panel
+                    mP.setUserTagPanel(true);
+                    // Load the user's top tags in the steerable panel
                     mP.loadCloud(cdm.getListenerDetails().getUserTagCloud());
                 } else if (historyToken.startsWith("steering:art:")) {
                     mP.loadArtist(historyToken.substring(13));
@@ -119,7 +122,12 @@ public class SteeringSwidget extends Swidget {
         private dialogContainer loadPanel;
 
         private DockPanel dP;
+
+        private Grid mainSearchTagPanel;
+        private Grid mainUserTagPanel;
         private Grid mainTagPanel;
+        private ItemInfoHierarchyWidget ihw; // personal tag cloud list in right panel
+
         private Grid mainArtistListPanel;
         private TagWidgetContainer tagLand;
         private SearchWidget search;
@@ -139,7 +147,8 @@ public class SteeringSwidget extends Swidget {
             // Left
             mainArtistListPanel = new Grid(1, 1);
             mainArtistListPanel.setWidth("300px");
-            mainArtistListPanel.setWidget(0, 0, new Label("Add tags to your tag cloud to get recommendations"));
+            mainArtistListPanel.setWidget(0, 0, new Label("Add tags to your tag " +
+                    "cloud to get recommendations"));
 
             HorizontalPanel hP = new HorizontalPanel();
             hP.setStyleName("h2");
@@ -174,7 +183,49 @@ public class SteeringSwidget extends Swidget {
             dP.add(WebLib.createSection(hP, mainArtistListPanel), DockPanel.WEST);
 
             // Right (continued lower)
-            mainTagPanel = new Grid(2, 1);
+            mainSearchTagPanel = new Grid(2, 1);
+            mainUserTagPanel = new Grid(1,1);
+
+            mainTagPanel = new Grid(2,1);
+            mainTagPanel.setWidth("185px");
+            mainTagPanel.setWidget(1, 0, mainSearchTagPanel);
+
+            // Create "add tag" menu
+            FlowPanel fp = new FlowPanel();
+            fp.setWidth("200px");
+            fp.getElement().getStyle().setProperty("backgroundColor", "#d6ddaf");
+            fp.getElement().getStyle().setProperty("textAlign", "center");
+            fp.getElement().getStyle().setPropertyPx("fontSize", 12);
+            SpannedLabel searchLabel = new SpannedLabel("Search");
+            searchLabel.addStyleName("pointer");
+            searchLabel.getElement().getStyle().setProperty("fontWeight", "bold");
+            SpannedLabel userTagLabel = new SpannedLabel("Your tags");
+            userTagLabel.addStyleName("pointer");
+
+            searchLabel.addClickHandler(new DDEClickHandler<SpannedLabel, SpannedLabel>(searchLabel, userTagLabel) {
+                @Override
+                public void onClick(ClickEvent event) {
+                    mainTagPanel.setWidget(1, 0, mainSearchTagPanel);
+                    sndData.getElement().getStyle().setProperty("fontWeight", "normal");
+                    data.getElement().getStyle().setProperty("fontWeight", "bold");
+                }
+            });            
+            userTagLabel.addClickHandler(new DDEClickHandler<SpannedLabel, SpannedLabel>(searchLabel, userTagLabel) {
+                @Override
+                public void onClick(ClickEvent event) {
+                    mainTagPanel.setWidget(1, 0, mainUserTagPanel);
+                    sndData.getElement().getStyle().setProperty("fontWeight", "bold");
+                    data.getElement().getStyle().setProperty("fontWeight", "normal");
+                }
+            });
+
+            fp.add(searchLabel);
+            fp.add(new SpannedLabel(" - "));
+            fp.add(userTagLabel);
+
+            mainTagPanel.setWidget(0, 0, fp);
+            setUserTagPanel(cdm.isLoggedIn());
+
             dP.add(WebLib.createSection("Add tag", mainTagPanel), DockPanel.EAST);
 
             // North
@@ -220,7 +271,8 @@ public class SteeringSwidget extends Swidget {
                         ItemInfo[] iI = new ItemInfo[map.size()];
                         int index = 0;
                         for (String s : map.keySet()) {
-                            iI[index++] = new ItemInfo(ClientDataManager.nameToKey(s), s, map.get(s), map.get(s));
+                            iI[index++] = new ItemInfo(ClientDataManager.nameToKey(s),
+                                    s, map.get(s), map.get(s));
                         }
                         TagDisplayLib.showTagCloud("Atomic representation of tag cloud",
                                 iI, TagDisplayLib.ORDER.SHUFFLE, cdm);
@@ -258,12 +310,12 @@ public class SteeringSwidget extends Swidget {
 
             // Right again
             searchBoxContainerPanel = new FlowPanel();
-            mainTagPanel.setWidth("185px");
-            mainTagPanel.setWidget(1, 0, new Label("Search for tags to add using the above search box"));
+            mainSearchTagPanel.setWidth("185px");
+            mainSearchTagPanel.setWidget(1, 0, new Label("Search for tags to add using the above search box"));
 
-            search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel, mainTagPanel, tagLand);
+            search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel, mainSearchTagPanel, tagLand);
             search.updateSuggestBox(Oracles.TAG);
-            mainTagPanel.setWidget(0, 0, search);
+            mainSearchTagPanel.setWidget(0, 0, search);
 
             initWidget(dP);
         }
@@ -431,10 +483,44 @@ public class SteeringSwidget extends Swidget {
             }
         }
 
-        public void onLogin(ListenerDetails lD) {
+        /**
+         * Display the user's tags in the right panel
+         * @param loggedIn is false, a message explaining to the user he must be logged in will be displayed
+         */
+        public void setUserTagPanel(boolean loggedIn) {
+
+            // Remove listeners if set
+            if (ihw!=null) {
+                ihw.doRemoveListeners();
+            }
+
+            if (loggedIn) {
+                ItemInfo[] userCloud = cdm.getListenerDetails().getUserTagCloud();
+                if (userCloud!=null && userCloud.length>0) {
+                    ihw = new ItemInfoHierarchyWidget(userCloud, tagLand);
+                    mainUserTagPanel.setWidget(0, 0, ihw);
+                } else {
+                    Label msg = new Label("Your user cloud is empty");
+                    msg.setStyleName("smallItalicExplanation");
+                    mainUserTagPanel.setWidget(0, 0, msg);
+                }
+            } else {
+                VerticalPanel vP = new VerticalPanel();
+                vP.setStyleName("smallItalicExplanation");
+                vP.add(new Label("Login to have your personal"));
+                vP.add(new Label("tags listed here"));
+                mainUserTagPanel.setWidget(0, 0, vP);
+            }
         }
 
+        @Override
+        public void onLogin(ListenerDetails lD) {
+            setUserTagPanel(true);
+        }
+
+        @Override
         public void onLogout() {
+            setUserTagPanel(false);
         }
 
         public void loadCloud(ItemInfo[] cloud) {
@@ -774,6 +860,7 @@ public class SteeringSwidget extends Swidget {
             }
         }
 
+        @Override
         public void doRemoveListeners() {
             if (listenerContainer != null) {
                 listenerContainer.doRemoveListeners();
@@ -1060,6 +1147,7 @@ public class SteeringSwidget extends Swidget {
             }
         }
 
+        @Override
         public void doRemoveListeners() {
             if (listenersContainer != null) {
                 listenersContainer.doRemoveListeners();
@@ -1108,6 +1196,7 @@ public class SteeringSwidget extends Swidget {
             tagLand.addTag(tag, 0, true);
         }
 
+        @Override
         public void openWhyPopup(SwapableTxtButton why) {
             why.showLoad();
             TagDisplayLib.invokeGetCommonTags(tagLand.getTagMap(), why.getId(),
