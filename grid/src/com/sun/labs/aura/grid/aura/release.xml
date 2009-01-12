@@ -30,6 +30,12 @@
         <property name="relName" value="${relName}"/>
     </component>
 
+    <component name="cleanupRelease" type="com.sun.labs.aura.grid.aura.CleanupRelease">
+        <property name="onGrid" value="false"/>
+        <property name="instance" value="${auraInstance}"/>
+        <property name="relName" value="${relName}"/>
+    </component>
+
     <component name="prepare" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>stopSITM</item>
@@ -42,6 +48,13 @@
     <component name="snaps" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>prepareForRelease</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="cleanup" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>cleanupRelease</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
