@@ -4,11 +4,12 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededChangeListener;
 import com.sun.labs.aura.music.wsitm.client.event.CommonTagsAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.*;
@@ -17,7 +18,6 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -31,8 +31,10 @@ import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededAsyncCallback;
-import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
+import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
+import com.sun.labs.aura.music.wsitm.client.event.DEAsyncCallback;
+import com.sun.labs.aura.music.wsitm.client.event.DEChangeHandler;
+import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.event.TagCloudListener;
 import com.sun.labs.aura.music.wsitm.client.event.WebListener;
@@ -85,7 +87,7 @@ public class SteeringSwidget extends Swidget {
 
     @Override
     protected void initMenuItem() {
-        menuItem = new MenuItem("Steering", MenuItem.getDefaultTokenClickListener("steering:"), false, 1);
+        menuItem = new MenuItem("Steering", MenuItem.getDefaultTokenClickHandler("steering:"), false, 1);
     }
 
     @Override
@@ -96,6 +98,9 @@ public class SteeringSwidget extends Swidget {
             if (historyToken.length() > 9 && cdm.getSteerableReset()) {
                 cdm.setSteerableReset(false);
                 if (historyToken.startsWith("steering:userCloud") && cdm.isLoggedIn()) {
+                    // Display all the user's tags in the right panel
+                    mP.setUserTagPanel(true);
+                    // Load the user's top tags in the steerable panel
                     mP.loadCloud(cdm.getListenerDetails().getUserTagCloud());
                 } else if (historyToken.startsWith("steering:art:")) {
                     mP.loadArtist(historyToken.substring(13));
@@ -106,6 +111,7 @@ public class SteeringSwidget extends Swidget {
         }
     }
 
+    @Override
     public void doRemoveListeners() {
         mP.doRemoveListeners();
         mP.onDelete();
@@ -117,7 +123,12 @@ public class SteeringSwidget extends Swidget {
         private dialogContainer loadPanel;
 
         private DockPanel dP;
+
+        private Grid mainSearchTagPanel;
+        private Grid mainUserTagPanel;
         private Grid mainTagPanel;
+        private ItemInfoHierarchyWidget ihw; // personal tag cloud list in right panel
+
         private Grid mainArtistListPanel;
         private TagWidgetContainer tagLand;
         private SearchWidget search;
@@ -137,7 +148,8 @@ public class SteeringSwidget extends Swidget {
             // Left
             mainArtistListPanel = new Grid(1, 1);
             mainArtistListPanel.setWidth("300px");
-            mainArtistListPanel.setWidget(0, 0, new Label("Add tags to your tag cloud to get recommendations"));
+            mainArtistListPanel.setWidget(0, 0, new Label("Add tags to your tag " +
+                    "cloud to get recommendations"));
 
             HorizontalPanel hP = new HorizontalPanel();
             hP.setStyleName("h2");
@@ -154,9 +166,9 @@ public class SteeringSwidget extends Swidget {
             hP.add(popSelect);
             
             Image viewTagInfluence = new Image("loupe.png");
-            viewTagInfluence.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            viewTagInfluence.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     displayTagInfluence();
                 }
             });
@@ -172,7 +184,49 @@ public class SteeringSwidget extends Swidget {
             dP.add(WebLib.createSection(hP, mainArtistListPanel), DockPanel.WEST);
 
             // Right (continued lower)
-            mainTagPanel = new Grid(2, 1);
+            mainSearchTagPanel = new Grid(2, 1);
+            mainUserTagPanel = new Grid(1,1);
+
+            mainTagPanel = new Grid(2,1);
+            mainTagPanel.setWidth("185px");
+            mainTagPanel.setWidget(1, 0, mainSearchTagPanel);
+
+            // Create "add tag" menu
+            FlowPanel fp = new FlowPanel();
+            fp.setWidth("200px");
+            fp.getElement().getStyle().setProperty("backgroundColor", "#d6ddaf");
+            fp.getElement().getStyle().setProperty("textAlign", "center");
+            fp.getElement().getStyle().setPropertyPx("fontSize", 12);
+            SpannedLabel searchLabel = new SpannedLabel("Search");
+            searchLabel.addStyleName("pointer");
+            searchLabel.getElement().getStyle().setProperty("fontWeight", "bold");
+            SpannedLabel userTagLabel = new SpannedLabel("Your tags");
+            userTagLabel.addStyleName("pointer");
+
+            searchLabel.addClickHandler(new DDEClickHandler<SpannedLabel, SpannedLabel>(searchLabel, userTagLabel) {
+                @Override
+                public void onClick(ClickEvent event) {
+                    mainTagPanel.setWidget(1, 0, mainSearchTagPanel);
+                    sndData.getElement().getStyle().setProperty("fontWeight", "normal");
+                    data.getElement().getStyle().setProperty("fontWeight", "bold");
+                }
+            });            
+            userTagLabel.addClickHandler(new DDEClickHandler<SpannedLabel, SpannedLabel>(searchLabel, userTagLabel) {
+                @Override
+                public void onClick(ClickEvent event) {
+                    mainTagPanel.setWidget(1, 0, mainUserTagPanel);
+                    sndData.getElement().getStyle().setProperty("fontWeight", "bold");
+                    data.getElement().getStyle().setProperty("fontWeight", "normal");
+                }
+            });
+
+            fp.add(searchLabel);
+            fp.add(new SpannedLabel(" - "));
+            fp.add(userTagLabel);
+
+            mainTagPanel.setWidget(0, 0, fp);
+            setUserTagPanel(cdm.isLoggedIn());
+
             dP.add(WebLib.createSection("Add tag", mainTagPanel), DockPanel.EAST);
 
             // North
@@ -180,36 +234,36 @@ public class SteeringSwidget extends Swidget {
             mainNorthMenuPanel.setSpacing(5);
 
             Button saveButton = new Button("Save");
-            saveButton.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            saveButton.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     showSaveDialog();
                 }
             });
             mainNorthMenuPanel.add(saveButton);
 
             Button loadButton = new Button("Load");
-            loadButton.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            loadButton.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     showLoadDialog();
                 }
             });
             mainNorthMenuPanel.add(loadButton);
 
             Button resetButton = new Button("Erase all tags");
-            resetButton.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            resetButton.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     tagLand.removeAllItems(true);
                 }
             });
             mainNorthMenuPanel.add(resetButton);
 
             Button viewCloudButton = new Button("View atomic cloud");
-            viewCloudButton.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            viewCloudButton.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     if (currTagMap == null || currTagMap.isEmpty()) {
                         Popup.showInformationPopup("Cannot display atomic representation; you must " +
                                 "add tags in your cloud first.");
@@ -218,7 +272,8 @@ public class SteeringSwidget extends Swidget {
                         ItemInfo[] iI = new ItemInfo[map.size()];
                         int index = 0;
                         for (String s : map.keySet()) {
-                            iI[index++] = new ItemInfo(ClientDataManager.nameToKey(s), s, map.get(s), map.get(s));
+                            iI[index++] = new ItemInfo(ClientDataManager.nameToKey(s),
+                                    s, map.get(s), map.get(s));
                         }
                         TagDisplayLib.showTagCloud("Atomic representation of tag cloud",
                                 iI, TagDisplayLib.ORDER.SHUFFLE, cdm);
@@ -232,9 +287,9 @@ public class SteeringSwidget extends Swidget {
             interfaceListbox = new ListBox(false);
             interfaceListbox.addItem("Cloud");
             interfaceListbox.addItem("Meter");
-            interfaceListbox.addChangeListener(new DataEmbededChangeListener<ListBox>(interfaceListbox) {
-
-                public void onChange(Widget arg0) {
+            interfaceListbox.addChangeHandler(new DEChangeHandler<ListBox>(interfaceListbox) {
+                @Override
+                public void onChange(ChangeEvent event) {
                     swapTagWidget(data.getItemText(data.getSelectedIndex()));
                 }
             });
@@ -256,12 +311,12 @@ public class SteeringSwidget extends Swidget {
 
             // Right again
             searchBoxContainerPanel = new FlowPanel();
-            mainTagPanel.setWidth("185px");
-            mainTagPanel.setWidget(1, 0, new Label("Search for tags to add using the above search box"));
+            mainSearchTagPanel.setWidth("185px");
+            mainSearchTagPanel.setWidget(1, 0, new Label("Search for tags to add using the above search box"));
 
-            search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel, mainTagPanel, tagLand);
+            search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel, mainSearchTagPanel, tagLand);
             search.updateSuggestBox(Oracles.TAG);
-            mainTagPanel.setWidget(0, 0, search);
+            mainSearchTagPanel.setWidget(0, 0, search);
 
             initWidget(dP);
         }
@@ -321,9 +376,9 @@ public class SteeringSwidget extends Swidget {
 
                     Button b = new Button();
                     b.setText("Save");
-                    b.addClickListener(new DataEmbededClickListener<PopupPanel>(popup) {
-
-                        public void onClick(Widget sender) {
+                    b.addClickHandler(new DEClickHandler<PopupPanel>(popup) {
+                        @Override
+                        public void onClick(ClickEvent event) {
                             // save cloud
                             data.hide();
                         }
@@ -429,10 +484,44 @@ public class SteeringSwidget extends Swidget {
             }
         }
 
-        public void onLogin(ListenerDetails lD) {
+        /**
+         * Display the user's tags in the right panel
+         * @param loggedIn is false, a message explaining to the user he must be logged in will be displayed
+         */
+        public void setUserTagPanel(boolean loggedIn) {
+
+            // Remove listeners if set
+            if (ihw!=null) {
+                ihw.doRemoveListeners();
+            }
+
+            if (loggedIn) {
+                ItemInfo[] userCloud = cdm.getListenerDetails().getUserTagCloud();
+                if (userCloud!=null && userCloud.length>0) {
+                    ihw = new ItemInfoHierarchyWidget(userCloud, tagLand);
+                    mainUserTagPanel.setWidget(0, 0, ihw);
+                } else {
+                    Label msg = new Label("Your user cloud is empty");
+                    msg.setStyleName("smallItalicExplanation");
+                    mainUserTagPanel.setWidget(0, 0, msg);
+                }
+            } else {
+                VerticalPanel vP = new VerticalPanel();
+                vP.setStyleName("smallItalicExplanation");
+                vP.add(new Label("Login to have your personal"));
+                vP.add(new Label("tags listed here"));
+                mainUserTagPanel.setWidget(0, 0, vP);
+            }
         }
 
+        @Override
+        public void onLogin(ListenerDetails lD) {
+            setUserTagPanel(true);
+        }
+
+        @Override
         public void onLogout() {
+            setUserTagPanel(false);
         }
 
         public void loadCloud(ItemInfo[] cloud) {
@@ -599,9 +688,9 @@ public class SteeringSwidget extends Swidget {
             if (showBackButton) {
                 Label backButton = new Label("Back");
                 backButton.setStyleName("headerMenuTinyItem headerMenuTinyItemC");
-                backButton.addClickListener(new ClickListener() {
-
-                    public void onClick(Widget arg0) {
+                backButton.addClickHandler(new ClickHandler() {
+                    @Override
+                    public void onClick(ClickEvent event) {
                         displayMainItems();
                     }
                 });
@@ -611,9 +700,9 @@ public class SteeringSwidget extends Swidget {
 
             Label addAllButton = new Label("Add top tags");
             addAllButton.setStyleName("headerMenuTinyItem headerMenuTinyItemC");
-            addAllButton.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            addAllButton.addClickHandler(new ClickHandler() {
+                    @Override
+                    public void onClick(ClickEvent event) {
                     if (subItems != null) {
                         tagLand.addTags(subItems, TagWidget.NBR_TOP_TAGS_TO_ADD);
                     } else {
@@ -626,12 +715,14 @@ public class SteeringSwidget extends Swidget {
 
             Label addArtistButton = new Label("Add artist");
             addArtistButton.setStyleName("headerMenuTinyItem headerMenuTinyItemC");
-            addArtistButton.addClickListener(new DualDataEmbededClickListener<Label, String>(addArtistButton, iI.getId()) {
-
-                public void onClick(Widget arg0) {
+            addArtistButton.addClickHandler(new DDEClickHandler<Label, String>(addArtistButton, iI.getId()) {
+                @Override
+                public void onClick(ClickEvent event) {
+                
                     data.setText("Processing...");
-                    invokeGetArtistCompactService(sndData, new DataEmbededAsyncCallback<Label, ArtistCompact>(data) {
+                    invokeGetArtistCompactService(sndData, new DEAsyncCallback<Label, ArtistCompact>(data) {
 
+                        @Override
                         public void onSuccess(ArtistCompact aC) {
                             if (aC != null) {
                                 tagLand.addArtist(aC, 0);
@@ -641,6 +732,7 @@ public class SteeringSwidget extends Swidget {
                             data.setText("Add artist");
                         }
 
+                        @Override
                         public void onFailure(Throwable caught) {
                             Window.alert(caught.getMessage());
                         }
@@ -679,13 +771,13 @@ public class SteeringSwidget extends Swidget {
                 addButton.setStyleName("recoTags");
                 addButton.addStyleName("pointer");
                 addButton.getElement().setAttribute("style", "margin-right: 5px");
-                addButton.addClickListener(new DualDataEmbededClickListener<String, SwapableWidget>(item.getId(), sW) {
-
-                    public void onClick(Widget sender) {
+                addButton.addClickHandler(new DDEClickHandler<String, SwapableWidget>(item.getId(), sW) {
+                    @Override
+                    public void onClick(ClickEvent event) {
 
                         sndData.showWidget(SwapableWidget.LoadableWidget.W2);
 
-                        invokeGetArtistCompactService(data, new DataEmbededAsyncCallback<SwapableWidget, ArtistCompact>(sndData) {
+                        invokeGetArtistCompactService(data, new DEAsyncCallback<SwapableWidget, ArtistCompact>(sndData) {
 
                             public void onSuccess(ArtistCompact aC) {
                                 tagLand.addArtist(aC, 0);
@@ -702,9 +794,10 @@ public class SteeringSwidget extends Swidget {
 
                 Label itemName = new Label(item.getItemName());
                 itemName.setStyleName("pointer");
-                itemName.addClickListener(new DataEmbededClickListener<ItemInfo>(item) {
+                itemName.addClickHandler(new DEClickHandler<ItemInfo>(item) {
+                        @Override
+                        public void onClick(ClickEvent event) {
 
-                    public void onClick(Widget arg0) {
                         displayDetails(data, true);
                     }
                 });
@@ -768,6 +861,7 @@ public class SteeringSwidget extends Swidget {
             }
         }
 
+        @Override
         public void doRemoveListeners() {
             if (listenerContainer != null) {
                 listenerContainer.doRemoveListeners();
@@ -794,9 +888,9 @@ public class SteeringSwidget extends Swidget {
             // Add the title line
             Label nameLbl = new Label("Name");
             nameLbl.addStyleName("pointer");
-            nameLbl.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            nameLbl.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     ((Label) mainPanel.getWidget(0, 0)).setText("Name");
                     ((Label) mainPanel.getWidget(0, 1)).setText("Popularity*");
                     populateMainPanel(ItemInfo.getNameSorter());
@@ -806,9 +900,9 @@ public class SteeringSwidget extends Swidget {
 
             Label popLbl = new Label("Popularity*");
             popLbl.addStyleName("pointer");
-            popLbl.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            popLbl.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     ((Label) mainPanel.getWidget(0, 0)).setText("Name");
                     ((Label) mainPanel.getWidget(0, 1)).setText("Popularity*");
                     populateMainPanel(ItemInfo.getPopularitySorter());
@@ -832,9 +926,9 @@ public class SteeringSwidget extends Swidget {
             }
             for (ItemInfo i : iI) {
                 TagCloudListeningTag tagLbl = new TagCloudListeningTag(i);
-                tagLbl.addClickListener(new DataEmbededClickListener<ItemInfo>(i) {
-
-                    public void onClick(Widget arg0) {
+                tagLbl.addClickHandler(new DEClickHandler<ItemInfo>(i) {
+                    @Override
+                    public void onClick(ClickEvent event) {
                         onItemClick(data);
                     }
                 });
@@ -910,15 +1004,15 @@ public class SteeringSwidget extends Swidget {
             searchButtons[1] = new SearchTypeRadioButton("searchType", "By Artist", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
             searchButtons[0].setChecked(true);
 
-            searchButtons[1].addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            searchButtons[1].addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     updateSuggestBox(Oracles.ARTIST);
                 }
             });
-            searchButtons[0].addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            searchButtons[0].addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     updateSuggestBox(Oracles.TAG);
                 }
             });
@@ -949,6 +1043,7 @@ public class SteeringSwidget extends Swidget {
             this.setWidth("185px");
         }
 
+        @Override
         public void search() {
             mainTagPanel.setWidget(1, 0, WebLib.getLoadingBarWidget());
             if (getCurrLoadedOracle() == Oracles.TAG) {
@@ -1053,6 +1148,7 @@ public class SteeringSwidget extends Swidget {
             }
         }
 
+        @Override
         public void doRemoveListeners() {
             if (listenersContainer != null) {
                 listenersContainer.doRemoveListeners();
@@ -1101,6 +1197,7 @@ public class SteeringSwidget extends Swidget {
             tagLand.addTag(tag, 0, true);
         }
 
+        @Override
         public void openWhyPopup(SwapableTxtButton why) {
             why.showLoad();
             TagDisplayLib.invokeGetCommonTags(tagLand.getTagMap(), why.getId(),

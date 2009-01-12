@@ -6,12 +6,14 @@
 package com.sun.labs.aura.music.wsitm.client.ui;
 
 import com.google.gwt.dom.client.ImageElement;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.MouseOutHandler;
+import com.google.gwt.event.dom.client.MouseOverHandler;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.ClickListenerCollection;
 import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.MouseListener;
 import com.sun.labs.aura.music.wsitm.client.event.SourcesRightClickEvents;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
 
@@ -45,15 +47,18 @@ public class ContextMenuImage extends Image implements SourcesRightClickEvents, 
         rightClickListeners = new ClickListenerCollection();
     }
     
-    public ContextMenuImage(Image img, ContextMenu sharedMenu, ClickListener cL, MouseListener mL) {
+    public ContextMenuImage(Image img, ContextMenu sharedMenu, ClickHandler cH, MouseOutHandler mOutH, MouseOverHandler mOverH) {
         // is this creating leaks??
         ImageElement.as(img.getElement());
         setElement(img.getElement());
-        if (mL != null) {
-            this.addMouseListener(mL);
+        if (mOutH != null) {
+            this.addMouseOutHandler(mOutH);
         }
-        if (cL != null) {
-            this.addClickListener(cL);
+        if (mOverH!=null) {
+            this.addMouseOverHandler(mOverH);
+        }
+        if (cH != null) {
+            this.addClickHandler(cH);
         }
 
         cm = sharedMenu;
@@ -83,6 +88,7 @@ public class ContextMenuImage extends Image implements SourcesRightClickEvents, 
         }
     }
 
+    @Override
     public ContextMenu getContextMenu() {
         return cm;
     }

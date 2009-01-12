@@ -1,9 +1,8 @@
 <div class="topCling">
-    Users: 0
+    Users: <%= statBean.getNumUsers() %>
     &nbsp;&nbsp;&nbsp;
-    Items: 0
+    Items: <%= statBean.getNumItems() %>
     &nbsp;&nbsp;&nbsp;
-    Taste: 0
-    &nbsp;
-    (0 per second)
+    Taste: <%= statBean.getNumAttn() %>
+    
 </div>

@@ -5,10 +5,12 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
-import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.MouseOutEvent;
+import com.google.gwt.event.dom.client.MouseOutHandler;
+import com.google.gwt.event.dom.client.MouseOverEvent;
+import com.google.gwt.event.dom.client.MouseOverHandler;
 import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.MouseListener;
-import com.google.gwt.user.client.ui.Widget;
 
 /**
  *
@@ -25,15 +27,16 @@ public class SteeringWheelWidget extends Image {
     private String steerImage;
     private String steerImageHover;
 
-    private MouseListener mL;
-    private ClickListener cL;
+    private MouseOverHandler mOverH;
+    private MouseOutHandler mOutH;
+    private ClickHandler cH;
 
     public enum wheelSize {
         SMALL,
         BIG
     }
 
-    public SteeringWheelWidget(wheelSize size, ClickListener cL) {
+    public SteeringWheelWidget(wheelSize size, ClickHandler cH) {
 
         if (size == wheelSize.SMALL) {
             steerImage = steerImageSmall;
@@ -46,31 +49,33 @@ public class SteeringWheelWidget extends Image {
         setUrl(steerImage);
         addStyleName("pointer");
 
-        this.cL = cL;
-        this.addClickListener(this.cL);
+        this.cH = cH;
+        this.addClickHandler(this.cH);
 
-        mL = new MouseListener() {
-
-            public void onMouseEnter(Widget arg0) {
+        this.mOverH = new MouseOverHandler() {
+            @Override
+            public void onMouseOver(MouseOverEvent event) {
                 setUrl(steerImageHover);
             }
+        };
 
-            public void onMouseLeave(Widget arg0) {
+        this.mOutH = new MouseOutHandler () {
+            @Override
+            public void onMouseOut(MouseOutEvent event) {
                 setUrl(steerImage);
             }
-
-            public void onMouseDown(Widget arg0, int arg1, int arg2) {}
-            public void onMouseMove(Widget arg0, int arg1, int arg2) {}
-            public void onMouseUp(Widget arg0, int arg1, int arg2) {}
         };
-        this.addMouseListener(mL);
     }
 
-    public MouseListener getMouseListener() {
-        return this.mL;
+    public ClickHandler getClickHandler() {
+        return this.cH;
     }
 
-    public ClickListener getClickListener() {
-        return this.cL;
+    public MouseOutHandler getMouseOutHandler() {
+        return mOutH;
+    }
+
+    public MouseOverHandler getMouseOverHandler() {
+        return mOverH;
     }
 }

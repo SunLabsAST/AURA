@@ -23,7 +23,7 @@ public class ContextMenuSteeringWheelWidget extends ContextMenuImage {
     ArtistCompact aC;
     
     public ContextMenuSteeringWheelWidget(ClientDataManager cdm, SteeringWheelWidget sww, ArtistCompact aC) {
-        super(sww, cdm.getSharedSteeringMenu(), sww.getClickListener(), sww.getMouseListener());
+        super(sww, cdm.getSharedSteeringMenu(), sww.getClickHandler(), sww.getMouseOutHandler(), sww.getMouseOverHandler());
         this.aC = aC;
     }
 

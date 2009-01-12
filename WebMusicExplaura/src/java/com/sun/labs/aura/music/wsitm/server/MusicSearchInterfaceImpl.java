@@ -59,6 +59,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         dm = ServletTools.getDataManager(sc);
     }
 
+    @Override
     public SearchResults tagSearch(String searchString, int maxResults) throws WebException {
         logger.info("tagSearch: "+searchString);
         try {
@@ -72,6 +73,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public SearchResults artistSearch(String searchString, int maxResults) throws WebException {
         logger.info("artistSearch: "+searchString);
         try {
@@ -85,6 +87,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         } 
     }
 
+    @Override
     public SearchResults artistSearchByTag(String searchString, int maxResults) 
             throws WebException {
         logger.info("artistSearchByTag: "+searchString);
@@ -103,6 +106,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }        
     }
 
+    @Override
     public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName, String popularity) throws WebException {
         logger.info("getArtistDetails: "+id);
         try {
@@ -116,6 +120,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public TagDetails getTagDetails(String tagName, boolean refresh, String simTypeName) throws WebException {
         logger.info("getTagDetails: "+tagName);
         try {
@@ -131,9 +136,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
     
+    @Override
     public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num, String simType) 
             throws WebException {
-        logger.info("getCommonTags for "+artistID1+" and "+artistID2);
+        logger.info("getCommonTags for "+artistID1+" and "+artistID2+" (sim:"+simType+")");
         try {
             return dm.getCommonTags(artistID1, artistID2, num, simType);
         } catch (AuraException ex) {
@@ -154,7 +160,8 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
      * @return
      * @throws com.sun.labs.aura.music.wsitm.client.WebException
      */
-    public ItemInfo[] getComboTagCloud(String artistID1, String artistID2, int num, String simType) 
+    @Override
+    public ItemInfo[] getComboTagCloud(String artistID1, String artistID2, int num, String simType)
             throws WebException {
         logger.info("getCommonTags for "+artistID1+" and "+artistID2);
         try {
@@ -240,8 +247,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         return set;
     }
 
-
-
+    @Override
     public ItemInfo[] getCommonTags(Map<String, Double> tagMap, String artistID, int num) throws WebException {
         String stringMap = "";
         for (String key : tagMap.keySet()) {
@@ -256,6 +262,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public void destroy() {
         super.destroy();
         try {
@@ -275,16 +282,19 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         return trace;
     }
 
+    @Override
     public ArrayList<ScoredC<String>> getArtistOracle() {
         logger.info("getArtistOracle");
         return dm.getArtistOracle();
     }
     
+    @Override
     public ArrayList<ScoredC<String>> getTagOracle() {
         logger.info("getTagOracle");
         return dm.getTagOracle();
     }
 
+    @Override
     public ListenerDetails getNonOpenIdLogInDetails(String userKey) throws WebException {
         logger.info("getNonOpenIdLogInDetails for key:"+userKey);
         try {
@@ -305,6 +315,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public ListenerDetails getLogInDetails() throws WebException {
         logger.info("getLogInDetails");
         try {
@@ -368,12 +379,14 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public void terminateSession() {
         logger.info("terminateSession");
         HttpSession session = this.getThreadLocalRequest().getSession();
         session.setAttribute(OpenIDServlet.openIdCookieName, null);
     }
 
+    @Override
     public void updateListener(ListenerDetails lD) throws WebException {
         logger.info("UpdateListener :: "+lD.getOpenId());
         try {
@@ -387,6 +400,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public void updateUserSongRating(int rating, String artistID) throws WebException {
 
         String userId = getOpenIdFromSession();
@@ -403,6 +417,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public Integer fetchUserSongRating(String artistID) throws WebException {
 
         String userId = getOpenIdFromSession();
@@ -419,6 +434,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public HashMap<String, Integer> fetchUserSongRating(HashSet<String> artistID) throws WebException {
 
         String userId = getOpenIdFromSession();
@@ -435,14 +451,17 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public HashMap<String, String> getSimTypes() {
          return dm.getSimTypes();
     }
     
+    @Override
     public HashMap<String, String> getArtistRecommendationTypes() {
         return dm.getArtistRecommendationTypes();
     }
 
+    @Override
     public ItemInfo[] getDistinctiveTags(String artistID, int count) throws WebException {
         try {
             return dm.getDistinctiveTags(artistID, count);
@@ -452,6 +471,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public ArrayList<ScoredC<ArtistCompact>> getSteerableRecommendations(Map<String, Double> tagMap, String popularity) throws WebException {
         String stringMap = "";
         for (String key : tagMap.keySet()) {
@@ -471,6 +491,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public void addUserTagsForItem(String itemId, Set<String> tag) throws WebException {
         
         String userId = getOpenIdFromSession();
@@ -489,6 +510,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public void addPlayAttention(String artistId) throws WebException {
 
         String userId = getOpenIdFromSession();
@@ -505,6 +527,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public void addNotInterestedAttention(String artistId) throws WebException {
 
         String userId = getOpenIdFromSession();
@@ -521,14 +544,17 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public ArrayList<AttentionItem<ArtistCompact>> getLastTaggedArtists(int count, boolean returnDistinct) throws WebException {
         return getLastAttentionArtists(count, Type.TAG, true, returnDistinct);
     }
 
+    @Override
     public ArrayList<AttentionItem<ArtistCompact>> getLastRatedArtists(int count, boolean returnDistinct) throws WebException {
         return getLastAttentionArtists(count, Type.RATING, true, returnDistinct);
     }
 
+    @Override
     public ArrayList<AttentionItem<ArtistCompact>> getLastPlayedArtists(int count, boolean returnDistinct) throws WebException {
         return getLastAttentionArtists(count, Type.PLAYED, true, returnDistinct);
     }
@@ -585,6 +611,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public HashSet<String> fetchUserTagsForItem(String itemId) throws WebException {
         
         String userId = getOpenIdFromSession();
@@ -601,6 +628,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public ArtistCompact getArtistCompact(String artistId) throws WebException {
         logger.info("getArtistCompact : "+ artistId);
         try {
@@ -614,6 +642,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
     
+    @Override
     public ItemInfo[] getSimilarTags(String tagId) throws WebException {
         logger.info("getSimilarTags to '"+tagId+"'");
         try {
@@ -627,6 +656,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
     
+    @Override
     public ArrayList<ArtistRecommendation> getRecommendations(String recTypeName, int cnt) throws WebException {
         String userId = getOpenIdFromSession();
         logger.info("getLastRatedArtists :: user:"+userId);
@@ -641,6 +671,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public ServerInfoItem getServerInfo() throws WebException {
         logger.info("getServerInfo");
         try {
@@ -654,6 +685,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
 
+    @Override
     public ArrayList<ScoredC<ArtistCompact>> getSimilarArtists(String id, String simTypeName, String popularity) throws WebException {
         try {
             return dm.getSimilarArtists(id, dm.stringToSimType(simTypeName), dm.stringToPopularity(popularity));

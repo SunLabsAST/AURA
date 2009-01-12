@@ -26,7 +26,6 @@ import com.sun.labs.aura.music.RecommendationProfile;
 import com.sun.labs.aura.music.RecommendationSummary;
 import com.sun.labs.aura.music.RecommendationType;
 import com.sun.labs.aura.music.SimType;
-import com.sun.labs.aura.music.TagCloud;
 import com.sun.labs.aura.music.Video;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -155,7 +154,27 @@ public class DataManager implements Configurable {
     public ItemInfo[] getCommonTags(String id1, String id2, int num, String simType)
             throws AuraException, RemoteException {
         List<Scored<String>> simList = simTypes.get(simType).explainSimilarity(id1, id2, num);
-        return scoredTagStringToItemInfo(simList);
+
+        // If the similarity type is related, we're getting artist ids so we must replace them with the artist's name
+        if (simType.equals("Related")) {
+
+            ArrayList<ItemInfo> artistResult = new ArrayList<ItemInfo>();
+
+            for (Scored<String> ss : simList) {
+                logger.info("rel:"+ss.getItem());
+                ArtistCompact aC = this.getArtistCompact(ss.getItem());
+                if (aC != null) {
+                    double score = ss.getScore();
+                    double popularity = aC.getPopularity();
+                    artistResult.add(new ItemInfo(aC.getId(), aC.getName(), score, popularity));
+                }
+            }
+            return artistResult.toArray(new ItemInfo[0]);
+
+        } else {
+            return scoredTagStringToItemInfo(simList);
+        }
+        
     }
 
     /**
@@ -588,7 +607,7 @@ public class DataManager implements Configurable {
      * @param lD
      * @return updated listener
      */
-    private Listener syncListeners(Listener l, ListenerDetails lD, SimType simType,
+    private Listener syncListeners(Listener l, ListenerDetails lD,
             boolean updateRecommendations) throws AuraException, RemoteException {
 
         if (lD.getGender() != null) {
@@ -623,17 +642,22 @@ public class DataManager implements Configurable {
         if (updateRecommendations) {
             // Fetch info for recommended artists
             ArrayList<ArtistCompact> aCompact = new ArrayList<ArtistCompact>();
-            for (Scored<Artist> a : mdb.getRecommendations(l.getKey(), NBR_REC_LISTENER)) {
-                aCompact.add(artistToArtistCompact(a.getItem()));
+            try {
+                for (Scored<Artist> a : mdb.getRecommendations(l.getKey(), NBR_REC_LISTENER)) {
+                    aCompact.add(artistToArtistCompact(a.getItem()));
+                }
+                lD.setRecommendations(aCompact.toArray(new ArtistCompact[0]));
+            } catch (NullPointerException e) {
+                // @todo remove this when fixed on server
+                logger.info("null pointer exception on get recommendations!!!!!! fix this!!!");
             }
-            lD.setRecommendations(aCompact.toArray(new ArtistCompact[0]));
         }
 
         return l;
     }
 
     private ListenerDetails listenerToListenerDetails(Listener l, ListenerDetails lD,
-            SimType simType, boolean updateRecommendations) throws AuraException, RemoteException {
+            boolean updateRecommendations) throws AuraException, RemoteException {
 
         if (l.getGender() != null) {
             lD.setGender(l.getGender().toString());
@@ -688,7 +712,7 @@ public class DataManager implements Configurable {
             logger.info("Non openID user '" + userKey + "' fetched.");
         }
 
-        lD = listenerToListenerDetails(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
+        lD = listenerToListenerDetails(l, lD, true);
         lD.setOpenId(userKey);
         lD.setIsLoggedIn(true);
 
@@ -714,7 +738,7 @@ public class DataManager implements Configurable {
             logger.info("Retrieved user from datastore: " + lD.getOpenId());
         }
 
-        l = syncListeners(l, lD, simTypes.get(simTypes.keySet().iterator().next()), true);
+        l = syncListeners(l, lD, true);
         mdb.updateListener(l);
 
         // Get the user tag cloud
@@ -752,7 +776,7 @@ public class DataManager implements Configurable {
     }
 
     public void updateUser(ListenerDetails lD) throws AuraException, RemoteException {
-        Listener l = syncListeners(mdb.getListener(lD.getOpenId()), lD, null, false);
+        Listener l = syncListeners(mdb.getListener(lD.getOpenId()), lD, false);
         mdb.updateListener(l);
     }
 
@@ -783,6 +807,9 @@ public class DataManager implements Configurable {
         return ratingMap;
     }
 
+    /**
+     * Load an artist compact from the cache or from the store
+     */
     public ArtistCompact getArtistCompact(String artistId) throws AuraException, RemoteException {
         
         ArtistDetails details = null;

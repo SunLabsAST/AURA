@@ -4,14 +4,13 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
-import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Random;
-import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -19,7 +18,8 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
+import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget.SwapableTxtButton;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
@@ -68,9 +68,9 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_TOP);
         artistPanel.setStyleName("artistPanel");
 
-        ClickListener cL = new DataEmbededClickListener<String>("artist:" + aC.getId()) {
-
-            public void onClick(Widget arg0) {
+        ClickHandler cH = new DEClickHandler<String>("artist:" + aC.getId()) {
+            @Override
+            public void onClick(ClickEvent ce) {
                 History.newItem(data);
             }
         };
@@ -83,7 +83,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         img.setStyleName("image");
         img.setHeight("75px");
         img.setWidth("75px");
-        img.addClickListener(cL);
+        img.addClickHandler(cH);
         img.addStyleName("largeMarginRight");
 
         artistPanel.add(img);
@@ -106,9 +106,9 @@ public class CompactArtistWidget extends Composite implements HasListeners {
 
         SteeringWheelWidget steerButton = 
                 new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL,
-                new DualDataEmbededClickListener<ClientDataManager, ArtistCompact>(cdm, aC) {
-
-            public void onClick(Widget arg0) {
+                new DDEClickHandler<ClientDataManager, ArtistCompact>(cdm, aC) {
+            @Override
+            public void onClick(ClickEvent ce) {
                 data.setSteerableReset(true);
                 History.newItem("steering:" + sndData.getId());
             }
@@ -242,9 +242,9 @@ public class CompactArtistWidget extends Composite implements HasListeners {
 
         SpannedLabel title = new SpannedLabel(header);
         title.addStyleName("pointer");
-        title.addClickListener(new DataEmbededClickListener<Panel>(addTagPanel) {
-
-            public void onClick(Widget arg0) {
+        title.addClickHandler(new DEClickHandler<Panel>(addTagPanel) {
+            @Override
+            public void onClick(ClickEvent ce) {
                 if (data.isVisible()) {
                     data.setVisible(false);
                 } else {
@@ -259,8 +259,9 @@ public class CompactArtistWidget extends Composite implements HasListeners {
             t.addStyleName("pointer");
 
             // Add main click listener
-            t.addClickListener(new DataEmbededClickListener<ItemInfo>(tagList.get(i)) {
-                public void onClick(Widget arg0) {
+            t.addClickHandler(new DEClickHandler<ItemInfo>(tagList.get(i)) {
+                @Override
+                public void onClick(ClickEvent event) {
                     onTagClick(data);
                 }
             });

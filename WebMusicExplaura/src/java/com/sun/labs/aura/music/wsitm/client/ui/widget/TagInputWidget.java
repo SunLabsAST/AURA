@@ -6,7 +6,7 @@
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededAsyncCallback;
+import com.sun.labs.aura.music.wsitm.client.event.DEAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.Window;
@@ -204,8 +204,8 @@ public class TagInputWidget extends Composite implements LoginListener {
 
      private void invokeAddTags(HashSet<String> tags) {
 
-         DataEmbededAsyncCallback<HashSet<String>, HashSet<String>> callback =
-                 new DataEmbededAsyncCallback<HashSet<String>, HashSet<String>>(tags) {
+         DEAsyncCallback<HashSet<String>, HashSet<String>> callback =
+                 new DEAsyncCallback<HashSet<String>, HashSet<String>>(tags) {
 
              public void onFailure(Throwable arg0) {
                  Window.alert(arg0.toString());

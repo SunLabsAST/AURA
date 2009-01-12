@@ -5,6 +5,8 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.event.TaggingListener;
@@ -29,7 +31,8 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededAsyncCallback;
+import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
+import com.sun.labs.aura.music.wsitm.client.event.DEAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.PlayedListener;
@@ -41,7 +44,6 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
-import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.UpdatablePanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuArtistLabel;
@@ -100,7 +102,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
 
     @Override
     protected void initMenuItem() {
-        menuItem = new MenuItem("Dashboard", MenuItem.getDefaultTokenClickListener("dashboard:"), true, 3);
+        menuItem = new MenuItem("Dashboard", MenuItem.getDefaultTokenClickHandler("dashboard:"), true, 3);
     }
 
     @Override
@@ -245,9 +247,9 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             rateHp.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
             Label featMore = new Label("Back to dashboard");
             featMore.addStyleName("headerMenuMedItem");
-            featMore.addClickListener(new ClickListener() {
-
-                public void onClick(Widget sender) {
+            featMore.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     History.newItem("dashboard:");
                 }
             });
@@ -291,9 +293,10 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             g.setWidth("600px");
             g.addStyleName("headerMenuMed");
 
-            SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, new DualDataEmbededClickListener<ClientDataManager, ArtistCompact>(cdm, aC) {
-
-                public void onClick(Widget arg0) {
+            SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL,
+                    new DDEClickHandler<ClientDataManager, ArtistCompact>(cdm, aC) {
+                @Override
+                public void onClick(ClickEvent ce) {
                     data.setSteerableReset(true);
                     History.newItem("steering:" + sndData.getId());
                 }
@@ -348,8 +351,8 @@ public class DashboardSwidget extends Swidget implements LoginListener {
 
         protected void invokeFetchRecentAttentions(AttentionType aT) {
 
-            DataEmbededAsyncCallback<AttentionType, ArrayList<AttentionItem<ArtistCompact>>> callback =
-                    new DataEmbededAsyncCallback<AttentionType, ArrayList<AttentionItem<ArtistCompact>>>(aT) {
+            DEAsyncCallback<AttentionType, ArrayList<AttentionItem<ArtistCompact>>> callback =
+                    new DEAsyncCallback<AttentionType, ArrayList<AttentionItem<ArtistCompact>>>(aT) {
 
                 public void onFailure(Throwable arg0) {
                     Window.alert(arg0.toString());
@@ -547,7 +550,6 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                 featArtTitle.setStyleName("h2");
                 featArtTitle.setWidth("100%");
                 featArtTitle.setWidget(0, 0, new Label("Featured artist : " + aD.getName()));
-                //featArtTitle.setWidget(0, 1, new StarRatingWidget(0,StarRatingWidget.Size.MEDIUM));
 
                 if (playButton != null) {
                     playButton.onDelete();
@@ -559,6 +561,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                 HorizontalPanel hP = new HorizontalPanel();
                 hP.setWidth("100%");
                 hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+                hP.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
 
                 ArtistCompact aC = aD.toArtistCompact();
                 playButton = new PlayButton(cdm, aC, PlayButton.PLAY_ICON_SIZE.MEDIUM, musicServer);
@@ -566,9 +569,9 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                 hP.add(playButton);
 
                 SteeringWheelWidget steerButton = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.BIG,
-                        new DualDataEmbededClickListener<ClientDataManager, ArtistCompact>(cdm, aC) {
-
-                    public void onClick(Widget arg0) {
+                        new DDEClickHandler<ClientDataManager, ArtistCompact>(cdm, aC) {
+                    @Override
+                    public void onClick(ClickEvent ce) {
                         data.setSteerableReset(true);
                         History.newItem("steering:" + sndData.getId());
                     }
@@ -599,8 +602,8 @@ public class DashboardSwidget extends Swidget implements LoginListener {
 
         private void invokeFetchRecentAttentions(AttentionType aT) {
 
-            DataEmbededAsyncCallback<AttentionType, ArrayList<AttentionItem<ArtistCompact>>> callback =
-                    new DataEmbededAsyncCallback<AttentionType, ArrayList<AttentionItem<ArtistCompact>>>(aT) {
+            DEAsyncCallback<AttentionType, ArrayList<AttentionItem<ArtistCompact>>> callback =
+                    new DEAsyncCallback<AttentionType, ArrayList<AttentionItem<ArtistCompact>>>(aT) {
 
                 public void onFailure(Throwable arg0) {
                     Window.alert(arg0.toString());
@@ -780,7 +783,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             try {
 
                 ArtistCompact[] aC = cdm.getListenerDetails().getRecommendations();
-                if (aC.length > 0) {
+                if (aC!=null && aC.length > 0) {
                     int itemIndex = Random.nextInt(aC.length);
                     musicServer.getArtistDetails(aC[itemIndex].getId(), false, cdm.getCurrSimTypeName(), cdm.getCurrPopularity(), callback);
                 }

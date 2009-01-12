@@ -16,9 +16,10 @@ import com.sun.labs.aura.music.wsitm.client.ui.swidget.SimpleSearchSwidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PageHeaderWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.ProfileSwidget;
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.HistoryListener;
-import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
@@ -56,6 +57,7 @@ public class Main implements EntryPoint, HistoryListener {
         loginMsg.put("loginMsg:username", "Login error, username not found.");
     }
 
+    @Override
     public void onModuleLoad() {
 
         History.addHistoryListener(this);
@@ -122,8 +124,9 @@ public class Main implements EntryPoint, HistoryListener {
 
             // Add the server info link
             SpannedLabel perfmon = new SpannedLabel("PerfMon");
-            perfmon.addClickListener(new ClickListener() {
-                public void onClick(Widget sender) {
+            perfmon.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     PerformanceTimer.showPopup();
                 }
             });
@@ -131,9 +134,9 @@ public class Main implements EntryPoint, HistoryListener {
             
             // Add the server info link
             SpannedLabel sI = new SpannedLabel("ServerInfo");
-            sI.addClickListener(new ClickListener() {
-
-                public void onClick(Widget sender) {
+            sI.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     History.newItem("serverinfo:");
                 }
             });
@@ -162,7 +165,7 @@ public class Main implements EntryPoint, HistoryListener {
         }
     }
 
-
+    @Override
     public void onHistoryChanged(String historyToken) {
         if (!historyToken.equals(curToken)) {
             WebLib.trackPageLoad(historyToken);
@@ -204,6 +207,7 @@ public class Main implements EntryPoint, HistoryListener {
         // event occurent in case it needs to change its internal state
         if (curSwidget == newSwidget) {
             curSwidget.update(historyName);
+            curToken = historyName;
             return;
         }
 

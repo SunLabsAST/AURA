@@ -5,6 +5,8 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Window;
@@ -23,9 +25,9 @@ import com.sun.labs.aura.music.wsitm.client.event.SourcesRightClickEvents;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
-import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.MusicSearchInterfaceAsync;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
+import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedPlayButtonMenu;
 
@@ -46,7 +48,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
     private ArtistCompact aC;
     private PLAY_ICON_SIZE size;
 
-    private static ClickListener triggerPlayClickListener;
+    private static ClickHandler triggerPlayClickHandler;
     private Grid mainbutton;
     
     public enum PLAY_ICON_SIZE {
@@ -57,7 +59,6 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         SPOTIFY,
         LASTFM,
         THEWEB
-
     }
     
     public PlayButton(ClientDataManager tcdm, ArtistCompact taC,
@@ -72,10 +73,10 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
             cm = cdm.getSharedPlayButtonMenu();
         }
         
-        if (triggerPlayClickListener == null) {
-            triggerPlayClickListener = new ClickListener() {
-
-                public void onClick(Widget arg0) {
+        if (triggerPlayClickHandler == null) {
+            triggerPlayClickHandler = new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     cdm.getPlayedListenerManager().triggerOnPlay(aC.getId());
                     WebLib.trackPageLoad("play", aC.getId(), aC.getEncodedName());
                 }
@@ -114,19 +115,19 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         
         // Try to get widget for preferred provider
         if (preferredMP == null || preferredMP == MusicProviders.LASTFM) {
-            w = getLastFMListenWidget(triggerPlayClickListener);
+            w = getLastFMListenWidget(triggerPlayClickHandler);
             if (w != null) {
                 return w;
             }
         }
         if (preferredMP == null || preferredMP == MusicProviders.SPOTIFY) {
-            w = getSpotifyListenWidget(triggerPlayClickListener);
+            w = getSpotifyListenWidget(triggerPlayClickHandler);
             if (w != null) {
                 return w;
             }
         }
         if (preferredMP == null || preferredMP == MusicProviders.THEWEB) {
-            w = getTheWebListenWidget(triggerPlayClickListener);
+            w = getTheWebListenWidget(triggerPlayClickHandler);
             if (w != null) {
                 return w;
             }
@@ -134,10 +135,12 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         return null;
     }
     
+    @Override
     public void onSwitch(MusicProviders newMp) {
         setNewButton(newMp);
     }
 
+    @Override
     public void onDelete() {
         cdm.getMusicProviderSwitchListenerManager().removeListener(this);
     }
@@ -182,12 +185,12 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         }
     }
 
-
+    @Override
     public ContextMenu getContextMenu() {
         return cm;
     }
 
-    private Widget getTheWebListenWidget(ClickListener cL) {
+    private Widget getTheWebListenWidget(ClickHandler cH) {
         if (aC.getAudio() == null || aC.getAudio().isEmpty()) {
             return null;
         } else {
@@ -196,21 +199,21 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
                 "data=\"musicplayer.swf?song_url="+urls[0]+"\" width=\"17\" height=\"17\">" +
                 "<param name=\"movie\" value=\"musicplayer.swf?song_url="+urls[0]+"\" />" +
                 "<a href=\"/search/play/eaa6699bdb078500e4b567\">play</a></object>");
-            html.addClickListener(cL);
+            html.addClickHandler(cH);
             return html;
         }
     }
 
-    private Widget getSpotifyListenWidget(ClickListener cL) {
+    private Widget getSpotifyListenWidget(ClickHandler cH) {
         String musicURL = aC.getSpotifyId();
         int intSize = playIconSizeToInt(size);
         if (musicURL != null && !musicURL.equals("")) {
             HTML html = new HTML("<a href=\"" + musicURL + "\" target=\"spotifyFrame\"><img src=\"play-spotify-"+intSize+".png\"/></a>");
             html.setTitle("Play " + aC.getName() + " with Spotify");
             if (cdm.isLoggedIn()) {
-                html.addClickListener(new ClickListener() {
+                html.addClickHandler(new ClickHandler() {
 
-                    public void onClick(Widget arg0) {
+                    public void onClick(ClickEvent ce) {
                         AsyncCallback callback = new AsyncCallback() {
                             public void onSuccess(Object result) {}
                             public void onFailure(Throwable caught) {
@@ -226,8 +229,8 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
                     }
                 });
             }
-            if (cL != null) {
-                html.addClickListener(cL);
+            if (cH != null) {
+                html.addClickHandler(cH);
             }
             return html;
         } else {
@@ -271,21 +274,21 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         Window.open(getArtistRadioLink(), "lastfm_popup", "width=330,height=296,titlebar=no");
     }
     
-    private Widget getLastFMListenWidget(ClickListener cL) {
+    private Widget getLastFMListenWidget(ClickHandler cH) {
         int intSize = playIconSizeToInt(size);
         Image image = new Image("play-lastfm-"+intSize+".png");
         image.setTitle("Play music like " + aC.getName() + " at last.fm");
-        image.addClickListener(new ClickListener() {
-
-            public void onClick(Widget sender) {
+        image.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent ce) {
                 //popupSimilarArtistRadio(true);
                 popupArtistRadio();
             }
         });
         if (cdm.isLoggedIn()) {
-            image.addClickListener(new DualDataEmbededClickListener<MusicSearchInterfaceAsync, String>(musicServer, aC.getId()) {
-
-                public void onClick(Widget arg0) {
+            image.addClickHandler(new DDEClickHandler<MusicSearchInterfaceAsync, String>(musicServer, aC.getId()) {
+                @Override
+                public void onClick(ClickEvent ce) {
                     AsyncCallback callback = new AsyncCallback() {
 
                         public void onSuccess(Object result) {}
@@ -302,8 +305,8 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
                 }
             });
         }
-        if (cL != null) {
-            image.addClickListener(cL);
+        if (cH != null) {
+            image.addClickHandler(cH);
         }
         return image;
     }
