@@ -568,7 +568,9 @@ public class BerkeleyDataWrapper {
                 TransactionConfig txConf = new TransactionConfig();
                 txConf.setWriteNoSync(true);
                 txn = dbEnv.beginTransaction(null, txConf);
-                allAttn.putNoOverwrite(txn, pa);
+                if (!allAttn.putNoOverwrite(txn, pa)) {
+                    log.warning("Failed to insert attention since primary key already exists: " + pa);
+                }
                 txn.commit();
                 return;
             } catch(DeadlockException e) {
