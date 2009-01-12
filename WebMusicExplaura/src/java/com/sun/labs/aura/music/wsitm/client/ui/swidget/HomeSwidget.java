@@ -5,15 +5,15 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.MusicSearchInterfaceAsync;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
@@ -57,6 +57,7 @@ public class HomeSwidget extends Swidget {
         menuItem = new MenuItem();
     }
 
+    @Override
     public void doRemoveListeners() {
         // no listeners
     }
@@ -78,18 +79,21 @@ public class HomeSwidget extends Swidget {
             searchButtons[1] = new SearchTypeRadioButton("searchType", "By Tag", searchTypes.SEARCH_FOR_ARTIST_BY_TAG);
             searchButtons[2] = new SearchTypeRadioButton("searchType", "For Tag", searchTypes.SEARCH_FOR_TAG_BY_TAG);
 
-            searchButtons[0].addClickListener(new ClickListener() {
-                public void onClick(Widget arg0) {
+            searchButtons[0].addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     updateSuggestBox(Oracles.ARTIST);
                 }
             });
-            searchButtons[1].addClickListener(new ClickListener() {
-                public void onClick(Widget arg0) {
+            searchButtons[1].addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     updateSuggestBox(Oracles.TAG);
                 }
             });
-            searchButtons[2].addClickListener(new ClickListener() {
-                public void onClick(Widget arg0) {
+            searchButtons[2].addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     updateSuggestBox(Oracles.TAG);
                 }
             });
@@ -109,8 +113,9 @@ public class HomeSwidget extends Swidget {
             searchPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
             searchPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
 
-            Button searchButton = new Button("Search", new ClickListener() {
-                public void onClick(Widget sender) {
+            Button searchButton = new Button("Search", new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
                     search();
                 }
             });
@@ -129,6 +134,7 @@ public class HomeSwidget extends Swidget {
             this.initWidget(searchPanel);
         }
 
+        @Override
         public void search() {
             if (cdm.getCurrSimTypeName() == null || cdm.getCurrSimTypeName().equals("")) {
                 Window.alert("Error. Cannot search without the similarity types.");

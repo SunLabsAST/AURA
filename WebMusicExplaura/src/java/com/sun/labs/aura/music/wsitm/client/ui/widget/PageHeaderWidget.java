@@ -5,6 +5,8 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.Swidget;
@@ -354,9 +356,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             VerticalPanel vP = new VerticalPanel();
 
             Label lnk = new Label("Logout");
-            lnk.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            lnk.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     cdm.resetUser();
                     invokeTerminateSession();
                 }
@@ -368,9 +370,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
             HorizontalPanel buttonsPanel = new HorizontalPanel();
             buttonsPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
-            Image steerable = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            Image steerable = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.SMALL, new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     cdm.setSteerableReset(true);
                     History.newItem("steering:userCloud");
                 }
@@ -545,16 +547,22 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
         public InstantRecPlayWidget() {
 
-            // Insert recommendations in list in random order
-            aCList = new ArrayList<ArtistCompact>();
-            int l = 0;
-            for (ArtistCompact aC : cdm.getListenerDetails().getRecommendations()) {
-                aCList.add(Random.nextInt(l++), aC);
-            }
+            ArtistCompact[] recs = cdm.getListenerDetails().getRecommendations();
 
-            g = new Grid(1,1);
-            setNextRec(this);
-            initWidget(g);
+            if (recs!=null && recs.length>0) {
+                // Insert recommendations in list in random order
+                aCList = new ArrayList<ArtistCompact>();
+                int l = 0;
+                for (ArtistCompact aC : recs) {
+                    aCList.add(Random.nextInt(l++), aC);
+                }
+
+                g = new Grid(1,1);
+                setNextRec(this);
+                initWidget(g);
+            } else {
+                initWidget(new Label(""));
+            }
         }
 
         private void setNextRec(InstantRecPlayWidget w) {
@@ -611,7 +619,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
                 for (MenuItem mI : menuItems) {
                     if (!mI.mustBeLoggedIn() || (mI.mustBeLoggedIn() && loggedIn)) {
                         Label sLabel = new Label(mI.getName());
-                        sLabel.addClickListener(mI.getClickListener());
+                        sLabel.addClickHandler(mI.getClickHandler());
                         sLabel.setStyleName("headerMenuMedItem headerMenuMedItemC");
                         mI.setLabel(sLabel);
                         hP.add(sLabel);

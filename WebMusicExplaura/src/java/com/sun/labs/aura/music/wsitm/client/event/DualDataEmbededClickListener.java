@@ -8,6 +8,7 @@ package com.sun.labs.aura.music.wsitm.client.event;
 /**
  *
  * @author mailletf
+ * @deprecated 
  */
 public abstract class DualDataEmbededClickListener<T, V> extends DataEmbededClickListener<T> {
 

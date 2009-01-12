@@ -42,11 +42,13 @@ public abstract class CommonTagsAsyncCallback implements AsyncCallback<ItemInfo[
         why.showButton();
     }
 
+    @Override
     public final void onSuccess(ItemInfo[] results) {
         TagDisplayLib.showTagCloud(title, results, TagDisplayLib.ORDER.SHUFFLE, cdm);
         onCallback(results);
     }
 
+    @Override
     public void onFailure(Throwable caught) {
         Window.alert(caught.toString());
     }

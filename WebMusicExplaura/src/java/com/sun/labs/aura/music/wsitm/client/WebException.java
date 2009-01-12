@@ -56,7 +56,7 @@ public class WebException extends RuntimeException implements IsSerializable {
     private static String getErrorMessage(errorMessages eM) {
 
         if (eM == errorMessages.ITEM_STORE_COMMUNICATION_FAILED) {
-            return "A problem occured while trying to cummunicate with the datastore.";
+            return "A problem occured while trying to communicate with the datastore.";
         } else if (eM == errorMessages.RPC_STATUS_CODE_EXCEPTION) {
             return "A server problem occured while processing your request.";
         } else if (eM == errorMessages.MUST_BE_LOGGED_IN) {
