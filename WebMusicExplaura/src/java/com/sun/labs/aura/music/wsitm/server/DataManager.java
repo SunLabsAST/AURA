@@ -697,6 +697,24 @@ public class DataManager implements Configurable {
         return lD;
     }
 
+    /**
+     * Place holder for encryption function
+     * @param openID
+     * @return
+     */
+    private String encryptUserKey(String openID) {
+        return openID;
+    }
+
+    /**
+     * Place holder for decryption function
+     * @param encryptedKey
+     * @return
+     */
+    private String decryptUserKey(String encryptedKey) {
+        return encryptedKey;
+    }
+
     public ListenerDetails establishNonOpenIdUserConnection(String userKey)
             throws AuraException, RemoteException {
 
@@ -714,6 +732,7 @@ public class DataManager implements Configurable {
 
         lD = listenerToListenerDetails(l, lD, true);
         lD.setOpenId(userKey);
+        lD.setUserKey(encryptUserKey(userKey));
         lD.setIsLoggedIn(true);
 
         return lD;

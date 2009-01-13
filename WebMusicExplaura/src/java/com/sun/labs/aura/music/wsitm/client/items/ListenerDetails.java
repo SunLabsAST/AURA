@@ -18,6 +18,7 @@ public class ListenerDetails implements IsSerializable {
     private ArtistDetails[] favArtistDetails;
 
     private String openID;
+    private String userKey; // encrypted key given by the server for identifying a logged in user
     private boolean loggedIn=false;
 
     private String realName;
@@ -105,6 +106,14 @@ public class ListenerDetails implements IsSerializable {
     
     public String getCountry() {
         return country;
+    }
+
+    public String getUserKey() {
+        return userKey;
+    }
+
+    public void setUserKey(String userKey) {
+        this.userKey = userKey;
     }
 
     /**
