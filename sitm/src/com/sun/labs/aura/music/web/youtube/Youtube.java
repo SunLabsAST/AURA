@@ -49,10 +49,32 @@ public class Youtube {
         List<YoutubeVideo>  videos = new ArrayList<YoutubeVideo>(100);
         String encodedQuery = URLEncoder.encode(query, "UTF-8");
         int perPage = 100;
-        Document doc = commander.sendCommand("&method=youtube.videos.list_by_tag&page=1&per_page=" + perPage + "&tag=" + encodedQuery);
+                
+        videos = fetchVideos("&method=youtube.videos.list_by_tag&page=1&per_page=" + perPage + "&tag=" + encodedQuery);
+        if (videos.size() > maxResults) {
+            videos = videos.subList(0, maxResults);
+        }
+        return videos;
+    }
+
+    public List<YoutubeVideo> musicSearch2(String query, int maxResults) throws IOException {
+        List<YoutubeVideo>  videos = new ArrayList<YoutubeVideo>(100);
+        String encodedQuery = URLEncoder.encode(query, "UTF-8");
+        int perPage = 100;
+
+        videos = fetchVideos("&method=youtube.videos.list_by_tag&page=1&per_page=" + perPage + "&tag=" + encodedQuery);
+        if (videos.size() > maxResults) {
+            videos = videos.subList(0, maxResults);
+        }
+        return videos;
+    }
+
+    public List<YoutubeVideo> fetchVideos(String url) throws IOException {
+        List<YoutubeVideo>  videos = new ArrayList<YoutubeVideo>(100);
+        Document doc = commander.sendCommand(url);
         Element docElement = doc.getDocumentElement();
         NodeList list = docElement.getElementsByTagName("video");
-        
+
         for (int i = 0; i < list.getLength(); i++) {
             Node node = list.item(i);
             Element element = (Element) node;
@@ -60,7 +82,7 @@ public class Youtube {
             video.setAuthor(XmlUtil.getElementContents(element, "author"));
             video.setId(XmlUtil.getElementContents(element, "id"));
             video.setTitle(XmlUtil.getElementContents(element, "title"));
-            
+
             video.setLength(getInteger(element, "length_seconds"));
             video.setRating(getFloat(element, "rating_avg"));
             video.setRatingCount(getInteger(element, "rating_count"));
@@ -74,10 +96,6 @@ public class Youtube {
         }
         Collections.sort(videos, YoutubeVideo.PLAY_ORDER);
         Collections.reverse(videos);
-        
-        if (videos.size() > maxResults) {
-            videos = videos.subList(0, maxResults);
-        }
         return videos;
     }
     
@@ -118,6 +136,11 @@ public class Youtube {
         Youtube youtube = new Youtube();
         
         List<YoutubeVideo> videos = youtube.musicSearch("yes", 20);
+        for (YoutubeVideo video :videos) {
+            video.dump();
+        }
+
+        videos = youtube.musicSearch("godspeed you! black emperor", 20);
         for (YoutubeVideo video :videos) {
             video.dump();
         }

@@ -24,6 +24,7 @@ import java.util.Random;
 public class AttentionFullTest extends Test {
 
     private int tries;
+    private boolean dump = true;
 
     AttentionFullTest(int count) {
         super("Attention RoundTrip " + count);
@@ -71,7 +72,8 @@ public class AttentionFullTest extends Test {
             List<Attention> attns = mdb.getDataStore().getAttention(ac);
             
             if (attns.size() != tries) {
-                ts.fail("bad attention count for " + user + " expected " + tries + " found " + attns.size());
+                ts.fail("(trs) bad attention count for " + user + " expected " + tries + " found " + attns.size());
+                return;
             }
 
             // find the first attention where we transition from VIEWED to PLAYED.
@@ -86,7 +88,7 @@ public class AttentionFullTest extends Test {
             }
 
             if (firstPlayTime == 0L) {
-                ts.fail("Can't find PLAYED attention");
+                ts.fail("(trs) Can't find PLAYED attention");
                 return;
             }
 
@@ -94,7 +96,7 @@ public class AttentionFullTest extends Test {
 
             List<Attention> recentAttns = mdb.getDataStore().getAttentionSince(ac, new Date(firstPlayTime - 1L));
             if (recentAttns.size() != tries / 2) {
-                ts.fail("bad recent attention count for " + user + " expected " + (tries / 2) + " found " + recentAttns.size());
+                ts.fail("(trs) bad recent attention count for " + user + " expected " + (tries / 2) + " found " + recentAttns.size());
                 return;
             }
 
@@ -102,20 +104,20 @@ public class AttentionFullTest extends Test {
             for (Attention attn : recentAttns) {
             // make sure that they occur since then
                 if (attn.getTimeStamp() < firstPlayTime) {
-                    ts.fail("bad recent attention timestamp for " + attn + " should be later than " + firstPlayTime);
+                    ts.fail("(trs) bad recent attention timestamp for " + attn + " should be later than " + firstPlayTime);
                     return;
                 }
 
                 // make sure that they are of the proper type
                 if (!attn.getType().equals(Type.PLAYED)) {
-                    ts.fail("bad recent attention typ for " + attn + " should be " + Type.PLAYED.name());
+                    ts.fail("(trs) bad recent attention typ for " + attn + " should be " + Type.PLAYED.name());
                     return;
                 }
 
                 // test the that user is proper
 
                 if (!attn.getSourceKey().equals(user)) {
-                    ts.fail("unexpected source key for attention " + attn + " expected " + user);
+                    ts.fail("(trs) unexpected source key for attention " + attn + " expected " + user);
                     return;
                 }
             }
@@ -131,21 +133,22 @@ public class AttentionFullTest extends Test {
             List<Attention> attns = mdb.getDataStore().getAttention(ac);
             
             if (attns.size() != tries/2) {
-                ts.fail("bad attention count for " + user + " expected " + tries + " found " + attns.size());
+                ts.fail("(trut) bad attention count for " + user + " expected " + tries + " found " + attns.size());
+                return;
             }
 
             for (Attention attn : attns) {
 
                 // make sure that they are of the proper type
                 if (!attn.getType().equals(Type.PLAYED)) {
-                    ts.fail("bad recent attention typ for " + attn + " should be " + Type.PLAYED.name());
+                    ts.fail("(trut) bad recent attention typ for " + attn + " should be " + Type.PLAYED.name());
                     return;
                 }
 
                 // test the that user is proper
 
                 if (!attn.getSourceKey().equals(user)) {
-                    ts.fail("unexpected source key for attention " + attn + " expected " + user);
+                    ts.fail("(trut) unexpected source key for attention " + attn + " expected " + user);
                     return;
                 }
             }
@@ -158,23 +161,26 @@ public class AttentionFullTest extends Test {
             AttentionConfig ac = new AttentionConfig();
             ac.setSourceKey(user);
             List<Attention> attns = mdb.getDataStore().getAttention(ac);
+
             
 
             if (attns.size() != tries) {
-                ts.fail("bad attention count for " + user + " expected " + tries + " found " + attns.size());
+                ts.fail("(truk) bad attention count for " + user + " expected " + tries + " found " + attns.size());
+                return;
             }
 
             sortByTimeAdded(attns);
+            dump(ts, attns);
 
             int count = 0;
             for (Attention attn : attns) {
                 if (!attn.getSourceKey().equals(user)) {
-                    ts.fail("unexpected source key for attention " + attn + " expected " + user);
+                    ts.fail("(truk) unexpected source key for attention " + attn + " expected " + user);
                     return;
                 }
                 String target = "target " + count + " for " + user;
                 if (!attn.getTargetKey().equals(target)) {
-                    ts.fail("unexpected target key for attention " + attn + " expected " + target);
+                    ts.fail("(truk) unexpected target key for attention " + attn + " expected " + target);
                     return;
                 }
 
@@ -182,7 +188,7 @@ public class AttentionFullTest extends Test {
                 Type expectedType = count < tries / 2 ? Type.VIEWED : Type.PLAYED;
 
                 if (!attn.getType().equals(expectedType)) {
-                    ts.fail("unexpected type for attention " + attn + " expected " + expectedType.name());
+                    ts.fail("(truk) unexpected type for attention " + attn + " expected " + expectedType.name());
                     return;
                 }
                 count++;
@@ -200,26 +206,26 @@ public class AttentionFullTest extends Test {
                 List<Attention> attns = mdb.getDataStore().getAttention(ac);
 
                 if (attns.size() != 1) {
-                    ts.fail("bad attention count when retrieving by target " + targetKey + " expected 1  found " + attns.size());
+                    ts.fail("(trtk) bad attention count when retrieving by target " + targetKey + " expected 1  found " + attns.size());
                     return;
                 }
 
                 Attention attn = attns.get(0);
 
                 if (!attn.getSourceKey().equals(user)) {
-                    ts.fail("when retrieving by targetKey unexpected source key for attention " + attn + " expected " + user);
+                    ts.fail("(trtk) when retrieving by targetKey unexpected source key for attention " + attn + " expected " + user);
                     return;
                 }
 
                 if (!attn.getTargetKey().equals(targetKey)) {
-                    ts.fail("when retrieving by targetKey unexpected target key for attention " + attn + " expected " + targetKey);
+                    ts.fail("(trtk) when retrieving by targetKey unexpected target key for attention " + attn + " expected " + targetKey);
                     return;
                 }
 
                 Type expectedType = i < tries / 2 ? Type.VIEWED : Type.PLAYED;
 
                 if (!attn.getType().equals(expectedType)) {
-                    ts.fail("when retrieving by attention, unexpected type for attention " + attn + " expected " + expectedType.name());
+                    ts.fail("(trtk) when retrieving by attention, unexpected type for attention " + attn + " expected " + expectedType.name());
                     return;
                 }
             }
@@ -252,15 +258,25 @@ public class AttentionFullTest extends Test {
             ac.setSourceKey(user);
             List<Attention> attns = mdb.getDataStore().getAttention(ac);
             if (attns.size() > 0) {
-                ts.fail("Attention delete failed after deleting user, " + attns.size() + " attention remain.");
+                ts.fail("(rua) Attention delete failed after deleting user, " + attns.size() + " attention remain.");
                 return;
             }
         }
 
         // test to make sure the user is gone.
         if (mdb.getListener(user) != null) {
-            ts.fail("User deletion failed for " + user);
+            ts.fail("(rua) User deletion failed for " + user);
             return;
         }
+    }
+
+    private void dump(TestStatus ts, List<Attention> attns) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Attention dump: size: " + attns.size() + "\n");
+        for (Attention attn : attns) {
+            sb.append("  " + attn.toString());
+            sb.append("\n");
+        }
+        ts.setStackTrace(sb.toString());
     }
 }
