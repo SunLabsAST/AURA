@@ -43,10 +43,12 @@ public class CloudArtist extends CloudComposite {
         return artistImage;
     }
 
+    @Override
     public Image getIcon() {
         return new Image("icon-a.jpg");
     }
 
+    @Override
     public ColorConfig[] getColorConfig() {
         return color;
     }

@@ -5,13 +5,13 @@
 
 package com.sun.labs.aura.music.wsitm.client.items;
 
-import java.io.Serializable;
+import com.google.gwt.user.client.rpc.IsSerializable;
 
 /**
  *
  * @author mailletf
  */
-public class ScoredC<T> implements Serializable {
+public class ScoredC<T> implements IsSerializable {
     
     private T item;
     private double score;

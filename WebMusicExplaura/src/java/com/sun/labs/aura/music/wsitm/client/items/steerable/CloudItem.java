@@ -27,6 +27,9 @@ public interface CloudItem extends Comparable<CloudItem> {
     public HashMap<String, Double> getTagMap();
 
     public ColorConfig[] getColorConfig();
+
+    public void setSticky(boolean sticky);
+    public boolean isSticky();
     
     /**
      * If the item can be represented by an image, return its url

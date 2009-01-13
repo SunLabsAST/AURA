@@ -149,7 +149,10 @@ h2 {
     background-color: #D4C790;
     background: #D4C790;
 }
-
+.tagSticky {
+    color: #7eaf00;
+    text-decoration: none;
+}
 .tagColorAdded {
   color : #b6cf9d;
 }

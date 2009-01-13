@@ -15,9 +15,8 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.SourcesMouseEvents;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.ui.AnimatedComposite;
+import com.sun.labs.aura.music.wsitm.client.event.HoverListener;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedFlowPanel;
-import java.util.EventListener;
 import java.util.HashSet;
 
 /**
@@ -33,6 +32,8 @@ public class RightMenuWidget <T extends Widget> extends Composite
     protected T w; // main widget
     
     protected boolean isHovering = false;
+
+    private double lastRightMenuHeight=-1;
 
     private HashSet<Widget> rightMenuWidgets;
     
@@ -51,6 +52,7 @@ public class RightMenuWidget <T extends Widget> extends Composite
         this.w = w;
         this.mainPanel = mainPanel;
         this.rightMenu = new SpannedFlowPanel();
+        //this.rightMenu = new SpannedVerticalPanel();
 
         mainPanel.add(w);
         mainPanel.add(rightMenu);
@@ -91,12 +93,13 @@ public class RightMenuWidget <T extends Widget> extends Composite
      * @param px
      */
     public void setRightMenuHeight(double px) {
+        lastRightMenuHeight = px;
         for (Widget tw : rightMenuWidgets) {
             if (tw instanceof com.sun.labs.aura.music.wsitm.client.ui.widget.SwapableWidget) {
-                ((SwapableWidget)tw).getWidget1().getElement().setAttribute("style", "margin-bottom: "+px+"px;");
-                ((SwapableWidget)tw).getWidget2().getElement().setAttribute("style", "margin-bottom: "+px+"px;");
+                ((SwapableWidget)tw).getWidget1().getElement().getStyle().setPropertyPx("marginBottom", (int)px);
+                ((SwapableWidget)tw).getWidget2().getElement().getStyle().setPropertyPx("marginBottom", (int)px);
             } else {
-                tw.getElement().setAttribute("style", "margin-bottom: "+px+"px;");
+                tw.getElement().getStyle().setPropertyPx("marginBottom", (int)px);
             }
         }
     }
@@ -119,6 +122,11 @@ public class RightMenuWidget <T extends Widget> extends Composite
         rightMenuWidgets.add(wToAdd);
         if (hL != null) {
             hoverListenerManager.addHoverListener(hL);
+        }
+
+        // Set height of newly added widget
+        if (lastRightMenuHeight!=-1) {
+            setRightMenuHeight(lastRightMenuHeight);
         }
     }
 
@@ -150,28 +158,6 @@ public class RightMenuWidget <T extends Widget> extends Composite
                 }
                 break;
         }
-    }
-    
-    public abstract class HoverListener<T> implements EventListener {
-        
-        protected T data;
-
-        public HoverListener(T data) {
-            this.data = data;
-        }
-
-        /**
-         * Fired when mouse starts hovering over the widget
-         */
-        abstract void onMouseHover();
-        /**
-         * Fired as soon as the mouse stops hovering over the widget
-         */
-        abstract void onMouseOut();
-        /**
-         * Fired when the mouse has stopped hovering for a small delay
-         */
-        abstract void onOutTimer();
     }
     
     private class HoverListenerManager {
