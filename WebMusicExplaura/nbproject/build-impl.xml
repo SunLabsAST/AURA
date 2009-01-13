@@ -558,7 +558,7 @@ exists or setup the property manually. For example like this:
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,-do-dist-with-manifest,-do-dist-without-manifest" name="do-dist"/>
     <target depends="init" if="dist.ear.dir" name="library-inclusion-in-manifest">
-        <copyfiles files="${libs.GWT1.5.0.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.GWT1.5.0.classpath" todir="${dist.ear.dir}"/>
+        <copyfiles files="${libs.GWT-bleeding.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.GWT-bleeding.classpath" todir="${dist.ear.dir}"/>
         <copyfiles files="${libs.Minion.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.Minion.classpath" todir="${dist.ear.dir}"/>
         <copyfiles files="${libs.SunLabsUtilities.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.SunLabsUtilities.classpath" todir="${dist.ear.dir}"/>
         <copyfiles files="${libs.ApacheCommons.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.ApacheCommons.classpath" todir="${dist.ear.dir}"/>
@@ -572,11 +572,11 @@ exists or setup the property manually. For example like this:
         <copyfiles files="${libs.JiniCore.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.JiniCore.classpath" todir="${dist.ear.dir}"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${manifest.libs.GWT1.5.0.classpath} ${manifest.libs.Minion.classpath} ${manifest.libs.SunLabsUtilities.classpath} ${manifest.libs.ApacheCommons.classpath} ${manifest.libs.Guice.classpath} ${manifest.libs.GWTExtensions.classpath} ${manifest.file.reference.htmlparser-1.6.jar} ${manifest.reference.aura.jar} ${manifest.reference.sitm.jar} ${manifest.libs.GWTExtensions.classpath} ${manifest.libs.OpenID.classpath} ${manifest.libs.JiniCore.classpath} "/>
+            <attribute name="Class-Path" value="${manifest.libs.GWT-bleeding.classpath} ${manifest.libs.Minion.classpath} ${manifest.libs.SunLabsUtilities.classpath} ${manifest.libs.ApacheCommons.classpath} ${manifest.libs.Guice.classpath} ${manifest.libs.GWTExtensions.classpath} ${manifest.file.reference.htmlparser-1.6.jar} ${manifest.reference.aura.jar} ${manifest.reference.sitm.jar} ${manifest.libs.GWTExtensions.classpath} ${manifest.libs.OpenID.classpath} ${manifest.libs.JiniCore.classpath} "/>
         </manifest>
     </target>
     <target depends="init" name="library-inclusion-in-archive" unless="dist.ear.dir">
-        <copyfiles files="${libs.GWT1.5.0.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copyfiles files="${libs.GWT-bleeding.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copyfiles files="${libs.Minion.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copyfiles files="${libs.SunLabsUtilities.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copyfiles files="${libs.ApacheCommons.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
