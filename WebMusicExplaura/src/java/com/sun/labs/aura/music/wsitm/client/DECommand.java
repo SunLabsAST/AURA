@@ -11,11 +11,11 @@ import com.google.gwt.user.client.Command;
  *
  * @author mailletf
  */
-public abstract class DataEmbededCommand <T> implements Command {
+public abstract class DECommand <T> implements Command {
 
     protected T data;
 
-    public DataEmbededCommand(T data) {
+    public DECommand(T data) {
         this.data = data;
     }
 }
