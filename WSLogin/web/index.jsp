@@ -30,5 +30,8 @@
                 For User ID <c:out value='${sessionScope["openid"]}'/>
             </h2>
             </c:if>
+            <c:if test='${not empty param.error}'>
+                Error: <c:out value="${param.error}"/>
+            </c:if>
     </body>
 </html>
