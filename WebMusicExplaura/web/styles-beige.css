@@ -153,6 +153,26 @@ h2 {
     color: #7eaf00;
     text-decoration: none;
 }
+.artistTagSticky {
+    color: #42e2e8;
+    text-decoration: none;
+}
+.artistTag1 {
+    color: #728bd2;
+    text-decoration: none;
+}
+.artistTag2 {
+    color: #295df3;
+    text-decoration: none;
+}
+.artistTag1neg {
+    color: #728bd2;
+    text-decoration: line-through;
+}
+.artistTag2neg {
+    color: #295df3;
+    text-decoration: line-through;
+}
 .tagColorAdded {
   color : #b6cf9d;
 }

@@ -28,11 +28,11 @@ import com.sun.labs.aura.music.wsitm.client.event.HoverListener;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudArtist;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.WrapsCloudItem;
-import com.sun.labs.aura.music.wsitm.client.ui.ColorConfig;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringArtistMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
+import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.DeletableWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.SwapableWidget;
@@ -250,7 +250,7 @@ public class ResizableTagWidget extends TagWidget {
 
             hasChanged = true;
             DeferredCommand.addCommand(new Command() {
-
+                @Override
                 public void execute() {
                     updateRecommendations();
                 }
@@ -265,7 +265,7 @@ public class ResizableTagWidget extends TagWidget {
                 item.setWeight( AVG_SIZE_OF_ADDED_CLOUD );
             }
             
-            ResizableTag rT = getNewTagObject(item, item.getColorConfig()[(colorIndex++) % 2]);
+            ResizableTag rT = getNewTagObject(item, (colorIndex++) % 2);
             DeletableResizableTag dW = new DeletableResizableTag(rT);
             dW.addStyleName("pointer");
 
@@ -321,11 +321,7 @@ public class ResizableTagWidget extends TagWidget {
     private void redrawTagCloud() {
         colorIndex = 1;
         for (DeletableWidget<ResizableTag> dW : tagCloud.values()) {
-            if (dW.getWidget().getCloudItem().isSticky()) {
-                dW.getWidget().updateColor(new ColorConfig("#7eaf00", "#7eaf00"), true);
-            } else {
-                dW.getWidget().updateColor(dW.getWidget().getCloudItem().getColorConfig()[(colorIndex++) % 2], true);
-            }
+            dW.getWidget().updateColor((colorIndex++) % 2);
         }
     }
 
@@ -350,11 +346,11 @@ public class ResizableTagWidget extends TagWidget {
      * @param color
      * @return
      */
-    private ResizableTag getNewTagObject(CloudItem item, ColorConfig color) {
+    private ResizableTag getNewTagObject(CloudItem item, int startingColorIndex) {
         if (item instanceof CloudArtist) {
-            return new ResizableArtistTag(item, color);
+            return new ResizableArtistTag(item, startingColorIndex);
         } else {
-            return new ResizableTag(item, color);
+            return new ResizableTag(item, startingColorIndex);
         }
     }
 
@@ -440,8 +436,8 @@ public class ResizableTagWidget extends TagWidget {
         
         protected SharedSteeringArtistMenu cm;
         
-        public ResizableArtistTag(CloudItem item, ColorConfig color) {
-            super(item, color);
+        public ResizableArtistTag(CloudItem item, int startingColorIndex) {
+            super(item, startingColorIndex);
             this.cm = sharedArtistMenu;
             sinkEvents(Event.ONCONTEXTMENU);
         }
@@ -460,6 +456,7 @@ public class ResizableTagWidget extends TagWidget {
             }
         }
 
+        @Override
         public ContextMenu getContextMenu() {
             return cm;
         }  
@@ -470,12 +467,14 @@ public class ResizableTagWidget extends TagWidget {
         private final static double DEFAULT_SIZE = 40;
 
         private boolean hasClicked = false;
-        private ColorConfig color;
         protected CloudItem item;
         private static final int MIN_SIZE = 4;
         private static final int MAX_SIZE = 175;
 
-        public ResizableTag(CloudItem item, ColorConfig color) {
+        private String currCssColorName = "";
+        private int lastUsedIndex = 1;
+
+        public ResizableTag(CloudItem item, int startingColorIndex) {
             super(item.getDisplayName());
             this.item = item;
 
@@ -483,11 +482,11 @@ public class ResizableTagWidget extends TagWidget {
                 this.item.setWeight(DEFAULT_SIZE);
             }
 
+            lastUsedIndex = startingColorIndex;
             setTitle("Click and drag this tag to change its size");
 
             addStyleName("marginRight");
             addStyleName("hand");
-            this.color = color;
             resetAttributes();
             this.addMouseUpHandler(new MouseUpHandler() {
                 @Override
@@ -506,17 +505,19 @@ public class ResizableTagWidget extends TagWidget {
         private final void resetAttributes() {
             getElement().setAttribute("style", "-moz-user-select: none; -khtml-user-select: none; user-select: none;");
             getElement().getStyle().setPropertyPx("fontSize", (int)Math.abs(item.getWeight()));
-            getElement().getStyle().setProperty("color", color.getColor(item.getWeight()));
-            //TagDisplayLib.setColorToElem(this, 0, item.getWeight());
+            updateColor();
         }
 
-        public void updateColor(ColorConfig color, boolean allowSignFlip) {
-            this.color = color;
-            resetAttributes();
+        public void updateColor() {
+            updateColor(lastUsedIndex);
         }
 
-        public void updateSize(int increment, ColorConfig color) {
-            this.color = color;
+        public void updateColor(int newIndex) {
+            lastUsedIndex = newIndex;
+            currCssColorName = TagDisplayLib.setColorToElem(this, lastUsedIndex, item.getWeight(), currCssColorName, item.getTagColorType());
+        }
+
+        public void updateSize(int increment) {
             updateSize(increment, true);
         }
 

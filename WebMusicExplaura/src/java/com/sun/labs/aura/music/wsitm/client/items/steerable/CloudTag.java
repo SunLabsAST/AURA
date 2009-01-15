@@ -7,7 +7,7 @@ package com.sun.labs.aura.music.wsitm.client.items.steerable;
 
 import com.google.gwt.user.client.ui.Image;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
-import com.sun.labs.aura.music.wsitm.client.ui.ColorConfig;
+import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib.TagColorType;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -21,12 +21,7 @@ public class CloudTag implements CloudItem {
     private String tagName;
     private double tagWeight;
     private boolean sticky;
-
-    private static final ColorConfig[] color = {
-        new ColorConfig("#D4C790", "#D49090"),
-        new ColorConfig("#ADA376", "#AD7676")
-    };
-    
+   
     public CloudTag(String tagId, String tagName, double tagWeight) {
         this.tagId = tagId;
         this.tagName = tagName;
@@ -96,11 +91,6 @@ public class CloudTag implements CloudItem {
     }
 
     @Override
-    public ColorConfig[] getColorConfig() {
-        return color;
-    }
-
-    @Override
     public void setSticky(boolean sticky) {
         this.sticky = sticky;
     }
@@ -108,5 +98,14 @@ public class CloudTag implements CloudItem {
     @Override
     public boolean isSticky() {
         return this.sticky;
+    }
+
+    @Override
+    public TagColorType getTagColorType() {
+        if (this.isSticky()) {
+            return TagColorType.STICKY_TAG;
+        } else {
+            return TagColorType.TAG;
+        }
     }
 }

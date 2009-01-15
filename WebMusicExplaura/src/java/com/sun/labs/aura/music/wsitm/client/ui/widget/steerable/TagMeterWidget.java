@@ -19,6 +19,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededMouseListener;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.WrapsCloudItem;
+import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -280,7 +281,7 @@ public class TagMeterWidget extends TagWidget {
         public DeletableTag(CloudItem i) {
             super(new SpannedLabel(i.getDisplayName()));
             this.i = i;
-            this.getElement().setAttribute("style", "color:"+i.getColorConfig()[1].getColor(1)+";");
+            TagDisplayLib.setColorToElem(this.getWidget(), 1, 1, null, TagDisplayLib.TagColorType.TAG);
             addRemoveButton();
         }
 
