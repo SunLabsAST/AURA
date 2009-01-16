@@ -22,7 +22,7 @@ import java.util.logging.Level;
  */
 public class ArtistFindSimilar extends ServiceAdapter {
 
-    @ConfigStringList(defaultList={"weezer", "the tragically hip"})
+    @ConfigStringList(defaultList={"weezer", "the tragically hip", "cake", "uncle tupelo", "wilco"})
     public static final String PROP_ARTISTS = "artists";
 
     private List<String> artists;
@@ -46,14 +46,18 @@ public class ArtistFindSimilar extends ServiceAdapter {
 
         try {
             MusicDatabase mdb = new MusicDatabase(cm);
-            for(String an : artists) {
-                Artist artist = mdb.artistFindBestMatch(an);
-                logger.info("artist: " + artist.getName() + " " + artist.getKey());
-                List<Scored<Artist>> sartists =
-                        mdb.artistFindSimilar(artist.getKey(), 10,
-                        MusicDatabase.Popularity.ALL);
-                for(Scored<Artist> sa : sartists) {
-                    logger.info(String.format("%5.3f %s %s", sa.getScore(), sa.getItem().getKey(), sa.getItem().getName()));
+            for(int i = 0; i < 5; i++) {
+                for(String an : artists) {
+                    Artist artist = mdb.artistFindBestMatch(an);
+                    logger.info("artist: " + artist.getName() + " " + artist.
+                            getKey());
+                    List<Scored<Artist>> sartists =
+                            mdb.artistFindSimilar(artist.getKey(), 10,
+                            MusicDatabase.Popularity.ALL);
+                    for(Scored<Artist> sa : sartists) {
+                        logger.info(String.format("%5.3f %s %s", sa.getScore(), sa.getItem().
+                                getKey(), sa.getItem().getName()));
+                    }
                 }
             }
         } catch (AuraException ex) {
