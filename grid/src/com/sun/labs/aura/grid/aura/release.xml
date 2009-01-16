@@ -24,6 +24,11 @@
         <property name="destroy" value="true"/>
     </component>
 
+    <component name="startAura" type="com.sun.labs.aura.grid.aura.StartAura">
+        <property name="onGrid" value="false"/>
+        <property name="instance" value="${auraInstance}"/>
+    </component>
+
     <component name="prepareForRelease" type="com.sun.labs.aura.grid.aura.PrepareForRelease">
         <property name="onGrid" value="false"/>
         <property name="instance" value="${auraInstance}"/>
@@ -31,6 +36,12 @@
     </component>
 
     <component name="cleanupRelease" type="com.sun.labs.aura.grid.aura.CleanupRelease">
+        <property name="onGrid" value="false"/>
+        <property name="instance" value="${auraInstance}"/>
+        <property name="relName" value="${relName}"/>
+    </component>
+
+    <component name="rollbackRelease" type="com.sun.labs.aura.grid.aura.RollbackRelease">
         <property name="onGrid" value="false"/>
         <property name="instance" value="${auraInstance}"/>
         <property name="relName" value="${relName}"/>
@@ -55,6 +66,23 @@
     <component name="cleanup" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>cleanupRelease</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="rollback" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>stopSITM</item>
+            <item>stopAuraAndDestroyAll</item>
+            <item>rollbackRelease</item>
+            <item>startAura</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="rollonly" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>rollbackRelease</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
