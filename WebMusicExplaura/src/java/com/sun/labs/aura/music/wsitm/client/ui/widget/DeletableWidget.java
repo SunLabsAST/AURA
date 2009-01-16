@@ -1,10 +1,12 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
-import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.event.HoverListener;
 
 /**
  *
@@ -26,6 +28,7 @@ public abstract class DeletableWidget <T extends Widget> extends RightMenuWidget
 
     private void doDefaultXButtonConstruct() {
         xB = new SwapableWidget<Image, Image>(new Image("green-x.jpg"), new Image("green-x-hidden.jpg"));
+        xB.getWidget1().setTitle("Click to delete this tag");
         xB.showWidget(SwapableWidget.LoadableWidget.W2);
         xB.addStyleName("image");
     }
@@ -43,22 +46,22 @@ public abstract class DeletableWidget <T extends Widget> extends RightMenuWidget
         super.addWidgetToRightMenu(xB, new HoverListener<SwapableWidget>(xB) {
 
             @Override
-            void onMouseHover() {
+            public void onMouseHover() {
                 data.showWidget(SwapableWidget.LoadableWidget.W1);
             }
 
             @Override
-            void onOutTimer() {
+            public void onOutTimer() {
                 data.showWidget(SwapableWidget.LoadableWidget.W2);
             }
             
             @Override
-            void onMouseOut() {}
+            public void onMouseOut() {}
         });
 
-        xB.getWidget1().addClickListener(new ClickListener() {
-
-            public void onClick(Widget arg0) {
+        xB.getWidget1().addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent ce) {
                 onDelete();
             }
         });

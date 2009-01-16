@@ -34,6 +34,13 @@ public abstract class TagDisplayLib {
         SHUFFLE
     }
 
+    public enum TagColorType {
+        TAG,
+        ARTIST,
+        STICKY_TAG,
+        STICKY_ARTIST
+    }
+
     public static void showDifferenceCloud(String title, ItemInfo[] tags1, ItemInfo[] tags2, ClientDataManager cdm) {
         
         HashMap<String, Double> normTags1 = normaliseItemInfoArray(tags1);
@@ -160,7 +167,7 @@ public abstract class TagDisplayLib {
                 ContextMenuTagLabel sL = new ContextMenuTagLabel(tags[i], cdm);
                 //sL.getElement().getStyle().setPropertyPx("font-size", fontSize);
                 sL.getElement().setAttribute("style", "font-size:" + fontSize + "px;");
-                setColorToElem(sL, colorId, tags[i].getScore());
+                setColorToElem(sL, colorId, tags[i].getScore(), null, TagColorType.TAG);
                 sL.addStyleName("pointer");
                 sL.addClickHandler(new DEClickHandler<ItemInfo>(tags[i]) {
                     
@@ -192,27 +199,69 @@ public abstract class TagDisplayLib {
     }
 
     /**
-     * Set the right stylesheet to a tag label
+     * Set the right stylesheet to a tag label based on its color and index
      * @param sL label
      * @param index {0,1}
      * @param size Size of label; will determine if colored positive or negative
      */
-    public static void setColorToElem(Label sL, int index, double size) {
-        if (index == 0) {
-            if (size < 0) {
-                sL.addStyleName("tag1neg");
+    public static String setColorToElem(Label sL, int index, double size, String previousColor, TagColorType colorType) {
+        String newColor = "";
+        if (colorType==TagColorType.TAG) {
+            if (index == 0) {
+                if (size < 0) {
+                    newColor = "tag1neg";
+                } else {
+                    newColor = "tag1";
+                }
+            } else if (index == 1) {
+                if (size < 0) {
+                    newColor = "tag2neg";
+                } else {
+                    newColor = "tag2";
+                }
             } else {
-                sL.addStyleName("tag1");
+                newColor = "-1";
             }
-        } else if (index == 1) {
-            if (size < 0) {
-                sL.addStyleName("tag2neg");
+        } else if (colorType==TagColorType.ARTIST) {
+            if (index == 0) {
+                if (size < 0) {
+                    newColor = "artistTag1neg";
+                } else {
+                    newColor = "artistTag1";
+                }
+            } else if (index == 1) {
+                if (size < 0) {
+                    newColor = "artistTag2neg";
+                } else {
+                    newColor = "artistTag2";
+                }
             } else {
-                sL.addStyleName("tag2");
+                newColor = "-1";
             }
-        } else {
+        } else if (colorType==TagColorType.STICKY_TAG) {
+            if (size<0) {
+                return setColorToElem(sL, index, size, previousColor, TagColorType.TAG);
+            } else {
+                newColor = "tagSticky";
+            }
+        } else if (colorType==TagColorType.STICKY_ARTIST) {
+            if (size<0) {
+                return setColorToElem(sL, index, size, previousColor, TagColorType.ARTIST);
+            } else {
+                newColor = "artistTagSticky";
+            }
+        }
+
+        if (newColor.equals("-1")) {
             Window.alert("Invalid color");
-        }        
+            return previousColor;
+        } else {
+            if (previousColor!=null && previousColor.length()>0) {
+                sL.removeStyleName(previousColor);
+            }
+            sL.addStyleName(newColor);
+            return newColor;
+        }
     }
     
     public static void invokeGetCommonTags(String artistID1, String artistID2,

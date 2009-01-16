@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedFlowPanel;
@@ -33,8 +34,12 @@ public class SwapableWidget<T extends Widget, V extends Widget> extends Composit
         
         fP = new SpannedFlowPanel();
         fP.add(w1);
+        loadedWidget = LoadableWidget.W1;
         
         initWidget(fP);
+
+        // Register for onclick events
+        sinkEvents(Event.ONCLICK);
     }
 
     public void showWidget(LoadableWidget widgetToLoad) {
@@ -61,5 +66,19 @@ public class SwapableWidget<T extends Widget, V extends Widget> extends Composit
         return loadedWidget;
     }
 
+    public Widget getLoadedWidget() {
+        if (loadedWidget==LoadableWidget.W1) {
+            return w1;
+        } else {
+            return w2;
+        }
+    }
 
+    public void swapWidget() {
+        if (getLoadedWidgetName()==LoadableWidget.W1) {
+            showWidget(LoadableWidget.W2);
+        } else {
+            showWidget(LoadableWidget.W1);
+        }
+    }
 }

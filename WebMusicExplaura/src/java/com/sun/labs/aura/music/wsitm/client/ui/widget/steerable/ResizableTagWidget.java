@@ -4,6 +4,11 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.widget.steerable;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.MouseDownEvent;
+import com.google.gwt.event.dom.client.MouseDownHandler;
+import com.google.gwt.event.dom.client.MouseUpEvent;
+import com.google.gwt.event.dom.client.MouseUpHandler;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.DeferredCommand;
@@ -12,16 +17,17 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.Grid;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
-import com.sun.labs.aura.music.wsitm.client.DataEmbededCommand;
 import com.sun.labs.aura.music.wsitm.client.WebException;
+import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
+import com.sun.labs.aura.music.wsitm.client.event.HoverListener;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudArtist;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.WrapsCloudItem;
-import com.sun.labs.aura.music.wsitm.client.ui.ColorConfig;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringArtistMenu;
@@ -29,6 +35,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.DeletableWidget;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.SwapableWidget;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,7 +81,6 @@ public class ResizableTagWidget extends TagWidget {
         initWidget(fP);
 
         tagCloud = new HashMap<String, DeletableResizableTag>();
-
         fP.addMouseListener(new MouseListener() {
 
             public void onMouseDown(Widget arg0, int arg1, int arg2) {
@@ -100,6 +106,7 @@ public class ResizableTagWidget extends TagWidget {
                 ((FocusPanel) arg0).setFocus(false);
             }
 
+            @Override
             public void onMouseMove(Widget arg0, int arg1, int arg2) {
 
                 int increment = lastY - arg2;
@@ -243,7 +250,7 @@ public class ResizableTagWidget extends TagWidget {
 
             hasChanged = true;
             DeferredCommand.addCommand(new Command() {
-
+                @Override
                 public void execute() {
                     updateRecommendations();
                 }
@@ -251,13 +258,14 @@ public class ResizableTagWidget extends TagWidget {
         }
     }
 
+    @Override
     public void addItem(CloudItem item, boolean updateRecommendations) {
         if (!tagCloud.containsKey(item.getId())) {
             if (item.getWeight() == 0) {
                 item.setWeight( AVG_SIZE_OF_ADDED_CLOUD );
             }
             
-            ResizableTag rT = getNewTagObject(item, item.getColorConfig()[(colorIndex++) % 2]);
+            ResizableTag rT = getNewTagObject(item, (colorIndex++) % 2);
             DeletableResizableTag dW = new DeletableResizableTag(rT);
             dW.addStyleName("pointer");
 
@@ -282,6 +290,7 @@ public class ResizableTagWidget extends TagWidget {
         }
     }
 
+    @Override
     public void removeItem(String itemId) {
         if (tagCloud.containsKey(itemId)) {
             flowP.remove(tagCloud.get(itemId));
@@ -296,6 +305,7 @@ public class ResizableTagWidget extends TagWidget {
         }
     }
 
+    @Override
     public void removeAllItems(boolean updateRecommendations) {
         tagCloud.clear();
         flowP.clear();
@@ -311,10 +321,11 @@ public class ResizableTagWidget extends TagWidget {
     private void redrawTagCloud() {
         colorIndex = 1;
         for (DeletableWidget<ResizableTag> dW : tagCloud.values()) {
-            dW.getWidget().updateColor(dW.getWidget().getCloudItem().getColorConfig()[(colorIndex++) % 2], true);
+            dW.getWidget().updateColor((colorIndex++) % 2);
         }
     }
 
+    @Override
     public boolean containsItem(String itemId) {
         return tagCloud.containsKey(itemId);
     }
@@ -335,11 +346,11 @@ public class ResizableTagWidget extends TagWidget {
      * @param color
      * @return
      */
-    private ResizableTag getNewTagObject(CloudItem item, ColorConfig color) {
+    private ResizableTag getNewTagObject(CloudItem item, int startingColorIndex) {
         if (item instanceof CloudArtist) {
-            return new ResizableArtistTag(item, color);
+            return new ResizableArtistTag(item, startingColorIndex);
         } else {
-            return new ResizableTag(item, color);
+            return new ResizableTag(item, startingColorIndex);
         }
     }
 
@@ -350,6 +361,46 @@ public class ResizableTagWidget extends TagWidget {
             //addWidgetToRightMenu(t.getCloudItem().getIcon());
             addRemoveButton();
             setXButtonPosition();
+
+            Image img1 = new Image("stick.png");
+            img1.setTitle("Click to make this tag sticky");
+            Image img2 = new Image("unstick.png");
+            img2.setTitle("Click to unstick this tag");
+            SwapableWidget stickButton = new SwapableWidget<Image, Image>(img1, img2);
+            stickButton.showWidget(SwapableWidget.LoadableWidget.W1);
+            stickButton.getElement().getStyle().setProperty("visibility", "hidden");
+            img1.addClickHandler(new DDEClickHandler<CloudItem,SwapableWidget>(t.getCloudItem(), stickButton) {
+                @Override
+                public void onClick(ClickEvent event) {
+                    data.setSticky(true);
+                    sndData.swapWidget();
+                    redrawTagCloud();
+                }
+            });
+            img2.addClickHandler(new DDEClickHandler<CloudItem,SwapableWidget>(t.getCloudItem(), stickButton) {
+                @Override
+                public void onClick(ClickEvent event) {
+                    data.setSticky(false);
+                    sndData.swapWidget();
+                    redrawTagCloud();
+                }
+            });
+            super.addWidgetToRightMenu(stickButton, new HoverListener<SwapableWidget>(stickButton) {
+
+                @Override
+                public void onMouseHover() {
+                    data.getElement().getStyle().setProperty("visibility", "visible");
+                }
+
+                @Override
+                public void onOutTimer() {
+                    data.getElement().getStyle().setProperty("visibility", "hidden");
+                }
+
+                @Override
+                public void onMouseOut() {}
+
+            });
         }
 
         private final double getXButtonMargin() {
@@ -360,6 +411,7 @@ public class ResizableTagWidget extends TagWidget {
             setRightMenuHeight(getXButtonMargin());
         }
 
+        @Override
         public void onDelete() {
             /*this.fadeOut(new DataEmbededCommand<String>(getWidget().getCloudItem().getId()) {
 
@@ -371,6 +423,7 @@ public class ResizableTagWidget extends TagWidget {
             removeItem(getWidget().getCloudItem().getId());
         }
 
+        @Override
         public CloudItem getCloudItem() {
             return getWidget().getCloudItem();
         }
@@ -383,8 +436,8 @@ public class ResizableTagWidget extends TagWidget {
         
         protected SharedSteeringArtistMenu cm;
         
-        public ResizableArtistTag(CloudItem item, ColorConfig color) {
-            super(item, color);
+        public ResizableArtistTag(CloudItem item, int startingColorIndex) {
+            super(item, startingColorIndex);
             this.cm = sharedArtistMenu;
             sinkEvents(Event.ONCONTEXTMENU);
         }
@@ -403,6 +456,7 @@ public class ResizableTagWidget extends TagWidget {
             }
         }
 
+        @Override
         public ContextMenu getContextMenu() {
             return cm;
         }  
@@ -413,12 +467,14 @@ public class ResizableTagWidget extends TagWidget {
         private final static double DEFAULT_SIZE = 40;
 
         private boolean hasClicked = false;
-        private ColorConfig color;
         protected CloudItem item;
         private static final int MIN_SIZE = 4;
         private static final int MAX_SIZE = 175;
 
-        public ResizableTag(CloudItem item, ColorConfig color) {
+        private String currCssColorName = "";
+        private int lastUsedIndex = 1;
+
+        public ResizableTag(CloudItem item, int startingColorIndex) {
             super(item.getDisplayName());
             this.item = item;
 
@@ -426,41 +482,42 @@ public class ResizableTagWidget extends TagWidget {
                 this.item.setWeight(DEFAULT_SIZE);
             }
 
+            lastUsedIndex = startingColorIndex;
             setTitle("Click and drag this tag to change its size");
 
             addStyleName("marginRight");
             addStyleName("hand");
-            this.color = color;
             resetAttributes();
-
-            addMouseListener(new MouseListener() {
-
-                public void onMouseDown(Widget arg0, int arg1, int arg2) {
-                    hasClicked = true;
-                }
-
-                public void onMouseUp(Widget arg0, int arg1, int arg2) {
+            this.addMouseUpHandler(new MouseUpHandler() {
+                @Override
+                public void onMouseUp(MouseUpEvent event) {
                     hasClicked = false;
                 }
-
-                public void onMouseEnter(Widget arg0) {}
-                public void onMouseLeave(Widget arg0) {}
-                public void onMouseMove(Widget arg0, int arg1, int arg2) {}
+            });
+            this.addMouseDownHandler(new MouseDownHandler() {
+                @Override
+                public void onMouseDown(MouseDownEvent event) {
+                    hasClicked = true;
+                }
             });
         }
         
         private final void resetAttributes() {
-            getElement().setAttribute("style", "-moz-user-select: none; -khtml-user-select: none; user-select: none; font-size:" + Math.abs(item.getWeight()) + "px; color:" + color.getColor(item.getWeight()) + ";");
-            TagDisplayLib.setColorToElem(this, 0, item.getWeight());
+            getElement().setAttribute("style", "-moz-user-select: none; -khtml-user-select: none; user-select: none;");
+            getElement().getStyle().setPropertyPx("fontSize", (int)Math.abs(item.getWeight()));
+            updateColor();
         }
 
-        public void updateColor(ColorConfig color, boolean allowSignFlip) {
-            this.color = color;
-            updateSize(0, true);
+        public void updateColor() {
+            updateColor(lastUsedIndex);
         }
 
-        public void updateSize(int increment, ColorConfig color) {
-            this.color = color;
+        public void updateColor(int newIndex) {
+            lastUsedIndex = newIndex;
+            currCssColorName = TagDisplayLib.setColorToElem(this, lastUsedIndex, item.getWeight(), currCssColorName, item.getTagColorType());
+        }
+
+        public void updateSize(int increment) {
             updateSize(increment, true);
         }
 
@@ -516,6 +573,7 @@ public class ResizableTagWidget extends TagWidget {
             return this.getText().equals(rT.getText());
         }
 
+        @Override
         public CloudItem getCloudItem() {
             return item;
         }

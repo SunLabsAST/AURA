@@ -8,7 +8,7 @@
             <explicit-platform explicit-source-supported="true"/>
             <web-module-libraries>
                 <library>
-                    <file>${libs.GWT1.5.0.classpath}</file>
+                    <file>${libs.GWT-bleeding.classpath}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library>

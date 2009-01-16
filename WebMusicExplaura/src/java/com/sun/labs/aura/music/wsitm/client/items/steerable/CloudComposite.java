@@ -18,6 +18,7 @@ public abstract class CloudComposite implements CloudItem {
     protected String itemId;
     protected String displayName;
     protected double weight;
+    protected boolean sticky;
 
     protected HashSet<CloudItem> items;
 
@@ -28,14 +29,17 @@ public abstract class CloudComposite implements CloudItem {
         this.weight = weight;
     }
 
+    @Override
     public String getDisplayName() {
         return displayName;
     }
 
+    @Override
     public double getWeight() {
         return weight;
     }
 
+    @Override
     public void setWeight(double weight) {
         this.weight = weight;
     }
@@ -48,10 +52,12 @@ public abstract class CloudComposite implements CloudItem {
         items.remove(cI);
     }
 
+    @Override
     public HashSet<CloudItem> getContainedItems() {
         return items;
     }
 
+    @Override
     public HashMap<String, Double> getTagMap() {
         double maxVal = 0;
         double newVal = 0;
@@ -80,16 +86,32 @@ public abstract class CloudComposite implements CloudItem {
         return tagMap;
     }
     
+    @Override
     public Image getImage() {
         return null;
     }
 
+    @Override
     public String getId() {
         return itemId;
     }
 
+    @Override
     public int compareTo(CloudItem o) {
         return new Double(getWeight()).compareTo(o.getWeight());
+    }
+
+    @Override
+    public void setSticky(boolean sticky) {
+        this.sticky = sticky;
+        for (CloudItem cI : items) {
+            cI.setSticky(sticky);
+        }
+    }
+
+    @Override
+    public boolean isSticky() {
+        return this.sticky;
     }
 
 }
