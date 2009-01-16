@@ -15,7 +15,6 @@
     <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
 
     <component name="afs" type="com.sun.labs.aura.grid.util.ArtistFindSimilar">
-        <property name="onGrid" value="false"/>
         <property name="instance" value="${auraInstance}"/>
     </component>
 

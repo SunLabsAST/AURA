@@ -133,8 +133,6 @@ public abstract class Aura extends ServiceAdapter {
             if(prefix == null) {
                 logger.warning("Replicant filesystem with no prefix metadata: " + fs.getName());
                 continue;
-            } else {
-                logger.info("Got filesystem with prefix: " + prefix);
             }
             
             mdv = md.get("owner");
