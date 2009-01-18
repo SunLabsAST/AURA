@@ -138,13 +138,25 @@ h2 {
   color: #ADA376;
   text-decoration: line-through;
 }
-.tagSticky {
-    color: #7eaf00;
+.tag1Sticky {
+    color: #D4C790;
     text-decoration: none;
+    font-style:italic;
 }
-.artistTagSticky {
-    color: #42e2e8;
+.tag2Sticky {
+    color: #ADA376;
     text-decoration: none;
+    font-style:italic;
+}
+.artistTag1Sticky {
+    color: #728bd2;
+    text-decoration: none;
+    font-style:italic;
+}
+.artistTag2Sticky {
+    color: #295df3;
+    text-decoration: none;
+    font-style:italic;
 }
 .artistTag1 {
     color: #728bd2;
