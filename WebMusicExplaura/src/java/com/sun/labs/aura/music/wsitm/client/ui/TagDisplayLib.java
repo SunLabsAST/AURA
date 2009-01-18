@@ -206,62 +206,36 @@ public abstract class TagDisplayLib {
      */
     public static String setColorToElem(Label sL, int index, double size, String previousColor, TagColorType colorType) {
         String newColor = "";
-        if (colorType==TagColorType.TAG) {
-            if (index == 0) {
-                if (size < 0) {
-                    newColor = "tag1neg";
-                } else {
-                    newColor = "tag1";
-                }
-            } else if (index == 1) {
-                if (size < 0) {
-                    newColor = "tag2neg";
-                } else {
-                    newColor = "tag2";
-                }
-            } else {
-                newColor = "-1";
-            }
-        } else if (colorType==TagColorType.ARTIST) {
-            if (index == 0) {
-                if (size < 0) {
-                    newColor = "artistTag1neg";
-                } else {
-                    newColor = "artistTag1";
-                }
-            } else if (index == 1) {
-                if (size < 0) {
-                    newColor = "artistTag2neg";
-                } else {
-                    newColor = "artistTag2";
-                }
-            } else {
-                newColor = "-1";
-            }
+        String negStr = "";
+        if (size<0) {
+            negStr="neg";
+        }
+        if (colorType == TagColorType.TAG) {
+            newColor = "tag" + (index + 1) + negStr;
+
+        } else if (colorType == TagColorType.ARTIST) {
+            newColor = "artistTag" + (index + 1) + negStr;
+
         } else if (colorType==TagColorType.STICKY_TAG) {
             if (size<0) {
                 return setColorToElem(sL, index, size, previousColor, TagColorType.TAG);
             } else {
-                newColor = "tagSticky";
+                newColor = "tag"+(index+1)+"Sticky";
             }
         } else if (colorType==TagColorType.STICKY_ARTIST) {
             if (size<0) {
                 return setColorToElem(sL, index, size, previousColor, TagColorType.ARTIST);
             } else {
-                newColor = "artistTagSticky";
+                newColor = "artistTag"+(index+1)+"Sticky";
             }
         }
 
-        if (newColor.equals("-1")) {
-            Window.alert("Invalid color");
-            return previousColor;
-        } else {
-            if (previousColor!=null && previousColor.length()>0) {
-                sL.removeStyleName(previousColor);
-            }
-            sL.addStyleName(newColor);
-            return newColor;
+        if (previousColor != null && previousColor.length() > 0) {
+            sL.removeStyleName(previousColor);
         }
+        sL.addStyleName(newColor);
+        return newColor;
+
     }
     
     public static void invokeGetCommonTags(String artistID1, String artistID2,

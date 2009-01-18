@@ -120,19 +120,38 @@ h2 {
     color: #eb7f00;
     text-decoration: none;
 }
-.tag1:hover {
-    color: #B0BFA1;
-    background-color: #D4C790;
+.tag1neg {
+    color: #eb7f00;
+    text-decoration: line-through;
 }
 .tag2 {
     color: #a45900;
     text-decoration: none;
 }
-.tag2:hover {
-    color: #B0BFA1;
-    background-color: #D4C790;
+.tag2neg {
+    color: #a45900;
+    text-decoration: line-through;
 }
-
+.artistTagSticky {
+    color: #19c2d5;
+    text-decoration: none;
+}
+.artistTag1 {
+    color: #5ba8b1;
+    text-decoration: none;
+}
+.artistTag2 {
+    color: #25909c;
+    text-decoration: none;
+}
+.artistTag1neg {
+    color: #5ba8b1;
+    text-decoration: line-through;
+}
+.artistTag2neg {
+    color: #25909c;
+    text-decoration: line-through;
+}
 .tagColorAdded {
   color : #b6cf9d;
 }

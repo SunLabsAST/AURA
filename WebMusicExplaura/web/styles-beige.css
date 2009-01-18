@@ -125,29 +125,18 @@ h2 {
 }
 
 .tag1neg {
-  color: #D49090;
-  text-decoration: none;  
-}
-
-.tag1:hover {
-    color: #B0BFA1;
-    background-color: #D4C790;
-    background: #D4C790;
+  /* color: #D49090; */
+  color: #D4C790;
+  text-decoration: line-through;
 }
 .tag2 {
     color: #ADA376;
     text-decoration: none;
 }
-
 .tag2neg {
-  color: #AD7676;
-  text-decoration: none;  
-}
-
-.tag2:hover {
-    color: #B0BFA1;
-    background-color: #D4C790;
-    background: #D4C790;
+  /* color: #AD7676; */
+  color: #ADA376;
+  text-decoration: line-through;
 }
 .tagSticky {
     color: #7eaf00;
