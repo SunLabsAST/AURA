@@ -45,6 +45,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
+import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib.TagColorType;
 import com.sun.labs.aura.music.wsitm.client.ui.UpdatablePanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuArtistLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWidget;
@@ -515,7 +516,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
 
             if (trimTags != null) {
                 centerPanel.add(TagDisplayLib.getTagsInPanel(trimTags,
-                        TagDisplayLib.ORDER.SHUFFLE, cdm));
+                        TagDisplayLib.ORDER.SHUFFLE, cdm, TagColorType.TAG));
             }
             centerPanel.add(featArtist);
             centerPanel.add(recentRating);

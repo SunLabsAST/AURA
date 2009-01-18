@@ -48,6 +48,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searc
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
+import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib.TagColorType;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
@@ -786,7 +787,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                 panel.add(tagInputWidget);
             }
             
-            Panel p = TagDisplayLib.getTagsInPanel(tagCloud, TagDisplayLib.ORDER.SHUFFLE, cdm);
+            Panel p = TagDisplayLib.getTagsInPanel(tagCloud, TagDisplayLib.ORDER.SHUFFLE, cdm, TagColorType.TAG);
             // If there are not tags, this will be null
             if (p != null) {
                 p.addStyleName("tagCloudMargin");

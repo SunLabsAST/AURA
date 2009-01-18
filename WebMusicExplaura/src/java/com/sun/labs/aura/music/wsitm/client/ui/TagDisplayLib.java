@@ -36,6 +36,7 @@ public abstract class TagDisplayLib {
 
     public enum TagColorType {
         TAG,
+        TAG_POPUP,
         ARTIST,
         STICKY_TAG,
         STICKY_ARTIST
@@ -93,10 +94,11 @@ public abstract class TagDisplayLib {
         showTagCloud(title, iI, order, cdm);
     }
         
-    public static void showTagCloud(String title, ItemInfo[] tags, ORDER order, ClientDataManager cdm) {
+    public static void showTagCloud(String title, ItemInfo[] tags, ORDER order,
+            ClientDataManager cdm) {
         //final DialogBox d = Popup.getDialogBox();
         final PopupPanel d = Popup.getPopupPanel();
-        Panel p = getTagsInPanel(tags, d, order, cdm);
+        Panel p = getTagsInPanel(tags, d, order, cdm, TagColorType.TAG_POPUP);
         if (p!=null) {
         //    Popup.showPopup(p,title,d);
             Popup.showRoundedPopup(p, title, d);
@@ -112,8 +114,9 @@ public abstract class TagDisplayLib {
         return (int) Math.round(range * score + min);
     }
 
-    public static Panel getTagsInPanel(ItemInfo[] tags, ORDER order, ClientDataManager cdm) {
-        return getTagsInPanel(tags, null, order, cdm);
+    public static Panel getTagsInPanel(ItemInfo[] tags, ORDER order,
+            ClientDataManager cdm, TagColorType colorTheme) {
+        return getTagsInPanel(tags, null, order, cdm, colorTheme);
     }
        
     /**
@@ -124,7 +127,8 @@ public abstract class TagDisplayLib {
      * @param d
      * @return
      */
-    public static Panel getTagsInPanel(ItemInfo[] tags, PopupPanel d, ORDER order, ClientDataManager cdm) {
+    public static Panel getTagsInPanel(ItemInfo[] tags, PopupPanel d, ORDER order,
+            ClientDataManager cdm, TagColorType colorTheme) {
         Panel p = new FlowPanel();
         if (d != null) {
             p.setWidth("600px");
@@ -167,7 +171,7 @@ public abstract class TagDisplayLib {
                 ContextMenuTagLabel sL = new ContextMenuTagLabel(tags[i], cdm);
                 //sL.getElement().getStyle().setPropertyPx("font-size", fontSize);
                 sL.getElement().setAttribute("style", "font-size:" + fontSize + "px;");
-                setColorToElem(sL, colorId, tags[i].getScore(), null, TagColorType.TAG);
+                setColorToElem(sL, colorId, tags[i].getScore(), null, colorTheme);
                 sL.addStyleName("pointer");
                 sL.addClickHandler(new DEClickHandler<ItemInfo>(tags[i]) {
                     
@@ -212,6 +216,9 @@ public abstract class TagDisplayLib {
         }
         if (colorType == TagColorType.TAG) {
             newColor = "tag" + (index + 1) + negStr;
+
+        } else if (colorType == TagColorType.TAG_POPUP) {
+            newColor = "tagPop" + (index + 1) + negStr;
 
         } else if (colorType == TagColorType.ARTIST) {
             newColor = "artistTag" + (index + 1) + negStr;

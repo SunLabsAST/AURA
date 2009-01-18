@@ -116,6 +116,27 @@ h2 {
     background-color: #DBE8B5;
     background: #DBE8B5;
 }
+
+
+.tagPop1 {
+    color: #eff2ca;
+    text-decoration: none;
+}
+.tagPop1neg {
+    color: #eff2ca;
+    text-decoration: line-through;
+}
+.tagPop2 {
+    color: #acf0f2;
+    text-decoration: none;
+}
+.tagPop2neg {
+    color: #acf0f2;
+    text-decoration: line-through;
+}
+
+
+
 .tag1 {
     color: #eb7f00;
     text-decoration: none;
