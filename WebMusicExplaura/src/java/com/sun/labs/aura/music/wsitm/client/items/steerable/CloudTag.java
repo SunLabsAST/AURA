@@ -64,6 +64,7 @@ public class CloudTag implements CloudItem {
         return ciL;
     }
 
+    @Override
     public HashMap<String, Double> getTagMap() {
         HashMap<String, Double> tagMap = new HashMap<String, Double>();
         tagMap.put(tagName, 1.0);
@@ -107,5 +108,10 @@ public class CloudTag implements CloudItem {
         } else {
             return TagColorType.TAG;
         }
+    }
+
+    @Override
+    public CloudItemType getCloudItemType() {
+        return CloudItemType.TAG;
     }
 }

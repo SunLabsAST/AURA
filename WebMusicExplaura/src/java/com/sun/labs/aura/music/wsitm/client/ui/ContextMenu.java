@@ -8,6 +8,7 @@ package com.sun.labs.aura.music.wsitm.client.ui;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -52,8 +53,7 @@ public class ContextMenu {
         }
     }
 
-    public void addElement(String label, ClickListener cL) {
-        Label l = new Label(label);
+    public void addElement(Label l, ClickListener cL) {
         l.addClickListener(cL);
         l.addClickListener(hideOnClickListener);
         l.addStyleName("contextMenuItem");
@@ -71,6 +71,15 @@ public class ContextMenu {
             public void onMouseUp(Widget sender, int x, int y) {}
         });
         vP.add(l);
+    }
+
+    public void addElement(String label, ClickListener cL) {
+        Label l = new Label(label);
+        addElement(l, cL);
+    }
+
+    public void addSeperator() {
+        vP.add(new HTML("<hr>"));
     }
     
     public void showAt(Event e) {

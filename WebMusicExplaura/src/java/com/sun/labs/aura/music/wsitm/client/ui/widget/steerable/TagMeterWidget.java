@@ -64,6 +64,11 @@ public class TagMeterWidget extends TagWidget {
     }
 
     @Override
+    public void redrawTagCloud() {
+        // do something!!
+    }
+
+    @Override
     public double getMaxWeight() {
         double maxVal = 0;
         double tempVal = 0;

@@ -8,7 +8,7 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Grid;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
-import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringArtistMenu;
+import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringCIMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import java.util.HashMap;
 
@@ -24,7 +24,8 @@ public class TagWidgetContainer extends TagWidget {
     private TagWidget activeTagWidget;
     private ClientDataManager cdm;
 
-    private SharedSteeringArtistMenu sharedCloudArtistMenu;
+    private SharedSteeringCIMenu sharedCloudArtistMenu;
+    private SharedSteeringCIMenu sharedCloudTagMenu;
 
     private boolean isInit = false;
 
@@ -33,7 +34,8 @@ public class TagWidgetContainer extends TagWidget {
 
         this.cdm = cdm;
 
-        sharedCloudArtistMenu = new SharedSteeringArtistMenu(cdm, this);
+        sharedCloudArtistMenu = new SharedSteeringCIMenu(cdm, this, CloudItem.CloudItemType.ARTIST);
+        sharedCloudTagMenu = new SharedSteeringCIMenu(cdm, this, CloudItem.CloudItemType.TAG);
 
     }
 
@@ -52,8 +54,12 @@ public class TagWidgetContainer extends TagWidget {
         initWidget(g);
     }
 
-    public SharedSteeringArtistMenu getSharedCloudArtistMenu() {
+    public SharedSteeringCIMenu getSharedCloudArtistMenu() {
         return sharedCloudArtistMenu;
+    }
+
+    public SharedSteeringCIMenu getSharedCloudTagMenu() {
+        return sharedCloudTagMenu;
     }
 
     public void swapTagWidget(TagWidget newTagWidget) {
@@ -64,26 +70,37 @@ public class TagWidgetContainer extends TagWidget {
         cdm.getTagCloudListenerManager().enableNotifications();
     }
 
+    @Override
     public HashMap<String, CloudItem> getItemsMap() {
         return activeTagWidget.getItemsMap();
     }
 
+    @Override
     public void removeItem(String itemId) {
         activeTagWidget.removeItem(itemId);
     }
 
+    @Override
+    public void redrawTagCloud() {
+        activeTagWidget.redrawTagCloud();
+    }
+
+    @Override
     public void removeAllItems(boolean updateRecommendations) {
         activeTagWidget.removeAllItems(updateRecommendations);
     }
 
+    @Override
     public boolean containsItem(String itemId) {
         return activeTagWidget.containsItem(itemId);
     }
 
+    @Override
     public void addItems(HashMap<String, CloudItem> items, ITEM_WEIGHT_TYPE weightType, int limit) {
         activeTagWidget.addItems(items, weightType, limit);
     }
 
+    @Override
     public void addItem(CloudItem item, boolean updateRecommendations) {
         activeTagWidget.addItem(item, updateRecommendations);
     }

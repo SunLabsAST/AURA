@@ -17,6 +17,11 @@ import java.util.HashSet;
  */
 public interface CloudItem extends Comparable<CloudItem> {
 
+    public enum CloudItemType {
+        TAG,
+        ARTIST
+    }
+
     public String getId();
     public String getDisplayName();
     
@@ -30,6 +35,7 @@ public interface CloudItem extends Comparable<CloudItem> {
     public boolean isSticky();
 
     public TagDisplayLib.TagColorType getTagColorType();
+    public CloudItemType getCloudItemType();
     
     /**
      * If the item can be represented by an image, return its url

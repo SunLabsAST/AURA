@@ -50,6 +50,7 @@ public abstract class TagWidget extends Composite {
     public abstract boolean containsItem(String itemId);
     public abstract HashMap<String, CloudItem> getItemsMap();
     public abstract double getMaxWeight();
+    public abstract void redrawTagCloud();
     public abstract void removeItem(String itemId);
     public abstract void removeAllItems(boolean updateRecommendations);
 

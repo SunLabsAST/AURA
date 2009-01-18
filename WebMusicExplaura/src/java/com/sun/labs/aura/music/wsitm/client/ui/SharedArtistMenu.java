@@ -7,9 +7,9 @@ package com.sun.labs.aura.music.wsitm.client.ui;
 
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.ArtistDependentSharedMenu;
 
@@ -22,53 +22,50 @@ public class SharedArtistMenu extends ContextMenu implements ArtistDependentShar
     protected ArtistCompact currArtist;
     protected ClientDataManager cdm;
     
-    public SharedArtistMenu(ClientDataManager cdm) {
+    public SharedArtistMenu(ClientDataManager tCdm) {
         super();
-        this.cdm = cdm;
+        this.cdm = tCdm;
 
-        addElement("View artist details",
-                new DataEmbededClickListener<SharedArtistMenu>(this) {
+        addElement("View artist details", new ClickListener() {
 
            @Override
             public void onClick(Widget sender) {
-                History.newItem("artist:" + data.currArtist.getId());
+                History.newItem("artist:" + currArtist.getId());
             }
 
 
         });
-        addElement("View tag cloud",
-                new DataEmbededClickListener<SharedArtistMenu>(this) {
+        addElement("View tag cloud", new ClickListener() {
 
             @Override
             public void onClick(Widget sender) {
-                TagDisplayLib.showTagCloud("Tag cloud for "+data.currArtist.getName(),
-                        data.currArtist.getDistinctiveTags(), TagDisplayLib.ORDER.SHUFFLE, data.cdm);
+                TagDisplayLib.showTagCloud("Tag cloud for "+currArtist.getName(),
+                        currArtist.getDistinctiveTags(), TagDisplayLib.ORDER.SHUFFLE, cdm);
             }
         });
 
-        addElement("Start new steerable from artist's top tags",
-                new DataEmbededClickListener<SharedArtistMenu>(this) {
+        addSeperator();
+        
+        addElement("Start new steerable from artist's top tags", new ClickListener() {
 
             @Override
             public void onClick(Widget sender) {
-                data.cdm.setSteerableReset(true);
-                History.newItem("steering:" + data.currArtist.getId());
+                cdm.setSteerableReset(true);
+                History.newItem("steering:" + currArtist.getId());
             }
         });
-        addElement("Add artist to steerable",
-                new DataEmbededClickListener<SharedArtistMenu>(this) {
+        addElement("Add artist to steerable", new ClickListener() {
 
             @Override
             public void onClick(Widget sender) {
-                data.cdm.getSteerableTagCloudExternalController().addArtist(data.currArtist);
+                cdm.getSteerableTagCloudExternalController().addArtist(currArtist);
             }
         });
-        addElement("Add artist's top tags to steerable",
-                new DataEmbededClickListener<SharedArtistMenu>(this) {
+        addElement("Add artist's top tags to steerable", new ClickListener() {
 
             @Override
             public void onClick(Widget sender) {
-                data.cdm.getSteerableTagCloudExternalController().addTags(data.currArtist.getDistinctiveTags());
+                cdm.getSteerableTagCloudExternalController().addTags(currArtist.getDistinctiveTags());
             }
         });  
     }
