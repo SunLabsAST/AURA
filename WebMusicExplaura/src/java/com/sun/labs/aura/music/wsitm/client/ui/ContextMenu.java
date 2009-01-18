@@ -5,6 +5,10 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.MouseOutEvent;
+import com.google.gwt.event.dom.client.MouseOverEvent;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ClickListener;
@@ -13,6 +17,8 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.event.DEMouseOutHandler;
+import com.sun.labs.aura.music.wsitm.client.event.DEMouseOverHandler;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededMouseListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
@@ -27,7 +33,7 @@ public class ContextMenu {
     private PopupPanel pp;
     protected VerticalPanel vP;
 
-    private ClickListener hideOnClickListener;
+    private ClickHandler hideOnClickHandler;
 
     private boolean newPopup = true;
   
@@ -35,9 +41,9 @@ public class ContextMenu {
         pp = Popup.getPopupPanel();
         vP = new VerticalPanel();
 
-        hideOnClickListener = new ClickListener() {
-
-            public void onClick(Widget sender) {
+        hideOnClickHandler = new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent ce) {
                 hideMenu();
             }
         };
@@ -53,9 +59,38 @@ public class ContextMenu {
         }
     }
 
+    public void addElement(String s, ClickHandler cH) {
+        addElement(new Label(s), cH);
+    }
+
+    public void addElement(Label l, ClickHandler cH) {
+        l.addClickHandler(cH);
+        l.addClickHandler(hideOnClickHandler);
+        l.addStyleName("contextMenuItem");
+
+        l.addMouseOutHandler(new DEMouseOutHandler<Label>(l) {
+            @Override
+            public void onMouseOut(MouseOutEvent event) {
+                data.removeStyleName("contextMenuItemHover");
+            }
+        });
+        l.addMouseOverHandler(new DEMouseOverHandler<Label>(l) {
+            @Override
+            public void onMouseOver(MouseOverEvent event) {
+                data.removeStyleName("contextMenuItemHover");
+            }
+        });
+        vP.add(l);
+    }
+
+    /**
+     * @deprecated
+     * @param l
+     * @param cL
+     */
     public void addElement(Label l, ClickListener cL) {
         l.addClickListener(cL);
-        l.addClickListener(hideOnClickListener);
+        l.addClickHandler(hideOnClickHandler);
         l.addStyleName("contextMenuItem");
         l.addMouseListener(new DataEmbededMouseListener<Label>(l) {
 
@@ -73,6 +108,11 @@ public class ContextMenu {
         vP.add(l);
     }
 
+    /**
+     * @deprecated
+     * @param label
+     * @param cL
+     */
     public void addElement(String label, ClickListener cL) {
         Label l = new Label(label);
         addElement(l, cL);

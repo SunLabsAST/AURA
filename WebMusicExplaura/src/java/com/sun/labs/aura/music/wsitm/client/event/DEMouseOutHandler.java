@@ -5,22 +5,19 @@
 
 package com.sun.labs.aura.music.wsitm.client.event;
 
-import com.google.gwt.user.client.ui.MouseListener;
+import com.google.gwt.event.dom.client.MouseOutHandler;
 
 /**
- * @deprecated 
+ *
  * @author mailletf
  */
-public abstract class DataEmbededMouseListener<T> implements MouseListener {
+public abstract class DEMouseOutHandler<T> implements MouseOutHandler {
 
     protected T data;
 
-    /**
-     * @deprecated 
-     * @param data
-     */
-    public DataEmbededMouseListener(T data) {
+    public DEMouseOutHandler(T data) {
         super();
         this.data = data;
     }
+
 }
