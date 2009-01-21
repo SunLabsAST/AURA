@@ -52,4 +52,8 @@ public class CloudArtist extends CloudComposite {
         }
     }
 
+    @Override
+    public CloudItemType getCloudItemType() {
+        return CloudItemType.ARTIST;
+    }
 }

@@ -6,8 +6,10 @@
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
 
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededMouseListener;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.MouseOutEvent;
+import com.google.gwt.event.dom.client.MouseOutHandler;
+import com.google.gwt.event.dom.client.MouseOverEvent;
 import com.sun.labs.aura.music.wsitm.client.event.RatingListener;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
 import com.sun.labs.aura.music.wsitm.client.*;
@@ -17,8 +19,8 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.MouseListener;
-import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
+import com.sun.labs.aura.music.wsitm.client.event.DEMouseOverHandler;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 
@@ -117,6 +119,7 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
         }
     }
 
+    @Override
     public void onDelete() {
         cdm.getRatingListenerManager().removeListener(artistID, this);
         cdm.getLoginListenerManager().removeListener(this);
@@ -139,47 +142,28 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
             } else {
                 images[i] = new Image(STAR_WHITE);
             }
-            images[i].addClickListener(new DataEmbededClickListener<Integer>(i) {
-
-                public void onClick(Widget arg0) {
+            images[i].addClickHandler(new DEClickHandler<Integer>(i) {
+                @Override
+                public void onClick(ClickEvent event) {
                     invokeSaveRating(data);
                 }
             });
-            images[i].addMouseListener(new DataEmbededMouseListener<Integer>(i) {
-
-                public void onMouseEnter(Widget arg0) {
+            images[i].addMouseOutHandler(new MouseOutHandler() {
+                @Override
+                public void onMouseOut(MouseOutEvent event) {
+                    redrawStars();
+                }
+            });
+            images[i].addMouseOverHandler(new DEMouseOverHandler<Integer>(i) {
+                @Override
+                public void onMouseOver(MouseOverEvent event) {
                     for (int i = 0; i <= data; i++) {
                         images[i].setUrl(STAR_LID);
                     }
                 }
-
-                public void onMouseLeave(Widget arg0) {
-                    redrawStars();
-                }
-
-                public void onMouseDown(Widget arg0, int arg1, int arg2) {}
-                public void onMouseMove(Widget arg0, int arg1, int arg2) {}
-                public void onMouseUp(Widget arg0, int arg1, int arg2) {}
-
             });
             p.add(images[i]);
         }
-        Image noInterest = new Image(NOT_INTERESTED);
-        noInterest.addMouseListener(new MouseListener() {
-
-            public void onMouseDown(Widget arg0, int arg1, int arg2) {}
-            public void onMouseMove(Widget arg0, int arg1, int arg2) {}
-            public void onMouseUp(Widget arg0, int arg1, int arg2) {}
-
-            public void onMouseEnter(Widget arg0) {
-                ((Image)arg0).setUrl(NOT_INTERESTED_HOVER);
-            }
-
-            public void onMouseLeave(Widget arg0) {
-                ((Image)arg0).setUrl(NOT_INTERESTED);
-            }
-        });
-        //p.add(noInterest);
         g.setWidget(0, 0, p);
     }
 

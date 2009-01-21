@@ -304,7 +304,8 @@ public class SteeringSwidget extends Swidget {
             //
             // North 2
             tagLand = new TagWidgetContainer(this, cdm);
-            tagLand.init(new ResizableTagWidget(this, cdm, tagLand.getSharedCloudArtistMenu()));
+            tagLand.init(new ResizableTagWidget(this, cdm,
+                    tagLand.getSharedCloudArtistMenu(), tagLand.getSharedCloudTagMenu()));
             currLoadedTagWidget = "Cloud";
             cdm.getSteerableTagCloudExternalController().setTagWidget(tagLand);
             dP.add(tagLand, DockPanel.NORTH);
@@ -324,7 +325,8 @@ public class SteeringSwidget extends Swidget {
         public void swapTagWidget(String widgetName) {
             if (!currLoadedTagWidget.equals(widgetName)) {
                 if (widgetName.equals("Cloud")) {
-                    tagLand.swapTagWidget(new ResizableTagWidget(this, cdm, tagLand.getSharedCloudArtistMenu()));
+                    tagLand.swapTagWidget(new ResizableTagWidget(this, cdm,
+                            tagLand.getSharedCloudArtistMenu(), tagLand.getSharedCloudTagMenu()));
                     currLoadedTagWidget = "Cloud";
                 } else {
                     tagLand.swapTagWidget(new TagMeterWidget(this, cdm));

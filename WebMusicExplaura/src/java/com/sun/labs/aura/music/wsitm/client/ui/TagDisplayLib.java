@@ -36,6 +36,7 @@ public abstract class TagDisplayLib {
 
     public enum TagColorType {
         TAG,
+        TAG_POPUP,
         ARTIST,
         STICKY_TAG,
         STICKY_ARTIST
@@ -93,10 +94,11 @@ public abstract class TagDisplayLib {
         showTagCloud(title, iI, order, cdm);
     }
         
-    public static void showTagCloud(String title, ItemInfo[] tags, ORDER order, ClientDataManager cdm) {
+    public static void showTagCloud(String title, ItemInfo[] tags, ORDER order,
+            ClientDataManager cdm) {
         //final DialogBox d = Popup.getDialogBox();
         final PopupPanel d = Popup.getPopupPanel();
-        Panel p = getTagsInPanel(tags, d, order, cdm);
+        Panel p = getTagsInPanel(tags, d, order, cdm, TagColorType.TAG_POPUP);
         if (p!=null) {
         //    Popup.showPopup(p,title,d);
             Popup.showRoundedPopup(p, title, d);
@@ -112,8 +114,9 @@ public abstract class TagDisplayLib {
         return (int) Math.round(range * score + min);
     }
 
-    public static Panel getTagsInPanel(ItemInfo[] tags, ORDER order, ClientDataManager cdm) {
-        return getTagsInPanel(tags, null, order, cdm);
+    public static Panel getTagsInPanel(ItemInfo[] tags, ORDER order,
+            ClientDataManager cdm, TagColorType colorTheme) {
+        return getTagsInPanel(tags, null, order, cdm, colorTheme);
     }
        
     /**
@@ -124,7 +127,8 @@ public abstract class TagDisplayLib {
      * @param d
      * @return
      */
-    public static Panel getTagsInPanel(ItemInfo[] tags, PopupPanel d, ORDER order, ClientDataManager cdm) {
+    public static Panel getTagsInPanel(ItemInfo[] tags, PopupPanel d, ORDER order,
+            ClientDataManager cdm, TagColorType colorTheme) {
         Panel p = new FlowPanel();
         if (d != null) {
             p.setWidth("600px");
@@ -167,7 +171,7 @@ public abstract class TagDisplayLib {
                 ContextMenuTagLabel sL = new ContextMenuTagLabel(tags[i], cdm);
                 //sL.getElement().getStyle().setPropertyPx("font-size", fontSize);
                 sL.getElement().setAttribute("style", "font-size:" + fontSize + "px;");
-                setColorToElem(sL, colorId, tags[i].getScore(), null, TagColorType.TAG);
+                setColorToElem(sL, colorId, tags[i].getScore(), null, colorTheme);
                 sL.addStyleName("pointer");
                 sL.addClickHandler(new DEClickHandler<ItemInfo>(tags[i]) {
                     
@@ -206,62 +210,39 @@ public abstract class TagDisplayLib {
      */
     public static String setColorToElem(Label sL, int index, double size, String previousColor, TagColorType colorType) {
         String newColor = "";
-        if (colorType==TagColorType.TAG) {
-            if (index == 0) {
-                if (size < 0) {
-                    newColor = "tag1neg";
-                } else {
-                    newColor = "tag1";
-                }
-            } else if (index == 1) {
-                if (size < 0) {
-                    newColor = "tag2neg";
-                } else {
-                    newColor = "tag2";
-                }
-            } else {
-                newColor = "-1";
-            }
-        } else if (colorType==TagColorType.ARTIST) {
-            if (index == 0) {
-                if (size < 0) {
-                    newColor = "artistTag1neg";
-                } else {
-                    newColor = "artistTag1";
-                }
-            } else if (index == 1) {
-                if (size < 0) {
-                    newColor = "artistTag2neg";
-                } else {
-                    newColor = "artistTag2";
-                }
-            } else {
-                newColor = "-1";
-            }
+        String negStr = "";
+        if (size<0) {
+            negStr="neg";
+        }
+        if (colorType == TagColorType.TAG) {
+            newColor = "tag" + (index + 1) + negStr;
+
+        } else if (colorType == TagColorType.TAG_POPUP) {
+            newColor = "tagPop" + (index + 1) + negStr;
+
+        } else if (colorType == TagColorType.ARTIST) {
+            newColor = "artistTag" + (index + 1) + negStr;
+
         } else if (colorType==TagColorType.STICKY_TAG) {
             if (size<0) {
                 return setColorToElem(sL, index, size, previousColor, TagColorType.TAG);
             } else {
-                newColor = "tagSticky";
+                newColor = "tag"+(index+1)+"Sticky";
             }
         } else if (colorType==TagColorType.STICKY_ARTIST) {
             if (size<0) {
                 return setColorToElem(sL, index, size, previousColor, TagColorType.ARTIST);
             } else {
-                newColor = "artistTagSticky";
+                newColor = "artistTag"+(index+1)+"Sticky";
             }
         }
 
-        if (newColor.equals("-1")) {
-            Window.alert("Invalid color");
-            return previousColor;
-        } else {
-            if (previousColor!=null && previousColor.length()>0) {
-                sL.removeStyleName(previousColor);
-            }
-            sL.addStyleName(newColor);
-            return newColor;
+        if (previousColor != null && previousColor.length() > 0) {
+            sL.removeStyleName(previousColor);
         }
+        sL.addStyleName(newColor);
+        return newColor;
+
     }
     
     public static void invokeGetCommonTags(String artistID1, String artistID2,
