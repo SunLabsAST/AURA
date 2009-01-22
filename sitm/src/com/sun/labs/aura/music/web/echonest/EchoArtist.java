@@ -5,11 +5,15 @@
 
 package com.sun.labs.aura.music.web.echonest;
 
+import java.io.Serializable;
+
 /**
  *
  * @author plamere
  */
-public class EchoArtist {
+public class EchoArtist implements Serializable {
+    private static final long serialVersionUID = 7654321L;
+
     private String name;
     private String id;
     private String mbid;

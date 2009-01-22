@@ -68,6 +68,11 @@ public class LastFM {
         return getFanFromLastFM(url);
     }
 
+    public void setMinimumCommandPeriod(long period) {
+        commander.setMinimumCommandPeriod(period);
+    }
+
+
     public int getPopularity(String artistName) throws IOException {
         String url = getTopArtistAlbumsURL(artistName);
         Document doc = commander.sendCommand(url);

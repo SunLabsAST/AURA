@@ -84,6 +84,23 @@ public class EchoNest {
         return null;
     }
 
+    public EchoArtist getProfileByMBID(String mbid) throws IOException {
+        String cmdURL = "get_profile?mbid=" + mbid;
+        Document doc = commander.sendCommand(cmdURL);
+        Element docElement = doc.getDocumentElement();
+        NodeList itemList = docElement.getElementsByTagName("artist");
+        if (itemList.getLength() == 1) {
+            Element item = (Element) itemList.item(0);
+            String name = XmlUtil.getDescendentText(item, "name");
+            String enid = XmlUtil.getDescendentText(item, "id");
+            EchoArtist artist = new EchoArtist(name, enid, mbid);
+            return artist;
+        } else if (itemList.getLength() > 1) {
+            System.err.println("Woah - mroe than one artist return, which was unexpected");
+        }
+        return null;
+    }
+
     public float getFamiliarity(String id) throws IOException {
         float familiarity = 0f;
         String cmdURL = "get_familiarity?id=" + id;

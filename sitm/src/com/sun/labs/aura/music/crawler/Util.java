@@ -12,7 +12,7 @@ import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.Video;
 import com.sun.labs.aura.music.web.flickr.FlickrManager;
 import com.sun.labs.aura.music.web.flickr.Image;
-import com.sun.labs.aura.music.web.youtube.Youtube;
+import com.sun.labs.aura.music.web.youtube.Youtube2;
 import com.sun.labs.aura.music.web.youtube.YoutubeVideo;
 import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
@@ -26,9 +26,9 @@ import java.util.List;
  */
 public class Util {
     FlickrManager flickr;
-    Youtube youtube;
+    Youtube2 youtube;
 
-    Util(FlickrManager flickr, Youtube youtube) {
+    Util(FlickrManager flickr, Youtube2 youtube) {
         this.flickr = flickr;
         this.youtube = youtube;
     }
@@ -59,7 +59,7 @@ public class Util {
 
     List<Video> collectYoutubeVideos(DataStore dataStore, String query, int count) throws AuraException, RemoteException, IOException {
         List<Video> videos = new ArrayList();
-        List<YoutubeVideo> ytvideos = youtube.musicSearch(query, count);
+        List<YoutubeVideo> ytvideos = youtube.musicVideoSearch(query, count);
         for (YoutubeVideo ytvideo : ytvideos) {
             Item item = dataStore.getItem(ytvideo.getURL().toExternalForm());
             Video itemVideo = null;

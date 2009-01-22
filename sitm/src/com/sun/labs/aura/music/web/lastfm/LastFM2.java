@@ -36,6 +36,10 @@ public class LastFM2 {
         commander.setTraceSends(trace);
     }
 
+    public void setMinimumCommandPeriod(long period) {
+        commander.setMinimumCommandPeriod(period);
+    }
+
     public LastArtist2 getArtistInfoByName(String artistName) throws IOException {
         String url = getArtistInfoByNameURL(artistName);
         return getArtistInfoFromLastFM(url);

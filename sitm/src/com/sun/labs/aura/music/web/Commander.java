@@ -13,10 +13,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -95,6 +97,15 @@ public class Commander {
         System.out.printf("Commands sent to %s: %d\n", name, commandsSent);
     }
 
+    public String encode(String name) {
+        try {
+            String encodedName = URLEncoder.encode(name, "UTF-8");
+            return encodedName;
+        } catch (UnsupportedEncodingException e) {
+            return "";
+        }
+    }
+
     /**
      * Sets the minimum period between consecutive commands
      * @param minPeriod the minimum period.
@@ -125,7 +136,7 @@ public class Commander {
         return document;
     }
 
-    private InputStream sendCommandRaw(String command) throws IOException {
+    public InputStream sendCommandRaw(String command) throws IOException {
         try {
             String fullCommand = prefix + command + fixSuffix(command, suffix);
 

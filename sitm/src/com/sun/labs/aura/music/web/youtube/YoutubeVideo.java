@@ -9,6 +9,7 @@
 
 package com.sun.labs.aura.music.web.youtube;
 
+import java.io.Serializable;
 import java.net.URL;
 import java.util.Comparator;
 
@@ -16,7 +17,9 @@ import java.util.Comparator;
  *
  * @author plamere
  */
-public class YoutubeVideo  {
+public class YoutubeVideo  implements Serializable {
+   private static final long serialVersionUID = 615715594L;
+
     public final static Comparator<YoutubeVideo> PLAY_ORDER = new Comparator<YoutubeVideo>() {
 
         public int compare(YoutubeVideo o1, YoutubeVideo o2) {
@@ -36,6 +39,7 @@ public class YoutubeVideo  {
     private String tags;
     private URL url;
     private URL thumbnail;
+    private URL flashURL;
             
 
     /** Creates a new instance of YoutubeVideo */
@@ -141,6 +145,16 @@ public class YoutubeVideo  {
     public String toString() {
         return title + "-" + description + " views: " + viewCount;
     }
+
+    public URL getFlashURL() {
+        return flashURL;
+    }
+
+    public void setFlashURL(URL flashURL) {
+        this.flashURL = flashURL;
+    }
+
+
     
     public void dump() {
         System.out.println("===== " + title + " ========");

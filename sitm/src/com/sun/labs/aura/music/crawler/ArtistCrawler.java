@@ -33,7 +33,7 @@ import com.sun.labs.aura.music.web.upcoming.UpcomingEvent;
 import com.sun.labs.aura.music.web.upcoming.Upcoming;
 import com.sun.labs.aura.music.web.wikipedia.WikiInfo;
 import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
-import com.sun.labs.aura.music.web.youtube.Youtube;
+import com.sun.labs.aura.music.web.youtube.Youtube2;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.RemoteComponentManager;
 import com.sun.labs.aura.util.Scored;
@@ -83,7 +83,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     private LastFM lastFM;
     private MusicBrainz musicBrainz;
     private Wikipedia wikipedia;
-    private Youtube youtube;
+    private Youtube2 youtube;
     private FlickrManager flickr;
     private Upcoming upcoming;
     private Spotify spotify;
@@ -161,7 +161,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             lastFM = new LastFM();
             musicBrainz = new MusicBrainz();
             wikipedia = new Wikipedia();
-            youtube = new Youtube();
+            youtube = new Youtube2();
             flickr = new FlickrManager();
             amazon = new Amazon();
             upcoming = new Upcoming();
