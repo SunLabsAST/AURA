@@ -1,0 +1,46 @@
+Most music recommenders rely on
+collaborative filtering techniques to
+generate music recommendations. These
+types of recommendations lack two
+important aspects. First, they lack
+transparency - they cannot explain why
+an item was recommended beyond the
+trivial "Other people who listened to X
+also listened to Y". Second, they lack
+steerability - a user cannot interact
+with the recommender to steer it toward
+more relevant content.
+
+For SXSW Accelerator, we offer the Sun
+Labs Music Explaura - a web-based
+application that provides transparent
+and steerable recommendations.  The
+Music Explaura provides a detailed
+explanation about why a particular
+artist was recommended and allows a user
+to steer the recommendations based upon
+attributes of the music.
+
+To steer recommendations with the Music
+Explaura, a user can interact with a tag
+cloud for a seed artist.  The user can
+add tags, remove tags or adjust the
+weight of any tag in the cloud.
+Whenever the user makes changes, the set
+of recommended artists is immediately
+updated to include the artists that best
+match the new tag cloud.
+
+For example, a fan of 60s psychedelic
+guitarist Jimi Hendrix could adjust the
+Jimi Hendrix tag cloud to give more
+weight to the 'guitar' tag and less
+weight to the '60s' and 'psychedelic'
+tags to steer the recommender toward
+guitarists that sound like Jimi Hendrix,
+and away from other 60s psychedelia
+artists.  The recommender would respond
+by recommending artists more like Stevie
+Ray Vaughan and less like Janis Joplin
+or The Doors.
+
