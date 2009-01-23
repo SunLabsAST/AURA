@@ -11,7 +11,7 @@ export SSH="ssh -i $ID"
 # Remove log files.
 for addr in ${EXTADDRS}; do
     echo Killing processes on $addr
-    $SSH root@$addr pkill java
+    $SSH root@$addr pkill -9 java
 done
 
 

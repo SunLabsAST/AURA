@@ -7,7 +7,12 @@ export PREFIX=`ls ${AURAHOME} | grep '[01][01]'`
 
 export DIR=`dirname $0`
 
-nohup java -DauraHome=${AURAHOME} -DregHost=${REGHOST} -Dprefix=${PREFIX} -jar $DIR/../dist/grid.jar \
+if [ -z "${REGHOST}" ] ; then
+    echo Usage: $DIR/rep.go registry_host
+    exit
+fi
+
+nohup java -Xmx1200m -DauraHome=${AURAHOME} -DregHost=${REGHOST} -Dprefix=${PREFIX} -jar $DIR/../dist/grid.jar \
      /com/sun/labs/aura/grid/ec2/resource/repPCConfig.xml starter \
      "${AURAHOME}/logs/rep-${PREFIX}.%g.out" &> ${AURAHOME}/logs/rep-${PREFIX}.stdout &
 
