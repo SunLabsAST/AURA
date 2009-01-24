@@ -43,6 +43,7 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
+import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
@@ -294,7 +295,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                 // do some UI stuff to show success
                 SearchResults sr = (SearchResults) result;
                 if (sr != null && sr.isOK()) {
-                    ItemInfo[] results = sr.getItemResults();
+                    ItemInfo[] results = sr.getItemResults(cdm);
                     if (results.length == 0) {
                         showError("No Match for " + sr.getQuery());
                         clearResults();
@@ -303,8 +304,8 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                         ItemInfo ar = results[0];
                         invokeGetTagInfo(ar.getId(), false);
                     } else {
-                        showMessage("Found " + sr.getItemResults().length + " matches");
-                        setResults(sr.toString(), getItemInfoList("Pick one: ", sr.getItemResults(), null, false, true, cdm.getTagOracle()));
+                        showMessage("Found " + sr.getItemResults(cdm).length + " matches");
+                        setResults(sr.toString(), getItemInfoList("Pick one: ", sr.getItemResults(cdm), null, false, true, cdm.getTagOracle()));
                     }
                 } else {
                     if (sr == null) {
@@ -342,17 +343,18 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
 
                 SearchResults sr = (SearchResults) result;
                 if (sr != null && sr.isOK()) {
-                    ItemInfo[] results = sr.getItemResults();
+                    ItemInfo[] results = sr.getItemResults(cdm);
                     if (results.length == 0) {
                         showError("No Match for " + sr.getQuery());
                         clearResults();
                     } else if (results.length == 1) {
                         ItemInfo ar = results[0];
                         WebLib.trackPageLoad("#artistSearch:" + sr.getQuery());
+                        cdm.getSearchAttentionManager().processUserClick(ar.getId());
                         invokeGetArtistInfo(ar.getId(), false);
                     } else {
-                        showMessage("Found " + sr.getItemResults().length + " matches");
-                        Widget searchResults = getItemInfoList("Pick one: ", sr.getItemResults(), null, true, true, cdm.getArtistOracle());
+                        showMessage("Found " + sr.getItemResults(cdm).length + " matches");
+                        Widget searchResults = getItemInfoList("Pick one: ", sr.getItemResults(cdm), null, true, true, cdm.getArtistOracle());
                         searchResults.setStyleName("searchResults");
                         searchResults.setWidth("300px");
                         setResults(sr.toString(), searchResults);
@@ -849,6 +851,13 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
 
             Label label = new Label(itemInfo[i].getItemName());
             label.addClickHandler(new ItemInfoClickHandler(itemInfo[i], getArtistOnClick));
+            label.addClickHandler(new DEClickHandler<String>(itemInfo[i].getId()) {
+                @Override
+                public void onClick(ClickEvent event) {
+                    // Add search attention if necessary
+                    cdm.getSearchAttentionManager().processUserClick(data);
+                }
+            });
             label.setTitle("Score: " + itemInfo[i].getScore() + " Popularity:" + itemInfo[i].getPopularity());
             if (highlightID != null && highlightID.equals(itemInfo[i].getId())) {
                 label.setStyleName("itemInfoHighlight");

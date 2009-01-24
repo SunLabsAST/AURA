@@ -409,6 +409,10 @@ public class DataManager implements Configurable {
         return details;
     }
 
+    public void addSearchAttention() {
+        mdb.addAttention(MDB_KEY, MDB_KEY, Attention.Type.SEARCH, MDB_KEY);
+    }
+
     /**
      * Get distinctive tags for an artist
      * @param artistID
