@@ -25,6 +25,7 @@ import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.aura.util.AuraException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -324,6 +325,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             HttpSession session = this.getThreadLocalRequest().getSession();
             if (session.getAttribute(OpenIDServlet.openIdCookieName) != null) {
                 lD.setOpenId( (String) session.getAttribute(OpenIDServlet.openIdCookieName));
+                lD.setUserKey(dm.encryptUserKey(lD.getOpenId()));
             }
             if (session.getAttribute(OpenIDServlet.ATTR_BIRTHDATE) != null) {
                 lD.setBirhtDate( (String) session.getAttribute(OpenIDServlet.ATTR_BIRTHDATE));
@@ -376,6 +378,20 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             return userId;
         } else {
             throw new WebException(WebException.errorMessages.MUST_BE_LOGGED_IN);
+        }
+    }
+
+    @Override
+    public void addSearchAttention(String userKey, String target, searchTypes sT, String searchStr) throws WebException {
+        try {
+            logger.info("addSearchAttention: userKey:'"+userKey+"' search:"+sT.toString()+":"+searchStr+" target:"+target);
+            dm.addSearchAttention(userKey, sT.toString()+":"+searchStr , target);
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
 

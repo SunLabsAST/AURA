@@ -44,7 +44,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracl
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  *
@@ -85,9 +84,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         vP.setWidth("100%");
 
         Label title = new Label("Search Inside the Music - The Music Explaura");
-        title.addClickListener(new ClickListener() {
+        title.addClickHandler(new ClickHandler() {
 
-            public void onClick(Widget arg0) {
+            public void onClick(ClickEvent ce) {
                 History.newItem("searchHome:");
             }
         });
@@ -104,9 +103,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
         Label l = new Label("Config");
         l.addStyleName("pointer");
-        l.addClickListener(new ClickListener() {
+        l.addClickHandler(new ClickHandler() {
 
-            public void onClick(Widget sender) {
+            public void onClick(ClickEvent ce) {
                 setSubHeaderPanel(SubHeaderPanels.CONFIG);
             }
         });
@@ -475,9 +474,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
         Button b = new Button();
         b.setText("Login with your openID");
-        b.addClickListener(new ClickListener() {
-
-            public void onClick(Widget arg0) {
+        b.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent ce) {
                 fetchUserInfo();
             }
         });
@@ -684,8 +683,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             searchPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
             searchPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
 
-            Button searchButton = new Button("Search", new ClickListener() {
-                public void onClick(Widget sender) {
+            Button searchButton = new Button("Search", new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     search();
                 }
             });

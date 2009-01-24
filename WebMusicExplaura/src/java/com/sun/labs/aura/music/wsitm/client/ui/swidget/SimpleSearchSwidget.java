@@ -253,6 +253,9 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         // Clear all listeners
         doRemoveListeners();
 
+        // Reset the search
+        cdm.getSearchAttentionManager().resetSearch();
+
         //  resultName = URL.decodeComponent(resultName);
         if (resultName.startsWith("artist:")) {
             //search.updateSuggestBox(Oracles.ARTIST);
@@ -850,7 +853,6 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             }
 
             Label label = new Label(itemInfo[i].getItemName());
-            label.addClickHandler(new ItemInfoClickHandler(itemInfo[i], getArtistOnClick));
             label.addClickHandler(new DEClickHandler<String>(itemInfo[i].getId()) {
                 @Override
                 public void onClick(ClickEvent event) {
@@ -858,6 +860,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                     cdm.getSearchAttentionManager().processUserClick(data);
                 }
             });
+            label.addClickHandler(new ItemInfoClickHandler(itemInfo[i], getArtistOnClick));
             label.setTitle("Score: " + itemInfo[i].getScore() + " Popularity:" + itemInfo[i].getPopularity());
             if (highlightID != null && highlightID.equals(itemInfo[i].getId())) {
                 label.setStyleName("itemInfoHighlight");

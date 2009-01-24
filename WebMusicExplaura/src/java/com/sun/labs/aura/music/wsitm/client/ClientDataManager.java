@@ -4,9 +4,11 @@
  */
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.sun.labs.aura.music.wsitm.client.event.WebListener;
 import com.sun.labs.aura.music.wsitm.client.event.TaggingListener;
 import com.sun.labs.aura.music.wsitm.client.event.RatingListener;
@@ -98,7 +100,7 @@ public class ClientDataManager {
         musicProviderSwitchListenerManager = new MusicProviderSwitchListenerManager();
 
         steerableTagCloudExternalController = new SteerableTagCloudExternalController();
-        searchAttentionManager = new SearchAttentionManager();
+        searchAttentionManager = new SearchAttentionManager(this);
 
         sharedTagMenu = new SharedTagMenu(this);
         sharedSteeringMenu = new SharedSteeringMenu(this);
@@ -683,31 +685,33 @@ public class ClientDataManager {
 
     public class SearchAttentionManager {
 
+        private ClientDataManager cdm;
+        private MusicSearchInterfaceAsync musicServer;
+
         private boolean hasValidSearch = false;
         private searchTypes currSearchType;
         private ItemInfo[] currResultSet;
         private String currSearch;
 
-        private void invokeAddAttention(boolean linkInResults, String itemId, MusicSearchInterfaceAsync musicServer) {
-            if (linkInResults) {
-               Window.alert("VALID. '"+currSearch+"'->'"+itemId+"'");
-            } else {
-               Window.alert("VALID. '"+currSearch+"'->NULL :(");
+        public SearchAttentionManager(ClientDataManager cdm) {
+            this.cdm = cdm;
+            initRPC();
+        }
+
+        private void invokeAddAttention(boolean linkInResults, String itemId) {
+            if (!linkInResults) {
+               itemId=null;
             }
 
-            AsyncCallback callback = new AsyncCallback() {
-
-                public void onSuccess(Object o) {
-                    // Added successfully. Do nothing
-                }
-
-                public void onFailure(Throwable caught) {
-                    Window.alert("Could not add search attention");
-                }
-            };
-
             try {
-                musicServer.XXX;
+                musicServer.addSearchAttention(cdm.getListenerDetails().getUserKey(),
+                        itemId, currSearchType, currSearch, new AsyncCallback() {
+
+                    public void onSuccess(Object o) {}
+                    public void onFailure(Throwable caught) {
+                        Window.alert("An error occured while adding the search attention : "+caught.getMessage());
+                    }
+                });
             } catch (Exception ex) {
                 Window.alert(ex.getMessage());
             }
@@ -715,24 +719,43 @@ public class ClientDataManager {
             hasValidSearch=false;
         }
 
-        public void processUserClick(String token, MusicSearchInterfaceAsync musicServer) {
+        public void processUserClick(String token) {
             if (hasValidSearch) {
                 // If the key being loaded was in our stored results
                 for (ItemInfo iI : currResultSet) {
                     if (iI.getId().equals(token)) {
-                        invokeAddAttention(true, iI.getId(), musicServer);
+                        invokeAddAttention(true, iI.getId());
                         return;
                     }
                 }
-                invokeAddAttention(false, null, musicServer);
+                invokeAddAttention(false, null);
             }
         }
 
         public void registerSearch(String search, searchTypes sT, ItemInfo[] resultSet) {
+
+            resetSearch();
             this.currResultSet = resultSet;
             this.currSearch = search;
             this.currSearchType = sT;
             this.hasValidSearch = true;
+        }
+
+        /**
+         * Reset state. If a search is currently saved, save it as having a null
+         * target
+         */
+        public void resetSearch() {
+            if (hasValidSearch) {
+                invokeAddAttention(false, null);
+            }
+        }
+
+        private final void initRPC() {
+            musicServer = (MusicSearchInterfaceAsync) GWT.create(MusicSearchInterface.class);
+            ServiceDefTarget endpoint = (ServiceDefTarget) musicServer;
+            String moduleRelativeURL = GWT.getModuleBaseURL() + "musicsearch";
+            endpoint.setServiceEntryPoint(moduleRelativeURL);
         }
     }
 }

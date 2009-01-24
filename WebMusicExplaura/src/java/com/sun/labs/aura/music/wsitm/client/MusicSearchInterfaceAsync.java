@@ -17,6 +17,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +29,7 @@ import java.util.Set;
  * @author plamere
  */
 public interface MusicSearchInterfaceAsync {
+       public void addSearchAttention(String userKey, String target, searchTypes sT, String searchStr, AsyncCallback callback) throws WebException;
        public void artistSearch(String searchString, int maxResults, AsyncCallback callback) throws WebException;
        public void artistSearchByTag(String searchString, int maxResults, AsyncCallback callback) throws WebException;
        public void tagSearch(String searchString, int maxResults, AsyncCallback callback) throws WebException;

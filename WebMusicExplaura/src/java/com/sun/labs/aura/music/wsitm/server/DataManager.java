@@ -86,6 +86,7 @@ public class DataManager implements Configurable {
     private MusicDatabase mdb;
     private int expiredTimeInDays = 0;
     private static final String beatlesMDID = "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
+    private static final String ANONYMOUS_USER_KEY = "ANONYMOUS_USER_KEY";
     private float beatlesPopularity = -1;
     private ArrayList<ScoredC<String>> artistOracle;
     private ArrayList<ScoredC<String>> tagOracle;
@@ -131,6 +132,19 @@ public class DataManager implements Configurable {
         simTypes = new HashMap<String, SimType>();
         for (SimType s : mdb.getSimTypes()) {
             simTypes.put(s.getName(), s);
+        }
+
+        // Create the anonymous user if he doesn't exist
+        Listener l;
+        try {
+            l = mdb.getListener(ANONYMOUS_USER_KEY);
+            if (l==null) {
+                mdb.enrollListener(ANONYMOUS_USER_KEY);
+            }
+        } catch (AuraException ex) {
+            Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (RemoteException ex) {
+            Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         logger.info("DataManager ready.");
@@ -409,8 +423,27 @@ public class DataManager implements Configurable {
         return details;
     }
 
-    public void addSearchAttention() {
-        mdb.addAttention(MDB_KEY, MDB_KEY, Attention.Type.SEARCH, MDB_KEY);
+    /**
+     * Add search attention
+     * @param userKey user who performed the search
+     * @param searchValue the query (which should include the type of search
+     * (artist, by tag, for tag)
+     * @param target the item that the user clicks on from the search list (so
+     * if a use searches for 'josh' and on the search results list, clicks on
+     * 'joshua radin' then the key for artist 'joshua radin' shoud be the target of the search
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public void addSearchAttention(String userKey, String searchValue, String target)
+            throws AuraException, RemoteException {
+        if (userKey==null) {
+            userKey = ANONYMOUS_USER_KEY;
+        } else {
+            userKey = decryptUserKey(userKey);
+        }
+        if (target!=null) {
+            mdb.addAttention(userKey, target, Attention.Type.SEARCH, searchValue);
+        }
     }
 
     /**
@@ -706,7 +739,7 @@ public class DataManager implements Configurable {
      * @param openID
      * @return
      */
-    private String encryptUserKey(String openID) {
+    public String encryptUserKey(String openID) {
         return openID;
     }
 
