@@ -18,7 +18,9 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
  * @author plamere
  */
 public class SearchResults implements IsSerializable {
-    
+
+    private boolean registeredInCdm = false;
+
     private String query;
     private String status;
     private searchTypes searchType;
@@ -44,8 +46,20 @@ public class SearchResults implements IsSerializable {
     public boolean isOK() {
         return "OK".equals(getStatus());
     }
-    
-    public ItemInfo[] getItemResults() {
+
+    /**
+     * Get the items contained in this result set. Pass the ClientDataManager to
+     * have to enable tracking for the search attention
+     * @param cdm
+     * @return
+     */
+    public ItemInfo[] getItemResults(ClientDataManager cdm) {
+        // Register this search
+        if (!registeredInCdm && cdm!=null) {
+            cdm.getSearchAttentionManager().registerSearch(query, searchType, itemResults);
+            registeredInCdm = true;
+        }
+        
         return itemResults;
     }
     

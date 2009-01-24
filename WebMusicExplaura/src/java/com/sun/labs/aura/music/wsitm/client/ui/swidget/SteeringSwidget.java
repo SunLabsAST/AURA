@@ -1076,7 +1076,7 @@ public class SteeringSwidget extends Swidget {
                 public void onSuccess(Object result) {
                     SearchResults sr = (SearchResults) result;
                     if (sr != null && sr.isOK()) {
-                        ItemInfo[] results = sr.getItemResults();
+                        ItemInfo[] results = sr.getItemResults(null);
                         doRemoveListeners();
                         if (results.length == 0) {
                             mainTagPanel.setWidget(1, 0, new Label("No Match for " + sr.getQuery()));
@@ -1113,7 +1113,7 @@ public class SteeringSwidget extends Swidget {
                 public void onSuccess(Object result) {
                     SearchResults sr = (SearchResults) result;
                     if (sr != null && sr.isOK()) {
-                        ItemInfo[] results = sr.getItemResults();
+                        ItemInfo[] results = sr.getItemResults(null);
                         doRemoveListeners();
                         if (results.length == 0) {
                             mainTagPanel.setWidget(1, 0, new Label("No Match for " + sr.getQuery()));
