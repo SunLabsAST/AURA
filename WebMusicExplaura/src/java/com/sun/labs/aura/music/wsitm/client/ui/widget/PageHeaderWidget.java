@@ -5,8 +5,12 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.KeyPressEvent;
+import com.google.gwt.event.dom.client.KeyPressHandler;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.Swidget;
@@ -20,14 +24,11 @@ import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.ChangeListener;
-import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
@@ -246,9 +247,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
                 }
                 listbox.setSelectedIndex(0);
                 cdm.setCurrSimTypeName(listbox.getItemText(0));
-                listbox.addChangeListener(new ChangeListener() {
-
-                    public void onChange(Widget arg0) {
+                listbox.addChangeHandler(new ChangeHandler() {
+                    @Override
+                    public void onChange(ChangeEvent event) {
 
                         String newSelectName = listbox.getItemText(listbox.getSelectedIndex());
 
@@ -343,9 +344,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             HorizontalPanel hP = new HorizontalPanel();
             hP.setSpacing(4);
             Label loggedLbl = new Label(name);
-            loggedLbl.addClickListener(new ClickListener() {
-
-                public void onClick(Widget arg0) {
+            loggedLbl.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     History.newItem("userpref:");
                 }
             });
@@ -457,18 +458,12 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
         txtbox = new TextBox();
         txtbox.setText(Cookies.getCookie("app-openid-uniqueid"));
-        txtbox.addKeyboardListener(new KeyboardListener() {
-
-            public void onKeyPress(Widget arg0, char keyCode, int arg2) {
-                if (keyCode == KEY_ENTER) {
+        txtbox.addKeyPressHandler(new KeyPressHandler() {
+            @Override
+            public void onKeyPress(KeyPressEvent event) {
+                if (event.getNativeEvent().getKeyCode() == 13) {
                     fetchUserInfo();
                 }
-            }
-
-            public void onKeyDown(Widget arg0, char arg1, int arg2) {
-            }
-
-            public void onKeyUp(Widget arg0, char arg1, int arg2) {
             }
         });
 
@@ -522,15 +517,18 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         }
     }
 
+    @Override
     public ArrayList<String> getTokenHeaders() {
         return new ArrayList<String>();
     }
 
+    @Override
     protected void initMenuItem() {
         // this does not have a menu
         menuItem = new MenuItem();
     }
 
+    @Override
     public void doRemoveListeners() {
         mm.onDelete();
         if (playButton != null) {
@@ -574,7 +572,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
                 cdm.getMusicProviderSwitchListenerManager().addListener(pB);
                 // Add click listener that will change recommendation on click
                 pB.addClickListener(new DataEmbededClickListener<InstantRecPlayWidget>(w) {
-
+                    @Override
                     public void onClick(Widget sender) {
                         data.setNextRec(data);
                     }
@@ -584,6 +582,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             }
         }
 
+        @Override
         public void doRemoveListeners() {
             Widget w = g.getWidget(0, 0);
             if (w instanceof PlayButton) {
@@ -628,11 +627,13 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             p.setWidget(0, 0, hP);
         }
 
+        @Override
         public void onLogin(ListenerDetails lD) {
             loggedIn = true;
             update();
         }
 
+        @Override
         public void onLogout() {
             loggedIn = false;
 
@@ -643,6 +644,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             update();
         }
 
+        @Override
         public void onDelete() {
             cdm.getLoginListenerManager().removeListener(this);
         }
@@ -663,10 +665,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             searchSelection.addItem("For artist", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST.toString());
             searchSelection.addItem("By Tag", searchTypes.SEARCH_FOR_ARTIST_BY_TAG.toString());
             searchSelection.addItem("For Tag", searchTypes.SEARCH_FOR_TAG_BY_TAG.toString());
-
-            searchSelection.addChangeListener(new ChangeListener() {
-
-                public void onChange(Widget sender) {
+            searchSelection.addChangeHandler(new ChangeHandler() {
+                @Override
+                public void onChange(ChangeEvent event) {
                     if (getSearchType() == searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST) {
                         updateSuggestBox(Oracles.ARTIST);
                     } else {
@@ -697,6 +698,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             this.initWidget(searchPanel);
         }
 
+        @Override
         public void search() {
             if (cdm.getCurrSimTypeName() == null || cdm.getCurrSimTypeName().equals("")) {
                 Window.alert("Error. Cannot search without the similarity types.");
