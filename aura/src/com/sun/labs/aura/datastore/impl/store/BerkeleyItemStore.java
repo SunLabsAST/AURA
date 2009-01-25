@@ -76,10 +76,18 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         IndexListener {
     
     /**
-     * A directory that we should copy into /tmp/${prefix} to start out with.
+     * Whether we should copy the database into a temporary directory before
+     * opening the item store.
      */
     @ConfigBoolean(defaultValue=false)
     public static final String PROP_COPY_DIR = "copyDir";
+
+    /**
+     * The directory into which we should copy the database, if we are
+     * required to do so.
+     */
+    @ConfigString(defaultValue="")
+    public static final String PROP_COPY_LOCATION = "copyLocation";
 
     /**
      * The location of the BDB/JE Database Environment
@@ -229,6 +237,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         prefixString = ps.getString(PROP_PREFIX);
         prefixCode = DSBitSet.parse(prefixString);
         boolean copyDir = ps.getBoolean(PROP_COPY_DIR);
+        String copyLocation = ps.getString(PROP_COPY_LOCATION);
 
         //
         // See if there are specific methods we need to log
@@ -256,9 +265,14 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         //
         // If we want to copy the data into temp storage, do it now.
         if(copyDir) {
-            String tds = String.format(
-                    System.getProperty("java.io.tmpdir") +
-                    "/replicant-%s/db/", ps.getString(PROP_PREFIX));
+            if(copyLocation.equals("")) {
+                copyLocation = System.getProperty("java.io.tmpdir");
+            }
+            String tds = String.format("%s%sreplicant-%s%sdb",
+                    copyLocation,
+                    File.separator,
+                    ps.getString(PROP_PREFIX),
+                    File.separator);
             File td = new File(tds);
             if(!td.mkdirs() && !td.exists()) {
                 throw new PropertyException(ps.getInstanceName(),

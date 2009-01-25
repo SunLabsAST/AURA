@@ -166,10 +166,19 @@ public class ItemSearchEngine implements Configurable {
         engineWasIntialized = !(new File(indexDir).exists());
         
         boolean copyDir = ps.getBoolean(PROP_COPY_DIR);
+        String copyLocation = ps.getString(PROP_COPY_LOCATION);
+        
         //
         // If we want to copy the data into temp storage, do it now.
         if(copyDir) {
-            String tds = String.format(System.getProperty("java.io.tmpdir") + "/replicant-%s/itemIndex.idx/", ps.getString(PROP_PREFIX));
+            if(copyLocation.equals("")) {
+                copyLocation = System.getProperty("java.io.tmpdir");
+            }
+            String tds = String.format("%s%sreplicant-%s%sitemIndex.idx",
+                    copyLocation,
+                    File.separator,
+                    ps.getString(PROP_PREFIX),
+                    File.separator);
             File td = new File(tds);
             if(!td.mkdirs()) {
                 throw new PropertyException(ps.getInstanceName(),
@@ -834,6 +843,9 @@ public class ItemSearchEngine implements Configurable {
 
     @ConfigBoolean(defaultValue=false)
     public static final String PROP_COPY_DIR = "copyDir";
+
+    @ConfigString(defaultValue="")
+    public static final String PROP_COPY_LOCATION = "copyLocation";
     
     @ConfigString(mandatory=false)
     public static final String PROP_PREFIX = "prefix";

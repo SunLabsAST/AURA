@@ -7,11 +7,13 @@ export ID=~/.ec2/id_rsa-aura
 export SCP="scp -i $ID"
 export SSH="ssh -i $ID"
 
+export DIR=`dirname $0`
+
 #
-# Remove log files.
+# Copy the grid distribution and the binaries up to the instances.
 for addr in ${EXTADDRS}; do
-    echo Killing processes on $addr
-    $SSH root@$addr pkill -9 java
+    echo Uploading to $addr
+    $SCP $DIR/*.go root@$addr\:$FS/bin
 done
 
 
