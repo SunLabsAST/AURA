@@ -8,10 +8,8 @@ package com.sun.labs.aura.music.wsitm.client.ui;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.event.CommonTagsAsyncCallback;
-import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
@@ -262,15 +260,6 @@ public abstract class TagDisplayLib {
             musicServer.getCommonTags(tagMap, artistID, 30, callback);
         } catch (Exception ex) {
             Window.alert(ex.getMessage());
-        }
-    }
-
-    public abstract class AsyncCallbackWithCommand implements AsyncCallback {
-
-        protected Command cmd;
-
-        public AsyncCallbackWithCommand(Command cmd) {
-            this.cmd = cmd;
         }
     }
 }

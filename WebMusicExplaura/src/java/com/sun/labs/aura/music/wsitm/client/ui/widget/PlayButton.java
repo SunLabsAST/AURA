@@ -89,6 +89,8 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         
         sinkEvents(Event.ONCLICK | Event.ONCONTEXTMENU);
         rightClickListeners = new ClickListenerCollection();
+
+        addStyleName("pointer");
     }
     
     private void setNewButton(MusicProviders preferredMP) {
