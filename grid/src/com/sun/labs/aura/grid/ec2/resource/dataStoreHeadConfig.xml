@@ -38,6 +38,7 @@
     <!-- The configuration for a partition cluster. We set import to false because there's no properties. -->
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true" import="false">
         <property name="logLevel" value="FINE"/>
+        <property name="parallelGet" value="true"/>
     </component>
     
     <component name="statService" type="com.sun.labs.aura.service.StatServiceImpl" export="true"/>

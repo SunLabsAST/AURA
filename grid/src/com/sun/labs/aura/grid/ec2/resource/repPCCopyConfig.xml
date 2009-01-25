@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : replicantConfig.xml
+    Created on : February 25, 2008, 10:24 AM
+    Author     : stgreen
+    Description:
+        Configuration for a single data replicant.
+-->
+
+<config>
+    
+    <!-- Where the aura data lives -->
+    <property name="auraHome" value="/datapool/aura"/>
+    <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
+    <property name="auraGroup" value="Aura"/>
+    <property name="auraDistDir" value="${auraHome}/dist"/>
+    <property name="csPort" value="3301"/>
+    
+    <property name="dataFS" value="${auraHome}/${prefix}"/>
+    
+    <component name="prefixEntries" type="com.sun.labs.util.props.ConfigurationEntries">
+        <propertylist name="entries">
+            <item>${prefix}</item>
+        </propertylist>
+    </component>
+    
+    <!-- A component registry that will be used to lookup and register components. -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>${auraGroup}</item>
+        </propertylist>
+        <property name="csDirs" value="${auraDistDir}/lib"/>
+        <property name="csPort" value="${csPort}"/>
+        <property name="registryHost" value="${regHost}"/>
+        <propertylist name="codebaseJars">
+            <item>aardvark.jar</item>
+            <item>aura.jar</item>
+            <item>minion.jar</item>
+            <item>slcut.jar</item>
+        </propertylist>
+        <property name="securityPolicy" value="${auraPolicy}"/>
+    </component>
+    
+    <component name="processManager" type="com.sun.labs.aura.datastore.impl.ProcessManager"/>
+    
+    <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true" entries="prefixEntries">
+        <property name="prefix" value="${prefix}"/>
+        <propertylist name="dataStoreHeads">
+            <type>com.sun.labs.aura.datastore.DataStore</type>
+        </propertylist>
+        <property name="processManager" value="processManager"/>
+    </component>
+
+    <component name="replicant" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" export="true" entries="prefixEntries">
+        <property name="prefix" value="${prefix}"/>
+        <property name="dbEnv" value="${dataFS}/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine"/>
+        <property name="partitionCluster" value="partitionCluster"/>
+        <property name="statService" value="statService"/>
+        <property name="logLevel" value="FINER"/>
+        <property name="copyDir" value="true"/>
+        <property name="copyLocation" value="/mnt"/>
+        <propertylist name="logMethods">
+            <item>FIND_SIM</item>
+            <item>GET_ITEM</item>
+            <item>GET_ITEMS</item>
+            <item>QUERY</item>
+        </propertylist>
+    </component>
+
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="prefix" value="${prefix}"/>
+        <property name="indexDir" value="${dataFS}/itemIndex.idx"/>
+        <property name="copyDir" value="true"/>
+        <property name="copyLocation" value="/mnt"/>
+        <property name="engineLogLevel" value="3"/>
+        <property name="flushInterval" value="300000"/>
+    </component>
+
+    <component name="statService" type="com.sun.labs.aura.service.StatService"/>
+
+    <!-- A service starter for this replicant -->
+    <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>replicant</item>
+            <item>partitionCluster</item>
+        </propertylist>
+    </component>
+    
+</config>

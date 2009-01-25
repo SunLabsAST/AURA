@@ -6,8 +6,8 @@ DIR=`dirname $0`
 #
 # Remove log files.
 for addr in ${REPINSTL}; do
-    echo Cleaning logs for $addr
-    $SSH root@$addr "rm -f ${FS}/logs/*"
+    echo Getting logs from $addr
+    $SCP root@$addr:${FS}/logs/*.out .
 done
 
 
