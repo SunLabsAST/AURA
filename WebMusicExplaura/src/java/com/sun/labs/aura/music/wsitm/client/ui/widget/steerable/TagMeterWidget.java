@@ -4,6 +4,10 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.widget.steerable;
 
+import com.google.gwt.event.dom.client.MouseMoveEvent;
+import com.google.gwt.event.dom.client.MouseOutEvent;
+import com.google.gwt.event.dom.client.MouseOutHandler;
+import com.google.gwt.event.dom.client.MouseUpEvent;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.DeletableWidget;
@@ -15,8 +19,8 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededMouseListener;
+import com.sun.labs.aura.music.wsitm.client.event.DEMouseMoveHandler;
+import com.sun.labs.aura.music.wsitm.client.event.DEMouseUpHandler;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.WrapsCloudItem;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
@@ -52,6 +56,7 @@ public class TagMeterWidget extends TagWidget {
         initWidget(mainTagPanel);
     }
 
+    @Override
     public HashMap<String, CloudItem> getItemsMap() {
         HashMap<String, CloudItem> itemsMap = new HashMap<String, CloudItem>();
         for (CloudItemMeter cim : tagCloud.values()) {
@@ -81,6 +86,7 @@ public class TagMeterWidget extends TagWidget {
         return maxVal;
     }
 
+    @Override
     public void removeItem(String itemId) {
         if (tagCloud.containsKey(itemId)) {
             mainTagPanel.remove(tagCloud.get(itemId));
@@ -92,6 +98,7 @@ public class TagMeterWidget extends TagWidget {
         }
     }
 
+    @Override
     public void removeAllItems(boolean updateRecommendations) {
         mainTagPanel.clear();
         tagCloud.clear();
@@ -191,13 +198,16 @@ public class TagMeterWidget extends TagWidget {
             fP.add(hP);
 
             fP.getElement().setAttribute("style", "margin-right: 40px");
-            fP.addMouseListener(new DataEmbededMouseListener<CloudItem>(item) {
-
-                public void onMouseLeave(Widget arg0) {
+            fP.addMouseOutHandler(new MouseOutHandler() {
+                @Override
+                public void onMouseOut(MouseOutEvent event) {
                     redrawMeter();
                 }
-
-                public void onMouseMove(Widget arg0, int y, int x) {
+            });
+            fP.addMouseMoveHandler(new DEMouseMoveHandler<CloudItem>(item) {
+                @Override
+                public void onMouseMove(MouseMoveEvent event) {
+                    int y = event.getRelativeX(fP.getElement());
                     // We are hovering over the red section
                     if (y <= RED_WIDTH) {
                         redMeter.setUrlAndVisibleRect(METER_HOVER, 0, 0, RED_WIDTH, METER_HEIGHT);
@@ -227,17 +237,15 @@ public class TagMeterWidget extends TagWidget {
                         }
                     }
                 }
-
-                public void onMouseUp(Widget arg0, int y, int x) {
-                    ((FocusPanel) arg0).setFocus(false);
-                    data.setWeight(y);
+            });
+            fP.addMouseUpHandler(new DEMouseUpHandler<CloudItem>(item) {
+                @Override
+                public void onMouseUp(MouseUpEvent event) {
+                    ((FocusPanel) event.getSource()).setFocus(false);
+                    data.setWeight(event.getRelativeX(fP.getElement()));
                     redrawMeter();
                     updateRecommendations();
                 }
-                
-                public void onMouseDown(Widget arg0, int arg1, int arg2) {}
-                public void onMouseEnter(Widget arg0) {}
-                
             });
 
             mainPanel.getCellFormatter().setHorizontalAlignment(0, 0, HorizontalPanel.ALIGN_LEFT);
@@ -274,6 +282,7 @@ public class TagMeterWidget extends TagWidget {
             return item.getDisplayName();
         }
 
+        @Override
         public CloudItem getCloudItem() {
             return item;
         }
@@ -290,6 +299,7 @@ public class TagMeterWidget extends TagWidget {
             addRemoveButton();
         }
 
+        @Override
         public void onDelete() {
             /*
              this.fadeOut(new DataEmbededCommand<String>(i.getId()) {
