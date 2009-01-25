@@ -77,7 +77,7 @@ public class ContextMenu {
         l.addMouseOverHandler(new DEMouseOverHandler<Label>(l) {
             @Override
             public void onMouseOver(MouseOverEvent event) {
-                data.removeStyleName("contextMenuItemHover");
+                data.addStyleName("contextMenuItemHover");
             }
         });
         vP.add(l);
