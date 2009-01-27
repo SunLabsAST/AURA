@@ -5,17 +5,17 @@
 
 package com.sun.labs.aura.music.wsitm.client.event;
 
-import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.MouseMoveHandler;
 
 /**
  *
  * @author mailletf
  */
-public abstract class DEClickHandler<T> implements ClickHandler {
+public abstract class DEMouseMoveHandler<T> implements MouseMoveHandler {
 
     protected T data;
-    
-    public DEClickHandler(T data) {
+
+    public DEMouseMoveHandler(T data) {
         super();
         this.data = data;
     }

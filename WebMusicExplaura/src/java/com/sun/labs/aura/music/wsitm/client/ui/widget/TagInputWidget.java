@@ -5,6 +5,13 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.event.dom.client.BlurEvent;
+import com.google.gwt.event.dom.client.BlurHandler;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.FocusEvent;
+import com.google.gwt.event.dom.client.FocusHandler;
+import com.google.gwt.event.dom.client.KeyPressEvent;
+import com.google.gwt.event.dom.client.KeyPressHandler;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.event.DEAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
@@ -13,13 +20,14 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.FocusListener;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.ui.VerticalPanel;
+import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
+import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import java.util.HashMap;
@@ -40,21 +48,33 @@ public class TagInputWidget extends Composite implements LoginListener {
     private Image progressImg;
 
     private String itemId;
-
+    private String tagStyleName = null;
+    
     private final static String DEFAULT_TBOX_TXT = "Add comma separated tags";
     private final static String PROCESSING_TBOX_MSG = "Processing...";
 
-    public TagInputWidget(MusicSearchInterfaceAsync musicServer, ClientDataManager cdm, String itemType, String itemId) {
+    public TagInputWidget(MusicSearchInterfaceAsync musicServer,
+                ClientDataManager cdm, String itemType, String itemId) {
+        this(musicServer, cdm, itemType, itemId, null, null);
+    }
+
+    public TagInputWidget(MusicSearchInterfaceAsync musicServer, 
+            ClientDataManager cdm, String itemType, String itemId, 
+            String titleStyle, String tagStyle) {
 
         this.musicServer = musicServer;
         this.cdm = cdm;
         this.itemId = itemId;
+        this.tagStyleName = tagStyle;
 
         userTags = new HashMap<String, SpannedLabel>();
 
         HorizontalPanel mainPanel = new HorizontalPanel();
         Label titleLbl = new Label("Tag this "+itemType+": ");
-        titleLbl.getElement().setAttribute("style", "margin-right:5px");
+        titleLbl.getElement().getStyle().setPropertyPx("marginRight", 5);
+        if (titleStyle!=null) {
+            titleLbl.setStyleName(titleStyle);
+        }
         mainPanel.add(titleLbl);
 
         tagPanel = new FlowPanel();
@@ -62,24 +82,23 @@ public class TagInputWidget extends Composite implements LoginListener {
 
         txtBox = new TextBox();
         resetTextBoxIfEmpty();
-        txtBox.addKeyboardListener(new KeyboardListener() {
-
-            public void onKeyPress(Widget arg0, char arg1, int arg2) {
-                if (arg1 == KeyboardListener.KEY_ENTER) {
+        txtBox.addKeyPressHandler(new KeyPressHandler() {
+            @Override
+            public void onKeyPress(KeyPressEvent event) {
+                if (event.getNativeEvent().getKeyCode() == 13) {
                     onTagSubmit();
                 }
             }
-
-            public void onKeyDown(Widget arg0, char arg1, int arg2) {}
-            public void onKeyUp(Widget arg0, char arg1, int arg2) {}
         });
-        txtBox.addFocusListener(new FocusListener() {
-
-            public void onFocus(Widget arg0) {
+        txtBox.addFocusHandler(new FocusHandler() {
+            @Override
+            public void onFocus(FocusEvent event) {
                 clearTextBoxIfDefault();
             }
-
-            public void onLostFocus(Widget arg0) {
+        });
+        txtBox.addBlurHandler(new BlurHandler() {
+            @Override
+            public void onBlur(BlurEvent event) {
                 resetTextBoxIfEmpty();
             }
         });
@@ -95,6 +114,20 @@ public class TagInputWidget extends Composite implements LoginListener {
 
         initWidget(mainPanel);
 
+    }
+
+    /**
+     * Add a tag to the textbox
+     * @param tag to add
+     */
+    public void addTagToBox(String tag) {
+        if (tag!=null && tag.length()>0) {
+            clearTextBoxIfDefault();
+            if (!txtBox.getText().equals("")) {
+                tag=", "+tag;
+            }
+            txtBox.setText(txtBox.getText()+tag);
+        }
     }
 
     private void onTagSubmit() {
@@ -145,7 +178,11 @@ public class TagInputWidget extends Composite implements LoginListener {
             if (first) {
                 first = false;
             } else {
-                tagPanel.add(new SpannedLabel(", "));
+                SpannedLabel cLabel = new SpannedLabel(", ");
+                if (tagStyleName!=null) {
+                    cLabel.setStyleName(tagStyleName);
+                }
+                tagPanel.add(cLabel);
             }
             tagPanel.add(t);
         }
@@ -153,7 +190,11 @@ public class TagInputWidget extends Composite implements LoginListener {
 
     public void addTag(String tag) {
         //userTags.put(tag, new DeletableTag(new SpannedLabel(tag)));
-        userTags.put(tag, new SpannedLabel(tag));
+        SpannedLabel newTag = new SpannedLabel(tag);
+        if (tagStyleName!=null) {
+            newTag.setStyleName(tagStyleName);
+        }
+        userTags.put(tag, newTag);
         clearTextBoxTxt();
         redrawTags();
     }
@@ -242,10 +283,12 @@ public class TagInputWidget extends Composite implements LoginListener {
         }
     }
 
+    @Override
     public void onLogin(ListenerDetails lD) {
         invokeFetchUserTags();
     }
 
+    @Override
     public void onLogout() {
         removeAllTags();
     }
@@ -259,13 +302,61 @@ public class TagInputWidget extends Composite implements LoginListener {
             this.tag = w.getText();
         }
 
+        @Override
         public void onDelete() {
             removeTag(tag);
         }
     }
 
+    @Override
     public void onDelete() {
         cdm.getLoginListenerManager().removeListener(this);
+    }
+
+
+    public static void showTagInputPopup(ArtistCompact aC,
+            MusicSearchInterfaceAsync musicServer, ClientDataManager cdm) {
+
+        VerticalPanel vP = new VerticalPanel();
+        vP.setStyleName("popupColors");
+        vP.setWidth("600px");
+
+        final TagInputWidget tiw = new TagInputWidget(musicServer, cdm, 
+                "artist", aC.getId(), "tagPop2", "tagPop1");
+
+        vP.add(tiw);
+
+        FlowPanel sysTagPanel = new FlowPanel();
+        sysTagPanel.getElement().getStyle().setPropertyPx("borderTop", 5);
+        SpannedLabel sysTagLabel = new SpannedLabel("Suggested tags: ");
+        sysTagLabel.addStyleName("tagPop2");
+        sysTagPanel.add(sysTagLabel);
+
+        boolean first = true;
+        for (ItemInfo iI : aC.getDistinctiveTags()) {
+            if (!first) {
+                SpannedLabel cLabel = new SpannedLabel(", ");
+                cLabel.addStyleName("tagPop1");
+                sysTagPanel.add(cLabel);
+            } else {
+                first = false;
+            }
+            SpannedLabel l = new SpannedLabel(iI.getItemName());
+            l.addStyleName("pointer");
+            l.addStyleName("tagPop1");
+            l.addClickHandler(new DEClickHandler<String>(iI.getItemName()) {
+                @Override
+                public void onClick(ClickEvent event) {
+                    tiw.addTagToBox(data);
+                }
+            });
+            sysTagPanel.add(l);
+        }
+
+        vP.add(tiw);
+        vP.add(sysTagPanel);
+        
+        Popup.showRoundedPopup(vP, "Add tags to "+aC.getName(), Popup.getPopupPanel(), -1, -1);
     }
 
 }

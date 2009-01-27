@@ -33,6 +33,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.event.DEAsyncCallback;
+import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.PlayedListener;
@@ -52,6 +53,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWi
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.StarRatingWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.SteeringWheelWidget;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.TagInputWidget;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -137,19 +139,23 @@ public class DashboardSwidget extends Swidget implements LoginListener {
         currHistoryToken = historyToken;
     }
 
+    @Override
     public void onLogin(ListenerDetails lD) {
         update(currHistoryToken);
     }
 
+    @Override
     public void onLogout() {
         onDelete();
         update(currHistoryToken);
     }
 
+    @Override
     public void doRemoveListeners() {
         onDelete();
     }
 
+    @Override
     public void onDelete() {
         if (mP != null) {
             mP.doRemoveListeners();
@@ -177,10 +183,12 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             super.invokeFetchRecentAttentions(AttentionType.PLAYED);
         }
 
+        @Override
         public void onPlay(String artistId) {
             invokeFetchArtistCompact(artistId);
         }
 
+        @Override
         public void onDelete() {
             cdm.getPlayedListenerManager().removeListener(this);
             deleteSuperElems();
@@ -196,11 +204,13 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             super.invokeFetchRecentAttentions(AttentionType.RATED);
         }
 
+        @Override
         public void onDelete() {
             cdm.getRatingListenerManager().removeListener(this);
             deleteSuperElems();
         }
 
+        @Override
         public void onRate(String itemId, int rating) {
             invokeFetchArtistCompact(itemId);
         }
@@ -221,6 +231,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             deleteSuperElems();
         }
 
+        @Override
         public void onTag(String itemId, HashSet<String> tags) {
             invokeFetchArtistCompact(itemId);
         }
@@ -557,7 +568,22 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                 }
 
                 StarRatingWidget srw = new StarRatingWidget(musicServer, cdm, aD.getId(), StarRatingWidget.InitialRating.FETCH, StarRatingWidget.Size.MEDIUM);
-                featArtTitle.setWidget(0, 1, srw);
+                HorizontalPanel starTagHp = new HorizontalPanel();
+                starTagHp.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
+                starTagHp.add(srw);
+
+                Image tagImg = new Image("tag25.png");
+                tagImg.addStyleName("pointer");
+                tagImg.addClickHandler(new DEClickHandler<ArtistCompact>(aD.toArtistCompact()) {
+                    @Override
+                    public void onClick(ClickEvent event) {
+                        TagInputWidget.showTagInputPopup(data, musicServer, cdm);
+                    }
+                });
+                starTagHp.add(tagImg);
+
+                featArtTitle.setWidget(0, 1, starTagHp);
+
 
                 HorizontalPanel hP = new HorizontalPanel();
                 hP.setWidth("100%");

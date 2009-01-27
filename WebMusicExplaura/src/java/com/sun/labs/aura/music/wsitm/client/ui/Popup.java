@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui;
 
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.Cookies;
 import com.google.gwt.user.client.DeferredCommand;
@@ -25,6 +26,7 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.TextBox;
+import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 
 /**
@@ -132,29 +134,41 @@ public abstract class Popup {
 
     }
 
-    public static void showInformationPopup(HTML html, int secTillAutoClose) {
+    public static void showInformationPopup(Widget html, int secTillAutoClose,
+            boolean closeButton) {
 
         PopupPanel popup = getPopupPanel();
-
-        Button b = new Button("OK");
-        b.addClickListener(new DataEmbededClickListener<PopupPanel>(popup) {
-
-            public void onClick(Widget sender) {
-                data.hide();
-            }
-        });
 
         VerticalPanel hP = new VerticalPanel();
         hP.setSpacing(4);
         hP.add(html);
         hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
-        hP.add(b);
+
+        if (closeButton) {
+            Button b = new Button("OK");
+            b.addClickHandler(new DEClickHandler<PopupPanel>(popup) {
+                @Override
+                public void onClick(ClickEvent ce) {
+                    data.hide();
+                }
+            });
+            hP.add(b);
+        }
 
         showRoundedPopup(hP, "Information", popup);
     }
 
     public static void showInformationPopup(String message) {
-        showInformationPopup(new HTML("<p>"+message+"</p>"), 0);
+        showInformationPopup(new HTML("<p>"+message+"</p>"), 0, true);
+    }
+
+    public static void showLoadingPopup() {
+        HorizontalPanel hP = new HorizontalPanel();
+        hP.add(new Image("ajax-ball-t.gif"));
+        Label l = new Label("Loading...");
+        l.addStyleName("tagPop2");
+        hP.add(l);
+        showRoundedPopup(hP, "Information", getPopupPanel());
     }
 
     /**

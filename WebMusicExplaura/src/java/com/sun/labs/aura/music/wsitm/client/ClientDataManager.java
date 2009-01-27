@@ -4,7 +4,11 @@
  */
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.sun.labs.aura.music.wsitm.client.event.WebListener;
 import com.sun.labs.aura.music.wsitm.client.event.TaggingListener;
 import com.sun.labs.aura.music.wsitm.client.event.RatingListener;
@@ -25,6 +29,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedTagMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton.MusicProviders;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.TagWidgetContainer;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -63,6 +68,7 @@ public class ClientDataManager {
     private MusicProviderSwitchListenerManager musicProviderSwitchListenerManager;
     
     private SteerableTagCloudExternalController steerableTagCloudExternalController;
+    private SearchAttentionManager searchAttentionManager;
 
     /**
      * If true, steerableswidget will reload artist cloud if querystring is set
@@ -92,7 +98,9 @@ public class ClientDataManager {
         tagCloudListenerManager = new TagCloudListenerManager();
         playedListenerManager = new PlayedListenerManager();
         musicProviderSwitchListenerManager = new MusicProviderSwitchListenerManager();
+
         steerableTagCloudExternalController = new SteerableTagCloudExternalController();
+        searchAttentionManager = new SearchAttentionManager(this);
 
         sharedTagMenu = new SharedTagMenu(this);
         sharedSteeringMenu = new SharedSteeringMenu(this);
@@ -103,6 +111,10 @@ public class ClientDataManager {
 
     public MusicProviderSwitchListenerManager getMusicProviderSwitchListenerManager() {
         return musicProviderSwitchListenerManager;
+    }
+
+    public SearchAttentionManager getSearchAttentionManager() {
+        return searchAttentionManager;
     }
     
     public RatingListenerManager getRatingListenerManager() {
@@ -668,6 +680,82 @@ public class ClientDataManager {
             } else {
                 return -1;
             }
+        }
+    }
+
+    public class SearchAttentionManager {
+
+        private ClientDataManager cdm;
+        private MusicSearchInterfaceAsync musicServer;
+
+        private boolean hasValidSearch = false;
+        private searchTypes currSearchType;
+        private ItemInfo[] currResultSet;
+        private String currSearch;
+
+        public SearchAttentionManager(ClientDataManager cdm) {
+            this.cdm = cdm;
+            initRPC();
+        }
+
+        private void invokeAddAttention(boolean linkInResults, String itemId) {
+            if (!linkInResults) {
+               itemId=null;
+            }
+
+            try {
+                musicServer.addSearchAttention(cdm.getListenerDetails().getUserKey(),
+                        itemId, currSearchType, currSearch, new AsyncCallback() {
+
+                    public void onSuccess(Object o) {}
+                    public void onFailure(Throwable caught) {
+                        Window.alert("An error occured while adding the search attention : "+caught.getMessage());
+                    }
+                });
+            } catch (Exception ex) {
+                Window.alert(ex.getMessage());
+            }
+
+            hasValidSearch=false;
+        }
+
+        public void processUserClick(String token) {
+            if (hasValidSearch) {
+                // If the key being loaded was in our stored results
+                for (ItemInfo iI : currResultSet) {
+                    if (iI.getId().equals(token)) {
+                        invokeAddAttention(true, iI.getId());
+                        return;
+                    }
+                }
+                invokeAddAttention(false, null);
+            }
+        }
+
+        public void registerSearch(String search, searchTypes sT, ItemInfo[] resultSet) {
+
+            resetSearch();
+            this.currResultSet = resultSet;
+            this.currSearch = search;
+            this.currSearchType = sT;
+            this.hasValidSearch = true;
+        }
+
+        /**
+         * Reset state. If a search is currently saved, save it as having a null
+         * target
+         */
+        public void resetSearch() {
+            if (hasValidSearch) {
+                invokeAddAttention(false, null);
+            }
+        }
+
+        private final void initRPC() {
+            musicServer = (MusicSearchInterfaceAsync) GWT.create(MusicSearchInterface.class);
+            ServiceDefTarget endpoint = (ServiceDefTarget) musicServer;
+            String moduleRelativeURL = GWT.getModuleBaseURL() + "musicsearch";
+            endpoint.setServiceEntryPoint(moduleRelativeURL);
         }
     }
 }

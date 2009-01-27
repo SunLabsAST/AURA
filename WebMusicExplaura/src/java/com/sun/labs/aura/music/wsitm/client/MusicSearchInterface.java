@@ -19,6 +19,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,7 +39,8 @@ public interface MusicSearchInterface extends RemoteService {
     public SearchResults artistSearch(String searchString, int maxResults) throws WebException;
     public SearchResults artistSearchByTag(String searchString, int maxResults) throws WebException;
     public SearchResults tagSearch(String searchString, int maxResults) throws WebException;
-    
+    public void addSearchAttention(String userKey, String target, searchTypes sT, String searchStr) throws WebException;
+
     public ArtistDetails getArtistDetails(String id, boolean refresh, String simTypeName, String popularity) throws WebException ;
     public ArtistCompact getArtistCompact(String artistId) throws WebException;
     public ArrayList<ScoredC<ArtistCompact>> getSimilarArtists(String id, String simTypeName, String popularity) throws WebException;

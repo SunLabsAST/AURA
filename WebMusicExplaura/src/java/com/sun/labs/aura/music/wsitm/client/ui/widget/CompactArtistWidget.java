@@ -13,6 +13,7 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
@@ -54,13 +55,13 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         this(aC, cdm, musicServer, whyB, diffB, iR, userTags, null);
     }
     
-    public CompactArtistWidget(ArtistCompact aC, ClientDataManager cdm,
-            MusicSearchInterfaceAsync musicServer, SwapableTxtButton whyB,
+    public CompactArtistWidget(ArtistCompact aC, ClientDataManager tCdm,
+            MusicSearchInterfaceAsync tMusicServer, SwapableTxtButton whyB,
             SwapableTxtButton diffB, InitialRating iR, Set<String> userTags,
             String backgroundColor) {
 
-        this.cdm = cdm;
-        this.musicServer = musicServer;
+        this.cdm = tCdm;
+        this.musicServer = tMusicServer;
 
         artistId = aC.getId();
 
@@ -160,11 +161,27 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         starLbl.setStyleName("recoTags");
         starLbl.addStyleName("marginRight");
         starLbl.addStyleName("bold");
-        HorizontalPanel starHP = new HorizontalPanel();
-        starHP.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
-        starHP.add(starLbl);
-        starHP.add(star);
-        txtPanel.add(starHP);
+
+        Label tagLbl = new Label("Add tags");
+        tagLbl.setStyleName("recoTags");
+        tagLbl.addStyleName("bold");
+        tagLbl.addStyleName("pointer");
+        tagLbl.addClickHandler(new DEClickHandler<ArtistCompact>(aC) {
+            @Override
+            public void onClick(ClickEvent event) {
+                TagInputWidget.showTagInputPopup(data, musicServer, cdm);
+            }
+        });
+
+        Grid starGrid = new Grid(1,3);
+        starGrid.setWidth("100%");
+        starGrid.getCellFormatter().setHorizontalAlignment(0, 0, HorizontalPanel.ALIGN_LEFT);
+        starGrid.setWidget(0, 0, starLbl);
+        starGrid.setWidget(0, 1, star);
+        starGrid.getCellFormatter().setHorizontalAlignment(0, 2, HorizontalPanel.ALIGN_RIGHT);
+        starGrid.setWidget(0, 2, tagLbl);
+        txtPanel.add(starGrid);
+
 
         txtPanel.add(WebLib.getSmallPopularityWidget(aC.getNormPopularity(), true, true));
 
