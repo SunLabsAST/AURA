@@ -46,8 +46,16 @@ import org.openid4java.message.sreg.SRegResponse;
 /**
  * Provides the mechanism for forwarding login requests through to OpenID
  * providers in order to establish session tokens for connecting users.
+ *
+ * If an error occurs, an error code will be set back to the return URL
+ * provided by the client of this service.  Error codes are listed below.
  */
 public class Login extends HttpServlet {
+
+    public static final String E_MISSING_ID = "Must specify openid parameter";
+    public static final String E_INTERNAL = "An internal error occurred";
+    public static final String E_VERIFY = "Failed to verify identity";
+
     protected Logger logger = Logger.getLogger("");
 
     protected ConsumerManager consumer = null;
@@ -104,7 +112,8 @@ public class Login extends HttpServlet {
             String openIdURL = request.getParameter("openid");
             String clientReturn = request.getParameter("return");
             if (openIdURL == null || openIdURL.isEmpty()) {
-                pw.println("Error: No OpenID provided.");
+                returnError(request, response,
+                            "E_MISSING_ID", E_MISSING_ID, null);
                 return;
             }
             if (clientReturn == null || clientReturn.isEmpty()) {
@@ -126,7 +135,7 @@ public class Login extends HttpServlet {
             } catch (AuraException e) {
                 //
                 // If we failed to talk to the datastore, we're in trouble
-                pw.println("Error: Internal Communication Error");
+                returnError(request, response, "E_INTERNAL", E_INTERNAL, e);
                 return;
             }
 
@@ -157,9 +166,9 @@ public class Login extends HttpServlet {
             if (identifier == null) {
                 //
                 // login failed, send them back to the welcome
-                logger.log(Level.WARNING, "Login failed (intendedID was " +
-                        (String)session.getAttribute("intendedID") + ")");
-                pw.println("Failed to verify identity");
+                returnError(request, response, "E_VERIFY",
+                        E_VERIFY + ": Login failed (intendedID was " +
+                        (String)session.getAttribute("intendedID") + ")", null);
                 return;
             }
 
@@ -171,12 +180,10 @@ public class Login extends HttpServlet {
             try {
                 u = getOrEnrollUser(openid, request);
             } catch (AuraException e) {
-                logger.log(Level.SEVERE, "Failed to communicate with DS", e);
-                pw.println("Communication error");
+                returnError(request, response, "E_INTERNAL", E_INTERNAL, e);
                 return;
             } catch (RemoteException e) {
-                logger.log(Level.SEVERE, "Failed to communicate with DS", e);
-                pw.println("Communication error");
+                returnError(request, response, "E_INTERNAL", E_INTERNAL, e);
                 return;
             }
 
@@ -188,8 +195,8 @@ public class Login extends HttpServlet {
                 try {
                     sessionKey = loginSvc.newUserSessionKey(u.getKey(), "wslogin");
                 } catch (Exception e) {
-                    logger.log(Level.SEVERE, "Failed to get new user key", e);
-                    pw.println("Session key error");
+                    returnError(request, response, "E_INTERNAL",
+                            E_INTERNAL + ": Failed getting session key", e);
                     return;
                 }
             }
@@ -204,6 +211,21 @@ public class Login extends HttpServlet {
         } finally {
             pw.close();
         }
+    }
+
+    protected void returnError(HttpServletRequest request,
+                               HttpServletResponse response,
+                               String errorName, String errorMessage,
+                               Exception e) throws IOException {
+        HttpSession session = request.getSession();
+        String clientReturn = (String)session.getAttribute("clientReturn");
+        if (e != null) {
+            logger.log(Level.SEVERE, errorMessage, e);
+        } else {
+            logger.log(Level.INFO, errorMessage);
+        }
+        clientReturn += "?error=" + errorName;
+        response.sendRedirect(response.encodeRedirectURL(clientReturn));
     }
 
     /**

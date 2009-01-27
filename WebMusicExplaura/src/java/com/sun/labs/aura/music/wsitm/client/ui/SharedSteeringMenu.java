@@ -5,12 +5,11 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
-import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.ArtistDependentSharedMenu;
 
@@ -29,39 +28,35 @@ public class SharedSteeringMenu extends ContextMenu implements ArtistDependentSh
 
         this.cdm = tCdm;
 
-        addElement("Start new steerable with artist's top tags", new DataEmbededClickListener<SharedSteeringMenu>(this) {
-
+        addElement("Start new steerable with artist's top tags", new ClickHandler() {
             @Override
-            public void onClick(Widget sender) {
+            public void onClick(ClickEvent event) {
                 cdm.setSteerableReset(true);
-                History.newItem("steering:" + data.currArtist.getId());
+                History.newItem("steering:" + currArtist.getId());
             }
         });
-        addElement("Start new steerable with artist",
-                new DualDataEmbededClickListener<ClientDataManager, SharedSteeringMenu>(cdm, this) {
-
-                    @Override
-                    public void onClick(Widget sender) {
-                        cdm.setSteerableReset(true);
-                        History.newItem("steering:art:" + sndData.currArtist.getId());
-                    }
-                });
-        addElement("Add artist's top tags", new DualDataEmbededClickListener<ClientDataManager, SharedSteeringMenu>(cdm, this) {
-
+        addElement("Start new steerable with artist", new ClickHandler() {
             @Override
-            public void onClick(Widget sender) {
-                data.getSteerableTagCloudExternalController().addTags(sndData.currArtist.getDistinctiveTags());
+            public void onClick(ClickEvent event) {
+                cdm.setSteerableReset(true);
+                History.newItem("steering:art:" + currArtist.getId());
+                }
+            });
+        addElement("Add artist's top tags", new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                cdm.getSteerableTagCloudExternalController().addTags(currArtist.getDistinctiveTags());
             }
         });
-        addElement("Add artist", new DualDataEmbededClickListener<ClientDataManager, SharedSteeringMenu>(cdm, this) {
-
+        addElement("Add artist", new ClickHandler() {
             @Override
-            public void onClick(Widget sender) {
-                data.getSteerableTagCloudExternalController().addArtist(sndData.currArtist);
+            public void onClick(ClickEvent event) {
+                cdm.getSteerableTagCloudExternalController().addArtist(currArtist);
             }
         });       
     }
     
+    @Override
     public void showAt(Event e, ArtistCompact currArtist) {
         this.currArtist = currArtist;
         super.showAt(e);

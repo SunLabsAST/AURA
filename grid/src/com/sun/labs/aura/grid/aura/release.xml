@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!--
+    Document   : startAura.xml
+    Created on : May 20, 2008, 10:25 AM
+    Author     : stgreen
+    Description:
+        Configuration for the AuraStart grid script.
+-->
+<config>
+    
+    <property name="auraInstance" value="live"/>
+    <property name="relName" value="release"/>
+    
+    <component name="stopSITM" type="com.sun.labs.aura.grid.sitm.StopSITM">
+        <property name="onGrid" value="false"/>
+        <property name="instance" value="${auraInstance}"/>
+    </component>
+
+    <component name="stopAuraAndDestroyAll" type="com.sun.labs.aura.grid.aura.StopAura">
+        <property name="onGrid" value="false"/>
+        <property name="instance" value="${auraInstance}"/>
+        <property name="stopReggie" value="true"/>
+        <property name="destroy" value="true"/>
+    </component>
+
+    <component name="startAura" type="com.sun.labs.aura.grid.aura.StartAura">
+        <property name="onGrid" value="false"/>
+        <property name="instance" value="${auraInstance}"/>
+    </component>
+
+    <component name="prepareForRelease" type="com.sun.labs.aura.grid.aura.PrepareForRelease">
+        <property name="onGrid" value="false"/>
+        <property name="instance" value="${auraInstance}"/>
+        <property name="relName" value="${relName}"/>
+    </component>
+
+    <component name="cleanupRelease" type="com.sun.labs.aura.grid.aura.CleanupRelease">
+        <property name="onGrid" value="false"/>
+        <property name="instance" value="${auraInstance}"/>
+        <property name="relName" value="${relName}"/>
+    </component>
+
+    <component name="rollbackRelease" type="com.sun.labs.aura.grid.aura.RollbackRelease">
+        <property name="onGrid" value="false"/>
+        <property name="instance" value="${auraInstance}"/>
+        <property name="relName" value="${relName}"/>
+    </component>
+
+    <component name="prepare" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>stopSITM</item>
+            <item>stopAuraAndDestroyAll</item>
+            <item>prepareForRelease</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="snaps" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>prepareForRelease</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="cleanup" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>cleanupRelease</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="rollback" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>stopSITM</item>
+            <item>stopAuraAndDestroyAll</item>
+            <item>rollbackRelease</item>
+            <item>startAura</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="rollonly" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>rollbackRelease</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="test" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>stopSITM</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+</config>

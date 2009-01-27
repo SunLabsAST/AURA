@@ -53,7 +53,7 @@ public class ServletListener implements ServletContextListener {
                     }
                     context.setAttribute("MusicDatabase", mdb);
                 } catch (AuraException ex) {
-                    logger.severe("AuraException : "+ex.getMessage());
+                    logger.log(Level.SEVERE, "AuraException : "+ex.getMessage(), ex);
                 }
             } catch (IOException ioe) {
                 logger.log(Level.SEVERE, "Failed to get handle", ioe);

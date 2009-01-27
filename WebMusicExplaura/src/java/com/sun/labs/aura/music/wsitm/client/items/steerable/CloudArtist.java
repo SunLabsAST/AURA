@@ -8,7 +8,7 @@ package com.sun.labs.aura.music.wsitm.client.items.steerable;
 import com.google.gwt.user.client.ui.Image;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
-import com.sun.labs.aura.music.wsitm.client.ui.ColorConfig;
+import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib.TagColorType;
 import java.util.HashSet;
 
 /**
@@ -18,12 +18,7 @@ import java.util.HashSet;
 public class CloudArtist extends CloudComposite {
 
     private Image artistImage;
-    
-    private static final ColorConfig[] color = {
-        new ColorConfig("#728bd2", "#D49090"),
-        new ColorConfig("#295df3", "#D49090")
-    };
-    
+        
     public CloudArtist(String artistId, String displayName, double weight, HashSet<CloudItem> items, Image artistImage) {
         super(artistId, displayName, weight, items);
         this.artistImage = artistImage;
@@ -43,11 +38,22 @@ public class CloudArtist extends CloudComposite {
         return artistImage;
     }
 
+    @Override
     public Image getIcon() {
         return new Image("icon-a.jpg");
     }
 
-    public ColorConfig[] getColorConfig() {
-        return color;
+    @Override
+    public TagColorType getTagColorType() {
+        if (this.isSticky()) {
+            return TagColorType.STICKY_ARTIST;
+        } else {
+            return TagColorType.ARTIST;
+        }
+    }
+
+    @Override
+    public CloudItemType getCloudItemType() {
+        return CloudItemType.ARTIST;
     }
 }

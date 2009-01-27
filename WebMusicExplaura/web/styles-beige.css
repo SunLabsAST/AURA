@@ -119,37 +119,85 @@ h2 {
     background-color: #DBE8B5;
     background: #DBE8B5;
 }
+
+
+.tagPop1 {
+    color: #D4C790;
+    text-decoration: none;
+}
+
+.tagPop1neg {
+  /* color: #D49090; */
+  color: #D4C790;
+  text-decoration: line-through;
+}
+.tagPop2 {
+    color: #ADA376;
+    text-decoration: none;
+}
+.tagPop2neg {
+  /* color: #AD7676; */
+  color: #ADA376;
+  text-decoration: line-through;
+}
+
+
+
 .tag1 {
     color: #D4C790;
     text-decoration: none;
 }
 
 .tag1neg {
-  color: #D49090;
-  text-decoration: none;  
-}
-
-.tag1:hover {
-    color: #B0BFA1;
-    background-color: #D4C790;
-    background: #D4C790;
+  /* color: #D49090; */
+  color: #D4C790;
+  text-decoration: line-through;
 }
 .tag2 {
     color: #ADA376;
     text-decoration: none;
 }
-
 .tag2neg {
-  color: #AD7676;
-  text-decoration: none;  
+  /* color: #AD7676; */
+  color: #ADA376;
+  text-decoration: line-through;
 }
-
-.tag2:hover {
-    color: #B0BFA1;
-    background-color: #D4C790;
-    background: #D4C790;
+.tag1Sticky {
+    color: #D4C790;
+    text-decoration: none;
+    font-style:italic;
 }
-
+.tag2Sticky {
+    color: #ADA376;
+    text-decoration: none;
+    font-style:italic;
+}
+.artistTag1Sticky {
+    color: #728bd2;
+    text-decoration: none;
+    font-style:italic;
+}
+.artistTag2Sticky {
+    color: #295df3;
+    text-decoration: none;
+    font-style:italic;
+}
+.artistTag1 {
+    color: #728bd2;
+    text-decoration: none;
+}
+.artistTag2 {
+    color: #295df3;
+    text-decoration: none;
+}
+.artistTag1neg {
+    color: #728bd2;
+    text-decoration: line-through;
+}
+.artistTag2neg {
+    color: #295df3;
+    text-decoration: line-through;
+}
 .tagColorAdded {
   color : #b6cf9d;
 }

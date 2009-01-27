@@ -11,13 +11,11 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
+import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.MusicSearchInterface;
 import com.sun.labs.aura.music.wsitm.client.MusicSearchInterfaceAsync;
-import com.sun.labs.aura.music.wsitm.client.WebLib;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
-import com.sun.labs.aura.music.wsitm.client.event.DualDataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.TagDependentSharedMenu;
 
@@ -31,33 +29,34 @@ public class SharedTagMenu extends ContextMenu implements TagDependentSharedMenu
     protected MusicSearchInterfaceAsync musicServer;
     protected ClientDataManager cdm;
 
-    public SharedTagMenu(ClientDataManager cdm) {
+    public SharedTagMenu(ClientDataManager tCdm) {
 
         super();
         initRPC();
-        this.cdm = cdm;
+        this.cdm = tCdm;
 
-        addElement("View tag details", new DataEmbededClickListener<SharedTagMenu>(this) {
+        addElement("View tag details", new ClickListener() {
 
             @Override
             public void onClick(Widget sender) {
-                History.newItem("tag:" + data.currTag.getId());
+                History.newItem("tag:" + currTag.getId());
             }
         });
-        addElement("Add tag to current steerable tag cloud",
-                new DualDataEmbededClickListener<ClientDataManager, SharedTagMenu>(cdm, this) {
 
-                    @Override
-                    public void onClick(Widget sender) {
-                        data.getSteerableTagCloudExternalController().addTag(sndData.currTag);
-                    }
-                });
-        addElement("View similar tags",
-                new DataEmbededClickListener<SharedTagMenu>(this) {
+        addElement("View similar tags", new ClickListener() {
 
                     @Override
                     public void onClick(Widget sender) {
                         invokeSimTagService(currTag.getId());
+                    }
+                });
+                
+        addSeperator();
+        addElement("Add tag to current steerable tag cloud", new ClickListener() {
+
+                    @Override
+                    public void onClick(Widget sender) {
+                        cdm.getSteerableTagCloudExternalController().addTag(currTag);
                     }
                 });
     }

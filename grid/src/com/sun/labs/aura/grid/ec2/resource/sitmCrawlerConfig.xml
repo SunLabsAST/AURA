@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : fullConfig.xml
+    Created on : May 22, 2008, 3:12 PM
+    Author     : stgreen
+    Description:
+        An all-in-one-VM configuration for search inside the music.
+-->
+
+<config>
+    <!-- Where the aura data lives -->
+    <property name="auraHome" value="/datapool/aura"/>
+    <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
+    <property name="auraGroup" value="Aura"/>
+    <property name="auraDistDir" value="${auraHome}/dist"/>
+    <property name="cacheDir" value="${auraHome}/cache"/>
+
+    <property name="csPort" value="9995"/>
+    <property name="logLevel" value="WARNING"/>
+    
+    <!-- A component registry that will be used to lookup and register components. -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>${auraGroup}</item>
+        </propertylist>
+        <property name="registryHost" value="${regHost}"/>
+        <property name="csDirs" value="${auraDistDir}/lib"/>
+        <property name="csPort" value="${csPort}"/>
+        <propertylist name="codebaseJars">
+            <item>sitm.jar</item>
+            <item>aura.jar</item>
+            <item>minion.jar</item>
+            <item>slcut.jar</item>
+        </propertylist>
+    </component>
+    
+    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
+
+    <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawler">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="crawlerStateDir" value="${cacheDir}/crawler.state"/>
+        <property name="logLevel" value="INFO"/>
+        <property name="updateRateInSeconds" value="604800"/>
+    </component>
+    
+    <component name="tagCrawler" type="com.sun.labs.aura.music.crawler.TagCrawler">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="logLevel" value="INFO"/>
+        <!-- once a week: 7 * 24 * 60 * 60 == 604800 -->
+        <property name="updateRateInSeconds" value="86400"/>
+        <property name="forceCrawl" value="false"/>
+    </component>    
+
+    <component name="listenerCrawler" type="com.sun.labs.aura.music.crawler.ListenerCrawler">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="logLevel" value="INFO"/>
+        <property name="defaultPeriod" value="604800"/>
+    </component>
+
+    <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>artistCrawler</item>
+            <item>tagCrawler</item>
+            <item>listenerCrawler</item>
+        </propertylist>
+    </component>
+    
+</config>

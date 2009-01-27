@@ -29,6 +29,7 @@ public class WorkbenchManager {
     }
 
     private void addWorkers(MusicDatabase mdb) {
+        addWorker(new ArtistGetAll());
         addWorker(new ArtistFindSimilarWorker());
         addWorker(new ArtistTagFindSimilar());
         addWorker(new ArtistJourney());

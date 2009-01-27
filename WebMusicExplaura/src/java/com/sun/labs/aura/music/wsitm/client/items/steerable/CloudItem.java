@@ -7,7 +7,7 @@ package com.sun.labs.aura.music.wsitm.client.items.steerable;
 
 
 import com.google.gwt.user.client.ui.Image;
-import com.sun.labs.aura.music.wsitm.client.ui.ColorConfig;
+import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -16,6 +16,11 @@ import java.util.HashSet;
  * @author mailletf
  */
 public interface CloudItem extends Comparable<CloudItem> {
+
+    public enum CloudItemType {
+        TAG,
+        ARTIST
+    }
 
     public String getId();
     public String getDisplayName();
@@ -26,7 +31,11 @@ public interface CloudItem extends Comparable<CloudItem> {
     public HashSet<CloudItem> getContainedItems();
     public HashMap<String, Double> getTagMap();
 
-    public ColorConfig[] getColorConfig();
+    public void setSticky(boolean sticky);
+    public boolean isSticky();
+
+    public TagDisplayLib.TagColorType getTagColorType();
+    public CloudItemType getCloudItemType();
     
     /**
      * If the item can be represented by an image, return its url
