@@ -75,6 +75,11 @@ public abstract class TagWidget extends Composite {
                 if (tagMap.containsKey(tagLower)) {
                     newVal = tagMap.get(tagLower).getScore() + cI.getWeight() * itemTags.get(tagName).getScore();
                     tagMap.get(tagLower).setScore(newVal);
+
+                    // Check if new copy of tag is sticky. If so, make old one sticky
+                    if (itemTags.get(tagName).isSticky()) {
+                        tagMap.get(tagLower).setSticky(true);
+                    }
                 } else {
                     newVal = cI.getWeight() * itemTags.get(tagName).getScore();
                     tagMap.put(tagLower, new ScoredTag(tagLower, newVal, itemTags.get(tagName).isSticky()));
