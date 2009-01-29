@@ -253,7 +253,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     public ItemInfo[] getCommonTags(Map<String, ScoredTag> tagMap, String artistID, int num) throws WebException {
         String stringMap = "";
         for (String key : tagMap.keySet()) {
-            stringMap += key+":"+tagMap.get(key)+",";
+            stringMap += (tagMap.get(key).isSticky() ? "(S)": "")+key+":"+tagMap.get(key).getScore()+",";
         }
         logger.info("getCommonTags for "+artistID+" and cloud={"+stringMap+"}");
         try {
