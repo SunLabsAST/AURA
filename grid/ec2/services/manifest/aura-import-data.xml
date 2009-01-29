@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type='manifest' name='aura:import-data'>
+
+<service name='aura/import-data' type='service' version='1'>
+	<create_default_instance enabled='true' />
+	<single_instance />
+        <dependency name='mount-dist' grouping='require_all' restart_on='none' type='service'>
+    	    <service_fmri value='svc:/aura/mount-dist' />
+	</dependency>
+	<exec_method type='method' name='start' exec='/opt/aura/services/method/dataNode.sh' timeout_seconds='320' />
+	<exec_method type='method' name='stop' exec=':true' timeout_seconds='0' />	
+	<exec_method type='method' name='refresh' exec=':true' timeout_seconds='0' />	
+	<exec_method type='method' name='restart' exec=':true' timeout_seconds='0' />	
+	<property_group name='startd' type='framework'>
+		<propval name='duration' type='astring' value='transient' />
+	</property_group>
+	<stability value='Unstable' />
+	<template>
+		<common_name>
+			<loctext xml:lang='C'>Import the Aura data pool</loctext>
+		</common_name>
+	</template>
+</service>
+</service_bundle>
