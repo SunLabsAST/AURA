@@ -42,6 +42,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
@@ -134,7 +135,7 @@ public class SteeringSwidget extends Swidget {
         private SearchWidget search;
         private FlowPanel searchBoxContainerPanel;
         private FlowPanel refreshingPanel;
-        private HashMap<String, Double> currTagMap;
+        private HashMap<String, ScoredTag> currTagMap;
         private ArrayList<ScoredC<ArtistCompact>> currRecommendations = null;
 
         private PopularitySelect popSelect;
@@ -268,12 +269,12 @@ public class SteeringSwidget extends Swidget {
                         Popup.showInformationPopup("Cannot display atomic representation; you must " +
                                 "add tags in your cloud first.");
                     } else {
-                        HashMap<String, Double> map = currTagMap;
+                        HashMap<String, ScoredTag> map = currTagMap;
                         ItemInfo[] iI = new ItemInfo[map.size()];
                         int index = 0;
                         for (String s : map.keySet()) {
                             iI[index++] = new ItemInfo(ClientDataManager.nameToKey(s),
-                                    s, map.get(s), map.get(s));
+                                    s, map.get(s).getScore(), map.get(s).getScore());
                         }
                         TagDisplayLib.showTagCloud("Atomic representation of tag cloud",
                                 iI, TagDisplayLib.ORDER.SHUFFLE, cdm);
@@ -409,7 +410,7 @@ public class SteeringSwidget extends Swidget {
             // that tags that have no influence will be shown as negative
             HashMap<String, Double> tagInfluenceMap = new HashMap<String, Double>();
             for (String s : currTagMap.keySet()) {
-                if (currTagMap.get(s) > 0) {
+                if (currTagMap.get(s).getScore() > 0) {
                     tagInfluenceMap.put(s, -0.01);
                 }
             }
@@ -434,7 +435,7 @@ public class SteeringSwidget extends Swidget {
             ItemInfo[] tagArray = new ItemInfo[tagInfluenceMap.size()];
             int index = 0;
             for (String tagName : tagInfluenceMap.keySet()) {
-                double val = tagInfluenceMap.get(tagName) / maxScore * currTagMap.get(tagName);
+                double val = tagInfluenceMap.get(tagName) / maxScore * currTagMap.get(tagName).getScore();
                 tagArray[index++] = new ItemInfo(ClientDataManager.nameToKey(tagName), tagName, val, val);
             }
             TagDisplayLib.showTagCloud("Tags' influence on generated recommendations", tagArray, TagDisplayLib.ORDER.SHUFFLE, cdm);

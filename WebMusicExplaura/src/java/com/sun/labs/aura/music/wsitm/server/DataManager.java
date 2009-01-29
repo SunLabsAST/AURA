@@ -41,6 +41,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -199,7 +200,7 @@ public class DataManager implements Configurable {
      * @return the commons tags
      * @throws com.sun.labs.aura.util.AuraException
      */
-    public ItemInfo[] getCommonTags(Map<String, Double> tagMap, String artistId, int num) throws AuraException {
+    public ItemInfo[] getCommonTags(Map<String, ScoredTag> tagMap, String artistId, int num) throws AuraException {
         List<Scored<String>> simList = mdb.artistExplainSimilarity(mapToWordCloud(tagMap), artistId, num);
         return scoredTagStringToItemInfo(simList);
     }
@@ -908,7 +909,7 @@ public class DataManager implements Configurable {
         }
     }
 
-    public ArrayList<ScoredC<ArtistCompact>> getSteerableRecommendations(Map<String, Double> tagMap, String popularity)
+    public ArrayList<ScoredC<ArtistCompact>> getSteerableRecommendations(Map<String, ScoredTag> tagMap, String popularity)
             throws AuraException, RemoteException {
 
         List<Scored<Artist>> lsA = mdb.wordCloudFindSimilarArtists(mapToWordCloud(tagMap), 
@@ -922,10 +923,16 @@ public class DataManager implements Configurable {
         return aCArray;
     }
 
-    private WordCloud mapToWordCloud(Map<String, Double> tagMap) {
+    private WordCloud mapToWordCloud(Map<String, ScoredTag> tagMap) {
         WordCloud wC = new WordCloud();
         for (String tagName : tagMap.keySet()) {
-            wC.add(new Scored<String>(tagName, tagMap.get(tagName)));
+            ScoredTag sT = tagMap.get(tagName);
+            wC.add(new Scored<String>(tagName, sT.getScore()));
+            if (sT.getScore()<0) {
+                wC.addBannedWord(tagName);
+            } else if (sT.isSticky()) {
+                wC.addStickyWord(tagName);
+            }
         }
         return wC;
     }

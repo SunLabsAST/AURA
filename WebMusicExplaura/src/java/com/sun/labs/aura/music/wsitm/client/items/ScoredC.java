@@ -13,8 +13,8 @@ import com.google.gwt.user.client.rpc.IsSerializable;
  */
 public class ScoredC<T> implements IsSerializable {
     
-    private T item;
-    private double score;
+    protected T item;
+    protected double score;
 
     public ScoredC() {}
 

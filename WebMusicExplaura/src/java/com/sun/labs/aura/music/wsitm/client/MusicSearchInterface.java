@@ -18,6 +18,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import java.util.ArrayList;
@@ -46,12 +47,12 @@ public interface MusicSearchInterface extends RemoteService {
     public ArrayList<ScoredC<ArtistCompact>> getSimilarArtists(String id, String simTypeName, String popularity) throws WebException;
     public TagDetails getTagDetails(String id, boolean refresh, String simTypeName) throws WebException;
     public ItemInfo[] getCommonTags(String artistID1, String artistID2, int num, String simType) throws WebException;
-    public ItemInfo[] getCommonTags(Map<String, Double> tagMap, String artistID, int num) throws WebException;
+    public ItemInfo[] getCommonTags(Map<String, ScoredTag> tagMap, String artistID, int num) throws WebException;
     public ItemInfo[] getComboTagCloud(String artistID1, String artistID2, int num, String simType)  throws WebException;
 
     public Map<String, String> getArtistRecommendationTypes();
     public ItemInfo[] getDistinctiveTags(String artistID, int count) throws WebException;
-    public ArrayList<ScoredC<ArtistCompact>> getSteerableRecommendations(Map<String, Double> tagMap, String popularity) throws WebException;    
+    public ArrayList<ScoredC<ArtistCompact>> getSteerableRecommendations(Map<String, ScoredTag> tagMap, String popularity) throws WebException;
     
     public HashMap<String,Integer> fetchUserSongRating(HashSet<String> artistID) throws WebException;
     public void terminateSession();

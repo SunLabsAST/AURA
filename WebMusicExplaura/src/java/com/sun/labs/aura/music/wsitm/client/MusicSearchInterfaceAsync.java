@@ -16,6 +16,7 @@ import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public interface MusicSearchInterfaceAsync {
        public void getTagDetails(String id, boolean refresh, String simTypeName, AsyncCallback callback) throws WebException;
        public void getCommonTags(String artistID1, String artistID2, int num, String simType, AsyncCallback callback) throws WebException;
        public void getComboTagCloud(String artistID1, String artistID2, int num, String simType, AsyncCallback callback)  throws WebException;
-       public void getCommonTags(Map<String, Double> tagMap, String artistID, int num, AsyncCallback callback) throws WebException;
+       public void getCommonTags(Map<String, ScoredTag> tagMap, String artistID, int num, AsyncCallback callback) throws WebException;
        public void getArtistOracle(AsyncCallback<ArrayList<ScoredC<String>>> callback) throws WebException;
        public void getTagOracle(AsyncCallback<ArrayList<ScoredC<String>>> callback) throws WebException;
        public void getLogInDetails(AsyncCallback callback) throws WebException;
@@ -51,7 +52,7 @@ public interface MusicSearchInterfaceAsync {
        public void getSimTypes(AsyncCallback<HashMap<String, String>> callback) throws WebException;
        public void getArtistRecommendationTypes(AsyncCallback<HashMap<String, String>> callback);
        public void getDistinctiveTags(String artistID, int count, AsyncCallback callback) throws WebException;
-       public void getSteerableRecommendations(Map<String, Double> tagMap, String popularity, AsyncCallback<ArrayList<ScoredC<ArtistCompact>>> callback) throws WebException;
+       public void getSteerableRecommendations(Map<String, ScoredTag> tagMap, String popularity, AsyncCallback<ArrayList<ScoredC<ArtistCompact>>> callback) throws WebException;
        public void addUserTagsForItem(String itemId, Set<String> tag, AsyncCallback callback) throws WebException;
        public void addPlayAttention(String artistId, AsyncCallback callback) throws WebException;
        public void addNotInterestedAttention(String artistId, AsyncCallback callback) throws WebException;
