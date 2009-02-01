@@ -62,6 +62,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -190,6 +191,21 @@ public class DataManager implements Configurable {
             return scoredTagStringToItemInfo(simList);
         }
         
+    }
+
+    /**
+     * Returns a random list of artists from the most popular ones
+     * @param nbr Number of artists to return
+     * @return List of random artists compacts
+     */
+    public ArtistCompact[] getRandomPopularArtists(int nbr) throws AuraException, RemoteException {
+        Random r = new Random();
+        ArtistCompact[] aC = new ArtistCompact[nbr];
+        for (int i=0; i<nbr; i++) {
+            List<Scored<Artist>> lsa = mdb.artistSearch(artistOracle.get(r.nextInt(artistOracle.size())).getItem(), 1);
+            aC[i] = artistToArtistCompact(lsa.get(0).getItem());
+        }
+        return aC;
     }
 
     /**

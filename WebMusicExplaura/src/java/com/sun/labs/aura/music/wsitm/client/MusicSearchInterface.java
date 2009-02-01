@@ -32,7 +32,8 @@ import java.util.Set;
  * @author plamere
  */
 public interface MusicSearchInterface extends RemoteService {
-    
+
+    public ArtistCompact[] getRandomPopularArtists(int nbr) throws WebException;
     public ArrayList<ScoredC<String>> getArtistOracle() throws WebException;
     public ArrayList<ScoredC<String>> getTagOracle() throws WebException;
     public HashMap<String, String> getSimTypes() throws WebException;

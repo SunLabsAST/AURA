@@ -658,7 +658,20 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
-    
+
+    public ArtistCompact[] getRandomPopularArtists(int nbr) throws WebException {
+        logger.info("getRandomPopularArtists :: nbr="+nbr);
+        try {
+            return dm.getRandomPopularArtists(nbr);
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
     @Override
     public ItemInfo[] getSimilarTags(String tagId) throws WebException {
         logger.info("getSimilarTags to '"+tagId+"'");
