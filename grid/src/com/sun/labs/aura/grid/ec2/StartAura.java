@@ -14,15 +14,14 @@ import java.util.Properties;
  */
 public class StartAura {
 
-//    public static String[] prefixes = new String[] {"00", "01", "10", "11"};
-    public static String[] prefixes = new String[] {"00", "01"};
+    public static String[] prefixes = new String[] {"00", "01", "10", "11"};
 
     public static String getReggieMetaData() {
         return "auraGroup=live-aura\n";
     }
 
     public static String getDSHeadMetaData(String regHost) {
-        return String.format("registryHost=%s", regHost) +
+        return String.format("registryHost=%s\n", regHost) +
                 "auraGroup=live-aura\n" +
                 "name.0=dshead" +
                 "config.0=/com/sun/labs/aura/grid/ec2/resource/dataStoreHeadConfig.xml\n" +
@@ -115,6 +114,7 @@ public class StartAura {
         //
         // Start the replicants.
         for(String prefix : prefixes) {
+            System.out.println(String.format("Prefix: " + prefix));
             String repInstID = grid.getProperty("instance.rep." + prefix);
             VolumeInfo repVol = grid.getVolumeInfo(grid.getProperty("volume.data."+prefix));
             ReservationDescription.Instance repInst;
