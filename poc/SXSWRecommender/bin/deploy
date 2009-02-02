@@ -1,0 +1,3 @@
+./mkwar
+cd ~/work/aura/MusicDatabase/grid/bin
+./deployWar -n music -p /sxsw -w ~/play/SXSWRecommender/SXSWArtistCatalog.war 

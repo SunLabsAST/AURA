@@ -1,0 +1,6 @@
+cp -r resources/* web
+cd web
+rm index.html
+ln sxsw.html index.html
+jar cvf ../dist/SXSWArtistCatalog.war .
+cd ..

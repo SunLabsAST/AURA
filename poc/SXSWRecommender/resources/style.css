@@ -1,0 +1,203 @@
+
+body {
+    font: 12px Tahoma;
+    color: #444;
+    background-color: #ffffff;
+    margin-left: auto;
+    margin-right: auto;
+    width:600px;
+}
+
+#map {
+   width:100%;
+   min-height:600px;
+}
+
+
+.browser {
+    margin-left: auto;
+    margin-right: auto;
+    text-align:center;
+    font: 18px Tahoma;
+    padding-bottom: 20px;
+}
+.browse {
+    padding-right: 10px;
+}
+
+.browseselected {
+    padding-right: 10px;
+    font-weight: bold;
+    font: 20px Tahoma;
+}
+
+.artistname {
+    font: 20px Tahoma;
+    font-weight: bold;
+    color: green;
+}
+
+.artist {
+    border-top: thin solid #888888;
+    padding-top: 15px;
+}
+
+h1 a {
+    text-decoration: none;
+}
+.artistname a {
+    text-decoration: none;
+}
+
+.locale {
+  font-style: italic;
+  padding-right: 5px;
+}
+
+
+
+.trash {
+    font: 12px Arial, Helvetica, sans-serif;
+    min-height: 220px;
+}
+
+
+
+.footer {
+    padding-top: 10px;
+    margin-top: 10px;
+    border-top: medium solid #888888;
+    margin-left: auto;
+    margin-right: auto;
+    width: 80%;
+    text-align:center;
+}
+
+.artistimage {
+    float:left;
+    margin-right:10px;
+}
+
+
+.artist {
+    margin-top: 5px;
+    margin-bottom: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    width:600px;
+}
+
+.artistdescription {
+    margin-top: 5px;
+    margin-bottom: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    width:600px;
+}
+
+
+h1 {
+    margin-left: auto;
+    margin-right: auto;
+    text-align:center;
+    width:600px;
+}
+
+.embeddedvideo {
+    width:330px;
+    float:right;
+}
+
+.embeddedvideo {
+    width:330px;
+    float:right;
+}
+
+.artistlinks {
+    padding-bottom:0px;
+    padding-top:10px;
+}
+
+.left {
+    float:left;
+}
+
+.right {
+    float:right;
+}
+
+.middle {
+}
+
+.linktable {
+    font: 12px Tahoma;
+    width:100%;
+    text-align: center;
+}
+
+
+
+.pager {
+    margin-left: auto;
+    margin-right: auto;
+    text-align:center;
+    width:600px;
+    padding-bottom: 10px;
+}
+
+.tagtitle {
+    font: 16px Tahoma;
+    color: #444;
+    margin-left: auto;
+    margin-right: auto;
+    text-align:center;
+    width:600px;
+    padding-bottom: 10px;
+}
+
+.page {
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.pagenolink {
+  margin-left: 5px;
+  margin-right: 5px;
+  font-weight: bold;
+  color: red;
+}
+
+
+a:link {
+    font-weight: normal;
+    color: #444;
+}
+
+
+
+a:visited {
+    font-weight: normal;
+    color: #666;
+
+}
+
+
+
+a:hover, a:active {
+    text-decoration: underline;
+    color: #111;
+
+}
+
+
+.tagcloud {
+    padding: 5px;
+    color: green;
+    margin-left: auto;
+    margin-right: auto;
+    text-align:center;
+}
+
+.tagcloud a {
+    text-decoration: none;
+}

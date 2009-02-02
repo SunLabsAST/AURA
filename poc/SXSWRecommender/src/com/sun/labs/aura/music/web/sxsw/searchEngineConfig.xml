@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<config>
+    
+    <!-- A search engine that can be used to do classification -->
+    <component name="tagworks_search_engine" inherit="search_engine">
+        <property name="inv_file_partition_manager" value="partition_manager"/>
+        <property name="pipeline_factory" value="pipeline_factory"/>
+        <property name="dumper" value="sync_dumper"/>
+    </component>
+    
+    <!-- Our fields.  The things that we'll put in every item will be prefixed with
+    aura- to avoid collisions with user-defined field names. -->
+    <component name="index_config" type="com.sun.labs.minion.IndexConfig">
+        <property name="index_directory" value="${index_directory}"/>
+        <property name="default_field_info" value="unknown_field"/>
+        <propertylist name="field_info">
+            <item>artists</item>
+            <item>tags</item>
+        </propertylist>
+    </component>
+    
+    <!-- The Name of the entry -->
+    <component name="artists" type="com.sun.labs.minion.FieldInfo">
+        <property name="indexed" value="true"/>
+        <property name="tokenized" value="false"/>
+        <property name="vectored" value="true"/>
+        <property name="saved" value="true"/>
+        <property name="type" value="string"/>
+    </component>
+    <component name="tags" type="com.sun.labs.minion.FieldInfo">
+        <property name="indexed" value="true"/>
+        <property name="tokenized" value="false"/>
+        <property name="vectored" value="true"/>
+        <property name="saved" value="true"/>
+        <property name="type" value="string"/>
+    </component>
+</config>

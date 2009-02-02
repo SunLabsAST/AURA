@@ -1,0 +1,49 @@
+<html>
+<head>
+        <link rel="stylesheet" type="text/css" href="mapstyle.css" />
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title> SXSW Artist Catalog </title>
+<!--
+    <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAAwwPlYWQe-nE08q4dzHhDRTjeVURUK8o8tCdFTasiAaevNm0HRTXfHwJ4efJ8nyK2VfiG_0uyMZKmQ"
+      type="text/javascript"></script>
+-->
+    <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAAwwPlYWQe-nE08q4dzHhDRQ8Robh6HvpClbSAttr2ReK-j9H2RTIvOlFanZ0EWazEeJQWhFV17Kc1Q"
+      type="text/javascript"></script>
+
+
+    <script src="markermanager_packed.js" type="text/javascript"></script>
+    <script type="text/javascript">
+
+    //<![CDATA[
+
+    function addArtist(map, lat, lon, html) {
+        var point = new GLatLng(lat, lon);
+        var marker = new GMarker(point);
+        GEvent.addListener(marker, "click", function() {
+            map.openInfoWindowHtml(point, html, {maxWidth:400});
+        });
+        map.addOverlay(marker);
+    }
+
+    function addArtistWithZoom(mgr, zoom, lat, lon, html) {
+        var point = new GLatLng(lat, lon);
+        var marker = new GMarker(point);
+        GEvent.addListener(marker, "click", function() {
+            //map.openInfoWindow(marker.getLatLng(), html, {maxWidth:400});
+            //map.openInfoWindowHtml(point, html, {maxWidth:400});
+            marker.openInfoWindow(html);
+        });
+        // map.addOverlay(marker);
+        mgr.addMarker(marker, zoom);
+    }
+
+    function load() {
+      if (GBrowserIsCompatible()) {
+        var map = new GMap2(document.getElementById("map"));
+        var mapControl = new GMapTypeControl();
+        map.addControl(mapControl);
+        map.addControl(new GLargeMapControl());
+        map.setCenter(new GLatLng(30.2687350, -97.7452090), 3);
+        var mgr = new MarkerManager(map);
+
+// add artists go here

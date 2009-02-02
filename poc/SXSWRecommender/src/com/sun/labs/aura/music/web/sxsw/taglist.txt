@@ -1,0 +1,1525 @@
+# just genre, mood, locale, instrumentation, style, usage
+# format:  main name[,alias,alias]
+rock
+indie, indie rock
+alternative, alternative rock
+metal
+electronic, electronica
+punk, punk rock
+pop
+Hip-Hop
+classic rock
+female vocalists, female, female vocalist, female vocals, female artists, female vocal, female singers, female singer, female voice, female fronted, Female Voices
+emo
+hardcore
+death metal
+singer-songwriter, singer-songwriters
+black metal
+hard rock
+jazz
+folk
+heavy metal
+Progressive rock
+industrial
+metalcore
+80s
+post-rock
+rap
+experimental
+indie pop
+dance
+ambient
+Progressive metal
+Power metal
+thrash metal
+japanese
+chillout
+childrens
+trip-hop
+britpop
+Melodic Death Metal
+british
+screamo
+new wave
+post-punk
+Gothic Metal
+J-rock
+ska
+Grunge
+family
+instrumental
+soul
+j-pop
+blues
+reggae
+Gothic
+doom metal
+Nu Metal
+funk
+german
+Soundtrack
+finnish
+Classical
+trance
+acoustic
+psychedelic, Psychedelia
+folk metal
+pop punk
+Canadian
+swedish
+techno
+synthpop
+idm
+grindcore
+90s
+electro
+rnb, r and b, rhythm and blues
+ebm
+country
+post-hardcore
+downtempo
+Progressive
+symphonic metal
+american
+House
+french
+oldies
+industrial metal
+Alt-country
+darkwave
+Stoner Rock
+viking metal
+chill
+pop rock
+polish
+60s
+Avant-Garde
+piano
+christian
+Mellow
+comedy
+shoegaze
+goth
+emocore
+Gothic Rock
+visual kei
+70s
+Drum and bass
+Female fronted metal
+norwegian
+noise
+guitar
+Brutal Death Metal
+ska punk
+latin
+lounge
+alternative metal
+folk rock
+anime
+australian
+Lo-Fi
+Love
+new age
+UK
+dub
+irish
+world
+hardcore punk
+thrash
+psytrance
+glam rock
+celtic
+speed metal
+Psychedelic Rock
+underground hip hop
+Technical Death Metal
+political
+Garage Rock
+melodic metal
+acid jazz
+industrial rock
+Fusion
+dark ambient
+fun
+twee
+russian
+americana
+Sludge
+minimal
+blues rock
+christian rock
+deutsch
+male vocalists, male, male vocalist, male vocals, male artists
+00s
+power pop
+classic
+psychobilly
+Electroclash
+spanish
+nu-jazz
+melodic black metal
+icelandic
+ethereal
+rockabilly
+brazilian
+ninja tune
+Disco
+futurepop
+pagan metal
+electropop
+swing
+dream pop
+neofolk
+Symphonic Black Metal
+Drum n Bass
+Rock and Roll
+medieval
+english
+dancehall
+rock n roll
+video game music
+easy listening
+finnish metal
+USA
+hair metal
+noise rock
+math rock
+Japanese music
+progressive death metal
+Scottish
+indietronica
+mathcore
+art rock
+composers
+Oi
+Bossa Nova
+Doom
+scandinavian
+Southern Rock
+japan
+melodic hardcore
+italian
+guitar virtuoso
+soft rock
+riot grrrl
+prog
+dark electro
+Soundtracks
+horror punk
+Gangsta Rap
+Neo-Soul
+Britrock
+krautrock
+proto-punk
+piano rock
+dark
+dutch
+Straight Edge
+dnb
+Sweden
+goa
+crossover
+street punk
+Grind
+space rock
+stoner
+Jam
+Acoustic Rock
+deathrock
+sexy
+eurodance
+atmospheric
+rapcore
+synth
+post-grunge
+funny
+drone
+chanson francaise
+japanese rock
+russian rock
+melancholic
+vocal
+mpb
+NWOBHM
+Kpop
+deathcore
+motown
+breakbeat
+Swedish Metal
+danish
+contemporary classical
+indie folk
+prog rock
+emo violence
+turntablism
+alt rock
+Warp
+relax
+Korean
+Experimental Rock
+neoclassical
+glam
+heavy
+Great Lyricists
+polskie
+Norway
+goregrind
+breakcore
+brasil
+Avant-garde Metal
+vocal trance
+Belgium
+Funk Rock
+death
+glitch
+composer
+finland
+old school
+goth rock
+bluegrass
+england
+progressive trance
+relaxing
+belgian
+California
+Aussie
+garage
+freak folk
+big beat
+folk-punk
+happy
+nsbm
+epic metal
+Deutschrock
+Crust
+canada
+germany
+club
+duyster
+Surf
+roots reggae
+vocal jazz
+slowcore
+seattle
+melancholy
+genius
+Dark metal
+deutschpunk
+german hip-hop
+urban
+instrumental rock
+saxophone
+baroque
+brazil
+funky
+Love Metal
+anarcho-punk
+quirky
+jam band
+new romantic
+jazz fusion
+wristslitters
+france
+Asian
+real screamo
+beats
+chanson
+Punk-Pop
+romantic
+free jazz
+noisecore
+minimal techno
+chinese
+underground rap
+World Music
+electro industrial
+East Coast
+roots
+ost
+stoner metal
+jazz vocal
+francais
+jazz piano
+trumpet
+psychedelic trance
+british invasion
+bebop
+Grime
+game
+4ad
+mod
+C-pop
+Smooth Jazz
+math metal
+Suomi
+jungle
+boybands
+polish rock
+humor
+Mittelalter
+bass
+calm
+opera
+Dirty South
+shoegazer
+dance punk
+melodic
+mash-up
+college rock
+ragga
+sad
+Black
+overrated
+humour
+cabaret
+party
+Coldplay
+groove metal
+alternative rap
+Dreamy
+epic
+New Zealand
+Technical Metal
+minimalism
+west coast
+true metal
+modern rock
+funeral doom
+poetry
+trash metal
+worship
+french pop
+songwriter
+parody
+breaks
+Czech
+Game Music
+svenskt
+skacore
+turkish
+east coast rap
+african
+weird
+pra
+indie electronic
+gothenburg metal
+Nederlandstalig
+apocalyptic folk
+legend
+detroit
+FIR
+chamber pop
+underground
+mallcore
+power violence
+cuban
+musicals
+Manchester
+Progressive House
+anti-folk
+Big Band
+radiohead
+norsk
+teen pop
+contemporary jazz
+no wave
+Norwegian Black Metal
+tango
+Blackened Death Metal
+guilty pleasure
+jazzy
+soft
+Nintendocore
+alternative pop
+musical
+chicago
+spoken word
+green day
+skate punk
+Jazz Rock
+smooth
+NOT METAL
+psychill
+prog metal
+digital hardcore
+fantasy metal
+powernoise
+NYC
+downbeat
+funk metal
+cute
+stand-up
+adult contemporary
+Brit
+Flamenco
+classics
+Europop
+score
+groove
+anticon
+sweet
+J-music
+dj
+Broadway
+sludge metal
+classic metal
+rocksteady
+punk cabaret
+francophone
+death-doom metal
+Berlin
+50s
+final fantasy
+country rock
+Real hip-hop
+nyhc
+wu-tang
+Rock en Espanol
+Gypsy
+videogame
+Chillosophy
+great
+eclectic
+death-grind
+instrumental hip hop
+synth rock
+Garage Punk
+madchester
+polish punk
+arabic
+real metal
+delta blues
+Extreme Metal
+portuguese
+Classic Punk
+texas
+noise pop
+melodic death
+8bit
+Nirvana
+Spanish Rock
+album rock
+rap metal
+eurobeat
+contemporary christian
+Jazz Hop
+live
+Post-Metal
+surf rock
+symphonic
+Led Zeppelin
+jamaica
+deep house
+RAC
+Mendigao thrash
+poland
+gangsta
+Electro-Rock
+ethnic
+Adult Alternative
+symphonic prog
+hi fidelity
+orchestral
+salsa
+nice elevator music
+bitpop
+Hamburger Schule
+nordic
+Faves
+Guitar Hero
+nouvelle scene francaise
+angry
+Melodic Power Metal
+Queen
+happy hardcore
+Japanese pop
+oshare kei
+Hard Bop
+Girl Groups
+shibuya-kei
+British Punk
+Reggaeton
+metallica
+samba
+brutal
+cello
+Linkin Park
+Kompakt
+welsh
+old school death metal
+Energetic
+desert rock
+oldschool hardcore
+Acid
+latin pop
+australia
+scotland
+mlx
+Girl Rock
+minimalist
+darkfolk
+American Idol
+hamburg
+violin
+Pagan
+Hard
+funeral doom metal
+lovely
+nordic metal
+london
+classic country
+Harsh EBM
+Johnnys entertainment
+christmas
+Hard Trance
+alternative pop-rock
+Punk Revival
+Rap and Hip Hop
+southern rap
+catchy
+crustpunk
+dance rock
+christian metal
+U2
+martial industrial
+Post-Black Metal
+movie score composers
+jazz guitar
+stand-up comedy
+gospel
+artists
+balkan
+summer
+best mouth in rock
+German metal
+iceland
+girls
+System of a Down
+aggressive
+hardcore rap
+upbeat
+gothic-doom metal
+Neo-Psychedelia
+batcave
+Rave
+new rave
+swiss
+OC ReMix
+twee pop
+Kiwi
+sex
+lithuanian
+Ipecac
+80s metal
+argentina
+finnish rock
+russian alternative
+Jam Bands
+ambient black metal
+melodic punk
+estonian
+trippy
+Retro
+Eurovision
+geek rock
+Indie Hip Hop
+boston
+West Coast Rap
+Portugal
+Suicidal Black Metal
+german artists
+not emo
+rock francais
+true black metal
+Latin Rock
+Glam Metal
+Placebo
+ecto
+tech metal
+alternative dance
+eighties
+fado
+remix
+emotional
+gypsy punk
+Shred
+los angeles
+Canterbury
+battle metal
+now playing
+angura kei
+two-tone
+black death metal
+sadcore
+new metal
+Deutsch Rap
+j-urban
+testbilch
+electro punk
+thrashcore
+d-beat
+latin jazz
+quebec
+abstract hip-hop
+Ukrainian
+Old School Punk
+hip-hop and rap
+diva
+Italy
+greys anatomy
+The Killers
+Contemporary
+interesting
+Symphonic Rock
+Ballad
+Muse
+Irish Punk
+celtic punk
+emd
+Rock Argentino
+Neo-prog
+Espanol
+AOR
+80s Pop
+legends
+afrobeat
+moody
+nice
+scandinavia
+neoclassic
+nerdcore
+Indian
+latino
+riot grrl
+goth metal
+folktronica
+Sleep
+mexico
+symphonic power metal
+rap rock
+Belgian music
+jewish
+elektro
+ireland
+melodic rock
+p-funk
+unique
+pagan black metal
+foo fighters
+turkish rock
+Skinhead
+Classic Blues
+brazilian rock
+arena rock
+Folk Black Metal
+atmospheric black metal
+spanish indie pop
+hot
+european
+dance-pop
+Bay Area
+Electrojazz
+industrial jungle pussy punk
+melodic metalcore
+mf doom
+montreal
+progressive black metal
+New Orleans
+Playful
+tropicalia
+klezmer
+Disney
+detroit techno
+lowlands 2006
+terror ebm
+Atmospheric metal
+nu soul
+Guitar Gods
+spiritual
+psy
+Polski Hip Hop
+american underground
+c86
+sid metal
+90s Rock
+new jersey
+power
+austrian
+political punk
+crack rock steady
+female singer-songwriter, female singer-songwriters
+dischord
+dubstep
+women
+celtic rock
+chiptune
+UK hip-hop
+psychedelic folk
+loud
+Troll Metal
+israeli
+opera metal
+tech house
+scandinavian metal
+Shock Rock
+Korn
+spanish pop
+mexican
+jazz funk
+o-hara
+G-funk
+Minnesota
+ECM
+German Metalcore
+humppa
+polish music
+electronic dub
+slow
+depressive black metal
+heavy rock
+incubus
+Eesti
+cyberpunk
+microhouse
+Virtuoso
+J-Indie
+Ambient Techno
+showtunes
+soundscape
+crazy
+literate
+movie soundtrack
+drone doom
+Horrorcore
+ddr
+Eminem
+solo
+british rock
+Ohms World
+suomirock
+liedermacher
+netherlands
+Irish Folk
+pretty
+doom death metal
+not rock
+dinner
+independent
+technical
+spain
+video games
+electronic rock
+Romanian
+deutschsprachig
+cool jazz
+club-dance
+neo-classical metal
+god
+true punk
+Dead
+raw black metal
+dark cabaret
+depressive
+Goa Trance
+group
+stoner doom
+baroque pop
+interpol
+death punk
+progressive power metal
+liquid funk
+boyband
+left-wing
+italiana
+anti-christian
+Meditation
+death thrash metal
+fav
+alternative country
+old school industrial
+band, bands
+black music
+gentle
+Industrial Death Metal
+Brand New
+depressive rock
+fantasy
+Christian Music
+Rasta
+girl group
+math
+glasgow
+Bittersweet
+cold wave
+Indietronic
+africa
+idols
+traditional
+frenchcore
+alternative hip-hop
+wizard rock
+industrial black metal
+artcore
+uplifting trance
+French rock
+chick rock
+british folk
+black eyed peas
+polish hip-hop
+seiyuu
+abstract
+Extreme Power Metal
+juggalo
+soothing
+mandarin
+german lyrics
+Europe
+emo punk
+eurotrance
+Reflective
+mainstream
+Drill n Bass
+old school rap
+chile
+cello rock
+game soundtracks
+third wave ska
+intense
+Swedish Death Metal
+freak zone
+idol
+Austria
+a cappella
+epic black metal
+hardstyle
+Electro-Goth
+nederlands
+Foreign
+singer
+washington
+horror
+New Wave of British Heavy Metal
+girl power
+Japanese Indie
+hungarian
+OPM
+crooner
+gothenburg
+psych
+Emo rock
+Greek
+Brooklyn
+cinematic
+Russia
+guitar god
+choir
+ambience
+groovy
+True Norwegian Black Metal
+Traditional Doom Metal
+chilled
+krock
+sub pop
+Crunk
+game remixes
+progg
+classique
+relaxed
+stylish
+German Bands
+hard n heavy
+peaceful
+lyrics
+quiet
+celtic metal
+fast
+nostalgia
+great lyrics
+contemporary instrumental
+80s rock
+Alternative and punk
+Avant-Garde Jazz
+austin
+Canterbury Scene
+Pop Metal
+brutal death
+Supergroup
+Club Music
+posi
+a capella
+Muusika
+melodeath
+psych folk
+New York City, NYC, New York
+Driving
+British Metal
+High School
+italian pop
+jazz-instrumental
+cybergrind
+quebecois
+Klassik
+mystical
+ladies
+norwegian metal
+Eastern Europe Rock
+atlanta
+depressing
+black y pagan metal
+contemporary rnb
+sixties
+satanic
+Anime music
+Slipknot
+Chicago Blues
+intelligent
+art punk
+20th Century
+j-hiphop
+intimate
+bubblegum
+jangle pop
+nederhop
+instrumental metal
+french house
+portland
+enigmatic
+chill with me
+2006
+80s hardcore
+movie score
+death-doom
+magic
+pub rock
+Avant-Prog
+world fusion
+kick ass
+america
+Christian Hardcore
+Eurovision Song Contest
+tribal
+film score
+live gesehen
+French hip hop
+meditative
+Massachusetts
+80s hair metal
+athens
+psych rock
+Czech Republic
+northern soul
+folk and viking metal
+modern metal
+psychadelic
+beatdown
+male singer-songwriters
+top artists
+space music
+Deutscher Hip Hop
+electrohouse
+peace punk
+tags
+Tolkien
+woodstock
+Constellation
+southern
+political rap
+satire
+indie rap
+old skool
+Mosh
+Rousing
+Rock Pop
+experimental hip-hop
+Indies
+Michigan
+Madlib
+60s pop
+neo metal
+sleaze rock
+Suosikit
+arts and crafts
+Comedy Rock
+Curious
+Neue Deutsche Haerte
+eno
+jamaican
+1960s
+influential
+Swedish Punk
+acid house
+straight edge hardcore
+guitar rock
+nightwish
+Electronic Pop
+anime soundtrack
+boys with guitars
+hippie
+dansk
+golden oldies
+disco punk
+witty
+vocal house
+slovak
+Passionate
+drone metal
+surreal
+Christian Metalcore
+group of people who are
+garbage
+game soundtrack
+Black - Thrash Metal
+finnish hardcore
+podcast
+drugs
+melbourne
+brain food
+folk noir
+outlaw country
+mashups
+reggae-dub-ska
+taiwan
+cold meat industry
+san francisco
+earnest
+beautiful voices
+lesbian
+J-Metal
+Death-Thrash
+full on
+porn-grind
+nintendo
+Music to download
+classic jazz
+georgia
+1980s
+deep ambient
+banjo
+florida
+rock argento
+3rd wave ska
+visions
+feminist
+canadian indie
+experimental metal
+Oi-punk
+modern jazz
+lord of the rings
+neurofunk
+Confident
+acoustic guitar
+Awesome Guitar Jams
+Exuberant
+evil
+jazz metal
+Cyber Metal
+hardcore metal
+Spanish Metal
+japanese hip-hop
+bop
+death n roll
+Freewheeling
+german rock
+denmark
+Tenor Sax
+Modest Mouse
+Chilled Out
+experimental techno
+Post-Bop
+movie
+ritual ambient
+avex
+sax
+Uplifting
+amiable-good-natured
+Ukraine
+melodic trance
+post-emo
+wales
+C64
+deep
+rock opera
+strings
+ambient pop
+video game remixes
+jazz-rap
+Oriental
+garage rock revival
+Garden State
+NDW
+badass
+choral
+tribal ambient
+achingly intelligent
+American Punk
+asian rock
+New Age Collection
+90s pop
+Swedish Pop
+psychedelic pop
+Rhythmic Noise
+space
+77 style punk
+emo-screamo
+USBM
+Radio
+finnish lyrics
+rai
+contemplative
+patchanka
+martial
+cantonese
+import
+Old School Hip Hop
+indie-emo
+Space Ambient
+Viking-folk metal
+SxE
+space age pop
+dance party
+Instrumental music
+switzerland
+modern country
+ballads
+heart
+Post-Industrial
+something corporate
+french rap
+nazi
+mississippi
+piano jazz
+Raggacore
+silly
+doom-death
+dark psy
+Technical Thrash Metal
+Pukkelpop 2006
+italiano
+master
+les legions noires
+Oh Canada
+New York Punk
+cuba
+new sound
+Labrador
+harp
+Hardcore and Metalcore
+avantjazz
+theatrical
+devotion
+Ohio
+German Black Metal
+technical death
+modern classical
+blip blop
+roots rock
+organic ambient
+Chinese Pop
+Blue Note Records
+atmospheric ambient
+matador
+spiritual reconnect
+india
+Semi-Ambient
+polski rock
+symphony
+rap hip hop
+demoscene
+sleaze
+creative commons
+serene
+perfect
+90s alternative
+funky house
+swedish hiphop
+uk indie
+Italo Disco
+ethno
+electronic ambient
+female rock
+Drift
+moshcore
+unamerican
+sensual
+Gore Metal
+Happy Music
+sleepytime
+Illinois
+chip music
+film music
+Long Island
+Israel
+Ambient Music
+Southern metal
+memories
+speedrock
+soul jazz
+alt pop
+prince
+Nerd Rock
+polish reggae
+power electronics
+camp
+Shamanism
+anime ost
+nz
+poignant
+gregorian
+poetic
+techno pop
+cheese
+liverpool
+sing along
+toronto
+Psilocybe
+praise
+modern composition
+Post-punk revival
+female dance vocals
+Hard Dance
+new jack swing
+bard
+Middle Eastern
+slow jams
+bollywood
+tv
+autocantantes
+cheerful
+pianist
+hypnotic
+speedcore
+praise and worship
+german rap
+latvian
+newage ambient
+sophisticated
+autumnal
+North Carolina
+bubbly synthesizer music
+girl music
+horns
+UK Punk
+Punk Metal
+mod revival
+good rap
+fun metal
+novelty
+Minimal Electro
+punk ska
+alt
+beautiful voice
+post-urbandepressive
+relaxation
+classical music
+British Blues
+girls with guitars
+alt-folk
+progressive folk
+Russian Pop
+brooding
+Finnish Black Metal
+electro dub
+ccm
+atmospheric rock
+ethno-ambient
+rythmduel classics
+Omaha
+russian metal
+tooth and nail
+geek
+Asian Underground
+hide
+wistful
+gloomy
+doo wop
+mysterious
+20th Century Classical
+folk pop
+raw
+Desert
+italian rock
+party-celebratory
+crustcore
+thursday
+chiptunes
+Hindi
+Alice in Chains
+indie electronica
+at work
+metal opera
+Japanese Artists
+progressive death
+dark industrial
+Clasica
+folky
+electric
+deathrash
+Movies
+neo progressive
+new music
+Israeli Rock
+Acid Rock
+harry potter
+lions reggae-dancehall
+flute
+drums
+rock brasileiro
+old
+humorous
+Emotional Hardcore
+crooners
+chick music
+Laid-back
+kickass-radio
+nagoya kei
+french female
+Traditional Metal
+dub-u
+suicidal
+Legendary
+Hyde
+Sentimental
+One Hit Wonders
+speed
+space disco
+emo pop
+just a bit of fun
+J-Punk
+norwegian jazz
+dark rock
+mjg2
+brass
+oz
+vgm
+Traditional Country
+whimsical
+poet
+Tiesto
+virginia
+TOTALLY JAZZ
+Country-Pop
+jazz vocals
+canadians
+Bach
+Primus
+nme
+classical guitar
+international
+discotheque
+finnish punk
+Polish RAP
+hip hop head
+cheesy
+laid-back-mellow
+90s dance
+j-indies
+electronic music
+Alternative Folk
+Midwest
+Germans
+latin alternative
+eurodisco
+death industrial
+love songs
+United States
+hip hop rap
+film
+Pennsylvania
+britain
+Sub Pop Records
+Artists I like
+Indie-Alternative
+bad religion
+70s rock
+rock-protopunk
+cantautori
+inspirational
+Easy Jazz
+Vancouver
+organ
+modern
+rhythm-blues
+crossover thrash
+sampling
+minimal house
+vocalists
+clever
+soundscapes
+christengruis
+electro-indie
+dub-u-dub
+Standards
+cold
+percussion
+female fronted rock
+Sophisti-Pop
+schmitz indie
+accoustic
+polska
+slovenian
+gothic doom
+san diego
+Experimental pop
+danceable
+Music From the OC
+frequency 2006
+major
+Philadelphia
+Nederpop
+bastard pop
+UK Pop
+old jazz
+not screamo
+exotica
+Industrial-electronica
+The Flaming Lips
+lg radio
+Hawaiian
+deutschland
+roots and culture
+goth punk
+irish rock
+Modern worship
+Aussie Rock
+renaissance
+chaotic-emo
+hilarious
+jrap
+sunshine pop
+rock chileno
+soulful
+new artists
+String Quartet
+italian progressive rock
+Vegan
+latinoamerica
+darkstep
+German Punk
+blackened thrash metal
+the oc
+avant
+fuzz-rock
+trip rock
+riot
+shoegazing
+British Psychedelia
+mittelalter rock
+jazzcore
+wave
+japanese metal
+chicks
+epitaph
+Groups
+Hanging Out
+acoustic ambient
+Confrontational
+actual
+Grunge Rock
+horror metal
+Boisterous
+euro
+1970s
+asian music
+concert of the dead
+spazzcore
+Conscious Hip Hop
