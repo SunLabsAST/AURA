@@ -10,7 +10,8 @@ Paul's cheatsheet for deploying apps.
     - wait for all of the aura registrations to stop running (about 1 minute)
 
 2) Using grid accessor tool, destroy registrations (except for the tomcat
-ones)
+ones)  - this usually means destroying all registrations that start with 
+the instance prefix (often 'live-');
 
 3) upload the distribution:
 

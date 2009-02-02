@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  *
@@ -42,14 +43,13 @@ public class MusicDatabase {
     private final static int MAX_ATTENTION_GET = 100000;
 
     public enum Popularity {
-
         ALL, HEAD, MID, TAIL, HEAD_MID, MID_TAIL
     };
 
     public enum DBOperation {
-
         ReadOnly, AddAttention, AddItem
     };
+
     private List<SimType> simTypes;
     private Random rng = new Random();
     private ArtistTag rockTag = null;
@@ -821,6 +821,7 @@ public class MusicDatabase {
      * @param count the number of similar artists to return
      * @return a list of artists scored by their similarity to the seed artist.
      * @throws com.sun.labs.aura.util.AuraException
+     * @deprecated
      */
     public List<Scored<Artist>> tagCloudFindSimilarArtists(TagCloud tagCloud, int count) throws AuraException {
         return wordCloudFindSimilarArtists(tagCloud.getWordCloud(), count);
@@ -850,6 +851,7 @@ public class MusicDatabase {
                 getMostPopularArtist().getPopularity());
         return convertToScoredArtistList(simItems);
     }
+
 
     /**
      * Find the most similar tag cloud to a given tagcloud
@@ -1074,8 +1076,7 @@ public class MusicDatabase {
         return listenerGetDistinctiveTags(id, Listener.FIELD_SOCIAL_TAGS, count);
     }
 
-    public WordCloud artistGetDistinctiveTagNames(
-            String id, int count) throws AuraException {
+    public WordCloud artistGetDistinctiveTagNames( String id, int count) throws AuraException {
         try {
             return getDataStore().getTopTerms(id, Artist.FIELD_SOCIAL_TAGS, count);
         } catch (RemoteException ex) {
@@ -1095,13 +1096,11 @@ public class MusicDatabase {
                 if (artistTag != null) {
                     artistTags.add(new Scored<ArtistTag>(artistTag, scoredTagName.getScore()));
                 }
-
             }
             return artistTags;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
-
     }
 
     private List<Scored<ArtistTag>> listenerGetDistinctiveTags(String id, String field, int count) throws AuraException {
@@ -1358,92 +1357,20 @@ public class MusicDatabase {
         }
     }
 
-    /*
-    private List<Scored<Item>> findSimilar(String id, int count, ItemType type) throws AuraException {
-    try {
-    List<Scored<Item>> simItems = getDataStore().findSimilar(id, getFindSimilarConfig(count, new TypeFilter(type)));
-    return simItems;
-    } catch (RemoteException ex) {
-    throw new AuraException("Can't talk to the datastore " + ex, ex);
-    }
-    }
-
-    private List<Scored<Item>> findSimilar(String id, int count, ItemType type, Popularity pop, float maxPopularity) throws AuraException {
-    try {
-    CompositeResultsFilter filter = new CompositeResultsFilter(new TypeFilter(type),
-    new PopularityResultsFilter(pop, maxPopularity));
-    List<Scored<Item>> simItems = getDataStore().findSimilar(id, getFindSimilarConfig(count, filter));
-    return simItems;
-    } catch (RemoteException ex) {
-    throw new AuraException("Can't talk to the datastore " + ex, ex);
-    }
-    }
-
-    private List<Scored<Item>> findSimilar(String id, int count, Set<String> skipSet, ItemType type, Popularity pop, float maxPopularity) throws AuraException {
-    try {
-    CompositeResultsFilter filter = new CompositeResultsFilter(new TypeFilter(type),
-    new PopularityResultsFilter(pop, maxPopularity));
-    filter.addFilter(new KeyResultsFilter(skipSet));
-    List<Scored<Item>> simItems = getDataStore().findSimilar(id, getFindSimilarConfig(count, filter));
-    return simItems;
-    } catch (RemoteException ex) {
-    throw new AuraException("Can't talk to the datastore " + ex, ex);
-    }
-    }
-
-    private List<Scored<Item>> findSimilar(String id, String field, int count, ItemType type) throws AuraException {
-    try {
-    List<Scored<Item>> simItems = getDataStore().findSimilar(id, getFindSimilarConfig(field, count, new TypeFilter(type)));
-    return simItems;
-    } catch (RemoteException ex) {
-    throw new AuraException("Can't talk to the datastore " + ex, ex);
-    }
-    }
-
-    private List<Scored<Item>> findSimilar(String id, String field, int count, ItemType type, Popularity pop, float maxPopularity) throws AuraException {
-    try {
-    CompositeResultsFilter filter = new CompositeResultsFilter(new TypeFilter(type),
-    new PopularityResultsFilter(pop, maxPopularity));
-    List<Scored<Item>> simItems = getDataStore().findSimilar(id, getFindSimilarConfig(field, count, filter));
-    return simItems;
-    } catch (RemoteException ex) {
-    throw new AuraException("Can't talk to the datastore " + ex, ex);
-    }
-
-    }
-
-    private List<Scored<Item>> findSimilar(List<String> keys, String field, int count, ItemType type,
-    Popularity pop, float maxPopularity) throws AuraException {
-    try {
-    CompositeResultsFilter filter = new CompositeResultsFilter(new TypeFilter(type),
-    new PopularityResultsFilter(pop, maxPopularity));
-    List<Scored<Item>> simItems = getDataStore().findSimilar(keys, getFindSimilarConfig(field, count, filter));
-    return simItems;
-    } catch (RemoteException ex) {
-    throw new AuraException("Can't talk to the datastore " + ex, ex);
-    }
-    }
-     */
-    private List<Scored<Item>> findSimilar(WordCloud wc, String field, int count, ItemType type) throws AuraException {
-        try {
-            List<Scored<Item>> simItems = getDataStore().findSimilar(wc, getFindSimilarConfig(field, count, new TypeFilter(type)));
-            return simItems;
-        } catch (RemoteException ex) {
-            throw new AuraException("Can't talk to the datastore " + ex, ex);
-        }
-
-    }
 
     private List<Scored<Item>> findSimilar(WordCloud wc, String field, int count, ItemType type, Popularity pop, float maxPopularity) throws AuraException {
         try {
             CompositeResultsFilter filter = new CompositeResultsFilter(new TypeFilter(type),
                     new PopularityResultsFilter(pop, maxPopularity));
+            Set<String> sticky = wc.getStickyWords();
+            if (sticky.size() > 0) {
+                filter.addFilter(new StickyTagResultsFilter(sticky));
+            }
             List<Scored<Item>> simItems = getDataStore().findSimilar(wc, getFindSimilarConfig(field, count, filter));
             return simItems;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
-
     }
 
     public void setSkimPercent(double skimPercent) {

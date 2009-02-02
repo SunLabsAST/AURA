@@ -354,6 +354,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             }
         }
 
+        @Override
         public void doRemoveListeners() {
             onDelete();
         }
@@ -425,7 +426,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             initWidget(getDashboard());
         }
 
-        private void formatRecentBox(Grid g, String title, ClickListener cL) {
+        private void formatRecentBox(Grid g, String title, ClickHandler cH) {
             HorizontalPanel rateHp = new HorizontalPanel();
             rateHp.setWidth("100%");
             rateHp.setStyleName("h2");
@@ -433,7 +434,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             rateHp.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
             Label featMore = new Label("See more");
             featMore.addStyleName("headerMenuMedItem");
-            featMore.addClickListener(cL);
+            featMore.addClickHandler(cH);
             rateHp.add(featMore);
             g.setWidget(0, 0, rateHp);
             g.setWidget(1, 0, new Image("ajax-bar.gif"));
@@ -483,27 +484,27 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             invokeFetchFeaturedArtist();
 
             recentRating = new Grid(2,1);
-            formatRecentBox(recentRating, "Recently rated artists", new ClickListener() {
-
-                public void onClick(Widget sender) {
+            formatRecentBox(recentRating, "Recently rated artists", new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     History.newItem("viewRecentRated:");
                 }
             });
             invokeFetchRecentAttentions(AttentionType.RATED);
 
             recentTagged = new Grid(2,1);
-            formatRecentBox(recentTagged, "Recently tagged artists", new ClickListener() {
-
-                public void onClick(Widget sender) {
+            formatRecentBox(recentTagged, "Recently tagged artists", new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     History.newItem("viewRecentTagged:");
                 }
             });
             invokeFetchRecentAttentions(AttentionType.TAGGED);
 
             recentPlayed = new Grid(2,1);
-            formatRecentBox(recentPlayed, "Recently played artists", new ClickListener() {
-
-                public void onClick(Widget sender) {
+            formatRecentBox(recentPlayed, "Recently played artists", new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent ce) {
                     History.newItem("viewRecentPlayed:");
                 }
             });
@@ -819,10 +820,12 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             }
         }
 
+        @Override
         public void onDelete() {
             defaultCenter = null;
         }
         
+        @Override
         public void doRemoveListeners() {
             onDelete();
             if (playButton != null) {
@@ -833,12 +836,14 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             clearListeners(recentPlayedListeners);
         }
 
+        @Override
         public void onRate(String itemId, int rating) {
             clearListeners(recentRatingListeners);
             recentRating.setWidget(1, 0, new Image("ajax-bar.gif"));
             invokeFetchRecentAttentions(AttentionType.RATED);
         }
 
+        @Override
         public void onTag(String itemId, HashSet<String> tags) {
             clearListeners(recentTaggingListeners);
             recentTagged.setWidget(1, 0, new Image("ajax-bar.gif"));
@@ -887,6 +892,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             }
         }
 
+        @Override
         public void openWhyPopup(SwapableTxtButton why) {
             TagDisplayLib.showTagCloud(mapAR.get(why.getId()).getDescription(), mapAR.get(why.getId()).getExplanation(), TagDisplayLib.ORDER.SHUFFLE, cdm);
         }

@@ -12,6 +12,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudArtist;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudTag;
@@ -58,35 +59,41 @@ public abstract class TagWidget extends Composite {
         mainPanel.invokeFetchNewRecommendations();
     }
 
-    public final HashMap<String, Double> getTagMap() {
-        
+    public final HashMap<String, ScoredTag> getTagMap() {
+
         double maxVal = 0;
         double newVal = 0;
-        HashMap<String, Double> tagMap = new HashMap<String, Double>();
+        HashMap<String, ScoredTag> tagMap = new HashMap<String, ScoredTag>();
         
         for (CloudItem cI : getItemsMap().values()) {
-            HashMap<String, Double> itemTags = cI.getTagMap();
+            HashMap<String, ScoredTag> itemTags = cI.getTagMap();
             
-            for (String tag : itemTags.keySet()) {
+            for (String tagName : itemTags.keySet()) {
                 // @todo remove lowercase when engine is fixed
-                String tagLower = tag.toLowerCase();
+                String tagLower = tagName.toLowerCase();
                 
                 if (tagMap.containsKey(tagLower)) {
-                    newVal = tagMap.get(tagLower) + cI.getWeight() * itemTags.get(tag);
+                    newVal = tagMap.get(tagLower).getScore() + cI.getWeight() * itemTags.get(tagName).getScore();
+                    tagMap.get(tagLower).setScore(newVal);
+
+                    // Check if new copy of tag is sticky. If so, make old one sticky
+                    if (itemTags.get(tagName).isSticky()) {
+                        tagMap.get(tagLower).setSticky(true);
+                    }
                 } else {
-                    newVal = cI.getWeight() * itemTags.get(tag);
+                    newVal = cI.getWeight() * itemTags.get(tagName).getScore();
+                    tagMap.put(tagLower, new ScoredTag(tagLower, newVal, itemTags.get(tagName).isSticky()));
                 }
-                tagMap.put(tagLower, newVal);
                 
-                if (newVal > maxVal) {
-                    maxVal = newVal;
+                if (Math.abs(newVal) > maxVal) {
+                    maxVal = Math.abs(newVal);
                 }
             }
         }
         
         // Normalise all values
         for (String key : tagMap.keySet()) {
-            tagMap.put(key, tagMap.get(key) / maxVal);
+            tagMap.get(key).setScore( tagMap.get(key).getScore() / maxVal );
         }
 
         return tagMap;

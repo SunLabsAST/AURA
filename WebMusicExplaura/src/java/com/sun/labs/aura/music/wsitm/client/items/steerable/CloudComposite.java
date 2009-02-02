@@ -6,6 +6,7 @@
 package com.sun.labs.aura.music.wsitm.client.items.steerable;
 
 import com.google.gwt.user.client.ui.Image;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -58,29 +59,35 @@ public abstract class CloudComposite implements CloudItem {
     }
 
     @Override
-    public HashMap<String, Double> getTagMap() {
+    public HashMap<String, ScoredTag> getTagMap() {
         double maxVal = 0;
         double newVal = 0;
-        HashMap<String, Double> tagMap = new HashMap<String, Double>();
+        HashMap<String, ScoredTag> tagMap = new HashMap<String, ScoredTag>();
         for (CloudItem cI : items) {
-            HashMap<String, Double> ttM = cI.getTagMap();
-            for (String k : ttM.keySet()) {
-                if (tagMap.containsKey(k)) {
-                    newVal = tagMap.get(k) + cI.getWeight() * ttM.get(k);
+            HashMap<String, ScoredTag> ttM = cI.getTagMap();
+            for (ScoredTag t : ttM.values()) {
+                if (tagMap.containsKey(t.getName())) {
+                    ScoredTag sT = tagMap.get(t.getName());
+                    newVal = sT.getScore() + cI.getWeight() * ttM.get(t.getName()).getScore();
+                    sT.setScore(newVal);
+                    if (t.isSticky()) {
+                        sT.setSticky(true);
+                    }
                 } else {
-                    newVal = cI.getWeight() * ttM.get(k);
+                    newVal = cI.getWeight() * ttM.get(t.getName()).getScore();
+                    tagMap.put(t.getName(), new ScoredTag(t.getName(), t.getScore(), t.isSticky()));
                 }
-                tagMap.put(k, newVal);
                 
-                if (newVal > maxVal) {
-                    maxVal = newVal;
+                if (Math.abs(newVal) > maxVal) {
+                    maxVal = Math.abs(newVal);
                 }
             }
         }
         
         // Normalise all values
         for (String key : tagMap.keySet()) {
-            tagMap.put(key, tagMap.get(key) / maxVal);
+            ScoredTag sT = tagMap.get(key);
+            tagMap.put(key, new ScoredTag(key, sT.getScore() / maxVal, sT.isSticky()));
         }
         
         return tagMap;

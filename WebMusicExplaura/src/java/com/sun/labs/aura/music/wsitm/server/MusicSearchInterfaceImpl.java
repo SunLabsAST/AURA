@@ -24,6 +24,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.aura.util.AuraException;
@@ -249,10 +250,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     @Override
-    public ItemInfo[] getCommonTags(Map<String, Double> tagMap, String artistID, int num) throws WebException {
+    public ItemInfo[] getCommonTags(Map<String, ScoredTag> tagMap, String artistID, int num) throws WebException {
         String stringMap = "";
         for (String key : tagMap.keySet()) {
-            stringMap += key+":"+tagMap.get(key)+",";
+            stringMap += (tagMap.get(key).isSticky() ? "(S)": "")+key+":"+tagMap.get(key).getScore()+",";
         }
         logger.info("getCommonTags for "+artistID+" and cloud={"+stringMap+"}");
         try {
@@ -488,10 +489,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     }
 
     @Override
-    public ArrayList<ScoredC<ArtistCompact>> getSteerableRecommendations(Map<String, Double> tagMap, String popularity) throws WebException {
+    public ArrayList<ScoredC<ArtistCompact>> getSteerableRecommendations(Map<String, ScoredTag> tagMap, String popularity) throws WebException {
         String stringMap = "";
         for (String key : tagMap.keySet()) {
-            stringMap += key+":"+tagMap.get(key)+",";
+            stringMap += (tagMap.get(key).isSticky() ? "(S)": "")+key+":"+tagMap.get(key).getScore()+",";
         }
         logger.info("getSteerableRecommendations for cloud:{"+stringMap+"}");
         try {
@@ -657,7 +658,20 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
-    
+
+    public ArtistCompact[] getRandomPopularArtists(int nbr) throws WebException {
+        logger.info("getRandomPopularArtists :: nbr="+nbr);
+        try {
+            return dm.getRandomPopularArtists(nbr);
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
     @Override
     public ItemInfo[] getSimilarTags(String tagId) throws WebException {
         logger.info("getSimilarTags to '"+tagId+"'");

@@ -41,6 +41,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
@@ -61,6 +62,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -192,6 +194,21 @@ public class DataManager implements Configurable {
     }
 
     /**
+     * Returns a random list of artists from the most popular ones
+     * @param nbr Number of artists to return
+     * @return List of random artists compacts
+     */
+    public ArtistCompact[] getRandomPopularArtists(int nbr) throws AuraException, RemoteException {
+        Random r = new Random();
+        ArtistCompact[] aC = new ArtistCompact[nbr];
+        for (int i=0; i<nbr; i++) {
+            List<Scored<Artist>> lsa = mdb.artistSearch(artistOracle.get(r.nextInt(artistOracle.size())).getItem(), 1);
+            aC[i] = artistToArtistCompact(lsa.get(0).getItem());
+        }
+        return aC;
+    }
+
+    /**
      * Get the common tags between a tagMap and an artist
      * @param tagMap tag map containing tags and their weights
      * @param artistId
@@ -199,7 +216,7 @@ public class DataManager implements Configurable {
      * @return the commons tags
      * @throws com.sun.labs.aura.util.AuraException
      */
-    public ItemInfo[] getCommonTags(Map<String, Double> tagMap, String artistId, int num) throws AuraException {
+    public ItemInfo[] getCommonTags(Map<String, ScoredTag> tagMap, String artistId, int num) throws AuraException {
         List<Scored<String>> simList = mdb.artistExplainSimilarity(mapToWordCloud(tagMap), artistId, num);
         return scoredTagStringToItemInfo(simList);
     }
@@ -908,7 +925,7 @@ public class DataManager implements Configurable {
         }
     }
 
-    public ArrayList<ScoredC<ArtistCompact>> getSteerableRecommendations(Map<String, Double> tagMap, String popularity)
+    public ArrayList<ScoredC<ArtistCompact>> getSteerableRecommendations(Map<String, ScoredTag> tagMap, String popularity)
             throws AuraException, RemoteException {
 
         List<Scored<Artist>> lsA = mdb.wordCloudFindSimilarArtists(mapToWordCloud(tagMap), 
@@ -922,10 +939,16 @@ public class DataManager implements Configurable {
         return aCArray;
     }
 
-    private WordCloud mapToWordCloud(Map<String, Double> tagMap) {
+    private WordCloud mapToWordCloud(Map<String, ScoredTag> tagMap) {
         WordCloud wC = new WordCloud();
         for (String tagName : tagMap.keySet()) {
-            wC.add(new Scored<String>(tagName, tagMap.get(tagName)));
+            ScoredTag sT = tagMap.get(tagName);
+            wC.add(new Scored<String>(tagName, sT.getScore()));
+            if (sT.getScore()<0) {
+                wC.addBannedWord(tagName);
+            } else if (sT.isSticky()) {
+                wC.addStickyWord(tagName);
+            }
         }
         return wC;
     }

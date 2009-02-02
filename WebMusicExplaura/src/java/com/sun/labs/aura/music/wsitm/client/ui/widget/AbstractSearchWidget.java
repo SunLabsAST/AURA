@@ -36,6 +36,9 @@ public abstract class AbstractSearchWidget extends Composite {
         SEARCH_FOR_TAG_BY_TAG
     }
 
+    private static MultiRpcManager tagOracleRpcManager;
+    private static MultiRpcManager artistOracleRpcManager;
+
     private Oracles currLoadedOracle;
 
     private MusicSearchInterfaceAsync musicServer;
@@ -194,9 +197,20 @@ public abstract class AbstractSearchWidget extends Composite {
 
         try {
             if (type == Oracles.ARTIST) {
-                musicServer.getArtistOracle(callback);
+
+                if (artistOracleRpcManager != null && artistOracleRpcManager.isInRpc() ) {
+                    artistOracleRpcManager.addCallback(callback);
+                } else {
+                    artistOracleRpcManager = new MultiRpcManager(callback);
+                    musicServer.getArtistOracle(artistOracleRpcManager);
+                }
             } else {
-                musicServer.getTagOracle(callback);
+                if (tagOracleRpcManager != null && tagOracleRpcManager.isInRpc()) {
+                    tagOracleRpcManager.addCallback(callback);
+                } else {
+                    tagOracleRpcManager = new MultiRpcManager(callback);
+                    musicServer.getTagOracle(tagOracleRpcManager);
+                }
             }
         } catch (Exception ex) {
             Window.alert(ex.getMessage());

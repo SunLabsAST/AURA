@@ -6,10 +6,10 @@
 package com.sun.labs.aura.music.wsitm.client.ui;
 
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.CloudItemDependentSharedMenu;
@@ -43,27 +43,26 @@ public class SharedSteeringCIMenu extends ContextMenu implements CloudItemDepend
         this.cdm = tCdm;
         this.twc = tTwc;
 
-        addElement("Delete", new ClickListener() {
-
+        addElement("Delete", new ClickHandler() {
             @Override
-            public void onClick(Widget sender) {
+            public void onClick(ClickEvent ce) {
                 twc.removeItem(cI.getId());
             }
         });
-        addElement(stickyLbl, new ClickListener() {
-
+        addElement(stickyLbl, new ClickHandler() {
             @Override
-            public void onClick(Widget sender) {
+            public void onClick(ClickEvent ce) {
                 cI.setSticky(!cI.isSticky());
                 twc.redrawTagCloud();
+                twc.updateRecommendations();
             }
         });
-        addElement(negLbl, new ClickListener() {
-
+        addElement(negLbl, new ClickHandler() {
             @Override
-            public void onClick(Widget sender) {
+            public void onClick(ClickEvent ce) {
                 cI.setWeight(-1 * cI.getWeight());
                 twc.redrawTagCloud();
+                twc.updateRecommendations();
             }
         });
 
@@ -71,10 +70,9 @@ public class SharedSteeringCIMenu extends ContextMenu implements CloudItemDepend
         if (cit == CloudItem.CloudItemType.ARTIST) {
 
             super.addSeperator();
-            addElement("Expand artist", new ClickListener() {
-
+            addElement("Expand artist", new ClickHandler() {
                 @Override
-                public void onClick(Widget sender) {
+                public void onClick(ClickEvent ce) {
 
                     HashMap<String, CloudItem> itemsMap = new HashMap<String, CloudItem>();
 
@@ -95,17 +93,14 @@ public class SharedSteeringCIMenu extends ContextMenu implements CloudItemDepend
                 }
             });
 
-            addElement("View tag cloud", new ClickListener() {
-
+            addElement("View tag cloud", new ClickHandler() {
                 @Override
-                public void onClick(Widget sender) {
+                public void onClick(ClickEvent ce) {
                     TagDisplayLib.showTagCloud("Tag cloud for " + cI.getDisplayName(),
                             cI.getTagMap(), TagDisplayLib.ORDER.SHUFFLE, cdm);
                 }
             });
-
         }
-
     }
 
     @Override

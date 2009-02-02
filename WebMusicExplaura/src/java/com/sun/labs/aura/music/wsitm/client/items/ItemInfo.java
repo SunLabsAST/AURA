@@ -89,12 +89,12 @@ public class ItemInfo implements IsSerializable {
      * @param map Map of (tag name, score)
      * @return
      */
-    public static ItemInfo[] mapToArray(HashMap<String, Double> map) {
+    public static ItemInfo[] mapToArray(HashMap<String, ScoredTag> map) {
         
         ItemInfo[] iIArray = new ItemInfo[map.size()];
         int index = 0;
         for (String tagName : map.keySet()) {
-            double val = map.get(tagName);
+            double val = map.get(tagName).getScore();
             iIArray[index++] = new ItemInfo(ClientDataManager.nameToKey(tagName), tagName, val, val);
         }
         return iIArray;

@@ -17,8 +17,10 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import java.util.HashMap;
 import java.util.Arrays;
+import java.util.HashSet;
 
 /**
  *
@@ -45,19 +47,19 @@ public abstract class TagDisplayLib {
         HashMap<String, Double> normTags1 = normaliseItemInfoArray(tags1);
         HashMap<String, Double> normTags2 = normaliseItemInfoArray(tags2);
         
-        HashMap<String, Double> subTags = new HashMap<String, Double>();
+        HashMap<String, ScoredTag> subTags = new HashMap<String, ScoredTag>();
         for (String s : normTags1.keySet()) {
             if (normTags2.containsKey(s)) {
-                subTags.put(s, normTags1.get(s) - normTags2.get(s));
+                subTags.put(s, new ScoredTag(s, normTags1.get(s) - normTags2.get(s)));
             } else {
-                subTags.put(s, normTags1.get(s));
+                subTags.put(s, new ScoredTag(s, normTags1.get(s)));
             }
         }
         // All tags from normTags2 that are not in subTags are not contained
         // in normTags1 so we can add them as negative valued tags
         for (String s : normTags2.keySet()) {
             if (!subTags.containsKey(s)) {
-                subTags.put(s, -normTags2.get(s));
+                subTags.put(s, new ScoredTag(s, -normTags2.get(s)));
             }
         }
 
@@ -82,12 +84,12 @@ public abstract class TagDisplayLib {
         return normMap;
     }
    
-    public static void showTagCloud(String title, HashMap<String, Double> tags, ORDER order, ClientDataManager cdm) {
+    public static void showTagCloud(String title, HashMap<String, ScoredTag> tags, ORDER order, ClientDataManager cdm) {
         ItemInfo[] iI = new ItemInfo[tags.size()];
         int index = 0;
-        for (String name : tags.keySet()) {
-            double val = tags.get(name);
-            iI[index++] = new ItemInfo(ClientDataManager.nameToKey(name), name, val, val);
+        for (String tag : tags.keySet()) {
+            double val = tags.get(tag).getScore();
+            iI[index++] = new ItemInfo(ClientDataManager.nameToKey(tag), tag, val, val);
         }
         showTagCloud(title, iI, order, cdm);
     }
@@ -253,7 +255,7 @@ public abstract class TagDisplayLib {
         }
     }
 
-    public static void invokeGetCommonTags(HashMap<String, Double> tagMap, String artistID,
+    public static void invokeGetCommonTags(HashMap<String, ScoredTag> tagMap, String artistID,
             MusicSearchInterfaceAsync musicServer, ClientDataManager cdm, CommonTagsAsyncCallback callback) {
 
         try {

@@ -7,6 +7,7 @@ package com.sun.labs.aura.music.wsitm.client.items.steerable;
 
 import com.google.gwt.user.client.ui.Image;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib.TagColorType;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,9 +66,11 @@ public class CloudTag implements CloudItem {
     }
 
     @Override
-    public HashMap<String, Double> getTagMap() {
-        HashMap<String, Double> tagMap = new HashMap<String, Double>();
-        tagMap.put(tagName, 1.0);
+    public HashMap<String, ScoredTag> getTagMap() {
+        HashMap<String, ScoredTag> tagMap = new HashMap<String, ScoredTag>();
+        // Take the absolute of tagWeight because this weight will be used multiplied
+        // with itself by TagWidget which will make it always positive
+        tagMap.put(tagName, new ScoredTag(tagName, Math.abs(tagWeight), sticky));
         return tagMap;
     }
 
