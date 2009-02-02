@@ -9,6 +9,7 @@
 
 package com.sun.labs.aura.music.web.youtube;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.Comparator;
@@ -44,6 +45,10 @@ public class YoutubeVideo  implements Serializable {
 
     /** Creates a new instance of YoutubeVideo */
     public YoutubeVideo() {
+    }
+
+    public YoutubeVideo(String url) throws IOException {
+        setURL(new URL(url));
     }
 
     public String getAuthor() {

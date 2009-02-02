@@ -20,9 +20,9 @@ import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
 import com.sun.labs.aura.music.web.yahoo.SearchResult;
 import com.sun.labs.aura.music.web.yahoo.Yahoo;
 import com.sun.labs.aura.music.web.youtube.Youtube;
+import com.sun.labs.aura.music.web.youtube.Youtube2;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.RemoteComponentManager;
-import com.sun.labs.aura.util.Tag;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
@@ -33,10 +33,8 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,7 +45,7 @@ import java.util.logging.Logger;
  */
 public class TagCrawler implements AuraService, Configurable {
     private Wikipedia wikipedia;
-    private Youtube youtube;
+    private Youtube2 youtube;
     private FlickrManager flickr;
     private Yahoo yahoo;
     private LastFM lastFM;
@@ -94,7 +92,7 @@ public class TagCrawler implements AuraService, Configurable {
         updateRateInSeconds = ps.getInt(PROP_UPDATE_RATE);
         try {
             wikipedia = new Wikipedia();
-            youtube = new Youtube();
+            youtube = new Youtube2();
             flickr = new FlickrManager();
             yahoo = new Yahoo();
             lastFM = new LastFM();
