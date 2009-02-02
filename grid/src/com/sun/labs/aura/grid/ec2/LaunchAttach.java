@@ -44,28 +44,28 @@ public class LaunchAttach {
                     "auraGroup=Aura\n";
             distInst =
                     grid.launch(grid.getProperty("ami.aura-reggie"),
-                    kpi, distVol, instanceMetaData, 2);
+                    kpi, instanceMetaData, distVol, 2);
         } else {
             distInst = grid.getInstance(ai.getInstanceId());
         }
         System.out.println(String.format("Reggie/dist instance: %s %s",
                 distInst.getInstanceId(), distInst.getDnsName()));
-        VolumeInfo dataVol = grid.getVolumeInfo(grid.getProperty("aura.datavol."+prefix));
-        String instanceMetaData =
-                "registryHost=" + distInst.getPrivateDnsName() + "\n";
-        System.out.println(String.format("Starting data inst"));
-        instanceMetaData = "auraGroup=live-aura\n" +
-                "registryHost=" + distInst.getPrivateDnsName() + "\n" +
-                "name.0=dshead\n" +
-                "config.0=/com/sun/labs/aura/grid/ec2/resource/dataStoreHeadConfig.xml\n" +
-                "starter.0=starter\n" +
-                "opts.0=-Xmx1g\n" +
-                "logType.0=dshead\n";
-        
-        ReservationDescription.Instance dataInst =
-                grid.launch(grid.getProperty("ami.aura-base"),
-                kpi, dataVol, instanceMetaData, 2);
-        System.out.println(String.format("Data instance: %s %s", dataInst.getInstanceId(), dataInst.getDnsName()));
+//        VolumeInfo dataVol = grid.getVolumeInfo(grid.getProperty("aura.datavol."+prefix));
+//        String instanceMetaData =
+//                "registryHost=" + distInst.getPrivateDnsName() + "\n";
+//        System.out.println(String.format("Starting data inst"));
+//        instanceMetaData = "auraGroup=live-aura\n" +
+//                "registryHost=" + distInst.getPrivateDnsName() + "\n" +
+//                "name.0=dshead\n" +
+//                "config.0=/com/sun/labs/aura/grid/ec2/resource/dataStoreHeadConfig.xml\n" +
+//                "starter.0=starter\n" +
+//                "opts.0=-Xmx1g\n" +
+//                "logType.0=dshead\n";
+//
+//        ReservationDescription.Instance dataInst =
+//                grid.launch(grid.getProperty("ami.aura-data"),
+//                kpi, dataVol, instanceMetaData, 2);
+//        System.out.println(String.format("Data instance: %s %s", dataInst.getInstanceId(), dataInst.getDnsName()));
     }
 
 }

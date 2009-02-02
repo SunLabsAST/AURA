@@ -32,6 +32,14 @@ public class EC2Grid {
 
     private Properties props;
 
+    private List<VolumeInfo> dataVols;
+
+    private VolumeInfo distVol;
+
+    private VolumeInfo crawlerVol;
+
+    private VolumeInfo loginVol;
+
     public EC2Grid() throws IOException {
         props = new Properties();
         props.load(Ec2Sample.class.getResourceAsStream("aws.properties"));
@@ -39,6 +47,10 @@ public class EC2Grid {
     }
 
     public EC2Grid(String propertiesFile) throws IOException {
+        this(new File(propertiesFile));
+    }
+
+    public EC2Grid(File propertiesFile) throws IOException {
         props = new Properties();
         InputStream is = new FileInputStream(propertiesFile);
         props.load(is);
@@ -54,6 +66,24 @@ public class EC2Grid {
     private void init(Properties props) {
         ec2 = new Jec2(props.getProperty("aws.accessId"),
                 props.getProperty("aws.secretKey"));
+
+        //
+        // Get information on the volumes.  These will need to be set up
+        // out-of band.
+        try {
+            dataVols = ec2.describeVolumes(new String[]{
+                        props.getProperty("volume.data.00"),
+                        props.getProperty("volume.data.01"),
+                        props.getProperty("volume.data.10"),
+                        props.getProperty("volume.data.11")});
+            distVol = ec2.describeVolumes(new String[] {
+                        props.getProperty("volume.dist")}).get(0);
+            crawlerVol = ec2.describeVolumes(new String[] {
+                        props.getProperty("volume.crawler")}).get(0);
+            loginVol = ec2.describeVolumes(new String[] {
+                        props.getProperty("volume.login")}).get(0);
+        } catch (EC2Exception ex) {
+        }
     }
 
     /**
@@ -97,6 +127,10 @@ public class EC2Grid {
             }
         }
         return kpi;
+    }
+
+    public VolumeInfo getDistVol() {
+        return distVol;
     }
 
     public List<VolumeInfo> getVolumeInfo() {
@@ -170,6 +204,18 @@ public class EC2Grid {
         return props.getProperty(key);
     }
 
+    public void setProperty(String key, String value) {
+        props.setProperty(key, value);
+    }
+
+    public Properties getProperties() {
+        Properties rep = new Properties();
+        for(String key : props.stringPropertyNames()) {
+            rep.setProperty(key, props.getProperty(key));
+        }
+        return rep;
+    }
+
     /**
      * Launches an instance with a given AMI.
      */
@@ -177,11 +223,15 @@ public class EC2Grid {
         return launch(ami, kpi, null, null);
     }
 
-    public ReservationDescription.Instance launch(String ami, KeyPairInfo kpi, VolumeInfo vol, String userData) throws EC2Exception {
-           return launch(ami, kpi, vol, userData, 2);
+    public ReservationDescription.Instance launch(String ami, KeyPairInfo kpi, String userData) throws EC2Exception {
+        return launch(ami, kpi, userData,null);
+    }
+
+    public ReservationDescription.Instance launch(String ami, KeyPairInfo kpi, String userData,VolumeInfo vol) throws EC2Exception {
+           return launch(ami, kpi, userData, vol, 2);
     }
     
-    public ReservationDescription.Instance launch(String ami, KeyPairInfo kpi, VolumeInfo vol, String userData, int device) throws EC2Exception {
+    public ReservationDescription.Instance launch(String ami, KeyPairInfo kpi, String userData,VolumeInfo vol, int device) throws EC2Exception {
         LaunchConfiguration lc = new LaunchConfiguration(ami);
         lc.setKeyName(kpi.getKeyName());
         if(userData != null && userData.length() > 0) {
