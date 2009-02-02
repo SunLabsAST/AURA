@@ -12,9 +12,8 @@
     
     <!-- Where the aura data lives -->
     <property name="auraHome" value="/datapool/aura"/>
-    <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
-    <property name="auraGroup" value="Aura"/>
-    <property name="auraDistDir" value="${auraHome}/dist"/>
+    <property name="auraDistDir" value="/mnt/dist/dist"/>
+    <property name="auraGroup" value="live-aura"/>
     <property name="csPort" value="3301"/>
     
     <property name="dataFS" value="${auraHome}/${prefix}"/>
@@ -32,14 +31,13 @@
         </propertylist>
         <property name="csDirs" value="${auraDistDir}/lib"/>
         <property name="csPort" value="${csPort}"/>
-        <property name="registryHost" value="${regHost}"/>
+        <property name="registryHost" value="${registryHost}"/>
         <propertylist name="codebaseJars">
             <item>aardvark.jar</item>
             <item>aura.jar</item>
             <item>minion.jar</item>
             <item>slcut.jar</item>
         </propertylist>
-        <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
     
     <component name="processManager" type="com.sun.labs.aura.datastore.impl.ProcessManager"/>

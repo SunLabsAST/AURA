@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+    Use is subject to license terms.
+-->
+
+<!--
+    Document   : domain-service.xml
+    Created on : Tue Jun 24 13:08:03 EDT 2008
+    Author     : User and SJSAS Administration Team
+    Description: The SMF Service Manifest file for domain application/SUNWappserver/wme in /opt/glassfish/domains
+-->
+
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest"
+                name="SUNWasu appserver services">
+  <service name="application/glassfishv3-prelude/aura"
+           version="1"
+           type="service">
+    <single_instance/>
+    <exec_method type="method"
+                 name="start"
+                 exec="/opt/gf/glassfishv3-prelude/bin/asadmin start-domain aura"
+                 timeout_seconds="0">
+      <method_context working_directory=":default">
+        <method_credential user="root"
+                           group="root"/>
+      </method_context>
+      <stability value="Evolving"/>
+    </exec_method>
+    <exec_method type="method"
+                 name="stop"
+                 exec="/opt/gf/glassfishv3-prelude/bin/asadmin stop-domain --user admin --passwordfile /mnt/gf/asadmin.pass aura"
+                 timeout_seconds="0">
+      <method_context working_directory=":default">
+        <method_credential user="root"
+                           group="root"/>
+      </method_context>
+      <stability value="Evolving"/>
+    </exec_method>
+    <instance name="default" enabled="false">
+        <dependency
+                name='network'
+                grouping='require_all'
+                restart_on='none'
+                type='service'>
+                <service_fmri value='svc:/milestone/network:default' />
+        </dependency>
+        <!-- for ZFS, we need this to state this dependency -->
+        <dependency
+                name='filesystem-local'
+                grouping='require_all'
+                restart_on='none'
+                type='service'>
+                <service_fmri value='svc:/system/filesystem/local:default' />
+        </dependency>
+    </instance>
+    <stability value="Evolving"/>
+    <template>
+      <common_name>
+        <loctext xml:lang="C">Glassfish v3 prelude</loctext>
+      </common_name>
+      <documentation>
+        <manpage title="Appserver" section="1" manpath="/opt/SUNWappserver/appserver/man"/>
+      </documentation>
+    </template>
+  </service>
+</service_bundle>
