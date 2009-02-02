@@ -27,8 +27,10 @@ import java.util.regex.Pattern;
 public class SXSWImporter {
     private int lineCount = 0;
     private Map<String, String> namePatcher = new HashMap<String, String>();
+    private String dblocation;
 
-    public SXSWImporter() {
+    public SXSWImporter(String dblocation) {
+        this.dblocation = dblocation;
         try {
             loadNameCorrections();
         } catch (IOException ioe) {
@@ -101,6 +103,7 @@ public class SXSWImporter {
     }
 
     public void createArchive(URL url) throws IOException {
+        createArchiveDir();
         File file = new File(getArchiveName());
         if (!file.exists()) {
             URLConnection connection = url.openConnection();
@@ -117,9 +120,16 @@ public class SXSWImporter {
         }
     }
 
+    private void createArchiveDir() {
+        File archive = new File(dblocation + "/archive");
+        if (!archive.exists()) {
+            archive.mkdir();
+        }
+    }
+
     private String getArchiveName() {
         Calendar cal = Calendar.getInstance();
-        return String.format(".archive/%d.%d.%d:%02d:00.html", cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1,
+        return String.format(dblocation + "/archive/%d.%d.%d:%02d:00.html", cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1,
                 cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR_OF_DAY));
     }
     private Pattern artistLinePattern = Pattern.compile("^.*\\(.*\\)\\s*<br.*$");
@@ -193,7 +203,7 @@ public class SXSWImporter {
     }
 
     public static void mainfile(String[] args) throws IOException {
-        SXSWImporter si = new SXSWImporter();
+        SXSWImporter si = new SXSWImporter("test");
         List<Artist> artists = si.getArtists("sxsw-artists.txt");
         for (Artist artist : artists) {
             System.out.printf("%s %s %s\n", artist.getName(), artist.getWhere(), artist.getUrl());
@@ -201,7 +211,7 @@ public class SXSWImporter {
     }
 
     public static void main(String[] args) throws IOException {
-        SXSWImporter si = new SXSWImporter();
+        SXSWImporter si = new SXSWImporter("test");
         List<Artist> artists = si.getArtists(new URL("http://sxsw.com/music/shows/bands"));
         for (Artist artist : artists) {
             System.out.printf("%s %s %s\n", artist.getName(), artist.getWhere(), artist.getUrl());

@@ -56,9 +56,9 @@ import java.util.logging.Logger;
  * @author plamere
  */
 public class ArtistCrawler {
-
     private final static LastArtist2 NO_INFO = new LastArtist2();
-    private final static String DBNAME = "database/crawler.ser";
+    private final static String DBLOCATION = "/lab/mir/SXSW.db";
+    private final static String DBNAME = DBLOCATION + "/crawler.ser";
     private final static String FIELD_SOCIAL_TAGS = "tags";
     private final static String FIELD_NAME = "name";
     private final static String FIELD_TYPE = "type";
@@ -94,7 +94,7 @@ public class ArtistCrawler {
         echoNest = new EchoNest();
         tagCounter = new TagCounter();
 
-        searchEngine = SearchEngineFactory.getSearchEngine("database");
+        searchEngine = SearchEngineFactory.getSearchEngine(DBLOCATION);
         defineFields();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -131,7 +131,7 @@ public class ArtistCrawler {
     private void loadArtistsFromSXSW() throws IOException {
         int oldSize = dbCore.getArtists().size();
         HashSet<String> names = new HashSet<String>();
-        SXSWImporter importer = new SXSWImporter();
+        SXSWImporter importer = new SXSWImporter(DBLOCATION);
         System.out.printf("Loading from %s\n", SXSW_ARTISTS_URL);
         List<Artist> artists = importer.getArtists(new URL(SXSW_ARTISTS_URL));
         //List<Artist> artists = importer.getArtists(SXSW_ARTISTS_PATH);
@@ -311,7 +311,7 @@ public class ArtistCrawler {
         for (SocialTag stag : artist.getTags()) {
             if (stag.getFreq() > 0) {
                 indexer.addTerm(FIELD_SOCIAL_TAGS, stag.getName(), stag.getFreq());
-                if (artist.getName().equalsIgnoreCase("Ben Harper")) {
+                if (false && artist.getName().equalsIgnoreCase("Ben Harper")) {
                     System.out.printf("%s %d\n", stag.getName(), stag.getFreq());
                 }
             }
@@ -389,7 +389,7 @@ public class ArtistCrawler {
 
     private List<Artist> getNewArtists() throws IOException {
         List<Artist> newArtists = new ArrayList<Artist>();
-        SXSWImporter importer = new SXSWImporter();
+        SXSWImporter importer = new SXSWImporter(DBLOCATION);
         System.out.printf("Loading from %s\n", SXSW_ARTISTS_URL);
         List<Artist> oldArtists = importer.getArtists("resources/last.html");
 
