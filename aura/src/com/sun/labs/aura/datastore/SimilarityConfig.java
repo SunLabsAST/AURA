@@ -22,6 +22,7 @@ public class SimilarityConfig implements Serializable {
     private ResultsFilter filter;
     
     private Set<String> exclude;
+    private Set<String> include;
     
     /**
      * The percentage of terms that should be used when doing find similars using
@@ -150,6 +151,14 @@ public class SimilarityConfig implements Serializable {
     
     public Set<String> getExclude() {
         return exclude;
+    }
+
+    public void setInclude(Set<String> include) {
+        this.include = include;
+    }
+
+    public Set<String> getInclude() {
+        return include;
     }
     
     public Set<String> getFieldNames() {

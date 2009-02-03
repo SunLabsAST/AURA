@@ -122,6 +122,28 @@ public class WordCloud implements Serializable, Iterable<Scored<String>> {
         }
     }
 
+    /**
+     * Gets the 'sticky' terms from this world cloud and assigns them into the
+     * similarity config.
+     * @param config the similarity config that we want to modify.
+     */
+    public void getIncluded(SimilarityConfig config) {
+        Set<String> inc = getStickyWords();
+        if (inc.size() > 0) {
+            config.setInclude(inc);
+        }
+    }
+
+    /**
+     * Gets the 'sticky' and excluded terms from this world cloud and assigns them into the
+     * similarity config.
+     * @param config the similarity config that we want to modify.
+     */
+    public void updateConfig(SimilarityConfig config) {
+        getExcluded(config);
+        getIncluded(config);
+    }
+
     public void clear() {
         words.clear();
     }

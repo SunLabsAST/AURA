@@ -967,9 +967,9 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             SimilarityConfig config)
             throws AuraException, RemoteException {
         //
-        // Make sure we exclude terms here, since we may not be able to do it at
+        // Make sure we include and exclude terms here, since we may not be able to do it at
         // the other end of the wire.
-        cloud.getExcluded(config);
+        cloud.updateConfig(config);
         
         // we just want any one partition cluster essentially at random:
         PartitionCluster pc = trie.get(DSBitSet.parse(cloud.hashCode()));
