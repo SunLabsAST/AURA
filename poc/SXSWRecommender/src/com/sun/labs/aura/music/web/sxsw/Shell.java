@@ -4,11 +4,16 @@
  */
 package com.sun.labs.aura.music.web.sxsw;
 
+import com.sun.labs.aura.music.web.lastfm.SocialTag;
 import com.sun.labs.minion.SearchEngineException;
 import com.sun.labs.util.command.CommandInterface;
 import com.sun.labs.util.command.CommandInterpreter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -105,6 +110,63 @@ public class Shell {
 
             public String getHelp() {
                 return "list all tags";
+            }
+        });
+
+        shell.add("listArtistsByNameLength", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                List<Artist> artists = crawler.getAllArtists();
+                Collections.sort(artists, Artist.NAME_LENGTH_SORT);
+                Collections.reverse(artists);
+                for (Artist artist : artists) {
+                    System.out.println(artist.getName());
+                }
+                return "";
+            }
+
+            public String getHelp() {
+                return "list all artists by their name length";
+            }
+        });
+
+        shell.add("histArtistsByNameLength", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                List<Artist> artists = crawler.getAllArtists();
+                Histogram hist = new Histogram();
+
+                for (Artist artist : artists) {
+                    hist.accum(artist.getName().length(), 1);
+                }
+
+                List<Scored<Integer>> hres = hist.getAll();
+
+                for (Scored<Integer> sint : hres) {
+                    System.out.printf("%d %.0f\n", sint.getItem(), sint.getScore());
+                }
+                return "";
+            }
+
+            public String getHelp() {
+                return "get histo gram of name length";
+            }
+        });
+
+        shell.add("listArtistsByWordLength", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                List<Artist> artists = crawler.getAllArtists();
+                Collections.sort(artists, Artist.WORD_LENGTH_SORT);
+                Collections.reverse(artists);
+                for (Artist artist : artists) {
+                    System.out.println(artist.getName());
+                }
+                return "";
+            }
+
+            public String getHelp() {
+                return "list all artists by their word length";
             }
         });
 
@@ -274,5 +336,33 @@ public class Shell {
             System.out.println("Couldn't create crawler " + ex);
             System.exit(1);
         }
+    }
+}
+
+class Histogram {
+
+    private Map<Integer, Integer> map = new HashMap<Integer, Integer>();
+
+    public void set(Integer name, int value) {
+        map.put(name, value);
+    }
+
+    public void accum(Integer name, int value) {
+        Integer d = map.get(name);
+        if (d == null) {
+            d = Integer.valueOf(0);
+        }
+        map.put(name, d + value);
+    }
+
+    List<Scored<Integer>> getAll() {
+        List<Scored<Integer>> results = new ArrayList<Scored<Integer>>();
+
+        for (Map.Entry<Integer, Integer> e : map.entrySet()) {
+            results.add(new Scored<Integer>(e.getKey(), e.getValue()));
+        }
+        Collections.sort(results, ScoredComparator.COMPARATOR);
+        Collections.reverse(results);
+        return results;
     }
 }
