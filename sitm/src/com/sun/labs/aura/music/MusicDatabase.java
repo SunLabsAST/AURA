@@ -32,7 +32,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  *
@@ -1362,10 +1361,6 @@ public class MusicDatabase {
         try {
             CompositeResultsFilter filter = new CompositeResultsFilter(new TypeFilter(type),
                     new PopularityResultsFilter(pop, maxPopularity));
-            Set<String> sticky = wc.getStickyWords();
-            if (sticky.size() > 0) {
-                filter.addFilter(new StickyTagResultsFilter(sticky));
-            }
             List<Scored<Item>> simItems = getDataStore().findSimilar(wc, getFindSimilarConfig(field, count, filter));
             return simItems;
         } catch (RemoteException ex) {
