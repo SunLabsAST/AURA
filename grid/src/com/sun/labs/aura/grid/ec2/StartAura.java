@@ -23,7 +23,7 @@ public class StartAura {
     public static String getDSHeadMetaData(String regHost) {
         return String.format("registryHost=%s\n", regHost) +
                 "auraGroup=live-aura\n" +
-                "name.0=dshead" +
+                "name.0=dshead\n" +
                 "config.0=/com/sun/labs/aura/grid/ec2/resource/dataStoreHeadConfig.xml\n" +
                 "starter.0=starter\n" +
                 "opts.0=-Xmx1g\n" +
