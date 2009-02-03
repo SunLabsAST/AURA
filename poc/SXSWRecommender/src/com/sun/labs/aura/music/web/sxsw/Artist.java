@@ -25,6 +25,24 @@ public class Artist implements Serializable {
         }
     };
 
+    public final static Comparator<Artist> NAME_LENGTH_SORT = new Comparator<Artist>() {
+
+        public int compare(Artist a1, Artist a2) {
+            return a1.getName().length() - a2.getName().length();
+        }
+    };
+
+    public final static Comparator<Artist> WORD_LENGTH_SORT = new Comparator<Artist>() {
+
+        public int compare(Artist a1, Artist a2) {
+            return wordLength(a1.getName()) - wordLength(a2.getName());
+        }
+
+        int wordLength(String s) {
+            return s.split("\\s").length;
+        }
+    };
+
     public final static Comparator<Artist> HOTNESS_SORT = new Comparator<Artist>() {
 
         public int compare(Artist a1, Artist a2) {

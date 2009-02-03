@@ -56,9 +56,10 @@ import java.util.logging.Logger;
  * @author plamere
  */
 public class ArtistCrawler {
-
     private final static LastArtist2 NO_INFO = new LastArtist2();
-    private final static String DBNAME = "database/crawler.ser";
+    private final static String DBLOCATION = "/lab/mir/SXSW.db";
+    private final static String WEBLOCATION = "/lab/mir/SXSW.web/";
+    private final static String DBNAME = DBLOCATION + "/crawler.ser";
     private final static String FIELD_SOCIAL_TAGS = "tags";
     private final static String FIELD_NAME = "name";
     private final static String FIELD_TYPE = "type";
@@ -94,7 +95,7 @@ public class ArtistCrawler {
         echoNest = new EchoNest();
         tagCounter = new TagCounter();
 
-        searchEngine = SearchEngineFactory.getSearchEngine("database");
+        searchEngine = SearchEngineFactory.getSearchEngine(DBLOCATION);
         defineFields();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -131,7 +132,7 @@ public class ArtistCrawler {
     private void loadArtistsFromSXSW() throws IOException {
         int oldSize = dbCore.getArtists().size();
         HashSet<String> names = new HashSet<String>();
-        SXSWImporter importer = new SXSWImporter();
+        SXSWImporter importer = new SXSWImporter(DBLOCATION);
         System.out.printf("Loading from %s\n", SXSW_ARTISTS_URL);
         List<Artist> artists = importer.getArtists(new URL(SXSW_ARTISTS_URL));
         //List<Artist> artists = importer.getArtists(SXSW_ARTISTS_PATH);
@@ -311,7 +312,7 @@ public class ArtistCrawler {
         for (SocialTag stag : artist.getTags()) {
             if (stag.getFreq() > 0) {
                 indexer.addTerm(FIELD_SOCIAL_TAGS, stag.getName(), stag.getFreq());
-                if (artist.getName().equalsIgnoreCase("Ben Harper")) {
+                if (false && artist.getName().equalsIgnoreCase("Ben Harper")) {
                     System.out.printf("%s %d\n", stag.getName(), stag.getFreq());
                 }
             }
@@ -350,7 +351,7 @@ public class ArtistCrawler {
         int numPages = (int) Math.ceil(artists.size() / (double) maxPerPage);
 
         for (int i = 0; i < numPages; i++) {
-            PrintWriter out = new PrintWriter("web/" + getFileName(i));
+            PrintWriter out = new PrintWriter(WEBLOCATION + getFileName(i));
 
             int startIndex = i * maxPerPage;
             int endIndex = i * maxPerPage + maxPerPage;
@@ -374,7 +375,7 @@ public class ArtistCrawler {
             Collections.sort(artists, Artist.POPULARITY_SORT);
             Collections.reverse(artists);
 
-            PrintWriter out = new PrintWriter("web/sxsw_new.html");
+            PrintWriter out = new PrintWriter(WEBLOCATION + "sxsw_new.html");
 
             addHeader(out);
             addSelector(out, "Newest");
@@ -389,7 +390,7 @@ public class ArtistCrawler {
 
     private List<Artist> getNewArtists() throws IOException {
         List<Artist> newArtists = new ArrayList<Artist>();
-        SXSWImporter importer = new SXSWImporter();
+        SXSWImporter importer = new SXSWImporter(DBLOCATION);
         System.out.printf("Loading from %s\n", SXSW_ARTISTS_URL);
         List<Artist> oldArtists = importer.getArtists("resources/last.html");
 
@@ -413,7 +414,7 @@ public class ArtistCrawler {
         Collections.reverse(artists);
         artists = artists.subList(0, 100);
 
-        PrintWriter out = new PrintWriter("web/sxsw_hot.html");
+        PrintWriter out = new PrintWriter(WEBLOCATION + "sxsw_hot.html");
 
         addHeader(out);
         addSelector(out, "Hottest");
@@ -431,7 +432,7 @@ public class ArtistCrawler {
         Collections.reverse(artists);
         artists = artists.subList(0, 100);
 
-        PrintWriter out = new PrintWriter("web/sxsw_rising.html");
+        PrintWriter out = new PrintWriter(WEBLOCATION + "sxsw_rising.html");
 
         addHeader(out);
         addSelector(out, "Rising");
@@ -447,7 +448,7 @@ public class ArtistCrawler {
         List<Artist> artists = dbCore.getArtists();
         Collections.sort(artists, Artist.POPULARITY_SORT);
         Collections.reverse(artists);
-        PrintWriter out = new PrintWriter("web/sxsw_map.html");
+        PrintWriter out = new PrintWriter(WEBLOCATION  + "sxsw_map.html");
 
         copyText("resources/mapheader.html", out);
         for (Artist artist : artists) {
@@ -469,7 +470,7 @@ public class ArtistCrawler {
 
         ditherManager.clear();
 
-        PrintWriter out = new PrintWriter("web/sxsw_map.html");
+        PrintWriter out = new PrintWriter(WEBLOCATION + "sxsw_map.html");
         copyText("resources/mapheader.html", out);
 
         int zoomLevel = 0;
@@ -553,11 +554,11 @@ public class ArtistCrawler {
         StringBuilder sb = new StringBuilder();
         sb.append("<div class=\"artist\">");
         if (artist.getArtistInfo().getLargeImage().length() > 0) {
-            sb.append(String.format("<img class=\"artistimage\" src=\"%s\"/>", artist.getArtistInfo().getLargeImage()));
+            sb.append(String.format("<img class=\"artistimage\" src=\"%s\" alt=\"Artist Image\" />", artist.getArtistInfo().getLargeImage()));
         }
         sb.append(String.format("<div class=\"artistdescription\">"));
         sb.append(String.format("<span class=\"artistname\"><a href=\"%s\"> %s </a></span> <span class=\"locale\">(%s)</span>",
-                artist.getUrl(), fmt(artist.getName(), forJS), fmt(artist.getWhere(), forJS)));
+                artist.getUrl(), fmtName(artist.getName(), forJS), fmtName(artist.getWhere(), forJS)));
         sb.append(getBio(artist, forJS));
         sb.append(String.format(("<b> (" + formatBigNumber(artist.getArtistInfo().getListeners()) + " Last.fm listeners)</b>")));
         if (artist.getHotness() > 0) {
@@ -569,11 +570,12 @@ public class ArtistCrawler {
         sb.append("<table class=\"linktable\">");
         sb.append("<tr><td>");
         sb.append(getArtistRadioLink2(artist));
-        sb.append("<td>");
+        sb.append("</td><td>");
         sb.append(getArtistPhotoLink(artist));
-        sb.append("<td>");
+        sb.append("</td><td>");
         sb.append(getArtistVideoLink(artist));
-        sb.append("</table>");
+        sb.append("</td></tr></table>");
+        sb.append("</div>");
         sb.append("</div>");
         sb.append("</div>");
         return sb.toString();
@@ -584,7 +586,7 @@ public class ArtistCrawler {
         Collections.sort(artists, Artist.ALPHA_SORT);
 
         for (char initialLetter = 'a'; initialLetter <= 'z'; initialLetter++) {
-            PrintWriter out = new PrintWriter("web/" + getFileName(initialLetter));
+            PrintWriter out = new PrintWriter(WEBLOCATION + getFileName(initialLetter));
             addHeader(out, initialLetter);
             List<Artist> alphaArtists = getArtistsForLetter(artists, initialLetter);
             // special case, add all other chars to the 'z' bucket
@@ -628,7 +630,7 @@ public class ArtistCrawler {
 
     public void dumpTagPage(String tag) throws IOException {
         List<Artist> artists = getArtistsWithTag(tag);
-        PrintWriter out = new PrintWriter("web/" + getFileName(tag));
+        PrintWriter out = new PrintWriter(WEBLOCATION + getFileName(tag));
         addHeader(out, artists.size(), tag);
         for (Artist artist : artists) {
             addArtistDescription(out, artist);
@@ -649,7 +651,7 @@ public class ArtistCrawler {
     }
 
     public void dumpTagIndex() throws IOException {
-        PrintWriter out = new PrintWriter("web/tagindex.html");
+        PrintWriter out = new PrintWriter(WEBLOCATION + "tagindex.html");
         addHeader(out);
         addSelector(out, "Tag");
         out.println(getTagCloud());
@@ -769,9 +771,9 @@ public class ArtistCrawler {
 
         sb.append("<div class=\"pager\">");
         if (page > 0) {
-            sb.append(createPageLink("<<", page - 1));
+            sb.append(createPageLink("&lt;&lt;", page - 1));
         } else {
-            sb.append(createNoLink("<<"));
+            sb.append(createNoLink("&lt;&lt;"));
         }
 
         for (int i = 0; i < numPages; i++) {
@@ -783,9 +785,9 @@ public class ArtistCrawler {
         }
 
         if (page < numPages - 1) {
-            sb.append(createPageLink(">>", page + 1));
+            sb.append(createPageLink("&gt;&gt;", page + 1));
         } else {
-            sb.append(createNoLink(">>"));
+            sb.append(createNoLink("&gt;&gt;"));
         }
         sb.append("</div>");
         return sb.toString();
@@ -795,9 +797,9 @@ public class ArtistCrawler {
         StringBuilder sb = new StringBuilder();
         sb.append("<div class=\"pager\">");
         if (letter > 'a') {
-            sb.append(createAlphaLink("<<", (char) (letter - 1)));
+            sb.append(createAlphaLink("%lt;%lt;", (char) (letter - 1)));
         } else {
-            sb.append(createNoLink("<<"));
+            sb.append(createNoLink("&lt;&lt;"));
         }
 
         for (char c = 'a'; c <= 'z'; c++) {
@@ -808,9 +810,9 @@ public class ArtistCrawler {
             }
         }
         if (letter < 'z') {
-            sb.append(createAlphaLink(">>", (char) (letter + 1)));
+            sb.append(createAlphaLink("&gt;&gt;", (char) (letter + 1)));
         } else {
-            sb.append(createNoLink(">>"));
+            sb.append(createNoLink("&lt;&lt;"));
         }
         sb.append("</div>");
         return sb.toString();
@@ -891,7 +893,7 @@ public class ArtistCrawler {
         out.println("<table>");
         out.println("<tr><td valign=\"top\">");
         if (artist.getArtistInfo().getLargeImage().length() > 0) {
-            out.printf("<img class=\"artistimage\" src=\"%s\"/>", artist.getArtistInfo().getLargeImage());
+            out.printf("<img class=\"artistimage\" src=\"%s\" alt=\"Artist Picture\"/>", artist.getArtistInfo().getLargeImage());
         }
         //out.println(artist.getBioSummary());
         out.println("<td valign=\"top\">");
@@ -991,7 +993,7 @@ public class ArtistCrawler {
 
     public String getArtistPhotoLink(Artist artist) {
         String encodedName = encode("\"" + artist.getName() + "\"");
-        String url = "http://flickr.com/search/show/?q=" + encodedName + "+(show+OR+concert+OR+sxsw+OR+live+OR+band)&mt=photos";
+        String url = "http://flickr.com/search/show/?q=" + encodedName + "+(show+OR+concert+OR+sxsw+OR+live+OR+band)&amp;mt=photos";
         String link = "<span class=\"middle\"><a href=\"" + url + "\" target=\"listen_view\">See on Flickr" + "</a></span>";
         return link;
     }
@@ -1052,6 +1054,14 @@ public class ArtistCrawler {
 
     private String fmt(String s, boolean forJS) {
         s = encodeHTML(s);
+        if (forJS) {
+            s = fmtJS(s);
+        }
+        return s;
+    }
+
+    private String fmtName(String s, boolean forJS) {
+        s = fullEncodeHTML(s);
         if (forJS) {
             s = fmtJS(s);
         }
@@ -1269,7 +1279,7 @@ public class ArtistCrawler {
     }
 
     public void generatePages() throws IOException {
-        File webdir = new File("web");
+        File webdir = new File(WEBLOCATION);
 
         if (!webdir.exists()) {
             webdir.mkdir();
@@ -1402,6 +1412,10 @@ public class ArtistCrawler {
         return ok;
     }
 
+    public List<Artist> getAllArtists() {
+        return dbCore.getArtists();
+    }
+
     public void loadDatabase() {
         File dbfile = new File(DBNAME);
         if (dbfile.exists()) {
@@ -1431,6 +1445,27 @@ public class ArtistCrawler {
         if (dbCore == null) {
             dbCore = new DBCore();
         }
+    }
+
+    public static String fullEncodeHTML(String s) {
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '&') {
+                out.append("&amp;");
+            } else if (c == '<') {
+                out.append("&lt;");
+            } else if (c == '"') {
+                out.append("&quot;");
+            } else if (c == '>') {
+                out.append("&gt;");
+            } else if (c > 127) {
+                out.append("&#" + (int) c + ";");
+            } else {
+                out.append(c);
+            }
+        }
+        return out.toString();
     }
 
     public static String encodeHTML(String s) {
