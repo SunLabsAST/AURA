@@ -1,0 +1,5 @@
+export web=/lab/mir/SXSW.web
+cp -r resources/* $web
+rm $web/index.html
+ln $web/sxsw.html $web/index.html
+jar cvf dist/TestSXSWArtistCatalog.war -C $web .
