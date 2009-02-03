@@ -12,8 +12,7 @@
     
     <!-- Where the aura data lives -->
     <property name="auraHome" value="/datapool/aura"/>
-    <property name="auraDistDir" value="${auraHome}/dist"/>
-    <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
+    <property name="auraDistDir" value="/mnt/dist/dist"/>
     <property name="auraGroup" value="Aura"/>
     
     <property name="csPort" value="5500"/>
@@ -23,7 +22,7 @@
         <propertylist name="groupList">
             <item>${auraGroup}</item>
         </propertylist>
-        <property name="registryHost" value="${regHost}"/>
+        <property name="registryHost" value="${registryHost}"/>
         <property name="csDirs" value="${auraDistDir}/lib"/>
         <property name="csPort" value="${csPort}"/>
         <propertylist name="codebaseJars">
@@ -32,7 +31,6 @@
             <item>slcut.jar</item>
             <item>je-3.3.75.jar</item>
         </propertylist>
-        <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
     
     <!-- The configuration for a partition cluster. We set import to false because there's no properties. -->

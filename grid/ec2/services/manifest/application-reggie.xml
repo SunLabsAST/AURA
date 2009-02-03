@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type='manifest' name='application:reggie'>
+
+<service
+	name='application/reggie'
+	type='service'
+	version='1'>
+
+	<create_default_instance enabled='true' />
+
+	<single_instance/>
+
+	<dependency
+		name='import-dist'
+		type='service'
+		grouping='require_all'
+		restart_on='none'>
+		<service_fmri value='svc:/aura/import-dist' />
+	</dependency>
+
+	<exec_method
+		type='method'
+		name='start'
+		exec='/opt/aura/services/method/reggie.sh'
+		timeout_seconds='180' />
+
+	<exec_method
+		type='method'
+		name='stop'
+		exec=':kill'
+		timeout_seconds='60' />
+
+	<stability value='Unstable' />
+
+	<template>
+		<common_name>
+			<loctext xml:lang='C'>Jini service registry</loctext>
+		</common_name>
+	</template>
+</service>
+
+</service_bundle>
