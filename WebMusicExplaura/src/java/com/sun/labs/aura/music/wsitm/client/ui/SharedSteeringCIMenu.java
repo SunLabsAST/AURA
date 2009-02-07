@@ -32,7 +32,7 @@ public class SharedSteeringCIMenu extends ContextMenu implements CloudItemDepend
     private Label negLbl = new Label();
 
     private final String STICK_STRING="Make sticky";
-    private final String UNSTICK_STRING="Unstick";
+    private final String UNSTICK_STRING="Remove sticky";
 
     private final String NEG_STRING="Make negative";
     private final String POS_STRING="Make positive";
@@ -53,6 +53,12 @@ public class SharedSteeringCIMenu extends ContextMenu implements CloudItemDepend
             @Override
             public void onClick(ClickEvent ce) {
                 cI.setSticky(!cI.isSticky());
+                // If we're setting tag as sticky and it has negative weight,
+                // set it as positive
+                if (cI.isSticky() && cI.getWeight()<0) {
+                    cI.setWeight(-1 * cI.getWeight());
+                }
+
                 twc.redrawTagCloud();
                 twc.updateRecommendations();
             }
@@ -106,6 +112,10 @@ public class SharedSteeringCIMenu extends ContextMenu implements CloudItemDepend
     @Override
     public void showAt(Event e, CloudItem cI) {
         this.cI = cI;
+
+        if (cI.isSticky() && cI.getWeight()<0) {
+            cI.setSticky(false);
+        }
 
         // Update menu labels text before showing the menu
         if (cI.isSticky()) {
