@@ -458,6 +458,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
         txtbox = new TextBox();
         txtbox.setText(Cookies.getCookie("app-openid-uniqueid"));
+        txtbox.setStyleName("openidField");
         txtbox.addKeyPressHandler(new KeyPressHandler() {
             @Override
             public void onKeyPress(KeyPressEvent event) {

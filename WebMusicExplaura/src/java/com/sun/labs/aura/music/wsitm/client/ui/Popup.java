@@ -203,7 +203,7 @@ public abstract class Popup {
         loginHP.add(oiL);
         loginHP.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
         final TextBox loginTb = new TextBox();
-
+        loginTb.setStyleName("openidField");
         final Command loginCmd = new Command() {
             public void execute() {
                 Window.Location.assign("./Login?app-openid-auth=true&app-openid-name=" + loginTb.getText());
