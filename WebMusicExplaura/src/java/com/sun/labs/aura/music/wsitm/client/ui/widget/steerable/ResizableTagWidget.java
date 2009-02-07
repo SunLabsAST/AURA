@@ -35,7 +35,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.DeletableWidget;
-import com.sun.labs.aura.music.wsitm.client.ui.widget.SwapableWidget;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -362,49 +361,8 @@ public class ResizableTagWidget extends TagWidget {
 
         public DeletableResizableTag(ResizableTag t) {
             super(t);
-            //addWidgetToRightMenu(t.getCloudItem().getIcon());
             addRemoveButton();
             setXButtonPosition();
-
-            Image img1 = new Image("stick.png");
-            img1.setTitle("Click to make this tag sticky");
-            Image img2 = new Image("unstick.png");
-            img2.setTitle("Click to unstick this tag");
-            SwapableWidget stickButton = new SwapableWidget<Image, Image>(img1, img2);
-            stickButton.showWidget(SwapableWidget.LoadableWidget.W1);
-            stickButton.getElement().getStyle().setProperty("visibility", "hidden");
-            img1.addClickHandler(new DDEClickHandler<CloudItem,SwapableWidget>(t.getCloudItem(), stickButton) {
-                @Override
-                public void onClick(ClickEvent event) {
-                    data.setSticky(true);
-                    sndData.swapWidget();
-                    redrawTagCloud();
-                }
-            });
-            img2.addClickHandler(new DDEClickHandler<CloudItem,SwapableWidget>(t.getCloudItem(), stickButton) {
-                @Override
-                public void onClick(ClickEvent event) {
-                    data.setSticky(false);
-                    sndData.swapWidget();
-                    redrawTagCloud();
-                }
-            });
-            super.addWidgetToRightMenu(stickButton, new HoverListener<SwapableWidget>(stickButton) {
-
-                @Override
-                public void onMouseHover() {
-                    data.getElement().getStyle().setProperty("visibility", "visible");
-                }
-
-                @Override
-                public void onOutTimer() {
-                    data.getElement().getStyle().setProperty("visibility", "hidden");
-                }
-
-                @Override
-                public void onMouseOut() {}
-
-            });
         }
 
         private final double getXButtonMargin() {
