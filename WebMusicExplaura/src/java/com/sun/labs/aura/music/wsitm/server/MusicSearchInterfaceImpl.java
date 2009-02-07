@@ -128,7 +128,21 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             if (!tagName.startsWith("artist-tag:"))
                 tagName=ArtistTag.nameToKey(tagName);
-            return dm.getTagDetails(tagName, refresh, simTypeName);
+            return dm.getTagDetails(tagName, refresh);
+        } catch (AuraException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
+    @Override
+    public ArrayList<ScoredC<ArtistCompact>> getRepresentativeArtistsOfTag(String tagId) throws WebException {
+        logger.info("getRepArtists for tag: "+tagId);
+        try {
+            return dm.getRepresentativeArtistsOfTag(tagId);
         } catch (AuraException ex) {
             logger.severe(traceToString(ex));
             throw new WebException(ex.getMessage(), ex);

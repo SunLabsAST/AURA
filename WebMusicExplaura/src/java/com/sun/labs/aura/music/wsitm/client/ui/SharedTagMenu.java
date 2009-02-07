@@ -13,11 +13,16 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.MusicSearchInterface;
 import com.sun.labs.aura.music.wsitm.client.MusicSearchInterfaceAsync;
+import com.sun.labs.aura.music.wsitm.client.event.DEAsyncCallback;
+import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.TagDependentSharedMenu;
+import java.util.ArrayList;
 
 /**
  *
@@ -48,6 +53,13 @@ public class SharedTagMenu extends ContextMenu implements TagDependentSharedMenu
                 invokeSimTagService(currTag.getId());
             }
         });
+
+        addElement("View representative artists", new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent ce) {
+                invokeRepArtistService(currTag.getId());
+            }
+        });
                 
         addSeperator();
         addElement("Add tag to current steerable tag cloud", new ClickHandler() {
@@ -57,14 +69,57 @@ public class SharedTagMenu extends ContextMenu implements TagDependentSharedMenu
             }
         });
     }
-    
+
+    private void invokeRepArtistService(String tagId) {
+
+        PopupPanel p = Popup.showLoadingPopup();
+
+        DEAsyncCallback<PopupPanel, ArrayList<ScoredC<ArtistCompact>>> callback =
+                new DEAsyncCallback<PopupPanel, ArrayList<ScoredC<ArtistCompact>>>(p) {
+
+            public void onFailure(Throwable caught) {
+                Window.alert(caught.getMessage());
+            }
+
+            @Override
+            public void onSuccess(ArrayList<ScoredC<ArtistCompact>> result) {
+                data.hide();
+                if (result!=null || result.size()>0) {
+                    ItemInfo[] iI = new ItemInfo[result.size()];
+                    int i = 0;
+                    for (ScoredC<ArtistCompact> sAC : result) {
+                        iI[i++] = new ItemInfo(sAC.getItem().getId(),
+                                sAC.getItem().getName(), sAC.getScore(),
+                                sAC.getItem().getPopularity());
+                    }
+                    TagDisplayLib.showTagCloud("Representative artists of tag "+currTag.getItemName(),
+                            iI, TagDisplayLib.ORDER.SHUFFLE, cdm, TagDisplayLib.TagColorType.TAG_POPUP);
+                } else {
+                    Window.alert("An error occured while fetching representative artists.");
+                }
+            }
+        };
+
+        try {
+            musicServer.getRepresentativeArtistsOfTag(tagId, callback);
+        } catch (Exception ex) {
+            Window.alert(ex.getMessage());
+        }
+    }
+
+
     private void invokeSimTagService(String tagId) {
 
-        AsyncCallback<ItemInfo[]> callback = new AsyncCallback<ItemInfo[]>() {
+        PopupPanel p = Popup.showLoadingPopup();
+
+        DEAsyncCallback<PopupPanel, ItemInfo[]> callback =
+                new DEAsyncCallback<PopupPanel, ItemInfo[]>(p) {
 
             public void onSuccess(ItemInfo[] iI) {
                 if (iI != null || iI.length > 0) {
-                    TagDisplayLib.showTagCloud("Similar tags to "+currTag.getItemName(), iI, TagDisplayLib.ORDER.SHUFFLE, cdm);
+                    data.hide();
+                    TagDisplayLib.showTagCloud("Similar tags to "+currTag.getItemName(),
+                            iI, TagDisplayLib.ORDER.SHUFFLE, cdm);
                 } else {
                     Window.alert("An error occured while fetching similar tags.");
                 }
@@ -76,7 +131,6 @@ public class SharedTagMenu extends ContextMenu implements TagDependentSharedMenu
         };
 
         try {
-            Popup.showLoadingPopup();
             musicServer.getSimilarTags(tagId, callback);
         } catch (Exception ex) {
             Window.alert(ex.getMessage());

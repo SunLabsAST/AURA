@@ -10,6 +10,7 @@
 package com.sun.labs.aura.music.wsitm.client.items;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
+import java.util.ArrayList;
 
 /**
  *
@@ -17,7 +18,8 @@ import com.google.gwt.user.client.rpc.IsSerializable;
  */
 public class TagDetails implements IsSerializable, Details {
     private final static ItemInfo[] EMPTY_ITEM_INFO = new ItemInfo[0];
-    private final static ArtistCompact[] EMPTY_ARTIST_COMPACT = new ArtistCompact[0];
+    private final static ArrayList<ScoredC<ArtistCompact>> EMPTY_ARTIST_COMPACT =
+            new ArrayList<ScoredC<ArtistCompact>>();
     private final static ArtistVideo[] EMPTY_ARTIST_VIDEO = new ArtistVideo[0];
     private final static ArtistPhoto[] EMPTY_ARTIST_PHOTO = new ArtistPhoto[0];
     
@@ -28,7 +30,7 @@ public class TagDetails implements IsSerializable, Details {
     private float popularity;
     private String description = "None available";
     private String imageURL;
-    private ArtistCompact[] representativeArtists = EMPTY_ARTIST_COMPACT;
+    private ArrayList<ScoredC<ArtistCompact>> representativeArtists = EMPTY_ARTIST_COMPACT;
     private ItemInfo[] similarTags = EMPTY_ITEM_INFO;
     private ArtistVideo[] videos = EMPTY_ARTIST_VIDEO;
     private ArtistPhoto[] photos  = EMPTY_ARTIST_PHOTO;
@@ -96,10 +98,19 @@ public class TagDetails implements IsSerializable, Details {
     }
     
     public ArtistCompact[] getRepresentativeArtists() {
+        ArtistCompact[] aCA = new ArtistCompact[representativeArtists.size()];
+        int i=0;
+        for (ScoredC<ArtistCompact> sac : representativeArtists) {
+            aCA[i++] = sac.getItem();
+        }
+        return aCA;
+    }
+
+    public ArrayList<ScoredC<ArtistCompact>> getScoredRepArtists() {
         return representativeArtists;
     }
     
-    public void setRepresentativeArtists(ArtistCompact[] representativeArtists) {
+    public void setRepresentativeArtists(ArrayList<ScoredC<ArtistCompact>> representativeArtists) {
         this.representativeArtists = representativeArtists;
     }
     
