@@ -261,12 +261,12 @@ public class SteeringSwidget extends Swidget {
             });
             mainNorthMenuPanel.add(resetButton);
 
-            Button viewCloudButton = new Button("View atomic cloud");
+            Button viewCloudButton = new Button("View expanded cloud");
             viewCloudButton.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent event) {
                     if (currTagMap == null || currTagMap.isEmpty()) {
-                        Popup.showInformationPopup("Cannot display atomic representation; you must " +
+                        Popup.showInformationPopup("Cannot display expanded representation; you must " +
                                 "add tags in your cloud first.");
                     } else {
                         HashMap<String, ScoredTag> map = currTagMap;
@@ -276,7 +276,7 @@ public class SteeringSwidget extends Swidget {
                             iI[index++] = new ItemInfo(ClientDataManager.nameToKey(s),
                                     s, map.get(s).getScore(), map.get(s).getScore());
                         }
-                        TagDisplayLib.showTagCloud("Atomic representation of tag cloud",
+                        TagDisplayLib.showTagCloud("Expanded representation of tag cloud",
                                 iI, TagDisplayLib.ORDER.SHUFFLE, cdm);
                     }
                 }
