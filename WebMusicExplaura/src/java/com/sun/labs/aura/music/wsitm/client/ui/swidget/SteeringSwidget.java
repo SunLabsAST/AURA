@@ -143,6 +143,13 @@ public class SteeringSwidget extends Swidget {
         private ListBox interfaceListbox;
         private String currLoadedTagWidget = "";
 
+        /**
+         * When a request for a recommendation update is made, if a call has 
+         * already been made, wait for it to finish before making the next call
+         */
+        private boolean inRpc = false;
+        private boolean updateRecRequest = false;
+
         public MainPanel() {
             dP = new DockPanel();
 
@@ -443,6 +450,15 @@ public class SteeringSwidget extends Swidget {
 
         public void invokeFetchNewRecommendations() {
             PerformanceTimer.start("newRecommendations");
+
+            if (inRpc) {
+                updateRecRequest = true;
+                return;
+            } else {
+                inRpc = true;
+                updateRecRequest = false;
+            }
+
             AsyncCallback<ArrayList<ScoredC<ArtistCompact>>> callback = new AsyncCallback<ArrayList<ScoredC<ArtistCompact>>>() {
 
                 public void onSuccess(ArrayList<ScoredC<ArtistCompact>> aCList) {
@@ -464,6 +480,12 @@ public class SteeringSwidget extends Swidget {
                     } else {
                         currRecommendations = null;
                     }
+
+                    inRpc = false;
+                    if (updateRecRequest) {
+                        invokeFetchNewRecommendations();
+                    }
+
                     PerformanceTimer.stop("newRecommendationsRedraw");
                     PerformanceTimer.stop("newRecommendations");
                     WebLib.trackPageLoad("steerUpdate");
