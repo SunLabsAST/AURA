@@ -866,6 +866,7 @@ public class SteeringSwidget extends Swidget {
                                 }
                             };
                             listenerContainer = sIIL;
+                            mainGrid.getCellFormatter().setHorizontalAlignment(1, 0, HorizontalPanel.ALIGN_CENTER);
                             mainGrid.setWidget(1, 0, sIIL);
                         }
                     } else {
@@ -908,6 +909,7 @@ public class SteeringSwidget extends Swidget {
             this.iI = ItemInfo.arrayToList(iI);
 
             mainPanel = new Grid(iI.length + 1, 2);
+            mainPanel.getColumnFormatter().setWidth(0, "100px");
 
             //
             // Add the title line
@@ -916,8 +918,8 @@ public class SteeringSwidget extends Swidget {
             nameLbl.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent event) {
-                    ((Label) mainPanel.getWidget(0, 0)).setText("Name");
-                    ((Label) mainPanel.getWidget(0, 1)).setText("Popularity*");
+                    ((Label) mainPanel.getWidget(0, 0)).setText("Name*");
+                    ((Label) mainPanel.getWidget(0, 1)).setText("Popularity");
                     populateMainPanel(ItemInfo.getNameSorter());
                 }
             });
