@@ -4,7 +4,6 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.widget.steerable;
 
-import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.MouseDownEvent;
 import com.google.gwt.event.dom.client.MouseDownHandler;
 import com.google.gwt.event.dom.client.MouseUpEvent;
@@ -17,14 +16,11 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.Grid;
-import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.WebException;
-import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
-import com.sun.labs.aura.music.wsitm.client.event.HoverListener;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudArtist;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.WrapsCloudItem;
@@ -57,6 +53,7 @@ public class ResizableTagWidget extends TagWidget {
     private FocusPanel fP;
     private FlowPanel flowP;
     private int lastY;
+    private int lastX;
     private int colorIndex = 1;
 
     public ResizableTagWidget(MainPanel mainPanel, ClientDataManager cdm, 
@@ -85,8 +82,9 @@ public class ResizableTagWidget extends TagWidget {
         tagCloud = new HashMap<String, DeletableResizableTag>();
         fP.addMouseListener(new MouseListener() {
 
-            public void onMouseDown(Widget arg0, int arg1, int arg2) {
-                lastY = arg2;
+            public void onMouseDown(Widget arg0, int newX, int newY) {
+                lastY = newY;
+                lastX = newX;
 
                 ((FocusPanel) arg0).setFocus(false);
             }
@@ -109,9 +107,19 @@ public class ResizableTagWidget extends TagWidget {
             }
 
             @Override
-            public void onMouseMove(Widget arg0, int arg1, int arg2) {
+            public void onMouseMove(Widget arg0, int newX, int newY) {
 
-                int increment = lastY - arg2;
+                // Take either increment from Y or X movement. Taking both
+                // modifies the size too quickly.
+                // -- Going up or right grows the tags.
+                int diffY = lastY - newY;
+                int diffX = newX - lastX;
+                int increment = 0;
+                if (Math.abs(diffY) > Math.abs(diffX)) {
+                    increment = diffY;
+                } else {
+                    increment = diffX;
+                }
 
                 // Don't refresh everytime to let the browser take its breath
                 if (Math.abs(increment) > 3) {
@@ -158,7 +166,8 @@ public class ResizableTagWidget extends TagWidget {
                         }
                     }
 
-                    lastY = arg2;
+                    lastY = newY;
+                    lastX = newX;
                 }
 
                 ((FocusPanel) arg0).setFocus(false);
