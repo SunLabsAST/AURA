@@ -203,7 +203,9 @@ public class DataManager implements Configurable {
         ArtistCompact[] aC = new ArtistCompact[nbr];
         for (int i=0; i<nbr; i++) {
             List<Scored<Artist>> lsa = mdb.artistSearch(artistOracle.get(r.nextInt(artistOracle.size())).getItem(), 1);
-            aC[i] = artistToArtistCompact(lsa.get(0).getItem());
+            ArtistDetails aD = artistToArtistDetails(lsa.get(0).getItem());
+            cache.sput(aD.getId(), aD);
+            aC[i] = aD.toArtistCompact();
         }
         return aC;
     }
