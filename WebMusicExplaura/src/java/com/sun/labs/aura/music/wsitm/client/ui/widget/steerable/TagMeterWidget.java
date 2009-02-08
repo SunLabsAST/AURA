@@ -35,7 +35,7 @@ import java.util.HashMap;
  */
 public class TagMeterWidget extends TagWidget {
 
-    private final static int MAX_TAG_VALUE = CloudItemMeter.TOTAL_WIDTH;
+    private final static int MAX_TAG_VALUE = CloudItemMeter.GREEN_WIDTH;
     private final static int DEFAULT_TAG_VALUE = MAX_TAG_VALUE / 2;
     private VerticalPanel mainTagPanel;
     private HashMap<String, CloudItemMeter> tagCloud;
@@ -160,17 +160,26 @@ public class TagMeterWidget extends TagWidget {
 
         private static final int METER_HEIGHT = 16;
         public static final int RED_WIDTH = 23;
-        public static final int TOTAL_WIDTH = 280;
+        public static final int GREEN_WIDTH = 280;
+        public static final int TOTAL_WIDTH = 300;
+
         private static final String METER_OFF = "meter-off.jpg";
         private static final String METER_ON = "meter-on.jpg";
         private static final String METER_HOVER = "meter-hover.jpg";
+        private static final String STICK_METER_HOVER = "meter-stick-hover.jpg";
+        private static final String STICK_METER_OFF = "meter-stick-off.jpg";
+        private static final String STICK_METER_ON = "meter-stick-on.jpg";
+
         private CloudItem item;
         private Grid mainPanel;
         private FocusPanel fP;
+        private DeletableTag dTag;
+
         private Image redMeter;
         private Image greenMeterHover;
         private Image greenMeterLeft;
         private Image greenMeterRight;
+        private Image stickMeter;
 
         private CloudItemMeter(CloudItem item) {
             this.item = item;
@@ -190,11 +199,13 @@ public class TagMeterWidget extends TagWidget {
             greenMeterHover = new Image(METER_HOVER);
             greenMeterLeft = new Image(METER_ON);
             greenMeterRight = new Image(METER_OFF);
+            stickMeter = new Image(STICK_METER_OFF);
             HorizontalPanel hP = new HorizontalPanel();
             hP.add(redMeter);
             hP.add(greenMeterHover);
             hP.add(greenMeterLeft);
             hP.add(greenMeterRight);
+            hP.add(stickMeter);
             fP.add(hP);
 
             fP.getElement().setAttribute("style", "margin-right: 40px");
@@ -210,16 +221,18 @@ public class TagMeterWidget extends TagWidget {
                     int y = event.getRelativeX(fP.getElement());
                     // We are hovering over the red section
                     if (y <= RED_WIDTH) {
+                        stickMeter.setUrl(STICK_METER_OFF);
                         redMeter.setUrlAndVisibleRect(METER_HOVER, 0, 0, RED_WIDTH, METER_HEIGHT);
                         if (data.getWeight() > RED_WIDTH) {
                             greenMeterLeft.setVisibleRect(RED_WIDTH, 0, (int)data.getWeight() - RED_WIDTH, METER_HEIGHT);
-                            greenMeterRight.setVisibleRect((int)data.getWeight(), 0, TOTAL_WIDTH - (int)data.getWeight(), METER_HEIGHT);
+                            greenMeterRight.setVisibleRect((int)data.getWeight(), 0, GREEN_WIDTH - (int)data.getWeight(), METER_HEIGHT);
                         } else {
                             greenMeterLeft.setVisibleRect(0, 0, 0, METER_HEIGHT);
-                            greenMeterRight.setVisibleRect(RED_WIDTH, 0, TOTAL_WIDTH - RED_WIDTH, METER_HEIGHT);
+                            greenMeterRight.setVisibleRect(RED_WIDTH, 0, GREEN_WIDTH - RED_WIDTH, METER_HEIGHT);
                         }
                     // We are hovering over the green section
-                    } else {
+                    } else if (y <= GREEN_WIDTH) {
+                        stickMeter.setUrl(STICK_METER_OFF);
                         if (data.getWeight() <= RED_WIDTH) {
                             redMeter.setUrlAndVisibleRect(METER_ON, 0, 0, RED_WIDTH, METER_HEIGHT);
                         } else {
@@ -230,11 +243,26 @@ public class TagMeterWidget extends TagWidget {
                         // If we are higher than the previous rating
                         if (y > data.getWeight()) {
                             greenMeterLeft.setVisibleRect(0, 0, 0, METER_HEIGHT);
-                            greenMeterRight.setVisibleRect(y, 0, TOTAL_WIDTH - y, METER_HEIGHT);
+                            greenMeterRight.setVisibleRect(y, 0, GREEN_WIDTH - y, METER_HEIGHT);
                         } else {
                             greenMeterLeft.setVisibleRect(y, 0, (int)data.getWeight() - y, METER_HEIGHT);
-                            greenMeterRight.setVisibleRect((int)data.getWeight(), 0, TOTAL_WIDTH - (int)data.getWeight(), METER_HEIGHT);
+                            greenMeterRight.setVisibleRect((int)data.getWeight(), 0, GREEN_WIDTH - (int)data.getWeight(), METER_HEIGHT);
                         }
+                    // We are hovering over the sticky section
+                    } else {
+                        // Take positive weight
+                        int w = ((int)data.getWeight());
+                        // If tag is negative and is made sticky, the weight will be
+                        // switched to the default value; this is what we want to show
+                        // when hovering the sticky tag
+                        if (w<RED_WIDTH) {
+                            w=DEFAULT_TAG_VALUE;
+                        }
+                        redMeter.setUrlAndVisibleRect(METER_OFF, 0, 0, RED_WIDTH, METER_HEIGHT);
+                        greenMeterHover.setVisibleRect(0, 0, 0, METER_HEIGHT);
+                        greenMeterLeft.setUrlAndVisibleRect(METER_ON, RED_WIDTH, 0, w - RED_WIDTH, METER_HEIGHT);
+                        greenMeterRight.setUrlAndVisibleRect(METER_OFF, w, 0, GREEN_WIDTH - w, METER_HEIGHT);
+                        stickMeter.setUrl(STICK_METER_HOVER);
                     }
                 }
             });
@@ -242,14 +270,26 @@ public class TagMeterWidget extends TagWidget {
                 @Override
                 public void onMouseUp(MouseUpEvent event) {
                     ((FocusPanel) event.getSource()).setFocus(false);
-                    data.setWeight(event.getRelativeX(fP.getElement()));
+                    double newWeight = event.getRelativeX(fP.getElement());
+                    // If we clicked in the sticky zone, don't update weight;
+                    // just swap sticky status
+                    if (newWeight > GREEN_WIDTH) {
+                        data.setSticky(!data.isSticky());
+                        if (data.getWeight()<RED_WIDTH) {
+                            data.setWeight(DEFAULT_TAG_VALUE);
+                        }
+                    } else {
+                        data.setSticky(false);
+                        data.setWeight(newWeight);
+                    }
                     redrawMeter();
                     updateRecommendations();
                 }
             });
 
             mainPanel.getCellFormatter().setHorizontalAlignment(0, 0, HorizontalPanel.ALIGN_LEFT);
-            mainPanel.setWidget(0, 0, new DeletableTag(item));
+            dTag = new DeletableTag(item, RED_WIDTH);
+            mainPanel.setWidget(0, 0, dTag);
 
             mainPanel.getCellFormatter().setHorizontalAlignment(0, 1, HorizontalPanel.ALIGN_RIGHT);
             mainPanel.getCellFormatter().setWidth(0, 1, "150px");
@@ -261,17 +301,25 @@ public class TagMeterWidget extends TagWidget {
         }
 
         private void redrawMeter() {
+            // If we have a positive weight
             if (item.getWeight() > RED_WIDTH) {
                 redMeter.setUrlAndVisibleRect(METER_OFF, 0, 0, RED_WIDTH, METER_HEIGHT);
                 greenMeterHover.setVisibleRect(0, 0, 0, METER_HEIGHT);
                 greenMeterLeft.setUrlAndVisibleRect(METER_ON, RED_WIDTH, 0, (int)item.getWeight() - RED_WIDTH, METER_HEIGHT);
-                greenMeterRight.setUrlAndVisibleRect(METER_OFF, (int)item.getWeight(), 0, TOTAL_WIDTH - (int)item.getWeight(), METER_HEIGHT);
+                greenMeterRight.setUrlAndVisibleRect(METER_OFF, (int)item.getWeight(), 0, GREEN_WIDTH - (int)item.getWeight(), METER_HEIGHT);
+                if (item.isSticky()) {
+                    stickMeter.setUrl(STICK_METER_ON);
+                } else {
+                    stickMeter.setUrl(STICK_METER_OFF);
+                }
             } else {
                 redMeter.setUrlAndVisibleRect(METER_ON, 0, 0, RED_WIDTH, METER_HEIGHT);
                 greenMeterHover.setVisibleRect(0, 0, 0, METER_HEIGHT);
                 greenMeterLeft.setUrlAndVisibleRect(METER_ON, 0, 0, 0, METER_HEIGHT);
-                greenMeterRight.setUrlAndVisibleRect(METER_OFF, RED_WIDTH, 0, TOTAL_WIDTH - RED_WIDTH, METER_HEIGHT);
+                greenMeterRight.setUrlAndVisibleRect(METER_OFF, RED_WIDTH, 0, GREEN_WIDTH - RED_WIDTH, METER_HEIGHT);
+                stickMeter.setUrl(STICK_METER_OFF);
             }
+            dTag.updateColor();
         }
 
         public int getRating() {
@@ -290,13 +338,24 @@ public class TagMeterWidget extends TagWidget {
 
     private class DeletableTag extends DeletableWidget<Label> {
 
+        private final int negativeWidth;
+        private String prevColor= null;
         private CloudItem i;
 
-        public DeletableTag(CloudItem i) {
+        public DeletableTag(CloudItem i, int negativeWidth) {
             super(new SpannedLabel(i.getDisplayName()));
             this.i = i;
-            TagDisplayLib.setColorToElem(this.getWidget(), 1, 1, null, TagDisplayLib.TagColorType.TAG);
+            this.negativeWidth=negativeWidth;
+            updateColor();
             addRemoveButton();
+        }
+
+        public void updateColor() {
+            int tw = (int)i.getWeight();
+            if (tw<negativeWidth) {
+                tw = -1;
+            }
+            prevColor = TagDisplayLib.setColorToElem(this.getWidget(), 1, tw, prevColor, i.getTagColorType());
         }
 
         @Override

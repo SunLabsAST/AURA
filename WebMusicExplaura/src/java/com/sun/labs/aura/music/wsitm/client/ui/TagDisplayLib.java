@@ -19,7 +19,6 @@ import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
-import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuArtistLabel;
 import java.util.HashMap;
 import java.util.Arrays;
 
