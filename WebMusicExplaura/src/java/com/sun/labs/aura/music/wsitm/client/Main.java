@@ -113,7 +113,13 @@ public class Main implements EntryPoint, HistoryListener {
 
         VerticalPanel footer = new VerticalPanel();
         footer.setHorizontalAlignment(VerticalPanel.ALIGN_CENTER);
-        footer.add(new HTML("<br/><hr/><center>Powered by Sun Microsystems, Last.fm, Spotify, Wikipedia, Flickr,<br/>Youtube, Echo nest, Yahoo, Musicbrainz, Upcoming and Amazon</center>"));
+        footer.add(new HTML("<br/><hr/><center><span class=\"bottomUrl\">Powered by <a href=\"http://www.sun.com\">Sun Microsystems</a>, " +
+                "<a href=\"http://www.last.fm\">Last.fm</a>, <a href=\"http://www.spotify.com\">Spotify</a>, " +
+                "<a href=\"http://www.wikipedia.org\">Wikipedia</a>, <a href=\"http://www.flickr.com\">Flickr</a>," +
+                "<br/><a href=\"http://www.youtube.com\">Youtube</a>, <a href=\"http://www.yahoo.com\">Yahoo</a>, " +
+                "<a href=\"http://musicbrainz.org\">Musicbrainz</a>, <a href=\"http://upcoming.yahoo.com\">Upcoming</a> and " +
+                "<a href=\"http://www.amazon.com\">Amazon</a><br>" +
+                "<a href=\"http://the.echonest.com\"><img src=\"echonest.gif\" border=\"0\" /></a></span></center>"));
 
         // if performance monitoring is enabled, add a button to the footer
         // that will show us the stats

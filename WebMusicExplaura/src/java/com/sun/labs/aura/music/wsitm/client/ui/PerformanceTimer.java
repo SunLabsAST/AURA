@@ -21,7 +21,7 @@ import java.util.Map;
  */
 public class PerformanceTimer {
 
-    static boolean enabled = true;
+    static boolean enabled = false;
     static Map<String, TimeStat> timeMap = new LinkedHashMap<String, TimeStat>();
 
     public static boolean isEnabled() {

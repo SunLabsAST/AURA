@@ -14,6 +14,13 @@ body {
     background: #f0f8c6;
 }
 
+.bottomUrl a {
+    color: #73885D;
+}
+.bottomUrl a:visited {
+    color: #73885D;
+}
+
 .titleC {
   color: #73885D;
 }
