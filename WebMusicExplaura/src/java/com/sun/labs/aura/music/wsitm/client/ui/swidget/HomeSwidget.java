@@ -54,8 +54,8 @@ public class HomeSwidget extends Swidget {
         loadImg.getElement().getStyle().setProperty("visibility", "hidden");
         searchBoxContainerPanel = new FlowPanel();
 
-        search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel);
-        search.updateSuggestBox(Oracles.ARTIST);
+        //search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel);
+        //search.updateSuggestBox(Oracles.ARTIST);
 
         HorizontalPanel titleHp = new HorizontalPanel();
         titleHp.setWidth("100%");
@@ -82,7 +82,7 @@ public class HomeSwidget extends Swidget {
 
         mainPanel = new Grid(2,1);
         mainPanel.getCellFormatter().setHorizontalAlignment(0, 0, HorizontalPanel.ALIGN_CENTER);
-        mainPanel.setWidget(0, 0, search);
+        //mainPanel.setWidget(0, 0, search);
         mainPanel.getCellFormatter().setHorizontalAlignment(1, 0, HorizontalPanel.ALIGN_CENTER);
         mainPanel.setWidget(1, 0, popArtists);
 

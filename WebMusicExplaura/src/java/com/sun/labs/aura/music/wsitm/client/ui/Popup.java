@@ -178,6 +178,7 @@ public abstract class Popup {
      */
     public static void showLoginPopup() {
 
+        /*
         VerticalPanel vP = new VerticalPanel();
         vP.setStyleName("popupColors");
         vP.setWidth("600px");
@@ -261,6 +262,7 @@ public abstract class Popup {
         hP.getCellFormatter().setVerticalAlignment(0, 1, VerticalPanel.ALIGN_TOP);
 
         vP.add(hP);
+        */
 
         Grid titlePanel = new Grid(1,2);
         titlePanel.setWidth("100%");
@@ -274,6 +276,11 @@ public abstract class Popup {
         titlePanel.setWidget(0, 1, new Label("Login required"));
         titlePanel.getCellFormatter().setHorizontalAlignment(0, 1, HorizontalPanel.ALIGN_LEFT);
         titlePanel.getCellFormatter().setVerticalAlignment(0, 1, VerticalPanel.ALIGN_BOTTOM);
+
+        VerticalPanel vP = new VerticalPanel();
+        Label l = new Label("Registering and logging in the Music Explaura is coming soon!");
+        l.setStyleName("popupColors");
+        vP.add(l);
 
         showRoundedPopup(vP, titlePanel, getPopupPanel(), -1, -1);
     }
