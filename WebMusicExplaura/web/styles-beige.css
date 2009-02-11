@@ -16,9 +16,11 @@ body {
 
 .bottomUrl a {
     color: #73885D;
+    text-decoration: none;
 }
 .bottomUrl a:visited {
     color: #73885D;
+    text-decoration: none;
 }
 
 .titleC {
