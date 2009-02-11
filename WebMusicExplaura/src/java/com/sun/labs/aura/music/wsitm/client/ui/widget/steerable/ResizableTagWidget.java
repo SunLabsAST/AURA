@@ -46,7 +46,7 @@ public class ResizableTagWidget extends TagWidget {
     private ClientDataManager cdm;
     private SharedSteeringCIMenu sharedArtistMenu;
     private SharedSteeringCIMenu sharedTagMenu;
-    private HashMap<String, DeletableResizableTag> tagCloud;
+    private HashMap<String, ResizableTag> tagCloud;
     private boolean hasChanged = false; // did the tagCloud change and recommendations need to be updated
     private double maxSize = 0.1;
     private Grid g;
@@ -79,7 +79,7 @@ public class ResizableTagWidget extends TagWidget {
         fP.add(flowP);
         initWidget(fP);
 
-        tagCloud = new HashMap<String, DeletableResizableTag>();
+        tagCloud = new HashMap<String, ResizableTag>();
         fP.addMouseListener(new MouseListener() {
 
             public void onMouseDown(Widget arg0, int newX, int newY) {
@@ -93,11 +93,11 @@ public class ResizableTagWidget extends TagWidget {
 
             public void onMouseLeave(Widget arg0) {
                 boolean wasTrue = false;
-                for (DeletableWidget<ResizableTag> dW : tagCloud.values()) {
-                    if (dW.getWidget().hasClicked()) {
+                for (ResizableTag dW : tagCloud.values()) {
+                    if (dW.hasClicked()) {
                         wasTrue = true;
                     }
-                    dW.getWidget().setClickFalse();
+                    dW.setClickFalse();
                 }
                 if (wasTrue) {
                     updateRecommendations();
@@ -126,22 +126,22 @@ public class ResizableTagWidget extends TagWidget {
 
                     double diff = 0;
                     maxSize = 0; // reset maxsize to deal with when the top tag is scaled down
-                    for (DeletableResizableTag dW : tagCloud.values()) {
-                        double oldSize = dW.getWidget().getCurrentSize();
-                        double tempDiff = dW.getWidget().updateSize(increment, true);
+                    for (ResizableTag dW : tagCloud.values()) {
+                        double oldSize = dW.getCurrentSize();
+                        double tempDiff = dW.updateSize(increment, true);
 
-                        if (oldSize != dW.getWidget().getCurrentSize()) {
+                        if (oldSize != dW.getCurrentSize()) {
                             hasChanged = true;
 
-                            dW.setXButtonPosition();
+                            //dW.setXButtonPosition();
                         }
 
                         if (tempDiff != 0) {
                             diff = tempDiff;
                         }
 
-                        if (Math.abs(dW.getWidget().getCurrentSize()) > maxSize) {
-                            maxSize = Math.abs(dW.getWidget().getCurrentSize());
+                        if (Math.abs(dW.getCurrentSize()) > maxSize) {
+                            maxSize = Math.abs(dW.getCurrentSize());
                         }
                     }
 
@@ -150,18 +150,18 @@ public class ResizableTagWidget extends TagWidget {
                     // if the one that is resized has reached its max/min size
                     if (diff != 0) {
                         diff = diff / (tagCloud.size() - 1);
-                        for (DeletableResizableTag dW : tagCloud.values()) {
-                            double oldSize = dW.getWidget().getCurrentSize();
-                            dW.getWidget().updateSize(diff, false);
+                        for (ResizableTag dW : tagCloud.values()) {
+                            double oldSize = dW.getCurrentSize();
+                            dW.updateSize(diff, false);
 
-                            if (oldSize != dW.getWidget().getCurrentSize()) {
+                            if (oldSize != dW.getCurrentSize()) {
                                 hasChanged = true;
 
-                                dW.setXButtonPosition();
+                                //dW.setXButtonPosition();
                             }
 
-                            if (Math.abs(dW.getWidget().getCurrentSize()) > maxSize) {
-                                maxSize = Math.abs(dW.getWidget().getCurrentSize());
+                            if (Math.abs(dW.getCurrentSize()) > maxSize) {
+                                maxSize = Math.abs(dW.getCurrentSize());
                             }
                         }
                     }
@@ -174,8 +174,8 @@ public class ResizableTagWidget extends TagWidget {
             }
 
             public void onMouseUp(Widget arg0, int arg1, int arg2) {
-                for (DeletableWidget<ResizableTag> dW : tagCloud.values()) {
-                    dW.getWidget().setClickFalse();
+                for (ResizableTag dW : tagCloud.values()) {
+                    dW.setClickFalse();
                 }
                 ((FocusPanel) arg0).setFocus(false);
                 updateRecommendations();
@@ -207,7 +207,7 @@ public class ResizableTagWidget extends TagWidget {
     public double getMaxWeight() {
         double maxVal = 0;
         double tempVal = 0;
-        for (DeletableResizableTag dT : tagCloud.values()) {
+        for (ResizableTag dT : tagCloud.values()) {
             tempVal = dT.getCloudItem().getWeight();
             if (tempVal > maxVal) {
                 maxVal = tempVal;
@@ -277,11 +277,11 @@ public class ResizableTagWidget extends TagWidget {
             }
             
             ResizableTag rT = getNewTagObject(item, (colorIndex++) % 2);
-            DeletableResizableTag dW = new DeletableResizableTag(rT);
-            dW.addStyleName("pointer");
+            //DeletableResizableTag dW = new DeletableResizableTag(rT);
+            rT.addStyleName("pointer");
 
-            tagCloud.put(item.getId(), dW);
-            flowP.add(dW);
+            tagCloud.put(item.getId(), rT);
+            flowP.add(rT);
             flowP.add(new SpannedLabel(" "));
 
             if (tagCloud.size() == 1) {
@@ -332,8 +332,8 @@ public class ResizableTagWidget extends TagWidget {
     @Override
     public void redrawTagCloud() {
         colorIndex = 1;
-        for (DeletableWidget<ResizableTag> dW : tagCloud.values()) {
-            dW.getWidget().updateColor((colorIndex++) % 2);
+        for (ResizableTag dW : tagCloud.values()) {
+            dW.updateColor((colorIndex++) % 2);
         }
     }
 
@@ -345,7 +345,7 @@ public class ResizableTagWidget extends TagWidget {
     @Override
     public HashMap<String, CloudItem> getItemsMap() {
         HashMap<String, CloudItem> itemsMap = new HashMap<String, CloudItem>();
-        for (DeletableResizableTag tag : tagCloud.values()) {
+        for (ResizableTag tag : tagCloud.values()) {
             itemsMap.put(tag.getCloudItem().getId(), tag.getCloudItem());
         }
         return itemsMap;
@@ -436,7 +436,7 @@ public class ResizableTagWidget extends TagWidget {
             }
 
             lastUsedIndex = startingColorIndex;
-            setTitle("Click and drag this tag to change its size");
+            setTitle("Click and drag this tag to change its size. Right click for more options.");
 
             addStyleName("marginRight");
             addStyleName("hand");
