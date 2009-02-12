@@ -64,7 +64,6 @@
         <property name="prefix" value="${prefix}"/>
         <property name="copyDir" value="true"/>
         <property name="indexDir" value="${dataFS}/itemIndex.idx"/>
-        <property name="engineLogLevel" value="1"/>
     </component>
     
     <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" entries="prefixEntries"/>
