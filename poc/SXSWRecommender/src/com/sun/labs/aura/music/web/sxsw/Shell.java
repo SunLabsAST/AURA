@@ -153,6 +153,28 @@ public class Shell {
             }
         });
 
+        shell.add("pophot", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                List<Artist> artists = crawler.getAllArtists();
+                Collections.sort(artists, Artist.POPULARITY_SORT);
+                Collections.reverse(artists);
+                float maxListeners = artists.get(0).getArtistInfo().getListeners();
+
+                for (Artist artist : artists) {
+                    if (artist.getArtistInfo().getListeners() > 0 && artist.getHotness() > 0) {
+                        System.out.printf("%.4f %.4f %s\n", artist.getArtistInfo().getListeners() / maxListeners,
+                                artist.getHotness(), artist.getName());
+                    }
+                }
+                return "";
+            }
+
+            public String getHelp() {
+                return "show the popularity and hotness of artists";
+            }
+        });
+
         shell.add("listArtistsByWordLength", new CommandInterface() {
 
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
