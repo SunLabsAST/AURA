@@ -117,9 +117,9 @@ public class Main implements EntryPoint, HistoryListener {
                 "<a href=\"http://www.last.fm\">Last.fm</a>, <a href=\"http://www.spotify.com\">Spotify</a>, " +
                 "<a href=\"http://www.wikipedia.org\">Wikipedia</a>, <a href=\"http://www.flickr.com\">Flickr</a>," +
                 "<br/><a href=\"http://www.youtube.com\">Youtube</a>, <a href=\"http://www.yahoo.com\">Yahoo</a>, " +
-                "<a href=\"http://musicbrainz.org\">Musicbrainz</a>, <a href=\"http://upcoming.yahoo.com\">Upcoming</a> and " +
-                "<a href=\"http://www.amazon.com\">Amazon</a><br>" +
-                "<a href=\"http://the.echonest.com\"><img src=\"echonest.gif\" border=\"0\" /></a></span></center>"));
+                "<a href=\"http://musicbrainz.org\">Musicbrainz</a>, <a href=\"http://upcoming.yahoo.com\">Upcoming</a>, " +
+                "<a href=\"http://the.echonest.com\">The Echo Nest</a> and <a href=\"http://www.amazon.com\">Amazon</a><br>" +
+                "</span></center>"));
 
         // if performance monitoring is enabled, add a button to the footer
         // that will show us the stats
