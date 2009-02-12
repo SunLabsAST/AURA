@@ -43,31 +43,6 @@ public class Artist implements Serializable {
         }
     };
 
-    public final static Comparator<Artist> HOTNESS_SORT = new Comparator<Artist>() {
-
-        public int compare(Artist a1, Artist a2) {
-            if (a1.getHotness() > a2.getHotness()) {
-                return 1;
-            } else if (a1.getHotness() < a2.getHotness()) {
-                return -1;
-            } else {
-                return 0;
-            }
-        }
-    };
-
-    public final static Comparator<Artist> RISING_SORT = new Comparator<Artist>() {
-
-        public int compare(Artist a1, Artist a2) {
-            if (a1.getRising() > a2.getRising()) {
-                return 1;
-            } else if (a1.getRising() < a2.getRising()) {
-                return -1;
-            } else {
-                return 0;
-            }
-        }
-    };
 
     public final static Comparator<Artist> ALPHA_SORT = new Comparator<Artist>() {
         public int compare(Artist a1, Artist a2) {
@@ -79,7 +54,6 @@ public class Artist implements Serializable {
     private String url;
     private String where;
     private String echoID;
-    private float hotness;
     private LastArtist2 artistInfo;
     private SocialTag[] tags;
     private YoutubeVideo[] videos;
@@ -174,19 +148,6 @@ public class Artist implements Serializable {
 
     public void setEchoID(String echoID) {
         this.echoID = echoID;
-    }
-
-    public float getHotness() {
-        return hotness;
-    }
-
-    public float getRising() {
-        int listeners = getArtistInfo().getListeners() + 1;
-        return getHotness() / listeners;
-    }
-
-    public void setHotness(float hotness) {
-        this.hotness = hotness;
     }
 
     public int getTagFreq(String tag) {

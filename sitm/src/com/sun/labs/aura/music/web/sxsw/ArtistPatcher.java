@@ -4,52 +4,96 @@
  */
 package com.sun.labs.aura.music.web.sxsw;
 
+import com.sun.labs.aura.music.crawler.TagFilter;
 import com.sun.labs.aura.music.web.lastfm.SocialTag;
 import com.sun.labs.aura.music.web.youtube.YoutubeVideo;
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
  * @author plamere
  */
 public class ArtistPatcher {
-/*
     private final static String END_MARKER = "-- bio end --";
-    private DBCore db;
     private TagFilter tagFilter;
+    private Map<String, String> namePatcher = new HashMap<String, String>();
 
-    ArtistPatcher(DBCore db, TagFilter tagFilter) {
-        this.db = db;
+    private List<String> lines = new ArrayList<String>();
+
+
+    ArtistPatcher(TagFilter tagFilter, String name) throws IOException {
         this.tagFilter = tagFilter;
+        loadPatchFile(name);
     }
 
-    void applyPatches() throws IOException {
-        int lineCount = 0;
-        BufferedReader in = new BufferedReader(new FileReader("resources/artistpatch.dat"));
-        String line = null;
+    ArtistPatcher(TagFilter tagFilter) throws IOException {
+        this.tagFilter = tagFilter;
+        loadPatchFile("artistpatch.dat");
+    }
 
+    private void loadPatchFile(String name) throws IOException {
+        BufferedReader in = new BufferedReader(new InputStreamReader(ArtistPatcher.class.getResourceAsStream(name)));
+        String line = null;
         while ((line = in.readLine()) != null) {
-            lineCount++;
+            lines.add(line);
+        }
+        in.close();
+    }
+
+
+    String patchName(String name) {
+        for (int lineCount = 0; lineCount < lines.size(); ) {
+            String  line = lines.get(lineCount++);
             String[] fields = line.split("<sep>");
             if (fields.length == 3) {
                 String artistName = fields[0].trim();
                 String fieldName = fields[1].trim();
                 String newValue = fields[2].trim();
 
+                if (!name.equals(artistName)) {
+                    continue;
+                }
+
+                if (fieldName.equals("name")) {
+                    name = newValue;
+                    break;
+                }
+            }
+        }
+        return  name;
+    }
+
+    void applyPatch(Artist artist) throws IOException {
+        for (int lineCount = 0; lineCount < lines.size(); ) {
+            String  line = lines.get(lineCount++);
+            String[] fields = line.split("<sep>");
+            if (fields.length == 3) {
+                String artistName = fields[0].trim();
+                String fieldName = fields[1].trim();
+                String newValue = fields[2].trim();
+
+                if (!artist.getName().equals(artistName)) {
+                    continue;
+                }
+
+                if (fieldName.equals("name")) {
+                    namePatcher.put(artistName, newValue);
+                }
+
                 System.out.printf("Patching %s of %s to %s\n", fieldName, artistName, newValue);
 
-                Artist artist = db.getArtist(artistName);
-                if (artist != null && artist.getArtistInfo() != null) {
+                if (artist.getArtistInfo() != null) {
                     if (fieldName.equals("bio")) {
                         // suck up text until the end marker
 
                         StringBuilder sb = new StringBuilder();
-                        while ((line = in.readLine()) != null) {
+                        while ((line = lines.get(lineCount++)) != null) {
                             lineCount++;
                             if (line.startsWith(END_MARKER)) {
                                 break;
@@ -88,7 +132,9 @@ public class ArtistPatcher {
                         String[] tags = newValue.split(",");
                         List<SocialTag> socialTags = new ArrayList<SocialTag>();
                         for (String tag : tags) {
-                            tag = tagFilter.mapTagName(tag);
+                            if (tagFilter != null) {
+                                tag = tagFilter.mapTagName(tag);
+                            }
                             socialTags.add(new SocialTag(tag, 50));
                         }
                         artist.setTags(socialTags.toArray(new SocialTag[0]));
@@ -104,8 +150,5 @@ public class ArtistPatcher {
                 System.err.println("Bad patch file format at line " + lineCount);
             }
         }
-
-        in.close();
     }
- * */
 }

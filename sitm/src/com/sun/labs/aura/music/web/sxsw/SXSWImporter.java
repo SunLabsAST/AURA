@@ -5,18 +5,13 @@
 package com.sun.labs.aura.music.web.sxsw;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,16 +21,10 @@ import java.util.regex.Pattern;
  */
 public class SXSWImporter {
     private int lineCount = 0;
-    private Map<String, String> namePatcher = new HashMap<String, String>();
-    private String dblocation;
+    private ArtistPatcher patcher ;
 
-    public SXSWImporter(String dblocation) {
-        this.dblocation = dblocation;
-        try {
-            loadNameCorrections();
-        } catch (IOException ioe) {
-            System.err.println("Can't load name correctins");
-        }
+    public SXSWImporter(ArtistPatcher patcher) {
+        this.patcher = patcher;
     }
 
     public List<Artist> getArtists(String path) throws IOException {
@@ -48,7 +37,6 @@ public class SXSWImporter {
         BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         List<Artist> artists =  getArtists(in);
         System.out.printf("Found %d artists\n", artists.size());
-        createArchive(url);
         return artists;
     }
 
@@ -62,7 +50,10 @@ public class SXSWImporter {
                 if (isArtistLine(line)) {
                     // System.out.println("   YES   " + line);
                     String name = getName(line);
-                    String correction = namePatcher.get(name);
+                    String correction = null;
+                    if (patcher != null) {
+                        correction = patcher.patchName(name);
+                    }
                     if (correction != null) {
                         System.out.printf("Patched %s to %s\n", name, correction);
                         name = correction;
@@ -84,54 +75,7 @@ public class SXSWImporter {
         return artists;
     }
 
-    public void loadNameCorrections() throws IOException {
-        BufferedReader in = new BufferedReader(new FileReader("resources/artistpatch.dat"));
-        String line = null;
 
-        while ((line = in.readLine()) != null) {
-            String[] fields = line.split("<sep>");
-            if (fields.length == 3) {
-                String artistName = fields[0].trim();
-                String fieldName = fields[1].trim();
-                String newValue = fields[2].trim();
-                if (fieldName.equals("name")) {
-                    namePatcher.put(artistName, newValue);
-                }
-            }
-        }
-        in.close();
-    }
-
-    public void createArchive(URL url) throws IOException {
-        createArchiveDir();
-        File file = new File(getArchiveName());
-        if (!file.exists()) {
-            URLConnection connection = url.openConnection();
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            PrintWriter out = new PrintWriter(getArchiveName());
-            String line = null;
-            try {
-                while ((line = in.readLine()) != null) {
-                    out.println(line);
-                }
-            } finally {
-                in.close();
-            }
-        }
-    }
-
-    private void createArchiveDir() {
-        File archive = new File(dblocation + "/archive");
-        if (!archive.exists()) {
-            archive.mkdir();
-        }
-    }
-
-    private String getArchiveName() {
-        Calendar cal = Calendar.getInstance();
-        return String.format(dblocation + "/archive/%d.%d.%d:%02d:00.html", cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1,
-                cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR_OF_DAY));
-    }
     private Pattern artistLinePattern = Pattern.compile("^.*\\(.*\\)\\s*<br.*$");
 
     private boolean isArtistLine(String line) {
@@ -202,16 +146,9 @@ public class SXSWImporter {
         return s;
     }
 
-    public static void mainfile(String[] args) throws IOException {
-        SXSWImporter si = new SXSWImporter("test");
-        List<Artist> artists = si.getArtists("sxsw-artists.txt");
-        for (Artist artist : artists) {
-            System.out.printf("%s %s %s\n", artist.getName(), artist.getWhere(), artist.getUrl());
-        }
-    }
 
     public static void main(String[] args) throws IOException {
-        SXSWImporter si = new SXSWImporter("test");
+        SXSWImporter si = new SXSWImporter(null);
         List<Artist> artists = si.getArtists(new URL("http://sxsw.com/music/shows/bands"));
         for (Artist artist : artists) {
             System.out.printf("%s %s %s\n", artist.getName(), artist.getWhere(), artist.getUrl());

@@ -46,12 +46,10 @@ import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -98,8 +96,8 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     private boolean running = false;
     private final static int MAX_FAN_OUT = 5;
     private int minBlurbCount = 3;
-    private Map<String, String> validTagMap = new HashMap();
     private ExecutorService threadPool;
+    private TagFilter tagFilter;
 
     /**
      * Starts running the crawler
@@ -176,12 +174,9 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             crawlAlbumBlurbs = ps.getBoolean(PROP_CRAWL_ALBUM_BLURBS);
             maxBlurbPages = ps.getInt(PROP_MAX_BLURB_PAGES);
             util = new Util(flickr, youtube);
+            tagFilter = new TagFilter();
             createStateFileDirectory();
             loadState();
-
-            loadTagFilter();
-            logger.info("tag filter: " + validTagMap.size() + " tags");
-
             threadPool = Executors.newCachedThreadPool();
         } catch (IOException ioe) {
             throw new PropertyException(ioe, "ArtistCrawler", ps.getInstanceName(), "");
@@ -219,7 +214,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
 
     private void addAllTags() {
         try {
-            Set<String> tagNames = new HashSet<String>(validTagMap.values());
+            Set<String> tagNames = new HashSet<String>(tagFilter.getAllCanonicalTags());
             createTags(tagNames);
         } catch (AuraException e) {
             logger.warning("Can't add all tags " + e);
@@ -855,10 +850,10 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
                 for (String review : reviews) {
                     review = Utilities.detag(review);
                     String words = normalizeText(" " + review + " ");
-                    for (String tag : validTagMap.keySet()) {
+                    for (String tag : tagFilter.getAllTagAliases()) {
                         int count = findMatches(tag, words);
                         if (count > 0) {
-                            String mappedTag = mapTagName(tag);
+                            String mappedTag = tagFilter.mapTagName(tag);
                             Integer c = map.get(mappedTag);
                             if (c == null) {
                                 c = Integer.valueOf(0);
@@ -906,10 +901,10 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
 
     private void addBioTags(Artist artist, String description) {
         String words = normalizeText(" " + description + " ");
-        for (String tag : validTagMap.keySet()) {
+        for (String tag : tagFilter.getAllTagAliases()) {
             int count = findMatches(tag, words);
             if (count > 0) {
-                artist.setBioTag(mapTagName(tag), count);
+                artist.setBioTag(tagFilter.mapTagName(tag), count);
             // logger.info("Adding " + tag + ":" + count);
             }
         }
@@ -950,25 +945,12 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     private void addLastFmTags(Artist artist) throws AuraException, RemoteException, IOException {
         SocialTag[] tags = lastFM.getArtistTags(artist.getName());
         for (SocialTag tag : tags) {
-            String tagName = mapTagName(tag.getName());
+            String tagName = tagFilter.mapTagName(tag.getName());
             if (tagName != null) {
                 int normFreq = (tag.getFreq() + 1) * (tag.getFreq() + 1);
                 artist.setSocialTag(tagName, normFreq);
             }
         }
-    }
-
-    private String mapTagName(String tagName) {
-        String mappedName = validTagMap.get(tagName);
-        if (mappedName == null) {
-            mappedName = validTagMap.get(ArtistTag.normalizeName(tagName));
-        }
-        /*
-        if (mappedName != null && !tagName.equals(mappedName)) {
-        System.out.printf("remapped '%s' to '%s'\n", tagName, mappedName);
-        }
-         */
-        return mappedName;
     }
 
     private void addSimilarArtistsToQueue(Artist artist) throws AuraException, RemoteException, IOException {
@@ -1004,32 +986,6 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
         }
     }
 
-    private void loadTagFilter() {
-        try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(ArtistCrawler.class.getResourceAsStream("taglist.txt")));
-            String line;
-            try {
-                while ((line = in.readLine()) != null) {
-                    if (line.startsWith("#")) {
-                        continue;
-                    }
-                    String[] aliases = line.split(",");
-                    if (aliases.length > 0) {
-                        String primary = aliases[0].trim();
-                        for (String alias : aliases) {
-                            alias = alias.trim();
-                            validTagMap.put(alias, primary);
-                            validTagMap.put(ArtistTag.normalizeName(alias), primary);
-                        }
-                    }
-                }
-            } finally {
-                in.close();
-            }
-        } catch (IOException ioe) {
-            logger.warning("Couldn't read the tagfilter list");
-        }
-    }
     /**
      * the configurable property for the itemstore used by this manager
      */
