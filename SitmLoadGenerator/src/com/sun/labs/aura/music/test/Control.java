@@ -68,7 +68,21 @@ public class Control {
         for (int i = 0; i < num; i++) {
             String tag = getRandomArtistTagName();
             float weight = rng.nextFloat();
-            sb.append(String.format("(%s,%.3f)", tag, weight));
+            boolean banned = rng.nextFloat() > .8;
+            boolean sticky = rng.nextFloat() > .8;
+
+            // about %20 of the time, tags will be banned
+            // about %20 of the time when they are not banned, they will be sticky
+            //
+            String prefix = "";
+            if (banned) {
+                prefix = "-";
+                weight = -weight;
+            } else if (sticky) {
+                prefix = "+";
+            }
+            //prefix = "";
+            sb.append(String.format("(%s%s,%.3f)", prefix, tag, weight));
         }
         return sb.toString();
     }
