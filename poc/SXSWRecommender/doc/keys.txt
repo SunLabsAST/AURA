@@ -1,6 +1,12 @@
+To update the key, visit the file resources/mapheader.html and change the embedded key.
+
 music.tastekeeper.com:
 ABQIAAAAAwwPlYWQe-nE08q4dzHhDRTjeVURUK8o8tCdFTasiAaevNm0HRTXfHwJ4efJ8nyK2VfiG_0uyMZKmQ
 
 research.sun.com
 
 ABQIAAAAAwwPlYWQe-nE08q4dzHhDRQ8Robh6HvpClbSAttr2ReK-j9H2RTIvOlFanZ0EWazEeJQWhFV17Kc1Q
+
+sxsw.tastekeeper.com:
+
+ABQIAAAAAwwPlYWQe-nE08q4dzHhDRTgPHOeKHeY2QdTtg9ojBdUCJXrOBTosdTIDhyqV4rKit0r91Yv-GhC9w

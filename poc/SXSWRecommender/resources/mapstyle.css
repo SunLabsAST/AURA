@@ -1,10 +1,34 @@
 
 body {
-    font: 12px Tahoma;
+/*    font:12px/1.5em "Lucida Grande", "Trebuchet MS", Arial, sans-serif;*/
+    font:12px "Lucida Grande", "Trebuchet MS", Arial, sans-serif;*/
     color: #444;
-    background-color: #ffffff;
-    margin-left: auto;
-    margin-right: auto;
+    background: #F2F8FA;
+    margin: 0 auto;
+}
+
+a {
+color:#222;
+font-weight:400;
+}
+
+a:hover {
+background:#333;
+color:#fff;
+text-decoration:none;
+}
+
+h1 {
+font-size:20px;
+font-weight:700;
+margin:20px auto;
+text-align:center;
+width:600px;
+color:#555;
+}
+
+h1 a, .artistname a {
+text-decoration:none;
 }
 
 #map {
@@ -32,8 +56,8 @@ body {
 
 .artistname {
     font: 20px Tahoma;
-    font-weight: bold;
-    color: green;
+    /*font-weight: bold; */
+    /*color: green;*/
 }
 
 .artist {
@@ -197,6 +221,16 @@ a:hover, a:active {
     text-align:center;
 }
 
+
 .tagcloud a {
-    text-decoration: none;
+color:#307f9c;
+text-decoration:none;
 }
+
+.tagcloud a:hover {
+color:#30af7c;
+background: #F2F8FA;
+text-decoration:none;
+}
+
+

@@ -56,6 +56,7 @@ import java.util.logging.Logger;
  * @author plamere
  */
 public class ArtistCrawler {
+
     private final static LastArtist2 NO_INFO = new LastArtist2();
     private final static String DBLOCATION = "/lab/mir/SXSW.db";
     private final static String WEBLOCATION = "/lab/mir/SXSW.web/";
@@ -77,7 +78,7 @@ public class ArtistCrawler {
     private Youtube2 yt2;
     private EchoNest echoNest;
     private GMaps gmaps;
-    private final static int maxPerPage = 50;
+    private final static int maxPerPage = 75;
     private boolean quick = true;
     private TagFilter tagFilter = new TagFilter();
     private final static int MIN_TAG_THRESHOLD = 5;
@@ -236,10 +237,11 @@ public class ArtistCrawler {
 
     Tree createTagTree() throws IOException {
         SimilarityEngine sim = new SimilarityEngine() {
+
             public double getDistance(String key1, String key2) {
                 DocumentVector dv1 = getDV(key1);
                 DocumentVector dv2 = getDV(key2);
-                double distance = 1.0 -  dv1.getSimilarity(dv2);
+                double distance = 1.0 - dv1.getSimilarity(dv2);
                 if (distance < 0) {
                     distance = 0;
                 }
@@ -253,10 +255,11 @@ public class ArtistCrawler {
 
     Tree createArtistTree(int max) throws IOException {
         SimilarityEngine sim = new SimilarityEngine() {
+
             public double getDistance(String key1, String key2) {
                 DocumentVector dv1 = getDV(key1);
                 DocumentVector dv2 = getDV(key2);
-                double distance = 1.0 -  dv1.getSimilarity(dv2);
+                double distance = 1.0 - dv1.getSimilarity(dv2);
                 if (distance < 0) {
                     distance = 0;
                 }
@@ -267,7 +270,6 @@ public class ArtistCrawler {
         Tree tree = new Tree(sim, artists, false);
         return tree;
     }
-
 
     List<Scored<String>> getAllArtists(int max) {
         List<Artist> artists = dbCore.getArtists();
@@ -285,7 +287,6 @@ public class ArtistCrawler {
         }
         return retlist;
     }
-
 
     DocumentVector getDV(String key) {
         DocumentVector dv = dvCache.get(key);
@@ -448,7 +449,7 @@ public class ArtistCrawler {
         List<Artist> artists = dbCore.getArtists();
         Collections.sort(artists, Artist.POPULARITY_SORT);
         Collections.reverse(artists);
-        PrintWriter out = new PrintWriter(WEBLOCATION  + "sxsw_map.html");
+        PrintWriter out = new PrintWriter(WEBLOCATION + "sxsw_map.html");
 
         copyText("resources/mapheader.html", out);
         for (Artist artist : artists) {
@@ -557,8 +558,13 @@ public class ArtistCrawler {
             sb.append(String.format("<img class=\"artistimage\" src=\"%s\" alt=\"Artist Image\" />", artist.getArtistInfo().getLargeImage()));
         }
         sb.append(String.format("<div class=\"artistdescription\">"));
-        sb.append(String.format("<span class=\"artistname\"><a href=\"%s\"> %s </a></span> <span class=\"locale\">(%s)</span>",
-                artist.getUrl(), fmtName(artist.getName(), forJS), fmtName(artist.getWhere(), forJS)));
+        if (artist.getUrl().length() > 0) {
+            sb.append(String.format("<span class=\"artistname\"><a href=\"%s\"> %s </a></span> <span class=\"locale\">(%s)</span>",
+                    artist.getUrl(), fmtName(artist.getName(), forJS), fmtName(artist.getWhere(), forJS)));
+        } else {
+            sb.append(String.format("<span class=\"artistname\">%s</span> <span class=\"locale\">(%s)</span>",
+                    fmtName(artist.getName(), forJS), fmtName(artist.getWhere(), forJS)));
+        }
         sb.append(getBio(artist, forJS));
         sb.append(String.format(("<b> (" + formatBigNumber(artist.getArtistInfo().getListeners()) + " Last.fm listeners)</b>")));
         if (artist.getHotness() > 0) {
@@ -569,7 +575,7 @@ public class ArtistCrawler {
         sb.append("<div class=\"artistlinks\">");
         sb.append("<table class=\"linktable\">");
         sb.append("<tr><td>");
-        sb.append(getArtistRadioLink2(artist));
+        sb.append(getArtistRadioLink(artist));
         sb.append("</td><td>");
         sb.append(getArtistPhotoLink(artist));
         sb.append("</td><td>");
@@ -797,7 +803,7 @@ public class ArtistCrawler {
         StringBuilder sb = new StringBuilder();
         sb.append("<div class=\"pager\">");
         if (letter > 'a') {
-            sb.append(createAlphaLink("%lt;%lt;", (char) (letter - 1)));
+            sb.append(createAlphaLink("&lt;&lt;", (char) (letter - 1)));
         } else {
             sb.append(createNoLink("&lt;&lt;"));
         }
@@ -887,31 +893,6 @@ public class ArtistCrawler {
         }
     }
 
-    private void dumpEntry(PrintWriter out, Artist artist) {
-        out.println("<div class=\"artist\">");
-
-        out.println("<table>");
-        out.println("<tr><td valign=\"top\">");
-        if (artist.getArtistInfo().getLargeImage().length() > 0) {
-            out.printf("<img class=\"artistimage\" src=\"%s\" alt=\"Artist Picture\"/>", artist.getArtistInfo().getLargeImage());
-        }
-        //out.println(artist.getBioSummary());
-        out.println("<td valign=\"top\">");
-        out.printf("<a href=\"%s\"> <b> %s </b> </a> </h2>\n", artist.getUrl(), artist.getName());
-        out.println(getBio(artist));
-        out.println("<i>(Playcount:" + formatBigNumber(artist.getArtistInfo().getPlaycount()) + ", ");
-        out.println("Listeners:" + formatBigNumber(artist.getArtistInfo().getListeners()) + ")</i>");
-
-        out.println(getArtistRadioLink(artist));
-        out.println(getArtistPhotoLink(artist));
-        out.println(getArtistVideoLink(artist));
-        out.println(getTagCloud(artist));
-        out.println("<p>");
-        out.println(getArtistVideoEmbeddedObject(artist));
-        out.println("</table>");
-        out.println("</div>");
-    }
-
     private void addArtistDescription(PrintWriter out, Artist artist) {
         out.println(getArtistDescription(artist, false));
     }
@@ -921,12 +902,6 @@ public class ArtistCrawler {
     }
 
     private String getArtistRadioLink(Artist artist) {
-        String link = "<span class=\"left\"><a href=\"http://music.tastekeeper.com/MusicPlayer?name=" + encode(artist.getName()) + "\"" +
-                " onclick=\"window.open(this.href,'lastfmpopup','toolbar=no,height=400,width=400, resizable=yes,status=no'); return false\">" + "Last.fm Artist Radio" + "</a></span>";
-        return link;
-    }
-
-    private String getArtistRadioLink2(Artist artist) {
         String link = "<span class=\"left\"><a target=\"listen_view\" href=\"http://www.last.fm/music/" + encode(artist.getName()) + "?autostart\">" +
                 "Listen at Last.fm </a></span>";
         return link;
@@ -959,7 +934,7 @@ public class ArtistCrawler {
         List<SocialTag> tags = tagCounter.getAll();
         Collections.sort(tags, LastItem.ALPHA_ORDER);
         StringBuilder sb = new StringBuilder();
-        sb.append("<div class=\"tagcloud\">");
+        sb.append("<div class=\"tagcloudindex\">");
         for (SocialTag tag : tags) {
             int size = scoreToFontSize(tag.getFreq());
             if (tag.getFreq() > MIN_TAG_THRESHOLD) {
@@ -1135,6 +1110,30 @@ public class ArtistCrawler {
         }
         saveDatabase();
         countTags();
+    }
+
+    public void echoQueryCheck() {
+        for (Artist artist : dbCore.getArtists()) {
+            try {
+                EchoArtist echoArtist = echoNest.getProfileByName(artist.getName());
+                if (echoArtist == null) {
+                    System.out.println("no match|" + artist.getName() + "|" + artist.getArtistInfo().getListeners());
+                } else {
+                    // verify match"
+                    String aname = Utilities.normalize(artist.getName());
+                    String ename = Utilities.normalize(echoArtist.getName());
+                    if (aname.equals(ename)) {
+                        System.out.printf("match|%s|%s|%d\n", artist.getName(), echoArtist.getName(),
+                                artist.getArtistInfo().getListeners());
+                    } else {
+                        System.out.printf("suspicious match|%s|%s|%d\n", artist.getName(), echoArtist.getName(),
+                                artist.getArtistInfo().getListeners());
+                    }
+                }
+            } catch (IOException ioe) {
+                System.out.printf("API Exception|%s|%s\n", artist.getName(), ioe.getMessage());
+            }
+        }
     }
 
     public String getEchoNestID(Artist artist) throws IOException {
