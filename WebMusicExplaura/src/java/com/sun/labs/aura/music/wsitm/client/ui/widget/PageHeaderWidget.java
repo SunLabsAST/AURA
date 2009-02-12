@@ -227,9 +227,17 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
     private void populateMainPanel() {
 
         //mainPanel.setWidget(0,0, new Label("Please wait while we fetch your session information..."));
-        mainPanel.setWidget(0,0, new Label("Search Inside the Music - The Web Music Explaura"));
+        // mainPanel.setWidget(0,0, new Label("The Music Explaura"));
+        Label title = new Label("The Music Explaura");
+        title.addClickHandler(new ClickHandler() {
+            public void onClick(ClickEvent ce) {
+                History.newItem("searchHome:");
+            }
+        });
+        title.setStyleName("title");
+        title.addStyleName("titleC");
+        mainPanel.setWidget(0, 0, title);
         //invokeGetUserSessionInfo();
-
     }
 
     private void invokeGetSimTypes() {

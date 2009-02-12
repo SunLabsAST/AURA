@@ -14,17 +14,23 @@ body {
     background: #f0f8c6;
 }
 
+
+.bottomUrl {
+    font-size: 10px;
+}
+
 .bottomUrl a {
     color: #73885D;
     text-decoration: none;
 }
+
 .bottomUrl a:visited {
     color: #73885D;
     text-decoration: none;
 }
 
 .titleC {
-  color: #73885D;
+  color: white;
 }
 
 .artistPanel:hover {

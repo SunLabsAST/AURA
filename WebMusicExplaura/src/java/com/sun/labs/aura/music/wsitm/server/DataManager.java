@@ -199,13 +199,26 @@ public class DataManager implements Configurable {
      * @return List of random artists compacts
      */
     public ArtistCompact[] getRandomPopularArtists(int nbr) throws AuraException, RemoteException {
+
+        // the code for dealing with the popular artists looks a bit fragile
+        // what if the oracle doesn't have nbr artists in it.
+        // and the client that calls this code is counting on nbr records returned, which
+        // may not always be right.
+        
         Random r = new Random();
         ArtistCompact[] aC = new ArtistCompact[nbr];
-        for (int i=0; i<nbr; i++) {
-            List<Scored<Artist>> lsa = mdb.artistSearch(artistOracle.get(r.nextInt(artistOracle.size())).getItem(), 1);
+        Set<String> nameSet = new HashSet<String>();
+
+        while (nameSet.size() < nbr) {
+            nameSet.add(artistOracle.get(r.nextInt(artistOracle.size())).getItem());
+        }
+
+        int index = 0;
+        for (String name : nameSet) {
+            List<Scored<Artist>> lsa = mdb.artistSearch(name, 1);
             ArtistDetails aD = artistToArtistDetails(lsa.get(0).getItem());
             cache.sput(aD.getId(), aD);
-            aC[i] = aD.toArtistCompact();
+            aC[index++] = aD.toArtistCompact();
         }
         return aC;
     }

@@ -13,6 +13,12 @@ body {
     background-color: #EFF2CA;
     color: #000000;
 }
+
+
+.bottomUrl {
+    font-size: 10px;
+}
+
 .bottomUrl a {
     color: #000000;
     text-decoration: none;
@@ -21,8 +27,9 @@ body {
     color: #000000;
     text-decoration: none;
 }
+
 .titleC {
-  color: #803030;
+  color: white;
 }
 
 .artistPanel:hover {

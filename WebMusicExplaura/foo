@@ -1,0 +1,66 @@
+AURA=https://beta.network.org/hg/aura~mercurial
+AURAGROUP=Aura
+AURAHOME=/aura
+AURAPOLICY=/aura/dist/jsk-all.policy
+Apple_PubSub_Socket_Render=/tmp/launch-fFLbSw/Render
+BASH=/bin/bash
+BASH_ARGC=()
+BASH_ARGV=()
+BASH_LINENO=()
+BASH_SOURCE=()
+BASH_VERSINFO=([0]="3" [1]="2" [2]="17" [3]="1" [4]="release" [5]="i386-apple-darwin9.0")
+BASH_VERSION='3.2.17(1)-release'
+COLUMNS=82
+COMMAND_MODE=unix2003
+DIRSTACK=()
+DISPLAY=/tmp/launch-25yHbx/:0
+EDITOR=vi
+EUID=501
+GROUPS=()
+HISTFILE=/Users/plamere/.bash_history
+HISTFILESIZE=500
+HISTSIZE=500
+HOME=/Users/plamere
+HOSTNAME=presto.local
+HOSTTYPE=i386
+IFS=$' \t\n'
+JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Home/
+LANG=en_US.UTF-8
+LINES=43
+LOGNAME=plamere
+MACHTYPE=i386-apple-darwin9.0
+MAILCHECK=60
+MANPATH=/usr/share/man:/usr/local/share/man:/usr/X11/man
+OLDPWD=/Users/plamere/work/aura/MusicDatabase
+OPTERR=1
+OPTIND=1
+OSTYPE=darwin9.0
+PATH=/opt/local/bin:/opt/local/sbin:/Users/plamere/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/X11/bin:/usr/texbin:/opt/local/bin
+PIPESTATUS=([0]="0")
+PPID=1612
+PS1='\h:\W \u\$ '
+PS2='> '
+PS4='+ '
+PWD=/Users/plamere/work/aura/MusicDatabase/WebMusicExplaura
+SECURITYSESSIONID=b34310
+SHELL=/bin/bash
+SHELLOPTS=braceexpand:hashall:histexpand:interactive-comments:monitor:vi
+SHLVL=1
+SSH_AUTH_SOCK=/tmp/launch-Y602hy/Listeners
+TERM=xterm
+TERM_PROGRAM=Apple_Terminal
+TERM_PROGRAM_VERSION=240
+TMPDIR=/var/folders/Zw/Zw8V73RWEoO0K03d36xDTU+++TI/-Tmp-/
+UID=501
+USER=plamere
+_=set
+_GOOGLE_GILD_RUNTIME_FRAMEWORK_ABSOLUTE_PATH_=/Library/Google/Frameworks/Gild.framework
+__CF_USER_TEXT_ENCODING=0x1F5:0:0
+aa () 
+{ 
+    vi ~/.profile
+}
+hig () 
+{ 
+    history | grep $@
+}
