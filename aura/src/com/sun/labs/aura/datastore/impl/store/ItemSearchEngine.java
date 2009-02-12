@@ -2,7 +2,6 @@ package com.sun.labs.aura.datastore.impl.store;
 
 import com.sun.labs.aura.datastore.Indexable;
 import com.sun.labs.aura.datastore.Item;
-import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.util.AuraException;
@@ -28,10 +27,10 @@ import com.sun.labs.minion.classification.WeightedFeature;
 import com.sun.labs.minion.engine.SearchEngineImpl;
 import com.sun.labs.minion.indexer.entry.DocKeyEntry;
 import com.sun.labs.minion.indexer.partition.InvFileDiskPartition;
+import com.sun.labs.minion.query.Relation;
 import com.sun.labs.minion.retrieval.CompositeDocumentVectorImpl;
 import com.sun.labs.minion.retrieval.DocumentVectorImpl;
 import com.sun.labs.minion.retrieval.FieldEvaluator;
-import com.sun.labs.minion.retrieval.FieldTerm;
 import com.sun.labs.minion.retrieval.ResultImpl;
 import com.sun.labs.minion.retrieval.ResultSetImpl;
 import com.sun.labs.minion.util.DirCopier;
@@ -647,7 +646,7 @@ public class ItemSearchEngine implements Configurable {
      * @throws java.rmi.RemoteException
      */
     public List<Scored<String>> find(String name, String val, int n) throws AuraException, RemoteException {
-        FieldEvaluator fe = new FieldEvaluator(name, FieldTerm.Operator.EQUAL, val);
+        FieldEvaluator fe = new FieldEvaluator(name, Relation.Operator.EQUALS, val);
         ResultSet rs = fe.eval(engine);
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         try {
