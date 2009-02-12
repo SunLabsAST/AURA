@@ -43,7 +43,7 @@ public class LaunchAttach {
             String instanceMetaData =
                     "auraGroup=Aura\n";
             distInst =
-                    grid.launch(grid.getProperty("ami.aura-reggie"),
+                    grid.launch(grid.getProperty("ami.aura-reggie"),null,
                     kpi, instanceMetaData, distVol, 2);
         } else {
             distInst = grid.getInstance(ai.getInstanceId());
