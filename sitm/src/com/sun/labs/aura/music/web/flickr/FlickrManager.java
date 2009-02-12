@@ -30,7 +30,7 @@ public class FlickrManager {
     private final static String FLICKR_ID = "edced8597f71de94baa0505840b34a7b";
     private final static int MAX_PER_PAGE = 500;
     private final static boolean ONLY_ATTRIBUTION_LICENSE = false;
-    private final static boolean ONLY_CC_LICENSE = false;
+    private final static boolean ONLY_CC_LICENSE = true;
     private final static Image[] EMPTY = new Image[0];
     private Set<String> bannedPhotographers = new HashSet<String>();
 
