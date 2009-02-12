@@ -26,10 +26,24 @@ public class ItemInfo implements IsSerializable {
     private String itemName;
     private double score;
     private double popularity;
+    private CONTENT_TYPE cT;
+
+    public enum CONTENT_TYPE {
+        TAG,
+        ARTIST,
+        ND
+    }
 
     public ItemInfo() {
     }
-    
+
+    public ItemInfo(String id, String itemName, double score, double popularity)  {
+        this.id = id;
+        this.itemName = itemName;
+        this.score = score;
+        this.popularity = popularity;
+    }
+
     /**
      * Creates a new instance of ItemInfo
      * @param id 
@@ -37,11 +51,12 @@ public class ItemInfo implements IsSerializable {
      * @param score 
      * @param popularity 
      */
-    public ItemInfo(String id, String itemName, double score, double popularity)  {
+    public ItemInfo(String id, String itemName, double score, double popularity, CONTENT_TYPE cT)  {
         this.id = id;
         this.itemName = itemName;
         this.score = score;
         this.popularity = popularity;
+        this.cT = cT;
     }
 
     public String getId() {

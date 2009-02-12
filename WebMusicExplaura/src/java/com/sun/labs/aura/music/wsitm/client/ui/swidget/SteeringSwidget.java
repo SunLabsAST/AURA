@@ -143,6 +143,13 @@ public class SteeringSwidget extends Swidget {
         private ListBox interfaceListbox;
         private String currLoadedTagWidget = "";
 
+        /**
+         * When a request for a recommendation update is made, if a call has 
+         * already been made, wait for it to finish before making the next call
+         */
+        private boolean inRpc = false;
+        private boolean updateRecRequest = false;
+
         public MainPanel() {
             dP = new DockPanel();
 
@@ -261,12 +268,12 @@ public class SteeringSwidget extends Swidget {
             });
             mainNorthMenuPanel.add(resetButton);
 
-            Button viewCloudButton = new Button("View atomic cloud");
+            Button viewCloudButton = new Button("View expanded cloud");
             viewCloudButton.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent event) {
                     if (currTagMap == null || currTagMap.isEmpty()) {
-                        Popup.showInformationPopup("Cannot display atomic representation; you must " +
+                        Popup.showInformationPopup("Cannot display expanded representation; you must " +
                                 "add tags in your cloud first.");
                     } else {
                         HashMap<String, ScoredTag> map = currTagMap;
@@ -276,7 +283,7 @@ public class SteeringSwidget extends Swidget {
                             iI[index++] = new ItemInfo(ClientDataManager.nameToKey(s),
                                     s, map.get(s).getScore(), map.get(s).getScore());
                         }
-                        TagDisplayLib.showTagCloud("Atomic representation of tag cloud",
+                        TagDisplayLib.showTagCloud("Expanded representation of tag cloud",
                                 iI, TagDisplayLib.ORDER.SHUFFLE, cdm);
                     }
                 }
@@ -443,6 +450,15 @@ public class SteeringSwidget extends Swidget {
 
         public void invokeFetchNewRecommendations() {
             PerformanceTimer.start("newRecommendations");
+
+            if (inRpc) {
+                updateRecRequest = true;
+                return;
+            } else {
+                inRpc = true;
+                updateRecRequest = false;
+            }
+
             AsyncCallback<ArrayList<ScoredC<ArtistCompact>>> callback = new AsyncCallback<ArrayList<ScoredC<ArtistCompact>>>() {
 
                 public void onSuccess(ArrayList<ScoredC<ArtistCompact>> aCList) {
@@ -464,6 +480,12 @@ public class SteeringSwidget extends Swidget {
                     } else {
                         currRecommendations = null;
                     }
+
+                    inRpc = false;
+                    if (updateRecRequest) {
+                        invokeFetchNewRecommendations();
+                    }
+
                     PerformanceTimer.stop("newRecommendationsRedraw");
                     PerformanceTimer.stop("newRecommendations");
                     WebLib.trackPageLoad("steerUpdate");
@@ -844,6 +866,7 @@ public class SteeringSwidget extends Swidget {
                                 }
                             };
                             listenerContainer = sIIL;
+                            mainGrid.getCellFormatter().setHorizontalAlignment(1, 0, HorizontalPanel.ALIGN_CENTER);
                             mainGrid.setWidget(1, 0, sIIL);
                         }
                     } else {
@@ -886,6 +909,7 @@ public class SteeringSwidget extends Swidget {
             this.iI = ItemInfo.arrayToList(iI);
 
             mainPanel = new Grid(iI.length + 1, 2);
+            mainPanel.getColumnFormatter().setWidth(0, "100px");
 
             //
             // Add the title line
@@ -894,8 +918,8 @@ public class SteeringSwidget extends Swidget {
             nameLbl.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent event) {
-                    ((Label) mainPanel.getWidget(0, 0)).setText("Name");
-                    ((Label) mainPanel.getWidget(0, 1)).setText("Popularity*");
+                    ((Label) mainPanel.getWidget(0, 0)).setText("Name*");
+                    ((Label) mainPanel.getWidget(0, 1)).setText("Popularity");
                     populateMainPanel(ItemInfo.getNameSorter());
                 }
             });

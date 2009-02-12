@@ -5,9 +5,10 @@
 
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -94,13 +95,14 @@ public abstract class WebLib {
     }
     
     public static Widget getListenWidget(final TagDetails tagDetails) {
-        Image image = new Image("play-icon30.jpg");
+        Image image = new Image("play-lastfm-30.png");
         image.setTitle("Play music like " + tagDetails.getName() + " at last.fm");
-        image.addClickListener(new ClickListener() {
-
-            public void onClick(Widget sender) {
+        image.setStyleName("pointer");
+        image.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent ce) {
                 //Window.open(getTagRadioLink(tagDetails.getName()), "lastfm_popup", "width=300,height=266,menubar=no,toolbar=no,directories=no," + "location=no,resizable=no,scrollbars=no,status=no");
-                Window.open(getTagRadioLink(tagDetails.getName()), "lastfm_popup", "width=310,height=276");
+                Window.open(getTagRadioLink(tagDetails.getName()), "lastfm_popup", "width=340,height=286");
             }
         });
         return image;

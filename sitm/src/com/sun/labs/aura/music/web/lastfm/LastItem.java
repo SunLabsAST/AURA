@@ -29,7 +29,7 @@ public class LastItem implements Serializable {
 
     public final static Comparator<LastItem> ALPHA_ORDER = new Comparator<LastItem>() {
         public int compare(LastItem o1, LastItem o2) {
-            return o1.getName().compareTo(o2.getName());
+            return o1.getName().compareToIgnoreCase(o2.getName());
         }
     };
 

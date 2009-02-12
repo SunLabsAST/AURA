@@ -84,6 +84,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         VerticalPanel vP = new VerticalPanel();
         vP.setWidth("100%");
 
+            /*
         Label title = new Label("Search Inside the Music - The Music Explaura");
         title.addClickHandler(new ClickHandler() {
 
@@ -94,6 +95,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         title.setStyleName("title");
         title.addStyleName("titleC");
         vP.add(title);
+         * */
         vP.add(getMainWidget());
 
         activeSubHeaderPanel = new FlowPanel();
@@ -224,8 +226,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
     private void populateMainPanel() {
 
-        mainPanel.setWidget(0,0, new Label("Please wait while we fetch your session information..."));
-        invokeGetUserSessionInfo();
+        //mainPanel.setWidget(0,0, new Label("Please wait while we fetch your session information..."));
+        mainPanel.setWidget(0,0, new Label("Search Inside the Music - The Web Music Explaura"));
+        //invokeGetUserSessionInfo();
 
     }
 
@@ -458,6 +461,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
         txtbox = new TextBox();
         txtbox.setText(Cookies.getCookie("app-openid-uniqueid"));
+        txtbox.setStyleName("openidField");
         txtbox.addKeyPressHandler(new KeyPressHandler() {
             @Override
             public void onKeyPress(KeyPressEvent event) {

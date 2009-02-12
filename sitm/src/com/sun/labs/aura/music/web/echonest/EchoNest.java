@@ -35,7 +35,8 @@ public class EchoNest {
         commander.setTimeout(10000);
         commander.setTraceSends(false);
         commander.setTrace(false);
-        commander.setMinimumCommandPeriod(0);
+        commander.setMinimumCommandPeriod(1000);
+        //commander.setMinimumCommandPeriod(0);
     }
 
     public List<EchoArtist> artistSearch(String query) throws IOException {

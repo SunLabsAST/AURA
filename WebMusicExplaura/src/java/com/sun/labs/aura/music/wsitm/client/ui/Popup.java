@@ -162,13 +162,15 @@ public abstract class Popup {
         showInformationPopup(new HTML("<p>"+message+"</p>"), 0, true);
     }
 
-    public static void showLoadingPopup() {
+    public static PopupPanel showLoadingPopup() {
         HorizontalPanel hP = new HorizontalPanel();
         hP.add(new Image("ajax-ball-t.gif"));
         Label l = new Label("Loading...");
         l.addStyleName("tagPop2");
         hP.add(l);
-        showRoundedPopup(hP, "Information", getPopupPanel());
+        PopupPanel p = getPopupPanel();
+        showRoundedPopup(hP, "Information", p);
+        return p;
     }
 
     /**
@@ -176,6 +178,7 @@ public abstract class Popup {
      */
     public static void showLoginPopup() {
 
+        /*
         VerticalPanel vP = new VerticalPanel();
         vP.setStyleName("popupColors");
         vP.setWidth("600px");
@@ -201,7 +204,7 @@ public abstract class Popup {
         loginHP.add(oiL);
         loginHP.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
         final TextBox loginTb = new TextBox();
-
+        loginTb.setStyleName("openidField");
         final Command loginCmd = new Command() {
             public void execute() {
                 Window.Location.assign("./Login?app-openid-auth=true&app-openid-name=" + loginTb.getText());
@@ -259,6 +262,7 @@ public abstract class Popup {
         hP.getCellFormatter().setVerticalAlignment(0, 1, VerticalPanel.ALIGN_TOP);
 
         vP.add(hP);
+        */
 
         Grid titlePanel = new Grid(1,2);
         titlePanel.setWidth("100%");
@@ -272,6 +276,11 @@ public abstract class Popup {
         titlePanel.setWidget(0, 1, new Label("Login required"));
         titlePanel.getCellFormatter().setHorizontalAlignment(0, 1, HorizontalPanel.ALIGN_LEFT);
         titlePanel.getCellFormatter().setVerticalAlignment(0, 1, VerticalPanel.ALIGN_BOTTOM);
+
+        VerticalPanel vP = new VerticalPanel();
+        Label l = new Label("Registering and logging in the Music Explaura is coming soon!");
+        l.setStyleName("popupColors");
+        vP.add(l);
 
         showRoundedPopup(vP, titlePanel, getPopupPanel(), -1, -1);
     }

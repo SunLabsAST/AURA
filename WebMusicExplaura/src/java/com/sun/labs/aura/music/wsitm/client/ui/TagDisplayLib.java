@@ -15,12 +15,12 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.PopupPanel;
+import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import java.util.HashMap;
 import java.util.Arrays;
-import java.util.HashSet;
 
 /**
  *
@@ -93,12 +93,21 @@ public abstract class TagDisplayLib {
         }
         showTagCloud(title, iI, order, cdm);
     }
-        
+
     public static void showTagCloud(String title, ItemInfo[] tags, ORDER order,
             ClientDataManager cdm) {
+        showTagCloud(title, tags, order, cdm, TagColorType.TAG_POPUP);
+    }
+
+    /**
+     * @param colorTheme Only used to determine if the content of the item info
+     * array are tags or artists. The actual color theme will always be TAG_POPUP
+     */
+    public static void showTagCloud(String title, ItemInfo[] tags, ORDER order,
+            ClientDataManager cdm, TagColorType colorTheme) {
         //final DialogBox d = Popup.getDialogBox();
         final PopupPanel d = Popup.getPopupPanel();
-        Panel p = getTagsInPanel(tags, d, order, cdm, TagColorType.TAG_POPUP);
+        Panel p = getTagsInPanel(tags, d, order, cdm, colorTheme);
         if (p!=null) {
         //    Popup.showPopup(p,title,d);
             Popup.showRoundedPopup(p, title, d);
@@ -160,6 +169,7 @@ public abstract class TagDisplayLib {
             }
 
             for (int i = 0; i < tags.length; i++) {
+                boolean isTag = tags[i].getId().startsWith("artist-tag:");
                 int colorId = i % 2;
                 int fontSize;
                 if (tags.length == 1 || range == 0) {
@@ -168,20 +178,28 @@ public abstract class TagDisplayLib {
                     fontSize = scoreToFontSize(( Math.abs(tags[i].getScore()) - min) / range);
                 }
 
-                ContextMenuTagLabel sL = new ContextMenuTagLabel(tags[i], cdm);
+                Label sL;
+                if (isTag) {
+                    sL = new ContextMenuTagLabel(tags[i], cdm);
+                } else {
+                    sL = new SpannedLabel(tags[i].getItemName());
+                }
                 //sL.getElement().getStyle().setPropertyPx("font-size", fontSize);
                 sL.getElement().setAttribute("style", "font-size:" + fontSize + "px;");
                 setColorToElem(sL, colorId, tags[i].getScore(), null, colorTheme);
                 sL.addStyleName("pointer");
-                sL.addClickHandler(new DEClickHandler<ItemInfo>(tags[i]) {
-                    
+                sL.addClickHandler(new DDEClickHandler<ItemInfo, Boolean>(tags[i], isTag) {
                     @Override
                     public void onClick(ClickEvent event) {
                         String tagLink = data.getId();
-                        if (!tagLink.startsWith("artist-tag:")) {
-                            tagLink = ClientDataManager.nameToKey(tagLink);
+                        if (!sndData) {
+                            History.newItem("artist:"+data.getId());
+                        } else {
+                            if (!tagLink.startsWith("artist-tag:")) {
+                                tagLink = ClientDataManager.nameToKey(tagLink);
+                            }
+                            History.newItem("tag:"+tagLink);
                         }
-                        History.newItem("tag:"+tagLink);
                     }
                 });
                 if (d!=null) {

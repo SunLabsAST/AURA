@@ -203,7 +203,9 @@ public class DataManager implements Configurable {
         ArtistCompact[] aC = new ArtistCompact[nbr];
         for (int i=0; i<nbr; i++) {
             List<Scored<Artist>> lsa = mdb.artistSearch(artistOracle.get(r.nextInt(artistOracle.size())).getItem(), 1);
-            aC[i] = artistToArtistCompact(lsa.get(0).getItem());
+            ArtistDetails aD = artistToArtistDetails(lsa.get(0).getItem());
+            cache.sput(aD.getId(), aD);
+            aC[i] = aD.toArtistCompact();
         }
         return aC;
     }
@@ -622,7 +624,7 @@ public class DataManager implements Configurable {
      * @param refresh if true, ignore cache and load from datastore
      * @return the tag details
      */
-    public TagDetails getTagDetails(String id, boolean refresh, String simTypeName) throws AuraException,
+    public TagDetails getTagDetails(String id, boolean refresh) throws AuraException,
             RemoteException {
         TagDetails details = null;
 
@@ -652,6 +654,18 @@ public class DataManager implements Configurable {
         } else {
             return details.getSimilarTags();
         }
+    }
+
+    public ArrayList<ScoredC<ArtistCompact>> getRepresentativeArtistsOfTag(String tagId) throws AuraException, RemoteException {
+
+        // Look in cache
+        TagDetails details = null;
+        details = (TagDetails) cache.sget(tagId);
+
+        if (details == null) {
+            details = this.getTagDetails(tagId, false);
+        }
+        return details.getScoredRepArtists();
     }
 
     /**
@@ -993,11 +1007,11 @@ public class DataManager implements Configurable {
         List<Scored<Tag>> taggedArtists = sortTag(
                 filterTaggedArtists(tag.getTaggedArtist()), TagSorter.sortFields.COUNTorSCORE);
 
-        List<ArtistCompact> lac = new ArrayList<ArtistCompact>();
+        ArrayList<ScoredC<ArtistCompact>> lac = new ArrayList<ScoredC<ArtistCompact>>();
         for (Scored<Tag> sT : taggedArtists.subList(0, getMax(taggedArtists, NUMBER_TAGS_TO_SHOW))) {
-            lac.add(getArtistCompact(sT.getItem().getName()));
+            lac.add(new ScoredC<ArtistCompact>(getArtistCompact(sT.getItem().getName()), sT.getScore()));
         }
-        details.setRepresentativeArtists(lac.toArray(new ArtistCompact[0]));
+        details.setRepresentativeArtists(lac);
 
         // Fetch similar tags
         List<Scored<ArtistTag>> simTags = mdb.artistTagFindSimilar(id, NUMBER_TAGS_TO_SHOW);

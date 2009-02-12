@@ -1,203 +1,228 @@
+/* http://meyerweb.com/eric/thoughts/2007/05/01/reset-reloaded/ */
+/*
+html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, em, font, img, small, strike, strong, sub, sup, var, dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td {
+margin: 0;padding: 0;border: 0;outline: 0;font-weight: inherit;font-size: 100%;font-family: inherit;vertical-align: baseline}
+ol, ul {list-style: none}
+table {border-collapse: separate;border-spacing: 0}
+caption, th, td {text-align: left;font-weight: normal}
+blockquote:before, blockquote:after, q:before, q:after {content: ""}
+blockquote, q {quotes: "" ""}
+*/
+/* end reset */
 
 body {
-    font: 12px Tahoma;
+/*    font:12px/1.5em "Lucida Grande", "Trebuchet MS", Arial, sans-serif;*/
+    font:12px "Lucida Grande", "Trebuchet MS", Arial, sans-serif;*/
     color: #444;
-    background-color: #ffffff;
-    margin-left: auto;
-    margin-right: auto;
-    width:600px;
+    background: #F2F8FA;
+    margin: 0 auto;
+}
+
+a {
+color:#222;
+font-weight:400;
+}
+
+.noa {
+color:#222;
+font-weight:400;
+}
+
+a:hover {
+background:#333;
+color:#fff;
+text-decoration:none;
+}
+
+h1 {
+font-size:20px;
+font-weight:700;
+margin:20px auto;
+text-align:center;
+width:600px;
+color:#555;
+}
+
+h1 a, .artistname a {
+text-decoration:none;
 }
 
 #map {
-   width:100%;
-   min-height:600px;
-}
-
-
-.browser {
-    margin-left: auto;
-    margin-right: auto;
-    text-align:center;
-    font: 18px Tahoma;
-    padding-bottom: 20px;
-}
-.browse {
-    padding-right: 10px;
-}
-
-.browseselected {
-    padding-right: 10px;
-    font-weight: bold;
-    font: 20px Tahoma;
-}
-
-.artistname {
-    font: 20px Tahoma;
-    font-weight: bold;
-    color: green;
+min-height:600px;
+width:100%;
 }
 
 .artist {
-    border-top: thin solid #888888;
-    padding-top: 15px;
-}
-
-h1 a {
-    text-decoration: none;
-}
-.artistname a {
-    text-decoration: none;
-}
-
-.locale {
-  font-style: italic;
-  padding-right: 5px;
-}
-
-
-
-.trash {
-    font: 12px Arial, Helvetica, sans-serif;
-    min-height: 220px;
-}
-
-
-
-.footer {
-    padding-top: 10px;
-    margin-top: 10px;
-    border-top: medium solid #888888;
-    margin-left: auto;
-    margin-right: auto;
-    width: 80%;
-    text-align:center;
-}
-
-.artistimage {
-    float:left;
-    margin-right:10px;
-}
-
-
-.artist {
-    margin-top: 5px;
-    margin-bottom: 10px;
-    margin-left: auto;
-    margin-right: auto;
-    width:600px;
+border:1px solid #B0D4E2;
+margin:20px auto;
+position:relative;
+width:900px;
+padding:15px;
+background:#fff;
 }
 
 .artistdescription {
-    margin-top: 5px;
-    margin-bottom: 10px;
-    margin-left: auto;
-    margin-right: auto;
-    width:600px;
+line-height:1.6em;
+margin-left:142px;
+width:516px;
+min-height:200px;
 }
 
-
-h1 {
-    margin-left: auto;
-    margin-right: auto;
-    text-align:center;
-    width:600px;
-}
-
-.embeddedvideo {
-    width:330px;
-    float:right;
-}
-
-.embeddedvideo {
-    width:330px;
-    float:right;
+.artistimage {
+float:left;
+border:1px solid :#efefef;
 }
 
 .artistlinks {
-    padding-bottom:0px;
-    padding-top:10px;
+padding-bottom:0;
+padding-top:10px;
 }
 
-.left {
-    float:left;
+.artistname {
+background:#CBE3EB;
+/*color:green;*/
+display:block;
+font:22px Tahoma;
+/*font-weight:700;*/
+margin:0 0 10px;
+width:663px;
+padding:3px 100px 3px 10px;
 }
 
-.right {
-    float:right;
+.browse {
+padding-right:10px;
 }
 
-.middle {
+.browser {
+font:18px Tahoma;
+margin-left:auto;
+margin-right:auto;
+padding-bottom:20px;
+text-align:center;
 }
 
-.linktable {
-    font: 12px Tahoma;
-    width:100%;
-    text-align: center;
+.browseselected {
+font-weight:700;
+padding-right:10px;
 }
 
-
-
-.pager {
-    margin-left: auto;
-    margin-right: auto;
-    text-align:center;
-    width:600px;
-    padding-bottom: 10px;
+.embeddedvideo {
+float:right;
+width:330px;
 }
 
-.tagtitle {
-    font: 16px Tahoma;
-    color: #444;
-    margin-left: auto;
-    margin-right: auto;
-    text-align:center;
-    width:600px;
-    padding-bottom: 10px;
+.footer {
+font-size:10px;
+border-top:medium solid #888;
+margin-left:auto;
+margin-right:auto;
+margin-top:10px;
+padding-top:10px;
+text-align:center;
+width:80%;
 }
 
-.page {
-  margin-left: 5px;
-  margin-right: 5px;
+.linktable a {
+display:block;
+margin-right:10px;
+padding:4px;
+}
+
+.locale {
+color:#333;
+font-size:12px;
+padding-right:5px;
+position:absolute;
+right:5px;
+text-transform:uppercase;
+top:22px;
+}
+
+.page a,.pagenolink {
+background:#fff;
+border:1px solid #ddd;
+margin:0 3px;
+padding:5px 6px;
+text-decoration:none;
+}
+
+.page a:hover {
+background:#888;
+color:#fff;
 }
 
 .pagenolink {
-  margin-left: 5px;
-  margin-right: 5px;
-  font-weight: bold;
-  color: red;
+background:#333;
+color:#fff;
+font-weight:700;
 }
 
-
-a:link {
-    font-weight: normal;
-    color: #444;
+.pager {
+margin:0 auto 20px;
+text-align:center;
+width:900px;
 }
-
-
-
-a:visited {
-    font-weight: normal;
-    color: #666;
-
-}
-
-
-
-a:hover, a:active {
-    text-decoration: underline;
-    color: #111;
-
-}
-
 
 .tagcloud {
+color:green;
+margin-left:auto;
+margin-right:auto;
+position:absolute;
+right:5px;
+top:60px;
+width:230px;
+}
+
+.tagcloudindex {
     padding: 5px;
     color: green;
     margin-left: auto;
     margin-right: auto;
+    width:800px;
     text-align:center;
 }
 
 .tagcloud a {
-    text-decoration: none;
+color:#307f9c;
+text-decoration:none;
 }
+
+.tagcloudindex a {
+color:#307f9c;
+text-decoration:none;
+}
+
+.tagcloud a:hover {
+color:#30af7c;
+background: #F2F8FA;
+text-decoration:none;
+}
+
+.tagcloudindex a:hover {
+color:#30af7c;
+background: #F2F8FA;
+text-decoration:none;
+}
+
+.tagtitle {
+color:#444;
+font:16px Tahoma;
+margin-left:auto;
+margin-right:auto;
+padding-bottom:10px;
+text-align:center;
+width:600px;
+}
+
+.faq {
+    margin-left: auto;
+    margin-right: auto;
+    width:600px;
+}
+
+.trash {
+font:12px Arial, Helvetica, sans-serif;
+min-height:220px;
+}
+

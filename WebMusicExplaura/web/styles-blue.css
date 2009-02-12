@@ -13,7 +13,12 @@ body {
     background-color: #f3ffe2;
     color: #000000;
 }
-
+.bottomUrl a {
+    color: #000000;
+}
+.bottomUrl a:visited {
+    color: #000000;
+}
 .titleC {
   color: #225378;
 }
@@ -155,27 +160,23 @@ h2 {
 }
 .tag1Sticky {
     color: #eb7f00;
-    text-decoration: none;
-    font-style:italic;
+    text-decoration: underline;
     font-weight: bold;
 }
 .tag2Sticky {
     color: #a45900;
-    text-decoration: none;
-    font-style:italic;
+    text-decoration: underline;
     font-weight: bold;
 }
 
 .artistTag1Sticky {
     color: #5ba8b1;
-    text-decoration: none;
-    font-style:italic;
+    text-decoration: underline;
     font-weight: bold;
 }
 .artistTag2Sticky {
     color: #25909c;
-    text-decoration: none;
-    font-style:italic;
+    text-decoration: underline;
     font-weight: bold;
 }
 .artistTag1 {

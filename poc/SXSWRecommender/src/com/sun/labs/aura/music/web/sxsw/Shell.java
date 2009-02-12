@@ -204,6 +204,18 @@ public class Shell {
             }
         });
 
+        shell.add("echoQueryCheck", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                crawler.echoQueryCheck();
+                return "";
+            }
+
+            public String getHelp() {
+                return "echo the echonest querye";
+            }
+        });
+
         shell.add("index", new CommandInterface() {
 
             public String execute(CommandInterpreter ci, String[] args) throws Exception {

@@ -4,7 +4,6 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.widget.steerable;
 
-import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.MouseDownEvent;
 import com.google.gwt.event.dom.client.MouseDownHandler;
 import com.google.gwt.event.dom.client.MouseUpEvent;
@@ -17,14 +16,11 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.Grid;
-import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.WebException;
-import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
-import com.sun.labs.aura.music.wsitm.client.event.HoverListener;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudArtist;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.WrapsCloudItem;
@@ -35,7 +31,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.DeletableWidget;
-import com.sun.labs.aura.music.wsitm.client.ui.widget.SwapableWidget;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,13 +46,14 @@ public class ResizableTagWidget extends TagWidget {
     private ClientDataManager cdm;
     private SharedSteeringCIMenu sharedArtistMenu;
     private SharedSteeringCIMenu sharedTagMenu;
-    private HashMap<String, DeletableResizableTag> tagCloud;
+    private HashMap<String, ResizableTag> tagCloud;
     private boolean hasChanged = false; // did the tagCloud change and recommendations need to be updated
     private double maxSize = 0.1;
     private Grid g;
     private FocusPanel fP;
     private FlowPanel flowP;
     private int lastY;
+    private int lastX;
     private int colorIndex = 1;
 
     public ResizableTagWidget(MainPanel mainPanel, ClientDataManager cdm, 
@@ -83,11 +79,12 @@ public class ResizableTagWidget extends TagWidget {
         fP.add(flowP);
         initWidget(fP);
 
-        tagCloud = new HashMap<String, DeletableResizableTag>();
+        tagCloud = new HashMap<String, ResizableTag>();
         fP.addMouseListener(new MouseListener() {
 
-            public void onMouseDown(Widget arg0, int arg1, int arg2) {
-                lastY = arg2;
+            public void onMouseDown(Widget arg0, int newX, int newY) {
+                lastY = newY;
+                lastX = newX;
 
                 ((FocusPanel) arg0).setFocus(false);
             }
@@ -96,11 +93,11 @@ public class ResizableTagWidget extends TagWidget {
 
             public void onMouseLeave(Widget arg0) {
                 boolean wasTrue = false;
-                for (DeletableWidget<ResizableTag> dW : tagCloud.values()) {
-                    if (dW.getWidget().hasClicked()) {
+                for (ResizableTag dW : tagCloud.values()) {
+                    if (dW.hasClicked()) {
                         wasTrue = true;
                     }
-                    dW.getWidget().setClickFalse();
+                    dW.setClickFalse();
                 }
                 if (wasTrue) {
                     updateRecommendations();
@@ -110,31 +107,41 @@ public class ResizableTagWidget extends TagWidget {
             }
 
             @Override
-            public void onMouseMove(Widget arg0, int arg1, int arg2) {
+            public void onMouseMove(Widget arg0, int newX, int newY) {
 
-                int increment = lastY - arg2;
+                // Take either increment from Y or X movement. Taking both
+                // modifies the size too quickly.
+                // -- Going up or right grows the tags.
+                int diffY = lastY - newY;
+                int diffX = newX - lastX;
+                int increment = 0;
+                if (Math.abs(diffY) > Math.abs(diffX)) {
+                    increment = diffY;
+                } else {
+                    increment = diffX;
+                }
 
                 // Don't refresh everytime to let the browser take its breath
                 if (Math.abs(increment) > 3) {
 
                     double diff = 0;
                     maxSize = 0; // reset maxsize to deal with when the top tag is scaled down
-                    for (DeletableResizableTag dW : tagCloud.values()) {
-                        double oldSize = dW.getWidget().getCurrentSize();
-                        double tempDiff = dW.getWidget().updateSize(increment, true);
+                    for (ResizableTag dW : tagCloud.values()) {
+                        double oldSize = dW.getCurrentSize();
+                        double tempDiff = dW.updateSize(increment, true);
 
-                        if (oldSize != dW.getWidget().getCurrentSize()) {
+                        if (oldSize != dW.getCurrentSize()) {
                             hasChanged = true;
 
-                            dW.setXButtonPosition();
+                            //dW.setXButtonPosition();
                         }
 
                         if (tempDiff != 0) {
                             diff = tempDiff;
                         }
 
-                        if (Math.abs(dW.getWidget().getCurrentSize()) > maxSize) {
-                            maxSize = Math.abs(dW.getWidget().getCurrentSize());
+                        if (Math.abs(dW.getCurrentSize()) > maxSize) {
+                            maxSize = Math.abs(dW.getCurrentSize());
                         }
                     }
 
@@ -143,31 +150,32 @@ public class ResizableTagWidget extends TagWidget {
                     // if the one that is resized has reached its max/min size
                     if (diff != 0) {
                         diff = diff / (tagCloud.size() - 1);
-                        for (DeletableResizableTag dW : tagCloud.values()) {
-                            double oldSize = dW.getWidget().getCurrentSize();
-                            dW.getWidget().updateSize(diff, false);
+                        for (ResizableTag dW : tagCloud.values()) {
+                            double oldSize = dW.getCurrentSize();
+                            dW.updateSize(diff, false);
 
-                            if (oldSize != dW.getWidget().getCurrentSize()) {
+                            if (oldSize != dW.getCurrentSize()) {
                                 hasChanged = true;
 
-                                dW.setXButtonPosition();
+                                //dW.setXButtonPosition();
                             }
 
-                            if (Math.abs(dW.getWidget().getCurrentSize()) > maxSize) {
-                                maxSize = Math.abs(dW.getWidget().getCurrentSize());
+                            if (Math.abs(dW.getCurrentSize()) > maxSize) {
+                                maxSize = Math.abs(dW.getCurrentSize());
                             }
                         }
                     }
 
-                    lastY = arg2;
+                    lastY = newY;
+                    lastX = newX;
                 }
 
                 ((FocusPanel) arg0).setFocus(false);
             }
 
             public void onMouseUp(Widget arg0, int arg1, int arg2) {
-                for (DeletableWidget<ResizableTag> dW : tagCloud.values()) {
-                    dW.getWidget().setClickFalse();
+                for (ResizableTag dW : tagCloud.values()) {
+                    dW.setClickFalse();
                 }
                 ((FocusPanel) arg0).setFocus(false);
                 updateRecommendations();
@@ -199,7 +207,7 @@ public class ResizableTagWidget extends TagWidget {
     public double getMaxWeight() {
         double maxVal = 0;
         double tempVal = 0;
-        for (DeletableResizableTag dT : tagCloud.values()) {
+        for (ResizableTag dT : tagCloud.values()) {
             tempVal = dT.getCloudItem().getWeight();
             if (tempVal > maxVal) {
                 maxVal = tempVal;
@@ -269,11 +277,11 @@ public class ResizableTagWidget extends TagWidget {
             }
             
             ResizableTag rT = getNewTagObject(item, (colorIndex++) % 2);
-            DeletableResizableTag dW = new DeletableResizableTag(rT);
-            dW.addStyleName("pointer");
+            //DeletableResizableTag dW = new DeletableResizableTag(rT);
+            rT.addStyleName("pointer");
 
-            tagCloud.put(item.getId(), dW);
-            flowP.add(dW);
+            tagCloud.put(item.getId(), rT);
+            flowP.add(rT);
             flowP.add(new SpannedLabel(" "));
 
             if (tagCloud.size() == 1) {
@@ -324,8 +332,8 @@ public class ResizableTagWidget extends TagWidget {
     @Override
     public void redrawTagCloud() {
         colorIndex = 1;
-        for (DeletableWidget<ResizableTag> dW : tagCloud.values()) {
-            dW.getWidget().updateColor((colorIndex++) % 2);
+        for (ResizableTag dW : tagCloud.values()) {
+            dW.updateColor((colorIndex++) % 2);
         }
     }
 
@@ -337,7 +345,7 @@ public class ResizableTagWidget extends TagWidget {
     @Override
     public HashMap<String, CloudItem> getItemsMap() {
         HashMap<String, CloudItem> itemsMap = new HashMap<String, CloudItem>();
-        for (DeletableResizableTag tag : tagCloud.values()) {
+        for (ResizableTag tag : tagCloud.values()) {
             itemsMap.put(tag.getCloudItem().getId(), tag.getCloudItem());
         }
         return itemsMap;
@@ -362,49 +370,8 @@ public class ResizableTagWidget extends TagWidget {
 
         public DeletableResizableTag(ResizableTag t) {
             super(t);
-            //addWidgetToRightMenu(t.getCloudItem().getIcon());
             addRemoveButton();
             setXButtonPosition();
-
-            Image img1 = new Image("stick.png");
-            img1.setTitle("Click to make this tag sticky");
-            Image img2 = new Image("unstick.png");
-            img2.setTitle("Click to unstick this tag");
-            SwapableWidget stickButton = new SwapableWidget<Image, Image>(img1, img2);
-            stickButton.showWidget(SwapableWidget.LoadableWidget.W1);
-            stickButton.getElement().getStyle().setProperty("visibility", "hidden");
-            img1.addClickHandler(new DDEClickHandler<CloudItem,SwapableWidget>(t.getCloudItem(), stickButton) {
-                @Override
-                public void onClick(ClickEvent event) {
-                    data.setSticky(true);
-                    sndData.swapWidget();
-                    redrawTagCloud();
-                }
-            });
-            img2.addClickHandler(new DDEClickHandler<CloudItem,SwapableWidget>(t.getCloudItem(), stickButton) {
-                @Override
-                public void onClick(ClickEvent event) {
-                    data.setSticky(false);
-                    sndData.swapWidget();
-                    redrawTagCloud();
-                }
-            });
-            super.addWidgetToRightMenu(stickButton, new HoverListener<SwapableWidget>(stickButton) {
-
-                @Override
-                public void onMouseHover() {
-                    data.getElement().getStyle().setProperty("visibility", "visible");
-                }
-
-                @Override
-                public void onOutTimer() {
-                    data.getElement().getStyle().setProperty("visibility", "hidden");
-                }
-
-                @Override
-                public void onMouseOut() {}
-
-            });
         }
 
         private final double getXButtonMargin() {
@@ -469,7 +436,7 @@ public class ResizableTagWidget extends TagWidget {
             }
 
             lastUsedIndex = startingColorIndex;
-            setTitle("Click and drag this tag to change its size");
+            setTitle("Click and drag this tag to change its size. Right click for more options.");
 
             addStyleName("marginRight");
             addStyleName("hand");
