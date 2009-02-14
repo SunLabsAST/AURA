@@ -8,6 +8,7 @@
  */
 package com.sun.labs.aura.music.wsitm.client;
 
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.Swidget;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget;
@@ -18,8 +19,8 @@ import com.sun.labs.aura.music.wsitm.client.ui.swidget.ProfileSwidget;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.HistoryListener;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
@@ -41,7 +42,7 @@ import java.util.Map;
  *
  * @author plamere
  */
-public class Main implements EntryPoint, HistoryListener {
+public class Main implements EntryPoint {
 
     private ClientDataManager cdm;
     private Map<String, Swidget> tokenHeadersMap;
@@ -60,7 +61,12 @@ public class Main implements EntryPoint, HistoryListener {
     @Override
     public void onModuleLoad() {
 
-        History.addHistoryListener(this);
+        History.addValueChangeHandler(new ValueChangeHandler<String>() {
+            @Override
+            public void onValueChange(ValueChangeEvent<String> event) {
+                onHistoryChanged(event.getValue());
+            }
+        });
         tokenHeadersMap = new HashMap<String, Swidget>();
         cdm = new ClientDataManager();
 
@@ -179,7 +185,7 @@ public class Main implements EntryPoint, HistoryListener {
         }
     }
 
-    @Override
+    //@Override
     public void onHistoryChanged(String historyToken) {
         if (!historyToken.equals(curToken)) {
             WebLib.trackPageLoad(historyToken);
