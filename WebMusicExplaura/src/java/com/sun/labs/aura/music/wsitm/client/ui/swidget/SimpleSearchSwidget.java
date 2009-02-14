@@ -1259,7 +1259,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             HTML html = new HTML(aP[index].getRichHtmlWrapper());
             //Popup.showPopup(html,"WebMusicExplaura :: Flickr Photo");
             //Popup.showRoundedPopup(html, "WebMusicExplaura :: Flickr Photo");
-            Popup.showRoundedPopup(html, aP[index].getTitle());
+            Popup.showRoundedPopup(html, aP[index].getTitle(), 600);
         }
 
     }
@@ -1294,7 +1294,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             HTML html = new HTML(getEmbeddedVideo(aV[index], true));
             //Popup.showPopup(html,"WebMusicExplaura :: YouTube Video");
             //Popup.showRoundedPopup(html, "WebMusicExplaura :: YouTube Video");
-            Popup.showRoundedPopup(html, aV[index].getTitle());
+            Popup.showRoundedPopup(html, aV[index].getTitle(), 600);
         }
 
     }

@@ -26,6 +26,8 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.TextBox;
+import com.sun.labs.aura.music.wsitm.agentspecific.impl.CssDefsImpl;
+import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 
@@ -78,22 +80,24 @@ public abstract class Popup {
         return popup;
     }
 
-    public static void showRoundedPopup(Widget w, String title) {
-        showRoundedPopup(w, title, getPopupPanel());
+    public static void showRoundedPopup(Widget w, String title, int width) {
+        showRoundedPopup(w, title, getPopupPanel(), width);
     }
     
-    public static void showRoundedPopup(Widget w, String title, final PopupPanel popup) {
-        showRoundedPopup(w, title, popup, -1, -1);
+    public static void showRoundedPopup(Widget w, String title, final PopupPanel popup, int width) {
+        showRoundedPopup(w, title, popup, -1, -1, width);
     }
 
-    public static void showRoundedPopup(Widget w, String title, final PopupPanel popup, int x, int y) {
+    public static void showRoundedPopup(Widget w, String title, final PopupPanel popup, 
+            int x, int y, int width) {
+        
         Label titleLabel = null;
         if (title != null && title.length() > 0) {
             titleLabel = new Label(title);
             titleLabel.setStyleName("popupColors");
             titleLabel.addStyleName("popupTitle");
         }
-        showRoundedPopup(w, titleLabel, popup, x, y);
+        showRoundedPopup(w, titleLabel, popup, x, y, width);
     }
 
     /**
@@ -103,8 +107,11 @@ public abstract class Popup {
      * @param popup Popup returned by getPopupPanel()
      * @param x Position. Set to -1 to center it
      * @param y Position. Set to -1 to center it
+     * @param cdm ClientDataManager
+     * @param width Width of the enclosed widget. Will be used to resize the popup on ie
      */
-    public static void showRoundedPopup(Widget w, Widget title, final PopupPanel popup, int x, int y) {
+    public static void showRoundedPopup(Widget w, Widget title, final PopupPanel popup, 
+            int x, int y, int width) {
 
         VerticalPanel vP = new VerticalPanel();
         if (title != null) {
@@ -124,6 +131,7 @@ public abstract class Popup {
         rp.setCornerStyleName("popupColors");
         popup.add(rp);
         popup.setAnimationEnabled(true);
+        CssDefsImpl.impl.setRoundedPopupWidth(popup, width);
 
         if (x==-1 && y==-1) {
             popup.center();
@@ -155,7 +163,8 @@ public abstract class Popup {
             hP.add(b);
         }
 
-        showRoundedPopup(hP, "Information", popup);
+        hP.setWidth("600px");
+        showRoundedPopup(hP, "Information", popup, 600);
     }
 
     public static void showInformationPopup(String message) {
@@ -169,7 +178,8 @@ public abstract class Popup {
         l.addStyleName("tagPop2");
         hP.add(l);
         PopupPanel p = getPopupPanel();
-        showRoundedPopup(hP, "Information", p);
+        p.setWidth("300px");
+        showRoundedPopup(hP, "Information", p, 300);
         return p;
     }
 
@@ -282,7 +292,8 @@ public abstract class Popup {
         l.setStyleName("popupColors");
         vP.add(l);
 
-        showRoundedPopup(vP, titlePanel, getPopupPanel(), -1, -1);
+        vP.setWidth("450px");
+        showRoundedPopup(vP, titlePanel, getPopupPanel(), -1, -1, 450);
     }
 
     private class PopupPanelAutoClose extends PopupPanel {

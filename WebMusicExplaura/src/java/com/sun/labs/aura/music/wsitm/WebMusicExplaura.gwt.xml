@@ -2,6 +2,7 @@
 <module>
     <inherits name='org.adamtacy.GWTEffects'/>
     <inherits name='asquare.gwt.tk.Tk'/>
+    <inherits name='com.sun.labs.aura.music.wsitm.agentspecific.AgentSpecific' />
     <inherits name='com.google.gwt.user.User'/>
 
     <entry-point class="com.sun.labs.aura.music.wsitm.client.Main"/>

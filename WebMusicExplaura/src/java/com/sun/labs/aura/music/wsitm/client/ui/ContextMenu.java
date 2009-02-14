@@ -127,7 +127,7 @@ public class ContextMenu {
             int x = e.getClientX() + Window.getScrollLeft();
             int y = e.getClientY() + Window.getScrollTop();
             if (newPopup) {
-                Popup.showRoundedPopup(vP, "", pp, x, y);
+                Popup.showRoundedPopup(vP, "", pp, x, y, 250);
                 newPopup = false;
             } else {
                 pp.setPopupPosition(x, y);

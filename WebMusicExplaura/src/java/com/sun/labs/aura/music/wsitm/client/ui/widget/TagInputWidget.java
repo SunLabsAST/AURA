@@ -356,7 +356,7 @@ public class TagInputWidget extends Composite implements LoginListener {
         vP.add(tiw);
         vP.add(sysTagPanel);
         
-        Popup.showRoundedPopup(vP, "Add tags to "+aC.getName(), Popup.getPopupPanel(), -1, -1);
+        Popup.showRoundedPopup(vP, "Add tags to "+aC.getName(), Popup.getPopupPanel(), -1, -1, 600);
     }
 
 }

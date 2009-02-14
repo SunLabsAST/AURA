@@ -350,7 +350,7 @@ public class SteeringSwidget extends Swidget {
                 PopupPanel popup = Popup.getPopupPanel();
 
                 loadPanel = new dialogContainer(new Label("Your saved tag clouds will soon be listed here."), popup);
-                Popup.showRoundedPopup(loadPanel.getWidget(), "Load tag cloud", loadPanel.getPopupPanel());
+                Popup.showRoundedPopup(loadPanel.getWidget(), "Load tag cloud", loadPanel.getPopupPanel(), 450);
             } else {
                 loadPanel.getPopupPanel().show();
             }
@@ -396,7 +396,7 @@ public class SteeringSwidget extends Swidget {
                     vP.add(b);
 
                     savePanel = new dialogContainer(vP, popup);
-                    Popup.showRoundedPopup(savePanel.getWidget(), "Save tag cloud", savePanel.getPopupPanel());
+                    Popup.showRoundedPopup(savePanel.getWidget(), "Save tag cloud", savePanel.getPopupPanel(), 450);
                 } else {
                     savePanel.getPopupPanel().show();
                 }

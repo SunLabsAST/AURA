@@ -110,9 +110,9 @@ public abstract class TagDisplayLib {
         Panel p = getTagsInPanel(tags, d, order, cdm, colorTheme);
         if (p!=null) {
         //    Popup.showPopup(p,title,d);
-            Popup.showRoundedPopup(p, title, d);
+            Popup.showRoundedPopup(p, title, d, 600);
         } else {
-            Popup.showRoundedPopup(new Label("Sorry, no tags to display"), title, d);
+            Popup.showRoundedPopup(new Label("Sorry, no tags to display"), title, d, 600);
         }
     }
 
@@ -184,8 +184,7 @@ public abstract class TagDisplayLib {
                 } else {
                     sL = new SpannedLabel(tags[i].getItemName());
                 }
-                //sL.getElement().getStyle().setPropertyPx("font-size", fontSize);
-                sL.getElement().setAttribute("style", "font-size:" + fontSize + "px;");
+                sL.getElement().getStyle().setPropertyPx("fontSize", fontSize);
                 setColorToElem(sL, colorId, tags[i].getScore(), null, colorTheme);
                 sL.addStyleName("pointer");
                 sL.addClickHandler(new DDEClickHandler<ItemInfo, Boolean>(tags[i], isTag) {

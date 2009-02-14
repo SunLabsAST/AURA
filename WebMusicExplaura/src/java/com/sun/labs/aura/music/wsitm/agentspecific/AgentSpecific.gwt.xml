@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<module>
+    <inherits name="com.google.gwt.user.User"/>
+
+    <replace-with class="com.sun.labs.aura.music.wsitm.agentspecific.impl.CssDefsImpl">
+        <when-type-is class="com.sun.labs.aura.music.wsitm.agentspecific.impl.CssDefsImpl" />
+    </replace-with>
+
+    <replace-with class="com.sun.labs.aura.music.wsitm.agentspecific.impl.CssDefsImplIE6">
+        <when-type-is class="com.sun.labs.aura.music.wsitm.agentspecific.impl.CssDefsImpl" />
+        <when-property-is name="user.agent" value="ie6" />
+    </replace-with>
+
+    <source path="impl"/>
+</module>
