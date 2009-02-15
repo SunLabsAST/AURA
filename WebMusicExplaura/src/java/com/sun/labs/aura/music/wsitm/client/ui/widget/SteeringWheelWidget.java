@@ -5,12 +5,17 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.MouseOutEvent;
 import com.google.gwt.event.dom.client.MouseOutHandler;
 import com.google.gwt.event.dom.client.MouseOverEvent;
 import com.google.gwt.event.dom.client.MouseOverHandler;
+import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.Image;
+import com.sun.labs.aura.music.wsitm.client.event.DEMouseOutHandler;
+import com.sun.labs.aura.music.wsitm.client.event.DEMouseOverHandler;
+import com.sun.labs.aura.music.wsitm.client.ui.bundles.ArtistRelatedBundle;
 
 /**
  *
@@ -18,14 +23,9 @@ import com.google.gwt.user.client.ui.Image;
  */
 public class SteeringWheelWidget extends Image {
 
-    private static final String steerImageBig = "steering-30.gif";
-    private static final String steerImageSmall = "steering-20.gif";
-
-    private static final String steerImageHoverBig = "steering-hover-30.gif";
-    private static final String steerImageHoverSmall = "steering-hover-20.gif";
-
-    private String steerImage;
-    private String steerImageHover;
+    private static ArtistRelatedBundle steerImgBundle = (ArtistRelatedBundle) GWT.create(ArtistRelatedBundle.class);
+    private AbstractImagePrototype steerImage;
+    private AbstractImagePrototype steerImageHover;
 
     private MouseOverHandler mOverH;
     private MouseOutHandler mOutH;
@@ -39,30 +39,30 @@ public class SteeringWheelWidget extends Image {
     public SteeringWheelWidget(wheelSize size, ClickHandler cH) {
 
         if (size == wheelSize.SMALL) {
-            steerImage = steerImageSmall;
-            steerImageHover = steerImageHoverSmall;
+            steerImage = steerImgBundle.steering20();
+            steerImageHover = steerImgBundle.steeringHover20();
         } else {
-            steerImage = steerImageBig;
-            steerImageHover = steerImageHoverBig;
+            steerImage = steerImgBundle.steering30();
+            steerImageHover = steerImgBundle.steeringHover30();
         }
         
-        setUrl(steerImage);
+        steerImage.applyTo(this);
         addStyleName("pointer");
 
         this.cH = cH;
         this.addClickHandler(this.cH);
 
-        this.mOverH = new MouseOverHandler() {
+        this.mOverH = new DEMouseOverHandler<SteeringWheelWidget>(this) {
             @Override
             public void onMouseOver(MouseOverEvent event) {
-                setUrl(steerImageHover);
+                steerImageHover.applyTo(data);
             }
         };
 
-        this.mOutH = new MouseOutHandler () {
+        this.mOutH = new DEMouseOutHandler<SteeringWheelWidget>(this) {
             @Override
             public void onMouseOut(MouseOutEvent event) {
-                setUrl(steerImage);
+                steerImage.applyTo(data);
             }
         };
     }

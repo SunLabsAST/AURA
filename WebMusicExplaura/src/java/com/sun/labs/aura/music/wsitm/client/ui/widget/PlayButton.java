@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.DOM;
@@ -30,6 +31,7 @@ import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedPlayButtonMenu;
+import com.sun.labs.aura.music.wsitm.client.ui.bundles.ArtistRelatedBundle;
 
 /**
  *
@@ -37,6 +39,8 @@ import com.sun.labs.aura.music.wsitm.client.ui.SharedPlayButtonMenu;
  */
 public class PlayButton extends Composite implements MusicProviderSwitchListener, 
         SourcesClickEvents, SourcesRightClickEvents, HasContextMenu {
+
+    private static ArtistRelatedBundle playImgBundle = (ArtistRelatedBundle) GWT.create(ArtistRelatedBundle.class);
 
     private static SharedPlayButtonMenu cm;
     private MusicSearchInterfaceAsync musicServer;
@@ -210,11 +214,21 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
         String musicURL = aC.getSpotifyId();
         int intSize = playIconSizeToInt(size);
         if (musicURL != null && !musicURL.equals("")) {
-            HTML html = new HTML("<a href=\"" + musicURL + "\" target=\"spotifyFrame\"><img src=\"play-spotify-"+intSize+".png\"/></a>");
+
+            String spotHtml;
+            if (intSize==20) {
+                spotHtml = playImgBundle.playSpotify20().getHTML();
+            } else if (intSize==30) {
+                spotHtml = playImgBundle.playSpotify30().getHTML();
+            } else {
+                spotHtml = playImgBundle.playSpotify40().getHTML();
+            }
+
+            HTML html = new HTML("<a href=\"" + musicURL + "\" target=\"spotifyFrame\">"+spotHtml+"</a>");
             html.setTitle("Play " + aC.getName() + " with Spotify");
             if (cdm.isLoggedIn()) {
                 html.addClickHandler(new ClickHandler() {
-
+                    @Override
                     public void onClick(ClickEvent ce) {
                         AsyncCallback callback = new AsyncCallback() {
                             public void onSuccess(Object result) {}
@@ -278,7 +292,14 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
     
     private Widget getLastFMListenWidget(ClickHandler cH) {
         int intSize = playIconSizeToInt(size);
-        Image image = new Image("play-lastfm-"+intSize+".png");
+        Image image;
+        if (intSize == 20) {
+            image = playImgBundle.playLastfm20().createImage();
+        } else if (intSize == 30) {
+            image = playImgBundle.playLastfm30().createImage();
+        } else {
+            image = playImgBundle.playLastfm40().createImage();
+        }
         image.setTitle("Play music like " + aC.getName() + " at last.fm");
         image.addClickHandler(new ClickHandler() {
             @Override

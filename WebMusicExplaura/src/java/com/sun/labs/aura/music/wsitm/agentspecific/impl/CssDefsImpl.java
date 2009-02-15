@@ -16,6 +16,6 @@ public class CssDefsImpl {
 
     public static final CssDefsImpl impl = GWT.create(CssDefsImpl.class);
 
-    public void setRoundedPopupWidth(PopupPanel rP, int width) {}
+    public void setRoundedPopupWidth(PopupPanel rP, int width) {};
 
 }

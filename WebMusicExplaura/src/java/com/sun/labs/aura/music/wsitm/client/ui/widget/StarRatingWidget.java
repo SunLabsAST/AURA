@@ -6,6 +6,7 @@
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.MouseOutEvent;
 import com.google.gwt.event.dom.client.MouseOutHandler;
@@ -15,6 +16,7 @@ import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
@@ -23,6 +25,7 @@ import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.event.DEMouseOverHandler;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
+import com.sun.labs.aura.music.wsitm.client.ui.bundles.StarsBundle;
 
 /**
  *
@@ -43,23 +46,10 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
      */
     private boolean isInit = false;
 
-    private String STAR_LID = "";
-    private String STAR_NOTLID = "";
-    private String STAR_WHITE = "";
-    private String NOT_INTERESTED = "";
-    private String NOT_INTERESTED_HOVER = "";
-
-    private static final String STAR_LID_M = "star-lid.png";
-    private static final String STAR_NOTLID_M = "star-notlid.png";
-    private static final String STAR_WHITE_M = "star-white.png";
-    private static final String NOT_INTERESTED_M = "not-interested2.png";
-    private static final String NOT_INTERESTED_HOVER_M = "not-interested2-hover.png";
-
-    private static final String STAR_LID_S = "star-lid-s.png";
-    private static final String STAR_NOTLID_S = "star-notlid-s.png";
-    private static final String STAR_WHITE_S = "star-white-s.png";
-    private static final String NOT_INTERESTED_S = "not-interested2-s.png";
-    private static final String NOT_INTERESTED_HOVER_S = "not-interested2-s-hover.png";
+    private static StarsBundle starsBundle = (StarsBundle) GWT.create(StarsBundle.class);
+    private AbstractImagePrototype STAR_LID;
+    private AbstractImagePrototype STAR_NOTLID;
+    private AbstractImagePrototype STAR_WHITE;
 
     private Image[] images;
 
@@ -105,17 +95,13 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
         cdm.getRatingListenerManager().addListener(artistID, this);
 
         if (size == Size.SMALL) {
-            STAR_LID = STAR_LID_S;
-            STAR_NOTLID = STAR_NOTLID_S;
-            STAR_WHITE = STAR_WHITE_S;
-            NOT_INTERESTED = NOT_INTERESTED_S;
-            NOT_INTERESTED_HOVER = NOT_INTERESTED_HOVER_S;
+            STAR_LID = starsBundle.starLidS();
+            STAR_NOTLID = starsBundle.starNotLidS();
+            STAR_WHITE = starsBundle.starWhiteS();
         } else {
-            STAR_LID = STAR_LID_M;
-            STAR_NOTLID = STAR_NOTLID_M;
-            STAR_WHITE = STAR_WHITE_M;
-            NOT_INTERESTED = NOT_INTERESTED_M;
-            NOT_INTERESTED_HOVER = NOT_INTERESTED_HOVER_M;
+            STAR_LID = starsBundle.starLid();
+            STAR_NOTLID = starsBundle.starNotLid();
+            STAR_WHITE = starsBundle.starWhite();
         }
     }
 
@@ -138,9 +124,9 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
         images = new Image[NBR_STARS];
         for (int i=0; i<NBR_STARS; i++) {
             if (i<=nbrSelectedStars-1) {
-                images[i] = new Image(STAR_NOTLID);
+                images[i] = STAR_NOTLID.createImage();
             } else {
-                images[i] = new Image(STAR_WHITE);
+                images[i] = STAR_WHITE.createImage();
             }
             images[i].addClickHandler(new DEClickHandler<Integer>(i) {
                 @Override
@@ -158,7 +144,7 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
                 @Override
                 public void onMouseOver(MouseOverEvent event) {
                     for (int i = 0; i <= data; i++) {
-                        images[i].setUrl(STAR_LID);
+                        STAR_LID.applyTo(images[i]);
                     }
                 }
             });
@@ -217,9 +203,9 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
     private void redrawStars() {
         for (int i = 0; i < NBR_STARS; i++) {
             if (i <= nbrSelectedStars - 1) {
-                images[i].setUrl(STAR_NOTLID);
+                STAR_NOTLID.applyTo(images[i]);
             } else {
-                images[i].setUrl(STAR_WHITE);
+                STAR_WHITE.applyTo(images[i]);
             }
         }
     }
