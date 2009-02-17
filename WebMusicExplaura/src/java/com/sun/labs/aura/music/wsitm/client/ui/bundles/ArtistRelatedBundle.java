@@ -58,7 +58,7 @@ public interface ArtistRelatedBundle extends ImageBundle {
     /**
      * Steering wheel icons
      */
-
+/*
     @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/steering-20.gif")
     public AbstractImagePrototype steering20();
 
@@ -67,7 +67,8 @@ public interface ArtistRelatedBundle extends ImageBundle {
 
     @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/steering-40.gif")
     public AbstractImagePrototype steering40();
-
+*/
+    /*
     @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/steering-hover-20.gif")
     public AbstractImagePrototype steeringHover20();
 
@@ -76,5 +77,13 @@ public interface ArtistRelatedBundle extends ImageBundle {
 
     @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/steering-hover-40.gif")
     public AbstractImagePrototype steeringHover40();
+    */
+
+    /**
+     * Tag icon
+     */
+    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/tag25.png")
+    public AbstractImagePrototype Tag25();
+
 
 }

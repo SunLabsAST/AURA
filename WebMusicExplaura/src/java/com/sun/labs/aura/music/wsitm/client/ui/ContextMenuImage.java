@@ -48,10 +48,8 @@ public class ContextMenuImage extends Image implements SourcesRightClickEvents, 
     }
     
     public ContextMenuImage(Image img, ContextMenu sharedMenu, ClickHandler cH, MouseOutHandler mOutH, MouseOverHandler mOverH) {
-        // is this creating leaks??
-        //ImageElement.as(img.getElement());
-        //setElement(img.getElement());
-        setElement(ImageElement.as(img.getElement()));
+        ImageElement.as(img.getElement());
+        setElement(img.getElement());
         if (mOutH != null) {
             this.addMouseOutHandler(mOutH);
         }

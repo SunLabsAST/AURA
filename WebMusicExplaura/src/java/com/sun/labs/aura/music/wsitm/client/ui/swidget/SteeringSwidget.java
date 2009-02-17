@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -47,6 +48,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
+import com.sun.labs.aura.music.wsitm.client.ui.bundles.VariaBundle;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
@@ -66,6 +68,8 @@ import java.util.LinkedList;
  * @author mailletf
  */
 public class SteeringSwidget extends Swidget {
+
+    protected static VariaBundle varImgBundle = (VariaBundle) GWT.create(VariaBundle.class);
 
     private MainPanel mP;
 
@@ -173,7 +177,7 @@ public class SteeringSwidget extends Swidget {
             };
             hP.add(popSelect);
             
-            Image viewTagInfluence = new Image("loupe.png");
+            Image viewTagInfluence = varImgBundle.loupe().createImage();
             viewTagInfluence.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent event) {
@@ -183,7 +187,7 @@ public class SteeringSwidget extends Swidget {
             hP.add(viewTagInfluence);
 
             refreshingPanel = new FlowPanel();
-            refreshingPanel.add(new Image("ajax-loader-small.gif "));
+            refreshingPanel.add(new Image("ajax-loader-small.gif"));
             refreshingPanel.setVisible(false);
 
             hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);

@@ -23,9 +23,8 @@ import com.sun.labs.aura.music.wsitm.client.ui.bundles.ArtistRelatedBundle;
  */
 public class SteeringWheelWidget extends Image {
 
-    private static ArtistRelatedBundle steerImgBundle = (ArtistRelatedBundle) GWT.create(ArtistRelatedBundle.class);
-    private AbstractImagePrototype steerImage;
-    private AbstractImagePrototype steerImageHover;
+    private String steerImage;
+    private String steerImageHover;
 
     private MouseOverHandler mOverH;
     private MouseOutHandler mOutH;
@@ -39,14 +38,16 @@ public class SteeringWheelWidget extends Image {
     public SteeringWheelWidget(wheelSize size, ClickHandler cH) {
 
         if (size == wheelSize.SMALL) {
-            steerImage = steerImgBundle.steering20();
-            steerImageHover = steerImgBundle.steeringHover20();
+            steerImage = "steering-20.gif";
+            steerImageHover = "steering-hover-20.gif";
         } else {
-            steerImage = steerImgBundle.steering30();
-            steerImageHover = steerImgBundle.steeringHover30();
+            steerImage = "steering-30.gif";
+            steerImageHover = "steering-hover-30.gif";
         }
-        
-        steerImage.applyTo(this);
+        Image.prefetch(steerImageHover);
+        Image.prefetch(steerImage);
+
+        this.setUrl(steerImage);
         addStyleName("pointer");
 
         this.cH = cH;
@@ -55,14 +56,14 @@ public class SteeringWheelWidget extends Image {
         this.mOverH = new DEMouseOverHandler<SteeringWheelWidget>(this) {
             @Override
             public void onMouseOver(MouseOverEvent event) {
-                steerImageHover.applyTo(data);
+                data.setUrl(steerImageHover);
             }
         };
 
         this.mOutH = new DEMouseOutHandler<SteeringWheelWidget>(this) {
             @Override
             public void onMouseOut(MouseOutEvent event) {
-                steerImage.applyTo(data);
+                data.setUrl(steerImage);
             }
         };
     }

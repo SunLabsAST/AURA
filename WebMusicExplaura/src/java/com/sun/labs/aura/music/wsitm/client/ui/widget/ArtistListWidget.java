@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.core.client.GWT;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;

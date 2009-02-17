@@ -26,6 +26,7 @@ import com.sun.labs.aura.music.wsitm.client.event.DEMouseOverHandler;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.bundles.StarsBundle;
+import com.sun.labs.aura.music.wsitm.client.ui.bundles.VariaBundle;
 
 /**
  *

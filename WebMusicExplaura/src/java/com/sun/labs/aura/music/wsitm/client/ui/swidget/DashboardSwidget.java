@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
@@ -48,6 +49,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib.TagColorType;
 import com.sun.labs.aura.music.wsitm.client.ui.UpdatablePanel;
+import com.sun.labs.aura.music.wsitm.client.ui.bundles.ArtistRelatedBundle;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuArtistLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
@@ -71,6 +73,8 @@ public class DashboardSwidget extends Swidget implements LoginListener {
         TAGGED,
         RATED
     }
+
+    private static ArtistRelatedBundle tagImgBundle = (ArtistRelatedBundle) GWT.create(ArtistRelatedBundle.class);
 
     private Grid dashBoardWindow;
     private MainPanel mP;
@@ -573,7 +577,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                 starTagHp.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
                 starTagHp.add(srw);
 
-                Image tagImg = new Image("tag25.png");
+                Image tagImg = tagImgBundle.Tag25().createImage();
                 tagImg.addStyleName("pointer");
                 tagImg.addClickHandler(new DEClickHandler<ArtistCompact>(aD.toArtistCompact()) {
                     @Override
