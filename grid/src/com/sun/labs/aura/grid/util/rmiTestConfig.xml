@@ -15,12 +15,12 @@
     
     <component name="parallel-test" type="com.sun.labs.aura.grid.util.RMIParallelTest">
         <property name="instance" value="${auraInstance}"/>
-        <property name="runs" value="500"/>
+        <property name="runs" value="50"/>
     </component>
     
     <component name="serial-test" type="com.sun.labs.aura.grid.util.RMISerialTest">
         <property name="instance" value="${auraInstance}"/>
-        <property name="runs" value="500"/>
+        <property name="runs" value="50"/>
     </component>
 
     <component name="start-parallel-test" type="com.sun.labs.aura.AuraServiceStarter">
