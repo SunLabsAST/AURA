@@ -9,7 +9,6 @@
         <propertylist name="groupList">
             <item>${auraGroup}</item>
         </propertylist>
-        <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
 
     <component name="dataStore" type="com.sun.labs.aura.datastore.DataStore"/>
