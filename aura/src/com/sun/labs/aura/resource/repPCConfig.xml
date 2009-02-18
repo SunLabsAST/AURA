@@ -71,7 +71,6 @@
     <!-- The configuration for the search engine associated with this replicant -->
     <component name="itemSearchEngine" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
         <property name="indexDir" value="${dataFS}/itemIndex.idx"/>
-        <property name="engineLogLevel" value="1"/>
         <property name="flushInterval" value="300000"/>
     </component>
 

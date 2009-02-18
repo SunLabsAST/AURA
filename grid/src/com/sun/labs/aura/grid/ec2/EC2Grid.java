@@ -3,6 +3,7 @@ package com.sun.labs.aura.grid.ec2;
 import com.sun.labs.minion.util.StopWatch;
 import com.xerox.amazonws.ec2.AttachmentInfo;
 import com.xerox.amazonws.ec2.EC2Exception;
+import com.xerox.amazonws.ec2.InstanceType;
 import com.xerox.amazonws.ec2.Jec2;
 import com.xerox.amazonws.ec2.KeyPairInfo;
 import com.xerox.amazonws.ec2.LaunchConfiguration;
@@ -219,20 +220,23 @@ public class EC2Grid {
     /**
      * Launches an instance with a given AMI.
      */
-    public ReservationDescription.Instance launch(String ami, KeyPairInfo kpi) throws EC2Exception {
-        return launch(ami, kpi, null, null);
+    public ReservationDescription.Instance launch(String ami, InstanceType type, KeyPairInfo kpi) throws EC2Exception {
+        return launch(ami, type, kpi, null, null);
     }
 
-    public ReservationDescription.Instance launch(String ami, KeyPairInfo kpi, String userData) throws EC2Exception {
-        return launch(ami, kpi, userData,null);
+    public ReservationDescription.Instance launch(String ami, InstanceType type, KeyPairInfo kpi, String userData) throws EC2Exception {
+        return launch(ami, type, kpi, userData, null);
     }
 
-    public ReservationDescription.Instance launch(String ami, KeyPairInfo kpi, String userData,VolumeInfo vol) throws EC2Exception {
-           return launch(ami, kpi, userData, vol, 2);
+    public ReservationDescription.Instance launch(String ami, InstanceType type, KeyPairInfo kpi, String userData,VolumeInfo vol) throws EC2Exception {
+           return launch(ami, type, kpi, userData, vol, 2);
     }
     
-    public ReservationDescription.Instance launch(String ami, KeyPairInfo kpi, String userData,VolumeInfo vol, int device) throws EC2Exception {
+    public ReservationDescription.Instance launch(String ami, InstanceType type, KeyPairInfo kpi, String userData, VolumeInfo vol, int device) throws EC2Exception {
         LaunchConfiguration lc = new LaunchConfiguration(ami);
+        if(type != null) {
+            lc.setInstanceType(type);
+        }
         lc.setKeyName(kpi.getKeyName());
         if(userData != null && userData.length() > 0) {
             lc.setUserData(userData.getBytes());

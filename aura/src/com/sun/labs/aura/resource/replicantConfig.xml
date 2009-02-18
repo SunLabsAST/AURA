@@ -55,8 +55,8 @@
     <!-- The configuration for the search engine associated with this replicant -->
     <component name="itemSearchEngine" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
         <property name="indexDir" value="${dataFS}/itemIndex.idx"/>
-        <property name="engineLogLevel" value="1"/>
     </component>
+    
     <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" entries="prefixEntries"/>
     <component name="statService" type="com.sun.labs.aura.service.StatService"/>
     

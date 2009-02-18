@@ -1,6 +1,7 @@
 package com.sun.labs.aura.grid.ec2;
 
 import com.xerox.amazonws.ec2.AttachmentInfo;
+import com.xerox.amazonws.ec2.InstanceType;
 import com.xerox.amazonws.ec2.KeyPairInfo;
 import com.xerox.amazonws.ec2.ReservationDescription;
 import com.xerox.amazonws.ec2.VolumeInfo;
@@ -36,17 +37,24 @@ public class StartAura {
                 String.format("name.0=rep-%s\n", prefix) +
                 "config.0=/com/sun/labs/aura/grid/ec2/resource/repPCConfig.xml\n" +
                 "starter.0=starter\n" +
-                String.format("opts.0=-Xmx1500m -Dprefix=%s\n", prefix) +
+                String.format("opts.0=-Xmx1500m -DauraHome=/datapool/aura -Dprefix=%s\n", prefix) +
                 "logType.0=rep\n";
     }
 
     public static void main(String[] args) throws Exception {
 
         String instance = "live";
-
+        InstanceType repType = InstanceType.DEFAULT;
+        
         if(args.length > 0) {
             instance = args[0];
         }
+
+        if(args.length > 1) {
+            repType = InstanceType.valueOf(args[1]);
+        }
+
+        System.out.println(String.format("Instance: %s Replicant type: %s", instance, repType));
 
         //
         // Load the user's property file for this instance, or the default one,
@@ -80,7 +88,7 @@ public class StartAura {
         AttachmentInfo ai = grid.getAttachmentInfo(distVol);
         if(ai == null || !ai.getStatus().startsWith("attach")) {
             System.out.println(String.format("Starting dist instance"));
-            distInst = grid.launch(grid.getProperty("ami.aura-dist"),
+            distInst = grid.launch(grid.getProperty("ami.aura-dist"),null,
                     kpi, getReggieMetaData(), distVol, 2);
         } else {
             System.out.println(String.format("Getting dist instance"));
@@ -99,14 +107,18 @@ public class StartAura {
         if(dsInstID == null) {
             System.out.println(String.format("Starting data store head instance"));
             dshInst = grid.launch(grid.getProperty("ami.aura-nondata"),
-                    kpi, getDSHeadMetaData(regHost));
+                    null,
+                    kpi,
+                    getDSHeadMetaData(regHost));
         } else {
             dshInst = grid.getInstance(dsInstID);
-            if(dshInst == null) {
+            if(dshInst == null || dshInst.isTerminated()) {
                 System.out.println(String.format(
                         "Starting data store head instance"));
                 dshInst = grid.launch(grid.getProperty("ami.aura-nondata"),
-                        kpi, getDSHeadMetaData(regHost));
+                        null,
+                        kpi,
+                        getDSHeadMetaData(regHost));
             }
         }
         grid.setProperty("instance.dsHead", dshInst.getInstanceId());
@@ -121,15 +133,19 @@ public class StartAura {
             if(repInstID == null) {
                 System.out.println(String.format("Starting instance for prefix %s", prefix));
                 repInst = grid.launch(grid.getProperty("ami.aura-data"),
-                        kpi, getReplicantMetaData(regHost, prefix),
+                        repType,
+                        kpi,
+                        getReplicantMetaData(regHost, prefix),
                         repVol);
             } else {
                 repInst = grid.getInstance(repInstID);
-                if(repInst == null) {
+                if(repInst == null || repInst.isTerminated()) {
                     System.out.println(String.format(
                             "Starting instance for prefix %s", prefix));
                     repInst = grid.launch(grid.getProperty("ami.aura-data"),
-                            kpi, getReplicantMetaData(regHost, prefix),
+                            repType,
+                            kpi,
+                            getReplicantMetaData(regHost, prefix),
                             repVol);
                 }
             }

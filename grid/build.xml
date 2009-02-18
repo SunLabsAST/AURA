@@ -13,8 +13,8 @@
         <ant dir="grid-deploy" antfile="tomcat.xml"/>
     </target>
     
-    <!-- Builds a copy of the jar with a specific main class and the jini libraries -->
-    <target depends="init,compile,-pre-pre-jar,-pre-jar" name="do-dist-jar-with-libraries">
+    <!-- Builds a copy of the jar with AuraServiceStarter as a main class -->
+    <target depends="init,compile,-pre-pre-jar,-pre-jar" name="do-service-starter-jar-with-libraries">
         <property location="${build.classes.dir}" name="build.classes.dir.resolved"/>
         <pathconvert property="run.classpath.without.build.classes.dir">
             <path path="${run.classpath}"/>
@@ -37,7 +37,31 @@
         </copylibs>
     </target>
     
-    <target name="make-dist-jar-dir" description="Make the dist jar directory" depends="do-dist-jar-with-libraries">
+    <!-- Builds a copy of the jar with AuraServiceDeployer as a main class -->
+    <target depends="init,compile,-pre-pre-jar,-pre-jar" name="do-service-deployer-jar-with-libraries">
+        <property location="${build.classes.dir}" name="build.classes.dir.resolved"/>
+        <pathconvert property="run.classpath.without.build.classes.dir">
+            <path path="${run.classpath}"/>
+            <map from="${build.classes.dir.resolved}" to=""/>
+        </pathconvert>
+        <pathconvert pathsep=" " property="jar.classpath">
+            <path path="${run.classpath.without.build.classes.dir}"/>
+            <chainedmapper>
+                <flattenmapper/>
+                <globmapper from="*" to="lib/*"/>
+            </chainedmapper>
+        </pathconvert>
+        <taskdef classname="org.netbeans.modules.java.j2seproject.copylibstask.CopyLibs" classpath="${libs.CopyLibs.classpath}" name="copylibs"/>
+        <copylibs compress="${jar.compress}" jarfile="${dist.jar}" manifest="${manifest.file}" runtimeclasspath="${run.classpath.without.build.classes.dir}">
+            <fileset dir="${build.classes.dir}"/>
+            <manifest>
+                <attribute name="Main-Class" value="com.sun.labs.aura.grid.ServiceDeployer"/>
+                <attribute name="Class-Path" value="${jar.classpath}"/>
+            </manifest>
+        </copylibs>
+    </target>
+
+    <target name="make-dist-jar-dir" description="Make the dist jar directory" depends="do-service-starter-jar-with-libraries">
         <property location="${dist.dir}/dist" name="dd"/>
         <property location="../Libraries" name="lib.dir"/>
         <delete file="${dist.dir}/grid-dist.jar"/>
@@ -160,7 +184,7 @@
             </fileset>
         </dav:put>
         <!-- Redo the jar target so that the service deployer is the main program! -->
-        <antcall target="jar"/>
+        <antcall target="do-service-deployer-jar-with-libraries"/>
         <!--<growl message="Grid Upload finished."/> -->
     </target>
 
@@ -191,7 +215,7 @@
         <!--<growl message="Grid Upload finished."/> -->
     </target>
 
-    <target name="upload-grid-jar" description="Uploads distribution files" depends="create-dist-collections,do-dist-jar-with-libraries">
+    <target name="upload-grid-jar" description="Uploads distribution files" depends="create-dist-collections,do-service-starter-jar-with-libraries">
         <dav:put url="${dav.url}/${dist.col}" verbose="true" userid="${user}" password="${pw}" lock="false">
             <!-- Distribution jar -->
             <fileset dir="dist">
