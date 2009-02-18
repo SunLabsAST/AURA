@@ -17,7 +17,19 @@
         <property name="instance" value="${auraInstance}"/>
         <property name="runs" value="50"/>
     </component>
-    
+
+    <component name="parallel-pause-2" type="com.sun.labs.aura.grid.util.RMIParallelTest">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="runs" value="50"/>
+        <property name="pause" value="2"/>
+    </component>
+
+    <component name="parallel-pause-10" type="com.sun.labs.aura.grid.util.RMIParallelTest">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="runs" value="50"/>
+        <property name="pause" value="10"/>
+    </component>
+
     <component name="serial-test" type="com.sun.labs.aura.grid.util.RMISerialTest">
         <property name="instance" value="${auraInstance}"/>
         <property name="runs" value="50"/>
@@ -29,7 +41,14 @@
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
-    
+
+    <component name="start-pause" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>parallel-pause</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
     <component name="start-serial-test" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>serial-test</item>
@@ -41,6 +60,8 @@
         <propertylist name="serviceComponents">
             <item>serial-test</item>
             <item>parallel-test</item>
+            <item>parallel-pause-2</item>
+            <item>parallel-pause-10</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>

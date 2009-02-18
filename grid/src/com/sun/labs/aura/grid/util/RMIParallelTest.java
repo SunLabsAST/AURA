@@ -60,6 +60,11 @@ public class RMIParallelTest extends ServiceAdapter {
 
     private String field;
 
+    @ConfigInteger(defaultValue=0)
+    public static final String PROP_PAUSE = "pause";
+
+    private int pause;
+
     protected Map<String, List<Scored<String>>> m;
 
     private int prefixLen;
@@ -76,6 +81,8 @@ public class RMIParallelTest extends ServiceAdapter {
 
     protected DocumentVector dv;
 
+    protected String name;
+
     //
     // Set up the data.
     public RMIParallelTest() {
@@ -85,14 +92,6 @@ public class RMIParallelTest extends ServiceAdapter {
     @Override
     public String serviceName() {
         return "RMITest";
-    }
-
-    private void display(List l) {
-        if(l == null) {
-            logger.info("No list!");
-            return;
-        }
-        logger.info(" Got " + l.size() + " items");
     }
 
     protected void getData() throws AuraException, RemoteException {
@@ -134,7 +133,6 @@ public class RMIParallelTest extends ServiceAdapter {
             for(Future<List<Scored<String>>> f : futures) {
                 ret.addAll(f.get());
             }
-            Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
             fsTime.stop();
             logger.info(String.format(" fs took %.3f",
                     fsTime.getLastTimeMillis()));
@@ -181,8 +179,14 @@ public class RMIParallelTest extends ServiceAdapter {
     protected List<Scored<Item>> runGet(boolean getSizes) {
         getTime.start();
         List<Getter> callers = new ArrayList();
+        int currPause = 0;
         for(Map.Entry<Replicant, List<Scored<String>>> e : repMap.entrySet()) {
-            callers.add(new Getter(e.getKey(), e.getValue()));
+            Getter g = new Getter(e.getKey(), e.getValue());
+            if(pause > 0) {
+                g.setPause(currPause);
+                currPause += pause;
+            }
+            callers.add(g);
             if(callers.size() >= numReps) {
                 break;
             }
@@ -194,7 +198,6 @@ public class RMIParallelTest extends ServiceAdapter {
             for(Future<List<Scored<Item>>> f : futures) {
                 ret.addAll(f.get());
             }
-            Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
             getTime.stop();
             logger.info(String.format(" get took %.3f",
                     getTime.getLastTimeMillis()));
@@ -236,6 +239,7 @@ public class RMIParallelTest extends ServiceAdapter {
 
     public void start() {
         try {
+            logger.info("Running: " + name);
             runFindSimilar(true);
             runGet(true);
             for(int i = 0; i < runs; i++) {
@@ -262,6 +266,8 @@ public class RMIParallelTest extends ServiceAdapter {
         field = ps.getString(PROP_FIELD);
         runs = ps.getInt(PROP_RUNS);
         numReps = ps.getInt(PROP_NUM_REPS);
+        pause = ps.getInt(PROP_PAUSE);
+        name = ps.getInstanceName();
         ds = (DataStore) cm.lookup(com.sun.labs.aura.datastore.DataStore.class,
                 null);
 
@@ -303,11 +309,8 @@ public class RMIParallelTest extends ServiceAdapter {
         }
     }
 
-    class Getter implements Callable<List<Scored<Item>>> {
-
-        private Replicant r;
-
-        private List<Scored<String>> keys;
+    class CallerBase {
+        protected Replicant r;
 
         protected String prefix;
 
@@ -316,6 +319,18 @@ public class RMIParallelTest extends ServiceAdapter {
         protected double overhead;
 
         protected double repTime;
+
+        protected int pause;
+
+        public void setPause(int pause) {
+            this.pause = pause;
+        }
+        
+    }
+
+    class Getter extends CallerBase implements Callable<List<Scored<Item>>> {
+
+        protected List<Scored<String>> keys;
 
         protected List<Scored<Item>> result;
 
@@ -331,6 +346,12 @@ public class RMIParallelTest extends ServiceAdapter {
 
         public List<Scored<Item>> call() throws Exception {
             nw.start();
+            if(pause > 0) {
+                try {
+                    Thread.sleep(pause);
+                } catch (InterruptedException ie) {
+                }
+            }
             result = r.getScoredItems(keys);
             nw.stop();
             repTime = result.size() > 0 ? result.get(0).time : 0;
@@ -339,21 +360,11 @@ public class RMIParallelTest extends ServiceAdapter {
         }
     }
 
-    class FindSimilarer implements Callable<List<Scored<String>>> {
-
-        private Replicant r;
+    class FindSimilarer  extends CallerBase implements Callable<List<Scored<String>>> {
 
         private DocumentVector dv;
 
-        protected String prefix;
-
         private SimilarityConfig config;
-
-        protected NanoWatch nw = new NanoWatch();
-
-        protected double overhead;
-
-        protected double repTime;
 
         protected List<Scored<String>> result;
 
