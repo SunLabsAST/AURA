@@ -202,11 +202,13 @@ public abstract class WebLib {
         left.setStyleName("popLeft");
         left.setWidth(leftWidth + "");
         left.setHeight(height+"px");
+        left.getElement().getStyle().setPropertyPx("fontSize", height-2);
 
         Widget right = new Label("");
         right.setStyleName("popRight");
         right.setWidth(rightWidth + "");
-        left.setHeight(height+"px");
+        right.setHeight(height+"px");
+        right.getElement().getStyle().setPropertyPx("fontSize", height-2);
 
         table.add(left);
         table.add(right);
