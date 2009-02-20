@@ -107,6 +107,8 @@ public class SharedSteeringCIMenu extends ContextMenu implements CloudItemDepend
                 }
             });
         }
+
+        vP.setWidth("125px");
     }
 
     @Override
@@ -129,6 +131,6 @@ public class SharedSteeringCIMenu extends ContextMenu implements CloudItemDepend
             negLbl.setText(NEG_STRING);
         }
 
-        super.showAt(e);
+        super.showAt(e, 125);
     }
 }

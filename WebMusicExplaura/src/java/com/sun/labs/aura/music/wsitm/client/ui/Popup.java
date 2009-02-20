@@ -10,7 +10,7 @@ import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.Cookies;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -53,9 +53,9 @@ public abstract class Popup {
         Label closeButton = new Label("Close");
         closeButton.setStyleName("clickableLabel");
         closeButton.addStyleName("whiteTxt");
-        closeButton.addClickListener(new ClickListener() {
-
-            public void onClick(Widget sender) {
+        closeButton.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent ce) {
                 popup.hide();
             }
         });
@@ -178,8 +178,8 @@ public abstract class Popup {
         l.addStyleName("tagPop2");
         hP.add(l);
         PopupPanel p = getPopupPanel();
-        p.setWidth("300px");
-        showRoundedPopup(hP, "Information", p, 300);
+        p.setWidth("130px");
+        showRoundedPopup(hP, "Information", p, 130);
         return p;
     }
 
@@ -278,6 +278,7 @@ public abstract class Popup {
         titlePanel.setWidth("100%");
         titlePanel.setStyleName("popupColors");
         titlePanel.addStyleName("popupTitle");
+        Image.prefetch("320px-OpenID_logo.svg.png");    // for ie
         Image openIdImage = new Image("320px-OpenID_logo.svg.png");
         openIdImage.setHeight("60px");
         openIdImage.setWidth("160px");
