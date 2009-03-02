@@ -20,6 +20,7 @@ import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.SourcesClickEvents;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.agentspecific.impl.CssDefsImpl;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.event.MusicProviderSwitchListener;
 import com.sun.labs.aura.music.wsitm.client.event.SourcesRightClickEvents;
@@ -272,7 +273,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
     }
 
     public String getArtistRadioLink() {
-        String link = "MusicPlayer?name=" +aC.getEncodedName();
+        String link = CssDefsImpl.impl.getLastFmRadioPrefix() + "MusicPlayer?name=" +aC.getEncodedName();
         return link;
     }
     
