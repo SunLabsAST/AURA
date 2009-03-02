@@ -138,7 +138,8 @@ public class ContextMenu {
                 pp.show();
             }
         } else {
-            Popup.showInformationPopup("Error. Contextmenu is empty.");
+            Popup.showErrorPopup("", Popup.ERROR_MSG_PREFIX.NONE,
+                    "Error. Contextmenu is empty.", Popup.ERROR_LVL.NORMAL, null);
         }
     }
     

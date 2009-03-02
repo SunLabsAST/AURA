@@ -214,15 +214,23 @@ public class TagInputWidget extends Composite implements LoginListener {
          AsyncCallback<HashSet<String>> callback = new AsyncCallback<HashSet<String>>() {
 
              public void onFailure(Throwable arg0) {
-                 Window.alert(arg0.toString());
+                 Popup.showErrorPopup(arg0, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                         "retrieve the tags your have applied.", Popup.ERROR_LVL.NORMAL, null);
                  resetTextBox();
              }
 
              public void onSuccess(HashSet<String> tags) {
-                 for (String s : tags) {
-                     addTag(s);
+                 if (tags!=null) {
+                     for (String s : tags) {
+                         addTag(s);
+                     }
+                     resetTextBox();
+                 } else {
+                     Popup.showErrorPopup("Returned list was null.",
+                             Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                             "retrieve the tags your have applied.",
+                             Popup.ERROR_LVL.NORMAL, null);
                  }
-                 resetTextBox();
              }
 
              public void resetTextBox() {
@@ -238,48 +246,56 @@ public class TagInputWidget extends Composite implements LoginListener {
 
          try {
              musicServer.fetchUserTagsForItem(itemId, callback);
-         } catch (Exception ex) {
-             Window.alert(ex.getMessage());
-         }
+        } catch (Exception ex) {
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve the tags your have applied.", Popup.ERROR_LVL.NORMAL, null);
+        }
     }
 
-     private void invokeAddTags(HashSet<String> tags) {
+    private void invokeAddTags(HashSet<String> tags) {
 
-         DEAsyncCallback<HashSet<String>, HashSet<String>> callback =
-                 new DEAsyncCallback<HashSet<String>, HashSet<String>>(tags) {
+        DEAsyncCallback<HashSet<String>, HashSet<String>> callback =
+                new DEAsyncCallback<HashSet<String>, HashSet<String>>(tags) {
 
-             public void onFailure(Throwable arg0) {
-                 Window.alert(arg0.toString());
-                 resetTextBox();
-             }
+                    public void onFailure(Throwable arg0) {
+                        Popup.showErrorPopup(arg0, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                "add your tags.", Popup.ERROR_LVL.NORMAL, null);
+                        resetTextBox();
+                    }
 
-             public void onSuccess(HashSet<String> tags) {
-                 for (String s : data) {
-                     addTag(s);
-                 }
+                    public void onSuccess(HashSet<String> tags) {
+                        if (tags != null) {
+                            for (String s : data) {
+                                addTag(s);
+                            }
 
-                 cdm.getTaggingListenerManager().triggerOnTag(itemId, tags);
+                            cdm.getTaggingListenerManager().triggerOnTag(itemId, tags);
+                        } else {
+                            Popup.showErrorPopup("Returned tag list after adding new tags was null.",
+                                    Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                    "add your tags.", Popup.ERROR_LVL.NORMAL, null);
+                        }
+                        txtBox.setEnabled(true);
+                        progressImg.setVisible(false);
+                        txtBox.getElement().setAttribute("style", "margin-left: 5px;");
+                    }
 
-                 txtBox.setEnabled(true);
-                 progressImg.setVisible(false);
-                 txtBox.getElement().setAttribute("style", "margin-left: 5px;");
-             }
+                    public void resetTextBox() {
+                        txtBox.setEnabled(true);
+                        showSystemTextBoxMessage(DEFAULT_TBOX_TXT);
+                        progressImg.setVisible(false);
+                    }
+                };
 
-             public void resetTextBox() {
-                 txtBox.setEnabled(true);
-                 showSystemTextBoxMessage(DEFAULT_TBOX_TXT);
-                 progressImg.setVisible(false);
-             }
-         };
+        showSystemTextBoxMessage(PROCESSING_TBOX_MSG);
+        txtBox.setEnabled(false);
+        progressImg.setVisible(true);
 
-         showSystemTextBoxMessage(PROCESSING_TBOX_MSG);
-         txtBox.setEnabled(false);
-         progressImg.setVisible(true);
-
-         try {
+        try {
             musicServer.addUserTagsForItem(itemId, tags, callback);
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "add your tags.", Popup.ERROR_LVL.NORMAL, null);
         }
     }
 

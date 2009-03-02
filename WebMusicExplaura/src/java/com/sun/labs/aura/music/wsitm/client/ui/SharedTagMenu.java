@@ -78,7 +78,8 @@ public class SharedTagMenu extends ContextMenu implements TagDependentSharedMenu
                 new DEAsyncCallback<PopupPanel, ArrayList<ScoredC<ArtistCompact>>>(p) {
 
             public void onFailure(Throwable caught) {
-                Window.alert(caught.getMessage());
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve tag's representative artists.", Popup.ERROR_LVL.NORMAL, null);
             }
 
             @Override
@@ -95,7 +96,8 @@ public class SharedTagMenu extends ContextMenu implements TagDependentSharedMenu
                     TagDisplayLib.showTagCloud("Representative artists of tag "+currTag.getItemName(),
                             iI, TagDisplayLib.ORDER.SHUFFLE, cdm, TagDisplayLib.TagColorType.TAG_POPUP);
                 } else {
-                    Window.alert("An error occured while fetching representative artists.");
+                    Popup.showErrorPopup("Returned list was null or empty.", Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                            "retrieve tag's representative artists.", Popup.ERROR_LVL.NORMAL, null);
                 }
             }
         };
@@ -103,7 +105,8 @@ public class SharedTagMenu extends ContextMenu implements TagDependentSharedMenu
         try {
             musicServer.getRepresentativeArtistsOfTag(tagId, callback);
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve tag's representative artists.", Popup.ERROR_LVL.NORMAL, null);
         }
     }
 
@@ -121,19 +124,23 @@ public class SharedTagMenu extends ContextMenu implements TagDependentSharedMenu
                     TagDisplayLib.showTagCloud("Similar tags to "+currTag.getItemName(),
                             iI, TagDisplayLib.ORDER.SHUFFLE, cdm);
                 } else {
-                    Window.alert("An error occured while fetching similar tags.");
+                    Popup.showErrorPopup("Returned list was null or empty.",
+                            Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                            "retrieve similar tags.", Popup.ERROR_LVL.NORMAL, null);
                 }
             }
 
             public void onFailure(Throwable caught) {
-                Window.alert(caught.getMessage());
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve similar tags.", Popup.ERROR_LVL.NORMAL, null);
             }
         };
 
         try {
             musicServer.getSimilarTags(tagId, callback);
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve similar tags.", Popup.ERROR_LVL.NORMAL, null);
         }
     }
 

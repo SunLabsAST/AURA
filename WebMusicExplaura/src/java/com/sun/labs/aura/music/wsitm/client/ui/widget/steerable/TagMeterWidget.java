@@ -23,6 +23,7 @@ import com.sun.labs.aura.music.wsitm.client.event.DEMouseMoveHandler;
 import com.sun.labs.aura.music.wsitm.client.event.DEMouseUpHandler;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.WrapsCloudItem;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import java.util.ArrayList;
@@ -94,7 +95,8 @@ public class TagMeterWidget extends TagWidget {
             updateRecommendations();
             cdm.getTagCloudListenerManager().triggerOnTagDelete(itemId);
         } else {
-            Window.alert(itemId + " is not in tagcloud");
+            Popup.showErrorPopup("", Popup.ERROR_MSG_PREFIX.NONE,
+                    itemId + " is not in tagcloud", Popup.ERROR_LVL.NORMAL, null);
         }
     }
 

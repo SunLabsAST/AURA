@@ -19,7 +19,8 @@ public class WebException extends RuntimeException implements IsSerializable {
         ITEM_STORE_COMMUNICATION_FAILED,
         RPC_STATUS_CODE_EXCEPTION,
         MUST_BE_LOGGED_IN,
-        INVALID_MENU_CALLED
+        INVALID_MENU_CALLED,
+        INIT_ERROR
     }
 
     public WebException() {
@@ -63,6 +64,8 @@ public class WebException extends RuntimeException implements IsSerializable {
             return "You must be logged in to perform this action.";
         } else if (eM == errorMessages.INVALID_MENU_CALLED) {
             return "The menu that was called is invalid. Invalid class.";
+        } else if (eM == errorMessages.INIT_ERROR) {
+            return "Error initializing application.";
         } else {
             return "Unkonwn error";
         }

@@ -7,11 +7,10 @@ package com.sun.labs.aura.music.wsitm.client.event;
 
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.*;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget.SwapableTxtButton;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
-import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib.TagColorType;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 
 /**
  *
@@ -51,6 +50,8 @@ public abstract class CommonTagsAsyncCallback implements AsyncCallback<ItemInfo[
 
     @Override
     public void onFailure(Throwable caught) {
-        Window.alert(caught.toString());
+        Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                "retrieve common tags.", Popup.ERROR_LVL.NORMAL, null);
+
     }
 };

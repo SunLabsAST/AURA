@@ -30,12 +30,8 @@ public class ContextMenuSteeringWheelWidget extends ContextMenuImage {
     @Override
     public void onBrowserEvent(Event event) {
         if (event.getTypeInt() == Event.ONCONTEXTMENU) {
-            try {
-                DOM.eventPreventDefault(event);
-                ((ArtistDependentSharedMenu)cm).showAt(event, aC);
-            } catch (WebException ex) {
-                Window.alert(ex.toString());
-            }
+            DOM.eventPreventDefault(event);
+            ((ArtistDependentSharedMenu)cm).showAt(event, aC);
         } else {
             super.onBrowserEvent(event);
         }

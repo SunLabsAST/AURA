@@ -26,6 +26,7 @@ import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.WrapsCloudItem;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.HasContextMenu;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringCIMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
@@ -312,7 +313,8 @@ public class ResizableTagWidget extends TagWidget {
             hasChanged = true;
             updateRecommendations();
         } else {
-            Window.alert("Error. '"+itemId+"' not in tag cloud.");
+            Popup.showErrorPopup("", Popup.ERROR_MSG_PREFIX.NONE,
+                "Error. '"+itemId+"' not in tag cloud.", Popup.ERROR_LVL.NORMAL, null);
         }
     }
 
@@ -459,11 +461,7 @@ public class ResizableTagWidget extends TagWidget {
         public void onBrowserEvent(Event event) {
             if (event.getTypeInt() == Event.ONCONTEXTMENU) {
                 DOM.eventPreventDefault(event);
-                try {
-                    cm.showAt(event, item);
-                } catch (WebException ex) {
-                    Window.alert(ex.toString());
-                }
+                cm.showAt(event, item);
             } else {
                 super.onBrowserEvent(event);
             }

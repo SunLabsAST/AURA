@@ -8,6 +8,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.Command;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
@@ -498,7 +499,14 @@ public class SteeringSwidget extends Swidget {
                 public void onFailure(Throwable caught) {
                     PerformanceTimer.stop("newRecommendationsGetData");
                     PerformanceTimer.stop("newRecommendations");
-                    Window.alert(caught.getMessage());
+                    Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                            "retrieve updated recommendations.", Popup.ERROR_LVL.NORMAL,
+                            new Command() {
+                                @Override
+                                public void execute() {
+                                    invokeFetchNewRecommendations();
+                                }
+                            });
                 }
             };
 
@@ -509,7 +517,14 @@ public class SteeringSwidget extends Swidget {
                 PerformanceTimer.start("newRecommendationsGetData");
                 musicServer.getSteerableRecommendations(currTagMap, popSelect.getSelectedValue(), callback);
             } catch (Exception ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve updated recommendations.", Popup.ERROR_LVL.NORMAL,
+                        new Command() {
+                            @Override
+                            public void execute() {
+                                invokeFetchNewRecommendations();
+                            }
+                        });
             }
         }
 
@@ -574,11 +589,16 @@ public class SteeringSwidget extends Swidget {
                 public void onSuccess(ArtistCompact aC) {
                     if (aC != null) {
                         search.displayArtist(new ItemInfo(aC.getId(), aC.getName(), aC.getNormPopularity(), aC.getNormPopularity()));
+                    } else {
+                        Popup.showErrorPopup("Returned object was null.",
+                                Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                "retrieve the artist's tag cloud.", Popup.ERROR_LVL.NORMAL, null);
                     }
                 }
 
                 public void onFailure(Throwable caught) {
-                    Window.alert(caught.getMessage());
+                    Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve the artist's tag cloud.", Popup.ERROR_LVL.NORMAL, null);
                 }
             });
         }
@@ -594,16 +614,21 @@ public class SteeringSwidget extends Swidget {
                     if (aC != null) {
                         tagLand.addArtist(aC, 0);
                         search.displayArtist(new ItemInfo(aC.getId(), aC.getName(), aC.getNormPopularity(), aC.getNormPopularity()));
+                    } else {
+                        Popup.showErrorPopup("Returned object was null.",
+                                Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                "retrieve the artist's details.", Popup.ERROR_LVL.NORMAL, null);
                     }
                 }
 
                 public void onFailure(Throwable caught) {
-                    Window.alert(caught.getMessage());
+                    Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve the artist's details.", Popup.ERROR_LVL.NORMAL, null);
                 }
             });
         }
 
-        private void invokeGetDistincitveTagsService(String artistID) {
+        private void invokeGetDistincitveTagsService(final String artistID) {
 
             AsyncCallback callback = new AsyncCallback() {
 
@@ -611,25 +636,45 @@ public class SteeringSwidget extends Swidget {
                     ItemInfo[] results = (ItemInfo[]) result;
                     if (results != null) {
                         if (results.length == 0) {
-                            Window.alert("No tags found for artist");
+                            Popup.showInformationPopup("No tags found for artist");
                         } else {
                             tagLand.addTags(results, TagWidget.NBR_TOP_TAGS_TO_ADD);
                         }
                     } else {
-                        Window.alert("An unknown error occured while loading the artist's tag cloud");
+                        Popup.showErrorPopup("Returned tag list was null.", Popup.ERROR_MSG_PREFIX.NONE,
+                                "An unknown error occured while loading the artist's tag cloud.", Popup.ERROR_LVL.NORMAL,
+                                new DECommand<String>(artistID) {
+                                    @Override
+                                    public void execute() {
+                                        invokeGetDistincitveTagsService(data);
+                                    }
+                                });
                     }
                 }
 
                 public void onFailure(Throwable caught) {
-                    Window.alert(caught.getMessage());
+                    Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                            "the artist's tag cloud.", Popup.ERROR_LVL.NORMAL,
+                            new DECommand<String>(artistID) {
+                                @Override
+                                public void execute() {
+                                    invokeGetDistincitveTagsService(data);
+                                }
+                            });
                 }
             };
 
             try {
                 musicServer.getDistinctiveTags(artistID, 30, callback);
             } catch (Exception ex) {
-                Window.alert(ex.getMessage());
-
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "the artist's tag cloud.", Popup.ERROR_LVL.NORMAL,
+                        new DECommand<String>(artistID) {
+                            @Override
+                            public void execute() {
+                                invokeGetDistincitveTagsService(data);
+                            }
+                        });
             }
         }
 
@@ -637,7 +682,15 @@ public class SteeringSwidget extends Swidget {
             try {
                 musicServer.getArtistCompact(artistId, callback);
             } catch (Exception ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "the artist's details.", Popup.ERROR_LVL.NORMAL,
+                        new DDECommand<String, AsyncCallback<ArtistCompact>>(artistId, callback) {
+                            @Override
+                            public void execute() {
+                                invokeGetArtistCompactService(data, sndData);
+                            }
+                        });
+
             }
         }
 
@@ -756,14 +809,17 @@ public class SteeringSwidget extends Swidget {
                             if (aC != null) {
                                 tagLand.addArtist(aC, 0);
                             } else {
-                                Window.alert("Error fetching artist information.");
+                                Popup.showErrorPopup("Returned object was null.",
+                                        Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                        "retrieve the artist's details.", Popup.ERROR_LVL.NORMAL, null);
                             }
                             data.setText("Add artist");
                         }
 
                         @Override
                         public void onFailure(Throwable caught) {
-                            Window.alert(caught.getMessage());
+                            Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                "retrieve the artist's details.", Popup.ERROR_LVL.NORMAL, null);
                         }
                     });
                 }
@@ -814,7 +870,8 @@ public class SteeringSwidget extends Swidget {
                             }
 
                             public void onFailure(Throwable caught) {
-                                Window.alert(caught.getMessage());
+                                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                    "the artist's details.", Popup.ERROR_LVL.NORMAL, null);
                             }
                         });
                     }
@@ -841,11 +898,18 @@ public class SteeringSwidget extends Swidget {
             try {
                 musicServer.getArtistCompact(artistID, callback);
             } catch (Exception ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve the artist's details.", Popup.ERROR_LVL.NORMAL,
+                        new DDECommand<String, AsyncCallback>(artistID, callback) {
+                            @Override
+                            public void execute() {
+                                invokeGetArtistCompactService(data, sndData);
+                            }
+                        });
             }
         }
 
-        private void invokeGetDistincitveTagsService(String artistID) {
+        private void invokeGetDistincitveTagsService(final String artistID) {
 
             AsyncCallback<ItemInfo[]> callback = new AsyncCallback<ItemInfo[]>() {
 
@@ -879,14 +943,21 @@ public class SteeringSwidget extends Swidget {
                 }
 
                 public void onFailure(Throwable caught) {
-                    Window.alert(caught.getMessage());
+                    Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                            "retrieve the artist's tags.", Popup.ERROR_LVL.NORMAL, new DECommand<String>(artistID) {
+                        @Override
+                        public void execute() {
+                            invokeGetDistincitveTagsService(data);
+                        }
+                    });
                 }
             };
 
             try {
                 musicServer.getDistinctiveTags(artistID, 30, callback);
             } catch (Exception ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve the artist's tags.", Popup.ERROR_LVL.NORMAL, null);
 
             }
         }
@@ -1116,22 +1187,27 @@ public class SteeringSwidget extends Swidget {
                         }
                     } else {
                         if (sr == null) {
-                            Window.alert("Error. Resultset is null. There were probably no tags found.");
+                            Popup.showErrorPopup("Resultset is null. There were " +
+                                    "probably no artists found.", Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                "perform the artist search.", Popup.ERROR_LVL.NORMAL, null);
                         } else {
-                            Window.alert("Whoops " + sr.getStatus());
+                            Popup.showErrorPopup(sr.getStatus(), Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                "perform the artist search.", Popup.ERROR_LVL.NORMAL, null);
                         }
                     }
                 }
 
                 public void onFailure(Throwable caught) {
-                    Window.alert(caught.getMessage());
+                    Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "perform artist search.", Popup.ERROR_LVL.NORMAL, null);
                 }
             };
 
             try {
                 musicServer.artistSearch(searchText, 10, callback);
             } catch (Exception ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "perform artist search.", Popup.ERROR_LVL.NORMAL, null);
             }
         }
 
@@ -1148,7 +1224,7 @@ public class SteeringSwidget extends Swidget {
                             mainTagPanel.setWidget(1, 0, new Label("No Match for " + sr.getQuery()));
                         } else {
                             SortableItemInfoList siil = new SortableItemInfoList(results) {
-
+                                @Override
                                 protected void onItemClick(ItemInfo i) {
                                     tagLand.addTag(i, 0, true);
                                 }
@@ -1158,15 +1234,20 @@ public class SteeringSwidget extends Swidget {
                         }
                     } else {
                         if (sr == null) {
-                            Window.alert("Error. Resultset is null. There were probably no tags found.");
+                            Popup.showErrorPopup("Resultset is null. There were probably no tags found.",
+                                    Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                    "perform tag search.", Popup.ERROR_LVL.NORMAL, null);
                         } else {
-                            Window.alert("Whoops " + sr.getStatus());
+                            Popup.showErrorPopup(sr.getStatus(),
+                                    Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                    "perform tag search.", Popup.ERROR_LVL.NORMAL, null);
                         }
                     }
                 }
 
                 public void onFailure(Throwable caught) {
-                    Window.alert(caught.getMessage());
+                    Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "perform tag search.", Popup.ERROR_LVL.NORMAL, null);
                 }
             };
 
@@ -1175,7 +1256,8 @@ public class SteeringSwidget extends Swidget {
             try {
                 musicServer.tagSearch(searchText, 100, callback);
             } catch (Exception ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "perform tag search.", Popup.ERROR_LVL.NORMAL, null);
             }
         }
 

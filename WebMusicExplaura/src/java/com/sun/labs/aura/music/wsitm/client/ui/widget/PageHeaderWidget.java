@@ -240,12 +240,16 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         //invokeGetUserSessionInfo();
     }
 
+    public void requestRefreshSimTypes() {
+        invokeGetSimTypes();
+    }
+
     private void invokeGetSimTypes() {
         AsyncCallback<HashMap<String, String>> callback =
                 new AsyncCallback<HashMap<String, String>>() {
 
             public void onFailure(Throwable arg0) {
-                Window.alert("Error fetching similarity types.");
+                Popup.showInformationPopup("Error fetching similarity types. ("+arg0.getMessage()+")");
             }
 
             public void onSuccess(HashMap<String, String> arg0) {
@@ -281,7 +285,13 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         try {
             musicServer.getSimTypes(callback);
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve similarity types.", Popup.ERROR_LVL.NORMAL, new Command() {
+                @Override
+                public void execute() {
+                    invokeGetSimTypes();
+                }
+            });
         }
     }
 
@@ -313,14 +323,18 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
-                // do some UI stuff to show success
                 Popup.showInformationPopup("You are now logged out. Have a nice and productive day.");
                 populateLoginBox();
             }
 
             public void onFailure(Throwable caught) {
-                //failureAction(caught);
-                Window.alert(caught.toString());
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "close your session.", Popup.ERROR_LVL.NORMAL, new Command() {
+                    @Override
+                    public void execute() {
+                        invokeTerminateSession();
+                    }
+                });
             }
         };
 
@@ -328,7 +342,13 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             cdm.resetUser();
             musicServer.terminateSession(callback);
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "close your session.", Popup.ERROR_LVL.NORMAL, new Command() {
+                @Override
+                public void execute() {
+                    invokeTerminateSession();
+                }
+            });
         }
     }
 
@@ -408,17 +428,23 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
      * Get user info for a non openid user
      * @param userKey user key
      */
-    private void invokeGetUserSessionInfo(String userKey) {
+    private void invokeGetUserSessionInfo(final String userKey) {
+
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
-
                 ListenerDetails l = (ListenerDetails) result;
                 updatePanelAfterLogin(l);
             }
 
             public void onFailure(Throwable caught) {
-                Window.alert(caught.toString());
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve your session information.", Popup.ERROR_LVL.NORMAL, new DECommand<String>(userKey) {
+                    @Override
+                    public void execute() {
+                        invokeGetUserSessionInfo(data);
+                    }
+                });
                 populateLoginBox();
             }
         };
@@ -427,7 +453,15 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             musicServer.getNonOpenIdLogInDetails(userKey, callback);
         } catch (Exception ex) {
             populateLoginBox();
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve your session information.", Popup.ERROR_LVL.NORMAL, new DECommand<String>(userKey) {
+
+                @Override
+                public void execute() {
+                    invokeGetUserSessionInfo(data);
+                }
+            });
+            populateLoginBox();
         }
     }
 
@@ -441,7 +475,14 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
             public void onSuccess(Object result) {
                 if (result == null) {
-                    Window.alert("Error fetching listener information");
+                    Popup.showErrorPopup("", Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                            "retrieve your session information.", Popup.ERROR_LVL.NORMAL,
+                            new Command() {
+                        @Override
+                        public void execute() {
+                            invokeGetUserSessionInfo();
+                        }
+                    });
                     populateLoginBox();
                 } else {
                     ListenerDetails l = (ListenerDetails) result;
@@ -450,14 +491,26 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             }
 
             public void onFailure(Throwable caught) {
-                Window.alert(caught.toString());
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve your session information.", Popup.ERROR_LVL.NORMAL, new Command() {
+                    @Override
+                    public void execute() {
+                        invokeGetUserSessionInfo();
+                    }
+                });
             }
         };
 
         try {
             musicServer.getLogInDetails(callback);
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve your session information.", Popup.ERROR_LVL.NORMAL, new Command() {
+                @Override
+                public void execute() {
+                    invokeGetUserSessionInfo();
+                }
+            });
         }
     }
 
@@ -506,26 +559,31 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             artistID = artistID.replaceAll("artist:", "");
         }
 
-        AsyncCallback<ArrayList<ScoredC<ArtistCompact>>> callback = new AsyncCallback<ArrayList<ScoredC<ArtistCompact>>>() {
+        AsyncCallback<ArrayList<ScoredC<ArtistCompact>>> callback =
+                new AsyncCallback<ArrayList<ScoredC<ArtistCompact>>>() {
 
             public void onSuccess(ArrayList<ScoredC<ArtistCompact>> aC) {
-                // do some UI stuff to show success
                 if (aC != null) {
                     cdm.updateUpdatableWidgets(aC);
                 } else {
-                    Window.alert("An error occured while fetching the new recommendations.");
+                    Popup.showErrorPopup("Returned list was null.",
+                        Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve the new recommendations.", Popup.ERROR_LVL.NORMAL, null);
                 }
             }
 
             public void onFailure(Throwable caught) {
-                Window.alert("An error occured while fetching the new recommendations.");
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve the new recommendations.", Popup.ERROR_LVL.NORMAL, null);
             }
         };
 
         try {
-            musicServer.getSimilarArtists(artistID, cdm.getCurrSimTypeName(), cdm.getCurrPopularity(), callback);
+            musicServer.getSimilarArtists(artistID, cdm.getCurrSimTypeName(),
+                    cdm.getCurrPopularity(), callback);
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                "retrieve the new recommendations.", Popup.ERROR_LVL.NORMAL, null);
         }
     }
 
@@ -713,7 +771,9 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         @Override
         public void search() {
             if (cdm.getCurrSimTypeName() == null || cdm.getCurrSimTypeName().equals("")) {
-                Window.alert("Error. Cannot search without the similarity types.");
+                Popup.showErrorPopup("", Popup.ERROR_MSG_PREFIX.NONE, 
+                        "Error. Cannot search without the similarity types.", 
+                        Popup.ERROR_LVL.NORMAL, null);
             } else {
                 String query = getSearchBox().getText().toLowerCase();
                 searchTypes currST = getSearchType();

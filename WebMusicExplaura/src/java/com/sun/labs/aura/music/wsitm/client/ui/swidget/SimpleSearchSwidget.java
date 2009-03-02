@@ -87,7 +87,9 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             initWidget(getWidget());
             showResults(History.getToken());
         } catch (Exception e) {
-            Window.alert("Server problem. Please try again later.");
+            Popup.showErrorPopup(e, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "Server problem. Please try again later.",
+                    Popup.ERROR_LVL.CRITICAL, null);
         }
     }
 
@@ -322,20 +324,18 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             }
 
             public void onFailure(Throwable caught) {
-                failureAction(caught);
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "perform tag search.", Popup.ERROR_LVL.NORMAL, null);
             }
         };
 
         showMessage("Searching for " + searchText,WebLib.ICON_WAIT);
 
-        // (4) Make the call. Control flow will continue immediately and later
-        // 'callback' will be invoked when the RPC completes.
-        //
-        //  Provide your own name.
         try {
             musicServer.tagSearch(searchText, 100, callback);
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                "perform tag search.", Popup.ERROR_LVL.NORMAL, null);
         }
     }
 
@@ -364,7 +364,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                     }
                 } else {
                     if (sr == null) {
-                        showError("Error. Can't find tag specified.");
+                        showError("Error. Can't find artist specified.");
                         clearResults();
                     } else {
                         showError("Very Whooops " + sr.getStatus());
@@ -374,7 +374,8 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             }
 
             public void onFailure(Throwable caught) {
-                failureAction(caught);
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "perform artist search.", Popup.ERROR_LVL.NORMAL, null);
             }
         };
 
@@ -388,13 +389,10 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                 Popup.showInformationPopup("Error. Invalid search type.");
             }
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
-        }
-    }
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "perform search.", Popup.ERROR_LVL.NORMAL, null);
 
-    private void failureAction(Throwable caught) {
-        Window.alert("Whoops! It looks like the server is down. Time to get a spot of tea.");
-        showMessage(caught.getMessage());
+        }
     }
 
     private void invokeGetArtistInfo(String artistID, boolean refresh) {
@@ -439,7 +437,8 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
 
                 public void onFailure(Throwable caught) {
                     PerformanceTimer.stop("getArtistDetails");
-                    failureAction(caught);
+                    Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                            "retrieve artist details.", Popup.ERROR_LVL.NORMAL, null);
                     PerformanceTimer.stop("invokeGetArtistInfo");
                 }
             };
@@ -451,7 +450,8 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                 musicServer.getArtistDetails(artistID, refresh, cdm.getCurrSimTypeName(), 
                         cdm.getCurrPopularity(), callback);
             } catch (Exception ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve artist details.", Popup.ERROR_LVL.NORMAL, null);
             }
         }
     }
@@ -479,7 +479,8 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             }
 
             public void onFailure(Throwable caught) {
-                failureAction(caught);
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve tag details.", Popup.ERROR_LVL.NORMAL, null);
             }
         };
 
@@ -488,7 +489,8 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         try {
             musicServer.getTagDetails(tagID.substring(tagID.indexOf(":")+1), refresh, cdm.getCurrSimTypeName(), callback);
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                "retrieve tag details.", Popup.ERROR_LVL.NORMAL, null);
         }
     }
 
@@ -1000,7 +1002,8 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
 
         @Override
         public void openDiffPopup(DiffButton diff) {
-            Window.alert("Not implemented");
+            Popup.showErrorPopup("", Popup.ERROR_MSG_PREFIX.NONE,
+                "This feature is not yet implemented.", Popup.ERROR_LVL.SILENT, null);
         }
         
     }
@@ -1357,6 +1360,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             if (artistID.startsWith("artist:")) {
                 artistID = artistID.replaceAll("artist:", "");
             }
+            final String fArtistID = artistID;
 
             AsyncCallback<ArrayList<ScoredC<ArtistCompact>>> callback = new AsyncCallback<ArrayList<ScoredC<ArtistCompact>>>() {
 
@@ -1365,19 +1369,37 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                     if (aC != null) {
                         cdm.updateUpdatableWidgets(aC);
                     } else {
-                        Window.alert("An error occured while fetching the new recommendations.");
+                        Popup.showErrorPopup("Returned list was null.", Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                "retrieve the new recommendations.", Popup.ERROR_LVL.NORMAL, new DECommand<String>(fArtistID) {
+                            @Override
+                            public void execute() {
+                                invokeGetArtistInfo(data);
+                            }
+                        });
                     }
                 }
 
                 public void onFailure(Throwable caught) {
-                    Window.alert("An error occured while fetching the new recommendations.");
+                    Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                            "retrieve the new recommendations.", Popup.ERROR_LVL.NORMAL, new DECommand<String>(fArtistID) {
+                        @Override
+                        public void execute() {
+                            invokeGetArtistInfo(data);
+                        }
+                    });
                 }
             };
 
             try {
                 musicServer.getSimilarArtists(artistID, cdm.getCurrSimTypeName(), cdm.getCurrPopularity(), callback);
             } catch (Exception ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve the new recommendations.", Popup.ERROR_LVL.NORMAL, new DECommand<String>(fArtistID) {
+                    @Override
+                    public void execute() {
+                        invokeGetArtistInfo(data);
+                    }
+                });
             }
         }
     };

@@ -5,17 +5,18 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -34,9 +35,8 @@ public class ServerInfoSwidget extends Swidget {
 
         Label update = new Label("Update");
         update.addStyleName("pointer");
-        update.addClickListener(new ClickListener() {
-
-            public void onClick(Widget arg0) {
+        update.addClickHandler(new ClickHandler() {
+            public void onClick(ClickEvent ce) {
                 g.setWidget(1, 0, WebLib.getLoadingBarWidget());
                 invokeGetServerInfo();
             }
@@ -82,7 +82,8 @@ public class ServerInfoSwidget extends Swidget {
         try {
             musicServer.getServerInfo(callback);
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve server info.", Popup.ERROR_LVL.NORMAL, null);
         }
     }
 

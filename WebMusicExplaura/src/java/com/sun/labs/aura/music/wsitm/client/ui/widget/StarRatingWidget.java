@@ -169,7 +169,8 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
             }
 
             public void onFailure(Throwable caught) {
-                Window.alert("Unable to save your rating for artistID "+artistID);
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "save your rating for artist " + artistID + ".", Popup.ERROR_LVL.NORMAL, null);
                 nbrSelectedStars = oldNbrSelectedStars;
                 redrawStars();
             }
@@ -182,7 +183,8 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
         try {
             musicServer.updateUserSongRating(index + 1, artistID, callback);
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "save your rating for artist " + artistID + ".", Popup.ERROR_LVL.NORMAL, null);
         }
 
     }
@@ -222,7 +224,8 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
             }
 
             public void onFailure(Throwable caught) {
-                Window.alert("Error fetching rating.");
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve your rating.", Popup.ERROR_LVL.NORMAL, null);
             }
         };
 
@@ -231,7 +234,8 @@ public class StarRatingWidget extends Composite implements RatingListener, Login
             try {
                 musicServer.fetchUserSongRating(artistID, callback);
             } catch (WebException ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve your rating.", Popup.ERROR_LVL.NORMAL, null);
             }
         } else {
             callback.onSuccess(rating);

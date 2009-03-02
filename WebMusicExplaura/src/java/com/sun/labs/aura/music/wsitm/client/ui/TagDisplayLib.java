@@ -268,7 +268,8 @@ public abstract class TagDisplayLib {
         try {
             musicServer.getCommonTags(artistID1, artistID2, 30, cdm.getCurrSimTypeName(), callback);
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                "retrieve common tags.", Popup.ERROR_LVL.NORMAL, null);
         }
     }
 
@@ -278,7 +279,8 @@ public abstract class TagDisplayLib {
         try {
             musicServer.getCommonTags(tagMap, artistID, 30, callback);
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve common tags.", Popup.ERROR_LVL.NORMAL, null);
         }
     }
 }

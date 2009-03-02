@@ -232,4 +232,12 @@ public abstract class WebLib {
           $wnd.pageTracker._trackPageview(page);
 }-*/;
 
+    public static String traceToString(Throwable e) {
+        String trace = "\n"+e.getClass()+"\n";
+        for (StackTraceElement s : e.getStackTrace()) {
+            trace += "    at  " + s + "\n";
+        }
+        return trace;
+    }
+
 }

@@ -10,9 +10,7 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.Window;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
-import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.ArtistDependentSharedMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuSpannedLabel;
@@ -41,12 +39,8 @@ public class ContextMenuArtistLabel extends ContextMenuSpannedLabel {
     @Override
     public void onBrowserEvent(Event event) {
         if (event.getTypeInt() == Event.ONCONTEXTMENU) {
-            try {
-                DOM.eventPreventDefault(event);
-                ((ArtistDependentSharedMenu) cm).showAt(event, aC);
-            } catch (WebException ex) {
-                Window.alert(ex.toString());
-            }
+            DOM.eventPreventDefault(event);
+            ((ArtistDependentSharedMenu) cm).showAt(event, aC);
         } else {
             super.onBrowserEvent(event);
         }
