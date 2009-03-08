@@ -8,6 +8,7 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
@@ -50,6 +51,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib.TagColorType;
+import com.sun.labs.aura.music.wsitm.client.ui.bundles.ArtistRelatedBundle;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
@@ -63,6 +65,9 @@ import org.adamtacy.client.ui.effects.impl.Fade;
  * @author plamere
  */
 public class SimpleSearchSwidget extends Swidget implements HasListeners {
+
+    public static ArtistRelatedBundle playImgBundle =
+            (ArtistRelatedBundle) GWT.create(ArtistRelatedBundle.class);
 
     private Widget curResult;
     private String curResultToken = "";
@@ -1049,7 +1054,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             topPanel.setWidth("100%");
             topPanel.setCellPadding(4);
 
-            Image prev = new Image("Prev_Button.jpg");
+            Image prev = playImgBundle.scrollWidgetPrev().createImage();
             prev.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent ce) {
@@ -1057,7 +1062,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                 }
             });
 
-            Image next = new Image("Next_Button.jpg");
+            Image next = playImgBundle.scrollWidgetNext().createImage();
             next.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent ce) {

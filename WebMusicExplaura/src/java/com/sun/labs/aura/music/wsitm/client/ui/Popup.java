@@ -283,13 +283,14 @@ public abstract class Popup {
 
     public static PopupPanel showLoadingPopup() {
         HorizontalPanel hP = new HorizontalPanel();
+        hP.setWidth("175px");
         hP.add(new Image("ajax-ball-t.gif"));
         Label l = new Label("Loading...");
         l.addStyleName("tagPop2");
         hP.add(l);
         PopupPanel p = getPopupPanel();
-        p.setWidth("130px");
-        showRoundedPopup(hP, "Information", p, 130);
+        p.setWidth("175px");
+        showRoundedPopup(hP, "Information", p, 175);
         return p;
     }
 
