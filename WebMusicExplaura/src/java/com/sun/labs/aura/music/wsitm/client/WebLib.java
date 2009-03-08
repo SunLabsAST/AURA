@@ -16,9 +16,11 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.agentspecific.impl.CssDefsImpl;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 
 /**
  *
@@ -95,7 +97,7 @@ public abstract class WebLib {
     }
     
     public static Widget getListenWidget(final TagDetails tagDetails) {
-        Image image = new Image("play-lastfm-30.png");
+        Image image = PlayButton.playImgBundle.playLastfm30().createImage();
         image.setTitle("Play music like " + tagDetails.getName() + " at last.fm");
         image.setStyleName("pointer");
         image.addClickHandler(new ClickHandler() {
@@ -112,7 +114,7 @@ public abstract class WebLib {
         tagName = tagName.replaceAll("\\s+", "%20");
         //String link = "http://www.last.fm/webclient/popup/?radioURL=" + "lastfm://globaltags/TAG_REPLACE_ME/&resourceID=undefined" + "&resourceType=undefined&viral=true";
         //return link.replaceAll("TAG_REPLACE_ME", tagName);
-        String link = "MusicPlayer?type=tag&name=" + tagName;
+        String link = CssDefsImpl.impl.getLastFmRadioPrefix()+"MusicPlayer?type=tag&name=" + tagName;
         return link;
     }
 

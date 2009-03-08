@@ -42,7 +42,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.bundles.ArtistRelatedBundle;
 public class PlayButton extends Composite implements MusicProviderSwitchListener, 
         SourcesClickEvents, SourcesRightClickEvents, HasContextMenu {
 
-    private static ArtistRelatedBundle playImgBundle = (ArtistRelatedBundle) GWT.create(ArtistRelatedBundle.class);
+    public static ArtistRelatedBundle playImgBundle = (ArtistRelatedBundle) GWT.create(ArtistRelatedBundle.class);
 
     private static SharedPlayButtonMenu cm;
     private MusicSearchInterfaceAsync musicServer;
