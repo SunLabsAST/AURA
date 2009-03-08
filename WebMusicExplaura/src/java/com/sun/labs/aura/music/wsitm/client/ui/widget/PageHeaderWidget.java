@@ -249,7 +249,8 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
                 new AsyncCallback<HashMap<String, String>>() {
 
             public void onFailure(Throwable arg0) {
-                Popup.showInformationPopup("Error fetching similarity types. ("+arg0.getMessage()+")");
+                Popup.showErrorPopup(arg0, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve the similarity types.", Popup.ERROR_LVL.NORMAL, null);
             }
 
             public void onSuccess(HashMap<String, String> arg0) {
