@@ -13,11 +13,13 @@ import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.DeletableWidget;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.ImageBundle;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.sun.labs.aura.music.wsitm.client.event.DEMouseMoveHandler;
@@ -26,7 +28,6 @@ import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.WrapsCloudItem;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
-import com.sun.labs.aura.music.wsitm.client.ui.bundles.SteeringMeterBundle;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,8 +39,8 @@ import java.util.HashMap;
  */
 public class TagMeterWidget extends TagWidget {
 
-    protected static SteeringMeterBundle meterImgBundle =
-            (SteeringMeterBundle) GWT.create(SteeringMeterBundle.class);
+    protected static TagMeterBundle meterImgBundle =
+            (TagMeterBundle) GWT.create(TagMeterBundle.class);
 
     private final static int MAX_TAG_VALUE = CloudItemMeter.GREEN_WIDTH;
     private final static int DEFAULT_TAG_VALUE = MAX_TAG_VALUE / 2;
@@ -396,5 +397,17 @@ public class TagMeterWidget extends TagWidget {
             */
             removeItem(i.getId());
         }
+    }
+
+    public interface TagMeterBundle extends ImageBundle {
+
+        @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/meter-stick-hover.jpg")
+        public AbstractImagePrototype meterStickHover();
+
+        @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/meter-stick-off.jpg")
+        public AbstractImagePrototype meterStickOff();
+
+        @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/meter-stick-on.jpg")
+        public AbstractImagePrototype meterStickOn();
     }
 }
