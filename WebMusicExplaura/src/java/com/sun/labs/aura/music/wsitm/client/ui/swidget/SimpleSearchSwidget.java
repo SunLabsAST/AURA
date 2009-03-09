@@ -71,6 +71,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
 
     private Widget curResult;
     private String curResultToken = "";
+    private String curPageTitle = "";
 
     private DockPanel mainPanel;
     private Label message;
@@ -293,8 +294,16 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         // Only update results if the history token is different than the
         // currently loaded page
         if (!curResultToken.equals(historyToken)) {
+            updateWindowTitleLocal("");
             showResults(historyToken);
+        } else {
+            updateWindowTitleLocal(curPageTitle);
         }
+    }
+
+    private void updateWindowTitleLocal(String title) {
+        curPageTitle = title;
+        updateWindowTitle(title);
     }
 
     private void invokeTagSearchService(String searchText, int page) {
@@ -334,6 +343,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             }
         };
 
+        updateWindowTitleLocal("Tag search");
         showMessage("Searching for " + searchText,WebLib.ICON_WAIT);
 
         try {
@@ -384,6 +394,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             }
         };
 
+        updateWindowTitleLocal("Artist search");
         showMessage("Searching for " + searchText,WebLib.ICON_WAIT);
         try {
             if (sT == searchTypes.SEARCH_FOR_ARTIST_BY_TAG) {
@@ -512,7 +523,9 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
     }
 
     private Widget createArtistPanel(ArtistDetails artistDetails) {
+
         ArtistCompact aC = artistDetails.toArtistCompact();
+        updateWindowTitleLocal(aC.getName());
 
         VerticalPanel main = new VerticalPanel();
         main.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
@@ -592,6 +605,8 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
     }
 
     private Widget createTagPanel(TagDetails tagDetails) {
+
+        updateWindowTitleLocal(tagDetails.getName()+" tag");
 
         VerticalPanel main = new VerticalPanel();
         main.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);

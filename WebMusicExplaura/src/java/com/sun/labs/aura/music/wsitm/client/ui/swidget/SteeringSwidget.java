@@ -17,7 +17,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
@@ -98,6 +97,7 @@ public class SteeringSwidget extends Swidget {
 
     @Override
     public void update(String historyToken) {
+        updateWindowTitle("Steerable recommendations");
         if (historyToken.startsWith("steering:")) {
             //
             // Only reset if artist id is in querystring and we aksed

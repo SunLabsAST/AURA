@@ -71,18 +71,22 @@ public class ProfileSwidget extends Swidget implements LoginListener {
         }
     }
 
+    @Override
     public void doRemoveListeners() {
         onDelete();
     }
 
+    @Override
     public void onLogin(ListenerDetails lD) {
         update("");
     }
 
+    @Override
     public void onLogout() {
         update("");
     }
 
+    @Override
     public void onDelete() {
         cdm.getLoginListenerManager().removeListener(this);
     }

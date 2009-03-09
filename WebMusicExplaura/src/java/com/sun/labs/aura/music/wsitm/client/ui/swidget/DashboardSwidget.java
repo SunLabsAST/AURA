@@ -21,7 +21,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.CompactArtistWidget;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Random;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
@@ -116,6 +115,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
 
     @Override
     public void update(String historyToken) {
+        updateWindowTitle("Dashboard");
         if (cdm.isLoggedIn()) {
             if (mP == null) {
                 mP = new MainPanel();
