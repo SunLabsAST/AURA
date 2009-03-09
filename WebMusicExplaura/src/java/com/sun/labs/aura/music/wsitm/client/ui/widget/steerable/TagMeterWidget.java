@@ -225,6 +225,8 @@ public class TagMeterWidget extends TagWidget {
                     redrawMeter();
                 }
             });
+
+            // Handle hover events
             fP.addMouseMoveHandler(new DEMouseMoveHandler<CloudItem>(item) {
                 @Override
                 public void onMouseMove(MouseMoveEvent event) {
@@ -242,7 +244,6 @@ public class TagMeterWidget extends TagWidget {
                         }
                     // We are hovering over the green section
                     } else if (y <= GREEN_WIDTH) {
-                        swapStickButton(STICK_METER_OFF);
                         if (data.getWeight() <= RED_WIDTH) {
                             redMeter.setUrlAndVisibleRect(METER_ON, 0, 0, RED_WIDTH, METER_HEIGHT);
                         } else {
@@ -276,6 +277,8 @@ public class TagMeterWidget extends TagWidget {
                     }
                 }
             });
+
+            // Handle click events
             fP.addMouseUpHandler(new DEMouseUpHandler<CloudItem>(item) {
                 @Override
                 public void onMouseUp(MouseUpEvent event) {
@@ -289,7 +292,10 @@ public class TagMeterWidget extends TagWidget {
                             data.setWeight(DEFAULT_TAG_VALUE);
                         }
                     } else {
-                        data.setSticky(false);
+                        // Only remove sticky if we click in the red zone
+                        if (newWeight <= RED_WIDTH) {
+                            data.setSticky(false);
+                        }
                         data.setWeight(newWeight);
                     }
                     redrawMeter();
