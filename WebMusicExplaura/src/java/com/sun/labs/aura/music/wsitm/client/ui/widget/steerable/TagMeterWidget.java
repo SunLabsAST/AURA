@@ -4,6 +4,7 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.widget.steerable;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.MouseMoveEvent;
 import com.google.gwt.event.dom.client.MouseOutEvent;
 import com.google.gwt.event.dom.client.MouseOutHandler;
@@ -25,6 +26,7 @@ import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.WrapsCloudItem;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
+import com.sun.labs.aura.music.wsitm.client.ui.bundles.SteeringMeterBundle;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,6 +37,9 @@ import java.util.HashMap;
  * @author mailletf
  */
 public class TagMeterWidget extends TagWidget {
+
+    protected static SteeringMeterBundle meterImgBundle =
+            (SteeringMeterBundle) GWT.create(SteeringMeterBundle.class);
 
     private final static int MAX_TAG_VALUE = CloudItemMeter.GREEN_WIDTH;
     private final static int DEFAULT_TAG_VALUE = MAX_TAG_VALUE / 2;
@@ -168,9 +173,10 @@ public class TagMeterWidget extends TagWidget {
         private static final String METER_OFF = "meter-off.jpg";
         private static final String METER_ON = "meter-on.jpg";
         private static final String METER_HOVER = "meter-hover.jpg";
-        private static final String STICK_METER_HOVER = "meter-stick-hover.jpg";
-        private static final String STICK_METER_OFF = "meter-stick-off.jpg";
-        private static final String STICK_METER_ON = "meter-stick-on.jpg";
+
+        private final Image STICK_METER_HOVER = meterImgBundle.meterStickHover().createImage();
+        private final Image STICK_METER_OFF = meterImgBundle.meterStickOff().createImage();
+        private final Image STICK_METER_ON = meterImgBundle.meterStickOn().createImage();
 
         private CloudItem item;
         private Grid mainPanel;
@@ -181,7 +187,8 @@ public class TagMeterWidget extends TagWidget {
         private Image greenMeterHover;
         private Image greenMeterLeft;
         private Image greenMeterRight;
-        private Image stickMeter;
+
+        private HorizontalPanel meterHp;
 
         private CloudItemMeter(CloudItem item) {
             this.item = item;
@@ -201,14 +208,15 @@ public class TagMeterWidget extends TagWidget {
             greenMeterHover = new Image(METER_HOVER);
             greenMeterLeft = new Image(METER_ON);
             greenMeterRight = new Image(METER_OFF);
-            stickMeter = new Image(STICK_METER_OFF);
-            HorizontalPanel hP = new HorizontalPanel();
-            hP.add(redMeter);
-            hP.add(greenMeterHover);
-            hP.add(greenMeterLeft);
-            hP.add(greenMeterRight);
-            hP.add(stickMeter);
-            fP.add(hP);
+            //stickMeter = meterImgBundle.meterStickOff().createImage();
+            
+            meterHp = new HorizontalPanel();
+            meterHp.add(redMeter);
+            meterHp.add(greenMeterHover);
+            meterHp.add(greenMeterLeft);
+            meterHp.add(greenMeterRight);
+            meterHp.add(STICK_METER_OFF);
+            fP.add(meterHp);
 
             fP.getElement().setAttribute("style", "margin-right: 40px");
             fP.addMouseOutHandler(new MouseOutHandler() {
@@ -223,7 +231,7 @@ public class TagMeterWidget extends TagWidget {
                     int y = event.getRelativeX(fP.getElement());
                     // We are hovering over the red section
                     if (y <= RED_WIDTH) {
-                        stickMeter.setUrl(STICK_METER_OFF);
+                        swapStickButton(STICK_METER_OFF);
                         redMeter.setUrlAndVisibleRect(METER_HOVER, 0, 0, RED_WIDTH, METER_HEIGHT);
                         if (data.getWeight() > RED_WIDTH) {
                             greenMeterLeft.setVisibleRect(RED_WIDTH, 0, (int)data.getWeight() - RED_WIDTH, METER_HEIGHT);
@@ -234,7 +242,7 @@ public class TagMeterWidget extends TagWidget {
                         }
                     // We are hovering over the green section
                     } else if (y <= GREEN_WIDTH) {
-                        stickMeter.setUrl(STICK_METER_OFF);
+                        swapStickButton(STICK_METER_OFF);
                         if (data.getWeight() <= RED_WIDTH) {
                             redMeter.setUrlAndVisibleRect(METER_ON, 0, 0, RED_WIDTH, METER_HEIGHT);
                         } else {
@@ -264,7 +272,7 @@ public class TagMeterWidget extends TagWidget {
                         greenMeterHover.setVisibleRect(0, 0, 0, METER_HEIGHT);
                         greenMeterLeft.setUrlAndVisibleRect(METER_ON, RED_WIDTH, 0, w - RED_WIDTH, METER_HEIGHT);
                         greenMeterRight.setUrlAndVisibleRect(METER_OFF, w, 0, GREEN_WIDTH - w, METER_HEIGHT);
-                        stickMeter.setUrl(STICK_METER_HOVER);
+                        swapStickButton(STICK_METER_HOVER);
                     }
                 }
             });
@@ -302,6 +310,16 @@ public class TagMeterWidget extends TagWidget {
             redrawMeter();
         }
 
+        /**
+         * Removes the last widget in the meter horizontal pannel and replaces it
+         * by the passed widget
+         * @param newButton Widget to add to meter
+         */
+        private void swapStickButton(Image newButton) {
+            meterHp.remove(4);
+            meterHp.add(newButton);
+        }
+
         private void redrawMeter() {
             // If we have a positive weight
             if (item.getWeight() > RED_WIDTH) {
@@ -310,16 +328,16 @@ public class TagMeterWidget extends TagWidget {
                 greenMeterLeft.setUrlAndVisibleRect(METER_ON, RED_WIDTH, 0, (int)item.getWeight() - RED_WIDTH, METER_HEIGHT);
                 greenMeterRight.setUrlAndVisibleRect(METER_OFF, (int)item.getWeight(), 0, GREEN_WIDTH - (int)item.getWeight(), METER_HEIGHT);
                 if (item.isSticky()) {
-                    stickMeter.setUrl(STICK_METER_ON);
+                    swapStickButton(STICK_METER_ON);
                 } else {
-                    stickMeter.setUrl(STICK_METER_OFF);
+                    swapStickButton(STICK_METER_OFF);
                 }
             } else {
                 redMeter.setUrlAndVisibleRect(METER_ON, 0, 0, RED_WIDTH, METER_HEIGHT);
                 greenMeterHover.setVisibleRect(0, 0, 0, METER_HEIGHT);
                 greenMeterLeft.setUrlAndVisibleRect(METER_ON, 0, 0, 0, METER_HEIGHT);
                 greenMeterRight.setUrlAndVisibleRect(METER_OFF, RED_WIDTH, 0, GREEN_WIDTH - RED_WIDTH, METER_HEIGHT);
-                stickMeter.setUrl(STICK_METER_OFF);
+                swapStickButton(STICK_METER_OFF);
             }
             dTag.updateColor();
         }
