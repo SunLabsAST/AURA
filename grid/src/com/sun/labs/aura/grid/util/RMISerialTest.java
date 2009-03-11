@@ -2,148 +2,104 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.sun.labs.aura.grid.util;
 
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.impl.Replicant;
-import com.sun.labs.aura.util.AuraException;
-import com.sun.labs.aura.util.ReverseScoredComparator;
 import com.sun.labs.aura.util.Scored;
-import com.sun.labs.minion.util.NanoWatch;
-import com.sun.labs.util.props.Component;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
-import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
+import java.util.logging.Level;
 
 /**
  *
  */
 public class RMISerialTest extends RMIParallelTest {
-    
+
     //
     // Set up the data.
     public RMISerialTest() {
         super();
     }
-    
+
     @Override
     public String serviceName() {
         return "RMITest";
     }
-    
-    private void display(List<Scored<Item>> l) {
-        if(l == null) {
-            logger.info("No list!");
-            return;
-        }
-        logger.info("Got " + l.size() + " items");
-    }
-    
+
     protected List<Scored<Item>> runGet() {
         List<Scored<Item>> ret = new ArrayList<Scored<Item>>();
-        NanoWatch nw = new NanoWatch();
-        nw.start();
-        int nr = 0;
-        for(Map.Entry<Replicant,List<Scored<String>>> e : repMap.entrySet()) {
-            NanoWatch rnw = new NanoWatch();
-            Replicant r = e.getKey(); 
+        getTime.start();
+        List<Getter> callers = new ArrayList();
+        for(Map.Entry<Replicant, List<Scored<String>>> e : repMap.entrySet()) {
             try {
-                String prefix = r.getPrefix().toString();
-                rnw.start();
-                logger.info(String.format("gIs %s call", prefix));
-                List<Scored<Item>> l = r.getScoredItems(e.getValue());
-                rnw.stop();
-                double overhead = l.size() > 0 ? (rnw.getTimeMillis() -
-                        l.get(0).time) : 0;
-                logger.info(String.format("gIs %s serial return overhead: %.3fms",
-                        prefix,
-                        overhead));
-                ret.addAll(l);
-            } catch(RemoteException rx) {
-                logger.severe("Remote exception: " + rx);
-            } catch (AuraException ax) {
-                logger.severe("Aura exception: " + ax);
-            }
-            if(++nr > numReps) {
-                break;
+                Getter g = new Getter(e.getKey(), e.getValue());
+                g.call();
+                callers.add(g);
+            } catch(Exception ex) {
+                logger.log(Level.SEVERE, "Error getting", ex);
             }
         }
-        Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
-        nw.stop();
-        logger.info(String.format("Serial get items took %.3f",
-                nw.getTimeMillis()));
+
+        getTime.stop();
+        logger.info(String.format(" get took %.3f",
+                getTime.getLastTimeMillis()));
+        double max = 0;
+        double maxRep = 0;
+        double maxOH = 0;
+        StringBuilder sb = new StringBuilder();
+        for(Getter g : callers) {
+            sb.append(String.format(" %s took %.3f oh %.3f",
+                    g.prefix, g.nw.getTimeMillis(), g.overhead));
+            max = Math.max(max, g.nw.getTimeMillis());
+            maxRep = Math.max(maxRep, g.repTime);
+            maxOH = Math.max(maxOH, g.overhead);
+        }
+        logger.info(sb.toString());
+        logger.info(String.format(" max: %.3f maxRep: %.3f maxOH: %.3f %.3f",
+                max, maxRep, maxOH, getTime.getLastTimeMillis() - maxRep));
         return ret;
     }
 
-    public void start() {
-        for(int i = 0; i < runs; i++) {
-            logger.info("Run " + (i+1));
-            List<Scored<Item>> items = runGet();
-            display(items);
-        }
-    }
+    protected List<Scored<String>> runFindSimilar() {
+        fsTime.start();
+        List<Scored<String>> ret = new ArrayList();
+        List<FindSimilarer> callers = new ArrayList();
+        for(Replicant r : repMap.keySet()) {
+            try {
+            FindSimilarer fs = new FindSimilarer(r, dv);
+            ret.addAll(fs.call());
+            callers.add(fs);
+            } catch (Exception ex) {
+                logger.log(Level.SEVERE, "Error running fs", ex);
+            }
 
-    public void stop() {
+        }
+        fsTime.stop();
+        logger.info(String.format(" fs took %.3f",
+                fsTime.getLastTimeMillis()));
+        double max = 0;
+        double maxRep = 0;
+        double maxOH = 0;
+        StringBuilder sb = new StringBuilder();
+        for(FindSimilarer fs : callers) {
+            sb.append(String.format(" %s took %.3f oh %.3f",
+                    fs.prefix, fs.nw.getTimeMillis(), fs.overhead));
+            max = Math.max(max, fs.nw.getTimeMillis());
+            maxRep = Math.max(maxRep, fs.repTime);
+            maxOH = Math.max(maxOH, fs.overhead);
+        }
+        logger.info(sb.toString());
+        logger.info(String.format(" max: %.3f maxRep: %.3f maxOH: %.3f %.3f",
+                max, maxRep, maxOH, fsTime.getLastTimeMillis() - maxRep));
+        return ret;
     }
 
     @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
-        List<Component> components = cm.lookupAll(com.sun.labs.aura.datastore.impl.Replicant.class, null);
-        runs = ps.getInt(PROP_RUNS);
-        repMap = new HashMap();
-        for(Map.Entry<String,List<Scored<String>>> e : m.entrySet()) {
-            for(Component c : components) {
-                Replicant rep = (Replicant) c;
-                try {
-                    String prefix = rep.getPrefix().toString();
-                    if(prefix.equals(e.getKey())) {
-                        repMap.put(rep, e.getValue());
-                        break;
-                    }
-                } catch (RemoteException rx) {
-                    
-                }
-            }
-        }
     }
-    
-    class Getter implements Callable<List<Scored<Item>>> {
-        
-        private Replicant r;
-        private List<Scored<String>> keys;
-        
-        private String prefix;
-        
-        public Getter(List<Scored<String>> keys, Replicant r) {
-            this.keys = keys;
-            this.r = r;
-            try {
-                prefix = r.getPrefix().toString();
-            } catch (RemoteException rx) {
-                logger.severe("Error getting prefix");
-            }
-        }
-
-        public List<Scored<Item>> call() throws Exception {
-            NanoWatch nw = new NanoWatch();
-            nw.start();
-            logger.info(String.format("gIs %s call", prefix));
-            List<Scored<Item>> l = r.getScoredItems(keys);
-            nw.stop();
-            double overhead = l.size() > 0 ? nw.getTimeMillis() - l.get(0).time : 0;
-            logger.info(String.format("gIs %s return overhead: %.3fms", prefix, overhead));
-           
-            return l;
-        }
-        
-    }
-
 }
