@@ -16,9 +16,11 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.agentspecific.impl.CssDefsImpl;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 
 /**
  *
@@ -95,7 +97,7 @@ public abstract class WebLib {
     }
     
     public static Widget getListenWidget(final TagDetails tagDetails) {
-        Image image = new Image("play-lastfm-30.png");
+        Image image = PlayButton.playImgBundle.playLastfm30().createImage();
         image.setTitle("Play music like " + tagDetails.getName() + " at last.fm");
         image.setStyleName("pointer");
         image.addClickHandler(new ClickHandler() {
@@ -112,7 +114,7 @@ public abstract class WebLib {
         tagName = tagName.replaceAll("\\s+", "%20");
         //String link = "http://www.last.fm/webclient/popup/?radioURL=" + "lastfm://globaltags/TAG_REPLACE_ME/&resourceID=undefined" + "&resourceType=undefined&viral=true";
         //return link.replaceAll("TAG_REPLACE_ME", tagName);
-        String link = "MusicPlayer?type=tag&name=" + tagName;
+        String link = CssDefsImpl.impl.getLastFmRadioPrefix()+"MusicPlayer?type=tag&name=" + tagName;
         return link;
     }
 
@@ -202,11 +204,13 @@ public abstract class WebLib {
         left.setStyleName("popLeft");
         left.setWidth(leftWidth + "");
         left.setHeight(height+"px");
+        left.getElement().getStyle().setPropertyPx("fontSize", height-2);
 
         Widget right = new Label("");
         right.setStyleName("popRight");
         right.setWidth(rightWidth + "");
-        left.setHeight(height+"px");
+        right.setHeight(height+"px");
+        right.getElement().getStyle().setPropertyPx("fontSize", height-2);
 
         table.add(left);
         table.add(right);
@@ -229,5 +233,13 @@ public abstract class WebLib {
     public static native void trackPageLoadNative(String page) /*-{
           $wnd.pageTracker._trackPageview(page);
 }-*/;
+
+    public static String traceToString(Throwable e) {
+        String trace = "\n"+e.getClass()+"\n";
+        for (StackTraceElement s : e.getStackTrace()) {
+            trace += "    at  " + s + "\n";
+        }
+        return trace;
+    }
 
 }

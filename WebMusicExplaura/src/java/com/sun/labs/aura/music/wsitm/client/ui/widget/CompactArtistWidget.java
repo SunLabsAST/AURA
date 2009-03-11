@@ -77,6 +77,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         };
 
         //ContextMenuImage img = new MouseOverRollImage(aC);
+        Image.prefetch(aC.getImageURL());   // force image load. Needed for IE
         Image img = new Image(aC.getImageURL());
         if (img == null) {
             img = new Image("nopic.gif");
@@ -190,7 +191,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         artistPanel.setWidth("298px");
         if (backgroundColor != null) {
             artistPanel.getElement().getStyle().setProperty("background", backgroundColor);
-            artistPanel.getElement().getStyle().setProperty("background-color", backgroundColor);
+            artistPanel.getElement().getStyle().setProperty("backgroundColor", backgroundColor);
             RoundedPanel rP = new RoundedPanel(artistPanel);
             rP.setCornerColor(backgroundColor);
             rP.addStyleName("largeMarginBottom");

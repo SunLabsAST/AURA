@@ -36,6 +36,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistPhoto;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistVideo;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.SearchResults;
+import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
@@ -106,7 +107,12 @@ public class DataManager implements Configurable {
 
         //int cacheSize = (int)configMgr.lookup(CACHE_SIZE);
         cache = new ExpiringLRUCache(cacheSize, SEC_TO_LIVE_IN_CACHE);
-        
+
+        if (mdb == null) {
+            Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, "MusicDatabase is null");
+            throw new WebException(WebException.errorMessages.INIT_ERROR);
+        }
+
         this.mdb = mdb;
 
         artistOracle = new ArrayList<ScoredC<String>>();
@@ -129,7 +135,7 @@ public class DataManager implements Configurable {
             beatlesPopularity = mdb.artistLookup(beatlesMDID).getPopularity();
         } catch (AuraException ex) {
             Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
-        } 
+        }
 
         simTypes = new HashMap<String, SimType>();
         for (SimType s : mdb.getSimTypes()) {

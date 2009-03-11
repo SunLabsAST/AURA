@@ -8,6 +8,7 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Grid;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringCIMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.swidget.SteeringSwidget.MainPanel;
 import java.util.HashMap;
@@ -42,7 +43,8 @@ public class TagWidgetContainer extends TagWidget {
     public void init(TagWidget tW) {
 
         if (isInit) {
-            Window.alert("Can only init TagWidgetContainer once!");
+            Popup.showErrorPopup("", Popup.ERROR_MSG_PREFIX.NONE,
+                    "Can only init TagWidgetContainer once!", Popup.ERROR_LVL.NORMAL, null);
         }
 
         isInit = true;

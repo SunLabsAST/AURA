@@ -5,10 +5,10 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 
+import com.sun.labs.aura.music.wsitm.client.DECommand;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.event.LoginListener;
 import com.sun.labs.aura.music.wsitm.client.*;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
@@ -71,18 +71,22 @@ public class ProfileSwidget extends Swidget implements LoginListener {
         }
     }
 
+    @Override
     public void doRemoveListeners() {
         onDelete();
     }
 
+    @Override
     public void onLogin(ListenerDetails lD) {
         update("");
     }
 
+    @Override
     public void onLogout() {
         update("");
     }
 
+    @Override
     public void onDelete() {
         cdm.getLoginListenerManager().removeListener(this);
     }
@@ -145,7 +149,7 @@ public class ProfileSwidget extends Swidget implements LoginListener {
 
     }
 
-    private void invokeUpdateListener(ListenerDetails lD) {
+    private void invokeUpdateListener(final ListenerDetails lD) {
 
         AsyncCallback callback = new AsyncCallback() {
 
@@ -156,7 +160,14 @@ public class ProfileSwidget extends Swidget implements LoginListener {
             }
 
             public void onFailure(Throwable caught) {
-                Window.alert("Update failed!");
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "update your profile.", Popup.ERROR_LVL.NORMAL,
+                        new DECommand<ListenerDetails>(lD) {
+                    @Override
+                    public void execute() {
+                        invokeUpdateListener(data);
+                    }
+                });
                 loadImage.setVisible(false);
             }
         };
@@ -164,7 +175,14 @@ public class ProfileSwidget extends Swidget implements LoginListener {
         try {
             musicServer.updateListener(lD, callback);
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "update your profile.", Popup.ERROR_LVL.NORMAL,
+                    new DECommand<ListenerDetails>(lD) {
+                        @Override
+                        public void execute() {
+                            invokeUpdateListener(data);
+                        }
+                    });
         }
     }
 

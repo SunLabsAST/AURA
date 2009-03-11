@@ -56,34 +56,19 @@ public interface ArtistRelatedBundle extends ImageBundle {
 
 
     /**
-     * Steering wheel icons
-     */
-/*
-    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/steering-20.gif")
-    public AbstractImagePrototype steering20();
-
-    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/steering-30.gif")
-    public AbstractImagePrototype steering30();
-
-    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/steering-40.gif")
-    public AbstractImagePrototype steering40();
-*/
-    /*
-    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/steering-hover-20.gif")
-    public AbstractImagePrototype steeringHover20();
-
-    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/steering-hover-30.gif")
-    public AbstractImagePrototype steeringHover30();
-
-    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/steering-hover-40.gif")
-    public AbstractImagePrototype steeringHover40();
-    */
-
-    /**
      * Tag icon
      */
     @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/tag25.png")
     public AbstractImagePrototype Tag25();
 
+
+   /**
+     * Tag icon
+     */
+    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/Prev_Button.jpg")
+    public AbstractImagePrototype scrollWidgetPrev();
+
+    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/Next_Button.jpg")
+    public AbstractImagePrototype scrollWidgetNext();
 
 }

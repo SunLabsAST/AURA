@@ -8,6 +8,7 @@ package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.Command;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.event.TaggingListener;
@@ -20,7 +21,6 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.CompactArtistWidget;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Random;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Composite;
@@ -46,6 +46,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib.TagColorType;
 import com.sun.labs.aura.music.wsitm.client.ui.UpdatablePanel;
@@ -114,6 +115,7 @@ public class DashboardSwidget extends Swidget implements LoginListener {
 
     @Override
     public void update(String historyToken) {
+        updateWindowTitle("Dashboard");
         if (cdm.isLoggedIn()) {
             if (mP == null) {
                 mP = new MainPanel();
@@ -343,7 +345,8 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             AsyncCallback callback = new AsyncCallback() {
 
                 public void onFailure(Throwable arg0) {
-                    Window.alert(arg0.toString());
+                    Popup.showErrorPopup(arg0, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                            "retrieve artist details.", Popup.ERROR_LVL.NORMAL, null);
                 }
 
                 public void onSuccess(Object arg0) {
@@ -354,7 +357,8 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             try {
                 musicServer.getArtistCompact(id, callback);
             } catch (WebException ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve artist details.", Popup.ERROR_LVL.NORMAL, null);
             }
         }
 
@@ -372,8 +376,9 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                     new DEAsyncCallback<AttentionType, ArrayList<AttentionItem<ArtistCompact>>>(aT) {
 
                 public void onFailure(Throwable arg0) {
-                    Window.alert(arg0.toString());
-                }
+                            Popup.showErrorPopup(arg0, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                    "retrieve your recent attentions.", Popup.ERROR_LVL.NORMAL, null);
+                        }
 
                 public void onSuccess(ArrayList<AttentionItem<ArtistCompact>> arg0) {
 
@@ -394,7 +399,8 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                     musicServer.getLastTaggedArtists(100, false, callback);
                 }
             } catch (WebException ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve your recent attentions.", Popup.ERROR_LVL.NORMAL, null);
             }
         }
 
@@ -638,7 +644,8 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                     new DEAsyncCallback<AttentionType, ArrayList<AttentionItem<ArtistCompact>>>(aT) {
 
                 public void onFailure(Throwable arg0) {
-                    Window.alert(arg0.toString());
+                    Popup.showErrorPopup(arg0, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                            "retrieve your recent attentions.", Popup.ERROR_LVL.NORMAL, null);
                 }
 
                 public void onSuccess(ArrayList<AttentionItem<ArtistCompact>> arg0) {
@@ -691,7 +698,8 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                     musicServer.getLastTaggedArtists(6, true, callback);
                 }
             } catch (WebException ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve your recent attentions.", Popup.ERROR_LVL.NORMAL, null);
             }
         }
 
@@ -758,7 +766,13 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             AsyncCallback<HashMap<String, String>> callback = new AsyncCallback<HashMap<String, String>>() {
 
                 public void onFailure(Throwable arg0) {
-                    Window.alert(arg0.toString());
+                    Popup.showErrorPopup(arg0, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve the types of recommendation.", Popup.ERROR_LVL.NORMAL, new Command() {
+                        @Override
+                        public void execute() {
+                            invokeFetchRecType();
+                        }
+                    });
                 }
 
                 public void onSuccess(HashMap<String, String> recTypes) {
@@ -766,7 +780,8 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                         cdm.setRecTypes(recTypes);
                         createRecPanel();
                     } else {
-                        Window.alert("Recommendation types are not available.");
+                        Popup.showErrorPopup("Returned list was null.", Popup.ERROR_MSG_PREFIX.NONE,
+                            "Recommendation types are not available.", Popup.ERROR_LVL.NORMAL, null);
                     }
                 }
             };
@@ -780,7 +795,14 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                     new AsyncCallback<ArrayList<ArtistRecommendation>>() {
 
                 public void onFailure(Throwable arg0) {
-                    Window.alert(arg0.toString());
+                    Popup.showErrorPopup(arg0, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                            "retrieve your recommendations.", Popup.ERROR_LVL.NORMAL,
+                            new Command() {
+                        @Override
+                        public void execute() {
+                            invokeFetchRecommendations();
+                        }
+                    });
                 }
 
                 public void onSuccess(ArrayList<ArtistRecommendation> rec) {
@@ -795,7 +817,14 @@ public class DashboardSwidget extends Swidget implements LoginListener {
             try {
                 musicServer.getRecommendations(cdm.getCurrRecTypeName(), 15, callback);
             } catch (WebException ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve your recommendations.", Popup.ERROR_LVL.NORMAL,
+                        new Command() {
+                            @Override
+                            public void execute() {
+                                invokeFetchRecommendations();
+                            }
+                        });
             }
         }
         
@@ -808,7 +837,8 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                 }
 
                 public void onFailure(Throwable caught) {
-                    Window.alert(caught.getMessage());
+                    Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve the featured artists.", Popup.ERROR_LVL.NORMAL, null);
                 }
             };
 
@@ -820,7 +850,9 @@ public class DashboardSwidget extends Swidget implements LoginListener {
                     musicServer.getArtistDetails(aC[itemIndex].getId(), false, cdm.getCurrSimTypeName(), cdm.getCurrPopularity(), callback);
                 }
             } catch (WebException ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve the featured artists.", Popup.ERROR_LVL.NORMAL, null);
+
             }
         }
 

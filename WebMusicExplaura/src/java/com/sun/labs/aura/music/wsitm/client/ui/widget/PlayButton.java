@@ -20,6 +20,7 @@ import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.SourcesClickEvents;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.agentspecific.impl.CssDefsImpl;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.event.MusicProviderSwitchListener;
 import com.sun.labs.aura.music.wsitm.client.event.SourcesRightClickEvents;
@@ -30,6 +31,7 @@ import com.sun.labs.aura.music.wsitm.client.MusicSearchInterfaceAsync;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedPlayButtonMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.bundles.ArtistRelatedBundle;
 
@@ -40,7 +42,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.bundles.ArtistRelatedBundle;
 public class PlayButton extends Composite implements MusicProviderSwitchListener, 
         SourcesClickEvents, SourcesRightClickEvents, HasContextMenu {
 
-    private static ArtistRelatedBundle playImgBundle = (ArtistRelatedBundle) GWT.create(ArtistRelatedBundle.class);
+    public static ArtistRelatedBundle playImgBundle = (ArtistRelatedBundle) GWT.create(ArtistRelatedBundle.class);
 
     private static SharedPlayButtonMenu cm;
     private MusicSearchInterfaceAsync musicServer;
@@ -233,14 +235,16 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
                         AsyncCallback callback = new AsyncCallback() {
                             public void onSuccess(Object result) {}
                             public void onFailure(Throwable caught) {
-                                Window.alert("Unable to add your play attention for artist " + aC + ". " + caught.toString());
+                                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                    "add your play attention for artist " + aC + ".", Popup.ERROR_LVL.NORMAL, null);
                             }
                         };
 
                         try {
                             musicServer.addPlayAttention(aC.getId(), callback);
                         } catch (Exception ex) {
-                            Window.alert(ex.getMessage());
+                                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                    "add your play attention for artist " + aC + ".", Popup.ERROR_LVL.NORMAL, null);
                         }
                     }
                 });
@@ -269,7 +273,7 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
     }
 
     public String getArtistRadioLink() {
-        String link = "MusicPlayer?name=" +aC.getEncodedName();
+        String link = CssDefsImpl.impl.getLastFmRadioPrefix() + "MusicPlayer?name=" +aC.getEncodedName();
         return link;
     }
     
@@ -316,14 +320,16 @@ public class PlayButton extends Composite implements MusicProviderSwitchListener
 
                         public void onSuccess(Object result) {}
                         public void onFailure(Throwable caught) {
-                            Window.alert("Unable to add your play attention for artist " + sndData + ". " + caught.toString());
+                                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                    "add your play attention for artist " + aC + ".", Popup.ERROR_LVL.NORMAL, null);
                         }
                     };
 
                     try {
                         data.addPlayAttention(sndData, callback);
                     } catch (Exception ex) {
-                        Window.alert(ex.getMessage());
+                        Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                "add your play attention for artist " + aC + ".", Popup.ERROR_LVL.NORMAL, null);
                     }
                 }
             });

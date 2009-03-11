@@ -12,6 +12,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.Label;
@@ -66,7 +67,9 @@ public abstract class Swidget extends Composite implements HasListeners {
      * not logged in and still have that cached when he returns and might have
      * logged in.
      */
-    public void update(String historyToken) {}
+    public void update(String historyToken) {
+        updateWindowTitle("");
+    }
 
     /**
      * Returns the swidget's name
@@ -74,6 +77,14 @@ public abstract class Swidget extends Composite implements HasListeners {
      */
     public final String getName() {
         return name;
+    }
+
+    protected final void updateWindowTitle(String swidgetTitle) {
+        if (swidgetTitle!=null && swidgetTitle.length()>0) {
+            Window.setTitle(swidgetTitle+" - The Music Explaura");
+        } else {
+            Window.setTitle("The Music Explaura");
+        }
     }
 
     private final void initRPC() {

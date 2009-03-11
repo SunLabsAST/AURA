@@ -9,10 +9,12 @@
 
 package com.sun.labs.aura.music.wsitm.server;
 
+import com.google.gwt.user.client.rpc.StatusCodeException;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
 import com.sun.labs.aura.music.ArtistTag;
+import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.MusicSearchInterface;
@@ -55,10 +57,21 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     private Logger logger = Logger.getLogger("");
 
     @Override
-    public void init(ServletConfig sc) throws ServletException {
-        logger.info("Init");
-        super.init(sc);
-        dm = ServletTools.getDataManager(sc);
+    public void init(ServletConfig sc) throws WebException {
+        try {
+            logger.info("Init");
+            super.init(sc);
+            dm = ServletTools.getDataManager(sc);
+        } catch (ServletException sE) {
+            logger.severe("ServletException :: "+WebLib.traceToString(sE));
+            throw new WebException(WebException.errorMessages.INIT_ERROR);
+        } catch (StatusCodeException sce) {
+            logger.severe("StatusCodeException :: "+WebLib.traceToString(sce));
+            throw new WebException(WebException.errorMessages.INIT_ERROR);
+        } catch (NullPointerException npe) {
+            logger.severe("NullPointerException :: "+WebLib.traceToString(npe));
+            throw new WebException(WebException.errorMessages.INIT_ERROR);
+        }
     }
 
     @Override
@@ -67,10 +80,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.tagSearch(searchString, maxResults);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -81,10 +94,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.artistSearch(searchString, maxResults);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         } 
     }
@@ -100,10 +113,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             }
             return dm.artistSearchByTag(searchString, maxResults);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }        
     }
@@ -114,10 +127,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getArtistDetails(id, false, simTypeName, popularity);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -130,10 +143,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
                 tagName=ArtistTag.nameToKey(tagName);
             return dm.getTagDetails(tagName, refresh);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -144,10 +157,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getRepresentativeArtistsOfTag(tagId);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -159,10 +172,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getCommonTags(artistID1, artistID2, num, simType);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -202,10 +215,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
 
             return infos.toArray(new ItemInfo[0]);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -273,7 +286,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getCommonTags(tagMap, artistID, num);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         }
     }
@@ -290,14 +303,6 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         }
     }
     
-    private String traceToString(Exception e) {
-        String trace = "\n"+e.getClass()+"\n";
-        for (StackTraceElement s : e.getStackTrace()) {
-            trace += "    at  " + s + "\n";
-        }
-        return trace;
-    }
-
     @Override
     public ArrayList<ScoredC<String>> getArtistOracle() {
         logger.info("getArtistOracle");
@@ -323,10 +328,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             return lD;
             
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -374,10 +379,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             return lD;
 
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -402,10 +407,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             logger.info("addSearchAttention: userKey:'"+userKey+"' search:"+sT.toString()+":"+searchStr+" target:"+target);
             dm.addSearchAttention(userKey, sT.toString()+":"+searchStr , target);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -423,10 +428,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             dm.updateUser(lD);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -440,10 +445,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             dm.updateUserSongRating(userId, rating, artistID);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -457,10 +462,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return new Integer(dm.fetchUserSongRating(userId, artistID));
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -474,10 +479,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.fetchUserSongRating(userId, artistID);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -497,7 +502,7 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getDistinctiveTags(artistID, count);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         }
     }
@@ -514,10 +519,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             logger.info("returning "+aC.size()+" recommendations");
             return aC;
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -533,10 +538,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
                 dm.addUserTagForItem(userId, itemId, s);
             }
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -550,10 +555,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             dm.addItemAttention(userId, artistId, Type.PLAYED);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -567,10 +572,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             dm.addItemAttention(userId, artistId, Type.VIEWED);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -634,10 +639,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             return aI;
 
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -651,10 +656,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.fetchUserTagsForItem(userId, itemId);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -665,10 +670,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getArtistCompact(artistId);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -678,10 +683,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getRandomPopularArtists(nbr);
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -692,10 +697,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getSimilarTags(tagId);
          } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -707,10 +712,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getRecommendations(recTypeName, userId, cnt);
          } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -721,10 +726,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getServerInfo();
          } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
@@ -734,11 +739,16 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
         try {
             return dm.getSimilarArtists(id, dm.stringToSimType(simTypeName), dm.stringToPopularity(popularity));
         } catch (AuraException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(ex.getMessage(), ex);
         } catch (RemoteException ex) {
-            logger.severe(traceToString(ex));
+            logger.severe(WebLib.traceToString(ex));
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
+    }
+
+    @Override
+    public void triggerException() throws WebException {
+        throw new WebException("Throwing a test exception with included NullPointerException", new NullPointerException());
     }
 }

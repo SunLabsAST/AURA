@@ -10,7 +10,7 @@ import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.Cookies;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -23,13 +23,14 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.DisclosurePanel;
 import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.TextBox;
 import com.sun.labs.aura.music.wsitm.agentspecific.impl.CssDefsImpl;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
+import com.sun.labs.aura.music.wsitm.client.WebException;
+import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
-import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 
 /**
  *
@@ -53,9 +54,9 @@ public abstract class Popup {
         Label closeButton = new Label("Close");
         closeButton.setStyleName("clickableLabel");
         closeButton.addStyleName("whiteTxt");
-        closeButton.addClickListener(new ClickListener() {
-
-            public void onClick(Widget sender) {
+        closeButton.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent ce) {
                 popup.hide();
             }
         });
@@ -167,19 +168,129 @@ public abstract class Popup {
         showRoundedPopup(hP, "Information", popup, 600);
     }
 
+    public static enum ERROR_MSG_PREFIX {
+        NONE,
+        ERROR_OCC_WHILE
+
+    }
+
+    /**
+     * Silent errors don't necessarily need to be shown to the user. Could be retried
+     * in the background
+     */
+    public static enum ERROR_LVL {
+        CRITICAL,
+        NORMAL,
+        SILENT
+    }
+
+    public static String errorPrefixToStr(ERROR_MSG_PREFIX errPrefix) {
+        if (errPrefix == ERROR_MSG_PREFIX.ERROR_OCC_WHILE) {
+            return "An error occured while trying to ";
+        } else {
+            return "";
+        }
+    }
+
+    private static HTML formatStack(Throwable t) {
+        String s = t.toString()+"<br />"+WebLib.traceToString(t);
+        s.replaceAll("\n", "<br />");
+
+        if (t.getCause() != null) {
+            HTML cause = formatStack(t.getCause());
+            s += "<br />---- Caused by ----<br />" + cause.getHTML();
+        }
+
+        return new HTML(s);
+    }
+
+    public static void showErrorPopup(Throwable th, ERROR_MSG_PREFIX errPrefix,
+            String mainMsg, ERROR_LVL errorLvl, final Command retryCmd) {
+
+        if (th == null) {
+            showErrorPopup("Exception object is null; details are not available.",
+                    errPrefix, mainMsg, errorLvl, retryCmd);
+        } else {
+            showErrorPopup(formatStack(th), errPrefix, mainMsg, errorLvl, retryCmd);
+        }
+    }
+
+    public static void showErrorPopup(String detailMsg, ERROR_MSG_PREFIX errPrefix,
+            String mainMsg, ERROR_LVL errorLvl, final Command retryCmd) {
+        HTML msg = null;
+        if (detailMsg!=null && detailMsg.length()>0) {
+            msg = new HTML(detailMsg);
+        }
+        showErrorPopup(msg, errPrefix, mainMsg, errorLvl, retryCmd);
+    }
+
+    public static void showErrorPopup(HTML detailMsg, ERROR_MSG_PREFIX errPrefix,
+            String mainMsg, ERROR_LVL errorLvl, final Command retryCmd) {
+
+        PopupPanel popup = getPopupPanel();
+
+        VerticalPanel vP = new VerticalPanel();
+        vP.setSpacing(4);
+        vP.add(new Label(errorPrefixToStr(errPrefix) + mainMsg));
+
+        // If we have details about the exception
+        if (detailMsg != null) {
+            DisclosurePanel dP = new DisclosurePanel("Show details");
+            dP.getHeader().setStyleName("headerMenuTinyItem headerMenuTinyItemC bold");
+            dP.getHeader().getElement().getStyle().setProperty("textDecoration", "none");
+            dP.getHeader().getElement().getStyle().setProperty("border", "none");
+            dP.setAnimationEnabled(true);
+            detailMsg.setStyleName("headerMenuTinyItem headerMenuTinyItemC");
+            dP.setContent(detailMsg);
+            vP.add(dP);
+        }
+
+        vP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+        HorizontalPanel horiButtPanel = new HorizontalPanel();
+
+        // Add retry button if command was passed
+        if (retryCmd != null) {
+            Button retryButton = new Button("Retry");
+            retryButton.addClickHandler(new DEClickHandler<PopupPanel>(popup) {
+                @Override
+                public void onClick(ClickEvent ce) {
+                    data.hide();
+                    retryCmd.execute();
+                }
+            });
+            horiButtPanel.add(retryButton);
+        }
+
+        // Add close button
+        Button b = new Button("OK");
+        b.addClickHandler(new DEClickHandler<PopupPanel>(popup) {
+            @Override
+            public void onClick(ClickEvent ce) {
+                data.hide();
+            }
+        });
+        horiButtPanel.add(b);
+
+        vP.add(horiButtPanel);
+        vP.setWidth("600px");
+        showRoundedPopup(vP, "Oupss!! An exception occured", popup, 600);
+
+    }
+
     public static void showInformationPopup(String message) {
         showInformationPopup(new HTML("<p>"+message+"</p>"), 0, true);
     }
 
     public static PopupPanel showLoadingPopup() {
         HorizontalPanel hP = new HorizontalPanel();
+        hP.setWidth("175px");
         hP.add(new Image("ajax-ball-t.gif"));
         Label l = new Label("Loading...");
         l.addStyleName("tagPop2");
         hP.add(l);
         PopupPanel p = getPopupPanel();
-        p.setWidth("300px");
-        showRoundedPopup(hP, "Information", p, 300);
+        p.setWidth("175px");
+        showRoundedPopup(hP, "Information", p, 175);
         return p;
     }
 
@@ -278,6 +389,7 @@ public abstract class Popup {
         titlePanel.setWidth("100%");
         titlePanel.setStyleName("popupColors");
         titlePanel.addStyleName("popupTitle");
+        Image.prefetch("320px-OpenID_logo.svg.png");    // for ie
         Image openIdImage = new Image("320px-OpenID_logo.svg.png");
         openIdImage.setHeight("60px");
         openIdImage.setWidth("160px");

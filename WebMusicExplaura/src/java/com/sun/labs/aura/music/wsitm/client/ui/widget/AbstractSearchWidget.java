@@ -10,13 +10,13 @@ import com.google.gwt.event.dom.client.KeyPressHandler;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
 import com.sun.labs.aura.music.wsitm.client.*;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.SuggestBox;
 import com.sun.labs.aura.music.wsitm.client.event.DEAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import java.util.ArrayList;
 
 /**
@@ -171,7 +171,7 @@ public abstract class AbstractSearchWidget extends Composite {
         }
     }
 
-    private void invokeOracleFetchService(Oracles type) {
+    private void invokeOracleFetchService(final Oracles type) {
 
         DEAsyncCallback<Oracles, ArrayList<ScoredC<String>>> callback =
                 new DEAsyncCallback<Oracles, ArrayList<ScoredC<String>>>(type) {
@@ -188,7 +188,14 @@ public abstract class AbstractSearchWidget extends Composite {
 
             @Override
             public void onFailure(Throwable caught) {
-                Window.alert(caught.toString());
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "fetch the search oracle.", Popup.ERROR_LVL.NORMAL,
+                        new DECommand<Oracles>(type) {
+                    @Override
+                    public void execute() {
+                        invokeOracleFetchService(type);
+                    }
+                });
             }
         };
 
@@ -213,7 +220,14 @@ public abstract class AbstractSearchWidget extends Composite {
                 }
             }
         } catch (Exception ex) {
-            Window.alert(ex.getMessage());
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "fetch the search oracle.", Popup.ERROR_LVL.NORMAL,
+                    new DECommand<Oracles>(type) {
+                        @Override
+                        public void execute() {
+                            invokeOracleFetchService(type);
+                        }
+                    });
         }
     }
 

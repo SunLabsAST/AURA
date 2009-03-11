@@ -121,20 +121,25 @@ public class ContextMenu {
     public void addSeperator() {
         vP.add(new HTML("<hr>"));
     }
-    
+
     public void showAt(Event e) {
+        showAt(e, 250);
+    }
+
+    public void showAt(Event e, int width) {
         if (vP != null) {
             int x = e.getClientX() + Window.getScrollLeft();
             int y = e.getClientY() + Window.getScrollTop();
             if (newPopup) {
-                Popup.showRoundedPopup(vP, "", pp, x, y, 250);
+                Popup.showRoundedPopup(vP, "", pp, x, y, width);
                 newPopup = false;
             } else {
                 pp.setPopupPosition(x, y);
                 pp.show();
             }
         } else {
-            Popup.showInformationPopup("Error. Contextmenu is empty.");
+            Popup.showErrorPopup("", Popup.ERROR_MSG_PREFIX.NONE,
+                    "Error. Contextmenu is empty.", Popup.ERROR_LVL.NORMAL, null);
         }
     }
     

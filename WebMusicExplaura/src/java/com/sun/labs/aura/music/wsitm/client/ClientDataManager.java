@@ -24,6 +24,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedArtistMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedPlayButtonMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedSteeringMenu;
@@ -41,6 +42,8 @@ import java.util.LinkedList;
  * @author mailletf
  */
 public class ClientDataManager {
+
+    public static ArrayList<String> as = new ArrayList<String>();
 
     private String currArtist;
     private String currArtistName;
@@ -710,11 +713,14 @@ public class ClientDataManager {
 
                     public void onSuccess(Object o) {}
                     public void onFailure(Throwable caught) {
-                        Window.alert("An error occured while adding the search attention : "+caught.getMessage());
+                        Popup.showErrorPopup(caught, 
+                                Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE, 
+                                "add the search attention.", Popup.ERROR_LVL.SILENT, null);
                     }
                 });
             } catch (Exception ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                "add the search attention.", Popup.ERROR_LVL.SILENT, null);
             }
 
             hasValidSearch=false;

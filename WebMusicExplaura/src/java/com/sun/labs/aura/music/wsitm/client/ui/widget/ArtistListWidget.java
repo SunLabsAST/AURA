@@ -6,6 +6,7 @@
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.client.Command;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
@@ -252,9 +253,11 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
 
             @Override
             public void onSuccess(Object result) {}
+
             @Override
             public void onFailure(Throwable caught) {
-                Window.alert("Error adding not interested attention."+caught.toString());
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "add 'not interested' attention.", Popup.ERROR_LVL.NORMAL, null);
             }
         };
 
@@ -262,7 +265,8 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
             try {
                 musicServer.addNotInterestedAttention(artistId, callback);
             } catch (WebException ex) {
-                Window.alert(ex.getMessage());
+                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "add 'not interested' attention.", Popup.ERROR_LVL.NORMAL, null);
             }
         }
     }
@@ -307,8 +311,13 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
 
                 @Override
                 public void onFailure(Throwable caught) {
-                    Window.alert(caught.toString());
-                    Window.alert("Error fetching ratings.");
+                    Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve artist ratings.", Popup.ERROR_LVL.NORMAL, new Command() {
+                            @Override
+                            public void execute() {
+                                invokeFetchRatings();
+                            }
+                    });
                 }
             };
 
@@ -317,7 +326,13 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                     musicServer.fetchUserSongRating(artistIDs, callback);
                 }
             } catch (WebException ex) {
-                Window.alert(ex.getMessage());
+                    Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                        "retrieve artist ratings.", Popup.ERROR_LVL.NORMAL, new Command() {
+                            @Override
+                            public void execute() {
+                                invokeFetchRatings();
+                            }
+                    });
             }
 
         } else {
@@ -368,7 +383,8 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         }
         
         public void displayIdenticalArtistMsg() {
-            Window.alert("Cannot display difference tag cloud between the same artist.");
+            Popup.showInformationPopup("Cannot display difference tag cloud " +
+                    "between the same artist.");
         }
 
     }

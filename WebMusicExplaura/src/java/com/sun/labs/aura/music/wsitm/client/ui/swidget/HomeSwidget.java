@@ -5,11 +5,11 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.swidget;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -24,6 +24,7 @@ import com.sun.labs.aura.music.wsitm.client.MusicSearchInterfaceAsync;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
+import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.SearchTypeRadioButton;
@@ -37,6 +38,7 @@ import java.util.ArrayList;
  */
 public class HomeSwidget extends Swidget {
 
+    private final boolean DEBUG_MODE = false;
     private final int POP_ART_HEIGHT = 2;
     private final int POP_ART_WIDTH = 3;
 
@@ -81,11 +83,22 @@ public class HomeSwidget extends Swidget {
         popArtists.setWidget(0, 0, titleHp);
         popArtists.setWidget(1, 0, WebLib.getLoadingBarWidget());
 
-        mainPanel = new Grid(2,1);
+        mainPanel = new Grid(3,1);
         mainPanel.getCellFormatter().setHorizontalAlignment(0, 0, HorizontalPanel.ALIGN_CENTER);
         //mainPanel.setWidget(0, 0, search);
         mainPanel.getCellFormatter().setHorizontalAlignment(1, 0, HorizontalPanel.ALIGN_CENTER);
         mainPanel.setWidget(1, 0, popArtists);
+
+        if (DEBUG_MODE) {
+            Label exLabel = new Label("Trigger exception");
+            exLabel.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
+                    invokeTriggerDebugException();
+                }
+            });
+            mainPanel.setWidget(2, 0, exLabel);
+        }
 
         invokeFetchRandomArtists();
         initWidget(mainPanel);
@@ -184,7 +197,22 @@ public class HomeSwidget extends Swidget {
         @Override
         public void search() {
             if (cdm.getCurrSimTypeName() == null || cdm.getCurrSimTypeName().equals("")) {
-                Window.alert("Error. Cannot search without the similarity types.");
+                Popup.showErrorPopup("Similarity types have not been loaded.", Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "perform your search.", Popup.ERROR_LVL.NORMAL, new Command() {
+                    @Override
+                    public void execute() {
+                        // Retry will resubmit RPC to get sim types and then redo search
+                        cdm.getPageHeaderWidget().requestRefreshSimTypes();
+                        new Timer() {
+                            @Override
+                            public void run() {
+                                search();
+                            }
+                        }.schedule(1500);
+                    }
+
+                });
+
             } else {
                 String query = getSearchBox().getText().toLowerCase();
                 searchTypes currST = getSearchType();
@@ -216,35 +244,65 @@ public class HomeSwidget extends Swidget {
         }
     }
 
-       public void invokeFetchRandomArtists() {
-            AsyncCallback<ArtistCompact[]> callback = new AsyncCallback<ArtistCompact[]>() {
+    /**
+     * Debug method used to trigger an RPC exception
+     */
+    public void invokeTriggerDebugException() {
 
-                public void onSuccess(ArtistCompact[] aCList) {
-                    Grid g = new Grid(POP_ART_HEIGHT,POP_ART_WIDTH);
-                    int idx = 0;
-                    for (int h=0; h<POP_ART_HEIGHT; h++) {
-                        for (int w=0; w<POP_ART_WIDTH; w++) {
-                            g.setWidget(h, w,
-                                    new CompactArtistWidget(aCList[idx++], cdm,
-                                    musicServer, null, null, InitialRating.FETCH, null)
-                            );
-                        }
-                    }
-                    popArtists.setWidget(1, 0, g);
-                    loadImg.getElement().getStyle().setProperty("visibility", "hidden");
-                }
+        AsyncCallback callback = new AsyncCallback() {
 
-                public void onFailure(Throwable caught) {
-                    Window.alert(caught.getMessage());
-                }
-            };
-
-            try {
-                loadImg.getElement().getStyle().setProperty("visibility", "visible");
-                musicServer.getRandomPopularArtists(POP_ART_WIDTH*POP_ART_HEIGHT, callback);
-            } catch (Exception ex) {
-                Window.alert(ex.getMessage());
+            @Override
+            public void onFailure(Throwable caught) {
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.NONE,
+                    "onFailure in callback.", Popup.ERROR_LVL.NORMAL, null);
             }
+
+            @Override
+            public void onSuccess(Object result) {
+                Popup.showInformationPopup("callback success!");
+            }
+        };
+
+        try {
+            musicServer.triggerException(callback);
+        } catch (Exception ex) {
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.NONE,
+                    "in catch of trigger exception", Popup.ERROR_LVL.NORMAL, null);
         }
+
+    }
+
+    public void invokeFetchRandomArtists() {
+
+        AsyncCallback<ArtistCompact[]> callback = new AsyncCallback<ArtistCompact[]>() {
+
+            public void onSuccess(ArtistCompact[] aCList) {
+                Grid g = new Grid(POP_ART_HEIGHT, POP_ART_WIDTH);
+                int idx = 0;
+                for (int h = 0; h < POP_ART_HEIGHT; h++) {
+                    for (int w = 0; w < POP_ART_WIDTH; w++) {
+                        g.setWidget(h, w,
+                                new CompactArtistWidget(aCList[idx++], cdm,
+                                musicServer, null, null, InitialRating.FETCH, null));
+                    }
+                }
+                popArtists.setWidget(1, 0, g);
+                loadImg.getElement().getStyle().setProperty("visibility", "hidden");
+            }
+
+            public void onFailure(Throwable caught) {
+                Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve the random artists.", Popup.ERROR_LVL.NORMAL, null);
+            }
+        };
+
+        try {
+            loadImg.getElement().getStyle().setProperty("visibility", "visible");
+            musicServer.getRandomPopularArtists(POP_ART_WIDTH * POP_ART_HEIGHT, callback);
+        } catch (Exception ex) {
+            Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                    "retrieve the random artists.", Popup.ERROR_LVL.NORMAL, null);
+        }
+    }
 
 }
