@@ -9,6 +9,9 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
    "http://www.w3.org/TR/html4/loose.dtd">
 
+<style type="text/css">
+
+</style>
 
 <h1>Music Explaura</h1>
 <br/>
@@ -30,32 +33,57 @@ Looking at your favorite music, we recognized the following bands:
 </c:forEach>
 </p>
 </c:if>
-<br/><br/>
-<!-- Get artist time: ${auraTime} -->
-<div style="width: 700px;" id="cloud">
-    <span style="text-align: center; font-style: italic;">
-    Loading your personal tag cloud<br/>
-    <img src="${server}/image/loader.gif"/>
-    </span>
+<br/>
+
+<!-- The "tabs" -->
+<div style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-color: #898989;padding-bottom:5px;">
+    <span class="inputbutton" id="cloudTab">My Cloud</span>&nbsp;&nbsp;
+    <span class="inputbutton" id="compareTab">Compare</span>
 </div>
 
+<!-- Get artist time: ${auraTime} -->
+
+<!-- The main display area (below the tabs) -->
+<div style="width: 700px; min-height: 200px; padding: 5px;" id="mainSection">
+</div>
 <br/><br/>
 
+<!-- The add to profile button -->
 <div style="float: right;">
 <fb:if-section-not-added section="profile">
 <fb:add-section-button section="profile" />
 </fb:if-section-not-added>
 </div>
+
 <br/><br/><br/><br/>
-<div style="padding: 3px; font-size: 10px; text-align: center; border: 1px solid #000000">
+
+<!-- The credits -->
+<div style="padding: 3px; font-size: 8px; text-align: center; border: 1px solid #222222">
     <img src="${server}/image/sun_logo.png"/><br/>
     The Music Explaura is developed by <a href="http://research.sun.com/">Sun Labs</a> as part of The AURA Project.<br/>
     Data was used from <a href="http://musicbrainz.org">Musicbrainz</a> and <a href="http://last.fm">Last.fm</a>
 
 </div>
+
+<!-- pre-rendered content to be used in the page -->
+<fb:js-string var="friendPicker">
+    <form id="friendSelector">
+        <table><tr><td>
+        Select a friend to compare to:
+        </td><td>
+        <fb:friend-selector idname="selected_id" />
+        </td><td>
+        <span class="inputbutton" id="compareGoBtn">Go</span>
+        </td></tr></table>
+    </form>
+    <div id="compareResults">
+    </div>
+</fb:js-string>
+
 <script type="text/javascript">
 <!--
-    var servletPath = "${server}/canvas";
+    var server = "${server}";
+    var canvasPath = "${server}/canvas";
     var fbSession = "${fbSession}";
     
     var artistIDs = [];
@@ -63,22 +91,9 @@ Looking at your favorite music, we recognized the following bands:
         artistIDs[${loop.index}] = "${artist.key}";
     </c:forEach>
 
-        function displayCloud(data) {
-            var thediv = document.getElementById('cloud');
-            var cloud = document.createElement("div");
-            for (var i=0; i < data.length; i++) {
-                var curr = document.createElement("span");
-                //var name = document.createTextNode(data[i].name);
-                //curr.appendChild(name);
-                curr.setTextValue(data[i].name + " ");
-                var size = data[i].size + "px";
-                if (i % 2 == 0) {
-                    curr.setStyle({'fontSize': size, 'color': '#f8981d'});
-                } else {
-                    curr.setStyle({'fontSize': size, 'color': '#5382a1'});
-                }
-                cloud.appendChild(curr);
-            }
+        //
+        // clear out the contents of a div
+        function clearDiv(thediv) {
             var kids = thediv.childNodes;
             if (kids != null) {
                 for (var i = 0; i < kids.length; i++) {
@@ -86,7 +101,30 @@ Looking at your favorite music, we recognized the following bands:
                 }
             }
             thediv.setTextValue("");
-            thediv.appendChild(cloud);
+        }
+
+        //
+        // Creates the DOM that represents a cloud from cloud JSON data
+        function getDOMForCloud(cloudData) {
+            var cloud = document.createElement("div");
+            for (var i=0; i < cloudData.length; i++) {
+                var curr = document.createElement("span");
+                curr.setTextValue(cloudData[i].name + " ");
+                var size = cloudData[i].size + "px";
+                if (i % 2 == 0) {
+                    curr.setStyle({'fontSize': size, 'color': '#f8981d'});
+                } else {
+                    curr.setStyle({'fontSize': size, 'color': '#5382a1'});
+                }
+                cloud.appendChild(curr);
+            }
+            return cloud;
+        }
+
+        function displayCloudCallback(data) {
+            var thediv = document.getElementById('mainSection');
+            clearDiv(thediv);
+            thediv.appendChild(getDOMForCloud(data));
         }
 
         function showDialog(title, msg) {
@@ -94,16 +132,56 @@ Looking at your favorite music, we recognized the following bands:
                 showMessage(title, msg);
         }
 
+        function switchToLoader() {
+            var main = document.getElementById('mainSection');
+            clearDiv(main);
+            var loader = document.createElement("img");
+            loader.setSrc(server + "/image/loader.gif");
+            loader.setStyle({'position': 'relative', 'top': '90px', 'left': '340px'});
+            main.appendChild(loader);
+        }
+
+        function cloudTabClicked() {
+            switchToLoader();
+            fetchAndShowCloud();
+        }
+
+        function compareTabClicked() {
+            //
+            // Show the area where you can choose a friend
+            var main = document.getElementById('mainSection');
+            clearDiv(main);
+            main.setInnerFBML(friendPicker);
+            var goBtn = document.getElementById('compareGoBtn');
+            goBtn.addEventListener('click', fetchAndShowCompare);
+        }
+
+        function fetchAndShowCompare() {
+            var selector = document.getElementById('friendSelector');
+            var selected = selector.serialize().selected_id;
+            showDialog("Friend", "Got the following friend: " + selected);
+        }
+
+        function fetchAndShowCloud() {
+            var ajax = new Ajax();
+            ajax.responseType = Ajax.JSON;
+            ajax.ondone = displayCloudCallback;
+            var query = {"artists" : artistIDs.join(","),
+                         "fbSession" : fbSession};
+            ajax.post(canvasPath + "/ajax/updateCloudFromArtistIDs", query);
+        }
+
+
         //
         // Run this when the page loads:
-        var ajax = new Ajax();
-        ajax.responseType = Ajax.JSON;
-        ajax.ondone = displayCloud;
-        var query = {"artists" : artistIDs.join(","),
-                     "fbSession" : fbSession};
-        ajax.post(servletPath + "/ajax/updateCloudFromArtistIDs", query);
+        switchToLoader();
+        fetchAndShowCloud();
 
+        var cloudTab = document.getElementById("cloudTab");
+        cloudTab.addEventListener('click', cloudTabClicked);
 
+        var compareTab = document.getElementById("compareTab");
+        compareTab.addEventListener('click', compareTabClicked);
 //-->
 </script>
 

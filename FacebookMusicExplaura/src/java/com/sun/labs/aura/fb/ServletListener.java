@@ -59,7 +59,7 @@ public class ServletListener implements ServletContextListener {
 
 
     public void contextDestroyed(ServletContextEvent sce) {
-            ServletContext context = sce.getServletContext();
+        ServletContext context = sce.getServletContext();
         ConfigurationManager cm =
                 (ConfigurationManager) context.getAttribute("configManager");
         if(cm != null) {
