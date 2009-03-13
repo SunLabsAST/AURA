@@ -110,11 +110,21 @@ Looking at your favorite music, we recognized the following bands:
             for (var i=0; i < cloudData.length; i++) {
                 var curr = document.createElement("span");
                 curr.setTextValue(cloudData[i].name + " ");
-                var size = cloudData[i].size + "px";
+                var size = cloudData[i].size;
+                var orange = '#f8981d';
+                var blue = '#5382a1';
+                if (size < 0) {
+                    orange = '#fbdcbd';
+                    blue = '#baccd8';
+                    size = size * -1;
+                }
+                var fontsize = cloudData[i].size + "px";
+
                 if (i % 2 == 0) {
-                    curr.setStyle({'fontSize': size, 'color': '#f8981d'});
+
+                    curr.setStyle({'fontSize': fontsize, 'color': orange});
                 } else {
-                    curr.setStyle({'fontSize': size, 'color': '#5382a1'});
+                    curr.setStyle({'fontSize': fontsize, 'color': blue});
                 }
                 cloud.appendChild(curr);
             }
@@ -127,22 +137,36 @@ Looking at your favorite music, we recognized the following bands:
             thediv.appendChild(getDOMForCloud(data));
         }
 
+        function displayCompareCallback(data) {
+            var thediv = document.getElementById('compareResults');
+            clearDiv(thediv);
+            //
+            // Check for an error
+            if (data.length == 1) {
+                if (data[0].error != null) {
+                    showDialog("Error", data[0].error);
+                    return;
+                }
+            }
+            thediv.appendChild(getDOMForCloud(data));
+        }
+
         function showDialog(title, msg) {
             dialog = new Dialog(Dialog.DIALOG_POP).
                 showMessage(title, msg);
         }
 
-        function switchToLoader() {
-            var main = document.getElementById('mainSection');
-            clearDiv(main);
+        function switchToLoader(thediv) {
+            clearDiv(thediv);
             var loader = document.createElement("img");
             loader.setSrc(server + "/image/loader.gif");
             loader.setStyle({'position': 'relative', 'top': '90px', 'left': '340px'});
-            main.appendChild(loader);
+            thediv.appendChild(loader);
         }
 
         function cloudTabClicked() {
-            switchToLoader();
+            var main = document.getElementById('mainSection');
+            switchToLoader(main);
             fetchAndShowCloud();
         }
 
@@ -159,7 +183,16 @@ Looking at your favorite music, we recognized the following bands:
         function fetchAndShowCompare() {
             var selector = document.getElementById('friendSelector');
             var selected = selector.serialize().selected_id;
-            showDialog("Friend", "Got the following friend: " + selected);
+            var tgt = document.getElementById('compareResults');
+            switchToLoader(tgt);
+            
+            var ajax = new Ajax();
+            ajax.responseType = Ajax.JSON;
+            ajax.ondone = displayCompareCallback;
+            var query = {"artists" : artistIDs.join(","),
+                         "fbSession" : fbSession,
+                         "friendUID" : selected};
+            ajax.post(canvasPath + "/ajax/getCompareCloud", query);
         }
 
         function fetchAndShowCloud() {
@@ -174,7 +207,8 @@ Looking at your favorite music, we recognized the following bands:
 
         //
         // Run this when the page loads:
-        switchToLoader();
+        var main = document.getElementById('mainSection');
+        switchToLoader(main);
         fetchAndShowCloud();
 
         var cloudTab = document.getElementById("cloudTab");
