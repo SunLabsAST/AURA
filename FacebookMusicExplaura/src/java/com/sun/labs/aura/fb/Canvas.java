@@ -251,7 +251,13 @@ public class Canvas extends HttpServlet {
         for (ItemInfo i : tags) {
             JSONObject curr = new JSONObject();
             curr.put("name", i.getItemName());
-            curr.put("size", Math.round((i.getScore() * 3.0 + 1) * 14.0));
+            double size = i.getScore();
+            if (size < 0) {
+                size = (size * -3.0 + 1.0) * -14.0;
+            } else {
+                size = (size * 3.0 + 1.0) * 14.0;
+            }
+            curr.put("size", Math.round(size));
             result.put(curr);
         }
 

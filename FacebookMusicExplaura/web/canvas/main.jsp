@@ -118,7 +118,7 @@ Looking at your favorite music, we recognized the following bands:
                     blue = '#baccd8';
                     size = size * -1;
                 }
-                var fontsize = cloudData[i].size + "px";
+                var fontsize = size + "px";
 
                 if (i % 2 == 0) {
 
