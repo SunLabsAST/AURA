@@ -41,6 +41,7 @@ import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.items.RecsNTagsContainer;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
@@ -67,6 +68,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -614,6 +617,81 @@ public class DataManager implements Configurable {
         return artistPhotoArray;
     }
 
+    private static boolean hasStickyPrefix(String tag) {
+        return tag.startsWith("+");
+    }
+
+    private static boolean hasBannedPrefix(String tag) {
+        return tag.startsWith("-");
+    }
+
+    private static String norm(String tag) {
+        return tag.replaceFirst("[-\\+]+", "").trim();
+    }
+
+    /**
+     * Converts a string representation of a wordcloud to a WordCloud. The string
+     * can be of the form '(tag, weight)(+tag, weight)(-tag)(-tag, -.1)(tag)(+tag)
+     * can be of the form '(tag, weight)(+tag, weight)(-tag)
+     * or 'tag,tag,+tag'
+     * or 'tag,tag,+tag,-tag'
+     * + indicates a sticky tag, - indicates a banned tag
+     * @param wc the string representation
+     * @return a wordcloud or null
+     */
+    public HashMap<String, ScoredTag> convertStringToTagMap(String wc) throws AuraException {
+        HashMap<String, ScoredTag> tagMap = new HashMap<String, ScoredTag>();
+        Pattern pattern = Pattern.compile("(\\(([^,\\)]*)(,\\s*(-*[\\d\\.]+)\\s*)*)\\)");
+        Matcher matcher = pattern.matcher(wc);
+        while (matcher.find()) {
+            String tag = matcher.group(2).trim();
+            String sweight = "1";
+
+            if (matcher.groupCount() > 3) {
+                String s = matcher.group(4);
+                if (s != null) {
+                    sweight = s.trim();
+                }
+            }
+
+            // Try to match
+            String normTag = norm(tag);
+            List<Scored<ArtistTag>> lstTags = mdb.artistTagSearch(normTag, 1);
+            if (lstTags != null && lstTags.size() >= 1) {
+                ArtistTag aT = lstTags.get(0).getItem();
+                ScoredTag sT = new ScoredTag(aT.getName(), Double.valueOf(sweight), hasStickyPrefix(tag));
+
+                if (hasBannedPrefix(tag)) {
+                    sT.setScore(-1*sT.getScore());
+                }
+                tagMap.put(sT.getName(), sT);
+            }
+        }
+
+        return tagMap;
+    }
+
+    public RecsNTagsContainer getRecommendationsFromString(String tagQueryString)
+            throws AuraException, RemoteException {
+
+        HashMap<String, ScoredTag> tagMap = convertStringToTagMap(tagQueryString);
+        if (tagMap != null && tagMap.size() > 0) {
+            // Extract popularity
+            // regexbuddy string : [\w]*&popularity=([\w]+)
+            Pattern regex = Pattern.compile("[\\w]*&popularity=([\\w]+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+            Matcher regexMatcher = regex.matcher(tagQueryString);
+            String popularity = "head";
+            while (regexMatcher.find()) {
+                popularity = regexMatcher.group(1);
+            }
+
+            ArrayList<ScoredC<ArtistCompact>> recs = getSteerableRecommendations(tagMap, popularity);
+            return new RecsNTagsContainer(recs, tagMap);
+        } else {
+            return null;
+        }
+    }
+
     public ServerInfoItem getServerInfo() throws RemoteException, AuraException {
 
         ServerInfoItem info = new ServerInfoItem();
@@ -937,16 +1015,16 @@ public class DataManager implements Configurable {
     /**
      * Converts a string representing a popularity to the corresponding Popularity enum element
      * @param pop string representation of popularity element
-     * @return popularity element
-     * @throws com.sun.labs.aura.util.AuraException if popularity was not matched
+     * @return popularity element. Defaults to ALL if popularity is not matched
      */
-    public Popularity stringToPopularity(String pop) throws AuraException {
+    public Popularity stringToPopularity(String pop) {
+        pop = pop.toUpperCase();
         for (Popularity p : Popularity.values()) {
             if (p.toString().equals(pop)) {
                 return p;
             }
         }
-        throw new AuraException("Invalid popularity '"+pop+"'");
+        return Popularity.ALL;
     }
     
     public SimType stringToSimType(String sT) throws AuraException {

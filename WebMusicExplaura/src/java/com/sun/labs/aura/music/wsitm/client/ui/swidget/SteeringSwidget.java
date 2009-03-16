@@ -18,6 +18,7 @@ import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.rpc.IsSerializable;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
@@ -42,6 +43,7 @@ import com.sun.labs.aura.music.wsitm.client.event.WebListener;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.items.RecsNTagsContainer;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
@@ -108,8 +110,12 @@ public class SteeringSwidget extends Swidget {
                     mP.setUserTagPanel(true);
                     // Load the user's top tags in the steerable panel
                     mP.loadCloud(cdm.getListenerDetails().getUserTagCloud());
+                // Load an artist's tags
                 } else if (historyToken.startsWith("steering:art:")) {
                     mP.loadArtist(historyToken.substring(13));
+                // Load tags passed by query string
+                } else if (historyToken.startsWith("steering:cloud:")) {
+                    mP.invokeLoadTagsFromQuery(historyToken.substring(15));
                 } else {
                     mP.loadArtistCloud(historyToken.substring(9));
                 }
@@ -246,6 +252,8 @@ public class SteeringSwidget extends Swidget {
             HorizontalPanel mainNorthMenuPanel = new HorizontalPanel();
             mainNorthMenuPanel.setSpacing(5);
 
+            /*
+             * Save and load tag cloud is not implemented yet
             Button saveButton = new Button("Save");
             saveButton.addClickHandler(new ClickHandler() {
                 @Override
@@ -263,6 +271,7 @@ public class SteeringSwidget extends Swidget {
                 }
             });
             mainNorthMenuPanel.add(loadButton);
+             */
 
             Button resetButton = new Button("Erase all tags");
             resetButton.addClickHandler(new ClickHandler() {
@@ -453,6 +462,24 @@ public class SteeringSwidget extends Swidget {
             TagDisplayLib.showTagCloud("Tags' influence on generated recommendations", tagArray, TagDisplayLib.ORDER.SHUFFLE, cdm);
         }
 
+        public void displayNewRecommendations(ArrayList<ScoredC<ArtistCompact>> aCList) {
+            // Remove listeners if we had an ArtistListWidget previously loaded
+            if (mainArtistListPanel.getWidget(0, 0) != null &&
+                    mainArtistListPanel.getWidget(0, 0) instanceof ArtistCloudArtistListWidget) {
+                ((ArtistListWidget) mainArtistListPanel.getWidget(0, 0)).doRemoveListeners();
+            }
+
+            mainArtistListPanel.setWidget(0, 0,
+                    new ArtistCloudArtistListWidget(musicServer, cdm, aCList, tagLand));
+            refreshingPanel.setVisible(false);
+
+            if (aCList != null && aCList.size() > 0) {
+                currRecommendations = aCList;
+            } else {
+                currRecommendations = null;
+            }
+        }
+
         public void invokeFetchNewRecommendations() {
             PerformanceTimer.start("newRecommendations");
 
@@ -470,21 +497,7 @@ public class SteeringSwidget extends Swidget {
                     PerformanceTimer.stop("newRecommendationsGetData");
                     PerformanceTimer.start("newRecommendationsRedraw");
 
-                    // Remove listeners if we had an ArtistListWidget previously loaded
-                    if (mainArtistListPanel.getWidget(0, 0) != null &&
-                            mainArtistListPanel.getWidget(0, 0) instanceof ArtistCloudArtistListWidget) {
-                        ((ArtistListWidget) mainArtistListPanel.getWidget(0, 0)).doRemoveListeners();
-                    }
-
-                    mainArtistListPanel.setWidget(0, 0,
-                            new ArtistCloudArtistListWidget(musicServer, cdm, aCList, tagLand));
-                    refreshingPanel.setVisible(false);
-
-                    if (aCList != null && aCList.size() > 0) {
-                        currRecommendations = aCList;
-                    } else {
-                        currRecommendations = null;
-                    }
+                    displayNewRecommendations(aCList);
 
                     inRpc = false;
                     if (updateRecRequest) {
@@ -566,6 +579,38 @@ public class SteeringSwidget extends Swidget {
         @Override
         public void onLogout() {
             setUserTagPanel(false);
+        }
+
+        public void invokeLoadTagsFromQuery(String query) {
+
+            AsyncCallback<RecsNTagsContainer> callback =
+                    new AsyncCallback<RecsNTagsContainer>() {
+
+                public void onSuccess(RecsNTagsContainer r) {
+                    if (r != null) {
+                        tagLand.removeAllItems(false);
+                        tagLand.addTags(r.tagMap);
+                        displayNewRecommendations(r.recs);
+
+                    } else {
+                        Popup.showErrorPopup("Returned recommendations were null.", Popup.ERROR_MSG_PREFIX.NONE,
+                                "An unknown error occured while loading your custom tag cloud.", Popup.ERROR_LVL.NORMAL, null);
+                    }
+                }
+
+                public void onFailure(Throwable caught) {
+                    Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                            "load your custom tag cloud.", Popup.ERROR_LVL.NORMAL, null);
+                }
+            };
+
+            try {
+                musicServer.getRecommendationsFromString(query, callback);
+            } catch (Exception ex) {
+                    Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                            "load your custom tag cloud.", Popup.ERROR_LVL.NORMAL, null);
+            }
+
         }
 
         public void loadCloud(ItemInfo[] cloud) {
@@ -1327,4 +1372,5 @@ public class SteeringSwidget extends Swidget {
 
         }
     }
+
 }

@@ -15,6 +15,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.items.RecsNTagsContainer;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
@@ -56,6 +57,7 @@ public interface MusicSearchInterfaceAsync {
     public void getArtistRecommendationTypes(AsyncCallback<HashMap<String, String>> callback);
     public void getDistinctiveTags(String artistID, int count, AsyncCallback callback) throws WebException;
     public void getSteerableRecommendations(Map<String, ScoredTag> tagMap, String popularity, AsyncCallback<ArrayList<ScoredC<ArtistCompact>>> callback) throws WebException;
+    public void getRecommendationsFromString(String tagQuery, AsyncCallback<RecsNTagsContainer> callback) throws WebException;
     public void addUserTagsForItem(String itemId, Set<String> tag, AsyncCallback callback) throws WebException;
     public void addPlayAttention(String artistId, AsyncCallback callback) throws WebException;
     public void addNotInterestedAttention(String artistId, AsyncCallback callback) throws WebException;

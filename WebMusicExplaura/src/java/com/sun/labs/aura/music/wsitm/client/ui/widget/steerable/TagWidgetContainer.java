@@ -4,7 +4,6 @@
  */
 package com.sun.labs.aura.music.wsitm.client.ui.widget.steerable;
 
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Grid;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.items.steerable.CloudItem;

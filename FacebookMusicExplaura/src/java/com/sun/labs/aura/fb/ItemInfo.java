@@ -1,32 +1,23 @@
-/*
- * ItemInfo.java
- *
- * Created on March 5, 2007, 2:44 PM
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
 
-package com.sun.labs.aura.music.wsitm.client.items;
+package com.sun.labs.aura.fb;
 
-import com.google.gwt.user.client.Random;
-import com.google.gwt.user.client.rpc.IsSerializable;
-import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.Random;
 
 /**
- *
+ * A holder for tags and artists, lifted from the WME code.
+ * 
  * @author plamere
  */
-public class ItemInfo implements IsSerializable {
+public class ItemInfo {
     private String id;
     private String itemName;
     private double score;
     private double popularity;
     private CONTENT_TYPE cT;
+    private static Random random = new Random();
 
     public enum CONTENT_TYPE {
         TAG,
@@ -99,21 +90,6 @@ public class ItemInfo implements IsSerializable {
         return iI;
     }
 
-    /**
-     * Converts a map of tag names to score to an ItemInfo array
-     * @param map Map of (tag name, score)
-     * @return
-     */
-    public static ItemInfo[] mapToArray(HashMap<String, ScoredTag> map) {
-        
-        ItemInfo[] iIArray = new ItemInfo[map.size()];
-        int index = 0;
-        for (String tagName : map.keySet()) {
-            double val = map.get(tagName).getScore();
-            iIArray[index++] = new ItemInfo(ClientDataManager.nameToKey(tagName), tagName, val, val);
-        }
-        return iIArray;
-    }
 
     public static class PopularitySorter implements Comparator<ItemInfo> {
 
@@ -124,7 +100,7 @@ public class ItemInfo implements IsSerializable {
     }
 
     public static class ScoreSorter implements Comparator<ItemInfo> {
-        @Override
+
         public int compare(ItemInfo o1, ItemInfo o2) {
             // Descending order
             return -1 * (new Double(o1.getScore()).compareTo(new Double(o2.getScore())));
@@ -132,16 +108,16 @@ public class ItemInfo implements IsSerializable {
     }
 
     public static class NameSorter implements Comparator<ItemInfo> {
-        @Override
+
         public int compare(ItemInfo o1, ItemInfo o2) {
             return o1.getItemName().compareTo(o2.getItemName());
         }
     }
 
     public static class RandomSorter implements Comparator<ItemInfo> {
-        @Override
+
         public int compare(ItemInfo o1, ItemInfo o2) {
-            if (Random.nextBoolean()) {
+            if (random.nextBoolean()) {
                 return -1;
             } else {
                 return 1;
