@@ -130,6 +130,16 @@ public abstract class TagWidget extends Composite {
         addItem(new CloudArtist(aC, weight), true);
     }
 
+    public final void addTags(HashMap<String, ScoredTag> tagMap) {
+
+        HashMap<String, CloudItem> tags = new HashMap<String, CloudItem>();
+        for (ScoredTag sT : tagMap.values()) {
+            String key = ClientDataManager.nameToKey(sT.getName());
+            tags.put(key, new CloudTag(key, sT.getName(), sT.getScore(), sT.isSticky()));
+        }
+        addItems(tags, ITEM_WEIGHT_TYPE.RELATIVE, tags.size());
+    }
+
     public final void addTags(ItemInfo[] tag, int limit) {
 
         if (tag != null && tag.length > 0) {

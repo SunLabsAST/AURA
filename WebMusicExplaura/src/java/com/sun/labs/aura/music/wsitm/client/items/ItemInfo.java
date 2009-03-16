@@ -124,7 +124,7 @@ public class ItemInfo implements IsSerializable {
     }
 
     public static class ScoreSorter implements Comparator<ItemInfo> {
-
+        @Override
         public int compare(ItemInfo o1, ItemInfo o2) {
             // Descending order
             return -1 * (new Double(o1.getScore()).compareTo(new Double(o2.getScore())));
@@ -132,14 +132,14 @@ public class ItemInfo implements IsSerializable {
     }
 
     public static class NameSorter implements Comparator<ItemInfo> {
-
+        @Override
         public int compare(ItemInfo o1, ItemInfo o2) {
             return o1.getItemName().compareTo(o2.getItemName());
         }
     }
 
     public static class RandomSorter implements Comparator<ItemInfo> {
-
+        @Override
         public int compare(ItemInfo o1, ItemInfo o2) {
             if (Random.nextBoolean()) {
                 return -1;

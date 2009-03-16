@@ -24,9 +24,14 @@ public class CloudTag implements CloudItem {
     private boolean sticky;
    
     public CloudTag(String tagId, String tagName, double tagWeight) {
+        this(tagId, tagName, tagWeight, false);
+    }
+
+    public CloudTag(String tagId, String tagName, double tagWeight, boolean sticky) {
         this.tagId = tagId;
         this.tagName = tagName;
         this.tagWeight = tagWeight;
+        this.sticky = sticky;
     }
 
     public CloudTag(ItemInfo tag) {

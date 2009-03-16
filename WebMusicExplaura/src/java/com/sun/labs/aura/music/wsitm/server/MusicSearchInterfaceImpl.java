@@ -25,6 +25,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistRecommendation;
 import com.sun.labs.aura.music.wsitm.client.items.AttentionItem;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
+import com.sun.labs.aura.music.wsitm.client.items.RecsNTagsContainer;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import com.sun.labs.aura.music.wsitm.client.items.ServerInfoItem;
@@ -526,6 +527,21 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
             throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
         }
     }
+
+    @Override
+    public RecsNTagsContainer getRecommendationsFromString(String tagQuery) throws WebException {
+        try {
+            logger.info("getRecsFromString : "+tagQuery);
+            return dm.getRecommendationsFromString(tagQuery);
+        } catch (AuraException ex) {
+            logger.severe(WebLib.traceToString(ex));
+            throw new WebException(ex.getMessage(), ex);
+        } catch (RemoteException ex) {
+            logger.severe(WebLib.traceToString(ex));
+            throw new WebException(WebException.errorMessages.ITEM_STORE_COMMUNICATION_FAILED, ex);
+        }
+    }
+
 
     @Override
     public void addUserTagsForItem(String itemId, Set<String> tag) throws WebException {
