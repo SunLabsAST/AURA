@@ -1,5 +1,5 @@
 /* 
-    Document   : aardvark
+    Document   : css for main site
     Created on : Mar 17, 2008, 8:12:08 PM
     Author     : ja151348
     Description:
@@ -23,6 +23,10 @@ body {
   margin: 0px;
 }
 
+img {
+    border: 0px;
+}
+
 a:link {
   color: #5382A1;
   text-decoration: none;
@@ -36,7 +40,7 @@ a:visited {
 div.main {
     margin-top: 10px;
     margin-bottom: 10px;
-    margin-left: 145px;
+    margin-left: 135px;
     margin-right: 75px;
 }
 
@@ -63,16 +67,17 @@ div.topCling {
 
 div.sidebar {
     margin: 5px;
-    padding: 5px;
     float: left;
-    margin-top: 100px;
-    width: 125px;
-    border: 1px solid #dddddd;
+    width: 115px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 0px;
+    padding-right: 5px;
 }
 
 div.sidebar ul, div.sidebar ul li {
     list-style: none;
-    padding-left: 7px;
+    padding-left: 5px;
     line-height: 150%;
 }
 

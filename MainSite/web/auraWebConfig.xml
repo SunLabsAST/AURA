@@ -12,6 +12,7 @@
     <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
         <propertylist name="groupList">
             <item>live-aura</item>
+            <item>AuraZoid</item>
         </propertylist>
         <property name="securityPolicy" value="/files/working/jsk-all.policy"/>
     </component>
