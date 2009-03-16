@@ -252,6 +252,8 @@ public class SteeringSwidget extends Swidget {
             HorizontalPanel mainNorthMenuPanel = new HorizontalPanel();
             mainNorthMenuPanel.setSpacing(5);
 
+            /*
+             * Save and load tag cloud is not implemented yet
             Button saveButton = new Button("Save");
             saveButton.addClickHandler(new ClickHandler() {
                 @Override
@@ -269,6 +271,7 @@ public class SteeringSwidget extends Swidget {
                 }
             });
             mainNorthMenuPanel.add(loadButton);
+             */
 
             Button resetButton = new Button("Erase all tags");
             resetButton.addClickHandler(new ClickHandler() {
