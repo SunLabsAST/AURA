@@ -57,7 +57,7 @@
         <div class="sectionTitle">Try It Now</div>
         <div class="regularTxt">
             <p>
-            <a href="http://music.tastekeeper.com/><img src="images/wmelogo.png" align=right></a>
+            <a href="http://music.tastekeeper.com/"><img src="images/wmelogo.png" align="right"></a>
             The <a href="http://music.tastekeeper.com/">Music Explaura</a>
             is an example application built using
             TasteKeeper as its back end.  It is a musical artist recommendation
@@ -65,8 +65,7 @@
             aspects of those artists they enjoy the most and get
             recommendations for other artists.  Users can steer the recommendations
             by adding terms that describe what they want and see explanations
-            of why particular artists were recommended.  The Music Explaura
-            can also import your listening habits from last.fm.
+            of why particular artists were recommended.
             </p>
             <p>
             See how TasteKeeper can give custom, steerable, on-the-fly
@@ -76,13 +75,16 @@
         <div class="sectionTitle">Learn More</div>
         <div class="regularTxt">
             <p>
+            We plan to open TasteKeeper up as a service, offering a web services
+            interface that provides the capabilities described on this page.  While
+            we work out the details, please join our community at the links below.
+            </p>
+            <p>
             Learn more about how to use TasteKeeper, and what it does.
             <ul>
-                <li>TasteKeeper's <a href="">recommendation</a> technology</li>
-                <li><a href="">Adding TasteKeeper</a> to your application</li>
-                <li><a href="http://aura.kenai.com/">Project AURA</a>, the code for TasteKeeper</li>
-                <li>The <a href="http://www.projectcaroline.net/">platform</a> that supports TasteKeeper</li>
-                <li>Our <a href="http://music.tastekeeper.com/api">API</a> for music</li>
+                <li>TasteKeeper's <a href="recommendation.jsp">recommendation</a> technology</li>
+                <li>The TasteKeeper <a href="http://forums.tastekeeper.com/">discussion forums</a></li>
+                <li><a href="http://aura.kenai.com/">The AURA Project</a>, the code for TasteKeeper</li>
             </ul>
             </p>
         </div>

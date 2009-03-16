@@ -2,18 +2,13 @@
 <%@ page pageEncoding="UTF-8" %>
 
 <div class="sidebar">
-    tastekeeper.com
+    <img style="margin-left: 3px;" src="images/tastekeeper-lock-140h.png">
     <ul>
-        <li>Topics</li>
-        <ul>
-            <li><a href="">How To Use It</a></li>
-            <li><a href="">Recommendation</a></li>
-        </ul>
-        <li><a href="">Forum</a></li>
-        <li><a href="">Wiki</a></li>
-        <li><a href="">Docs</a></li>
+        <!-- <li><a href="">How To</a></li> -->
+        <li><a href="recommendation.jsp">Recommendation</a></li>
+        <li><a href="http://forums.tastekeeper.com">Forum</a></li>
+        <!-- <li><a href="">Wiki</a></li> -->
+        <!-- <li><a href="">Docs</a></li> -->
+        <li><a href="http://aura.kenai.com">Source Code</a></li>
     </ul>
-    <br/>
-    <br/>
-    <a href="http://aura.kenai.com">Source Code</a>
 </div>
