@@ -71,6 +71,22 @@ public class DataManager {
     /**
      * Gets an array of tag ItemInfos that represents a merged cloud made from
      * the distinctive tags of all the provided artists.
+     *
+     * @param artists artists to include
+     * @param size
+     * @return a normalized tag cloud
+     */
+    public ItemInfo[] getMergedCloud(List<Artist> artists, int size) {
+        String[] artistIDs = new String[artists.size()];
+        for (int i = 0; i < artists.size(); i++) {
+            artistIDs[i] = artists.get(i).getKey();
+        }
+        return getMergedCloud(artistIDs, size);
+    }
+
+    /**
+     * Gets an array of tag ItemInfos that represents a merged cloud made from
+     * the distinctive tags of all the provided artists.
      * 
      * @param artistIDs keys of artists to include
      * @param size
@@ -156,7 +172,7 @@ public class DataManager {
         // Get the overlap set
         List<Scored<String>> result = new ArrayList<Scored<String>>();
         try {
-            result = mdb.getDataStore().explainSimilarity(one, two, new SimilarityConfig(CLOUD_SIZE / 2));
+            result = mdb.getDataStore().explainSimilarity(one, two, new SimilarityConfig(CLOUD_SIZE));
         } catch (AuraException e) {
             logger.log(Level.WARNING, "Failed while talking to Aura", e);
         } catch (RemoteException e) {

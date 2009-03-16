@@ -11,6 +11,58 @@
 
 <style type="text/css">
 
+.fakeTabCurr {
+    border-top: 1px solid #d8dfea;
+    border-right: 1px solid #d8dfea;
+    border-left: 1px solid #d8dfea;
+    border-bottom: 1px solid #ffffff;
+    font-size: 13px;
+    font-weight: bold;
+    display: inline;
+    padding-top: 3px;
+    padding-right: 11px;
+    padding-bottom: 3px;
+    padding-left: 11px;
+    white-space: nowrap;
+}
+
+.fakeTab {
+    background-color: #d8dfea;
+    color: #3b5998;
+    border-top: 1px solid #d8dfea;
+    border-right: 1px solid #d8dfea;
+    border-left: 1px solid #d8dfea;
+    border-bottom-width: 0pt;
+    font-size: 13px;
+    font-weight: bold;
+    display: inline;
+    padding-top: 3px;
+    padding-right: 11px;
+    padding-bottom: 3px;
+    padding-left: 11px;
+    white-space: nowrap;
+}
+
+.fakeTab:hover {
+    background-color: #627aad;
+    border-top-color: #627aad;
+    border-right-color: #627aad;
+    border-bottom-color: #627aad;
+    border-left-color: #627aad;
+    color: #ffffff;
+}
+
+.controlBtn {
+    border: 1px solid #7f93bc;
+    padding: 3px 15px 3px 15px;
+    color: #3b5998;
+}
+
+.controlBtn:hover {
+    color: #ffffff;
+    background-color: #3b5998;
+}
+
 </style>
 
 <h1>Music Explaura</h1>
@@ -36,9 +88,9 @@ Looking at your favorite music, we recognized the following bands:
 <br/>
 
 <!-- The "tabs" -->
-<div style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-color: #898989;padding-bottom:5px;">
-    <span class="inputbutton" id="cloudTab">My Cloud</span>&nbsp;&nbsp;
-    <span class="inputbutton" id="compareTab">Compare</span>
+<div style="border-bottom: 1px solid #d8dfea; padding-bottom:3px; padding-left:10px;">
+    <span class="fakeTabCurr" id="cloudTab">My Cloud</span>&nbsp;
+    <span class="fakeTab" id="compareTab">Compare</span>
 </div>
 
 <!-- Get artist time: ${auraTime} -->
@@ -48,11 +100,10 @@ Looking at your favorite music, we recognized the following bands:
 </div>
 <br/><br/>
 
+<div style="float:right; clear: right;" id="inviteArea">
+</div>
 <!-- The add to profile button -->
-<div style="float: right;">
-<fb:if-section-not-added section="profile">
-<fb:add-section-button section="profile" />
-</fb:if-section-not-added>
+<div style="float: right; clear: right;" id="addToProfileArea">
 </div>
 
 <br/><br/><br/><br/>
@@ -73,7 +124,9 @@ Looking at your favorite music, we recognized the following bands:
         </td><td>
         <fb:friend-selector idname="selected_id" />
         </td><td>
-        <span class="inputbutton" id="compareGoBtn">Go</span>
+        <span class="controlBtn" id="compareGoBtn">Compare</span>
+        </td><td>
+        <span class="controlBtn" id="seeOtherBtn">See Cloud</span>
         </td></tr></table>
     </form>
     <div id="compareResults">
@@ -134,7 +187,19 @@ Looking at your favorite music, we recognized the following bands:
         function displayCloudCallback(data) {
             var thediv = document.getElementById('mainSection');
             clearDiv(thediv);
+            //
+            // Check for an error
+            var status = data.shift();
+            if (status.error != null) {
+                showDialog("Error", status.error);
+                return;
+            }
             thediv.appendChild(getDOMForCloud(data));
+
+            //
+            // Put in the add-to-profile button if relevant
+            var profile = document.getElementById("addToProfileArea");
+            profile.setInnerFBML(status.fbml_profile);
         }
 
         function displayCompareCallback(data) {
@@ -142,18 +207,29 @@ Looking at your favorite music, we recognized the following bands:
             clearDiv(thediv);
             //
             // Check for an error
-            if (data.length == 1) {
-                if (data[0].error != null) {
-                    showDialog("Error", data[0].error);
-                    return;
-                }
+            var status = data.shift();
+            if (status.error != null) {
+                showDialog("Error", status.error);
+                return;
             }
             thediv.appendChild(getDOMForCloud(data));
+            //
+            // Should we add an invite button?
+            if (status.isAppUser == "false") {
+                var inv = document.getElementById("inviteArea");
+                inv.setInnerFBML(status.fbml_invite);
+            }
         }
 
         function showDialog(title, msg) {
             dialog = new Dialog(Dialog.DIALOG_POP).
                 showMessage(title, msg);
+        }
+
+        function getSelectedFriend() {
+            var selector = document.getElementById('friendSelector');
+            var selected = selector.serialize().selected_id;
+            return selected;
         }
 
         function switchToLoader(thediv) {
@@ -165,12 +241,33 @@ Looking at your favorite music, we recognized the following bands:
         }
 
         function cloudTabClicked() {
+            //
+            // Switch "selected" tab
+            var cloudTab = document.getElementById("cloudTab");
+            var compareTab = document.getElementById("compareTab");
+            cloudTab.setClassName("fakeTabCurr");
+            compareTab.setClassName("fakeTab");
+
+            //
+            // Fetch the cloud data
             var main = document.getElementById('mainSection');
             switchToLoader(main);
             fetchAndShowCloud();
+
+            //
+            // Clear the invite area
+            var inv = document.getElementById("inviteArea");
+            clearDiv(inv);
         }
 
         function compareTabClicked() {
+            //
+            // Switch "selected" tab
+            var cloudTab = document.getElementById("cloudTab");
+            var compareTab = document.getElementById("compareTab");
+            cloudTab.setClassName("fakeTab");
+            compareTab.setClassName("fakeTabCurr");
+
             //
             // Show the area where you can choose a friend
             var main = document.getElementById('mainSection');
@@ -178,11 +275,21 @@ Looking at your favorite music, we recognized the following bands:
             main.setInnerFBML(friendPicker);
             var goBtn = document.getElementById('compareGoBtn');
             goBtn.addEventListener('click', fetchAndShowCompare);
+            var seeBtn = document.getElementById('seeOtherBtn');
+            seeBtn.addEventListener('click', fetchAndShowFriendCloud);
+
+            //
+            // Clear the add to profile area
+            var profile = document.getElementById("addToProfileArea");
+            clearDiv(profile);
         }
 
+        /*
+         * Shows a comparison cloud between the logged in user and a selected
+         * friend.
+         */
         function fetchAndShowCompare() {
-            var selector = document.getElementById('friendSelector');
-            var selected = selector.serialize().selected_id;
+            var selected = getSelectedFriend();
             var tgt = document.getElementById('compareResults');
             switchToLoader(tgt);
             
@@ -195,6 +302,9 @@ Looking at your favorite music, we recognized the following bands:
             ajax.post(canvasPath + "/ajax/getCompareCloud", query);
         }
 
+        /*
+         * Shows a cloud for the logged-in user and updates their profile FBML
+         */
         function fetchAndShowCloud() {
             var ajax = new Ajax();
             ajax.responseType = Ajax.JSON;
@@ -204,6 +314,22 @@ Looking at your favorite music, we recognized the following bands:
             ajax.post(canvasPath + "/ajax/updateCloudFromArtistIDs", query);
         }
 
+        /*
+         * Shows a cloud (on the compare screen) representing the selected
+         * friend's musical tastes
+         */
+        function fetchAndShowFriendCloud() {
+            var selected = getSelectedFriend();
+            var tgt = document.getElementById('compareResults');
+            switchToLoader(tgt);
+
+            var ajax = new Ajax();
+            ajax.responseType = Ajax.JSON;
+            ajax.ondone = displayCompareCallback;
+            var query = {"fbSession" : fbSession,
+                         "friendUID" : selected};
+            ajax.post(canvasPath + "/ajax/getOtherCloud", query);
+        }
 
         //
         // Run this when the page loads:
@@ -216,6 +342,7 @@ Looking at your favorite music, we recognized the following bands:
 
         var compareTab = document.getElementById("compareTab");
         compareTab.addEventListener('click', compareTabClicked);
+
 //-->
 </script>
 
