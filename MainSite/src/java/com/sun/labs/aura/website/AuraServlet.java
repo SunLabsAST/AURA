@@ -39,7 +39,7 @@ public class AuraServlet extends HttpServlet {
                                          HttpServletResponse response) {
         //
         // Everybody gets a stat bean to show in the header
-        request.setAttribute("statBean", new StatBean(dataStore));
+//        request.setAttribute("statBean", new StatBean(dataStore));
     }
     
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
