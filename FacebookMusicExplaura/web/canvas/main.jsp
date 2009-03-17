@@ -81,12 +81,17 @@ cloud by combining the most distinctive terms that describe each band.
 <!-- The main display area (below the tabs) -->
 <div style="width: 700px; min-height: 200px; padding: 5px;" id="mainSection">
 </div>
-<br/><br/>
+<br/>
 
+<!-- Link to invite user to use the app -->
 <div style="float:right; clear: right;" id="inviteArea">
 </div>
 <!-- The add to profile button -->
 <div style="float: right; clear: right;" id="addToProfileArea">
+</div>
+
+<!-- Link to the WME for steering and recommendations -->
+<div id="wmeLink">
 </div>
 
 <br/><br/><br/><br/>
@@ -174,7 +179,7 @@ cloud by combining the most distinctive terms that describe each band.
             bands.setStyle({'border': "1px solid #d8dfea",
                             'width': "600px",
                             'padding': "4px",
-                            'marginTop': "10px",
+                            'marginTop': "12px",
                             'marginLeft': "auto",
                             'marginRight': "auto"});
             var container = document.createElement("div");
@@ -199,6 +204,11 @@ cloud by combining the most distinctive terms that describe each band.
         //
         // Show the cloud
         thediv.appendChild(getDOMForCloud(data, status.artists));
+
+        //
+        // Show a link to the WME
+        var wmeLink = document.getElementById("wmeLink");
+        wmeLink.setInnerFBML(status.fbml_steerLink);
 
         //
         // Put in the add-to-profile button if relevant
@@ -284,22 +294,27 @@ cloud by combining the most distinctive terms that describe each band.
         seeBtn.addEventListener('click', fetchAndShowFriendCloud);
 
         //
-        // Clear the add to profile area
+        // Clear the add to profile area and the WME link
         var profile = document.getElementById("addToProfileArea");
         clearDiv(profile);
+        var wmeLink = document.getElementById("wmeLink");
+        clearDiv(wmeLink);
     }
 
     /*
      * Shows a comparison cloud between the logged in user and a selected
      * friend.
      */
-    function fetchAndShowCompare() {
+    function fetchAndShowCompare(friendID) {
         //
         // Clear the invite area
         var inv = document.getElementById("inviteArea");
         clearDiv(inv);
 
-        var selected = getSelectedFriend();
+        var selected = friendID;
+        if (selected == null) {
+            selected = getSelectedFriend();
+        }
         var tgt = document.getElementById('compareResults');
         switchToLoader(tgt);
 
@@ -350,7 +365,15 @@ cloud by combining the most distinctive terms that describe each band.
     // Run this when the page loads:
     var main = document.getElementById('mainSection');
     switchToLoader(main);
+    <c:if test="${compareTo != null}">
+    //
+    // Switch to compare tab
+    compareTabClicked();
+    fetchAndShowCompare(<c:out value="${compareTo}" />);
+    </c:if>
+    <c:if test="${compareTo == null}">
     fetchAndShowCloud();
+    </c:if>
 
     var cloudTab = document.getElementById("cloudTab");
     cloudTab.addEventListener('click', cloudTabClicked);

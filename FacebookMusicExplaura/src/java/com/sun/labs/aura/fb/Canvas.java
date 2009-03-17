@@ -76,6 +76,10 @@ public class Canvas extends HttpServlet {
             try {
                 long uid = client.users_getLoggedInUser();
 
+                String compareTo = request.getParameter("compareTo");
+                if (compareTo != null && !compareTo.isEmpty()) {
+                    request.setAttribute("compareTo", compareTo);
+                }
                 request.setAttribute("server", Util.getRootPath(request, false));
                 request.setAttribute("fbSession", fbSession);
                 request.setAttribute("fbUID", uid);
@@ -127,7 +131,9 @@ public class Canvas extends HttpServlet {
                         newDocumentBuilder();
                 Document doc = db.newDocument();
                 DocumentFragment frag = doc.createDocumentFragment();
-                Element rootDiv = doc.createElement("div");
+                //
+                // Draw the cloud
+                Element cloudDiv = doc.createElement("div");
                 for (int i = 0; i < cloud.length; i++) {
                     ItemInfo item = cloud[i];
                     Element span = doc.createElement("span");
@@ -140,11 +146,38 @@ public class Canvas extends HttpServlet {
                                 + "px;");
                     span.appendChild(
                             doc.createTextNode(item.getItemName()));
-                    rootDiv.appendChild(span);
-                    rootDiv.appendChild(
+                    cloudDiv.appendChild(span);
+                    cloudDiv.appendChild(
                             doc.createTextNode(" "));
                 }
-                frag.appendChild(rootDiv);
+                frag.appendChild(cloudDiv);
+                //
+                // Add some links
+                Element launch = doc.createElement("a");
+                launch.setAttribute("href",
+                        "http://apps.facebook.com/musicexplaura");
+                launch.setTextContent("Launch");
+                Element compare = doc.createElement("a");
+                compare.setAttribute("href",
+                        "http://apps.facebook.com/musicexplaura/?compareTo=" +
+                        client.users_getLoggedInUser());
+                compare.setTextContent("Compare");
+                Element ldata = doc.createElement("td");
+                ldata.appendChild(launch);
+                ldata.setAttribute("style", "text-align: center;");
+                Element tdata = doc.createElement("td");
+                tdata.appendChild(compare);
+                tdata.setAttribute("style", "text-align: center;");
+                Element row = doc.createElement("tr");
+                row.appendChild(ldata).appendChild(tdata);
+                Element table = doc.createElement("table");
+                table.appendChild(row);
+                table.setAttribute("style", "width: 100%; text-align: center;");
+                Element buttons = doc.createElement("div");
+                buttons.setAttribute("style", "margin-top: 4px; border: 1px solid #d8dfea;");
+                buttons.appendChild(table);
+                frag.appendChild(buttons);
+
                 String fbml = Util.xmlToString(frag);
                 logger.info("setting profile to " + fbml);
                 
@@ -176,6 +209,9 @@ public class Canvas extends HttpServlet {
             props.put("fbml_profile", getAddToProfileFBML());
             props.put("hasmusic", Boolean.toString(currUser.hasMusic()));
             props.put("artists", artistStr);
+            props.put("fbml_steerLink", "View in the <a href=\"" +
+                    Util.getWMELink(cloud).replace(' ', '+') +
+                    "\" target=\"_blank\">full Music Explaura</a>");
             JSONArray result = getJSONResponse(props);
             result = addCloudJSON(result, cloud);
             sendJSON(result, response);
