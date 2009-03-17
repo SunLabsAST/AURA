@@ -311,9 +311,11 @@ cloud by combining the most distinctive terms that describe each band.
         var inv = document.getElementById("inviteArea");
         clearDiv(inv);
 
-        var selected = friendID;
-        if (selected == null) {
+        var selected;
+        if (friendID.type != null) {
             selected = getSelectedFriend();
+        } else {
+            selected = friendID;
         }
         var tgt = document.getElementById('compareResults');
         switchToLoader(tgt);
