@@ -37,6 +37,10 @@ a:visited {
   text-decoration: none;
 }
 
+dt {
+    font-weight: bold;
+}
+
 div.main {
     margin-top: 10px;
     margin-bottom: 10px;

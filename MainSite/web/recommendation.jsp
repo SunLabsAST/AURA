@@ -21,17 +21,29 @@
         <%@include file="/WEB-INF/jspf/sidebar.jspf"%>
         <div class="main">
         <div class="mainTitle"><img src="images/tklogo.png"></div>
-            <p>
-                TasteKeeper offers recommendations, but what is a
-                recommendation?  This page helps to describe what we offer.
-            </p>
         <span class="sectionTitle">What makes a good recommendation?</span><br/>
         <div class="regularTxt">
-            <p>
-            </p>
-            <p>
-            </p>
-        </div>
+            <p> 
+	    There are three qualities that we like to think about
+	    when generating recommendations.
+	  </p>
+
+	  <dl>
+	    <dt>Novelty</dt><dd>Recommendations should be for items
+	    that the user hasn't seen before.  Although we're trying
+	    to find new things that people might like, we need to
+	    be careful that users don't lose trust in the recommender
+	    by never offering them anything that they recognize.</dd>
+	    <dt>Serendipity</dt><dd>Users should be able to discover
+	    new items in a serendipitous way.  For example, when a
+	    user is looking for information about a particular item,
+	    the recommendations should provide a way for them to
+	    discover items that they might like.</dd>
+	    <dt>Transparency</dt><dd>Users should be be able to 
+	    understand why an item was recommended to them.</dd>
+	  </dl>
+
+       </div>
         <span class="sectionTitle">TasteKeeper's Recommendations</span><br/>
         <div class="regularTxt">
             <p>
