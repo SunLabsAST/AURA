@@ -55,7 +55,7 @@ div.regularTxt {
 }
 
 div.regularTxt ul, div.regulartxt ul li {
-    list-style: bullet;
+    list-style: circle;
 }
 
 div.topCling {

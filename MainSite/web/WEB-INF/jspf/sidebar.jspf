@@ -5,9 +5,9 @@
     <img style="margin-left: 3px;" src="images/tastekeeper-lock-140h.png">
     <ul>
         <!-- <li><a href="">How To</a></li> -->
-        <li><a href="dataStore.jsp">The Project AURA Data Store</a></li>
-        <li><a href="recommendation.jsp">Project AURA Recommendations</a></li>
-        <li><a href="http://music.tastekeeper.com">The Music Explaura</a></li>
+        <li><a href="recommendation.jsp">Recommendations</a></li>
+        <li><a href="http://music.tastekeeper.com">Music Explaura</a></li>
+        <li><a href="dataStore.jsp">The Data Store</a></li>
         <li><a href="http://forums.tastekeeper.com">TasteKeeper Forums</a></li>
         <!-- <li><a href="">Wiki</a></li> -->
         <!-- <li><a href="">Docs</a></li> -->
