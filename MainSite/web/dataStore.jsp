@@ -48,26 +48,62 @@
 	    in multiple replicants to provide reliability.</li>
 	</ul>
 
+	<p>
+	  You can see how these parts are organized in the diagram
+	  below.
+	</p>
+
 	<div align="center">
 	<img src="images/ds.png"/>
 	</div>
 
 	<p>
-	  One of the key features of the Data Store is that it is
-	  meant to be able to maintain and to grow itself.  When a
-	  node in the Data Store goes down, the system recognizes that
-	  this has happened and brings the node back up.
+	  A data store is started by starting each of its separate
+	  components.  Each component of the data store finds the
+	  components to which it should be connected using
+	  a <a href="http://www.jini.org">Jini Service Registrar</a>.
+	  For example, a partition cluster will search for data store
+	  heads with which it should register itself.  There is no
+	  global configuration for the data store, only configurations
+	  for the individual pieces.
 	</p>
+
 	<p>
-	  Our current approach to deploying the data store was
-	  developed in the context of the Caroline grid.  Currently
-	  we're hosting a 16 replicant data store that is capable of
-	  handling more than 14,000 concurrent users performing
-	  <a href="http://music.tastekeeper.com">typical music
-	  recommendation tasks</a> with sub-500ms response times at
-	  the client.
+	  The data store is meant to maintain itself, so each
+	  component of the data store continuously monitors the
+	  service registrar, noting when components of the data store
+	  are added or removed, and acting accordingly.  For example,
+	  if a replicant sees that the partition cluster responsible
+	  for it disappears and then re-appears, it will reconnect
+	  itself to the partition cluster.  The Data Store relies on
+	  the underlying grid infrastructure to help restart services
+	  when they terminate unexpectedly.  All of this means that
+	  failures are self-correcting for the most part.  Our aim is
+	  a data store that is hard to shut off.
+	</p>
+
+	<p>
+	  The data store is also meant to grow itself as necessary.
+	  When a replicant begins to get too full (i.e., when queries
+	  against the replicant start to take too long), the partition
+	  cluster undertakes the task of splitting the replicant into
+	  two new replicants.  Once a replicant has been split in two,
+	  a new partition cluster can be started to manage the new
+	  replicant.  All of this can be done while the Data Store is
+	  under load, so it's never necessary to stop the Data Store
+	  (and the clients using the Data Store!) to add more capacity.
+	</p>
+
+	<p>
+	  To give you some idea of the scalability of the current Data
+	  Store, <a href="http://music.tastekeeper.com">The Music
+	  Explaura</a> is supported by a 16 replicant Data Store that
+	  is capable of handling more than 14,000 concurrent users
+	  performing typical music recommendation tasks with sub-500ms
+	  response times at the client.
 	</p>
       </div>
     </div>
+    <%@include file="/WEB-INF/jspf/footer.jspf"%>
   </body>
 </html>

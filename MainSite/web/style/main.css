@@ -69,6 +69,17 @@ div.topCling {
   padding: 2px 0px 0px 4px;
 }
 
+div.copyright {
+  height: 16px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #ffffff;
+  background: #E76F00;
+  margin-top: 0px;
+  margin-bottom: 5px;
+  padding: 2px 0px 0px 4px;
+}
+
 div.sidebar {
     margin: 5px;
     float: left;

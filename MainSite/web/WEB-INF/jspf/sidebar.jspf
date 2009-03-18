@@ -2,13 +2,14 @@
 <%@ page pageEncoding="UTF-8" %>
 
 <div class="sidebar">
-    <img style="margin-left: 3px;" src="images/tastekeeper-lock-140h.png">
+    <a href="index.jsp"><img style="margin-left: 3px;" src="images/tastekeeper-lock-140h.png"></a>
     <ul>
         <!-- <li><a href="">How To</a></li> -->
+        <li><a href="index.jsp">Home</a></li>
         <li><a href="recommendation.jsp">Recommendations</a></li>
-        <li><a href="http://music.tastekeeper.com">Music Explaura</a></li>
         <li><a href="dataStore.jsp">The Data Store</a></li>
-        <li><a href="http://forums.tastekeeper.com">TasteKeeper Forums</a></li>
+        <li><a href="http://music.tastekeeper.com">Music Explaura</a></li>
+        <li><a href="http://forums.tastekeeper.com">Forums</a></li>
         <!-- <li><a href="">Wiki</a></li> -->
         <!-- <li><a href="">Docs</a></li> -->
         <!-- <li><a href="http://aura.kenai.com">Source Code</a></li> -->
