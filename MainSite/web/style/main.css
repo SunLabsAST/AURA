@@ -37,6 +37,10 @@ a:visited {
   text-decoration: none;
 }
 
+dt {
+    font-weight: bold;
+}
+
 div.main {
     margin-top: 10px;
     margin-bottom: 10px;
@@ -51,7 +55,7 @@ div.regularTxt {
 }
 
 div.regularTxt ul, div.regulartxt ul li {
-    list-style: bullet;
+    list-style: circle;
 }
 
 div.topCling {
@@ -59,6 +63,17 @@ div.topCling {
   font-size: 12px;
   font-weight: bold;
   color: black;
+  background: #E76F00;
+  margin-top: 0px;
+  margin-bottom: 5px;
+  padding: 2px 0px 0px 4px;
+}
+
+div.copyright {
+  height: 16px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #ffffff;
   background: #E76F00;
   margin-top: 0px;
   margin-bottom: 5px;
