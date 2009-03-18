@@ -61,7 +61,6 @@ public class Canvas extends HttpServlet {
         DataManager dm = (DataManager)context.getAttribute("dm");
         
         String canvasPath = request.getPathInfo();
-        logger.info("path is " + canvasPath);
         if (canvasPath == null || canvasPath.equals("/")) {
             response.setContentType("text/html;charset=UTF-8");
 
@@ -190,10 +189,9 @@ public class Canvas extends HttpServlet {
                 frag.appendChild(buttons);
 
                 String fbml = Util.xmlToString(frag);
-                logger.info("setting profile to " + fbml);
                 
                 if (!client.profile_setFBML(null, fbml, null, null, fbml)) {
-                    logger.info("failed to set profile FBML");
+                    logger.info("failed to set profile FBML to " + fbml);
                 }
             } catch (ParserConfigurationException e) {
                 logger.log(Level.WARNING,
@@ -221,7 +219,7 @@ public class Canvas extends HttpServlet {
             props.put("hasmusic", Boolean.toString(currUser.hasMusic()));
             props.put("artists", artistStr);
             props.put("fbml_steerLink", "View in the <a href=\"" +
-                    Util.getWMELink(cloud).replace(' ', '+') +
+                    Util.getWMELink(cloud) +
                     "\">full Music Explaura</a>");
             JSONArray result = getJSONResponse(props);
             result = addCloudJSON(result, cloud);

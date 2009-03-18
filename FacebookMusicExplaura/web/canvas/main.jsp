@@ -110,7 +110,8 @@ cloud by combining the most distinctive terms that describe each band.
 <!-- The credits -->
 <div style="padding: 3px; font-size: 8px; text-align: center; border: 1px solid #222222">
     <img src="${server}/image/sun_logo.png"/><br/>
-    The Music Explaura is developed by <a href="http://research.sun.com/">Sun Labs</a> as part of The AURA Project.<br/>
+    The Music Explaura is developed by <a href="http://research.sun.com/">Sun
+    Labs</a> as part of <a href="http://www.tastekeeper.com/">The AURA Project</a>.<br/>
     Data was used from <a href="http://musicbrainz.org">Musicbrainz</a> and <a href="http://last.fm">Last.fm</a>
 
 </div>
@@ -203,10 +204,10 @@ cloud by combining the most distinctive terms that describe each band.
         // Check for an error
         var status = data.shift();
         if (status.error != null) {
-            showDialog("Error", status.error);
+            showDialog("Oops", status.error);
             return;
         }
-        //
+
         //
         // Show the cloud
         var artistStr = "Based on: " + status.artists;
@@ -234,7 +235,7 @@ cloud by combining the most distinctive terms that describe each band.
         // Check for an error
         var status = data.shift();
         if (status.error != null) {
-            showDialog("Error", status.error);
+            showDialog("Oops", status.error);
         } else {
             var infoText = "A comparison between your taste and " +
             status.friendName + "'s.  Tags unique to you are first, then your " +
@@ -257,9 +258,10 @@ cloud by combining the most distinctive terms that describe each band.
         // Check for an error
         var status = data.shift();
         if (status.error != null) {
-            showDialog("Error", status.error);
+            showDialog("Oops", status.error);
         } else {
-            thediv.appendChild(getDOMForCloud(data, status.friendArtists));
+            thediv.appendChild(getDOMForCloud(data, "Based on: " +
+                status.friendArtists));
         }
 
         //
@@ -271,7 +273,7 @@ cloud by combining the most distinctive terms that describe each band.
     }
 
     function showDialog(title, msg) {
-        dialog = new Dialog(Dialog.DIALOG_POP).
+        var dialog = new Dialog(Dialog.DIALOG_POP).
             showMessage(title, msg);
     }
 
