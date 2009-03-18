@@ -78,9 +78,9 @@ public class MusicShell implements AuraService, Configurable {
 
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
                 String qname = sutils.stuff(args, 1);
-                String query = "(aura-type = artist) <AND> (aura-name <matches> \"*" + qname + "*\")";
-                List<Scored<Item>> items = musicDatabase.getDataStore().query(query, "-score", sutils.getHits(), null);
-                for (Scored<Item> item : items) {
+                List<Scored<Artist>> items = musicDatabase.artistSearch(qname,
+                        sutils.getHits());
+                for (Scored<Artist> item : items) {
                     System.out.printf("%.3f %s %s\n", item.getScore(), item.getItem().getKey(), item.getItem().getName());
                 }
                 return "";
@@ -581,19 +581,19 @@ public class MusicShell implements AuraService, Configurable {
     }
 
     private Artist findArtist(String qname) throws AuraException, RemoteException {
-        String query = "(aura-type = artist) <AND> (aura-name <matches> \"*" + qname + "*\")";
-        List<Scored<Item>> items = musicDatabase.getDataStore().query(query, "-score", sutils.getHits(), null);
+        List<Scored<Artist>> items = musicDatabase.artistSearch(qname,
+                1);
         if (items.size() > 0) {
-            return new Artist(items.get(0).getItem());
+            return items.get(0).getItem();
         }
         return null;
     }
 
     private ArtistTag findArtistTag(String qname) throws AuraException, RemoteException {
-        String query = "(aura-type = ARTIST_TAG) <AND> (aura-name <matches> \"*" + qname + "*\")";
-        List<Scored<Item>> items = musicDatabase.getDataStore().query(query, "-score", sutils.getHits(), null);
+        List<Scored<ArtistTag>> items = musicDatabase.artistTagSearch(qname,
+                1);
         if (items.size() > 0) {
-            return new ArtistTag(items.get(0).getItem());
+            return items.get(0).getItem();
         }
         return null;
     }
