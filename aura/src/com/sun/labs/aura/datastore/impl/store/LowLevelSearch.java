@@ -8,6 +8,7 @@ import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
+import com.sun.labs.minion.query.Element;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
@@ -53,6 +54,30 @@ public interface LowLevelSearch extends Remote {
      */
     public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf)
             throws AuraException, RemoteException;
+
+    /**
+     * Runs a query against the data and returns the top n results
+     * @param query the query to run, expressed using the Minion query API
+     * @param n the number of results to return
+     * @param rf a (possibly <code>null</code>) filter to apply to the results
+     * retrieved from the data store
+     * @return the keys for the top results for the query
+     */
+    public List<Scored<String>> query(Element query, int n,
+            ResultsFilter rf) throws AuraException, RemoteException;
+
+    /**
+     * Runs a query against the map data and returns the top n results.
+     * @param query the query to run, expressed using the Minion query API
+     * @param sort the sorting specification to use to sort the results
+     * @param n the number of results to return
+     * @param rf a (possibly <code>null</code>) filter to apply to the results
+     * retrieved from the data store
+     * @return the keys for the top results for the query, orderd by the given sort
+     * criteria.
+     */
+    public List<Scored<String>> query(Element query, String sort, int n,
+            ResultsFilter rf) throws AuraException, RemoteException;
 
     public DocumentVector getDocumentVector(String key, SimilarityConfig config)
             throws AuraException, RemoteException;

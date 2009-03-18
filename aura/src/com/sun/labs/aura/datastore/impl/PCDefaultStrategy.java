@@ -5,7 +5,6 @@ import com.sun.labs.aura.datastore.Attention.Type;
 import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
-import com.sun.labs.aura.datastore.Item.FieldCapability;
 import com.sun.labs.aura.datastore.Item.FieldType;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
@@ -17,6 +16,7 @@ import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
+import com.sun.labs.minion.query.Element;
 import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.Date;
@@ -148,6 +148,10 @@ public class PCDefaultStrategy implements PCStrategy {
     }
 
     public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf) throws AuraException, RemoteException {
+        return replicant.query(query, sort, n, rf);
+    }
+
+    public List<Scored<String>> query(Element query, String sort, int n, ResultsFilter rf) throws AuraException, RemoteException {
         return replicant.query(query, sort, n, rf);
     }
 
