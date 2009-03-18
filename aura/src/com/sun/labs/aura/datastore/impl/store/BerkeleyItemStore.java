@@ -978,8 +978,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         enter(StatName.FIND_SIM, state);
         
         List<Scored<String>> fsr = searchEngine.findSimilar(dv, config);
-
         exit(state, ": " + dv.getKey());
+        if(fsr.size() > 0) {
+            fsr.get(0).time = state.timer.getTimeMillis();
+        }
         return fsr;
     }
 
