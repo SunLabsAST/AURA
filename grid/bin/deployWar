@@ -46,13 +46,6 @@ if [ ! -e $WARFILE ] ; then
     exit 2
 fi
 
-ant -Ddeployment.name=$NAME -Dwar.loc=$WARFILE -f $DIR/../grid-deploy/tomcat.xml upload-war
-
-if [ $? != 0 ] ; then 
-    echo "Error uploading war file"
-    exit 2
-fi
-
 echo Deploying $FILE to $NAME
 
 if [ ! -z "$WARPATH" ] ; then
