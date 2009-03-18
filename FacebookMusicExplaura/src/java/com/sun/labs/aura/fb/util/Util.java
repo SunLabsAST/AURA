@@ -8,6 +8,7 @@ package com.sun.labs.aura.fb.util;
 import com.sun.labs.aura.fb.ItemInfo;
 import com.sun.labs.aura.util.Scored;
 import java.io.StringWriter;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,6 +29,7 @@ import org.w3c.dom.Node;
  *
  */
 public class Util {
+    protected static final DecimalFormat scoreFormat = new DecimalFormat("0.0#####");
     /**
      * Generates the root path URL of the application
      *
@@ -47,7 +49,16 @@ public class Util {
         }
         return context;
     }
-    
+
+    public static String getWMELink(ItemInfo[] tags) {
+        String url = "http://music.tastekeeper.com/#steering:cloud:";
+        for (ItemInfo tag : tags) {
+            url += "(" + tag.getItemName() + "," +
+                    scoreFormat.format(tag.getScore()) + ")";
+        }
+        return url;
+    }
+
     public static String xmlToString(Node node) {
         try {
             Source source = new DOMSource(node);
