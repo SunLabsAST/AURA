@@ -96,9 +96,16 @@ public class StartAura extends Aura {
         //
         // Start the replicants for each prefix
         for(String prefix : repFSMap.keySet()) {
-            ProcessRegistration repReg = gu.createProcess( getReplicantName(
-                    prefix), getReplicantConfig(replicantConfig,
-                    prefix));
+            ProcessRegistration repReg;
+            if(debugRMI) {
+                repReg = gu.createProcess(getReplicantName(
+                        prefix), getDebugReplicantConfig(replicantConfig,
+                        prefix));
+            } else {
+                repReg = gu.createProcess(getReplicantName(
+                        prefix), getReplicantConfig(replicantConfig,
+                        prefix));
+            }
             gu.startRegistration(repReg, false);
             lastReg = repReg;
         }

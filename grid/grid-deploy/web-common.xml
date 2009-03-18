@@ -128,8 +128,7 @@
   <target name="upload-distribution"
 	  description="uploads service distribution to Caroline filesystem"
 	  depends="create-filesystem,create-web-collection">
-    <dav:put url="${web.url}"
-	     userid="${user}" password="${pw}" verbose="true" lock="false">
+    <dav:put url="${web.url}" userid="${user}" password="${pw}" verbose="true" lock="false">
       <fileset dir="${tool.libraries}">
 	<include name="${service.distribution}"/>
       </fileset>

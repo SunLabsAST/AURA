@@ -18,10 +18,23 @@
         <property name="defaultNumReplicants" value="16"/>
     </component>
 
+    <component name="startParallelAura" type="com.sun.labs.aura.grid.aura.StartAura">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="numHeads" value="1"/>
+        <property name="dataStoreStarter" value="parallelDataStoreHeadStarter"/>
+    </component>
+
     <component name="startSmallAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="instance" value="${auraInstance}"/>
         <property name="numHeads" value="1"/>
-        <property name="defaultNumReplicants" value="2"/>
+        <property name="defaultNumReplicants" value="4"/>
+    </component>
+
+    <component name="startDebugAura" type="com.sun.labs.aura.grid.aura.StartAura">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="numHeads" value="1"/>
+        <property name="debugRMI" value="true"/>
+        <property name="defaultNumReplicants" value="4"/>
     </component>
 
     <component name="createAura" type="com.sun.labs.aura.grid.aura.CreateAura">
@@ -61,6 +74,20 @@
     <component name="start-small" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>startSmallAura</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="start-debug" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>startDebugAura</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="start-smallallel" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>startParallelAura</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>

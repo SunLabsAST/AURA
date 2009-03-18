@@ -36,12 +36,17 @@ public abstract class Aura extends ServiceAdapter {
     "/com/sun/labs/aura/resource/replicantSlowDumpConfig.xml")
     public static final String PROP_REPLICANT_CONFIG = "replicantConfig";
 
+    protected String replicantConfig;
+
+    @ConfigString(defaultValue="dataStoreHeadStarter")
+    public static final String PROP_DATA_STORE_STARTER = "dataStoreStarter";
+
+    private String dataStoreStarter;
+
     @ConfigInteger(defaultValue=16)
     public static final String PROP_DEFAULT_NUM_REPLICANTS = "defaultNumReplicants";
 
     private int defaultNumReplicants;
-
-    protected String replicantConfig;
 
     /**
      * A map from prefixes to the file systems for those prefixes.  This map
@@ -227,7 +232,7 @@ public abstract class Aura extends ServiceAdapter {
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/resource/dataStoreHeadConfig.xml",
-            "dataStoreHeadStarter",
+            dataStoreStarter,
             String.format("%s/dshead/dshead-%d.%%g.out", GridUtil.logFSMntPnt, instanceNumber)
         };
 
@@ -418,6 +423,50 @@ public abstract class Aura extends ServiceAdapter {
         return pc;
     }
 
+    protected ProcessConfiguration getDebugReplicantConfig(String replicantConfig,
+            String prefix)
+            throws Exception {
+        String[] cmdLine = new String[]{
+            "-Xmx3g",
+            "-Djava.util.logging.config.file=" + GridUtil.auraDistMntPnt +
+            "/dist/rmilogging.properties",
+            "-DauraHome=" + GridUtil.auraDistMntPnt,
+            "-DauraGroup=" + instance + "-aura",
+            "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
+            "/classifier/starting.idx",
+            "-Dprefix=" + prefix,
+            "-DdataFS=/files/data",
+            "-jar",
+            GridUtil.auraDistMntPnt + "/dist/grid.jar",
+            replicantConfig,
+            "replicantStarter",
+            String.format("%s/rep/rep-%s.%%g.out", GridUtil.logFSMntPnt, prefix)
+        };
+
+        FileSystem fs = repFSMap.get(prefix);
+        if (fs == null) {
+            fs = ownedFSMap.get(prefix);
+        }
+        List<FileSystemMountParameters> extraMounts =
+                Collections.singletonList(new FileSystemMountParameters(
+                fs.getUUID(),
+                "data"));
+        ProcessConfiguration pc = gu.getProcessConfig(
+                Replicant.class.getName(),
+                cmdLine, getReplicantName(
+                prefix), extraMounts);
+
+        // don't overlap with other replicants
+        pc.setLocationConstraint(
+                new ProcessRegistrationFilter.NameMatch(
+                Pattern.compile(instance + ".*-replicant-.*")));
+        Map<String,String> md = pc.getMetadata();
+        md.put("prefix", prefix);
+        md.put("monitor", "true");
+        pc.setMetadata(md);
+        return pc;
+    }
+
     protected ProcessConfiguration getStatServiceConfig() throws Exception {
         String[] cmdLine = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
@@ -461,6 +510,7 @@ public abstract class Aura extends ServiceAdapter {
         super.newProperties(ps);
         replicantConfig = ps.getString(PROP_REPLICANT_CONFIG);
         defaultNumReplicants = ps.getInt(PROP_DEFAULT_NUM_REPLICANTS);
+        dataStoreStarter = ps.getString(PROP_DATA_STORE_STARTER);
         try {
             getReplicantFileSystems();
         } catch(Exception ex) {

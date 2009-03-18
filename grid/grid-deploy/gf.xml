@@ -5,8 +5,6 @@
 
   <import file="gf-common.xml"/>
 
-  <property name="domain.dir" value="${service.working}/glassfish/domains/aura"/>
-  
   <!-- create process registration if it doesn't exist -->
   <target name="create-service"
 	  description="creates a service process if one doesn't exist"
@@ -20,11 +18,22 @@
       <!-- assign an internal address -->
       <caroline:intaddress name="${intaddress}" networkname="${network}"/>
       <!-- specify command line arguments -->
+      <!-- Performance stuff from http://weblogs.java.net/blog/jfarcand/archive/2007/01/configuring_gri.html  and http://piccolo.east/~sdo/SPECj-Jun-2007/Submission.txt -->
+      <arg value="-server"/>
+      <arg value="-Xmx1400m"/>
+      <arg value="-Xms1400m"/>
+      <arg value="-Xss128k"/>
+      <arg value="-XX:+DisableExplicitGC"/>
+      <arg value="-XX:+UseParallelOldGC"/>
+      <arg value="-Dcom.sun.enterprise.server.ss.ASQuickStartup=false"/>
+      <arg value="-XX:+AggressiveOpts"/>
+      <arg value="-XX:-UseBiasedLocking"/>
+
+      <!-- Standard stuff for GF -->
       <arg value="-XX:+UnlockDiagnosticVMOptions"/>
       <arg value="-XX:NewRatio=2"/>
       <arg value="-XX:+LogVMOutput"/>
       <arg value="-XX:LogFile=${domain.dir}/logs/jvm.log"/>
-      <arg value="-Xmx1g"/>
       <arg value="-cp"/>
       <arg value="${service.working}/glassfish/modules/glassfish.jar"/>
       <arg value="-Dcom.sun.aas.installRoot=${service.working}/glassfish"/>
@@ -41,7 +50,7 @@
       <arg value="-Djava.security.debug=failure"/>
       <arg value="com.sun.enterprise.glassfish.bootstrap.ASMain"/>
       <arg value="-domainname"/>
-      <arg value="domain1"/>
+      <arg value="${domain}"/>
       <arg value="-instancename"/>
       <arg value="server"/>
       <arg value="-verbose"/>

@@ -3,7 +3,7 @@
     
     <!-- Where the aura data lives -->
     <property name="auraHome" value="/aura"/>
-    <property name="auraDistDir" value="${auraHome}/dist"/>
+    <property name="auraDistDir" value="/files/dist"/>
     <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
     <property name="auraGroup" value="Aura"/>
     
