@@ -31,6 +31,7 @@ import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.IndexListener;
 import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.minion.SearchEngine;
+import com.sun.labs.minion.query.Element;
 import com.sun.labs.minion.util.DirCopier;
 import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.util.props.Component;
@@ -872,7 +873,25 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             throws AuraException, RemoteException {
         StatState state = new StatState();
         enter(StatName.QUERY, state);
-        
+
+        List<Scored<String>> res = searchEngine.query(query, sort, n, rf);
+
+        exit(state, ": " + query);
+        return res;
+    }
+
+    @Override
+    public List<Scored<String>> query(Element query, int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        return query(query, "-score", n, rf);
+    }
+
+    @Override
+    public List<Scored<String>> query(Element query, String sort, int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        StatState state = new StatState();
+        enter(StatName.QUERY, state);
+
         List<Scored<String>> res = searchEngine.query(query, sort, n, rf);
 
         exit(state, ": " + query);

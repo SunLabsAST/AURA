@@ -19,6 +19,7 @@ import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
+import com.sun.labs.minion.query.Element;
 import com.sun.labs.util.props.Component;
 import com.sun.labs.util.props.ComponentListener;
 import com.sun.labs.util.props.ConfigBoolean;
@@ -306,6 +307,23 @@ public class PartitionClusterImpl implements PartitionCluster,
         return ret;
     }
     
+    public List<Scored<String>> query(Element query, int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        return query(query, "-score", n, rf);
+    }
+
+    public List<Scored<String>> query(Element query, String sort, int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("pc %s query start", prefixCode.toString()));
+        }
+        List<Scored<String>> ret = strategy.query(query, sort, n, rf);
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("pc %s query done", prefixCode.toString()));
+        }
+        return ret;
+    }
+
     public List<Scored<String>> getAutotagged(String autotag, int n)
             throws AuraException, RemoteException {
         return strategy.getAutotagged(autotag, n);

@@ -16,6 +16,7 @@ import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
+import com.sun.labs.minion.query.Element;
 import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.Date;
@@ -206,6 +207,11 @@ public interface PCStrategy {
                                     ResultsFilter rf) 
             throws AuraException, RemoteException;
 
+    public List<Scored<String>> query(Element query,
+                                    String sort,
+                                    int n,
+                                    ResultsFilter rf)
+            throws AuraException, RemoteException;
     /**
      * Gets items auto-tagged with a particular tag
      */

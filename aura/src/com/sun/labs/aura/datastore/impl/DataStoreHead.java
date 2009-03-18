@@ -23,6 +23,7 @@ import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.minion.pipeline.StopWords;
+import com.sun.labs.minion.query.Element;
 import com.sun.labs.minion.retrieval.MultiDocumentVectorImpl;
 import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.util.props.ConfigBoolean;
@@ -1717,6 +1718,52 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
     }
 
     public List<Scored<Item>> query(final String query, final String sort,
+            final int n, final ResultsFilter rf)
+            throws AuraException, RemoteException {
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<List<Scored<String>>>> callers =
+                new HashSet<Callable<List<Scored<String>>>>();
+        final PCLatch latch = new PCLatch(allPrefixes,clusters.size());
+        for(PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p, rf) {
+
+                public List<Scored<String>> call()
+                        throws AuraException, RemoteException {
+                    try {
+                        List<Scored<String>> ret = pc.query(query, sort, n, rf);
+                        return ret;
+                    } finally {
+                        latch.countDown(pc.getPrefix().toString());
+                    }
+                }
+            });
+        }
+        try {
+            NanoWatch sw = new NanoWatch();
+            sw.start();
+            List<Scored<Item>> res = keysToItems(sortScored("query",
+                    executor.invokeAll(callers), n, latch));
+            sw.stop();
+            if(logger.isLoggable(Level.FINE)) {
+                logger.fine(String.format("dsh q %s took %.3f", query, sw.
+                        getTimeMillis()));
+            }
+            return res;
+        } catch(ExecutionException ex) {
+            checkAndThrow(ex);
+            return new ArrayList<Scored<Item>>();
+        } catch (InterruptedException e) {
+            throw new AuraException("Query interrupted", e);
+        }
+
+    }
+
+    public List<Scored<Item>> query(Element query, int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        return query(query, "-score", n, rf);
+    }
+
+    public List<Scored<Item>> query(final Element query, final String sort,
             final int n, final ResultsFilter rf)
             throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
