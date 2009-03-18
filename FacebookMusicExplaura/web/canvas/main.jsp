@@ -63,6 +63,17 @@
     background-color: #3b5998;
 }
 
+.infoText {
+    border: 1px solid #d8dfea;
+    width: 600px;
+    padding: 4px;
+    margin-top: 12px;
+    margin-left: auto;
+    margin-right: auto;
+    color: #888888;
+    text-align: center;
+}
+
 </style>
 
 <h1>Music Explaura</h1>
@@ -147,7 +158,7 @@ cloud by combining the most distinctive terms that describe each band.
 
     //
     // Creates the DOM that represents a cloud from cloud JSON data
-    function getDOMForCloud(cloudData, bandNames) {
+    function getDOMForCloud(cloudData, cloudDesc) {
         var cloud = document.createElement("div");
         for (var i=0; i < cloudData.length; i++) {
             var curr = document.createElement("span");
@@ -171,20 +182,15 @@ cloud by combining the most distinctive terms that describe each band.
             cloud.appendChild(curr);
         }
 
-        if (bandNames != null && bandNames.length > 0) {
+        if (cloudDesc != null && cloudDesc.length > 0) {
             //
-            // Show the band names
-            var bands = document.createElement("div");
-            bands.setTextValue("Based on: " + bandNames);
-            bands.setStyle({'border': "1px solid #d8dfea",
-                            'width': "600px",
-                            'padding': "4px",
-                            'marginTop': "12px",
-                            'marginLeft': "auto",
-                            'marginRight': "auto"});
+            // Show the cloud description
+            var desc = document.createElement("div");
+            desc.setTextValue(cloudDesc);
+            desc.setClassName("infoText");
             var container = document.createElement("div");
             container.appendChild(cloud);
-            container.appendChild(bands);
+            container.appendChild(desc);
             cloud = container;
         }
         return cloud;
@@ -203,7 +209,12 @@ cloud by combining the most distinctive terms that describe each band.
         //
         //
         // Show the cloud
-        thediv.appendChild(getDOMForCloud(data, status.artists));
+        var artistStr = "Based on: " + status.artists;
+        if (status.hasmusic == "false") {
+            artistStr = "We couldn't identify any bands in your favorite " +
+                "music so a cloud is being displayed based on " + status.artists;
+        }
+        thediv.appendChild(getDOMForCloud(data, artistStr));
 
         //
         // Show a link to the WME
@@ -225,9 +236,32 @@ cloud by combining the most distinctive terms that describe each band.
         if (status.error != null) {
             showDialog("Error", status.error);
         } else {
-            thediv.appendChild(getDOMForCloud(data, status.friendArtists));
+            var infoText = "A comparison between your taste and " +
+            status.friendName + "'s.  Tags unique to you are first, then your " +
+            " shared tags, then tags that only " + status.friendName + " has."
+            thediv.appendChild(getDOMForCloud(data, infoText));
         }
         
+        //
+        // Should we add an invite button?
+        if (status.isAppUser == "false") {
+            var inv = document.getElementById("inviteArea");
+            inv.setInnerFBML(status.fbml_invite);
+        }
+    }
+
+    function displayFriendCloudCallback(data) {
+        var thediv = document.getElementById('compareResults');
+        clearDiv(thediv);
+        //
+        // Check for an error
+        var status = data.shift();
+        if (status.error != null) {
+            showDialog("Error", status.error);
+        } else {
+            thediv.appendChild(getDOMForCloud(data, status.friendArtists));
+        }
+
         //
         // Should we add an invite button?
         if (status.isAppUser == "false") {
@@ -357,7 +391,7 @@ cloud by combining the most distinctive terms that describe each band.
 
         var ajax = new Ajax();
         ajax.responseType = Ajax.JSON;
-        ajax.ondone = displayCompareCallback;
+        ajax.ondone = displayFriendCloudCallback;
         var query = {"fbSession" : fbSession,
                      "friendUID" : selected};
         ajax.post(canvasPath + "/ajax/getOtherCloud", query);

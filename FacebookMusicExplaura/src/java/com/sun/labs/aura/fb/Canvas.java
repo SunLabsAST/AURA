@@ -115,6 +115,17 @@ public class Canvas extends HttpServlet {
             uidToArtists.put(uid, artists);
 
             //
+            //
+            if (artists.isEmpty()) {
+                //
+                // We didn't recognize any artists, so set hasMusic to false,
+                // then ask for the default music and go on from there
+                currUser.setHasMusic(false);
+                artists = getArtistsFromFBString(currUser.getMusicString(), dm);
+                uidToArtists.put(uid, artists);
+            }
+
+            //
             // Get the merged cloud
             ItemInfo[] cloud = dm.getMergedCloud(artists, DataManager.CLOUD_SIZE);
 
@@ -211,7 +222,7 @@ public class Canvas extends HttpServlet {
             props.put("artists", artistStr);
             props.put("fbml_steerLink", "View in the <a href=\"" +
                     Util.getWMELink(cloud).replace(' ', '+') +
-                    "\" target=\"_blank\">full Music Explaura</a>");
+                    "\">full Music Explaura</a>");
             JSONArray result = getJSONResponse(props);
             result = addCloudJSON(result, cloud);
             sendJSON(result, response);
@@ -262,29 +273,32 @@ public class Canvas extends HttpServlet {
                 friend = getUserInfo(apiKey, secretKey, fbSession, friendID);
                 //
                 // If the friend has no music, stop now
-                if (!friend.hasMusic) {
+                if (!friend.hasMusic()) {
                     //
                     // Nothing to compare to... send back an error
-                    HashMap<String,String> props = new HashMap<String,String>();
-                    props.put("error", "Sorry, " + friend.getName() +
-                            " has not entered any favorite music.");
-                    props.put("isAppUser", friend.isAppUser().toString());
-                    if (!friend.isAppUser()) {
-                        props.put("fbml_invite", getInviteFBML(friend.getName(), friendID));
-                    }
-                    JSONArray json = getJSONResponse(props);
+                    JSONArray json = getJSONErrorWithInvite("Sorry, " + friend.getName() +
+                            " has not entered any favorite music.", friend);
                     sendJSON(json, response);
                     return;
                 }
-
-                //
-                // Get the artists
-                friendArtists = getArtistsForUser(dm, friend);
             } catch (FacebookException e) {
                 //
                 // Nothing to compare to... send back an error
                 JSONArray err = getJSONError("Sorry, we couldn't retrieve your friend's musical taste.");
                 sendJSON(err, response);
+                return;
+            }
+
+            //
+            // Get the friend's artists
+            friendArtists = getArtistsForUser(dm, friend);
+            if (friendArtists.isEmpty()) {
+                //
+                // Still no artists, send back an error
+                JSONArray json = getJSONErrorWithInvite("Sorry, we were " +
+                        "unable to recognize any music from " + friend.getName() +
+                        ".", friend);
+                sendJSON(json, response);
                 return;
             }
 
@@ -323,14 +337,8 @@ public class Canvas extends HttpServlet {
             try {
                 friend = getUserInfo(apiKey, secretKey, fbSession, friendID);
                 if (!friend.hasMusic()) {
-                    HashMap<String,String> props = new HashMap<String,String>();
-                    props.put("error", "Sorry, " + friend.getName() +
-                            " has not entered any favorite music.");
-                    props.put("isAppUser", friend.isAppUser().toString());
-                    if (!friend.isAppUser()) {
-                        props.put("fbml_invite", getInviteFBML(friend.getName(), friendID));
-                    }
-                    JSONArray json = getJSONResponse(props);
+                    JSONArray json = getJSONErrorWithInvite("Sorry, " + friend.getName() +
+                            " has not entered any favorite music.", friend);
                     sendJSON(json, response);
                     return;
                 }
@@ -340,6 +348,15 @@ public class Canvas extends HttpServlet {
                 response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
             }
 
+            if (friendArtists.isEmpty()) {
+                //
+                // Still no artists, send back an error
+                JSONArray json = getJSONErrorWithInvite("Sorry, we were " +
+                        "unable to recognize any music from " + friend.getName() +
+                        ".", friend);
+                sendJSON(json, response);
+                return;
+            }
 
             //
             // Retrieve the artists, then build the cloud
@@ -409,6 +426,28 @@ public class Canvas extends HttpServlet {
         return result;
     }
 
+    /**
+     * Get a JSON error response that includes info about inviting a friend
+     * @param msg
+     * @param friend
+     * @return
+     */
+    private JSONArray getJSONErrorWithInvite(String msg, FBUserInfo friend) {
+        JSONArray result = new JSONArray();
+        try {
+            JSONObject err = new JSONObject();
+            err.put("isAppUser", friend.isAppUser().toString());
+            if (!friend.isAppUser()) {
+                err.put("fbml_invite", getInviteFBML(friend.getName(), friend.getUID()));
+            }
+            err.put("error", msg);
+            result.put(err);
+        } catch (JSONException e) {
+            logger.log(Level.WARNING, "Error encoding JSON", e);
+        }
+        return result;
+    }
+
     private JSONArray getJSONResponse(Map<String,String> props) {
         JSONArray result = new JSONArray();
         try {
@@ -426,7 +465,7 @@ public class Canvas extends HttpServlet {
     private void sendJSON(JSONArray data, HttpServletResponse response)
         throws IOException {
         try {
-            response.setContentType("application/json");
+            response.setContentType("application/json; charset=utf-8");
             PrintWriter out = response.getWriter();
             try {
                 data.write(out);
