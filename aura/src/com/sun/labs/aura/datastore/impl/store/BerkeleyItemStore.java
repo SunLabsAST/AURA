@@ -316,24 +316,21 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         //
         // Define the fields in the User items
         EnumSet<FieldCapability> saved = EnumSet.of(FieldCapability.MATCH);
-        logger.info("num users is " + bdb.getNumUsers());
-        if (bdb.getNumUsers() == 0) {
-            try {
-                logger.info("Defining user fields");
-                defineField("nickname", FieldType.STRING, StoreFactory.INDEXED);
-                defineField("fullname", FieldType.STRING, StoreFactory.INDEXED);
-                defineField("email", FieldType.STRING, StoreFactory.INDEXED);
-                defineField("dob", FieldType.DATE, StoreFactory.INDEXED);
-                defineField("gender", FieldType.STRING, StoreFactory.INDEXED);
-                defineField("postcode", FieldType.STRING, StoreFactory.INDEXED);
-                defineField("country", FieldType.STRING, StoreFactory.INDEXED);
-                defineField("language", FieldType.STRING, StoreFactory.INDEXED);
-                defineField("timezone", FieldType.STRING, StoreFactory.INDEXED);
-            } catch (Exception e) {
-                logger.log(Level.INFO, "Failed to define User fields", e);
-                throw new PropertyException(ps.getInstanceName(), "userfields",
-                        "Failed to define User fields");
-            }
+        try {
+            logger.info("Defining user fields");
+            defineField("nickname", FieldType.STRING, StoreFactory.INDEXED);
+            defineField("fullname", FieldType.STRING, StoreFactory.INDEXED);
+            defineField("email", FieldType.STRING, StoreFactory.INDEXED);
+            defineField("dob", FieldType.DATE, StoreFactory.INDEXED);
+            defineField("gender", FieldType.STRING, StoreFactory.INDEXED);
+            defineField("postcode", FieldType.STRING, StoreFactory.INDEXED);
+            defineField("country", FieldType.STRING, StoreFactory.INDEXED);
+            defineField("language", FieldType.STRING, StoreFactory.INDEXED);
+            defineField("timezone", FieldType.STRING, StoreFactory.INDEXED);
+        } catch(Exception e) {
+            logger.log(Level.INFO, "Failed to define User fields", e);
+            throw new PropertyException(ps.getInstanceName(), "userfields",
+                    "Failed to define User fields");
         }
 
         //
