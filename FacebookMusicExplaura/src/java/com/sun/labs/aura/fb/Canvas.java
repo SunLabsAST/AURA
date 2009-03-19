@@ -215,9 +215,9 @@ public class Canvas extends HttpServlet {
             props.put("fbml_profile", getAddToProfileFBML());
             props.put("hasmusic", Boolean.toString(currUser.hasMusic()));
             props.put("artists", artistStr);
-            props.put("fbml_steerLink", "View in the <a href=\"" +
+            props.put("fbml_steerLink", "<span style=\"font-size: 14px\">View in the <a href=\"" +
                     Util.getWMELink(cloud) +
-                    "\">full Music Explaura</a>");
+                    "\">full Music Explaura</a></span>");
             JSONArray result = getJSONResponse(props);
             result = addCloudJSON(result, cloud);
             sendJSON(result, response);
@@ -306,7 +306,9 @@ public class Canvas extends HttpServlet {
             props.put("isAppUser", friend.isAppUser().toString());
             props.put("friendName", friend.getName());
             if (!friend.isAppUser()) {
-                props.put("fbml_invite", getInviteFBML(friend.getName(), friendID));
+                props.put("fbml_invite", getInviteFBML(friend.getName(),
+                        friendID,
+                        false));
             }
             JSONArray result = getJSONResponse(props);
             result = addCloudJSON(result, compareCloud);
@@ -377,7 +379,9 @@ public class Canvas extends HttpServlet {
             props.put("friendName", friend.getName());
             props.put("friendArtists", artistStr);
             if (!friend.isAppUser()) {
-                props.put("fbml_invite", getInviteFBML(friend.getName(), friendID));
+                props.put("fbml_invite", getInviteFBML(friend.getName(),
+                        friendID,
+                        false));
             }
             JSONArray result = getJSONResponse(props);
             result = addCloudJSON(result, friendCloud);
@@ -433,7 +437,9 @@ public class Canvas extends HttpServlet {
             JSONObject err = new JSONObject();
             err.put("isAppUser", friend.isAppUser().toString());
             if (!friend.isAppUser()) {
-                err.put("fbml_invite", getInviteFBML(friend.getName(), friend.getUID()));
+                err.put("fbml_invite", getInviteFBML(friend.getName(),
+                        friend.getUID(),
+                        true));
             }
             err.put("error", msg);
             result.put(err);
@@ -551,17 +557,19 @@ public class Canvas extends HttpServlet {
         return artists;
     }
 
-    private String getInviteFBML(String fbUserName, Long fbUserId) {
+    private String getInviteFBML(String fbUserName, Long fbUserId, boolean pleaForMusic) {
         String result =
                 "<table><tr><td>It looks like " + fbUserName +
                 " hasn't used the Music Explaura.</td><td>" +
                 "<fb:request-form action=\"http://apps.facebook.com/musicexplaura\" type=\"Music Explaura\" content=\"" +
-                "Use the Music Explaura to add your personal music tag cloud to " +
+                (pleaForMusic?
+                "Please add some bands into your &quot;Favorite Music&quot; in your profile then use "
+                : "Use ") +
+                "the Music Explaura to add your personal music tag cloud to " +
                 "your profile and compare your taste in music with your friends' taste. " +
                 "<fb:req-choice url=&quot;http://apps.facebook.com/musicexplaura&quot; label=&quot;Explore!&quot;>\"> " +
                 "<fb:request-form-submit uid=" + fbUserId + " label=\"Share with %n\" />" +
                 "</fb:request-form></td></tr></table>";
-        logger.info("Invite FBML:" + result);
         return result;
     }
 

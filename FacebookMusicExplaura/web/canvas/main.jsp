@@ -109,7 +109,7 @@ cloud by combining the most distinctive terms that describe each band.
 
 <!-- The credits -->
 <div style="padding: 3px; font-size: 8px; text-align: center; border: 1px solid #222222">
-    <img src="${server}/image/sun_logo.png"/><br/>
+    <a href="http://www.sun.com/"><img src="${server}/image/sun_logo.png"/></a><br/>
     The Music Explaura is developed by <a href="http://research.sun.com/">Sun
     Labs</a> as part of <a href="http://www.tastekeeper.com/">The AURA Project</a>.<br/>
     Data was used from <a href="http://musicbrainz.org">Musicbrainz</a> and <a href="http://last.fm">Last.fm</a>
