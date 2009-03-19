@@ -18,7 +18,10 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletContext;
@@ -86,7 +89,9 @@ public class PingServlet extends HttpServlet {
             // Use the API client to  verify the facebook signature in the
             // request (so that third parties can't hit this URL to remove users.
             FacebookWebappHelper helper = FacebookWebappHelper.newInstanceJson(request, response, apiKey, secretKey);
-            if (helper.verifySignature(request.getParameterMap(), request.getParameter(FacebookParam.SIGNATURE.toString()))) {
+            Map<String,String> fbParams = getFBParams(request.getParameterMap());
+            if (helper.verifySignature(fbParams,
+                    request.getParameter(FacebookParam.SIGNATURE.toString()))) {
                 String uidStr = request.getParameter(FacebookParam.USER.toString());
                 try {
                     Long uid = Long.parseLong(uidStr);
@@ -103,6 +108,18 @@ public class PingServlet extends HttpServlet {
             }
         }
         return;
+    }
+
+    private Map<String,String> getFBParams(Map<String,String[]> httpParams) {
+        String prefix = "fb_sig_";
+        int prefix_len = prefix.length();
+        Map<String,String> fb_params = new HashMap<String,String>();
+        for ( Entry<String,String[]> requestParam : httpParams.entrySet() ) {
+            if ( requestParam.getKey().indexOf( prefix ) == 0 ) {
+                fb_params.put( requestParam.getKey().substring( prefix_len ), requestParam.getValue()[0] );
+            }
+        }
+        return fb_params;
     }
 
     private String getUserKey(long fbUID) {
