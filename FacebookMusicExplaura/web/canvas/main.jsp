@@ -63,6 +63,17 @@
     background-color: #3b5998;
 }
 
+.infoText {
+    border: 1px solid #d8dfea;
+    width: 600px;
+    padding: 4px;
+    margin-top: 12px;
+    margin-left: auto;
+    margin-right: auto;
+    color: #888888;
+    text-align: center;
+}
+
 </style>
 
 <h1>Music Explaura</h1>
@@ -99,7 +110,8 @@ cloud by combining the most distinctive terms that describe each band.
 <!-- The credits -->
 <div style="padding: 3px; font-size: 8px; text-align: center; border: 1px solid #222222">
     <img src="${server}/image/sun_logo.png"/><br/>
-    The Music Explaura is developed by <a href="http://research.sun.com/">Sun Labs</a> as part of The AURA Project.<br/>
+    The Music Explaura is developed by <a href="http://research.sun.com/">Sun
+    Labs</a> as part of <a href="http://www.tastekeeper.com/">The AURA Project</a>.<br/>
     Data was used from <a href="http://musicbrainz.org">Musicbrainz</a> and <a href="http://last.fm">Last.fm</a>
 
 </div>
@@ -147,7 +159,7 @@ cloud by combining the most distinctive terms that describe each band.
 
     //
     // Creates the DOM that represents a cloud from cloud JSON data
-    function getDOMForCloud(cloudData, bandNames) {
+    function getDOMForCloud(cloudData, cloudDesc) {
         var cloud = document.createElement("div");
         for (var i=0; i < cloudData.length; i++) {
             var curr = document.createElement("span");
@@ -171,20 +183,15 @@ cloud by combining the most distinctive terms that describe each band.
             cloud.appendChild(curr);
         }
 
-        if (bandNames != null && bandNames.length > 0) {
+        if (cloudDesc != null && cloudDesc.length > 0) {
             //
-            // Show the band names
-            var bands = document.createElement("div");
-            bands.setTextValue("Based on: " + bandNames);
-            bands.setStyle({'border': "1px solid #d8dfea",
-                            'width': "600px",
-                            'padding': "4px",
-                            'marginTop': "12px",
-                            'marginLeft': "auto",
-                            'marginRight': "auto"});
+            // Show the cloud description
+            var desc = document.createElement("div");
+            desc.setTextValue(cloudDesc);
+            desc.setClassName("infoText");
             var container = document.createElement("div");
             container.appendChild(cloud);
-            container.appendChild(bands);
+            container.appendChild(desc);
             cloud = container;
         }
         return cloud;
@@ -197,13 +204,18 @@ cloud by combining the most distinctive terms that describe each band.
         // Check for an error
         var status = data.shift();
         if (status.error != null) {
-            showDialog("Error", status.error);
+            showDialog("Oops", status.error);
             return;
         }
-        //
+
         //
         // Show the cloud
-        thediv.appendChild(getDOMForCloud(data, status.artists));
+        var artistStr = "Based on: " + status.artists;
+        if (status.hasmusic == "false") {
+            artistStr = "We couldn't identify any bands in your favorite " +
+                "music so a cloud is being displayed based on " + status.artists;
+        }
+        thediv.appendChild(getDOMForCloud(data, artistStr));
 
         //
         // Show a link to the WME
@@ -223,9 +235,12 @@ cloud by combining the most distinctive terms that describe each band.
         // Check for an error
         var status = data.shift();
         if (status.error != null) {
-            showDialog("Error", status.error);
+            showDialog("Oops", status.error);
         } else {
-            thediv.appendChild(getDOMForCloud(data, status.friendArtists));
+            var infoText = "A comparison between your taste and " +
+            status.friendName + "'s.  Tags unique to you are first, then your " +
+            " shared tags, then tags that only " + status.friendName + " has."
+            thediv.appendChild(getDOMForCloud(data, infoText));
         }
         
         //
@@ -236,8 +251,29 @@ cloud by combining the most distinctive terms that describe each band.
         }
     }
 
+    function displayFriendCloudCallback(data) {
+        var thediv = document.getElementById('compareResults');
+        clearDiv(thediv);
+        //
+        // Check for an error
+        var status = data.shift();
+        if (status.error != null) {
+            showDialog("Oops", status.error);
+        } else {
+            thediv.appendChild(getDOMForCloud(data, "Based on: " +
+                status.friendArtists));
+        }
+
+        //
+        // Should we add an invite button?
+        if (status.isAppUser == "false") {
+            var inv = document.getElementById("inviteArea");
+            inv.setInnerFBML(status.fbml_invite);
+        }
+    }
+
     function showDialog(title, msg) {
-        dialog = new Dialog(Dialog.DIALOG_POP).
+        var dialog = new Dialog(Dialog.DIALOG_POP).
             showMessage(title, msg);
     }
 
@@ -357,7 +393,7 @@ cloud by combining the most distinctive terms that describe each band.
 
         var ajax = new Ajax();
         ajax.responseType = Ajax.JSON;
-        ajax.ondone = displayCompareCallback;
+        ajax.ondone = displayFriendCloudCallback;
         var query = {"fbSession" : fbSession,
                      "friendUID" : selected};
         ajax.post(canvasPath + "/ajax/getOtherCloud", query);
