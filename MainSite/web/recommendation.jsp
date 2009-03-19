@@ -21,8 +21,8 @@
       <div class="sectionTitle">What makes a good recommendation?</div>
       <div class="regularTxt">
         <p> 
-	  Generating good recommendations requires taking into
-	  account a number of factors.
+	  Generating good recommendations requires taking a number
+	  of factors into account.
 	</p>
 	<p>
 	  Although users are very likely to want recommendations for

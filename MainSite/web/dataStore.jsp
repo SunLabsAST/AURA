@@ -10,7 +10,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel="stylesheet" type="text/css" href="<c:url value="/style/main.css"/>">
-    <title>The Project AURA Data Store</title>
+    <title>The AURA Project Data Store</title>
   </head>
   <body>
     <%@include file="/WEB-INF/jspf/header.jspf"%>
@@ -20,7 +20,7 @@
       <div class="sectionTitle">The Heart of AURA</div>
       <div class="regularTxt">
 	<p>
-	  The Project AURA Data Store was designed to be a
+	  The AURA Project Data Store was designed to be a
 	  distributed, scalable, reliable data store that could be
 	  used as a repository for item data and metadata as well as
 	  user information and attention data that could be used by
@@ -29,12 +29,12 @@
 	  billions of attention data points.
 	</p>
 	<p>
-	  The AURA Data Store is composed of three parts:
+	  The AURA Project Data Store is composed of three parts:
 	</p>
 
 	<ul>
 	  <li>One or more <em>data store heads</em>. A data store head
-	    will be used by clients of the data store to write
+	    is used by clients of the data store to write
 	    data to the store and run queries against the stored data.</li>
 	  <li>A number of <em>partition clusters</em>.  A partition
 	    cluster represents a partition of the data held by the

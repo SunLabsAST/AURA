@@ -23,11 +23,11 @@
                 <p>
                     TasteKeeper is the public face of the AURA Project
                     of <a href="http://research.sun.com">Sun Microsystems
-                    Laboratories</a>.  The AURA project was started to
+                    Laboratories</a>.  The AURA Project was started to
                     investigate new recommender technologies.  A recommender
                     system provides recommendations for items (books, music,
                     movies, etc.) based on a user's previous preferences (books
-                    they've read, music they've listened to, etc.)
+                    they've read, music they've listened to, etc.).
                 </p>
             </div>
             <div class="sectionTitle">TasteKeeper's Recommendations</div>
@@ -61,14 +61,14 @@
                 <ul><li><a href="recommendation.jsp">Learn more about TasteKeeper's recommendations</a></li></ul>
 
            </div>
-            <div class="sectionTitle">The AURA Data Store</div>
+            <div class="sectionTitle">The AURA Project Data Store</div>
             <div class="regularTxt">
                 <p>
                     The heart of the TasteKeeper system is the AURA
-                    Data Store.  The Data Store was designed to be a
+                    Project Data Store.  The Data Store was designed to be a
                     distributed, scalable, reliable data store that
                     could be used as a repository for item data and
-                    metadata as well as user information and attention
+                    metadata.  It also stores user information and attention
                     data that could be used by recommenders for
                     various item types.  Our aim is to be able to
                     store information about millions of items and
