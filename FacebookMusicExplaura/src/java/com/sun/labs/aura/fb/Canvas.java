@@ -66,7 +66,6 @@ public class Canvas extends HttpServlet {
 
             FacebookWebappHelper helper = FacebookWebappHelper.newInstanceJson(request, response, apiKey, secretKey);
             if (helper.requireLogin(Util.getRootPath(request, false) + "/canvas")) {
-                logger.info("sending redirect");
                 return;
             }
             FacebookJsonRestClient client = (FacebookJsonRestClient)helper.getFacebookRestClient();
@@ -89,7 +88,6 @@ public class Canvas extends HttpServlet {
             RequestDispatcher dispatcher = request.getRequestDispatcher("/canvas/main.jsp");
             dispatcher.forward(request, response);
         } else if (canvasPath.equals("/updateCloudFromArtistIDs")) {
-            String artistsParam = request.getParameter("artists");
             String fbSession = request.getParameter("fbSession");
             String uidStr = request.getParameter("fbUID");
             Long uid = Long.valueOf(uidStr);
@@ -102,7 +100,6 @@ public class Canvas extends HttpServlet {
             // music taste, we'll always find it.
             try {
                 currUser = getUserInfo(apiKey, secretKey, fbSession, uid);
-                String music = currUser.getMusicString();
             } catch (FacebookException e) {
                 logger.log(Level.WARNING, "Failed to get FB music taste", e);
                 JSONArray err = getJSONError("Sorry, we were unable to read " +
