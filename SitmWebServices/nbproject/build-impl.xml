@@ -561,19 +561,19 @@ exists or setup the property manually. For example like this:
         <copyfiles files="${reference.sitm.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.reference.sitm.jar" todir="${dist.ear.dir}"/>
         <copyfiles files="${reference.aura.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.reference.aura.jar" todir="${dist.ear.dir}"/>
         <copyfiles files="${libs.JiniCore.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.JiniCore.classpath" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.slcut.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.slcut.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.minion.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.minion.jar" todir="${dist.ear.dir}"/>
+        <copyfiles files="${libs.Minion.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.Minion.classpath" todir="${dist.ear.dir}"/>
+        <copyfiles files="${libs.SunLabsUtilities.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.SunLabsUtilities.classpath" todir="${dist.ear.dir}"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${manifest.reference.sitm.jar} ${manifest.reference.aura.jar} ${manifest.libs.JiniCore.classpath} ${manifest.file.reference.slcut.jar} ${manifest.file.reference.minion.jar} "/>
+            <attribute name="Class-Path" value="${manifest.reference.sitm.jar} ${manifest.reference.aura.jar} ${manifest.libs.JiniCore.classpath} ${manifest.libs.Minion.classpath} ${manifest.libs.SunLabsUtilities.classpath} "/>
         </manifest>
     </target>
     <target depends="init" name="library-inclusion-in-archive" unless="dist.ear.dir">
         <copyfiles files="${reference.sitm.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copyfiles files="${reference.aura.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copyfiles files="${libs.JiniCore.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.slcut.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.minion.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copyfiles files="${libs.Minion.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copyfiles files="${libs.SunLabsUtilities.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>
