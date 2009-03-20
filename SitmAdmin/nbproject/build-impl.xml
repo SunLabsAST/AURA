@@ -563,12 +563,10 @@ exists or setup the property manually. For example like this:
         <copyfiles files="${libs.SunLabsUtilities.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.SunLabsUtilities.classpath" todir="${dist.ear.dir}"/>
         <copyfiles files="${libs.JiniCore.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.JiniCore.classpath" todir="${dist.ear.dir}"/>
         <copyfiles files="${libs.Minion.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.Minion.classpath" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.gwt-dev-mac.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.gwt-dev-mac.jar" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.gwt-servlet.jar-1}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.gwt-servlet.jar-1" todir="${dist.ear.dir}"/>
-        <copyfiles files="${file.reference.gwt-user.jar}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.file.reference.gwt-user.jar" todir="${dist.ear.dir}"/>
+        <copyfiles files="${libs.GWT1.5.0.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.GWT1.5.0.classpath" todir="${dist.ear.dir}"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${manifest.reference.aura.jar} ${manifest.reference.SITM.jar} ${manifest.libs.SunLabsUtilities.classpath} ${manifest.libs.JiniCore.classpath} ${manifest.libs.Minion.classpath} ${manifest.file.reference.gwt-dev-mac.jar} ${manifest.file.reference.gwt-servlet.jar-1} ${manifest.file.reference.gwt-user.jar} "/>
+            <attribute name="Class-Path" value="${manifest.reference.aura.jar} ${manifest.reference.SITM.jar} ${manifest.libs.SunLabsUtilities.classpath} ${manifest.libs.JiniCore.classpath} ${manifest.libs.Minion.classpath} ${manifest.libs.GWT1.5.0.classpath} "/>
         </manifest>
     </target>
     <target depends="init" name="library-inclusion-in-archive" unless="dist.ear.dir">
@@ -577,9 +575,7 @@ exists or setup the property manually. For example like this:
         <copyfiles files="${libs.SunLabsUtilities.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copyfiles files="${libs.JiniCore.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copyfiles files="${libs.Minion.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.gwt-dev-mac.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.gwt-servlet.jar-1}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${file.reference.gwt-user.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copyfiles files="${libs.GWT1.5.0.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>
