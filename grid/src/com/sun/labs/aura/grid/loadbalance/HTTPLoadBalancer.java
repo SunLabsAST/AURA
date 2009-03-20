@@ -2,9 +2,10 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package com.sun.labs.aura.grid.loadbalance;
 
-import com.sun.caroline.platform.L4VirtualServiceConfiguration;
+import com.sun.caroline.platform.HttpVirtualServiceConfiguration;
 import com.sun.caroline.platform.Network;
 import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.NetworkSetting;
@@ -28,30 +29,37 @@ import java.util.regex.Pattern;
 /**
  * A class that can be used to start an HTTP load-balancer on-grid.
  */
-public class StartLB extends ServiceAdapter {
+public class HTTPLoadBalancer extends ServiceAdapter {
 
     /**
      * The (partial) name of the services that we'll be load-balancing.
      */
-    @ConfigString(defaultValue = "www")
+    @ConfigString(defaultValue="www")
     public static final String PROP_SERVICE_NAME = "serviceName";
+
     private String serviceName;
+
     /**
      * The external host name to use.
      */
-    @ConfigString(defaultValue = "")
+    @ConfigString(defaultValue="")
     public static final String PROP_HOST_NAME = "hostName";
+
     private String hostName;
-    @ConfigString(defaultValue = "http://www.tastekeeper.com/sorry")
+
+    @ConfigString(defaultValue="http://www.tastekeeper.com/sorry")
     public static final String PROP_SORRY_PAGE = "sorryPage";
+
     private URI sorryPage;
 
     public String serviceName() {
-        return "StartLB";
+        return "StartHTTPLB";
     }
-    private Pattern servicePattern;
 
+    private Pattern servicePattern;
+    
     public void start() {
+
 
         //
         // Get the services that we'll be balancing.  We'll enumerate all of the
@@ -92,14 +100,15 @@ public class StartLB extends ServiceAdapter {
         //
         // Now get the configuration.  We'll use the on-grid one if we can.
         NetworkSetting lbns = null;
-        L4VirtualServiceConfiguration config = null;
+        HttpVirtualServiceConfiguration config = null;
         String lbName = instance + "-lb";
 
 
         try {
             lbns = grid.getNetworkSetting(lbName);
-            if (lbns != null) {
-                config = (L4VirtualServiceConfiguration) lbns.getConfiguration();
+            if(lbns != null) {
+                config =
+                        (HttpVirtualServiceConfiguration) lbns.getConfiguration();
             }
         } catch (RemoteException rx) {
             logger.log(Level.SEVERE, "Errory getting network configuration", rx);
@@ -109,7 +118,7 @@ public class StartLB extends ServiceAdapter {
 
         //
         // There isn't one, so make one.
-        if (create) {
+        if(create) {
             NetworkAddress ext;
             try {
                 //
@@ -120,16 +129,33 @@ public class StartLB extends ServiceAdapter {
                         ex);
                 return;
             }
-            config = new L4VirtualServiceConfiguration();
+            config = new HttpVirtualServiceConfiguration();
             config.setExternalNetworkAddress(ext.getUUID());
         }
 
-        //
-        // Set the services to be balanced.
-        config.setRealServices(services);
-
+        
         //
         // Set up the load balancer to balance our servlet containers.
+        HttpVirtualServiceConfiguration.CookieInfo cookie =
+                new HttpVirtualServiceConfiguration.CookieInfo(
+                "auraLBCookie",
+                "tastekeeper.com", null);
+        HttpVirtualServiceConfiguration.ObjectRule.ComponentMatch rule =
+                new HttpVirtualServiceConfiguration.ObjectRule.ComponentMatch(
+                HttpVirtualServiceConfiguration.ObjectRule.URIComponent.URI,
+                "*");
+        HttpVirtualServiceConfiguration.SorrySetting sorry =
+                new HttpVirtualServiceConfiguration.SorrySetting(
+                HttpVirtualServiceConfiguration.SorrySetting.Action.REDIRECT,
+                sorryPage);
+        HttpVirtualServiceConfiguration.RequestPolicy policy =
+                new HttpVirtualServiceConfiguration.RequestPolicy(rule,
+                services, cookie, sorry);
+        List<HttpVirtualServiceConfiguration.RequestPolicy> policies =
+                new ArrayList();
+        policies.add(policy);
+        config.setRequestPolicies(policies);
+
         try {
             if (create) {
                 grid.createNetworkSetting(lbName, config);
@@ -153,10 +179,11 @@ public class StartLB extends ServiceAdapter {
         super.newProperties(ps);
         serviceName = ps.getString(PROP_SERVICE_NAME);
         hostName = ps.getString(PROP_HOST_NAME);
-        if (hostName.trim().length() == 0) {
+        if(hostName.trim().length() == 0) {
             hostName = serviceName;
         }
         servicePattern = Pattern.compile(String.format("%s-[0-9]+-int$", serviceName));
+        logger.info(String.format("service name: %s pattern: %s hostName: %s", serviceName, servicePattern, hostName));
         try {
             sorryPage = new URI(ps.getString(PROP_SORRY_PAGE));
         } catch (URISyntaxException ex) {
@@ -164,4 +191,7 @@ public class StartLB extends ServiceAdapter {
                     PROP_SORRY_PAGE));
         }
     }
+
+
+
 }

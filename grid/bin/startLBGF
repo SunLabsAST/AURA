@@ -1,0 +1,59 @@
+#!/bin/bash
+
+function usage {
+    echo 'Usage: startLBGF -b [begin number] -c [count] -h [-n server name]'
+    echo ' server_name defaults to gf, begin to 1 and count to 5'
+}
+
+args=`getopt b:c:i:l:hn: $*`
+
+if [ $? != 0 ]
+then
+    usage
+    exit 2
+fi
+
+set -- $args
+
+export NAME=gf
+export BEGIN=1
+export COUNT=5
+export INSTANCE=live
+export EXTNAME=lb
+DIR=`dirname $0`
+
+for i 
+do
+    case "$i"
+	in
+	-h)
+	    usage
+	    exit;;
+	-b)
+	    BEGIN=$2; shift;
+	    shift;;
+	-c)
+	    COUNT=$2; shift;
+	    shift;;
+	-i)
+	    INSTANCE=$2; shift;
+	    shift;;
+	-l)
+	    EXTNAME=$2; shift;
+	    shift;;
+	-n)
+	    NAME=$2; shift;
+	    shift;;
+    esac
+done
+
+export END=$(( $BEGIN + $COUNT ))
+
+for (( COUNT=$BEGIN ; COUNT < $END ; COUNT++ )) ; do 
+    echo Deploying $NAME-$COUNT...
+    ant -Ddeployment.name=$NAME -Ddeployment.number=$COUNT -f $DIR/../grid-deploy/gf-lb.xml 
+done
+
+java -jar $DIR/../dist/grid.jar \
+    -DauraInstance=${INSTANCE} -DserviceName=${NAME} -DhostName=${EXTNAME} \
+    /com/sun/labs/aura/grid/loadbalance/lbConfig.xml start-http
