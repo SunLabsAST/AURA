@@ -82,15 +82,20 @@ public abstract class Popup {
     }
 
     public static void showRoundedPopup(Widget w, String title, int width) {
-        showRoundedPopup(w, title, getPopupPanel(), width);
+        showRoundedPopup(w, title, getPopupPanel(), -1, -1, width, true);
     }
     
     public static void showRoundedPopup(Widget w, String title, final PopupPanel popup, int width) {
-        showRoundedPopup(w, title, popup, -1, -1, width);
+        showRoundedPopup(w, title, popup, -1, -1, width, true);
+    }
+
+    public static void showRoundedPopup(Widget w, String title, final PopupPanel popup,
+            int x, int y, int width) {
+        showRoundedPopup(w, title, popup, x, y, width, true);
     }
 
     public static void showRoundedPopup(Widget w, String title, final PopupPanel popup, 
-            int x, int y, int width) {
+            int x, int y, int width, boolean showCloseButton) {
         
         Label titleLabel = null;
         if (title != null && title.length() > 0) {
@@ -98,7 +103,7 @@ public abstract class Popup {
             titleLabel.setStyleName("popupColors");
             titleLabel.addStyleName("popupTitle");
         }
-        showRoundedPopup(w, titleLabel, popup, x, y, width);
+        showRoundedPopup(w, titleLabel, popup, x, y, width, showCloseButton);
     }
 
     /**
@@ -112,11 +117,32 @@ public abstract class Popup {
      * @param width Width of the enclosed widget. Will be used to resize the popup on ie
      */
     public static void showRoundedPopup(Widget w, Widget title, final PopupPanel popup, 
-            int x, int y, int width) {
+            int x, int y, int width, boolean showCloseButton) {
 
         VerticalPanel vP = new VerticalPanel();
-        if (title != null) {
-            vP.add(title);
+        if (showCloseButton) {
+            Button b = new Button("Close");
+            b.addClickHandler(new DEClickHandler<PopupPanel>(popup) {
+
+                @Override
+                public void onClick(ClickEvent ce) {
+                    data.hide();
+                }
+            });
+
+            Grid hP = new Grid(1,2);
+            if (title != null) {
+                hP.setWidget(0, 0, title);
+            }
+            hP.setWidget(0,1, b);
+            hP.getCellFormatter().setWidth(0, 0, "100%");
+            hP.getCellFormatter().setWidth(0, 1, "50px");
+            hP.getCellFormatter().setHorizontalAlignment(0, 1, HorizontalPanel.ALIGN_RIGHT);
+            vP.add(hP);
+        } else {
+            if (title != null) {
+                vP.add(title);
+            }
         }
 
         w.getElement().getStyle().setPropertyPx("padding", 5);
@@ -153,19 +179,8 @@ public abstract class Popup {
         hP.add(html);
         hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
 
-        if (closeButton) {
-            Button b = new Button("OK");
-            b.addClickHandler(new DEClickHandler<PopupPanel>(popup) {
-                @Override
-                public void onClick(ClickEvent ce) {
-                    data.hide();
-                }
-            });
-            hP.add(b);
-        }
-
         hP.setWidth("600px");
-        showRoundedPopup(hP, "Information", popup, 600);
+        showRoundedPopup(hP, "Information", popup, -1, -1, 600, closeButton);
     }
 
     public static enum ERROR_MSG_PREFIX {
@@ -262,7 +277,7 @@ public abstract class Popup {
         }
 
         // Add close button
-        Button b = new Button("OK");
+        Button b = new Button("Close");
         b.addClickHandler(new DEClickHandler<PopupPanel>(popup) {
             @Override
             public void onClick(ClickEvent ce) {
@@ -290,7 +305,7 @@ public abstract class Popup {
         hP.add(l);
         PopupPanel p = getPopupPanel();
         p.setWidth("175px");
-        showRoundedPopup(hP, "Information", p, 175);
+        showRoundedPopup(hP, "Information", p, -1, -1, 175, false);
         return p;
     }
 
@@ -405,7 +420,7 @@ public abstract class Popup {
         vP.add(l);
 
         vP.setWidth("450px");
-        showRoundedPopup(vP, titlePanel, getPopupPanel(), -1, -1, 450);
+        showRoundedPopup(vP, titlePanel, getPopupPanel(), -1, -1, 450, true);
     }
 
     private class PopupPanelAutoClose extends PopupPanel {
