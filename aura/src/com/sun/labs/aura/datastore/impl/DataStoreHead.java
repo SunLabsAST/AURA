@@ -27,6 +27,7 @@ import com.sun.labs.minion.retrieval.MultiDocumentVectorImpl;
 import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
+import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurableMXBean;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -87,6 +88,15 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
 
     private boolean parallelGet;
 
+    /**
+     * A configurable pause to make between parallel calls to see if we can
+     * get around the network timing bug.
+     */
+    @ConfigInteger(defaultValue=0)
+    public static final String PROP_PARALLEL_PAUSE = "parallelPause";
+
+    private int parallelPause;
+    
     public DataStoreHead() {
         trie = new BinaryTrie<PartitionCluster>();
         executor = Executors.newCachedThreadPool();
@@ -299,16 +309,26 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
 
             if(parallelGet) {
                 
-                List<Callable<List<Scored<Item>>>> callers =
-                        new ArrayList();
+                List<Callable<List<Scored<Item>>>> callers = new ArrayList();
+                int totalPause = 0;
                 //
                 // Run the gets in parallel
                 for(Map.Entry<PartitionCluster, List<Scored<String>>> e : m.
                         entrySet()) {
-                    callers.add(new PCCaller(e.getKey(), e.getValue()) {
+                    PCCaller<List<Scored<Item>>> caller =
+                            new PCCaller(e.getKey(), e.getValue()) {
 
                         public List<Scored<Item>> call()
                                 throws AuraException, RemoteException {
+                            if(pause > 0) {
+                                try {
+                                    Thread.sleep(pause);
+                                } catch(InterruptedException ie) {
+                                    logger.warning(String.format(
+                                            "Pause for %s interrupted", pc.
+                                            getPrefix()));
+                                }
+                            }
                             List<Scored<Item>> ret = pc.getScoredItems(keys);
                             if(logger.isLoggable(Level.FINER)) {
                                 logger.finer(String.format(
@@ -317,7 +337,10 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
                             }
                             return ret;
                         }
-                    });
+                    };
+                    caller.setPause(totalPause);
+                    totalPause += parallelPause;
+                    callers.add(caller);
                 }
 
                 try {
@@ -327,8 +350,6 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
                     for(Future<List<Scored<Item>>> f : l) {
                         ret.addAll(f.get());
                     }
-                    Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
-
                 } catch(InterruptedException ie) {
                     throw new AuraException("Interrupted while getting items",
                             ie);
@@ -344,11 +365,12 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
                         entrySet()) {
                     ret.addAll(e.getKey().getScoredItems(e.getValue()));
                 }
-                Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
             }
         }
         
+        Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
         nw.stop();
+        ret.get(0).time = nw.getTimeMillis();
         if(logger.isLoggable(Level.FINE)) {
             logger.fine(String.format("dsh gSIs for %d took %.3f",
                     keys.size(),
@@ -1005,20 +1027,28 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         //
         // Here's our list of callers to find similar.  Each one will be given
         // a handle to a countdown latch to watch when they finish.
+        int totalPause = 0;
         for(PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p, dv, config.getFilter()) {
+            PCCaller<List<Scored<String>>> caller = new PCCaller(p, dv, config.
+                    getFilter()) {
 
                 public List<Scored<String>> call()
                         throws AuraException, RemoteException {
                     try {
-                        if (logger.isLoggable(Level.FINER)) {
+                        if(pause > 0) {
+                            try {
+                                Thread.sleep(pause);
+                            } catch(InterruptedException ie) {
+                            }
+                        }
+                        if(logger.isLoggable(Level.FINER)) {
                             logger.finer(String.format("dsh pc %s fs call", pc.
                                     getPrefix().toString()));
                         }
                         List<Scored<String>> ret = pc.findSimilar(dv, config);
-                        if (logger.isLoggable(Level.FINER)) {
-                            logger.finer(String.format("dsh pc %s fs return", pc.
-                                    getPrefix().toString()));
+                        if(logger.isLoggable(Level.FINER)) {
+                            logger.finer(String.format("dsh pc %s fs return", pc.getPrefix().
+                                    toString()));
                         }
                         return ret;
                     } finally {
@@ -1026,7 +1056,10 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
                     }
 
                 }
-            });
+            };
+            caller.setPause(totalPause);
+            totalPause += parallelPause;
+            callers.add(caller);
         }
 
         //
@@ -1325,20 +1358,11 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         NanoWatch nw = new NanoWatch();
         nw.start();
         List<Scored<Item>> ret;
-        if(parallelGet) {
-            ret = getScoredItems(l);
-        } else {
-            ret = new ArrayList<Scored<Item>>(l.size());
-            for(Scored<String> ss : l) {
-                Item i = getItem(ss.getItem());
-                if(i != null) {
-                    ret.add(new Scored<Item>(i, ss));
-                }
-            }
-        }
+        ret = getScoredItems(l);
         nw.stop();
         if(logger.isLoggable(Level.FINER)) {
-            logger.finer(String.format("dsh kTI for %d took %.3f", l.size(), nw.getTimeMillis()));
+            logger.finer(String.format("dsh kTI for %d took %.3f", l.size(), nw.
+                    getTimeMillis()));
         }
         return ret;
     }
@@ -1349,6 +1373,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         logger = ps.getLogger();
         stop = (StopWords) ps.getComponent(PROP_STOPWORDS);
         parallelGet = ps.getBoolean(PROP_PARALLEL_GET);
+        parallelPause = ps.getInt(PROP_PARALLEL_PAUSE);
     }
 
     @Override
@@ -1441,6 +1466,8 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         protected DocumentVector dv;
 
         protected ResultsFilter rf;
+        
+        protected int pause;
 
         public PCCaller(PartitionCluster pc) {
             this.pc = pc;
@@ -1465,6 +1492,10 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             this.keys = keys;
         }
         
+        public void setPause(int pause) {
+            this.pause = pause;
+        }
+
         public abstract V call() throws AuraException, RemoteException;
     }
     

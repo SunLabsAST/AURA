@@ -53,7 +53,7 @@
   <property name="fs.url" value="${dav.url}/${fs}/${fsdir}"/>
 
   <target name="create-collection">
-    <dav:mkcol url="${fs.url}" userid="${user}" password="${pw}"/>
+    <dav:mkcol url="${fs.url}" userid="${user}" password="${pw}" verbose="true"/>
   </target>
 
   <target name="upload-file" description="Uploads a file to the grid" depends="create-collection">

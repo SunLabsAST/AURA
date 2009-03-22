@@ -17,7 +17,7 @@ public interface ServiceStarter extends Component, Remote {
      *
      * @param configFile the name of the configuration file for the service
      * @param starter the name of the starter to use from the configuration file
-     * @return <code>true</code>
+     * @return <code>true</code> if the JVM started, false otherwise.
      */
     public boolean start(String configFile, String starter) throws RemoteException;
 

@@ -243,9 +243,12 @@ public class RMIParallelTest extends ServiceAdapter {
             runFindSimilar(true);
             runGet(true);
             for(int i = 0; i < runs; i++) {
-                logger.info("Run " + (i + 1));
-                List<Scored<String>> keys = runFindSimilar();
+                logger.info("Get Run " + (i + 1));
                 List<Scored<Item>> items = runGet();
+            }
+            for(int i = 0; i < runs; i++) {
+                logger.info("FindSimilar Run " + (i + 1));
+                List<Scored<String>> keys = runFindSimilar();
             }
             logger.info(String.format("Average fs time: %.3fms",
                     fsTime.getAvgTimeMillis()));

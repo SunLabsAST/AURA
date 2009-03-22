@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,17 +46,37 @@ public class DataManager {
         bestMatch = nameToArtist.get(artistName);
         if (bestMatch == null) {
             try {
-                List<Scored<Artist>> matches = mdb.artistSearch(artistName, 10);
+                List<Scored<Artist>> matches = mdb.artistSearch(artistName, 20);
                 if (!matches.isEmpty()) {
                     //
                     // Find the best matched name
+                    Artist firstMatch = matches.get(0).getItem();
                     if (matches.size() == 1) {
-                        bestMatch = matches.get(0).getItem();
+                        bestMatch = firstMatch;
                     } else {
-                        //
-                        // Use the edit distance to pick the closest match....
-                        // but for now, just pick the first one anyways
-                        bestMatch = matches.get(0).getItem();
+                        if (artistName.equalsIgnoreCase(firstMatch.getName())) {
+                            //
+                            // First match is an exact hit, so take it
+                            bestMatch = firstMatch;
+                        } else {
+                            //
+                            // Sort the top 20 by popularity and use the most
+                            // popular option
+                            Collections.sort(matches,
+                                    new Comparator<Scored<Artist>>() {
+                                @Override
+                                public int compare(Scored<Artist> o1,
+                                        Scored<Artist> o2) {
+                                    Float p1 = o1.getItem().getPopularity();
+                                    Float p2 = o2.getItem().getPopularity();
+                                    //
+                                    // Reverse order, most popular first
+                                    return p2.compareTo(p1);
+                                }
+
+                            });
+                            bestMatch = matches.get(0).getItem();
+                        }
                     }
                 }
                 if (bestMatch != null) {
@@ -66,6 +87,22 @@ public class DataManager {
             }
         }
         return bestMatch;
+    }
+
+    /**
+     * Gets an array of tag ItemInfos that represents a merged cloud made from
+     * the distinctive tags of all the provided artists.
+     *
+     * @param artists artists to include
+     * @param size
+     * @return a normalized tag cloud
+     */
+    public ItemInfo[] getMergedCloud(List<Artist> artists, int size) {
+        String[] artistIDs = new String[artists.size()];
+        for (int i = 0; i < artists.size(); i++) {
+            artistIDs[i] = artists.get(i).getKey();
+        }
+        return getMergedCloud(artistIDs, size);
     }
 
     /**
@@ -90,9 +127,6 @@ public class DataManager {
         for (String artist : artistKeys) {
             try {
                 List<Scored<ArtistTag>> tags = mdb.artistGetDistinctiveTags(artist, size);
-                //
-                // Do I want to normalize these values or not?
-                // Not is easiest for now
                 for (Scored<ArtistTag> scored : tags) {
                     ArtistTag tag = scored.getItem();
                     Scored<ArtistTag> existing = merged.get(tag.getName());
@@ -156,7 +190,7 @@ public class DataManager {
         // Get the overlap set
         List<Scored<String>> result = new ArrayList<Scored<String>>();
         try {
-            result = mdb.getDataStore().explainSimilarity(one, two, new SimilarityConfig(CLOUD_SIZE / 2));
+            result = mdb.getDataStore().explainSimilarity(one, two, new SimilarityConfig(CLOUD_SIZE));
         } catch (AuraException e) {
             logger.log(Level.WARNING, "Failed while talking to Aura", e);
         } catch (RemoteException e) {
@@ -193,6 +227,16 @@ public class DataManager {
             set.add(itemInfo[i].getItemName());
         }
         return set;
+    }
+
+    /**
+     * Returns the Levenshtein edit distance between the two strings
+     * @param str1
+     * @param str2
+     * @return
+     */
+    private int editDistance(String str1, String str2) {
+        return com.sun.labs.minion.util.Util.levenshteinDistance(str1, str2);
     }
 
 }

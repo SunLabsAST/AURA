@@ -7,7 +7,6 @@ import com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper;
 import com.sun.labs.aura.datastore.impl.store.ItemSearchEngine;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.minion.IndexListener;
-import com.sun.labs.minion.Log;
 import com.sun.labs.minion.SearchEngine;
 import com.sun.labs.minion.engine.SearchEngineImpl;
 import com.sun.labs.minion.indexer.entry.DocKeyEntry;
@@ -148,6 +147,7 @@ public class Reindexer implements IndexListener {
             switch(c) {
                 case 'a':
                     addAutoTags = true;
+                    break;
                 case 'd':
                     indexDir = gopt.optArg;
                     break;
@@ -172,8 +172,6 @@ public class Reindexer implements IndexListener {
             h.setFormatter(new SimpleLabsLogFormatter());
         }
 
-        Log.setLogger(logger);
-        Log.setLevel(3);
         NanoWatch sw = new NanoWatch();
         sw.start();
 

@@ -6,15 +6,18 @@ import com.google.code.facebookapi.FacebookException;
 import com.google.code.facebookapi.FacebookJsonRestClient;
 import com.google.code.facebookapi.FacebookWebappHelper;
 import com.google.code.facebookapi.ProfileField;
+import com.sun.labs.aura.fb.util.ExpiringLRACache;
 import com.sun.labs.aura.music.Artist;
-import com.sun.labs.minion.util.StopWatch;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
@@ -41,6 +44,8 @@ import org.w3c.dom.Element;
  */
 public class Canvas extends HttpServlet {
     protected Logger logger = Logger.getLogger("");
+    protected ExpiringLRACache<Long,List<Artist>> uidToArtists =
+            new ExpiringLRACache<Long,List<Artist>>(5000, 24 * 60 * 60 * 1000);
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
@@ -56,83 +61,73 @@ public class Canvas extends HttpServlet {
         DataManager dm = (DataManager)context.getAttribute("dm");
         
         String canvasPath = request.getPathInfo();
-        logger.info("path is " + canvasPath);
         if (canvasPath == null || canvasPath.equals("/")) {
             response.setContentType("text/html;charset=UTF-8");
 
             FacebookWebappHelper helper = FacebookWebappHelper.newInstanceJson(request, response, apiKey, secretKey);
             if (helper.requireLogin(Util.getRootPath(request, false) + "/canvas")) {
-                logger.info("sending redirect");
                 return;
             }
             FacebookJsonRestClient client = (FacebookJsonRestClient)helper.getFacebookRestClient();
             String fbSession = client.getCacheSessionKey();
 
-            //
-            // We should now have an active client session.
-            String userName = "";
             try {
-                StopWatch sw = new StopWatch();
-                sw.start();
                 long uid = client.users_getLoggedInUser();
-                List<Long> list = Collections.singletonList(uid);
-                JSONArray res = (JSONArray)client.users_getInfo(list,
-                        EnumSet.of(ProfileField.FIRST_NAME,
-                                   ProfileField.MUSIC));
-                sw.stop();
-                JSONObject user = res.getJSONObject(0);
-                userName = user.getString(ProfileField.FIRST_NAME.toString());
-                String music =
-                           user.getString(ProfileField.MUSIC.toString());
-                if (music == null || music.isEmpty()) {
-                    request.setAttribute("nomusic", Boolean.TRUE);
-                    music = "Coldplay";
-                } else {
-                    request.setAttribute("nomusic", Boolean.FALSE);
+
+                String compareTo = request.getParameter("compareTo");
+                if (compareTo != null && !compareTo.isEmpty()) {
+                    request.setAttribute("compareTo", compareTo);
                 }
-                //
-                // Assume music is a comma-delimited list of artist names
-                StopWatch asw = new StopWatch();
-                asw.start();
-                List<Artist> artists = getArtistsFromFBString(music, dm);
-                asw.stop();
-
-
                 request.setAttribute("server", Util.getRootPath(request, false));
                 request.setAttribute("fbSession", fbSession);
-                request.setAttribute("artists", artists);
-                request.setAttribute("time", sw.getTime() + "ms");
-                request.setAttribute("auraTime", asw.getTime() + "ms");
-
+                request.setAttribute("fbUID", uid);
             } catch (FacebookException e) {
-                userName = e.getMessage();
-            } catch (JSONException e) {
-                userName = e.getMessage();
+
             }
-            request.setAttribute("user", userName);
+            
             RequestDispatcher dispatcher = request.getRequestDispatcher("/canvas/main.jsp");
             dispatcher.forward(request, response);
         } else if (canvasPath.equals("/updateCloudFromArtistIDs")) {
-            String artistsParam = request.getParameter("artists");
             String fbSession = request.getParameter("fbSession");
-            String[] artists = artistsParam.split(",");
+            String uidStr = request.getParameter("fbUID");
+            Long uid = Long.valueOf(uidStr);
 
-            StopWatch tsw = new StopWatch();
-            tsw.start();
+            List<Artist> artists = new ArrayList<Artist>();
+            FBUserInfo currUser = null;
+            //
+            // Get the music taste from facebook - when displaying the cloud,
+            // we never use the cache.  This way if the user updates their
+            // music taste, we'll always find it.
+            try {
+                currUser = getUserInfo(apiKey, secretKey, fbSession, uid);
+            } catch (FacebookException e) {
+                logger.log(Level.WARNING, "Failed to get FB music taste", e);
+                JSONArray err = getJSONError("Sorry, we were unable to read " +
+                        "your musical taste from Facebook");
+                sendJSON(err, response);
+                return;
+            }
+            artists = getArtistsFromFBString(currUser.getMusicString(), dm);
+            uidToArtists.put(uid, artists);
+
+            //
+            //
+            if (artists.isEmpty()) {
+                //
+                // We didn't recognize any artists, so set hasMusic to false,
+                // then ask for the default music and go on from there
+                currUser.setHasMusic(false);
+                artists = getArtistsFromFBString(currUser.getMusicString(), dm);
+                uidToArtists.put(uid, artists);
+            }
+
             //
             // Get the merged cloud
             ItemInfo[] cloud = dm.getMergedCloud(artists, DataManager.CLOUD_SIZE);
-            tsw.stop();
 
             //
             // And sort by name
             Arrays.sort(cloud, ItemInfo.getNameSorter());
-
-            try {
-                printCloudJSON(cloud, response);
-            } catch (JSONException e) {
-                logger.log(Level.WARNING, "Failed to build JSON for cloud", e);
-            }
 
             //
             // Build and update the user's cloud in their profile
@@ -143,7 +138,9 @@ public class Canvas extends HttpServlet {
                         newDocumentBuilder();
                 Document doc = db.newDocument();
                 DocumentFragment frag = doc.createDocumentFragment();
-                Element rootDiv = doc.createElement("div");
+                //
+                // Draw the cloud
+                Element cloudDiv = doc.createElement("div");
                 for (int i = 0; i < cloud.length; i++) {
                     ItemInfo item = cloud[i];
                     Element span = doc.createElement("span");
@@ -156,16 +153,42 @@ public class Canvas extends HttpServlet {
                                 + "px;");
                     span.appendChild(
                             doc.createTextNode(item.getItemName()));
-                    rootDiv.appendChild(span);
-                    rootDiv.appendChild(
+                    cloudDiv.appendChild(span);
+                    cloudDiv.appendChild(
                             doc.createTextNode(" "));
                 }
-                frag.appendChild(rootDiv);
+                frag.appendChild(cloudDiv);
+                //
+                // Add some links
+                Element launch = doc.createElement("a");
+                launch.setAttribute("href",
+                        "http://apps.facebook.com/musicexplaura");
+                launch.setTextContent("Launch");
+                Element compare = doc.createElement("a");
+                compare.setAttribute("href",
+                        "http://apps.facebook.com/musicexplaura/?compareTo=" +
+                        client.users_getLoggedInUser());
+                compare.setTextContent("Compare");
+                Element ldata = doc.createElement("td");
+                ldata.appendChild(launch);
+                ldata.setAttribute("style", "text-align: center;");
+                Element tdata = doc.createElement("td");
+                tdata.appendChild(compare);
+                tdata.setAttribute("style", "text-align: center;");
+                Element row = doc.createElement("tr");
+                row.appendChild(ldata).appendChild(tdata);
+                Element table = doc.createElement("table");
+                table.appendChild(row);
+                table.setAttribute("style", "width: 100%; text-align: center;");
+                Element buttons = doc.createElement("div");
+                buttons.setAttribute("style", "margin-top: 4px; border: 1px solid #d8dfea;");
+                buttons.appendChild(table);
+                frag.appendChild(buttons);
+
                 String fbml = Util.xmlToString(frag);
-                logger.info("setting profile to " + fbml);
                 
                 if (!client.profile_setFBML(null, fbml, null, null, fbml)) {
-                    logger.info("failed to set profile FBML");
+                    logger.info("failed to set profile FBML to " + fbml);
                 }
             } catch (ParserConfigurationException e) {
                 logger.log(Level.WARNING,
@@ -173,6 +196,32 @@ public class Canvas extends HttpServlet {
             } catch (FacebookException e) {
                 logger.log(Level.WARNING, "Failed to set Profile FBML", e);
             }
+
+            //
+            // Make a string representation of the artists we used so we can
+            // show it in the UI
+            String artistStr = "";
+            for (int i = 0; i < artists.size(); i++) {
+                artistStr += artists.get(i).getName();
+                if (i < artists.size() - 1) {
+                    artistStr += ", ";
+                }
+            }
+
+            //
+            // Finally, send the answer (this is done after the above call
+            // so that there will be profile fbml to set)
+            HashMap<String,String> props = new HashMap<String,String>();
+            props.put("fbml_profile", getAddToProfileFBML());
+            props.put("hasmusic", Boolean.toString(currUser.hasMusic()));
+            props.put("artists", artistStr);
+            props.put("fbml_steerLink", "<span style=\"font-size: 14px\">View in the <a href=\"" +
+                    Util.getWMELink(cloud) +
+                    "\">full Music Explaura</a></span>");
+            JSONArray result = getJSONResponse(props);
+            result = addCloudJSON(result, cloud);
+            sendJSON(result, response);
+
         } else if (canvasPath.equals("/clearProfile")) {
             String fbSession = request.getParameter("fbSession");
             FacebookJsonRestClient client =
@@ -183,115 +232,254 @@ public class Canvas extends HttpServlet {
                 response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
             }
         } else if (canvasPath.equals("/getCompareCloud")) {
-            String artistsParam = request.getParameter("artists");
+            String uidStr = request.getParameter("fbUID");
             String fbSession = request.getParameter("fbSession");
             String friendIDStr = request.getParameter("friendUID");
-            Long friendID = Long.valueOf(friendIDStr);
-            String[] artists = artistsParam.split(",");
-
-            StopWatch tsw = new StopWatch();
-            tsw.start();
-            //
-            // Get the merged cloud
-            ItemInfo[] cloud = dm.getMergedCloud(artists, DataManager.CLOUD_SIZE);
-            tsw.stop();
-
-            //
-            // Dig up the artist info for the FBUID
-            FacebookJsonRestClient client =
-                    new FacebookJsonRestClient(apiKey, secretKey, fbSession);
-            String friendMusic = null;
-            String friendName = "";
+            Long uid = Long.valueOf(uidStr);
+            Long friendID = null;
             try {
-                List<Long> list = Collections.singletonList(friendID);
-                JSONArray res = (JSONArray)client.users_getInfo(list,
-                        EnumSet.of(ProfileField.FIRST_NAME,
-                                   ProfileField.MUSIC));
-                JSONObject user = res.getJSONObject(0);
-                friendName = user.getString(ProfileField.FIRST_NAME.toString());
-                friendMusic = user.getString(ProfileField.MUSIC.toString());
-                if (friendMusic == null || friendMusic.isEmpty()) {
+                friendID = Long.valueOf(friendIDStr);
+            } catch (NumberFormatException e) {
+                //
+                // Nothing to compare to... send back an error
+                JSONArray err = getJSONError("Sorry, we didn't understand that friend name.");
+                sendJSON(err, response);
+                return;
+            }
+
+            List<Artist> artists = null;
+            try {
+                artists = getArtistsForUser(apiKey, secretKey, fbSession, dm, uid);
+            } catch (FacebookException e) {
+                //
+                // Nothing to compare to... send back an error
+                JSONArray err = getJSONError("Sorry, we couldn't retrieve your musical taste.");
+                sendJSON(err, response);
+                return;
+            }
+
+            //
+            // Get my merged cloud
+            ItemInfo[] cloud = dm.getMergedCloud(artists, DataManager.CLOUD_SIZE);
+
+            FBUserInfo friend = null;
+            List<Artist> friendArtists = null;
+            try {
+                friend = getUserInfo(apiKey, secretKey, fbSession, friendID);
+                //
+                // If the friend has no music, stop now
+                if (!friend.hasMusic()) {
                     //
                     // Nothing to compare to... send back an error
-                    sendJSONError("Sorry, " + friendName +
-                            " does not have any musical taste defined.", response);
+                    JSONArray json = getJSONErrorWithInvite("Sorry, " + friend.getName() +
+                            " has not entered any favorite music.", friend);
+                    sendJSON(json, response);
                     return;
                 }
             } catch (FacebookException e) {
-                logger.log(Level.WARNING, "Failed to talk to FB", e);
-                response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-            } catch (JSONException e) {
-                logger.log(Level.WARNING, "Failed to read response", e);
+                //
+                // Nothing to compare to... send back an error
+                JSONArray err = getJSONError("Sorry, we couldn't retrieve your friend's musical taste.");
+                sendJSON(err, response);
+                return;
             }
-            
 
-            List<Artist> friendArtists = getArtistsFromFBString(friendMusic, dm);
-            String[] friendArtistIDs = new String[friendArtists.size()];
-            for (int i = 0; i < friendArtists.size(); i++) {
-                friendArtistIDs[i] = friendArtists.get(i).getKey();
+            //
+            // Get the friend's artists
+            friendArtists = getArtistsForUser(dm, friend);
+            if (friendArtists.isEmpty()) {
+                //
+                // Still no artists, send back an error
+                JSONArray json = getJSONErrorWithInvite("Sorry, we were " +
+                        "unable to recognize any music from " + friend.getName() +
+                        ".", friend);
+                sendJSON(json, response);
+                return;
             }
-            ItemInfo[] friendCloud = dm.getMergedCloud(friendArtistIDs, DataManager.CLOUD_SIZE);
+
+            //
+            // Get my friend's merged cloud and the comparison cloud
+            ItemInfo[] friendCloud = dm.getMergedCloud(friendArtists, DataManager.CLOUD_SIZE);
             ItemInfo[] compareCloud = dm.getComparisonCloud(cloud, friendCloud);
             
-            try {
-                printCloudJSON(compareCloud, response);
-            } catch (JSONException e) {
-                logger.log(Level.WARNING, "Failed to build JSON for cloud", e);
+            HashMap<String,String> props = new HashMap<String,String>();
+            props.put("isAppUser", friend.isAppUser().toString());
+            props.put("friendName", friend.getName());
+            if (!friend.isAppUser()) {
+                props.put("fbml_invite", getInviteFBML(friend.getName(),
+                        friendID,
+                        false));
             }
+            JSONArray result = getJSONResponse(props);
+            result = addCloudJSON(result, compareCloud);
+            sendJSON(result, response);
+        } else if (canvasPath.equals("/getOtherCloud")) {
+            //
+            // Build a cloud for a different user than the one logged in
+            String fbSession = request.getParameter("fbSession");
+            String friendIDStr = request.getParameter("friendUID");
+            Long friendID = null;
+            try {
+                friendID = Long.valueOf(friendIDStr);
+            } catch (NumberFormatException e) {
+                //
+                // Nothing to compare to... send back an error
+                JSONArray err = getJSONError("Sorry, we didn't understand that friend name.");
+                sendJSON(err, response);
+                return;
+            }
+
+            FBUserInfo friend = null;
+            List<Artist> friendArtists = null;
+            try {
+                friend = getUserInfo(apiKey, secretKey, fbSession, friendID);
+                if (!friend.hasMusic()) {
+                    JSONArray json = getJSONErrorWithInvite("Sorry, " + friend.getName() +
+                            " has not entered any favorite music.", friend);
+                    sendJSON(json, response);
+                    return;
+                }
+                friendArtists = getArtistsForUser(dm, friend);
+            } catch (FacebookException e) {
+                logger.log(Level.WARNING, "Failed to talk to FB", e);
+                response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+            }
+
+            if (friendArtists.isEmpty()) {
+                //
+                // Still no artists, send back an error
+                JSONArray json = getJSONErrorWithInvite("Sorry, we were " +
+                        "unable to recognize any music from " + friend.getName() +
+                        ".", friend);
+                sendJSON(json, response);
+                return;
+            }
+
+            //
+            // Retrieve the artists, then build the cloud
+            ItemInfo[] friendCloud = dm.getMergedCloud(friendArtists, DataManager.CLOUD_SIZE);
+            //
+            // And sort by name
+            Arrays.sort(friendCloud, ItemInfo.getNameSorter());
+
+            //
+            // Make a string representation of the artists we used so we can
+            // show it in the UI
+            String artistStr = "";
+            for (int i = 0; i < friendArtists.size(); i++) {
+                artistStr += friendArtists.get(i).getName();
+                if (i < friendArtists.size() - 1) {
+                    artistStr += ", ";
+                }
+            }
+
+
+            HashMap<String,String> props = new HashMap<String,String>();
+            props.put("isAppUser", friend.isAppUser().toString());
+            props.put("friendName", friend.getName());
+            props.put("friendArtists", artistStr);
+            if (!friend.isAppUser()) {
+                props.put("fbml_invite", getInviteFBML(friend.getName(),
+                        friendID,
+                        false));
+            }
+            JSONArray result = getJSONResponse(props);
+            result = addCloudJSON(result, friendCloud);
+            sendJSON(result, response);
         } else {
             logger.warning("No code to handle " + canvasPath);
         }
     } 
 
-    private void printCloudJSON(ItemInfo[] tags, HttpServletResponse response)
-        throws JSONException, IOException {
-        //
-        // Now construct the JSON objects to return
-        JSONArray result = new JSONArray();
-        for (ItemInfo i : tags) {
-            JSONObject curr = new JSONObject();
-            curr.put("name", i.getItemName());
-            double size = i.getScore();
-            if (size < 0) {
-                size = (size * -3.0 + 1.0) * -14.0;
-            } else {
-                size = (size * 3.0 + 1.0) * 14.0;
+    private JSONArray addCloudJSON(JSONArray result, ItemInfo[] tags) {
+        try {
+            //
+            // Now construct the JSON objects to return
+            for (ItemInfo i : tags) {
+                JSONObject curr = new JSONObject();
+                curr.put("name", i.getItemName());
+                double size = i.getScore();
+                if (size < 0) {
+                    size = (size * -3.0 + 1.0) * -14.0;
+                } else {
+                    size = (size * 3.0 + 1.0) * 14.0;
+                }
+                curr.put("size", Math.round(size));
+                result.put(curr);
             }
-            curr.put("size", Math.round(size));
-            result.put(curr);
+        } catch (JSONException e) {
+            logger.log(Level.WARNING, "Error making JSON cloud", e);
         }
-
-        //
-        // Write the results
-        response.setContentType("application/json");
-        PrintWriter out = response.getWriter();
-        try {
-            logger.info(result.toString());
-            result.write(out);
-            out.println();
-        } finally {
-            out.close();
-        }
-
+        return result;
     }
 
-    private void sendJSONError(String msg, HttpServletResponse response)
-        throws JSONException, IOException {
+    private JSONArray getJSONError(String msg) {
         JSONArray result = new JSONArray();
-        JSONObject err = new JSONObject();
-        err.put("error", msg);
-        result.put(err);
-        response.setContentType("application/json");
-        PrintWriter out = response.getWriter();
         try {
-            result.write(out);
-            out.println();
-        } finally {
-            out.close();
+            JSONObject err = new JSONObject();
+            err.put("error", msg);
+            result.put(err);
+        } catch (JSONException e) {
+            logger.log(Level.WARNING, "Error encoding JSON", e);
+        }
+        return result;
+    }
+
+    /**
+     * Get a JSON error response that includes info about inviting a friend
+     * @param msg
+     * @param friend
+     * @return
+     */
+    private JSONArray getJSONErrorWithInvite(String msg, FBUserInfo friend) {
+        JSONArray result = new JSONArray();
+        try {
+            JSONObject err = new JSONObject();
+            err.put("isAppUser", friend.isAppUser().toString());
+            if (!friend.isAppUser()) {
+                err.put("fbml_invite", getInviteFBML(friend.getName(),
+                        friend.getUID(),
+                        true));
+            }
+            err.put("error", msg);
+            result.put(err);
+        } catch (JSONException e) {
+            logger.log(Level.WARNING, "Error encoding JSON", e);
+        }
+        return result;
+    }
+
+    private JSONArray getJSONResponse(Map<String,String> props) {
+        JSONArray result = new JSONArray();
+        try {
+            JSONObject data = new JSONObject();
+            for (Entry<String,String> ent : props.entrySet()) {
+                data.put(ent.getKey(), ent.getValue());
+            }
+            result.put(data);
+        } catch (JSONException e) {
+            logger.log(Level.WARNING, "Error encoding JSON", e);
+        }
+        return result;
+    }
+
+    private void sendJSON(JSONArray data, HttpServletResponse response)
+        throws IOException {
+        try {
+            response.setContentType("application/json; charset=utf-8");
+            PrintWriter out = response.getWriter();
+            try {
+                data.write(out);
+                out.println();
+            } finally {
+                out.close();
+            }
+        } catch (JSONException e) {
+            logger.log(Level.WARNING, "Failed to write JSON response", e);
         }
     }
 
-    private List<Artist> getArtistsFromFBString(String favMusic, DataManager dm) {
+    protected List<Artist> getArtistsFromFBString(String favMusic, DataManager dm) {
         String[] artistNames = favMusic.split("[;,\n]");
         ArrayList<Artist> artists = new ArrayList<Artist>();
         for (String artistName : artistNames) {
@@ -303,6 +491,95 @@ public class Canvas extends HttpServlet {
         }
         return artists;
     }
+
+    protected FBUserInfo getUserInfo(String apiKey,
+                                     String secretKey,
+                                     String fbSession,
+                                     long fbUserId)
+        throws FacebookException {
+        //
+        // Dig up the artist info for the FBUID
+        FacebookJsonRestClient client =
+                new FacebookJsonRestClient(apiKey, secretKey, fbSession);
+        String friendMusic = null;
+        String friendName = null;
+        boolean isAppUser = false;
+        try {
+            List<Long> list = Collections.singletonList(fbUserId);
+            client.beginBatch();
+            client.users_getInfo(list,
+                    EnumSet.of(ProfileField.FIRST_NAME,
+                               ProfileField.MUSIC));
+            client.users_isAppUser(fbUserId);
+            List results = client.executeBatch(true);
+
+            JSONArray res = (JSONArray)results.get(0);
+            JSONObject user = res.getJSONObject(0);
+            friendName = user.getString(ProfileField.FIRST_NAME.toString());
+            friendMusic = user.getString(ProfileField.MUSIC.toString());
+
+            isAppUser = (Boolean)results.get(1);
+        } catch (FacebookException e) {
+            logger.log(Level.WARNING, "Failed to talk to FB", e);
+        } catch (JSONException e) {
+            logger.log(Level.WARNING, "Failed to read response", e);
+            throw new FacebookException(1,
+                    "JSON Exception in client, see server log for details");
+        }
+        return new FBUserInfo(fbUserId, friendName, friendMusic, isAppUser);
+    }
+
+
+    protected List<Artist> getArtistsForUser(String apiKey, String secretKey,
+            String fbSession, DataManager dm, Long uid)
+            throws FacebookException {
+        List<Artist> artists = uidToArtists.get(uid);
+        if (artists != null) {
+            return artists;
+        }
+        
+        //
+        // Get the music taste from facebook.
+        FBUserInfo user = getUserInfo(apiKey, secretKey, fbSession, uid);
+        return getArtistsForUser(dm, user);
+    }
+
+    protected List<Artist> getArtistsForUser(DataManager dm, FBUserInfo user) {
+        List<Artist> artists = uidToArtists.get(user.getUID());
+        if (artists != null) {
+            return artists;
+        }
+        //
+        // Get the list of artists based on the music defined in the user
+        String music = user.getMusicString();
+        artists = getArtistsFromFBString(user.getMusicString(), dm);
+        uidToArtists.put(user.getUID(), artists);
+        return artists;
+    }
+
+    private String getInviteFBML(String fbUserName, Long fbUserId, boolean pleaForMusic) {
+        String result =
+                "<table><tr><td>It looks like " + fbUserName +
+                " hasn't used the Music Explaura.</td><td>" +
+                "<fb:request-form action=\"http://apps.facebook.com/musicexplaura\" type=\"Music Explaura\" content=\"" +
+                (pleaForMusic?
+                "Please add some bands into your &quot;Favorite Music&quot; in your profile then use "
+                : "Use ") +
+                "the Music Explaura to add your personal music tag cloud to " +
+                "your profile and compare your taste in music with your friends' taste. " +
+                "<fb:req-choice url=&quot;http://apps.facebook.com/musicexplaura&quot; label=&quot;Explore!&quot;>\"> " +
+                "<fb:request-form-submit uid=" + fbUserId + " label=\"Share with %n\" />" +
+                "</fb:request-form></td></tr></table>";
+        return result;
+    }
+
+    private String getAddToProfileFBML() {
+        return "<fb:if-section-not-added section=\"profile\">" +
+                "<table><tr><td>Add this tag cloud to your profile page!</td>" +
+                "<td><fb:add-section-button section=\"profile\" /></td>" +
+                "</tr></table></fb:if-section-not-added>";
+    }
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /** 
      * Handles the HTTP <code>GET</code> method.

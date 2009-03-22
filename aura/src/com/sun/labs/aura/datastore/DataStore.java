@@ -9,15 +9,13 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
 
-
 /**
  * This interface represents access to the entire data in the data store.
  * It provides access to the database style ItemStore interface and the
  * search engine style ItemSearch interface.
  */
-
 public interface DataStore extends ItemStore, ItemSearch, Component, Remote {
-    
+
     /**
      * Indicates that the data store is ready to begin operation.  This will be
      * true when all of the partition clusters have their replicants available.
@@ -29,9 +27,8 @@ public interface DataStore extends ItemStore, ItemSearch, Component, Remote {
 
     public void registerPartitionCluster(PartitionCluster pc)
             throws RemoteException;
-    
-    public Replicant getReplicant(String prefix)
-            throws RemoteException;
+
+    public Replicant getReplicant(String prefix) throws RemoteException;
 
     /**
      * Register that a partition cluster split has occurred.  This will update
@@ -41,9 +38,8 @@ public interface DataStore extends ItemStore, ItemSearch, Component, Remote {
      * @param oneChild the new right/one prefix child
      */
     public void registerPartitionSplit(PartitionCluster zeroChild,
-                                       PartitionCluster oneChild)
+            PartitionCluster oneChild)
             throws RemoteException;
-    
-    public List<String> getPrefixes()
-            throws RemoteException;
+
+    public List<String> getPrefixes() throws RemoteException;
 }

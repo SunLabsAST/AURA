@@ -1,8 +1,2 @@
 <div class="topCling">
-    Users: <%= statBean.getNumUsers() %>
-    &nbsp;&nbsp;&nbsp;
-    Items: <%= statBean.getNumItems() %>
-    &nbsp;&nbsp;&nbsp;
-    Taste: <%= statBean.getNumAttn() %>
-    
 </div>

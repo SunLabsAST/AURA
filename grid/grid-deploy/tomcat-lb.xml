@@ -4,61 +4,61 @@
 	 xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
 
   <!-- Get a deployment name and number from the properties passed in. -->
-    <condition property="deployment.name" value="www">
-        <not>
-            <isset property="deployment.name"/>
-        </not>
-    </condition>
+  <condition property="deployment.name" value="www">
+    <not>
+      <isset property="deployment.name"/>
+    </not>
+  </condition>
 
-    <condition property="deployment.number" value="1">
-        <not>
-            <isset property="deployment.number"/>
-        </not>
-    </condition>
+  <condition property="deployment.number" value="1">
+    <not>
+      <isset property="deployment.number"/>
+    </not>
+  </condition>
 
-    <property name="www.filesystem" value="${deployment.name}-${deployment.number}.filesystem"/>
-    <property name="intaddress" value="${deployment.name}-${deployment.number}-int"/>
-    <property name="intbinding" value="${deployment.name}-${deployment.number}.intbinding"/>
-    <property name="service.process" value="${deployment.name}-${deployment.number}"/>
+  <property name="www.filesystem" value="${deployment.name}-${deployment.number}.filesystem"/>
+  <property name="intaddress" value="${deployment.name}-${deployment.number}-int"/>
+  <property name="intbinding" value="${deployment.name}-${deployment.number}.intbinding"/>
+  <property name="service.process" value="${deployment.name}-${deployment.number}"/>
 
-    <import file="common.xml"/>
+  <import file="tomcat-common.xml"/>
   
   <!-- create process registration if it doesn't exist -->
-    <target name="create-service"
+  <target name="create-service"
 	  description="creates a service process if one doesn't exist"
 	  depends="deploy-ant,unzip-distribution,update-config,create-intbinding">
     
-        <caroline:process name="${service.process}"
+    <caroline:process name="${service.process}"
 		      op="create" workingdir="/files/working/">                
       <!-- filesystem to mount -->    
-            <caroline:filesystem name="${www.filesystem}" mountpoint="working"/>
-            <caroline:filesystem name="${dist.filesystem}" mountpoint="dist"/>
+      <caroline:filesystem name="${www.filesystem}" mountpoint="working"/>
+      <caroline:filesystem name="${dist.filesystem}" mountpoint="dist"/>
       <!-- assign an internal address -->
-            <caroline:intaddress name="${intaddress}" networkname="${network}"/>
+      <caroline:intaddress name="${intaddress}" networkname="${network}"/>
       <!-- specify command line arguments -->
-            <arg value="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"/>
-            <arg value="-Djava.util.logging.config.file=${service.working}/conf/logging.properties"/>
-            <arg value="-Djava.endorsed.dirs=${service.working}/endorsed"/>
-            <arg value="-classpath"/>
-            <arg value=":${service.working}/bin/bootstrap.jar:${service.working}/bin/commons-logging-api.jar"/>
-            <arg value="-Dcatalina.base=${service.working}"/>
-            <arg value="-Dcatalina.home=${service.working}"/>
-            <arg value="-Djava.io.tmpdir=${service.working}/temp"/>
-            <arg value="org.apache.catalina.startup.Bootstrap"/>
-            <arg value="start"/>
-        </caroline:process>
-    </target>
+      <arg value="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"/>
+      <arg value="-Djava.util.logging.config.file=${service.working}/conf/logging.properties"/>
+      <arg value="-Djava.endorsed.dirs=${service.working}/endorsed"/>
+      <arg value="-classpath"/>
+      <arg value=":${service.working}/bin/bootstrap.jar:${service.working}/bin/commons-logging-api.jar"/>
+      <arg value="-Dcatalina.base=${service.working}"/>
+      <arg value="-Dcatalina.home=${service.working}"/>
+      <arg value="-Djava.io.tmpdir=${service.working}/temp"/>
+      <arg value="org.apache.catalina.startup.Bootstrap"/>
+      <arg value="start"/>
+    </caroline:process>
+  </target>
   
   <!-- Update resources -->
   
   <!-- update service process -->
-    <target name="update-service"
+  <target name="update-service"
 	  description="updates process registration"
 	  depends="update-config">
-        <caroline:process name="${service.process}" op="update"/>
-    </target>
+    <caroline:process name="${service.process}" op="update"/>
+  </target>
   
-    <target name="cleanup"
-	    depends="destroy-service,destroy-unzip-task,destroy-deploy-task,destroy-intaddress,destroy-filesystem"/>
+  <target name="cleanup"
+	  depends="destroy-service,destroy-unzip-task,destroy-deploy-task,destroy-intaddress,destroy-filesystem"/>
 
 </project>
