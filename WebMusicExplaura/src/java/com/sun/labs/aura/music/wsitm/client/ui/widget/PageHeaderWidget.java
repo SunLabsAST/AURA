@@ -58,7 +58,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
     }
     private SubHeaderPanels currSubHeaderPanel = SubHeaderPanels.NONE;
 
-    private RoundedPanel roundedMainPanel;
+    //private RoundedPanel roundedMainPanel;
     private Grid mainPanel;
     private TextBox txtbox;
 
@@ -74,7 +74,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
     private FlowPanel configSubHeaderPanel;
     private ListBox listbox;
 
-    private FlowPanel activeSubHeaderPanel;
+    private Grid activeSubHeaderContainer;
     
     public PageHeaderWidget(ClientDataManager cdm) {
         super("pageHeader",cdm);
@@ -98,16 +98,18 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
          * */
         vP.add(getMainWidget());
 
-        activeSubHeaderPanel = new FlowPanel();
-        activeSubHeaderPanel.setWidth("100%");
-        activeSubHeaderPanel.setVisible(false);
-        vP.add(activeSubHeaderPanel);
+        activeSubHeaderContainer = new Grid(1,2);
+        activeSubHeaderContainer.setWidth("100%");
+        activeSubHeaderContainer.setVisible(false);
+        activeSubHeaderContainer.getCellFormatter().setWidth(0, 0, "10px");
+        activeSubHeaderContainer.setCellSpacing(0);
+        vP.add(activeSubHeaderContainer);
 
 
         Label l = new Label("Config");
         l.addStyleName("pointer");
         l.addClickHandler(new ClickHandler() {
-
+            @Override
             public void onClick(ClickEvent ce) {
                 setSubHeaderPanel(SubHeaderPanels.CONFIG);
             }
@@ -167,27 +169,43 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
     private void setSubHeaderPanel(SubHeaderPanels p) {
         // If we want to hide the panel
         if (p == currSubHeaderPanel || p == SubHeaderPanels.NONE) {
-            activeSubHeaderPanel.setVisible(false);
+            activeSubHeaderContainer.setVisible(false);
             currSubHeaderPanel = SubHeaderPanels.NONE;
         } else {
             if (p == SubHeaderPanels.CONFIG) {
-                activeSubHeaderPanel.clear();
-                activeSubHeaderPanel.add(configSubHeaderPanel);
+                activeSubHeaderContainer.setWidget(0,1,configSubHeaderPanel);
             }
-            activeSubHeaderPanel.setVisible(true);
+            activeSubHeaderContainer.setVisible(true);
             currSubHeaderPanel = p;
         }
     }
 
-    public RoundedPanel getMainWidget() {
+    public Grid getMainWidget() {
         
-        mainPanel = new Grid(1,3);
-        mainPanel.getColumnFormatter().setWidth(0, "33%");
-        mainPanel.getColumnFormatter().setWidth(1, "33%");
-        mainPanel.getCellFormatter().getElement(0, 1).setAttribute("align", "center");
-        mainPanel.getColumnFormatter().setWidth(2, "33%");
-        mainPanel.setStyleName("pageHeader");
+        mainPanel = new Grid(1,4);
+        mainPanel.setHeight("66px");
         mainPanel.setWidth("100%");
+        mainPanel.setStyleName("pageHeader");
+        mainPanel.setCellSpacing(0);
+
+        mainPanel.getColumnFormatter().setWidth(0, "268px");
+        mainPanel.getColumnFormatter().setWidth(1, "*");
+        mainPanel.getColumnFormatter().setWidth(2, "100px");
+        mainPanel.getColumnFormatter().setWidth(3, "28px");
+
+        mainPanel.getCellFormatter().getElement(0, 1).setAttribute("align", "center");
+        mainPanel.getCellFormatter().getElement(0, 0).getStyle().setProperty("backgroundImage", "url(header_left.png)");
+        mainPanel.getCellFormatter().getElement(0, 1).getStyle().setProperty("backgroundImage", "url(header_middle.png)");
+        mainPanel.getCellFormatter().getElement(0, 2).getStyle().setProperty("backgroundImage", "url(header_middle.png)");
+        mainPanel.getCellFormatter().getElement(0, 3).getStyle().setProperty("backgroundImage", "url(header_right.png)");
+
+        mainPanel.getCellFormatter().setVerticalAlignment(0, 1, VerticalPanel.ALIGN_MIDDLE);
+        mainPanel.getCellFormatter().setVerticalAlignment(0, 2, VerticalPanel.ALIGN_MIDDLE);
+
+        Image rightFill = new Image("header_right_fill.gif");
+        rightFill.setWidth("26px");
+        mainPanel.setWidget(0, 3, rightFill);
+        
 
         //
         // Set the recommendation type toolbar
@@ -208,10 +226,11 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         mainPanel.setWidget(0, 1, mm);
 
         populateMainPanel();
-     
-        roundedMainPanel = new RoundedPanel(mainPanel);
-        roundedMainPanel.setCornerStyleName("pageHeaderBackground");
-        return roundedMainPanel;
+
+        return mainPanel;
+        //roundedMainPanel = new RoundedPanel(mainPanel);
+        //roundedMainPanel.setCornerStyleName("pageHeaderBackground");
+        //return roundedMainPanel;
         
     }
 
@@ -228,14 +247,19 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
         //mainPanel.setWidget(0,0, new Label("Please wait while we fetch your session information..."));
         // mainPanel.setWidget(0,0, new Label("The Music Explaura"));
-        Label title = new Label("The Music Explaura");
+        //Label title = new Label("The Music Explaura");
+        Image title = new Image("header_left_fill.gif");
+        title.setWidth("266px");
+        title.setHeight("65px");
         title.addClickHandler(new ClickHandler() {
+            @Override
             public void onClick(ClickEvent ce) {
                 History.newItem("searchHome:");
             }
         });
-        title.setStyleName("title");
-        title.addStyleName("titleC");
+        //title.setStyleName("title");
+        //title.addStyleName("titleC");
+        title.addStyleName("pointer");
         mainPanel.setWidget(0, 0, title);
         //invokeGetUserSessionInfo();
     }
@@ -728,7 +752,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         public SearchWidget(MusicSearchInterfaceAsync musicServer,
             ClientDataManager cdm, FlowPanel searchBoxContainerPanel) {
 
-            super(musicServer, cdm, searchBoxContainerPanel, Oracles.ARTIST);
+            super(musicServer, cdm, searchBoxContainerPanel, Oracles.ARTIST, "pageHeaderSearchBox");
 
             searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
 

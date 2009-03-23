@@ -213,9 +213,8 @@ public class SteeringSwidget extends Swidget {
             // Create "add tag" menu
             FlowPanel fp = new FlowPanel();
             fp.setWidth("200px");
-            fp.getElement().getStyle().setProperty("backgroundColor", "#d6ddaf");
+            fp.addStyleName("smallMenuBack");
             fp.getElement().getStyle().setProperty("textAlign", "center");
-            fp.getElement().getStyle().setPropertyPx("fontSize", 12);
             SpannedLabel searchLabel = new SpannedLabel("Search");
             searchLabel.addStyleName("pointer");
             searchLabel.getElement().getStyle().setProperty("fontWeight", "bold");
@@ -805,7 +804,7 @@ public class SteeringSwidget extends Swidget {
             invokeGetDistincitveTagsService(iI.getId());
 
             VerticalPanel vP = new VerticalPanel();
-            vP.setStyleName("pageHeader");
+            vP.setStyleName("pageHeader pageHeaderBackground");
             vP.setWidth("185px");
 
             //

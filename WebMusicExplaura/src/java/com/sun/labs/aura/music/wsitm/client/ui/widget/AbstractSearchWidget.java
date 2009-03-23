@@ -48,10 +48,22 @@ public abstract class AbstractSearchWidget extends Composite {
 
     private SuggestBox sB;
 
-    protected String searchBoxStyleName = ""; //searchText";
+    protected String searchBoxStyleName = null; //searchText";
     protected int searchBoxWidth = 0;
 
     public AbstractSearchWidget(MusicSearchInterfaceAsync musicServer, 
+            ClientDataManager cdm, Panel searchBoxContainerPanel, Oracles type) {
+        init(musicServer, cdm, searchBoxContainerPanel, type);
+    }
+
+    public AbstractSearchWidget(MusicSearchInterfaceAsync musicServer,
+            ClientDataManager cdm, Panel searchBoxContainerPanel, Oracles type,
+            String searchBoxStyle) {
+        this.searchBoxStyleName = searchBoxStyle;
+        init(musicServer, cdm, searchBoxContainerPanel, type);
+    }
+
+    private void init(MusicSearchInterfaceAsync musicServer,
             ClientDataManager cdm, Panel searchBoxContainerPanel, Oracles type) {
         this.musicServer = musicServer;
         this.cdm = cdm;
@@ -83,6 +95,9 @@ public abstract class AbstractSearchWidget extends Composite {
                 
             }
         });
+        if (searchBoxStyleName != null && searchBoxStyleName.length()>0) {
+            box.addStyleName(searchBoxStyleName);
+        }
         return box;
     }
 

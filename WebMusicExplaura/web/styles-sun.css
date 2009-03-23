@@ -9,9 +9,9 @@ body {
     padding: 0px;
     line-height: 17px;
     font-weight: normal;
-    background: #f3ffe2;
-    background-color: #f3ffe2;
-    color: #000000;
+    color: #707277;
+    background-color: #ffffff;
+    background: #ffffff;
 }
 
 .gwt-SuggestBox {
@@ -19,39 +19,44 @@ body {
 }
 .gwt-SuggestBoxPopup {
     margin-left: 3px;
-    background: #73885D;
+    background: #5382a1;
 }
 
 .gwt-SuggestBoxPopup .item {
     padding: 2px 6px;
-    background: #73885D;
+    background: #5382a1;
     color: white;
     cursor: default;
 }
 
 .gwt-SuggestBoxPopup .item-selected {
-    background: #b7d6f6;
-    color: black;
+    /** background: #b7d6f6; **/
+    background : #e76f00;
+    color: white;
 }
 
 .bottomUrl {
+    color: #bdbec0;
     font-size: 10px;
 }
 
 .bottomUrl a {
-    color: #000000;
+    color: #bdbec0;
     text-decoration: none;
 }
+
 .bottomUrl a:visited {
-    color: #000000;
+    color: #bdbec0;
     text-decoration: none;
 }
+
 .titleC {
   color: white;
 }
 .smallMenuBack {
-  background-color: #d6ddaf;
-  background: #d6ddaf;
+  background-color: #363c74;
+  background: #363c74;
+  color: white;
   font-size: 12px;
 }
 .artistPanel:hover {
@@ -60,19 +65,24 @@ body {
 }
 
 .pageHeader {
-    background-color: #1695A3;
-    background: #1695A3;
-    color: #ffffff;
-    padding: 3px;
+    /**background-color: #005480;
+    background: #005480;
+    **/
+    color: white;
+    /**padding: 3px; **/
 }
 .pageHeaderBackground {
-    background-color: #1695A3;
-    background: #1695A3;
+  background-color: #005480;
+  background: #005480;
+}
+.pageHeaderSearchBox {
+    background-color: #c6d7df;
+    border: 1px solid #005480;
 }
 .popupColors {
-    background-color: #1695A3;
-    background: #1695A3;
-    color: white;
+  background-color: #5382a1;
+  background: #5382a1;
+  color: #FFFFFF;
 }
 .popupTitle {
     padding-left: 5px;
@@ -86,46 +96,53 @@ body {
 }
 .pageConfigHeader {
     font-size : 10px;
-    color : #ffffff;
-    background-color: #1695A3;
-    background: #1695A3;
+    background-color: #5382a1;
+    background: #5382a1;
+    color: #FFFFFF;
 }
+.gradientHighColor {
+  background : #b9ff6d;
+}
+.gradientLowColor {
+  background : #f0f8c6;
+}
+
 h1 { 
     font-size: 1.8em; 
-    color: #225378;
     margin-bottom: 4px; 
-    border-bottom: medium solid #225378;
+    border-bottom: medium solid #005480;
     border-width: thin;
+    color: #005480;
 }
 .h1 {
     font-weight: bold;
     font-size: 1.8em;
-    color: #225378;
     margin-bottom: 4px;
-    border-bottom: medium solid #225378;
+    border-bottom: medium solid #005480;
     border-width: thin;
+    color: #005480;
 }
 h2 {
     font-size: 1.2em;
-    color: #225378;
     margin-top: 20px;
     margin-bottom: 4px;
-    border-bottom: medium solid #225378;
+    border-bottom: medium solid #005480;
     border-width: thin;
+    color: #005480;
 }
 .h2 {
     font-weight:bold;
     font-size: 1.2em;
-    color: #225378;
     margin-top: 20px;
     margin-bottom: 4px;
-    border-bottom: medium solid #225378;
+    border-bottom: medium solid #005480;
     border-width: thin;
+    color: #005480;
 }
 
 .alternateHTitle {
-    color: #225378;
-    border-bottom: thin solid #225378;
+    color: #cccccc;
+    border-bottom: thin solid #cccccc;
 }
 
 .headerMenuTinyItemC {
@@ -142,9 +159,9 @@ h2 {
 
 .popLeft {
     border: #000000 solid;
-    color: #ACF0F2;
-    background-color: #ACF0F2;
-    background: #ACF0F2;
+    color: #ADCC58;
+    background-color: #ADCC58;
+    background: #ADCC58;
     border-width: 1px 1px 1px 1px;
 }
 .popRight {
@@ -155,85 +172,90 @@ h2 {
 
 
 .tagPop1 {
-    color: #eff2ca;
+    color: #ffc726;
     text-decoration: none;
 }
+
 .tagPop1neg {
-    color: #eff2ca;
-    text-decoration: line-through;
+  color: #ffc726;
+  text-decoration: line-through;
 }
 .tagPop2 {
-    color: #acf0f2;
+    color: #81c23d;
     text-decoration: none;
 }
 .tagPop2neg {
-    color: #acf0f2;
-    text-decoration: line-through;
+  color: #81c23d;
+  text-decoration: line-through;
 }
 
 
 
 .tag1 {
-    color: #eb7f00;
+    color: #ffc726;
     text-decoration: none;
 }
+
 .tag1neg {
-    color: #eb7f00;
-    text-decoration: line-through;
-}
-.tag2 {
-    color: #a45900;
-    text-decoration: none;
-}
-.tag2neg {
-    color: #a45900;
-    text-decoration: line-through;
+  color: #ffc726;
+  text-decoration: line-through;
 }
 .tag1Sticky {
-    color: #eb7f00;
-    text-decoration: underline;
-    font-weight: bold;
-}
-.tag2Sticky {
-    color: #a45900;
+    color: #ffc726;
     text-decoration: underline;
     font-weight: bold;
 }
 
+.tag2 {
+    color: #6cb33f;
+    text-decoration: none;
+}
+.tag2neg {
+  color: #6cb33f;
+  text-decoration: line-through;
+}
+.tag2Sticky {
+    color: #6cb33f;
+    text-decoration: underline;
+    font-weight: bold;
+}
 .artistTag1Sticky {
-    color: #5ba8b1;
+    color: #728bd2;
     text-decoration: underline;
     font-weight: bold;
 }
 .artistTag2Sticky {
-    color: #25909c;
+    color: #295df3;
     text-decoration: underline;
     font-weight: bold;
 }
 .artistTag1 {
-    color: #5ba8b1;
+    color: #728bd2;
     text-decoration: none;
 }
 .artistTag2 {
-    color: #25909c;
+    color: #295df3;
     text-decoration: none;
 }
 .artistTag1neg {
-    color: #5ba8b1;
+    color: #728bd2;
     text-decoration: line-through;
 }
 .artistTag2neg {
-    color: #25909c;
+    color: #295df3;
     text-decoration: line-through;
 }
 .tagColorAdded {
-  color : #b6cf9d;
+  color : #8d8db1;
 }
+
 .contextMenuItem {
     cursor: pointer;
 }
 .contextMenuItemHover {
-    background: #A3A3A3;
-    background-color: #A3A3A3;
-    color: black;
+    /**background: #b7d6f6;
+    background-color: #b7d6f6;**/
+    background : #e76f00;
+    color: white;
+    /**color: black;**/
 }
