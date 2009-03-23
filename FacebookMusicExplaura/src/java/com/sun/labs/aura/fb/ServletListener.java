@@ -5,7 +5,6 @@
 
 package com.sun.labs.aura.fb;
 
-import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -38,17 +37,15 @@ public class ServletListener implements ServletContextListener {
                 cm.addProperties(config);
                 context.setAttribute("configManager", cm);
 
-                DataStore dataStore = (DataStore)cm.lookup("dataStore");
-                logger.info("Got data store!");
-                context.setAttribute("dataStore", dataStore);
-
                 //
                 // Create a Music Database wrapper
                 MusicDatabase mdb = new MusicDatabase(cm);
+                context.setAttribute("mdb", mdb);
                 DataManager dm = new DataManager(mdb);
                 context.setAttribute("dm", dm);
+                logger.info("Found all components");
             } catch (IOException ioe) {
-                logger.log(Level.SEVERE, "Failed to get DataStore handle", ioe);
+                logger.log(Level.SEVERE, "Failed to get service handle", ioe);
             } catch (AuraException e) {
                 logger.log(Level.SEVERE, "Failed to create MDB", e);
             }
