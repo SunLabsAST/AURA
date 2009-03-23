@@ -26,6 +26,7 @@ import com.sun.labs.minion.classification.WeightedFeature;
 import com.sun.labs.minion.engine.SearchEngineImpl;
 import com.sun.labs.minion.indexer.entry.DocKeyEntry;
 import com.sun.labs.minion.indexer.partition.InvFileDiskPartition;
+import com.sun.labs.minion.query.Element;
 import com.sun.labs.minion.query.Relation;
 import com.sun.labs.minion.retrieval.CompositeDocumentVectorImpl;
 import com.sun.labs.minion.retrieval.DocumentVectorImpl;
@@ -674,6 +675,33 @@ public class ItemSearchEngine implements Configurable {
     }
 
     public List<Scored<String>> query(String query, String sort, int n,
+            ResultsFilter rf) throws AuraException, RemoteException {
+        List<Scored<String>> ret = new ArrayList<Scored<String>>();
+        try {
+            for(Result r : engine.search(query, sort).getResults(0, n, rf)) {
+                ResultImpl ri = (ResultImpl) r;
+                ret.add(new Scored<String>(ri.getKey(),
+                        ri.getScore(),
+                        ri.getSortVals(),
+                        ri.getDirections()));
+            }
+        } catch(SearchEngineException see) {
+            //
+            // The search engine exception may be wrapping an exception that
+            // we don't want to send across the wire, so we should see what if
+            // there's one of these in there.
+            Throwable ex = see.getCause();
+            if(ex instanceof com.sun.labs.minion.retrieval.parser.ParseException ||
+                    ex instanceof java.text.ParseException) {
+                throw new AuraException("Error parsing query: " +
+                        ex.getMessage());
+            }
+            throw new AuraException("Error finding items", see);
+        }
+        return ret;
+    }
+
+    public List<Scored<String>> query(Element query, String sort, int n,
             ResultsFilter rf) throws AuraException, RemoteException {
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         try {

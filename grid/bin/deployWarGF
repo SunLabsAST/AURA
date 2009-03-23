@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function usage {
-    echo 'Usage: deployWar -h [-n server name] -w [war file]'
+    echo 'Usage: deployWarGF -h [-n server name] -w [war file]'
     echo ' server name defaults to www and war file to WME'
 }
 
@@ -43,13 +43,6 @@ done
 
 if [ ! -e $WARFILE ] ; then
     echo $WARFILE does not exist!
-    exit 2
-fi
-
-ant -Ddeployment.name=$NAME -Dwar.loc=$WARFILE -f $DIR/../grid-deploy/gf.xml upload-war
-
-if [ $? != 0 ] ; then 
-    echo "Error uploading war file"
     exit 2
 fi
 

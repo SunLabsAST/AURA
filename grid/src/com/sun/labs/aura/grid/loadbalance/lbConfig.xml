@@ -17,17 +17,30 @@
     
     <!-- <property name="logLevel" value="FINER"/> -->
     
-    <component name="startLB" type="com.sun.labs.aura.grid.loadbalance.StartLB">
+    <component name="L4LB" type="com.sun.labs.aura.grid.loadbalance.L4LoadBalancer">
         <property name="instance" value="${auraInstance}"/>
         <property name="serviceName" value="${serviceName}"/>
         <property name="hostName" value="${hostName}"/>
     </component>
-    
-    <component name="start" type="com.sun.labs.aura.AuraServiceStarter">
+
+    <component name="HTTPLB" type="com.sun.labs.aura.grid.loadbalance.HTTPLoadBalancer">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="serviceName" value="${serviceName}"/>
+        <property name="hostName" value="${hostName}"/>
+    </component>
+
+    <component name="start-l4" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
-            <item>startLB</item>
+            <item>L4LB</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
     
+    <component name="start-http" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>HTTPLB</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
 </config>

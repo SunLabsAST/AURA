@@ -13,6 +13,7 @@ import com.google.code.facebookapi.ProfileField;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
 import java.rmi.RemoteException;
@@ -52,7 +53,7 @@ public class PingServlet extends HttpServlet {
         ServletContext context = request.getSession().getServletContext();
         String apiKey = context.getInitParameter("apiKey");
         String secretKey = context.getInitParameter("secretKey");
-        DataStore ds = (DataStore)context.getAttribute("dataStore");
+        MusicDatabase mdb = (MusicDatabase)context.getAttribute("mdb");
 
         String function = request.getPathInfo();
 
@@ -68,6 +69,8 @@ public class PingServlet extends HttpServlet {
                     EnumSet.of(ProfileField.PROXIED_EMAIL));
                 JSONObject user = info.getJSONObject(0);
                 String email = user.getString(ProfileField.PROXIED_EMAIL.toString());
+
+                DataStore ds = mdb.getDataStore();
                 User u = ds.getUser(getUserKey(uid));
                 if (u == null) {
                     u = StoreFactory.newUser(getUserKey(uid), "Facebook User");
@@ -95,6 +98,7 @@ public class PingServlet extends HttpServlet {
                 String uidStr = request.getParameter(FacebookParam.USER.toString());
                 try {
                     Long uid = Long.parseLong(uidStr);
+                    DataStore ds = mdb.getDataStore();
                     ds.deleteUser(getUserKey(uid));
                 } catch (AuraException e) {
                     logger.log(Level.INFO, "Failed to delete user from datastore", e);

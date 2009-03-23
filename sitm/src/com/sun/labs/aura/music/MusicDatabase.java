@@ -22,6 +22,10 @@ import com.sun.labs.aura.util.Tag;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.CompositeResultsFilter;
 import com.sun.labs.minion.ResultsFilter;
+import com.sun.labs.minion.query.And;
+import com.sun.labs.minion.query.Element;
+import com.sun.labs.minion.query.Equals;
+import com.sun.labs.minion.query.Substring;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -638,14 +642,10 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      */
     public List<Scored<Artist>> artistSearch(String artistName, int returnCount) throws AuraException {
-        artistName = normalizeTextForQuery(artistName);
-        String squery = "(aura-type = artist) <AND> (aura-name <matches> \"*" + artistName + "*\")";
-        List<Scored<Item>> scoredItems = query(squery, returnCount);
+        Element query = new And(new Equals("aura-type", "artist"),
+                new Substring("aura-name", artistName));
+        List<Scored<Item>> scoredItems = query(query, returnCount);
         return convertToScoredArtistList(scoredItems);
-    }
-
-    private String normalizeTextForQuery(String text) {
-        return text.replaceAll("\"", "?");
     }
 
     /**
@@ -920,8 +920,8 @@ public class MusicDatabase {
     }
 
     public List<Scored<ArtistTag>> artistTagSearch(String artistTagName, int returnCount) throws AuraException {
-        artistTagName = normalizeTextForQuery(artistTagName);
-        String query = "(aura-type = ARTIST_TAG) <AND> (aura-name <matches> \"*" + artistTagName + "*\")";
+        Element query = new And(new Equals("aura-type", "ARTIST_TAG"),
+                new Substring("aura-name", artistTagName));
         List<Scored<Item>> scoredItems = query(query, returnCount);
         return convertToScoredArtistTagList(scoredItems);
     }
@@ -969,7 +969,9 @@ public class MusicDatabase {
 
     public List<Artist> artistGetMostPopular(int count) throws AuraException {
         try {
-            List<Scored<Item>> items = getDataStore().query("aura-type=ARTIST", "-popularity", count, null);
+            List<Scored<Item>> items = getDataStore().query(
+                    new Equals("aura-type", "artist"),
+                    "-popularity", count, null);
             List<Artist> artists = new ArrayList<Artist>();
             for (Scored<Item> i : items) {
                 artists.add(new Artist(i.getItem()));
@@ -986,7 +988,9 @@ public class MusicDatabase {
     public List<Listener> listenerGetMostActive(int count) throws AuraException {
         try {
             // TBD - activity field has not been added to the listner yet.
-            List<Scored<Item>> items = getDataStore().query("aura-type=USER", "-score", count, null);
+            List<Scored<Item>> items = getDataStore().query(
+                    new Equals("aura-type", "USER"),
+                    "-score", count, null);
             List<Listener> listeners = new ArrayList<Listener>();
             for (Scored<Item> i : items) {
                 if (i.getItem() != null) {
@@ -1003,7 +1007,9 @@ public class MusicDatabase {
 
     public List<ArtistTag> artistTagGetMostPopular(int count) throws AuraException {
         try {
-            List<Scored<Item>> items = getDataStore().query("aura-type=ARTIST_TAG", "-popularity", count, null);
+            List<Scored<Item>> items = getDataStore().query(
+                    new Equals("aura-type", "ARTIST_TAG"),
+                    "-popularity", count, null);
             List<ArtistTag> artistTags = new ArrayList();
             for (Scored<Item> i : items) {
                 artistTags.add(new ArtistTag(i.getItem()));
@@ -1264,7 +1270,7 @@ public class MusicDatabase {
 
     }
 
-    private List<Scored<Item>> query(String query, int count) throws AuraException {
+    private List<Scored<Item>> query(Element query, int count) throws AuraException {
         try {
             return getDataStore().query(query, "-score", count, null);
         } catch (RemoteException ex) {
