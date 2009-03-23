@@ -521,7 +521,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     @Override
     public Collection<Item> getItems(Collection<String> keys) throws AuraException, RemoteException {
         StatState state = new StatState();
-        enter(StatName.GET_ITEMS, state, " for " + keys.size());
+        enter(StatName.GET_ITEMS, state, "for " + keys.size());
         
         List<Item> ret = new ArrayList();
         for(String key : keys) {
@@ -532,7 +532,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         }
 
         state.count = ret.size();
-        exit(state);
+        exit(state, "for " + keys.size());
         return ret;
     }
     
