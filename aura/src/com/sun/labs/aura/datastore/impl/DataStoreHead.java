@@ -371,13 +371,22 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         
         Collections.sort(ret, ReverseScoredComparator.COMPARATOR);
         nw.stop();
-        ret.get(0).time = nw.getTimeMillis();
-        if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("dsh gSIs for %d took %.3f",
-                    keys.size(),
-                    nw.getTimeMillis()));
+        if(ret.size() > 0) {
+            ret.get(0).time = nw.getTimeMillis();
+            if(logger.isLoggable(Level.FINE)) {
+                logger.fine(String.format("dsh gSIs for %d took %.3f",
+                        keys.size(),
+                        nw.getTimeMillis()));
+            }
+        } else {
+            if(logger.isLoggable(Level.FINE)) {
+                logger.fine(String.format("dsh gSIs for %d got 0?",
+                        keys.size()));
+            }
         }
+
         return ret;
+
     }
 
     public User getUser(String key) throws AuraException, RemoteException {
