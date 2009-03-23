@@ -16,6 +16,10 @@
         <servlet-name>Canvas</servlet-name>
         <servlet-class>com.sun.labs.aura.fb.Canvas</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>PingServlet</servlet-name>
+        <servlet-class>com.sun.labs.aura.fb.PingServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>Canvas</servlet-name>
         <url-pattern>/canvas/ajax/*</url-pattern>
@@ -23,6 +27,10 @@
     <servlet-mapping>
         <servlet-name>Canvas</servlet-name>
         <url-pattern>/canvas</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>PingServlet</servlet-name>
+        <url-pattern>/ping/*</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

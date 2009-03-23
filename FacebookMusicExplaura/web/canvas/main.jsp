@@ -337,6 +337,10 @@ cloud by combining the most distinctive terms that describe each band.
         clearDiv(wmeLink);
     }
 
+    function ajaxError() {
+        showDialog("Error", "Sorry, an error has occurred.  Please try again later.");
+    }
+
     /*
      * Shows a comparison cloud between the logged in user and a selected
      * friend.
@@ -359,6 +363,7 @@ cloud by combining the most distinctive terms that describe each band.
         var ajax = new Ajax();
         ajax.responseType = Ajax.JSON;
         ajax.ondone = displayCompareCallback;
+        ajax.onerror = ajaxError;
         var query = {"fbUID" : fbUID,
                      "fbSession" : fbSession,
                      "friendUID" : selected};
@@ -372,6 +377,7 @@ cloud by combining the most distinctive terms that describe each band.
         var ajax = new Ajax();
         ajax.responseType = Ajax.JSON;
         ajax.ondone = displayCloudCallback;
+        ajax.onerror = ajaxError;
         var query = {"fbUID" : fbUID,
                      "fbSession" : fbSession};
         ajax.post(canvasPath + "/ajax/updateCloudFromArtistIDs", query);
@@ -394,6 +400,7 @@ cloud by combining the most distinctive terms that describe each band.
         var ajax = new Ajax();
         ajax.responseType = Ajax.JSON;
         ajax.ondone = displayFriendCloudCallback;
+        ajax.onerror = ajaxError;
         var query = {"fbSession" : fbSession,
                      "friendUID" : selected};
         ajax.post(canvasPath + "/ajax/getOtherCloud", query);
