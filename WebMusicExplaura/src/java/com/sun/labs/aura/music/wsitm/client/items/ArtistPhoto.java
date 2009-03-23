@@ -106,7 +106,7 @@ public class ArtistPhoto implements IsSerializable {
         //sb.append("<span style=\"font-size: 1.em; margin-top: 0px;\">" + getTitle() + "</span>\n");
         //sb.append("<br />\n");
         sb.append("<a href=\"" +  getPhotoPageURL() + "\" target=\"Window1\">");
-        sb.append("   <img style=\"border: 2px solid rgb(0, 0, 0);\" src=\"" + getImageURL() + "\"/>");
+        sb.append("   <center><img style=\"border: 2px solid rgb(0, 0, 0);\" src=\"" + getImageURL() + "\"/></center>");
         sb.append("</a>");
         sb.append("<br />\n");
         sb.append("<span style=\"font-size: 0.7em; margin-top: 0px;\">");

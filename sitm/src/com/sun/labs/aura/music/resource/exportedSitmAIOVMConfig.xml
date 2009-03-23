@@ -83,7 +83,7 @@
     <component name="itemSearchEngine0" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
         <property name="indexDir" value="${auraHome}/db/0/itemIndex.idx"/>
         <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
-        <property name="engineLogLevel" value="3"/>
+        <!-- <property name="engineLogLevel" value="3"/> -->
         <property name="flushInterval" value="300000"/>
         <property name="logLevel" value="WARNING"/>
     </component>
@@ -93,7 +93,7 @@
         <property name="indexDir" value="${auraHome}/db/1/itemIndex.idx"/>
         <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
         <property name="flushInterval" value="300000"/>
-        <property name="engineLogLevel" value="3"/>
+        <!-- <property name="engineLogLevel" value="3"/> -->
         <property name="logLevel" value="WARNING"/>
     </component>
     
