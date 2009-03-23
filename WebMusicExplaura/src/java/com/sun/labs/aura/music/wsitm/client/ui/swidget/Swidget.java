@@ -15,7 +15,12 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
+import com.google.gwt.user.client.ui.Grid;
+import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 import java.util.ArrayList;
 
 /**
@@ -25,6 +30,11 @@ import java.util.ArrayList;
 public abstract class Swidget extends Composite implements HasListeners {
 
     private String name;
+
+    private boolean useTopLoader = false;
+    private Label topMessage = null;
+    private Image topActivityIcon = null;
+    private Grid topMsgGrid = null;
 
     protected MusicSearchInterfaceAsync musicServer;
     protected ClientDataManager cdm;
@@ -111,5 +121,55 @@ public abstract class Swidget extends Composite implements HasListeners {
      */
     protected Label getMustBeLoggedInWidget() {
         return new Label("Sorry but you must be logged in to access this page.");
+    }
+
+
+    protected void initWidget(Widget widget, boolean useTopLoader) {
+        this.useTopLoader = useTopLoader;
+        if (useTopLoader) {
+            topMessage = new Label();
+            topMessage.setStyleName("topMsgIndicator");
+
+            topActivityIcon = new Image(WebLib.ICON_WAIT_SUN);
+            topActivityIcon.setVisible(false);
+            topActivityIcon.setStyleName("img");
+
+            topMsgGrid = new Grid(1,1);
+            topMsgGrid.getCellFormatter().setHeight(0, 0, "35px");
+            topMsgGrid.getCellFormatter().setWidth(0, 0, "100%");
+            topMsgGrid.getCellFormatter().setHorizontalAlignment(0, 0, HorizontalPanel.ALIGN_CENTER);
+
+            VerticalPanel mainPanel = new VerticalPanel();
+            mainPanel.setWidth("100%");
+            mainPanel.setHorizontalAlignment(VerticalPanel.ALIGN_CENTER);
+            mainPanel.add(topMsgGrid);
+            mainPanel.add(widget);
+            super.initWidget(mainPanel);
+        } else {
+            super.initWidget(widget);
+        }
+    }
+
+    protected void showLoader() {
+        if (useTopLoader) {
+            topMessage.setVisible(false);
+            topActivityIcon.setVisible(true);
+            topMsgGrid.setWidget(0, 0, topActivityIcon);
+        }
+    }
+
+    protected void hideLoader() {
+        if (useTopLoader) {
+            topActivityIcon.setVisible(false);
+        }
+    }
+
+    protected void showTopMessage(String message) {
+        if (useTopLoader) {
+            topMessage.setText(message);
+            topMessage.setVisible(true);
+            topActivityIcon.setVisible(false);
+            topMsgGrid.setWidget(0, 0, topMessage);
+        }
     }
 }
