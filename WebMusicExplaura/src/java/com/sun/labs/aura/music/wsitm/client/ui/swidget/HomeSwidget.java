@@ -15,7 +15,6 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -45,20 +44,8 @@ public class HomeSwidget extends Swidget {
     private Grid mainPanel;
     private Grid popArtists;
 
-    private FlowPanel searchBoxContainerPanel;
-    private SearchWidget search;
-
-    private Image loadImg;
-
     public HomeSwidget(ClientDataManager cdm) {
         super("Home", cdm);
-
-        loadImg = new Image("ajax-loader-small.gif");
-        loadImg.getElement().getStyle().setProperty("visibility", "hidden");
-        searchBoxContainerPanel = new FlowPanel();
-
-        //search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel);
-        //search.updateSuggestBox(Oracles.ARTIST);
 
         HorizontalPanel titleHp = new HorizontalPanel();
         titleHp.setWidth("100%");
@@ -74,11 +61,7 @@ public class HomeSwidget extends Swidget {
             }
         });
 
-
-        HorizontalPanel leftHp = new HorizontalPanel();
-        leftHp.add(loadImg);
-        leftHp.add(featMore);
-        titleHp.add(leftHp);
+        titleHp.add(featMore);
         popArtists = new Grid(2,1);
         popArtists.setWidget(0, 0, titleHp);
         popArtists.setWidget(1, 0, WebLib.getLoadingBarWidget());
@@ -101,7 +84,7 @@ public class HomeSwidget extends Swidget {
         }
 
         invokeFetchRandomArtists();
-        initWidget(mainPanel);
+        initWidget(mainPanel, true);
     }
 
     @Override
@@ -287,21 +270,23 @@ public class HomeSwidget extends Swidget {
                     }
                 }
                 popArtists.setWidget(1, 0, g);
-                loadImg.getElement().getStyle().setProperty("visibility", "hidden");
+                hideLoader();
             }
 
             public void onFailure(Throwable caught) {
                 Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
                     "retrieve the random artists.", Popup.ERROR_LVL.NORMAL, null);
+                hideLoader();
             }
         };
 
+        showLoader();
         try {
-            loadImg.getElement().getStyle().setProperty("visibility", "visible");
             musicServer.getRandomPopularArtists(POP_ART_WIDTH * POP_ART_HEIGHT, callback);
         } catch (Exception ex) {
             Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
                     "retrieve the random artists.", Popup.ERROR_LVL.NORMAL, null);
+            hideLoader();
         }
     }
 

@@ -227,29 +227,29 @@ h2 {
     font-weight: bold;
 }
 .artistTag1Sticky {
-    color: #728bd2;
+    color: #008a5e;
     text-decoration: underline;
     font-weight: bold;
 }
 .artistTag2Sticky {
-    color: #295df3;
+    color: #6cb33f;
     text-decoration: underline;
     font-weight: bold;
 }
 .artistTag1 {
-    color: #728bd2;
+    color: #008a5e;
     text-decoration: none;
 }
 .artistTag2 {
-    color: #295df3;
+    color: #6cb33f;
     text-decoration: none;
 }
 .artistTag1neg {
-    color: #728bd2;
+    color: #008a5e;
     text-decoration: line-through;
 }
 .artistTag2neg {
-    color: #295df3;
+    color: #6cb33f;
     text-decoration: line-through;
 }
 .tagColorAdded {

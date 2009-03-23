@@ -582,7 +582,6 @@ public class SteeringSwidget extends Swidget {
                         tagLand.removeAllItems(false);
                         tagLand.addTags(r.tagMap);
                         displayNewRecommendations(r.recs);
-
                     } else {
                         Popup.showErrorPopup("Returned recommendations were null.", Popup.ERROR_MSG_PREFIX.NONE,
                                 "An unknown error occured while loading your custom tag cloud.", Popup.ERROR_LVL.NORMAL, null);

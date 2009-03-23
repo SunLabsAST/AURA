@@ -18,13 +18,13 @@ public interface ArtistRelatedBundle extends ImageBundle {
      * Generic play icons
      */
 
-    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/play-icon40.jpg")
+    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/play-icon40.png")
     public AbstractImagePrototype playIcon40();
 
-    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/play-icon30.jpg")
+    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/play-icon30.png")
     public AbstractImagePrototype playIcon30();
 
-    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/play-icon20.jpg")
+    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/play-icon20.png")
     public AbstractImagePrototype playIcon20();
 
 

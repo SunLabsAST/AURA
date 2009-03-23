@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -41,6 +42,7 @@ import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
+import com.sun.labs.aura.music.wsitm.client.ui.bundles.VariaBundle;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,6 +58,10 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         CONFIG,
         NONE
     }
+
+    private static VariaBundle varImgBundle =
+            (VariaBundle) GWT.create(VariaBundle.class);
+
     private SubHeaderPanels currSubHeaderPanel = SubHeaderPanels.NONE;
 
     //private RoundedPanel roundedMainPanel;
@@ -779,13 +785,13 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             searchPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
             searchPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
 
-            Button searchButton = new Button("Search", new ClickHandler() {
+            Image searchButton = varImgBundle.searchButton().createImage();
+            searchButton.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent ce) {
                     search();
                 }
             });
-            searchButton.setTabIndex(2);
 
             searchPanel.add(searchBoxContainerPanel);
             searchPanel.add(searchSelection);
