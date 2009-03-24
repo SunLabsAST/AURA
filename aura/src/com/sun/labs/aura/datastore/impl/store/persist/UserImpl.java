@@ -12,9 +12,9 @@ import java.util.Date;
  */
 @SuppressWarnings(value="EQ_DOESNT_OVERRIDE_EQUALS",
                   justification="Definition of equality is the same")
-@Persistent(version = 3)
+@Persistent(version = 4)
 public class UserImpl extends ItemImpl implements User {
-    private static final long serialVersionUID = 3;
+    private static final long serialVersionUID = 4;
 
     /** Signal variable to indicate that this is a user, not a regular item */
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
