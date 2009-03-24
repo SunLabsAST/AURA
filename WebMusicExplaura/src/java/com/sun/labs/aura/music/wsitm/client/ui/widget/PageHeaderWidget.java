@@ -805,6 +805,13 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
                         Popup.ERROR_LVL.NORMAL, null);
             } else {
                 String query = getSearchBox().getText().toLowerCase();
+
+                if (query == null || query.length()==0) {
+                    Popup.showInformationPopup("Please enter a search string " +
+                            "before trying to perform a search.");
+                    return;
+                }
+
                 searchTypes currST = getSearchType();
                 if (currST == searchTypes.SEARCH_FOR_TAG_BY_TAG) {
                     History.newItem("tagSearch:"+query);

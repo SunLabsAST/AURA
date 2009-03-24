@@ -240,7 +240,9 @@ public class SteeringSwidget extends Swidget {
 
             // North
             HorizontalPanel mainNorthMenuPanel = new HorizontalPanel();
+            mainNorthMenuPanel.setWidth("100%");
             mainNorthMenuPanel.setSpacing(5);
+            mainNorthMenuPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_LEFT);
 
             /*
              * Save and load tag cloud is not implemented yet

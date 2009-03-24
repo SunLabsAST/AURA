@@ -135,7 +135,7 @@ public abstract class Popup {
                 hP.setWidget(0, 0, title);
             }
             hP.setWidget(0,1, b);
-            hP.getCellFormatter().setWidth(0, 0, "100%");
+            hP.getCellFormatter().setWidth(0, 0, (width-53)+"px");
             hP.getCellFormatter().setWidth(0, 1, "50px");
             hP.getCellFormatter().setHorizontalAlignment(0, 1, HorizontalPanel.ALIGN_RIGHT);
             vP.add(hP);
@@ -186,7 +186,6 @@ public abstract class Popup {
     public static enum ERROR_MSG_PREFIX {
         NONE,
         ERROR_OCC_WHILE
-
     }
 
     /**
@@ -298,14 +297,14 @@ public abstract class Popup {
 
     public static PopupPanel showLoadingPopup() {
         HorizontalPanel hP = new HorizontalPanel();
-        hP.setWidth("175px");
+        hP.setWidth("172px");
         hP.add(new Image("ajax-ball-t.gif"));
         Label l = new Label("Loading...");
         l.addStyleName("tagPop2");
         hP.add(l);
         PopupPanel p = getPopupPanel();
-        p.setWidth("175px");
-        showRoundedPopup(hP, "Information", p, -1, -1, 175, false);
+        p.setWidth("180px");
+        showRoundedPopup(hP, "Information", p, -1, -1, 180, false);
         return p;
     }
 
