@@ -189,55 +189,53 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
     public Grid getMainWidget() {
         
         mainPanel = new Grid(1,4);
-        mainPanel.setHeight("66px");
-        mainPanel.setWidth("100%");
-        mainPanel.setStyleName("pageHeader");
-        mainPanel.setCellSpacing(0);
 
-        mainPanel.getColumnFormatter().setWidth(0, "268px");
-        mainPanel.getColumnFormatter().setWidth(1, "*");
-        mainPanel.getColumnFormatter().setWidth(2, "100px");
-        mainPanel.getColumnFormatter().setWidth(3, "28px");
+        // Set the logo
+        populateMainPanel();
 
-        mainPanel.getCellFormatter().getElement(0, 1).setAttribute("align", "center");
-        mainPanel.getCellFormatter().getElement(0, 0).getStyle().setProperty("backgroundImage", "url(header_left.png)");
-        mainPanel.getCellFormatter().getElement(0, 1).getStyle().setProperty("backgroundImage", "url(header_middle.png)");
-        mainPanel.getCellFormatter().getElement(0, 2).getStyle().setProperty("backgroundImage", "url(header_middle.png)");
-        mainPanel.getCellFormatter().getElement(0, 3).getStyle().setProperty("backgroundImage", "url(header_right.png)");
+        // Set the section menu
+        mm = new MainMenu();
+        cdm.getLoginListenerManager().addListener(mm);
+        mainPanel.setWidget(0, 1, mm);
 
-        mainPanel.getCellFormatter().setVerticalAlignment(0, 1, VerticalPanel.ALIGN_MIDDLE);
-        mainPanel.getCellFormatter().setVerticalAlignment(0, 2, VerticalPanel.ALIGN_MIDDLE);
-
-        Image rightFill = new Image("header_right_fill.gif");
-        rightFill.setWidth("26px");
-        mainPanel.setWidget(0, 3, rightFill);
-        
-
-        //
         // Set the recommendation type toolbar
         HorizontalPanel hP = new HorizontalPanel();
 
         searchBoxContainerPanel = new FlowPanel();
         search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel);
         search.updateSuggestBox(Oracles.ARTIST);
-        hP.add(search);        
-        
+        hP.add(search);
+
         mainPanel.setWidget(0, 2, hP);
-        mainPanel.getCellFormatter().getElement(0, 2).setAttribute("align", "right");
 
-        //
-        // Set the section menu
-        mm = new MainMenu();
-        cdm.getLoginListenerManager().addListener(mm);
-        mainPanel.setWidget(0, 1, mm);
+        // Set right filler
+        Image rightFill = new Image("header_right_fill.gif");
+        rightFill.setWidth("26px");
+        mainPanel.setWidget(0, 3, rightFill);
 
-        populateMainPanel();
+        // Set mainPanel visual properties
+        mainPanel.setHeight("66px");
+        mainPanel.setWidth("100%");
+        mainPanel.setStyleName("pageHeader");
+        mainPanel.setCellSpacing(0);
+
+        mainPanel.getCellFormatter().setWidth(0, 0, "256px");
+        // this should be * but makes ie blow up so just set a big % to fill the space
+        mainPanel.getCellFormatter().setWidth(0, 1, "80%");
+        mainPanel.getCellFormatter().setWidth(0, 2, "100px");
+        mainPanel.getCellFormatter().setWidth(0, 3, "28px");
+
+        mainPanel.getCellFormatter().getElement(0, 0).getStyle().setProperty("backgroundImage", "url(header_left.png)");
+        mainPanel.getCellFormatter().getElement(0, 1).getStyle().setProperty("backgroundImage", "url(header_middle.png)");
+        mainPanel.getCellFormatter().getElement(0, 2).getStyle().setProperty("backgroundImage", "url(header_middle.png)");
+        mainPanel.getCellFormatter().getElement(0, 3).getStyle().setProperty("backgroundImage", "url(header_right.png)");
+
+        mainPanel.getCellFormatter().setHorizontalAlignment(0, 1, HorizontalPanel.ALIGN_CENTER);
+        mainPanel.getCellFormatter().setHorizontalAlignment(0, 2, HorizontalPanel.ALIGN_RIGHT);
+        mainPanel.getCellFormatter().setVerticalAlignment(0, 1, VerticalPanel.ALIGN_MIDDLE);
+        mainPanel.getCellFormatter().setVerticalAlignment(0, 2, VerticalPanel.ALIGN_MIDDLE);
 
         return mainPanel;
-        //roundedMainPanel = new RoundedPanel(mainPanel);
-        //roundedMainPanel.setCornerStyleName("pageHeaderBackground");
-        //return roundedMainPanel;
-        
     }
 
     public void setMenuItems(ArrayList<MenuItem> mI) {
