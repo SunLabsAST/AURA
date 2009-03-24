@@ -14,6 +14,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.SuggestBox;
+import com.google.gwt.user.client.ui.TextBox;
 import com.sun.labs.aura.music.wsitm.client.event.DEAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
@@ -47,6 +48,7 @@ public abstract class AbstractSearchWidget extends Composite {
     private Panel searchBoxContainerPanel; // panel that will contain the searchbox
 
     private SuggestBox sB;
+    private static TextBox loadingBox;
 
     protected String searchBoxStyleName = null; //searchText";
     protected int searchBoxWidth = 0;
@@ -68,7 +70,16 @@ public abstract class AbstractSearchWidget extends Composite {
         this.musicServer = musicServer;
         this.cdm = cdm;
         this.searchBoxContainerPanel = searchBoxContainerPanel;
-        
+
+        if (loadingBox == null) {
+            loadingBox = new TextBox();
+            loadingBox.setText("Loading...");
+            loadingBox.setEnabled(false);
+            if (searchBoxStyleName != null && searchBoxStyleName.length()>0) {
+                loadingBox.setStyleName(searchBoxStyleName);
+            }
+        }
+
         sB = getNewSuggestBox(new PopSortedMultiWordSuggestOracle());
         updateSuggestBox(type);
     }
@@ -92,7 +103,6 @@ public abstract class AbstractSearchWidget extends Composite {
                         }
                     });
                 }
-                
             }
         });
         if (searchBoxStyleName != null && searchBoxStyleName.length()>0) {
@@ -215,7 +225,7 @@ public abstract class AbstractSearchWidget extends Composite {
         };
 
         searchBoxContainerPanel.clear();
-        searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
+        searchBoxContainerPanel.add(loadingBox);
 
         try {
             if (type == Oracles.ARTIST) {
