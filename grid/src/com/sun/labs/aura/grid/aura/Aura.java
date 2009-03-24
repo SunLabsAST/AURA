@@ -423,6 +423,55 @@ public abstract class Aura extends ServiceAdapter {
         return pc;
     }
 
+    /**
+     * Gets a config for a combined partition cluster and replicant, for
+     * efficiency's sake.
+     *
+     * @param prefix the prefix that the replicant and PC should have.
+     * @return a process configuration for the replicant/PC combo
+     * @throws java.lang.Exception
+     */
+    protected ProcessConfiguration getPCReplicantConfig(String prefix)
+            throws Exception {
+        String[] cmdLine = new String[]{
+            "-Xmx3g",
+            "-DauraHome=" + GridUtil.auraDistMntPnt,
+            "-DauraGroup=" + instance + "-aura",
+            "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
+            "/classifier/starting.idx",
+            "-Dprefix=" + prefix,
+            "-DdataFS=/files/data",
+            "-jar",
+            GridUtil.auraDistMntPnt + "/dist/grid.jar",
+            "/com/sun/labs/aura/resource/repPCConfig.xml",
+            "repPCStarter",
+            String.format("%s/rep/rep-%s.%%g.out", GridUtil.logFSMntPnt, prefix)
+        };
+
+        FileSystem fs = repFSMap.get(prefix);
+        if (fs == null) {
+            fs = ownedFSMap.get(prefix);
+        }
+        List<FileSystemMountParameters> extraMounts =
+                Collections.singletonList(new FileSystemMountParameters(
+                fs.getUUID(),
+                "data"));
+        ProcessConfiguration pc = gu.getProcessConfig(
+                Replicant.class.getName(),
+                cmdLine, getReplicantName(
+                prefix), extraMounts);
+
+        // don't overlap with other replicants
+        pc.setLocationConstraint(
+                new ProcessRegistrationFilter.NameMatch(
+                Pattern.compile(instance + ".*-replicant-.*")));
+        Map<String,String> md = pc.getMetadata();
+        md.put("prefix", prefix);
+        md.put("monitor", "true");
+        pc.setMetadata(md);
+        return pc;
+    }
+
     protected ProcessConfiguration getDebugReplicantConfig(String replicantConfig,
             String prefix)
             throws Exception {

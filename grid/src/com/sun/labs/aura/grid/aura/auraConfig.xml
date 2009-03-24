@@ -18,6 +18,12 @@
         <property name="defaultNumReplicants" value="16"/>
     </component>
 
+    <component name="startComboAura" type="com.sun.labs.aura.grid.aura.StartAura">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="combinedReplicant" value="true"/>
+        <property name="defaultNumReplicants" value="16"/>
+    </component>
+
     <component name="startParallelAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="instance" value="${auraInstance}"/>
         <property name="numHeads" value="1"/>
@@ -67,6 +73,13 @@
     <component name="start" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>startAura</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="start-combo" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>startComboAura</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
