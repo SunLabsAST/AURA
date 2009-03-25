@@ -24,10 +24,12 @@ import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
+import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.SearchTypeRadioButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.CompactArtistWidget;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.DualRoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.StarRatingWidget.InitialRating;
 import java.util.ArrayList;
 
@@ -42,7 +44,7 @@ public class HomeSwidget extends Swidget {
     private final int POP_ART_WIDTH = 3;
 
     private Grid mainPanel;
-    private Grid popArtists;
+    private DualRoundedPanel popArtists;
 
     public HomeSwidget(ClientDataManager cdm) {
         super("Home", cdm);
@@ -62,9 +64,11 @@ public class HomeSwidget extends Swidget {
         });
 
         titleHp.add(featMore);
-        popArtists = new Grid(2,1);
-        popArtists.setWidget(0, 0, titleHp);
-        popArtists.setWidget(1, 0, WebLib.getLoadingBarWidget());
+        //titleHp.setStyleName("roundedPageBackHeader");
+        titleHp.getElement().getStyle().setPropertyPx("marginBottom", 0);
+        popArtists = new DualRoundedPanel();
+        popArtists.setHeader(titleHp);
+        popArtists.setContent(WebLib.getLoadingBarWidget(), false);
 
         mainPanel = new Grid(3,1);
         mainPanel.getCellFormatter().setHorizontalAlignment(0, 0, HorizontalPanel.ALIGN_CENTER);
@@ -269,7 +273,7 @@ public class HomeSwidget extends Swidget {
                                 musicServer, null, null, InitialRating.FETCH, null));
                     }
                 }
-                popArtists.setWidget(1, 0, g);
+                popArtists.setContent(g);
                 hideLoader();
             }
 

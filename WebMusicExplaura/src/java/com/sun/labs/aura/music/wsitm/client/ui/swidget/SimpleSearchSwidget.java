@@ -53,6 +53,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib.TagColorType;
 import com.sun.labs.aura.music.wsitm.client.ui.bundles.ArtistRelatedBundle;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWidget;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.DualRoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
 import java.util.ArrayList;
@@ -74,10 +75,6 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
     private String curPageTitle = "";
 
     private DockPanel mainPanel;
-
-    private Label message;
-    private Image icon;
-    private Grid topMsgGrid;
 
     private PopularitySelect popSelect;
     
@@ -472,9 +469,9 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         VerticalPanel main = new VerticalPanel();
         main.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
         main.add(getBioWidget(artistDetails));
-        main.add(WebLib.createSection("Videos", new VideoScrollWidget(artistDetails.getVideos())));
-        main.add(WebLib.createSection("Photos", new ImageScrollWidget(artistDetails.getPhotos())));
-        main.add(WebLib.createSection("Albums", new AlbumScrollWidget(artistDetails.getAlbums())));
+        main.add(new DualRoundedPanel("Videos", new VideoScrollWidget(artistDetails.getVideos())));
+        main.add(new DualRoundedPanel("Photos", new ImageScrollWidget(artistDetails.getPhotos())));
+        main.add(new DualRoundedPanel("Albums", new AlbumScrollWidget(artistDetails.getAlbums())));
         main.setHorizontalAlignment(HorizontalPanel.ALIGN_LEFT);
         main.add(getEventsWidget(artistDetails));
         main.setStyleName("center");
@@ -641,13 +638,14 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
 
         if (urls != null && urls.size() > 0) {
             Grid grid = new Grid(urls.size(), 1);
+            grid.setWidth("300px");
             int index = 0;
             for (String key : urls.keySet()) {
                 String url =  urls.get(key);
                 HTML html = new HTML(WebLib.createAnchor(key, url));
                 grid.setWidget(index++, 0, html);
             }
-            return WebLib.createSection("More info", grid);
+            return new DualRoundedPanel("More info", grid);
         } else {
             return new Label("");
         }
@@ -700,9 +698,9 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
 
     }
 
-    private Widget getEventsWidget(ArtistDetails artistDetails) {
+    private DualRoundedPanel getEventsWidget(ArtistDetails artistDetails) {
         ArtistEvent[] events = artistDetails.getEvents();
-        Panel widget = new VerticalPanel();
+        VerticalPanel widget = new VerticalPanel();
         if (events.length == 0) {
             widget.add(new Label("No events found"));
         } else {
@@ -723,11 +721,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             }
             widget.add(grid);
         }
-        return WebLib.createSection("Upcoming Events", widget);
-    }
-
-    private Widget createMainSection(String title, Widget widget, Widget adornment, boolean addTagInputWidget) {
-        return createMainSection(title, widget, adornment, null, null, addTagInputWidget);
+        return new DualRoundedPanel("Upcoming Events", widget);
     }
 
     private Widget createMainSection(String title, Widget widget, Widget adornment, 

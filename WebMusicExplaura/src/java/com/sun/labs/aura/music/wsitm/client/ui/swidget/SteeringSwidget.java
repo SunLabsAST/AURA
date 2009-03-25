@@ -52,6 +52,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.bundles.VariaBundle;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.DualRoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.SwapableWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.ResizableTagWidget;
@@ -236,7 +237,7 @@ public class SteeringSwidget extends Swidget {
             mainTagPanel.setWidget(0, 0, fp);
             setUserTagPanel(cdm.isLoggedIn());
 
-            dP.add(WebLib.createSection("Add tag", mainTagPanel), DockPanel.EAST);
+            dP.add(new DualRoundedPanel("Add tag", mainTagPanel), DockPanel.EAST);
 
             // North
             HorizontalPanel mainNorthMenuPanel = new HorizontalPanel();

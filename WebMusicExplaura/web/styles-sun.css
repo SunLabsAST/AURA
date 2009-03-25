@@ -13,6 +13,13 @@ body {
     background-color: #ffffff;
     background: #ffffff;
 }
+.roundedPageBackHeader {
+    margin-bottom: 0px;
+}
+.roundedPageBack {
+    background: #eeeeee;
+    background-color: #eeeeee;
+}
 
 .gwt-SuggestBox {
     padding: 2px;
