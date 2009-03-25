@@ -110,4 +110,11 @@ public interface StatService extends Serializable, Remote, Component {
      * @throws java.rmi.RemoteException
      */
     public String[] getCounterNames() throws RemoteException;
+
+    /**
+     * Gets all of the names of the doubles in the stat service
+     * @return an array of double names
+     * @throws java.rmi.RemoteException
+     */
+    public String[] getDoubleNames() throws RemoteException;
 }
