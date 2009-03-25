@@ -197,8 +197,13 @@ public class ItemImpl implements Item {
         if ((map != null) && (!map.isEmpty())) {
             try {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ObjectOutputStream oos = new ObjectOutputStream(new GZIPOutputStream(baos));
+                GZIPOutputStream gzip = new GZIPOutputStream(baos);
+                ObjectOutputStream oos = new ObjectOutputStream(gzip);
                 oos.writeObject(map);
+                oos.flush();
+                oos.close();
+                gzip.flush();
+                gzip.close();
                 mapBytes = baos.toByteArray();
             } catch (IOException e) {
                 logger.log(Level.WARNING,
