@@ -6,12 +6,17 @@ import com.sun.caroline.platform.DestroyInProgressException;
 import com.sun.caroline.platform.Event;
 import com.sun.caroline.platform.EventStream;
 import com.sun.caroline.platform.FileSystem;
+import com.sun.caroline.platform.IncarnationMismatchException;
+import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistration;
+import com.sun.caroline.platform.ProcessRegistration.Metrics;
+import com.sun.caroline.platform.ProcessRegistration.ThreadMetrics;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
 import com.sun.caroline.platform.Resource;
 import com.sun.caroline.platform.ResourceName;
 import com.sun.caroline.platform.RunState;
+import com.sun.caroline.platform.RunStateException;
 import com.sun.caroline.platform.Selector;
 import com.sun.caroline.platform.SnapshotFileSystem;
 import com.sun.caroline.platform.SnapshotFileSystemConfiguration;
@@ -19,13 +24,18 @@ import com.sun.labs.aura.datastore.impl.DSBitSet;
 import com.sun.labs.aura.datastore.impl.PartitionCluster;
 import com.sun.labs.aura.datastore.impl.ProcessManager;
 import com.sun.labs.aura.datastore.impl.Replicant;
+import com.sun.labs.aura.service.StatService;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.RemoteComponentManager;
 import com.sun.labs.util.TimeSpec;
 import com.sun.labs.util.props.Component;
 import com.sun.labs.util.props.ConfigBoolean;
+import com.sun.labs.util.props.ConfigComponent;
+import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigStringList;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.net.InetAddress;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
@@ -53,6 +64,12 @@ public class GridProcessManager extends Aura implements ProcessManager {
     @ConfigStringList(defaultList={"24", "7"})
     public static final String PROP_SNAP_COUNTS = "snapCounts";
     
+    @ConfigInteger(defaultValue=10000)
+    public static final String PROP_LOAD_MONITOR_PERIOD = "loadMonitorPeriod";
+
+    @ConfigComponent(type = com.sun.labs.aura.service.StatService.class)
+    public static final String PROP_STAT_SERVICE = "statService";
+
     @Override
     public String serviceName() {
         return "GridProcessManager";
@@ -63,6 +80,8 @@ public class GridProcessManager extends Aura implements ProcessManager {
     EventHandler eh;
 
     Timer timer;
+
+    protected RemoteComponentManager statServiceMgr = null;
 
     public GridProcessManager() {
         timer = new Timer("snapshotter", true);
@@ -294,9 +313,22 @@ public class GridProcessManager extends Aura implements ProcessManager {
 
             }
         }
+
+        //
+        // Get the stat service
+        statServiceMgr =
+                new RemoteComponentManager(ps.getConfigurationManager(),
+                             com.sun.labs.aura.service.StatService.class);
+
+        //
+        // Get the load monitor refresh rate (in milliseconds) and start
+        int lmp = ps.getInt(PROP_LOAD_MONITOR_PERIOD);
+        LoadMonitor loadMon = new LoadMonitor(lmp);
     }
 
-
+    public StatService getStatSvc() throws AuraException {
+        return (StatService) statServiceMgr.getComponent();
+    }
     
     protected class EventHandler implements Runnable {
         
@@ -532,5 +564,85 @@ public class GridProcessManager extends Aura implements ProcessManager {
                 }
             }
         }
+    }
+
+    class LoadMonitor extends TimerTask {
+        protected Pattern namePattern = Pattern.compile(String.format("%s-(.*)", instance));
+
+        public LoadMonitor(long period) {
+            timer.schedule(this, 0, period);
+        }
+
+        @Override
+        public void run() {
+            //
+            // We'll get loads for anything monitored by the grid manager.
+            // If it isn't monitored, we probably don't care that much about it
+
+            //
+            // A filter that will match registrations with the monitor metadata value set to true
+            ProcessRegistrationFilter monitorFilter = new ProcessRegistrationFilter.RegistrationConfigurationMetaMatch(
+                        Pattern.compile("monitor"), Pattern.compile("true"));
+            //
+            // And one that will match registrations that match the user name and instance name.
+            ProcessRegistrationFilter instanceFilter = new ProcessRegistrationFilter.NameMatch(namePattern);
+
+            //
+            // And only processes that are running
+            ProcessRegistrationFilter runningFilter = new ProcessRegistrationFilter.RunStateMatch(RunState.RUNNING);
+
+            //
+            // The composition of these filters.
+            ProcessRegistrationFilter filter = new ProcessRegistrationFilter.And(monitorFilter, instanceFilter, runningFilter);
+
+            try {
+                for(ProcessRegistration pr : grid.findProcessRegistrations(filter)) {
+                    //
+                    // For each process, get the thread and cpu data
+                    Metrics proc = pr.getMetrics(true);
+                    float totalLoad = 0;
+                    for (ThreadMetrics thread : proc.getThreadMetrics()) {
+                        totalLoad += thread.getPercentCpu();
+                    }
+
+                    //
+                    // Get the name of the stat to send.  Based on process
+                    // name, but DataStoreHead will have the IP in it
+                    String name = pr.getName();
+                    if (!name.contains("dsHead")) {
+                        //
+                        // Strip off the instance name
+                        name = name.substring(name.indexOf(":") + instance.length() + 2) + "-" +
+                                              StatName.PERCENT_CPU.toString();
+                    } else {
+                        //
+                        // Make a name
+                        UUID dsHeadAddrUUID = pr.getRegistrationConfiguration().getNetworkAddresses().iterator().next();
+                        NetworkAddress addr = (NetworkAddress)grid.getResource(dsHeadAddrUUID);
+                        InetAddress ip = addr.getAddress();
+                        name = "dshead-" + ip.getHostAddress() + "-" +
+                                StatName.PERCENT_CPU.toString();
+                    }
+
+                    //
+                    // Send the load out to the stat server.
+                    getStatSvc().setDouble(name, totalLoad);
+                    
+                }
+            } catch (RemoteException e) {
+                logger.log(Level.WARNING, "Communication failure", e);
+            } catch (DestroyInProgressException e) {
+                logger.log(Level.WARNING, "Grid related failure", e);
+            } catch (IncarnationMismatchException e) {
+                logger.log(Level.WARNING, "Grid related failure", e);
+            } catch (RunStateException e) {
+                logger.log(Level.WARNING, "Grid related failure", e);
+            } catch (AuraException e) {
+                logger.log(Level.WARNING, "Failed to send stat", e);
+            }
+        }
+
+
+
     }
 }
