@@ -53,7 +53,7 @@ public abstract class AbstractSearchWidget extends Composite {
     private SuggestBox sB;
     private static TextBox loadingBox;
 
-    private static final String DEFAULT_TXT = "Search";
+    protected static final String DEFAULT_TXT = "Search";
     private FocusListener focusListener;
 
     protected String searchBoxStyleName = null; //searchText";
@@ -227,6 +227,16 @@ public abstract class AbstractSearchWidget extends Composite {
         this.searchBoxWidth = width;
         if (searchBoxWidth>0) {
             this.sB.setWidth(searchBoxWidth+"px");
+        }
+    }
+    
+    protected boolean validateQuery(String query) {
+        if (query == null || query.length() == 0 || query.equals(DEFAULT_TXT)) {
+            Popup.showInformationPopup("Please enter a search string " +
+                    "before trying to perform a search.");
+            return false;
+        } else {
+            return true;
         }
     }
 

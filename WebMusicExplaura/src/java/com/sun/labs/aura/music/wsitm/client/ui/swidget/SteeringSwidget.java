@@ -1146,7 +1146,7 @@ public class SteeringSwidget extends Swidget {
             searchButtons = new SearchTypeRadioButton[2];
             searchButtons[0] = new SearchTypeRadioButton("searchType", "For Tag", searchTypes.SEARCH_FOR_TAG_BY_TAG);
             searchButtons[1] = new SearchTypeRadioButton("searchType", "By Artist", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
-            searchButtons[0].setChecked(true);
+            searchButtons[0].setValue(true);
 
             searchButtons[1].addClickHandler(new ClickHandler() {
                 @Override
@@ -1189,11 +1189,16 @@ public class SteeringSwidget extends Swidget {
 
         @Override
         public void search() {
+            String query = getSearchBox().getText();
+            if (!validateQuery(query)) {
+                return;
+            }
+            
             mainTagPanel.setWidget(1, 0, WebLib.getLoadingBarWidget());
             if (getCurrLoadedOracle() == Oracles.TAG) {
-                invokeTagSearchService(getSearchBox().getText().toLowerCase());
+                invokeTagSearchService(query.toLowerCase());
             } else {
-                invokeArtistSearchService(getSearchBox().getText().toLowerCase());
+                invokeArtistSearchService(query.toLowerCase());
             }
         }
 

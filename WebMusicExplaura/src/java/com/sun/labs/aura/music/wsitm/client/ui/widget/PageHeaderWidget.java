@@ -804,14 +804,12 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
                         "Error. Cannot search without the similarity types.", 
                         Popup.ERROR_LVL.NORMAL, null);
             } else {
-                String query = getSearchBox().getText().toLowerCase();
-
-                if (query == null || query.length()==0) {
-                    Popup.showInformationPopup("Please enter a search string " +
-                            "before trying to perform a search.");
+                String query = getSearchBox().getText();
+                if (!validateQuery(query)) {
                     return;
                 }
 
+                query = query.toLowerCase();
                 searchTypes currST = getSearchType();
                 if (currST == searchTypes.SEARCH_FOR_TAG_BY_TAG) {
                     History.newItem("tagSearch:"+query);
