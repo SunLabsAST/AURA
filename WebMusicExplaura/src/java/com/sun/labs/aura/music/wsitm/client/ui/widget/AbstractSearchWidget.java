@@ -78,7 +78,7 @@ public abstract class AbstractSearchWidget extends Composite {
     public abstract void search();
 
     private SuggestBox getNewSuggestBox(PopSortedMultiWordSuggestOracle oracle) {
-        SuggestBox box = new SuggestBox(oracle);
+        final SuggestBox box = new SuggestBox(oracle);
         box.setLimit(15);
         box.addKeyPressHandler(new KeyPressHandler() {
             @Override
@@ -91,6 +91,9 @@ public abstract class AbstractSearchWidget extends Composite {
                             search();
                         }
                     });
+                // If escape key pressed, hide the suggestbox
+                } else if (event.getNativeEvent().getKeyCode() == 27) {
+                    box.hideSuggestionList();
                 }
                 
             }

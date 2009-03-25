@@ -1,13 +1,22 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright 2007 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
-
 package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.IsSerializable;
-import com.google.gwt.user.client.ui.PrefixTree;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.MultiWordSuggestOracle.MultiWordSuggestion;
 import com.google.gwt.user.client.ui.SuggestOracle;
@@ -81,10 +90,12 @@ public final class PopSortedMultiWordSuggestOracle extends SuggestOracle {
       this.displayString = displayString;
     }
 
+    @Override
     public String getDisplayString() {
       return displayString;
     }
 
+    @Override
     public String getReplacementString() {
       return replacementString;
     }
@@ -123,7 +134,7 @@ public final class PopSortedMultiWordSuggestOracle extends SuggestOracle {
 
   private HashMap<String, Double> wordsToPop = new HashMap<String, Double>();
   private Comparator<String> popComp = new Comparator<String>() {
-
+        @Override
         public int compare(String arg0, String arg1) {
             return -1 * Double.compare(wordsToPop.get(arg0), wordsToPop.get(arg1));
         }
@@ -165,7 +176,6 @@ public final class PopSortedMultiWordSuggestOracle extends SuggestOracle {
    * @param suggestion the suggestion
    */
   public void add(String suggestion, double popularity) {
-
     String candidate = normalizeSuggestion(suggestion);
     wordsToPop.put(candidate, popularity);
     // candidates --> real suggestions.
