@@ -70,6 +70,13 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
             ClientDataManager cdm, ArtistCompact[] aDArray, 
             boolean fetchRatings, boolean displayDiff) {
         
+
+        // Force similarity to 1 for each item since none is provided
+        similarity = new Double[aDArray.length];
+        for (int i=0; i<similarity.length; i++) {
+            similarity[i]=1.0;
+        }
+
         this.aDArray = aDArray;
         doInit(musicServer, cdm, fetchRatings, displayDiff);
     }
@@ -140,9 +147,9 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
                 // Add artist to oracle
                 cdm.getArtistOracle().add(aC.getName(), aC.getPopularity());
 
-                Image img = new Image("not-interested-vert.jpg");
-                img.getElement().getStyle().setProperty("vertical-align", "top");
-                img.getElement().getStyle().setProperty("display", "none");
+                //Image img = new Image("not-interested-vert.jpg");
+                //img.getElement().getStyle().setProperty("vertical-align", "top");
+                //img.getElement().getStyle().setProperty("display", "none");
 
                 InitialRating rating;
                 if (ratingMap == null) {
@@ -224,13 +231,23 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         highColor[1] = 123;
         highColor[2] = 109;
          * */
+
+        /** For Beige CSS
         highColor[0] = 185;
         highColor[1] = 255;
         highColor[2] = 109;
         lowColor[0] = 240;
         lowColor[1] = 248;
         lowColor[2] = 198;
-        
+        */
+
+        highColor[0] = 203;
+        highColor[1] = 217;
+        highColor[2] = 226;
+        lowColor[0] = 244;
+        lowColor[1] = 248;
+        lowColor[2] = 251;
+
         for (int i=0; i<3; i++) {
             // linear mapping
             //tcol = Integer.toHexString((int)( (highColor[i]-lowColor[i])*sim + lowColor[i] ));

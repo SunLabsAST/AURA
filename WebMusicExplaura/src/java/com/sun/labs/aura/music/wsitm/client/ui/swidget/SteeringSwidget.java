@@ -18,7 +18,6 @@ import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.rpc.IsSerializable;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
@@ -53,6 +52,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.bundles.VariaBundle;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.DualRoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.SwapableWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.steerable.ResizableTagWidget;
@@ -79,7 +79,7 @@ public class SteeringSwidget extends Swidget {
         super("Steering", cdm);
         mP = new MainPanel();
         cdm.getLoginListenerManager().addListener(mP);
-        initWidget(mP);
+        initWidget(mP, true);
         cdm.setSteerableReset(true);
         update(History.getToken());
     }
@@ -145,7 +145,6 @@ public class SteeringSwidget extends Swidget {
         private TagWidgetContainer tagLand;
         private SearchWidget search;
         private FlowPanel searchBoxContainerPanel;
-        private FlowPanel refreshingPanel;
         private HashMap<String, ScoredTag> currTagMap;
         private ArrayList<ScoredC<ArtistCompact>> currRecommendations = null;
 
@@ -193,13 +192,6 @@ public class SteeringSwidget extends Swidget {
             });
             hP.add(viewTagInfluence);
 
-            refreshingPanel = new FlowPanel();
-            refreshingPanel.add(new Image("ajax-loader-small.gif"));
-            refreshingPanel.setVisible(false);
-
-            hP.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
-            hP.add(refreshingPanel);
-
             dP.add(WebLib.createSection(hP, mainArtistListPanel), DockPanel.WEST);
 
             // Right (continued lower)
@@ -213,9 +205,8 @@ public class SteeringSwidget extends Swidget {
             // Create "add tag" menu
             FlowPanel fp = new FlowPanel();
             fp.setWidth("200px");
-            fp.getElement().getStyle().setProperty("backgroundColor", "#d6ddaf");
+            fp.addStyleName("smallMenuBack");
             fp.getElement().getStyle().setProperty("textAlign", "center");
-            fp.getElement().getStyle().setPropertyPx("fontSize", 12);
             SpannedLabel searchLabel = new SpannedLabel("Search");
             searchLabel.addStyleName("pointer");
             searchLabel.getElement().getStyle().setProperty("fontWeight", "bold");
@@ -246,11 +237,13 @@ public class SteeringSwidget extends Swidget {
             mainTagPanel.setWidget(0, 0, fp);
             setUserTagPanel(cdm.isLoggedIn());
 
-            dP.add(WebLib.createSection("Add tag", mainTagPanel), DockPanel.EAST);
+            dP.add(new DualRoundedPanel("Add tag", mainTagPanel), DockPanel.EAST);
 
             // North
             HorizontalPanel mainNorthMenuPanel = new HorizontalPanel();
+            mainNorthMenuPanel.setWidth("100%");
             mainNorthMenuPanel.setSpacing(5);
+            mainNorthMenuPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_LEFT);
 
             /*
              * Save and load tag cloud is not implemented yet
@@ -471,7 +464,8 @@ public class SteeringSwidget extends Swidget {
 
             mainArtistListPanel.setWidget(0, 0,
                     new ArtistCloudArtistListWidget(musicServer, cdm, aCList, tagLand));
-            refreshingPanel.setVisible(false);
+            
+            hideLoader();
 
             if (aCList != null && aCList.size() > 0) {
                 currRecommendations = aCList;
@@ -523,7 +517,7 @@ public class SteeringSwidget extends Swidget {
                 }
             };
 
-            refreshingPanel.setVisible(true);
+            showLoader();
 
             try {
                 currTagMap = tagLand.getTagMap();
@@ -591,7 +585,6 @@ public class SteeringSwidget extends Swidget {
                         tagLand.removeAllItems(false);
                         tagLand.addTags(r.tagMap);
                         displayNewRecommendations(r.recs);
-
                     } else {
                         Popup.showErrorPopup("Returned recommendations were null.", Popup.ERROR_MSG_PREFIX.NONE,
                                 "An unknown error occured while loading your custom tag cloud.", Popup.ERROR_LVL.NORMAL, null);
@@ -604,6 +597,7 @@ public class SteeringSwidget extends Swidget {
                 }
             };
 
+            showLoader();
             try {
                 musicServer.getRecommendationsFromString(query, callback);
             } catch (Exception ex) {
@@ -801,11 +795,16 @@ public class SteeringSwidget extends Swidget {
          * @param iI
          */
         public void displayDetails(ItemInfo iI, boolean showBackButton) {
-            mainGrid.setWidget(1, 0, WebLib.getLoadingBarWidget());
+
+            Grid g = new Grid(2,1);
+            g.getCellFormatter().setHeight(0, 0, "30px");
+            g.getCellFormatter().setHorizontalAlignment(1, 0, HorizontalPanel.ALIGN_CENTER);
+            g.setWidget(1, 0, WebLib.getLoadingBarWidget());
+            mainGrid.setWidget(1, 0, g);
             invokeGetDistincitveTagsService(iI.getId());
 
             VerticalPanel vP = new VerticalPanel();
-            vP.setStyleName("pageHeader");
+            vP.setStyleName("pageHeader pageHeaderBackground");
             vP.setWidth("185px");
 
             //
@@ -1135,9 +1134,7 @@ public class SteeringSwidget extends Swidget {
                 ClientDataManager cdm, Panel searchBoxContainerPanel, Grid mainTagPanel,
                 TagWidget tagLand) {
 
-            super(musicServer, cdm, searchBoxContainerPanel, Oracles.TAG);
-
-            searchBoxStyleName = "";
+            super(musicServer, cdm, searchBoxContainerPanel, Oracles.TAG, "pageHeaderSearchBox");
 
             this.mainTagPanel = mainTagPanel;
             this.tagLand = tagLand;
@@ -1149,7 +1146,7 @@ public class SteeringSwidget extends Swidget {
             searchButtons = new SearchTypeRadioButton[2];
             searchButtons[0] = new SearchTypeRadioButton("searchType", "For Tag", searchTypes.SEARCH_FOR_TAG_BY_TAG);
             searchButtons[1] = new SearchTypeRadioButton("searchType", "By Artist", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
-            searchButtons[0].setChecked(true);
+            searchButtons[0].setValue(true);
 
             searchButtons[1].addClickHandler(new ClickHandler() {
                 @Override
@@ -1192,11 +1189,16 @@ public class SteeringSwidget extends Swidget {
 
         @Override
         public void search() {
+            String query = getSearchBox().getText();
+            if (!validateQuery(query)) {
+                return;
+            }
+            
             mainTagPanel.setWidget(1, 0, WebLib.getLoadingBarWidget());
             if (getCurrLoadedOracle() == Oracles.TAG) {
-                invokeTagSearchService(getSearchBox().getText().toLowerCase());
+                invokeTagSearchService(query.toLowerCase());
             } else {
-                invokeArtistSearchService(getSearchBox().getText().toLowerCase());
+                invokeArtistSearchService(query.toLowerCase());
             }
         }
 
