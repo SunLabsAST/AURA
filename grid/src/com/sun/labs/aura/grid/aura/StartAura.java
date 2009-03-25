@@ -26,6 +26,11 @@ public class StartAura extends Aura {
 
     private int numHeads;
 
+    @ConfigBoolean(defaultValue=false)
+    public static final String PROP_COMBINED_REPLICANT = "combinedReplicant";
+
+    private boolean combinedReplicant;
+
     public String serviceName() {
         return "StartAura";
     }
@@ -76,38 +81,51 @@ public class StartAura extends Aura {
             gu.startRegistration(dsHeadReg);
         }
 
-        //
-        // Now, start partition clusters for each prefix
         ProcessRegistration lastReg = null;
-        for(String prefix : repFSMap.keySet()) {
-            ProcessRegistration pcReg = gu.createProcess( getPartitionName(
-                    prefix),
-                    debugRMI ? 
-                        getPartitionClusterDebugConfig(prefix) : 
-                        getPartitionClusterConfig(prefix));
-            gu.startRegistration(pcReg, false);
-            lastReg = pcReg;
-        }
-
-        while(lastReg.getRunState() != RunState.RUNNING) {
-            lastReg.waitForStateChange(1000000L);
-        }
-
-        //
-        // Start the replicants for each prefix
-        for(String prefix : repFSMap.keySet()) {
-            ProcessRegistration repReg;
-            if(debugRMI) {
+        if(combinedReplicant) {
+            //
+            // Start the combinde replicant/clusters for each prefix
+            for(String prefix : repFSMap.keySet()) {
+                ProcessRegistration repReg;
                 repReg = gu.createProcess(getReplicantName(
-                        prefix), getDebugReplicantConfig(replicantConfig,
-                        prefix));
-            } else {
-                repReg = gu.createProcess(getReplicantName(
-                        prefix), getReplicantConfig(replicantConfig,
-                        prefix));
+                        prefix), getPCReplicantConfig(prefix));
+                gu.startRegistration(repReg, false);
+                lastReg = repReg;
             }
-            gu.startRegistration(repReg, false);
-            lastReg = repReg;
+
+        } else {
+            //
+            // Now, start partition clusters for each prefix
+            for(String prefix : repFSMap.keySet()) {
+                ProcessRegistration pcReg =
+                        gu.createProcess(getPartitionName(
+                        prefix),
+                        debugRMI ? getPartitionClusterDebugConfig(prefix) :
+                             getPartitionClusterConfig(prefix));
+                gu.startRegistration(pcReg, false);
+                lastReg = pcReg;
+            }
+
+            while(lastReg.getRunState() != RunState.RUNNING) {
+                lastReg.waitForStateChange(1000000L);
+            }
+
+            //
+            // Start the replicants for each prefix
+            for(String prefix : repFSMap.keySet()) {
+                ProcessRegistration repReg;
+                if(debugRMI) {
+                    repReg = gu.createProcess(getReplicantName(
+                            prefix), getDebugReplicantConfig(replicantConfig,
+                            prefix));
+                } else {
+                    repReg = gu.createProcess(getReplicantName(
+                            prefix), getReplicantConfig(replicantConfig,
+                            prefix));
+                }
+                gu.startRegistration(repReg, false);
+                lastReg = repReg;
+            }
         }
 
         while(lastReg.getRunState() != RunState.RUNNING) {
@@ -159,6 +177,7 @@ public class StartAura extends Aura {
         super.newProperties(ps);
         debugRMI = ps.getBoolean(PROP_DEBUG_RMI);
         numHeads = ps.getInt(PROP_NUM_HEADS);
+        combinedReplicant = ps.getBoolean(PROP_COMBINED_REPLICANT);
     }
     
     public void start() {
