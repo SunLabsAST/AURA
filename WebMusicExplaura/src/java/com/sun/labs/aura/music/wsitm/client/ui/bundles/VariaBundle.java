@@ -17,5 +17,7 @@ public interface VariaBundle extends ImageBundle {
     @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/loupe.png")
     public AbstractImagePrototype loupe();
 
+    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/search_button.png")
+    public AbstractImagePrototype searchButton();
 
 }

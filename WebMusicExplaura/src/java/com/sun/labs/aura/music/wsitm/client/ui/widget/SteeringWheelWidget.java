@@ -5,17 +5,14 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.MouseOutEvent;
 import com.google.gwt.event.dom.client.MouseOutHandler;
 import com.google.gwt.event.dom.client.MouseOverEvent;
 import com.google.gwt.event.dom.client.MouseOverHandler;
-import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.Image;
 import com.sun.labs.aura.music.wsitm.client.event.DEMouseOutHandler;
 import com.sun.labs.aura.music.wsitm.client.event.DEMouseOverHandler;
-import com.sun.labs.aura.music.wsitm.client.ui.bundles.ArtistRelatedBundle;
 
 /**
  *
@@ -38,10 +35,10 @@ public class SteeringWheelWidget extends Image {
     public SteeringWheelWidget(wheelSize size, ClickHandler cH) {
 
         if (size == wheelSize.SMALL) {
-            steerImage = "steering-20.gif";
+            steerImage = "steering-20.png";
             steerImageHover = "steering-hover-20.gif";
         } else {
-            steerImage = "steering-30.gif";
+            steerImage = "steering-30.png";
             steerImageHover = "steering-hover-30.gif";
         }
         Image.prefetch(steerImageHover);
@@ -52,7 +49,7 @@ public class SteeringWheelWidget extends Image {
 
         this.cH = cH;
         this.addClickHandler(this.cH);
-
+        /*
         this.mOverH = new DEMouseOverHandler<SteeringWheelWidget>(this) {
             @Override
             public void onMouseOver(MouseOverEvent event) {
@@ -66,6 +63,7 @@ public class SteeringWheelWidget extends Image {
                 data.setUrl(steerImage);
             }
         };
+         * */
     }
 
     public ClickHandler getClickHandler() {

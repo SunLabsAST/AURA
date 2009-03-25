@@ -53,6 +53,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import com.sun.labs.aura.music.wsitm.client.ui.TagDisplayLib.TagColorType;
 import com.sun.labs.aura.music.wsitm.client.ui.bundles.ArtistRelatedBundle;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ContextMenuSteeringWheelWidget;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.DualRoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.PopularitySelect;
 import java.util.ArrayList;
@@ -74,8 +75,6 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
     private String curPageTitle = "";
 
     private DockPanel mainPanel;
-    private Label message;
-    private Image icon;
 
     private PopularitySelect popSelect;
     
@@ -90,7 +89,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
     public SimpleSearchSwidget(ClientDataManager cdm) {
         super("Simple Search", cdm);
         try {
-            initWidget(getWidget());
+            initWidget(getWidget(), true);
             showResults(History.getToken());
         } catch (Exception e) {
             Popup.showErrorPopup(e, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
@@ -108,72 +107,12 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         //search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel);
         //search.updateSuggestBox(Oracles.ARTIST);
 
-        message = new Label();
-        message.setHeight("20px");
-        message.setStyleName("message");
-
-        icon = new Image();
-        icon.setVisible(false);
-        icon.setStyleName("img");
-
-        VerticalPanel msgPanel = new VerticalPanel();
-        msgPanel.setWidth("100%");
-        msgPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
-        msgPanel.add(message);
-        msgPanel.add(icon);
-        msgPanel.setCellHeight(message, "28px");
-        msgPanel.setCellHorizontalAlignment(icon, VerticalPanel.ALIGN_CENTER);
-        msgPanel.setCellHeight(icon, "20px");
-        msgPanel.setCellHorizontalAlignment(message, VerticalPanel.ALIGN_CENTER);
-
-        VerticalPanel topPanel = new VerticalPanel();
-        topPanel.setWidth("100%");
-        topPanel.setHorizontalAlignment(VerticalPanel.ALIGN_CENTER);
-
-        //topPanel.add(search);
-        topPanel.add(msgPanel);
-
         mainPanel = new DockPanel();
         mainPanel.setWidth("100%");
         mainPanel.setHorizontalAlignment(DockPanel.ALIGN_CENTER);
-        mainPanel.add(topPanel, DockPanel.NORTH);
+        mainPanel.add(new Label(), DockPanel.NORTH);
 
         return mainPanel;
-    }
-
-    /**
-     * Display a message with possibly an icon
-     * @param msg Message to display
-     * @param iconPath URL to icon. Set to null to not use and icon
-     */
-    private void showMessage(String msg, String iconPath) {
-        if (message!=null) {
-            if (iconPath!=null && !iconPath.equals("")) {
-                icon.setUrl(iconPath);
-                icon.setVisible(true);
-            } else {
-                icon.setVisible(false);
-            }
-
-            message.setStyleName("messageNormal");
-            message.setText(msg);
-        }
-    }
-
-    private void showMessage(String msg) {
-        showMessage(msg,null);
-    }
-
-    private void showError(String msg) {
-        message.setStyleName("messageError");
-        message.setText(msg);
-        icon.setVisible(false);
-    }
-
-    private void clearMessage() {
-        message.setStyleName("messageNormal");
-        message.setText("");
-        icon.setVisible(false);
     }
 
     private void setResults(String historyName, Widget result) {
@@ -316,22 +255,22 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                 if (sr != null && sr.isOK()) {
                     ItemInfo[] results = sr.getItemResults(cdm);
                     if (results.length == 0) {
-                        showError("No Match for " + sr.getQuery());
+                        showTopMessage("No Match for " + sr.getQuery());
                         clearResults();
                     } else if (results.length == 1) {
                         WebLib.trackPageLoad("#tagSearch:" + sr.getQuery());
                         ItemInfo ar = results[0];
                         invokeGetTagInfo(ar.getId(), false);
                     } else {
-                        showMessage("Found " + sr.getItemResults(cdm).length + " matches");
+                        showTopMessage("Found " + sr.getItemResults(cdm).length + " matches");
                         setResults(sr.toString(), getItemInfoList("Pick one: ", sr.getItemResults(cdm), null, false, true, cdm.getTagOracle()));
                     }
                 } else {
                     if (sr == null) {
-                        showError("Error. Resultset is null. There were probably no tags found.");
+                        showTopMessage("Error. Resultset is null. There were probably no tags found.");
                         clearResults();
                     } else {
-                        showError("Whoops " + sr.getStatus());
+                        showTopMessage("Whoops " + sr.getStatus());
                         clearResults();
                     }
                 }
@@ -344,7 +283,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         };
 
         updateWindowTitleLocal("Tag search");
-        showMessage("Searching for " + searchText,WebLib.ICON_WAIT);
+        showLoader();
 
         try {
             musicServer.tagSearch(searchText, 100, callback);
@@ -363,7 +302,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                 if (sr != null && sr.isOK()) {
                     ItemInfo[] results = sr.getItemResults(cdm);
                     if (results.length == 0) {
-                        showError("No Match for " + sr.getQuery());
+                        showTopMessage("No Match for " + sr.getQuery());
                         clearResults();
                     } else if (results.length == 1) {
                         ItemInfo ar = results[0];
@@ -371,7 +310,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                         cdm.getSearchAttentionManager().processUserClick(ar.getId());
                         invokeGetArtistInfo(ar.getId(), false);
                     } else {
-                        showMessage("Found " + sr.getItemResults(cdm).length + " matches");
+                        showTopMessage("Found " + sr.getItemResults(cdm).length + " matches");
                         Widget searchResults = getItemInfoList("Pick one: ", sr.getItemResults(cdm), null, true, true, cdm.getArtistOracle());
                         searchResults.setStyleName("searchResults");
                         searchResults.setWidth("300px");
@@ -379,10 +318,10 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                     }
                 } else {
                     if (sr == null) {
-                        showError("Error. Can't find artist specified.");
+                        showTopMessage("Error. Can't find artist specified.");
                         clearResults();
                     } else {
-                        showError("Very Whooops " + sr.getStatus());
+                        showTopMessage("Very Whooops " + sr.getStatus());
                         clearResults();
                     }
                 }
@@ -395,7 +334,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         };
 
         updateWindowTitleLocal("Artist search");
-        showMessage("Searching for " + searchText,WebLib.ICON_WAIT);
+        showLoader();
         try {
             if (sT == searchTypes.SEARCH_FOR_ARTIST_BY_TAG) {
                 musicServer.artistSearchByTag(searchText, 100, callback);
@@ -437,14 +376,14 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                         //search.setText(artistDetails.getName(), searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST);
                         //search.updateSuggestBox(Oracles.ARTIST);
                         setResults("artist:" + artistDetails.getId(), artistPanel);
-                        clearMessage();
+                        hideLoader();
                         PerformanceTimer.stop("createArtistPanel");
                     } else {
                         if (artistDetails == null) {
-                            showError("Sorry. The details for the artist don't seem to be in our database.");
+                            showTopMessage("Sorry. The details for the artist don't seem to be in our database.");
                             clearResults();
                         } else {
-                            showError("Whooops " + artistDetails.getStatus());
+                            showTopMessage("Whooops " + artistDetails.getStatus());
                             clearResults();
                         }
                     }
@@ -459,7 +398,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                 }
             };
 
-            showMessage("Getting info for artist", WebLib.ICON_WAIT);
+            showLoader();
 
             try {
                 PerformanceTimer.start("getArtistDetails");
@@ -482,13 +421,13 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                     //search.setText(tagDetails.getName(), searchTypes.SEARCH_FOR_TAG_BY_TAG);
                     //search.updateSuggestBox(Oracles.TAG);
                     setResults("tag:"+tagDetails.getId(), tagPanel);
-                    clearMessage();
+                    hideLoader();
                 } else {
                     if (tagDetails == null) {
-                        showError("Sorry. The details for the tag don't seem to be in our database.");
+                        showTopMessage("Sorry. The details for the tag don't seem to be in our database.");
                         clearResults();
                     } else {
-                        showError("Whooops " + tagDetails.getStatus());
+                        showTopMessage("Whooops " + tagDetails.getStatus());
                         clearResults();
                     }
                 }
@@ -500,7 +439,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             }
         };
 
-        showMessage("Getting info for tag", WebLib.ICON_WAIT);
+        showLoader();
 
         try {
             musicServer.getTagDetails(tagID.substring(tagID.indexOf(":")+1), refresh, cdm.getCurrSimTypeName(), callback);
@@ -530,9 +469,9 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         VerticalPanel main = new VerticalPanel();
         main.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
         main.add(getBioWidget(artistDetails));
-        main.add(WebLib.createSection("Videos", new VideoScrollWidget(artistDetails.getVideos())));
-        main.add(WebLib.createSection("Photos", new ImageScrollWidget(artistDetails.getPhotos())));
-        main.add(WebLib.createSection("Albums", new AlbumScrollWidget(artistDetails.getAlbums())));
+        main.add(new DualRoundedPanel("Videos", new VideoScrollWidget(artistDetails.getVideos())));
+        main.add(new DualRoundedPanel("Photos", new ImageScrollWidget(artistDetails.getPhotos())));
+        main.add(new DualRoundedPanel("Albums", new AlbumScrollWidget(artistDetails.getAlbums())));
         main.setHorizontalAlignment(HorizontalPanel.ALIGN_LEFT);
         main.add(getEventsWidget(artistDetails));
         main.setStyleName("center");
@@ -611,8 +550,8 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         VerticalPanel main = new VerticalPanel();
         main.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
         main.add(getTagHeaderWidget(tagDetails));
-        main.add(WebLib.createSection("Videos", new VideoScrollWidget(tagDetails.getVideos())));
-        main.add(WebLib.createSection("Photos", new ImageScrollWidget(tagDetails.getPhotos())));
+        main.add(new DualRoundedPanel("Videos", new VideoScrollWidget(tagDetails.getVideos())));
+        main.add(new DualRoundedPanel("Photos", new ImageScrollWidget(tagDetails.getPhotos())));
         main.setStyleName("center");
 
         VerticalPanel left = new VerticalPanel();
@@ -699,13 +638,14 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
 
         if (urls != null && urls.size() > 0) {
             Grid grid = new Grid(urls.size(), 1);
+            grid.setWidth("300px");
             int index = 0;
             for (String key : urls.keySet()) {
                 String url =  urls.get(key);
                 HTML html = new HTML(WebLib.createAnchor(key, url));
                 grid.setWidget(index++, 0, html);
             }
-            return WebLib.createSection("More info", grid);
+            return new DualRoundedPanel("More info", grid);
         } else {
             return new Label("");
         }
@@ -758,9 +698,9 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
 
     }
 
-    private Widget getEventsWidget(ArtistDetails artistDetails) {
+    private DualRoundedPanel getEventsWidget(ArtistDetails artistDetails) {
         ArtistEvent[] events = artistDetails.getEvents();
-        Panel widget = new VerticalPanel();
+        VerticalPanel widget = new VerticalPanel();
         if (events.length == 0) {
             widget.add(new Label("No events found"));
         } else {
@@ -781,11 +721,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             }
             widget.add(grid);
         }
-        return WebLib.createSection("Upcoming Events", widget);
-    }
-
-    private Widget createMainSection(String title, Widget widget, Widget adornment, boolean addTagInputWidget) {
-        return createMainSection(title, widget, adornment, null, null, addTagInputWidget);
+        return new DualRoundedPanel("Upcoming Events", widget);
     }
 
     private Widget createMainSection(String title, Widget widget, Widget adornment, 

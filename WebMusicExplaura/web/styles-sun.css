@@ -1,0 +1,272 @@
+body {
+    font-family: "Trebuchet MS", "Times New Roman", serif;
+    font-size: 12px;
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin: 0px;
+    padding: 0px;
+    line-height: 17px;
+    font-weight: normal;
+    color: #707277;
+    background-color: #ffffff;
+    background: #ffffff;
+}
+.roundedPageBackHeader {
+    margin-bottom: 0px;
+}
+.roundedPageBack {
+    background: #eeeeee;
+    background-color: #eeeeee;
+}
+
+.gwt-SuggestBox {
+    padding: 2px;
+}
+.gwt-SuggestBoxPopup {
+    margin-left: 3px;
+    background: #5382a1;
+}
+
+.gwt-SuggestBoxPopup .item {
+    padding: 2px 6px;
+    background: #5382a1;
+    color: white;
+    cursor: default;
+}
+
+.gwt-SuggestBoxPopup .item-selected {
+    /** background: #b7d6f6; **/
+    background : #e76f00;
+    color: white;
+}
+
+.bottomUrl {
+    color: #bdbec0;
+    font-size: 10px;
+}
+
+.bottomUrl a {
+    color: #bdbec0;
+    text-decoration: none;
+}
+
+.bottomUrl a:visited {
+    color: #bdbec0;
+    text-decoration: none;
+}
+
+.titleC {
+  color: white;
+}
+.smallMenuBack {
+  background-color: #363c74;
+  background: #363c74;
+  color: white;
+  font-size: 12px;
+}
+.artistPanel:hover {
+  background-color: #e8e0cb;
+  background: #e8e0cb;
+}
+
+.pageHeader {
+    color: white;
+    margin: 0px;
+}
+.pageHeaderBackground {
+  background-color: #005480;
+  background: #005480;
+}
+.pageHeaderSearchBox {
+    background-color: #c6d7df;
+    border: 1px solid #005480;
+}
+.popupColors {
+  background-color: #5382a1;
+  background: #5382a1;
+  color: #FFFFFF;
+}
+.popupTitle {
+    padding-left: 5px;
+    padding-right: 5px;
+    font-weight:bold;
+    font-size: 1.2em;
+    margin-top: 5px;
+    margin-bottom: 4px;
+    border-bottom: medium solid #ffffff;
+    border-width: thin;
+}
+.pageConfigHeader {
+    font-size : 10px;
+    background-color: #5382a1;
+    background: #5382a1;
+    color: #FFFFFF;
+}
+.gradientHighColor {
+  background : #b9ff6d;
+}
+.gradientLowColor {
+  background : #f0f8c6;
+}
+
+h1 {
+    font-size: 1.8em;
+    margin-bottom: 4px;
+    border-bottom: medium solid #005480;
+    border-width: thin;
+    color: #005480;
+}
+.h1 {
+    font-weight: bold;
+    font-size: 1.8em;
+    margin-bottom: 4px;
+    border-bottom: medium solid #005480;
+    border-width: thin;
+    color: #005480;
+}
+h2 {
+    font-size: 1.2em;
+    margin-top: 20px;
+    margin-bottom: 4px;
+    border-bottom: medium solid #005480;
+    border-width: thin;
+    color: #005480;
+}
+.h2 {
+    font-weight:bold;
+    font-size: 1.2em;
+    margin-top: 20px;
+    margin-bottom: 4px;
+    border-bottom: medium solid #005480;
+    border-width: thin;
+    color: #005480;
+}
+.topMsgIndicator {
+    font-weight:bold;
+    font-size: 1.2em;
+    color: #f8981d;
+}
+
+.alternateHTitle {
+    color: #cccccc;
+    border-bottom: thin solid #cccccc;
+}
+
+.headerMenuTinyItemC {
+  color: white;
+}
+
+.headerMenuMedC {
+  color: white;
+}
+
+.headerMenuMedItemC {
+  color: white;
+}
+
+.popLeft {
+    border: #000000 solid;
+    color: #f8981d;
+    background-color: #f8981d;
+    background: #f8981d;
+    border-width: 1px 1px 1px 1px;
+}
+.popRight {
+    border: #707277 solid;
+    color: #efa053;
+    background-color: #efa053;
+    background: #efa053;
+    border-left-width: 0px;
+	border-bottom-width: 1px;
+	border-right-width: 1px;
+	border-top-width: 1px;
+}
+
+
+.tagPop1 {
+    color: #f8981d;
+    text-decoration: none;
+}
+
+.tagPop1neg {
+  color: #f8981d;
+  text-decoration: line-through;
+}
+.tagPop2 {
+    color: #ffc726;
+    text-decoration: none;
+}
+.tagPop2neg {
+  color: #ffc726;
+  text-decoration: line-through;
+}
+
+
+
+.tag1 {
+    color: #f8981d;
+    text-decoration: none;
+}
+
+.tag1neg {
+  color: #f8981d;
+  text-decoration: line-through;
+}
+.tag1Sticky {
+    color: #f8981d;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.tag2 {
+    color: #5382a1;
+    text-decoration: none;
+}
+.tag2neg {
+  color: #5382a1;
+  text-decoration: line-through;
+}
+.tag2Sticky {
+    color: #5382a1;
+    text-decoration: underline;
+    font-weight: bold;
+}
+.artistTag1Sticky {
+    color: #008a5e;
+    text-decoration: underline;
+    font-weight: bold;
+}
+.artistTag2Sticky {
+    color: #6cb33f;
+    text-decoration: underline;
+    font-weight: bold;
+}
+.artistTag1 {
+    color: #008a5e;
+    text-decoration: none;
+}
+.artistTag2 {
+    color: #6cb33f;
+    text-decoration: none;
+}
+.artistTag1neg {
+    color: #008a5e;
+    text-decoration: line-through;
+}
+.artistTag2neg {
+    color: #6cb33f;
+    text-decoration: line-through;
+}
+.tagColorAdded {
+  color : #8d8db1;
+}
+
+.contextMenuItem {
+    cursor: pointer;
+}
+.contextMenuItemHover {
+    background : #e76f00;
+    color: white;
+}

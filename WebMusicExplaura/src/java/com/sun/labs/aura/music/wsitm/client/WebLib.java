@@ -28,7 +28,11 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.PlayButton;
  */
 public abstract class WebLib {
 
+    /**
+     * @deprecated 
+     */
     public static final String ICON_WAIT = "ajax-bar.gif";
+    public static final String ICON_WAIT_SUN = "loader-sun.gif";
 
     /**
      * Disables the browsers default context menu for the specified element.
@@ -119,9 +123,10 @@ public abstract class WebLib {
     }
 
     public static Widget getLoadingBarWidget() {
-        FlowPanel panel = new FlowPanel();
-        panel.add(new HTML("<img src='" + ICON_WAIT + "'/>"));
-        return panel;
+        HorizontalPanel hP = new HorizontalPanel();
+        hP.setHorizontalAlignment(HorizontalPanel.ALIGN_DEFAULT);
+        hP.add(new Image(WebLib.ICON_WAIT_SUN));
+        return hP;
     }
 
     public static Widget getPopularityWidget(String name, double normPopularity, boolean log, String style) {

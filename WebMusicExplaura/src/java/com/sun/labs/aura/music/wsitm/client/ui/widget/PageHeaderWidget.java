@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -41,6 +42,7 @@ import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
+import com.sun.labs.aura.music.wsitm.client.ui.bundles.VariaBundle;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,9 +58,13 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         CONFIG,
         NONE
     }
+
+    private static VariaBundle varImgBundle =
+            (VariaBundle) GWT.create(VariaBundle.class);
+
     private SubHeaderPanels currSubHeaderPanel = SubHeaderPanels.NONE;
 
-    private RoundedPanel roundedMainPanel;
+    //private RoundedPanel roundedMainPanel;
     private Grid mainPanel;
     private TextBox txtbox;
 
@@ -74,7 +80,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
     private FlowPanel configSubHeaderPanel;
     private ListBox listbox;
 
-    private FlowPanel activeSubHeaderPanel;
+    private Grid activeSubHeaderContainer;
     
     public PageHeaderWidget(ClientDataManager cdm) {
         super("pageHeader",cdm);
@@ -98,16 +104,18 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
          * */
         vP.add(getMainWidget());
 
-        activeSubHeaderPanel = new FlowPanel();
-        activeSubHeaderPanel.setWidth("100%");
-        activeSubHeaderPanel.setVisible(false);
-        vP.add(activeSubHeaderPanel);
+        activeSubHeaderContainer = new Grid(1,2);
+        activeSubHeaderContainer.setWidth("100%");
+        activeSubHeaderContainer.setVisible(false);
+        activeSubHeaderContainer.getCellFormatter().setWidth(0, 0, "10px");
+        activeSubHeaderContainer.setCellSpacing(0);
+        vP.add(activeSubHeaderContainer);
 
 
         Label l = new Label("Config");
         l.addStyleName("pointer");
         l.addClickHandler(new ClickHandler() {
-
+            @Override
             public void onClick(ClickEvent ce) {
                 setSubHeaderPanel(SubHeaderPanels.CONFIG);
             }
@@ -167,52 +175,67 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
     private void setSubHeaderPanel(SubHeaderPanels p) {
         // If we want to hide the panel
         if (p == currSubHeaderPanel || p == SubHeaderPanels.NONE) {
-            activeSubHeaderPanel.setVisible(false);
+            activeSubHeaderContainer.setVisible(false);
             currSubHeaderPanel = SubHeaderPanels.NONE;
         } else {
             if (p == SubHeaderPanels.CONFIG) {
-                activeSubHeaderPanel.clear();
-                activeSubHeaderPanel.add(configSubHeaderPanel);
+                activeSubHeaderContainer.setWidget(0,1,configSubHeaderPanel);
             }
-            activeSubHeaderPanel.setVisible(true);
+            activeSubHeaderContainer.setVisible(true);
             currSubHeaderPanel = p;
         }
     }
 
-    public RoundedPanel getMainWidget() {
+    public Grid getMainWidget() {
         
-        mainPanel = new Grid(1,3);
-        mainPanel.getColumnFormatter().setWidth(0, "33%");
-        mainPanel.getColumnFormatter().setWidth(1, "33%");
-        mainPanel.getCellFormatter().getElement(0, 1).setAttribute("align", "center");
-        mainPanel.getColumnFormatter().setWidth(2, "33%");
-        mainPanel.setStyleName("pageHeader");
-        mainPanel.setWidth("100%");
+        mainPanel = new Grid(1,4);
 
-        //
+        // Set the logo
+        populateMainPanel();
+
+        // Set the section menu
+        mm = new MainMenu();
+        cdm.getLoginListenerManager().addListener(mm);
+        mainPanel.setWidget(0, 1, mm);
+
         // Set the recommendation type toolbar
         HorizontalPanel hP = new HorizontalPanel();
 
         searchBoxContainerPanel = new FlowPanel();
         search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel);
         search.updateSuggestBox(Oracles.ARTIST);
-        hP.add(search);        
-        
+        hP.add(search);
+
         mainPanel.setWidget(0, 2, hP);
-        mainPanel.getCellFormatter().getElement(0, 2).setAttribute("align", "right");
 
-        //
-        // Set the section menu
-        mm = new MainMenu();
-        cdm.getLoginListenerManager().addListener(mm);
-        mainPanel.setWidget(0, 1, mm);
+        // Set right filler
+        Image rightFill = new Image("header_right_fill.gif");
+        rightFill.setWidth("26px");
+        mainPanel.setWidget(0, 3, rightFill);
 
-        populateMainPanel();
-     
-        roundedMainPanel = new RoundedPanel(mainPanel);
-        roundedMainPanel.setCornerStyleName("pageHeaderBackground");
-        return roundedMainPanel;
-        
+        // Set mainPanel visual properties
+        mainPanel.setHeight("66px");
+        mainPanel.setWidth("100%");
+        mainPanel.setStyleName("pageHeader");
+        mainPanel.setCellSpacing(0);
+
+        mainPanel.getCellFormatter().setWidth(0, 0, "256px");
+        // this should be * but makes ie blow up so just set a big % to fill the space
+        mainPanel.getCellFormatter().setWidth(0, 1, "80%");
+        mainPanel.getCellFormatter().setWidth(0, 2, "100px");
+        mainPanel.getCellFormatter().setWidth(0, 3, "28px");
+
+        mainPanel.getCellFormatter().getElement(0, 0).getStyle().setProperty("backgroundImage", "url(header_left.png)");
+        mainPanel.getCellFormatter().getElement(0, 1).getStyle().setProperty("backgroundImage", "url(header_middle.png)");
+        mainPanel.getCellFormatter().getElement(0, 2).getStyle().setProperty("backgroundImage", "url(header_middle.png)");
+        mainPanel.getCellFormatter().getElement(0, 3).getStyle().setProperty("backgroundImage", "url(header_right.png)");
+
+        mainPanel.getCellFormatter().setHorizontalAlignment(0, 1, HorizontalPanel.ALIGN_CENTER);
+        mainPanel.getCellFormatter().setHorizontalAlignment(0, 2, HorizontalPanel.ALIGN_RIGHT);
+        mainPanel.getCellFormatter().setVerticalAlignment(0, 1, VerticalPanel.ALIGN_MIDDLE);
+        mainPanel.getCellFormatter().setVerticalAlignment(0, 2, VerticalPanel.ALIGN_MIDDLE);
+
+        return mainPanel;
     }
 
     public void setMenuItems(ArrayList<MenuItem> mI) {
@@ -228,14 +251,19 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
         //mainPanel.setWidget(0,0, new Label("Please wait while we fetch your session information..."));
         // mainPanel.setWidget(0,0, new Label("The Music Explaura"));
-        Label title = new Label("The Music Explaura");
+        //Label title = new Label("The Music Explaura");
+        Image title = new Image("header_left_fill.gif");
+        title.setWidth("266px");
+        title.setHeight("65px");
         title.addClickHandler(new ClickHandler() {
+            @Override
             public void onClick(ClickEvent ce) {
                 History.newItem("searchHome:");
             }
         });
-        title.setStyleName("title");
-        title.addStyleName("titleC");
+        //title.setStyleName("title");
+        //title.addStyleName("titleC");
+        title.addStyleName("pointer");
         mainPanel.setWidget(0, 0, title);
         //invokeGetUserSessionInfo();
     }
@@ -728,7 +756,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         public SearchWidget(MusicSearchInterfaceAsync musicServer,
             ClientDataManager cdm, FlowPanel searchBoxContainerPanel) {
 
-            super(musicServer, cdm, searchBoxContainerPanel, Oracles.ARTIST);
+            super(musicServer, cdm, searchBoxContainerPanel, Oracles.ARTIST, "pageHeaderSearchBox");
 
             searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
 
@@ -755,13 +783,13 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
             searchPanel.setVerticalAlignment(VerticalPanel.ALIGN_MIDDLE);
             searchPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
 
-            Button searchButton = new Button("Search", new ClickHandler() {
+            Image searchButton = varImgBundle.searchButton().createImage();
+            searchButton.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent ce) {
                     search();
                 }
             });
-            searchButton.setTabIndex(2);
 
             searchPanel.add(searchBoxContainerPanel);
             searchPanel.add(searchSelection);
@@ -776,7 +804,12 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
                         "Error. Cannot search without the similarity types.", 
                         Popup.ERROR_LVL.NORMAL, null);
             } else {
-                String query = getSearchBox().getText().toLowerCase();
+                String query = getSearchBox().getText();
+                if (!validateQuery(query)) {
+                    return;
+                }
+
+                query = query.toLowerCase();
                 searchTypes currST = getSearchType();
                 if (currST == searchTypes.SEARCH_FOR_TAG_BY_TAG) {
                     History.newItem("tagSearch:"+query);

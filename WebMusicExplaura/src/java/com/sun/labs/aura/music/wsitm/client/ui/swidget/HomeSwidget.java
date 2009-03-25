@@ -15,7 +15,6 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -29,6 +28,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.SearchTypeRadioButton;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.CompactArtistWidget;
+import com.sun.labs.aura.music.wsitm.client.ui.widget.DualRoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.StarRatingWidget.InitialRating;
 import java.util.ArrayList;
 
@@ -43,22 +43,10 @@ public class HomeSwidget extends Swidget {
     private final int POP_ART_WIDTH = 3;
 
     private Grid mainPanel;
-    private Grid popArtists;
-
-    private FlowPanel searchBoxContainerPanel;
-    private SearchWidget search;
-
-    private Image loadImg;
+    private DualRoundedPanel popArtists;
 
     public HomeSwidget(ClientDataManager cdm) {
         super("Home", cdm);
-
-        loadImg = new Image("ajax-loader-small.gif");
-        loadImg.getElement().getStyle().setProperty("visibility", "hidden");
-        searchBoxContainerPanel = new FlowPanel();
-
-        //search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel);
-        //search.updateSuggestBox(Oracles.ARTIST);
 
         HorizontalPanel titleHp = new HorizontalPanel();
         titleHp.setWidth("100%");
@@ -74,14 +62,11 @@ public class HomeSwidget extends Swidget {
             }
         });
 
-
-        HorizontalPanel leftHp = new HorizontalPanel();
-        leftHp.add(loadImg);
-        leftHp.add(featMore);
-        titleHp.add(leftHp);
-        popArtists = new Grid(2,1);
-        popArtists.setWidget(0, 0, titleHp);
-        popArtists.setWidget(1, 0, WebLib.getLoadingBarWidget());
+        titleHp.add(featMore);
+        popArtists = new DualRoundedPanel();
+        popArtists.setVisible(false);
+        popArtists.setHeader(titleHp);
+        popArtists.setContent(WebLib.getLoadingBarWidget(), false);
 
         mainPanel = new Grid(3,1);
         mainPanel.getCellFormatter().setHorizontalAlignment(0, 0, HorizontalPanel.ALIGN_CENTER);
@@ -100,8 +85,8 @@ public class HomeSwidget extends Swidget {
             mainPanel.setWidget(2, 0, exLabel);
         }
 
+        initWidget(mainPanel, true);
         invokeFetchRandomArtists();
-        initWidget(mainPanel);
     }
 
     @Override
@@ -286,22 +271,26 @@ public class HomeSwidget extends Swidget {
                                 musicServer, null, null, InitialRating.FETCH, null));
                     }
                 }
-                popArtists.setWidget(1, 0, g);
-                loadImg.getElement().getStyle().setProperty("visibility", "hidden");
+                
+                popArtists.setVisible(true);
+                popArtists.setContent(g);
+                hideLoader();
             }
 
             public void onFailure(Throwable caught) {
                 Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
                     "retrieve the random artists.", Popup.ERROR_LVL.NORMAL, null);
+                hideLoader();
             }
         };
 
+        showLoader();
         try {
-            loadImg.getElement().getStyle().setProperty("visibility", "visible");
             musicServer.getRandomPopularArtists(POP_ART_WIDTH * POP_ART_HEIGHT, callback);
         } catch (Exception ex) {
             Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
                     "retrieve the random artists.", Popup.ERROR_LVL.NORMAL, null);
+            hideLoader();
         }
     }
 

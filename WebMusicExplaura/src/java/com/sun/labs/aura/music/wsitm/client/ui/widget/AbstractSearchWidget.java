@@ -5,15 +5,19 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyPressEvent;
 import com.google.gwt.event.dom.client.KeyPressHandler;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
+import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.FocusListener;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.SuggestBox;
+import com.google.gwt.user.client.ui.TextBox;
 import com.sun.labs.aura.music.wsitm.client.event.DEAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
@@ -47,16 +51,56 @@ public abstract class AbstractSearchWidget extends Composite {
     private Panel searchBoxContainerPanel; // panel that will contain the searchbox
 
     private SuggestBox sB;
+    private static TextBox loadingBox;
 
-    protected String searchBoxStyleName = ""; //searchText";
+    protected static final String DEFAULT_TXT = "Search";
+    private FocusListener focusListener;
+
+    protected String searchBoxStyleName = null; //searchText";
     protected int searchBoxWidth = 0;
 
     public AbstractSearchWidget(MusicSearchInterfaceAsync musicServer, 
             ClientDataManager cdm, Panel searchBoxContainerPanel, Oracles type) {
+        init(musicServer, cdm, searchBoxContainerPanel, type);
+    }
+
+    public AbstractSearchWidget(MusicSearchInterfaceAsync musicServer,
+            ClientDataManager cdm, Panel searchBoxContainerPanel, Oracles type,
+            String searchBoxStyle) {
+        this.searchBoxStyleName = searchBoxStyle;
+        init(musicServer, cdm, searchBoxContainerPanel, type);
+    }
+
+    private void init(MusicSearchInterfaceAsync musicServer,
+            ClientDataManager cdm, Panel searchBoxContainerPanel, Oracles type) {
         this.musicServer = musicServer;
         this.cdm = cdm;
         this.searchBoxContainerPanel = searchBoxContainerPanel;
-        
+
+        if (loadingBox == null) {
+            loadingBox = new TextBox();
+            loadingBox.setText("Loading...");
+            loadingBox.setEnabled(false);
+            if (searchBoxStyleName != null && searchBoxStyleName.length()>0) {
+                loadingBox.setStyleName(searchBoxStyleName);
+            }
+        }
+
+        focusListener = new FocusListener() {
+            @Override
+            public void onFocus(Widget sender) {
+                if (sB.getText().equals(DEFAULT_TXT)) {
+                    sB.setText("");
+                }
+            }
+            @Override
+            public void onLostFocus(Widget sender) {
+                if (sB.getText().length() == 0) {
+                    sB.setText(DEFAULT_TXT);
+                }
+            }
+        };
+
         sB = getNewSuggestBox(new PopSortedMultiWordSuggestOracle());
         updateSuggestBox(type);
     }
@@ -66,23 +110,38 @@ public abstract class AbstractSearchWidget extends Composite {
     public abstract void search();
 
     private SuggestBox getNewSuggestBox(PopSortedMultiWordSuggestOracle oracle) {
-        SuggestBox box = new SuggestBox(oracle);
+        final SuggestBox box = new SuggestBox(oracle);
         box.setLimit(15);
         box.addKeyPressHandler(new KeyPressHandler() {
             @Override
             public void onKeyPress(KeyPressEvent event) {
                 // If enter key pressed, submit the form
-                if (event.getNativeEvent().getKeyCode() == 13) {
+                if (event.getNativeEvent().getKeyCode() == KeyCodes.KEY_ENTER) {
                     DeferredCommand.addCommand(new Command() {
                         @Override
                         public void execute() {
                             search();
                         }
                     });
+                // If escape key pressed, hide the suggestbox
+                } else if (event.getNativeEvent().getKeyCode() == KeyCodes.KEY_ESCAPE) {
+                    box.hideSuggestionList();
                 }
-                
+                else if (event.getNativeEvent().getKeyCode() == KeyCodes.KEY_DOWN) {
+                    if (!box.isSuggestionListShowing()) {
+                        box.showSuggestionList();
+                    }
+                } else if (event.getNativeEvent().getKeyCode() == KeyCodes.KEY_LEFT ||
+                        event.getNativeEvent().getKeyCode() == KeyCodes.KEY_RIGHT) {
+                    box.hideSuggestionList();
+                }
             }
         });
+        if (searchBoxStyleName != null && searchBoxStyleName.length()>0) {
+            box.addStyleName(searchBoxStyleName);
+        }
+        box.addFocusListener(focusListener);
+        box.setText(DEFAULT_TXT);
         return box;
     }
 
@@ -93,10 +152,10 @@ public abstract class AbstractSearchWidget extends Composite {
     private void swapSuggestBox(PopSortedMultiWordSuggestOracle newOracle, Oracles newOracleType) {
 
         String oldTxt;
-        if (getSearchBox() != null) {
+        if (getSearchBox() != null && getSearchBox().getText().length()>0) {
             oldTxt = getSearchBox().getText();
         } else {
-            oldTxt = "";
+            oldTxt = DEFAULT_TXT;
         }
 
         searchBoxContainerPanel.clear();
@@ -170,6 +229,16 @@ public abstract class AbstractSearchWidget extends Composite {
             this.sB.setWidth(searchBoxWidth+"px");
         }
     }
+    
+    protected boolean validateQuery(String query) {
+        if (query == null || query.length() == 0 || query.equals(DEFAULT_TXT)) {
+            Popup.showInformationPopup("Please enter a search string " +
+                    "before trying to perform a search.");
+            return false;
+        } else {
+            return true;
+        }
+    }
 
     private void invokeOracleFetchService(final Oracles type) {
 
@@ -200,7 +269,7 @@ public abstract class AbstractSearchWidget extends Composite {
         };
 
         searchBoxContainerPanel.clear();
-        searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
+        searchBoxContainerPanel.add(loadingBox);
 
         try {
             if (type == Oracles.ARTIST) {
