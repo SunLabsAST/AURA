@@ -8,6 +8,7 @@ package com.sun.labs.aura.music.wsitm.client.ui.widget;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 
@@ -33,7 +34,11 @@ public class DualRoundedPanel extends Composite {
     }
 
     public DualRoundedPanel(String title, Widget content) {
-        this(new HTML("<h2>"+title+"</h2>"), content);
+        this();
+        Label titleLbl = new Label(title);
+        titleLbl.setStyleName("h2");
+        setHeader(titleLbl);
+        setContent(content);
     }
 
     public void setHeader(Widget w) {
