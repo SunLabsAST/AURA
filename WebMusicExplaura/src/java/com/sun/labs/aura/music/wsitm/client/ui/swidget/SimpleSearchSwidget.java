@@ -550,8 +550,8 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         VerticalPanel main = new VerticalPanel();
         main.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
         main.add(getTagHeaderWidget(tagDetails));
-        main.add(WebLib.createSection("Videos", new VideoScrollWidget(tagDetails.getVideos())));
-        main.add(WebLib.createSection("Photos", new ImageScrollWidget(tagDetails.getPhotos())));
+        main.add(new DualRoundedPanel("Videos", new VideoScrollWidget(tagDetails.getVideos())));
+        main.add(new DualRoundedPanel("Photos", new ImageScrollWidget(tagDetails.getPhotos())));
         main.setStyleName("center");
 
         VerticalPanel left = new VerticalPanel();

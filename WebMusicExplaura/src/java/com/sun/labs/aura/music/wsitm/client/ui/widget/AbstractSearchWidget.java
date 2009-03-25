@@ -10,8 +10,10 @@ import com.google.gwt.event.dom.client.KeyPressEvent;
 import com.google.gwt.event.dom.client.KeyPressHandler;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
+import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.FocusListener;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.SuggestBox;
@@ -51,6 +53,9 @@ public abstract class AbstractSearchWidget extends Composite {
     private SuggestBox sB;
     private static TextBox loadingBox;
 
+    protected static final String DEFAULT_TXT = "Search";
+    private FocusListener focusListener;
+
     protected String searchBoxStyleName = null; //searchText";
     protected int searchBoxWidth = 0;
 
@@ -80,6 +85,21 @@ public abstract class AbstractSearchWidget extends Composite {
                 loadingBox.setStyleName(searchBoxStyleName);
             }
         }
+
+        focusListener = new FocusListener() {
+            @Override
+            public void onFocus(Widget sender) {
+                if (sB.getText().equals(DEFAULT_TXT)) {
+                    sB.setText("");
+                }
+            }
+            @Override
+            public void onLostFocus(Widget sender) {
+                if (sB.getText().length() == 0) {
+                    sB.setText(DEFAULT_TXT);
+                }
+            }
+        };
 
         sB = getNewSuggestBox(new PopSortedMultiWordSuggestOracle());
         updateSuggestBox(type);
@@ -120,6 +140,8 @@ public abstract class AbstractSearchWidget extends Composite {
         if (searchBoxStyleName != null && searchBoxStyleName.length()>0) {
             box.addStyleName(searchBoxStyleName);
         }
+        box.addFocusListener(focusListener);
+        box.setText(DEFAULT_TXT);
         return box;
     }
 
@@ -130,10 +152,10 @@ public abstract class AbstractSearchWidget extends Composite {
     private void swapSuggestBox(PopSortedMultiWordSuggestOracle newOracle, Oracles newOracleType) {
 
         String oldTxt;
-        if (getSearchBox() != null) {
+        if (getSearchBox() != null && getSearchBox().getText().length()>0) {
             oldTxt = getSearchBox().getText();
         } else {
-            oldTxt = "";
+            oldTxt = DEFAULT_TXT;
         }
 
         searchBoxContainerPanel.clear();
@@ -205,6 +227,16 @@ public abstract class AbstractSearchWidget extends Composite {
         this.searchBoxWidth = width;
         if (searchBoxWidth>0) {
             this.sB.setWidth(searchBoxWidth+"px");
+        }
+    }
+    
+    protected boolean validateQuery(String query) {
+        if (query == null || query.length() == 0 || query.equals(DEFAULT_TXT)) {
+            Popup.showInformationPopup("Please enter a search string " +
+                    "before trying to perform a search.");
+            return false;
+        } else {
+            return true;
         }
     }
 
