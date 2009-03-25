@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
+import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyPressEvent;
 import com.google.gwt.event.dom.client.KeyPressHandler;
 import com.google.gwt.user.client.Command;
@@ -95,7 +96,7 @@ public abstract class AbstractSearchWidget extends Composite {
             @Override
             public void onKeyPress(KeyPressEvent event) {
                 // If enter key pressed, submit the form
-                if (event.getNativeEvent().getKeyCode() == 13) {
+                if (event.getNativeEvent().getKeyCode() == KeyCodes.KEY_ENTER) {
                     DeferredCommand.addCommand(new Command() {
                         @Override
                         public void execute() {
@@ -103,7 +104,15 @@ public abstract class AbstractSearchWidget extends Composite {
                         }
                     });
                 // If escape key pressed, hide the suggestbox
-                } else if (event.getNativeEvent().getKeyCode() == 27) {
+                } else if (event.getNativeEvent().getKeyCode() == KeyCodes.KEY_ESCAPE) {
+                    box.hideSuggestionList();
+                }
+                else if (event.getNativeEvent().getKeyCode() == KeyCodes.KEY_DOWN) {
+                    if (!box.isSuggestionListShowing()) {
+                        box.showSuggestionList();
+                    }
+                } else if (event.getNativeEvent().getKeyCode() == KeyCodes.KEY_LEFT ||
+                        event.getNativeEvent().getKeyCode() == KeyCodes.KEY_RIGHT) {
                     box.hideSuggestionList();
                 }
             }
