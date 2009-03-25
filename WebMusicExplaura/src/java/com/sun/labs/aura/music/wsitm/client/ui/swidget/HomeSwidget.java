@@ -24,7 +24,6 @@ import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
-import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.SearchTypeRadioButton;
@@ -64,9 +63,8 @@ public class HomeSwidget extends Swidget {
         });
 
         titleHp.add(featMore);
-        //titleHp.setStyleName("roundedPageBackHeader");
-        titleHp.getElement().getStyle().setPropertyPx("marginBottom", 0);
         popArtists = new DualRoundedPanel();
+        popArtists.setVisible(false);
         popArtists.setHeader(titleHp);
         popArtists.setContent(WebLib.getLoadingBarWidget(), false);
 
@@ -87,8 +85,8 @@ public class HomeSwidget extends Swidget {
             mainPanel.setWidget(2, 0, exLabel);
         }
 
-        invokeFetchRandomArtists();
         initWidget(mainPanel, true);
+        invokeFetchRandomArtists();
     }
 
     @Override
@@ -273,6 +271,8 @@ public class HomeSwidget extends Swidget {
                                 musicServer, null, null, InitialRating.FETCH, null));
                     }
                 }
+                
+                popArtists.setVisible(true);
                 popArtists.setContent(g);
                 hideLoader();
             }

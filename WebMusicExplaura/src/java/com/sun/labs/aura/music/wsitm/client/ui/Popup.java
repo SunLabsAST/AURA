@@ -297,7 +297,7 @@ public abstract class Popup {
 
     public static PopupPanel showLoadingPopup() {
         HorizontalPanel hP = new HorizontalPanel();
-        hP.setWidth("172px");
+        hP.setWidth("173px");
         hP.add(new Image("ajax-ball-t.gif"));
         Label l = new Label("Loading...");
         l.addStyleName("tagPop2");
