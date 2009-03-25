@@ -13,7 +13,6 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.datastore.impl.Replicant;
 import java.util.List;
 
 /**
@@ -23,6 +22,8 @@ public class RepPanel extends FlowPanel {
     protected RepInfo rep;
     
     protected NumberFormat statForm = NumberFormat.getFormat("#########0.###");
+    protected static NumberFormat cpuFormat = NumberFormat.getFormat("###0.#");
+    protected StyleLabel cpuLoad = null;
     
     public RepPanel(RepInfo rep) {
         super();
@@ -37,8 +38,12 @@ public class RepPanel extends FlowPanel {
         indexSize /= 1024 * 1024;
         add(new StyleLabel("Index Size:  " + indexSize + "MB",
                            "viz-statLabel"));
+        cpuLoad = new StyleLabel("", "viz-statLabel");
+        setCPULoad(0);
+        add(cpuLoad);
+
         add(new StyleLabel("Halt", "viz-actionLabel"));
-        
+
         StyleLabel stats = new StyleLabel("Stats", "viz-actionLabel");
         stats.addClickListener(new ClickListener() {
             public void onClick(Widget arg0) {
@@ -60,6 +65,11 @@ public class RepPanel extends FlowPanel {
         return rep;
     }
     
+    public void setCPULoad(double load) {
+        String str = cpuFormat.format(load);
+        cpuLoad.setText("% CPU: " + str);
+    }
+
     public void showStats() {
         //
         // If there isn't already a stats display for us, add one.

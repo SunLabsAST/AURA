@@ -9,8 +9,8 @@
 
 package com.sun.labs.aura.dbbrowser.client.viz;
 import com.google.gwt.user.client.rpc.RemoteService;
-import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides visualization data for the Viz UI.
@@ -43,6 +43,11 @@ public interface VizService extends RemoteService{
      */
     public void resetRepStats(String prefix);
     
+    /**
+     * Gets the cpu load percentage for each process
+     */
+    public Map<String,Double> getCPULoads();
+
     /**
      * Gets a list of all the available log names for methods in the replicant
      * 

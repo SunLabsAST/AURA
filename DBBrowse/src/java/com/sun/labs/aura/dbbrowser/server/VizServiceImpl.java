@@ -13,6 +13,7 @@ import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.impl.PartitionCluster;
+import com.sun.labs.aura.datastore.impl.ProcessManager;
 import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.dbbrowser.client.viz.DSHInfo;
 import com.sun.labs.aura.dbbrowser.client.viz.PCInfo;
@@ -192,6 +193,23 @@ public class VizServiceImpl extends RemoteServiceServlet implements
                 throw new RuntimeException("Failed to reset stats");
             }
         }
+    }
+
+    public Map<String,Double> getCPULoads() {
+        Map<String,Double> result = new HashMap<String,Double>();
+        try {
+            String[] allStats = statService.getDoubleNames();
+            for (String stat : allStats) {
+                if (stat.endsWith(ProcessManager.StatName.PERCENT_CPU.toString())) {
+                    String src = stat.substring(0, stat.length() -
+                            ProcessManager.StatName.PERCENT_CPU.toString().length() - 1);
+                    result.put(src, statService.getDouble(stat));
+                }
+            }
+        } catch (RemoteException e) {
+            logger.log(Level.WARNING, "Failed to communicate with stats server", e);
+        }
+        return result;
     }
 
     /**
