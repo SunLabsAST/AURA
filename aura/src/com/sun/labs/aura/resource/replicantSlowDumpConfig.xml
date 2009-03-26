@@ -55,7 +55,7 @@
         <property name="itemSearchEngine" value="itemSearchEngine"/>
         <property name="partitionCluster" value="partitionCluster"/>
         <property name="statService" value="statService"/>
-        <property name="logLevel" value="FINE"/>
+        <property name="logLevel" value="INFO"/>
         <propertylist name="logMethods">
             <item>FIND_SIM</item>
             <item>GET_ITEMS</item>
