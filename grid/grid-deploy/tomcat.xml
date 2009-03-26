@@ -22,7 +22,7 @@
             <arg value="-Djava.util.logging.config.file=${service.working}/conf/logging.properties"/>
             <arg value="-Djava.endorsed.dirs=${service.working}/endorsed"/>
             <arg value="-classpath"/>
-            <arg value=":${service.working}/bin/bootstrap.jar:${service.working}/bin/commons-logging-api.jar:/files/dist/dist/lib/slcut.jar"/>
+            <arg value=":${service.working}/bin/bootstrap.jar:${service.working}/bin/commons-logging-api.jar"/>
             <arg value="-Dcatalina.base=${service.working}"/>
             <arg value="-Dcatalina.home=${service.working}"/>
             <arg value="-Djava.io.tmpdir=${service.working}/temp"/>
