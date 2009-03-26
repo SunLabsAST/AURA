@@ -6,10 +6,8 @@ package com.sun.labs.aura.music.wsitm.client;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
-import com.sun.labs.aura.music.wsitm.agentspecific.impl.CssDefsImpl;
 import com.sun.labs.aura.music.wsitm.client.event.WebListener;
 import com.sun.labs.aura.music.wsitm.client.event.TaggingListener;
 import com.sun.labs.aura.music.wsitm.client.event.RatingListener;
@@ -81,6 +79,7 @@ public class ClientDataManager {
     private boolean forceSteerableReset = false;
 
     private HashSet<Swidget> registeredSwidgets;
+    private Swidget currSwidget;
 
     private ListenerDetails lD;
 
@@ -200,6 +199,14 @@ public class ClientDataManager {
      */
     public void unregisterSwidget(Swidget s) {
         registeredSwidgets.remove(s);
+    }
+
+    public void setCurrSwidget(Swidget s) {
+        this.currSwidget = s;
+    }
+
+    public Swidget getCurrSwidget() {
+        return this.currSwidget;
     }
 
     public void setWidgets(PageHeaderWidget phw) {

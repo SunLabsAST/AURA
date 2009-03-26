@@ -80,66 +80,61 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
     private FlowPanel configSubHeaderPanel;
     private ListBox listbox;
 
-    private Grid activeSubHeaderContainer;
+    private FlowPanel activeSubHeaderPanel;
     
-    public PageHeaderWidget(ClientDataManager cdm) {
-        super("pageHeader",cdm);
-        this.cdm = cdm;
+    public PageHeaderWidget(ClientDataManager tCdm) {
+        super("pageHeader",tCdm);
         menuItems = new ArrayList<MenuItem>();
 
         VerticalPanel vP = new VerticalPanel();
         vP.setWidth("100%");
-
-            /*
-        Label title = new Label("Search Inside the Music - The Music Explaura");
-        title.addClickHandler(new ClickHandler() {
-
-            public void onClick(ClickEvent ce) {
-                History.newItem("searchHome:");
-            }
-        });
-        title.setStyleName("title");
-        title.addStyleName("titleC");
-        vP.add(title);
-         * */
+        vP.setSpacing(0);
         vP.add(getMainWidget());
 
-        activeSubHeaderContainer = new Grid(1,2);
-        activeSubHeaderContainer.setWidth("100%");
-        activeSubHeaderContainer.setVisible(false);
-        activeSubHeaderContainer.getCellFormatter().setWidth(0, 0, "10px");
-        activeSubHeaderContainer.setCellSpacing(0);
-        vP.add(activeSubHeaderContainer);
+        activeSubHeaderPanel = new FlowPanel();
+        activeSubHeaderPanel.setWidth("100%");
+        activeSubHeaderPanel.setVisible(false);
+        activeSubHeaderPanel.getElement().getStyle().setPropertyPx("marginLeft", 8);
+        vP.add(activeSubHeaderPanel);
 
-
-        Label l = new Label("Config");
-        l.addStyleName("pointer");
-        l.addClickHandler(new ClickHandler() {
+        // Create buttons
+        HorizontalPanel hP = new HorizontalPanel();
+        hP.setStyleName("pageConfigMargin");
+        hP.add(createHeaderButton("Help", new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                cdm.getCurrSwidget().displayHelp();
+            }
+        }));
+        hP.add(createHeaderButton("Config", new ClickHandler() {
             @Override
             public void onClick(ClickEvent ce) {
                 setSubHeaderPanel(SubHeaderPanels.CONFIG);
             }
-        });
-        HorizontalPanel hP = new HorizontalPanel();
-        hP.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
-        hP.setStyleName("pageConfigHeader");
-        hP.setWidth("100%");
-        hP.add(l);
-
-        RoundedPanel rp = new RoundedPanel(hP, RoundedPanel.BOTTOM, 2);
-        rp.setCornerStyleName("popupColors");
-
-        FlowPanel fP = new FlowPanel();
-        fP.setStyleName("pageConfigMargin");
-        fP.setWidth("40px");
-        fP.add(rp);
-        
-        vP.add(fP);
+        }));
+        vP.add(hP);
 
         createConfigSubHeaderPanel();
         
         initWidget(vP);
 
+    }
+
+    private RoundedPanel createHeaderButton(String title, ClickHandler cH) {
+        Label configSub = new Label(title);
+        configSub.addStyleName("pointer");
+        configSub.addClickHandler(cH);
+
+        HorizontalPanel hP = new HorizontalPanel();
+        hP.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
+        hP.setStyleName("pageConfigHeader");
+        hP.setWidth("40px");
+        hP.add(configSub);
+
+        RoundedPanel rp = new RoundedPanel(hP, RoundedPanel.BOTTOM, 2);
+        rp.setCornerStyleName("popupColors");
+        rp.getElement().getStyle().setPropertyPx("marginRight", 6);
+        return rp;
     }
 
     private void createConfigSubHeaderPanel() {
@@ -175,13 +170,14 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
     private void setSubHeaderPanel(SubHeaderPanels p) {
         // If we want to hide the panel
         if (p == currSubHeaderPanel || p == SubHeaderPanels.NONE) {
-            activeSubHeaderContainer.setVisible(false);
+            activeSubHeaderPanel.setVisible(false);
             currSubHeaderPanel = SubHeaderPanels.NONE;
         } else {
             if (p == SubHeaderPanels.CONFIG) {
-                activeSubHeaderContainer.setWidget(0,1,configSubHeaderPanel);
+                activeSubHeaderPanel.clear();
+                activeSubHeaderPanel.add(configSubHeaderPanel);
             }
-            activeSubHeaderContainer.setVisible(true);
+            activeSubHeaderPanel.setVisible(true);
             currSubHeaderPanel = p;
         }
     }
@@ -234,6 +230,8 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         mainPanel.getCellFormatter().setHorizontalAlignment(0, 2, HorizontalPanel.ALIGN_RIGHT);
         mainPanel.getCellFormatter().setVerticalAlignment(0, 1, VerticalPanel.ALIGN_MIDDLE);
         mainPanel.getCellFormatter().setVerticalAlignment(0, 2, VerticalPanel.ALIGN_MIDDLE);
+
+        mainPanel.getElement().getStyle().setPropertyPx("marginBottom", 0);
 
         return mainPanel;
     }

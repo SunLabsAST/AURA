@@ -252,5 +252,7 @@ public class Main implements EntryPoint {
             cdm.registerSwidget(newSwidget);
             curSwidget = newSwidget;
         }
+
+        cdm.setCurrSwidget(curSwidget);
     }
 }
