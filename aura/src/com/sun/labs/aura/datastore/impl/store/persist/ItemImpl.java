@@ -1,10 +1,15 @@
 package com.sun.labs.aura.datastore.impl.store.persist;
 
+import com.sleepycat.persist.evolve.Conversion;
+import com.sleepycat.persist.evolve.Converter;
+import com.sleepycat.persist.evolve.Mutations;
 import com.sleepycat.persist.model.Entity;
+import com.sleepycat.persist.model.EntityModel;
 import com.sleepycat.persist.model.NotPersistent;
 import com.sleepycat.persist.model.PrimaryKey;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
+import com.sleepycat.persist.raw.RawObject;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import java.io.ByteArrayInputStream;
@@ -20,15 +25,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * The implementation of a generic item that is stored in the berkeley
  * database.  The item should be just a data holder class with no links
  * into the rest of the system.
  */
-@Entity(version = 1)
+@Entity(version = 2)
 public class ItemImpl implements Item {
-    private static final long serialVersionUID = 1;
+    private static final long serialVersionUID = 2;
     
     /** Items also have String keys that for now we'll say are unique */
     @PrimaryKey
@@ -159,11 +166,11 @@ public class ItemImpl implements Item {
             // deserialize mapBytes into map object
             try {
                 ByteArrayInputStream bais = new ByteArrayInputStream(mapBytes);
-                ObjectInputStream ois = new ObjectInputStream(bais);
+                ObjectInputStream ois = new ObjectInputStream(new GZIPInputStream(bais));
                 map = (HashMap<String,Serializable>)ois.readObject();
-            } catch (IOException e) {
-                logger.log(Level.WARNING,
-                        "Map serialization failed for item " + this, e);
+                } catch (IOException e) {
+                    logger.log(Level.WARNING,
+                            "Map serialization failed for item " + this, e);
             } catch (ClassNotFoundException e) {
                 logger.log(Level.WARNING,
                         "Map serialization failed for item " + this, e);
@@ -190,8 +197,13 @@ public class ItemImpl implements Item {
         if ((map != null) && (!map.isEmpty())) {
             try {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ObjectOutputStream oos = new ObjectOutputStream(baos);
+                GZIPOutputStream gzip = new GZIPOutputStream(baos);
+                ObjectOutputStream oos = new ObjectOutputStream(gzip);
                 oos.writeObject(map);
+                oos.flush();
+                oos.close();
+                gzip.flush();
+                gzip.close();
                 mapBytes = baos.toByteArray();
             } catch (IOException e) {
                 logger.log(Level.WARNING,
@@ -218,5 +230,68 @@ public class ItemImpl implements Item {
     @Override
     public String toString() {
         return key + " [" + Integer.toBinaryString(key.hashCode()) + "]";
+    }
+
+    public static void addMutations(Mutations mutations) {
+        Converter gzipItemMap = new Converter(ItemImpl.class.getName(), 1,
+                                              "mapBytes", new GZIPConversion());
+        Converter gzipItemMapForUser = new Converter(UserImpl.class.getName(), 3,
+                                              "mapBytes", new GZIPConversion());
+        mutations.addConverter(gzipItemMap);
+        mutations.addConverter(gzipItemMapForUser);
+    }
+
+    /**
+     * A conversion for version 1 to version 2 (introduced GZIPed mapBytes)
+     */
+    public static class GZIPConversion implements Conversion {
+        protected static Logger logger = Logger.getLogger("");
+        
+        @Override
+        public void initialize(EntityModel model) {
+            // nothing to do here
+        }
+
+        /**
+         * Takes an array of bytes and gzips the data, returning another array
+         * of bytes.
+         *
+         * @param fromValue a RawObject representing a byte[] of uncompressed data
+         * @return a byte[] of compressed data
+         */
+        @Override
+        public Object convert(Object fromValue) {
+            Object[] fromBytes = ((RawObject)fromValue).getElements();
+            if (fromBytes.length > 0) {
+                byte[] frombytes = new byte[fromBytes.length];
+                for (int i=0; i < fromBytes.length; i++) {
+                    frombytes[i] = ((Byte)fromBytes[i]).byteValue();
+                }
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                try {
+                    GZIPOutputStream out = new GZIPOutputStream(baos);
+                    out.write(frombytes);
+                    out.flush();
+                    out.close();
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, "GZIP failed during upgrade!", e);
+                    throw new RuntimeException(e);
+                }
+                byte[] tobytes = baos.toByteArray();
+                Object[] toBytes = new Byte[tobytes.length];
+                for (int i=0; i < tobytes.length; i++) {
+                    toBytes[i] = new Byte(tobytes[i]);
+                }
+                return new RawObject(((RawObject)fromValue).getType(),
+                                     toBytes);
+            } else {
+                return fromValue;
+            }
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof GZIPConversion;
+        }
     }
 }

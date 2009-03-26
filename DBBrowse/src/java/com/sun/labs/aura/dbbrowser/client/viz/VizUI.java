@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.dbbrowser.client.viz;
 
+import com.google.gwt.user.client.Timer;
 import com.sun.labs.aura.dbbrowser.client.*;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -36,10 +37,15 @@ public class VizUI extends DockPanel {
     
     protected List dshInfos;
     protected List pcInfos;
+
+    protected Map<String,DSHPanel> ipToDSHPanel;
+    protected Map<String,PCPanel> prefixToPCPanel;
     
     protected VizServiceAsync service;
     
     protected static VizUI theUI = null;
+
+    protected Timer timer;
     
     public VizUI() {
         theUI = this;
@@ -144,20 +150,26 @@ public class VizUI extends DockPanel {
     
     protected void fillDSH() {
         dshColumn.clear();
+        ipToDSHPanel = new HashMap<String,DSHPanel>();
         for (Iterator dit = dshInfos.iterator(); dit.hasNext();) {
             DSHInfo dsh = (DSHInfo)dit.next();
-            dshColumn.add(new DSHPanel(dsh));
+            DSHPanel panel = new DSHPanel(dsh);
+            ipToDSHPanel.put(dsh.getIP(), panel);
+            dshColumn.add(panel);
         }
     }
 
     protected void fillPC() {
         pcColumn.clear();
+        prefixToPCPanel = new HashMap<String,PCPanel>();
         Map typeToTotals = new HashMap();
         long totalItems = 0;
         long totalAttn = 0;
         for (Iterator pit = pcInfos.iterator(); pit.hasNext();) {
             PCInfo pc = (PCInfo)pit.next();
-            pcColumn.add(new PCPanel(pc));
+            PCPanel panel = new PCPanel(pc);
+            prefixToPCPanel.put(pc.getPrefix(), panel);
+            pcColumn.add(panel);
             
             totalItems += pc.getNumItems();
             totalAttn += pc.getNumAttention();
@@ -180,8 +192,54 @@ public class VizUI extends DockPanel {
             }
         }
         insertTotals(totalItems, totalAttn, typeToTotals);
+
+        //
+        // Start (or restart) collecting CPU loads
+        if (timer != null) {
+            timer.cancel();
+        }
+        timer = new Timer() {
+            public void run() {
+                fetchCPULoads();
+            }
+        };
+        timer.scheduleRepeating(10 * 1000);
     }
-    
+
+    protected void fetchCPULoads() {
+        //
+        // Load info on partitions (includes replicant info):
+        final AsyncCallback cpucallback = new AsyncCallback() {
+            public void onSuccess(Object result) {
+                updateCPULoads((Map<String,Double>)result);
+            }
+
+            public void onFailure(Throwable caught) {
+                alert("Communication failed: " + caught.getMessage());
+            }
+        };
+        service.getCPULoads(cpucallback);
+
+    }
+
+    protected void updateCPULoads(Map<String,Double> loads) {
+        //
+        // Update the DataStoreHeads
+        for (Map.Entry<String,DSHPanel> dsh : ipToDSHPanel.entrySet()) {
+            Double load = loads.get("dshead-" + dsh.getKey());
+            dsh.getValue().setCPULoad(load);
+        }
+
+        //
+        // Update the PartitionClusters and replicants
+        for (Map.Entry<String,PCPanel> pc : prefixToPCPanel.entrySet()) {
+            Double load = loads.get("part-" + pc.getKey());
+            pc.getValue().setCPULoad(load);
+            load = loads.get("replicant-" + pc.getKey());
+            pc.getValue().setRepCPULoad(load);
+        }
+    }
+
     protected void insertTotals(long totalItems, long totalAttn, Map typeTotals) {
         FlowPanel container = new FlowPanel();
         container.setStylePrimaryName("viz-clearPanel");

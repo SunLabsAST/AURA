@@ -104,6 +104,10 @@ public class StatServiceImpl implements StatService, AuraService, Configurable {
         return counters.keySet().toArray(new String[counters.keySet().size()]);
     }
 
+    public String[] getDoubleNames() throws RemoteException {
+        return doubleValues.keySet().toArray(new String[0]);
+    }
+
     public void newProperties(PropertySheet ps) throws PropertyException {
     }
 

@@ -41,6 +41,8 @@
         <propertylist name="snapCounts">
             <item>2</item>
         </propertylist>
+        <property name="loadMonitorPeriod" value="10000"/>
+        <property name="statService" value="statService"/>
     </component>
     
     <component name="gpmStarter" type="com.sun.labs.aura.AuraServiceStarter">
@@ -49,5 +51,8 @@
         </propertylist>
         <property name="blockForShutdown" value="true"/>
     </component>
-    
+
+    <component name="statService" type="com.sun.labs.aura.service.StatService"/>
+
+
 </config>

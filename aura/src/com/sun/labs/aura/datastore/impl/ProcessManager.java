@@ -10,6 +10,13 @@ import java.rmi.RemoteException;
  * of the data store.
  */
 public interface ProcessManager extends Component, Remote {
+    /**
+     * Names all all the stats a ProcessManager can generate (may be for other
+     * processes).
+     */
+    public enum StatName {
+        PERCENT_CPU,
+    }
 
     /**
      * Creates a fully functional new partition cluster.  The cluster will

@@ -19,6 +19,9 @@ import com.sleepycat.persist.ForwardCursor;
 import com.sleepycat.persist.PrimaryIndex;
 import com.sleepycat.persist.SecondaryIndex;
 import com.sleepycat.persist.StoreConfig;
+import com.sleepycat.persist.evolve.EvolveConfig;
+import com.sleepycat.persist.evolve.EvolveStats;
+import com.sleepycat.persist.evolve.Mutations;
 import com.sleepycat.persist.model.AnnotationModel;
 import com.sleepycat.persist.model.EntityModel;
 import com.sun.labs.aura.util.AuraException;
@@ -186,7 +189,12 @@ public class BerkeleyDataWrapper {
         econf.setAllowCreate(true);
         econf.setTransactional(true);
         econf.setCachePercent(cacheSizeMemPercentage);
-        
+
+        //
+        // Set up any mutations -- object version changes
+        Mutations mutations = new Mutations();
+        ItemImpl.addMutations(mutations);
+        sconf.setMutations(mutations);
         sconf.setAllowCreate(true);
         sconf.setTransactional(true);
 
@@ -301,7 +309,29 @@ public class BerkeleyDataWrapper {
                 logger.fine("Storing the-all-fields-filled attention failed!");
             }
         }
-        
+
+/*
+        //
+        // Start evolving anything that needs evolving
+        Runnable evolver = new Runnable() {
+            @Override
+            public void run() {
+                log.info("Starting store evolution");
+                try {
+                    EvolveConfig evconf = new EvolveConfig();
+                    evconf.addClassToEvolve(ItemImpl.class.getName());
+                    EvolveStats stats = store.evolve(evconf);
+                    log.info("Read " + stats.getNRead() +
+                            " and converted " + stats.getNConverted());
+                } catch (DatabaseException e) {
+                    log.log(Level.WARNING, "Evolving all objects failed", e);
+                }
+                log.info("Done evolving store.");
+            }
+        };
+        Thread t = new Thread(evolver);
+        t.start();
+*/
         log.info("BDB done loading");
     }
 
