@@ -48,7 +48,7 @@ public class CleanupRelease extends Aura {
 
             //
             // Snapshot the cache filesystem.
-            fs = (BaseFileSystem) gu.getFS("cache" + "-" + relName, false);
+            fs = gu.getFS("cache" + "-" + relName, false);
             if(fs != null) {
                 fs.destroy();
             }
@@ -56,7 +56,7 @@ public class CleanupRelease extends Aura {
             //
             // Snapshot the replicant file systems.
             for(String prefix : repFSMap.keySet()) {
-                fs = (BaseFileSystem) gu.getFS("replicant" + "-" + prefix + "-" + relName, false);
+                fs = gu.getFS("replicant" + "-" + prefix + "-" + relName, false);
                 if(fs != null) {
                     fs.destroy();
                 }
