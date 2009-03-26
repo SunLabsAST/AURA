@@ -240,6 +240,10 @@ public abstract class Aura extends ServiceAdapter {
 
         ProcessConfiguration pc = gu.getProcessConfig(DataStoreHead.class.getName(), 
                 cmdLine, getDataStoreHeadName(instanceNumber));
+        // don't overlap with other data store heads.
+        pc.setLocationConstraint(
+                new ProcessRegistrationFilter.NameMatch(
+                Pattern.compile(instance + ".*-dshead-.*")));
         Map<String, String> md = pc.getMetadata();
         md.put("monitor", "true");
         pc.setMetadata(md);

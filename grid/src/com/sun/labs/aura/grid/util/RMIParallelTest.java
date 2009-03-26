@@ -274,6 +274,8 @@ public class RMIParallelTest extends ServiceAdapter {
         ds = (DataStore) cm.lookup(com.sun.labs.aura.datastore.DataStore.class,
                 null);
 
+        logger.info(String.format("DataStore: %s", ds));
+
         //
         // Make the map from replicants to the data to look up.
         repMap = new HashMap();

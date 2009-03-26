@@ -51,13 +51,6 @@ if [ ! -e $WARFILE ] ; then
     exit 2
 fi
 
-ant -Dwar.loc=$WARFILE -f $DIR/../grid-deploy/common.xml upload-war
-
-if [ $? != 0 ] ; then 
-    echo "Error uploading war file"
-    exit 2
-fi
-
 export END=$(( $BEGIN + $COUNT ))
 
 for (( COUNT=$BEGIN ; COUNT < $END ; COUNT++ )) ; do 
