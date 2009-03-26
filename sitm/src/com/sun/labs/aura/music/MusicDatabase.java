@@ -17,6 +17,7 @@ import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.RemoteComponentManager;
+import com.sun.labs.aura.util.RemoteMultiComponentManager;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Tag;
 import com.sun.labs.aura.util.WordCloud;
@@ -36,10 +37,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  *
- * @author plamere
  */
 public class MusicDatabase {
 
@@ -62,8 +63,10 @@ public class MusicDatabase {
     private final static long DEFAULT_FIND_SIMILAR_TIMEOUT = 10000L;
     private RecommendationManager recommendationManager;
 
+    private Logger logger = Logger.getLogger(getClass().getName());
+    
     public MusicDatabase(ConfigurationManager cm) throws AuraException {
-        this.rcm = new RemoteComponentManager(cm, DataStore.class);
+        this.rcm = new RemoteMultiComponentManager(cm, DataStore.class);
         new Album().defineFields(getDataStore());
         new Artist().defineFields(getDataStore());
         new ArtistTag().defineFields(getDataStore());
