@@ -6,40 +6,44 @@
             <name>DBBrowse</name>
             <minimum-ant-version>1.6</minimum-ant-version>
             <web-module-libraries>
-                <library files="1">
+                <library>
                     <file>${reference.aura.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
-                <library files="3">
+                <library>
                     <file>${libs.GWT1.5.0.classpath}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
-                <library files="1">
+                <library>
                     <file>${libs.SunLabsUtilities.classpath}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
-                <library files="7">
+                <library>
                     <file>${libs.JiniCore.classpath}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
-                <library files="1">
+                <library>
                     <file>${file.reference.jdom.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
-                <library files="1">
+                <library>
                     <file>${file.reference.xalan.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
-                <library files="1">
+                <library>
                     <file>${file.reference.xerces.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
-                <library files="9">
+                <library>
                     <file>${libs.Rome.classpath}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
-                <library files="1">
+                <library>
                     <file>${libs.Minion.classpath}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library>
+                    <file>${libs.BerkeleyDB.classpath}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
             </web-module-libraries>

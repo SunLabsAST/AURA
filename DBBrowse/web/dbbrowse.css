@@ -117,7 +117,6 @@ a:visited {
 }
 
 .viz-statLabel {
-  
   font-size: 12px;
 }
 
@@ -145,8 +144,59 @@ a:visited {
 .viz-subText {
   font-size: 8px;
   font-style: italic;
-  color: grey;
+  color: gray;
   padding-bottom: 8px;
+}
+
+.viz-histoLeft {
+    border: #000000 solid;
+    color: #66ff66;
+    background-color: #66ff66;
+    background: #66ff66;
+    border-width: 1px 1px 1px 1px;
+}
+
+.viz-histoRight {
+    border: #707277 solid;
+    color: #ccffcc;
+    background-color: #ccffcc;
+    background: #ccffcc;
+    border-left-width: 0px;
+	border-bottom-width: 1px;
+	border-right-width: 1px;
+	border-top-width: 1px;
+}
+.viz-histoLeftAlert {
+    border: #000000 solid;
+    color: #ff3333;
+    background-color: #ff3333;
+    background: #ff3333;
+    border-width: 1px 1px 1px 1px;
+}
+
+.viz-histoRightAlert {
+    border: #707277 solid;
+    color: #ff9999;
+    background-color: #ff9999;
+    background: #ff9999;
+    border-left-width: 0px;
+	border-bottom-width: 1px;
+	border-right-width: 1px;
+	border-top-width: 1px;
+}
+
+.viz-histoName {
+    font-size: 12px;
+    padding-right: 3px;
+}
+
+.viz-histoText {
+    font-size: 10px;
+    padding-left: 3px;
+}
+
+.mgr-controlPanel {
+  margin-top: 5px;
 }
 
 .gwt-TabPanel {

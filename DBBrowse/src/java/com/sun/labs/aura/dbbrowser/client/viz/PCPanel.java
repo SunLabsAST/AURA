@@ -13,6 +13,7 @@ import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import java.util.Iterator;
@@ -27,7 +28,7 @@ public class PCPanel extends HorizontalPanel {
     protected FlowPanel myself;
     protected VerticalPanel replicants;
     
-    protected StyleLabel cpuLoad = null;
+    protected Panel cpuLoad = null;
 
     protected RepPanel repPanel;
 
@@ -44,8 +45,7 @@ public class PCPanel extends HorizontalPanel {
                                   "viz-statLabel"));
         myself.add(new StyleLabel("Attention: " + pc.getNumAttention(),
                                   "viz-statLabel"));
-        cpuLoad = new StyleLabel("", "viz-statLabel");
-        setCPULoad(0);
+        cpuLoad = Util.getHisto("CPU", 0, 100, 50, "0%");
         myself.add(cpuLoad);
 
         Map typeToCount = pc.getTypeToCountMap();
@@ -85,7 +85,11 @@ public class PCPanel extends HorizontalPanel {
 
     public void setCPULoad(double load) {
         String str = cpuFormat.format(load);
-        cpuLoad.setText("% CPU: " + str);
+        Panel newLoad = Util.getHisto("CPU", Double.valueOf(load).intValue(), 100, 50, str + "%");
+        int index = myself.getWidgetIndex(cpuLoad);
+        myself.remove(index);
+        cpuLoad = newLoad;
+        myself.insert(cpuLoad, index);
     }
 
     public void setRepCPULoad(double load) {

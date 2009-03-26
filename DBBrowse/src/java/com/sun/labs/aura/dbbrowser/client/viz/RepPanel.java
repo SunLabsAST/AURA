@@ -11,6 +11,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import java.util.List;
@@ -23,7 +24,7 @@ public class RepPanel extends FlowPanel {
     
     protected NumberFormat statForm = NumberFormat.getFormat("#########0.###");
     protected static NumberFormat cpuFormat = NumberFormat.getFormat("###0.#");
-    protected StyleLabel cpuLoad = null;
+    protected Panel cpuLoad = null;
     
     public RepPanel(RepInfo rep) {
         super();
@@ -38,8 +39,7 @@ public class RepPanel extends FlowPanel {
         indexSize /= 1024 * 1024;
         add(new StyleLabel("Index Size:  " + indexSize + "MB",
                            "viz-statLabel"));
-        cpuLoad = new StyleLabel("", "viz-statLabel");
-        setCPULoad(0);
+        cpuLoad = Util.getHisto("CPU", 0, 100, 50, "0%");
         add(cpuLoad);
 
         add(new StyleLabel("Halt", "viz-actionLabel"));
@@ -67,7 +67,11 @@ public class RepPanel extends FlowPanel {
     
     public void setCPULoad(double load) {
         String str = cpuFormat.format(load);
-        cpuLoad.setText("% CPU: " + str);
+        Panel newLoad = Util.getHisto("CPU", Double.valueOf(load).intValue(), 100, 50, str + "%");
+        int index = getWidgetIndex(cpuLoad);
+        remove(index);
+        cpuLoad = newLoad;
+        insert(cpuLoad, index);
     }
 
     public void showStats() {
