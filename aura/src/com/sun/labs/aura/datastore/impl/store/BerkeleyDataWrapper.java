@@ -1,5 +1,6 @@
 package com.sun.labs.aura.datastore.impl.store;
 
+import com.sleepycat.persist.evolve.EvolveEvent;
 import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sleepycat.je.CursorConfig;
 import com.sun.labs.aura.datastore.DBIterator;
@@ -20,6 +21,7 @@ import com.sleepycat.persist.PrimaryIndex;
 import com.sleepycat.persist.SecondaryIndex;
 import com.sleepycat.persist.StoreConfig;
 import com.sleepycat.persist.evolve.EvolveConfig;
+import com.sleepycat.persist.evolve.EvolveListener;
 import com.sleepycat.persist.evolve.EvolveStats;
 import com.sleepycat.persist.evolve.Mutations;
 import com.sleepycat.persist.model.AnnotationModel;
@@ -310,7 +312,7 @@ public class BerkeleyDataWrapper {
             }
         }
 
-/*
+
         //
         // Start evolving anything that needs evolving
         Runnable evolver = new Runnable() {
@@ -320,6 +322,14 @@ public class BerkeleyDataWrapper {
                 try {
                     EvolveConfig evconf = new EvolveConfig();
                     evconf.addClassToEvolve(ItemImpl.class.getName());
+                    //
+                    // Set an evolve listener so that we get stats on the evolve
+                    evconf.setEvolveListener(new EvolveListener() {
+                        @Override
+                        public boolean evolveProgress(EvolveEvent event) {
+                            return true;
+                        }
+                    });
                     EvolveStats stats = store.evolve(evconf);
                     log.info("Read " + stats.getNRead() +
                             " and converted " + stats.getNConverted());
@@ -331,7 +341,6 @@ public class BerkeleyDataWrapper {
         };
         Thread t = new Thread(evolver);
         t.start();
-*/
         log.info("BDB done loading");
     }
 
