@@ -66,7 +66,7 @@ public class HomeSwidget extends Swidget {
         popArtists = new DualRoundedPanel();
         popArtists.setVisible(false);
         popArtists.setHeader(titleHp);
-        popArtists.setContent(WebLib.getLoadingBarWidget(), false);
+        popArtists.setContent(WebLib.getSunLoaderWidget(), false);
 
         mainPanel = new Grid(3,1);
         mainPanel.getCellFormatter().setHorizontalAlignment(0, 0, HorizontalPanel.ALIGN_CENTER);
@@ -116,7 +116,7 @@ public class HomeSwidget extends Swidget {
 
             super(musicServer, cdm, searchBoxContainerPanel, Oracles.ARTIST);
 
-            searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
+            searchBoxContainerPanel.add(WebLib.getSunLoaderWidget());
 
             Panel searchType = new VerticalPanel();
             searchButtons = new SearchTypeRadioButton[3];

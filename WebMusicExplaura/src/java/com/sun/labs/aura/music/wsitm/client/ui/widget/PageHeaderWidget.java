@@ -758,7 +758,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
             super(musicServer, cdm, searchBoxContainerPanel, Oracles.ARTIST, "pageHeaderSearchBox");
 
-            searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
+            searchBoxContainerPanel.add(WebLib.getSunLoaderWidget());
 
             searchSelection = new ListBox();
             searchSelection.addItem("For artist", searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST.toString());

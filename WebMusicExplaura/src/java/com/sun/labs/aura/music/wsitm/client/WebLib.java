@@ -33,6 +33,7 @@ public abstract class WebLib {
      */
     public static final String ICON_WAIT = "ajax-bar.gif";
     public static final String ICON_WAIT_SUN = "loader-sun.gif";
+    public static final String ICON_WAIT_SUN_BACK = "loader-sun-back.gif";
 
     /**
      * Disables the browsers default context menu for the specified element.
@@ -122,11 +123,20 @@ public abstract class WebLib {
         return link;
     }
 
-    public static Widget getLoadingBarWidget() {
+    public static Widget getSunLoaderWidget(boolean whiteBack) {
         HorizontalPanel hP = new HorizontalPanel();
-        hP.setHorizontalAlignment(HorizontalPanel.ALIGN_DEFAULT);
-        hP.add(new Image(WebLib.ICON_WAIT_SUN));
+        hP.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
+        if (whiteBack) {
+            hP.add(new Image(WebLib.ICON_WAIT_SUN));
+        } else {
+            hP.add(new Image(WebLib.ICON_WAIT_SUN_BACK));
+        }
+
         return hP;
+    }
+
+    public static Widget getSunLoaderWidget() {
+        return getSunLoaderWidget(true);
     }
 
     public static Widget getPopularityWidget(String name, double normPopularity, boolean log, String style) {

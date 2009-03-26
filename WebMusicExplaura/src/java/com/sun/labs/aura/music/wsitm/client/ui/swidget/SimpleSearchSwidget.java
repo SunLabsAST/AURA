@@ -702,6 +702,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         ArtistEvent[] events = artistDetails.getEvents();
         VerticalPanel widget = new VerticalPanel();
         if (events.length == 0) {
+            widget.setWidth("300px");
             widget.add(new Label("No events found"));
         } else {
             String introMessage;

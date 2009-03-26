@@ -37,7 +37,7 @@ public class ServerInfoSwidget extends Swidget {
         update.addStyleName("pointer");
         update.addClickHandler(new ClickHandler() {
             public void onClick(ClickEvent ce) {
-                g.setWidget(1, 0, WebLib.getLoadingBarWidget());
+                g.setWidget(1, 0, WebLib.getSunLoaderWidget());
                 invokeGetServerInfo();
             }
         });

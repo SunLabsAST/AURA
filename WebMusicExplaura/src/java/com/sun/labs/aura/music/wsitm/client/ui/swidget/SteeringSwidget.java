@@ -799,7 +799,7 @@ public class SteeringSwidget extends Swidget {
             Grid g = new Grid(2,1);
             g.getCellFormatter().setHeight(0, 0, "30px");
             g.getCellFormatter().setHorizontalAlignment(1, 0, HorizontalPanel.ALIGN_CENTER);
-            g.setWidget(1, 0, WebLib.getLoadingBarWidget());
+            g.setWidget(1, 0, WebLib.getSunLoaderWidget(false));
             mainGrid.setWidget(1, 0, g);
             invokeGetDistincitveTagsService(iI.getId());
 
@@ -874,8 +874,15 @@ public class SteeringSwidget extends Swidget {
 
             //
             // Add title
-            Label title = new Label("Tags for " + iI.getItemName());
-            vP.add(title);
+            FlowPanel titlePanel = new FlowPanel();
+            SpannedLabel title = new SpannedLabel("Tags for ");
+            title.addStyleName("titleC");
+            title.getElement().getStyle().setPropertyPx("marginRight", 2);
+            SpannedLabel titleName = new SpannedLabel(iI.getItemName());
+            titleName.addStyleName("tagPop2");
+            titlePanel.add(title);
+            titlePanel.add(titleName);
+            vP.add(titlePanel);
             RoundedPanel rP = new RoundedPanel(vP);
             rP.setCornerStyleName("pageHeaderBackground");
             mainGrid.setWidget(0, 0, rP);
@@ -896,7 +903,7 @@ public class SteeringSwidget extends Swidget {
                 HorizontalPanel hP = new HorizontalPanel();
 
                 Label addButton = new Label("Add");
-                SwapableWidget sW = new SwapableWidget(addButton, new Image("ajax-loader-small.gif"));
+                SwapableWidget sW = new SwapableWidget(addButton, WebLib.getSunLoaderWidget(false));
                 addButton.setStyleName("recoTags");
                 addButton.addStyleName("pointer");
                 addButton.getElement().setAttribute("style", "margin-right: 5px");
@@ -1139,7 +1146,7 @@ public class SteeringSwidget extends Swidget {
             this.mainTagPanel = mainTagPanel;
             this.tagLand = tagLand;
 
-            searchBoxContainerPanel.add(WebLib.getLoadingBarWidget());
+            searchBoxContainerPanel.add(WebLib.getSunLoaderWidget(false));
 
             HorizontalPanel searchType = new HorizontalPanel();
             searchType.setSpacing(5);
@@ -1194,7 +1201,7 @@ public class SteeringSwidget extends Swidget {
                 return;
             }
             
-            mainTagPanel.setWidget(1, 0, WebLib.getLoadingBarWidget());
+            mainTagPanel.setWidget(1, 0, WebLib.getSunLoaderWidget(false));
             if (getCurrLoadedOracle() == Oracles.TAG) {
                 invokeTagSearchService(query.toLowerCase());
             } else {
@@ -1226,7 +1233,7 @@ public class SteeringSwidget extends Swidget {
                         ItemInfo[] results = sr.getItemResults(null);
                         doRemoveListeners();
                         if (results.length == 0) {
-                            mainTagPanel.setWidget(1, 0, new Label("No Match for " + sr.getQuery()));
+                            mainTagPanel.setWidget(1, 0, new Label("No match for " + sr.getQuery()));
                         } else {
                             ItemInfoHierarchyWidget iihw = new ItemInfoHierarchyWidget(results, tagLand);
                             listenersContainer = iihw;
@@ -1298,7 +1305,7 @@ public class SteeringSwidget extends Swidget {
                 }
             };
 
-            mainTagPanel.setWidget(1, 0, WebLib.getLoadingBarWidget());
+            mainTagPanel.setWidget(1, 0, WebLib.getSunLoaderWidget(false));
 
             try {
                 musicServer.tagSearch(searchText, 100, callback);
