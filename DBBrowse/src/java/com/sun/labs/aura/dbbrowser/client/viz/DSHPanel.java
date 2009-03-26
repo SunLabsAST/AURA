@@ -12,6 +12,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.Widget;
 
 /**
@@ -20,7 +21,7 @@ import com.google.gwt.user.client.ui.Widget;
 public class DSHPanel extends FlowPanel {
     protected DSHInfo dsh;
 
-    protected StyleLabel cpuLoad = null;
+    protected Panel cpuLoad = null;
 
     protected static NumberFormat cpuFormat = NumberFormat.getFormat("###0.#");
 
@@ -32,8 +33,7 @@ public class DSHPanel extends FlowPanel {
         add(new StyleLabel("Status: " + (dsh.isReady() ? "ready" : "not ready"),
                            "viz-statLabel"));
         add(new StyleLabel("IP: " + dsh.getIP(), "viz-statLabel"));
-        cpuLoad = new StyleLabel("", "viz-statLabel");
-        setCPULoad(0);
+        cpuLoad = Util.getHisto("CPU", 0, 100, 50, "0%");
         add(cpuLoad);
 
         StyleLabel shutDown = new StyleLabel("Shutdown", "viz-actionLabel");
@@ -52,7 +52,11 @@ public class DSHPanel extends FlowPanel {
     
     public void setCPULoad(double load) {
         String str = cpuFormat.format(load);
-        cpuLoad.setText("% CPU: " + str);
+        Panel newLoad = Util.getHisto("CPU", Double.valueOf(load).intValue(), 100, 50, str + "%");
+        int index = getWidgetIndex(cpuLoad);
+        remove(index);
+        cpuLoad = newLoad;
+        insert(cpuLoad, index);
     }
 
     protected void doShutDown() {

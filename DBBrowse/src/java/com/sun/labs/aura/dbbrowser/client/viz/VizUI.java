@@ -45,7 +45,7 @@ public class VizUI extends DockPanel {
     
     protected static VizUI theUI = null;
 
-    protected Timer timer;
+    protected Timer statUpdateTimer;
     
     public VizUI() {
         theUI = this;
@@ -195,15 +195,15 @@ public class VizUI extends DockPanel {
 
         //
         // Start (or restart) collecting CPU loads
-        if (timer != null) {
-            timer.cancel();
+        if (statUpdateTimer != null) {
+            statUpdateTimer.cancel();
         }
-        timer = new Timer() {
+        statUpdateTimer = new Timer() {
             public void run() {
                 fetchCPULoads();
             }
         };
-        timer.scheduleRepeating(10 * 1000);
+        statUpdateTimer.scheduleRepeating(10 * 1000);
     }
 
     protected void fetchCPULoads() {
@@ -215,7 +215,9 @@ public class VizUI extends DockPanel {
             }
 
             public void onFailure(Throwable caught) {
-                alert("Communication failed: " + caught.getMessage());
+                if (statUpdateTimer != null) {
+                    statUpdateTimer.cancel();
+                }
             }
         };
         service.getCPULoads(cpucallback);

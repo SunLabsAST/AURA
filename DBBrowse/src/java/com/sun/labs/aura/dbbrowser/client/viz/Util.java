@@ -9,6 +9,9 @@ import com.google.gwt.user.client.Cookies;
 import com.google.gwt.user.client.ui.DisclosurePanel;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HTMLTable.CellFormatter;
+import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Widget;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -114,5 +117,55 @@ public class Util {
         typeStats.add(typeTable);
         typeStats.setStylePrimaryName("viz-typeStatsPanel");
         return typeStats;
+    }
+
+    public static HorizontalPanel getHisto(String name, int value, int maxValue, int maxWidth, String text) {
+
+        int leftWidth = Math.round(((float)value / (float)maxValue) * (float)maxWidth);
+        if (leftWidth < 1) {
+            leftWidth = 1;
+        } else if (leftWidth > maxWidth) {
+            leftWidth = maxWidth;
+        }
+        int rightWidth = maxWidth - leftWidth;
+        boolean alert = false;
+        if (value / (float)maxValue > 0.75) {
+            alert = true;
+        }
+
+        HorizontalPanel all = new HorizontalPanel();
+        all.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+        all.add(new StyleLabel(name + ":", "viz-histoName"));
+
+        HorizontalPanel table = new HorizontalPanel();
+        table.setWidth(maxWidth+"px");
+        table.setBorderWidth(0);
+        table.setSpacing(0);
+
+        Widget left = new Label("");
+        if (alert) {
+            left.setStyleName("viz-histoLeftAlert");
+        } else {
+            left.setStyleName("viz-histoLeft");
+        }
+        left.setWidth(leftWidth + "");
+        left.setHeight("10px");
+        left.getElement().getStyle().setPropertyPx("fontSize", 6);
+
+        Widget right = new Label("");
+        if (alert) {
+            right.setStyleName("viz-histoRightAlert");
+        } else {
+            right.setStyleName("viz-histoRight");
+        }
+        right.setWidth(rightWidth + "");
+        right.setHeight("10px");
+        right.getElement().getStyle().setPropertyPx("fontSize", 6);
+
+        table.add(left);
+        table.add(right);
+        all.add(table);
+        all.add(new StyleLabel(text, "viz-histoText"));
+        return all;
     }
 }
