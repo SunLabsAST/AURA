@@ -65,10 +65,10 @@ public interface ArtistRelatedBundle extends ImageBundle {
    /**
      * Tag icon
      */
-    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/Prev_Button.jpg")
+    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/Prev_Button.png")
     public AbstractImagePrototype scrollWidgetPrev();
 
-    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/Next_Button.jpg")
+    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/Next_Button.png")
     public AbstractImagePrototype scrollWidgetNext();
 
 }
