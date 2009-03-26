@@ -12,8 +12,8 @@ import com.sun.labs.util.props.ConfigurationManager;
  * Manages connecting and reconnecting to a component
  */
 public class RemoteComponentManager implements ComponentListener {
-    private ConfigurationManager cm;
-    private Class clazz;
+    protected ConfigurationManager cm;
+    protected Class clazz;
     private Component component = null;
 
     /**

@@ -1,10 +1,11 @@
 #!/bin/bash
 unset CLASSPATH
-./deployWar -n www -p / -w ../../MainSite/dist/MainSite.war
 
-./deployWar -n www -w ../../SitmAdmin/dist/SitmAdmin.war
-./deployWar -n www -w ../../SitmWebServices/dist/SitmWebServices.war
-./deployWar -n www -w ../../WebMusicExplaura/dist/WebMusicExplaura.war 
+for i in DBBrowse SitmAdmin SitmWebServices WebMusicExplaura; do
+    ./deployWar -n www -w ../../$i/dist/$i.war
+done
+
+./deployWar -n www -p / -w ../../MainSite/dist/MainSite.war
 
 ./deployWar -n music -p /api -w ../../SitmWebServices/dist/SitmWebServices.war
 ./deployWar -n music -p / -w ../../WebMusicExplaura/dist/WebMusicExplaura.war

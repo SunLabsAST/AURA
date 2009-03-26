@@ -40,12 +40,12 @@
     
     <!-- The configuration for a partition cluster. We set import to false because there's no properties. -->
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true" import="false">
-        <property name="logLevel" value="FINE"/>
+        <property name="logLevel" value="INFO"/>
     </component>
     
     <!-- The configuration for a partition cluster. We set import to false because there's no properties. -->
     <component name="parallelDataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="true" import="false">
-        <property name="logLevel" value="FINER"/>
+        <property name="logLevel" value="INFO"/>
         <property name="parallelGet" value="true"/>
         <property name="parallelPause" value="3"/>
     </component>
