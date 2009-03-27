@@ -31,6 +31,7 @@ import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
+import org.cobogw.gwt.user.client.ui.RoundedLinePanel;
 import org.cobogw.gwt.user.client.ui.RoundedPanel;
 
 /**
@@ -155,8 +156,10 @@ public abstract class Popup {
         fP.setHeight("100%");
         fP.setWidget(0, 0, vP);
 
-        RoundedPanel rp = new RoundedPanel(fP, RoundedPanel.ALL, 5);
-        rp.setCornerStyleName("popupColors");
+        //RoundedPanel rp = new RoundedPanel(fP, RoundedPanel.ALL, 5);
+        RoundedLinePanel rp = new RoundedLinePanel(fP, RoundedLinePanel.ALL, 5);
+        //rp.setCornerStyleName("popupColors");
+        rp.setCornerColor("#005480", "#5382a1", "#5382a1");
         popup.add(rp);
         popup.setAnimationEnabled(true);
         CssDefsImpl.impl.setRoundedPopupWidth(popup, width);
