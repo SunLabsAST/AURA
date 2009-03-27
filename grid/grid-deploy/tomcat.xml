@@ -19,6 +19,7 @@
             <caroline:intaddress name="${intaddress}" networkname="${network}"/>
             <!-- specify command line arguments -->
 	    <arg value="-Xmx2g"/>
+	    <arg value="-Dcom.sun.management.jmxremote"/>
             <arg value="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"/>
             <arg value="-Djava.util.logging.config.file=${service.working}/conf/logging.properties"/>
             <arg value="-Djava.endorsed.dirs=${service.working}/endorsed"/>

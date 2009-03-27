@@ -47,7 +47,7 @@
         <access-log rotation-suffix="yyyy-MM-dd" rotation-interval-in-minutes="15" />
         <http-listener id="http-listener-1" port="80" address="0.0.0.0" default-virtual-server="server" server-name="">
           <property name="compression" value="on" />
-          <property name="compressableMimeType" value="text/html,text/xml,application/xml,text/plain,text/css" />
+          <property name="compressableMimeType" value="text/html,text/xml,text/plain,text/css,text/javascript,application/xml"/>
         </http-listener>
         <http-listener id="http-listener-2" port="8181" enabled="false" address="0.0.0.0" security-enabled="true" default-virtual-server="server" server-name="">
           <ssl ssl3-enabled="false" cert-nickname="s1as" />
