@@ -140,20 +140,13 @@
 	<include name="*"/>
       </fileset>
       <fileset dir="${basedir}/on-grid-config">
-	<include name="asadmin.pass"/>
-      </fileset>
-      <fileset dir="${basedir}/on-grid-config">
-	<include name="keyfile"/>
-      </fileset>
-      <fileset dir="${tool.libraries}">
-	<include name="jsk-all.policy"/>
+	<include name="*"/>
       </fileset>
     </dav:put>
   </target>
 
   <!-- Update service configuration files -->
-  <target name="update-config"
-	  description="updates service configuration">
+  <target name="update-config" description="updates service configuration">
     <!-- update the configuration files contained in the distribution -->
     <dav:put url="${dav.url}/${service.conf}" userid="${user}" verbose="true" password="${pw}" lock="false">
       <!-- upload service configuration files -->

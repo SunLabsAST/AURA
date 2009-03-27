@@ -29,6 +29,11 @@
     <dav:mkcol url="${dav.url}/${service.conf}"
 	      verbose="true"
 	      userid="${user}" password="${pw}"/>
+    <dav:copy url="${config.url}/domain.xml"
+	      destination="${dav.url}/${www.filesystem}/unzip-dist.xml"
+	      verbose="true"
+	      overwrite="true"
+	      userid="${user}" password="${pw}"/>
   </target>
 
   <!-- Deploy a war file on-grid -->
