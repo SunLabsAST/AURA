@@ -11,10 +11,6 @@
       <engine sniffer="web" />
       <engine sniffer="security" />
     </application>
-    <application enabled="true" context-root="/WebMusicExplaura" location="${com.sun.aas.instanceRootURI}/applications/WebMusicExplaura/" directory-deployed="false" name="WebMusicExplaura" object-type="user">
-      <engine sniffer="web" />
-      <engine sniffer="security" />
-    </application>
   </applications>
   <resources>
     <jdbc-resource pool-name="__TimerPool" jndi-name="jdbc/__TimerPool" object-type="system-admin" />
@@ -36,7 +32,6 @@
     <server name="server" config-ref="server-config">
       <application-ref ref="__admingui" virtual-servers="__asadmin" />
       <application-ref ref="Simple" virtual-servers="server" />
-      <application-ref ref="WebMusicExplaura" virtual-servers="server" />
       <resource-ref ref="jdbc/__TimerPool" />
       <resource-ref ref="jdbc/__default" />
     </server>
@@ -46,9 +41,9 @@
       <http-service>
         <access-log rotation-suffix="yyyy-MM-dd" rotation-interval-in-minutes="15" />
         <http-listener id="http-listener-1" port="80" address="0.0.0.0" default-virtual-server="server" server-name="">
-          <property name="compression" value="on" />
-          <property name="compressableMimeType" value="text/html,text/xml,text/plain,text/css,text/javascript,application/xml"/>
-        </http-listener>
+        <property name="compression" value="on"/>
+        <property name="compressableMimeType" value="text/html,text/xml,text/plain,text/css,text/javascript,application/xml"/>
+	</http-listener>
         <http-listener id="http-listener-2" port="8181" enabled="false" address="0.0.0.0" security-enabled="true" default-virtual-server="server" server-name="">
           <ssl ssl3-enabled="false" cert-nickname="s1as" />
         </http-listener>
@@ -63,7 +58,7 @@
           <property name="accesslog" value="${com.sun.aas.instanceRoot}/logs/access" />
           <property name="sso-enabled" value="false" />
         </virtual-server>
-        <request-processing />
+        <request-processing thread-count="150" initial-thread-count="50" />
         <keep-alive max-connections="250" />
         <connection-pool />
         <http-protocol forced-response-type="text/plain; charset=iso-8859-1" default-response-type="text/plain; charset=iso-8859-1" />

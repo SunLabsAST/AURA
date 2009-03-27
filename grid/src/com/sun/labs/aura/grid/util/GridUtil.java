@@ -570,10 +570,8 @@ public class GridUtil {
         NetworkAddress externalAddress = null;
         String extName = instance + "-" + name;
         try {
-            externalAddress =
-                    grid.allocateExternalAddress(extName);
-            log.info("Allocated external address " +
-                    externalAddress.getAddress());
+            externalAddress = grid.allocateExternalAddress(extName);
+            log.info(String.format("Allocated external address %s for %s", externalAddress.getAddress(), extName));
         } catch(DuplicateNameException e) {
             log.fine("External address exists, reusing");
             externalAddress = grid.getExternalAddress(extName);

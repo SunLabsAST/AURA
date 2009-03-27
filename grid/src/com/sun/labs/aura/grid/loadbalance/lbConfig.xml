@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
-<!--
-    Document   : startAura.xml
-    Created on : May 20, 2008, 10:25 AM
-    Author     : stgreen
-    Description:
-        Configuration for the AuraStart grid script.
--->
 <config>
     
     <property name="auraInstance" value="live"/>
@@ -14,8 +7,6 @@
     <property name="serviceName" value="www"/>
 
     <property name="hostName" value="lb"/>
-    
-    <!-- <property name="logLevel" value="FINER"/> -->
     
     <component name="L4LB" type="com.sun.labs.aura.grid.loadbalance.L4LoadBalancer">
         <property name="instance" value="${auraInstance}"/>
