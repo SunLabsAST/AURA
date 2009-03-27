@@ -215,7 +215,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         mainPanel.setStyleName("pageHeader");
         mainPanel.setCellSpacing(0);
 
-        mainPanel.getCellFormatter().setWidth(0, 0, "256px");
+        mainPanel.getCellFormatter().setWidth(0, 0, "279px");
         // this should be * but makes ie blow up so just set a big % to fill the space
         mainPanel.getCellFormatter().setWidth(0, 1, "80%");
         mainPanel.getCellFormatter().setWidth(0, 2, "100px");
@@ -251,7 +251,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         // mainPanel.setWidget(0,0, new Label("The Music Explaura"));
         //Label title = new Label("The Music Explaura");
         Image title = new Image("header_left_fill.gif");
-        title.setWidth("266px");
+        title.setWidth("277px");
         title.setHeight("65px");
         title.addClickHandler(new ClickHandler() {
             @Override
