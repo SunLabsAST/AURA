@@ -71,4 +71,8 @@ public interface ArtistRelatedBundle extends ImageBundle {
     @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/Next_Button.png")
     public AbstractImagePrototype scrollWidgetNext();
 
+    @Resource("com/sun/labs/aura/music/wsitm/client/ui/bundles/img/Top_Button.png")
+    public AbstractImagePrototype topArrow();
+
+
 }

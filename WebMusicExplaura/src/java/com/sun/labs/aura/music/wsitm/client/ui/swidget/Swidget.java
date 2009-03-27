@@ -12,6 +12,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
@@ -22,6 +23,8 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
+import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
+import com.sun.labs.aura.music.wsitm.client.ui.bundles.ArtistRelatedBundle;
 import java.util.ArrayList;
 
 /**
@@ -29,6 +32,10 @@ import java.util.ArrayList;
  * @author plamere
  */
 public abstract class Swidget extends Composite implements HasListeners {
+
+    public static ArtistRelatedBundle playImgBundle =
+            (ArtistRelatedBundle) GWT.create(ArtistRelatedBundle.class);
+
 
     private String name;
 
@@ -142,10 +149,15 @@ public abstract class Swidget extends Composite implements HasListeners {
             topActivityIcon.setVisible(false);
             topActivityIcon.setStyleName("img");
 
-            topMsgGrid = new Grid(1,1);
-            topMsgGrid.getCellFormatter().setHeight(0, 0, "35px");
-            topMsgGrid.getCellFormatter().setWidth(0, 0, "100%");
-            topMsgGrid.getCellFormatter().setHorizontalAlignment(0, 0, HorizontalPanel.ALIGN_CENTER);
+            topMsgGrid = new Grid(1,3);
+            topMsgGrid.setWidth("100%");
+            topMsgGrid.getCellFormatter().setHeight(0, 1, "35px");
+            
+            topMsgGrid.getCellFormatter().setWidth(0, 0, "200px");
+            topMsgGrid.getCellFormatter().setWidth(0, 1, "100%");
+            topMsgGrid.getCellFormatter().setWidth(0, 2, "200px");
+
+            topMsgGrid.getCellFormatter().setHorizontalAlignment(0, 1, HorizontalPanel.ALIGN_CENTER);
 
             VerticalPanel mainPanel = new VerticalPanel();
             mainPanel.setWidth("100%");
@@ -153,6 +165,7 @@ public abstract class Swidget extends Composite implements HasListeners {
             mainPanel.add(topMsgGrid);
             mainPanel.add(widget);
             super.initWidget(mainPanel);
+            showHelpOffer();
         } else {
             super.initWidget(widget);
         }
@@ -162,7 +175,7 @@ public abstract class Swidget extends Composite implements HasListeners {
         if (useTopLoader) {
             topMessage.setVisible(false);
             topActivityIcon.setVisible(true);
-            topMsgGrid.setWidget(0, 0, topActivityIcon);
+            topMsgGrid.setWidget(0, 1, topActivityIcon);
         }
     }
 
@@ -177,7 +190,30 @@ public abstract class Swidget extends Composite implements HasListeners {
             topMessage.setText(message);
             topMessage.setVisible(true);
             topActivityIcon.setVisible(false);
-            topMsgGrid.setWidget(0, 0, topMessage);
+            topMsgGrid.setWidget(0, 1, topMessage);
+        }
+    }
+
+    protected void showHelpOffer() {
+        if (useTopLoader) {
+            HorizontalPanel hP = new HorizontalPanel();
+            hP.setSpacing(3);
+            hP.add(playImgBundle.topArrow().createImage());
+            Label helpLbl = new Label("Need help?");
+            helpLbl.addStyleName("tag1");
+            helpLbl.setWidth("100px");
+            hP.add(helpLbl);
+            hP.getElement().getStyle().setPropertyPx("marginLeft", 30);
+            topMsgGrid.setWidget(0, 0, hP);
+
+            // Clear message in 10 seconds
+            Timer t = new Timer() {
+                @Override
+                public void run() {
+                    topMsgGrid.clearCell(0, 0);
+                }
+            };
+            t.schedule(1000*10);
         }
     }
 }
