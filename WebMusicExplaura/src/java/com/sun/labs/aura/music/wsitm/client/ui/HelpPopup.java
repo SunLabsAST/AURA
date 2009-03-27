@@ -82,7 +82,7 @@ public class HelpPopup {
         vP.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
         vP.add(rp);
         vP.add(contentPanel);
-        Popup.showRoundedPopup(vP, "Music Explaura Help", popup, 780);
+        Popup.showRoundedPopup(vP, "Music Explaura Help", popup, 800);
         isInit = true;
 
     }
