@@ -22,6 +22,8 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
+import com.sun.labs.aura.music.wsitm.client.ui.HelpPopup;
+import com.sun.labs.aura.music.wsitm.client.ui.HelpPopup.HELP_SECTIONS;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedArtistMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedPlayButtonMenu;
@@ -91,6 +93,8 @@ public class ClientDataManager {
     private SharedArtistMenu sharedArtistMenu;
     private SharedPlayButtonMenu sharedPlayButtonMenu;
 
+    private HelpPopup helpPopup;
+
     public ClientDataManager() {
         lD = new ListenerDetails();
         registeredSwidgets = new HashSet<Swidget>();
@@ -110,6 +114,12 @@ public class ClientDataManager {
         sharedArtistMenu = new SharedArtistMenu(this);
         sharedPlayButtonMenu = new SharedPlayButtonMenu(this);
 
+        helpPopup = new HelpPopup();
+
+    }
+
+    public void showHelp(HELP_SECTIONS section) {
+        helpPopup.showHelp(section);
     }
 
     public MusicProviderSwitchListenerManager getMusicProviderSwitchListenerManager() {

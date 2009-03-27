@@ -22,6 +22,7 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.sun.labs.aura.music.wsitm.client.ui.HelpPopup.HELP_SECTIONS;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.bundles.ArtistRelatedBundle;
@@ -101,7 +102,7 @@ public abstract class Swidget extends Composite implements HasListeners {
      * Display help when top header link is clicked
      */
     public void displayHelp() {
-        Popup.showInformationPopup("Sorry, no help is available for this section.");
+        cdm.showHelp(HELP_SECTIONS.INTRO);
     }
 
     protected final void updateWindowTitle(String swidgetTitle) {

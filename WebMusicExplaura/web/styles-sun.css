@@ -103,6 +103,11 @@ body {
     border-bottom: medium solid #ffffff;
     border-width: thin;
 }
+.helpPopupMenu {
+    background: #005480;
+    background-color: #005480;
+    color: #ffffff;
+}
 .pageConfigHeader {
     font-size : 10px;
     background-color: #5382a1;

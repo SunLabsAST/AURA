@@ -47,6 +47,7 @@ import com.sun.labs.aura.music.wsitm.client.items.RecsNTagsContainer;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredTag;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuTagLabel;
+import com.sun.labs.aura.music.wsitm.client.ui.HelpPopup.HELP_SECTIONS;
 import com.sun.labs.aura.music.wsitm.client.ui.PerformanceTimer;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
 import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
@@ -135,20 +136,7 @@ public class SteeringSwidget extends Swidget {
      */
     @Override
     public void displayHelp() {
-
-        HorizontalPanel hP = new HorizontalPanel();
-        hP.setSpacing(8);
-        hP.add(new Image("help-steer.png"));
-
-        VerticalPanel vP = new VerticalPanel();
-        vP.setWidth("300px");
-        vP.setStyleName("helpTxt");
-        vP.add(new HTML("<span class=\"tag1\">(1)</span> Search for an artist or tag. Click on its name to add it to your tag cloud."));
-        vP.add(new HTML("<span class=\"tag1\">(2)</span> Click and drag a tag to grow it or shrink it. Right-click on a tag to display its context menu, where you can make it sticky, negative or delete it. "));
-        vP.add(new HTML("<span class=\"tag1\">(3)</span> Get recommendations that match your tag cloud. You can obtain an explanation of why an artist is recommended by clicking on its \"why?\" link or listen to it by clicking on its Play button."));
-        hP.add(vP);
-
-        Popup.showRoundedPopup(hP, "Steerable recommendations basics", 780);
+        cdm.showHelp(HELP_SECTIONS.STEERING);
     }
 
     public class MainPanel extends Composite implements LoginListener, HasListeners {
