@@ -24,33 +24,8 @@
     <welcome-file-list>
         <welcome-file>Index</welcome-file>
         </welcome-file-list>
-<!--
-    <security-constraint>
-        <display-name>Main site</display-name>
-        <web-resource-collection>
-            <web-resource-name>Main Site</web-resource-name>
-            <description>everything in this app</description>
-            <url-pattern>/*</url-pattern>
-            <http-method>GET</http-method>
-            <http-method>POST</http-method>
-            <http-method>HEAD</http-method>
-            <http-method>PUT</http-method>
-            <http-method>OPTIONS</http-method>
-            <http-method>TRACE</http-method>
-            <http-method>DELETE</http-method>
-        </web-resource-collection>
-        <auth-constraint>
-            <description>Only aura can use the main site</description>
-            <role-name>aurademo</role-name>
-            </auth-constraint>
-        </security-constraint>
-    <login-config>
-        <auth-method>BASIC</auth-method>
-        <realm-name>TasteKeeper.com</realm-name>
-        </login-config>
     <security-role>
         <description>User level access to aura</description>
         <role-name>aurademo</role-name>
     </security-role>
-    -->
     </web-app>
