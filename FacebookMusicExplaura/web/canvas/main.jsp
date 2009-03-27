@@ -380,7 +380,7 @@ cloud by combining the most distinctive terms that describe each band.
         ajax.onerror = ajaxError;
         var query = {"fbUID" : fbUID,
                      "fbSession" : fbSession};
-        ajax.post(canvasPath + "/ajax/updateCloudFromArtistIDs", query);
+        ajax.post(canvasPath + "/ajax/updateCloud", query);
     }
 
     /*
