@@ -87,7 +87,7 @@ public class Canvas extends HttpServlet {
             
             RequestDispatcher dispatcher = request.getRequestDispatcher("/canvas/main.jsp");
             dispatcher.forward(request, response);
-        } else if (canvasPath.equals("/updateCloudFromArtistIDs")) {
+        } else if (canvasPath.equals("/updateCloud")) {
             String fbSession = request.getParameter("fbSession");
             String uidStr = request.getParameter("fbUID");
             Long uid = Long.valueOf(uidStr);
@@ -118,6 +118,19 @@ public class Canvas extends HttpServlet {
                 // then ask for the default music and go on from there
                 currUser.setHasMusic(false);
                 artists = getArtistsFromFBString(currUser.getMusicString(), dm);
+
+                //
+                // If we still didn't get any artists, the datastore is
+                // probably unresponsive.  Send back an error.
+                if (artists.isEmpty()) {
+                    logger.log(Level.WARNING,
+                            "No artists after Coldplay lookup!  DS down?");
+                    JSONArray err = getJSONError("Sorry, we're having trouble " +
+                            "communicating with our servers.  Please check back " +
+                            "later.");
+                    sendJSON(err, response);
+                    return;
+                }
                 uidToArtists.put(uid, artists);
             }
 
