@@ -23,6 +23,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
@@ -127,6 +128,27 @@ public class SteeringSwidget extends Swidget {
     public void doRemoveListeners() {
         mP.doRemoveListeners();
         mP.onDelete();
+    }
+
+    /**
+     * Display help when top header link is clicked
+     */
+    @Override
+    public void displayHelp() {
+
+        HorizontalPanel hP = new HorizontalPanel();
+        hP.setSpacing(8);
+        hP.add(new Image("help-steer.png"));
+
+        VerticalPanel vP = new VerticalPanel();
+        vP.setWidth("300px");
+        vP.setStyleName("helpTxt");
+        vP.add(new HTML("<span class=\"tag1\">(1)</span> Search for an artist or tag. Click on its name to add it to your tag cloud."));
+        vP.add(new HTML("<span class=\"tag1\">(2)</span> Click and drag a tag to grow it or shrink it. Right-click on a tag to display its context menu, where you can make it sticky, negative or delete it. "));
+        vP.add(new HTML("<span class=\"tag1\">(3)</span> Get recommendations that match your tag cloud. You can obtain an explanation of why an artist is recommended by clicking on its \"why?\" link or listen to it by clicking on its Play button."));
+        hP.add(vP);
+
+        Popup.showRoundedPopup(hP, "Steerable recommendations basics", 780);
     }
 
     public class MainPanel extends Composite implements LoginListener, HasListeners {

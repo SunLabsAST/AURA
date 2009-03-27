@@ -66,6 +66,11 @@ body {
   color: white;
   font-size: 12px;
 }
+.helpTxt {
+  color: white;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
 .artistPanel:hover {
   background-color: #e8e0cb;
   background: #e8e0cb;
