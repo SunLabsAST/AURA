@@ -7,10 +7,9 @@ package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Grid;
-import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
-import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
+import org.cobogw.gwt.user.client.ui.RoundedPanel;
 
 /**
  *

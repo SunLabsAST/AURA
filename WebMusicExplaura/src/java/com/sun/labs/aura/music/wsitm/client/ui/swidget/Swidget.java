@@ -23,8 +23,6 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.ui.HelpPopup.HELP_SECTIONS;
-import com.sun.labs.aura.music.wsitm.client.ui.Popup;
-import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.bundles.ArtistRelatedBundle;
 import java.util.ArrayList;
 

@@ -31,6 +31,7 @@ import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
 import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.WebLib;
 import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
+import org.cobogw.gwt.user.client.ui.RoundedPanel;
 
 /**
  *

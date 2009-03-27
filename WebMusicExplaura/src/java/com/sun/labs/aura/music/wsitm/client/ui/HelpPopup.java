@@ -16,6 +16,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import java.util.ArrayList;
+import org.cobogw.gwt.user.client.ui.RoundedPanel;
 
 /**
  *

@@ -41,12 +41,12 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
 import com.sun.labs.aura.music.wsitm.client.ui.Popup;
-import com.sun.labs.aura.music.wsitm.client.ui.RoundedPanel;
 import com.sun.labs.aura.music.wsitm.client.ui.bundles.VariaBundle;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.Oracles;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import org.cobogw.gwt.user.client.ui.RoundedPanel;
 
 /**
  *
