@@ -21,6 +21,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
@@ -222,6 +223,9 @@ public class Main implements EntryPoint {
     }
 
     private void setResults(String historyName, Swidget newSwidget) {
+
+        // We're changin page; scroll the window to the top of the page
+        Window.scrollTo(0, 0);
 
         // If we are loading the same swidget, just notify it that a new history
         // event occurent in case it needs to change its internal state
