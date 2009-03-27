@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function usage {
-    echo 'Usage: deployGFLBWar -b [begin number] -c [count] -h [-n server name] -w [war file]'
+    echo 'Usage: deployGFLBWar [-h] [-b begin number] [-c count] [-n server name] [-w war file]'
     echo ' server name defaults to www, begin to 1, count to 5, and war file to WME'
 }
 

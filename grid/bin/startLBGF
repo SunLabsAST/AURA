@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function usage {
-    echo 'Usage: startLBGF -b [begin number] -c [count] -h [-n server name]'
+    echo 'Usage: startLBGF [-h] [-b begin number] [-c count] [-n server name] [-l external hostname]'
     echo ' server_name defaults to gf, begin to 1 and count to 5'
 }
 
@@ -55,5 +55,7 @@ for (( COUNT=$BEGIN ; COUNT < $END ; COUNT++ )) ; do
 done
 
 java -jar $DIR/../dist/grid.jar \
-    -DauraInstance=${INSTANCE} -DserviceName=${NAME} -DhostName=${EXTNAME} \
+    -a "-DauraInstance=${INSTANCE}" \
+    -a "-DserviceName=${NAME}" \
+    -a "-DhostName=${EXTNAME}" \
     /com/sun/labs/aura/grid/loadbalance/lbConfig.xml start-http

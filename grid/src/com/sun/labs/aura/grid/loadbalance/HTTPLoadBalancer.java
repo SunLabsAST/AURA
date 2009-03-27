@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package com.sun.labs.aura.grid.loadbalance;
 
 import com.sun.caroline.platform.HttpVirtualServiceConfiguration;
@@ -59,6 +54,8 @@ public class HTTPLoadBalancer extends ServiceAdapter {
     private Pattern servicePattern;
     
     public void start() {
+
+        logger.info(String.format("service: %s host: %s", serviceName, hostName));
 
 
         //
@@ -124,6 +121,7 @@ public class HTTPLoadBalancer extends ServiceAdapter {
                 //
                 // We need an external address and hostname.
                 ext = gu.getExternalAddressFor(serviceName, hostName);
+                logger.info(String.format("external address: %s", ext));
             } catch (Exception ex) {
                 logger.log(Level.SEVERE, "Unable to get external address for LB",
                         ex);

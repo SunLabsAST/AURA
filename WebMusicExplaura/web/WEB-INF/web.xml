@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
     <display-name>WebMusicExplaura</display-name>
+    <filter>
+        <filter-name>ImageExpiresFilter</filter-name>
+        <filter-class>com.sun.labs.aura.music.wsitm.server.ImageExpiresFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>ImageExpiresFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
     <listener>
         <description>Connect to WebMusicExplaura</description>
         <listener-class>com.sun.labs.aura.music.wsitm.server.ServletListener</listener-class>
@@ -39,6 +47,7 @@
     <welcome-file-list>
         <welcome-file>welcomeGWT.html</welcome-file>
     </welcome-file-list>
+<!--    
     <security-constraint>
         <display-name>MusicExplaura</display-name>
         <web-resource-collection>
@@ -60,4 +69,5 @@
         <description/>
         <role-name>wme</role-name>
     </security-role>
+    -->
 </web-app>
