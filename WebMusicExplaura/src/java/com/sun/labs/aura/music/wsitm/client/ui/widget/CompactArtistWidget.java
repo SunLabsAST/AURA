@@ -19,6 +19,7 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget.SwapableTxtButton;
@@ -151,13 +152,13 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         Panel tagsLabel = getNDistinctiveTags("Tags: ", aC, 4);
         tagsLabel.setStyleName("recoTags");
         txtPanel.add(tagsLabel);
-
+        /*
         star = new StarRatingWidget(musicServer, cdm, aC.getId(),
                 iR, StarRatingWidget.Size.SMALL);
 
         cdm.getRatingListenerManager().addListener(aC.getId(), star);
         cdm.getLoginListenerManager().addListener(star);
-
+        
         Label starLbl = new Label("Your rating: ");
         starLbl.setStyleName("recoTags");
         starLbl.addStyleName("marginRight");
@@ -182,9 +183,10 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         starGrid.getCellFormatter().setHorizontalAlignment(0, 2, HorizontalPanel.ALIGN_RIGHT);
         starGrid.setWidget(0, 2, tagLbl);
         txtPanel.add(starGrid);
-
-
-        txtPanel.add(WebLib.getSmallPopularityWidget(aC.getNormPopularity(), true, true));
+        */
+        Widget w = WebLib.getSmallPopularityWidget(aC.getNormPopularity(), true, true);
+        w.getElement().getStyle().setPropertyPx("marginTop", 5);
+        txtPanel.add(w);
 
         artistPanel.setVerticalAlignment(VerticalPanel.ALIGN_TOP);
         artistPanel.add(txtPanel);

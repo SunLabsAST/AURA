@@ -629,8 +629,10 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         steerButton.setTitle("Steerable recommendations starting with "+aC.getName()+"'s tag cloud");
         hP.add(new ContextMenuSteeringWheelWidget(cdm, steerButton, aC));
 
+        //return createMainSection(artistDetails.getName(), html,
+        //        hP, artistDetails.getDistinctiveTags(), artistStar, true);
         return createMainSection(artistDetails.getName(), html,
-                hP, artistDetails.getDistinctiveTags(), artistStar, true);
+                hP, artistDetails.getDistinctiveTags(), null, true);
     }
 
     private Widget getMoreInfoWidget(ArtistDetails artistDetails) {
@@ -748,7 +750,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             if (addTagInputWidget) {
                 tagInputWidget = new TagInputWidget(musicServer, cdm, "artist", cdm.getCurrArtistID());
                 cdm.getLoginListenerManager().addListener(tagInputWidget);
-                panel.add(tagInputWidget);
+                //panel.add(tagInputWidget);
             }
             
             Panel p = TagDisplayLib.getTagsInPanel(tagCloud, TagDisplayLib.ORDER.SHUFFLE, cdm, TagColorType.TAG);
