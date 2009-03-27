@@ -24,6 +24,7 @@
     <welcome-file-list>
         <welcome-file>Index</welcome-file>
         </welcome-file-list>
+<!--
     <security-constraint>
         <display-name>Main site</display-name>
         <web-resource-collection>
@@ -51,4 +52,5 @@
         <description>User level access to aura</description>
         <role-name>aurademo</role-name>
     </security-role>
+    -->
     </web-app>
