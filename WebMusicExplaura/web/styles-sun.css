@@ -271,6 +271,10 @@ h2 {
 .contextMenuItem {
     cursor: pointer;
 }
+.contextMenuItem:hover {
+    background : #e76f00;
+    color: white;
+}
 .contextMenuItemHover {
     background : #e76f00;
     color: white;
