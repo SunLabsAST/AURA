@@ -112,6 +112,7 @@ public abstract class AbstractSearchWidget extends Composite {
     private SuggestBox getNewSuggestBox(PopSortedMultiWordSuggestOracle oracle) {
         final SuggestBox box = new SuggestBox(oracle);
         box.setLimit(15);
+        box.setAutoSelectEnabled(false);
         box.addKeyPressHandler(new KeyPressHandler() {
             @Override
             public void onKeyPress(KeyPressEvent event) {
