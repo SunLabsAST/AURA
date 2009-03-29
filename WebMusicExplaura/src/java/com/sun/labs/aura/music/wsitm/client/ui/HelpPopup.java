@@ -191,9 +191,10 @@ public class HelpPopup {
     }
 
     private Widget buildSectionIntro() {
-        Label l = new Label("Welcome to The Music Explaura, a music exploration and recommendation application that explains to you why it recommends you the music it does.");
-        l.addStyleName("popupColors");
-        return l;
+        String mainHtml = "<p class=\"helpTxt\" align=\"left\">Welcome to The Music Explaura! The Explaura is a musical artist recommendation application built using <a href=\"http://www.tastekeeper.com\" target=\"_blank\" style=\"color:#ffffff\">TasteKeeper</a> as its back end. Users can find artists they like, accentuate the aspects of those artists they enjoy the most and get recommendations for other artists. Users can steer the recommendations by adding terms that describe what they want and see explanations of why particular artists were recommended.</p>";
+        mainHtml += "<br /><div class=\"tagPop2\" align=\"center\">Screencast of the Music Explaura in action</div>";
+        mainHtml += "<center><object width=\"425\" height=\"344\"><param name=\"movie\" value=\"http://www.youtube.com/v/wBgwnKV892I&hl=en&fs=1&color1=0x2b405b&color2=0x6b8ab6\"></param><param name=\"allowFullScreen\" value=\"true\"></param><param name=\"allowscriptaccess\" value=\"always\"></param><embed src=\"http://www.youtube.com/v/wBgwnKV892I&hl=en&fs=1&color1=0x2b405b&color2=0x6b8ab6\" type=\"application/x-shockwave-flash\" allowscriptaccess=\"always\" allowfullscreen=\"true\" width=\"425\" height=\"344\"></embed></object></center>";
+        return new HTML(mainHtml);
     }
 
     private Widget buildSectionNA() {
