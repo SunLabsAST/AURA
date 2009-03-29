@@ -108,7 +108,11 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         int i = 0;
         for (ScoredC<ArtistCompact> saC : aCList) {
             aDArray[i] = saC.getItem();
-            similarity[i] = saC.getScore();
+            if (saC.getScore() > 1) {
+                similarity[i] = 1.0;
+            } else {
+                similarity[i] = saC.getScore();
+            }
             i++;
         }
     }
