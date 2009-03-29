@@ -9,7 +9,6 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.event.CommonTagsAsyncCallback;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
@@ -39,7 +38,8 @@ public abstract class TagDisplayLib {
         TAG_POPUP,
         ARTIST,
         STICKY_TAG,
-        STICKY_ARTIST
+        STICKY_ARTIST,
+        DIFF_CLOUD
     }
 
     public static void showDifferenceCloud(String title, ItemInfo[] tags1, ItemInfo[] tags2, ClientDataManager cdm) {
@@ -63,7 +63,7 @@ public abstract class TagDisplayLib {
             }
         }
 
-        showTagCloud(title, subTags, ORDER.DESC, cdm);
+        showTagCloud(title, subTags, ORDER.DESC, cdm, TagColorType.DIFF_CLOUD);
     }
     
     private static HashMap<String, Double> normaliseItemInfoArray(ItemInfo[] iI) {
@@ -84,14 +84,20 @@ public abstract class TagDisplayLib {
         return normMap;
     }
    
-    public static void showTagCloud(String title, HashMap<String, ScoredTag> tags, ORDER order, ClientDataManager cdm) {
+    public static void showTagCloud(String title, HashMap<String, ScoredTag> tags, 
+            ORDER order, ClientDataManager cdm) {
+        showTagCloud(title, tags, order, cdm, TagColorType.TAG_POPUP);
+    }
+
+    public static void showTagCloud(String title, HashMap<String, ScoredTag> tags, 
+            ORDER order, ClientDataManager cdm, TagColorType tct) {
         ItemInfo[] iI = new ItemInfo[tags.size()];
         int index = 0;
         for (String tag : tags.keySet()) {
             double val = tags.get(tag).getScore();
             iI[index++] = new ItemInfo(ClientDataManager.nameToKey(tag), tag, val, val);
         }
-        showTagCloud(title, iI, order, cdm);
+        showTagCloud(title, iI, order, cdm, tct);
     }
 
     public static void showTagCloud(String title, ItemInfo[] tags, ORDER order,
@@ -171,6 +177,7 @@ public abstract class TagDisplayLib {
             for (int i = 0; i < tags.length; i++) {
                 boolean isTag = tags[i].getId().startsWith("artist-tag:");
                 int colorId = i % 2;
+
                 int fontSize;
                 if (tags.length == 1 || range == 0) {
                     fontSize = scoreToFontSize(1);
@@ -184,6 +191,7 @@ public abstract class TagDisplayLib {
                 } else {
                     sL = new SpannedLabel(tags[i].getItemName());
                 }
+
                 sL.getElement().getStyle().setPropertyPx("fontSize", fontSize);
                 setColorToElem(sL, colorId, tags[i].getScore(), null, colorTheme);
                 sL.addStyleName("pointer");
@@ -251,6 +259,13 @@ public abstract class TagDisplayLib {
                 return setColorToElem(sL, index, size, previousColor, TagColorType.ARTIST);
             } else {
                 newColor = "artistTag"+(index+1)+"Sticky";
+            }
+
+        } else if (colorType==TagColorType.DIFF_CLOUD) {
+            if (size<0) {
+                newColor = "tagDiff" + (index + 1);
+            } else {
+                newColor = "tagPop" + (index + 1);
             }
         }
 
