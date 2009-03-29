@@ -98,7 +98,7 @@ public class HTTPLoadBalancer extends ServiceAdapter {
         // Now get the configuration.  We'll use the on-grid one if we can.
         NetworkSetting lbns = null;
         HttpVirtualServiceConfiguration config = null;
-        String lbName = instance + "-lb";
+        String lbName = instance + "-" + serviceName + "-lb";
 
 
         try {
