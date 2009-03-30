@@ -510,7 +510,7 @@ public class ItemSearchEngine implements Configurable {
             Set<String> include = config.getInclude();
             if(include != null && include.size() > 0) {
                 ResultSet inc = ((SearchEngineImpl) engine).allTerms(include,
-                        config.getFieldNames());
+                        config.getFieldNames(), false);
                 sim = sim.intersect(inc);
             }
 
@@ -519,7 +519,7 @@ public class ItemSearchEngine implements Configurable {
             Set<String> exclude = config.getExclude();
             if(exclude != null && exclude.size() > 0) {
                 ResultSet exc = ((SearchEngineImpl) engine).anyTerms(exclude,
-                        config.getFieldNames());
+                        config.getFieldNames(), false);
                 sim = sim.difference(exc);
             }
             for(Result r : sim.getResults(0, config.getN(), config.getFilter())) {

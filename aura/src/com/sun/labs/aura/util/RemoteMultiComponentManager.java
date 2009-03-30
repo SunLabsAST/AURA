@@ -30,8 +30,6 @@ public class RemoteMultiComponentManager extends RemoteComponentManager {
         List<Component> l = cm.lookupAll(clazz, this);
         if(l != null) {
             components = l.toArray(new Component[0]);
-            logger.info(String.format("Got %d components of type %s",
-                    components.length, clazz.getName()));
         }
     }
     
