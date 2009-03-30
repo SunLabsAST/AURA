@@ -54,14 +54,17 @@ public class Listener extends ItemAdapter {
 
     public Listener(Item user) {
         super(user, Item.ItemType.USER);
-        setYearOfBirth(1959);
     }
 
     public Listener() {
     }
 
     public int getAge() {
-        return getCurrentYear() - getYearOfBirth();
+        int yob = getYearOfBirth();
+        if (yob > 0) {
+            return getCurrentYear() - yob;
+        }
+        return 0;
     }
 
     public User getUser() {
