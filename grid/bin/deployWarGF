@@ -49,12 +49,12 @@ fi
 echo Deploying $FILE to $NAME
 
 if [ ! -z "$WARPATH" ] ; then
-    ant -Ddeployment.name=$NAME \
+    ant -noclasspath -Ddeployment.name=$NAME \
 	-Dwar.loc=$WARFILE \
 	-Dwar.path=$WARPATH \
 	-f $DIR/../grid-deploy/gf.xml deploy-war
 else 
-    ant -Ddeployment.name=$NAME \
+    ant -noclasspath -Ddeployment.name=$NAME \
 	-Dwar.loc=$WARFILE \
 	-f $DIR/../grid-deploy/gf.xml deploy-war
 fi

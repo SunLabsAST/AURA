@@ -32,4 +32,4 @@ do
 done
 
 echo Deploying $NAME
-ant -Ddeployment.name=$NAME -f $DIR/../grid-deploy/gf.xml 
+ant -noclasspath -Ddeployment.name=$NAME -f $DIR/../grid-deploy/gf.xml 

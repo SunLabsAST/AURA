@@ -206,13 +206,12 @@
             <fileset dir="../aura/dist">
                 <include name="aura.jar"/>
             </fileset>
-            <fileset dir="../../../minion/minion/dist/">
+            <fileset dir="../../../minion/trunk/minion/dist/">
                 <include name="minion.jar"/>
             </fileset>
         </dav:put>
         <!-- Redo the jar target so that the service deployer is the main program! -->
-        <antcall target="jar"/>
-        <!--<growl message="Grid Upload finished."/> -->
+        <antcall target="do-service-deployer-jar-with-libraries"/>
     </target>
 
     <target name="upload-grid-jar" description="Uploads distribution files" depends="create-dist-collections,do-service-starter-jar-with-libraries">
@@ -222,7 +221,7 @@
                 <include name="grid.jar"/>
             </fileset>
         </dav:put>
-        <!--<growl message="Grid Upload finished."/> -->
-        <antcall target="jar"/>
+        <!-- Redo the jar target so that the service deployer is the main program! -->
+        <antcall target="do-service-deployer-jar-with-libraries"/>
     </target>
 </project>

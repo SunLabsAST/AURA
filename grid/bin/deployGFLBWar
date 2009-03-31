@@ -60,13 +60,13 @@ for (( COUNT=$BEGIN ; COUNT < $END ; COUNT++ )) ; do
     echo Deploying $FILE to $NAME-$COUNT
 
     if [ ! -z "$WARPATH" ] ; then
-	ant -Ddeployment.name=$NAME \
+	ant -noclasspath -Ddeployment.name=$NAME \
 	    -Ddeployment.number=$COUNT \
 	    -Dwar.loc=$WARFILE \
 	    -Dwar.path=$WARPATH \
 	    -f $DIR/../grid-deploy/gf-lb.xml deploy-war
     else 
-	ant -Ddeployment.name=$NAME \
+	ant -noclasspath -Ddeployment.name=$NAME \
 	    -Ddeployment.number=$COUNT \
 	    -Dwar.loc=$WARFILE \
 	    -f $DIR/../grid-deploy/gf-lb.xml deploy-war
