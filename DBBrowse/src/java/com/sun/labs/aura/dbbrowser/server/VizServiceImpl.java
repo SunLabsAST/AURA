@@ -101,9 +101,9 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         ComponentRegistry cr = cm.getComponentRegistry();
         Map<ServiceRegistrar,List<ServiceItem>> reggies = cr.getJiniServices();
         for (ServiceRegistrar sr : reggies.keySet()) {
-            logger.info("ServiceRegistrar: " + sr);
+            logger.fine("ServiceRegistrar: " + sr);
             for (ServiceItem i : reggies.get(sr)) {
-                logger.info ("  Service: " + i.toString());
+                logger.fine("  Service: " + i.toString());
             }
         }
         ServiceRegistrar sr = reggies.keySet().iterator().next();
@@ -204,6 +204,27 @@ public class VizServiceImpl extends RemoteServiceServlet implements
                     String src = stat.substring(0, stat.length() -
                             ProcessManager.StatName.PERCENT_CPU.toString().length() - 1);
                     result.put(src, statService.getDouble(stat));
+                }
+            }
+        } catch (RemoteException e) {
+            logger.log(Level.WARNING, "Failed to communicate with stats server", e);
+        }
+        return result;
+    }
+
+    /**
+     * Gets stats on all registered web servers
+     */
+    public Map<String,Double> getWebStats() {
+        Map <String,Double> result = new HashMap<String,Double>();
+        try {
+            String[] allStats = statService.getDoubleNames();
+            for (String statName : allStats) {
+                if (statName.startsWith("web:")) {
+                    //
+                    // format is web:serverName:statName.  Lop off the "web:"
+                    String name = statName.substring(4);
+                    result.put(name, statService.getDouble(statName));
                 }
             }
         } catch (RemoteException e) {
