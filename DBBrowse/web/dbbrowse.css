@@ -105,6 +105,14 @@ a:visited {
   border: 1px solid #999999;
 }
 
+.viz-webPanel {
+  background-color: #9999ff;
+  padding: 5px;
+  margin: 5px;
+  border: 1px solid #999999;
+}
+
+
 .viz-clearPanel {
   padding: 5px;
   margin: 5px;

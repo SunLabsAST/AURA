@@ -28,8 +28,8 @@ public class Control {
     private long lateCount;
     private long lastLateCount;
 
-    public Control(String host, boolean periodicDump) throws IOException {
-        sitm = new SitmAPI(host, false, true, periodicDump);
+    public Control(SitmAPI sitm) throws IOException {
+        this.sitm = sitm;
         fetchArtists();
         fetchArtistTags();
         reset();

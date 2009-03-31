@@ -7,6 +7,7 @@ package com.sun.labs.aura.music.test;
 import com.sun.labs.aura.music.webservices.api.Item;
 import com.sun.labs.aura.music.webservices.api.Scored;
 import com.sun.labs.aura.music.webservices.api.SitmAPI;
+import com.sun.labs.aura.music.webservices.api.SitmAPIImpl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -151,7 +152,7 @@ public class Heartbeat {
     private boolean startup() {
         if (sitm == null) {
             try {
-                sitm = new SitmAPI(url, false, true, false);
+                sitm = SitmAPI.getSitmAPI(url, false, true, false);
                 artists = sitm.getArtists(100);
                 startTime = System.currentTimeMillis();
                 lastChangeTime = startTime;

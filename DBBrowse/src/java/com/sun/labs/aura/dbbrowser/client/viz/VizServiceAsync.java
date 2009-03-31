@@ -30,6 +30,8 @@ public interface VizServiceAsync {
 
     public void getCPULoads(AsyncCallback asyncCallback);
 
+    public void getWebStats(AsyncCallback asyncCallback);
+
     public void getRepLogNames(AsyncCallback asyncCallback);
 
     public void getRepSelectedLogNames(String prefix, AsyncCallback asyncCallback);

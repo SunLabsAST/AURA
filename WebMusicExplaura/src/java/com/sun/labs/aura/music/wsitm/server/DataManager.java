@@ -186,7 +186,7 @@ public class DataManager implements Configurable {
             ArrayList<ItemInfo> artistResult = new ArrayList<ItemInfo>();
 
             for (Scored<String> ss : simList) {
-                logger.info("rel:"+ss.getItem());
+                logger.finest("rel:"+ss.getItem());
                 ArtistCompact aC = this.getArtistCompact(ss.getItem());
                 if (aC != null) {
                     double score = ss.getScore();
@@ -301,7 +301,7 @@ public class DataManager implements Configurable {
      */
     private ArtistDetails loadArtistDetailsFromStore(String id)
             throws AuraException, RemoteException {
-        logger.info("loading artist from store :: " + id);
+        logger.finest("loading artist from store :: " + id);
         Artist a = mdb.artistLookup(id);
         if (a == null) {
             return null;
@@ -519,7 +519,7 @@ public class DataManager implements Configurable {
      */
     public SearchResults tagSearch(String searchString, int maxResults)
             throws AuraException, RemoteException {
-        logger.info("DataManager::tagSearch: " + searchString);
+        logger.finest("DataManager::tagSearch: " + searchString);
         ItemInfo[] tagResults = scoredArtistTagToItemInfo(mdb.artistTagSearch(searchString, maxResults));
 
         SearchResults sr = new SearchResults(searchString,
@@ -533,7 +533,7 @@ public class DataManager implements Configurable {
      * @return search results
      */
     public SearchResults artistSearch(String searchString, int maxResults) throws AuraException, RemoteException {
-        logger.info("DataManager::artistSearch: " + searchString);
+        logger.finest("DataManager::artistSearch: " + searchString);
         ItemInfo[] artistResults = scoredArtistToItemInfo(mdb.artistSearch(searchString, maxResults));
 
         SearchResults sr = new SearchResults(searchString,
@@ -549,12 +549,12 @@ public class DataManager implements Configurable {
      */
     public SearchResults artistSearchByTag(String searchString, int maxResults)
             throws AuraException, RemoteException {
-        logger.info("DataManager::artistSearchByTag: " + searchString);
+        logger.finest("DataManager::artistSearchByTag: " + searchString);
 
         ArtistTag tag = mdb.artistTagLookup(searchString);
         if (tag == null) {
             // found no results! treat this
-            logger.info("DataManager::artistSearchByTag. No results found for : " + searchString);
+            logger.finest("DataManager::artistSearchByTag. No results found for : " + searchString);
             return null;
         }
 
@@ -814,7 +814,7 @@ public class DataManager implements Configurable {
                 lD.setRecommendations(aCompact.toArray(new ArtistCompact[0]));
             } catch (NullPointerException e) {
                 // @todo remove this when fixed on server
-                logger.info("null pointer exception on get recommendations!!!!!! fix this!!!");
+                logger.severe("null pointer exception on get recommendations!!!!!! fix this!!!");
             }
         }
 
@@ -889,10 +889,10 @@ public class DataManager implements Configurable {
         l = mdb.getListener(userKey);
 
         if (l == null) {
-            logger.info("Non openID user '" + userKey + "' does not exist.");
+            logger.warning("Non openID user '" + userKey + "' does not exist.");
             throw new AuraException("User '" + userKey + "' does not exist.");
         } else {
-            logger.info("Non openID user '" + userKey + "' fetched.");
+            logger.finer("Non openID user '" + userKey + "' fetched.");
         }
 
         lD = listenerToListenerDetails(l, lD, true);
@@ -916,10 +916,10 @@ public class DataManager implements Configurable {
         l = mdb.getListener(lD.getOpenId());
 
         if (l == null) {
-            logger.info("Creating new user in datastore: " + lD.getOpenId());
+            logger.fine("Creating new user in datastore: " + lD.getOpenId());
             l = mdb.enrollListener(lD.getOpenId());
         } else {
-            logger.info("Retrieved user from datastore: " + lD.getOpenId());
+            logger.fine("Retrieved user from datastore: " + lD.getOpenId());
         }
 
         l = syncListeners(l, lD, true);
@@ -945,7 +945,7 @@ public class DataManager implements Configurable {
             try {
                 mdb.addPlayAttention(userId, artistId, 1);
             } catch (Exception e) {
-                logger.info("exception!! " + e.toString());
+                logger.warning("exception!! " + e.toString());
                 throw new AuraException(e.toString());
             }
         } else if (attentionType == Type.VIEWED) {
@@ -967,14 +967,14 @@ public class DataManager implements Configurable {
     public void updateUserSongRating(String userId, int rating, String artistId)
             throws AuraException, RemoteException {
 
-        logger.info("Setting rating " + rating + " for artist " + artistId + " for user " + userId);
+        logger.finest("Setting rating " + rating + " for artist " + artistId + " for user " + userId);
         mdb.addRating(userId, artistId, rating);
     }
 
     public int fetchUserSongRating(String userId, String artistID)
             throws AuraException, RemoteException {
 
-        logger.info("Fetching rating for artist " + artistID + " for user " + userId);
+        logger.finest("Fetching rating for artist " + artistID + " for user " + userId);
         return mdb.getLatestRating(userId, artistID);
     }
 
@@ -983,7 +983,7 @@ public class DataManager implements Configurable {
 
         HashMap<String, Integer> ratingMap = new HashMap<String, Integer>();
 
-        logger.info("Fetching rating for artist " + artistID + " for user " + userId);
+        logger.finest("Fetching rating for artist " + artistID + " for user " + userId);
         for (String aID : artistID) {
             ratingMap.put(aID, mdb.getLatestRating(userId, aID));
         }
@@ -1078,10 +1078,10 @@ public class DataManager implements Configurable {
 
     public TagDetails loadTagDetailsFromStore(String id) throws AuraException,
             RemoteException {
-        logger.info("searching for tag :" + id);
+        logger.finest("searching for tag :" + id);
         ArtistTag tag = mdb.artistTagLookup(id);
         if (tag == null) {
-            logger.info("null on " + id);
+            logger.finest("null on " + id);
             return null;
         }
         TagDetails details = new TagDetails();
@@ -1253,7 +1253,7 @@ public class DataManager implements Configurable {
     }
 
     public HashMap<String, String> getSimTypes() {
-        logger.info("Getting sim types");
+        logger.finest("Getting sim types");
         HashMap<String, String> storeSimTypes = new HashMap<String, String>();
         for (SimType s : this.simTypes.values()) {
             storeSimTypes.put(s.getName(), s.getDescription());
@@ -1262,7 +1262,7 @@ public class DataManager implements Configurable {
     }
 
     public HashMap<String, String> getArtistRecommendationTypes() {
-        logger.info("Getting rec types");
+        logger.finest("Getting rec types");
         HashMap<String, String> recTypeMap = new HashMap<String, String>();
         for (RecommendationType rT : mdb.getArtistRecommendationTypes()) {
             recTypeMap.put(rT.getName(), rT.getDescription());
@@ -1271,7 +1271,7 @@ public class DataManager implements Configurable {
     }
 
     public ArrayList<ArtistRecommendation> getRecommendations(String recTypeName, String userId, int cnt) throws AuraException, RemoteException {
-        logger.info("Getting recommendations for user " + userId + " using recType:" + recTypeName);
+        logger.finest("Getting recommendations for user " + userId + " using recType:" + recTypeName);
         ArrayList<ArtistRecommendation> aR = new ArrayList<ArtistRecommendation>();
 
         RecommendationType recType = mdb.getArtistRecommendationType(recTypeName);

@@ -13,6 +13,10 @@
         <description>Connect to WebMusicExplaura</description>
         <listener-class>com.sun.labs.aura.music.wsitm.server.ServletListener</listener-class>
     </listener>
+    <listener>
+        <description>HttpSessionListener</description>
+        <listener-class>com.sun.labs.aura.music.wsitm.server.SessionListener</listener-class>
+    </listener>
     <servlet>
         <servlet-name>MusicSearchInterface</servlet-name>
         <servlet-class>com.sun.labs.aura.music.wsitm.server.MusicSearchInterfaceImpl</servlet-class>

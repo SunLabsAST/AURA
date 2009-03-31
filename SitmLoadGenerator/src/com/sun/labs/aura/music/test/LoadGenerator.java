@@ -5,7 +5,10 @@
 
 package com.sun.labs.aura.music.test;
 
+import com.sun.labs.aura.music.test.rmi.SitmAPIDirectImpl;
+import com.sun.labs.aura.music.webservices.api.SitmAPI;
 import java.io.IOException;
+import java.net.URL;
 import java.util.concurrent.DelayQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,6 +34,7 @@ public class LoadGenerator {
         boolean readOnly = true;
         boolean summary = false;
         String host = "http://www.tastekeeper.com/api/";
+        String commType = "ws"; // ws or rmi
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-users")) {
                 if (i < args.length - 1) {
@@ -66,20 +70,42 @@ public class LoadGenerator {
                 summary = true;
             }
 
+            if (args[i].equals("-comm")) {
+                if (i < args.length - 1) {
+                    commType = args[++i];
+                    if (!(commType.equals("ws") || commType.equals("rmi"))) {
+                        usage();
+                        System.exit(0);
+                    }
+                }
+            }
+
             if (args[i].equals("-help")) {
-                System.out.println("Usage: LoadGenerator [-users n] [-threads threads] [-time time] [-url url-prefix] [-summary]  [-writeOK]");
+                usage();
                 System.exit(0);
             }
         }
 
-        LoadGenerator loadGen= new LoadGenerator(users, threads, host, readOnly, summary);
+        LoadGenerator loadGen= new LoadGenerator(users, threads, host, readOnly, summary, commType);
         loadGen.go(time); 
     }
 
+    public static void usage() {
+        System.out.println("Usage: LoadGenerator [-users n] [-threads threads] [-time time] [-url url-prefix] [-summary] [-writeOK] [-comm rmi|ws]");
+    }
 
-    public LoadGenerator(final int users, final int threads, final String url, boolean readOnly, boolean summary) throws IOException {
-        System.out.println("URL " + url + " users " + users + " threads " + threads);
-        control = new Control(url, !summary);
+    public LoadGenerator(final int users, final int threads, final String url, boolean readOnly, boolean summary, String commType) throws IOException {
+        System.out.println("URL " + url + " users " + users + " threads " + threads + " commType " + commType);
+        if (commType.equals("ws")) {
+            control = new Control(SitmAPI.getSitmAPI(url, false, true, !summary));
+        } else if (commType.equals("rmi")) {
+            URL config = LoadGenerator.class.getResource("/com/sun/labs/aura/music/test/rmi/loadGenConfig.xml");
+            if (config == null) {
+                System.out.println("Failed to find config for data store use");
+                System.exit(0);
+            }
+            control = new Control(new SitmAPIDirectImpl(config, !summary));
+        }
         numThreads = threads;
         this.readOnly = readOnly;
         createUsers(users);

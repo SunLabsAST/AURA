@@ -19,10 +19,12 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * The main interface to the visualization tool
@@ -33,6 +35,7 @@ public class VizUI extends DockPanel {
     protected VerticalPanel dshColumn;
     protected VerticalPanel pcColumn;
     protected VerticalPanel detailsColumn;
+    protected VerticalPanel webColumn;
 
     
     protected List dshInfos;
@@ -40,12 +43,14 @@ public class VizUI extends DockPanel {
 
     protected Map<String,DSHPanel> ipToDSHPanel;
     protected Map<String,PCPanel> prefixToPCPanel;
+    protected Map<String,WebPanel> procToWebPanel;
     
     protected VizServiceAsync service;
     
     protected static VizUI theUI = null;
 
     protected Timer statUpdateTimer;
+    protected Timer webStatUpdateTimer;
     
     public VizUI() {
         theUI = this;
@@ -104,6 +109,12 @@ public class VizUI extends DockPanel {
         leftRight.add(detailsColumn);
         
         add(leftRight, CENTER);
+
+        //
+        // And a place to list web servers
+        webColumn = new VerticalPanel();
+        webColumn.setStylePrimaryName("viz-webColumn");
+        add(webColumn, EAST);
         
         service = GWTMainEntryPoint.getVizService();
         service.refreshSvcs(refresher);
@@ -145,7 +156,22 @@ public class VizUI extends DockPanel {
             }
         };
         service.getPCInfo(pccallback);
-        
+
+        if (webStatUpdateTimer != null) {
+            webStatUpdateTimer.cancel();
+        }
+        //
+        // Clear the web column.  It'll get filled back in by the timer
+        webColumn.clear();
+        procToWebPanel = new HashMap<String,WebPanel>();
+
+        webStatUpdateTimer = new Timer() {
+            @Override
+            public void run() {
+                fetchWebStats();
+            }
+        };
+        webStatUpdateTimer.scheduleRepeating(10 * 1000);
     }
     
     protected void fillDSH() {
@@ -239,6 +265,48 @@ public class VizUI extends DockPanel {
             pc.getValue().setCPULoad(load);
             load = loads.get("replicant-" + pc.getKey());
             pc.getValue().setRepCPULoad(load);
+        }
+    }
+
+    protected void fetchWebStats() {
+        //
+        // Load info on partitions (includes replicant info):
+        final AsyncCallback cpucallback = new AsyncCallback() {
+            public void onSuccess(Object result) {
+                updateWebStats((Map<String,Double>)result);
+            }
+
+            public void onFailure(Throwable caught) {
+                if (webStatUpdateTimer != null) {
+                    webStatUpdateTimer.cancel();
+                }
+            }
+        };
+        service.getWebStats(cpucallback);
+    }
+
+    protected void updateWebStats(Map<String,Double> stats) {
+        //
+        // Figure out all the stat names
+        Set<String> procNames = new HashSet<String>();
+        for (String name : stats.keySet()) {
+            //
+            // name is procName:statName
+            String procName = name.substring(0, name.indexOf(':'));
+            procNames.add(procName);
+        }
+
+        //
+        // Get or add a panel for each proc
+        for (String procName : procNames) {
+            WebPanel panel = procToWebPanel.get(procName);
+            if (panel == null) {
+                panel = new WebPanel(procName);
+                webColumn.add(panel);
+                procToWebPanel.put(procName, panel);
+            }
+            panel.setCPULoad(stats.get(procName + ":" + "PERCENT_CPU"));
+            panel.setActiveSessions(stats.get(procName + ":" + "ACTIVE_SESSIONS").intValue());
         }
     }
 

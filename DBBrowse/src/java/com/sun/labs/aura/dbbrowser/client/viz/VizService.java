@@ -49,6 +49,11 @@ public interface VizService extends RemoteService{
     public Map<String,Double> getCPULoads();
 
     /**
+     * Gets the stats for all registered web servers
+     */
+    public Map<String,Double> getWebStats();
+
+    /**
      * Gets a list of all the available log names for methods in the replicant
      * 
      * @return the list of names
