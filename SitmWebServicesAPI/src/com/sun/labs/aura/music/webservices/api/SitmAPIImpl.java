@@ -17,13 +17,13 @@ import org.w3c.dom.NodeList;
  *
  * @author plamere
  */
-public class SitmAPI {
+public class SitmAPIImpl extends SitmAPI {
 
     private Commander commander;
     private Monitor monitor;
     private boolean trace;
 
-    public SitmAPI(String host, boolean trace, boolean debug, boolean periodicDump) throws IOException {
+    protected SitmAPIImpl(String host, boolean trace, boolean debug, boolean periodicDump) throws IOException {
         this.trace = trace;
         String suffix = debug  ? "&debug=true" : "";
         commander = new Commander("sitm", host, suffix);
