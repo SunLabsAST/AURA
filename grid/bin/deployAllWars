@@ -2,11 +2,11 @@
 unset CLASSPATH
 
 for i in DBBrowse SitmAdmin SitmWebServices WebMusicExplaura; do
-    ./deployWar -n www -w ../../$i/dist/$i.war
+    ./deployWarGF -n www -w ../../$i/dist/$i.war
 done
 
-./deployWar -n www -p / -w ../../MainSite/dist/MainSite.war
+./deployWarGF -n www -p / -w ../../MainSite/dist/MainSite.war
 
-./deployWar -n music -p /api -w ../../SitmWebServices/dist/SitmWebServices.war
-./deployWar -n music -p / -w ../../WebMusicExplaura/dist/WebMusicExplaura.war
+./deployGFLBWar -n music -p /api -w ../../SitmWebServices/dist/SitmWebServices.war
+./deployGFLBWar -n music -p / -w ../../WebMusicExplaura/dist/WebMusicExplaura.war
 

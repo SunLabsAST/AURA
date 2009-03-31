@@ -32,6 +32,8 @@
       <!-- upload service configuration files -->
             <fileset dir="${basedir}/on-grid-config">
                 <include name="domain.xml"/>
+                <include name="admin-keyfile"/>
+                <include name="keyfile"/>
             </fileset>
         </dav:put>
     </target>

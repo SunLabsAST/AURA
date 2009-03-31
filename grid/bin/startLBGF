@@ -51,7 +51,7 @@ export END=$(( $BEGIN + $COUNT ))
 
 for (( COUNT=$BEGIN ; COUNT < $END ; COUNT++ )) ; do 
     echo Deploying $NAME-$COUNT...
-    ant -Ddeployment.name=$NAME -Ddeployment.number=$COUNT -f $DIR/../grid-deploy/gf-lb.xml 
+    ant -noclasspath -Ddeployment.name=$NAME -Ddeployment.number=$COUNT -f $DIR/../grid-deploy/gf-lb.xml 
 done
 
 java -jar $DIR/../dist/grid.jar \
