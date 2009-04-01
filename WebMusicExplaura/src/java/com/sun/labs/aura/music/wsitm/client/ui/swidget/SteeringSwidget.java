@@ -516,6 +516,10 @@ public class SteeringSwidget extends Swidget {
                 public void onFailure(Throwable caught) {
                     PerformanceTimer.stop("newRecommendationsGetData");
                     PerformanceTimer.stop("newRecommendations");
+
+                    inRpc = false;
+                    hideLoader();
+
                     Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
                             "retrieve updated recommendations.", Popup.ERROR_LVL.NORMAL,
                             new Command() {
