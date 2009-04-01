@@ -163,6 +163,9 @@ public class SteeringSwidget extends Swidget {
         private ListBox interfaceListbox;
         private String currLoadedTagWidget = "";
 
+        private final int RPC_RETRY_COUNT = 2;
+        private int remainingRpcRetryCnt = RPC_RETRY_COUNT;
+
         /**
          * When a request for a recommendation update is made, if a call has 
          * already been made, wait for it to finish before making the next call
@@ -485,14 +488,28 @@ public class SteeringSwidget extends Swidget {
         }
 
         public void invokeFetchNewRecommendations() {
+            invokeFetchNewRecommendations(false);
+        }
+
+        /**
+         * Invoke the RPC call to fetch new recommendations
+         * @param isRetry If we're doing an auto-retry, decrement the allowed retry counter. If not, reset it
+         */
+        public void invokeFetchNewRecommendations(boolean isRetry) {
             PerformanceTimer.start("newRecommendations");
 
-            if (inRpc) {
+            if (inRpc && !isRetry) {
                 updateRecRequest = true;
                 return;
             } else {
                 inRpc = true;
                 updateRecRequest = false;
+            }
+
+            if (isRetry) {
+                remainingRpcRetryCnt--;
+            } else {
+                remainingRpcRetryCnt = RPC_RETRY_COUNT;
             }
 
             AsyncCallback<ArrayList<ScoredC<ArtistCompact>>> callback = new AsyncCallback<ArrayList<ScoredC<ArtistCompact>>>() {
@@ -520,14 +537,18 @@ public class SteeringSwidget extends Swidget {
                     inRpc = false;
                     hideLoader();
 
-                    Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
-                            "retrieve updated recommendations.", Popup.ERROR_LVL.NORMAL,
-                            new Command() {
-                                @Override
-                                public void execute() {
-                                    invokeFetchNewRecommendations();
-                                }
-                            });
+                    if (remainingRpcRetryCnt>0) {
+                        invokeFetchNewRecommendations(true);
+                    } else {
+                        Popup.showErrorPopup(caught, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                                "retrieve updated recommendations.", Popup.ERROR_LVL.NORMAL,
+                                new Command() {
+                                    @Override
+                                    public void execute() {
+                                        invokeFetchNewRecommendations();
+                                    }
+                                });
+                    }
                 }
             };
 
@@ -538,14 +559,23 @@ public class SteeringSwidget extends Swidget {
                 PerformanceTimer.start("newRecommendationsGetData");
                 musicServer.getSteerableRecommendations(currTagMap, popSelect.getSelectedValue(), callback);
             } catch (Exception ex) {
-                Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
-                        "retrieve updated recommendations.", Popup.ERROR_LVL.NORMAL,
-                        new Command() {
-                            @Override
-                            public void execute() {
-                                invokeFetchNewRecommendations();
-                            }
-                        });
+
+                inRpc = false;
+                hideLoader();
+
+                if (remainingRpcRetryCnt > 0) {
+                    invokeFetchNewRecommendations(true);
+                } else {
+                    Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
+                            "retrieve updated recommendations.", Popup.ERROR_LVL.NORMAL,
+                            new Command() {
+
+                                @Override
+                                public void execute() {
+                                    invokeFetchNewRecommendations();
+                                }
+                            });
+                }
             }
         }
 
