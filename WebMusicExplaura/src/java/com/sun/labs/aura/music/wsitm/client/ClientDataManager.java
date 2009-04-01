@@ -730,14 +730,17 @@ public class ClientDataManager {
 
                     public void onSuccess(Object o) {}
                     public void onFailure(Throwable caught) {
-                        Popup.showErrorPopup(caught, 
+                        /*Popup.showErrorPopup(caught,
                                 Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE, 
                                 "add the search attention.", Popup.ERROR_LVL.SILENT, null);
+                         */
                     }
                 });
             } catch (Exception ex) {
+                /*
                 Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
                                 "add the search attention.", Popup.ERROR_LVL.SILENT, null);
+                 */
             }
 
             hasValidSearch=false;

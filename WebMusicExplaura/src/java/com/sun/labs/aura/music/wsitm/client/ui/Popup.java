@@ -292,7 +292,7 @@ public abstract class Popup {
 
         vP.add(horiButtPanel);
         vP.setWidth("600px");
-        showRoundedPopup(vP, "Oupss!! An exception occured", popup, 600);
+        showRoundedPopup(vP, "Oops!! An exception occured", popup, 600);
 
     }
 
