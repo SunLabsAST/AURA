@@ -43,7 +43,7 @@ dt {
 
 div.main {
     margin-top: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 25px;
     margin-left: 135px;
     margin-right: 75px;
 }
@@ -75,9 +75,10 @@ div.copyright {
   font-weight: bold;
   color: #ffffff;
   background: #E76F00;
-  margin-top: 0px;
-  margin-bottom: 5px;
-  padding: 2px 0px 0px 4px;
+  padding-top: 2px;
+  position: fixed;
+  bottom: 0px;
+  width: 100%;
 }
 
 div.sidebar {
