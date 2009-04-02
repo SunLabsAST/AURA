@@ -97,6 +97,16 @@
                     terms that describe what they want and see explanations of
                     why particular artists were recommended.
                 </p>
+                <ul>
+                    <li>
+                        <a href="http://blogs.sun.com/searchguy/entry/the_music_explaura">
+                        Steve's blog post explaining the Music Explaura</a>
+                    </li>
+                    <li>
+                        <a href="http://www.youtube.com/watch?v=wBgwnKV892I&fmt=18">A screencast
+                        demo of the Music Explaura</a>
+                    </li>
+                </ul>
             </div>
             <div class="sectionTitle">Learn More</div>
             <div class="regularTxt">
@@ -114,9 +124,8 @@
                     <li><a href="http://mediacast.sun.com/users/lamere/media/MusicExplauraTwoPager/details">A description of
                         the Music
 			Explaura's transparent, steerable recommendations</a></li>
-                    <li><a href="http://www.youtube.com/watch?v=wBgwnKV892I">A screencast of
-                        the Music
-                    Explaura in action</a></li>
+                    <li><a href="http://www.youtube.com/watch?v=wBgwnKV892I&fmt=18">A screencast
+                        demo of the Music Explaura</a></li>
                     <li><a href="http://forums.tastekeeper.com/">The
                         TasteKeeper discussion
                     forums</a></li>
