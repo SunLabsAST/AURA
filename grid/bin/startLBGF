@@ -54,7 +54,8 @@ for (( COUNT=$BEGIN ; COUNT < $END ; COUNT++ )) ; do
     ant -noclasspath -Ddeployment.name=$NAME -Ddeployment.number=$COUNT -f $DIR/../grid-deploy/gf-lb.xml 
 done
 
-java -jar $DIR/../dist/grid.jar \
+export CP=$CPD/aura/dist/aura.jar:$CPD/grid/dist/grid.jar:$CPD/Libraries/caroline.jar:$CPD/Libraries/carolineutil.jar
+java -cp $CP com.sun.labs.aura.grid.ServiceDeployer \
     -a "-DauraInstance=${INSTANCE}" \
     -a "-DserviceName=${NAME}" \
     -a "-DhostName=${EXTNAME}" \
