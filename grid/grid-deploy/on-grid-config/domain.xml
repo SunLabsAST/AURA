@@ -59,7 +59,7 @@
           <property name="sso-enabled" value="false" />
         </virtual-server>
         <request-processing thread-count="150" initial-thread-count="50" />
-        <keep-alive max-connections="250" />
+        <keep-alive max-connections="256" timeout-in-seconds="2048"/>
         <connection-pool />
         <http-protocol forced-response-type="text/plain; charset=iso-8859-1" default-response-type="text/plain; charset=iso-8859-1" />
         <http-file-cache globally-enabled="false" file-caching-enabled="false" />

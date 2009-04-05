@@ -134,10 +134,11 @@ public class HTTPLoadBalancer extends ServiceAdapter {
         
         //
         // Set up the load balancer to balance our servlet containers.
+        String cookieName = "aura-" + serviceName + "-lb";
         HttpVirtualServiceConfiguration.CookieInfo cookie =
                 new HttpVirtualServiceConfiguration.CookieInfo(
-                "auraLBCookie",
-                "tastekeeper.com", null);
+                cookieName,
+                hostName + ".tastekeeper.com", null);
         HttpVirtualServiceConfiguration.ObjectRule.ComponentMatch rule =
                 new HttpVirtualServiceConfiguration.ObjectRule.ComponentMatch(
                 HttpVirtualServiceConfiguration.ObjectRule.URIComponent.URI,
