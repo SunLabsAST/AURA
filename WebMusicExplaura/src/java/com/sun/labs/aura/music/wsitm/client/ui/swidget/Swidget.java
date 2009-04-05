@@ -12,6 +12,7 @@ import com.sun.labs.aura.music.wsitm.client.ui.MenuItem;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
@@ -141,8 +142,7 @@ public abstract class Swidget extends Composite implements HasListeners {
     protected void initWidget(Widget widget, boolean useTopLoader) {
         this.useTopLoader = useTopLoader;
         if (useTopLoader) {
-            topMessage = new Label();
-            topMessage.setStyleName("topMsgIndicator");
+            resetTopMessage();
 
             topActivityIcon = new Image(WebLib.ICON_WAIT_SUN);
             topActivityIcon.setVisible(false);
@@ -170,6 +170,11 @@ public abstract class Swidget extends Composite implements HasListeners {
         }
     }
 
+    private void resetTopMessage() {
+        topMessage = new Label();
+        topMessage.setStyleName("topMsgIndicator");
+    }
+
     protected void showLoader() {
         if (useTopLoader) {
             topMessage.setVisible(false);
@@ -185,11 +190,26 @@ public abstract class Swidget extends Composite implements HasListeners {
     }
 
     protected void showTopMessage(String message) {
+        showTopMessage(message, null);
+    }
+
+    protected void showTopMessage(Label l) {
         if (useTopLoader) {
-            topMessage.setText(message);
-            topMessage.setVisible(true);
+            topMsgGrid.setWidget(0, 1, l);
             topActivityIcon.setVisible(false);
-            topMsgGrid.setWidget(0, 1, topMessage);
+        }
+    }
+
+    protected void showTopMessage(String message, ClickHandler cH) {
+        if (useTopLoader) {
+            resetTopMessage();
+            topMessage.setText(message);
+            topMessage.addStyleName("topMsgIndicator");
+            topMessage.setVisible(true);
+            if (cH != null) {
+                topMessage.addClickHandler(cH);
+            }
+            showTopMessage(topMessage);
         }
     }
 

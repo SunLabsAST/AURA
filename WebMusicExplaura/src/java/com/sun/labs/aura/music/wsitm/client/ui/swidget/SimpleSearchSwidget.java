@@ -44,6 +44,7 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.music.wsitm.client.event.DDEClickHandler;
+import com.sun.labs.aura.music.wsitm.client.event.DEAsyncCallback;
 import com.sun.labs.aura.music.wsitm.client.event.DEClickHandler;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
@@ -203,23 +204,17 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         // Reset the search
         cdm.getSearchAttentionManager().resetSearch();
 
-        //  resultName = URL.decodeComponent(resultName);
         if (resultName.startsWith("artist:")) {
-            //search.updateSuggestBox(Oracles.ARTIST);
-            invokeGetArtistInfo(resultName, false);
+            invokeGetArtistInfo(resultName, false, null);
         } else if (resultName.startsWith("tag:")) {
-            //search.updateSuggestBox(Oracles.TAG);
             invokeGetTagInfo(resultName, false);
         } else if (resultName.startsWith("artistSearch:")) {
-            //search.updateSuggestBox(Oracles.ARTIST);
             String query = resultName.replaceAll("artistSearch:", "");
             invokeArtistSearchService(query, searchTypes.SEARCH_FOR_ARTIST_BY_ARTIST, 0);
         } else if (resultName.startsWith("artistSearchByTag:")) {
-            //search.updateSuggestBox(Oracles.TAG);
             String query = resultName.replaceAll("artistSearchByTag:", "");
             invokeArtistSearchService(query, searchTypes.SEARCH_FOR_ARTIST_BY_TAG, 0);
         } else if (resultName.startsWith("tagSearch:")) {
-            //search.updateSuggestBox(Oracles.TAG);
             String query = resultName.replaceAll("tagSearch:", "");
             invokeTagSearchService(query, 0);
         } else if (resultName.startsWith("searchHome:")) {
@@ -293,7 +288,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         }
     }
 
-    private void invokeArtistSearchService(String searchText, searchTypes sT, int page) {
+    private void invokeArtistSearchService(final String searchText, searchTypes sT, int page) {
         AsyncCallback callback = new AsyncCallback() {
 
             public void onSuccess(Object result) {
@@ -305,16 +300,23 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                         showTopMessage("No Match for " + sr.getQuery());
                         clearResults();
                     } else if (results.length == 1) {
-                        ItemInfo ar = results[0];
                         WebLib.trackPageLoad("#artistSearch:" + sr.getQuery());
-                        cdm.getSearchAttentionManager().processUserClick(ar.getId());
-                        invokeGetArtistInfo(ar.getId(), false);
+                        cdm.getSearchAttentionManager().processUserClick(results[0].getId());
+                        invokeGetArtistInfo(results[0].getId(), false, null);
                     } else {
-                        showTopMessage("Found " + sr.getItemResults(cdm).length + " matches");
-                        Widget searchResults = getItemInfoList("Pick one: ", sr.getItemResults(cdm), null, true, true, cdm.getArtistOracle());
-                        searchResults.setStyleName("searchResults");
-                        searchResults.setWidth("300px");
-                        setResults(sr.toString(), searchResults);
+                        // Did we get back an exact match of our query? If so
+                        // foward to user to that artist and offer him the choice
+                        // to see results
+                        String lowerSearch = searchText.toLowerCase();
+                        for (ItemInfo iI : sr.getItemResults(null)) {
+                            if (lowerSearch.equals(iI.getItemName().toLowerCase())) {
+                                WebLib.trackPageLoad("#artistSearch:" + sr.getQuery());
+                                cdm.getSearchAttentionManager().processUserClick(iI.getId());
+                                invokeGetArtistInfo(iI.getId(), false, sr);
+                                return;
+                            }
+                        }
+                        searchResultsToArtistList(sr);
                     }
                 } else {
                     if (sr == null) {
@@ -346,11 +348,25 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         } catch (Exception ex) {
             Popup.showErrorPopup(ex, Popup.ERROR_MSG_PREFIX.ERROR_OCC_WHILE,
                     "perform search.", Popup.ERROR_LVL.NORMAL, null);
-
         }
     }
 
-    private void invokeGetArtistInfo(String artistID, boolean refresh) {
+    /**
+     * Child method of invokeArtistSearchService
+     * @param sr
+     */
+    private void searchResultsToArtistList(SearchResults sr) {
+        showTopMessage("Found " + sr.getItemResults(cdm).length + " matches");
+        Widget searchResults = getItemInfoList("Pick one: ", sr.getItemResults(cdm), null, true, true, cdm.getArtistOracle());
+        searchResults.setStyleName("searchResults");
+        searchResults.setWidth("300px");
+        setResults(sr.toString(), searchResults);
+    }
+
+
+
+
+    private void invokeGetArtistInfo(String artistID, boolean refresh, SearchResults listResults) {
         PerformanceTimer.start("invokeGetArtistInfo");
         //
         // If we are currently fetching the similarity type, we can't fetch the
@@ -363,12 +379,11 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                 artistID = artistID.replaceAll("artist:", "");
             }
 
-            AsyncCallback callback = new AsyncCallback() {
+            AsyncCallback callback = new DEAsyncCallback<SearchResults, ArtistDetails>(listResults) {
 
-                public void onSuccess(Object result) {
+                public void onSuccess(ArtistDetails artistDetails) {
                     PerformanceTimer.stop("getArtistDetails");
                     // do some UI stuff to show success
-                    ArtistDetails artistDetails = (ArtistDetails) result;
                     if (artistDetails != null && artistDetails.isOK()) {
                         PerformanceTimer.start("createArtistPanel");
                         cdm.setCurrArtistInfo(artistDetails.getId(), artistDetails.getName());
@@ -377,6 +392,23 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                         //search.updateSuggestBox(Oracles.ARTIST);
                         setResults("artist:" + artistDetails.getId(), artistPanel);
                         hideLoader();
+
+                        // If we embeded a search result, a serch was made and although aura returned
+                        // multiple results, one of them matched exacly. Offer to display the full list
+                        if (data!=null) {
+                            int length = data.getItemResults(null).length;
+                            Label l = new Label("Not the artist you were looking for? Show "+
+                                    String.valueOf(length-1)+" similar result"+(length>2 ? "s" : ""));
+                            l.setStyleName("pointer topMsgIndicatorSmall");
+                            l.addClickHandler(new ClickHandler() {
+                                @Override
+                                public void onClick(ClickEvent event) {
+                                    searchResultsToArtistList(data);
+                                }
+                            });
+                            showTopMessage(l);
+                        }
+
                         PerformanceTimer.stop("createArtistPanel");
                     } else {
                         if (artistDetails == null) {
