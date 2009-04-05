@@ -155,7 +155,11 @@ h2 {
     font-size: 1.2em;
     color: #f8981d;
 }
-
+.topMsgIndicatorSmall {
+    font-size: 0.9em;
+    color: #f8981d;
+    font-style: italic;
+}
 .alternateHTitle {
     color: #cccccc;
     border-bottom: thin solid #cccccc;
