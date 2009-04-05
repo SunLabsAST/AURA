@@ -100,16 +100,22 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         // Create buttons
         HorizontalPanel hP = new HorizontalPanel();
         hP.setStyleName("pageConfigMargin");
-        hP.add(createHeaderButton("Help", new ClickHandler() {
+        hP.add(createHeaderButton("Help", null, new ClickHandler() {
             @Override
             public void onClick(ClickEvent event) {
                 cdm.getCurrSwidget().displayHelp();
             }
         }));
-        hP.add(createHeaderButton("Config", new ClickHandler() {
+        hP.add(createHeaderButton("Config", null, new ClickHandler() {
             @Override
             public void onClick(ClickEvent ce) {
                 setSubHeaderPanel(SubHeaderPanels.CONFIG);
+            }
+        }));
+        hP.add(createHeaderButton("Survey", "Tell us what you think; take our 1 minute survey", new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent ce) {
+                Window.open("http://www.tastekeeper.com/wmesurvey", "_blank", "");
             }
         }));
         vP.add(hP);
@@ -120,8 +126,11 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
 
     }
 
-    private RoundedPanel createHeaderButton(String title, ClickHandler cH) {
+    private RoundedPanel createHeaderButton(String title, String tooltip, ClickHandler cH) {
         Label configSub = new Label(title);
+        if (tooltip!=null && tooltip.length()>0) {
+            configSub.setTitle(tooltip);
+        }
         configSub.addStyleName("pointer");
         configSub.addClickHandler(cH);
 
@@ -195,12 +204,26 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         mainPanel.setWidget(0, 1, mm);
 
         // Set the recommendation type toolbar
-        HorizontalPanel hP = new HorizontalPanel();
+        VerticalPanel hP = new VerticalPanel();
+        hP.setHorizontalAlignment(HorizontalPanel.ALIGN_CENTER);
+        hP.setSpacing(0);
 
         searchBoxContainerPanel = new FlowPanel();
         search = new SearchWidget(musicServer, cdm, searchBoxContainerPanel);
         search.updateSuggestBox(Oracles.ARTIST);
         hP.add(search);
+
+        Label surveyTxt = new Label("Tell us what you think; take our 1 minute survey");
+        surveyTxt.addStyleName("tag1 pointer");
+        surveyTxt.getElement().getStyle().setPropertyPx("fontSize", 10);
+        surveyTxt.getElement().getStyle().setPropertyPx("marginTop", -5);
+        surveyTxt.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                Window.open("http://www.tastekeeper.com/wmesurvey", "_blank", "");
+            }
+        });
+        hP.add(surveyTxt);
 
         mainPanel.setWidget(0, 2, hP);
 
