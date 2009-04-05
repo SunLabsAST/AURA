@@ -585,14 +585,25 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         return artistPanel;
     }
 
-    private Widget getTagHeaderWidget(TagDetails tagDetails) {
+    private Widget getTagHeaderWidget(final TagDetails tagDetails) {
         
         HTML html = new HTML();
         html.setHTML(getBestTagImageAsHTML(tagDetails) + tagDetails.getDescription());
         html.setStyleName("bio");
 
         HorizontalPanel hP = new HorizontalPanel();
+        hP.setSpacing(3);
         hP.add(WebLib.getListenWidget(tagDetails));
+        SteeringWheelWidget sww = new SteeringWheelWidget(SteeringWheelWidget.wheelSize.BIG, new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                cdm.getSteerableTagCloudExternalController().clear(false);
+                cdm.getSteerableTagCloudExternalController().addTag(tagDetails);
+                History.newItem("steering:", true);
+            }
+        });
+        sww.setTitle("Steerable recommendations starting with the "+tagDetails.getName()+" tag");
+        hP.add(sww);
         
         return createMainSection(tagDetails.getName(), html,
                 hP, tagDetails.getSimilarTags(), null, false);

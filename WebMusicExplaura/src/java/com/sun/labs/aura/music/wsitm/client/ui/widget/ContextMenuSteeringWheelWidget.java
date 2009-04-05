@@ -7,9 +7,7 @@ package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.Window;
 import com.sun.labs.aura.music.wsitm.client.ClientDataManager;
-import com.sun.labs.aura.music.wsitm.client.WebException;
 import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenu.ArtistDependentSharedMenu;
 import com.sun.labs.aura.music.wsitm.client.ui.ContextMenuImage;

@@ -22,6 +22,7 @@ import com.sun.labs.aura.music.wsitm.client.items.ArtistCompact;
 import com.sun.labs.aura.music.wsitm.client.items.ItemInfo;
 import com.sun.labs.aura.music.wsitm.client.items.ListenerDetails;
 import com.sun.labs.aura.music.wsitm.client.items.ScoredC;
+import com.sun.labs.aura.music.wsitm.client.items.TagDetails;
 import com.sun.labs.aura.music.wsitm.client.ui.HelpPopup;
 import com.sun.labs.aura.music.wsitm.client.ui.HelpPopup.HELP_SECTIONS;
 import com.sun.labs.aura.music.wsitm.client.ui.SharedArtistMenu;
@@ -663,7 +664,18 @@ public class ClientDataManager {
                 init = true;
             }
         }
-        
+
+        public void clear(boolean updateRecommendations) {
+            if (tagLand != null) {
+                tagLand.removeAllItems(updateRecommendations);
+            }
+        }
+
+        public void addTag(TagDetails tag) {
+            addTag(new ItemInfo(tag.getId(), tag.getName(), 1.0,
+                    tag.getPopularity(), ItemInfo.CONTENT_TYPE.TAG));
+        }
+
         public void addTag(ItemInfo tag) {
             if (init) {
                 tagLand.addTag(tag, 0, true);
