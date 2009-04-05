@@ -1026,26 +1026,21 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
         protected Panel currPreview;
         protected Panel nextPreview;
 
-        protected int currIndex = 0; // index of the first preview item we're showing
-        /**
-         * when we've seen the last item, start over right away (=true) or display
-         * empty elements (=false)
-         */
-        protected boolean wrapAround = false;
+        protected int currPageNbr = 0;
+        protected int totalPageNbr = -1;
+
+        private Label headerTitle;
 
         abstract protected void triggerAction(int index);
         abstract protected String getSectionName();
 
         protected Widget init() {
 
-            // If number of elements smaller than the available grid size, don't warp around
-            if (items.length<=NBR_ITEM_ON_PREVIEW) {
-                wrapAround=false;
-            }
-
             if (Window.getClientWidth()>1024) {
                 NBR_ITEM_PER_LINE=4;
             }
+
+            totalPageNbr = (int) Math.ceil(items.length / new Double(NBR_ITEM_ON_PREVIEW));
 
             topPanel.addStyleName("center");
             topPanel.setWidth("100%");
@@ -1055,7 +1050,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             prev.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent ce) {
-                    setPreviewPanel(getNextElements(-NBR_ITEM_ON_PREVIEW));
+                    setPreviewPanel(getElementsOnPage(currPageNbr-1));
                 }
             });
 
@@ -1063,7 +1058,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             next.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent ce) {
-                    setPreviewPanel(getNextElements(NBR_ITEM_ON_PREVIEW));
+                    setPreviewPanel(getElementsOnPage(currPageNbr+1));
                 }
             });
 
@@ -1071,14 +1066,16 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                 topPanel.setWidget(0, 0, prev);
                 topPanel.setWidget(0, 2, next);
             }
-            topPanel.setWidget(0, 1, new Label(items.length+" "+getSectionName()));
+            headerTitle = new Label();
+            topPanel.setWidget(0, 1, headerTitle);
 
             for (int j=0; j<3; j++) {
-                topPanel.getCellFormatter().setAlignment(0, j, HorizontalPanel.ALIGN_CENTER, VerticalPanel.ALIGN_MIDDLE);
+                topPanel.getCellFormatter().setAlignment(0, j,
+                        HorizontalPanel.ALIGN_CENTER, VerticalPanel.ALIGN_MIDDLE);
             }
 
             if (items.length>0) {
-                setPreviewPanel(getNextElements(NBR_ITEM_ON_PREVIEW));
+                setPreviewPanel(getElementsOnPage(currPageNbr));
                 mainPanel.setWidget(0, 0, topPanel);
             } else {
                 mainPanel.setWidget(1, 0, new Label("No "+getSectionName()));
@@ -1088,32 +1085,35 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             return mainPanel;
         }
 
+        private void updateHeaderTitle() {
+            if (totalPageNbr>1) {
+                headerTitle.setText((currPageNbr+1)+"/"+totalPageNbr);
+            }
+        }
+
         /**
-         * Returns the n next elements
-         * @param n number of elements to return
-         * @return n next scrollitems to return
+         * Returns elements on the given page
+         * @param page number
+         * @return n scrollitems
          */
-        protected ArrayList<ScrollItem> getNextElements(int n) {
-            // If we want previous elements
-            if (n<0) {
-                currIndex+=(2*n); // which will be a substraction
-                if (currIndex<0) {
-                    currIndex=items.length+currIndex;
-                }
+        protected ArrayList<ScrollItem> getElementsOnPage(int newPageNbr) {
+            // If we're going over or under, wrap us around
+            if (newPageNbr<0) {
+                newPageNbr = totalPageNbr - 1;
+            } else if (newPageNbr>=totalPageNbr) {
+                newPageNbr = 0;
             }
 
-            n = Math.abs(n);
             ArrayList<ScrollItem> sI = new ArrayList<ScrollItem>();
-            for (int i=0; i<n; i++) {
-                sI.add(new ScrollItem(items[currIndex].title,
-                        items[currIndex].thumb, currIndex));
-                if (++currIndex>=items.length) {
-                    currIndex=0;
-                    if (!wrapAround) {
-                        break;
-                    }
+            for (int i=0; i<NBR_ITEM_ON_PREVIEW; i++) {
+                int idx = i + (newPageNbr * NBR_ITEM_ON_PREVIEW);
+                if (idx>=items.length) {
+                    break;
                 }
+                sI.add(new ScrollItem(items[idx].title,
+                        items[idx].thumb, idx));
             }
+            currPageNbr = newPageNbr;
             return sI;
         }
 
@@ -1182,6 +1182,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                 nextPreview.add(p);
             }
             mainPanel.setWidget(1, 0, nextPreview);
+            updateHeaderTitle();
         }
 
         protected class IndexClickHandler implements ClickHandler {
@@ -1193,6 +1194,7 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                 this.index=index;
             }
 
+            @Override
             public void onClick(ClickEvent ce) {
                 triggerAction(index);
             }
@@ -1210,9 +1212,11 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                 this.theEffectPanel=theEffectPanel;
             }
 
+            @Override
             public void onError(Widget arg0) {
             }
 
+            @Override
             public void onLoad(Widget arg0) {
                 theEffectPanel.playEffects();
             }
@@ -1235,7 +1239,6 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
     private class ImageScrollWidget extends ScrollWidget {
 
         private ArtistPhoto[] aP;
-
 
         public ImageScrollWidget(ArtistPhoto[] aPArray) {
             this.aP = aPArray;
@@ -1329,10 +1332,12 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
             initWidget(init());
         }
 
+        @Override
         protected void triggerAction(int index) {
             Window.open(aD[index].getAmazonLink(), "Window1", "");
         }
 
+        @Override
         protected String getSectionName() {
             return "albums";
         }
