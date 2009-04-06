@@ -98,6 +98,8 @@
       <arg value="-jar"/>
       <arg value="/files/working/${service.base}/glassfish/modules/admin-cli.jar"/>
       <arg value="undeploy"/>
+      <arg value="--host"/>
+      <arg value="${service.process}"/>
       <arg value="--user"/>
       <arg value="admin"/>
       <arg value="--passwordfile"/>
