@@ -33,6 +33,10 @@
         <servlet-name>MusicPlayer</servlet-name>
         <servlet-class>com.sun.labs.aura.music.wsitm.server.MusicPlayer</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>WelcomeGWTServlet</servlet-name>
+        <servlet-class>com.sun.labs.aura.music.wsitm.server.WelcomeGWTServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>MusicSearchInterface</servlet-name>
         <url-pattern>/com.sun.labs.aura.music.wsitm.WebMusicExplaura/musicsearch</url-pattern>
@@ -45,12 +49,13 @@
         <servlet-name>MusicPlayer</servlet-name>
         <url-pattern>/MusicPlayer</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>WelcomeGWTServlet</servlet-name>
+        <url-pattern>/WelcomeGWT</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
     </session-config>
-    <welcome-file-list>
-        <welcome-file>welcomeGWT.html</welcome-file>
-    </welcome-file-list>
 <!--    
     <security-constraint>
         <display-name>MusicExplaura</display-name>
@@ -74,4 +79,7 @@
         <role-name>wme</role-name>
     </security-role>
     -->
-</web-app>
+    <welcome-file-list>
+        <welcome-file>WelcomeGWT</welcome-file>
+    </welcome-file-list>
+    </web-app>

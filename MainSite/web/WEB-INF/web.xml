@@ -37,6 +37,10 @@
         <servlet-name>SurveyServlet</servlet-name>
         <url-pattern>/wmesurveysubmit</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>MainController</servlet-name>
+        <url-pattern>/sorry</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>
             30

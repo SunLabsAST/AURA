@@ -40,6 +40,9 @@ public class MainController extends AuraServlet {
             } else {
                 goHome(request, response);
             }
+        } else if (servletPath.equals("/sorry")) {
+            dispatcher = context.getRequestDispatcher("/sorry.jsp");
+            dispatcher.forward(request, response);
         }
     }
     

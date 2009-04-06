@@ -306,7 +306,12 @@ public class VizUI extends DockPanel {
                 procToWebPanel.put(procName, panel);
             }
             panel.setCPULoad(stats.get(procName + ":" + "PERCENT_CPU"));
-            panel.setActiveSessions(stats.get(procName + ":" + "ACTIVE_SESSIONS").intValue());
+            Double activeSessions = stats.get(procName + ":" + "ACTIVE_SESSIONS");
+            if (activeSessions != null) {
+                panel.setActiveSessions(activeSessions.intValue());
+            } else {
+                panel.setActiveSessions(0);
+            }
         }
     }
 
