@@ -42,4 +42,9 @@ public class MainSelector extends DockPanel {
         toolLinks.add(b);
         contents.add(tool);
     }
+
+    public void select(Widget tool) {
+        int idx = contents.getWidgetIndex(tool);
+        contents.showWidget(idx);
+    }
 }
