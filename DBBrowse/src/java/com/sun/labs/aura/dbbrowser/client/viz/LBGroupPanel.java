@@ -40,5 +40,6 @@ public class LBGroupPanel extends FlowPanel {
         if (w instanceof WebPanel) {
             webPanels.add((WebPanel)w);
         }
+        super.add(w);
     }
 }

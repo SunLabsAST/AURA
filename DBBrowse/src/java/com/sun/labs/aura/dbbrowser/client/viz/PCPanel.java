@@ -32,8 +32,6 @@ public class PCPanel extends HorizontalPanel {
 
     protected RepPanel repPanel;
 
-    protected static NumberFormat cpuFormat = NumberFormat.getFormat("###0.#");
-
     public PCPanel(PCInfo pc) {
         super();
         this.pc = pc;
@@ -84,7 +82,7 @@ public class PCPanel extends HorizontalPanel {
     }
 
     public void setCPULoad(double load) {
-        String str = cpuFormat.format(load);
+        String str = VizUI.cpuFormat.format(load);
         Panel newLoad = Util.getHisto("CPU", Double.valueOf(load).intValue(), 100, 50, str + "%");
         int index = myself.getWidgetIndex(cpuLoad);
         myself.remove(index);

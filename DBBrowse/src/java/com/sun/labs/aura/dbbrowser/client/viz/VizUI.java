@@ -5,6 +5,7 @@
 
 package com.sun.labs.aura.dbbrowser.client.viz;
 
+import com.google.gwt.i18n.client.NumberFormat;
 import com.google.gwt.user.client.Timer;
 import com.sun.labs.aura.dbbrowser.client.*;
 import com.google.gwt.user.client.Window;
@@ -53,6 +54,8 @@ public class VizUI extends DockPanel {
 
     protected Timer statUpdateTimer;
     protected Timer webStatUpdateTimer;
+
+    protected static NumberFormat cpuFormat = NumberFormat.getFormat("##00.0");
     
     public VizUI() {
         theUI = this;

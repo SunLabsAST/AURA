@@ -10,7 +10,6 @@ import com.google.gwt.user.client.ui.Panel;
  * A panel that displays info about a web container
  */
 public class WebPanel extends FlowPanel implements Comparable {
-    protected static NumberFormat cpuFormat = NumberFormat.getFormat("##00.0");
     protected Panel cpuLoad = null;
     protected int numActive = 0;
     protected StyleLabel numSessions;
@@ -29,7 +28,7 @@ public class WebPanel extends FlowPanel implements Comparable {
     }
 
     public void setCPULoad(double load) {
-        String str = cpuFormat.format(load);
+        String str = VizUI.cpuFormat.format(load);
         Panel newLoad = Util.getHisto("CPU", Double.valueOf(load).intValue(), 100, 50, str + "%");
         int index = getWidgetIndex(cpuLoad);
         remove(index);
