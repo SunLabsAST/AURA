@@ -46,8 +46,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
@@ -199,9 +201,17 @@ public class VizServiceImpl extends RemoteServiceServlet implements
     public void resetRepStats(String prefix) {
         if (statService != null) {
             try {
-                for (Replicant.StatName name : Replicant.StatName.values()) {
-                   statService.set(repStatName(prefix, name.toString()), 0);
-                   statService.setDouble(repStatName(prefix, name.toString()) + "-time", 0);
+                Set<String> prefixes = new HashSet<String>();
+                if (prefix != null) {
+                    prefixes = Collections.singleton(prefix);
+                } else {
+                    prefixes = prefixToRep.keySet();
+                }
+                for (String currPrefix : prefixes) {
+                    for (Replicant.StatName name : Replicant.StatName.values()) {
+                       statService.set(repStatName(currPrefix, name.toString()), 0);
+                       statService.setDouble(repStatName(currPrefix, name.toString()) + "-time", 0);
+                    }
                 }
             } catch (RemoteException e) {
                 logger.log(Level.WARNING, "Failed to communicate with stats server", e);

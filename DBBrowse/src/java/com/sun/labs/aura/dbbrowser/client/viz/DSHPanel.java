@@ -50,7 +50,7 @@ public class DSHPanel extends FlowPanel {
         add(new StyleLabel("Status: " + (dsh.isReady() ? "ready" : "not ready"),
                            "viz-statLabel"));
         add(new StyleLabel("IP: " + dsh.getIP(), "viz-statLabel"));
-        cpuLoad = Util.getHisto("CPU", 0, 100, 50, "0%");
+        cpuLoad = Util.getHisto("CPU", 0, 100, 50, "00.0%");
         add(cpuLoad);
 
         StyleLabel shutDown = new StyleLabel("Shutdown", "viz-actionLabel");

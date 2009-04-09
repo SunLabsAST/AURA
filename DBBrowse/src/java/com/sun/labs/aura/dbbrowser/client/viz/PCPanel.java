@@ -62,7 +62,7 @@ public class PCPanel extends HorizontalPanel {
                                   "viz-statLabel"));
         myself.add(new StyleLabel("Attention: " + pc.getNumAttention(),
                                   "viz-statLabel"));
-        cpuLoad = Util.getHisto("CPU", 0, 100, 50, "0%");
+        cpuLoad = Util.getHisto("CPU", 0, 100, 50, "00.0%");
         myself.add(cpuLoad);
 
         Map typeToCount = pc.getTypeToCountMap();

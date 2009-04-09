@@ -27,7 +27,9 @@ package com.sun.labs.aura.dbbrowser.client.viz;
 import com.sun.labs.aura.dbbrowser.client.*;
 import com.google.gwt.i18n.client.NumberFormat;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
@@ -57,7 +59,7 @@ public class RepPanel extends FlowPanel {
         indexSize /= 1024 * 1024;
         add(new StyleLabel("Index Size:  " + indexSize + "MB",
                            "viz-statLabel"));
-        cpuLoad = Util.getHisto("CPU", 0, 100, 50, "0%");
+        cpuLoad = Util.getHisto("CPU", 0, 100, 50, "00.0%");
         add(cpuLoad);
 
         add(new StyleLabel("Halt", "viz-actionLabel"));
@@ -155,14 +157,38 @@ public class RepPanel extends FlowPanel {
                 add(close);
 
                 StyleLabel reset = new StyleLabel("Reset", "viz-actionLabel");
-                VizUI.addConfDialog(reset,
-                        new ClickListener() {
-                            public void onClick(Widget arg0) {
-                                resetStats(container);
-                            }
-                        },
-                        "Really reset the stats for this replicant?");
-                add(reset); 
+                add(reset);
+                final DialogBox resetConfirm = new DialogBox(true, true);
+                FlowPanel contents = new FlowPanel();
+                resetConfirm.setWidget(contents);
+                contents.add(new Label("Really reset all stats for replicant " +
+                        rep.getPrefix() + "?"));
+                Button resetButton = new Button("Reset " + rep.getPrefix());
+                resetButton.addClickListener(new ClickListener() {
+                    public void onClick(Widget w) {
+                        resetConfirm.hide();
+                        resetStats(container);
+                    }
+                });
+                contents.add(resetButton);
+
+                Button resetAllButton = new Button("Reset All Replicants");
+                resetAllButton.addClickListener(new ClickListener() {
+                    public void onClick(Widget arg0) {
+                        resetConfirm.hide();
+                        resetStats(null);
+                    }
+                });
+                contents.add(resetAllButton);
+
+                resetConfirm.setPopupPosition(reset.getAbsoluteLeft(),
+                                              reset.getAbsoluteTop());
+                reset.addClickListener(new ClickListener() {
+                    @Override
+                    public void onClick(Widget sender) {
+                        resetConfirm.show();
+                    }
+                });
             }
             
         };
@@ -175,14 +201,20 @@ public class RepPanel extends FlowPanel {
         VizServiceAsync service = GWTMainEntryPoint.getVizService();
         final AsyncCallback callback = new AsyncCallback() {
             public void onSuccess(Object result) {
-                toUpdate.redraw();
+                if (toUpdate != null) {
+                    toUpdate.redraw();
+                }
             }
 
             public void onFailure(Throwable caught) {
                 VizUI.alert("Communication failed: " + caught.getMessage());
             }
         };
-        service.resetRepStats(rep.getPrefix(), callback);
+        if (toUpdate != null) {
+            service.resetRepStats(rep.getPrefix(), callback);
+        } else {
+            service.resetRepStats(null, callback);
+        }
     }
 
     public void doLogDialog() {

@@ -46,7 +46,7 @@ public class WebPanel extends FlowPanel implements Comparable {
         numSessions = new StyleLabel("", "viz-statLabel");
         setActiveSessions(0);
         add(numSessions);
-        cpuLoad = Util.getHisto("CPU", 0, 100, 50, "0%");
+        cpuLoad = Util.getHisto("CPU", 0, 100, 50, "00.0%");
         add(cpuLoad);
     }
 
