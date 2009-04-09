@@ -51,10 +51,10 @@ public class GWTMainEntryPoint implements EntryPoint {
     public void onModuleLoad() {
         MainSelector sel = new MainSelector();
         sel.addTool("Query DB", new TabbedQueryUI());
-        sel.addTool("Viz UI", new VizUI());
+        VizUI vizui = new VizUI();
+        sel.addTool("Viz UI", vizui);
         RootPanel.get().add(sel);
-        //RootPanel.get().add(button);
-        //RootPanel.get().add(label);
+        sel.select(vizui);
     }
     
     public static DBServiceAsync getDBService(){
