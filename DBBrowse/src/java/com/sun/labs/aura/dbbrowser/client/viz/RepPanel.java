@@ -42,7 +42,6 @@ public class RepPanel extends FlowPanel {
     protected RepInfo rep;
     
     protected NumberFormat statForm = NumberFormat.getFormat("#########0.###");
-    protected static NumberFormat cpuFormat = NumberFormat.getFormat("###0.#");
     protected Panel cpuLoad = null;
     
     public RepPanel(RepInfo rep) {
@@ -85,7 +84,7 @@ public class RepPanel extends FlowPanel {
     }
     
     public void setCPULoad(double load) {
-        String str = cpuFormat.format(load);
+        String str = VizUI.cpuFormat.format(load);
         Panel newLoad = Util.getHisto("CPU", Double.valueOf(load).intValue(), 100, 50, str + "%");
         int index = getWidgetIndex(cpuLoad);
         remove(index);

@@ -42,8 +42,6 @@ public class DSHPanel extends FlowPanel {
 
     protected Panel cpuLoad = null;
 
-    protected static NumberFormat cpuFormat = NumberFormat.getFormat("###0.#");
-
     public DSHPanel(DSHInfo dsh) {
         super();
         this.dsh = dsh;
@@ -70,7 +68,7 @@ public class DSHPanel extends FlowPanel {
     }
     
     public void setCPULoad(double load) {
-        String str = cpuFormat.format(load);
+        String str = VizUI.cpuFormat.format(load);
         Panel newLoad = Util.getHisto("CPU", Double.valueOf(load).intValue(), 100, 50, str + "%");
         int index = getWidgetIndex(cpuLoad);
         remove(index);

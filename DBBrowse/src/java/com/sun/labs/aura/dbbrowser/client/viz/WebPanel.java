@@ -32,13 +32,15 @@ import com.google.gwt.user.client.ui.Panel;
 /**
  * A panel that displays info about a web container
  */
-public class WebPanel extends FlowPanel {
-    protected static NumberFormat cpuFormat = NumberFormat.getFormat("###0.#");
+public class WebPanel extends FlowPanel implements Comparable {
     protected Panel cpuLoad = null;
+    protected int numActive = 0;
     protected StyleLabel numSessions;
+    protected String procName;
 
     public WebPanel(String procName) {
         super();
+        this.procName = procName;
         setStylePrimaryName("viz-webPanel");
         add(new Label(procName));
         numSessions = new StyleLabel("", "viz-statLabel");
@@ -49,7 +51,7 @@ public class WebPanel extends FlowPanel {
     }
 
     public void setCPULoad(double load) {
-        String str = cpuFormat.format(load);
+        String str = VizUI.cpuFormat.format(load);
         Panel newLoad = Util.getHisto("CPU", Double.valueOf(load).intValue(), 100, 50, str + "%");
         int index = getWidgetIndex(cpuLoad);
         remove(index);
@@ -58,6 +60,32 @@ public class WebPanel extends FlowPanel {
     }
 
     public void setActiveSessions(int numActive) {
+        this.numActive = numActive;
         numSessions.setText("Active Sessions: " + numActive);
+    }
+
+    public int getActiveSessions() {
+        return numActive;
+    }
+
+    public int compareTo(Object o) {
+        if (o instanceof WebPanel) {
+            return procName.compareTo(((WebPanel)o).procName);
+        }
+        return 1;
+    }
+
+    /**
+     * @return the procName
+     */
+    public String getProcName() {
+        return procName;
+    }
+
+    /**
+     * @param procName the procName to set
+     */
+    public void setProcName(String procName) {
+        this.procName = procName;
     }
 }

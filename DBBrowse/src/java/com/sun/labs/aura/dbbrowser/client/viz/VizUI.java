@@ -24,6 +24,7 @@
 
 package com.sun.labs.aura.dbbrowser.client.viz;
 
+import com.google.gwt.i18n.client.NumberFormat;
 import com.google.gwt.user.client.Timer;
 import com.sun.labs.aura.dbbrowser.client.*;
 import com.google.gwt.user.client.Window;
@@ -37,6 +38,8 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -70,6 +73,8 @@ public class VizUI extends DockPanel {
 
     protected Timer statUpdateTimer;
     protected Timer webStatUpdateTimer;
+
+    protected static NumberFormat cpuFormat = NumberFormat.getFormat("##00.0");
     
     public VizUI() {
         theUI = this;
@@ -316,12 +321,17 @@ public class VizUI extends DockPanel {
         }
 
         //
+        // Store all the web panels up so we can insert them into the UI
+        // in sorted order.
+        ArrayList<WebPanel> panels = new ArrayList<WebPanel>();
+
+        //
         // Get or add a panel for each proc
         for (String procName : procNames) {
             WebPanel panel = procToWebPanel.get(procName);
             if (panel == null) {
                 panel = new WebPanel(procName);
-                webColumn.add(panel);
+                panels.add(panel);
                 procToWebPanel.put(procName, panel);
             }
             panel.setCPULoad(stats.get(procName + ":" + "PERCENT_CPU"));
@@ -330,6 +340,54 @@ public class VizUI extends DockPanel {
                 panel.setActiveSessions(activeSessions.intValue());
             } else {
                 panel.setActiveSessions(0);
+            }
+        }
+
+        if (!panels.isEmpty()) {
+            //
+            // Sort the panels (natural ordering is by name)
+            Collections.sort(panels);
+
+            //
+            // As we add machines, we'll group them by load-balanced group and give
+            // a total number of sessions per LB group.
+            String groupName = "";
+            LBGroupPanel groupPanel = null;
+
+            //
+            // Insert all the panels into the UI, grouped by load-balanced group
+            for (WebPanel panel : panels) {
+                String procName = panel.getProcName();
+                if (procName.contains("-")) {
+                    String nextGroupName = procName.substring(0, procName.indexOf('-'));
+                    if (!groupName.equals(nextGroupName)) {
+                        if (groupPanel != null) {
+                            webColumn.add(groupPanel);
+                        }
+                        groupPanel = new LBGroupPanel(nextGroupName);
+                        groupName = nextGroupName;
+                    }
+                    groupPanel.add(panel);
+                } else {
+                    webColumn.add(panel);
+                }
+            }
+
+            //
+            // See if we added anything to the last group panel.
+            if (groupPanel.getWidgetCount() > 0) {
+                webColumn.add(groupPanel);
+            }
+        }
+
+        //
+        // See if we have any group panels, and if so, update their total
+        // number of active sessions.
+        Iterator<Widget> webIt = webColumn.iterator();
+        while (webIt.hasNext()) {
+            Widget w = webIt.next();
+            if (w instanceof LBGroupPanel) {
+                ((LBGroupPanel)w).updateActiveSessions();
             }
         }
     }
