@@ -240,6 +240,7 @@ public class CompactArtistWidget extends Composite implements HasListeners {
         History.newItem("tag:"+tag.getId());
     }
 
+    @Override
     public void doRemoveListeners() {
         if (star != null) {
             star.onDelete();
