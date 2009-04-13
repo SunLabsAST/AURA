@@ -68,7 +68,7 @@ import org.w3c.dom.Element;
 public class Canvas extends HttpServlet {
     protected Logger logger = Logger.getLogger("");
     protected ExpiringLRACache<Long,List<Artist>> uidToArtists =
-            new ExpiringLRACache<Long,List<Artist>>(5000, 24 * 60 * 60 * 1000);
+            new ExpiringLRACache<Long,List<Artist>>(5000, 30 * 60 * 1000);
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
