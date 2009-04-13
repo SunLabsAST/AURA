@@ -114,6 +114,9 @@ public class DataManager implements Configurable {
     private ArrayList<ScoredC<String>> tagOracle;
     private Map<String, SimType> simTypes;
 
+    private HashSet<String> BANNED_NAMES;
+    private HashSet<String> BANNED_MBIDs;
+
     /**
      * Creates a new instance of the datamanager
      * @param path  the path to the database
@@ -131,8 +134,14 @@ public class DataManager implements Configurable {
             Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, "MusicDatabase is null");
             throw new WebException(WebException.errorMessages.INIT_ERROR);
         }
-
         this.mdb = mdb;
+
+        BANNED_NAMES = new HashSet<String>();
+        BANNED_MBIDs = new HashSet<String>();
+        BANNED_NAMES.add("Anal Cunt");
+        BANNED_MBIDs.add("8cde362e-2c23-41d3-834f-5015aa3b334f");
+        BANNED_NAMES.add("The Kinks");
+        BANNED_MBIDs.add("17b53d9f-5c63-4a09-a593-dde4608e0db9");
 
         artistOracle = new ArrayList<ScoredC<String>>();
         tagOracle = new ArrayList<ScoredC<String>>();
@@ -140,7 +149,9 @@ public class DataManager implements Configurable {
         try {
             logger.info("Fetching " + NUMBER_ARTIST_ORACLE + " most popular artists...");
             for (Artist a : mdb.artistGetMostPopular(NUMBER_ARTIST_ORACLE)) {
-                artistOracle.add(new ScoredC<String>(a.getName(), a.getPopularity()));
+                if (!BANNED_MBIDs.contains(a.getKey())) {
+                    artistOracle.add(new ScoredC<String>(a.getName(), a.getPopularity()));
+                }
             }
             //artistOracle.addAll(mdb.artistGetMostPopularNames(NUMBER_ARTIST_ORACLE));
             for (ArtistTag aT : mdb.artistTagGetMostPopular(NUMBER_ARTIST_ORACLE)) {
