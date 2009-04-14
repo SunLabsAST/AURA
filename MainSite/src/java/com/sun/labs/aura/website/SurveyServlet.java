@@ -26,6 +26,7 @@ package com.sun.labs.aura.website;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Date;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -76,7 +77,9 @@ public class SurveyServlet extends HttpServlet {
                     pw.print(request.getParameter("question7") + "\t");
                     pw.print(request.getParameter("question8") + "\t");
                     pw.print(request.getParameter("question9").replaceAll("[\\r\\n\\t]", " ") + "\t");
-                    pw.println(request.getParameter("question10".replaceAll("[\\r\\n\\t]", " ")));
+                    pw.print(request.getParameter("question10").replaceAll("[\\r\\n\\t]", " ") + "\t");
+                    pw.print(request.getHeader("User-Agent").replaceAll("\\t", " ") + "\t");
+                    pw.println(new Date());
                     pw.flush();
                 }
             }
