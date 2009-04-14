@@ -134,7 +134,6 @@ public abstract class TagDisplayLib {
         final PopupPanel d = Popup.getPopupPanel();
         Panel p = getTagsInPanel(tags, d, order, cdm, colorTheme);
         if (p!=null) {
-        //    Popup.showPopup(p,title,d);
             Popup.showRoundedPopup(p, title, d, 600);
         } else {
             Popup.showRoundedPopup(new Label("Sorry, no tags to display"), title, d, 600);

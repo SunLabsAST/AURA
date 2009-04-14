@@ -24,14 +24,12 @@
 
 package com.sun.labs.aura.music.wsitm.client.ui.widget;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Command;
 import com.sun.labs.aura.music.wsitm.client.ui.SpannedLabel;
 import com.sun.labs.aura.music.wsitm.client.event.DataEmbededClickListener;
 import com.sun.labs.aura.music.wsitm.client.event.HasListeners;
 import com.sun.labs.aura.music.wsitm.client.*;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Grid;
@@ -244,25 +242,6 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         
         Integer[] highColor = new Integer[3];
         Integer[] lowColor = new Integer[3];
-        /* vert clair
-         highColor[0] = 111;
-        highColor[1] = 221;
-        highColor[2] = 129;
-         * */
-        /** rouge
-        highColor[0] = 255;
-        highColor[1] = 123;
-        highColor[2] = 109;
-         * */
-
-        /** For Beige CSS
-        highColor[0] = 185;
-        highColor[1] = 255;
-        highColor[2] = 109;
-        lowColor[0] = 240;
-        lowColor[1] = 248;
-        lowColor[2] = 198;
-        */
 
         highColor[0] = 203;
         highColor[1] = 217;
@@ -272,9 +251,6 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         lowColor[2] = 251;
 
         for (int i=0; i<3; i++) {
-            // linear mapping
-            //tcol = Integer.toHexString((int)( (highColor[i]-lowColor[i])*sim + lowColor[i] ));
-            // exp mapping
             tcol = Integer.toHexString((int)( (highColor[i]-lowColor[i])*Math.pow((sim+.5)/1.5,3) + lowColor[i] ));
             if (tcol.length() == 1) {
                 tcol = "0" + tcol;
@@ -390,7 +366,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         protected void addClickListener() {
             
             button.addClickListener(new DataEmbededClickListener<SwapableTxtButton>(this) {
-
+                @Override
                 public void onClick(Widget arg0) {
                     openWhyPopup(data);
                 }
@@ -411,7 +387,7 @@ public abstract class ArtistListWidget extends Composite implements HasListeners
         protected void addClickListener() {
             
             button.addClickListener(new DataEmbededClickListener<DiffButton>(this) {
-
+                @Override
                 public void onClick(Widget arg0) {
                     openDiffPopup(data);
                 }

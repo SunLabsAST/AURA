@@ -92,6 +92,7 @@ public class MusicPlayer extends HttpServlet {
         try {
             String outputString = playerString.replaceAll("__NAME__", name);
             outputString = outputString.replaceAll("__TYPE__", type);
+            outputString = outputString.replaceAll("__URL_NAME__", name.replaceAll("&","%26").replaceAll(" ", "+"));
             out.println(outputString);
         } finally {
             out.close();
