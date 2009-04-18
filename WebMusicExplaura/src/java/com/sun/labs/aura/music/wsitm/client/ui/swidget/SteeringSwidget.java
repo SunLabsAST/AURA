@@ -38,12 +38,10 @@ import com.sun.labs.aura.music.wsitm.client.*;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.ArtistListWidget;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
-import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
@@ -85,6 +83,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
+import org.cobogw.gwt.user.client.ui.Button;
+import org.cobogw.gwt.user.client.ui.ButtonBar;
 import org.cobogw.gwt.user.client.ui.RoundedPanel;
 
 /**
@@ -306,7 +306,6 @@ public class SteeringSwidget extends Swidget {
                     tagLand.removeAllItems(true);
                 }
             });
-            mainNorthMenuPanel.add(resetButton);
 
             Button viewCloudButton = new Button("View expanded cloud");
             viewCloudButton.addClickHandler(new ClickHandler() {
@@ -328,7 +327,11 @@ public class SteeringSwidget extends Swidget {
                     }
                 }
             });
-            mainNorthMenuPanel.add(viewCloudButton);
+
+            ButtonBar bar = new ButtonBar();
+            bar.add(resetButton);
+            bar.add(viewCloudButton);
+            mainNorthMenuPanel.add(bar);
 
             HorizontalPanel interfaceSelectPanel = new HorizontalPanel();
             Label interfaceLabel = new SpannedLabel("Interface: ");
