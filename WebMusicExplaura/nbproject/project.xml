@@ -24,7 +24,6 @@
  * information or have any questions.
  */
 -->
-
 <project xmlns="http://www.netbeans.org/ns/project/1">
     <type>org.netbeans.modules.web.project</type>
     <configuration>
@@ -79,6 +78,10 @@
                 </library>
                 <library>
                     <file>${libs.BerkeleyDB.classpath}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library>
+                    <file>${libs.EchoNest.classpath}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
             </web-module-libraries>

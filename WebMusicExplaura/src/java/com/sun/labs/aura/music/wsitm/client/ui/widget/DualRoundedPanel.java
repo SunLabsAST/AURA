@@ -71,7 +71,7 @@ public class DualRoundedPanel extends Composite {
 
     public void setContent(Widget w, boolean addRoundedPanel) {
         if (addRoundedPanel) {
-            RoundedPanel rp = CssDefsImpl.impl.createRoundedPanel(w, RoundedPanel.BOTTOM, 4);
+            RoundedPanel rp = new RoundedPanel(w, RoundedPanel.BOTTOM, 4);
             w.addStyleName("roundedPageBack");
             rp.setCornerStyleName("roundedPageBack");
             mainPanel.setWidget(1, 0, rp);

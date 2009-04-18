@@ -1,30 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-/*
- * Copyright 2005-2009 Sun Microsystems, Inc. All Rights Reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER
- * 
- * This code is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2
- * only, as published by the Free Software Foundation.
- * 
- * This code is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License version 2 for more details (a copy is
- * included in the LICENSE file that accompanied this code).
- * 
- * You should have received a copy of the GNU General Public License
- * version 2 along with this work; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- * 
- * Please contact Sun Microsystems, Inc., 16 Network Circle, Menlo
- * Park, CA 94025 or visit www.sun.com if you need additional
- * information or have any questions.
- */
--->
+        *** GENERATED FROM project.xml - DO NOT EDIT  ***
+        ***         EDIT ../build.xml INSTEAD         ***
 
+        For the purpose of easier reading the script
+        is divided into following sections:
+        - initialization
+        - compilation
+        - dist
+        - execution
+        - debugging
+        - javadoc
+        - junit compilation
+        - junit execution
+        - junit debugging
+        - cleanup
+
+        -->
 <project xmlns:webproject1="http://www.netbeans.org/ns/web-project/1" xmlns:webproject2="http://www.netbeans.org/ns/web-project/2" xmlns:webproject3="http://www.netbeans.org/ns/web-project/3" basedir=".." default="default" name="WebMusicExplaura-impl">
     <import file="ant-deploy.xml"/>
     <target depends="dist,javadoc" description="Build whole project." name="default"/>
@@ -578,9 +570,10 @@ exists or setup the property manually. For example like this:
         <copyfiles files="${libs.GWTExtensions.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.GWTExtensions.classpath" todir="${dist.ear.dir}"/>
         <copyfiles files="${libs.GWTBleeding.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.GWTBleeding.classpath" todir="${dist.ear.dir}"/>
         <copyfiles files="${libs.BerkeleyDB.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.BerkeleyDB.classpath" todir="${dist.ear.dir}"/>
+        <copyfiles files="${libs.EchoNest.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.EchoNest.classpath" todir="${dist.ear.dir}"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${manifest.libs.Minion.classpath} ${manifest.libs.SunLabsUtilities.classpath} ${manifest.libs.ApacheCommons.classpath} ${manifest.libs.Guice.classpath} ${manifest.file.reference.htmlparser-1.6.jar} ${manifest.reference.aura.jar} ${manifest.reference.sitm.jar} ${manifest.libs.OpenID.classpath} ${manifest.libs.JiniCore.classpath} ${manifest.libs.GWTExtensions.classpath} ${manifest.libs.GWTBleeding.classpath} ${manifest.libs.BerkeleyDB.classpath} "/>
+            <attribute name="Class-Path" value="${manifest.libs.Minion.classpath} ${manifest.libs.SunLabsUtilities.classpath} ${manifest.libs.ApacheCommons.classpath} ${manifest.libs.Guice.classpath} ${manifest.file.reference.htmlparser-1.6.jar} ${manifest.reference.aura.jar} ${manifest.reference.sitm.jar} ${manifest.libs.OpenID.classpath} ${manifest.libs.JiniCore.classpath} ${manifest.libs.GWTExtensions.classpath} ${manifest.libs.GWTBleeding.classpath} ${manifest.libs.BerkeleyDB.classpath} ${manifest.libs.EchoNest.classpath} "/>
         </manifest>
     </target>
     <target depends="init" name="library-inclusion-in-archive" unless="dist.ear.dir">
@@ -596,6 +589,7 @@ exists or setup the property manually. For example like this:
         <copyfiles files="${libs.GWTExtensions.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copyfiles files="${libs.GWTBleeding.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copyfiles files="${libs.BerkeleyDB.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copyfiles files="${libs.EchoNest.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>

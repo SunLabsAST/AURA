@@ -175,9 +175,7 @@ public abstract class Popup {
         fP.setHeight("100%");
         fP.setWidget(0, 0, vP);
 
-        //RoundedPanel rp = new RoundedPanel(fP, RoundedPanel.ALL, 5);
-        RoundedLinePanel rp = CssDefsImpl.impl.createRoundedLinePanel(fP, RoundedPanel.ALL, 5);
-        //RoundedLinePanel rp = new RoundedLinePanel(w, RoundedPanel.ALL, 5);
+        RoundedLinePanel rp = new RoundedLinePanel(fP, RoundedPanel.ALL, 5);
         //rp.setCornerStyleName("popupColors");
         rp.setCornerColor("#005480", "#5382a1", "#5382a1");
         popup.add(rp);
