@@ -24,6 +24,8 @@
 
 package com.sun.labs.aura.music.wsitm.server;
 
+import com.echonest.api.v3.EchoNestException;
+import com.echonest.api.v3.artist.ArtistAPI;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
 import com.sun.labs.aura.datastore.DataStore;
@@ -80,6 +82,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
@@ -94,22 +97,25 @@ import java.util.regex.Pattern;
 public class DataManager implements Configurable {
 
     private static final String MDB_KEY = "MusicDatabase";
-    private static final String CACHE_SIZE = "cacheSize";
-    private static final int DEFAULT_CACHE_SIZE = 500;
     private static final int NUMBER_TAGS_TO_SHOW = 20;
     private static final int NUMBER_SIM_ARTISTS = 15;
     private static final int NBR_REC_LISTENER = 20;
     private static final int SEC_TO_LIVE_IN_CACHE = 604800; // 1 week
     private static final int NUMBER_ARTIST_ORACLE = 1000;
     private static final int NUMBER_TAGS_ORACLE = 500;
+
     private Logger logger = Logger.getLogger("");
     ConfigurationManager configMgr;
     private ExpiringLRUCache cache;
     private MusicDatabase mdb;
     private int expiredTimeInDays = 0;
+
+    private static String ECHONEST_API_KEY = null;
     private static final String beatlesMDID = "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
     private static final String ANONYMOUS_USER_KEY = "ANONYMOUS_USER_KEY";
     private float beatlesPopularity = -1;
+
+    private ArrayList<Scored<ArtistCompact>> echoNestPopular;
     private ArrayList<ScoredC<String>> artistOracle;
     private ArrayList<ScoredC<String>> tagOracle;
     private Map<String, SimType> simTypes;
@@ -146,8 +152,50 @@ public class DataManager implements Configurable {
         artistOracle = new ArrayList<ScoredC<String>>();
         tagOracle = new ArrayList<ScoredC<String>>();
 
+        echoNestPopular = new ArrayList<Scored<ArtistCompact>>();
+
         try {
-            logger.info("Fetching " + NUMBER_ARTIST_ORACLE + " most popular artists...");
+            Properties properties = new Properties() ;
+            properties.load(this.getClass().getClassLoader()
+                    .getResourceAsStream("com/sun/labs/aura/music/wsitm/resource/api.properties"));
+            ECHONEST_API_KEY = properties.getProperty("ECHONEST_API_KEY");
+
+            logger.info("Fetching 15 most popular artists from The Echo Nest with KEY="+ECHONEST_API_KEY);
+            try {
+                ArtistAPI artistAPI = new ArtistAPI(ECHONEST_API_KEY);
+
+                List<com.echonest.api.v3.artist.Scored<com.echonest.api.v3.artist.Artist>> lsA = artistAPI.getTopHotttArtists(15);
+                logger.info("EchoNest::Got popular artists : "+lsA.size());
+
+                // Cycle through all the returned popular artist
+                for (com.echonest.api.v3.artist.Scored<com.echonest.api.v3.artist.Artist> sA : lsA) {
+                    Map<String, String> urls = artistAPI.getUrls(sA.getItem());
+                    if (urls.containsKey("mb_url")) {
+                        String mbUrl = urls.get("mb_url");
+                        String mbId = mbUrl.substring(mbUrl.lastIndexOf("/") + 1, mbUrl.length() - 5);
+                        Artist a = mdb.artistLookup(mbId);
+                        if (a != null) {
+                            try {
+                                cache.sput(a.getKey(), artistToArtistDetails(a));
+                            } catch (RemoteException ex) {
+                                Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                            try {
+                                if (!BANNED_MBIDs.contains(a.getKey())) {
+                                    echoNestPopular.add(new Scored<ArtistCompact>(artistToArtistCompact(a), sA.getScore()));
+                                }
+                            } catch (RemoteException ex) {
+                                Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    }
+                }
+            } catch (EchoNestException ex) {
+                Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            logger.info("Matched "+echoNestPopular.size()+" most popular artists from The Echo Nest");
+
+            logger.info("Fetching " + NUMBER_ARTIST_ORACLE + " most popular artists from datastore");
             for (Artist a : mdb.artistGetMostPopular(NUMBER_ARTIST_ORACLE)) {
                 if (!BANNED_MBIDs.contains(a.getKey())) {
                     artistOracle.add(new ScoredC<String>(a.getName(), a.getPopularity()));
@@ -157,12 +205,16 @@ public class DataManager implements Configurable {
             for (ArtistTag aT : mdb.artistTagGetMostPopular(NUMBER_ARTIST_ORACLE)) {
                 tagOracle.add(new ScoredC<String>(aT.getName(), aT.getPopularity()));
             }
-            logger.info("Fetching " + NUMBER_TAGS_ORACLE + " most popular tags...");
+            logger.info("Fetching " + NUMBER_TAGS_ORACLE + " most popular tags");
 
             //tagOracle.addAll(mdb.artistTagGetMostPopularNames(NUMBER_TAGS_ORACLE));
             logger.info("DONE");
 
             beatlesPopularity = mdb.artistLookup(beatlesMDID).getPopularity();
+        } catch (IOException ex) {
+            Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NullPointerException ex) {
+            Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
         } catch (AuraException ex) {
             Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -236,27 +288,44 @@ public class DataManager implements Configurable {
      */
     public ArtistCompact[] getRandomPopularArtists(int nbr) throws AuraException, RemoteException {
 
-        // the code for dealing with the popular artists looks a bit fragile
-        // what if the oracle doesn't have nbr artists in it.
-        // and the client that calls this code is counting on nbr records returned, which
-        // may not always be right.
-        
         Random r = new Random();
-        ArtistCompact[] aC = new ArtistCompact[nbr];
-        Set<String> nameSet = new HashSet<String>();
 
-        while (nameSet.size() < nbr) {
-            nameSet.add(artistOracle.get(r.nextInt(artistOracle.size())).getItem());
+        HashMap<String, ArtistCompact> artistSource = new HashMap<String, ArtistCompact>();
+        for (Scored<ArtistCompact> sA : echoNestPopular) {
+            artistSource.put(sA.getItem().getName(), sA.getItem());
         }
 
-        int index = 0;
-        for (String name : nameSet) {
-            List<Scored<Artist>> lsa = mdb.artistSearch(name, 1);
-            ArtistDetails aD = artistToArtistDetails(lsa.get(0).getItem());
-            cache.sput(aD.getId(), aD);
-            aC[index++] = aD.toArtistCompact();
+        // If we don't have enough artists with the results from the echonest,
+        // complement with random popular artists
+        int tries = 0;
+        while (artistSource.size() < nbr*2) {
+            String name = artistOracle.get(r.nextInt(artistOracle.size())).getItem();
+            // Add only the name of the artist to the map and differ loading
+            // the actual object to if we really return it to the client
+            if (!artistSource.containsKey(name)) {
+                artistSource.put(name, null);
+            }
+            if (++tries>nbr*5) {
+                break;
+            }
         }
-        return aC;
+
+        // Return a random selection from our pool of artists
+        ArrayList<ArtistCompact> aC = new ArrayList<ArtistCompact>();
+        String[] keys = artistSource.keySet().toArray(new String[0]);
+        int offset = r.nextInt(nbr*2-1);
+        for (int i=0; i<nbr; i++) {
+            String name = keys[((i+offset)%keys.length)];
+            ArtistCompact aCC = artistSource.get( name );
+            if (aCC==null) {
+                List<Scored<Artist>> lsa = mdb.artistSearch(name, 1);
+                ArtistDetails aD = artistToArtistDetails(lsa.get(0).getItem());
+                cache.sput(aD.getId(), aD);
+                aCC = aD.toArtistCompact();
+            }
+            aC.add(aCC);
+        }
+        return aC.toArray(new ArtistCompact[0]);
     }
 
     /**

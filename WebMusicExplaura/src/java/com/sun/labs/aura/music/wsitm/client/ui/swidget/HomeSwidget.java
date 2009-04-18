@@ -283,10 +283,12 @@ public class HomeSwidget extends Swidget {
             public void onSuccess(ArtistCompact[] aCList) {
                 Grid g = new Grid(POP_ART_HEIGHT, POP_ART_WIDTH);
                 int idx = 0;
-                for (int h = 0; h < POP_ART_HEIGHT; h++) {
-                    for (int w = 0; w < POP_ART_WIDTH; w++) {
-                        g.setWidget(h, w,
-                                new CompactArtistWidget(aCList[idx++], cdm,
+                for (int w = 0; w < POP_ART_WIDTH; w++) {
+                    for (int h = 0; h < POP_ART_HEIGHT; h++) {
+                        if (idx>=aCList.length) {
+                            break;
+                        }
+                        g.setWidget(h, w, new CompactArtistWidget(aCList[idx++], cdm,
                                 musicServer, null, null, InitialRating.FETCH, null));
                     }
                 }
