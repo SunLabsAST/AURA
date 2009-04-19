@@ -15,6 +15,7 @@
     <style type="text/css">
 table {
     width: 100%;
+    border: 0;
 }
 
 td {
@@ -41,14 +42,14 @@ td.buttons {
           completing the following brief survey.
           <form action="wmesurveysubmit">
           <ol>
-              <li>Overall, please rate your experience with the Music Explaura website.
-              <table border="1">
+              <li><b>Overall, please rate your experience with the Music Explaura website.</b>
+              <table border="0">
               <tr>
-                  <td width="20%">Not enjoyable at all</td>
-                  <td width="20%"></td>
-                  <td width="20%"></td>
-                  <td width="20%"></td>
                   <td width="20%">Highly enjoyable</td>
+                  <td width="20%"></td>
+                  <td width="20%"></td>
+                  <td width="20%"></td>
+                  <td width="20%">Not enjoyable at all</td>
               </tr>
               <tr>
                   <td width="20%" class="buttons"><input type="radio" name="question1" value="1"/></td>
@@ -61,14 +62,14 @@ td.buttons {
               </li>
               <br/>
               <li>
-                  How likely are you to recommend this website to a friend?
-              <table border="1">
+                  <b>How likely are you to recommend this website to a friend?</b>
+              <table border="0">
               <tr>
-                  <td width="20%">Not likely at all</td>
-                  <td width="20%"></td>
-                  <td width="20%"></td>
-                  <td width="20%"></td>
                   <td width="20%">Highly likely</td>
+                  <td width="20%"></td>
+                  <td width="20%"></td>
+                  <td width="20%"></td>
+                  <td width="20%">Not likely at all</td>
               </tr>
               <tr>
                   <td width="20%" class="buttons"><input type="radio" name="question2" value="1"/></td>
@@ -81,14 +82,14 @@ td.buttons {
               </li>
               <br/>
               <li>
-                  How likely are you to use the Explaura website as a resource in the future?
-              <table border="1">
+                  <b>How likely are you to use the Explaura website as a resource in the future?</b>
+              <table border="0">
               <tr>
-                  <td width="20%">Not likely at all</td>
-                  <td width="20%"></td>
-                  <td width="20%"></td>
-                  <td width="20%"></td>
                   <td width="20%">Highly likely</td>
+                  <td width="20%"></td>
+                  <td width="20%"></td>
+                  <td width="20%"></td>
+                  <td width="20%">Not likely at all</td>
               </tr>
               <tr>
                   <td width="20%" class="buttons"><input type="radio" name="question3" value="1"/></td>
@@ -101,14 +102,14 @@ td.buttons {
               </li>
               <br/>
               <li>
-                  To what extent did you understand the reasoning behind the music recommendations?
-              <table border="1">
+                  <b>To what extent did you understand the reasoning behind the music recommendations?</b>
+              <table border="0">
               <tr>
-                  <td width="20%">I didn't understand at all</td>
-                  <td width="20%"></td>
-                  <td width="20%"></td>
-                  <td width="20%"></td>
                   <td width="20%">I understood completely</td>
+                  <td width="20%"></td>
+                  <td width="20%"></td>
+                  <td width="20%"></td>
+                  <td width="20%">I didn't understand at all</td>
               </tr>
               <tr>
                   <td width="20%" class="buttons"><input type="radio" name="question4" value="1"/></td>
@@ -121,8 +122,8 @@ td.buttons {
               </li>
               <br/>
               <li>
-                  How many new bands or performers did you discover during your time on the Explaura site today?
-              <table border="1">
+                  <b>How many new bands or performers did you discover during your time on the Explaura site today?</b>
+              <table border="0">
               <tr>
                   <td width="20%">0</td>
                   <td width="20%">1</td>
@@ -141,14 +142,14 @@ td.buttons {
               </li>
               <br/>
               <li>
-                  How would you rate the relevance of the recommendations?
-              <table border="1">
+                  <b>How would you rate the relevance of the recommendations?</b>
+              <table border="0">
               <tr>
-                  <td width="20%">Not relevant at all</td>
-                  <td width="20%"></td>
-                  <td width="20%"></td>
-                  <td width="20%"></td>
                   <td width="20%">Highly relevant</td>
+                  <td width="20%"></td>
+                  <td width="20%"></td>
+                  <td width="20%"></td>
+                  <td width="20%">Not relevant at all</td>
               </tr>
               <tr>
                   <td width="20%" class="buttons"><input type="radio" name="question6" value="1"/></td>
@@ -161,14 +162,14 @@ td.buttons {
               </li>
               <br/>
               <li>
-                  To what extent were the tag clouds helpful in guiding your exploration of new music?
-              <table border="1">
+                  <b>To what extent were the tag clouds helpful in guiding your exploration of new music?</b>
+              <table border="0">
               <tr>
-                  <td width="20%">Not helpful at all</td>
-                  <td width="20%"></td>
-                  <td width="20%"></td>
-                  <td width="20%"></td>
                   <td width="20%">Very helpful</td>
+                  <td width="20%"></td>
+                  <td width="20%"></td>
+                  <td width="20%"></td>
+                  <td width="20%">Not helpful at all</td>
               </tr>
               <tr>
                   <td width="20%" class="buttons"><input type="radio" name="question7" value="1"/></td>
@@ -181,14 +182,14 @@ td.buttons {
               </li>
               <br/>
               <li>
-                  How easy is it to discover and learn to use Explaura’s features and functionality? (tag clouds, steering)
-              <table border="1">
+                  <b>How easy is it to discover and learn to use Explaura’s features and functionality? (tag clouds, steering)</b>
+              <table border="0">
               <tr>
-                  <td width="20%">Very difficult</td>
-                  <td width="20%"></td>
-                  <td width="20%"></td>
-                  <td width="20%"></td>
                   <td width="20%">Very easy</td>
+                  <td width="20%"></td>
+                  <td width="20%"></td>
+                  <td width="20%"></td>
+                  <td width="20%">Very difficult</td>
               </tr>
               <tr>
                   <td width="20%" class="buttons"><input type="radio" name="question8" value="1"/></td>
@@ -201,12 +202,12 @@ td.buttons {
               </li>
               <br/>
               <li>
-                  Please comment on any aspects of the site you found to be particularly satisfying or positive
+                  <b>Please comment on any aspects of the site you found to be particularly satisfying or positive</b>
                   <textarea cols="80" rows="4" name="question9"></textarea>
               </li>
               <br/>
               <li>
-                  Please comment on any aspects of the site you found to be particularly problematic or negative
+                  <b>Please comment on any aspects of the site you found to be particularly problematic or negative</b>
                   <textarea cols="80" rows="4" name="question10"></textarea>
               </li>
               <br>
