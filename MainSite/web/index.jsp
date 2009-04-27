@@ -81,6 +81,10 @@
                         <a href="dataStore.jsp">Learn more about the AURA Project
                         Data Store</a>
                     </li>
+                    <li>
+                        <a href="http://aura.kenai.com/">Get the AURA Project
+                        source code</a>
+                    </li>
                 </ul>
             </div>
             <div class="sectionTitle">Try It Now</div>
@@ -129,6 +133,9 @@
                     <li><a href="http://forums.tastekeeper.com/">The
                         TasteKeeper discussion
                     forums</a></li>
+                    <li><a href="http://aura.kenai.com/">The AURA Project
+                        source code</a>
+                    </li>
                 </ul>
             </div>
         </div>
