@@ -31,6 +31,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.util.props.ConfigInteger;
+import com.sun.labs.util.props.ConfigStringList;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -47,7 +48,16 @@ public class ArtistFindSimilar extends ServiceAdapter {
 
     private int numArtists;
 
+    @ConfigStringList(defaultList={})
+    public static final String PROP_ARTISTS = "artists";
+
+    private List<String> artists;
+
     ConfigurationManager cm;
+
+    MusicDatabase mdb;
+
+    NanoWatch nw;
 
     @Override
     public String serviceName() {
@@ -58,29 +68,46 @@ public class ArtistFindSimilar extends ServiceAdapter {
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
         cm = ps.getConfigurationManager();
+        try {
+            mdb = new MusicDatabase(cm);
+        } catch (AuraException ax) {
+            ps.getLogger().severe("Error: " + ax);
+        }
         numArtists = ps.getInt(PROP_NUM_ARTISTS);
+        artists = ps.getStringList(PROP_ARTISTS);
+        nw = new NanoWatch();
+    }
+
+    private void findSimilar(Artist artist) throws Exception {
+        nw.start();
+        List<Scored<Artist>> sartists =
+                mdb.artistFindSimilar(artist.getKey(), 10,
+                MusicDatabase.Popularity.ALL);
+        nw.stop();
+        logger.info(String.format("artist %s %s %.3fms", artist.getKey(), artist.getName(), nw.getLastTimeMillis()));
+        for (Scored<Artist> sa : sartists) {
+            logger.info(String.format(" %5.3f %s %s",
+                    sa.getScore(),
+                    sa.getItem().getKey(),
+                    sa.getItem().getName()));
+        }
     }
 
     @Override
     public void start() {
 
         try {
-            MusicDatabase mdb = new MusicDatabase(cm);
-            NanoWatch nw = new NanoWatch();
-            for(Artist artist : mdb.artistGetMostPopular(numArtists)) {
-                nw.start();
-                List<Scored<Artist>> sartists =
-                        mdb.artistFindSimilar(artist.getKey(), 10,
-                        MusicDatabase.Popularity.ALL);
-                nw.stop();
-                logger.info(String.format("artist %s %s %.3fms", artist.getKey(), artist.getName(), nw.getLastTimeMillis()));
-                for(Scored<Artist> sa : sartists) {
-                    logger.info(String.format(" %5.3f %s %s",
-                            sa.getScore(),
-                            sa.getItem().getKey(),
-                            sa.getItem().getName()));
+            if(numArtists > 0) {
+                for (Artist artist : mdb.artistGetMostPopular(numArtists)) {
+                    findSimilar(artist);
                 }
             }
+
+            for(String key : artists) {
+                Artist artist = mdb.artistLookup(key);
+                findSimilar(artist);
+            }
+            
             logger.info(String.format("Average fs time over %d calls: %.3fms",
                     nw.getClicks(), nw.getAvgTimeMillis()));
         } catch(AuraException ex) {

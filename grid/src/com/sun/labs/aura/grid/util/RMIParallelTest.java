@@ -42,6 +42,7 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
+import java.rmi.MarshalledObject;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -317,7 +318,7 @@ public class RMIParallelTest extends ServiceAdapter {
         for(Component c : reps) {
             Replicant rep = (Replicant) c;
             try {
-                DocumentVector rdv = rep.getDocumentVector(initialKey, config);
+                DocumentVector rdv = rep.getDocumentVector(initialKey, config).get();
                 if(rdv != null) {
                     logger.info(String.format(
                             "Got document vector for %s from %s",
@@ -407,7 +408,7 @@ public class RMIParallelTest extends ServiceAdapter {
         @Override
         public List<Scored<String>> call() throws Exception {
             nw.start();
-            result = r.findSimilar(dv, config);
+            result = r.findSimilar(new MarshalledObject<DocumentVector>(dv), new MarshalledObject<SimilarityConfig>(config)).get();
             nw.stop();
             repTime = result.size() > 0 ? result.get(0).time : 0;
             overhead = nw.getTimeMillis() - repTime;
