@@ -99,7 +99,7 @@
     <!-- builds the distribution jar, then uploads the results.-->
     <target name="download-data" description="Downloads replicant data" depends="make-output-directory">
         <dav:get url="${rep.url}" toDir="${out.dir}/${prefix}" userid="${user}" verbose="true" password="${pw}">
-            <davfileset dir="${prefix}">
+            <davfileset dir="db">
                 <include name="**/*"/>
             </davfileset>
             </dav:get>

@@ -1,0 +1,14 @@
+#!/bin/bash
+export DIR=`dirname $0`
+
+if [ -z "$2" ] ; then
+    OUTDIR=grid
+else
+    OUTDIR=$1
+fi
+
+for i in 0000 0001 0010 0011 0100 0101 0110 0111 1000 1001 1010 1011 1100 1101 1110 1111; do
+    echo Downloading data for prefix $i
+    mkdir -p ${OUTDIR}/${i}
+    ant -Dprefix=${i} -Dout.dir=${OUTDIR} -f ${DIR}/../grid-deploy/download-data.xml 
+done
