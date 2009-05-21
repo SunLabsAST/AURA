@@ -12,6 +12,8 @@
         <li><a href="http://forums.tastekeeper.com">Forums</a></li>
         <!-- <li><a href="">Wiki</a></li> -->
         <!-- <li><a href="">Docs</a></li> -->
-        <!-- <li><a href="http://aura.kenai.com">Source Code</a></li> -->
+        <li><a href="http://aura.kenai.com">Source Code</a></li>
     </ul>
+    <a href="http://research.sun.com/">
+        <img style="margin-left: 8px;" src="images/sponsored_sl.6.png"></img></a>
 </div>
