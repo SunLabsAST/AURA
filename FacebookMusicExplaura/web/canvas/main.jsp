@@ -338,6 +338,8 @@ cloud by combining the most distinctive terms that describe each band.
     }
 
     function ajaxError() {
+        var thediv = document.getElementById('mainSection');
+        clearDiv(thediv);
         showDialog("Error", "Sorry, an error has occurred.  Please try again later.");
     }
 
