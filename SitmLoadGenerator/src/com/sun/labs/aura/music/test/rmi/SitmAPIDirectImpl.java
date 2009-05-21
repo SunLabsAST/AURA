@@ -192,6 +192,7 @@ public class SitmAPIDirectImpl extends SitmAPI {
             return result;
         } catch (AuraException e) {
             monitor.opError("findSimilarArtistsByKey");
+            logger.log(Level.INFO, "error", e);
             throw new IOException(e);
         }
     }

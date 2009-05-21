@@ -58,6 +58,8 @@ import com.sun.labs.util.props.ConfigurableMXBean;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.io.IOException;
+import java.rmi.MarshalledObject;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -995,7 +997,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
 
     }
 
-    public DocumentVector getDocumentVector(String key, String field) throws AuraException, RemoteException {
+    public MarshalledObject<DocumentVector> getDocumentVector(String key, String field) throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         return pc.getDocumentVector(key, new SimilarityConfig(field));
     }
@@ -1003,20 +1005,34 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
     public List<Scored<Item>> findSimilar(String key, SimilarityConfig config)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
-        DocumentVector dv = pc.getDocumentVector(key, config);
-        return findSimilar(dv, config);
+        try {
+            return findSimilar(pc.getDocumentVector(key, config), config);
+        } catch (RemoteException rx) {
+            logger.log(Level.SEVERE, "RemoteException for key: " + key, rx);
+            throw rx;
+        } catch (AuraException ax) {
+            logger.log(Level.SEVERE, "AuraException for key: " + key, ax);
+            throw ax;
+        }
     }
 
     public List<Scored<Item>> findSimilar(List<String> keys,
             SimilarityConfig config)
             throws AuraException, RemoteException {
-        List<DocumentVector> dvs = new ArrayList<DocumentVector>();
-        for(String key : keys) {
-            PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
-            dvs.add(pc.getDocumentVector(key, config));
+        if(keys.size() == 1) {
+            return findSimilar(keys.get(0), config);
         }
-        MultiDocumentVectorImpl mdvi = new MultiDocumentVectorImpl(dvs);
-        return findSimilar(mdvi, config);
+        List<DocumentVector> dvs = new ArrayList<DocumentVector>();
+        try {
+            for (String key : keys) {
+                PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
+                dvs.add(pc.getDocumentVector(key, config).get());
+            }
+            MultiDocumentVectorImpl mdvi = new MultiDocumentVectorImpl(dvs);
+            return findSimilar(new MarshalledObject<DocumentVector>(mdvi), config);
+        } catch (Exception ex) {
+            throw new AuraException("Error marshalling document vectors", ex);
+        }
     }
 
     public List<Scored<Item>> findSimilar(WordCloud cloud,
@@ -1033,7 +1049,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
     }
 
     private List<Scored<Item>> findSimilar(
-            DocumentVector dv,
+            MarshalledObject<DocumentVector> dv,
             final SimilarityConfig config)
             throws AuraException, RemoteException {
 
@@ -1051,6 +1067,14 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             return new ArrayList<Scored<Item>>();
         }
 
+        final MarshalledObject<SimilarityConfig> mconfig;
+        final MarshalledObject<DocumentVector> mdv = dv;
+        try {
+            mconfig = new MarshalledObject<SimilarityConfig>(config);
+        } catch (Exception ex) {
+            throw new AuraException("Error marshalling similarity configuration", ex);
+        }
+
         if(logger.isLoggable(Level.FINER)) {
             logger.finer(String.format("dsh fs start"));
         }
@@ -1063,8 +1087,8 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         // a handle to a countdown latch to watch when they finish.
         int totalPause = 0;
         for(PartitionCluster p : clusters) {
-            PCCaller<List<Scored<String>>> caller = new PCCaller(p, dv, config.
-                    getFilter()) {
+            PCCaller<List<Scored<String>>> caller = new PCCaller(p,
+                    config.getFilter()) {
 
                 public List<Scored<String>> call()
                         throws AuraException, RemoteException {
@@ -1079,12 +1103,21 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
                             logger.finer(String.format("dsh pc %s fs call", pc.
                                     getPrefix().toString()));
                         }
-                        List<Scored<String>> ret = pc.findSimilar(dv, config);
-                        if(logger.isLoggable(Level.FINER)) {
-                            logger.finer(String.format("dsh pc %s fs return", pc.getPrefix().
-                                    toString()));
+                        try {
+                            List<Scored<String>> ret = pc.findSimilar(
+                                    mdv, mconfig).get();
+                            if(logger.isLoggable(Level.FINER)) {
+                                logger.finer(String.format("dsh pc %s fs return", pc.getPrefix().
+                                        toString()));
+                            }
+                            return ret;
+                        } catch(IOException ex) {
+                            logger.log(Level.SEVERE, "Error in marshalling", ex);
+                            return null;
+                        } catch(ClassNotFoundException ex) {
+                            logger.log(Level.SEVERE, "Error in marshalling", ex);
+                            return null;
                         }
-                        return ret;
                     } finally {
                         latch.countDown(pc.getPrefix().toString());
                     }
@@ -1113,13 +1146,20 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             fsw.stop();
             List<Scored<Item>> ret = keysToItems(keys);
             allw.stop();
-            if(logger.isLoggable(Level.FINER)) {
-                logger.finer(String.format(
-                        "dsh fs %s took %.3f actual fs: %.3f", dv.getKey(),
-                        allw.getTimeMillis(), fsw.getTimeMillis()));
-            } else if(logger.isLoggable(Level.FINE)) {
-                logger.fine(String.format("dsh fs %s took %.3f", dv.getKey(),
-                        allw.getTimeMillis()));
+            if(logger.isLoggable(Level.FINE)) {
+                try {
+                    DocumentVector ldv = dv.get();
+                    if (logger.isLoggable(Level.FINER)) {
+                        logger.finer(String.format(
+                                "dsh fs %s took %.3f actual fs: %.3f", ldv.getKey(),
+                                allw.getTimeMillis(), fsw.getTimeMillis()));
+                    } else {
+                        logger.fine(String.format("dsh fs %s took %.3f", ldv.getKey(),
+                                allw.getTimeMillis()));
+                    }
+                } catch (Exception ex) {
+                    logger.log(Level.SEVERE, "Error unmarshalling dv for logging", ex);
+                }
             }
             return ret;
         } catch(ExecutionException ex) {
@@ -1149,9 +1189,13 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             throws AuraException, RemoteException {
         PartitionCluster pc1 = trie.get(DSBitSet.parse(key1.hashCode()));
         PartitionCluster pc2 = trie.get(DSBitSet.parse(key2.hashCode()));
-        DocumentVector dv1 = pc1.getDocumentVector(key1, config);
-        DocumentVector dv2 = pc2.getDocumentVector(key2, config);
-        return explainSimilarity(dv1, dv2, config.getN());
+        try {
+            DocumentVector dv1 = pc1.getDocumentVector(key1, config).get();
+            DocumentVector dv2 = pc2.getDocumentVector(key2, config).get();
+            return explainSimilarity(dv1, dv2, config.getN());
+        } catch (Exception ex) {
+            throw new AuraException("Error unmarshalling vectors", ex);
+        }
     }
 
     public List<Scored<String>> explainSimilarity(WordCloud cloud, String key,
@@ -1159,18 +1203,26 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             throws AuraException, RemoteException {
         PartitionCluster pc1 = trie.get(DSBitSet.parse(cloud.hashCode()));
         PartitionCluster pc2 = trie.get(DSBitSet.parse(key.hashCode()));
-        DocumentVector dv1 = pc1.getDocumentVector(cloud, config);
-        DocumentVector dv2 = pc2.getDocumentVector(key, config);
-        return explainSimilarity(dv1, dv2, config.getN());
+        try {
+            DocumentVector dv1 = pc1.getDocumentVector(cloud, config).get();
+            DocumentVector dv2 = pc2.getDocumentVector(key, config).get();
+            return explainSimilarity(dv1, dv2, config.getN());
+        } catch (Exception ex) {
+            throw new AuraException("Error unmarshalling vectors", ex);
+        }
     }
 
     public List<Scored<String>> explainSimilarity(WordCloud cloud1,
             WordCloud cloud2, SimilarityConfig config)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(cloud1.hashCode()));
-        DocumentVector dv1 = pc.getDocumentVector(cloud1, config);
-        DocumentVector dv2 = pc.getDocumentVector(cloud2, config);
-        return explainSimilarity(dv1, dv2, config.getN());
+        try {
+            DocumentVector dv1 = pc.getDocumentVector(cloud1, config).get();
+            DocumentVector dv2 = pc.getDocumentVector(cloud2, config).get();
+            return explainSimilarity(dv1, dv2, config.getN());
+        } catch (Exception ex) {
+            throw new AuraException("Error unmarshalling vectors", ex);
+        }
     }
 
     private List<Scored<String>> explainSimilarity(DocumentVector dv1,
@@ -1497,8 +1549,6 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
 
         protected List<Scored<String>> keys;
 
-        protected DocumentVector dv;
-
         protected ResultsFilter rf;
         
         protected int pause;
@@ -1510,15 +1560,6 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         public PCCaller(PartitionCluster pc, ResultsFilter rf) {
             this.pc = pc;
             this.rf = rf;
-        }
-
-        public PCCaller(PartitionCluster pc, DocumentVector dv, ResultsFilter rf) {
-            this.pc = pc;
-            this.rf = rf;
-            //
-            // Take a copy of the document vector, because we don't want the
-            // same one handed to multiple threads!
-            this.dv = dv.copy();
         }
 
         public PCCaller(PartitionCluster pc, List<Scored<String>> keys) {

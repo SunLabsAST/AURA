@@ -40,6 +40,7 @@ import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.minion.query.Element;
+import java.rmi.MarshalledObject;
 import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.Date;
@@ -276,22 +277,22 @@ public interface PCStrategy {
     /**
      * Get a doc vector for an item
      */
-    public DocumentVector getDocumentVector(String key,
+    public MarshalledObject<DocumentVector> getDocumentVector(String key,
                                             SimilarityConfig config)
             throws RemoteException, AuraException;
 
     /**
      * Get a doc vector for a word cloud
      */
-    public DocumentVector getDocumentVector(WordCloud cloud,
+    public MarshalledObject<DocumentVector> getDocumentVector(WordCloud cloud,
                                             SimilarityConfig config)
             throws RemoteException, AuraException;
 
     /**
      * Find similar items to the provided doc vector
      */
-    public List<Scored<String>> findSimilar(DocumentVector dv,
-                                          SimilarityConfig config)
+    public MarshalledObject<List<Scored<String>>> findSimilar(MarshalledObject<DocumentVector> dv,
+                                          MarshalledObject<SimilarityConfig> config)
             throws AuraException, RemoteException;
 
     /**

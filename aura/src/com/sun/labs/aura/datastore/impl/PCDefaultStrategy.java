@@ -41,6 +41,7 @@ import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.minion.query.Element;
+import java.rmi.MarshalledObject;
 import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.Date;
@@ -203,15 +204,16 @@ public class PCDefaultStrategy implements PCStrategy {
         return replicant.getExplanation(key, autoTag, n);
     }
 
-    public DocumentVector getDocumentVector(String key, SimilarityConfig config) throws RemoteException, AuraException {
+    public MarshalledObject<DocumentVector> getDocumentVector(String key, SimilarityConfig config) throws RemoteException, AuraException {
         return replicant.getDocumentVector(key, config);
     }
 
-    public DocumentVector getDocumentVector(WordCloud cloud, SimilarityConfig config) throws RemoteException, AuraException {
+    public MarshalledObject<DocumentVector> getDocumentVector(WordCloud cloud, SimilarityConfig config) throws RemoteException, AuraException {
         return replicant.getDocumentVector(cloud, config);
     }
 
-    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
+    public MarshalledObject<List<Scored<String>>> findSimilar(MarshalledObject<DocumentVector> dv, 
+            MarshalledObject<SimilarityConfig> config) throws AuraException, RemoteException {
         return replicant.findSimilar(dv, config);
     }
 
