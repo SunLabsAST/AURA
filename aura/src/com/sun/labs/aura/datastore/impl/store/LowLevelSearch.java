@@ -33,6 +33,7 @@ import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.minion.query.Element;
+import java.rmi.MarshalledObject;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
@@ -103,10 +104,10 @@ public interface LowLevelSearch extends Remote {
     public List<Scored<String>> query(Element query, String sort, int n,
             ResultsFilter rf) throws AuraException, RemoteException;
 
-    public DocumentVector getDocumentVector(String key, SimilarityConfig config)
+    public MarshalledObject<DocumentVector> getDocumentVector(String key, SimilarityConfig config)
             throws AuraException, RemoteException;
     
-    public DocumentVector getDocumentVector(WordCloud cloud, SimilarityConfig config)
+    public MarshalledObject<DocumentVector> getDocumentVector(WordCloud cloud, SimilarityConfig config)
             throws AuraException, RemoteException;
     
     /**
@@ -117,7 +118,8 @@ public interface LowLevelSearch extends Remote {
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config)
+    public MarshalledObject<List<Scored<String>>> findSimilar(MarshalledObject<DocumentVector> dv,
+            MarshalledObject<SimilarityConfig> config)
             throws AuraException, RemoteException;
 
     /**

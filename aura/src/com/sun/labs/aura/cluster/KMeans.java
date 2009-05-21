@@ -86,7 +86,10 @@ public class KMeans {
         // and add them to our feature clusterer.
         te = new ArrayList<ClusterElement>();
         for(String key : keys) {
-            te.add(new ClusterElement(store.getItem(key), store.getDocumentVector(key, field)));
+            try {
+                te.add(new ClusterElement(store.getItem(key), store.getDocumentVector(key, field).get()));
+            } catch (Exception ex) {
+            }
         }
         
         initFeatures(store);

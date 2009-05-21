@@ -44,6 +44,8 @@ import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.minion.query.Element;
+import java.io.IOException;
+import java.rmi.MarshalledObject;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,6 +53,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A strategy that defines how the partition cluster will perform while it
@@ -65,6 +69,8 @@ public class PCSplitStrategy implements PCStrategy {
     protected DSBitSet localPrefix;
     
     protected DSBitSet remotePrefix;
+
+    private Logger logger = Logger.getLogger(getClass().getName());
     
     /**
      * Construct a strategy for splitting a partition.  The localStrategy is
@@ -427,13 +433,13 @@ public class PCSplitStrategy implements PCStrategy {
         return ret;
     }
 
-    public DocumentVector getDocumentVector(String key, SimilarityConfig config) throws RemoteException, AuraException {
+    public MarshalledObject<DocumentVector> getDocumentVector(String key, SimilarityConfig config) throws RemoteException, AuraException {
         //
         // fetch the local copy then see if there is a newer one on the remote
         // end if it is supposed to live there
-        DocumentVector ret = local.getDocumentVector(key, config);
+        MarshalledObject<DocumentVector> ret = local.getDocumentVector(key, config);
         if (!keyIsLocal(key)) {
-            DocumentVector r = remote.getDocumentVector(key, config);
+            MarshalledObject<DocumentVector> r = remote.getDocumentVector(key, config);
             if (r != null) {
                 ret = r;
             }
@@ -441,19 +447,29 @@ public class PCSplitStrategy implements PCStrategy {
         return ret;
     }
 
-    public DocumentVector getDocumentVector(WordCloud cloud, SimilarityConfig config) throws RemoteException, AuraException {
+    public MarshalledObject<DocumentVector> getDocumentVector(WordCloud cloud, SimilarityConfig config) throws RemoteException, AuraException {
         // we're just looking for a cloud from one partition, so we'll
         // arbitrarily pick the local one
         return local.getDocumentVector(cloud, config);
     }
 
-    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
-        List<Scored<String>> l = local.findSimilar(dv, config);
-        List<Scored<String>> r = remote.findSimilar(dv, config);
-        l.removeAll(r);
-        l.addAll(r);
-        Collections.sort(l, ReverseScoredComparator.COMPARATOR);
-        return new ArrayList<Scored<String>>(l.subList(0, config.getN()));        
+    public MarshalledObject<List<Scored<String>>> findSimilar(MarshalledObject<DocumentVector> dv,
+            MarshalledObject<SimilarityConfig> config) throws AuraException, RemoteException {
+        try {
+            List<Scored<String>> l = local.findSimilar(dv, config).get();
+            List<Scored<String>> r = remote.findSimilar(dv, config).get();
+            l.removeAll(r);
+            l.addAll(r);
+            Collections.sort(l,
+                    ReverseScoredComparator.COMPARATOR);
+            return new MarshalledObject<List<Scored<String>>>(l.subList(0, config.get().getN()));
+        } catch(IOException ex) {
+            logger.log(Level.SEVERE, "Error unmarshalling", ex);
+            return null;
+        } catch(ClassNotFoundException ex) {
+            logger.log(Level.SEVERE, "Error unmarshalling", ex);
+            return null;
+        }
     }
 
     public void close() throws AuraException, RemoteException {

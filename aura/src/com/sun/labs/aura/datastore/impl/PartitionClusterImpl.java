@@ -55,6 +55,7 @@ import com.sun.labs.util.props.ConfigurableMXBean;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.rmi.MarshalledObject;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -380,19 +381,20 @@ public class PartitionClusterImpl implements PartitionCluster,
         return strategy.getExplanation(key, autoTag, n);
     }
 
-    public DocumentVector getDocumentVector(String key, SimilarityConfig config) throws RemoteException, AuraException {
+    public MarshalledObject<DocumentVector> getDocumentVector(String key, SimilarityConfig config) throws RemoteException, AuraException {
         return strategy.getDocumentVector(key, config);
     }
 
-    public DocumentVector getDocumentVector(WordCloud cloud, SimilarityConfig config) throws RemoteException, AuraException {
+    public MarshalledObject<DocumentVector> getDocumentVector(WordCloud cloud, SimilarityConfig config) throws RemoteException, AuraException {
         return strategy.getDocumentVector(cloud, config);
     }
 
-    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config) throws AuraException, RemoteException {
+    public MarshalledObject<List<Scored<String>>> findSimilar(MarshalledObject<DocumentVector> dv, 
+            MarshalledObject<SimilarityConfig> config) throws AuraException, RemoteException {
         if(logger.isLoggable(Level.FINE)) {
             logger.log(Level.FINE, String.format("pc %s fs start", prefixCode));
         }
-        List<Scored<String>> ret = strategy.findSimilar(dv, config);
+        MarshalledObject<List<Scored<String>>> ret = strategy.findSimilar(dv, config);
         if(logger.isLoggable(Level.FINE)) {
             logger.log(Level.FINE, String.format("pc %s fs stop", prefixCode));
         }

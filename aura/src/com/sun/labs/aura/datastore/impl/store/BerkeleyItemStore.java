@@ -73,6 +73,7 @@ import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.rmi.MarshalledObject;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -969,25 +970,33 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     }
     
     @Override
-    public DocumentVector getDocumentVector(String key, SimilarityConfig config) {
+    public MarshalledObject<DocumentVector> getDocumentVector(String key, SimilarityConfig config) throws AuraException, RemoteException {
         StatState state = new StatState();
         enter(StatName.GET_DV_KEY, state);
         
         DocumentVector dv = searchEngine.getDocumentVector(key, config);
         
         exit(state);
-        return dv;
+        try {
+            return new MarshalledObject<DocumentVector>(dv);
+        } catch (IOException ex) {
+            throw new AuraException("Error marshalling dv for " + key, ex);
+        }
     }
     
     @Override
-    public DocumentVector getDocumentVector(WordCloud cloud, SimilarityConfig config) {
+    public MarshalledObject<DocumentVector> getDocumentVector(WordCloud cloud, SimilarityConfig config)  throws AuraException, RemoteException {
         StatState state = new StatState();
         enter(StatName.GET_DV_CLOUD, state);
         
         DocumentVector dv = searchEngine.getDocumentVector(cloud, config);
         
         exit(state);
-        return dv;
+        try {
+            return new MarshalledObject<DocumentVector>(dv);
+        } catch (IOException ex) {
+            throw new AuraException("Error marshalling dv for " + cloud.toString(), ex);
+        }
     }
     
     @Override
@@ -1012,17 +1021,26 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      * all of the indexed text associated with the item in the data store.
      */
     @Override
-    public List<Scored<String>> findSimilar(DocumentVector dv, SimilarityConfig config)
+    public MarshalledObject<List<Scored<String>>> findSimilar(MarshalledObject<DocumentVector> mdv, 
+            MarshalledObject<SimilarityConfig> mconfig)
             throws AuraException, RemoteException {
-        StatState state = new StatState();
-        enter(StatName.FIND_SIM, state);
-        
-        List<Scored<String>> fsr = searchEngine.findSimilar(dv, config);
-        exit(state, ": " + dv.getKey());
-        if(fsr.size() > 0) {
-            fsr.get(0).time = state.timer.getTimeMillis();
+        try {
+            DocumentVector dv = mdv.get();
+            SimilarityConfig config = mconfig.get();
+            StatState state = new StatState();
+            enter(StatName.FIND_SIM, state);
+
+            List<Scored<String>> fsr = searchEngine.findSimilar(dv, config);
+            exit(state, ": " + dv.getKey());
+            if(fsr.size() > 0) {
+                fsr.get(0).time = state.timer.getTimeMillis();
+            }
+            return new MarshalledObject<List<Scored<String>>>(fsr);
+        } catch(java.io.IOException ioe) {
+            throw new AuraException("Error unmarshalling", ioe);
+        } catch(ClassNotFoundException cnfe) {
+            throw new AuraException("Error unmarshalling", cnfe);
         }
-        return fsr;
     }
 
     @Override
@@ -1364,14 +1382,16 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      * @param extra further string data to append to the log line
      */
     protected void enter(StatName name, StatState state, String extra) {
-        state.timer.start();
-        state.name = name;
-        if(logger.isLoggable(Level.FINER) && toLog.contains(name)) {
-            logger.finer(String.format("rep %s T%s enter %s %s",
-                                       prefixString,
-                                       Thread.currentThread().getId(),
-                                       name,
-                                       extra));
+        if(logger.isLoggable(Level.FINE) && toLog.contains(name)) {
+            state.timer.start();
+            state.name = name;
+            if(logger.isLoggable(Level.FINER)) {
+                logger.finer(String.format("rep %s T%s enter %s %s",
+                        prefixString,
+                        Thread.currentThread().getId(),
+                        name,
+                        extra));
+            }
         }
     }
     
@@ -1389,23 +1409,23 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      * @param extra further string data to append to the log line
      */
     protected void exit(StatState state, String extra) {
-        state.timer.stop();
-        double time = state.timer.getTimeMillis();
         if (logger.isLoggable(Level.FINE) && toLog.contains(state.name)) {
+            state.timer.stop();
+            double time = state.timer.getTimeMillis();
             logger.fine(String.format("rep %s T%s exit %s after %.3f %s",
                                       prefixString,
                                       Thread.currentThread().getId(),
                                       state.name,
                                       time,
                                       extra));
-        }
-        int idx = state.name.ordinal();
-        statInvocationCounts[idx].addAndGet(state.count);
-        synchronized (statTimeHistory[idx]) {
-            statTimeTotals[idx] += time;
-            statTimeHistory[idx].offer(time);
-            if (statTimeHistory[idx].size() > STAT_TIME_HISTORY) {
-                statTimeTotals[idx] -= statTimeHistory[idx].poll();
+            int idx = state.name.ordinal();
+            statInvocationCounts[idx].addAndGet(state.count);
+            synchronized(statTimeHistory[idx]) {
+                statTimeTotals[idx] += time;
+                statTimeHistory[idx].offer(time);
+                if(statTimeHistory[idx].size() > STAT_TIME_HISTORY) {
+                    statTimeTotals[idx] -= statTimeHistory[idx].poll();
+                }
             }
         }
     }
