@@ -85,8 +85,11 @@ public class HTTPLoadBalancer extends ServiceAdapter {
         //
         // Get the services that we'll be balancing.  We'll enumerate all of the
         // network addresses and add the ones that match the pattern of the
-        // servlet containers that were deployed.
-        List<RealService> services = new ArrayList();
+        // servlet containers that were deployed.  We'll also collect all
+        // the internal addresses of the services so that we can create
+        // NAT rules for them to talk to the outside world.
+        List<RealService> services = new ArrayList<RealService>();
+        List<NetworkAddress> intAddrs = new ArrayList<NetworkAddress>();
         Network network = gu.getNetwork();
         for (NetworkAddress addr : network.findAllAddresses()) {
             String name = ResourceName.getCSName(addr.getName());
@@ -103,6 +106,7 @@ public class HTTPLoadBalancer extends ServiceAdapter {
                                     state == RunState.STARTING) {
                                 logger.info("Got service at " + addr.getName());
                                 services.add(new RealService(addr.getUUID(), 80));
+                                intAddrs.add(addr);
                             }
                         }
                     }
@@ -191,6 +195,18 @@ public class HTTPLoadBalancer extends ServiceAdapter {
             logger.log(Level.SEVERE,
                     "Error creating or changing load balancer config",
                     ex);
+        }
+
+        //
+        // Now create the dynamic NAT rules to allow each machine to talk
+        // to the outside world.  Start with an external addr to use.
+        try {
+            NetworkAddress natExt = gu.getExternalAddressFor(serviceName + "-outbound");
+            for (NetworkAddress intAddr : intAddrs) {
+                gu.createNAT(natExt.getUUID(), intAddr.getUUID(), ResourceName.getCSName(intAddr.getName()) + "-nat");
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to create NAT");
         }
     }
 
